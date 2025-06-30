@@ -1,6 +1,6 @@
-"""FLX API Client - HTTP/gRPC client for FLX platform communication.
+"""FLEXT API Client - HTTP/gRPC client for FLEXT platform communication.
 
-Copyright (c) 2025 FLX Team. All rights reserved.
+Copyright (c) 2025 FLEXT Team. All rights reserved.
 """
 
 from __future__ import annotations
@@ -11,8 +11,8 @@ from urllib.parse import urljoin
 import httpx
 from pydantic import BaseModel, Field
 
-from flx_cli.utils.auth import get_auth_token
-from flx_cli.utils.config import get_config_value
+from flext_cli.utils.auth import get_auth_token
+from flext_cli.utils.config import get_config_value
 
 
 class PipelineConfig(BaseModel):
@@ -47,10 +47,10 @@ class PipelineList(BaseModel):
     page_size: int = Field(20, description="Page size")
 
 
-class FlxApiClient:
-    """HTTP API client for FLX platform.
+class FlextApiClient:
+    """HTTP API client for FLEXT platform.
 
-    Provides methods for interacting with the FLX REST API including
+    Provides methods for interacting with the FLEXT REST API including
     authentication, pipeline management, and plugin operations.
     """
 
@@ -89,7 +89,7 @@ class FlxApiClient:
         headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "User-Agent": "FLX-CLI/0.1.0",
+            "User-Agent": "FLEXT-CLI/0.1.0",
         }
 
         if self.token:
@@ -97,11 +97,11 @@ class FlxApiClient:
 
         return headers
 
-    async def __aenter__(self) -> FlxApiClient:
+    async def __aenter__(self) -> FlextApiClient:
         """Async context manager entry."""
         return self
 
-    async def __aexit__(self, *args: Any) -> None:
+    async def __aexit__(self, *args: object) -> None:
         """Async context manager exit."""
         await self.close()
 
