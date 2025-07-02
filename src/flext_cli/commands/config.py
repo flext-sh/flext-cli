@@ -103,7 +103,11 @@ def validate(ctx: click.Context) -> None:
         # Check required fields
         required_fields = ["api_url"]
 
-        missing_fields = [field for field in required_fields if field not in config_data or not config_data[field]]
+        missing_fields = [
+            field
+            for field in required_fields
+            if field not in config_data or not config_data[field]
+        ]
 
         if missing_fields:
             console.print("[red]❌ Configuration validation failed[/red]")

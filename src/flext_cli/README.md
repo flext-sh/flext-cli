@@ -74,7 +74,7 @@ src/flext_cli/
 | Responsibility          | Implementation                                                | Status               |
 | ----------------------- | ------------------------------------------------------------- | -------------------- |
 | **Command Entry**       | `cli()` function with universal_cli                           | ✅ Complete          |
-| **gRPC Communication**  | `FlextCliGrpcClient` class                                      | ⚠️ Type fixes needed |
+| **gRPC Communication**  | `FlextCliGrpcClient` class                                    | ⚠️ Type fixes needed |
 | **Pipeline Operations** | `create_pipeline()`, `list_pipelines()`, `execute_pipeline()` | ⚠️ Type fixes needed |
 | **Error Handling**      | ServiceResult pattern with comprehensive exceptions           | ✅ Complete          |
 | **Configuration**       | Automatic discovery via domain_config                         | ✅ Complete          |
@@ -99,10 +99,10 @@ src/flext_cli/
 
 ### 🏛️ Enterprise Integration
 
-| Library                            | Purpose                  | Integration Point                     |
-| ---------------------------------- | ------------------------ | ------------------------------------- |
+| Library                              | Purpose                  | Integration Point                     |
+| ------------------------------------ | ------------------------ | ------------------------------------- |
 | **flext_core.universe**              | Universal command system | `universal_cli()`, `universal_grpc()` |
-| **flext_core.grpc.client**           | gRPC base client         | `FlextGrpcClientBase` inheritance       |
+| **flext_core.grpc.client**           | gRPC base client         | `FlextGrpcClientBase` inheritance     |
 | **flext_core.domain.advanced_types** | Enterprise types         | `ServiceResult`, `ServiceError`       |
 
 ## 🚀 DETAILED COMPONENT ARCHITECTURE
@@ -280,9 +280,9 @@ graph TD
 
 | Service              | Connection Type | Purpose           | Configuration                        |
 | -------------------- | --------------- | ----------------- | ------------------------------------ |
-| **FLEXT Daemon**       | gRPC            | Command execution | `config.network.grpc_host:grpc_port` |
-| **Universal System** | Direct import   | Command routing   | `flext_core.universe`                  |
-| **Configuration**    | Direct import   | Auto-discovery    | `flext_core.config.domain_config`      |
+| **FLEXT Daemon**     | gRPC            | Command execution | `config.network.grpc_host:grpc_port` |
+| **Universal System** | Direct import   | Command routing   | `flext_core.universe`                |
+| **Configuration**    | Direct import   | Auto-discovery    | `flext_core.config.domain_config`    |
 
 ### 🔌 Usage Integration Points
 
@@ -489,8 +489,8 @@ async def create_multiple_pipelines(pipeline_configs):
 
 ### 📋 Core Commands
 
-| Command            | Purpose               | Example                                    |
-| ------------------ | --------------------- | ------------------------------------------ |
+| Command            | Purpose               | Example                                      |
+| ------------------ | --------------------- | -------------------------------------------- |
 | `create-pipeline`  | Create new pipeline   | `flext-ent create-pipeline --name sales_etl` |
 | `list-pipelines`   | List all pipelines    | `flext-ent list-pipelines`                   |
 | `execute-pipeline` | Run pipeline          | `flext-ent execute-pipeline --id pipe-123`   |
@@ -500,8 +500,8 @@ async def create_multiple_pipelines(pipeline_configs):
 
 ### 🔧 Administrative Commands
 
-| Command           | Purpose                | Example                                      |
-| ----------------- | ---------------------- | -------------------------------------------- |
+| Command           | Purpose                | Example                                        |
+| ----------------- | ---------------------- | ---------------------------------------------- |
 | `config-validate` | Validate configuration | `flext-ent config-validate`                    |
 | `plugin-install`  | Install plugin         | `flext-ent plugin-install --name tap-postgres` |
 | `plugin-list`     | List plugins           | `flext-ent plugin-list`                        |
@@ -509,8 +509,8 @@ async def create_multiple_pipelines(pipeline_configs):
 
 ### 🎯 Integration Commands
 
-| Command            | Purpose                     | Example                                          |
-| ------------------ | --------------------------- | ------------------------------------------------ |
+| Command            | Purpose                     | Example                                            |
+| ------------------ | --------------------------- | -------------------------------------------------- |
 | `export-config`    | Export configuration        | `flext-ent export-config --format yaml`            |
 | `import-pipelines` | Import pipeline definitions | `flext-ent import-pipelines --file pipelines.yaml` |
 | `backup-create`    | Create system backup        | `flext-ent backup-create --output backup.tar.gz`   |
