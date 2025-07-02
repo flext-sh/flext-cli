@@ -5,7 +5,7 @@ Copyright (c) 2025 FLX Team. All rights reserved.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Self
 from urllib.parse import urljoin
 
 import httpx
@@ -97,11 +97,11 @@ class FlxApiClient:
 
         return headers
 
-    async def __aenter__(self) -> FlxApiClient:
+    async def __aenter__(self) -> Self:
         """Async context manager entry."""
         return self
 
-    async def __aexit__(self, *args: Any) -> None:
+    async def __aexit__(self, *args: object) -> None:
         """Async context manager exit."""
         await self.close()
 

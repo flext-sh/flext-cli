@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 import click
 import yaml
-from rich.console import Console
 from rich.table import Table
 
 from flx_cli.utils.config import (
@@ -17,11 +17,13 @@ from flx_cli.utils.config import (
     set_config_value,
 )
 
+if TYPE_CHECKING:
+    from rich.console import Console
+
 
 @click.group()
 def config() -> None:
     """Configuration management commands."""
-    pass
 
 
 @config.command()
@@ -69,7 +71,7 @@ def get(ctx: click.Context, key: str | None) -> None:
 @click.argument("key")
 @click.argument("value")
 @click.pass_context
-def set(ctx: click.Context, key: str, value: str) -> None:
+def set_value(ctx: click.Context, key: str, value: str) -> None:
     """Set configuration value."""
     console: Console = ctx.obj["console"]
 
@@ -100,11 +102,11 @@ def validate(ctx: click.Context) -> None:
 
         # Check required fields
         required_fields = ["api_url"]
-        missing_fields = []
-
-        for field in required_fields:
-            if field not in config_data or not config_data[field]:
-                missing_fields.append(field)
+        missing_fields = [
+            field
+            for field in required_fields
+            if field not in config_data or not config_data[field]
+        ]
 
         if missing_fields:
             console.print("[red]❌ Configuration validation failed[/red]")
@@ -163,7 +165,7 @@ def edit(ctx: click.Context, profile: str | None) -> None:
                 "current_profile": "default",
             }
             config_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(config_path, "w") as f:
+            with open(config_path, "w", encoding="utf-8") as f:
                 yaml.dump(default_config, f, default_flow_style=False)
 
         subprocess.run([editor, str(config_path)], check=True)

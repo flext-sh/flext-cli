@@ -5,7 +5,7 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Self
 from urllib.parse import urljoin
 
 import httpx
@@ -97,7 +97,7 @@ class FlextApiClient:
 
         return headers
 
-    async def __aenter__(self) -> FlextApiClient:
+    async def __aenter__(self) -> Self:
         """Async context manager entry."""
         return self
 

@@ -12,4 +12,4 @@ __version__ = "0.1.0"
 from flext_cli.cli import cli
 from flext_cli.client import FlextApiClient
 
-__all__ = ["cli", "FlextApiClient", "__version__"]
+__all__ = ["FlextApiClient", "__version__", "cli"]

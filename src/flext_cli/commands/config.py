@@ -71,7 +71,7 @@ def get(ctx: click.Context, key: str | None) -> None:
 @click.argument("key")
 @click.argument("value")
 @click.pass_context
-def set(ctx: click.Context, key: str, value: str) -> None:
+def set_value(ctx: click.Context, key: str, value: str) -> None:
     """Set configuration value."""
     console: Console = ctx.obj["console"]
 
@@ -144,7 +144,7 @@ def path(ctx: click.Context) -> None:
 @config.command()
 @click.option("--profile", "-p", help="Profile name to edit")
 @click.pass_context
-def edit(ctx: click.Context, profile: str | None) -> None:  # noqa: ARG001
+def edit(ctx: click.Context, profile: str | None) -> None:
     """Edit configuration file in editor."""
     console: Console = ctx.obj["console"]
 
@@ -166,10 +166,10 @@ def edit(ctx: click.Context, profile: str | None) -> None:  # noqa: ARG001
                 "current_profile": "default",
             }
             config_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(config_path, "w") as f:
+            with open(config_path, "w", encoding="utf-8") as f:
                 yaml.dump(default_config, f, default_flow_style=False)
 
-        subprocess.run([editor, str(config_path)], check=True)  # noqa: S603
+        subprocess.run([editor, str(config_path)], check=True)
         console.print("[green]✅ Configuration updated[/green]")
 
     except subprocess.CalledProcessError:

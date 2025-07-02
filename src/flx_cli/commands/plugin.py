@@ -4,19 +4,21 @@ from __future__ import annotations
 
 import asyncio
 import json
+from typing import TYPE_CHECKING
 
 import click
-from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from flx_cli.client import FlxApiClient
 from flx_cli.utils.output import format_plugin_list
 
+if TYPE_CHECKING:
+    from rich.console import Console
+
 
 @click.group()
 def plugin() -> None:
     """Plugin management commands."""
-    pass
 
 
 @plugin.command(name="list")

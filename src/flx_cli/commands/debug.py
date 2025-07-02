@@ -6,19 +6,21 @@ import asyncio
 import platform
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import click
-from rich.console import Console
 from rich.table import Table
 
 from flx_cli.client import FlxApiClient
 from flx_cli.utils.config import get_config_path
 
+if TYPE_CHECKING:
+    from rich.console import Console
+
 
 @click.group(name="debug")
 def debug_cmd() -> None:
     """Debugging and diagnostic commands."""
-    pass
 
 
 @debug_cmd.command()

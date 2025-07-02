@@ -34,7 +34,7 @@ def get_config() -> dict[str, Any]:
             "timeout": int(os.environ.get("FLX_TIMEOUT", "30")),
         }
 
-    with open(config_path) as f:
+    with open(config_path, encoding="utf-8") as f:
         config = yaml.safe_load(f) or {}
 
     # Get current profile
@@ -69,7 +69,7 @@ def set_config_value(key: str, value: Any) -> None:
 
     # Load existing config or create new
     if config_path.exists():
-        with open(config_path) as f:
+        with open(config_path, encoding="utf-8") as f:
             config = yaml.safe_load(f) or {}
     else:
         config = {
@@ -95,7 +95,7 @@ def set_config_value(key: str, value: Any) -> None:
         config["profiles"][profile][key] = value
 
     # Save config
-    with open(config_path, "w") as f:
+    with open(config_path, "w", encoding="utf-8") as f:
         yaml.dump(config, f, default_flow_style=False)
 
 
