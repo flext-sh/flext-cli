@@ -27,7 +27,9 @@ def format_pipeline_list(console: Console, pipeline_list: object) -> None:
         console.print("[yellow]No pipelines found[/yellow]")
         return
 
-    total_pages = (pipeline_list.total + pipeline_list.page_size - 1) // pipeline_list.page_size
+    total_pages = (
+        pipeline_list.total + pipeline_list.page_size - 1
+    ) // pipeline_list.page_size
     title = f"Pipelines (Page {pipeline_list.page} of {total_pages})"
     table = Table(title=title)
     table.add_column("ID", style="cyan", no_wrap=True)
