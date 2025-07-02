@@ -3,18 +3,20 @@
 from __future__ import annotations
 
 import asyncio
+from typing import TYPE_CHECKING
 
 import click
-from rich.console import Console
 
 from flx_cli.client import FlxApiClient
 from flx_cli.utils.auth import clear_auth_token, get_auth_token, save_auth_token
+
+if TYPE_CHECKING:
+    from rich.console import Console
 
 
 @click.group()
 def auth() -> None:
     """Authentication management commands."""
-    pass
 
 
 @auth.command()

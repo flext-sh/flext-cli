@@ -12,4 +12,4 @@ __version__ = "0.1.0"
 from flx_cli.cli import cli
 from flx_cli.client import FlxApiClient
 
-__all__ = ["cli", "FlxApiClient", "__version__"]
+__all__ = ["FlxApiClient", "__version__", "cli"]

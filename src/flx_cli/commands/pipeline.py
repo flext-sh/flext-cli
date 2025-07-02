@@ -4,20 +4,23 @@ from __future__ import annotations
 
 import asyncio
 import json
+from typing import TYPE_CHECKING
 
+import aiofiles
 import click
 import yaml
-from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from flx_cli.client import FlxApiClient, PipelineConfig
 from flx_cli.utils.output import format_pipeline, format_pipeline_list
 
+if TYPE_CHECKING:
+    from rich.console import Console
+
 
 @click.group()
 def pipeline() -> None:
     """Pipeline management commands."""
-    pass
 
 
 @pipeline.command(name="list")
@@ -114,11 +117,12 @@ def create(
             # Load additional config from file if provided
             additional_config = {}
             if config_file:
-                with open(config_file) as f:
+                async with aiofiles.open(config_file) as f:
+                    content = await f.read()
                     if config_file.endswith((".yaml", ".yml")):
-                        additional_config = yaml.safe_load(f)
+                        additional_config = yaml.safe_load(content)
                     else:
-                        additional_config = json.load(f)
+                        additional_config = json.loads(content)
 
             config = PipelineConfig(
                 name=name,

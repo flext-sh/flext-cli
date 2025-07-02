@@ -6,6 +6,7 @@ import asyncio
 import json
 from typing import TYPE_CHECKING
 
+import aiofiles
 import click
 import yaml
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -116,11 +117,12 @@ def create(
             # Load additional config from file if provided
             additional_config = {}
             if config_file:
-                with open(config_file) as f:
+                async with aiofiles.open(config_file) as f:
+                    content = await f.read()
                     if config_file.endswith((".yaml", ".yml")):
-                        additional_config = yaml.safe_load(f)
+                        additional_config = yaml.safe_load(content)
                     else:
-                        additional_config = json.load(f)
+                        additional_config = json.loads(content)
 
             config = PipelineConfig(
                 name=name,
