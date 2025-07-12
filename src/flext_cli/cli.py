@@ -62,7 +62,9 @@ if TYPE_CHECKING:
     help="Suppress non-error output",
 )
 @click.pass_context
-def cli(ctx: click.Context, profile: str, output: str, debug: bool, quiet: bool) -> None:
+def cli(
+    ctx: click.Context, profile: str, output: str, debug: bool, quiet: bool,
+) -> None:
     """FLEXT Command Line Interface."""
     # Load configuration using flext-core
     config = get_config()

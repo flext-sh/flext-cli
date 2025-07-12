@@ -354,7 +354,7 @@ def pipeline_config() -> dict[str, Any]:
 
 @pytest.fixture
 def command_args() -> list[str]:
-        return ["--debug", "--output", "json", "--no-color"]
+    return ["--debug", "--output", "json", "--no-color"]
 
 
 # ============================================================================

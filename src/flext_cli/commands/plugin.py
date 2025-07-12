@@ -15,7 +15,7 @@ from flext_cli.client import FlextApiClient
 from flext_cli.utils.output import format_plugin_list
 
 if TYPE_CHECKING:
-            from rich.console import Console
+    from rich.console import Console
 
 
 @click.group()
@@ -233,7 +233,9 @@ def search(ctx: click.Context, query: str) -> None:
 )
 @click.option("--template", help="Template to use")
 @click.pass_context
-def create(ctx: click.Context, name: str, plugin_type: str, template: str | None) -> None:
+def create(
+    ctx: click.Context, name: str, plugin_type: str, template: str | None,
+) -> None:
     """Create a new plugin."""
     console: Console = ctx.obj["console"]
 

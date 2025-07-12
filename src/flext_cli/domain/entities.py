@@ -128,7 +128,9 @@ class CLICommand(DomainEntity):
         self.command_status = CommandStatus.RUNNING
         self.started_at = datetime.now()
 
-    def complete_execution(self, exit_code: int, stdout: str | None = None, stderr: str | None = None) -> None:
+    def complete_execution(
+        self, exit_code: int, stdout: str | None = None, stderr: str | None = None,
+    ) -> None:
         """Complete command execution.
 
         Args:

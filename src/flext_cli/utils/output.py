@@ -95,7 +95,9 @@ def format_pipeline(console: Console, pipeline: object) -> None:
             console.print(syntax)
 
 
-def format_plugin_list(console: Console, plugins: list[dict[str, Any]], output_format: str) -> None:
+def format_plugin_list(
+    console: Console, plugins: list[dict[str, Any]], output_format: str,
+) -> None:
     """Format plugin list for display."""
     if not plugins:
         console.print("[yellow]No plugins found[/yellow]")
@@ -132,11 +134,11 @@ def format_plugin_list(console: Console, plugins: list[dict[str, Any]], output_f
 
 
 def format_json(data: object) -> str:
-        return json.dumps(data, indent=2, default=str)
+    return json.dumps(data, indent=2, default=str)
 
 
 def format_yaml(data: object) -> str:
-        return yaml.dump(data, default_flow_style=False, default_str=str)
+    return yaml.dump(data, default_flow_style=False, default_str=str)
 
 
 # Legacy print functions - use CLIContext methods instead

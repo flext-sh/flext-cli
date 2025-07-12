@@ -39,7 +39,7 @@ def setup_cli(settings: CLISettings | None = None) -> ServiceResult[bool]:
 
 
 def create_development_cli_config(**overrides: Any) -> CLISettings:
-        # Development defaults
+    # Development defaults
     defaults = {
         "debug": True,
         "trace": True,
@@ -61,7 +61,7 @@ def create_development_cli_config(**overrides: Any) -> CLISettings:
 
 
 def create_production_cli_config(**overrides: Any) -> CLISettings:
-        # Production defaults
+    # Production defaults
     defaults = {
         "debug": False,
         "trace": False,

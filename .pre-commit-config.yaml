@@ -1,63 +1,159 @@
-# Pre-commit configuration - FLEXT CLI
-# See https://pre-commit.com for more information
+# Pre-commit configuration - FLEXT CLI Command Line Interface
+# Versões sincronizadas com poetry.lock real
+# Context: CLI + Click + Rich + Terminal UX
 
 repos:
+  # ===== BASIC FILE CHECKS =====
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
       - id: check-yaml
+        args: [--unsafe]
       - id: check-json
       - id: check-added-large-files
+        args: ["--maxkb=1000"]
       - id: check-case-conflict
       - id: check-merge-conflict
       - id: check-toml
       - id: debug-statements
       - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: check-ast
+      - id: check-docstring-first
+      - id: detect-private-key
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
 
+  # ===== PYTHON IMPORT SORTING - VERSÃO REAL 6.0.1 =====
+  - repo: https://github.com/pycqa/isort
+    rev: 6.0.1
+    hooks:
+      - id: isort
+        args: ["--profile", "black", "--line-length=88"]
+
+  # ===== PYTHON CODE FORMATTING - VERSÃO REAL 25.1.0 =====
   - repo: https://github.com/psf/black
-    rev: 24.10.0
+    rev: 25.1.0
     hooks:
       - id: black
         language_version: python3.13
+        args: ["--line-length=88", "--target-version=py313"]
 
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.8.6
+  # ===== PYTHON LINTING - VERSÃO REAL 0.12.3 =====
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.3
     hooks:
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+        args:
+          [
+            "--fix",
+            "--exit-non-zero-on-fix",
+            "--line-length=88",
+            "--target-version=py313",
+            "--select=ALL",
+            "--ignore=COM812,ISC001,D203,D213,TD003,FIX002,ERA001,PLR0912,PLR0913,PLR0915,PLR2004,C901,BLE001,TRY003,EM101,EM102",
+          ]
       - id: ruff-format
+        args: ["--line-length=88"]
 
+  # ===== PYTHON TYPE CHECKING - VERSÃO REAL 1.16.1 + DEPS CLI =====
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.16.0
+    rev: v1.16.1
     hooks:
       - id: mypy
         additional_dependencies:
           [
             types-python-dateutil,
             types-requests,
-            types-pyyaml,
-            pydantic,
-            click,
-            rich,
-            typer,
+            types-setuptools,
+            pydantic>=2.6.0,
+            pydantic-settings,
+            click>=8.1.7,
+            rich>=13.5.2,
+            typer>=0.15.0,
+            structlog,
             httpx,
-            questionary,
-            watchfiles,
           ]
-        args: [--strict, --ignore-missing-imports]
+        args:
+          [
+            "--strict",
+            "--warn-unreachable",
+            "--warn-unused-ignores",
+            "--no-implicit-reexport",
+            "--ignore-missing-imports",
+            "--show-error-codes",
+            "--show-column-numbers",
+            "--pretty",
+            "--python-version=3.13",
+          ]
+        language_version: python3.13
 
+  # ===== BANDIT SECURITY - VERSÃO REAL 1.8.6 =====
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.8.3
+    rev: 1.8.6
     hooks:
       - id: bandit
-        args: [-r, src/]
+        args: ["-r", "src/", "--severity-level=low", "--confidence-level=low"]
         exclude: tests/
 
+  # ===== POETRY DEPENDENCY MANAGEMENT =====
   - repo: https://github.com/python-poetry/poetry
     rev: 1.8.4
     hooks:
       - id: poetry-check
       - id: poetry-lock
         args: [--no-update]
+
+  # ===== CODESPELL - VERSÃO REAL 2.4.1 + CONTEXTO CLI =====
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        args:
+          [
+            "--skip=*.json,*.lock,*.toml,*.yaml,*.yml,poetry.lock",
+            "--ignore-words-list=flext,cli,args,kwargs,stdin,stdout,stderr,subprocess,config,configs,repo,repos",
+          ]
+
+  # ===== VALIDATE PYPROJECT.TOML =====
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: v0.16
+    hooks:
+      - id: validate-pyproject
+
+  # ===== PYTHON UPGRADE - VERSÃO REAL 3.20.0 =====
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.20.0
+    hooks:
+      - id: pyupgrade
+        args: [--py313-plus]
+
+  # ===== AUTOFLAKE - VERSÃO REAL 2.3.1 =====
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v2.3.1
+    hooks:
+      - id: autoflake
+        args:
+          [
+            "--remove-all-unused-imports",
+            "--remove-unused-variables",
+            "--in-place",
+            "--recursive",
+          ]
+
+# ===== CI SETTINGS - FLEXT-CLI ESPECÍFICO =====
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks - flext-cli Command Line Interface
+  autofix_prs: true
+  autoupdate_branch: ""
+  autoupdate_commit_msg: "[pre-commit.ci] pre-commit autoupdate"
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false
+
+# ===== MODO FLEXÍVEL - FLEXT-CLI COMMAND LINE INTERFACE =====
+fail_fast: false

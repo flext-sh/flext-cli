@@ -14,7 +14,7 @@ from flext_cli.utils.config import get_config
 from flext_core.domain.types import ServiceResult
 
 if TYPE_CHECKING:
-            from pathlib import Path
+    from pathlib import Path
 
 
 def get_token_path() -> Path:

@@ -26,7 +26,9 @@ def async_command[F: Callable[..., Any]](f: F) -> F:
     return wrapper
 
 
-def confirm_action(message: str = "Are you sure?", default: bool = False) -> Callable[[F], F]:
+def confirm_action(
+    message: str = "Are you sure?", default: bool = False,
+) -> Callable[[F], F]:
     """Decorator to confirm dangerous actions.
 
     Args:
@@ -112,7 +114,9 @@ def measure_time(show_in_output: bool = True) -> Callable[[F], F]:
     return decorator
 
 
-def retry(max_attempts: int = 3, delay: float = 1.0, backoff: float = 2.0) -> Callable[[F], F]:
+def retry(
+    max_attempts: int = 3, delay: float = 1.0, backoff: float = 2.0,
+) -> Callable[[F], F]:
     def decorator(f: F) -> F:
         @functools.wraps(f)
         def wrapper(*args, **kwargs) -> None:
