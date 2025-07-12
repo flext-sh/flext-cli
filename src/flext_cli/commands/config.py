@@ -1,70 +1,80 @@
-"""Configuration management commands for FLEXT CLI."""
+"""Configuration management commands using flext-core patterns."""
 
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 from typing import TYPE_CHECKING
 
 import click
 import yaml
 from rich.table import Table
 
-from flext_cli.utils.config import (
-    get_config,
-    get_config_path,
-    get_config_value,
-    list_config_values,
-    set_config_value,
-)
-
 if TYPE_CHECKING:
-    from rich.console import Console
+    from flext_cli.domain.cli_context import CLIContext
 
 
 @click.group()
 def config() -> None:
-    """Manage CLI configuration settings."""
+    """Configuration management commands."""
 
 
 @config.command()
 @click.argument("key", required=False)
 @click.pass_context
 def get(ctx: click.Context, key: str | None) -> None:
-    """Get configuration value(s)."""
-    console: Console = ctx.obj["console"]
-    output_format = ctx.obj["output"]
+    """Get configuration value."""
+    cli_context: CLIContext = ctx.obj["cli_context"]
 
     if key:
-        # Get specific value
-        value = get_config_value(key)
-        if value is None:
-            console.print(f"[yellow]Configuration key '{key}' not found[/yellow]")
+        # Get specific value from config
+        try:
+            value = getattr(cli_context.config, key, None)
+            if value is None:
+                # Try settings
+                value = getattr(cli_context.settings, key, None)
+
+            if value is None:
+                cli_context.print_warning(f"Configuration key '{key}' not found")
+                ctx.exit(1)
+
+            if cli_context.config.output_format == "json":
+                cli_context.console.print(
+                    json.dumps({key: value}, indent=2, default=str),
+                )
+            elif cli_context.config.output_format == "yaml":
+                cli_context.console.print(
+                    yaml.dump({key: value}, default_flow_style=False),
+                )
+            else:
+                cli_context.console.print(f"{key}: {value}")
+        except Exception as e:
+            cli_context.print_error(f"Failed to get configuration: {e}")
             ctx.exit(1)
-
-        if output_format == "json":
-            console.print(json.dumps({key: value}, indent=2))
-        elif output_format == "yaml":
-            console.print(yaml.dump({key: value}, default_flow_style=False))
-        else:
-            console.print(f"{key}: {value}")
     else:
-        # Get all values
-        config_data = list_config_values()
+            # Get all values
+        config_data = {
+            **cli_context.config.model_dump(),
+            **cli_context.settings.model_dump(),
+        }
 
-        if output_format == "json":
-            console.print(json.dumps(config_data, indent=2))
-        elif output_format == "yaml":
-            console.print(yaml.dump(config_data, default_flow_style=False))
+        if cli_context.config.output_format == "json":
+            cli_context.console.print(json.dumps(config_data, indent=2, default=str))
+        elif cli_context.config.output_format == "yaml":
+            cli_context.console.print(yaml.dump(config_data, default_flow_style=False))
         else:
             # Table format
-            table = Table(title="FLEXT Configuration")
+            table = Table(title="FLEXT Configuration v0.7.0")
             table.add_column("Key", style="cyan")
             table.add_column("Value", style="white")
+            table.add_column("Source", style="dim")
 
             for k, v in config_data.items():
-                table.add_row(k, str(v))
+                source = "config" if hasattr(cli_context.config, k) else "settings"
+                table.add_row(k, str(v), source)
 
-            console.print(table)
+            cli_context.console.print(table)
 
 
 @config.command()
@@ -72,8 +82,7 @@ def get(ctx: click.Context, key: str | None) -> None:
 @click.argument("value")
 @click.pass_context
 def set_value(ctx: click.Context, key: str, value: str) -> None:
-    """Set configuration value."""
-    console: Console = ctx.obj["console"]
+    cli_context: CLIContext = ctx.obj["cli_context"]
 
     try:
         # Try to parse value as JSON first
@@ -83,98 +92,130 @@ def set_value(ctx: click.Context, key: str, value: str) -> None:
             # If not JSON, treat as string
             parsed_value = value
 
-        set_config_value(key, parsed_value)
-        console.print(f"[green]✅ Set {key} = {parsed_value}[/green]")
+        # Try to set in config first, then settings
+        if hasattr(cli_context.config, key):
+            setattr(cli_context.config, key, parsed_value)
+            cli_context.print_success(f"Set config.{key} = {parsed_value}")
+        elif hasattr(cli_context.settings, key):
+            setattr(cli_context.settings, key, parsed_value)
+            cli_context.print_success(f"Set settings.{key} = {parsed_value}")
+        else:
+            cli_context.print_warning(
+                f"Configuration key '{key}' not found in config or settings",
+            )
+            ctx.exit(1)
 
     except Exception as e:
-        console.print(f"[red]❌ Failed to set configuration: {e}[/red]")
+        cli_context.print_error(f"Failed to set configuration: {e}")
         ctx.exit(1)
 
 
 @config.command()
 @click.pass_context
 def validate(ctx: click.Context) -> None:
-    """Validate configuration."""
-    console: Console = ctx.obj["console"]
+    cli_context: CLIContext = ctx.obj["cli_context"]
 
     try:
-        config_data = get_config()
+        # Validate using Pydantic validation
+        config_dict = cli_context.config.model_dump()
+        settings_dict = cli_context.settings.model_dump()
 
-        # Check required fields
-        required_fields = ["api_url"]
+        # Check required fields (defined by Pydantic Field requirements)
+        validation_errors = []
 
-        missing_fields = [
-            field
-            for field in required_fields
-            if field not in config_data or not config_data[field]
-        ]
+        # Validate config
+        try:
+            cli_context.config.model_validate(config_dict)
+        except Exception as e:
+            validation_errors.append(f"Config validation: {e}")
 
-        if missing_fields:
-            console.print("[red]❌ Configuration validation failed[/red]")
-            console.print(f"Missing required fields: {', '.join(missing_fields)}")
+        # Validate settings
+        try:
+            cli_context.settings.model_validate(settings_dict)
+        except Exception as e:
+            validation_errors.append(f"Settings validation: {e}")
+
+        if validation_errors:
+            cli_context.print_error("Configuration validation failed")
+            for error in validation_errors:
+                cli_context.console.print(f"  [red]• {error}[/red]")
             ctx.exit(1)
         else:
-            console.print("[green]✅ Configuration is valid[/green]")
-
-            # Show configuration location
-            config_path = get_config_path()
-            console.print(f"Configuration file: {config_path}")
+            cli_context.print_success("Configuration is valid")
+            cli_context.print_info(
+                f"Config directory: {cli_context.config.directories.config_dir}",
+            )
+            cli_context.print_info(f"Profile: {cli_context.settings.profile}")
+            cli_context.print_info(f"API URL: {cli_context.config.api.url}")
 
     except Exception as e:
-        console.print(f"[red]❌ Configuration validation error: {e}[/red]")
+        cli_context.print_error(f"Configuration validation error: {e}")
         ctx.exit(1)
 
 
 @config.command()
 @click.pass_context
 def path(ctx: click.Context) -> None:
-    """Show configuration file path."""
-    console: Console = ctx.obj["console"]
+    cli_context: CLIContext = ctx.obj["cli_context"]
 
-    config_path = get_config_path()
-    console.print(f"Configuration file: {config_path}")
+    directories = cli_context.config.directories
 
-    if config_path.exists():
-        console.print(f"File size: {config_path.stat().st_size} bytes")
-        console.print(f"Last modified: {config_path.stat().st_mtime}")
-    else:
-        console.print("[yellow]Configuration file does not exist yet[/yellow]")
+    cli_context.print_info(f"Configuration directory: {directories.config_dir}")
+    cli_context.print_info(f"Cache directory: {directories.cache_dir}")
+    cli_context.print_info(f"Log directory: {directories.log_dir}")
+    cli_context.print_info(f"Data directory: {directories.data_dir}")
+
+    # Show auth files
+    auth_config = cli_context.config.auth
+    cli_context.print_info(f"Token file: {auth_config.token_file}")
+    cli_context.print_info(f"Refresh token file: {auth_config.refresh_token_file}")
+
+    # Check if directories exist:
+    for name, path in [
+            ("config", directories.config_dir),
+        ("cache", directories.cache_dir),
+        ("log", directories.log_dir),
+        ("data", directories.data_dir),
+    ]:
+        if path.exists():
+            cli_context.print_success(f"{name} directory exists")
+        else:
+            cli_context.print_warning(f"{name} directory does not exist")
 
 
 @config.command()
 @click.option("--profile", "-p", help="Profile name to edit")
 @click.pass_context
 def edit(ctx: click.Context, profile: str | None) -> None:
-    """Edit configuration file in editor."""
-    console: Console = ctx.obj["console"]
+    cli_context: CLIContext = ctx.obj["cli_context"]
 
-    import os
-    import subprocess
-
-    config_path = get_config_path()
+    config_dir = cli_context.config.directories.config_dir
+    config_file = config_dir / "config.yaml"
     editor = os.environ.get("EDITOR", "vim")
 
     try:
-        if not config_path.exists():
-            # Create default config
+        # Ensure config directory exists
+        config_dir.mkdir(parents=True, exist_ok=True)
+
+        if not config_file.exists():
+            # Create default config using flext-core models
             default_config = {
-                "default": {
-                    "api_url": "http://localhost:8000",
-                    "output_format": "table",
-                },
-                "profiles": {},
-                "current_profile": "default",
+                "config": cli_context.config.model_dump(),
+                "settings": cli_context.settings.model_dump(),
             }
-            config_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(config_path, "w", encoding="utf-8") as f:
+
+            with open(config_file, "w", encoding="utf-8") as f:
                 yaml.dump(default_config, f, default_flow_style=False)
 
-        subprocess.run([editor, str(config_path)], check=True)
-        console.print("[green]✅ Configuration updated[/green]")
+            cli_context.print_info(f"Created default configuration at {config_file}")
+
+        subprocess.run([editor, str(config_file)], check=True)
+        cli_context.print_success("Configuration updated")
+        cli_context.print_info("Restart CLI to apply changes")
 
     except subprocess.CalledProcessError:
-        console.print("[red]❌ Editor exited with error[/red]")
+        cli_context.print_error("Editor exited with error")
         ctx.exit(1)
     except Exception as e:
-        console.print(f"[red]❌ Failed to edit configuration: {e}[/red]")
+        cli_context.print_error(f"Failed to edit configuration: {e}")
         ctx.exit(1)

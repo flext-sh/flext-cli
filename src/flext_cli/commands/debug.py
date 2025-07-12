@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import platform
 import sys
 from pathlib import Path
@@ -12,7 +13,7 @@ import click
 from rich.table import Table
 
 from flext_cli.client import FlextApiClient
-from flext_cli.utils.config import get_config_path
+from flext_cli.utils.config import get_config
 
 if TYPE_CHECKING:
     from rich.console import Console
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
 
 @click.group(name="debug")
 def debug_cmd() -> None:
-    """Debugging and diagnostic commands."""
+    """Debug commands for FLEXT CLI."""
 
 
 @debug_cmd.command()
@@ -39,7 +40,7 @@ def connectivity(ctx: click.Context) -> None:
 
                 if connected:
                     console.print(
-                        f"[green]✅ Connected to API at {client.base_url}[/green]"
+                        f"[green]✅ Connected to API at {client.base_url}[/green]",
                     )
 
                     # Try to get system status
@@ -53,7 +54,7 @@ def connectivity(ctx: click.Context) -> None:
                         console.print("[yellow]⚠️  Could not get system status[/yellow]")
                 else:
                     console.print(
-                        f"[red]❌ Failed to connect to API at {client.base_url}[/red]"
+                        f"[red]❌ Failed to connect to API at {client.base_url}[/red]",
                     )
                     ctx.exit(1)
 
@@ -97,7 +98,7 @@ def performance(ctx: click.Context) -> None:
 @debug_cmd.command()
 @click.pass_context
 def validate(ctx: click.Context) -> None:
-    """Validate CLI setup and configuration."""
+    """Validate FLEXT CLI setup."""
     console: Console = ctx.obj["console"]
 
     issues = []
@@ -111,11 +112,12 @@ def validate(ctx: click.Context) -> None:
         console.print(f"[green]✅ Python version: {sys.version.split()[0]}[/green]")
     else:
         issues.append(
-            f"Python version {sys.version.split()[0]} is too old (requires 3.10+)"
+            f"Python version {sys.version.split()[0]} is too old (requires 3.10+)",
         )
 
     # Check configuration file
-    config_path = get_config_path()
+    config = get_config()
+    config_path = config.config_dir / "config.yaml"
     if config_path.exists():
         console.print(f"[green]✅ Configuration file exists: {config_path}[/green]")
     else:
@@ -166,7 +168,7 @@ def validate(ctx: click.Context) -> None:
 @click.argument("command", nargs=-1, required=True)
 @click.pass_context
 def trace(ctx: click.Context, command: tuple[str, ...]) -> None:
-    """Trace command execution with detailed output."""
+    """Trace command execution."""
     console: Console = ctx.obj["console"]
 
     console.print("[yellow]Command tracing not yet implemented[/yellow]")
@@ -176,12 +178,12 @@ def trace(ctx: click.Context, command: tuple[str, ...]) -> None:
 @debug_cmd.command()
 @click.pass_context
 def env(ctx: click.Context) -> None:
-    """Show environment variables."""
+    """Show FLEXT environment variables."""
     console: Console = ctx.obj["console"]
 
-    import os
-
-    flext_vars = {k: v for k, v in os.environ.items() if k.startswith("FLX_")}
+    flext_vars = {
+        k: v for k, v in os.environ.items() if k.startswith("FLX_")
+    }
 
     if flext_vars:
         table = Table(title="FLEXT Environment Variables")
@@ -210,7 +212,7 @@ def paths(ctx: click.Context) -> None:
 
     paths = {
         "Config Directory": Path.home() / ".flext",
-        "Config File": get_config_path(),
+        "Config File": get_config().config_dir / "config.yaml",
         "Cache Directory": Path.home() / ".flext" / "cache",
         "Log Directory": Path.home() / ".flext" / "logs",
         "Token File": Path.home() / ".flext" / ".token",

@@ -7,13 +7,15 @@ import json
 from typing import TYPE_CHECKING
 
 import click
-from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.progress import Progress
+from rich.progress import SpinnerColumn
+from rich.progress import TextColumn
 
 from flext_cli.client import FlextApiClient
 from flext_cli.utils.output import format_plugin_list
 
 if TYPE_CHECKING:
-    from rich.console import Console
+            from rich.console import Console
 
 
 @click.group()
@@ -23,7 +25,9 @@ def plugin() -> None:
 
 @plugin.command(name="list")
 @click.option(
-    "--type", "plugin_type", help="Filter by plugin type (tap/target/transform)"
+    "--type",
+    "plugin_type",
+    help="Filter by plugin type (tap/target/transform)",
 )
 @click.option("--installed", is_flag=True, help="Show only installed plugins")
 @click.pass_context
@@ -115,7 +119,7 @@ def install(ctx: click.Context, plugin_id: str, version: str | None) -> None:
                     result = await client.install_plugin(plugin_id, version)
 
                 console.print(
-                    f"[green]✅ Plugin '{plugin_id}' installed successfully![/green]"
+                    f"[green]✅ Plugin '{plugin_id}' installed successfully![/green]",
                 )
 
                 if "version" in result:
@@ -149,7 +153,7 @@ def update(ctx: click.Context, plugin_id: str, version: str | None) -> None:
                     result = await client.update_plugin(plugin_id, version)
 
                 console.print(
-                    f"[green]✅ Plugin '{plugin_id}' updated successfully![/green]"
+                    f"[green]✅ Plugin '{plugin_id}' updated successfully![/green]",
                 )
 
                 if "old_version" in result and "new_version" in result:
@@ -181,7 +185,7 @@ def remove(ctx: click.Context, plugin_id: str, force: bool) -> None:
 
                 if not force:
                     confirm = click.confirm(
-                        f"Are you sure you want to remove plugin '{plugin['name']}'?"
+                        f"Are you sure you want to remove plugin '{plugin['name']}'?",
                     )
                     if not confirm:
                         console.print("[yellow]Removal cancelled[/yellow]")
@@ -197,7 +201,7 @@ def remove(ctx: click.Context, plugin_id: str, force: bool) -> None:
                     await client.uninstall_plugin(plugin_id)
 
                 console.print(
-                    f"[green]✅ Plugin '{plugin['name']}' removed successfully[/green]"
+                    f"[green]✅ Plugin '{plugin['name']}' removed successfully[/green]",
                 )
 
         except Exception as e:
@@ -211,7 +215,7 @@ def remove(ctx: click.Context, plugin_id: str, force: bool) -> None:
 @click.argument("query")
 @click.pass_context
 def search(ctx: click.Context, query: str) -> None:
-    """Search for plugins in the registry."""
+    """Search for plugins."""
     console: Console = ctx.obj["console"]
 
     console.print("[yellow]Plugin search not yet implemented[/yellow]")
@@ -229,10 +233,8 @@ def search(ctx: click.Context, query: str) -> None:
 )
 @click.option("--template", help="Template to use")
 @click.pass_context
-def create(
-    ctx: click.Context, name: str, plugin_type: str, template: str | None
-) -> None:
-    """Create a new plugin from template."""
+def create(ctx: click.Context, name: str, plugin_type: str, template: str | None) -> None:
+    """Create a new plugin."""
     console: Console = ctx.obj["console"]
 
     console.print("[yellow]Plugin creation not yet implemented[/yellow]")
@@ -245,7 +247,7 @@ def create(
 @click.option("--watch", is_flag=True, help="Watch for changes and hot reload")
 @click.pass_context
 def test(ctx: click.Context, watch: bool) -> None:
-    """Test plugin in development mode."""
+    """Test plugins."""
     console: Console = ctx.obj["console"]
 
     console.print("[yellow]Plugin testing not yet implemented[/yellow]")

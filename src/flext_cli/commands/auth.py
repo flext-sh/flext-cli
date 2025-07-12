@@ -8,7 +8,9 @@ from typing import TYPE_CHECKING
 import click
 
 from flext_cli.client import FlextApiClient
-from flext_cli.utils.auth import clear_auth_token, get_auth_token, save_auth_token
+from flext_cli.utils.auth import clear_auth_tokens
+from flext_cli.utils.auth import get_auth_token
+from flext_cli.utils.auth import save_auth_token
 
 if TYPE_CHECKING:
     from rich.console import Console
@@ -16,7 +18,7 @@ if TYPE_CHECKING:
 
 @click.group()
 def auth() -> None:
-    """Manage authentication credentials."""
+    """Authentication commands."""
 
 
 @auth.command()
@@ -24,7 +26,7 @@ def auth() -> None:
 @click.option("--password", "-p", prompt=True, hide_input=True, help="Password")
 @click.pass_context
 def login(ctx: click.Context, username: str, password: str) -> None:
-    """Login to FLEXT platform."""
+    """Login to FLEXT with username and password."""
     console: Console = ctx.obj["console"]
 
     async def _login() -> None:
@@ -53,7 +55,7 @@ def login(ctx: click.Context, username: str, password: str) -> None:
 @auth.command()
 @click.pass_context
 def logout(ctx: click.Context) -> None:
-    """Logout from FLEXT platform."""
+    """Logout from FLEXT."""
     console: Console = ctx.obj["console"]
 
     async def _logout() -> None:
@@ -66,12 +68,12 @@ def logout(ctx: click.Context) -> None:
             async with FlextApiClient() as client:
                 console.print("[yellow]Logging out...[/yellow]")
                 await client.logout()
-                clear_auth_token()
+                clear_auth_tokens()
                 console.print("[green]✅ Logged out successfully[/green]")
 
         except Exception as e:
-            # Clear token even if API call fails
-            clear_auth_token()
+            # Clear token even if API call fails:
+            clear_auth_tokens()
             console.print(f"[yellow]⚠️  Logged out locally ({e})[/yellow]")
 
     asyncio.run(_logout())
