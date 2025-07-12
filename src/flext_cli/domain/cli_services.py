@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict
+from pydantic import Field
 
 from flext_core.config.base import BaseSettings
 from flext_core.domain.pydantic_base import DomainBaseModel
@@ -30,7 +31,7 @@ class CLIConfig(BaseSettings):
 
     model_config = ConfigDict(
         env_prefix="FLEXT_CLI_",
-        case_sensitive=False
+        case_sensitive=False,
     )
 
 
