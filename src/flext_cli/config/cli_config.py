@@ -146,7 +146,7 @@ def get_cli_config(reload: bool = False) -> CLIConfig:
 @singleton()
 class CLISettings(BaseSettings):
     """FLEXT CLI settings with environment variable support.
-    
+
     Uses flext-core BaseSettings foundation with standardized patterns.
     """
 

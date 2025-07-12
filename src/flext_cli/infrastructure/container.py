@@ -6,6 +6,7 @@ Using Lato framework for clean dependency injection.
 from __future__ import annotations
 
 import os
+import pathlib
 from typing import TYPE_CHECKING
 
 from lato import Container
@@ -66,20 +67,18 @@ class CLIContainer(Container):
         lambda: CLIConfig(
             api_url=os.getenv("FLX_API_URL", "http://localhost:8000"),
             api_token=os.getenv("FLX_API_TOKEN", ""),
-            config_dir=os.path.expanduser(os.getenv("FLX_CONFIG_DIR", "~/.flx")),
-            cache_dir=os.path.expanduser(os.getenv("FLX_CACHE_DIR", "~/.flx/cache")),
+            config_dir=pathlib.Path(os.getenv("FLX_CONFIG_DIR", "~/.flx")).expanduser(),
+            cache_dir=pathlib.Path(os.getenv("FLX_CACHE_DIR", "~/.flx/cache")).expanduser(),
             output_format=os.getenv("FLX_OUTPUT_FORMAT", "table"),
             no_color=os.getenv("FLX_NO_COLOR", "false").lower() == "true",
             pager=os.getenv("FLX_PAGER", "less"),
             editor=os.getenv("FLX_EDITOR", "vim"),
             profile=os.getenv("FLX_PROFILE", "development"),
-            profiles_file=os.path.expanduser(
-                os.getenv("FLX_PROFILES_FILE", "~/.flx/profiles.yaml"),
-            ),
+            profiles_file=pathlib.Path(os.getenv("FLX_PROFILES_FILE", "~/.flx/profiles.yaml")).expanduser(),
             debug=os.getenv("FLX_DEBUG", "false").lower() == "true",
             trace=os.getenv("FLX_TRACE", "false").lower() == "true",
             log_level=os.getenv("FLX_LOG_LEVEL", "INFO"),
-            log_file=os.path.expanduser(os.getenv("FLX_LOG_FILE", "~/.flx/cli.log")),
+            log_file=pathlib.Path(os.getenv("FLX_LOG_FILE", "~/.flx/cli.log")).expanduser(),
             connect_timeout=int(os.getenv("FLX_CONNECT_TIMEOUT", "10")),
             read_timeout=int(os.getenv("FLX_READ_TIMEOUT", "30")),
             command_timeout=int(os.getenv("FLX_COMMAND_TIMEOUT", "300")),
