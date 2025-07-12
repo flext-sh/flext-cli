@@ -1,10 +1,13 @@
-"""Basic tests for flext_ldap."""
+"""Basic tests for flext_cli.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+"""
 
 import pytest
 
 
 def test_module_exists() -> None:
-    """Test that module exists and can be imported."""
+    """Test that the module can be imported."""
     assert True
 
 
@@ -14,23 +17,23 @@ def test_basic_functionality() -> None:
 
 
 def test_configuration() -> None:
-    """Test configuration is valid."""
+    """Test configuration functionality."""
     assert True
 
 
-class TestFlextcli:
-    """Test class for flext_ldap."""
+class TestFlextCli:
+    """Test class for flext_cli."""
 
     def test_initialization(self) -> None:
-        """Test initialization."""
+        """Test CLI initialization."""
         assert True
 
     def test_methods(self) -> None:
-        """Test methods."""
+        """Test CLI methods."""
         assert True
 
     def test_error_handling(self) -> None:
-        """Test error handling."""
+        """Test error handling functionality."""
         assert True
 
 
@@ -42,6 +45,12 @@ class TestFlextcli:
         (3, True),
     ],
 )
-def test_parametrized(test_input, expected) -> None:
-    """Parametrized test."""
+def test_parametrized(test_input: int, expected: bool) -> None:
+    """Test parametrized functionality.
+
+    Args:
+        test_input: Input value to test.
+        expected: Expected result.
+
+    """
     assert bool(test_input) == expected

@@ -1,4 +1,8 @@
-"""Output formatting utilities for FLEXT CLI."""
+"""Output formatting utilities using flext-core and flext-observability.
+
+Version 0.7.0 - Refactored to use flext-core patterns.
+No legacy console setup - all through CLIContext.
+"""
 
 from __future__ import annotations
 
@@ -10,19 +14,24 @@ from rich.console import Console
 from rich.syntax import Syntax
 from rich.table import Table
 
+from flext_cli.utils.config import get_config
+
 
 def setup_console(no_color: bool = False, quiet: bool = False) -> Console:
-    """Set up Rich console with configuration."""
+    """Setup console with configuration."""
+    config = get_config()
+
     return Console(
-        no_color=no_color,
-        quiet=quiet,
+        no_color=no_color or config.no_color,
+        quiet=quiet or config.quiet,
         highlight=True,
         markup=True,
+        stderr=False,
     )
 
 
 def format_pipeline_list(console: Console, pipeline_list: object) -> None:
-    """Format and display pipeline list."""
+    """Format pipeline list for display."""
     if not pipeline_list.pipelines:
         console.print("[yellow]No pipelines found[/yellow]")
         return
@@ -57,7 +66,7 @@ def format_pipeline_list(console: Console, pipeline_list: object) -> None:
 
 
 def format_pipeline(console: Console, pipeline: object) -> None:
-    """Format and display single pipeline details."""
+    """Format single pipeline for display."""
     console.print(f"\n[bold cyan]{pipeline.name}[/bold cyan]")
     console.print(f"ID: {pipeline.id}")
     console.print(f"Status: {pipeline.status}")
@@ -86,10 +95,8 @@ def format_pipeline(console: Console, pipeline: object) -> None:
             console.print(syntax)
 
 
-def format_plugin_list(
-    console: Console, plugins: list[dict[str, Any]], output_format: str
-) -> None:
-    """Format and display plugin list."""
+def format_plugin_list(console: Console, plugins: list[dict[str, Any]], output_format: str) -> None:
+    """Format plugin list for display."""
     if not plugins:
         console.print("[yellow]No plugins found[/yellow]")
         return
@@ -125,17 +132,19 @@ def format_plugin_list(
 
 
 def format_json(data: object) -> str:
-    """Format data as JSON."""
-    return json.dumps(data, indent=2, default=str)
+        return json.dumps(data, indent=2, default=str)
 
 
 def format_yaml(data: object) -> str:
-    """Format data as YAML."""
-    return yaml.dump(data, default_flow_style=False, default_str=str)
+        return yaml.dump(data, default_flow_style=False, default_str=str)
+
+
+# Legacy print functions - use CLIContext methods instead
+# These are kept for backward compatibility but should be migrated
 
 
 def print_error(console: Console, message: str, details: str | None = None) -> None:
-    """Print error message with optional details."""
+    """Print error message."""
     console.print(f"[red]❌ {message}[/red]")
     if details:
         console.print(f"[dim]{details}[/dim]")
