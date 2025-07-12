@@ -181,9 +181,7 @@ def env(ctx: click.Context) -> None:
     """Show FLEXT environment variables."""
     console: Console = ctx.obj["console"]
 
-    flext_vars = {
-        k: v for k, v in os.environ.items() if k.startswith("FLX_")
-    }
+    flext_vars = {k: v for k, v in os.environ.items() if k.startswith("FLX_")}
 
     if flext_vars:
         table = Table(title="FLEXT Environment Variables")

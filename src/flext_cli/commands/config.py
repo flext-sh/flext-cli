@@ -53,7 +53,7 @@ def get(ctx: click.Context, key: str | None) -> None:
             cli_context.print_error(f"Failed to get configuration: {e}")
             ctx.exit(1)
     else:
-            # Get all values
+        # Get all values
         config_data = {
             **cli_context.config.model_dump(),
             **cli_context.settings.model_dump(),
@@ -172,7 +172,7 @@ def path(ctx: click.Context) -> None:
 
     # Check if directories exist:
     for name, path in [
-            ("config", directories.config_dir),
+        ("config", directories.config_dir),
         ("cache", directories.cache_dir),
         ("log", directories.log_dir),
         ("data", directories.data_dir),

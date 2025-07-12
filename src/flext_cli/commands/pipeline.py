@@ -23,7 +23,9 @@ def pipeline() -> None:
 @click.option("--page-size", "-s", default=20, help="Page size")
 @click.option("--status", help="Filter by status")
 @click.pass_context
-def list_pipelines(ctx: click.Context, page: int, page_size: int, status: str | None) -> None:
+def list_pipelines(
+    ctx: click.Context, page: int, page_size: int, status: str | None,
+) -> None:
     """List pipelines."""
     console: Console = ctx.obj.get("console")
     if console:

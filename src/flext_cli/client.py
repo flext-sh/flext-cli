@@ -1,9 +1,9 @@
-from __future__ import annotations
-
 """FLEXT API Client - HTTP/gRPC client for FLEXT platform communication.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 """
+
+from __future__ import annotations
 
 from typing import Any
 from typing import Self
@@ -56,7 +56,13 @@ class FlextApiClient:
     authentication, pipeline management, and plugin operations.
     """
 
-    def __init__(self, base_url: str | None = None, token: str | None = None, timeout: float = 30.0, verify_ssl: bool = True) -> None:
+    def __init__(
+        self,
+        base_url: str | None = None,
+        token: str | None = None,
+        timeout: float = 30.0,
+        verify_ssl: bool = True,
+    ) -> None:
         self.base_url = base_url or get_config_value("api_url", "http://localhost:8000")
         self.base_url = self.base_url.rstrip("/")
         self.token = token or get_auth_token()
@@ -95,7 +101,13 @@ class FlextApiClient:
     def _url(self, path: str) -> str:
         return urljoin(self.base_url, path.lstrip("/"))
 
-    async def _request(self, method: str, path: str, json_data: dict[str, Any] | None = None, params: dict[str, Any] | None = None) -> httpx.Response:
+    async def _request(
+        self,
+        method: str,
+        path: str,
+        json_data: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
+    ) -> httpx.Response:
         response = await self._client.request(
             method=method,
             url=self._url(path),
@@ -141,7 +153,9 @@ class FlextApiClient:
 
     # Pipeline methods
 
-    async def list_pipelines(self, page: int = 1, page_size: int = 20, status: str | None = None) -> PipelineList:
+    async def list_pipelines(
+        self, page: int = 1, page_size: int = 20, status: str | None = None,
+    ) -> PipelineList:
         """List pipelines with optional filtering and pagination.
 
         Args:
@@ -190,7 +204,9 @@ class FlextApiClient:
         )
         return Pipeline.model_validate(response.json())
 
-    async def update_pipeline(self, pipeline_id: str, config: PipelineConfig) -> Pipeline:
+    async def update_pipeline(
+        self, pipeline_id: str, config: PipelineConfig,
+    ) -> Pipeline:
         """Update an existing pipeline.
 
         Args:
@@ -217,7 +233,9 @@ class FlextApiClient:
         """
         await self._request("DELETE", f"/api/v1/pipelines/{pipeline_id}")
 
-    async def run_pipeline(self, pipeline_id: str, full_refresh: bool = False) -> dict[str, Any]:
+    async def run_pipeline(
+        self, pipeline_id: str, full_refresh: bool = False,
+    ) -> dict[str, Any]:
         """Execute a pipeline.
 
         Args:
@@ -251,7 +269,9 @@ class FlextApiClient:
         )
         return response.json()
 
-    async def get_pipeline_logs(self, pipeline_id: str, execution_id: str | None = None, tail: int = 100) -> list[str]:
+    async def get_pipeline_logs(
+        self, pipeline_id: str, execution_id: str | None = None, tail: int = 100,
+    ) -> list[str]:
         """Get pipeline logs.
 
         Args:
@@ -276,7 +296,9 @@ class FlextApiClient:
 
     # Plugin methods
 
-    async def list_plugins(self, plugin_type: str | None = None, installed_only: bool = False) -> list[dict[str, Any]]:
+    async def list_plugins(
+        self, plugin_type: str | None = None, installed_only: bool = False,
+    ) -> list[dict[str, Any]]:
         """List available plugins.
 
         Args:
@@ -307,7 +329,9 @@ class FlextApiClient:
         response = await self._request("GET", f"/api/v1/plugins/{plugin_id}")
         return response.json()
 
-    async def install_plugin(self, plugin_id: str, version: str | None = None) -> dict[str, Any]:
+    async def install_plugin(
+        self, plugin_id: str, version: str | None = None,
+    ) -> dict[str, Any]:
         """Install a plugin.
 
         Args:
@@ -338,7 +362,9 @@ class FlextApiClient:
         """
         await self._request("POST", f"/api/v1/plugins/{plugin_id}/uninstall")
 
-    async def update_plugin(self, plugin_id: str, version: str | None = None) -> dict[str, Any]:
+    async def update_plugin(
+        self, plugin_id: str, version: str | None = None,
+    ) -> dict[str, Any]:
         """Update a plugin to a newer version.
 
         Args:

@@ -11,7 +11,7 @@ from flext_core.config.base import BaseSettings
 from flext_core.domain.pydantic_base import DomainBaseModel
 
 if TYPE_CHECKING:
-            from rich.console import Console
+    from rich.console import Console
 
 
 class CLIServiceContainer(DomainBaseModel):

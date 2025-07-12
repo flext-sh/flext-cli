@@ -184,7 +184,9 @@ class BaseCLI(ABC):
             self.renderer.render_error(result)
             sys.exit(1)
 
-    def create_table(self, title: str | None = None, columns: list[tuple[str, str]] | None = None) -> Table:
+    def create_table(
+        self, title: str | None = None, columns: list[tuple[str, str]] | None = None,
+    ) -> Table:
         """Create Rich table."""
         table = Table(title=title, show_header=True, header_style="bold cyan")
         if columns:
@@ -215,6 +217,7 @@ class BaseCLI(ABC):
 
 def with_context[F: Callable[..., Any]](f: F) -> F:
     """Decorator to inject CLI context."""
+
     def wrapper(*args, **kwargs) -> None:
         # Extract context from Click context
         ctx = click.get_current_context()
@@ -230,6 +233,7 @@ def with_context[F: Callable[..., Any]](f: F) -> F:
 
 def handle_service_result[F: Callable[..., Any]](f: F) -> F:
     """Decorator to handle service results."""
+
     def wrapper(*args, **kwargs) -> None:
         try:
             result = f(*args, **kwargs)

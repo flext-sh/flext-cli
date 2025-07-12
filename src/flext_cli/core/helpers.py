@@ -67,7 +67,7 @@ class CLIHelper:
         """Truncate text with ellipsis."""
         if len(text) <= max_length:
             return text
-        return text[:max_length - 3] + "..."
+        return text[: max_length - 3] + "..."
 
     def sanitize_filename(self, filename: str) -> str:
         """Sanitize filename for safe filesystem usage."""
