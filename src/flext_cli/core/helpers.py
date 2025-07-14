@@ -1,6 +1,8 @@
 """Helper classes for FLEXT CLI framework.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -30,7 +32,9 @@ class CLIHelper:
 
     def prompt(self, message: str, default: str | None = None) -> str:
         """Show text input prompt."""
-        return Prompt.ask(message, default=default, console=self.console)
+        if default is not None:
+            return Prompt.ask(message, default=default, console=self.console)
+        return Prompt.ask(message, console=self.console)
 
     def validate_url(self, url: str) -> bool:
         """Validate URL format."""
@@ -51,17 +55,20 @@ class CLIHelper:
             return False
 
     def validate_email(self, email: str) -> bool:
-        """Validate email format."""
+        """Basic email validation."""
+        import re
+
         pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-        return bool(re.match(pattern, email))
+        return re.match(pattern, email) is not None
 
     def format_size(self, size_bytes: int) -> str:
         """Format file size in human readable format."""
+        size_value: float = float(size_bytes)
         for unit in ["B", "KB", "MB", "GB", "TB"]:
-            if size_bytes < 1024.0:
-                return f"{size_bytes:.1f} {unit}"
-            size_bytes /= 1024.0
-        return f"{size_bytes:.1f} PB"
+            if size_value < 1024.0:
+                return f"{size_value:.1f} {unit}"
+            size_value /= 1024.0
+        return f"{size_value:.1f} PB"
 
     def truncate_text(self, text: str, max_length: int = 50) -> str:
         """Truncate text with ellipsis."""

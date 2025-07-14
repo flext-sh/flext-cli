@@ -1,4 +1,9 @@
-"""Version information for flext_cli."""
+"""Version information for flext_cli.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
 
 __version__ = "0.7.0"
 __version_info__ = tuple(int(x) for x in __version__.split("."))

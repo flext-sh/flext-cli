@@ -1,5 +1,8 @@
 """Simple API for FLEXT CLI setup and configuration.
 
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 Provides a simple interface for setting up the FLEXT CLI application.
 """
 
@@ -57,7 +60,7 @@ def create_development_cli_config(**overrides: Any) -> CLISettings:
     # Override with provided values
     defaults.update(overrides)
 
-    return CLISettings(**defaults)
+    return CLISettings.model_validate(defaults)
 
 
 def create_production_cli_config(**overrides: Any) -> CLISettings:
@@ -79,7 +82,7 @@ def create_production_cli_config(**overrides: Any) -> CLISettings:
     # Override with provided values
     defaults.update(overrides)
 
-    return CLISettings(**defaults)
+    return CLISettings.model_validate(defaults)
 
 
 def get_cli_settings() -> CLISettings:

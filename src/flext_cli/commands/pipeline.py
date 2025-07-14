@@ -1,6 +1,8 @@
 """Pipeline management commands for FLEXT CLI.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -24,7 +26,10 @@ def pipeline() -> None:
 @click.option("--status", help="Filter by status")
 @click.pass_context
 def list_pipelines(
-    ctx: click.Context, page: int, page_size: int, status: str | None,
+    ctx: click.Context,
+    page: int,
+    page_size: int,
+    status: str | None,
 ) -> None:
     """List pipelines."""
     console: Console = ctx.obj.get("console")

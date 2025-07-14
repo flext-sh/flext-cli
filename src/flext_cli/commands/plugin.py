@@ -1,4 +1,9 @@
-"""Plugin management commands for FLEXT CLI."""
+"""Plugin management commands for FLEXT CLI.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
 
 from __future__ import annotations
 
@@ -234,7 +239,10 @@ def search(ctx: click.Context, query: str) -> None:
 @click.option("--template", help="Template to use")
 @click.pass_context
 def create(
-    ctx: click.Context, name: str, plugin_type: str, template: str | None,
+    ctx: click.Context,
+    name: str,
+    plugin_type: str,
+    template: str | None,
 ) -> None:
     """Create a new plugin."""
     console: Console = ctx.obj["console"]

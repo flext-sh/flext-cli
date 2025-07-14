@@ -1,12 +1,15 @@
 """FLEXT CLI - Developer Command Line Interface.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 
 Built on flext-core foundation for robust command-line functionality.
 Uses modern Python 3.13 patterns and clean architecture.
 """
 
 from __future__ import annotations
+
+import contextlib
 
 __version__ = "0.1.0"
 
@@ -27,42 +30,29 @@ from flext_cli.domain.entities import CommandStatus
 from flext_cli.domain.entities import CommandType
 
 # Application layer exports (when available)
-try:
-    from flext_cli.application.services import CLIService
-    from flext_cli.application.services import CommandService
-except ImportError:
-    # Application layer not yet refactored
-    pass
+with contextlib.suppress(ImportError):
+    from flext_cli.domain.cli_services import CLIServiceContainer
 
 # CLI exports (when available)
-try:
+with contextlib.suppress(ImportError):
     from flext_cli.cli import cli
     from flext_cli.client import FlextApiClient
-except ImportError:
-    # CLI modules have syntax errors, will be refactored
-    pass
 
 # Core exports that are always available
 __all__ = [
     "BaseCLI",
-    # Domain entities
     "CLICommand",
     "CLIConfig",
-    # Core components
     "CLIContext",
     "CLIPlugin",
     "CLIResultRenderer",
-    "CLIService",
+    "CLIServiceContainer",
     "CLISession",
-    # Application services (when available)
-    "CommandService",
     "CommandStatus",
     "CommandType",
     "FlextApiClient",
     "RichCLIRenderer",
-    # Version
     "__version__",
-    # CLI components (when available)
     "cli",
     "handle_service_result",
     "with_context",

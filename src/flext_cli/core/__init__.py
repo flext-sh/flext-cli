@@ -1,8 +1,9 @@
 """FLEXT CLI Core - Centralized CLI utilities for all FLEXT projects.
 
-This package provides standardized CLI components for use across all FLEXT modules.
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+This package provides standardized CLI components for use across all FLEXT modules.
 """
 
 # Base classes

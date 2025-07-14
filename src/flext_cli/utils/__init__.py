@@ -1,7 +1,11 @@
 """FLEXT CLI Utilities - Clean Architecture v0.7.0.
 
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 Utility modules using flext-core patterns exclusively.
 No legacy configuration or fallback code.
+
 """
 
 # Only export what's needed - clean architecture

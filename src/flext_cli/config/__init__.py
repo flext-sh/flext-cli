@@ -1,5 +1,8 @@
 """CLI configuration module using flext-core as base.
 
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 This module provides configuration management for the FLEXT CLI using
 the standardized configuration system from flext-core.
 """

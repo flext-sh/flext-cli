@@ -1,6 +1,8 @@
 """Decorators for FLEXT CLI framework.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -10,220 +12,219 @@ import functools
 import time
 from collections.abc import Callable
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import TypeVar
 
-import click
+from rich.console import Console
 
+if TYPE_CHECKING:
+    from flext_cli.config.cli_config import CLIConfig
+
+# Generic type for decorated functions
 F = TypeVar("F", bound=Callable[..., Any])
 
 
 def async_command[F: Callable[..., Any]](f: F) -> F:
+    """Decorator to run async functions in sync context."""
+
     @functools.wraps(f)
-    def wrapper(*args, **kwargs) -> None:
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         return asyncio.run(f(*args, **kwargs))
 
-    return wrapper
+    return wrapper  # type: ignore[return-value]
 
 
 def confirm_action(
-    message: str = "Are you sure?", default: bool = False,
+    message: str = "Are you sure?",
+    default: bool = False,
 ) -> Callable[[F], F]:
-    """Decorator to confirm dangerous actions.
+    """Decorator to add confirmation prompt before executing function.
+
+    It is useful for adding a safety check before executing potentially destructive actions.
 
     Args:
-        message: Confirmation message
-        default: Default answer if user just presses Enter
+        message: The message to display to the user.
+        default: Whether to default to yes or no. If True, the default is yes. If False, the default is no.
 
-    Example:
-        @cli.command()
-        @confirm_action("This will delete all data. Continue?")
-        def delete_all() -> None:
-            # Dangerous operation
-            pass
+    Returns:
+        The decorated function.
 
     """
 
     def decorator(f: F) -> F:
         @functools.wraps(f)
-        def wrapper(*args, **kwargs) -> None:
-            if not click.confirm(message, default=default):
-                click.echo("Operation cancelled.")
-                return None
-            return f(*args, **kwargs)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            console = Console()
+            if console.input(f"{message} [y/N]: ").lower().startswith("y"):
+                return f(*args, **kwargs)
+            console.print("Operation cancelled.", style="yellow")
+            return None
 
-        return wrapper
+        return wrapper  # type: ignore[return-value]
 
     return decorator
 
 
 def require_auth(token_file: str = "~/.flext/auth_token") -> Callable[[F], F]:
+    """Decorator to require authentication before executing function."""
+
     def decorator(f: F) -> F:
         @functools.wraps(f)
-        def wrapper(*args, **kwargs) -> None:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             token_path = Path(token_file).expanduser()
 
             if not token_path.exists():
-                click.echo(
-                    "Authentication required. Please run 'auth login' first.",
-                    err=True,
+                console = Console()
+                console.print(
+                    f"Authentication required. Token file not found: {token_path}",
+                    style="red",
                 )
-                ctx = click.get_current_context()
-                ctx.exit(1)
-
-            # Add token to context
-            ctx = click.get_current_context()
-            ctx.ensure_object(dict)
+                console.print("Please run 'flext auth login' first.", style="yellow")
+                return None
 
             try:
-                ctx.obj["auth_token"] = token_path.read_text().strip()
-            except (OSError, PermissionError, UnicodeDecodeError) as e:
-                click.echo(f"Failed to read auth token: {e}", err=True)
-                ctx.exit(1)
+                with token_path.open() as file_handle:
+                    token = file_handle.read().strip()
+                if not token:
+                    msg = "Empty token"
+                    raise ValueError(msg)
+            except Exception as e:
+                console = Console()
+                console.print(f"Invalid token file: {e}", style="red")
+                return None
 
+            # Add token to kwargs for the function
+            kwargs["auth_token"] = token
             return f(*args, **kwargs)
 
-        return wrapper
+        return wrapper  # type: ignore[return-value]
 
     return decorator
 
 
 def measure_time(show_in_output: bool = True) -> Callable[[F], F]:
+    """Decorator to measure and optionally display execution time."""
+
     def decorator(f: F) -> F:
         @functools.wraps(f)
-        def wrapper(*args, **kwargs) -> None:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             start_time = time.time()
-
             try:
                 return f(*args, **kwargs)
             finally:
-                elapsed = time.time() - start_time
+                end_time = time.time()
+                duration = end_time - start_time
 
                 if show_in_output:
-                    # Get CLI instance from context
-                    ctx = click.get_current_context()
-                    cli = ctx.obj.get("cli")
+                    console = Console()
+                    console.print(
+                        f"⏱️  Execution time: {duration:.2f}s",
+                        style="dim",
+                    )
 
-                    if cli and hasattr(cli, "print_info"):
-                        cli.print_info(f"Execution time: {elapsed:.2f}s")
-                    else:
-                        click.echo(f"\nExecution time: {elapsed:.2f}s")
-
-        return wrapper
+        return wrapper  # type: ignore[return-value]
 
     return decorator
 
 
 def retry(
-    max_attempts: int = 3, delay: float = 1.0, backoff: float = 2.0,
+    max_attempts: int = 3,
+    delay: float = 1.0,
+    backoff: float = 2.0,
 ) -> Callable[[F], F]:
+    """Decorator to retry function calls with exponential backoff."""
+
     def decorator(f: F) -> F:
         @functools.wraps(f)
-        def wrapper(*args, **kwargs) -> None:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            console = Console()
             current_delay = delay
-            last_exception = None
 
             for attempt in range(max_attempts):
                 try:
                     return f(*args, **kwargs)
-                except (
-                    OSError,
-                    ValueError,
-                    RuntimeError,
-                    TypeError,
-                    ConnectionError,
-                ) as e:
-                    last_exception = e
-
-                    if attempt < max_attempts - 1:
-                        click.echo(
-                            f"Attempt {attempt + 1} failed: {e}. "
-                            f"Retrying in {current_delay:.1f}s...",
-                            err=True,
+                except Exception as e:
+                    if attempt == max_attempts - 1:
+                        console.print(
+                            f"Failed after {max_attempts} attempts: {e}",
+                            style="red",
                         )
-                        time.sleep(current_delay)
-                        current_delay *= backoff
+                        raise
 
-            # All attempts failed
-            click.echo(f"All {max_attempts} attempts failed.", err=True)
-            if last_exception:
-                raise last_exception
-            return None
+                    console.print(
+                        f"Attempt {attempt + 1} failed: {e}. Retrying in {current_delay:.1f}s...",
+                        style="yellow",
+                    )
+                    time.sleep(current_delay)
+                    current_delay *= backoff
 
-        return wrapper
+            return None  # Should never reach here
+
+        return wrapper  # type: ignore[return-value]
 
     return decorator
 
 
 def validate_config(required_keys: list[str]) -> Callable[[F], F]:
-    """Decorator to validate configuration before running command.
-
-    Args:
-        required_keys: List of required configuration keys
-
-    Example:
-        @cli.command()
-        @validate_config(["api_url", "api_token"])
-        def api_command() -> None:
-            # Command that needs API config
-            pass
-
-    """
+    """Decorator to validate required configuration keys before execution."""
 
     def decorator(f: F) -> F:
         @functools.wraps(f)
-        def wrapper(*args, **kwargs) -> None:
-            ctx = click.get_current_context()
-            config = ctx.obj.get("config", {})
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            # Try to get config from context or kwargs
+            config: CLIConfig | None = kwargs.get("config")
 
-            missing_keys = [key for key in required_keys if not config.get(key)]
+            if not config:
+                # Try to get from args (assuming first arg might be context with config)
+                if args and hasattr(args[0], "config"):
+                    config = args[0].config
+
+            if not config:
+                console = Console()
+                console.print(
+                    "Configuration not available for validation.",
+                    style="red",
+                )
+                return None
+
+            # Validate required keys
+            missing_keys = [
+                key
+                for key in required_keys
+                if not hasattr(config, key) or getattr(config, key) is None
+            ]
 
             if missing_keys:
-                click.echo(
-                    f"Missing required configuration: {', '.join(missing_keys)}. "
-                    f"Please run 'config set' to configure these values.",
-                    err=True,
+                console = Console()
+                console.print(
+                    f"Missing required configuration: {', '.join(missing_keys)}",
+                    style="red",
                 )
-                ctx.exit(1)
+                return None
 
             return f(*args, **kwargs)
 
-        return wrapper
+        return wrapper  # type: ignore[return-value]
 
     return decorator
 
 
 def with_spinner(message: str = "Processing...") -> Callable[[F], F]:
-    """Decorator to show a spinner during command execution.
-
-    Args:
-        message: Message to show with spinner
-
-    Example:
-        @cli.command()
-        @with_spinner("Loading data...")
-        def load_command() -> None:
-            # Long-running operation
-            pass
-
-    """
+    """Decorator to show a spinner during function execution."""
 
     def decorator(f: F) -> F:
         @functools.wraps(f)
-        def wrapper(*args, **kwargs) -> None:
-            ctx = click.get_current_context()
-            cli = ctx.obj.get("cli")
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            console = Console()
 
-            if cli and hasattr(cli, "create_progress"):
-                with cli.create_progress(message) as progress:
-                    task = progress.add_task(message, total=None)
-                    result = f(*args, **kwargs)
-                    progress.update(task, completed=100)
-                return result
-            # Fallback if no CLI instance
-            click.echo(f"{message}")
-            return f(*args, **kwargs)
+            with console.status(message, spinner="dots"):
+                try:
+                    return f(*args, **kwargs)
+                except Exception:
+                    # Let the exception propagate but ensure spinner stops
+                    raise
 
-        return wrapper
+        return wrapper  # type: ignore[return-value]
 
     return decorator

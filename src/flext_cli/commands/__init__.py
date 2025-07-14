@@ -1,5 +1,8 @@
 """FLEXT CLI Commands.
 
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 Command modules for the FLEXT CLI.
 """
 

@@ -1,5 +1,8 @@
 """Custom parameter types for FLEXT CLI framework.
 
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 Built on flext-core foundation for robust CLI type validation.
 Uses Click parameter types with modern Python 3.13 patterns.
 """
@@ -127,10 +130,16 @@ class URLType(click.ParamType):
     ) -> str:
         """Convert value to validated URL string."""
         try:
-            parsed = urlparse(value)
+            # Ensure value is a string
+            value_str = str(value)
+            parsed = urlparse(value_str)
 
             if not parsed.scheme:
-                self.fail(f"'{value}' is not a valid URL (missing scheme)", param, ctx)
+                self.fail(
+                    f"'{value_str}' is not a valid URL (missing scheme)",
+                    param,
+                    ctx,
+                )
 
             if parsed.scheme not in self.schemes:
                 self.fail(
@@ -141,9 +150,13 @@ class URLType(click.ParamType):
                 )
 
             if not parsed.netloc:
-                self.fail(f"'{value}' is not a valid URL (missing netloc)", param, ctx)
+                self.fail(
+                    f"'{value_str}' is not a valid URL (missing netloc)",
+                    param,
+                    ctx,
+                )
 
-            return value
+            return value_str
         except Exception as e:
             self.fail(f"Invalid URL '{value}': {e}", param, ctx)
 

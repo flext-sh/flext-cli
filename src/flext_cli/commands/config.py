@@ -1,4 +1,9 @@
-"""Configuration management commands using flext-core patterns."""
+"""Configuration management commands using flext-core patterns.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
 
 from __future__ import annotations
 
@@ -116,37 +121,16 @@ def validate(ctx: click.Context) -> None:
     cli_context: CLIContext = ctx.obj["cli_context"]
 
     try:
-        # Validate using Pydantic validation
-        config_dict = cli_context.config.model_dump()
-        settings_dict = cli_context.settings.model_dump()
+        if not cli_context.config:
+            msg = "Configuration object not available"
+            raise ValueError(msg)
 
-        # Check required fields (defined by Pydantic Field requirements)
-        validation_errors = []
-
-        # Validate config
-        try:
-            cli_context.config.model_validate(config_dict)
-        except Exception as e:
-            validation_errors.append(f"Config validation: {e}")
-
-        # Validate settings
-        try:
-            cli_context.settings.model_validate(settings_dict)
-        except Exception as e:
-            validation_errors.append(f"Settings validation: {e}")
-
-        if validation_errors:
-            cli_context.print_error("Configuration validation failed")
-            for error in validation_errors:
-                cli_context.console.print(f"  [red]• {error}[/red]")
-            ctx.exit(1)
-        else:
-            cli_context.print_success("Configuration is valid")
+        if cli_context.settings:
             cli_context.print_info(
-                f"Config directory: {cli_context.config.directories.config_dir}",
+                f"Config directory: {cli_context.config.config_dir}",
             )
-            cli_context.print_info(f"Profile: {cli_context.settings.profile}")
-            cli_context.print_info(f"API URL: {cli_context.config.api.url}")
+            cli_context.print_info(f"Profile: {cli_context.config.profile}")
+            cli_context.print_info(f"API URL: {cli_context.config.api_url}")
 
     except Exception as e:
         cli_context.print_error(f"Configuration validation error: {e}")
@@ -158,29 +142,41 @@ def validate(ctx: click.Context) -> None:
 def path(ctx: click.Context) -> None:
     cli_context: CLIContext = ctx.obj["cli_context"]
 
-    directories = cli_context.config.directories
-
-    cli_context.print_info(f"Configuration directory: {directories.config_dir}")
-    cli_context.print_info(f"Cache directory: {directories.cache_dir}")
-    cli_context.print_info(f"Log directory: {directories.log_dir}")
-    cli_context.print_info(f"Data directory: {directories.data_dir}")
+    # Use flat structure from utils/config.py
+    cli_context.print_info(f"Configuration directory: {cli_context.config.config_dir}")
+    cli_context.print_info(f"Cache directory: {cli_context.config.cache_dir}")
+    cli_context.print_info(f"Log directory: {cli_context.config.log_dir}")
+    cli_context.print_info(f"Data directory: {cli_context.config.config_dir / 'data'}")
 
     # Show auth files
-    auth_config = cli_context.config.auth
-    cli_context.print_info(f"Token file: {auth_config.token_file}")
-    cli_context.print_info(f"Refresh token file: {auth_config.refresh_token_file}")
+    cli_context.print_info(f"Token file: {cli_context.config.token_file}")
+    cli_context.print_info(
+        f"Refresh token file: {cli_context.config.refresh_token_file}",
+    )
 
     # Check if directories exist:
     for name, path in [
-        ("config", directories.config_dir),
-        ("cache", directories.cache_dir),
-        ("log", directories.log_dir),
-        ("data", directories.data_dir),
+        ("config", cli_context.config.config_dir),
+        ("cache", cli_context.config.cache_dir),
+        ("log", cli_context.config.log_dir),
     ]:
-        if path.exists():
-            cli_context.print_success(f"{name} directory exists")
-        else:
-            cli_context.print_warning(f"{name} directory does not exist")
+        exists = path.exists()
+        status = "✓" if exists else "✗"
+        color = "green" if exists else "red"
+        cli_context.console.print(f"  [{color}]{status}[/{color}] {name}: {path}")
+
+    # Show config files:
+    cli_context.print_info("\nConfiguration files:")
+    config_files = [
+        ("config.yaml", cli_context.config.config_dir / "config.yaml"),
+        ("settings.toml", cli_context.config.config_dir / "settings.toml"),
+    ]
+
+    for name, path in config_files:
+        exists = path.exists()
+        status = "✓" if exists else "✗"
+        color = "green" if exists else "yellow"
+        cli_context.console.print(f"  [{color}]{status}[/{color}] {name}: {path}")
 
 
 @config.command()
@@ -189,7 +185,7 @@ def path(ctx: click.Context) -> None:
 def edit(ctx: click.Context, profile: str | None) -> None:
     cli_context: CLIContext = ctx.obj["cli_context"]
 
-    config_dir = cli_context.config.directories.config_dir
+    config_dir = cli_context.config.config_dir
     config_file = config_dir / "config.yaml"
     editor = os.environ.get("EDITOR", "vim")
 

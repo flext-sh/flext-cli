@@ -1,4 +1,9 @@
-"""CLI domain models and services using flext-core."""
+"""CLI domain models and services using flext-core.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
 
 # Only import the entities that work
 from flext_cli.domain.cli_services import CLIServiceContainer

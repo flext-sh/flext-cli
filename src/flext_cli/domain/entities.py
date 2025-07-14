@@ -1,6 +1,9 @@
 """Domain entities for FLEXT-CLI.
 
-REFACTORED: Uses flext-core mixins, types, StrEnum, and constants - NO duplication.
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+Uses flext-core mixins, types, StrEnum, and constants.
 """
 
 from __future__ import annotations
@@ -129,7 +132,10 @@ class CLICommand(DomainEntity):
         self.started_at = datetime.now()
 
     def complete_execution(
-        self, exit_code: int, stdout: str | None = None, stderr: str | None = None,
+        self,
+        exit_code: int,
+        stdout: str | None = None,
+        stderr: str | None = None,
     ) -> None:
         """Complete command execution.
 

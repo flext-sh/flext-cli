@@ -1,6 +1,7 @@
 """Application commands for FLEXT-CLI.
 
-Using flext-core command patterns - NO duplication.
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -21,6 +22,7 @@ class ExecuteCommandCommand:
         self,
         name: str,
         command_line: str,
+        *,
         arguments: dict[str, Any] | None = None,
         options: dict[str, Any] | None = None,
         command_type: CommandType = CommandType.SYSTEM,

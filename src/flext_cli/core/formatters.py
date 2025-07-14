@@ -1,5 +1,8 @@
 """Output formatters for FLEXT CLI framework.
 
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 Built on flext-core foundation with Rich integration.
 Provides multiple output formats for CLI commands.
 """
@@ -94,17 +97,17 @@ class CSVFormatter(OutputFormatter):
 
         if isinstance(data, list) and data:
             if isinstance(data[0], dict):
-                writer = csv.DictWriter(output, fieldnames=data[0].keys())
-                writer.writeheader()
-                writer.writerows(data)
+                dict_writer = csv.DictWriter(output, fieldnames=data[0].keys())
+                dict_writer.writeheader()
+                dict_writer.writerows(data)
             else:
-                writer = csv.writer(output)
+                regular_writer = csv.writer(output)
                 for item in data:
-                    writer.writerow([item])
+                    regular_writer.writerow([str(item)])
         elif isinstance(data, dict):
-            writer = csv.DictWriter(output, fieldnames=data.keys())
-            writer.writeheader()
-            writer.writerow(data)
+            dict_writer = csv.DictWriter(output, fieldnames=data.keys())
+            dict_writer.writeheader()
+            dict_writer.writerow(data)
 
         console.print(output.getvalue().strip())
 
