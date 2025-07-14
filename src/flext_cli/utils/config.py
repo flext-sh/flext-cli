@@ -1,6 +1,8 @@
 """Configuration utilities for FLEXT CLI - using flext-core exclusively.
 
-NO DUPLICATED LOGIC - ALL THROUGH FLEXT-CORE
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -12,12 +14,11 @@ from pydantic_settings import SettingsConfigDict
 
 # Use flext-core exclusively - NO DIRECT PYDANTIC IMPORTS
 from flext_core import ServiceResult
-from flext_core.config.base import BaseSettings
-from flext_core.domain.pydantic_base import DomainValueObject
+from flext_core.config.base import BaseConfig, BaseSettings
 from flext_core.domain.pydantic_base import Field
 
 
-class CLIConfig(DomainValueObject):
+class CLIConfig(BaseConfig):
     """CLI configuration using flext-core declarative patterns."""
 
     # CLI-specific settings
@@ -107,6 +108,12 @@ def get_config() -> CLIConfig:
     global _config
     if _config is None:
         _config = CLIConfig()
+        # Force model rebuild to resolve forward references
+        try:
+            from flext_cli.domain.cli_context import CLIContext
+            CLIContext.model_rebuild()
+        except ImportError:
+            pass  # CLIContext may not be imported yet
     return _config
 
 

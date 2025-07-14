@@ -1,4 +1,9 @@
-"""CLI context for dependency injection and state management."""
+"""CLI context for dependency injection and state management.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
 
 from __future__ import annotations
 
@@ -11,7 +16,6 @@ from flext_core.domain.pydantic_base import DomainValueObject
 
 if TYPE_CHECKING:
     from rich.console import Console
-
     from flext_cli.utils.config import CLIConfig
     from flext_cli.utils.config import CLISettings
 

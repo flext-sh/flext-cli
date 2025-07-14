@@ -1,7 +1,8 @@
-"""Base classes and utilities for FLEXT CLI framework - Clean Architecture.
+"""Base classes and utilities for FLEXT CLI framework.
 
-USING FLEXT-CORE ARCHITECTURE PATTERNS EXCLUSIVELY
 Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -97,13 +98,13 @@ class RichCLIRenderer(CLIResultRenderer):
 
     def render_success(self, result: ServiceResult[Any]) -> None:
         """Render successful result."""
-        if result.success and not self.config.quiet:
+        if result.is_success and not self.config.quiet:
             self.console.print(f"[bold green]✓[/bold green] {result.data}")
         self.logger.info(f"Success: {result.data}")
 
     def render_error(self, result: ServiceResult[Any]) -> None:
         """Render error result."""
-        if not result.success:
+        if not result.is_success:
             self.console.print(f"[bold red]Error:[/bold red] {result.error}")
         self.logger.error(f"Error: {result.error}")
 
@@ -171,21 +172,24 @@ class BaseCLI(ABC):
         if not self.config.quiet:
             self.console.print(
                 Panel.fit(
-                    f"[bold cyan]{self.name}[/bold cyan] v{self.version}\n{self.description}",
+                    f"[bold cyan]{self.name}[/bold cyan] v{self.version}\n"
+                    f"{self.description}",
                     border_style="cyan",
                 ),
             )
 
     def handle_result(self, result: ServiceResult[Any]) -> None:
         """Handle service result."""
-        if result.success:
+        if result.is_success:
             self.renderer.render_success(result)
         else:
             self.renderer.render_error(result)
             sys.exit(1)
 
     def create_table(
-        self, title: str | None = None, columns: list[tuple[str, str]] | None = None,
+        self,
+        title: str | None = None,
+        columns: list[tuple[str, str]] | None = None,
     ) -> Table:
         """Create Rich table."""
         table = Table(title=title, show_header=True, header_style="bold cyan")
@@ -218,7 +222,7 @@ class BaseCLI(ABC):
 def with_context[F: Callable[..., Any]](f: F) -> F:
     """Decorator to inject CLI context."""
 
-    def wrapper(*args, **kwargs) -> None:
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         # Extract context from Click context
         ctx = click.get_current_context()
         cli_context = ctx.obj.get("cli_context")
@@ -228,13 +232,13 @@ def with_context[F: Callable[..., Any]](f: F) -> F:
 
     wrapper.__name__ = f.__name__
     wrapper.__doc__ = f.__doc__
-    return wrapper
+    return wrapper  # type: ignore[return-value]
 
 
 def handle_service_result[F: Callable[..., Any]](f: F) -> F:
     """Decorator to handle service results."""
 
-    def wrapper(*args, **kwargs) -> None:
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             result = f(*args, **kwargs)
             if hasattr(result, "success"):
@@ -259,4 +263,4 @@ def handle_service_result[F: Callable[..., Any]](f: F) -> F:
 
     wrapper.__name__ = f.__name__
     wrapper.__doc__ = f.__doc__
-    return wrapper
+    return wrapper  # type: ignore[return-value]

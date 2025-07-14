@@ -1,36 +1,43 @@
-"""Output formatting utilities using flext-core and flext-observability.
+"""Output formatting utilities for FLEXT CLI.
 
-Version 0.7.0 - Refactored to use flext-core patterns.
-No legacy console setup - all through CLIContext.
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+Provides consistent output formatting across CLI commands.
 """
 
 from __future__ import annotations
 
-import json
+from typing import TYPE_CHECKING
 from typing import Any
 
 import yaml
 from rich.console import Console
-from rich.syntax import Syntax
 from rich.table import Table
 
-from flext_cli.utils.config import get_config
+if TYPE_CHECKING:
+    from flext_cli.client import Pipeline
+    from flext_cli.client import PipelineList
 
 
 def setup_console(no_color: bool = False, quiet: bool = False) -> Console:
-    """Setup console with configuration."""
-    config = get_config()
+    """Setup Rich console with configuration.
 
+    Args:
+        no_color: Disable color output
+        quiet: Suppress non-error output
+
+    Returns:
+        Configured console instance
+
+    """
     return Console(
-        no_color=no_color or config.no_color,
-        quiet=quiet or config.quiet,
-        highlight=True,
-        markup=True,
-        stderr=False,
+        color_system=None if no_color else "auto",
+        quiet=quiet,
     )
 
 
-def format_pipeline_list(console: Console, pipeline_list: object) -> None:
+def format_pipeline_list(console: Console, pipeline_list: PipelineList) -> None:
     """Format pipeline list for display."""
     if not pipeline_list.pipelines:
         console.print("[yellow]No pipelines found[/yellow]")
@@ -48,14 +55,14 @@ def format_pipeline_list(console: Console, pipeline_list: object) -> None:
 
     for pipeline in pipeline_list.pipelines:
         status_color = {
-            "active": "green",
-            "inactive": "yellow",
-            "error": "red",
-            "running": "blue",
+            "running": "green",
+            "failed": "red",
+            "pending": "yellow",
+            "completed": "blue",
         }.get(pipeline.status.lower(), "white")
 
         table.add_row(
-            pipeline.id,
+            pipeline.id[:8],  # Show first 8 chars of ID
             pipeline.name,
             f"[{status_color}]{pipeline.status}[/{status_color}]",
             pipeline.created_at,
@@ -65,7 +72,7 @@ def format_pipeline_list(console: Console, pipeline_list: object) -> None:
     console.print(f"\nTotal: {pipeline_list.total} pipelines")
 
 
-def format_pipeline(console: Console, pipeline: object) -> None:
+def format_pipeline(console: Console, pipeline: Pipeline) -> None:
     """Format single pipeline for display."""
     console.print(f"\n[bold cyan]{pipeline.name}[/bold cyan]")
     console.print(f"ID: {pipeline.id}")
@@ -85,83 +92,75 @@ def format_pipeline(console: Console, pipeline: object) -> None:
             console.print(f"  Schedule: {pipeline.config.schedule}")
 
         if pipeline.config.config:
-            console.print("\n[bold]Additional Configuration:[/bold]")
-            syntax = Syntax(
-                yaml.dump(pipeline.config.config, default_flow_style=False),
-                "yaml",
-                theme="monokai",
-                line_numbers=False,
-            )
-            console.print(syntax)
+            console.print("  Config:")
+            config_yaml = yaml.dump(pipeline.config.config, default_flow_style=False)
+            for line in config_yaml.strip().split("\n"):
+                console.print(f"    {line}")
 
 
 def format_plugin_list(
-    console: Console, plugins: list[dict[str, Any]], output_format: str,
+    console: Console,
+    plugins: list[dict[str, Any]],
+    output_format: str,
 ) -> None:
     """Format plugin list for display."""
     if not plugins:
         console.print("[yellow]No plugins found[/yellow]")
         return
 
-    if output_format == "yaml":
-        console.print(yaml.dump(plugins, default_flow_style=False))
-        return
+    if output_format == "table":
+        table = Table(title="Available Plugins")
+        table.add_column("Name", style="cyan")
+        table.add_column("Type", style="white")
+        table.add_column("Version", style="green")
+        table.add_column("Description", style="dim")
 
-    table = Table(title="Available Plugins")
-    table.add_column("ID", style="cyan", no_wrap=True)
-    table.add_column("Name", style="white")
-    table.add_column("Type", style="yellow")
-    table.add_column("Version", style="green")
-    table.add_column("Status", style="blue")
+        for plugin in plugins:
+            table.add_row(
+                plugin.get("name", "Unknown"),
+                plugin.get("type", "Unknown"),
+                plugin.get("version", "Unknown"),
+                plugin.get("description", "No description"),
+            )
 
-    for plugin in plugins:
-        status_color = {
-            "installed": "green",
-            "available": "yellow",
-            "update": "blue",
-            "error": "red",
-        }.get(plugin.get("status", "").lower(), "white")
+        console.print(table)
+    else:
+        # JSON format
+        import json
 
-        table.add_row(
-            plugin.get("id", ""),
-            plugin.get("name", ""),
-            plugin.get("type", ""),
-            plugin.get("version", ""),
-            f"[{status_color}]{plugin.get('status', '')}[/{status_color}]",
-        )
-
-    console.print(table)
+        console.print(json.dumps(plugins, indent=2))
 
 
 def format_json(data: object) -> str:
+    """Format object as JSON string."""
+    import json
+
     return json.dumps(data, indent=2, default=str)
 
 
 def format_yaml(data: object) -> str:
-    return yaml.dump(data, default_flow_style=False, default_str=str)
-
-
-# Legacy print functions - use CLIContext methods instead
-# These are kept for backward compatibility but should be migrated
+    """Format object as YAML string."""
+    result = yaml.dump(data, default_flow_style=False)
+    return str(result)
 
 
 def print_error(console: Console, message: str, details: str | None = None) -> None:
-    """Print error message."""
-    console.print(f"[red]❌ {message}[/red]")
+    """Print error message with optional details."""
+    console.print(f"[bold red]Error:[/bold red] {message}")
     if details:
         console.print(f"[dim]{details}[/dim]")
 
 
 def print_success(console: Console, message: str) -> None:
     """Print success message."""
-    console.print(f"[green]✅ {message}[/green]")
+    console.print(f"[bold green]✓[/bold green] {message}")
 
 
 def print_warning(console: Console, message: str) -> None:
     """Print warning message."""
-    console.print(f"[yellow]⚠️  {message}[/yellow]")
+    console.print(f"[bold yellow]⚠[/bold yellow] {message}")
 
 
 def print_info(console: Console, message: str) -> None:
     """Print info message."""
-    console.print(f"[blue]ℹ️  {message}[/blue]")
+    console.print(f"[bold blue]ℹ[/bold blue] {message}")

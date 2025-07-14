@@ -1,4 +1,10 @@
-"""FLEXT CLI configuration models using flext-core base classes."""
+"""CLI configuration management for FLEXT CLI.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+Provides unified configuration using flext-core base classes.
+"""
 
 from __future__ import annotations
 
@@ -6,11 +12,11 @@ from pathlib import Path
 from typing import Literal
 
 from pydantic import Field
+from pydantic_settings import BaseSettings
 from pydantic_settings import SettingsConfigDict
 
-from flext_core.config import BaseSettings
-from flext_core.config import singleton
 from flext_core.config.base import BaseConfig
+from flext_core.config import singleton
 from flext_core.domain.pydantic_base import DomainValueObject
 
 
@@ -99,19 +105,39 @@ class CLIConfig(BaseConfig):
 
     # Component configurations
     output: CLIOutputConfig = Field(
-        default_factory=CLIOutputConfig,
+        default_factory=lambda: CLIOutputConfig(
+            format="table",
+            no_color=False,
+            quiet=False,
+            verbose=False,
+            pager=None,
+        ),
         description="Output configuration",
     )
     api: CLIAPIConfig = Field(
-        default_factory=CLIAPIConfig,
+        default_factory=lambda: CLIAPIConfig(
+            url="http://localhost:8000",
+            timeout=30,
+            retries=3,
+            verify_ssl=True,
+        ),
         description="API client configuration",
     )
     auth: CLIAuthConfig = Field(
-        default_factory=CLIAuthConfig,
+        default_factory=lambda: CLIAuthConfig(
+            token_file=Path.home() / ".flext" / "auth" / "token",
+            refresh_token_file=Path.home() / ".flext" / "auth" / "refresh_token",
+            auto_refresh=True,
+        ),
         description="Authentication configuration",
     )
     directories: CLIDirectoryConfig = Field(
-        default_factory=CLIDirectoryConfig,
+        default_factory=lambda: CLIDirectoryConfig(
+            config_dir=Path.home() / ".flext",
+            cache_dir=Path.home() / ".flext" / "cache",
+            log_dir=Path.home() / ".flext" / "logs",
+            data_dir=Path.home() / ".flext" / "data",
+        ),
         description="Directory configuration",
     )
 
@@ -137,13 +163,16 @@ def get_cli_config(reload: bool = False) -> CLIConfig:
     global _cli_config
 
     if _cli_config is None or reload:
-        _cli_config = CLIConfig()
+        _cli_config = CLIConfig(
+            profile="default",
+            debug=False,
+        )
         _cli_config.ensure_setup()
 
     return _cli_config
 
 
-@singleton()
+@singleton()  # type: ignore[arg-type]
 class CLISettings(BaseSettings):
     """FLEXT CLI settings with environment variable support.
 
@@ -175,4 +204,11 @@ class CLISettings(BaseSettings):
 
 def get_cli_settings() -> CLISettings:
     """Get CLI settings instance."""
-    return CLISettings()
+    return CLISettings(
+        project_name="flext-cli",
+        project_version="0.7.0",
+        api_url="http://localhost:8000",
+        timeout=30,
+        output_format="table",
+        debug=False,
+    )

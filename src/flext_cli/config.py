@@ -1,8 +1,9 @@
 """FLEXT CLI Configuration - Modern Python 3.13 patterns.
 
-REFACTORED:
-    Uses flext-core BaseSettings with structured value objects.
-Zero tolerance for duplication.
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+Uses flext-core BaseSettings with structured value objects.
 """
 
 from __future__ import annotations

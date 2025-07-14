@@ -1,7 +1,10 @@
 """FLEXT CLI Entry Point - Clean Architecture with flext-core.
 
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 Version 0.7.0 - Complete refactor using flext-core patterns:
-    - Declarative configuration via BaseConfig/BaseSettings
+- Declarative configuration via BaseConfig/BaseSettings
 - Dependency injection via DIContainer
 - Clean architecture with domain/application layers
 - No legacy/fallback code
@@ -11,7 +14,6 @@ from __future__ import annotations
 
 import sys
 import traceback
-from typing import TYPE_CHECKING
 
 import click
 from rich.console import Console
@@ -23,12 +25,10 @@ from flext_cli.commands import debug
 from flext_cli.commands import pipeline
 from flext_cli.commands import plugin
 from flext_cli.domain import CLIServiceContainer
+from flext_cli.domain.cli_context import CLIContext
 from flext_cli.utils.config import CLISettings
 from flext_cli.utils.config import get_config
 from flext_core.config.base import get_container
-
-if TYPE_CHECKING:
-    from flext_cli.domain.cli_context import CLIContext
 
 
 @click.group(
@@ -63,7 +63,11 @@ if TYPE_CHECKING:
 )
 @click.pass_context
 def cli(
-    ctx: click.Context, profile: str, output: str, debug: bool, quiet: bool,
+    ctx: click.Context,
+    profile: str,
+    output: str,
+    debug: bool,
+    quiet: bool,
 ) -> None:
     """FLEXT Command Line Interface."""
     # Load configuration using flext-core
@@ -79,16 +83,20 @@ def cli(
 
     # Create service container with dependency injection
     container = get_container()
-    service_container = CLIServiceContainer.create(
-        config=config,
-        settings=settings,
+    service_container = CLIServiceContainer(
+        name="flext-cli",
+        version="0.7.0",
     )
 
     # Register services in DI container
     container.register(CLIServiceContainer, service_container)
 
     # Create CLI context
-    cli_context = service_container.create_context()
+    cli_context = CLIContext(
+        console=Console(),
+        settings=settings,
+        config=config,
+    )
 
     # Setup click context with our clean architecture
     ctx.ensure_object(dict)
@@ -134,13 +142,21 @@ def version(ctx: click.Context) -> None:
 
 
 def main() -> None:
+    """Main entry point for the FLX CLI application."""
     try:
         cli()
     except KeyboardInterrupt:
         console = Console()
         console.print("\n[yellow]Operation cancelled by user[/yellow]")
         sys.exit(1)
-    except Exception as e:
+    except (
+        OSError,
+        RuntimeError,
+        ValueError,
+        TypeError,
+        ConnectionError,
+        TimeoutError,
+    ) as e:
         console = Console()
         console.print(f"[red]Error: {e}[/red]")
         # In debug mode, show full traceback

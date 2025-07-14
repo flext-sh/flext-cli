@@ -1,6 +1,8 @@
 """Configuration for FLEXT-CLI infrastructure.
 
-Using flext-core base settings - NO duplication.
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
