@@ -107,7 +107,7 @@ def cli_runner() -> CliRunner:
         CliRunner instance configured for testing.
 
     """
-    return CliRunner(mix_stderr=False)
+    return CliRunner()
 
 
 @pytest.fixture
@@ -118,7 +118,7 @@ def isolated_cli_runner() -> Iterator[CliRunner]:
         CliRunner instance with isolated filesystem for testing.
 
     """
-    runner = CliRunner(mix_stderr=False)
+    runner = CliRunner()
     with runner.isolated_filesystem():
         yield runner
 
@@ -133,7 +133,7 @@ def cli() -> Command:
     """
     if main_cli is None:
         msg = "CLI module should be available"  # type: ignore[unreachable]
-        raise ImportError(msg)  # type: ignore[unreachable]
+        raise ImportError(msg)
     return main_cli
 
 
@@ -200,7 +200,7 @@ FLEXT_DEBUG=true
 
 
 @pytest.fixture
-def mock_api_client(mocker: pytest_mock.MockerFixture) -> Mock:
+def mock_api_client(mocker: pytest_mock.MockerFixture) -> Any:
     """Create a mock API client for testing.
 
     Args:

@@ -38,13 +38,13 @@ except ImportError as e:
 
 # Define fallback values when imports fail
 if not ALGAR_AVAILABLE:
-    MigrateLDIFCommand = None  # type: ignore[misc]
-    MigrateLDIFHandler = None  # type: ignore[misc]
-    MigrationService = None  # type: ignore[misc]
-    LDIFEntry = None  # type: ignore[misc]
-    MigrationConfig = None  # type: ignore[misc]
-    MigrationPhase = None  # type: ignore[misc]
-    AlgarMigrationEngine = None  # type: ignore[misc]
+    MigrateLDIFCommand = None  # type: ignore[assignment,misc]
+    MigrateLDIFHandler = None  # type: ignore[assignment,misc]
+    MigrationService = None  # type: ignore[assignment,misc]
+    LDIFEntry = None  # type: ignore[assignment,misc]
+    MigrationConfig = None  # type: ignore[assignment,misc]
+    MigrationPhase = None  # type: ignore[assignment,misc]
+    AlgarMigrationEngine = None  # type: ignore[assignment,misc]
 
 
 def _raise_missing_env(var_name: str) -> str:
@@ -239,7 +239,7 @@ def diagnose(ctx: click.Context, health_check: bool) -> None:
         deps_to_check = [
             ("flext-core", "flext_core"),
             ("flext-observability", "flext_observability"),
-            ("ldap3", "ldap3"),
+            ("python-ldap", "ldap"),
         ]
 
         for dep_name, module_name in deps_to_check:
@@ -403,7 +403,7 @@ def version(ctx: click.Context) -> None:
         deps = [
             ("flext-core", "flext_core"),
             ("flext-observability", "flext_observability"),
-            ("ldap3", "ldap3"),
+            ("python-ldap", "ldap"),
         ]
 
         for dep_name, _module_name in deps:

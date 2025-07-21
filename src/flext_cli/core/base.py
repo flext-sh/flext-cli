@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING, Any, TypeVar
 import click
 from flext_core import Field
 from flext_core.domain.pydantic_base import DomainBaseModel
-from flext_core.domain.types import ServiceResult
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -28,6 +27,8 @@ from rich.tree import Tree
 from flext_cli.utils.config import get_config
 
 if TYPE_CHECKING:
+    from flext_core.domain.types import ServiceResult
+
     from flext_cli.utils.config import CLIConfig
 
 
