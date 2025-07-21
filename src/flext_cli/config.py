@@ -11,13 +11,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from pydantic_settings import SettingsConfigDict
-
-from flext_core.config import get_container
-from flext_core.config import singleton
+from flext_core import Field
+from flext_core.config import get_container, singleton
 from flext_core.config.base import BaseSettings
 from flext_core.domain.pydantic_base import DomainValueObject
-from flext_core.domain.pydantic_base import Field
+from pydantic_settings import SettingsConfigDict
 
 
 class APIConfig(DomainValueObject):

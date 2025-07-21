@@ -5,6 +5,8 @@ SPDX-License-Identifier: MIT
 
 """
 
+from __future__ import annotations
+
 from flext_cli.infrastructure.config import CLIConfig
 
 __all__ = [

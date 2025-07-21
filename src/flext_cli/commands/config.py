@@ -2,7 +2,6 @@
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -33,7 +32,6 @@ def get(ctx: click.Context, key: str | None) -> None:
     cli_context: CLIContext = ctx.obj["cli_context"]
 
     if key:
-        # Get specific value from config
         try:
             value = getattr(cli_context.config, key, None)
             if value is None:
@@ -90,7 +88,6 @@ def set_value(ctx: click.Context, key: str, value: str) -> None:
     cli_context: CLIContext = ctx.obj["cli_context"]
 
     try:
-        # Try to parse value as JSON first
         try:
             parsed_value = json.loads(value)
         except json.JSONDecodeError:
@@ -109,7 +106,6 @@ def set_value(ctx: click.Context, key: str, value: str) -> None:
                 f"Configuration key '{key}' not found in config or settings",
             )
             ctx.exit(1)
-
     except Exception as e:
         cli_context.print_error(f"Failed to set configuration: {e}")
         ctx.exit(1)
@@ -122,7 +118,7 @@ def validate(ctx: click.Context) -> None:
 
     try:
         if not cli_context.config:
-            msg = "Configuration object not available"
+            msg = "Configuration not loaded"
             raise ValueError(msg)
 
         if cli_context.settings:
@@ -131,7 +127,7 @@ def validate(ctx: click.Context) -> None:
             )
             cli_context.print_info(f"Profile: {cli_context.config.profile}")
             cli_context.print_info(f"API URL: {cli_context.config.api_url}")
-
+            cli_context.print_success("Configuration validation passed")
     except Exception as e:
         cli_context.print_error(f"Configuration validation error: {e}")
         ctx.exit(1)

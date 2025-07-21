@@ -9,15 +9,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pydantic import ConfigDict
-from pydantic import Field
-
+from flext_core import Field
 from flext_core.domain.pydantic_base import DomainValueObject
+from pydantic import ConfigDict
 
 if TYPE_CHECKING:
     from rich.console import Console
-    from flext_cli.utils.config import CLIConfig
-    from flext_cli.utils.config import CLISettings
+
+    from flext_cli.utils.config import CLIConfig, CLISettings
 
 
 class CLIContext(DomainValueObject):

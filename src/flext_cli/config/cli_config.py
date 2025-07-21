@@ -11,13 +11,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field
-from pydantic_settings import BaseSettings
-from pydantic_settings import SettingsConfigDict
-
-from flext_core.config.base import BaseConfig
+from flext_core import Field
 from flext_core.config import singleton
+from flext_core.config.base import BaseConfig
 from flext_core.domain.pydantic_base import DomainValueObject
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class CLIOutputConfig(DomainValueObject):

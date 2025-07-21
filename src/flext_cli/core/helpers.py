@@ -13,8 +13,7 @@ from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 from rich.progress import Progress
-from rich.prompt import Confirm
-from rich.prompt import Prompt
+from rich.prompt import Confirm, Prompt
 
 if TYPE_CHECKING:
     from rich.console import Console
@@ -37,7 +36,6 @@ class CLIHelper:
         return Prompt.ask(message, console=self.console)
 
     def validate_url(self, url: str) -> bool:
-        """Validate URL format."""
         try:
             result = urlparse(url)
             return all([result.scheme, result.netloc])
@@ -45,7 +43,6 @@ class CLIHelper:
             return False
 
     def validate_path(self, path_str: str, must_exist: bool = True) -> bool:
-        """Validate file path."""
         try:
             path = Path(path_str)
             if must_exist:

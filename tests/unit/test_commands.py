@@ -14,8 +14,7 @@ if TYPE_CHECKING:
     from typing import Any
 
     from click import Command
-    from click.testing import CliRunner
-    from click.testing import Result
+    from click.testing import CliRunner, Result
 
 
 class TestPipelineCommands:

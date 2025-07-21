@@ -9,10 +9,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli.utils.config import get_config
-
 # Use centralized ServiceResult from flext-core - ELIMINATE DUPLICATION
 from flext_core.domain.types import ServiceResult
+
+from flext_cli.utils.config import get_config
 
 if TYPE_CHECKING:
     from pathlib import Path

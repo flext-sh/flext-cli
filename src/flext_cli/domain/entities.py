@@ -10,17 +10,13 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
-from typing import TYPE_CHECKING
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from pydantic import Field
-
-from flext_core.domain.pydantic_base import DomainEntity
-from flext_core.domain.pydantic_base import DomainEvent
+from flext_core import Field
+from flext_core.domain.pydantic_base import DomainEntity, DomainEvent
 
 if TYPE_CHECKING:
-    from flext_core.domain.types import EntityId
-    from flext_core.domain.types import UserId
+    from flext_core.domain.types import EntityId, UserId
 
 
 # Simple constants for compatibility

@@ -47,8 +47,6 @@ def connectivity(ctx: click.Context) -> None:
                     console.print(
                         f"[green]✅ Connected to API at {client.base_url}[/green]",
                     )
-
-                    # Try to get system status
                     try:
                         status = await client.get_system_status()
                         console.print("\nSystem Status:")
@@ -62,7 +60,6 @@ def connectivity(ctx: click.Context) -> None:
                         f"[red]❌ Failed to connect to API at {client.base_url}[/red]",
                     )
                     ctx.exit(1)
-
         except Exception as e:
             console.print(f"[red]❌ Connection test failed: {e}[/red]")
             ctx.exit(1)
@@ -92,7 +89,6 @@ def performance(ctx: click.Context) -> None:
                     table.add_row(key, str(value))
 
                 console.print(table)
-
         except Exception as e:
             console.print(f"[red]❌ Failed to get performance metrics: {e}[/red]")
             ctx.exit(1)

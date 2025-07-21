@@ -8,10 +8,10 @@ No legacy configuration or fallback code.
 
 """
 
+from __future__ import annotations
+
 # Only export what's needed - clean architecture
-from flext_cli.utils.config import CLIConfig
-from flext_cli.utils.config import CLISettings
-from flext_cli.utils.config import get_config
+from flext_cli.utils.config import CLIConfig, CLISettings, get_config
 
 __all__ = [
     "CLIConfig",

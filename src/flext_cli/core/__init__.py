@@ -6,22 +6,28 @@ SPDX-License-Identifier: MIT
 This package provides standardized CLI components for use across all FLEXT modules.
 """
 
+from __future__ import annotations
+
 # Base classes
-from flext_cli.core.base import BaseCLI
-from flext_cli.core.base import CLIContext
-from flext_cli.core.base import CLIResultRenderer
-from flext_cli.core.base import RichCLIRenderer
-from flext_cli.core.base import handle_service_result
-from flext_cli.core.base import with_context
+from flext_cli.core.base import (
+    BaseCLI,
+    CLIContext,
+    CLIResultRenderer,
+    RichCLIRenderer,
+    handle_service_result,
+    with_context,
+)
 
 # Decorators
-from flext_cli.core.decorators import async_command
-from flext_cli.core.decorators import confirm_action
-from flext_cli.core.decorators import measure_time
-from flext_cli.core.decorators import require_auth
-from flext_cli.core.decorators import retry
-from flext_cli.core.decorators import validate_config
-from flext_cli.core.decorators import with_spinner
+from flext_cli.core.decorators import (
+    async_command,
+    confirm_action,
+    measure_time,
+    require_auth,
+    retry,
+    validate_config,
+    with_spinner,
+)
 
 # Helpers
 from flext_cli.core.helpers import CLIHelper

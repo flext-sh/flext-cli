@@ -7,14 +7,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Any
-from typing import Self
-from typing import cast
+from typing import Any, Self, cast
 from urllib.parse import urljoin
 
 import httpx
+from flext_core import Field
 from pydantic import BaseModel
-from pydantic import Field
 
 
 class APIBaseModel(BaseModel):
@@ -439,7 +437,7 @@ class FlextApiClient:
         """Test API connection.
 
         Returns:
-            True if connection is successful
+            True if connection is successful, False otherwise.
 
         """
         try:

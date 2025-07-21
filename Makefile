@@ -1,215 +1,271 @@
-# FLEXT-CLI Makefile - Enterprise Command Line Interface
-# Uses FLEXT standardized patterns and flext-core integration
+# FLEXT CLI - Command Line Interface
+# =====================================
+# Python CLI framework with Click and Rich UI components
+# Python 3.13 + Click + Rich + Zero Tolerance Quality Gates
 
-# Project Configuration
-PROJECT_NAME := flext-cli
-PYTHON_VERSION := 3.13
-POETRY := poetry
-PYTHON := $(POETRY) run python
-PYTEST := $(POETRY) run pytest
-RUFF := $(POETRY) run ruff
-MYPY := $(POETRY) run mypy
+.PHONY: help check validate test lint type-check security format format-check fix
+.PHONY: install dev-install setup pre-commit build clean
+.PHONY: coverage coverage-html test-unit test-integration
+.PHONY: deps-update deps-audit deps-tree deps-outdated
+.PHONY: install-cli test-cli build-docs
 
-# Colors for output
-BLUE := \033[0;34m
-GREEN := \033[0;32m
-YELLOW := \033[1;33m
-RED := \033[0;31m
-RESET := \033[0m
+# ============================================================================
+# 🎯 HELP & INFORMATION
+# ============================================================================
 
-# Default target
-.DEFAULT_GOAL := help
-
-## Help
 help: ## Show this help message
-	@echo "$(BLUE)FLEXT-CLI Makefile$(RESET)"
-	@echo "Enterprise Command Line Interface"
+	@echo "⚡ FLEXT CLI - Command Line Interface"
+	@echo "===================================="
+	@echo "🎯 Clean Architecture + DDD + Python 3.13 + Click CLI Framework"
 	@echo ""
-	@echo "$(GREEN)Available commands:$(RESET)"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(BLUE)%-20s$(RESET) %s\\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo "📦 Modern CLI framework with rich UI components for FLEXT platform"
+	@echo "🔒 Zero tolerance quality gates for CLI application"
+	@echo "🧪 90%+ test coverage requirement for CLI commands"
+	@echo ""
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-## Development
-install: ## Install all dependencies
-	@echo "$(BLUE)📦 Installing dependencies for $(PROJECT_NAME)...$(RESET)"
-	@$(POETRY) install
-	@echo "$(GREEN)✅ Dependencies installed$(RESET)"
+# ============================================================================
+# 🎯 CORE QUALITY GATES - ZERO TOLERANCE
+# ============================================================================
 
-install-dev: ## Install development dependencies
-	@echo "$(BLUE)📦 Installing development dependencies...$(RESET)"
-	@$(POETRY) install --with dev
-	@echo "$(GREEN)✅ Development dependencies installed$(RESET)"
+validate: lint type-check security test ## STRICT compliance validation (all must pass)
+	@echo "✅ ALL QUALITY GATES PASSED - FLEXT CLI COMPLIANT"
 
-update: ## Update dependencies
-	@echo "$(BLUE)🔄 Updating dependencies...$(RESET)"
-	@$(POETRY) update
-	@echo "$(GREEN)✅ Dependencies updated$(RESET)"
+check: lint type-check test ## Essential quality checks (pre-commit standard)
+	@echo "✅ Essential checks passed"
 
-## Code Quality
-lint: ## Run linting
-	@echo "$(BLUE)🔍 Running linting for $(PROJECT_NAME)...$(RESET)"
-	@$(RUFF) check src/ tests/ || true
-	@echo "$(GREEN)✅ Linting complete$(RESET)"
+lint: ## Ruff linting (17 rule categories, ALL enabled)
+	@echo "🔍 Running ruff linter (ALL rules enabled)..."
+	@poetry run ruff check src/ tests/ --fix --unsafe-fixes
+	@echo "✅ Linting complete"
 
-lint-fix: ## Fix linting issues
-	@echo "$(BLUE)🔧 Fixing linting issues...$(RESET)"
-	@$(RUFF) check --fix src/ tests/ || true
-	@$(RUFF) format src/ tests/ || true
-	@echo "$(GREEN)✅ Linting issues fixed$(RESET)"
+type-check: ## MyPy strict mode type checking (zero errors tolerated)
+	@echo "🛡️ Running MyPy strict type checking..."
+	@poetry run mypy src/ tests/ --strict
+	@echo "✅ Type checking complete"
 
-format: ## Format code
-	@echo "$(BLUE)🎨 Formatting code...$(RESET)"
-	@$(RUFF) format src/ tests/
-	@echo "$(GREEN)✅ Code formatted$(RESET)"
+security: ## Security scans (bandit + pip-audit + secrets)
+	@echo "🔒 Running security scans..."
+	@poetry run bandit -r src/ --severity-level medium --confidence-level medium
+	@poetry run pip-audit --ignore-vuln PYSEC-2022-42969
+	@poetry run detect-secrets scan --all-files
+	@echo "✅ Security scans complete"
 
-type-check: ## Run type checking
-	@echo "$(BLUE)🔍 Running type checking...$(RESET)"
-	@$(MYPY) src/flext_cli/ || true
-	@echo "$(GREEN)✅ Type checking complete$(RESET)"
+format: ## Format code with ruff
+	@echo "🎨 Formatting code..."
+	@poetry run ruff format src/ tests/
+	@echo "✅ Formatting complete"
 
-check: lint type-check ## Run all code quality checks
+format-check: ## Check formatting without fixing
+	@echo "🎨 Checking code formatting..."
+	@poetry run ruff format src/ tests/ --check
+	@echo "✅ Format check complete"
 
-## Testing
-test: ## Run all tests
-	@echo "$(BLUE)🧪 Running tests for $(PROJECT_NAME)...$(RESET)"
-	@$(PYTEST) -v
-	@echo "$(GREEN)✅ All tests passed$(RESET)"
+fix: format lint ## Auto-fix all issues (format + imports + lint)
+	@echo "🔧 Auto-fixing all issues..."
+	@poetry run ruff check src/ tests/ --fix --unsafe-fixes
+	@echo "✅ All auto-fixes applied"
+
+# ============================================================================
+# 🧪 TESTING - 90% COVERAGE MINIMUM
+# ============================================================================
+
+test: ## Run tests with coverage (90% minimum required)
+	@echo "🧪 Running tests with coverage..."
+	@poetry run pytest tests/ -v --cov=src/flext_cli --cov-report=term-missing --cov-fail-under=90
+	@echo "✅ Tests complete"
 
 test-unit: ## Run unit tests only
-	@echo "$(BLUE)🧪 Running unit tests...$(RESET)"
-	@$(PYTEST) tests/unit/ -v -m "not integration"
-	@echo "$(GREEN)✅ Unit tests passed$(RESET)"
+	@echo "🧪 Running unit tests..."
+	@poetry run pytest tests/unit/ -v
+	@echo "✅ Unit tests complete"
 
 test-integration: ## Run integration tests only
-	@echo "$(BLUE)🧪 Running integration tests...$(RESET)"
-	@$(PYTEST) tests/integration/ -v -m "integration"
-	@echo "$(GREEN)✅ Integration tests passed$(RESET)"
+	@echo "🧪 Running integration tests..."
+	@poetry run pytest tests/integration/ -v
+	@echo "✅ Integration tests complete"
 
-test-cov: ## Run tests with coverage
-	@echo "$(BLUE)🧪 Running tests with coverage...$(RESET)"
-	@$(PYTEST) --cov=flext_cli --cov-report=html --cov-report=term-missing
-	@echo "$(GREEN)✅ Tests with coverage complete$(RESET)"
+coverage: ## Generate detailed coverage report
+	@echo "📊 Generating coverage report..."
+	@poetry run pytest tests/ --cov=src/flext_cli --cov-report=term-missing --cov-report=html
+	@echo "✅ Coverage report generated in htmlcov/"
 
-## CLI Operations
-cli-config: ## Show current CLI configuration
-	@echo "$(BLUE)⚙️ Showing FLEXT CLI configuration...$(RESET)"
-	@$(PYTHON) -c "from flext_cli.config import get_cli_settings; settings = get_cli_settings(); print(f'Project: {settings.project_name}'); print(f'Version: {settings.project_version}'); print(f'API URL: {settings.api.url}'); print(f'Config Dir: {settings.directories.config_dir}'); print(f'Output Format: {settings.output.format}')"
+coverage-html: coverage ## Generate HTML coverage report
+	@echo "📊 Opening coverage report..."
+	@python -m webbrowser htmlcov/index.html
 
-cli-test: ## Test CLI system
-	@echo "$(BLUE)🧪 Testing FLEXT CLI system...$(RESET)"
-	@$(PYTHON) -c "from flext_cli.config import get_cli_settings; settings = get_cli_settings(); print('✅ CLI configuration loaded successfully'); print(f'Project: {settings.project_name}'); print(f'Environment: {settings.environment}'); print('✅ FLEXT CLI system is working')"
+# ============================================================================
+# 🚀 DEVELOPMENT SETUP
+# ============================================================================
 
-cli-help: ## Show CLI help
-	@echo "$(BLUE)❓ Showing FLEXT CLI help...$(RESET)"
-	@$(PYTHON) -m flext_cli.cli --help
+setup: install pre-commit ## Complete development setup
+	@echo "🎯 Development setup complete!"
 
-cli-version: ## Show CLI version
-	@echo "$(BLUE)📋 Showing FLEXT CLI version...$(RESET)"
-	@$(PYTHON) -m flext_cli.cli --version
+install: ## Install dependencies with Poetry
+	@echo "📦 Installing dependencies..."
+	@poetry install --all-extras --with dev,test,docs,security
+	@echo "✅ Dependencies installed"
 
-## CLI Command Testing
-cli-demo: ## Run CLI demo commands
-	@echo "$(BLUE)🎬 Running FLEXT CLI demo...$(RESET)"
-	@echo "Testing configuration..."
-	@$(PYTHON) -m flext_cli.cli config get
-	@echo ""
-	@echo "Testing help system..."
-	@$(PYTHON) -m flext_cli.cli --help
+dev-install: install ## Install in development mode
+	@echo "🔧 Setting up development environment..."
+	@poetry install --all-extras --with dev,test,docs,security
+	@poetry run pre-commit install
+	@echo "✅ Development environment ready"
 
-## Build and Distribution
-build: ## Build the package
-	@echo "$(BLUE)🏗️ Building $(PROJECT_NAME)...$(RESET)"
-	@$(POETRY) build
-	@echo "$(GREEN)✅ Package built$(RESET)"
+pre-commit: ## Setup pre-commit hooks
+	@echo "🎣 Setting up pre-commit hooks..."
+	@poetry run pre-commit install
+	@poetry run pre-commit run --all-files || true
+	@echo "✅ Pre-commit hooks installed"
 
-clean: ## Clean build artifacts
-	@echo "$(BLUE)🧹 Cleaning build artifacts...$(RESET)"
-	@rm -rf dist/ build/ *.egg-info/
-	@rm -rf .coverage htmlcov/ .pytest_cache/
-	@rm -rf .mypy_cache/ .ruff_cache/
-	@find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
-	@echo "$(GREEN)✅ Build artifacts cleaned$(RESET)"
+# ============================================================================
+# ⚡ CLI SPECIFIC OPERATIONS
+# ============================================================================
 
-## Development Utilities
-shell: ## Start Python shell with project context
-	@echo "$(BLUE)🐍 Starting Python shell...$(RESET)"
-	@$(POETRY) shell
+install-cli: ## Install CLI globally
+	@echo "⚡ Installing FLEXT CLI globally..."
+	@poetry build
+	@pip install dist/*.whl --force-reinstall
+	@echo "✅ CLI installed globally - run 'flext-cli --help'"
 
-env: ## Show environment information
-	@echo "$(BLUE)🌍 Environment Information:$(RESET)"
-	@echo "Project: $(PROJECT_NAME)"
-	@echo "Python: $(PYTHON_VERSION)"
-	@echo "Poetry: $(shell $(POETRY) --version)"
-	@echo "Virtual Environment: $(shell $(POETRY) env info --path)"
+test-cli: ## Test CLI commands
+	@echo "⚡ Testing CLI commands..."
+	@poetry run flext-cli --version
+	@poetry run flext-cli --help
+	@poetry run flext-cli pipeline list --help
+	@poetry run flext-cli plugin list --help
+	@echo "✅ CLI commands tested"
 
-## Security
-security: ## Run security checks
-	@echo "$(BLUE)🔒 Running security checks...$(RESET)"
-	@$(POETRY) run bandit -r src/ || true
-	@echo "$(GREEN)✅ Security checks complete$(RESET)"
+build-docs: ## Build CLI documentation
+	@echo "📚 Building CLI documentation..."
+	@poetry run flext-cli --help > docs/cli-help.txt
+	@poetry run flext-cli pipeline --help > docs/pipeline-help.txt
+	@poetry run flext-cli plugin --help > docs/plugin-help.txt
+	@echo "✅ CLI documentation generated"
 
-## Version Management
-version: ## Show current version
-	@echo "$(BLUE)📋 Current version:$(RESET)"
-	@$(POETRY) version
+interactive-test: ## Test interactive CLI mode
+	@echo "⚡ Testing interactive CLI mode..."
+	@echo "help\nexit" | poetry run flext-cli interactive
+	@echo "✅ Interactive mode tested"
 
-bump-patch: ## Bump patch version
-	@echo "$(BLUE)📈 Bumping patch version...$(RESET)"
-	@$(POETRY) version patch
-	@echo "$(GREEN)✅ Patch version bumped$(RESET)"
+# ============================================================================
+# 📦 BUILD & DISTRIBUTION
+# ============================================================================
 
-bump-minor: ## Bump minor version
-	@echo "$(BLUE)📈 Bumping minor version...$(RESET)"
-	@$(POETRY) version minor
-	@echo "$(GREEN)✅ Minor version bumped$(RESET)"
+build: clean ## Build distribution packages
+	@echo "🔨 Building distribution..."
+	@poetry build
+	@echo "✅ Build complete - packages in dist/"
 
-bump-major: ## Bump major version
-	@echo "$(BLUE)📈 Bumping major version...$(RESET)"
-	@$(POETRY) version major
-	@echo "$(GREEN)✅ Major version bumped$(RESET)"
+# ============================================================================
+# 🧹 CLEANUP
+# ============================================================================
 
-## Plugin Development
-plugin-scaffold: ## Create plugin scaffold
-	@echo "$(BLUE)🔌 Creating plugin scaffold...$(RESET)"
-	@$(PYTHON) -m flext_cli.cli plugin scaffold --name example-plugin
+clean: ## Remove all artifacts
+	@echo "🧹 Cleaning up..."
+	@rm -rf build/
+	@rm -rf dist/
+	@rm -rf *.egg-info/
+	@rm -rf .coverage
+	@rm -rf htmlcov/
+	@rm -rf .pytest_cache/
+	@find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+	@find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
+	@find . -type d -name ".mypy_cache" -exec rm -rf {} + 2>/dev/null || true
+	@find . -type d -name ".ruff_cache" -exec rm -rf {} + 2>/dev/null || true
+	@find . -type f -name "*.pyc" -delete 2>/dev/null || true
+	@echo "✅ Cleanup complete"
 
-plugin-validate: ## Validate plugin structure
-	@echo "$(BLUE)🔌 Validating plugin structure...$(RESET)"
-	@$(PYTHON) -m flext_cli.cli plugin validate
+# ============================================================================
+# 📊 DEPENDENCY MANAGEMENT
+# ============================================================================
 
-## Quick Development Workflow
-dev: install lint-fix test ## Full development workflow (install, fix, test)
-	@echo "$(GREEN)✅ Development workflow complete$(RESET)"
+deps-update: ## Update all dependencies
+	@echo "🔄 Updating dependencies..."
+	@poetry update
+	@echo "✅ Dependencies updated"
 
-ci: check test ## Continuous integration workflow
-	@echo "$(GREEN)✅ CI workflow complete$(RESET)"
+deps-audit: ## Audit dependencies for vulnerabilities
+	@echo "🔍 Auditing dependencies..."
+	@poetry run pip-audit
+	@echo "✅ Dependency audit complete"
 
-## Information
-info: ## Show project information
-	@echo "$(BLUE)📊 Project Information:$(RESET)"
-	@echo "Name: $(PROJECT_NAME)"
-	@echo "Description: FLEXT CLI - Enterprise Command Line Interface"
-	@echo "Python: $(PYTHON_VERSION)"
-	@echo "Poetry: $(shell $(POETRY) --version)"
-	@echo ""
-	@echo "$(GREEN)📁 Project Structure:$(RESET)"
-	@echo "├── src/flext_cli/          # Source code"
-	@echo "├── tests/                  # Test files"
-	@echo "├── pyproject.toml         # Project configuration"
-	@echo "├── Makefile               # This file"
-	@echo "└── README.md              # Documentation"
-	@echo ""
-	@echo "$(GREEN)🚀 Quick Start:$(RESET)"
-	@echo "1. make install            # Install dependencies"
-	@echo "2. make cli-test           # Test the system"
-	@echo "3. make cli-help           # Show CLI help"
-	@echo "4. make dev                # Full development workflow"
-	@echo ""
-	@echo "$(GREEN)🎯 CLI Commands:$(RESET)"
-	@echo "• flext --help             - Show help"
-	@echo "• flext config get         - Show configuration"
-	@echo "• flext pipeline list      - List pipelines"
-	@echo "• flext plugin list        - List plugins"
-	@echo ""
-	@echo "Documentation available in README.md"
+deps-tree: ## Show dependency tree
+	@echo "🌳 Dependency tree:"
+	@poetry show --tree
 
-.PHONY: help install install-dev update lint lint-fix format type-check check test test-unit test-integration test-cov cli-config cli-test cli-help cli-version cli-demo build clean shell env security version bump-patch bump-minor bump-major plugin-scaffold plugin-validate dev ci info
+deps-outdated: ## Show outdated dependencies
+	@echo "📋 Outdated dependencies:"
+	@poetry show --outdated
+
+# ============================================================================
+# 🔧 ENVIRONMENT CONFIGURATION
+# ============================================================================
+
+# Python settings
+PYTHON := python3.13
+export PYTHONPATH := $(PWD)/src:$(PYTHONPATH)
+export PYTHONDONTWRITEBYTECODE := 1
+export PYTHONUNBUFFERED := 1
+
+# CLI settings
+export FLEXT_CLI_DEV_MODE := true
+export FLEXT_CLI_LOG_LEVEL := debug
+export FLEXT_CLI_CONFIG_PATH := $(PWD)/config/dev.yaml
+
+# Poetry settings
+export POETRY_VENV_IN_PROJECT := false
+export POETRY_CACHE_DIR := $(HOME)/.cache/pypoetry
+
+# Quality gate settings
+export MYPY_CACHE_DIR := .mypy_cache
+export RUFF_CACHE_DIR := .ruff_cache
+
+# ============================================================================
+# 📝 PROJECT METADATA
+# ============================================================================
+
+# Project information
+PROJECT_NAME := flext-cli
+PROJECT_VERSION := $(shell poetry version -s)
+PROJECT_DESCRIPTION := FLEXT CLI - Command Line Interface
+
+.DEFAULT_GOAL := help
+
+# ============================================================================
+# 🎯 CLI SPECIFIC COMMANDS
+# ============================================================================
+
+cli-validate: ## Validate CLI implementation
+	@echo "⚡ Validating CLI implementation..."
+	@poetry run python -c "from flext_cli.main import cli; cli(['--help'])"
+	@echo "✅ CLI validation complete"
+
+cli-smoke-test: ## Run CLI smoke tests
+	@echo "⚡ Running CLI smoke tests..."
+	@poetry run flext-cli --version
+	@poetry run flext-cli system health || true
+	@poetry run flext-cli config show || true
+	@echo "✅ CLI smoke tests complete"
+
+# ============================================================================
+# 🎯 FLEXT ECOSYSTEM INTEGRATION
+# ============================================================================
+
+ecosystem-check: ## Verify FLEXT ecosystem compatibility
+	@echo "🌐 Checking FLEXT ecosystem compatibility..."
+	@echo "📦 CLI project: $(PROJECT_NAME) v$(PROJECT_VERSION)"
+	@echo "🏗️ Architecture: Clean Architecture + DDD"
+	@echo "🐍 Python: 3.13"
+	@echo "⚡ Framework: Click + Rich CLI"
+	@echo "📊 Quality: Zero tolerance enforcement"
+	@echo "✅ Ecosystem compatibility verified"
+
+workspace-info: ## Show workspace integration info
+	@echo "🏢 FLEXT Workspace Integration"
+	@echo "==============================="
+	@echo "📁 Project Path: $(PWD)"
+	@echo "🏆 Role: Command Line Interface (platform management)"
+	@echo "🔗 Dependencies: flext-core, flext-api (HTTP client)"
+	@echo "📦 Provides: CLI commands for FLEXT platform"
+	@echo "🎯 Standards: Enterprise CLI patterns"

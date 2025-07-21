@@ -10,10 +10,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from flext_cli.utils.config import CLIConfig as CLISettings
-
 # Use centralized ServiceResult from flext-core - ELIMINATE DUPLICATION
 from flext_core.domain.types import ServiceResult
+
+from flext_cli.utils.config import CLIConfig as CLISettings
 
 
 def setup_cli(settings: CLISettings | None = None) -> ServiceResult[bool]:
