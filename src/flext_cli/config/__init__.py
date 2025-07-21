@@ -7,11 +7,15 @@ This module provides configuration management for the FLEXT CLI using
 the standardized configuration system from flext-core.
 """
 
+from __future__ import annotations
+
 # Re-export from main config module
-from flext_cli.config.cli_config import CLIConfig
-from flext_cli.config.cli_config import CLISettings
-from flext_cli.config.cli_config import get_cli_config
-from flext_cli.config.cli_config import get_cli_settings
+from flext_cli.config.cli_config import (
+    CLIConfig,
+    CLISettings,
+    get_cli_config,
+    get_cli_settings,
+)
 
 __all__ = [
     "CLIConfig",

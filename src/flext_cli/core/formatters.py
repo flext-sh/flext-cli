@@ -12,10 +12,8 @@ from __future__ import annotations
 import csv
 import io
 import json
-from abc import ABC
-from abc import abstractmethod
-from typing import TYPE_CHECKING
-from typing import Any
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import yaml
 from rich.table import Table
@@ -135,7 +133,7 @@ class PlainFormatter(OutputFormatter):
 class FormatterFactory:
     """Factory for creating output formatters."""
 
-    _formatters: dict[str, type[OutputFormatter]] = {
+    _formatters: ClassVar[dict[str, type[OutputFormatter]]] = {
         "table": TableFormatter,
         "json": JSONFormatter,
         "yaml": YAMLFormatter,
@@ -148,7 +146,7 @@ class FormatterFactory:
         """Create formatter by type."""
         formatter_class = cls._formatters.get(format_type)
         if not formatter_class:
-            msg = f"Unsupported format type: {format_type}"
+            msg = f"Unknown formatter type: {format_type}"
             raise ValueError(msg)
         return formatter_class()
 

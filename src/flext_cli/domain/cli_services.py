@@ -9,11 +9,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pydantic import Field
-from pydantic_settings import SettingsConfigDict
-
+from flext_core import Field
 from flext_core.config.base import BaseSettings
 from flext_core.domain.pydantic_base import DomainBaseModel
+from pydantic_settings import SettingsConfigDict
 
 if TYPE_CHECKING:
     from rich.console import Console

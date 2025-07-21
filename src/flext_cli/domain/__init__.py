@@ -5,14 +5,18 @@ SPDX-License-Identifier: MIT
 
 """
 
+from __future__ import annotations
+
 # Only import the entities that work
 from flext_cli.domain.cli_services import CLIServiceContainer
-from flext_cli.domain.entities import CLICommand
-from flext_cli.domain.entities import CLIConfig
-from flext_cli.domain.entities import CLIPlugin
-from flext_cli.domain.entities import CLISession
-from flext_cli.domain.entities import CommandStatus
-from flext_cli.domain.entities import CommandType
+from flext_cli.domain.entities import (
+    CLICommand,
+    CLIConfig,
+    CLIPlugin,
+    CLISession,
+    CommandStatus,
+    CommandType,
+)
 
 __all__ = [
     "CLICommand",

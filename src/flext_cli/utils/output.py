@@ -8,16 +8,14 @@ Provides consistent output formatting across CLI commands.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import yaml
 from rich.console import Console
 from rich.table import Table
 
 if TYPE_CHECKING:
-    from flext_cli.client import Pipeline
-    from flext_cli.client import PipelineList
+    from flext_cli.client import Pipeline, PipelineList
 
 
 def setup_console(no_color: bool = False, quiet: bool = False) -> Console:

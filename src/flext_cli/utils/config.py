@@ -10,12 +10,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from pydantic_settings import SettingsConfigDict
-
 # Use flext-core exclusively - NO DIRECT PYDANTIC IMPORTS
 from flext_core import ServiceResult
 from flext_core.config.base import BaseConfig, BaseSettings
 from flext_core.domain.pydantic_base import Field
+from pydantic_settings import SettingsConfigDict
 
 
 class CLIConfig(BaseConfig):
@@ -108,12 +107,7 @@ def get_config() -> CLIConfig:
     global _config
     if _config is None:
         _config = CLIConfig()
-        # Force model rebuild to resolve forward references
-        try:
-            from flext_cli.domain.cli_context import CLIContext
-            CLIContext.model_rebuild()
-        except ImportError:
-            pass  # CLIContext may not be imported yet
+        # Model rebuild is handled by pydantic automatically
     return _config
 
 
@@ -126,9 +120,9 @@ def set_config_value(key: str, value: Any) -> ServiceResult[None]:
     try:
         config = get_config()
         setattr(config, key, value)
-        return ServiceResult.success(None)
+        return ServiceResult.ok(None)
     except Exception as e:
-        return ServiceResult.failure(f"Failed to set config value: {e}")
+        return ServiceResult.fail(f"Failed to set config value: {e}")
 
 
 def list_config_values() -> dict[str, Any]:

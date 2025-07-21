@@ -12,9 +12,7 @@ import functools
 import time
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING
-from typing import Any
-from typing import TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from rich.console import Console
 
@@ -41,11 +39,13 @@ def confirm_action(
 ) -> Callable[[F], F]:
     """Decorator to add confirmation prompt before executing function.
 
-    It is useful for adding a safety check before executing potentially destructive actions.
+    It is useful for adding a safety check before executing potentially
+    destructive actions.
 
     Args:
         message: The message to display to the user.
-        default: Whether to default to yes or no. If True, the default is yes. If False, the default is no.
+        default: Whether to default to yes or no. If True, the default is yes.
+            If False, the default is no.
 
     Returns:
         The decorated function.
@@ -82,13 +82,13 @@ def require_auth(token_file: str = "~/.flext/auth_token") -> Callable[[F], F]:
                 )
                 console.print("Please run 'flext auth login' first.", style="yellow")
                 return None
-
             try:
                 with token_path.open() as file_handle:
                     token = file_handle.read().strip()
                 if not token:
-                    msg = "Empty token"
-                    raise ValueError(msg)
+                    console = Console()
+                    console.print("Token file is empty", style="red")
+                    return None
             except Exception as e:
                 console = Console()
                 console.print(f"Invalid token file: {e}", style="red")
@@ -153,7 +153,8 @@ def retry(
                         raise
 
                     console.print(
-                        f"Attempt {attempt + 1} failed: {e}. Retrying in {current_delay:.1f}s...",
+                        f"Attempt {attempt + 1} failed: {e}. Retrying in "
+                        f"{current_delay:.1f}s...",
                         style="yellow",
                     )
                     time.sleep(current_delay)
@@ -217,7 +218,6 @@ def with_spinner(message: str = "Processing...") -> Callable[[F], F]:
         @functools.wraps(f)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             console = Console()
-
             with console.status(message, spinner="dots"):
                 try:
                     return f(*args, **kwargs)

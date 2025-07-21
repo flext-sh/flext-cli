@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Integration test for FLEXT CLI refactoring."""
 
+from __future__ import annotations
+
 import sys
 from pathlib import Path
 
@@ -8,65 +10,32 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 
-def test_basic_imports() -> bool | None:
-    """Test basic imports for FLEXT CLI modules.
+def test_basic_imports() -> None:
+    """Test basic imports for FLEXT CLI modules."""
+    from flext_cli.utils.config import CLIConfig
 
-    Returns:
-        True if imports work, False otherwise.
+    CLIConfig()
 
-    """
-    try:
-        from flext_cli.utils.config import CLIConfig
+    # from flext_cli.core.base import BaseCLI
+    # print("✓ BaseCLI import works")
 
-        CLIConfig()
+    from flext_cli.core.formatters import FormatterFactory
 
-        # from flext_cli.core.base import BaseCLI
-        # print("✓ BaseCLI import works")
-
-        from flext_cli.core.formatters import FormatterFactory
-
-        FormatterFactory.create("json")
-
-        return True
-    except Exception:
-        import traceback
-
-        traceback.print_exc()
-        return False
+    FormatterFactory.create("json")
 
 
-def test_version_consistency() -> bool | None:
-    """Test version consistency across modules.
+def test_version_consistency() -> None:
+    """Test version consistency across modules."""
+    from flext_cli.__version__ import __version__
 
-    Returns:
-        True if version is consistent, False otherwise.
-
-    """
-    try:
-        from flext_cli.__version__ import __version__
-
-        # Test that all version references are consistent
-        assert __version__ == "0.7.0", f"Expected 0.7.0, got {__version__}"
-
-        return True
-    except Exception:
-        return False
+    # Test that all version references are consistent
+    assert __version__ == "0.7.0", f"Expected 0.7.0, got {__version__}"
 
 
-def test_clean_architecture() -> bool | None:
-    """Test clean architecture compliance.
-
-    Returns:
-        True if architecture is clean, False otherwise.
-
-    """
-    try:
-        return True
-    except Exception:
-        import traceback
-
-        traceback.print_exc()
-        return False
+def test_clean_architecture() -> None:
+    """Test clean architecture compliance."""
+    # Test that clean architecture principles are followed
+    # This is a placeholder for actual architecture validation
 
 
 if __name__ == "__main__":
@@ -81,10 +50,8 @@ if __name__ == "__main__":
 
     for test in tests:
         try:
-            if test():
-                passed += 1
-            else:
-                failed += 1
+            test()  # Test functions return None if they pass
+            passed += 1
         except Exception:
             failed += 1
 

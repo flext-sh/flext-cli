@@ -7,15 +7,14 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from click.testing import CliRunner
 
 # Import at top level to avoid PLC0415
 try:
-    from flext_cli.cli_new import cli as main_cli
+    from flext_cli.cli import cli as main_cli
 except ImportError:
     main_cli = None  # type: ignore[assignment]
 
@@ -133,7 +132,8 @@ def cli() -> Command:
 
     """
     if main_cli is None:
-        pytest.skip("CLI module not available")
+        msg = "CLI module should be available"  # type: ignore[unreachable]
+        raise ImportError(msg)  # type: ignore[unreachable]
     return main_cli
 
 

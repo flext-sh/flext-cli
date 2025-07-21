@@ -9,8 +9,9 @@ This module provides a basic dependency container without external dependencies.
 from __future__ import annotations
 
 import os
-from typing import Any
-from typing import cast
+from typing import Any, cast
+
+from flext_core.infrastructure.memory import InMemoryRepository
 
 
 class SimpleDIContainer:
@@ -120,62 +121,41 @@ class CLIContainer:
         config = self._container.get("config")
         return cast("dict[str, Any]", config)
 
-    def get_command_repository(self) -> Any:
+    def get_command_repository(self) -> InMemoryRepository[Any, Any]:
         """Gets command repository (mock for now).
 
         This method gets the command repository from the container.
         It is used to get the command repository from the container.
 
         """
+        return InMemoryRepository[Any, Any]()
 
-        # Return a simple mock object to avoid import errors
-        class MockRepository:
-            def __init__(self) -> None:
-                pass
-
-        return MockRepository()
-
-    def get_config_repository(self) -> Any:
+    def get_config_repository(self) -> InMemoryRepository[Any, Any]:
         """Gets config repository (mock for now).
 
         This method gets the config repository from the container.
         It is used to get the config repository from the container.
 
         """
+        return InMemoryRepository[Any, Any]()
 
-        class MockRepository:
-            def __init__(self) -> None:
-                pass
-
-        return MockRepository()
-
-    def get_session_repository(self) -> Any:
+    def get_session_repository(self) -> InMemoryRepository[Any, Any]:
         """Gets session repository (mock for now).
 
         This method gets the session repository from the container.
         It is used to get the session repository from the container.
 
         """
+        return InMemoryRepository[Any, Any]()
 
-        class MockRepository:
-            def __init__(self) -> None:
-                pass
-
-        return MockRepository()
-
-    def get_plugin_repository(self) -> Any:
+    def get_plugin_repository(self) -> InMemoryRepository[Any, Any]:
         """Gets plugin repository (mock for now).
 
         This method gets the plugin repository from the container.
         It is used to get the plugin repository from the container.
 
         """
-
-        class MockRepository:
-            def __init__(self) -> None:
-                pass
-
-        return MockRepository()
+        return InMemoryRepository[Any, Any]()
 
 
 # Global container instance

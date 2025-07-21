@@ -13,9 +13,7 @@ from typing import TYPE_CHECKING
 import click
 
 from flext_cli.client import FlextApiClient
-from flext_cli.utils.auth import clear_auth_tokens
-from flext_cli.utils.auth import get_auth_token
-from flext_cli.utils.auth import save_auth_token
+from flext_cli.utils.auth import clear_auth_tokens, get_auth_token, save_auth_token
 
 if TYPE_CHECKING:
     from rich.console import Console
@@ -49,7 +47,6 @@ def login(ctx: click.Context, username: str, password: str) -> None:
                         console.print(f"Welcome, {user.get('name', username)}!")
                 else:
                     console.print("[red]❌ Login failed: Invalid response[/red]")
-
         except Exception as e:
             console.print(f"[red]❌ Login failed: {e}[/red]")
             ctx.exit(1)
@@ -75,7 +72,6 @@ def logout(ctx: click.Context) -> None:
                 await client.logout()
                 clear_auth_tokens()
                 console.print("[green]✅ Logged out successfully[/green]")
-
         except Exception as e:
             # Clear token even if API call fails:
             clear_auth_tokens()
@@ -106,7 +102,6 @@ def status(ctx: click.Context) -> None:
                 console.print(f"User: {user.get('username', 'Unknown')}")
                 console.print(f"Email: {user.get('email', 'Unknown')}")
                 console.print(f"Role: {user.get('role', 'Unknown')}")
-
         except Exception as e:
             console.print(f"[red]❌ Authentication check failed: {e}[/red]")
             console.print("Run 'flext auth login' to re-authenticate")

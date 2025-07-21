@@ -16,19 +16,16 @@ import sys
 import traceback
 
 import click
+from flext_core.config.base import get_container
 from rich.console import Console
 
 from flext_cli.__version__ import __version__
-from flext_cli.commands import auth
-from flext_cli.commands import config
-from flext_cli.commands import debug
-from flext_cli.commands import pipeline
-from flext_cli.commands import plugin
+from flext_cli.commands import auth, config, debug, pipeline, plugin
+
+# Register project commands - Import early to avoid E402
+from flext_cli.commands.projects import client-a, client-b, meltano
 from flext_cli.domain import CLIServiceContainer
-from flext_cli.domain.cli_context import CLIContext
-from flext_cli.utils.config import CLISettings
-from flext_cli.utils.config import get_config
-from flext_core.config.base import get_container
+from flext_cli.utils.config import CLISettings, get_config
 
 
 @click.group(
@@ -91,23 +88,20 @@ def cli(
     # Register services in DI container
     container.register(CLIServiceContainer, service_container)
 
-    # Create CLI context
-    cli_context = CLIContext(
-        console=Console(),
-        settings=settings,
-        config=config,
-    )
+    # Setup click context with components
+    console = Console()
 
-    # Setup click context with our clean architecture
     ctx.ensure_object(dict)
-    ctx.obj["cli_context"] = cli_context
+    ctx.obj["config"] = config
+    ctx.obj["settings"] = settings
     ctx.obj["service_container"] = service_container
-    ctx.obj["console"] = cli_context.console
+    ctx.obj["console"] = console
 
     # Debug information
-    cli_context.print_debug(f"Profile: {profile}")
-    cli_context.print_debug(f"Output format: {output}")
-    cli_context.print_debug(f"Debug mode: {debug}")
+    if debug:
+        console.print(f"[dim]Profile: {profile}[/dim]")
+        console.print(f"[dim]Output format: {output}[/dim]")
+        console.print(f"[dim]Debug mode: {debug}[/dim]")
 
     # Show help if no command:
     if ctx.invoked_subcommand is None:
@@ -121,28 +115,37 @@ cli.add_command(pipeline.pipeline)
 cli.add_command(plugin.plugin)
 cli.add_command(debug.debug_cmd)
 
+# Register project commands
+cli.add_command(client-a.client-a)
+cli.add_command(meltano.meltano)
+cli.add_command(client-b.client-b)
+
 
 @cli.command()
 @click.pass_context
 def interactive(ctx: click.Context) -> None:
     """Start interactive mode."""
-    cli_context: CLIContext = ctx.obj["cli_context"]
-    cli_context.print_warning("Interactive mode coming soon!")
-    cli_context.print_info("Use 'flext --help' for available commands.")
+    console = ctx.obj["console"]
+    console.print("[yellow]Interactive mode coming soon![/yellow]")
+    console.print("Use 'flext --help' for available commands.")
 
 
 @cli.command()
 @click.pass_context
 def version(ctx: click.Context) -> None:
     """Show version information."""
-    cli_context: CLIContext = ctx.obj["cli_context"]
-    cli_context.print_info(f"FLEXT CLI version {cli_context.settings.project_version}")
-    cli_context.print_info(f"Python {sys.version}")
-    cli_context.print_debug(f"Configuration: {cli_context.config.model_dump()}")
+    console = ctx.obj["console"]
+    settings = ctx.obj["settings"]
+    config = ctx.obj["config"]
+
+    console.print(f"FLEXT CLI version {settings.project_version}")
+    console.print(f"Python {sys.version}")
+    if ctx.obj.get("debug"):
+        console.print(f"[dim]Configuration: {config.model_dump()}[/dim]")
 
 
 def main() -> None:
-    """Main entry point for the FLX CLI application."""
+    """Main CLI entry point."""
     try:
         cli()
     except KeyboardInterrupt:

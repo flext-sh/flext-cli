@@ -10,30 +10,25 @@ from __future__ import annotations
 import logging
 import sys
 import traceback
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Callable
-from typing import TYPE_CHECKING
-from typing import Any
-from typing import TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import click
-from pydantic import Field
+from flext_core import Field
+from flext_core.domain.pydantic_base import DomainBaseModel
+from flext_core.domain.types import ServiceResult
 from rich.console import Console
 from rich.panel import Panel
-from rich.progress import Progress
-from rich.progress import SpinnerColumn
-from rich.progress import TextColumn
+from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 from rich.tree import Tree
 
 # Import CLI config from utils
 from flext_cli.utils.config import get_config
-from flext_core.domain.pydantic_base import DomainBaseModel
 
 if TYPE_CHECKING:
     from flext_cli.utils.config import CLIConfig
-    from flext_core.domain.types import ServiceResult
 
 
 # Use centralized ServiceResult from flext-core - ELIMINATE DUPLICATION
