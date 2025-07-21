@@ -235,7 +235,8 @@ def init(
         # Create the project using the actual API
         result = asyncio.run(
             project_manager.create_project(
-                project_name=project_name, environment="dev",
+                project_name=project_name,
+                environment="dev",
             ),
         )
 

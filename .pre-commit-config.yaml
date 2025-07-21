@@ -105,7 +105,6 @@ repos:
     hooks:
       - id: poetry-check
       - id: poetry-lock
-        args: [--no-update]
 
   # ===== CODESPELL - VERSÃO REAL 2.4.1 + CONTEXTO CLI =====
   - repo: https://github.com/codespell-project/codespell
