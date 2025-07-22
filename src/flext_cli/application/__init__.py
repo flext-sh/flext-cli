@@ -1,8 +1,5 @@
-"""FLEXT CLI application layer.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
-"""
+"""Application layer for FLEXT CLI."""
 
 from __future__ import annotations
+
+__all__: list[str] = []

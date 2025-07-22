@@ -1,14 +1,17 @@
-"""FLEXT CLI infrastructure layer.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
-"""
+"""Infrastructure layer for FLEXT CLI."""
 
 from __future__ import annotations
 
-from flext_cli.infrastructure.config import CLIConfig
+from flext_cli.infrastructure.container import (
+    get_container,
+    get_service,
+    register_service,
+    register_singleton,
+)
 
 __all__ = [
-    "CLIConfig",
+    "get_container",
+    "get_service",
+    "register_service",
+    "register_singleton",
 ]
