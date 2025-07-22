@@ -7,18 +7,18 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Any, Self, cast
+from typing import Any, ClassVar, Self, cast
 from urllib.parse import urljoin
 
 import httpx
-from flext_core import Field
-from pydantic import BaseModel
+from flext_core import ConnectionProtocol, DomainBaseModel, Field
+from pydantic import ConfigDict
 
 
-class APIBaseModel(BaseModel):
+class APIBaseModel(DomainBaseModel):
     """Base model for API responses."""
 
-    model_config = {"extra": "allow"}
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="allow")
 
 
 class PipelineConfig(APIBaseModel):
@@ -53,10 +53,11 @@ class PipelineList(APIBaseModel):
     page_size: int = Field(20, description="Page size")
 
 
-class FlextApiClient:
+class FlextApiClient(ConnectionProtocol):
     """Client for FLEXT API operations.
 
     Provides async methods for interacting with the FLEXT API.
+    Implements FLEXT ConnectionProtocol for standardized resource management.
     """
 
     def __init__(
@@ -75,10 +76,11 @@ class FlextApiClient:
             verify_ssl: Whether to verify SSL certificates
 
         """
-        from flext_cli.config.cli_config import get_cli_config
+        from flext_core import BaseSettings, get_settings
 
-        config = get_cli_config()
-        self.base_url = base_url or config.api.url or "http://localhost:8000"
+        settings: BaseSettings = get_settings(BaseSettings)
+        # Use FLEXT standard configuration with CLI-specific override
+        self.base_url = base_url or getattr(settings, "api_url", "http://localhost:8000")
         self.token = token
         self.timeout = timeout
         self.verify_ssl = verify_ssl
@@ -102,14 +104,39 @@ class FlextApiClient:
     async def __aexit__(self, *args: object) -> None:
         await self.close()
 
-    async def close(self) -> None:
-        """Close the HTTP session."""
+    async def connect(self) -> None:
+        """Establish connection to FLEXT API."""
+        if not self._session:
+            self._session = httpx.AsyncClient(
+                timeout=self.timeout,
+                verify=self.verify_ssl,
+            )
+
+    async def disconnect(self) -> None:
+        """Close connection to FLEXT API."""
         if self._session:
             await self._session.aclose()
+            self._session = None
+
+    async def close(self) -> None:
+        """Close the HTTP session."""
+        await self.disconnect()
+
+    def is_connected(self) -> bool:
+        """Check if connection is active."""
+        return self._session is not None and not self._session.is_closed
+
+    async def ping(self) -> bool:
+        """Test connection health."""
+        try:
+            await self._request("GET", "/api/v1/health")
+            return True
+        except Exception:
+            return False
 
     def _url(self, path: str) -> str:
         """Build full URL from path."""
-        return urljoin(self.base_url, path)
+        return urljoin(str(self.base_url), str(path))
 
     async def _request(
         self,
@@ -119,11 +146,12 @@ class FlextApiClient:
         params: dict[str, Any] | None = None,
     ) -> httpx.Response:
         """Make HTTP request to API."""
+        if not self.is_connected():
+            await self.connect()
+
         if not self._session:
-            self._session = httpx.AsyncClient(
-                timeout=self.timeout,
-                verify=self.verify_ssl,
-            )
+            msg = "Failed to establish connection"
+            raise ConnectionError(msg)
 
         response = await self._session.request(
             method,

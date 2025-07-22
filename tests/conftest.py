@@ -12,11 +12,8 @@ from typing import TYPE_CHECKING, Any
 import pytest
 from click.testing import CliRunner
 
-# Import at top level to avoid PLC0415
-try:
-    from flext_cli.cli import cli as main_cli
-except ImportError:
-    main_cli = None  # type: ignore[assignment]
+# Import CLI command - real import required for tests
+from flext_cli.cli import cli as main_cli_command
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -131,10 +128,7 @@ def cli() -> Command:
         Main CLI command instance.
 
     """
-    if main_cli is None:
-        msg = "CLI module should be available"  # type: ignore[unreachable]
-        raise ImportError(msg)
-    return main_cli
+    return main_cli_command
 
 
 # ============================================================================

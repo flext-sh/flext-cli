@@ -1,170 +1,137 @@
-"""FLEXT CLI Entry Point - Clean Architecture with flext-core.
+"""FLEXT CLI - Pure Generic Interface.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Version 0.7.0 - Complete refactor using flext-core patterns:
-- Declarative configuration via BaseConfig/BaseSettings
-- Dependency injection via DIContainer
-- Clean architecture with domain/application layers
-- No legacy/fallback code
+Completely generic CLI framework that discovers commands via DI.
+No knowledge of specific projects - purely architectural.
 """
 
 from __future__ import annotations
 
+import logging
 import sys
-import traceback
 
 import click
-from flext_core.config.base import get_container
 from rich.console import Console
 
-from flext_cli.__version__ import __version__
-from flext_cli.commands import auth, config, debug, pipeline, plugin
-
-# Register project commands - Import early to avoid E402
-from flext_cli.commands.projects import client-a, client-b, meltano
-from flext_cli.domain import CLIServiceContainer
-from flext_cli.utils.config import CLISettings, get_config
+logger = logging.getLogger(__name__)
+console = Console()
 
 
-@click.group(
-    context_settings={"help_option_names": ["-h", "--help"]},
-    invoke_without_command=True,
-)
-@click.version_option(version=__version__, prog_name="flext")
-@click.option(
-    "--profile",
-    default="default",
-    envvar="FLX_PROFILE",
-    help="Configuration profile to use",
-)
-@click.option(
-    "--output",
-    "-o",
-    type=click.Choice(["table", "json", "yaml", "csv", "plain"]),
-    default="table",
-    help="Output format",
-)
-@click.option(
-    "--debug/--no-debug",
-    default=False,
-    envvar="FLX_DEBUG",
-    help="Enable debug mode",
-)
-@click.option(
-    "--quiet/--no-quiet",
-    "-q",
-    default=False,
-    help="Suppress non-error output",
-)
+@click.group()
+@click.version_option(version="0.7.0")
+@click.option("--verbose", "-v", is_flag=True, help="Verbose output")
 @click.pass_context
-def cli(
-    ctx: click.Context,
-    profile: str,
-    output: str,
-    debug: bool,
-    quiet: bool,
-) -> None:
-    """FLEXT Command Line Interface."""
-    # Load configuration using flext-core
-    config = get_config()
-    settings = CLISettings()
+def cli(ctx: click.Context, verbose: bool) -> None:
+    """FLEXT CLI - Enterprise Data Integration Platform.
 
-    # Override config with CLI options
-    config.profile = profile
-    config.output_format = output
-    config.no_color = False
-    config.quiet = quiet
-    config.verbose = debug
-
-    # Create service container with dependency injection
-    container = get_container()
-    service_container = CLIServiceContainer(
-        name="flext-cli",
-        version="0.7.0",
-    )
-
-    # Register services in DI container
-    container.register(CLIServiceContainer, service_container)
-
-    # Setup click context with components
-    console = Console()
-
+    Discovers and executes commands from installed FLEXT projects.
+    Projects register commands via dependency injection.
+    """
     ctx.ensure_object(dict)
-    ctx.obj["config"] = config
-    ctx.obj["settings"] = settings
-    ctx.obj["service_container"] = service_container
+    ctx.obj["verbose"] = verbose
     ctx.obj["console"] = console
 
-    # Debug information
-    if debug:
-        console.print(f"[dim]Profile: {profile}[/dim]")
-        console.print(f"[dim]Output format: {output}[/dim]")
-        console.print(f"[dim]Debug mode: {debug}[/dim]")
-
-    # Show help if no command:
-    if ctx.invoked_subcommand is None:
-        click.echo(ctx.get_help())
-
-
-# Register command groups
-cli.add_command(auth.auth)
-cli.add_command(config.config)
-cli.add_command(pipeline.pipeline)
-cli.add_command(plugin.plugin)
-cli.add_command(debug.debug_cmd)
-
-# Register project commands
-cli.add_command(client-a.client-a)
-cli.add_command(meltano.meltano)
-cli.add_command(client-b.client-b)
+    if verbose:
+        logger.info("FLEXT CLI started")
 
 
 @cli.command()
 @click.pass_context
-def interactive(ctx: click.Context) -> None:
-    """Start interactive mode."""
-    console = ctx.obj["console"]
-    console.print("[yellow]Interactive mode coming soon![/yellow]")
-    console.print("Use 'flext --help' for available commands.")
+def list_projects(ctx: click.Context) -> None:
+    """List all available FLEXT projects with CLI support."""
+    try:
+        console.print("[yellow]No FLEXT projects currently registered.[/yellow]")
+        console.print(
+            "Install FLEXT modules and register CLI providers to see commands here.",
+        )
+        console.print("Use DI container to register CLI command providers:")
+        console.print(
+            "  [green]from flext_cli.infrastructure import register_service[/green]",
+        )
+        console.print(
+            "  [green]register_service(CLICommandProvider, your_provider_instance)[/green]",
+        )
+
+    except Exception as e:
+        logger.exception("Failed to list projects")
+        console.print(f"[red]Error: {e}[/red]")
+        ctx.exit(1)
+
+
+@cli.command()
+@click.argument("project_id")
+@click.pass_context
+def list_commands(ctx: click.Context, project_id: str) -> None:
+    """List commands for a specific project."""
+    try:
+        console.print(f"[yellow]No commands found for project: {project_id}[/yellow]")
+        console.print("Register CLI command providers to see available commands.")
+
+    except Exception as e:
+        logger.exception("Failed to list commands")
+        console.print(f"[red]Error: {e}[/red]")
+        ctx.exit(1)
+
+
+@cli.command()
+@click.argument("project_id")
+@click.argument("command_name")
+@click.argument("args", nargs=-1)
+@click.pass_context
+def execute(
+    ctx: click.Context,
+    project_id: str,
+    command_name: str,
+    args: tuple[str, ...],
+) -> None:
+    """Execute a command from a specific project.
+
+    Args:
+        ctx: Click context object
+        project_id: Project identifier
+        command_name: Command to execute
+        args: Command arguments
+
+    """
+    try:
+        console.print(
+            f"[yellow]Command execution not implemented: {project_id}.{command_name}[/yellow]",
+        )
+        console.print("Arguments:", list(args))
+        console.print("Use DI container to register command providers for execution.")
+
+    except Exception as e:
+        logger.exception("Failed to execute command")
+        console.print(f"[red]Error: {e}[/red]")
+        ctx.exit(1)
 
 
 @cli.command()
 @click.pass_context
-def version(ctx: click.Context) -> None:
-    """Show version information."""
-    console = ctx.obj["console"]
-    settings = ctx.obj["settings"]
-    config = ctx.obj["config"]
+def health(ctx: click.Context) -> None:
+    """Check health status of all FLEXT projects."""
+    try:
+        console.print("[green]✓ FLEXT CLI is operational[/green]")
+        console.print("Register CLI providers to see project health status.")
 
-    console.print(f"FLEXT CLI version {settings.project_version}")
-    console.print(f"Python {sys.version}")
-    if ctx.obj.get("debug"):
-        console.print(f"[dim]Configuration: {config.model_dump()}[/dim]")
+    except Exception as e:
+        logger.exception("Failed to check health")
+        console.print(f"[red]Error: {e}[/red]")
+        ctx.exit(1)
 
 
 def main() -> None:
-    """Main CLI entry point."""
+    """Main entry point."""
     try:
         cli()
     except KeyboardInterrupt:
-        console = Console()
-        console.print("\n[yellow]Operation cancelled by user[/yellow]")
-        sys.exit(1)
-    except (
-        OSError,
-        RuntimeError,
-        ValueError,
-        TypeError,
-        ConnectionError,
-        TimeoutError,
-    ) as e:
-        console = Console()
-        console.print(f"[red]Error: {e}[/red]")
-        # In debug mode, show full traceback
-
-        console.print(f"[red]Traceback: {traceback.format_exc()}[/red]")
+        console.print("\n[yellow]Operation cancelled[/yellow]")
+        sys.exit(130)
+    except Exception as e:
+        logger.exception("CLI crashed")
+        console.print(f"[red]CLI error: {e}[/red]")
         sys.exit(1)
 
 

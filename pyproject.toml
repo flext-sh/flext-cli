@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.13,<3.14"
 keywords = [ "flext", "enterprise", "async", "typed", "cli", "command-line", "tools",]
 classifiers = [ "Development Status :: 5 - Production/Stable", "Intended Audience :: Developers", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent", "Programming Language :: Python :: 3.13", "Programming Language :: Python :: 3 :: Only", "Topic :: Software Development :: Libraries :: Python Modules", "Typing :: Typed",]
-dependencies = [ "click (>=8.2.1)", "rich (>=14.0.0)", "httpx (>=0.28.1)", "pydantic (>=2.11.7)", "client-a-oud-mig @ file:///home/marlonsc/flext/client-a-oud-mig", "client-b-meltano-native @ file:///home/marlonsc/flext/client-b-meltano-native", "flext-core @ file:///home/marlonsc/flext/flext-core", "flext-meltano @ file:///home/marlonsc/flext/flext-meltano", "pyyaml (>=6.0.2)", "pydantic-settings (>=2.10.1)", "structlog (>=25.4.0)", "flext-observability @ file:///home/marlonsc/flext/flext-observability",]
+dependencies = [ "click (>=8.2.1)", "rich (>=14.0.0)", "httpx (>=0.28.1)", "pydantic (>=2.11.7)", "flext-core @ file:///home/marlonsc/flext/flext-core", "pyyaml (>=6.0.2)", "pydantic-settings (>=2.10.1)", "structlog (>=25.4.0)", "flext-observability @ file:///home/marlonsc/flext/flext-observability",]
 [[project.authors]]
 name = "FLEXT Team"
 email = "team@flext.sh"

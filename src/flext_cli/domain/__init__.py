@@ -1,29 +1,15 @@
-"""CLI domain models and services using flext-core.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
-"""
+"""Domain layer for FLEXT CLI."""
 
 from __future__ import annotations
 
-# Only import the entities that work
-from flext_cli.domain.cli_services import CLIServiceContainer
-from flext_cli.domain.entities import (
-    CLICommand,
-    CLIConfig,
-    CLIPlugin,
-    CLISession,
-    CommandStatus,
-    CommandType,
+from flext_cli.domain.interfaces import (
+    CLICommandProvider,
+    CLIConfigProvider,
+    CLIOutputFormatter,
 )
 
-__all__ = [
-    "CLICommand",
-    "CLIConfig",
-    "CLIPlugin",
-    "CLIServiceContainer",
-    "CLISession",
-    "CommandStatus",
-    "CommandType",
+__all__: list[str] = [
+    "CLICommandProvider",
+    "CLIConfigProvider",
+    "CLIOutputFormatter",
 ]
