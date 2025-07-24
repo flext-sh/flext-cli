@@ -103,7 +103,10 @@ def deprecated_import(
         version: Version when deprecated
 
     """
-    message = f"Importing {old_name} is deprecated. Use {new_path} instead. Will be removed in v{version}."
+    message = (
+        f"Importing {old_name} is deprecated. "
+        f"Use {new_path} instead. Will be removed in v{version}."
+    )
     warnings.warn(
         message,
         category=FlextCLIDeprecationWarning,
