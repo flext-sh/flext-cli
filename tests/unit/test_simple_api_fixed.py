@@ -6,8 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core.domain.shared_types import ServiceResult
-
 from flext_cli.config.cli_config import CLIConfig
 from flext_cli.simple_api import (
     create_development_cli_config,
@@ -15,6 +13,7 @@ from flext_cli.simple_api import (
     get_cli_settings,
     setup_cli,
 )
+from flext_core import FlextResult
 
 
 class TestSetupCLI:
@@ -24,7 +23,7 @@ class TestSetupCLI:
         """Test setup_cli with default settings."""
         result = setup_cli()
 
-        assert isinstance(result, ServiceResult)
+        assert isinstance(result, FlextResult)
         assert result.success
         assert result.data == {"setup_complete": True}
         assert result.error is None
@@ -35,7 +34,7 @@ class TestSetupCLI:
 
         result = setup_cli(settings)
 
-        assert isinstance(result, ServiceResult)
+        assert isinstance(result, FlextResult)
         assert result.success
         assert result.data == {"setup_complete": True}
         assert result.error is None
@@ -44,7 +43,7 @@ class TestSetupCLI:
         """Test setup_cli handles None settings properly."""
         result = setup_cli(None)
 
-        assert isinstance(result, ServiceResult)
+        assert isinstance(result, FlextResult)
         assert result.success
         assert result.data == {"setup_complete": True}
 

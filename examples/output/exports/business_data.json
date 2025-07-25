@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "company": "FLEXT Corp",
+    "revenue": 1250000.5,
+    "employees": 150,
+    "status": "active"
+  },
+  {
+    "id": 2,
+    "company": "DataFlow Ltd",
+    "revenue": 890000.25,
+    "employees": 75,
+    "status": "active"
+  },
+  {
+    "id": 3,
+    "company": "CloudSync Inc",
+    "revenue": 2100000.0,
+    "employees": 300,
+    "status": "active"
+  },
+  {
+    "id": 4,
+    "company": "TechStart",
+    "revenue": 450000.75,
+    "employees": 25,
+    "status": "inactive"
+  },
+  {
+    "id": 5,
+    "company": "MegaCorp",
+    "revenue": 5000000.0,
+    "employees": 1200,
+    "status": "active"
+  }
+]

@@ -1,0 +1,334 @@
+"""FlextCli - Massive Code Reduction Examples.
+
+These examples demonstrate how flext-cli enables massive code reduction
+for common data operations by providing zero-boilerplate utility functions
+and chainable patterns.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
+from __future__ import annotations
+
+import flext_cli
+
+
+def example_1_traditional_vs_flext() -> None:
+    """Example 1: Traditional approach vs FlextCli approach."""
+    # Sample data
+    users_data = [
+        {"id": 1, "name": "Alice", "role": "Admin", "salary": 75000},
+        {"id": 2, "name": "Bob", "role": "User", "salary": 65000},
+        {"id": 3, "name": "Carol", "role": "Manager", "salary": 85000},
+    ]
+
+
+    # ===============================================
+    # TRADITIONAL APPROACH (50+ lines of code)
+    # ===============================================
+    """
+    import csv
+    import json
+    import pandas as pd
+    from pathlib import Path
+    from rich.console import Console
+    from rich.table import Table
+
+    # Export to CSV
+    try:
+        with open("users.csv", "w", newline="") as csvfile:
+            fieldnames = users_data[0].keys()
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(users_data)
+        print("CSV export successful")
+    except Exception as e:
+        print(f"CSV export failed: {e}")
+
+    # Export to JSON
+    try:
+        with open("users.json", "w") as jsonfile:
+            json.dump(users_data, jsonfile, indent=2)
+        print("JSON export successful")
+    except Exception as e:
+        print(f"JSON export failed: {e}")
+
+    # Create Rich table
+    try:
+        console = Console()
+        table = Table(title="Users Data")
+        for key in users_data[0].keys():
+            table.add_column(key.title())
+        for user in users_data:
+            table.add_row(*[str(value) for value in user.values()])
+        console.print(table)
+    except Exception as e:
+        print(f"Table creation failed: {e}")
+
+    # Generate analysis
+    try:
+        total_records = len(users_data)
+        avg_salary = sum(user["salary"] for user in users_data) / total_records
+        roles = set(user["role"] for user in users_data)
+        print(f"Analysis: {total_records} records, avg salary: ${avg_salary:,.2f}")
+        print(f"Roles: {', '.join(roles)}")
+    except Exception as e:
+        print(f"Analysis failed: {e}")
+    """
+
+    # ===============================================
+    # FLEXTCLI APPROACH (3 lines of code!!!)
+    # ===============================================
+
+
+    # Single function call does everything!
+    result = flext_cli.flext_cli_pipeline(
+        data=users_data,
+        export_path="./output/users",
+        formats=["csv", "json", "parquet"],
+        dashboard=True,
+        analysis=True,
+    )
+
+    if result.success:
+        result.unwrap()
+    else:
+        pass
+
+
+
+def example_2_instant_data_operations() -> None:
+    """Example 2: Ultra-fast data operations with zero configuration."""
+    # Generate sample sales data
+    sales_data = [
+        {"month": "Jan", "sales": 45000, "region": "North"},
+        {"month": "Feb", "sales": 52000, "region": "North"},
+        {"month": "Mar", "sales": 48000, "region": "South"},
+        {"month": "Apr", "sales": 55000, "region": "East"},
+    ]
+
+    # ===============================================
+    # INSTANT EXPORT with auto-generated filename
+    # ===============================================
+    exporter = flext_cli.FlextCliDataExporter()
+
+    # Auto-generates filename with timestamp
+    result = exporter.instant(sales_data, "json")
+    if result.success:
+        result.unwrap()
+
+    # ===============================================
+    # CHAINABLE EXPORTS (fluent interface)
+    # ===============================================
+
+    chain_result = (exporter
+        .then_export("sales.csv")
+        .and_export("sales.json")
+        .and_export("sales.parquet")
+        .execute(sales_data)
+    )
+
+    if chain_result.success:
+        results = chain_result.unwrap()
+        for details in results.values():
+            "✅" if details["success"] else "❌"
+
+    # ===============================================
+    # BATCH EXPORT multiple datasets
+    # ===============================================
+
+    datasets = {
+        "sales": sales_data,
+        "summary": [{"total_sales": 200000, "avg_sales": 50000}],
+        "regions": [{"region": "North", "count": 2}, {"region": "South", "count": 1}],
+    }
+
+    batch_result = exporter.batch_export(
+        datasets,
+        base_path="./batch_exports",
+        formats=["csv", "json"],
+    )
+
+    if batch_result.success:
+        batch_results = batch_result.unwrap()
+        for formats in batch_results.values():
+            for details in formats.values():
+                "✅" if details["success"] else "❌"
+
+
+def example_3_data_analysis_and_comparison() -> None:
+    """Example 3: Advanced data analysis and comparison."""
+    # Before and after data for comparison
+    users_before = [
+        {"id": 1, "name": "Alice", "status": "Active", "salary": 70000},
+        {"id": 2, "name": "Bob", "status": "Inactive", "salary": 65000},
+    ]
+
+    users_after = [
+        {"id": 1, "name": "Alice", "status": "Inactive", "salary": 75000},  # Changed
+        {"id": 2, "name": "Bob", "status": "Inactive", "salary": 65000},   # Same
+        {"id": 3, "name": "Carol", "status": "Active", "salary": 80000},   # New
+    ]
+
+    # ===============================================
+    # COMPREHENSIVE DATA ANALYSIS
+    # ===============================================
+
+    analysis_result = flext_cli.flext_cli_analyze_data(
+        users_after,
+        "Employee Analysis Report",
+    )
+
+    if analysis_result.success:
+        analysis_result.unwrap()
+
+    # ===============================================
+    # DATA COMPARISON & DIFF REPORT
+    # ===============================================
+
+    comparison_result = flext_cli.flext_cli_data_compare(
+        users_before,
+        users_after,
+        "User Changes Report",
+    )
+
+    if comparison_result.success:
+        comparison_result.unwrap()
+
+    # ===============================================
+    # MULTI-FORMAT VISUALIZATION
+    # ===============================================
+
+    format_result = flext_cli.flext_cli_format_all(
+        users_after,
+        styles=["json", "yaml", "table"],
+    )
+
+    if format_result.success:
+        formats = format_result.unwrap()
+        for output in formats.values():
+            output[:200] + "..." if len(output) > 200 else output
+
+
+def example_4_interactive_dashboards() -> None:
+    """Example 4: Auto-generated interactive dashboards."""
+    # System metrics for dashboard
+    system_metrics = [
+        {"service": "API", "status": "UP", "response_time": "120ms", "cpu": 45},
+        {"service": "Database", "status": "UP", "response_time": "25ms", "cpu": 30},
+        {"service": "Cache", "status": "DOWN", "response_time": "N/A", "cpu": 0},
+        {"service": "Queue", "status": "UP", "response_time": "15ms", "cpu": 60},
+    ]
+
+    # ===============================================
+    # AUTO-GENERATED DASHBOARD
+    # ===============================================
+
+    dashboard_result = flext_cli.flext_cli_auto_dashboard(
+        system_metrics,
+        title="System Health Dashboard",
+        metrics={
+            "total_services": len(system_metrics),
+            "services_up": len([s for s in system_metrics if s["status"] == "UP"]),
+            "avg_cpu": sum(s["cpu"] for s in system_metrics) / len(system_metrics),
+        },
+    )
+
+    if dashboard_result.success:
+        pass
+
+    # ===============================================
+    # ADVANCED TABULATE FORMATTING
+    # ===============================================
+
+    table_result = flext_cli.flext_cli_format_tabulate(
+        system_metrics,
+        title="System Status",
+        tablefmt="fancy_grid",
+    )
+
+    if table_result.success:
+        table_result.unwrap()
+
+
+def example_5_real_world_scenario() -> None:
+    """Example 5: Real-world data processing scenario."""
+    # Simulate processing user activity data
+    user_activity = [
+        {"user_id": 1, "action": "login", "timestamp": "2024-01-15 09:00", "ip": "192.168.1.100"},
+        {"user_id": 1, "action": "view_page", "timestamp": "2024-01-15 09:05", "ip": "192.168.1.100"},
+        {"user_id": 2, "action": "login", "timestamp": "2024-01-15 09:10", "ip": "192.168.1.101"},
+        {"user_id": 1, "action": "logout", "timestamp": "2024-01-15 09:30", "ip": "192.168.1.100"},
+        {"user_id": 3, "action": "login", "timestamp": "2024-01-15 10:00", "ip": "192.168.1.102"},
+    ]
+
+
+    # ===============================================
+    # COMPLETE DATA PROCESSING PIPELINE
+    # ===============================================
+
+    # Step 1: Analyze activity patterns
+    analysis = flext_cli.flext_cli_analyze_data(user_activity, "User Activity Report")
+    if analysis.success:
+        pass
+
+    # Step 2: Export in multiple formats for different teams
+    exporter = flext_cli.FlextCliDataExporter()
+
+    # Chain multiple exports
+    export_results = (exporter
+        .then_export("./reports/activity.csv")      # For Excel users
+        .and_export("./reports/activity.json")      # For developers
+        .and_export("./reports/activity.parquet")   # For data analysts
+        .execute(user_activity)
+    )
+
+    if export_results.success:
+        results = export_results.unwrap()
+        for _operation, _details in results.items():
+            pass
+
+    # Step 3: Create executive dashboard
+    dashboard = flext_cli.flext_cli_auto_dashboard(
+        user_activity,
+        title="User Activity Dashboard",
+    )
+    if dashboard.success:
+        pass
+
+    # Step 4: Generate summary report
+    summary_data = [
+        {"metric": "Total Actions", "value": len(user_activity)},
+        {"metric": "Unique Users", "value": len({item["user_id"] for item in user_activity})},
+        {"metric": "Login Events", "value": len([item for item in user_activity if item["action"] == "login"])},
+    ]
+
+    summary_table = flext_cli.flext_cli_format_tabulate(
+        summary_data,
+        title="Activity Summary",
+        tablefmt="grid",
+    )
+
+    if summary_table.success:
+        pass
+
+
+
+def main() -> None:
+    """Run all examples demonstrating massive code reduction."""
+    try:
+        # Run all examples
+        example_1_traditional_vs_flext()
+        example_2_instant_data_operations()
+        example_3_data_analysis_and_comparison()
+        example_4_interactive_dashboards()
+        example_5_real_world_scenario()
+
+
+    except Exception:
+        import traceback
+        traceback.print_exc()
+
+
+if __name__ == "__main__":
+    main()
