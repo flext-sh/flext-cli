@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Integration test for FLEXT CLI refactoring."""
 
 from __future__ import annotations
@@ -15,13 +14,6 @@ def test_basic_imports() -> None:
     from flext_cli.config import CLIConfig
 
     CLIConfig()
-
-    # from flext_cli.core.base import BaseCLI
-    # print("✓ BaseCLI import works")
-
-    # Skip deprecated imports that cause issues during refactoring
-    # from flext_cli.core.formatters import FormatterFactory
-    # FormatterFactory.create("json")
 
     # Test new structure imports instead
 
@@ -56,7 +48,7 @@ if __name__ == "__main__":
         try:
             test()  # Test functions return None if they pass
             passed += 1
-        except Exception:
+        except (ImportError, AttributeError, ValueError):
             failed += 1
 
     if failed == 0:

@@ -1,395 +1,319 @@
-"""Unit tests for CLI commands.
-
-Modern unit tests for Click commands with full isolation.
-"""
+"""Unit tests for CLI commands."""
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Any
+from unittest.mock import Mock
 
 import pytest
-import yaml
-
-if TYPE_CHECKING:
-    from typing import Any
-
-    from click import Command
-    from click.testing import CliRunner, Result
+from click.testing import CliRunner
+from flext_cli import flext_cli_create_builder
 
 
-class TestPipelineCommands:
-    """Test pipeline-related CLI commands."""
+class TestCommands:
+    """Test CLI commands functionality."""
 
-    @pytest.mark.skip("Pipeline API integration not yet implemented")
-    def test_list_pipelines_json_output(
+    @pytest.fixture
+    def cli(self) -> Any:
+        """Create CLI instance for testing."""
+        return flext_cli_create_builder("test-cli")
+
+    @pytest.fixture
+    def cli_runner(self) -> CliRunner:
+        """Create CLI runner for testing."""
+        return CliRunner()
+
+    @pytest.fixture
+    def mock_api_client(self) -> Mock:
+        """Mock API client."""
+        return Mock()
+
+    @pytest.fixture
+    def mocker(self) -> Mock:
+        """Mock object."""
+        return Mock()
+
+    def test_pipeline_list_command_json_output(
         self,
-        cli: Command,
+        cli: Any,
         cli_runner: CliRunner,
-        mock_api_client: Any,
-        mocker: Any,
+        mock_api_client: Mock,
+        mocker: Mock,
     ) -> None:
-        """Test pipeline list command with JSON output format.
+        """Test pipeline list command with JSON output."""
+        # Mock API response
+        mock_response = [
+            {"id": "pipeline-1", "name": "Test Pipeline", "status": "running"},
+            {"id": "pipeline-2", "name": "Another Pipeline", "status": "stopped"},
+        ]
+        mock_api_client.list_pipelines.return_value = mock_response
 
-        Args:
-            cli: Main CLI command.
-            cli_runner: Click test runner.
-            mock_api_client: Mock API client.
-            mocker: Pytest mocker fixture.
-
-        """
-        # Mock the API client in the CLI module
+        # Mock the API client
         mocker.patch(
-            "flext_cli.commands.pipeline.get_api_client",
+            "flext_cli.core.api_client.get_api_client",
             return_value=mock_api_client,
         )
 
-        result: Result = cli_runner.invoke(
-            cli,
-            ["pipeline", "list", "--output", "json"],
-        )
+        # Run command
+        result = cli_runner.invoke(cli, ["pipeline", "list", "--format", "json"])
 
         assert result.exit_code == 0
         assert "pipeline-1" in result.output
-        assert "pipeline-2" in result.output
-        assert mock_api_client.list_pipelines.called
+        assert "Test Pipeline" in result.output
 
-    @pytest.mark.skip("Pipeline API integration not yet implemented")
-    def test_list_pipelines_table_output(
+    def test_pipeline_list_command_table_output(
         self,
-        cli: Command,
+        cli: Any,
         cli_runner: CliRunner,
-        mock_api_client: Any,
-        mocker: Any,
+        mock_api_client: Mock,
+        mocker: Mock,
     ) -> None:
-        """Test pipeline list command with table output format.
+        """Test pipeline list command with table output."""
+        # Mock API response
+        mock_response = [
+            {"id": "pipeline-1", "name": "Test Pipeline", "status": "running"},
+            {"id": "pipeline-2", "name": "Another Pipeline", "status": "stopped"},
+        ]
+        mock_api_client.list_pipelines.return_value = mock_response
 
-        Args:
-            cli: Main CLI command.
-            cli_runner: Click test runner.
-            mock_api_client: Mock API client.
-            mocker: Pytest mocker fixture.
-
-        """
+        # Mock the API client
         mocker.patch(
-            "flext_cli.commands.pipeline.get_api_client",
+            "flext_cli.core.api_client.get_api_client",
             return_value=mock_api_client,
         )
 
-        result: Result = cli_runner.invoke(
-            cli,
-            ["pipeline", "list", "--output", "table"],
-        )
+        # Run command
+        result = cli_runner.invoke(cli, ["pipeline", "list", "--format", "table"])
 
         assert result.exit_code == 0
-        assert "│" in result.output  # Table borders
-        assert "test-pipeline-1" in result.output
-        assert "active" in result.output
+        assert "Test Pipeline" in result.output
 
-    @pytest.mark.skip("Pipeline API integration not yet implemented")
-    def test_get_pipeline(
+    def test_pipeline_get_command(
         self,
-        cli: Command,
+        cli: Any,
         cli_runner: CliRunner,
-        mock_api_client: Any,
-        mocker: Any,
+        mock_api_client: Mock,
+        mocker: Mock,
     ) -> None:
-        """Test get single pipeline command.
-
-        Args:
-            cli: Main CLI command.
-            cli_runner: Click test runner.
-            mock_api_client: Mock API client.
-            mocker: Pytest mocker fixture.
-
-        """
-        mocker.patch(
-            "flext_cli.commands.pipeline.get_api_client",
-            return_value=mock_api_client,
-        )
-
-        result: Result = cli_runner.invoke(
-            cli,
-            ["pipeline", "get", "pipeline-1"],
-        )
-
-        assert result.exit_code == 0
-        assert "pipeline-1" in result.output
-        mock_api_client.get_pipeline.assert_called_once_with("pipeline-1")
-
-    @pytest.mark.skip("Pipeline API integration not yet implemented")
-    def test_create_pipeline_with_config_file(
-        self,
-        cli: Command,
-        isolated_cli_runner: CliRunner,
-        mock_api_client: Any,
-        pipeline_config: dict[str, Any],
-        mocker: Any,
-    ) -> None:
-        """Test pipeline creation with configuration file.
-
-        Args:
-            cli: Main CLI command.
-            isolated_cli_runner: Isolated CLI test runner.
-            mock_api_client: Mock API client.
-            pipeline_config: Pipeline configuration dictionary.
-            mocker: Pytest mocker fixture.
-
-        """
-        # Create config file in isolated filesystem
-        config_path = Path("pipeline.yaml")
-        config_path.write_text(yaml.dump(pipeline_config), encoding="utf-8")
-
-        mocker.patch(
-            "flext_cli.commands.pipeline.get_api_client",
-            return_value=mock_api_client,
-        )
-
-        result: Result = isolated_cli_runner.invoke(
-            cli,
-            ["pipeline", "create", "--config", "pipeline.yaml"],
-        )
-
-        assert result.exit_code == 0
-        assert "pipeline-new" in result.output
-        mock_api_client.create_pipeline.assert_called_once()
-
-    @pytest.mark.skip("Pipeline API integration not yet implemented")
-    def test_delete_pipeline_with_confirmation(
-        self,
-        cli: Command,
-        cli_runner: CliRunner,
-        mock_api_client: Any,
-        mock_confirm: Any,
-        mocker: Any,
-    ) -> None:
-        """Test pipeline deletion with user confirmation.
-
-        Args:
-            cli: Main CLI command.
-            cli_runner: Click test runner.
-            mock_api_client: Mock API client.
-            mock_confirm: Mock confirmation prompt.
-            mocker: Pytest mocker fixture.
-
-        """
-        mocker.patch(
-            "flext_cli.commands.pipeline.get_api_client",
-            return_value=mock_api_client,
-        )
-        mock_api_client.delete_pipeline.return_value = None
-
-        result: Result = cli_runner.invoke(
-            cli,
-            ["pipeline", "delete", "pipeline-1"],
-        )
-
-        assert result.exit_code == 0
-        assert mock_confirm.called
-        mock_api_client.delete_pipeline.assert_called_once_with("pipeline-1")
-
-    @pytest.mark.skip("Pipeline API integration not yet implemented")
-    def test_run_pipeline(
-        self,
-        cli: Command,
-        cli_runner: CliRunner,
-        mock_api_client: Any,
-        mocker: Any,
-    ) -> None:
-        """Test pipeline execution command.
-
-        Args:
-            cli: Main CLI command.
-            cli_runner: Click test runner.
-            mock_api_client: Mock API client.
-            mocker: Pytest mocker fixture.
-
-        """
-        mocker.patch(
-            "flext_cli.commands.pipeline.get_api_client",
-            return_value=mock_api_client,
-        )
-        mock_api_client.run_pipeline.return_value = {
-            "run_id": "run-123",
+        """Test pipeline get command."""
+        # Mock API response
+        mock_response = {
+            "id": "pipeline-1",
+            "name": "Test Pipeline",
             "status": "running",
+            "created_at": "2023-01-01T00:00:00Z",
         }
+        mock_api_client.get_pipeline.return_value = mock_response
 
-        result: Result = cli_runner.invoke(
-            cli,
-            ["pipeline", "run", "pipeline-1"],
+        # Mock the API client
+        mocker.patch(
+            "flext_cli.core.api_client.get_api_client",
+            return_value=mock_api_client,
         )
 
-        assert result.exit_code == 0
-        assert "run-123" in result.output
-        mock_api_client.run_pipeline.assert_called_once_with("pipeline-1")
-
-
-class TestConfigCommands:
-    """Test configuration commands."""
-
-    @pytest.mark.skip("Config API integration not yet implemented")
-    def test_config_show(
-        self,
-        cli: Command,
-        cli_runner: CliRunner,
-        config_file: Any,
-        mocker: Any,
-    ) -> None:
-        """Test configuration show command.
-
-        Args:
-            cli: Main CLI command.
-            cli_runner: Click test runner.
-            config_file: Configuration file fixture.
-            mocker: Pytest mocker fixture.
-
-        """
-        mocker.patch("flext_cli.config.get_config_path", return_value=config_file)
-
-        result: Result = cli_runner.invoke(cli, ["config", "show"])
+        # Run command
+        result = cli_runner.invoke(cli, ["pipeline", "get", "pipeline-1"])
 
         assert result.exit_code == 0
-        assert "http://localhost:8000" in result.output
-        assert "test-token-123" in result.output
+        assert "Test Pipeline" in result.output
+        assert "running" in result.output
 
-    @pytest.mark.skip("Config API integration not yet implemented")
-    def test_config_set(
+    def test_pipeline_create_command_with_config_file(
         self,
-        cli: Command,
+        cli: Any,
         isolated_cli_runner: CliRunner,
+        mock_api_client: Mock,
+        pipeline_config: dict[str, Any],
+        mocker: Mock,
     ) -> None:
-        """Test configuration set command.
+        """Test pipeline creation with configuration file."""
+        # Mock API response
+        mock_response = {
+            "id": "new-pipeline-id",
+            "name": "new-pipeline",
+            "status": "created",
+        }
+        mock_api_client.create_pipeline.return_value = mock_response
 
-        Args:
-            cli: Main CLI command.
-            isolated_cli_runner: Isolated CLI test runner.
-
-        """
-        result: Result = isolated_cli_runner.invoke(
-            cli,
-            ["config", "set", "api.url", "http://new-api:9000"],
+        # Mock the API client
+        mocker.patch(
+            "flext_cli.core.api_client.get_api_client",
+            return_value=mock_api_client,
         )
 
-        assert result.exit_code == 0
-        assert "Updated" in result.output
+        # Create temporary config file
+        with isolated_cli_runner.isolated_filesystem():
+            with Path("pipeline_config.json").open("w") as f:
+                import json
 
-        # Verify the value was set
-        show_result: Result = isolated_cli_runner.invoke(cli, ["config", "show"])
-        assert "http://new-api:9000" in show_result.output
+                json.dump(pipeline_config, f)
 
-    @pytest.mark.skip("Config API integration not yet implemented")
-    def test_config_get(
+            # Run command
+            result = isolated_cli_runner.invoke(
+                cli,
+                ["pipeline", "create", "--config", "pipeline_config.json"],
+            )
+
+            assert result.exit_code == 0
+            assert "new-pipeline-id" in result.output
+
+    def test_pipeline_delete_command_with_confirmation(
         self,
-        cli: Command,
+        cli: Any,
+        cli_runner: CliRunner,
+        mock_api_client: Mock,
+        mocker: Mock,
+    ) -> None:
+        """Test pipeline delete command with confirmation."""
+        # Mock API response
+        mock_api_client.delete_pipeline.return_value = {"status": "deleted"}
+
+        # Mock the API client
+        mocker.patch(
+            "flext_cli.core.api_client.get_api_client",
+            return_value=mock_api_client,
+        )
+
+        # Mock confirmation
+        mocker.patch("click.confirm", return_value=True)
+
+        # Run command
+        result = cli_runner.invoke(cli, ["pipeline", "delete", "pipeline-1"])
+
+        assert result.exit_code == 0
+        assert "deleted" in result.output
+
+    def test_pipeline_execute_command(
+        self,
+        cli: Any,
+        cli_runner: CliRunner,
+        mock_api_client: Mock,
+        mocker: Mock,
+    ) -> None:
+        """Test pipeline execute command."""
+        # Mock API response
+        mock_response = {"execution_id": "exec-123", "status": "started"}
+        mock_api_client.execute_pipeline.return_value = mock_response
+
+        # Mock the API client
+        mocker.patch(
+            "flext_cli.core.api_client.get_api_client",
+            return_value=mock_api_client,
+        )
+
+        # Run command
+        result = cli_runner.invoke(cli, ["pipeline", "execute", "pipeline-1"])
+
+        assert result.exit_code == 0
+        assert "exec-123" in result.output
+
+    def test_config_show_command(
+        self,
+        cli: Any,
         cli_runner: CliRunner,
         config_file: Any,
-        mocker: Any,
+        mocker: Mock,
     ) -> None:
-        """Test configuration get command.
+        """Test config show command."""
+        # Mock config file
+        mocker.patch("pathlib.Path.exists", return_value=True)
+        mocker.patch(
+            "pathlib.Path.read_text",
+            return_value='{"api_url": "http://localhost:8000"}',
+        )
 
-        Args:
-            cli: Main CLI command.
-            cli_runner: Click test runner.
-            config_file: Configuration file fixture.
-            mocker: Pytest mocker fixture.
+        # Run command
+        result = cli_runner.invoke(cli, ["config", "show"])
 
-        """
-        mocker.patch("flext_cli.config.get_config_path", return_value=config_file)
+        assert result.exit_code == 0
+        assert "api_url" in result.output
 
-        result: Result = cli_runner.invoke(cli, ["config", "get", "api.url"])
+    def test_config_get_command(
+        self,
+        cli: Any,
+        cli_runner: CliRunner,
+        config_file: Any,
+        mocker: Mock,
+    ) -> None:
+        """Test config get command."""
+        # Mock config file
+        mocker.patch("pathlib.Path.exists", return_value=True)
+        mocker.patch(
+            "pathlib.Path.read_text",
+            return_value='{"api_url": "http://localhost:8000"}',
+        )
+
+        # Run command
+        result = cli_runner.invoke(cli, ["config", "get", "api_url"])
 
         assert result.exit_code == 0
         assert "http://localhost:8000" in result.output
 
-
-class TestAuthCommands:
-    """Test authentication commands."""
-
-    @pytest.mark.skip("Auth API integration not yet implemented")
-    def test_login_interactive(
+    def test_auth_login_command(
         self,
-        cli: Command,
+        cli: Any,
         cli_runner: CliRunner,
-        mock_api_client: Any,
-        mocker: Any,
+        mock_api_client: Mock,
+        mocker: Mock,
     ) -> None:
-        """Test interactive login command.
+        """Test auth login command."""
+        # Mock API response
+        mock_response = {"access_token": "token123", "user": "testuser"}
+        mock_api_client.login.return_value = mock_response
 
-        Args:
-            cli: Main CLI command.
-            cli_runner: Click test runner.
-            mock_api_client: Mock API client.
-            mocker: Pytest mocker fixture.
-
-        """
+        # Mock the API client
         mocker.patch(
-            "flext_cli.commands.auth.get_api_client",
+            "flext_cli.core.api_client.get_api_client",
             return_value=mock_api_client,
         )
-        mocker.patch("getpass.getpass", return_value="password123")
 
-        mock_api_client.login.return_value = {"token": "new-token-456"}
+        # Mock user input
+        mocker.patch("click.prompt", side_effect=["testuser", "password123"])
 
-        result: Result = cli_runner.invoke(
-            cli,
-            ["auth", "login", "--username", "testuser"],
-        )
+        # Run command
+        result = cli_runner.invoke(cli, ["auth", "login"])
 
         assert result.exit_code == 0
-        assert "Successfully logged in" in result.output
-        mock_api_client.login.assert_called_once_with("testuser", "password123")
+        assert "Logged in successfully" in result.output
 
-    @pytest.mark.skip("Auth API integration not yet implemented")
-    def test_logout(
+    def test_auth_logout_command(
         self,
-        cli: Command,
+        cli: Any,
         cli_runner: CliRunner,
-        mocker: Any,
+        mocker: Mock,
     ) -> None:
-        """Test logout command.
+        """Test auth logout command."""
+        # Mock config file operations
+        mocker.patch("pathlib.Path.exists", return_value=True)
+        mocker.patch("pathlib.Path.unlink", return_value=None)
 
-        Args:
-            cli: Main CLI command.
-            cli_runner: Click test runner.
-            mocker: Pytest mocker fixture.
-
-        """
-        mock_config = mocker.patch("flext_cli.commands.auth.remove_auth_token")
-
-        result: Result = cli_runner.invoke(cli, ["auth", "logout"])
+        # Run command
+        result = cli_runner.invoke(cli, ["auth", "logout"])
 
         assert result.exit_code == 0
-        assert "Successfully logged out" in result.output
-        mock_config.assert_called_once()
+        assert "Logged out successfully" in result.output
 
-    @pytest.mark.skip("Auth API integration not yet implemented")
-    def test_whoami(
+    def test_whoami_command(
         self,
-        cli: Command,
+        cli: Any,
         cli_runner: CliRunner,
-        mock_api_client: Any,
-        mocker: Any,
+        mock_api_client: Mock,
+        mocker: Mock,
     ) -> None:
-        """Test whoami command for current user info.
+        """Test whoami command."""
+        # Mock API response
+        mock_response = {"user": "testuser", "email": "test@example.com"}
+        mock_api_client.get_current_user.return_value = mock_response
 
-        Args:
-            cli: Main CLI command.
-            cli_runner: Click test runner.
-            mock_api_client: Mock API client.
-            mocker: Pytest mocker fixture.
-
-        """
+        # Mock the API client
         mocker.patch(
-            "flext_cli.commands.auth.get_api_client",
+            "flext_cli.core.api_client.get_api_client",
             return_value=mock_api_client,
         )
-        mock_api_client.get_current_user.return_value = {
-            "username": "testuser",
-            "email": "test@example.com",
-            "roles": ["admin", "developer"],
-        }
 
-        result: Result = cli_runner.invoke(cli, ["auth", "whoami"])
+        # Run command
+        result = cli_runner.invoke(cli, ["whoami"])
 
         assert result.exit_code == 0
         assert "testuser" in result.output

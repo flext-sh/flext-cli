@@ -103,6 +103,7 @@ src/flext_cli/
 ### 1. Domain Layer
 
 #### Command Aggregate Root
+
 ```python
 from flext_cli.domain.entities.command import Command, CommandContext, CommandResult
 
@@ -121,6 +122,7 @@ command.complete_execution(result)
 ```
 
 #### CLI Context Value Object
+
 ```python
 from flext_cli.domain.value_objects import CLIContext, OutputFormat
 
@@ -133,6 +135,7 @@ debug_context = context.with_debug(True).with_output_format(OutputFormat.JSON)
 ### 2. Application Layer
 
 #### CLI Application Service
+
 ```python
 from flext_cli.application.services import CLIApplicationService
 
@@ -157,6 +160,7 @@ command_result = await app_service.execute_command(
 ### 3. Adapter Layer
 
 #### New CLI Foundation
+
 ```python
 from flext_cli.adapters.cli.foundation import CLIFoundation
 from flext_cli.application.services import CLIApplicationService
@@ -184,6 +188,7 @@ cli = app.create_cli()
 ```
 
 #### Rich Output Rendering
+
 ```python
 from flext_cli.adapters.output import RichRenderer
 
@@ -198,6 +203,7 @@ renderer.render_success("Operation completed successfully")
 ### Old vs New Patterns
 
 #### Legacy Pattern (Deprecated)
+
 ```python
 # OLD - Will show deprecation warnings
 from flext_cli import BaseCLI, CLIResultRenderer
@@ -208,6 +214,7 @@ class OldApp(BaseCLI):
 ```
 
 #### New Pattern (Recommended)
+
 ```python
 # NEW - Clean Architecture
 from flext_cli.adapters.cli.foundation import CLIFoundation
@@ -238,23 +245,27 @@ from flext_cli.adapters.output import CLIRenderer
 ## 🎯 Semantic Benefits
 
 ### 1. Clear Responsibility Separation
+
 - **Domain**: Pure business logic with no external dependencies
 - **Application**: Orchestration and use case coordination  
 - **Adapters**: Framework integration and external interfaces
 - **Infrastructure**: Concrete implementations and external systems
 
 ### 2. Semantic Navigation
+
 - **Quick Location**: `entities/command.py` for command logic
 - **Easy Extension**: Add new adapters without touching core logic
 - **Clear Dependencies**: Dependency flows from outer to inner layers
 
 ### 3. Type Safety and Quality
+
 - **100% MyPy compliance** with modern Python 3.13 typing
-- **ServiceResult pattern** for type-safe error handling
+- **FlextResult pattern** for type-safe error handling
 - **Immutable value objects** prevent state mutation bugs
 - **Domain events** for loose coupling between aggregates
 
 ### 4. Testing Strategy
+
 ```python
 # Domain layer - Pure unit tests (fast)
 def test_command_execution():
@@ -290,18 +301,20 @@ def test_cli_foundation():
 ## 🔧 Extension Points
 
 ### 1. Adding New Entities
+
 ```python
 # Create new domain entity
 class Pipeline(DomainAggregateRoot, TimestampMixin):
     name: NonEmptyStr
     steps: list[PipelineStep]
     
-    def execute(self) -> ServiceResult[PipelineResult]:
+    def execute(self) -> FlextResult[PipelineResult]:
         # Domain logic here
         pass
 ```
 
 ### 2. Adding New Adapters
+
 ```python
 # Create new output adapter
 class SlackRenderer(CLIRenderer):
@@ -311,6 +324,7 @@ class SlackRenderer(CLIRenderer):
 ```
 
 ### 3. Adding New Use Cases
+
 ```python
 # Create new application service method
 class CLIApplicationService:
@@ -318,7 +332,7 @@ class CLIApplicationService:
         self, 
         commands: list[EntityId],
         parallel: bool = False
-    ) -> ServiceResult[list[CommandResult]]:
+    ) -> FlextResult[list[CommandResult]]:
         # Orchestration logic here
         pass
 ```
@@ -326,6 +340,7 @@ class CLIApplicationService:
 ## 📊 Quality Standards
 
 ### Mandatory Quality Gates
+
 - **Zero lint violations** (Ruff with all rules enabled)
 - **Zero type errors** (MyPy strict mode)
 - **100% test coverage** for domain layer
@@ -333,6 +348,7 @@ class CLIApplicationService:
 - **Performance benchmarks** for CLI responsiveness
 
 ### Architecture Compliance
+
 - **No domain dependencies** on outer layers
 - **Interface segregation** with focused protocols
 - **Single responsibility** for each component
@@ -341,6 +357,7 @@ class CLIApplicationService:
 ## 🔮 Future Enhancements
 
 ### Planned Architecture Extensions
+
 1. **Event Sourcing**: Store domain events for audit trails
 2. **CQRS**: Separate command and query models for scalability
 3. **Plugin Architecture**: Load commands dynamically from plugins
