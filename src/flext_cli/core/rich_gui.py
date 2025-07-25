@@ -12,19 +12,17 @@ import time
 from typing import TYPE_CHECKING, Any
 
 from flext_core import FlextResult, get_logger
-
-
-# Helper functions for cleaner FlextResult creation
-def _success(data: Any = None) -> FlextResult[Any]:
-    return FlextResult(success=True, data=data, error=None)
-
-def _fail(error: str) -> FlextResult[Any]:
-    return FlextResult(success=False, data=None, error=error)
 from rich.console import Console
 from rich.layout import Layout
 from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
+
+# Import centralized helpers to eliminate duplication
+from flext_cli.core._helpers import (
+    flext_cli_fail as _fail,
+    flext_cli_success as _success,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable

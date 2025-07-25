@@ -29,8 +29,13 @@ from flext_core import (
 
 # Import centralized helpers to eliminate duplication
 from flext_cli.core._helpers import (
+    flext_cli_execute_if_success,
     flext_cli_fail as _fail,
+    flext_cli_silent_execute,
     flext_cli_success as _success,
+    flext_cli_unwrap_or_default,
+    flext_cli_unwrap_or_none,
+    flext_cli_unwrap_or_raise,
 )
 
 # Core library classes
@@ -517,6 +522,8 @@ __all__ = [
     "flext_cli_create_dashboard",  # Rich GUI dashboard creation
     "flext_cli_data_compare",  # Compare datasets and generate diff
     "flext_cli_data_validator",  # Data structure validation
+    # ========== MASSIVE BOILERPLATE REDUCTION ==========
+    "flext_cli_execute_if_success",  # Execute func only if result successful
     "flext_cli_export_data",  # Multi-format data export
     "flext_cli_format_all",  # Format data in multiple styles
     "flext_cli_format_output",  # Data formatting
@@ -537,6 +544,10 @@ __all__ = [
     "flext_cli_result_wrapper",  # Auto-wrap results in FlextResult
     "flext_cli_retry",  # Retry with exponential backoff
     "flext_cli_safe_call",  # Safe function calls with FlextResult
+    "flext_cli_silent_execute",  # Execute function silently, ignore errors
     "flext_cli_timing",  # Execution timing
+    "flext_cli_unwrap_or_default",  # Unwrap or return default value
+    "flext_cli_unwrap_or_none",  # Unwrap or return None (eliminates if/else)
+    "flext_cli_unwrap_or_raise",  # Unwrap or raise exception
     "flext_cli_validate_inputs",  # Input validation patterns
 ]
