@@ -30,12 +30,16 @@ def example_1_simple_cli() -> None:
 def example_2_web_service_cli() -> None:
     """Example 2: Web service management CLI."""
     # Create CLI with web validation
-    cli = (flext_cli_create_builder("webservice", version="2.1.0")
-           .set_validator(url="url", email="email", port=lambda x: 1 <= int(x) <= 65535)
-           .set_formatter("json")
-           .add_global_flag("--verbose", "Enable verbose logging"))
+    cli = (
+        flext_cli_create_builder("webservice", version="2.1.0")
+        .set_validator(url="url", email="email", port=lambda x: 1 <= int(x) <= 65535)
+        .set_formatter("json")
+        .add_global_flag("--verbose", "Enable verbose logging")
+    )
 
-    def deploy_service(url: str, port: str, REDACTED_LDAP_BIND_PASSWORD_email: str) -> FlextResult[dict[str, str]]:
+    def deploy_service(
+        url: str, port: str, REDACTED_LDAP_BIND_PASSWORD_email: str,
+    ) -> FlextResult[dict[str, str]]:
         """Deploy web service with validation."""
         # Validate all inputs using consolidated validator
         validation_data = {"url": url, "email": REDACTED_LDAP_BIND_PASSWORD_email, "port": port}
@@ -55,24 +59,28 @@ def example_2_web_service_cli() -> None:
 
         return FlextResult.ok(deployment_info)
 
-    def check_health(endpoint: str = "http://localhost:8080/health") -> FlextResult[dict[str, str]]:
+    def check_health(
+        endpoint: str = "http://localhost:8080/health",
+    ) -> FlextResult[dict[str, str]]:
         """Check service health."""
-        return FlextResult.ok({
-            "endpoint": endpoint,
-            "status": "healthy",
-            "response_time": "45ms",
-        })
+        return FlextResult.ok(
+            {
+                "endpoint": endpoint,
+                "status": "healthy",
+                "response_time": "45ms",
+            },
+        )
 
     # Add commands with fluent interface
     cli.add_command("deploy", deploy_service, "Deploy web service")
     cli.add_command("health", check_health, "Check service health")
 
     # Test commands directly (in real usage, cli.run() would handle this)
-    deploy_result = deploy_service("https://api.example.com", "8080", "REDACTED_LDAP_BIND_PASSWORD@example.com")
+    deploy_result = deploy_service(
+        "https://api.example.com", "8080", "REDACTED_LDAP_BIND_PASSWORD@example.com",
+    )
     if deploy_result.success:
         flext_cli_format_output(deploy_result.unwrap(), "json")
-    else:
-        pass
 
 
 def example_3_database_management() -> None:
@@ -86,14 +94,18 @@ def example_3_database_management() -> None:
         ssl_cert="file_path",
     )
 
-    cli = (FlextCliBuilder("dbmanager", "3.0.0", "Database Management Tool")
-           .set_formatter("table")
-           .add_config_file_support("db.yaml"))
+    cli = (
+        FlextCliBuilder("dbmanager", "3.0.0", "Database Management Tool")
+        .set_formatter("table")
+        .add_config_file_support("db.yaml")
+    )
 
     # Set custom validator
     cli._validator = db_validator
 
-    def connect_database(host: str, port: str, database: str, username: str) -> FlextResult[dict[str, str]]:
+    def connect_database(
+        host: str, port: str, database: str, username: str,
+    ) -> FlextResult[dict[str, str]]:
         """Connect to database with validation."""
         connection_data = {
             "host": host,
@@ -106,30 +118,36 @@ def example_3_database_management() -> None:
         if not validation_result.success:
             return FlextResult.fail(validation_result.error)
 
-        return FlextResult.ok({
-            "connection": "established",
-            "host": host,
-            "database": database,
-            "user": username,
-            "ssl": "enabled",
-        })
+        return FlextResult.ok(
+            {
+                "connection": "established",
+                "host": host,
+                "database": database,
+                "user": username,
+                "ssl": "enabled",
+            },
+        )
 
     def list_tables() -> FlextResult[list[dict[str, str]]]:
         """List database tables."""
-        return FlextResult.ok([
-            {"table": "users", "rows": "1,245", "size": "2.1MB"},
-            {"table": "orders", "rows": "5,678", "size": "8.9MB"},
-            {"table": "products", "rows": "3,421", "size": "5.2MB"},
-        ])
+        return FlextResult.ok(
+            [
+                {"table": "users", "rows": "1,245", "size": "2.1MB"},
+                {"table": "orders", "rows": "5,678", "size": "8.9MB"},
+                {"table": "products", "rows": "3,421", "size": "5.2MB"},
+            ],
+        )
 
     def backup_database(target_path: str) -> FlextResult[dict[str, str]]:
         """Create database backup."""
-        return FlextResult.ok({
-            "backup": "completed",
-            "target": target_path,
-            "size": "125.8MB",
-            "duration": "2.3s",
-        })
+        return FlextResult.ok(
+            {
+                "backup": "completed",
+                "target": target_path,
+                "size": "125.8MB",
+                "duration": "2.3s",
+            },
+        )
 
     # Add commands
     cli.add_command("connect", connect_database, "Connect to database")
@@ -139,25 +157,24 @@ def example_3_database_management() -> None:
     # Demonstrate usage
     connect_result = connect_database("db.example.com", "5432", "production", "dbREDACTED_LDAP_BIND_PASSWORD")
     if connect_result.success:
-
         # Test table listing
         tables_result = list_tables()
         if tables_result.success:
             # Format as table
             formatter = cli._get_formatter()
             formatter.table(tables_result.unwrap(), "Database Tables")
-    else:
-        pass
 
 
 def example_4_advanced_features() -> None:
     """Example 4: Advanced features demonstration."""
     # Create CLI with all advanced features
-    cli = (FlextCliBuilder("advanced-app", "4.0.0", "Advanced CLI Demo")
-           .set_validator(email="email", jwt="jwt", ipv6="ipv6")
-           .set_formatter("rich")
-           .add_global_flag("--debug", "Debug mode")
-           .add_global_flag("--dry-run", "Dry run mode"))
+    cli = (
+        FlextCliBuilder("advanced-app", "4.0.0", "Advanced CLI Demo")
+        .set_validator(email="email", jwt="jwt", ipv6="ipv6")
+        .set_formatter("rich")
+        .add_global_flag("--debug", "Debug mode")
+        .add_global_flag("--dry-run", "Dry run mode")
+    )
 
     # Add middleware
     def audit_middleware(data: dict[str, Any]) -> dict[str, Any]:
@@ -177,7 +194,9 @@ def example_4_advanced_features() -> None:
 
     cli.set_error_handler(custom_error_handler)
 
-    def process_user_data(email: str, token: str, ipv6_addr: str) -> FlextResult[dict[str, Any]]:
+    def process_user_data(
+        email: str, token: str, ipv6_addr: str,
+    ) -> FlextResult[dict[str, Any]]:
         """Process user data with comprehensive validation."""
         user_data = {"email": email, "jwt": token, "ipv6": ipv6_addr}
 
@@ -234,13 +253,10 @@ def example_4_advanced_features() -> None:
 
     process_result = process_user_data("user@example.com", valid_jwt, valid_ipv6)
     if process_result.success:
-
         # Generate different report formats
         tree_report = generate_report("tree")
         if tree_report.success:
             pass
-    else:
-        pass
 
 
 def example_5_input_collection() -> None:
@@ -271,11 +287,13 @@ def example_5_input_collection() -> None:
         if not validation_result.success:
             return FlextResult.fail(validation_result.error)
 
-        return FlextResult.ok({
-            "user_created": True,
-            "user_id": "user_12345",
-            **collected_data,
-        })
+        return FlextResult.ok(
+            {
+                "user_created": True,
+                "user_id": "user_12345",
+                **collected_data,
+            },
+        )
 
     cli.add_command("create-user", create_user_interactive, "Create user interactively")
 
@@ -297,7 +315,6 @@ def main() -> None:
         example_4_advanced_features()
 
         example_5_input_collection()
-
 
     except Exception:
         pass
