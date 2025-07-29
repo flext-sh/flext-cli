@@ -3,36 +3,29 @@
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Uses flext-core mixins, types, StrEnum, and constants.
+Domain entities using flext-core foundation patterns.
 """
 
 from __future__ import annotations
 
-from datetime import datetime
+import contextlib
+from datetime import UTC, datetime
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any
 
-from flext_core import Field
-from flext_core.domain.pydantic_base import DomainEntity, DomainEvent
+from flext_core.entities import FlextEntity
+from flext_core.result import FlextResult
+from flext_core.types import TEntityId, TUserId
+from flext_core.value_objects import FlextValueObject
+from pydantic import Field
 
-if TYPE_CHECKING:
-    from flext_core.domain.types import EntityId, UserId
 
-
-# Simple constants for compatibility
-class FlextConstants:
+# Constants for domain entities
+class CLIConstants:
     """Constants for FLEXT CLI domain."""
 
     MAX_ENTITY_NAME_LENGTH = 255
     MAX_ERROR_MESSAGE_LENGTH = 1000
     DEFAULT_TIMEOUT = 30
-    FRAMEWORK_VERSION = "0.7.0"
-
-
-# Simple version type
-Version = str
-
-# Types are now imported directly above
 
 
 class CommandStatus(StrEnum):
@@ -57,24 +50,31 @@ class CommandType(StrEnum):
     MONITORING = "monitoring"
 
 
-class CLICommand(DomainEntity):
-    """CLI command domain entity using flext-core foundation."""
+class CLICommand(FlextEntity):
+    """CLI command domain entity with execution lifecycle management."""
+
+    # Entity ID is inherited from FlextEntity but we need to provide a default factory
+    id: str = Field(
+        default_factory=lambda: (
+            f"cmd_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S_%f')[:23]}"
+        ),
+    )
 
     name: str = Field(
         ...,
         min_length=1,
-        max_length=FlextConstants.MAX_ENTITY_NAME_LENGTH,
+        max_length=CLIConstants.MAX_ENTITY_NAME_LENGTH,
     )
     description: str | None = Field(
         None,
-        max_length=FlextConstants.MAX_ERROR_MESSAGE_LENGTH,
+        max_length=CLIConstants.MAX_ERROR_MESSAGE_LENGTH,
     )
     command_type: CommandType = Field(default=CommandType.SYSTEM)
 
     # Command structure
     command_line: str = Field(..., min_length=1)
-    arguments: dict[str, Any] = Field(default_factory=dict)
-    options: dict[str, Any] = Field(default_factory=dict)
+    arguments: dict[str, object] = Field(default_factory=dict)
+    options: dict[str, object] = Field(default_factory=dict)
 
     # Execution details - inherits from StatusMixin in EntityMixin
     command_status: CommandStatus = Field(default=CommandStatus.PENDING)
@@ -84,13 +84,14 @@ class CLICommand(DomainEntity):
     started_at: datetime | None = None
     completed_at: datetime | None = None
     duration_seconds: float | None = None
+    timeout: int | None = Field(default=CLIConstants.DEFAULT_TIMEOUT)
 
     # Output
     stdout: str | None = None
     stderr: str | None = None
 
     # Context - inherits from MetadataMixin in EntityMixin
-    user_id: UserId | None = None
+    user_id: TUserId | None = None
     session_id: str | None = None
     working_directory: str | None = None
     environment: dict[str, str] = Field(default_factory=dict)
@@ -119,20 +120,31 @@ class CLICommand(DomainEntity):
         """
         return self.command_status == CommandStatus.COMPLETED and self.exit_code == 0
 
-    def start_execution(self) -> None:
+    def start_execution(self) -> CLICommand:
         """Start command execution.
 
         Sets status to running and records start time.
+
+        Returns:
+            New command instance with updated status and start time.
+
         """
-        self.command_status = CommandStatus.RUNNING
-        self.started_at = datetime.now()
+        # Create new instance with updates (immutable pattern)
+        current_dict = self.model_dump()
+        current_dict.update(
+            {
+                "command_status": CommandStatus.RUNNING,
+                "started_at": datetime.now(UTC),
+            },
+        )
+        return CLICommand.model_validate(current_dict)
 
     def complete_execution(
         self,
         exit_code: int,
         stdout: str | None = None,
         stderr: str | None = None,
-    ) -> None:
+    ) -> CLICommand:
         """Complete command execution.
 
         Args:
@@ -140,143 +152,206 @@ class CLICommand(DomainEntity):
             stdout: Standard output from command.
             stderr: Standard error from command.
 
+        Returns:
+            New command instance with execution completed.
+
         """
-        self.command_status = (
-            CommandStatus.COMPLETED if exit_code == 0 else CommandStatus.FAILED
-        )
-        self.exit_code = exit_code
-        self.completed_at = datetime.now()
-        self.stdout = stdout
-        self.stderr = stderr
+        completed_at = datetime.now(UTC)
+        duration_seconds = None
 
         if self.started_at:
-            duration = self.completed_at - self.started_at
-            self.duration_seconds = duration.total_seconds()
+            duration = completed_at - self.started_at
+            duration_seconds = duration.total_seconds()
 
-    def cancel_execution(self) -> None:
+        updates = {
+            "command_status": (
+                CommandStatus.COMPLETED if exit_code == 0 else CommandStatus.FAILED
+            ),
+            "exit_code": exit_code,
+            "completed_at": completed_at,
+            "stdout": stdout,
+            "stderr": stderr,
+            "duration_seconds": duration_seconds,
+        }
+
+        # Create new instance with updates (immutable pattern)
+        current_dict = self.model_dump()
+        current_dict.update(updates)
+        return CLICommand.model_validate(current_dict)
+
+    def cancel_execution(self) -> CLICommand:
         """Cancel command execution.
 
         Sets status to cancelled and records completion time.
+
+        Returns:
+            New command instance with cancelled status.
+
         """
-        self.command_status = CommandStatus.CANCELLED
-        self.completed_at = datetime.now()
+        completed_at = datetime.now(UTC)
+        duration_seconds = None
 
         if self.started_at:
-            duration = self.completed_at - self.started_at
-            self.duration_seconds = duration.total_seconds()
+            duration = completed_at - self.started_at
+            duration_seconds = duration.total_seconds()
 
+        updates = {
+            "command_status": CommandStatus.CANCELLED,
+            "completed_at": completed_at,
+            "duration_seconds": duration_seconds,
+        }
 
-class CLIConfig(DomainEntity):
-    """CLI configuration domain entity using flext-core foundation."""
+        # Create new instance with updates (immutable pattern)
+        current_dict = self.model_dump()
+        current_dict.update(updates)
+        return CLICommand.model_validate(current_dict)
 
-    name: str = Field(
-        ...,
-        min_length=1,
-        max_length=FlextConstants.MAX_ENTITY_NAME_LENGTH,
-    )
-    description: str | None = Field(
-        None,
-        max_length=FlextConstants.MAX_ERROR_MESSAGE_LENGTH,
-    )
+    def validate_domain_rules(self) -> FlextResult[None]:
+        """Validate domain business rules for CLI commands.
 
-    # Configuration data - inherits from MetadataMixin in EntityMixin
-    config_data: dict[str, Any] = Field(default_factory=dict)
+        Returns:
+            FlextResult indicating success or failure with validation errors.
 
-    # Metadata
-    config_type: str = Field(
-        ...,
-        min_length=1,
-        max_length=FlextConstants.MAX_ENTITY_NAME_LENGTH,
-    )
-    version: Version = Field(
-        FlextConstants.FRAMEWORK_VERSION,
-        description="Configuration version",
-    )
-
-    # Validation - inherits from StatusMixin in EntityMixin
-    is_valid: bool = Field(default=True)
-    validation_errors: list[str] = Field(default_factory=list)
-
-    # Context
-    user_id: UserId | None = None
-    is_global: bool = Field(default=False)
-
-    def validate_config(self) -> None:
-        """Validate configuration data.
-
-        Checks configuration data and updates validation errors.
         """
-        self.validation_errors = []
+        # Command name cannot be empty
+        if not self.name or not self.name.strip():
+            return FlextResult.fail("Command name cannot be empty")
 
-        # Basic validation
-        if not self.config_data:
-            self.validation_errors.append("Configuration data is empty")
+        # Command line cannot be empty
+        if not self.command_line or not self.command_line.strip():
+            return FlextResult.fail("Command line cannot be empty")
 
-        # Set validation status
-        self.is_valid = len(self.validation_errors) == 0
+        # Duration must be positive when set
+        if self.duration_seconds is not None and self.duration_seconds < 0:
+            return FlextResult.fail("Duration cannot be negative")
+
+        return FlextResult.ok(None)
 
 
-class CLISession(DomainEntity):
-    """CLI session domain entity using flext-core foundation."""
+class CLISession(FlextEntity):
+    """CLI session domain entity with command tracking."""
+
+    # Entity ID is inherited from FlextEntity but we need to provide a default factory
+    id: str = Field(
+        default_factory=lambda: (
+            f"session_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S_%f')[:26]}"
+        ),
+    )
 
     session_id: str = Field(
         ...,
         min_length=1,
-        max_length=FlextConstants.MAX_ENTITY_NAME_LENGTH,
+        max_length=CLIConstants.MAX_ENTITY_NAME_LENGTH,
     )
-    user_id: UserId | None = None
+    user_id: TUserId | None = None
 
     # Session details - inherits from TimestampMixin in EntityMixin
-    started_at: datetime = Field(default_factory=datetime.now)
-    last_activity: datetime = Field(default_factory=datetime.now)
+    started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    last_activity: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     # Context - inherits from MetadataMixin in EntityMixin
     working_directory: str | None = None
     environment: dict[str, str] = Field(default_factory=dict)
 
     # Commands
-    commands_executed: list[EntityId] = Field(default_factory=list)
-    current_command: EntityId | None = None
+    commands_executed: list[TEntityId] = Field(default_factory=list)
+    current_command: TEntityId | None = None
 
     # Status - inherits from StatusMixin in EntityMixin
     active: bool = Field(default=True)
 
-    def add_command(self, command_id: EntityId) -> None:
+    def add_command(self, command_id: TEntityId) -> CLISession:
         """Add a command to the session.
 
         Args:
             command_id: ID of the command to add.
 
-        """
-        self.commands_executed.append(command_id)
-        self.current_command = command_id
-        self.last_activity = datetime.now()
+        Returns:
+            New session instance with command added.
 
-    def end_session(self) -> None:
+        """
+        # Create new list with the command added
+        new_commands = list(self.commands_executed)
+        new_commands.append(command_id)
+
+        updates = {
+            "commands_executed": new_commands,
+            "current_command": command_id,
+            "last_activity": datetime.now(UTC),
+        }
+
+        # Create new instance with updates (immutable pattern)
+        current_dict = self.model_dump()
+        current_dict.update(updates)
+        return CLISession.model_validate(current_dict)
+
+    def end_session(self) -> CLISession:
         """End the CLI session.
 
         Sets session as inactive and clears current command.
+
+        Returns:
+            New session instance with session ended.
+
         """
-        self.active = False
-        self.current_command = None
-        self.last_activity = datetime.now()
+        updates = {
+            "active": False,
+            "current_command": None,
+            "last_activity": datetime.now(UTC),
+        }
+
+        # Create new instance with updates (immutable pattern)
+        current_dict = self.model_dump()
+        current_dict.update(updates)
+        return CLISession.model_validate(current_dict)
+
+    def validate_domain_rules(self) -> FlextResult[None]:
+        """Validate domain business rules for CLI sessions.
+
+        Returns:
+            FlextResult indicating success or failure with validation errors.
+
+        """
+        # Session ID cannot be empty
+        if not self.session_id or not self.session_id.strip():
+            return FlextResult.fail("Session ID cannot be empty")
+
+        # Last activity cannot be before started_at
+        if self.last_activity < self.started_at:
+            return FlextResult.fail("Last activity cannot be before session start")
+
+        # Current command must be in commands_executed if set
+        if (
+            self.current_command is not None
+            and self.current_command not in self.commands_executed
+        ):
+            return FlextResult.fail("Current command must be in executed commands list")
+
+        return FlextResult.ok(None)
 
 
-class CLIPlugin(DomainEntity):
-    """CLI plugin domain entity using flext-core foundation."""
+class CLIPlugin(FlextEntity):
+    """CLI plugin domain entity with lifecycle management."""
+
+    # Entity ID is inherited from FlextEntity but we need to provide a default factory
+    id: str = Field(
+        default_factory=lambda: (
+            f"plugin_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S_%f')[:27]}"
+        ),
+    )
 
     name: str = Field(
         ...,
         min_length=1,
-        max_length=FlextConstants.MAX_ENTITY_NAME_LENGTH,
+        max_length=CLIConstants.MAX_ENTITY_NAME_LENGTH,
     )
-    version: Version = Field(
-        FlextConstants.FRAMEWORK_VERSION,
-        description="Plugin version",
+    plugin_version: str = Field(
+        default="0.8.0",
+        description="Plugin version string",
     )
     description: str | None = Field(
         None,
-        max_length=FlextConstants.MAX_ERROR_MESSAGE_LENGTH,
+        max_length=CLIConstants.MAX_ERROR_MESSAGE_LENGTH,
     )
 
     # Plugin details
@@ -295,81 +370,154 @@ class CLIPlugin(DomainEntity):
     license: str | None = None
     repository_url: str | None = None
 
-    def enable(self) -> None:
-        """Enable the plugin."""
-        self.enabled = True
+    def enable(self) -> CLIPlugin:
+        """Enable the plugin.
 
-    def disable(self) -> None:
-        """Disable the plugin."""
-        self.enabled = False
+        Returns:
+            New plugin instance with enabled status.
 
-    def install(self) -> None:
-        """Install the plugin."""
-        self.installed = True
+        """
+        current_dict = self.model_dump()
+        current_dict["enabled"] = True
+        return CLIPlugin.model_validate(current_dict)
 
-    def uninstall(self) -> None:
-        """Uninstall the plugin and disable it."""
-        self.installed = False
-        self.enabled = False
+    def disable(self) -> CLIPlugin:
+        """Disable the plugin.
+
+        Returns:
+            New plugin instance with disabled status.
+
+        """
+        current_dict = self.model_dump()
+        current_dict["enabled"] = False
+        return CLIPlugin.model_validate(current_dict)
+
+    def install(self) -> CLIPlugin:
+        """Install the plugin.
+
+        Returns:
+            New plugin instance with installed status.
+
+        """
+        current_dict = self.model_dump()
+        current_dict["installed"] = True
+        return CLIPlugin.model_validate(current_dict)
+
+    def uninstall(self) -> CLIPlugin:
+        """Uninstall the plugin and disable it.
+
+        Returns:
+            New plugin instance with uninstalled and disabled status.
+
+        """
+        updates = {"installed": False, "enabled": False}
+        current_dict = self.model_dump()
+        current_dict.update(updates)
+        return CLIPlugin.model_validate(current_dict)
+
+    def validate_domain_rules(self) -> FlextResult[None]:
+        """Validate domain business rules for CLI plugins.
+
+        Returns:
+            FlextResult indicating success or failure with validation errors.
+
+        """
+        # Plugin name cannot be empty
+        if not self.name or not self.name.strip():
+            return FlextResult.fail("Plugin name cannot be empty")
+
+        # Entry point cannot be empty
+        if not self.entry_point or not self.entry_point.strip():
+            return FlextResult.fail("Plugin entry point cannot be empty")
+
+        # Plugin version must be valid format (basic check)
+        if not self.plugin_version or not self.plugin_version.strip():
+            return FlextResult.fail("Plugin version cannot be empty")
+
+        return FlextResult.ok(None)
 
 
-# Domain Events - Using typed IDs for consistency
-class CommandStartedEvent(DomainEvent):
+# Domain Events for CLI operations using flext-core patterns
+
+
+class CommandStartedEvent(FlextValueObject):
     """Event raised when command starts execution."""
 
-    command_id: EntityId = Field(..., description="Command ID")
+    command_id: TEntityId = Field(..., description="Command ID")
     command_name: str | None = Field(None, description="Command name")
     session_id: str | None = Field(None, description="Session ID")
 
 
-class CommandCompletedEvent(DomainEvent):
+class CommandCompletedEvent(FlextValueObject):
     """Event raised when command completes."""
 
-    command_id: EntityId = Field(..., description="Command ID")
+    command_id: TEntityId = Field(..., description="Command ID")
     command_name: str | None = Field(None, description="Command name")
     success: bool = Field(..., description="Success status")
 
 
-class CommandCancelledEvent(DomainEvent):
+class CommandCancelledEvent(FlextValueObject):
     """Event raised when command is cancelled."""
 
-    command_id: EntityId = Field(..., description="Command ID")
+    command_id: TEntityId = Field(..., description="Command ID")
     command_name: str | None = Field(None, description="Command name")
 
 
-class ConfigUpdatedEvent(DomainEvent):
+class ConfigUpdatedEvent(FlextValueObject):
     """Event raised when configuration is updated."""
 
-    config_id: EntityId = Field(..., description="Configuration ID")
+    config_id: TEntityId = Field(..., description="Configuration ID")
     config_name: str | None = Field(None, description="Configuration name")
 
 
-class SessionStartedEvent(DomainEvent):
+class SessionStartedEvent(FlextValueObject):
     """Event raised when CLI session starts."""
 
-    session_id: EntityId = Field(..., description="Session ID")
-    user_id: UserId | None = Field(None, description="User ID")
+    session_id: TEntityId = Field(..., description="Session ID")
+    user_id: TUserId | None = Field(None, description="User ID")
     working_directory: str | None = Field(None, description="Working directory")
 
 
-class SessionEndedEvent(DomainEvent):
+class SessionEndedEvent(FlextValueObject):
     """Event raised when CLI session ends."""
 
-    session_id: EntityId = Field(..., description="Session ID")
-    user_id: UserId | None = Field(None, description="User ID")
+    session_id: TEntityId = Field(..., description="Session ID")
+    user_id: TUserId | None = Field(None, description="User ID")
     commands_executed: int = Field(..., description="Number of commands executed")
     duration_seconds: float | None = Field(None, description="Session duration")
 
 
-class PluginInstalledEvent(DomainEvent):
+class PluginInstalledEvent(FlextValueObject):
     """Event raised when plugin is installed."""
 
-    plugin_id: EntityId = Field(..., description="Plugin ID")
+    plugin_id: TEntityId = Field(..., description="Plugin ID")
     plugin_name: str | None = Field(None, description="Plugin name")
 
 
-class PluginUninstalledEvent(DomainEvent):
+class PluginUninstalledEvent(FlextValueObject):
     """Event raised when plugin is uninstalled."""
 
-    plugin_id: EntityId = Field(..., description="Plugin ID")
+    plugin_id: TEntityId = Field(..., description="Plugin ID")
     plugin_name: str | None = Field(None, description="Plugin name")
+
+
+# Model rebuilding to resolve forward references
+with contextlib.suppress(Exception):
+    # Non-critical model rebuilding - skip if types not available
+    # Ensure all types are available
+    globals()["TUserId"] = TUserId
+    globals()["TEntityId"] = TEntityId
+
+    CLICommand.model_rebuild()
+    CLISession.model_rebuild()
+    CLIPlugin.model_rebuild()
+
+    # Rebuild event classes too
+    CommandStartedEvent.model_rebuild()
+    CommandCompletedEvent.model_rebuild()
+    CommandCancelledEvent.model_rebuild()
+    ConfigUpdatedEvent.model_rebuild()
+    SessionStartedEvent.model_rebuild()
+    SessionEndedEvent.model_rebuild()
+    PluginInstalledEvent.model_rebuild()
+    PluginUninstalledEvent.model_rebuild()

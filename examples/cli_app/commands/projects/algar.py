@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import importlib.metadata
+import json
 import logging
 import os
 import sys
@@ -19,7 +20,7 @@ import traceback
 from pathlib import Path
 
 import click
-from flext_observability.logging import get_logger
+from flext_core.loggings import get_logger
 
 # Import ALGAR modules - preserving original imports
 try:
@@ -190,7 +191,7 @@ def migrate(
             click.echo(f"❌ Migration failed: {result.error}", err=True)
             ctx.exit(1)
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.exception("Migration failed with unexpected error")
         click.echo(f"❌ Migration error: {e}", err=True)
         if ctx.obj.get("debug"):
@@ -232,7 +233,7 @@ def diagnose(ctx: click.Context, health_check: bool) -> None:
         try:
             algar_version = importlib.metadata.version("algar-oud-mig")
             click.echo(f"✅ ALGAR OUD Migration version: {algar_version}")
-        except Exception:
+        except (RuntimeError, ValueError, TypeError):
             click.echo("❌ ALGAR OUD Migration package not installed")
 
         # Check dependencies
@@ -279,7 +280,7 @@ def diagnose(ctx: click.Context, health_check: bool) -> None:
             click.echo("✅ All required environment variables are set")
             click.echo("Environment appears to be configured correctly")
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.exception("Diagnostic failed")
         click.echo(f"❌ Diagnostic error: {e}", err=True)
         if debug:
@@ -330,7 +331,7 @@ def sync_acls(ctx: click.Context, force: bool) -> None:
                 click.echo(f"❌ ACL sync failed: {result.error}", err=True)
                 ctx.exit(1)
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.exception("ACL sync failed")
         click.echo(f"❌ ACL sync error: {e}", err=True)
         if debug:
@@ -350,7 +351,6 @@ def validate_rules(ctx: click.Context, rules_file: str) -> None:
             click.echo(f"Validating rules file: {rules_file}")
 
         # Validate rules file
-        import json
 
         try:
             with open(rules_file, encoding="utf-8") as f:
@@ -377,7 +377,7 @@ def validate_rules(ctx: click.Context, rules_file: str) -> None:
             click.echo(f"❌ Invalid JSON in rules file: {e}", err=True)
             ctx.exit(1)
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.exception("Rules validation failed")
         click.echo(f"❌ Rules validation error: {e}", err=True)
         if debug:
@@ -396,7 +396,7 @@ def version(ctx: click.Context) -> None:
         try:
             algar_version = importlib.metadata.version("algar-oud-mig")
             click.echo(f"ALGAR OUD Migration: {algar_version}")
-        except Exception:
+        except (RuntimeError, ValueError, TypeError):
             click.echo("ALGAR OUD Migration: Not installed")
 
         # Dependencies
@@ -410,13 +410,13 @@ def version(ctx: click.Context) -> None:
             try:
                 version = importlib.metadata.version(dep_name)
                 click.echo(f"{dep_name}: {version}")
-            except Exception:
+            except (RuntimeError, ValueError, TypeError):
                 click.echo(f"{dep_name}: Not available")
 
         # Python version
         click.echo(f"Python: {sys.version}")
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.exception("Version command failed")
         click.echo(f"❌ Version error: {e}", err=True)
         ctx.exit(1)

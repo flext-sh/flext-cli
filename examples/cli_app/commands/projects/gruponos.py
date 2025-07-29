@@ -9,6 +9,7 @@ Preserves ALL original functionality from gruponos-meltano-native/cli.py.
 
 from __future__ import annotations
 
+import importlib.metadata
 import json
 import sys
 from typing import Any
@@ -105,7 +106,7 @@ def gruponos(
         ctx.obj["config"] = config
         logger.info("Configuration loaded successfully")
 
-    except Exception:
+    except (RuntimeError, ValueError, TypeError):
         logger.exception("Failed to load configuration")
         if debug:
             raise
@@ -161,7 +162,7 @@ def status(ctx: click.Context, output_format: str) -> None:
             click.echo(f"Unknown format: {output_format}", err=True)
             ctx.exit(1)
 
-    except Exception:
+    except (RuntimeError, ValueError, TypeError):
         logger.exception("Failed to get status")
         if ctx.obj.get("debug"):
             raise
@@ -225,7 +226,7 @@ async def run(
                 click.echo(f"Details: {result.details}", err=True)
             ctx.exit(1)
 
-    except Exception:
+    except (RuntimeError, ValueError, TypeError):
         logger.exception("Failed to run pipeline")
         if debug:
             raise
@@ -273,7 +274,7 @@ def pipelines(ctx: click.Context, output_format: str) -> None:
             click.echo(f"Unknown format: {output_format}", err=True)
             ctx.exit(1)
 
-    except Exception:
+    except (RuntimeError, ValueError, TypeError):
         logger.exception("Failed to list pipelines")
         if ctx.obj.get("debug"):
             raise
@@ -331,7 +332,7 @@ def logs(ctx: click.Context, pipeline_name: str, output_format: str) -> None:
             click.echo(f"Unknown format: {output_format}", err=True)
             ctx.exit(1)
 
-    except Exception:
+    except (RuntimeError, ValueError, TypeError):
         logger.exception(f"Failed to get logs for pipeline {pipeline_name}")
         if ctx.obj.get("debug"):
             raise
@@ -385,7 +386,7 @@ def health(ctx: click.Context) -> None:
         if overall_status != "healthy":
             ctx.exit(1)
 
-    except Exception:
+    except (RuntimeError, ValueError, TypeError):
         logger.exception("Health check failed")
         click.echo("❌ Health check failed", err=True)
         if debug:
@@ -425,7 +426,7 @@ def config_show(ctx: click.Context) -> None:
 
         click.echo(yaml.dump(masked_config, default_flow_style=False))
 
-    except Exception:
+    except (RuntimeError, ValueError, TypeError):
         logger.exception("Failed to show configuration")
         if ctx.obj.get("debug"):
             raise
@@ -441,12 +442,11 @@ def version(ctx: click.Context) -> None:
         click.echo("=" * 23)
 
         # Show versions
-        import importlib.metadata
 
         try:
             version = importlib.metadata.version("gruponos-meltano-native")
             click.echo(f"GrupoNOS Meltano Native: {version}")
-        except Exception:
+        except (RuntimeError, ValueError, TypeError):
             click.echo("GrupoNOS Meltano Native: Not installed")
 
         # Dependencies
@@ -462,13 +462,13 @@ def version(ctx: click.Context) -> None:
             try:
                 dep_version = importlib.metadata.version(dep)
                 click.echo(f"{dep}: {dep_version}")
-            except Exception:
+            except (RuntimeError, ValueError, TypeError):
                 click.echo(f"{dep}: Not available")
 
         # Python version
         click.echo(f"Python: {sys.version}")
 
-    except Exception:
+    except (RuntimeError, ValueError, TypeError):
         logger.exception("Failed to get version information")
         if ctx.obj.get("debug"):
             raise

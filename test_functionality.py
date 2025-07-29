@@ -8,6 +8,20 @@ from __future__ import annotations
 
 import pathlib
 import sys
+import tempfile
+import traceback
+
+from flext_cli import (
+    flext_cli_aggregate_data,
+    flext_cli_batch_export,
+    flext_cli_export,
+    flext_cli_format,
+    flext_cli_table,
+    flext_cli_transform_data,
+    flext_cli_unwrap_or_default,
+    flext_cli_unwrap_or_none,
+)
+from flext_core.result import FlextResult
 
 # Test data
 sample_data = [
@@ -19,28 +33,24 @@ sample_data = [
 
 def test_basic_helpers():
     """Test basic helper functions."""
-    from flext_cli import flext_cli_format, flext_cli_table
-
     # Test formatting
     format_result = flext_cli_format(sample_data)
 
     # Test table creation
     table_result = flext_cli_table(sample_data, "Test Table")
 
-    return format_result.success and table_result.success
+    return format_result.is_success and table_result.is_success
 
 
 def test_new_helpers():
     """Test new boilerplate reduction helpers."""
-    from flext_cli import flext_cli_aggregate_data, flext_cli_transform_data
-
     # Test data transformation
     transform_result = flext_cli_transform_data(
         sample_data,
         filter_func=lambda x: x["salary"] > 100000,
         sort_key="salary",
     )
-    if transform_result.success:
+    if transform_result.is_success:
         pass
 
     # Test data aggregation
@@ -49,18 +59,14 @@ def test_new_helpers():
         group_by="role",
         sum_fields=["salary"],
     )
-    if aggregate_result.success:
+    if aggregate_result.is_success:
         pass
 
-    return transform_result.success and aggregate_result.success
+    return transform_result.is_success and aggregate_result.is_success
 
 
 def test_exports():
     """Test export functionality."""
-    import tempfile
-
-    from flext_cli import flext_cli_batch_export, flext_cli_export
-
     # Test single export
     with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".json", delete=False) as tmp:
         export_result = flext_cli_export(sample_data, tmp.name, "json")
@@ -73,20 +79,17 @@ def test_exports():
     with tempfile.TemporaryDirectory() as tmpdir:
         datasets = {"employees": sample_data, "summary": [{"total": len(sample_data)}]}
         batch_result = flext_cli_batch_export(datasets, tmpdir, "json")
-        if batch_result.success:
+        if batch_result.is_success:
             pass
 
-    return export_result.success and batch_result.success
+    return export_result.is_success and batch_result.is_success
 
 
 def test_core_helpers():
     """Test core helper utilities."""
-    from flext_cli import flext_cli_unwrap_or_default, flext_cli_unwrap_or_none
-    from flext_core import flext_fail, flext_ok
-
     # Test unwrap helpers
-    success_result = flext_ok("test_data")
-    fail_result = flext_fail("test_error")
+    success_result = FlextResult.ok("test_data")
+    fail_result = FlextResult.fail("test_error")
 
     # Unwrap or default
     unwrapped_success = flext_cli_unwrap_or_default(success_result, "default")
@@ -116,8 +119,7 @@ def main() -> int | None:
             return 0
         return 1
 
-    except Exception:
-        import traceback
+    except (RuntimeError, ValueError, TypeError):
 
         traceback.print_exc()
         return 1

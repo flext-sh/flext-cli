@@ -1,23 +1,20 @@
-"""Configuration utilities for FLEXT CLI - using flext-core exclusively.
+"""Configuration utilities for FLEXT CLI.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
-from flext_core import ServiceResult
-from flext_core.config.base import BaseConfig, BaseSettings
-from flext_core.domain.pydantic_base import Field
+from flext_core import FlextBaseSettings
+from pydantic import Field
 from pydantic_settings import SettingsConfigDict
 
 
-class CLIConfig(BaseConfig):
-    """CLI configuration using flext-core declarative patterns."""
+class CLIConfig(FlextBaseSettings):
+    """CLI configuration using flext-core patterns."""
 
     # CLI-specific settings
     api_url: str = Field(
@@ -51,99 +48,70 @@ class CLIConfig(BaseConfig):
         description="Log directory",
     )
 
-    # Auth settings
+    # Authentication settings
     token_file: Path = Field(
-        default_factory=lambda: Path.home() / ".flext" / "token",
-        description="Auth token file",
+        default_factory=lambda: Path.home() / ".flext" / "auth_token",
+        description="Authentication token file path",
     )
     refresh_token_file: Path = Field(
         default_factory=lambda: Path.home() / ".flext" / "refresh_token",
-        description="Refresh token file",
+        description="Refresh token file path",
     )
     auto_refresh: bool = Field(
         default=True,
-        description="Auto-refresh tokens",
+        description="Automatically refresh authentication tokens",
     )
 
-    # Output settings
-    no_color: bool = Field(
-        default=False,
-        description="Disable colored output",
-    )
-    quiet: bool = Field(
-        default=False,
-        description="Suppress non-error output",
-    )
-    verbose: bool = Field(
-        default=False,
-        description="Enable verbose output",
-    )
-
-    # Project metadata (needed by BaseCLI)
-    project_name: str = Field(default="flext-cli", description="Project name")
-    project_version: str = Field(default="0.7.0", description="Project version")
-    debug: bool = Field(default=False, description="Enable debug mode")
-
-
-class CLISettings(BaseSettings):
-    """CLI settings using flext-core BaseSettings."""
+    # CLI behavior
+    debug: bool = Field(default=False, description="Debug mode enabled")
+    quiet: bool = Field(default=False, description="Quiet mode enabled")
+    verbose: bool = Field(default=False, description="Verbose mode enabled")
+    no_color: bool = Field(default=False, description="No color output")
 
     model_config = SettingsConfigDict(
         env_prefix="FLEXT_CLI_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",  # Ignore extra environment variables
+    )
+
+
+class CLISettings(FlextBaseSettings):
+    """CLI settings from environment variables using flext-core patterns."""
+
+    project_name: str = "flext-cli"
+    project_version: str = "0.8.0"
+    project_description: str = "FLEXT CLI - Developer Command Line Interface"
+
+    # Override defaults from environment
+    debug: bool = False
+    log_level: str = "INFO"
+    config_path: str | None = None
+
+    model_config = SettingsConfigDict(
+        env_prefix="FLEXT_CLI_",
+        env_file=".env",
+        env_file_encoding="utf-8",
         case_sensitive=False,
     )
 
-    # Inherit from BaseSettings: project_name, project_version, environment, debug
-    project_name: str = Field(default="flext-cli", description="Project name")
-    project_version: str = Field(default="0.7.0", description="Project version")
-
-
-# Global configuration instance
-_config: CLIConfig | None = None
-
 
 def get_config() -> CLIConfig:
-    """Get the global CLI configuration."""
-    global _config
-    if _config is None:
-        _config = CLIConfig()
-        # Model rebuild is handled by pydantic automatically
-    return _config
+    """Get CLI configuration instance.
+
+    Returns:
+        CLI configuration
+
+    """
+    return CLIConfig()
 
 
-def get_config_value(key: str, default: Any = None) -> Any:
-    """Get a specific configuration value."""
-    config = get_config()
-    return getattr(config, key, default)
+def get_settings() -> CLISettings:
+    """Get CLI settings from environment.
 
+    Returns:
+        CLI settings
 
-def set_config_value(key: str, value: Any) -> ServiceResult[None]:
-    """Set a specific configuration value."""
-    try:
-        config = get_config()
-        setattr(config, key, value)
-        return ServiceResult.ok(None)
-    except Exception as e:
-        return ServiceResult.fail(f"Failed to set config value: {e}")
-
-
-def list_config_values() -> dict[str, Any]:
-    """List all configuration values."""
-    config = get_config()
-    return config.model_dump()
-
-
-# Convenience functions
-def get_config_dir() -> Path:
-    """Get the configuration directory."""
-    return get_config().config_dir
-
-
-def get_cache_dir() -> Path:
-    """Get the cache directory."""
-    return get_config().cache_dir
-
-
-def get_log_dir() -> Path:
-    """Get the log directory."""
-    return get_config().log_dir
+    """
+    return CLISettings()

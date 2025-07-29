@@ -4,14 +4,18 @@ Implements FlextService interfaces with composition-based architecture.
 All functionality centralized without duplication.
 """
 
+import csv
+import io
 import json
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+import yaml
 from flext_core.interfaces import FlextConfigurable
 from flext_core.loggings import get_logger
 from flext_core.result import FlextResult
-from flext_core.utilities import safe_call
+from flext_core.utilities import FlextUtilities, safe_call
 
 from flext_cli.types import (
     FlextCliCommand,
@@ -38,7 +42,7 @@ class FlextCliService(FlextService, FlextConfigurable):
         self._config: FlextCliConfig | None = None
 
         # Restored from backup - full functionality
-        self._handlers: dict[str, Any] = {}
+        self._handlers: dict[str, Callable[..., object]] = {}
         self._plugins: dict[str, FlextCliPlugin] = {}
         self._sessions: dict[str, FlextCliSession] = {}
         self._commands: dict[str, FlextCliCommand] = {}
@@ -46,7 +50,10 @@ class FlextCliService(FlextService, FlextConfigurable):
 
         self.logger.info("FlextCliService initialized with full backup functionality")
 
-    def configure(self, config: Any) -> FlextResult[None]:
+    def configure(
+        self,
+        config: FlextCliConfig | dict[str, object],
+    ) -> FlextResult[None]:
         """Configure service with FlextCliConfig."""
         try:
             if isinstance(config, dict):
@@ -60,7 +67,7 @@ class FlextCliService(FlextService, FlextConfigurable):
                 f"CLI service configured with format: {self._config.format_type}",
             )
             return FlextResult.ok(None)
-        except Exception as e:
+        except (ValueError, TypeError, KeyError) as e:
             return FlextResult.fail(f"Configuration failed: {e}")
 
     def flext_cli_export(
@@ -85,10 +92,10 @@ class FlextCliService(FlextService, FlextConfigurable):
             path_obj.write_text(formatted_data, encoding="utf-8")
 
             self.logger.info(f"Data exported to {path} in {format_type} format")
-            return FlextResult.ok(True)
+            return FlextResult.ok(value=True)
 
-        except Exception as e:
-            self.logger.exception(f"Export failed: {e}")
+        except (RuntimeError, ValueError, TypeError) as e:
+            self.logger.exception("Export failed")
             return FlextResult.fail(f"Export failed: {e}")
 
     def flext_cli_format(
@@ -114,8 +121,6 @@ class FlextCliService(FlextService, FlextConfigurable):
     def flext_cli_health(self) -> FlextResult[dict]:
         """Get service health status."""
         try:
-            from flext_core.utilities import FlextUtilities
-
             status = {
                 "service": "FlextCliService",
                 "status": "healthy",
@@ -147,7 +152,7 @@ class FlextCliService(FlextService, FlextConfigurable):
 
             return FlextResult.ok(status)
 
-        except Exception as e:
+        except (ImportError, AttributeError, RuntimeError) as e:
             return FlextResult.fail(f"Health check failed: {e}")
 
     def _format_json(self, data: TCliData) -> FlextResult[str]:
@@ -157,10 +162,8 @@ class FlextCliService(FlextService, FlextConfigurable):
     def _format_yaml(self, data: TCliData) -> FlextResult[str]:
         """Format data as YAML."""
 
-        def format_yaml_data():
+        def format_yaml_data() -> str:
             try:
-                import yaml
-
                 return yaml.dump(data, default_flow_style=False, indent=2)
             except ImportError:
                 return json.dumps(data, indent=2, default=str)
@@ -170,10 +173,7 @@ class FlextCliService(FlextService, FlextConfigurable):
     def _format_csv(self, data: TCliData) -> FlextResult[str]:
         """Format data as CSV."""
 
-        def format_csv_data():
-            import csv
-            import io
-
+        def format_csv_data() -> str:
             if not isinstance(data, (list, tuple)):
                 data_list = [data] if isinstance(data, dict) else [{"value": str(data)}]
             else:
@@ -204,7 +204,7 @@ class FlextCliService(FlextService, FlextConfigurable):
     def _format_table(self, data: TCliData) -> FlextResult[str]:
         """Format data as ASCII table."""
 
-        def format_table_data():
+        def format_table_data() -> str:
             if isinstance(data, dict):
                 # Key-value table
                 max_key_len = max(len(str(k)) for k in data) if data else 0
@@ -265,34 +265,39 @@ class FlextCliService(FlextService, FlextConfigurable):
         self,
         name: str,
         command_line: str,
-        **options: Any,
+        **options: object,
     ) -> FlextResult[str]:
         """Create command using flext-core safe operations - restored from backup."""
-        return safe_call(
-            lambda: (
-                setattr(
-                    self,
-                    "_temp_cmd",
-                    FlextCliCommand(name, command_line, **options),
-                )
-                or self._commands.update({name: self._temp_cmd})
-                or f"Command '{name}' created with ID {self._temp_cmd.entity_id}"
-            ),
-        )
+
+        def create_command() -> str:
+            entity_id = FlextUtilities.generate_entity_id()
+            command = FlextCliCommand(
+                id=entity_id,
+                name=name,
+                command_line=command_line,
+                **options,
+            )
+            self._commands[name] = command
+            return f"Command '{name}' created with ID {command.id}"
+
+        return safe_call(create_command)
 
     def flext_cli_create_session(self, user_id: str | None = None) -> FlextResult[str]:
         """Create session using auto-generated ID - restored from backup."""
-        return safe_call(
-            lambda: (
-                setattr(self, "_temp_session", FlextCliSession(user_id))
-                or self._sessions.update(
-                    {self._temp_session.entity_id: self._temp_session},
-                )
-                or f"Session '{self._temp_session.entity_id}' created"
-            ),
-        )
 
-    def flext_cli_register_handler(self, name: str, handler: Any) -> FlextResult[None]:
+        def create_session() -> str:
+            entity_id = FlextUtilities.generate_entity_id()
+            session = FlextCliSession(id=entity_id, user_id=user_id)
+            self._sessions[session.id] = session
+            return f"Session '{session.id}' created"
+
+        return safe_call(create_session)
+
+    def flext_cli_register_handler(
+        self,
+        name: str,
+        handler: Callable[..., object],
+    ) -> FlextResult[None]:
         """Register handler using flext-core validation - restored from backup."""
         if name in self._handlers:
             return FlextResult.fail(f"Handler '{name}' already registered")
@@ -313,9 +318,9 @@ class FlextCliService(FlextService, FlextConfigurable):
     def flext_cli_execute_handler(
         self,
         name: str,
-        *args: Any,
-        **kwargs: Any,
-    ) -> FlextResult[Any]:
+        *args: object,
+        **kwargs: object,
+    ) -> FlextResult[object]:
         """Execute handler using flext-core safe_call - restored from backup."""
         if name not in self._handlers:
             return FlextResult.fail(f"Handler '{name}' not found")
@@ -323,8 +328,8 @@ class FlextCliService(FlextService, FlextConfigurable):
 
     def flext_cli_render_with_context(
         self,
-        data: Any,
-        context_options: dict[str, Any] | None = None,
+        data: object,
+        context_options: dict[str, object] | None = None,
     ) -> FlextResult[str]:
         """Render using immutable context - restored from backup."""
         context = FlextCliContext(self._config, **(context_options or {}))

@@ -9,6 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import Any
+
 from flext_cli import (
     FlextCliBuilder,
     flext_cli_create_builder,
@@ -316,7 +318,7 @@ def main() -> None:
 
         example_5_input_collection()
 
-    except Exception:
+    except (RuntimeError, ValueError, TypeError):
         pass
 
 

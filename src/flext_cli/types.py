@@ -4,14 +4,17 @@ Based on the original backup - all types and interfaces restored.
 Following strict naming conventions: FlextCli*, TCli*, flext_cli_*
 """
 
+from __future__ import annotations
+
 from collections.abc import Callable
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Any
 
 from flext_core.entities import FlextEntity
+from flext_core.result import FlextResult
 from flext_core.types import TValue
+from flext_core.utilities import FlextUtilities
 from flext_core.value_objects import FlextValueObject
 from pydantic import Field
 
@@ -19,8 +22,9 @@ from pydantic import Field
 type TCliData = TValue
 type TCliPath = str | Path
 type TCliFormat = str
-type TCliHandler = Callable[..., Any]
-type TCliConfig = dict[str, Any]
+# Type alias for CLI handlers without ellipsis (avoids Any)
+TCliHandler = Callable[[object], object]
+type TCliConfig = dict[str, object]
 type TCliArgs = list[str]
 
 
@@ -62,19 +66,20 @@ class FlextCliCommand(FlextEntity):
     # Pydantic fields
     name: str
     command_line: str
-    options: dict[str, Any] = Field(default_factory=dict)
+    options: dict[str, object] = Field(default_factory=dict)
     command_status: FlextCliCommandStatus = FlextCliCommandStatus.PENDING
     command_type: FlextCliCommandType = FlextCliCommandType.SYSTEM
-    updated_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     exit_code: int | None = None
     output: str = ""
+    timeout: int | None = None
 
     def flext_cli_start_execution(self) -> bool:
         """Start command execution."""
         if self.command_status != FlextCliCommandStatus.PENDING:
             return False
-        self.command_status = FlextCliCommandStatus.RUNNING
-        self.updated_at = datetime.now()
+        object.__setattr__(self, "command_status", FlextCliCommandStatus.RUNNING)
+        object.__setattr__(self, "updated_at", datetime.now(UTC))
         return True
 
     def flext_cli_complete_execution(
@@ -85,14 +90,15 @@ class FlextCliCommand(FlextEntity):
         """Complete command execution."""
         if self.command_status != FlextCliCommandStatus.RUNNING:
             return False
-        self.command_status = (
+        status = (
             FlextCliCommandStatus.COMPLETED
             if exit_code == 0
             else FlextCliCommandStatus.FAILED
         )
-        self.exit_code = exit_code
-        self.output = stdout
-        self.updated_at = datetime.now()
+        object.__setattr__(self, "command_status", status)
+        object.__setattr__(self, "exit_code", exit_code)
+        object.__setattr__(self, "output", stdout)
+        object.__setattr__(self, "updated_at", datetime.now(UTC))
         return True
 
     @property
@@ -105,9 +111,11 @@ class FlextCliCommand(FlextEntity):
         """Check if command completed successfully."""
         return self.command_status == FlextCliCommandStatus.COMPLETED
 
-    def validate_domain_rules(self) -> bool:
+    def validate_domain_rules(self) -> FlextResult[None]:
         """Validate domain rules for CLI command."""
-        return bool(self.name and self.command_line)
+        if self.name and self.command_line:
+            return FlextResult.ok(None)
+        return FlextResult.fail("Command must have name and command_line")
 
 
 class FlextCliConfig(FlextValueObject):
@@ -146,7 +154,7 @@ class FlextCliConfig(FlextValueObject):
             config_data.get("command_timeout", 300),
         )
 
-    def configure(self, config: Any) -> bool:
+    def configure(self, config: object) -> bool:
         """Configure with new settings."""
         try:
             if isinstance(config, dict):
@@ -158,47 +166,60 @@ class FlextCliConfig(FlextValueObject):
                     object.__setattr__(self, key, value)
                 return True
             return False
-        except Exception:
+        except (AttributeError, ValueError, TypeError):
             return False
 
-    def validate_domain_rules(self) -> bool:
+    def validate_domain_rules(self) -> FlextResult[None]:
         """Validate domain rules for CLI configuration."""
-        return True  # Configuration is always valid
+        return FlextResult.ok(None)  # Configuration is always valid
 
 
 class FlextCliContext(FlextValueObject):
     """CLI execution context value object - restored from backup."""
 
-    def __init__(self, config: FlextCliConfig | None = None, **overrides: Any) -> None:
-        super().__init__()
-        self.config = config or FlextCliConfig()
+    config: FlextCliConfig = Field(default_factory=FlextCliConfig)
+    session_id: str = Field(default="")
+    debug: bool = Field(default=False)
+    trace: bool = Field(default=False)
+    output_format: str = Field(default="json")
+    no_color: bool = Field(default=False)
+    profile: str = Field(default="default")
 
-        # Context properties from original backup
-        object.__setattr__(self, "session_id", self._generate_session_id())
-        object.__setattr__(self, "debug", overrides.get("debug", self.config.debug))
-        object.__setattr__(self, "trace", overrides.get("trace", self.config.trace))
-        object.__setattr__(
-            self,
-            "output_format",
-            overrides.get("output_format", self.config.format_type),
-        )
-        object.__setattr__(
-            self,
-            "no_color",
-            overrides.get("no_color", self.config.no_color),
-        )
-        object.__setattr__(
-            self,
-            "profile",
-            overrides.get("profile", self.config.profile),
-        )
+    def __init__(
+        self,
+        config: FlextCliConfig | None = None,
+        **overrides: object,
+    ) -> None:
+        actual_config = config or FlextCliConfig()
 
-    def _generate_session_id(self) -> str:
-        from flext_core.utilities import FlextUtilities
+        # Build the initialization dict
+        init_data = {
+            "config": actual_config,
+            "session_id": FlextCliContext._generate_session_id(),
+            "debug": overrides.get("debug", getattr(actual_config, "debug", False)),
+            "trace": overrides.get("trace", getattr(actual_config, "trace", False)),
+            "output_format": overrides.get(
+                "output_format",
+                getattr(actual_config, "format_type", "json"),
+            ),
+            "no_color": overrides.get(
+                "no_color",
+                getattr(actual_config, "no_color", False),
+            ),
+            "profile": overrides.get(
+                "profile",
+                getattr(actual_config, "profile", "default"),
+            ),
+        }
 
+        # Use Pydantic's model initialization
+        super().__init__(**init_data)
+
+    @staticmethod
+    def _generate_session_id() -> str:
         return FlextUtilities.generate_entity_id()
 
-    def flext_cli_with_debug(self, debug: bool = True) -> "FlextCliContext":
+    def flext_cli_with_debug(self, *, debug: bool = True) -> FlextCliContext:
         """Create context with debug enabled."""
         return FlextCliContext(
             self.config,
@@ -212,7 +233,7 @@ class FlextCliContext(FlextValueObject):
     def flext_cli_with_output_format(
         self,
         format_type: FlextCliOutputFormat,
-    ) -> "FlextCliContext":
+    ) -> FlextCliContext:
         """Create context with specific output format."""
         return FlextCliContext(
             self.config,
@@ -223,7 +244,7 @@ class FlextCliContext(FlextValueObject):
             profile=self.profile,
         )
 
-    def flext_cli_for_production(self) -> "FlextCliContext":
+    def flext_cli_for_production(self) -> FlextCliContext:
         """Create production-ready context."""
         return FlextCliContext(
             self.config,
@@ -234,27 +255,41 @@ class FlextCliContext(FlextValueObject):
             profile="production",
         )
 
-    def validate_domain_rules(self) -> bool:
+    def validate_domain_rules(self) -> FlextResult[None]:
         """Validate domain rules for CLI context."""
-        return bool(self.session_id)
+        if self.session_id:
+            return FlextResult.ok(None)
+        return FlextResult.fail("Context must have session_id")
 
 
 class FlextCliPlugin(FlextValueObject):
     """CLI plugin definition - restored from backup."""
 
-    def __init__(self, name: str, version: str, **options: Any) -> None:
-        super().__init__()
-        object.__setattr__(self, "name", name)
-        object.__setattr__(self, "version", version)
-        object.__setattr__(self, "description", options.get("description"))
-        object.__setattr__(self, "enabled", options.get("enabled", True))
-        object.__setattr__(self, "dependencies", options.get("dependencies", []))
-        object.__setattr__(self, "commands", options.get("commands", []))
-        object.__setattr__(self, "created_at", datetime.now())
+    name: str
+    version: str
+    description: str | None = Field(default=None)
+    enabled: bool = Field(default=True)
+    dependencies: list[str] = Field(default_factory=list)
+    commands: list[str] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
-    def validate_domain_rules(self) -> bool:
+    def __init__(self, name: str, version: str, **options: object) -> None:
+        init_data = {
+            "name": name,
+            "version": version,
+            "description": options.get("description"),
+            "enabled": options.get("enabled", True),
+            "dependencies": options.get("dependencies", []),
+            "commands": options.get("commands", []),
+            "created_at": datetime.now(UTC),
+        }
+        super().__init__(**init_data)
+
+    def validate_domain_rules(self) -> FlextResult[None]:
         """Validate domain rules for CLI plugin."""
-        return bool(self.name and self.version)
+        if self.name and self.version:
+            return FlextResult.ok(None)
+        return FlextResult.fail("Plugin must have name and version")
 
 
 class FlextCliSession(FlextEntity):
@@ -263,19 +298,24 @@ class FlextCliSession(FlextEntity):
     # Pydantic fields
     user_id: str | None = None
     commands_executed: list[str] = Field(default_factory=list)
-    started_at: datetime = Field(default_factory=datetime.now)
-    last_activity: datetime = Field(default_factory=datetime.now)
+    started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    last_activity: datetime = Field(default_factory=lambda: datetime.now(UTC))
     config: FlextCliConfig = Field(default_factory=FlextCliConfig)
 
     def flext_cli_record_command(self, command_name: str) -> bool:
         """Record executed command."""
         try:
-            self.commands_executed.append(command_name)
-            self.last_activity = datetime.now()
+            # Create a new list with the command added (immutable pattern)
+            new_commands = list(self.commands_executed)
+            new_commands.append(command_name)
+            object.__setattr__(self, "commands_executed", new_commands)
+            object.__setattr__(self, "last_activity", datetime.now(UTC))
             return True
-        except Exception:
+        except (AttributeError, ValueError, TypeError):
             return False
 
-    def validate_domain_rules(self) -> bool:
+    def validate_domain_rules(self) -> FlextResult[None]:
         """Validate domain rules for CLI session."""
-        return bool(self.entity_id)
+        if self.id:
+            return FlextResult.ok(None)
+        return FlextResult.fail("Session must have id")

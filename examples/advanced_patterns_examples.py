@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import traceback
 from typing import Any
 
 import flext_cli
@@ -121,7 +122,7 @@ def example_2_flext_result_chaining() -> None:
 
             return flext_cli.FlextResult.ok(cleaned)
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             return flext_cli.FlextResult.fail(f"Validation failed: {e}")
 
     def enrich_data(
@@ -138,7 +139,7 @@ def example_2_flext_result_chaining() -> None:
 
             return flext_cli.FlextResult.ok(enriched)
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             return flext_cli.FlextResult.fail(f"Enrichment failed: {e}")
 
     # Chain operations with error handling
@@ -424,8 +425,7 @@ def main() -> None:
         example_4_gui_integration()
         example_5_performance_patterns()
 
-    except Exception:
-        import traceback
+    except (RuntimeError, ValueError, TypeError):
 
         traceback.print_exc()
 

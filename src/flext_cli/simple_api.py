@@ -8,22 +8,21 @@ Provides a simple interface for setting up the FLEXT CLI application.
 
 from __future__ import annotations
 
-from typing import Any
+from flext_core.result import FlextResult
 
-# Use centralized ServiceResult from flext-core - ELIMINATE DUPLICATION
-from flext_core.domain.types import ServiceResult
-
-from flext_cli.utils.config import CLIConfig as CLISettings
+from flext_cli.utils.config import CLISettings
 
 
-def setup_cli(settings: CLISettings | None = None) -> ServiceResult[bool]:
-    """Sets up a CLI application.
+def setup_cli(settings: CLISettings | None = None) -> FlextResult[bool]:
+    """Set up a CLI application.
 
     Args:
         settings: CLI settings to use
 
     Returns:
-        ServiceResult indicating success or failure
+        FlextResult indicating success or failure
+
+        FlextResult indicating success or failure
 
     """
     try:
@@ -35,27 +34,23 @@ def setup_cli(settings: CLISettings | None = None) -> ServiceResult[bool]:
 
         # Configuration is handled directly in CLIConfig
 
-        return ServiceResult.ok(True)
+        success = True
+        return FlextResult.ok(success)
 
-    except Exception as e:
-        return ServiceResult.fail(f"Failed to setup CLI: {e}")
+    except (ImportError, AttributeError, ValueError) as e:
+        return FlextResult.fail(f"Failed to setup CLI: {e}")
+    except (RuntimeError, TypeError, OSError) as e:
+        error_msg = f"Unexpected CLI setup error: {e}"
+        return FlextResult.fail(error_msg)
 
 
-def create_development_cli_config(**overrides: Any) -> CLISettings:
+def create_development_cli_config(**overrides: object) -> CLISettings:
     """Create development CLI configuration."""
-    # Development defaults
+    # Development defaults - only use fields that exist in CLISettings
     defaults = {
         "debug": True,
-        "trace": True,
         "log_level": "DEBUG",
-        "api_url": "http://localhost:8000",
-        "api_timeout": 30,
-        "output_format": "table",
-        "no_color": False,
-        "profile": "development",
-        "connect_timeout": 10,
-        "read_timeout": 30,
-        "command_timeout": 300,
+        "config_path": None,
     }
 
     # Override with provided values
@@ -64,21 +59,13 @@ def create_development_cli_config(**overrides: Any) -> CLISettings:
     return CLISettings.model_validate(defaults)
 
 
-def create_production_cli_config(**overrides: Any) -> CLISettings:
+def create_production_cli_config(**overrides: object) -> CLISettings:
     """Create production CLI configuration."""
-    # Production defaults
+    # Production defaults - only use fields that exist in CLISettings
     defaults = {
         "debug": False,
-        "trace": False,
         "log_level": "INFO",
-        "api_url": "https://api.flext-platform.com",
-        "api_timeout": 30,
-        "output_format": "table",
-        "no_color": False,
-        "profile": "production",
-        "connect_timeout": 10,
-        "read_timeout": 60,
-        "command_timeout": 600,
+        "config_path": None,
     }
 
     # Override with provided values

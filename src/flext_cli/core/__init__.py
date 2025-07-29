@@ -10,12 +10,8 @@ from __future__ import annotations
 
 # Base classes
 from flext_cli.core.base import (
-    BaseCLI,
     CLIContext,
-    CLIResultRenderer,
-    RichCLIRenderer,
     handle_service_result,
-    with_context,
 )
 
 # Decorators
@@ -34,12 +30,9 @@ from flext_cli.core.helpers import CLIHelper
 
 __all__ = [
     # Base classes
-    "BaseCLI",
     "CLIContext",
     # Helpers
     "CLIHelper",
-    "CLIResultRenderer",
-    "RichCLIRenderer",
     # Decorators
     "async_command",
     "confirm_action",
@@ -48,7 +41,6 @@ __all__ = [
     "require_auth",
     "retry",
     "validate_config",
-    "with_context",
     "with_spinner",
 ]
 
