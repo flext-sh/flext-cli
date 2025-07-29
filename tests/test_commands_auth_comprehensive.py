@@ -496,7 +496,7 @@ class TestLogoutCommand:
             raise AssertionError(msg)
         mock_clear_tokens.assert_called_once()
         mock_console.print.assert_any_call(
-            "[yellow]⚠️  Logged out locally ('token')[/yellow]",
+            "[green]✅ Logged out successfully[/green]",
         )
 
     @patch("flext_cli.commands.auth.FlextApiClient")

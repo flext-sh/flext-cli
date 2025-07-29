@@ -22,14 +22,14 @@ class PipelineConfig:
 class FlextApiClient:
     """Stub class for FlextApiClient."""
 
-    def __init__(self) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialize stub client."""
 
 
 class Pipeline:
     """Stub class for Pipeline."""
 
-    def __init__(self) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: ARG002
         """Initialize stub pipeline."""
         self.name: str = "stub-pipeline"
         self.id: str = "stub-id"
@@ -42,7 +42,7 @@ class Pipeline:
 class PipelineList:
     """Stub class for PipelineList."""
 
-    def __init__(self) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:  # noqa: ARG002
         """Initialize stub pipeline list."""
         self.pipelines: list[Pipeline] = []
         self.total: int = 0

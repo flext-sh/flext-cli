@@ -143,7 +143,7 @@ class TestConfigCommands:
         )
 
         # May exit with 1 due to missing attribute, but should test the logic
-        if result.exit_code not in [0, 1]:
+        if result.exit_code not in {0, 1}:
             raise AssertionError(f"Expected {result.exit_code} in {[0, 1]}")
 
     def test_get_single_key_not_found(self) -> None:
@@ -155,7 +155,7 @@ class TestConfigCommands:
         )
 
         # Should exit with error for missing key
-        if result.exit_code not in [0, 1, 2]:
+        if result.exit_code not in {0, 1, 2}:
             raise AssertionError(f"Expected {result.exit_code} in {[0, 1, 2]}")
 
     def test_get_single_key_json_format(self) -> None:
@@ -195,7 +195,7 @@ class TestConfigCommands:
         )
 
         # Should complete without crashing
-        if result.exit_code not in [0, 1, 2]:
+        if result.exit_code not in {0, 1, 2}:
             raise AssertionError(f"Expected {result.exit_code} in {[0, 1, 2]}")
 
     def test_set_value_command(self) -> None:
@@ -207,7 +207,7 @@ class TestConfigCommands:
         )
 
         # Command should complete (may exit with error due to mocking)
-        if result.exit_code not in [0, 1, 2]:
+        if result.exit_code not in {0, 1, 2}:
             raise AssertionError(f"Expected {result.exit_code} in {[0, 1, 2]}")
 
     def test_validate_command_success(self) -> None:
@@ -270,7 +270,7 @@ class TestConfigCommands:
                     obj={"cli_context": self.mock_cli_context},
                 )
 
-                if result.exit_code not in [0, 1, 2]:
+                if result.exit_code not in {0, 1, 2}:
                     raise AssertionError(f"Expected {result.exit_code} in {[0, 1, 2]}")
 
     @patch("subprocess.run")
@@ -288,7 +288,7 @@ class TestConfigCommands:
                 )
 
                 # Should complete successfully
-                if result.exit_code not in [0, 1, 2]:
+                if result.exit_code not in {0, 1, 2}:
                     raise AssertionError(f"Expected {result.exit_code} in {[0, 1, 2]}")
 
     @patch("subprocess.run")
@@ -308,7 +308,7 @@ class TestConfigCommands:
                         obj={"cli_context": self.mock_cli_context},
                     )
 
-                    if result.exit_code not in [0, 1, 2]:
+                    if result.exit_code not in {0, 1, 2}:
                         raise AssertionError(
                             f"Expected {result.exit_code} in {[0, 1, 2]}"
                         )

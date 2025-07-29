@@ -268,7 +268,7 @@ class TestCLISession:
     @patch("flext_cli.domain.entities.datetime")
     def test_session_activity_tracking(self, mock_datetime: any) -> None:
         """Test session activity tracking."""
-        activity_time = datetime(2025, 1, 1, 12, 0, 0)
+        activity_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=UTC)
         mock_datetime.now.return_value = activity_time
 
         session = CLISession(id="test_session_001", session_id="test")
