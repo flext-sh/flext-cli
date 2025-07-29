@@ -6,9 +6,6 @@ SPDX-License-Identifier: MIT
 Tests all core service functionality for 100% coverage.
 """
 
-import flext_cli.core
-
-
 from __future__ import annotations
 
 import importlib.util
@@ -17,6 +14,8 @@ import tempfile
 from pathlib import Path
 from typing import Never
 from unittest.mock import patch
+
+import flext_cli.core
 
 # Import directly from the core.py file to avoid conflicts
 core_path = Path(__file__).parent.parent / "src" / "flext_cli" / "core.py"
@@ -96,7 +95,7 @@ class TestFlextCliService:
         assert isinstance(service._sessions, dict)
         assert isinstance(service._commands, dict)
         if service._formats != {"json", "yaml", "csv", "table", "plain"}:
-            raise AssertionError(f"Expected {{"json", "yaml", "csv", "table", "plain"}}, got {service._formats}")
+            raise AssertionError(f'Expected {{"json", "yaml", "csv", "table", "plain"}}, got {service._formats}')
 
     def test_configure_with_dict(self) -> None:
         """Test configuring service with dictionary."""
@@ -303,7 +302,8 @@ class TestFlextCliService:
             raise AssertionError(f"Expected {"FlextCliService"}, got {health_data["service"]}")
         assert health_data["status"] == "healthy"
         if health_data["configured"]:
-            raise AssertionError(f"Expected False, got {health_data["configured"]}")\ n
+            raise AssertionError(f"Expected False, got {health_data["configured"]}")
+
     def test_flext_cli_health_with_config(self) -> None:
         """Test health check with configuration."""
         service = FlextCliService()

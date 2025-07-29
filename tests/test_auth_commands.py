@@ -6,22 +6,16 @@ SPDX-License-Identifier: MIT
 Tests authentication command functionality for coverage.
 """
 
-import click
-from rich.console import Console
-from unittest.mock import AsyncMock, MagicMock
-import click
-from flext_cli.utils.auth import (
-from flext_cli.client import FlextApiClient
-from rich.console import Console
-
-
 from __future__ import annotations
 
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import click
 from click.testing import CliRunner
+from flext_cli.client import FlextApiClient
 from flext_cli.commands.auth import auth
+from rich.console import Console
 
 
 class TestAuthCommands:
@@ -34,18 +28,21 @@ class TestAuthCommands:
     def test_auth_group_structure(self) -> None:
         """Test auth command group structure."""
         if auth.name != "auth":
-            raise AssertionError(f"Expected {"auth"}, got {auth.name}")
+            raise AssertionError(f"Expected {'auth'}, got {auth.name}")
         if "login" not in auth.commands:
-            raise AssertionError(f"Expected {"login"} in {auth.commands}")
+            raise AssertionError(f"Expected {'login'} in {auth.commands}")
         assert "logout" in auth.commands
         if "status" not in auth.commands:
-            raise AssertionError(f"Expected {"status"} in {auth.commands}")
+            raise AssertionError(f"Expected {'status'} in {auth.commands}")
 
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("flext_cli.commands.auth.save_auth_token")
     @patch("asyncio.run")
     def test_login_success(
-        self, mock_asyncio_run, mock_save_token, mock_client_class
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_save_token: MagicMock,
+        mock_client_class: MagicMock,
     ) -> None:
         """Test successful login."""
         # Mock client
@@ -75,7 +72,10 @@ class TestAuthCommands:
     @patch("flext_cli.commands.auth.save_auth_token")
     @patch("asyncio.run")
     def test_login_invalid_response(
-        self, mock_asyncio_run, mock_save_token, mock_client_class
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_save_token: MagicMock,
+        mock_client_class: MagicMock,
     ) -> None:
         """Test login with invalid response."""
         # Mock client with invalid response
@@ -99,7 +99,11 @@ class TestAuthCommands:
 
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("asyncio.run")
-    def test_login_connection_error(self, mock_asyncio_run, mock_client_class) -> None:
+    def test_login_connection_error(
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_client_class: MagicMock,
+    ) -> None:
         """Test login with connection error."""
         # Make asyncio.run raise an exception
         mock_asyncio_run.side_effect = Exception("Connection failed")
@@ -121,7 +125,11 @@ class TestAuthCommands:
     @patch("flext_cli.commands.auth.clear_auth_tokens")
     @patch("asyncio.run")
     def test_logout_success(
-        self, mock_asyncio_run, mock_clear_tokens, mock_client_class, mock_get_token
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_clear_tokens: MagicMock,
+        mock_client_class: MagicMock,
+        mock_get_token: MagicMock,
     ) -> None:
         """Test successful logout."""
         mock_get_token.return_value = "test_token"
@@ -140,13 +148,16 @@ class TestAuthCommands:
         )
 
         if result.exit_code != 0:
-
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         mock_asyncio_run.assert_called_once()
 
     @patch("flext_cli.commands.auth.get_auth_token")
     @patch("asyncio.run")
-    def test_logout_not_logged_in(self, mock_asyncio_run, mock_get_token) -> None:
+    def test_logout_not_logged_in(
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_get_token: MagicMock,
+    ) -> None:
         """Test logout when not logged in."""
         mock_get_token.return_value = None
 
@@ -159,7 +170,6 @@ class TestAuthCommands:
         )
 
         if result.exit_code != 0:
-
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         mock_asyncio_run.assert_called_once()
 
@@ -168,7 +178,11 @@ class TestAuthCommands:
     @patch("flext_cli.commands.auth.clear_auth_tokens")
     @patch("asyncio.run")
     def test_logout_api_error(
-        self, mock_asyncio_run, mock_clear_tokens, mock_client_class, mock_get_token
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_clear_tokens: MagicMock,
+        mock_client_class: MagicMock,
+        mock_get_token: MagicMock,
     ) -> None:
         """Test logout with API error."""
         mock_get_token.return_value = "test_token"
@@ -187,7 +201,6 @@ class TestAuthCommands:
         )
 
         if result.exit_code != 0:
-
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         mock_asyncio_run.assert_called_once()
 
@@ -195,7 +208,10 @@ class TestAuthCommands:
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("asyncio.run")
     def test_status_authenticated(
-        self, mock_asyncio_run, mock_client_class, mock_get_token
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_client_class: MagicMock,
+        mock_get_token: MagicMock,
     ) -> None:
         """Test status when authenticated."""
         mock_get_token.return_value = "test_token"
@@ -218,13 +234,16 @@ class TestAuthCommands:
         )
 
         if result.exit_code != 0:
-
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         mock_asyncio_run.assert_called_once()
 
     @patch("flext_cli.commands.auth.get_auth_token")
     @patch("asyncio.run")
-    def test_status_not_authenticated(self, mock_asyncio_run, mock_get_token) -> None:
+    def test_status_not_authenticated(
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_get_token: MagicMock,
+    ) -> None:
         """Test status when not authenticated."""
         mock_get_token.return_value = None
 
@@ -243,7 +262,10 @@ class TestAuthCommands:
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("asyncio.run")
     def test_status_api_error(
-        self, mock_asyncio_run, mock_client_class, mock_get_token
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_client_class: MagicMock,
+        mock_get_token: MagicMock,
     ) -> None:
         """Test status with API error."""
         mock_get_token.return_value = "test_token"
@@ -273,7 +295,7 @@ class TestAuthCommands:
             if result.exit_code != 0:
                 raise AssertionError(f"Expected {0}, got {result.exit_code}")
             if "Usage:" not in result.output:
-                raise AssertionError(f"Expected {"Usage:"} in {result.output}")
+                raise AssertionError(f"Expected {'Usage:'} in {result.output}")
 
     def test_auth_group_help(self) -> None:
         """Test auth group help."""
@@ -281,19 +303,23 @@ class TestAuthCommands:
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         if "Manage authentication commands" not in result.output:
-            raise AssertionError(f"Expected {"Manage authentication commands"} in {result.output}")
+            raise AssertionError(
+                f"Expected {'Manage authentication commands'} in {result.output}"
+            )
 
     def test_login_with_options(self) -> None:
         """Test login command with username and password options."""
         mock_console = MagicMock()
 
-        with patch("flext_cli.commands.auth.FlextApiClient"):
-            with patch("asyncio.run"):
-                result = self.runner.invoke(
-                    auth,
-                    ["login", "--username", "testuser", "--password", "testpass"],
-                    obj={"console": mock_console},
-                )
+        with (
+            patch("flext_cli.commands.auth.FlextApiClient"),
+            patch("asyncio.run"),
+        ):
+            result = self.runner.invoke(
+                auth,
+                ["login", "--username", "testuser", "--password", "testpass"],
+                obj={"console": mock_console},
+            )
 
         # Should complete without prompting
         if result.exit_code != 0:
@@ -303,14 +329,16 @@ class TestAuthCommands:
         """Test login command prompts for missing username/password."""
         mock_console = MagicMock()
 
-        with patch("flext_cli.commands.auth.FlextApiClient"):
-            with patch("asyncio.run"):
-                result = self.runner.invoke(
-                    auth,
-                    ["login"],
-                    input="testuser\ntestpass\n",
-                    obj={"console": mock_console},
-                )
+        with (
+            patch("flext_cli.commands.auth.FlextApiClient"),
+            patch("asyncio.run"),
+        ):
+            result = self.runner.invoke(
+                auth,
+                ["login"],
+                input="testuser\ntestpass\n",
+                obj={"console": mock_console},
+            )
 
         # Should complete after prompting
         if result.exit_code != 0:
@@ -331,12 +359,10 @@ class TestAuthFunctionality:
 
         result = asyncio.run(test_async())
         if result != "test":
-            raise AssertionError(f"Expected {"test"}, got {result}")
+            raise AssertionError(f"Expected {'test'}, got {result}")
 
     def test_click_context_pattern(self) -> None:
         """Test Click context pattern used in commands."""
-
-
 
         # Test that we can create a mock context like used in commands
         console = MagicMock(spec=Console)
@@ -349,9 +375,6 @@ class TestAuthFunctionality:
 
     def test_auth_imports(self) -> None:
         """Test that all required imports work."""
-
-
-
 
         # All imports should work
         assert asyncio
@@ -367,7 +390,9 @@ class TestAuthFunctionality:
 
         # Test that async methods can be mocked
         if mock_client.login.return_value != {"token": "test"}:
-            raise AssertionError(f"Expected {{"token": "test"}}, got {mock_client.login.return_value}")
+            raise AssertionError(
+                f'Expected {{"token": "test"}}, got {mock_client.login.return_value}'
+            )
 
     def test_context_manager_pattern(self) -> None:
         """Test context manager pattern used with FlextApiClient."""
@@ -394,16 +419,17 @@ class TestAuthFunctionality:
         }
 
         if "token" not in success_response:
-
-            raise AssertionError(f"Expected {"token"} in {success_response}")
+            raise AssertionError(f"Expected {'token'} in {success_response}")
         if success_response["token"] != "test_token_123":
-            raise AssertionError(f"Expected {"test_token_123"}, got {success_response["token"]}")
+            raise AssertionError(
+                f"Expected {'test_token_123'}, got {success_response['token']}"
+            )
         assert success_response["user"]["name"] == "Test User"
 
         # Test error response
         error_response = {"error": "Invalid credentials"}
-        if "token" not not in error_response:
-            raise AssertionError(f"Expected {"token" not} in {error_response}")
+        if "token" not in error_response:
+            raise AssertionError(f"Expected token not in {error_response}")
         assert "error" in error_response
 
     def test_user_info_patterns(self) -> None:
@@ -421,11 +447,10 @@ class TestAuthFunctionality:
         missing = user_info.get("missing_field", "Unknown")
 
         if username != "testuser":
-
-            raise AssertionError(f"Expected {"testuser"}, got {username}")
+            raise AssertionError(f"Expected {'testuser'}, got {username}")
         assert email == "test@example.com"
         if role != "REDACTED_LDAP_BIND_PASSWORD":
-            raise AssertionError(f"Expected {"REDACTED_LDAP_BIND_PASSWORD"}, got {role}")
+            raise AssertionError(f"Expected {'REDACTED_LDAP_BIND_PASSWORD'}, got {role}")
         assert missing == "Unknown"
 
     def test_exception_handling_patterns(self) -> None:
@@ -439,7 +464,7 @@ class TestAuthFunctionality:
                 raise exc_type(msg)
             except exc_type as e:
                 if "Test error" not in str(e):
-                    raise AssertionError(f"Expected {"Test error"} in {str(e)}")
+                    raise AssertionError(f"Expected {'Test error'} in {e!s}")
 
 
 class TestAuthErrorHandling:
@@ -451,7 +476,11 @@ class TestAuthErrorHandling:
 
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("asyncio.run")
-    def test_login_with_exception(self, mock_asyncio_run, mock_client_class) -> None:
+    def test_login_with_exception(
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_client_class: MagicMock,
+    ) -> None:
         """Test login command with exception."""
         # Make asyncio.run raise an exception
         mock_asyncio_run.side_effect = Exception("Async error")
@@ -472,7 +501,10 @@ class TestAuthErrorHandling:
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("asyncio.run")
     def test_logout_with_exception(
-        self, mock_asyncio_run, mock_client_class, mock_get_token
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_client_class: MagicMock,
+        mock_get_token: MagicMock,
     ) -> None:
         """Test logout command with exception."""
         mock_get_token.return_value = "test_token"
@@ -493,7 +525,10 @@ class TestAuthErrorHandling:
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("asyncio.run")
     def test_status_with_exception(
-        self, mock_asyncio_run, mock_client_class, mock_get_token
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_client_class: MagicMock,
+        mock_get_token: MagicMock,
     ) -> None:
         """Test status command with exception."""
         mock_get_token.return_value = "test_token"
@@ -521,11 +556,11 @@ class TestAuthErrorHandling:
         for cmd_args in commands_to_test:
             result = self.runner.invoke(auth, cmd_args, input="testuser\ntestpass\n")
             # Should handle missing context gracefully
-            if result.exit_code not in [0, 1, 2]:
+            if result.exit_code not in {0, 1, 2}:
                 raise AssertionError(f"Expected {result.exit_code} in {[0, 1, 2]}")
 
     @patch("flext_cli.commands.auth.FlextApiClient")
-    def test_login_network_errors(self, mock_client_class) -> None:
+    def test_login_network_errors(self, mock_client_class: MagicMock) -> None:
         """Test login with various network errors."""
         error_types = [ConnectionError, TimeoutError, OSError]
 
@@ -555,7 +590,11 @@ class TestAuthErrorHandling:
 
     @patch("flext_cli.commands.auth.get_auth_token")
     @patch("flext_cli.commands.auth.FlextApiClient")
-    def test_logout_network_errors(self, mock_client_class, mock_get_token) -> None:
+    def test_logout_network_errors(
+        self,
+        mock_client_class: MagicMock,
+        mock_get_token: MagicMock,
+    ) -> None:
         """Test logout with various network errors."""
         mock_get_token.return_value = "test_token"
         error_types = [ConnectionError, TimeoutError, OSError]
@@ -579,7 +618,11 @@ class TestAuthErrorHandling:
 
     @patch("flext_cli.commands.auth.get_auth_token")
     @patch("flext_cli.commands.auth.FlextApiClient")
-    def test_status_network_errors(self, mock_client_class, mock_get_token) -> None:
+    def test_status_network_errors(
+        self,
+        mock_client_class: MagicMock,
+        mock_get_token: MagicMock,
+    ) -> None:
         """Test status with various network errors."""
         mock_get_token.return_value = "test_token"
         error_types = [ConnectionError, TimeoutError, OSError]
@@ -614,20 +657,22 @@ class TestAuthIntegration:
                 raise AssertionError(f"Expected {cmd_name} in {auth.commands}")
 
         registered_commands = auth.commands
-        if len(registered_commands) < 3, "Missing commands in auth group":
-            raise AssertionError(f"Expected {len(registered_commands)} >= {3, "Missing commands in auth group"}")
+        if len(registered_commands) < 3:
+            raise AssertionError(
+                f"Expected {len(registered_commands)} >= {3}, Missing commands in auth group"
+            )
 
     def test_auth_group_structure_complete(self) -> None:
         """Test complete auth group structure."""
         if auth.name != "auth":
-            raise AssertionError(f"Expected {"auth"}, got {auth.name}")
+            raise AssertionError(f"Expected {'auth'}, got {auth.name}")
         assert auth.help == "Manage authentication commands."
 
         # Check that all expected commands exist
         expected_commands = ["login", "logout", "status"]
         for cmd in expected_commands:
-            if cmd in auth.commands, f"Command '{cmd}' not found not in auth commands":
-                raise AssertionError(f"Expected {cmd in auth.commands, f"Command '{cmd}' not found} in {auth commands"}")
+            if cmd not in auth.commands:
+                raise AssertionError(f"Expected {cmd} not in {auth.commands}")
 
     def test_click_runner_integration(self) -> None:
         """Test integration with Click runner."""
@@ -636,7 +681,9 @@ class TestAuthIntegration:
         # Test that we can invoke the auth group
         result = runner.invoke(auth, ["--help"])
         if "Manage authentication commands" not in result.output:
-            raise AssertionError(f"Expected {"Manage authentication commands"} in {result.output}")
+            raise AssertionError(
+                f"Expected {'Manage authentication commands'} in {result.output}"
+            )
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
 
@@ -654,7 +701,7 @@ class TestAuthIntegration:
                 )
 
         # Should complete without error
-        if result.exit_code not in [0, 1, 2]:
+        if result.exit_code not in {0, 1, 2}:
             raise AssertionError(f"Expected {result.exit_code} in {[0, 1, 2]}")
 
     def test_prompt_handling(self) -> None:
@@ -672,13 +719,13 @@ class TestAuthIntegration:
                 )
 
         # Should complete after prompting
-        if result.exit_code not in [0, 1, 2]:
+        if result.exit_code not in {0, 1, 2}:
             raise AssertionError(f"Expected {result.exit_code} in {[0, 1, 2]}")
 
     def test_auth_utils_integration(self) -> None:
         """Test integration with auth utils."""
         # Test that auth utility functions are importable
-
+        from flext_cli.commands.auth import (
             clear_auth_tokens,
             get_auth_token,
             save_auth_token,
@@ -692,13 +739,11 @@ class TestAuthIntegration:
     def test_client_integration(self) -> None:
         """Test integration with FlextApiClient."""
 
-
         # Client should be importable
         assert FlextApiClient
 
     def test_rich_console_integration(self) -> None:
         """Test Rich console integration."""
-
 
         # Console should be importable and usable
         console = Console()
@@ -718,7 +763,7 @@ class TestAuthIntegration:
 
         result = asyncio.run(test_async_context())
         if result != "success":
-            raise AssertionError(f"Expected {"success"}, got {result}")
+            raise AssertionError(f"Expected {'success'}, got {result}")
 
     def test_auth_flow_simulation(self) -> None:
         """Test complete auth flow simulation."""
@@ -728,9 +773,11 @@ class TestAuthIntegration:
         commands = ["login", "status", "logout"]
 
         for cmd in commands:
-            with patch("flext_cli.commands.auth.FlextApiClient"), patch(
-                "flext_cli.commands.auth.get_auth_token", return_value="token"
-            ), patch("asyncio.run"):
+            with (
+                patch("flext_cli.commands.auth.FlextApiClient"),
+                patch("flext_cli.commands.auth.get_auth_token", return_value="token"),
+                patch("asyncio.run"),
+            ):
                 result = runner.invoke(
                     auth,
                     [cmd]
@@ -743,5 +790,5 @@ class TestAuthIntegration:
                 )
 
             # All commands should complete
-            if result.exit_code not in [0, 1, 2]:
+            if result.exit_code not in {0, 1, 2}:
                 raise AssertionError(f"Expected {result.exit_code} in {[0, 1, 2]}")

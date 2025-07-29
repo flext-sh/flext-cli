@@ -1,8 +1,5 @@
 """Tests for flext_cli module.
 
-# Constants
-EXPECTED_BULK_SIZE = 2
-EXPECTED_DATA_COUNT = 3
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,13 +7,15 @@ SPDX-License-Identifier: MIT
 Tests for the public interface functions in flext_cli module.
 """
 
-import inspect
-
-
 from __future__ import annotations
 
+import inspect
+import tempfile
 from unittest.mock import MagicMock, patch
 
+# Constants
+EXPECTED_BULK_SIZE = 2
+EXPECTED_DATA_COUNT = 3
 # Mock the problematic imports before importing flext_cli
 mock_api = MagicMock()
 mock_plugin = MagicMock()
@@ -44,13 +43,13 @@ class TestFlextCliExport:
             flext_cli._api, "flext_cli_export", return_value=True
         ) as mock_export:
             data = {"key": "value"}
-            path = "/tmp/test.json"
+            with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
+                path = tmp.name
             format_type = "json"
 
             result = flext_cli.flext_cli_export(data, path, format_type)
 
             if not (result):
-
                 raise AssertionError(f"Expected True, got {result}")
             mock_export.assert_called_once_with(data, path, format_type)
 
@@ -65,8 +64,8 @@ class TestFlextCliExport:
             result = flext_cli.flext_cli_export(data, path)
 
             if result:
-
-                raise AssertionError(f"Expected False, got {result}")\ n            mock_export.assert_called_once()
+                raise AssertionError(f"Expected False, got {result}")
+            mock_export.assert_called_once()
 
     def test_flext_cli_export_default_format(self) -> None:
         """Test export with default format."""
@@ -79,7 +78,6 @@ class TestFlextCliExport:
             result = flext_cli.flext_cli_export(data, path)
 
             if not (result):
-
                 raise AssertionError(f"Expected True, got {result}")
             mock_export.assert_called_once_with(data, path, "json")
 
@@ -97,7 +95,6 @@ class TestFlextCliExport:
                 result = flext_cli.flext_cli_export(data, path, fmt)
 
                 if not (result):
-
                     raise AssertionError(f"Expected True, got {result}")
                 mock_export.assert_called_once_with(data, path, fmt)
 
@@ -117,7 +114,6 @@ class TestFlextCliExport:
             result = flext_cli.flext_cli_export(complex_data, path)
 
             if not (result):
-
                 raise AssertionError(f"Expected True, got {result}")
             mock_export.assert_called_once_with(complex_data, path, "json")
 
@@ -136,7 +132,6 @@ class TestFlextCliFormat:
             result = flext_cli.flext_cli_format(data, format_type)
 
             if result != '{"key": "value"}':
-
                 raise AssertionError(f"Expected {'{"key": "value"}'}, got {result}")
             mock_format.assert_called_once_with(data, format_type)
 
@@ -150,7 +145,6 @@ class TestFlextCliFormat:
             result = flext_cli.flext_cli_format(data)
 
             if result != '{"test": "data"}':
-
                 raise AssertionError(f"Expected {'{"test": "data"}'}, got {result}")
             mock_format.assert_called_once_with(data, "json")
 
@@ -174,7 +168,6 @@ class TestFlextCliFormat:
                 result = flext_cli.flext_cli_format(data, fmt)
 
                 if result != expected:
-
                     raise AssertionError(f"Expected {expected}, got {result}")
                 mock_format.assert_called_once_with(data, fmt)
 
@@ -188,8 +181,7 @@ class TestFlextCliFormat:
             result = flext_cli.flext_cli_format(data)
 
             if result != "{}":
-
-                raise AssertionError(f"Expected {"{}"}, got {result}")
+                raise AssertionError(f"Expected {'{}'}, got {result}")
             mock_format.assert_called_once_with(data, "json")
 
     def test_flext_cli_format_list_data(self) -> None:
@@ -202,8 +194,7 @@ class TestFlextCliFormat:
             result = flext_cli.flext_cli_format(data)
 
             if result != "[1, 2, 3]":
-
-                raise AssertionError(f"Expected {"[1, 2, 3]"}, got {result}")
+                raise AssertionError(f"Expected {'[1, 2, 3]'}, got {result}")
             mock_format.assert_called_once_with(data, "json")
 
 
@@ -220,7 +211,6 @@ class TestFlextCliConfigure:
             result = flext_cli.flext_cli_configure(config)
 
             if not (result):
-
                 raise AssertionError(f"Expected True, got {result}")
             mock_configure.assert_called_once_with(config)
 
@@ -234,8 +224,8 @@ class TestFlextCliConfigure:
             result = flext_cli.flext_cli_configure(config)
 
             if result:
-
-                raise AssertionError(f"Expected False, got {result}")\ n            mock_configure.assert_called_once_with(config)
+                raise AssertionError(f"Expected False, got {result}")
+            mock_configure.assert_called_once_with(config)
 
     def test_flext_cli_configure_empty_config(self) -> None:
         """Test configuration with empty config."""
@@ -247,7 +237,6 @@ class TestFlextCliConfigure:
             result = flext_cli.flext_cli_configure(config)
 
             if not (result):
-
                 raise AssertionError(f"Expected True, got {result}")
             mock_configure.assert_called_once_with(config)
 
@@ -265,7 +254,6 @@ class TestFlextCliConfigure:
             result = flext_cli.flext_cli_configure(config)
 
             if not (result):
-
                 raise AssertionError(f"Expected True, got {result}")
             mock_configure.assert_called_once_with(config)
 
@@ -283,7 +271,6 @@ class TestFlextCliHealth:
             result = flext_cli.flext_cli_health()
 
             if result != expected_health:
-
                 raise AssertionError(f"Expected {expected_health}, got {result}")
             mock_health.assert_called_once()
 
@@ -300,7 +287,6 @@ class TestFlextCliHealth:
             result = flext_cli.flext_cli_health()
 
             if result != expected_health:
-
                 raise AssertionError(f"Expected {expected_health}, got {result}")
             assert result["status"] == "unhealthy"
             mock_health.assert_called_once()
@@ -323,12 +309,11 @@ class TestFlextCliHealth:
             result = flext_cli.flext_cli_health()
 
             if result != expected_health:
-
                 raise AssertionError(f"Expected {expected_health}, got {result}")
             if "services" not in result:
-                raise AssertionError(f"Expected {"services"} in {result}")
-            if len(result["services"]) != EXPECTED_DATA_COUNT:
-                raise AssertionError(f"Expected {3}, got {len(result["services"])}")
+                raise AssertionError(f"Expected {'services'} in {result}")
+            if len(result["services"]) != 3:
+                raise AssertionError(f"Expected {3}, got {len(result['services'])}")
             mock_health.assert_called_once()
 
 
@@ -346,7 +331,6 @@ class TestFlextCliCreateContext:
             result = flext_cli.flext_cli_create_context(config)
 
             if result != expected_context:
-
                 raise AssertionError(f"Expected {expected_context}, got {result}")
             mock_create.assert_called_once_with(config)
 
@@ -360,7 +344,6 @@ class TestFlextCliCreateContext:
             result = flext_cli.flext_cli_create_context()
 
             if result != expected_context:
-
                 raise AssertionError(f"Expected {expected_context}, got {result}")
             mock_create.assert_called_once_with(None)
 
@@ -374,7 +357,6 @@ class TestFlextCliCreateContext:
             result = flext_cli.flext_cli_create_context(None)
 
             if result != expected_context:
-
                 raise AssertionError(f"Expected {expected_context}, got {result}")
             mock_create.assert_called_once_with(None)
 
@@ -390,7 +372,6 @@ class TestFlextCliCreateContext:
                 result = flext_cli.flext_cli_create_context(config)
 
                 if result != return_value:
-
                     raise AssertionError(f"Expected {return_value}, got {result}")
 
 
@@ -408,7 +389,6 @@ class TestFlextCliCreateCommand:
             result = flext_cli.flext_cli_create_command(name, command_line)
 
             if not (result):
-
                 raise AssertionError(f"Expected True, got {result}")
             mock_create.assert_called_once_with(name, command_line)
 
@@ -424,7 +404,6 @@ class TestFlextCliCreateCommand:
             result = flext_cli.flext_cli_create_command(name, command_line, **options)
 
             if not (result):
-
                 raise AssertionError(f"Expected True, got {result}")
             mock_create.assert_called_once_with(name, command_line, **options)
 
@@ -439,8 +418,8 @@ class TestFlextCliCreateCommand:
             result = flext_cli.flext_cli_create_command(name, command_line)
 
             if result:
-
-                raise AssertionError(f"Expected False, got {result}")\ n            mock_create.assert_called_once_with(name, command_line)
+                raise AssertionError(f"Expected False, got {result}")
+            mock_create.assert_called_once_with(name, command_line)
 
     def test_flext_cli_create_command_various_options(self) -> None:
         """Test command creation with various option types."""
@@ -482,8 +461,9 @@ class TestFlextCliCreateSession:
             result = flext_cli.flext_cli_create_session(user_id)
 
             if result != "Session created: session_123":
-
-                raise AssertionError(f"Expected {"Session created: session_123"}, got {result}")
+                raise AssertionError(
+                    f"Expected {'Session created: session_123'}, got {result}"
+                )
             mock_create.assert_called_once_with(user_id)
 
     def test_flext_cli_create_session_without_user_id(self) -> None:
@@ -496,8 +476,9 @@ class TestFlextCliCreateSession:
             result = flext_cli.flext_cli_create_session()
 
             if result != "Session created: anonymous_789":
-
-                raise AssertionError(f"Expected {"Session created: anonymous_789"}, got {result}")
+                raise AssertionError(
+                    f"Expected {'Session created: anonymous_789'}, got {result}"
+                )
             mock_create.assert_called_once_with(None)
 
     def test_flext_cli_create_session_none_user_id(self) -> None:
@@ -510,8 +491,9 @@ class TestFlextCliCreateSession:
             result = flext_cli.flext_cli_create_session(None)
 
             if result != "Session created: session_none":
-
-                raise AssertionError(f"Expected {"Session created: session_none"}, got {result}")
+                raise AssertionError(
+                    f"Expected {'Session created: session_none'}, got {result}"
+                )
             mock_create.assert_called_once_with(None)
 
     def test_flext_cli_create_session_different_responses(self) -> None:
@@ -530,7 +512,6 @@ class TestFlextCliCreateSession:
                 result = flext_cli.flext_cli_create_session("test_user")
 
                 if result != response:
-
                     raise AssertionError(f"Expected {response}, got {result}")
                 mock_create.assert_called_once_with("test_user")
 
@@ -552,7 +533,6 @@ class TestFlextCliRegisterHandler:
             result = flext_cli.flext_cli_register_handler(name, test_handler)
 
             if not (result):
-
                 raise AssertionError(f"Expected True, got {result}")
             mock_register.assert_called_once_with(name, test_handler)
 
@@ -567,8 +547,8 @@ class TestFlextCliRegisterHandler:
             result = flext_cli.flext_cli_register_handler(name, handler)
 
             if result:
-
-                raise AssertionError(f"Expected False, got {result}")\ n            mock_register.assert_called_once_with(name, handler)
+                raise AssertionError(f"Expected False, got {result}")
+            mock_register.assert_called_once_with(name, handler)
 
     def test_flext_cli_register_handler_callable_types(self) -> None:
         """Test registering different types of callable handlers."""
@@ -588,7 +568,6 @@ class TestFlextCliRegisterHandler:
                 result = flext_cli.flext_cli_register_handler(name, handler)
 
                 if not (result):
-
                     raise AssertionError(f"Expected True, got {result}")
                 mock_register.assert_called_once_with(name, handler)
 
@@ -612,7 +591,6 @@ class TestFlextCliRegisterHandler:
             result = flext_cli.flext_cli_register_handler(name, handler_instance)
 
             if not (result):
-
                 raise AssertionError(f"Expected True, got {result}")
             mock_register.assert_called_once_with(name, handler_instance)
 
@@ -632,7 +610,6 @@ class TestFlextCliRegisterPlugin:
             result = flext_cli.flext_cli_register_plugin(name, plugin)
 
             if not (result):
-
                 raise AssertionError(f"Expected True, got {result}")
             mock_register.assert_called_once_with(name, plugin)
 
@@ -648,8 +625,8 @@ class TestFlextCliRegisterPlugin:
             result = flext_cli.flext_cli_register_plugin(name, plugin)
 
             if result:
-
-                raise AssertionError(f"Expected False, got {result}")\ n            mock_register.assert_called_once_with(name, plugin)
+                raise AssertionError(f"Expected False, got {result}")
+            mock_register.assert_called_once_with(name, plugin)
 
     def test_flext_cli_register_plugin_with_real_plugin(self) -> None:
         """Test registering with plugin-like object."""
@@ -667,7 +644,6 @@ class TestFlextCliRegisterPlugin:
             result = flext_cli.flext_cli_register_plugin(name, plugin)
 
             if not (result):
-
                 raise AssertionError(f"Expected True, got {result}")
             mock_register.assert_called_once_with(name, plugin)
 
@@ -682,8 +658,8 @@ class TestFlextCliRegisterPlugin:
             result = flext_cli.flext_cli_register_plugin(name, plugin)
 
             if result:
-
-                raise AssertionError(f"Expected False, got {result}")\ n            mock_register.assert_called_once_with(name, plugin)
+                raise AssertionError(f"Expected False, got {result}")
+            mock_register.assert_called_once_with(name, plugin)
 
 
 class TestFlextCliExecuteHandler:
@@ -701,7 +677,6 @@ class TestFlextCliExecuteHandler:
             result = flext_cli.flext_cli_execute_handler(name)
 
             if result != expected_result:
-
                 raise AssertionError(f"Expected {expected_result}, got {result}")
             mock_execute.assert_called_once_with(name)
 
@@ -718,7 +693,6 @@ class TestFlextCliExecuteHandler:
             result = flext_cli.flext_cli_execute_handler(name, *args)
 
             if result != expected_result:
-
                 raise AssertionError(f"Expected {expected_result}, got {result}")
             mock_execute.assert_called_once_with(name, *args)
 
@@ -735,7 +709,6 @@ class TestFlextCliExecuteHandler:
             result = flext_cli.flext_cli_execute_handler(name, **kwargs)
 
             if result != expected_result:
-
                 raise AssertionError(f"Expected {expected_result}, got {result}")
             mock_execute.assert_called_once_with(name, **kwargs)
 
@@ -753,7 +726,6 @@ class TestFlextCliExecuteHandler:
             result = flext_cli.flext_cli_execute_handler(name, *args, **kwargs)
 
             if result != expected_result:
-
                 raise AssertionError(f"Expected {expected_result}, got {result}")
             mock_execute.assert_called_once_with(name, *args, **kwargs)
 
@@ -772,10 +744,9 @@ class TestFlextCliExecuteHandler:
             result = flext_cli.flext_cli_execute_handler(name)
 
             if result != error_result:
-
                 raise AssertionError(f"Expected {error_result}, got {result}")
             if "error" not in result:
-                raise AssertionError(f"Expected {"error"} in {result}")
+                raise AssertionError(f"Expected {'error'} in {result}")
             mock_execute.assert_called_once_with(name)
 
     def test_flext_cli_execute_handler_different_return_types(self) -> None:
@@ -798,7 +769,6 @@ class TestFlextCliExecuteHandler:
                 result = flext_cli.flext_cli_execute_handler(name)
 
                 if result != return_value:
-
                     raise AssertionError(f"Expected {return_value}, got {result}")
                 mock_execute.assert_called_once_with(name)
 
@@ -820,7 +790,6 @@ class TestFlextCliRenderWithContext:
             result = flext_cli.flext_cli_render_with_context(data, context)
 
             if result != expected_result:
-
                 raise AssertionError(f"Expected {expected_result}, got {result}")
             mock_render.assert_called_once_with(data, context)
 
@@ -837,7 +806,6 @@ class TestFlextCliRenderWithContext:
             result = flext_cli.flext_cli_render_with_context(data)
 
             if result != expected_result:
-
                 raise AssertionError(f"Expected {expected_result}, got {result}")
             mock_render.assert_called_once_with(data, None)
 
@@ -854,7 +822,6 @@ class TestFlextCliRenderWithContext:
             result = flext_cli.flext_cli_render_with_context(data, None)
 
             if result != expected_result:
-
                 raise AssertionError(f"Expected {expected_result}, got {result}")
             mock_render.assert_called_once_with(data, None)
 
@@ -882,7 +849,6 @@ class TestFlextCliRenderWithContext:
             result = flext_cli.flext_cli_render_with_context(data, context)
 
             if result != expected_result:
-
                 raise AssertionError(f"Expected {expected_result}, got {result}")
             mock_render.assert_called_once_with(data, context)
 
@@ -906,7 +872,6 @@ class TestFlextCliRenderWithContext:
                 result = flext_cli.flext_cli_render_with_context(data, context)
 
                 if result != expected:
-
                     raise AssertionError(f"Expected {expected}, got {result}")
                 mock_render.assert_called_once_with(data, context)
 
@@ -927,7 +892,6 @@ class TestFlextCliGetCommands:
             result = flext_cli.flext_cli_get_commands()
 
             if result != expected_commands:
-
                 raise AssertionError(f"Expected {expected_commands}, got {result}")
             assert len(result) == EXPECTED_BULK_SIZE
             mock_get.assert_called_once()
@@ -942,7 +906,6 @@ class TestFlextCliGetCommands:
             result = flext_cli.flext_cli_get_commands()
 
             if result != expected_commands:
-
                 raise AssertionError(f"Expected {expected_commands}, got {result}")
             assert len(result) == 0
             mock_get.assert_called_once()
@@ -974,13 +937,14 @@ class TestFlextCliGetCommands:
             result = flext_cli.flext_cli_get_commands()
 
             if result != expected_commands:
-
                 raise AssertionError(f"Expected {expected_commands}, got {result}")
             if "deploy" not in result:
-                raise AssertionError(f"Expected {"deploy"} in {result}")
+                raise AssertionError(f"Expected {'deploy'} in {result}")
             assert "backup" in result
             if result["deploy"]["success_count"] != 10:
-                raise AssertionError(f"Expected {10}, got {result["deploy"]["success_count"]}")
+                raise AssertionError(
+                    f"Expected {10}, got {result['deploy']['success_count']}"
+                )
             mock_get.assert_called_once()
 
 
@@ -1000,7 +964,6 @@ class TestFlextCliGetSessions:
             result = flext_cli.flext_cli_get_sessions()
 
             if result != expected_sessions:
-
                 raise AssertionError(f"Expected {expected_sessions}, got {result}")
             assert len(result) == EXPECTED_BULK_SIZE
             mock_get.assert_called_once()
@@ -1015,7 +978,6 @@ class TestFlextCliGetSessions:
             result = flext_cli.flext_cli_get_sessions()
 
             if result != expected_sessions:
-
                 raise AssertionError(f"Expected {expected_sessions}, got {result}")
             assert len(result) == 0
             mock_get.assert_called_once()
@@ -1049,12 +1011,16 @@ class TestFlextCliGetSessions:
             result = flext_cli.flext_cli_get_sessions()
 
             if result != expected_sessions:
-
                 raise AssertionError(f"Expected {expected_sessions}, got {result}")
             if not (result["sess_123"]["active"]):
-                raise AssertionError(f"Expected True, got {result["sess_123"]["active"]}")
+                raise AssertionError(
+                    f"Expected True, got {result['sess_123']['active']}"
+                )
             if result["sess_789"]["active"]:
-                raise AssertionError(f"Expected False, got {result["sess_789"]["active"]}")\ n            assert result["sess_123"]["commands_executed"] == 25
+                raise AssertionError(
+                    f"Expected False, got {result['sess_789']['active']}"
+                )
+            assert result["sess_123"]["commands_executed"] == 25
             mock_get.assert_called_once()
 
 
@@ -1078,7 +1044,6 @@ class TestFlextCliGetPlugins:
             result = flext_cli.flext_cli_get_plugins()
 
             if result != expected_plugins:
-
                 raise AssertionError(f"Expected {expected_plugins}, got {result}")
             assert len(result) == EXPECTED_BULK_SIZE
             mock_get.assert_called_once()
@@ -1093,7 +1058,6 @@ class TestFlextCliGetPlugins:
             result = flext_cli.flext_cli_get_plugins()
 
             if result != expected_plugins:
-
                 raise AssertionError(f"Expected {expected_plugins}, got {result}")
             assert len(result) == 0
             mock_get.assert_called_once()
@@ -1127,12 +1091,16 @@ class TestFlextCliGetPlugins:
             result = flext_cli.flext_cli_get_plugins()
 
             if result != expected_plugins:
-
                 raise AssertionError(f"Expected {expected_plugins}, got {result}")
             if not (result["database_plugin"]["enabled"]):
-                raise AssertionError(f"Expected True, got {result["database_plugin"]["enabled"]}")
+                raise AssertionError(
+                    f"Expected True, got {result['database_plugin']['enabled']}"
+                )
             if result["notification_plugin"]["enabled"]:
-                raise AssertionError(f"Expected False, got {result["notification_plugin"]["enabled"]}")\ n            assert len(result["database_plugin"]["dependencies"]) == EXPECTED_BULK_SIZE
+                raise AssertionError(
+                    f"Expected False, got {result['notification_plugin']['enabled']}"
+                )
+            assert len(result["database_plugin"]["dependencies"]) == EXPECTED_BULK_SIZE
             mock_get.assert_called_once()
 
 
@@ -1156,7 +1124,6 @@ class TestFlextCliGetHandlers:
             result = flext_cli.flext_cli_get_handlers()
 
             if result != expected_handlers:
-
                 raise AssertionError(f"Expected {expected_handlers}, got {result}")
             assert len(result) == EXPECTED_BULK_SIZE
             mock_get.assert_called_once()
@@ -1171,7 +1138,6 @@ class TestFlextCliGetHandlers:
             result = flext_cli.flext_cli_get_handlers()
 
             if result != expected_handlers:
-
                 raise AssertionError(f"Expected {expected_handlers}, got {result}")
             assert len(result) == 0
             mock_get.assert_called_once()
@@ -1214,12 +1180,16 @@ class TestFlextCliGetHandlers:
             result = flext_cli.flext_cli_get_handlers()
 
             if result != expected_handlers:
-
                 raise AssertionError(f"Expected {expected_handlers}, got {result}")
             if not (result["request_handler"]["active"]):
-                raise AssertionError(f"Expected True, got {result["request_handler"]["active"]}")
+                raise AssertionError(
+                    f"Expected True, got {result['request_handler']['active']}"
+                )
             if result["deprecated_handler"]["active"]:
-                raise AssertionError(f"Expected False, got {result["deprecated_handler"]["active"]}")\ n            assert result["request_handler"]["execution_count"] == 1500
+                raise AssertionError(
+                    f"Expected False, got {result['deprecated_handler']['active']}"
+                )
+            assert result["request_handler"]["execution_count"] == 1500
             if len(result) != EXPECTED_DATA_COUNT:
                 raise AssertionError(f"Expected {3}, got {len(result)}")
             mock_get.assert_called_once()
@@ -1271,7 +1241,6 @@ class TestFlextCliModuleIntegration:
     def test_type_annotations(self) -> None:
         """Test that functions have proper type annotations."""
 
-
         # Test a few key functions for type annotations
         functions_to_test = [
             flext_cli.flext_cli_export,
@@ -1298,8 +1267,7 @@ class TestFlextCliModuleIntegration:
             result = flext_cli.flext_cli_health()
 
             if result != {"status": "ok"}:
-
-                raise AssertionError(f"Expected {{"status": "ok"}}, got {result}")
+                raise AssertionError(f'Expected {{"status": "ok"}}, got {result}')
             mock_health.assert_called_once()
 
     def test_function_docstrings(self) -> None:
@@ -1320,7 +1288,7 @@ class TestFlextCliModuleIntegration:
                 f"Function {func.__name__} has empty docstring"
             )
             # Verify docstring contains Args and Returns sections for better documentation
-            if "Args:" in func.__doc__ or "Returns:" not in func.__doc__, (:
-                raise AssertionError(f"Expected {"Args:" in func.__doc__ or "Returns:"} in {func.__doc__, (}")
-                f"Function {func.__name__} missing Args/Returns documentation"
-            )
+            if "Args:" not in func.__doc__ and "Returns:" not in func.__doc__:
+                raise AssertionError(
+                    f"Function {func.__name__} missing Args/Returns documentation"
+                )

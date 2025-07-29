@@ -10,9 +10,6 @@ SPDX-License-Identifier: MIT
 Tests CLI configuration classes and functions for coverage.
 """
 
-import flext_cli.config.cli_config
-
-
 from __future__ import annotations
 
 import os
@@ -20,6 +17,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
+import flext_cli.config.cli_config
 import pytest
 from flext_cli.config.cli_config import (
     CLIAPIConfig,
@@ -42,12 +40,13 @@ class TestCLIOutputConfig:
         config = CLIOutputConfig()
 
         if config.format != "table":
-
-            raise AssertionError(f"Expected {"table"}, got {config.format}")
+            raise AssertionError(f"Expected {'table'}, got {config.format}")
         if config.no_color:
-            raise AssertionError(f"Expected False, got {config.no_color}")\ n        assert config.quiet is False
+            raise AssertionError(f"Expected False, got {config.no_color}")
+        assert config.quiet is False
         if config.verbose:
-            raise AssertionError(f"Expected False, got {config.verbose}")\ n        assert config.pager is None
+            raise AssertionError(f"Expected False, got {config.verbose}")
+        assert config.pager is None
 
     def test_custom_values(self) -> None:
         """Test custom configuration values."""
@@ -60,15 +59,14 @@ class TestCLIOutputConfig:
         )
 
         if config.format != "json":
-
-            raise AssertionError(f"Expected {"json"}, got {config.format}")
+            raise AssertionError(f"Expected {'json'}, got {config.format}")
         if not (config.no_color):
             raise AssertionError(f"Expected True, got {config.no_color}")
         assert config.quiet is True
         if not (config.verbose):
             raise AssertionError(f"Expected True, got {config.verbose}")
         if config.pager != "less":
-            raise AssertionError(f"Expected {"less"}, got {config.pager}")
+            raise AssertionError(f"Expected {'less'}, got {config.pager}")
 
     def test_format_literal_validation(self) -> None:
         """Test format field accepts valid literal values."""
@@ -105,7 +103,7 @@ class TestCLIOutputConfig:
         # Test with string
         config2 = CLIOutputConfig(pager="less -R")
         if config2.pager != "less -R":
-            raise AssertionError(f"Expected {"less -R"}, got {config2.pager}")
+            raise AssertionError(f"Expected {'less -R'}, got {config2.pager}")
 
 
 class TestCLIAPIConfig:
@@ -116,8 +114,9 @@ class TestCLIAPIConfig:
         config = CLIAPIConfig()
 
         if config.url != "http://localhost:8000":
-
-            raise AssertionError(f"Expected {"http://localhost:8000"}, got {config.url}")
+            raise AssertionError(
+                f"Expected {'http://localhost:8000'}, got {config.url}"
+            )
         assert config.timeout == 30
         if config.retries != EXPECTED_DATA_COUNT:
             raise AssertionError(f"Expected {3}, got {config.retries}")
@@ -134,13 +133,15 @@ class TestCLIAPIConfig:
         )
 
         if config.url != "https://api.example.com:8443":
-
-            raise AssertionError(f"Expected {"https://api.example.com:8443"}, got {config.url}")
+            raise AssertionError(
+                f"Expected {'https://api.example.com:8443'}, got {config.url}"
+            )
         assert config.timeout == 60
         if config.retries != 5:
             raise AssertionError(f"Expected {5}, got {config.retries}")
         if config.verify_ssl:
-            raise AssertionError(f"Expected False, got {config.verify_ssl}")\ n
+            raise AssertionError(f"Expected False, got {config.verify_ssl}")
+
     def test_base_url_property(self) -> None:
         """Test base_url property removes trailing slash."""
         test_cases = [
@@ -154,7 +155,9 @@ class TestCLIAPIConfig:
         for input_url, expected_output in test_cases:
             config = CLIAPIConfig(url=input_url)
             if config.base_url != expected_output:
-                raise AssertionError(f"Expected {expected_output}, got {config.base_url}")
+                raise AssertionError(
+                    f"Expected {expected_output}, got {config.base_url}"
+                )
 
     def test_numeric_field_types(self) -> None:
         """Test numeric field type validation."""
@@ -172,7 +175,8 @@ class TestCLIAPIConfig:
 
         assert isinstance(config.verify_ssl, bool)
         if config.verify_ssl:
-            raise AssertionError(f"Expected False, got {config.verify_ssl}")\ n
+            raise AssertionError(f"Expected False, got {config.verify_ssl}")
+
 
 class TestCLIAuthConfig:
     """Test CLIAuthConfig class."""
@@ -185,8 +189,9 @@ class TestCLIAuthConfig:
         expected_refresh_path = Path.home() / ".flext" / "auth" / "refresh_token"
 
         if config.token_file != expected_token_path:
-
-            raise AssertionError(f"Expected {expected_token_path}, got {config.token_file}")
+            raise AssertionError(
+                f"Expected {expected_token_path}, got {config.token_file}"
+            )
         assert config.refresh_token_file == expected_refresh_path
         if not (config.auto_refresh):
             raise AssertionError(f"Expected True, got {config.auto_refresh}")
@@ -203,11 +208,11 @@ class TestCLIAuthConfig:
         )
 
         if config.token_file != custom_token:
-
             raise AssertionError(f"Expected {custom_token}, got {config.token_file}")
         assert config.refresh_token_file == custom_refresh
         if config.auto_refresh:
-            raise AssertionError(f"Expected False, got {config.auto_refresh}")\ n
+            raise AssertionError(f"Expected False, got {config.auto_refresh}")
+
     def test_path_types(self) -> None:
         """Test that paths are Path objects."""
         config = CLIAuthConfig()
@@ -221,7 +226,8 @@ class TestCLIAuthConfig:
 
         assert isinstance(config.auto_refresh, bool)
         if config.auto_refresh:
-            raise AssertionError(f"Expected False, got {config.auto_refresh}")\ n
+            raise AssertionError(f"Expected False, got {config.auto_refresh}")
+
 
 class TestCLIDirectoryConfig:
     """Test CLIDirectoryConfig class."""
@@ -236,8 +242,9 @@ class TestCLIDirectoryConfig:
         expected_data_dir = Path.home() / ".flext" / "data"
 
         if config.config_dir != expected_config_dir:
-
-            raise AssertionError(f"Expected {expected_config_dir}, got {config.config_dir}")
+            raise AssertionError(
+                f"Expected {expected_config_dir}, got {config.config_dir}"
+            )
         assert config.cache_dir == expected_cache_dir
         if config.log_dir != expected_log_dir:
             raise AssertionError(f"Expected {expected_log_dir}, got {config.log_dir}")
@@ -253,11 +260,12 @@ class TestCLIDirectoryConfig:
         )
 
         if config.config_dir != Path("/tmp/config"):
-
-            raise AssertionError(f"Expected {Path("/tmp/config")}, got {config.config_dir}")
+            raise AssertionError(
+                f"Expected {Path('/tmp/config')}, got {config.config_dir}"
+            )
         assert config.cache_dir == Path("/tmp/cache")
         if config.log_dir != Path("/tmp/logs"):
-            raise AssertionError(f"Expected {Path("/tmp/logs")}, got {config.log_dir}")
+            raise AssertionError(f"Expected {Path('/tmp/logs')}, got {config.log_dir}")
         assert config.data_dir == Path("/tmp/data")
 
     def test_ensure_directories(self) -> None:
@@ -334,10 +342,10 @@ class TestCLIConfig:
         config = CLIConfig()
 
         if config.profile != "default":
-
-            raise AssertionError(f"Expected {"default"}, got {config.profile}")
+            raise AssertionError(f"Expected {'default'}, got {config.profile}")
         if config.debug:
-            raise AssertionError(f"Expected False, got {config.debug}")\ n        assert isinstance(config.output, CLIOutputConfig)
+            raise AssertionError(f"Expected False, got {config.debug}")
+        assert isinstance(config.output, CLIOutputConfig)
         assert isinstance(config.api, CLIAPIConfig)
         assert isinstance(config.auth, CLIAuthConfig)
         assert isinstance(config.directories, CLIDirectoryConfig)
@@ -350,8 +358,7 @@ class TestCLIConfig:
         )
 
         if config.profile != "production":
-
-            raise AssertionError(f"Expected {"production"}, got {config.profile}")
+            raise AssertionError(f"Expected {'production'}, got {config.profile}")
         if not (config.debug):
             raise AssertionError(f"Expected True, got {config.debug}")
 
@@ -361,12 +368,15 @@ class TestCLIConfig:
 
         # Test output config
         if config.output.format != "table":
-            raise AssertionError(f"Expected {"table"}, got {config.output.format}")
+            raise AssertionError(f"Expected {'table'}, got {config.output.format}")
         if config.output.no_color:
-            raise AssertionError(f"Expected False, got {config.output.no_color}")\ n
+            raise AssertionError(f"Expected False, got {config.output.no_color}")
+
         # Test API config
         if config.api.url != "http://localhost:8000":
-            raise AssertionError(f"Expected {"http://localhost:8000"}, got {config.api.url}")
+            raise AssertionError(
+                f"Expected {'http://localhost:8000'}, got {config.api.url}"
+            )
         assert config.api.timeout == 30
 
         # Test auth config
@@ -375,7 +385,9 @@ class TestCLIConfig:
 
         # Test directories config
         if config.directories.config_dir != Path.home() / ".flext":
-            raise AssertionError(f"Expected {Path.home() / ".flext"}, got {config.directories.config_dir}")
+            raise AssertionError(
+                f"Expected {Path.home() / '.flext'}, got {config.directories.config_dir}"
+            )
 
     def test_ensure_setup(self) -> None:
         """Test ensure_setup method creates directories."""
@@ -414,12 +426,14 @@ class TestCLIConfig:
 
         # Test deep access to nested configurations
         if config.output.format != "table":
-            raise AssertionError(f"Expected {"table"}, got {config.output.format}")
+            raise AssertionError(f"Expected {'table'}, got {config.output.format}")
         assert config.api.base_url == "http://localhost:8000"
         if not (config.auth.auto_refresh):
             raise AssertionError(f"Expected True, got {config.auth.auto_refresh}")
         if config.directories.config_dir.name != ".flext":
-            raise AssertionError(f"Expected {".flext"}, got {config.directories.config_dir.name}")
+            raise AssertionError(
+                f"Expected {'.flext'}, got {config.directories.config_dir.name}"
+            )
 
 
 class TestCLISettings:
@@ -430,16 +444,18 @@ class TestCLISettings:
         settings = CLISettings()
 
         if settings.project_name != "flext-cli":
-
-            raise AssertionError(f"Expected {"flext-cli"}, got {settings.project_name}")
+            raise AssertionError(f"Expected {'flext-cli'}, got {settings.project_name}")
         assert settings.project_version == "0.7.0"
         if settings.api_url != "http://localhost:8000":
-            raise AssertionError(f"Expected {"http://localhost:8000"}, got {settings.api_url}")
+            raise AssertionError(
+                f"Expected {'http://localhost:8000'}, got {settings.api_url}"
+            )
         assert settings.timeout == 30
         if settings.output_format != "table":
-            raise AssertionError(f"Expected {"table"}, got {settings.output_format}")
+            raise AssertionError(f"Expected {'table'}, got {settings.output_format}")
         if settings.debug:
-            raise AssertionError(f"Expected False, got {settings.debug}")\ n
+            raise AssertionError(f"Expected False, got {settings.debug}")
+
     def test_custom_values(self) -> None:
         """Test custom settings values."""
         settings = CLISettings(
@@ -452,14 +468,17 @@ class TestCLISettings:
         )
 
         if settings.project_name != "custom-cli":
-
-            raise AssertionError(f"Expected {"custom-cli"}, got {settings.project_name}")
+            raise AssertionError(
+                f"Expected {'custom-cli'}, got {settings.project_name}"
+            )
         assert settings.project_version == "1.0.0"
         if settings.api_url != "https://custom.api.com":
-            raise AssertionError(f"Expected {"https://custom.api.com"}, got {settings.api_url}")
+            raise AssertionError(
+                f"Expected {'https://custom.api.com'}, got {settings.api_url}"
+            )
         assert settings.timeout == 60
         if settings.output_format != "json":
-            raise AssertionError(f"Expected {"json"}, got {settings.output_format}")
+            raise AssertionError(f"Expected {'json'}, got {settings.output_format}")
         if not (settings.debug):
             raise AssertionError(f"Expected True, got {settings.debug}")
 
@@ -478,14 +497,17 @@ class TestCLISettings:
             settings = CLISettings()
 
             if settings.project_name != "env-cli":
-
-                raise AssertionError(f"Expected {"env-cli"}, got {settings.project_name}")
+                raise AssertionError(
+                    f"Expected {'env-cli'}, got {settings.project_name}"
+                )
             assert settings.project_version == "2.0.0"
             if settings.api_url != "https://env.api.com":
-                raise AssertionError(f"Expected {"https://env.api.com"}, got {settings.api_url}")
+                raise AssertionError(
+                    f"Expected {'https://env.api.com'}, got {settings.api_url}"
+                )
             assert settings.timeout == 45
             if settings.output_format != "yaml":
-                raise AssertionError(f"Expected {"yaml"}, got {settings.output_format}")
+                raise AssertionError(f"Expected {'yaml'}, got {settings.output_format}")
             if not (settings.debug):
                 raise AssertionError(f"Expected True, got {settings.debug}")
 
@@ -509,10 +531,15 @@ class TestCLISettings:
 
         # Test that model config is set correctly (model_config is a dict in pydantic-settings)
         if settings.model_config["env_prefix"] != "FLEXT_CLI_":
-            raise AssertionError(f"Expected {"FLEXT_CLI_"}, got {settings.model_config["env_prefix"]}")
+            raise AssertionError(
+                f"Expected {'FLEXT_CLI_'}, got {settings.model_config['env_prefix']}"
+            )
         assert settings.model_config["env_file"] == ".env"
         if settings.model_config["case_sensitive"]:
-            raise AssertionError(f"Expected False, got {settings.model_config["case_sensitive"]}")\ n        assert settings.model_config["extra"] == "ignore"
+            raise AssertionError(
+                f"Expected False, got {settings.model_config['case_sensitive']}"
+            )
+        assert settings.model_config["extra"] == "ignore"
 
 
 class TestConfigurationFunctions:
@@ -522,16 +549,16 @@ class TestConfigurationFunctions:
         """Test get_cli_config function."""
         # Clear any existing global config
 
-
         flext_cli.config.cli_config._cli_config = None
 
         config = get_cli_config()
 
         assert isinstance(config, CLIConfig)
         if config.profile != "default":
-            raise AssertionError(f"Expected {"default"}, got {config.profile}")
+            raise AssertionError(f"Expected {'default'}, got {config.profile}")
         if config.debug:
-            raise AssertionError(f"Expected False, got {config.debug}")\ n
+            raise AssertionError(f"Expected False, got {config.debug}")
+
     def test_get_cli_config_singleton(self) -> None:
         """Test get_cli_config returns same instance."""
         config1 = get_cli_config()
@@ -554,9 +581,10 @@ class TestConfigurationFunctions:
 
         assert isinstance(config, CLIConfig)
         if config.profile != "default":
-            raise AssertionError(f"Expected {"default"}, got {config.profile}")
+            raise AssertionError(f"Expected {'default'}, got {config.profile}")
         if config.debug:
-            raise AssertionError(f"Expected False, got {config.debug}")\ n
+            raise AssertionError(f"Expected False, got {config.debug}")
+
     def test_create_cli_config_calls_ensure_setup(self) -> None:
         """Test _create_cli_config calls ensure_setup."""
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -584,15 +612,18 @@ class TestConfigurationFunctions:
 
         assert isinstance(settings, CLISettings)
         if settings.project_name != "flext-cli":
-            raise AssertionError(f"Expected {"flext-cli"}, got {settings.project_name}")
+            raise AssertionError(f"Expected {'flext-cli'}, got {settings.project_name}")
         assert settings.project_version == "0.7.0"
         if settings.api_url != "http://localhost:8000":
-            raise AssertionError(f"Expected {"http://localhost:8000"}, got {settings.api_url}")
+            raise AssertionError(
+                f"Expected {'http://localhost:8000'}, got {settings.api_url}"
+            )
         assert settings.timeout == 30
         if settings.output_format != "table":
-            raise AssertionError(f"Expected {"table"}, got {settings.output_format}")
+            raise AssertionError(f"Expected {'table'}, got {settings.output_format}")
         if settings.debug:
-            raise AssertionError(f"Expected False, got {settings.debug}")\ n
+            raise AssertionError(f"Expected False, got {settings.debug}")
+
 
 class TestConfigurationIntegration:
     """Integration tests for configuration classes."""
@@ -626,7 +657,9 @@ class TestConfigurationIntegration:
 
             # Verify complete setup
             if config.profile != "integration_test":
-                raise AssertionError(f"Expected {"integration_test"}, got {config.profile}")
+                raise AssertionError(
+                    f"Expected {'integration_test'}, got {config.profile}"
+                )
             if not (config.debug):
                 raise AssertionError(f"Expected True, got {config.debug}")
 
@@ -642,10 +675,11 @@ class TestConfigurationIntegration:
 
             # Verify component configurations
             if config.output.format != "table":
-                raise AssertionError(f"Expected {"table"}, got {config.output.format}")
+                raise AssertionError(f"Expected {'table'}, got {config.output.format}")
             assert config.api.timeout == 30
             if config.auth.auto_refresh:
-                raise AssertionError(f"Expected False, got {config.auth.auto_refresh}")\ n
+                raise AssertionError(f"Expected False, got {config.auth.auto_refresh}")
+
     def test_configuration_modification(self) -> None:
         """Test modifying configuration values."""
         config = CLIConfig()
@@ -663,12 +697,14 @@ class TestConfigurationIntegration:
 
         # Verify modifications
         if config.output.format != "json":
-            raise AssertionError(f"Expected {"json"}, got {config.output.format}")
+            raise AssertionError(f"Expected {'json'}, got {config.output.format}")
         if not (config.output.no_color):
             raise AssertionError(f"Expected True, got {config.output.no_color}")
         assert config.output.quiet is True
         if config.api.url != "https://modified.api.com":
-            raise AssertionError(f"Expected {"https://modified.api.com"}, got {config.api.url}")
+            raise AssertionError(
+                f"Expected {'https://modified.api.com'}, got {config.api.url}"
+            )
         assert config.api.timeout == 45
 
     def test_settings_and_config_interaction(self) -> None:

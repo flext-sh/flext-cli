@@ -94,13 +94,14 @@ class TestCLIContext:
         )
 
         if context.is_debug:
+            raise AssertionError(f"Expected False, got {context.is_debug}")
 
-            raise AssertionError(f"Expected False, got {context.is_debug}")\ n
     def test_is_quiet_property(self, cli_context: CLIContext) -> None:
         """Test is_quiet property."""
         # Should return False because config.quiet is False
         if cli_context.is_quiet:
-            raise AssertionError(f"Expected False, got {cli_context.is_quiet}")\ n
+            raise AssertionError(f"Expected False, got {cli_context.is_quiet}")
+
     def test_is_quiet_property_true(
         self,
         cli_settings: CLISettings,
@@ -115,7 +116,6 @@ class TestCLIContext:
         )
 
         if not (context.is_quiet):
-
             raise AssertionError(f"Expected True, got {context.is_quiet}")
 
     def test_is_verbose_property(self, cli_context: CLIContext) -> None:
@@ -138,8 +138,8 @@ class TestCLIContext:
         )
 
         if context.is_verbose:
+            raise AssertionError(f"Expected False, got {context.is_verbose}")
 
-            raise AssertionError(f"Expected False, got {context.is_verbose}")\ n
     def test_print_debug_when_debug_enabled(self, cli_context: CLIContext) -> None:
         """Test print_debug when debug mode is enabled."""
         # Mock the console print method
@@ -286,7 +286,9 @@ class TestCLIContext:
 
         # Verify all calls were made
         if cli_context.console.print.call_count != 6:
-            raise AssertionError(f"Expected {6}, got {cli_context.console.print.call_count}")
+            raise AssertionError(
+                f"Expected {6}, got {cli_context.console.print.call_count}"
+            )
 
         # Verify specific calls
         expected_calls = [
@@ -322,8 +324,7 @@ class TestCLIContext:
         output_content = output.getvalue()
 
         if "Test message" not in output_content:
-
-            raise AssertionError(f"Expected {"Test message"} in {output_content}")
+            raise AssertionError(f"Expected {'Test message'} in {output_content}")
         assert "SUCCESS" in output_content
 
     def test_context_model_validation(self, mock_console: Console) -> None:
@@ -360,4 +361,6 @@ class TestCLIContext:
 
         assert isinstance(context.console, Console)
         if not (context.model_config["arbitrary_types_allowed"]):
-            raise AssertionError(f"Expected True, got {context.model_config["arbitrary_types_allowed"]}")
+            raise AssertionError(
+                f"Expected True, got {context.model_config['arbitrary_types_allowed']}"
+            )

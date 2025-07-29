@@ -7,13 +7,9 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-import asyncio
-import asyncio
-import asyncio
-
-
 from __future__ import annotations
 
+import asyncio
 from unittest.mock import Mock, patch
 
 import pytest
@@ -28,12 +24,13 @@ class TestCLIContext:
     def test_context_creation(self, cli_context: CLIContext) -> None:
         """Test CLI context creation."""
         if cli_context.profile != "test":
-            raise AssertionError(f"Expected {"test"}, got {cli_context.profile}")
+            raise AssertionError(f"Expected {'test'}, got {cli_context.profile}")
         assert cli_context.output_format == "json"
         if not (cli_context.debug):
             raise AssertionError(f"Expected True, got {cli_context.debug}")
         if cli_context.quiet:
-            raise AssertionError(f"Expected False, got {cli_context.quiet}")\ n        if not (cli_context.verbose):
+            raise AssertionError(f"Expected False, got {cli_context.quiet}")
+        if not (cli_context.verbose):
             raise AssertionError(f"Expected True, got {cli_context.verbose}")
         assert cli_context.no_color is True
 
@@ -41,12 +38,14 @@ class TestCLIContext:
         """Test CLI context with defaults."""
         context = CLIContext()
         if context.profile != "default":
-            raise AssertionError(f"Expected {"default"}, got {context.profile}")
+            raise AssertionError(f"Expected {'default'}, got {context.profile}")
         assert context.output_format == "table"
         if context.debug:
-            raise AssertionError(f"Expected False, got {context.debug}")\ n        assert context.quiet is False
+            raise AssertionError(f"Expected False, got {context.debug}")
+        assert context.quiet is False
         if context.verbose:
-            raise AssertionError(f"Expected False, got {context.verbose}")\ n        assert context.no_color is False
+            raise AssertionError(f"Expected False, got {context.verbose}")
+        assert context.no_color is False
 
     def test_context_immutability(self, cli_context: CLIContext) -> None:
         """Test CLI context immutability (FlextValueObject pattern)."""
@@ -84,7 +83,7 @@ class TestHandleServiceResult:
 
         result = success_function()
         if result != "success data":
-            raise AssertionError(f"Expected {"success data"}, got {result}")
+            raise AssertionError(f"Expected {'success data'}, got {result}")
 
     @patch("flext_cli.core.base.Console")
     def test_failed_result_handling(self, mock_console_class: Mock) -> None:
@@ -110,7 +109,7 @@ class TestHandleServiceResult:
 
         result = regular_function()
         if result != "regular data":
-            raise AssertionError(f"Expected {"regular data"}, got {result}")
+            raise AssertionError(f"Expected {'regular data'}, got {result}")
 
     @patch("flext_cli.core.base.Console")
     @patch("flext_cli.core.base.get_logger")
@@ -147,8 +146,9 @@ class TestHandleServiceResult:
             return "result"
 
         if documented_function.__name__ != "documented_function":
-
-            raise AssertionError(f"Expected {"documented_function"}, got {documented_function.__name__}")
+            raise AssertionError(
+                f"Expected {'documented_function'}, got {documented_function.__name__}"
+            )
         assert documented_function.__doc__ == "A documented function."
 
     def test_decorator_with_arguments(self) -> None:
@@ -160,7 +160,7 @@ class TestHandleServiceResult:
 
         result = function_with_args("test", 42, kwarg1="custom")
         if result != "test-42-custom":
-            raise AssertionError(f"Expected {"test-42-custom"}, got {result}")
+            raise AssertionError(f"Expected {'test-42-custom'}, got {result}")
 
     def test_result_with_complex_data(self) -> None:
         """Test handling FlextResult with complex data types."""
@@ -179,14 +179,15 @@ class TestHandleServiceResult:
 
         assert isinstance(result, dict)
         if result["data"] != [1, 2, 3]:
-            raise AssertionError(f"Expected {[1, 2, 3]}, got {result["data"]}")
+            raise AssertionError(f"Expected {[1, 2, 3]}, got {result['data']}")
         assert result["metadata"]["count"] == EXPECTED_DATA_COUNT
         if result["nested"]["deep"]["value"] != "found":
-            raise AssertionError(f"Expected {"found"}, got {result["nested"]["deep"]["value"]}")
+            raise AssertionError(
+                f"Expected {'found'}, got {result['nested']['deep']['value']}"
+            )
 
     def test_async_function_compatibility(self) -> None:
         """Test decorator compatibility with async functions."""
-
 
         @handle_service_result
         async def async_function() -> FlextResult[str]:
@@ -196,7 +197,7 @@ class TestHandleServiceResult:
         async def test_runner() -> None:
             result = await async_function()
             if result != "async result":
-                raise AssertionError(f"Expected {"async result"}, got {result}")
+                raise AssertionError(f"Expected {'async result'}, got {result}")
 
         # Run the async test
         asyncio.run(test_runner())
@@ -204,7 +205,6 @@ class TestHandleServiceResult:
     @patch("flext_cli.core.base.Console")
     def test_async_failed_result_handling(self, mock_console_class: Mock) -> None:
         """Test async handling of failed FlextResult."""
-
 
         mock_console = Mock()
         mock_console_class.return_value = mock_console
@@ -262,7 +262,6 @@ class TestHandleServiceResult:
     def test_async_non_result_passthrough(self) -> None:
         """Test async passthrough of non-FlextResult values."""
 
-
         @handle_service_result
         async def async_regular_function() -> str:
             await asyncio.sleep(0.01)
@@ -271,7 +270,7 @@ class TestHandleServiceResult:
         async def test_runner() -> None:
             result = await async_regular_function()
             if result != "async regular data":
-                raise AssertionError(f"Expected {"async regular data"}, got {result}")
+                raise AssertionError(f"Expected {'async regular data'}, got {result}")
 
         # Run the async test
         asyncio.run(test_runner())

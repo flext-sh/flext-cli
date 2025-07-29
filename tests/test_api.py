@@ -1,8 +1,5 @@
 """Tests for FLEXT CLI API functions.
 
-# Constants
-EXPECTED_BULK_SIZE = 2
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -25,6 +22,9 @@ from flext_cli.api import (
 from flext_core.result import FlextResult
 from rich.table import Table
 
+# Constants
+EXPECTED_BULK_SIZE = 2
+
 
 class TestFlextCliFormat:
     """Test cases for flext_cli_format function."""
@@ -39,7 +39,7 @@ class TestFlextCliFormat:
         assert result.is_success
         output = result.unwrap()
         if "Alice" not in output:
-            msg = f"Expected {"Alice"} in {output}"
+            msg = f"Expected {'Alice'} in {output}"
             raise AssertionError(msg)
         assert "Bob" in output
 
@@ -50,7 +50,7 @@ class TestFlextCliFormat:
         assert result.is_success
         output = result.unwrap()
         if "key" not in output:
-            msg = f"Expected {"key"} in {output}"
+            msg = f"Expected {'key'} in {output}"
             raise AssertionError(msg)
         assert "value" in output
 
@@ -60,7 +60,7 @@ class TestFlextCliFormat:
         result = flext_cli_format(data, "invalid_format")
         assert not result.is_success
         if "Format error" not in result.error:
-            msg = f"Expected {"Format error"} in {result.error}"
+            msg = f"Expected {'Format error'} in {result.error}"
             raise AssertionError(msg)
 
 
@@ -78,7 +78,7 @@ class TestFlextCliTable:
         table = result.unwrap()
         assert isinstance(table, Table)
         if table.title != "Team Members":
-            msg = f"Expected {"Team Members"}, got {table.title}"
+            msg = f"Expected {'Team Members'}, got {table.title}"
             raise AssertionError(msg)
 
     def test_create_table_from_single_dict(self) -> None:
@@ -164,7 +164,7 @@ class TestFlextCliTransformData:
         result = flext_cli_transform_data("not a list")  # type: ignore[arg-type]
         assert not result.is_success
         if "Data must be a list" not in result.error:
-            msg = f"Expected {"Data must be a list"} in {result.error}"
+            msg = f"Expected {'Data must be a list'} in {result.error}"
             raise AssertionError(msg)
 
 
@@ -190,7 +190,7 @@ class TestFlextCliAggregateData:
             item for item in aggregated if item["department"] == "Engineering"
         )
         if eng_dept["count"] != EXPECTED_BULK_SIZE:
-            msg = f"Expected {2}, got {eng_dept["count"]}"
+            msg = f"Expected {2}, got {eng_dept['count']}"
             raise AssertionError(msg)
 
     def test_aggregate_with_sum_fields(self) -> None:
@@ -213,7 +213,7 @@ class TestFlextCliAggregateData:
             item for item in aggregated if item["department"] == "Engineering"
         )
         if eng_dept["salary_sum"] != 210000:
-            msg = f"Expected {210000}, got {eng_dept["salary_sum"]}"
+            msg = f"Expected {210000}, got {eng_dept['salary_sum']}"
             raise AssertionError(msg)
         assert eng_dept["bonus_sum"] == 11000
 
@@ -222,7 +222,7 @@ class TestFlextCliAggregateData:
         result = flext_cli_aggregate_data("not a list", group_by="field")  # type: ignore[arg-type]
         assert not result.is_success
         if "Data must be a list" not in result.error:
-            msg = f"Expected {"Data must be a list"} in {result.error}"
+            msg = f"Expected {'Data must be a list'} in {result.error}"
             raise AssertionError(msg)
 
 
@@ -237,7 +237,7 @@ class TestFlextCliExport:
             result = flext_cli_export(data, tmp.name, "json")
             assert result.is_success
             if "Data exported" not in result.unwrap():
-                msg = f"Expected {"Data exported"} in {result.unwrap()}"
+                msg = f"Expected {'Data exported'} in {result.unwrap()}"
                 raise AssertionError(msg)
 
             # Verify file exists and has content
@@ -245,7 +245,7 @@ class TestFlextCliExport:
             assert path.exists()
             content = path.read_text(encoding="utf-8")
             if "Alice" not in content:
-                msg = f"Expected {"Alice"} in {content}"
+                msg = f"Expected {'Alice'} in {content}"
                 raise AssertionError(msg)
             path.unlink()  # Cleanup
 
@@ -262,7 +262,7 @@ class TestFlextCliExport:
             assert path.exists()
             content = path.read_text(encoding="utf-8")
             if "Bob" not in content:
-                msg = f"Expected {"Bob"} in {content}"
+                msg = f"Expected {'Bob'} in {content}"
                 raise AssertionError(msg)
             path.unlink()  # Cleanup
 
@@ -282,7 +282,7 @@ class TestFlextCliExport:
             assert path.exists()
             content = path.read_text(encoding="utf-8")
             if "Alice" not in content:
-                msg = f"Expected {"Alice"} in {content}"
+                msg = f"Expected {'Alice'} in {content}"
                 raise AssertionError(msg)
             assert "Bob" in content
             path.unlink()  # Cleanup
@@ -292,7 +292,7 @@ class TestFlextCliExport:
         result = flext_cli_export("not a list", "test.csv", "csv")
         assert not result.is_success
         if "CSV export requires list of dictionaries" not in result.error:
-            msg = f"Expected {"CSV export requires list of dictionaries"} in {result.error}"
+            msg = f"Expected {'CSV export requires list of dictionaries'} in {result.error}"
             raise AssertionError(msg)
 
     def test_export_unsupported_format(self) -> None:
@@ -301,7 +301,7 @@ class TestFlextCliExport:
         result = flext_cli_export(data, "test.txt", "unsupported")
         assert not result.is_success
         if "Unsupported export format" not in result.error:
-            msg = f"Expected {"Unsupported export format"} in {result.error}"
+            msg = f"Expected {'Unsupported export format'} in {result.error}"
             raise AssertionError(msg)
 
 
@@ -341,7 +341,7 @@ class TestFlextCliBatchExport:
             result = flext_cli_batch_export(datasets, tmpdir, "csv")
             assert not result.is_success
             if "Failed to export invalid" not in result.error:
-                msg = f"Expected {"Failed to export invalid"} in {result.error}"
+                msg = f"Expected {'Failed to export invalid'} in {result.error}"
                 raise AssertionError(msg)
 
 
@@ -353,7 +353,7 @@ class TestFlextCliUnwrapFunctions:
         result = FlextResult.ok("success_value")
         unwrapped = flext_cli_unwrap_or_default(result, "default")
         if unwrapped != "success_value":
-            msg = f"Expected {"success_value"}, got {unwrapped}"
+            msg = f"Expected {'success_value'}, got {unwrapped}"
             raise AssertionError(msg)
 
     def test_unwrap_or_default_failure(self) -> None:
@@ -361,7 +361,7 @@ class TestFlextCliUnwrapFunctions:
         result = FlextResult.fail("error message")
         unwrapped = flext_cli_unwrap_or_default(result, "default")
         if unwrapped != "default":
-            msg = f"Expected {"default"}, got {unwrapped}"
+            msg = f"Expected {'default'}, got {unwrapped}"
             raise AssertionError(msg)
 
     def test_unwrap_or_none_success(self) -> None:
@@ -369,7 +369,7 @@ class TestFlextCliUnwrapFunctions:
         result = FlextResult.ok("success_value")
         unwrapped = flext_cli_unwrap_or_none(result)
         if unwrapped != "success_value":
-            msg = f"Expected {"success_value"}, got {unwrapped}"
+            msg = f"Expected {'success_value'}, got {unwrapped}"
             raise AssertionError(msg)
 
     def test_unwrap_or_none_failure(self) -> None:

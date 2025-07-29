@@ -6,23 +6,19 @@ SPDX-License-Identifier: MIT
 Tests debug command functionality for coverage.
 """
 
-from pathlib import Path
-import asyncio
-from rich.table import Table
-import click
-from pathlib import Path
-
-
 from __future__ import annotations
 
+import asyncio
 import os
 import platform
 import sys
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import click
 from click.testing import CliRunner
 from flext_cli.commands.debug import debug_cmd
+from rich.table import Table
 
 
 class TestDebugCommands:
@@ -139,7 +135,6 @@ class TestDebugCommands:
         result = self.runner.invoke(debug_cmd, ["env"], obj={"console": MagicMock()})
 
         if result.exit_code != 0:
-
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
 
     @patch.dict(os.environ, {}, clear=True)
@@ -148,7 +143,6 @@ class TestDebugCommands:
         result = self.runner.invoke(debug_cmd, ["env"], obj={"console": MagicMock()})
 
         if result.exit_code != 0:
-
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
 
     @patch("flext_cli.commands.debug.get_config")
@@ -171,22 +165,21 @@ class TestDebugCommands:
             )
 
             if result.exit_code != 0:
-
                 raise AssertionError(f"Expected {0}, got {result.exit_code}")
 
     def test_debug_group_structure(self) -> None:
         """Test debug command group structure."""
         # Test that debug command group exists and has expected commands
         if debug_cmd.name != "debug":
-            raise AssertionError(f"Expected {"debug"}, got {debug_cmd.name}")
+            raise AssertionError(f"Expected {'debug'}, got {debug_cmd.name}")
         if "connectivity" not in debug_cmd.commands:
-            raise AssertionError(f"Expected {"connectivity"} in {debug_cmd.commands}")
+            raise AssertionError(f"Expected {'connectivity'} in {debug_cmd.commands}")
         assert "performance" in debug_cmd.commands
         if "validate" not in debug_cmd.commands:
-            raise AssertionError(f"Expected {"validate"} in {debug_cmd.commands}")
+            raise AssertionError(f"Expected {'validate'} in {debug_cmd.commands}")
         assert "trace" in debug_cmd.commands
         if "env" not in debug_cmd.commands:
-            raise AssertionError(f"Expected {"env"} in {debug_cmd.commands}")
+            raise AssertionError(f"Expected {'env'} in {debug_cmd.commands}")
         assert "paths" in debug_cmd.commands
 
 
@@ -220,14 +213,12 @@ class TestDebugFunctionality:
         flext_vars = {k: v for k, v in test_vars.items() if k.startswith("FLX_")}
 
         if len(flext_vars) != 1:
-
             raise AssertionError(f"Expected {1}, got {len(flext_vars)}")
         if "FLX_TEST" not in flext_vars:
-            raise AssertionError(f"Expected {"FLX_TEST"} in {flext_vars}")
+            raise AssertionError(f"Expected {'FLX_TEST'} in {flext_vars}")
 
     def test_path_operations(self) -> None:
         """Test Path operations used in commands."""
-
 
         # Test path operations used in the debug commands
         test_path = Path("/test/path")
@@ -235,7 +226,7 @@ class TestDebugFunctionality:
         # Test path joining (used in paths command)
         joined = test_path / "subpath"
         if str(joined) != "/test/path/subpath":
-            raise AssertionError(f"Expected {"/test/path/subpath"}, got {str(joined)}")
+            raise AssertionError(f"Expected {'/test/path/subpath'}, got {joined!s}")
 
     @patch("flext_cli.commands.debug.get_config")
     def test_config_access(self, mock_get_config) -> None:
@@ -247,7 +238,9 @@ class TestDebugFunctionality:
         # Test that get_config can be called
         config = mock_get_config()
         if config.config_dir != Path("/test/config"):
-            raise AssertionError(f"Expected {Path("/test/config")}, got {config.config_dir}")
+            raise AssertionError(
+                f"Expected {Path('/test/config')}, got {config.config_dir}"
+            )
 
     def test_sys_version_access(self) -> None:
         """Test sys.version access."""
@@ -263,7 +256,6 @@ class TestDebugFunctionality:
     def test_asyncio_integration(self) -> None:
         """Test asyncio integration."""
 
-
         # Test that asyncio.run exists (used in async commands)
         assert hasattr(asyncio, "run")
 
@@ -273,11 +265,10 @@ class TestDebugFunctionality:
 
         result = asyncio.run(test_async())
         if result != "test":
-            raise AssertionError(f"Expected {"test"}, got {result}")
+            raise AssertionError(f"Expected {'test'}, got {result}")
 
     def test_rich_table_integration(self) -> None:
         """Test Rich table integration."""
-
 
         # Test table creation (used in performance and paths commands)
         table = Table(title="Test Table")
@@ -286,12 +277,10 @@ class TestDebugFunctionality:
         table.add_row("value1", "value2")
 
         if table.title != "Test Table":
-
-            raise AssertionError(f"Expected {"Test Table"}, got {table.title}")
+            raise AssertionError(f"Expected {'Test Table'}, got {table.title}")
 
     def test_click_context_pattern(self) -> None:
         """Test Click context pattern used in commands."""
-
 
         # Test that we can create a mock context like used in commands
         console = MagicMock()
@@ -315,8 +304,8 @@ class TestDebugFunctionality:
                 missing_packages.append(package)
 
         # These packages should be available in test environment
-        if "click" not not in missing_packages:
-            raise AssertionError(f"Expected {"click" not} in {missing_packages}")
+        if "click" not in missing_packages:
+            raise AssertionError(f"Expected click not in {missing_packages}")
         assert "rich" not in missing_packages
 
     def test_sensitive_value_masking(self) -> None:
@@ -338,14 +327,12 @@ class TestDebugFunctionality:
             # Verify masking works correctly
             if key in ["FLX_TOKEN", "FLX_SECRET_KEY", "FLX_API_KEY"]:
                 if "****" not in display_value:
-                    raise AssertionError(f"Expected {"****"} in {display_value}")
-            else:
-                if display_value != value:
-                    raise AssertionError(f"Expected {value}, got {display_value}")
+                    raise AssertionError(f"Expected {'****'} in {display_value}")
+            elif display_value != value:
+                raise AssertionError(f"Expected {value}, got {display_value}")
 
     def test_path_existence_checking(self) -> None:
         """Test path existence checking pattern from paths command."""
-
 
         # Test the pattern used in paths command
         test_paths = {
@@ -355,8 +342,8 @@ class TestDebugFunctionality:
 
         for path in test_paths.values():
             exists = "✅" if path.exists() else "❌"
-            if exists not in ["✅", "❌"]  # Should be one of these symbols:
-                raise AssertionError(f"Expected {exists} in {["✅", "❌"]  # Should be one of these symbols}")
+            if exists not in ["✅", "❌"]:  # Should be one of these symbols
+                raise AssertionError(f"Expected {exists} in {['✅', '❌']}")
 
 
 class TestDebugCommandErrorHandling:

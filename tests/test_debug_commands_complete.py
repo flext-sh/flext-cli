@@ -6,10 +6,6 @@ SPDX-License-Identifier: MIT
 Focused tests to cover the remaining uncovered lines in debug commands.
 """
 
-from flext_cli.commands.debug import SENSITIVE_VALUE_PREVIEW_LENGTH
-from flext_cli.commands.debug import connectivity, debug_cmd, performance
-
-
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -17,7 +13,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import click
 import pytest
 from click.testing import CliRunner
-from flext_cli.commands.debug import connectivity, debug_cmd, performance
+from flext_cli.commands.debug import (
+    SENSITIVE_VALUE_PREVIEW_LENGTH,
+    connectivity,
+    debug_cmd,
+    performance,
+)
 
 
 class TestDebugConnectivity:
@@ -45,7 +46,6 @@ class TestDebugConnectivity:
         result = runner.invoke(connectivity, obj={"console": mock_console})
 
         if result.exit_code != 0:
-
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         mock_console.print.assert_any_call(
             "[yellow]Testing API connectivity...[/yellow]"
@@ -76,7 +76,6 @@ class TestDebugConnectivity:
         result = runner.invoke(connectivity, obj={"console": mock_console})
 
         if result.exit_code != 0:
-
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         mock_console.print.assert_any_call("  Version: Unknown")
         mock_console.print.assert_any_call("  Status: Unknown")
@@ -100,7 +99,6 @@ class TestDebugConnectivity:
         result = runner.invoke(connectivity, obj={"console": mock_console})
 
         if result.exit_code != 0:
-
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         mock_console.print.assert_any_call(
             "[yellow]⚠️  Could not get system status: Status error[/yellow]"
@@ -121,7 +119,6 @@ class TestDebugConnectivity:
         result = runner.invoke(connectivity, obj={"console": mock_console})
 
         if result.exit_code != 1:
-
             raise AssertionError(f"Expected {1}, got {result.exit_code}")
         mock_console.print.assert_any_call(
             "[red]❌ Failed to connect to API at https://api.flext.com[/red]"
@@ -142,7 +139,6 @@ class TestDebugConnectivity:
             result = runner.invoke(connectivity, obj={"console": mock_console})
 
             if result.exit_code != 1:
-
                 raise AssertionError(f"Expected {1}, got {result.exit_code}")
             mock_console.print.assert_any_call(
                 "[red]❌ Connection test failed: Connection failed[/red]"
@@ -162,7 +158,6 @@ class TestDebugConnectivity:
         result = runner.invoke(connectivity, obj={"console": mock_console})
 
         if result.exit_code != 1:
-
             raise AssertionError(f"Expected {1}, got {result.exit_code}")
         mock_console.print.assert_any_call(
             "[red]❌ Connection test failed: Network unreachable[/red]"
@@ -191,7 +186,6 @@ class TestDebugPerformance:
         result = runner.invoke(performance, obj={"console": mock_console})
 
         if result.exit_code != 0:
-
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         # Verify the command was called (specific print messages depend on implementation)
         mock_client.get_performance_metrics.assert_called_once()
@@ -222,7 +216,7 @@ class TestDebugCommandCoverage:
         """Test debug command group exists."""
         assert isinstance(debug_cmd, click.Group)
         if debug_cmd.name != "debug":
-            raise AssertionError(f"Expected {"debug"}, got {debug_cmd.name}")
+            raise AssertionError(f"Expected {'debug'}, got {debug_cmd.name}")
 
     def test_debug_help_message(self) -> None:
         """Test debug help message."""
@@ -231,7 +225,9 @@ class TestDebugCommandCoverage:
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         if "Debug commands for FLEXT CLI" not in result.output:
-            raise AssertionError(f"Expected {"Debug commands for FLEXT CLI"} in {result.output}")
+            raise AssertionError(
+                f"Expected {'Debug commands for FLEXT CLI'} in {result.output}"
+            )
 
     def test_connectivity_help(self) -> None:
         """Test connectivity command help."""
@@ -240,7 +236,9 @@ class TestDebugCommandCoverage:
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         if "Test API connectivity" not in result.output:
-            raise AssertionError(f"Expected {"Test API connectivity"} in {result.output}")
+            raise AssertionError(
+                f"Expected {'Test API connectivity'} in {result.output}"
+            )
 
     def test_performance_help(self) -> None:
         """Test performance command help."""
@@ -249,7 +247,9 @@ class TestDebugCommandCoverage:
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         if "Check system performance metrics" not in result.output:
-            raise AssertionError(f"Expected {"Check system performance metrics"} in {result.output}")
+            raise AssertionError(
+                f"Expected {'Check system performance metrics'} in {result.output}"
+            )
 
 
 # Additional small functions that need coverage
@@ -259,9 +259,7 @@ class TestDebugUtilityFunctions:
     def test_sensitive_value_preview_length_constant(self) -> None:
         """Test SENSITIVE_VALUE_PREVIEW_LENGTH constant."""
 
-
         if SENSITIVE_VALUE_PREVIEW_LENGTH != 4:
-
             raise AssertionError(f"Expected {4}, got {SENSITIVE_VALUE_PREVIEW_LENGTH}")
         assert isinstance(SENSITIVE_VALUE_PREVIEW_LENGTH, int)
 
@@ -269,8 +267,6 @@ class TestDebugUtilityFunctions:
         """Test that debug module imports work correctly."""
         # Test TYPE_CHECKING imports
         try:
-
-
             assert connectivity is not None
             assert debug_cmd is not None
             assert performance is not None
@@ -333,5 +329,5 @@ class TestDebugIntegrationScenarios:
 
         # Test that errors are handled consistently across commands
         result = runner.invoke(connectivity, obj={"console": mock_console})
-        if result.exit_code != 1  # Commands should exit with error code:
-            raise AssertionError(f"Expected {1  # Commands should exit with error code}, got {result.exit_code}")
+        if result.exit_code != 1:  # Commands should exit with error code
+            raise AssertionError(f"Expected {1}, got {result.exit_code}")

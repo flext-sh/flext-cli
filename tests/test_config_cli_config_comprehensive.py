@@ -27,10 +27,10 @@ class TestCLIConfig:
         config = CLIConfig()
 
         if config.profile != "default":
-
-            raise AssertionError(f"Expected {"default"}, got {config.profile}")
+            raise AssertionError(f"Expected {'default'}, got {config.profile}")
         if config.debug:
-            raise AssertionError(f"Expected False, got {config.debug}")\ n        assert hasattr(config, "output")
+            raise AssertionError(f"Expected False, got {config.debug}")
+        assert hasattr(config, "output")
         assert hasattr(config, "api")
         assert hasattr(config, "auth")
         assert hasattr(config, "directories")
@@ -46,14 +46,16 @@ class TestCLIConfig:
         )
 
         if config.api_url != "https://custom.api.com":
-
-            raise AssertionError(f"Expected {"https://custom.api.com"}, got {config.api_url}")
+            raise AssertionError(
+                f"Expected {'https://custom.api.com'}, got {config.api_url}"
+            )
         assert config.timeout == 60
         if config.max_retries != 5:
             raise AssertionError(f"Expected {5}, got {config.max_retries}")
         assert config.log_level == "DEBUG"
         if config.auto_refresh:
-            raise AssertionError(f"Expected False, got {config.auto_refresh}")\ n
+            raise AssertionError(f"Expected False, got {config.auto_refresh}")
+
     def test_config_dir_property(self) -> None:
         """Test config_dir property."""
         config = CLIConfig()
@@ -84,7 +86,9 @@ class TestCLIConfig:
 
         expected_file = Path.home() / ".flext" / ".refresh_token"
         if config.refresh_token_file != expected_file:
-            raise AssertionError(f"Expected {expected_file}, got {config.refresh_token_file}")
+            raise AssertionError(
+                f"Expected {expected_file}, got {config.refresh_token_file}"
+            )
 
     def test_config_validation_api_url(self) -> None:
         """Test config validation for API URL."""
@@ -143,14 +147,16 @@ class TestCLIConfig:
         config_dict = config.model_dump()
 
         if config_dict["api_url"] != "https://test.com":
-
-            raise AssertionError(f"Expected {"https://test.com"}, got {config_dict["api_url"]}")
+            raise AssertionError(
+                f"Expected {'https://test.com'}, got {config_dict['api_url']}"
+            )
         assert config_dict["timeout"] == 45
         if config_dict["max_retries"] != EXPECTED_BULK_SIZE:
-            raise AssertionError(f"Expected {2}, got {config_dict["max_retries"]}")
+            raise AssertionError(f"Expected {2}, got {config_dict['max_retries']}")
         assert config_dict["log_level"] == "WARNING"
         if config_dict["auto_refresh"]:
-            raise AssertionError(f"Expected False, got {config_dict["auto_refresh"]}")\ n
+            raise AssertionError(f"Expected False, got {config_dict['auto_refresh']}")
+
     def test_config_from_dict(self) -> None:
         """Test creating config from dictionary."""
         config_data = {
@@ -164,8 +170,9 @@ class TestCLIConfig:
         config = CLIConfig(**config_data)
 
         if config.api_url != "https://from-dict.com":
-
-            raise AssertionError(f"Expected {"https://from-dict.com"}, got {config.api_url}")
+            raise AssertionError(
+                f"Expected {'https://from-dict.com'}, got {config.api_url}"
+            )
         assert config.timeout == 120
         if config.max_retries != 7:
             raise AssertionError(f"Expected {7}, got {config.max_retries}")
@@ -181,8 +188,10 @@ class TestCLIConfig:
         config = CLIConfig()
 
         # Either reads from env or uses default - both are valid
-        if config.api_url not in ["https://env.test.com", "https://api.flext.com"]:
-            raise AssertionError(f"Expected {config.api_url} in {["https://env.test.com", "https://api.flext.com"]}")
+        if config.api_url not in {"https://env.test.com", "https://api.flext.com"}:
+            raise AssertionError(
+                f"Expected {config.api_url} in {['https://env.test.com', 'https://api.flext.com']}"
+            )
 
     def test_config_path_creation(self) -> None:
         """Test that config paths are properly created."""
@@ -215,7 +224,6 @@ class TestCLIConfig:
         config3 = CLIConfig(api_url="https://different.com", timeout=30)
 
         if config1 != config2:
-
             raise AssertionError(f"Expected {config2}, got {config1}")
         assert config1 != config3
 
@@ -238,7 +246,7 @@ class TestCLIConfig:
 
         config_str = str(config)
         if "CLIConfig" not in config_str:
-            raise AssertionError(f"Expected {"CLIConfig"} in {config_str}")
+            raise AssertionError(f"Expected {'CLIConfig'} in {config_str}")
         assert "https://test.com" in config_str
 
     def test_config_repr(self) -> None:
@@ -247,7 +255,7 @@ class TestCLIConfig:
 
         config_repr = repr(config)
         if "CLIConfig" not in config_repr:
-            raise AssertionError(f"Expected {"CLIConfig"} in {config_repr}")
+            raise AssertionError(f"Expected {'CLIConfig'} in {config_repr}")
 
     def test_config_json_serialization(self) -> None:
         """Test config JSON serialization."""
@@ -260,10 +268,10 @@ class TestCLIConfig:
         json_str = config.model_dump_json()
         assert isinstance(json_str, str)
         if "https://json.test.com" not in json_str:
-            raise AssertionError(f"Expected {"https://json.test.com"} in {json_str}")
+            raise AssertionError(f"Expected {'https://json.test.com'} in {json_str}")
         assert "90" in json_str
         if "DEBUG" not in json_str:
-            raise AssertionError(f"Expected {"DEBUG"} in {json_str}")
+            raise AssertionError(f"Expected {'DEBUG'} in {json_str}")
 
     def test_config_model_validation(self) -> None:
         """Test Pydantic model validation."""
@@ -301,7 +309,9 @@ class TestCLIConfig:
 
             # Paths should be under user home by default
             if config.config_dir.parts[0] != Path.home().parts[0]:
-                raise AssertionError(f"Expected {Path.home().parts[0]}, got {config.config_dir.parts[0]}")
+                raise AssertionError(
+                    f"Expected {Path.home().parts[0]}, got {config.config_dir.parts[0]}"
+                )
 
 
 class TestCLIConfigIntegration:
@@ -352,11 +362,15 @@ class TestCLIConfigIntegration:
 
         # Cache dir should be under config dir
         if config.cache_dir.parent != config.config_dir:
-            raise AssertionError(f"Expected {config.config_dir}, got {config.cache_dir.parent}")
+            raise AssertionError(
+                f"Expected {config.config_dir}, got {config.cache_dir.parent}"
+            )
 
         # Token files should be under config dir
         if config.token_file.parent != config.config_dir:
-            raise AssertionError(f"Expected {config.config_dir}, got {config.token_file.parent}")
+            raise AssertionError(
+                f"Expected {config.config_dir}, got {config.token_file.parent}"
+            )
         assert config.refresh_token_file.parent == config.config_dir
 
         # Files should have different names
