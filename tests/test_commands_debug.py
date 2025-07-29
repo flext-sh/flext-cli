@@ -1,8 +1,5 @@
 """Comprehensive tests for src/flext_cli/commands/debug.py module.
 
-# Constants
-EXPECTED_DATA_COUNT = 3
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
@@ -30,6 +27,9 @@ from flext_cli.commands.debug import (
 from rich.console import Console
 from rich.table import Table
 
+# Constants
+EXPECTED_DATA_COUNT = 3
+
 
 class TestDebugCommand:
     """Test debug command group."""
@@ -38,7 +38,7 @@ class TestDebugCommand:
         """Test debug command group creation."""
         assert isinstance(debug_cmd, click.Group)
         if debug_cmd.name != "debug":
-            raise AssertionError(f"Expected {"debug"}, got {debug_cmd.name}")
+            raise AssertionError(f"Expected {'debug'}, got {debug_cmd.name}")
         assert debug_cmd.help == "Debug commands for FLEXT CLI."
 
     def test_debug_cmd_has_all_subcommands(self) -> None:
@@ -54,15 +54,15 @@ class TestDebugCommand:
         ]
 
         for cmd in expected_commands:
-            if cmd in commands, f"Command '{cmd}' not found not in debug commands":
-                raise AssertionError(f"Expected {cmd in commands, f"Command '{cmd}' not found} in {debug commands"}")
+            if cmd not in commands:
+                raise AssertionError(f"Expected {cmd} in debug commands")
 
 
 class TestConnectivityCommand:
     """Test connectivity debug command."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> tuple[MagicMock, MagicMock]:
         """Create mock click context."""
         console = MagicMock(spec=Console)
         ctx = MagicMock(spec=click.Context)
@@ -72,10 +72,13 @@ class TestConnectivityCommand:
     @patch("flext_cli.commands.debug.FlextApiClient")
     @patch("asyncio.run")
     def test_connectivity_success(
-        self, mock_asyncio_run, mock_client_class, mock_context
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_client_class: MagicMock,
+        mock_context: tuple[MagicMock, MagicMock],
     ) -> None:
         """Test successful connectivity check."""
-        ctx, console = mock_context
+        ctx, _console = mock_context
 
         # Mock client
         mock_client = AsyncMock()
@@ -107,10 +110,13 @@ class TestConnectivityCommand:
     @patch("flext_cli.commands.debug.FlextApiClient")
     @patch("asyncio.run")
     def test_connectivity_connection_failed(
-        self, mock_asyncio_run, mock_client_class, mock_context
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_client_class: MagicMock,
+        mock_context: tuple[MagicMock, MagicMock],
     ) -> None:
         """Test connectivity check with connection failure."""
-        ctx, console = mock_context
+        ctx, _console = mock_context
 
         # Mock client
         mock_client = AsyncMock()
@@ -136,10 +142,13 @@ class TestConnectivityCommand:
     @patch("flext_cli.commands.debug.FlextApiClient")
     @patch("asyncio.run")
     def test_connectivity_status_exception(
-        self, mock_asyncio_run, mock_client_class, mock_context
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_client_class: MagicMock,
+        mock_context: tuple[MagicMock, MagicMock],
     ) -> None:
         """Test connectivity check with status retrieval exception."""
-        ctx, console = mock_context
+        ctx, _console = mock_context
 
         # Mock client
         mock_client = AsyncMock()
@@ -165,10 +174,13 @@ class TestConnectivityCommand:
     @patch("flext_cli.commands.debug.FlextApiClient")
     @patch("asyncio.run")
     def test_connectivity_general_exception(
-        self, mock_asyncio_run, mock_client_class, mock_context
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_client_class: MagicMock,
+        mock_context: tuple[MagicMock, MagicMock],
     ) -> None:
         """Test connectivity check with general exception."""
-        ctx, console = mock_context
+        ctx, _console = mock_context
 
         # Mock client to raise exception
         mock_client_class.side_effect = Exception("Connection error")
@@ -190,7 +202,7 @@ class TestPerformanceCommand:
     """Test performance debug command."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> tuple[MagicMock, MagicMock]:
         """Create mock click context."""
         console = MagicMock(spec=Console)
         ctx = MagicMock(spec=click.Context)
@@ -201,10 +213,14 @@ class TestPerformanceCommand:
     @patch("flext_cli.commands.debug.Table")
     @patch("asyncio.run")
     def test_performance_success(
-        self, mock_asyncio_run, mock_table_class, mock_client_class, mock_context
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_table_class: MagicMock,
+        mock_client_class: MagicMock,
+        mock_context: tuple[MagicMock, MagicMock],
     ) -> None:
         """Test successful performance metrics retrieval."""
-        ctx, console = mock_context
+        ctx, _console = mock_context
 
         # Mock client
         mock_client = AsyncMock()
@@ -244,10 +260,13 @@ class TestPerformanceCommand:
     @patch("flext_cli.commands.debug.FlextApiClient")
     @patch("asyncio.run")
     def test_performance_exception(
-        self, mock_asyncio_run, mock_client_class, mock_context
+        self,
+        mock_asyncio_run: MagicMock,
+        mock_client_class: MagicMock,
+        mock_context: tuple[MagicMock, MagicMock],
     ) -> None:
         """Test performance command with exception."""
-        ctx, console = mock_context
+        ctx, _console = mock_context
 
         # Mock client to raise exception
         mock_client = AsyncMock()
@@ -271,7 +290,7 @@ class TestValidateCommand:
     """Test validate debug command."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> tuple[MagicMock, MagicMock]:
         """Create mock click context."""
         console = MagicMock(spec=Console)
         ctx = MagicMock(spec=click.Context)
@@ -281,9 +300,13 @@ class TestValidateCommand:
     @patch("flext_cli.commands.debug.get_config")
     @patch("sys.version_info", (3, 11, 0))
     @patch("sys.version", "3.11.0 (main, Oct 24 2022)")
-    def test_validate_success(self, mock_get_config, mock_context) -> None:
+    def test_validate_success(
+        self,
+        mock_get_config: MagicMock,
+        mock_context: tuple[MagicMock, MagicMock],
+    ) -> None:
         """Test successful validation."""
-        ctx, console = mock_context
+        ctx, _console = mock_context
 
         # Mock config
         mock_config = MagicMock()
@@ -305,9 +328,13 @@ class TestValidateCommand:
     @patch("flext_cli.commands.debug.get_config")
     @patch("sys.version_info", (3, 9, 0))
     @patch("sys.version", "3.9.0 (main, Oct 24 2021)")
-    def test_validate_old_python(self, mock_get_config, mock_context) -> None:
+    def test_validate_old_python(
+        self,
+        mock_get_config: MagicMock,
+        mock_context: tuple[MagicMock, MagicMock],
+    ) -> None:
         """Test validation with old Python version."""
-        ctx, console = mock_context
+        ctx, _console = mock_context
 
         # Mock config
         mock_config = MagicMock()
@@ -329,9 +356,13 @@ class TestValidateCommand:
     @patch("flext_cli.commands.debug.get_config")
     @patch("sys.version_info", (3, 11, 0))
     @patch("sys.version", "3.11.0 (main, Oct 24 2022)")
-    def test_validate_missing_config(self, mock_get_config, mock_context) -> None:
+    def test_validate_missing_config(
+        self,
+        mock_get_config: MagicMock,
+        mock_context: tuple[MagicMock, MagicMock],
+    ) -> None:
         """Test validation with missing config file."""
-        ctx, console = mock_context
+        ctx, _console = mock_context
 
         # Mock config
         mock_config = MagicMock()
@@ -353,9 +384,13 @@ class TestValidateCommand:
     @patch("flext_cli.commands.debug.get_config")
     @patch("sys.version_info", (3, 11, 0))
     @patch("sys.version", "3.11.0 (main, Oct 24 2022)")
-    def test_validate_missing_packages(self, mock_get_config, mock_context) -> None:
+    def test_validate_missing_packages(
+        self,
+        mock_get_config: MagicMock,
+        mock_context: tuple[MagicMock, MagicMock],
+    ) -> None:
         """Test validation with missing packages."""
-        ctx, console = mock_context
+        ctx, _console = mock_context
 
         # Mock config
         mock_config = MagicMock()
@@ -365,8 +400,8 @@ class TestValidateCommand:
         # Mock config file exists
         with patch.object(Path, "exists", return_value=True):
             # Mock some packages missing
-            def mock_import(package, *args, **kwargs):
-                if package in ["click", "missing_package"]:
+            def mock_import(package: str, *args: object, **kwargs: object) -> object:
+                if package in {"click", "missing_package"}:
                     msg = f"No module named '{package}'"
                     raise ImportError(msg)
                 return MagicMock()
@@ -385,10 +420,15 @@ class TestValidateCommand:
     @patch("platform.release", return_value="5.15.0")
     @patch("platform.machine", return_value="x86_64")
     def test_validate_environment_info(
-        self, mock_machine, mock_release, mock_system, mock_get_config, mock_context
+        self,
+        mock_machine: MagicMock,
+        mock_release: MagicMock,
+        mock_system: MagicMock,
+        mock_get_config: MagicMock,
+        mock_context: tuple[MagicMock, MagicMock],
     ) -> None:
         """Test validation shows environment information."""
-        ctx, console = mock_context
+        ctx, _console = mock_context
 
         # Mock config
         mock_config = MagicMock()
@@ -414,14 +454,14 @@ class TestTraceCommand:
     """Test trace debug command."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> tuple[MagicMock, MagicMock]:
         """Create mock click context."""
         console = MagicMock(spec=Console)
         ctx = MagicMock(spec=click.Context)
         ctx.obj = {"console": console}
         return ctx, console
 
-    def test_trace_command(self, mock_context) -> None:
+    def test_trace_command(self, mock_context: tuple[MagicMock, MagicMock]) -> None:
         """Test trace command."""
         ctx, console = mock_context
 
@@ -439,7 +479,7 @@ class TestEnvCommand:
     """Test env debug command."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> tuple[MagicMock, MagicMock]:
         """Create mock click context."""
         console = MagicMock(spec=Console)
         ctx = MagicMock(spec=click.Context)
@@ -456,9 +496,13 @@ class TestEnvCommand:
             "OTHER_VAR": "not_flext",
         },
     )
-    def test_env_with_variables(self, mock_table_class, mock_context) -> None:
+    def test_env_with_variables(
+        self,
+        mock_table_class: MagicMock,
+        mock_context: tuple[MagicMock, MagicMock],
+    ) -> None:
         """Test env command with FLEXT variables."""
-        ctx, console = mock_context
+        ctx, _console = mock_context
 
         # Mock table
         mock_table = MagicMock(spec=Table)
@@ -479,11 +523,11 @@ class TestEnvCommand:
         # Verify sensitive values are masked
         calls = mock_table.add_row.call_args_list
         token_call = next(call for call in calls if "FLX_TOKEN" in call[0])
-        if "secr****" not in token_call[0][1]  # Token should be masked:
-            raise AssertionError(f"Expected {"secr****"} in {token_call[0][1]  # Token should be masked}")
+        if "secr****" not in token_call[0][1]:  # Token should be masked
+            raise AssertionError(f"Expected {'secr****'} in {token_call[0][1]}")
 
     @patch.dict(os.environ, {}, clear=True)
-    def test_env_no_variables(self, mock_context) -> None:
+    def test_env_no_variables(self, mock_context: tuple[MagicMock, MagicMock]) -> None:
         """Test env command with no FLEXT variables."""
         ctx, console = mock_context
 
@@ -503,9 +547,13 @@ class TestEnvCommand:
             "FLX_API_KEY": "verylongapikey123456",
         },
     )
-    def test_env_mask_sensitive_values(self, mock_table_class, mock_context) -> None:
+    def test_env_mask_sensitive_values(
+        self,
+        mock_table_class: MagicMock,
+        mock_context: tuple[MagicMock, MagicMock],
+    ) -> None:
         """Test env command masks sensitive values correctly."""
-        ctx, console = mock_context
+        ctx, _console = mock_context
 
         # Mock table
         mock_table = MagicMock(spec=Table)
@@ -520,19 +568,19 @@ class TestEnvCommand:
         # Short value should be completely masked
         short_call = next(call for call in calls if "FLX_SECRET_KEY" in call[0])
         if short_call[0][1] != "****":
-            raise AssertionError(f"Expected {"****"}, got {short_call[0][1]}")
+            raise AssertionError(f"Expected {'****'}, got {short_call[0][1]}")
 
         # Long value should show first 4 chars + ****
         long_call = next(call for call in calls if "FLX_API_KEY" in call[0])
         if long_call[0][1] != "very****":
-            raise AssertionError(f"Expected {"very****"}, got {long_call[0][1]}")
+            raise AssertionError(f"Expected {'very****'}, got {long_call[0][1]}")
 
 
 class TestPathsCommand:
     """Test paths debug command."""
 
     @pytest.fixture
-    def mock_context(self):
+    def mock_context(self) -> tuple[MagicMock, MagicMock]:
         """Create mock click context."""
         console = MagicMock(spec=Console)
         ctx = MagicMock(spec=click.Context)
@@ -543,10 +591,14 @@ class TestPathsCommand:
     @patch("flext_cli.commands.debug.Table")
     @patch("flext_cli.commands.debug.Path")
     def test_paths_command(
-        self, mock_path_class, mock_table_class, mock_get_config, mock_context
+        self,
+        mock_path_class: MagicMock,
+        mock_table_class: MagicMock,
+        mock_get_config: MagicMock,
+        mock_context: tuple[MagicMock, MagicMock],
     ) -> None:
         """Test paths command."""
-        ctx, console = mock_context
+        ctx, _console = mock_context
 
         # Mock config
         mock_config = MagicMock()
@@ -580,17 +632,21 @@ class TestPathsCommand:
         # Verify all paths show as existing
         calls = mock_table.add_row.call_args_list
         for call in calls:
-            if call[0][2] != "✅"  # All paths should exist:
-                raise AssertionError(f"Expected {"✅"  # All paths should exist}, got {call[0][2]}")
+            if call[0][2] != "✅":
+                raise AssertionError(f"Expected {'✅'} in {call[0][2]}")
 
     @patch("flext_cli.commands.debug.get_config")
     @patch("flext_cli.commands.debug.Table")
     @patch("flext_cli.commands.debug.Path")
     def test_paths_command_missing_paths(
-        self, mock_path_class, mock_table_class, mock_get_config, mock_context
+        self,
+        mock_path_class: MagicMock,
+        mock_table_class: MagicMock,
+        mock_get_config: MagicMock,
+        mock_context: tuple[MagicMock, MagicMock],
     ) -> None:
         """Test paths command with missing paths."""
-        ctx, console = mock_context
+        ctx, _console = mock_context
 
         # Mock config
         mock_config = MagicMock()
@@ -618,8 +674,8 @@ class TestPathsCommand:
         # Verify all paths show as missing
         calls = mock_table.add_row.call_args_list
         for call in calls:
-            if call[0][2] != "❌"  # All paths should be missing:
-                raise AssertionError(f"Expected {"❌"  # All paths should be missing}, got {call[0][2]}")
+            if call[0][2] != "❌":
+                raise AssertionError(f"Expected {'❌'} in {call[0][2]}")
 
 
 class TestDebugIntegration:
@@ -638,17 +694,24 @@ class TestDebugIntegration:
 
         # Verify they're all part of the debug group
         registered_commands = debug_cmd.commands
-        if len(registered_commands) < 6, "Missing commands in debug group":
-            raise AssertionError(f"Expected {len(registered_commands)} >= {6, "Missing commands in debug group"}")
+        if len(registered_commands) < 6:
+            raise AssertionError(
+                f"Expected {len(registered_commands)} >= {6}, Missing commands in debug group"
+            )
 
     def test_debug_group_help(self) -> None:
         """Test debug group help text."""
         if debug_cmd.help != "Debug commands for FLEXT CLI.":
-            raise AssertionError(f"Expected {"Debug commands for FLEXT CLI."}, got {debug_cmd.help}")
+            raise AssertionError(
+                f"Expected {'Debug commands for FLEXT CLI.'}, got {debug_cmd.help}"
+            )
         assert debug_cmd.name == "debug"
 
     @patch("flext_cli.commands.debug.get_config")
-    def test_config_integration(self, mock_get_config) -> None:
+    def test_config_integration(
+        self,
+        mock_get_config: MagicMock,
+    ) -> None:
         """Test that commands properly integrate with config system."""
         # Mock config
         mock_config = MagicMock()

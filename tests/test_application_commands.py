@@ -13,8 +13,6 @@ from __future__ import annotations
 
 from uuid import UUID, uuid4
 
-from flext_cli.domain.entities import CommandType
-
 from flext_cli.application.commands import (
     CancelCommandCommand,
     CreateConfigCommand,
@@ -49,11 +47,12 @@ class TestExecuteCommandCommand:
         )
 
         if cmd.name != "test_command":
-
-            raise AssertionError(f"Expected {"test_command"}, got {cmd.name}")
+            raise AssertionError(f"Expected {'test_command'}, got {cmd.name}")
         assert cmd.command_line == "echo hello"
         if cmd.command_type != CommandType.SYSTEM:
-            raise AssertionError(f"Expected {CommandType.SYSTEM}, got {cmd.command_type}")
+            raise AssertionError(
+                f"Expected {CommandType.SYSTEM}, got {cmd.command_type}"
+            )
         assert cmd.timeout_seconds is None
 
         # Check optional parameters have default values
@@ -74,11 +73,12 @@ class TestExecuteCommandCommand:
         )
 
         if cmd.name != "complex_command":
-
-            raise AssertionError(f"Expected {"complex_command"}, got {cmd.name}")
+            raise AssertionError(f"Expected {'complex_command'}, got {cmd.name}")
         assert cmd.command_line == "python script.py"
         if cmd.command_type != CommandType.PIPELINE:
-            raise AssertionError(f"Expected {CommandType.PIPELINE}, got {cmd.command_type}")
+            raise AssertionError(
+                f"Expected {CommandType.PIPELINE}, got {cmd.command_type}"
+            )
         assert cmd.timeout_seconds == 30.0
 
     def test_optional_parameters_assignment(self) -> None:
@@ -95,14 +95,13 @@ class TestExecuteCommandCommand:
         cmd.environment = {"ENV_VAR": "value"}
 
         if cmd.user_id != test_uuid:
-
             raise AssertionError(f"Expected {test_uuid}, got {cmd.user_id}")
         assert cmd.session_id == "session123"
         if cmd.working_directory != "/test/tmp":
-            raise AssertionError(f"Expected {"/test/tmp"}, got {cmd.working_directory}")
+            raise AssertionError(f"Expected {'/test/tmp'}, got {cmd.working_directory}")
         assert cmd.arguments == {"arg1": "value1"}
         if cmd.options != {"verbose": True}:
-            raise AssertionError(f"Expected {{"verbose": True}}, got {cmd.options}")
+            raise AssertionError(f'Expected {{"verbose": True}}, got {cmd.options}')
         assert cmd.environment == {"ENV_VAR": "value"}
 
     def test_different_command_types(self) -> None:
@@ -136,7 +135,6 @@ class TestCancelCommandCommand:
         cmd = CancelCommandCommand(command_id)
 
         if cmd.command_id != command_id:
-
             raise AssertionError(f"Expected {command_id}, got {cmd.command_id}")
         assert cmd.user_id is None
 
@@ -147,7 +145,6 @@ class TestCancelCommandCommand:
         cmd = CancelCommandCommand(command_id, user_id)
 
         if cmd.command_id != command_id:
-
             raise AssertionError(f"Expected {command_id}, got {cmd.command_id}")
         assert cmd.user_id == user_id
 
@@ -171,10 +168,11 @@ class TestCreateConfigCommand:
         # Test default values
         assert cmd.description is None
         if cmd.version != "1.0.0":
-            raise AssertionError(f"Expected {"1.0.0"}, got {cmd.version}")
+            raise AssertionError(f"Expected {'1.0.0'}, got {cmd.version}")
         assert cmd.user_id is None
         if cmd.is_global:
-            raise AssertionError(f"Expected False, got {cmd.is_global}")\ n
+            raise AssertionError(f"Expected False, got {cmd.is_global}")
+
     def test_attribute_assignment(self) -> None:
         """Test attribute assignment."""
         cmd = CreateConfigCommand()
@@ -188,14 +186,13 @@ class TestCreateConfigCommand:
         cmd.is_global = True
 
         if cmd.name != "test_config":
-
-            raise AssertionError(f"Expected {"test_config"}, got {cmd.name}")
+            raise AssertionError(f"Expected {'test_config'}, got {cmd.name}")
         assert cmd.description == "Test configuration"
         if cmd.config_data != {"key": "value"}:
-            raise AssertionError(f"Expected {{"key": "value"}}, got {cmd.config_data}")
+            raise AssertionError(f'Expected {{"key": "value"}}, got {cmd.config_data}')
         assert cmd.config_type == "application"
         if cmd.version != "2.0.0":
-            raise AssertionError(f"Expected {"2.0.0"}, got {cmd.version}")
+            raise AssertionError(f"Expected {'2.0.0'}, got {cmd.version}")
         assert isinstance(cmd.user_id, UUID)
         if not (cmd.is_global):
             raise AssertionError(f"Expected True, got {cmd.is_global}")
@@ -246,14 +243,15 @@ class TestUpdateConfigCommand:
         cmd.user_id = user_id
 
         if cmd.config_id != config_id:
-
             raise AssertionError(f"Expected {config_id}, got {cmd.config_id}")
         assert cmd.name == "updated_config"
         if cmd.description != "Updated description":
-            raise AssertionError(f"Expected {"Updated description"}, got {cmd.description}")
+            raise AssertionError(
+                f"Expected {'Updated description'}, got {cmd.description}"
+            )
         assert cmd.config_data == {"updated": "data"}
         if cmd.version != "1.1.0":
-            raise AssertionError(f"Expected {"1.1.0"}, got {cmd.version}")
+            raise AssertionError(f"Expected {'1.1.0'}, got {cmd.version}")
         assert cmd.user_id == user_id
 
     def test_partial_updates(self) -> None:
@@ -264,13 +262,13 @@ class TestUpdateConfigCommand:
         # Test updating only name
         cmd.name = "new_name"
         if cmd.name != "new_name":
-            raise AssertionError(f"Expected {"new_name"}, got {cmd.name}")
+            raise AssertionError(f"Expected {'new_name'}, got {cmd.name}")
         assert cmd.description is None
 
         # Test updating only description
         cmd.description = "new_description"
         if cmd.description != "new_description":
-            raise AssertionError(f"Expected {"new_description"}, got {cmd.description}")
+            raise AssertionError(f"Expected {'new_description'}, got {cmd.description}")
         assert cmd.config_data is None
 
 
@@ -292,7 +290,6 @@ class TestDeleteConfigCommand:
         cmd.user_id = user_id
 
         if cmd.config_id != config_id:
-
             raise AssertionError(f"Expected {config_id}, got {cmd.config_id}")
         assert cmd.user_id == user_id
 
@@ -315,7 +312,6 @@ class TestValidateConfigCommand:
         cmd.user_id = user_id
 
         if cmd.config_id != config_id:
-
             raise AssertionError(f"Expected {config_id}, got {cmd.config_id}")
         assert cmd.user_id == user_id
 
@@ -340,11 +336,12 @@ class TestStartSessionCommand:
         cmd.environment = {"PATH": "/usr/bin", "HOME": "/home/user"}
 
         if cmd.session_id != "session_123":
-
-            raise AssertionError(f"Expected {"session_123"}, got {cmd.session_id}")
+            raise AssertionError(f"Expected {'session_123'}, got {cmd.session_id}")
         assert isinstance(cmd.user_id, UUID)
         if cmd.working_directory != "/home/user":
-            raise AssertionError(f"Expected {"/home/user"}, got {cmd.working_directory}")
+            raise AssertionError(
+                f"Expected {'/home/user'}, got {cmd.working_directory}"
+            )
         assert cmd.environment == {"PATH": "/usr/bin", "HOME": "/home/user"}
 
     def test_environment_variations(self) -> None:
@@ -389,7 +386,6 @@ class TestEndSessionCommand:
         cmd.user_id = user_id
 
         if cmd.session_id != session_id:
-
             raise AssertionError(f"Expected {session_id}, got {cmd.session_id}")
         assert cmd.user_id == user_id
 
@@ -426,17 +422,18 @@ class TestInstallPluginCommand:
         cmd.user_id = user_id
 
         if cmd.name != "test_plugin":
-
-            raise AssertionError(f"Expected {"test_plugin"}, got {cmd.name}")
+            raise AssertionError(f"Expected {'test_plugin'}, got {cmd.name}")
         assert cmd.version == "1.0.0"
         if cmd.entry_point != "test_plugin.main":
-            raise AssertionError(f"Expected {"test_plugin.main"}, got {cmd.entry_point}")
+            raise AssertionError(
+                f"Expected {'test_plugin.main'}, got {cmd.entry_point}"
+            )
         assert cmd.commands == ["cmd1", "cmd2"]
         if cmd.dependencies != ["dep1", "dep2"]:
-            raise AssertionError(f"Expected {["dep1", "dep2"]}, got {cmd.dependencies}")
+            raise AssertionError(f"Expected {['dep1', 'dep2']}, got {cmd.dependencies}")
         assert cmd.author == "Test Author"
         if cmd.license != "MIT":
-            raise AssertionError(f"Expected {"MIT"}, got {cmd.license}")
+            raise AssertionError(f"Expected {'MIT'}, got {cmd.license}")
         assert cmd.repository_url == "https://github.com/test/plugin"
         if cmd.user_id != user_id:
             raise AssertionError(f"Expected {user_id}, got {cmd.user_id}")
@@ -449,7 +446,6 @@ class TestInstallPluginCommand:
         cmd.dependencies = []
 
         if cmd.commands != []:
-
             raise AssertionError(f"Expected {[]}, got {cmd.commands}")
         assert cmd.dependencies == []
 
@@ -472,7 +468,6 @@ class TestUninstallPluginCommand:
         cmd.user_id = user_id
 
         if cmd.plugin_id != plugin_id:
-
             raise AssertionError(f"Expected {plugin_id}, got {cmd.plugin_id}")
         assert cmd.user_id == user_id
 
@@ -495,7 +490,6 @@ class TestEnablePluginCommand:
         cmd.user_id = user_id
 
         if cmd.plugin_id != plugin_id:
-
             raise AssertionError(f"Expected {plugin_id}, got {cmd.plugin_id}")
         assert cmd.user_id == user_id
 
@@ -518,7 +512,6 @@ class TestDisablePluginCommand:
         cmd.user_id = user_id
 
         if cmd.plugin_id != plugin_id:
-
             raise AssertionError(f"Expected {plugin_id}, got {cmd.plugin_id}")
         assert cmd.user_id == user_id
 
@@ -544,11 +537,12 @@ class TestListCommandsCommand:
         cmd.session_id = "session_456"
 
         if cmd.command_type != CommandType.PIPELINE:
-
-            raise AssertionError(f"Expected {CommandType.PIPELINE}, got {cmd.command_type}")
+            raise AssertionError(
+                f"Expected {CommandType.PIPELINE}, got {cmd.command_type}"
+            )
         assert cmd.user_id == user_id
         if cmd.session_id != "session_456":
-            raise AssertionError(f"Expected {"session_456"}, got {cmd.session_id}")
+            raise AssertionError(f"Expected {'session_456'}, got {cmd.session_id}")
 
     def test_all_command_types(self) -> None:
         """Test with all command types."""
@@ -584,7 +578,6 @@ class TestGetCommandHistoryCommand:
         cmd.command_type = CommandType.DATA
 
         if cmd.user_id != user_id:
-
             raise AssertionError(f"Expected {user_id}, got {cmd.user_id}")
         assert cmd.session_id == "session_789"
         if cmd.limit != 50:
@@ -620,7 +613,6 @@ class TestGetCommandStatusCommand:
         cmd.user_id = user_id
 
         if cmd.command_id != command_id:
-
             raise AssertionError(f"Expected {command_id}, got {cmd.command_id}")
         assert cmd.user_id == user_id
 
@@ -647,11 +639,11 @@ class TestListConfigsCommand:
         cmd.include_global = False
 
         if cmd.config_type != "application":
-
-            raise AssertionError(f"Expected {"application"}, got {cmd.config_type}")
+            raise AssertionError(f"Expected {'application'}, got {cmd.config_type}")
         assert cmd.user_id == user_id
         if cmd.include_global:
-            raise AssertionError(f"Expected False, got {cmd.include_global}")\ n
+            raise AssertionError(f"Expected False, got {cmd.include_global}")
+
     def test_config_type_variations(self) -> None:
         """Test different config type values."""
         cmd = ListConfigsCommand()
@@ -671,8 +663,8 @@ class TestListPluginsCommand:
         cmd = ListPluginsCommand()
 
         if cmd.enabled_only:
-
-            raise AssertionError(f"Expected False, got {cmd.enabled_only}")\ n        assert cmd.installed_only is False
+            raise AssertionError(f"Expected False, got {cmd.enabled_only}")
+        assert cmd.installed_only is False
         assert cmd.user_id is None
 
     def test_attribute_assignment(self) -> None:
@@ -685,7 +677,6 @@ class TestListPluginsCommand:
         cmd.user_id = user_id
 
         if not (cmd.enabled_only):
-
             raise AssertionError(f"Expected True, got {cmd.enabled_only}")
         assert cmd.installed_only is True
         if cmd.user_id != user_id:
@@ -728,7 +719,6 @@ class TestGetSessionInfoCommand:
         cmd.user_id = user_id
 
         if cmd.session_id != session_id:
-
             raise AssertionError(f"Expected {session_id}, got {cmd.session_id}")
         assert cmd.user_id == user_id
 
@@ -739,7 +729,7 @@ class TestCommandImports:
     def test_all_imports_work(self) -> None:
         """Test that all command classes can be imported."""
         # Test that all classes are importable
-
+        from flext_cli.commands.application import (
             CancelCommandCommand,
             CreateConfigCommand,
             DeleteConfigCommand,
@@ -783,7 +773,6 @@ class TestCommandImports:
     def test_command_type_import(self) -> None:
         """Test CommandType import."""
 
-
         assert CommandType
         assert CommandType.SYSTEM
         assert CommandType.PIPELINE
@@ -796,7 +785,6 @@ class TestCommandImports:
     def test_uuid_import(self) -> None:
         """Test UUID import and usage."""
 
-
         # Test that UUID works as expected
         test_uuid = uuid4()
         assert isinstance(test_uuid, UUID)
@@ -804,8 +792,8 @@ class TestCommandImports:
         # Test string conversion
         uuid_str = str(test_uuid)
         assert isinstance(uuid_str, str)
-        if len(uuid_str) != 36  # Standard UUID string length:
-            raise AssertionError(f"Expected {36  # Standard UUID string length}, got {len(uuid_str)}")
+        if len(uuid_str) != 36:  # Standard UUID string length
+            raise AssertionError(f"Expected {36}, got {len(uuid_str)}")
 
 
 class TestCommandInstantiation:
@@ -869,10 +857,11 @@ class TestCommandInstantiation:
         # These are defined as class attributes in the command classes
         assert config_cmd.description is None
         if config_cmd.version != "1.0.0":
-            raise AssertionError(f"Expected {"1.0.0"}, got {config_cmd.version}")
+            raise AssertionError(f"Expected {'1.0.0'}, got {config_cmd.version}")
         assert config_cmd.user_id is None
         if config_cmd.is_global:
-            raise AssertionError(f"Expected False, got {config_cmd.is_global}")\ n
+            raise AssertionError(f"Expected False, got {config_cmd.is_global}")
+
 
 class TestCommandTypeCompatibility:
     """Test CommandType compatibility across commands."""
@@ -887,8 +876,7 @@ class TestCommandTypeCompatibility:
             )
             if cmd.command_type != cmd_type:
                 raise AssertionError(f"Expected {cmd_type}, got {cmd.command_type}")
-            if cmd.command_type.value not in [:
-                raise AssertionError(f"Expected {cmd.command_type.value} in {[}")
+            if cmd.command_type.value not in {
                 "system",
                 "pipeline",
                 "plugin",
@@ -896,7 +884,20 @@ class TestCommandTypeCompatibility:
                 "config",
                 "auth",
                 "monitoring",
-            ]
+            }:
+                raise AssertionError(
+                    f"Expected {cmd.command_type.value} is not in {
+                        [
+                            'system',
+                            'pipeline',
+                            'plugin',
+                            'data',
+                            'config',
+                            'auth',
+                            'monitoring',
+                        ]
+                    }"
+                )
 
     def test_command_type_usage_in_list_commands(self) -> None:
         """Test CommandType usage in ListCommandsCommand."""

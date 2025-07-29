@@ -216,9 +216,8 @@ class TestGetAuthToken:
             with patch("flext_cli.utils.auth.get_token_path", return_value=token_path):
                 result = get_auth_token()
 
-                if result != "my-auth-token"  # Stripped:
-
-                    raise AssertionError(f"Expected {"my-auth-token"  # Stripped}, got {result}")
+                if result != "my-auth-token":  # Stripped
+                    raise AssertionError(f"Expected {'my-auth-token'}, got {result}")
 
     def test_get_auth_token_not_exists(self) -> None:
         """Test getting auth token when file doesn't exist."""
@@ -272,9 +271,8 @@ class TestGetRefreshToken:
             ):
                 result = get_refresh_token()
 
-                if result != "my-refresh-token"  # Stripped:
-
-                    raise AssertionError(f"Expected {"my-refresh-token"  # Stripped}, got {result}")
+                if result != "my-refresh-token":  # Stripped
+                    raise AssertionError(f"Expected {'my-refresh-token'}, got {result}")
 
     def test_get_refresh_token_not_exists(self) -> None:
         """Test getting refresh token when file doesn't exist."""
@@ -443,7 +441,8 @@ class TestIsAuthenticated:
         with patch("flext_cli.utils.auth.get_auth_token", return_value=None):
             result = is_authenticated()
             if result:
-                raise AssertionError(f"Expected False, got {result}")\ n
+                raise AssertionError(f"Expected False, got {result}")
+
     def test_is_authenticated_empty_token(self) -> None:
         """Test authentication check with empty token."""
         with patch("flext_cli.utils.auth.get_auth_token", return_value=""):
@@ -476,7 +475,8 @@ class TestShouldAutoRefresh:
             with patch("flext_cli.utils.auth.get_refresh_token", return_value=None):
                 result = should_auto_refresh()
                 if result:
-                    raise AssertionError(f"Expected False, got {result}")\ n
+                    raise AssertionError(f"Expected False, got {result}")
+
     def test_should_auto_refresh_disabled_with_token(self) -> None:
         """Test auto refresh when disabled but refresh token exists."""
         mock_config = MagicMock()
@@ -488,7 +488,8 @@ class TestShouldAutoRefresh:
             ):
                 result = should_auto_refresh()
                 if result:
-                    raise AssertionError(f"Expected False, got {result}")\ n
+                    raise AssertionError(f"Expected False, got {result}")
+
     def test_should_auto_refresh_disabled_without_token(self) -> None:
         """Test auto refresh when disabled and no refresh token."""
         mock_config = MagicMock()
@@ -498,7 +499,8 @@ class TestShouldAutoRefresh:
             with patch("flext_cli.utils.auth.get_refresh_token", return_value=None):
                 result = should_auto_refresh()
                 if result:
-                    raise AssertionError(f"Expected False, got {result}")\ n
+                    raise AssertionError(f"Expected False, got {result}")
+
 
 class TestAuthIntegration:
     """Integration tests for auth utilities."""

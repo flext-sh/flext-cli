@@ -35,13 +35,19 @@ with patch.dict(
     )
 
 
+# Constants
+EXPECTED_DATA_COUNT = 2
+
+
 class TestCLIConstants:
     """Test CLI constants."""
 
     def test_constants_values(self) -> None:
         """Test that constants have expected values."""
         if CLIConstants.MAX_ENTITY_NAME_LENGTH != 255:
-            raise AssertionError(f"Expected {255}, got {CLIConstants.MAX_ENTITY_NAME_LENGTH}")
+            raise AssertionError(
+                f"Expected {255}, got {CLIConstants.MAX_ENTITY_NAME_LENGTH}"
+            )
         assert CLIConstants.MAX_ERROR_MESSAGE_LENGTH == 1000
         if CLIConstants.DEFAULT_TIMEOUT != 30:
             raise AssertionError(f"Expected {30}, got {CLIConstants.DEFAULT_TIMEOUT}")
@@ -65,13 +71,17 @@ class TestCommandStatus:
     def test_all_status_values(self) -> None:
         """Test all command status values."""
         if CommandStatus.PENDING != "pending":
-            raise AssertionError(f"Expected {"pending"}, got {CommandStatus.PENDING}")
+            raise AssertionError(f"Expected {'pending'}, got {CommandStatus.PENDING}")
         assert CommandStatus.RUNNING == "running"
         if CommandStatus.COMPLETED != "completed":
-            raise AssertionError(f"Expected {"completed"}, got {CommandStatus.COMPLETED}")
+            raise AssertionError(
+                f"Expected {'completed'}, got {CommandStatus.COMPLETED}"
+            )
         assert CommandStatus.FAILED == "failed"
         if CommandStatus.CANCELLED != "cancelled":
-            raise AssertionError(f"Expected {"cancelled"}, got {CommandStatus.CANCELLED}")
+            raise AssertionError(
+                f"Expected {'cancelled'}, got {CommandStatus.CANCELLED}"
+            )
 
     def test_status_enum_membership(self) -> None:
         """Test status enum membership."""
@@ -96,7 +106,9 @@ class TestCommandStatus:
         assert CommandStatus.PENDING != CommandStatus.RUNNING
         assert CommandStatus.COMPLETED != CommandStatus.FAILED
         if CommandStatus.PENDING != CommandStatus.PENDING:
-            raise AssertionError(f"Expected {CommandStatus.PENDING}, got {CommandStatus.PENDING}")
+            raise AssertionError(
+                f"Expected {CommandStatus.PENDING}, got {CommandStatus.PENDING}"
+            )
 
 
 class TestCommandType:
@@ -105,16 +117,18 @@ class TestCommandType:
     def test_all_type_values(self) -> None:
         """Test all command type values."""
         if CommandType.SYSTEM != "system":
-            raise AssertionError(f"Expected {"system"}, got {CommandType.SYSTEM}")
+            raise AssertionError(f"Expected {'system'}, got {CommandType.SYSTEM}")
         assert CommandType.PIPELINE == "pipeline"
         if CommandType.PLUGIN != "plugin":
-            raise AssertionError(f"Expected {"plugin"}, got {CommandType.PLUGIN}")
+            raise AssertionError(f"Expected {'plugin'}, got {CommandType.PLUGIN}")
         assert CommandType.DATA == "data"
         if CommandType.CONFIG != "config":
-            raise AssertionError(f"Expected {"config"}, got {CommandType.CONFIG}")
+            raise AssertionError(f"Expected {'config'}, got {CommandType.CONFIG}")
         assert CommandType.AUTH == "auth"
         if CommandType.MONITORING != "monitoring":
-            raise AssertionError(f"Expected {"monitoring"}, got {CommandType.MONITORING}")
+            raise AssertionError(
+                f"Expected {'monitoring'}, got {CommandType.MONITORING}"
+            )
 
     def test_type_enum_membership(self) -> None:
         """Test type enum membership."""
@@ -172,7 +186,7 @@ class TestCLICommand:
 
             # The ID should contain cmd_ prefix and timestamp
             if "cmd_" not in expected_id:
-                raise AssertionError(f"Expected {"cmd_"} in {expected_id}")
+                raise AssertionError(f"Expected {'cmd_'} in {expected_id}")
             if len(expected_id) < 23:
                 raise AssertionError(f"Expected {len(expected_id)} >= {23}")
 
@@ -207,7 +221,8 @@ class TestCLICommand:
                 CommandStatus.CANCELLED,
             }
             if is_completed:
-                raise AssertionError(f"Expected False, got {is_completed}")\ n
+                raise AssertionError(f"Expected False, got {is_completed}")
+
     def test_command_properties_is_successful(self) -> None:
         """Test is_successful property."""
         # Test successful command
@@ -231,7 +246,8 @@ class TestCLICommand:
             and mock_command.exit_code == 0
         )
         if is_successful:
-            raise AssertionError(f"Expected False, got {is_successful}")\ n
+            raise AssertionError(f"Expected False, got {is_successful}")
+
         # Test completed but with error exit code
         mock_command.command_status = CommandStatus.COMPLETED
         mock_command.exit_code = 1
@@ -240,7 +256,8 @@ class TestCLICommand:
             and mock_command.exit_code == 0
         )
         if is_successful:
-            raise AssertionError(f"Expected False, got {is_successful}")\ n
+            raise AssertionError(f"Expected False, got {is_successful}")
+
     def test_command_start_execution(self) -> None:
         """Test start_execution method."""
         mock_command = MagicMock()
@@ -265,8 +282,9 @@ class TestCLICommand:
             )
 
             if current_dict["command_status"] != CommandStatus.RUNNING:
-
-                raise AssertionError(f"Expected {CommandStatus.RUNNING}, got {current_dict["command_status"]}")
+                raise AssertionError(
+                    f"Expected {CommandStatus.RUNNING}, got {current_dict['command_status']}"
+                )
             assert current_dict["started_at"] == now
 
     def test_command_complete_execution_success(self) -> None:
@@ -299,11 +317,14 @@ class TestCLICommand:
             }
 
             if updates["command_status"] != CommandStatus.COMPLETED:
-
-                raise AssertionError(f"Expected {CommandStatus.COMPLETED}, got {updates["command_status"]}")
+                raise AssertionError(
+                    f"Expected {CommandStatus.COMPLETED}, got {updates['command_status']}"
+                )
             assert updates["exit_code"] == 0
             if updates["duration_seconds"] != duration_seconds:
-                raise AssertionError(f"Expected {duration_seconds}, got {updates["duration_seconds"]}")
+                raise AssertionError(
+                    f"Expected {duration_seconds}, got {updates['duration_seconds']}"
+                )
 
     def test_command_complete_execution_failure(self) -> None:
         """Test complete_execution method with failure."""
@@ -328,11 +349,14 @@ class TestCLICommand:
             }
 
             if updates["command_status"] != CommandStatus.FAILED:
-
-                raise AssertionError(f"Expected {CommandStatus.FAILED}, got {updates["command_status"]}")
+                raise AssertionError(
+                    f"Expected {CommandStatus.FAILED}, got {updates['command_status']}"
+                )
             assert updates["exit_code"] == 1
             if updates["stderr"] != "error occurred":
-                raise AssertionError(f"Expected {"error occurred"}, got {updates["stderr"]}")
+                raise AssertionError(
+                    f"Expected {'error occurred'}, got {updates['stderr']}"
+                )
 
     def test_command_cancel_execution(self) -> None:
         """Test cancel_execution method."""
@@ -356,8 +380,9 @@ class TestCLICommand:
             }
 
             if updates["command_status"] != CommandStatus.CANCELLED:
-
-                raise AssertionError(f"Expected {CommandStatus.CANCELLED}, got {updates["command_status"]}")
+                raise AssertionError(
+                    f"Expected {CommandStatus.CANCELLED}, got {updates['command_status']}"
+                )
             assert updates["duration_seconds"] == duration_seconds
 
     def test_command_validate_domain_rules_valid(self) -> None:
@@ -377,7 +402,9 @@ class TestCLICommand:
 
         # Test valid duration
         if duration_seconds is None or duration_seconds < 0:
-            raise AssertionError(f"Expected {duration_seconds is None or duration_seconds} >= {0}")
+            raise AssertionError(
+                f"Expected {duration_seconds is None or duration_seconds} >= {0}"
+            )
 
     def test_command_validate_domain_rules_invalid_name(self) -> None:
         """Test validate_domain_rules with invalid name."""
@@ -427,8 +454,7 @@ class TestCLISession:
             expected_id = f"session_{now.strftime('%Y%m%d_%H%M%S_%f')[:26]}"
 
             if "session_" not in expected_id:
-
-                raise AssertionError(f"Expected {"session_"} in {expected_id}")
+                raise AssertionError(f"Expected {'session_'} in {expected_id}")
             if len(expected_id) < 26:
                 raise AssertionError(f"Expected {len(expected_id)} >= {26}")
 
@@ -458,11 +484,12 @@ class TestCLISession:
             }
 
             if len(updates["commands_executed"]) != EXPECTED_DATA_COUNT:
-
-                raise AssertionError(f"Expected {3}, got {len(updates["commands_executed"])}")
+                raise AssertionError(
+                    f"Expected {3}, got {len(updates['commands_executed'])}"
+                )
             assert updates["current_command"] == command_id
             if updates["last_activity"] != now:
-                raise AssertionError(f"Expected {now}, got {updates["last_activity"]}")
+                raise AssertionError(f"Expected {now}, got {updates['last_activity']}")
 
     def test_session_end_session(self) -> None:
         """Test end_session method."""
@@ -479,10 +506,10 @@ class TestCLISession:
             }
 
             if updates["active"]:
-
-                raise AssertionError(f"Expected False, got {updates["active"]}")\ n            assert updates["current_command"] is None
+                raise AssertionError(f"Expected False, got {updates['active']}")
+            assert updates["current_command"] is None
             if updates["last_activity"] != now:
-                raise AssertionError(f"Expected {now}, got {updates["last_activity"]}")
+                raise AssertionError(f"Expected {now}, got {updates['last_activity']}")
 
     def test_session_validate_domain_rules_valid(self) -> None:
         """Test validate_domain_rules with valid session."""
@@ -503,7 +530,9 @@ class TestCLISession:
 
         # Test valid current_command
         if current_command is None or current_command not in commands_executed:
-            raise AssertionError(f"Expected {current_command is None or current_command} in {commands_executed}")
+            raise AssertionError(
+                f"Expected {current_command is None or current_command} in {commands_executed}"
+            )
 
     def test_session_validate_domain_rules_invalid_session_id(self) -> None:
         """Test validate_domain_rules with invalid session ID."""
@@ -554,8 +583,7 @@ class TestCLIPlugin:
             expected_id = f"plugin_{now.strftime('%Y%m%d_%H%M%S_%f')[:27]}"
 
             if "plugin_" not in expected_id:
-
-                raise AssertionError(f"Expected {"plugin_"} in {expected_id}")
+                raise AssertionError(f"Expected {'plugin_'} in {expected_id}")
             if len(expected_id) < 27:
                 raise AssertionError(f"Expected {len(expected_id)} >= {27}")
 
@@ -572,8 +600,7 @@ class TestCLIPlugin:
         current_dict["enabled"] = True
 
         if not (current_dict["enabled"]):
-
-            raise AssertionError(f"Expected True, got {current_dict["enabled"]}")
+            raise AssertionError(f"Expected True, got {current_dict['enabled']}")
 
     def test_plugin_disable(self) -> None:
         """Test disable method."""
@@ -588,8 +615,8 @@ class TestCLIPlugin:
         current_dict["enabled"] = False
 
         if current_dict["enabled"]:
+            raise AssertionError(f"Expected False, got {current_dict['enabled']}")
 
-            raise AssertionError(f"Expected False, got {current_dict["enabled"]}")\ n
     def test_plugin_install(self) -> None:
         """Test install method."""
         mock_plugin = MagicMock()
@@ -603,8 +630,7 @@ class TestCLIPlugin:
         current_dict["installed"] = True
 
         if not (current_dict["installed"]):
-
-            raise AssertionError(f"Expected True, got {current_dict["installed"]}")
+            raise AssertionError(f"Expected True, got {current_dict['installed']}")
 
     def test_plugin_uninstall(self) -> None:
         """Test uninstall method."""
@@ -621,8 +647,8 @@ class TestCLIPlugin:
         current_dict.update(updates)
 
         if current_dict["installed"]:
-
-            raise AssertionError(f"Expected False, got {current_dict["installed"]}")\ n        assert current_dict["enabled"] is False
+            raise AssertionError(f"Expected False, got {current_dict['installed']}")
+        assert current_dict["enabled"] is False
 
     def test_plugin_validate_domain_rules_valid(self) -> None:
         """Test validate_domain_rules with valid plugin."""
@@ -689,11 +715,14 @@ class TestDomainEvents:
         }
 
         if event_data["command_id"] != "cmd_123":
-
-            raise AssertionError(f"Expected {"cmd_123"}, got {event_data["command_id"]}")
+            raise AssertionError(
+                f"Expected {'cmd_123'}, got {event_data['command_id']}"
+            )
         assert event_data["command_name"] == "test_command"
         if event_data["session_id"] != "session_456":
-            raise AssertionError(f"Expected {"session_456"}, got {event_data["session_id"]}")
+            raise AssertionError(
+                f"Expected {'session_456'}, got {event_data['session_id']}"
+            )
 
     def test_command_completed_event(self) -> None:
         """Test CommandCompletedEvent creation."""
@@ -704,10 +733,11 @@ class TestDomainEvents:
         }
 
         if event_data["command_id"] != "cmd_123":
-
-            raise AssertionError(f"Expected {"cmd_123"}, got {event_data["command_id"]}")
+            raise AssertionError(
+                f"Expected {'cmd_123'}, got {event_data['command_id']}"
+            )
         if not (event_data["success"]):
-            raise AssertionError(f"Expected True, got {event_data["success"]}")
+            raise AssertionError(f"Expected True, got {event_data['success']}")
 
     def test_command_cancelled_event(self) -> None:
         """Test CommandCancelledEvent creation."""
@@ -717,8 +747,9 @@ class TestDomainEvents:
         }
 
         if event_data["command_id"] != "cmd_123":
-
-            raise AssertionError(f"Expected {"cmd_123"}, got {event_data["command_id"]}")
+            raise AssertionError(
+                f"Expected {'cmd_123'}, got {event_data['command_id']}"
+            )
         assert event_data["command_name"] == "test_command"
 
     def test_config_updated_event(self) -> None:
@@ -729,8 +760,9 @@ class TestDomainEvents:
         }
 
         if event_data["config_id"] != "config_123":
-
-            raise AssertionError(f"Expected {"config_123"}, got {event_data["config_id"]}")
+            raise AssertionError(
+                f"Expected {'config_123'}, got {event_data['config_id']}"
+            )
         assert event_data["config_name"] == "test_config"
 
     def test_session_started_event(self) -> None:
@@ -742,11 +774,14 @@ class TestDomainEvents:
         }
 
         if event_data["session_id"] != "session_123":
-
-            raise AssertionError(f"Expected {"session_123"}, got {event_data["session_id"]}")
+            raise AssertionError(
+                f"Expected {'session_123'}, got {event_data['session_id']}"
+            )
         assert event_data["user_id"] == "user_456"
         if event_data["working_directory"] != "/home/user":
-            raise AssertionError(f"Expected {"/home/user"}, got {event_data["working_directory"]}")
+            raise AssertionError(
+                f"Expected {'/home/user'}, got {event_data['working_directory']}"
+            )
 
     def test_session_ended_event(self) -> None:
         """Test SessionEndedEvent creation."""
@@ -758,11 +793,14 @@ class TestDomainEvents:
         }
 
         if event_data["session_id"] != "session_123":
-
-            raise AssertionError(f"Expected {"session_123"}, got {event_data["session_id"]}")
+            raise AssertionError(
+                f"Expected {'session_123'}, got {event_data['session_id']}"
+            )
         assert event_data["commands_executed"] == 5
         if event_data["duration_seconds"] != 300.5:
-            raise AssertionError(f"Expected {300.5}, got {event_data["duration_seconds"]}")
+            raise AssertionError(
+                f"Expected {300.5}, got {event_data['duration_seconds']}"
+            )
 
     def test_plugin_installed_event(self) -> None:
         """Test PluginInstalledEvent creation."""
@@ -772,8 +810,9 @@ class TestDomainEvents:
         }
 
         if event_data["plugin_id"] != "plugin_123":
-
-            raise AssertionError(f"Expected {"plugin_123"}, got {event_data["plugin_id"]}")
+            raise AssertionError(
+                f"Expected {'plugin_123'}, got {event_data['plugin_id']}"
+            )
         assert event_data["plugin_name"] == "test_plugin"
 
     def test_plugin_uninstalled_event(self) -> None:
@@ -784,8 +823,9 @@ class TestDomainEvents:
         }
 
         if event_data["plugin_id"] != "plugin_123":
-
-            raise AssertionError(f"Expected {"plugin_123"}, got {event_data["plugin_id"]}")
+            raise AssertionError(
+                f"Expected {'plugin_123'}, got {event_data['plugin_id']}"
+            )
         assert event_data["plugin_name"] == "test_plugin"
 
 
@@ -826,10 +866,14 @@ class TestDomainEntityIntegration:
 
         # Verify lifecycle
         if command_data["command_status"] != CommandStatus.COMPLETED:
-            raise AssertionError(f"Expected {CommandStatus.COMPLETED}, got {command_data["command_status"]}")
+            raise AssertionError(
+                f"Expected {CommandStatus.COMPLETED}, got {command_data['command_status']}"
+            )
         assert command_data["exit_code"] == 0
-        if command_data["duration_seconds"] != EXPECTED_BULK_SIZE.0:
-            raise AssertionError(f"Expected {2.0}, got {command_data["duration_seconds"]}")
+        if command_data["duration_seconds"] != 2.0:
+            raise AssertionError(
+                f"Expected {2.0}, got {command_data['duration_seconds']}"
+            )
 
     def test_session_with_multiple_commands(self) -> None:
         """Test session with multiple commands."""
@@ -858,9 +902,12 @@ class TestDomainEntityIntegration:
 
         # Verify final state
         if len(session_data["commands_executed"]) != EXPECTED_DATA_COUNT:
-            raise AssertionError(f"Expected {3}, got {len(session_data["commands_executed"])}")
+            raise AssertionError(
+                f"Expected {3}, got {len(session_data['commands_executed'])}"
+            )
         if session_data["active"]:
-            raise AssertionError(f"Expected False, got {session_data["active"]}")\ n        assert session_data["current_command"] is None
+            raise AssertionError(f"Expected False, got {session_data['active']}")
+        assert session_data["current_command"] is None
 
     def test_plugin_installation_lifecycle(self) -> None:
         """Test plugin installation and lifecycle."""
@@ -892,7 +939,8 @@ class TestDomainEntityIntegration:
 
         # Verify final state
         if plugin_data["installed"]:
-            raise AssertionError(f"Expected False, got {plugin_data["installed"]}")\ n        assert plugin_data["enabled"] is False
+            raise AssertionError(f"Expected False, got {plugin_data['installed']}")
+        assert plugin_data["enabled"] is False
 
     def test_event_generation_workflow(self) -> None:
         """Test event generation workflow."""
@@ -948,7 +996,9 @@ class TestDomainEntityIntegration:
             raise AssertionError(f"Expected {5}, got {len(events)}")
         assert events[0]["type"] == "SessionStartedEvent"
         if events[-1]["type"] != "PluginInstalledEvent":
-            raise AssertionError(f"Expected {"PluginInstalledEvent"}, got {events[-1]["type"]}")
+            raise AssertionError(
+                f"Expected {'PluginInstalledEvent'}, got {events[-1]['type']}"
+            )
 
     def test_domain_validation_edge_cases(self) -> None:
         """Test domain validation edge cases."""
@@ -961,7 +1011,6 @@ class TestDomainEntityIntegration:
         valid_desc = "b" * max_desc_length
 
         if len(valid_name) != max_name_length:
-
             raise AssertionError(f"Expected {max_name_length}, got {len(valid_name)}")
         assert len(valid_desc) == max_desc_length
 
@@ -994,17 +1043,19 @@ class TestDomainEntityIntegration:
 
         # Verify original is unchanged (simulated)
         if original_data["status"] != "pending":
-            raise AssertionError(f"Expected {"pending"}, got {original_data["status"]}")
-        if "started_at" not not in original_data:
-            raise AssertionError(f"Expected {"started_at" not} in {original_data}")
+            raise AssertionError(f"Expected {'pending'}, got {original_data['status']}")
+        if "started_at" not in original_data:
+            raise AssertionError(f"Expected {'started_at'} not in {original_data}")
 
         # Verify new instance has updates
         if new_data["status"] != "running":
-            raise AssertionError(f"Expected {"running"}, got {new_data["status"]}")
+            raise AssertionError(f"Expected {'running'}, got {new_data['status']}")
         if "started_at" not in new_data:
-            raise AssertionError(f"Expected {"started_at"} in {new_data}")
-        if new_data["name"] != original_data["name"]  # Preserved fields:
-            raise AssertionError(f"Expected {original_data["name"]  # Preserved fields}, got {new_data["name"]}")
+            raise AssertionError(f"Expected {'started_at'} in {new_data}")
+        if new_data["name"] != original_data["name"]:
+            raise AssertionError(
+                f"Expected {original_data['name']} got {new_data['name']}"
+            )
 
     def test_enum_usage_patterns(self) -> None:
         """Test enum usage patterns in domain entities."""
@@ -1035,4 +1086,6 @@ class TestDomainEntityIntegration:
         assert len(valid_transitions[CommandStatus.PENDING]) > 0
         assert len(valid_transitions[CommandStatus.RUNNING]) > 0
         if len(valid_transitions[CommandStatus.COMPLETED]) != 0:
-            raise AssertionError(f"Expected {0}, got {len(valid_transitions[CommandStatus.COMPLETED])}")
+            raise AssertionError(
+                f"Expected {0}, got {len(valid_transitions[CommandStatus.COMPLETED])}"
+            )

@@ -1,8 +1,5 @@
 """Tests for utils output utilities.
 
-# Constants
-EXPECTED_BULK_SIZE = 2
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
@@ -12,7 +9,7 @@ Tests output formatting utilities for coverage.
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
 import yaml
@@ -30,6 +27,9 @@ from flext_cli.utils.output import (
 )
 from rich.console import Console
 from rich.table import Table
+
+# Constants
+EXPECTED_BULK_SIZE = 2
 
 
 class TestSetupConsole:
@@ -319,10 +319,16 @@ class TestFormatPluginList:
                 msg = f"Expected {2}, got {mock_table.add_row.call_count}"
                 raise AssertionError(msg)
             mock_table.add_row.assert_any_call(
-                "plugin1", "tap", "1.0.0", "Test plugin 1",
+                "plugin1",
+                "tap",
+                "1.0.0",
+                "Test plugin 1",
             )
             mock_table.add_row.assert_any_call(
-                "plugin2", "target", "2.0.0", "Test plugin 2",
+                "plugin2",
+                "target",
+                "2.0.0",
+                "Test plugin 2",
             )
 
             console.print.assert_called_once_with(mock_table)
@@ -370,10 +376,16 @@ class TestFormatPluginList:
 
             # Should use default values for missing fields
             mock_table.add_row.assert_any_call(
-                "plugin1", "Unknown", "Unknown", "No description",
+                "plugin1",
+                "Unknown",
+                "Unknown",
+                "No description",
             )
             mock_table.add_row.assert_any_call(
-                "Unknown", "target", "1.0.0", "No description",
+                "Unknown",
+                "target",
+                "1.0.0",
+                "No description",
             )
 
 
@@ -388,11 +400,11 @@ class TestFormatJson:
 
         assert isinstance(result, str)
         if "key" not in result:
-            msg = f"Expected {"key"} in {result}"
+            msg = f"Expected {'key'} in {result}"
             raise AssertionError(msg)
         assert "value" in result
         if "42" not in result:
-            msg = f"Expected {"42"} in {result}"
+            msg = f"Expected {'42'} in {result}"
             raise AssertionError(msg)
 
         # Should be valid JSON
@@ -423,7 +435,7 @@ class TestFormatJson:
     def test_format_json_with_objects(self) -> None:
         """Test formatting data with non-serializable objects."""
         data = {
-            "timestamp": datetime.now(),
+            "timestamp": datetime.now(UTC),
             "value": "test",
         }
 
@@ -433,11 +445,11 @@ class TestFormatJson:
         assert isinstance(result, str)
         parsed = json.loads(result)
         if "timestamp" not in parsed:
-            msg = f"Expected {"timestamp"} in {parsed}"
+            msg = f"Expected {'timestamp'} in {parsed}"
             raise AssertionError(msg)
         assert "value" in parsed
         if parsed["value"] != "test":
-            msg = f"Expected {"test"}, got {parsed["value"]}"
+            msg = f"Expected {'test'}, got {parsed['value']}"
             raise AssertionError(msg)
 
 
@@ -452,7 +464,7 @@ class TestFormatYaml:
 
         assert isinstance(result, str)
         if "key: value" not in result:
-            msg = f"Expected {"key: value"} in {result}"
+            msg = f"Expected {'key: value'} in {result}"
             raise AssertionError(msg)
         assert "number: 42" in result
 
@@ -489,7 +501,7 @@ class TestFormatYaml:
 
         # Should use block style (default_flow_style=False)
         if "- 1" in result or "list:" not in result:
-            msg = f"Expected {"- 1" in result or "list:"} in {result}"
+            msg = f"Expected {'- 1' in result or 'list:'} in {result}"
             raise AssertionError(msg)
         assert "{" not in result  # Flow style would use braces
 
@@ -653,26 +665,26 @@ class TestUtilsOutputIntegration:
         # Should handle None gracefully
         json_result = format_json(None)
         if json_result != "null":
-            msg = f"Expected {"null"}, got {json_result}"
+            msg = f"Expected {'null'}, got {json_result}"
             raise AssertionError(msg)
 
         yaml_result = format_yaml(None)
         # YAML adds newline, so we check if it contains "null"
         if "null" not in yaml_result:
-            msg = f"Expected {"null"} in {yaml_result}"
+            msg = f"Expected {'null'} in {yaml_result}"
             raise AssertionError(msg)
 
     def test_format_functions_with_empty_data(self) -> None:
         """Test format functions with empty data structures."""
         # Empty dict
         if format_json({}) != "{}":
-            msg = f"Expected {"{}"}, got {format_json({})}"
+            msg = f"Expected {'{}'}, got {format_json({})}"
             raise AssertionError(msg)
         assert format_yaml({}).strip() == "{}"
 
         # Empty list
         if format_json([]) != "[]":
-            msg = f"Expected {"[]"}, got {format_json([])}"
+            msg = f"Expected {'[]'}, got {format_json([])}"
             raise AssertionError(msg)
         assert format_yaml([]).strip() == "[]"
 
