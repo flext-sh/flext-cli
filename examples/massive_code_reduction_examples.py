@@ -22,7 +22,6 @@ def example_1_traditional_vs_flext() -> None:
         {"id": 3, "name": "Carol", "role": "Manager", "salary": 85000},
     ]
 
-
     # ===============================================
     # TRADITIONAL APPROACH (50+ lines of code)
     # ===============================================
@@ -80,7 +79,6 @@ def example_1_traditional_vs_flext() -> None:
     # FLEXTCLI APPROACH (3 lines of code!!!)
     # ===============================================
 
-
     # Single function call does everything!
     result = flext_cli.flext_cli_pipeline(
         data=users_data,
@@ -92,9 +90,6 @@ def example_1_traditional_vs_flext() -> None:
 
     if result.success:
         result.unwrap()
-    else:
-        pass
-
 
 
 def example_2_instant_data_operations() -> None:
@@ -121,8 +116,8 @@ def example_2_instant_data_operations() -> None:
     # CHAINABLE EXPORTS (fluent interface)
     # ===============================================
 
-    chain_result = (exporter
-        .then_export("sales.csv")
+    chain_result = (
+        exporter.then_export("sales.csv")
         .and_export("sales.json")
         .and_export("sales.parquet")
         .execute(sales_data)
@@ -166,8 +161,8 @@ def example_3_data_analysis_and_comparison() -> None:
 
     users_after = [
         {"id": 1, "name": "Alice", "status": "Inactive", "salary": 75000},  # Changed
-        {"id": 2, "name": "Bob", "status": "Inactive", "salary": 65000},   # Same
-        {"id": 3, "name": "Carol", "status": "Active", "salary": 80000},   # New
+        {"id": 2, "name": "Bob", "status": "Inactive", "salary": 65000},  # Same
+        {"id": 3, "name": "Carol", "status": "Active", "salary": 80000},  # New
     ]
 
     # ===============================================
@@ -255,13 +250,37 @@ def example_5_real_world_scenario() -> None:
     """Example 5: Real-world data processing scenario."""
     # Simulate processing user activity data
     user_activity = [
-        {"user_id": 1, "action": "login", "timestamp": "2024-01-15 09:00", "ip": "192.168.1.100"},
-        {"user_id": 1, "action": "view_page", "timestamp": "2024-01-15 09:05", "ip": "192.168.1.100"},
-        {"user_id": 2, "action": "login", "timestamp": "2024-01-15 09:10", "ip": "192.168.1.101"},
-        {"user_id": 1, "action": "logout", "timestamp": "2024-01-15 09:30", "ip": "192.168.1.100"},
-        {"user_id": 3, "action": "login", "timestamp": "2024-01-15 10:00", "ip": "192.168.1.102"},
+        {
+            "user_id": 1,
+            "action": "login",
+            "timestamp": "2024-01-15 09:00",
+            "ip": "192.168.1.100",
+        },
+        {
+            "user_id": 1,
+            "action": "view_page",
+            "timestamp": "2024-01-15 09:05",
+            "ip": "192.168.1.100",
+        },
+        {
+            "user_id": 2,
+            "action": "login",
+            "timestamp": "2024-01-15 09:10",
+            "ip": "192.168.1.101",
+        },
+        {
+            "user_id": 1,
+            "action": "logout",
+            "timestamp": "2024-01-15 09:30",
+            "ip": "192.168.1.100",
+        },
+        {
+            "user_id": 3,
+            "action": "login",
+            "timestamp": "2024-01-15 10:00",
+            "ip": "192.168.1.102",
+        },
     ]
-
 
     # ===============================================
     # COMPLETE DATA PROCESSING PIPELINE
@@ -276,10 +295,10 @@ def example_5_real_world_scenario() -> None:
     exporter = flext_cli.FlextCliDataExporter()
 
     # Chain multiple exports
-    export_results = (exporter
-        .then_export("./reports/activity.csv")      # For Excel users
-        .and_export("./reports/activity.json")      # For developers
-        .and_export("./reports/activity.parquet")   # For data analysts
+    export_results = (
+        exporter.then_export("./reports/activity.csv")  # For Excel users
+        .and_export("./reports/activity.json")  # For developers
+        .and_export("./reports/activity.parquet")  # For data analysts
         .execute(user_activity)
     )
 
@@ -299,8 +318,14 @@ def example_5_real_world_scenario() -> None:
     # Step 4: Generate summary report
     summary_data = [
         {"metric": "Total Actions", "value": len(user_activity)},
-        {"metric": "Unique Users", "value": len({item["user_id"] for item in user_activity})},
-        {"metric": "Login Events", "value": len([item for item in user_activity if item["action"] == "login"])},
+        {
+            "metric": "Unique Users",
+            "value": len({item["user_id"] for item in user_activity}),
+        },
+        {
+            "metric": "Login Events",
+            "value": len([item for item in user_activity if item["action"] == "login"]),
+        },
     ]
 
     summary_table = flext_cli.flext_cli_format_tabulate(
@@ -313,7 +338,6 @@ def example_5_real_world_scenario() -> None:
         pass
 
 
-
 def main() -> None:
     """Run all examples demonstrating massive code reduction."""
     try:
@@ -324,9 +348,9 @@ def main() -> None:
         example_4_interactive_dashboards()
         example_5_real_world_scenario()
 
-
     except Exception:
         import traceback
+
         traceback.print_exc()
 
 

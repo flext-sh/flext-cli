@@ -19,20 +19,34 @@ def example_1_enterprise_data_pipeline() -> None:
     # Simulate enterprise data sources
     customer_data = [
         {"id": 1, "name": "Enterprise Corp", "revenue": 5000000, "industry": "Tech"},
-        {"id": 2, "name": "Global Solutions", "revenue": 3200000, "industry": "Finance"},
-        {"id": 3, "name": "Innovation Ltd", "revenue": 1800000, "industry": "Healthcare"},
+        {
+            "id": 2,
+            "name": "Global Solutions",
+            "revenue": 3200000,
+            "industry": "Finance",
+        },
+        {
+            "id": 3,
+            "name": "Innovation Ltd",
+            "revenue": 1800000,
+            "industry": "Healthcare",
+        },
     ]
 
     transaction_data = [
         {"customer_id": 1, "amount": 150000, "date": "2024-01-15", "type": "recurring"},
         {"customer_id": 2, "amount": 89000, "date": "2024-01-16", "type": "one-time"},
-        {"customer_id": 1, "amount": 200000, "date": "2024-01-17", "type": "enterprise"},
+        {
+            "customer_id": 1,
+            "amount": 200000,
+            "date": "2024-01-17",
+            "type": "enterprise",
+        },
     ]
 
     # ===============================================
     # ENTERPRISE PIPELINE with FlextResult patterns
     # ===============================================
-
 
     # Create specialized exporters using factory methods
     enterprise_exporter = flext_cli.FlextCliDataExporter.create_database_exporter()
@@ -42,7 +56,12 @@ def example_1_enterprise_data_pipeline() -> None:
     datasets = {
         "customers": customer_data,
         "transactions": transaction_data,
-        "summary": [{"total_customers": len(customer_data), "total_revenue": sum(c["revenue"] for c in customer_data)}],
+        "summary": [
+            {
+                "total_customers": len(customer_data),
+                "total_revenue": sum(c["revenue"] for c in customer_data),
+            },
+        ],
     }
 
     # Export to multiple storage systems
@@ -73,26 +92,29 @@ def example_2_flext_result_chaining() -> None:
     # Sample data for processing
     raw_data = [
         {"id": 1, "value": "100.50", "category": "A"},
-        {"id": 2, "value": "invalid", "category": "B"},  # This will cause processing error
+        {
+            "id": 2,
+            "value": "invalid",
+            "category": "B",
+        },  # This will cause processing error
         {"id": 3, "value": "75.25", "category": "A"},
     ]
-
 
     # ===============================================
     # CHAINABLE OPERATIONS with error recovery
     # ===============================================
 
-    def validate_data(data: list[dict[str, Any]]) -> flext_cli.FlextResult[list[dict[str, Any]]]:
+    def validate_data(
+        data: list[dict[str, Any]],
+    ) -> flext_cli.FlextResult[list[dict[str, Any]]]:
         """Validate and clean data."""
         try:
-            cleaned = []
-            for item in data:
-                if item["value"] != "invalid":  # Simple validation
-                    cleaned.append({
-                        **item,
-                        "value": float(item["value"]),  # Convert to float
-                        "processed": True,
-                    })
+            # Simple validation
+            cleaned = [{
+                            **item,
+                            "value": float(item["value"]),  # Convert to float
+                            "processed": True,
+                        } for item in data if item["value"] != "invalid"]
 
             if not cleaned:
                 return flext_cli.FlextResult.fail("No valid data after cleaning")
@@ -102,17 +124,17 @@ def example_2_flext_result_chaining() -> None:
         except Exception as e:
             return flext_cli.FlextResult.fail(f"Validation failed: {e}")
 
-    def enrich_data(data: list[dict[str, Any]]) -> flext_cli.FlextResult[list[dict[str, Any]]]:
+    def enrich_data(
+        data: list[dict[str, Any]],
+    ) -> flext_cli.FlextResult[list[dict[str, Any]]]:
         """Enrich data with additional calculations."""
         try:
-            enriched = []
-            for item in data:
-                enriched.append({
-                    **item,
-                    "value_squared": item["value"] ** 2,
-                    "is_high_value": item["value"] > 80,
-                    "enrichment_timestamp": "2024-01-15T10:30:00Z",
-                })
+            enriched = [{
+                        **item,
+                        "value_squared": item["value"] ** 2,
+                        "is_high_value": item["value"] > 80,
+                        "enrichment_timestamp": "2024-01-15T10:30:00Z",
+                    } for item in data]
 
             return flext_cli.FlextResult.ok(enriched)
 
@@ -135,7 +157,6 @@ def example_2_flext_result_chaining() -> None:
         if export_result.success:
             export_result.unwrap()
     else:
-
         # Recovery: export raw data for manual processing
         recovery_exporter = flext_cli.FlextCliDataExporter()
         recovery_result = recovery_exporter.instant(raw_data, "csv")
@@ -153,15 +174,22 @@ def example_3_factory_patterns() -> None:
     ]
 
     log_data = [
-        {"timestamp": "2024-01-15T10:30:00Z", "level": "INFO", "message": "Service started"},
-        {"timestamp": "2024-01-15T10:31:00Z", "level": "ERROR", "message": "Connection failed"},
+        {
+            "timestamp": "2024-01-15T10:30:00Z",
+            "level": "INFO",
+            "message": "Service started",
+        },
+        {
+            "timestamp": "2024-01-15T10:31:00Z",
+            "level": "ERROR",
+            "message": "Connection failed",
+        },
     ]
 
     user_data = [
         {"user_id": 1, "email": "alice@company.com", "last_login": "2024-01-15"},
         {"user_id": 2, "email": "bob@company.com", "last_login": "2024-01-14"},
     ]
-
 
     # ===============================================
     # SPECIALIZED EXPORTERS
@@ -173,7 +201,9 @@ def example_3_factory_patterns() -> None:
 
     # Log data -> Database for querying
     log_exporter = flext_cli.FlextCliDataExporter.create_database_exporter()
-    log_result = log_exporter.export_data(log_data, "logs.sqlite", "sqlite", table_name="application_logs")
+    log_result = log_exporter.export_data(
+        log_data, "logs.sqlite", "sqlite", table_name="application_logs",
+    )
 
     # User data -> CSV for business users
     user_exporter = flext_cli.FlextCliDataExporter.create_csv_exporter()
@@ -188,7 +218,6 @@ def example_3_factory_patterns() -> None:
     tech_formatter = flext_cli.FlextCliFormatter("json")  # Technical audience
     business_formatter = flext_cli.FlextCliFormatter("table")  # Business users
 
-
     # Executive summary
     exec_formatter.format(financial_data, title="📈 Financial Summary")
 
@@ -202,11 +231,7 @@ def example_3_factory_patterns() -> None:
     # RESULTS SUMMARY
     # ===============================================
 
-    sum([
-        1 for result in [financial_result, log_result, user_result]
-        if result.success
-    ])
-
+    sum(1 for result in [financial_result, log_result, user_result] if result.success)
 
     if financial_result.success:
         pass
@@ -220,12 +245,23 @@ def example_4_gui_integration() -> None:
     """Example 4: Advanced Rich GUI integration."""
     # System monitoring data
     system_stats = [
-        {"service": "Web API", "status": "UP", "cpu": 45, "memory": 60, "requests": 1250},
-        {"service": "Database", "status": "UP", "cpu": 30, "memory": 75, "connections": 45},
+        {
+            "service": "Web API",
+            "status": "UP",
+            "cpu": 45,
+            "memory": 60,
+            "requests": 1250,
+        },
+        {
+            "service": "Database",
+            "status": "UP",
+            "cpu": 30,
+            "memory": 75,
+            "connections": 45,
+        },
         {"service": "Cache", "status": "DOWN", "cpu": 0, "memory": 0, "hits": 0},
         {"service": "Queue", "status": "UP", "cpu": 25, "memory": 40, "jobs": 123},
     ]
-
 
     # ===============================================
     # MULTI-PANEL DASHBOARD
@@ -237,7 +273,6 @@ def example_4_gui_integration() -> None:
     dashboard_result = gui.create_dashboard("🖥️ System Monitoring Dashboard")
 
     if dashboard_result.success:
-
         # Data table panel
         table_result = gui.create_data_table(system_stats, "Service Status")
         if table_result.success:
@@ -245,10 +280,26 @@ def example_4_gui_integration() -> None:
 
         # Metrics panel
         metrics = {
-            "total_services": {"value": len(system_stats), "unit": "services", "trend": "stable"},
-            "services_up": {"value": len([s for s in system_stats if s["status"] == "UP"]), "unit": "online", "trend": "up"},
-            "avg_cpu": {"value": sum(s["cpu"] for s in system_stats) / len(system_stats), "unit": "%", "trend": "down"},
-            "total_memory": {"value": sum(s["memory"] for s in system_stats), "unit": "%", "trend": "up"},
+            "total_services": {
+                "value": len(system_stats),
+                "unit": "services",
+                "trend": "stable",
+            },
+            "services_up": {
+                "value": len([s for s in system_stats if s["status"] == "UP"]),
+                "unit": "online",
+                "trend": "up",
+            },
+            "avg_cpu": {
+                "value": sum(s["cpu"] for s in system_stats) / len(system_stats),
+                "unit": "%",
+                "trend": "down",
+            },
+            "total_memory": {
+                "value": sum(s["memory"] for s in system_stats),
+                "unit": "%",
+                "trend": "up",
+            },
         }
 
         metrics_result = gui.create_metrics_dashboard(metrics, "Key Metrics")
@@ -285,7 +336,6 @@ def example_4_gui_integration() -> None:
         pass
 
 
-
 def example_5_performance_patterns() -> None:
     """Example 5: Performance optimization patterns."""
     # Generate large dataset for performance testing
@@ -301,19 +351,17 @@ def example_5_performance_patterns() -> None:
         for i in range(10000)  # 10K records
     ]
 
-
     # ===============================================
     # PERFORMANCE-OPTIMIZED EXPORT
     # ===============================================
-
 
     # Use specialized exporters for performance
     parquet_exporter = flext_cli.FlextCliDataExporter.create_parquet_exporter()
 
     # Batch operations for efficiency
     performance_datasets = {
-        "employees": large_dataset[:5000],     # First half
-        "contractors": large_dataset[5000:],   # Second half
+        "employees": large_dataset[:5000],  # First half
+        "contractors": large_dataset[5000:],  # Second half
     }
 
     # Parallel batch export
@@ -332,30 +380,27 @@ def example_5_performance_patterns() -> None:
     # STREAMING ANALYSIS
     # ===============================================
 
-
     # Analyze in chunks for memory efficiency
     chunk_size = 2000
     analysis_results = []
 
     for i in range(0, len(large_dataset), chunk_size):
-        chunk = large_dataset[i:i + chunk_size]
+        chunk = large_dataset[i : i + chunk_size]
 
         # Quick analysis on chunk
         chunk_analysis = flext_cli.flext_cli_analyze_data(
             chunk,
-            f"Chunk {i//chunk_size + 1} Analysis",
+            f"Chunk {i // chunk_size + 1} Analysis",
         )
 
         if chunk_analysis.success:
-            analysis_results.append(f"Chunk {i//chunk_size + 1}: ✅ Processed")
+            analysis_results.append(f"Chunk {i // chunk_size + 1}: ✅ Processed")
         else:
-            analysis_results.append(f"Chunk {i//chunk_size + 1}: ❌ Failed")
-
+            analysis_results.append(f"Chunk {i // chunk_size + 1}: ❌ Failed")
 
     # ===============================================
     # OPTIMIZED FORMATTING
     # ===============================================
-
 
     # Sample subset for quick preview
     sample_data = large_dataset[:100]  # Just 100 records for preview
@@ -370,7 +415,6 @@ def example_5_performance_patterns() -> None:
         format_result.unwrap()
 
 
-
 def main() -> None:
     """Run advanced patterns examples."""
     try:
@@ -380,9 +424,9 @@ def main() -> None:
         example_4_gui_integration()
         example_5_performance_patterns()
 
-
     except Exception:
         import traceback
+
         traceback.print_exc()
 
 

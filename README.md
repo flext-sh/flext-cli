@@ -1,4 +1,10 @@
-# FLX CLI - Developer Command Line Interface
+# FLEXT CLI - Developer Command Line Interface
+
+[![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-3130/)
+[![Poetry](https://img.shields.io/badge/poetry-1.8+-blue.svg)](https://python-poetry.org/)
+[![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![Type Checking: MyPy](https://img.shields.io/badge/type%20checking-mypy-blue.svg)](https://mypy.readthedocs.io/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > **Regras do Projeto**: Consulte `../../.github/instructions/regras.instructions.md` para padrões obrigatórios
 >
@@ -10,420 +16,359 @@
 
 ## Overview
 
-FLX CLI provides a powerful command-line interface for developers and operators to interact with the FLX platform. Built with Click, it offers intuitive commands, interactive prompts, real-time feedback, and comprehensive debugging capabilities.
+FLEXT CLI é uma interface de linha de comando moderna construída com Python 3.13+, Click, e Rich. Utiliza padrões flext-core para modelagem de domínio e injeção de dependência, fornecendo comandos CLI para o ecossistema FLEXT incluindo gerenciamento de pipelines, autenticação, configuração e operações específicas de projetos.
 
 ## Features
 
-- **Rich Interactive UI**: Powered by Rich library for beautiful terminal output
-- **Command Structure**: Hierarchical commands with auto-completion
-- **Real-time Streaming**: Live logs and progress updates
-- **Configuration Management**: Easy config handling with validation
-- **Plugin Integration**: Manage plugins from the terminal
-- **Debug Mode**: Comprehensive debugging with --debug flag
-- **Output Formats**: JSON, YAML, Table, CSV exports
+- **🎨 Rich Terminal UI**: Powered by Rich library for beautiful terminal output with tables, progress bars, and panels
+- **🏗️ Clean Architecture**: Domain-driven design with flext-core integration
+- **🔧 Command Groups**: Hierarchical commands for auth, config, pipeline, plugin, and debug operations
+- **📊 Multiple Output Formats**: JSON, YAML, Table, CSV, and Plain text support
+- **🎯 Type Safety**: Complete type coverage with MyPy strict mode
+- **🧪 Zero Tolerance Quality**: 90% test coverage requirement with comprehensive quality gates
+- **🚀 Project Integration**: Support for ALGAR, GrupoNos, and Meltano projects
+
+## Architecture
+
+### Clean Architecture com flext-core
+
+```
+src/flext_cli/
+├── domain/              # Entidades de domínio (CLICommand, CLIConfig, CLISession, CLIPlugin)
+├── application/         # Camada de aplicação com handlers de comando
+├── infrastructure/      # Container DI e configuração
+├── commands/           # Implementações de comandos CLI
+│   ├── auth.py         # Comandos de autenticação
+│   ├── config.py       # Comandos de configuração
+│   ├── debug.py        # Ferramentas de debug
+│   ├── pipeline.py     # Gerenciamento de pipelines
+│   ├── plugin.py       # Gerenciamento de plugins
+│   └── projects/       # Comandos específicos de projetos
+├── core/               # Utilitários e padrões CLI
+└── utils/              # Utilitários de configuração e output
+```
 
 ## Installation
 
 ```bash
-# Install FLX CLI
-pip install flx-cli
+# Install dependencies with Poetry
+cd /home/marlonsc/flext/flext-cli
+poetry install --all-extras --with dev,test,docs,security
 
-# Or install from source
-cd /home/marlonsc/pyauto/flx-cli
-poetry install
+# Install CLI globally 
+make install-cli
 
 # Verify installation
-flx --version
+poetry run flext --version
+```
+
+## Development Commands
+
+### Quality Gates (Obrigatórios)
+
+```bash
+# Validação completa (executar antes de commits)
+make validate                 # lint + type-check + security + test (90% coverage)
+
+# Verificações essenciais
+make check                   # lint + type-check + test
+
+# Verificações individuais
+make lint                    # Ruff linting (ALL rules enabled)
+make type-check              # MyPy strict mode (zero errors tolerated)
+make test                    # pytest with 90% coverage requirement
+make security                # Bandit + pip-audit + secrets scan
+```
+
+### Development Setup
+
+```bash
+# Complete setup
+make setup                   # Complete setup with pre-commit hooks
+make install                 # Install dependencies with Poetry
+make dev-install             # Development mode with all extras
+
+# CLI operations
+make install-cli             # Install CLI globally
+make test-cli                # Test CLI commands
+make cli-smoke-test          # Run smoke tests
 ```
 
 ## Quick Start
 
 ```bash
-# Initialize FLX configuration
-flx init
-
 # List available commands
-flx --help
+poetry run flext --help
 
-# Run a pipeline
-flx pipeline run my-pipeline --debug
+# View command groups
+poetry run flext auth --help
+poetry run flext config --help
+poetry run flext pipeline --help
+poetry run flext plugin --help
+poetry run flext debug --help
 
-# Watch pipeline logs
-flx pipeline logs my-pipeline --follow
+# Project-specific commands
+poetry run flext algar --help
+poetry run flext gruponos --help
+poetry run flext meltano --help
 
-# Manage plugins
-flx plugin list
-flx plugin install tap-github
+# Interactive mode (future)
+poetry run flext interactive
 ```
 
 ## Command Structure
 
 ```
-flx
-├── init                    # Initialize FLX configuration
-├── config                  # Configuration management
-│   ├── get                # Get config values
-│   ├── set                # Set config values
-│   └── validate           # Validate configuration
+flext
+├── auth                   # Authentication commands
+├── config                 # Configuration management
 ├── pipeline               # Pipeline operations
-│   ├── list              # List pipelines
-│   ├── create            # Create new pipeline
-│   ├── run               # Execute pipeline
-│   ├── status            # Check pipeline status
-│   ├── logs              # View pipeline logs
-│   └── delete            # Delete pipeline
 ├── plugin                 # Plugin management
-│   ├── list              # List installed plugins
-│   ├── search            # Search plugin registry
-│   ├── install           # Install plugin
-│   ├── update            # Update plugin
-│   └── remove            # Remove plugin
-├── auth                   # Authentication
-│   ├── login             # Login to FLX
-│   ├── logout            # Logout from FLX
-│   └── status            # Check auth status
-└── debug                  # Debugging tools
-    ├── connectivity      # Test connections
-    ├── performance       # Performance analysis
-    └── validate          # Validate setup
+├── debug                  # Debug and diagnostic tools
+├── algar                  # ALGAR project commands
+├── gruponos               # GrupoNos project commands
+├── meltano                # Meltano integration commands
+├── interactive            # Interactive mode (placeholder)
+└── version                # Version information
 ```
 
 ## Configuration
 
-FLX CLI uses a hierarchical configuration system:
-
-```yaml
-# ~/.flx/config.yaml
-default:
-  api_url: https://api.flx-platform.com
-  timeout: 30
-  output_format: table
-
-profiles:
-  development:
-    api_url: http://localhost:8000
-    debug: true
-
-  production:
-    api_url: https://api.flx-platform.com
-    verify_ssl: true
-```
-
-## Environment Variables
+### Global CLI Options
 
 ```bash
-# API Configuration
-export FLX_API_URL=http://localhost:8000
-export FLX_API_TOKEN=your-api-token
+# Profile support
+flext --profile development command
+flext --profile production command
 
-# CLI Behavior
-export FLX_OUTPUT_FORMAT=json
-export FLX_DEBUG=true
-export FLX_NO_COLOR=false
+# Output formats
+flext --output json command
+flext --output table command  # default
+flext --output yaml command
+flext --output csv command
 
-# Profile Selection
+# Debug mode
+flext --debug command
+flext --quiet command
+```
+
+### Environment Variables
+
+```bash
+# CLI Configuration
+export FLEXT_CLI_DEV_MODE=true
+export FLEXT_CLI_LOG_LEVEL=debug
+export FLEXT_CLI_CONFIG_PATH=/path/to/config.yaml
+
+# Profile and output
 export FLX_PROFILE=development
-```
-
-## Interactive Mode
-
-```bash
-# Start interactive mode
-flx interactive
-
-# Or use shortcuts
-flx i
-```
-
-In interactive mode:
-
-- Tab completion for commands
-- Command history with up/down arrows
-- Rich formatting and syntax highlighting
-- Context-aware suggestions
-
-## Pipeline Management
-
-### Creating Pipelines
-
-```bash
-# Interactive pipeline creation
-flx pipeline create
-
-# From file
-flx pipeline create --from-file pipeline.yaml
-
-# With inline config
-flx pipeline create my-pipeline \
-  --tap tap-github \
-  --target target-postgres \
-  --transform dbt
-```
-
-### Running Pipelines
-
-```bash
-# Run pipeline
-flx pipeline run my-pipeline
-
-# Run with state override
-flx pipeline run my-pipeline --full-refresh
-
-# Run with custom config
-flx pipeline run my-pipeline --config config.json
-
-# Dry run
-flx pipeline run my-pipeline --dry-run
-```
-
-### Monitoring Pipelines
-
-```bash
-# Check status
-flx pipeline status my-pipeline
-
-# Follow logs
-flx pipeline logs my-pipeline --follow
-
-# Get execution history
-flx pipeline history my-pipeline --limit 10
-```
-
-## Plugin Management
-
-### Installing Plugins
-
-```bash
-# Install from registry
-flx plugin install tap-github
-
-# Install from Git
-flx plugin install git+https://github.com/org/tap-custom.git
-
-# Install from local path
-flx plugin install ./my-local-plugin
-
-# Install specific version
-flx plugin install tap-github==1.2.3
-```
-
-### Managing Plugins
-
-```bash
-# List all plugins
-flx plugin list
-
-# Show plugin details
-flx plugin show tap-github
-
-# Update plugin
-flx plugin update tap-github
-
-# Remove plugin
-flx plugin remove tap-github
-```
-
-## Output Formats
-
-```bash
-# Table format (default)
-flx pipeline list
-
-# JSON format
-flx pipeline list --output json
-
-# YAML format
-flx pipeline list --output yaml
-
-# CSV format
-flx pipeline list --output csv
-
-# Plain text
-flx pipeline list --output plain
-```
-
-## Advanced Features
-
-### Command Aliases
-
-```bash
-# Create aliases in ~/.flx/aliases
-pl = pipeline list
-pr = pipeline run
-ps = pipeline status
-```
-
-### Shell Completion
-
-```bash
-# Bash
-eval "$(_FLX_COMPLETE=source_bash flx)"
-
-# Zsh
-eval "$(_FLX_COMPLETE=source_zsh flx)"
-
-# Fish
-eval (env _FLX_COMPLETE=source_fish flx)
-```
-
-### Scripting Support
-
-```python
-# Use FLX CLI from Python
-from flx_cli import FlxCLI
-
-cli = FlxCLI()
-result = cli.invoke(['pipeline', 'list'])
-print(result.output)
-```
-
-## Debug Mode
-
-```bash
-# Enable debug mode globally
 export FLX_DEBUG=true
-
-# Or per command
-flx pipeline run my-pipeline --debug
-
-# Debug with trace
-flx pipeline run my-pipeline --debug --trace
 ```
 
-Debug output includes:
+### Configuration Files
 
-- API request/response details
-- Configuration resolution
-- Plugin loading information
-- Performance metrics
-- Stack traces on errors
+- Project config: `config/dev.yaml`, `config/prod.yaml`
+- User config: `~/.flx/config.yaml` (future implementation)
+- Environment variables override file settings
 
-## Error Handling
+## Testing
 
-FLX CLI provides clear error messages:
+### Domain Entity Testing
+
+```python
+from flext_cli.domain.entities import CLICommand, CommandStatus, CommandType
+
+def test_command_lifecycle():
+    command = CLICommand(
+        name="test",
+        command_line="echo hello",
+        command_type=CommandType.SYSTEM
+    )
+    
+    # Test execution lifecycle
+    command.start_execution()
+    assert command.command_status == CommandStatus.RUNNING
+    
+    command.complete_execution(exit_code=0, stdout="hello")
+    assert command.is_successful
+```
+
+### CLI Command Testing
+
+```python
+from click.testing import CliRunner
+from flext_cli.cli import cli
+
+def test_cli_commands():
+    runner = CliRunner()
+    
+    # Test main CLI
+    result = runner.invoke(cli, ['--version'])
+    assert result.exit_code == 0
+    
+    # Test command groups
+    result = runner.invoke(cli, ['auth', '--help'])
+    assert result.exit_code == 0
+```
+
+### Running Tests
 
 ```bash
-$ flx pipeline run non-existent
-Error: Pipeline 'non-existent' not found
+# Full test suite with coverage
+make test
 
-Suggestions:
-- Check pipeline name with: flx pipeline list
-- Create pipeline with: flx pipeline create
+# Test specific modules
+pytest tests/test_domain.py -v
+pytest tests/test_commands.py -v
 
-For more help: flx pipeline run --help
+# Integration tests
+pytest tests/test_integration.py -v
 ```
 
-## Best Practices
+## Dependencies
 
-1. **Use Profiles**: Separate dev/staging/prod configurations
-2. **Enable Debug**: Use --debug for troubleshooting
-3. **Check Status**: Always verify with status commands
-4. **Use Dry Run**: Test commands with --dry-run
-5. **Set Timeouts**: Configure appropriate timeouts
-6. **Log Levels**: Use appropriate verbosity
+### Core Dependencies
 
-## Extending FLX CLI
+- **flext-core**: Foundation library with shared patterns
+- **flext-observability**: Monitoring and metrics
+- **Click 8.2+**: CLI framework
+- **Rich 14.0+**: Terminal UI components
+- **Pydantic 2.11+**: Data validation and settings
 
-### Custom Commands
+### Project-Specific Dependencies
+
+- **algar-oud-mig**: ALGAR project integration
+- **gruponos-meltano-native**: GrupoNos project integration
+- **flext-meltano**: Meltano orchestration
+
+## Development Workflow
+
+### Adding New Commands
+
+1. Create command module in `commands/` or `commands/projects/`
+2. Use Click decorators with Rich output formatting
+3. Register command in `cli.py` main group
+4. Add comprehensive tests with CliRunner
+5. Run `make validate` before committing
+
+### Example New Command
 
 ```python
-# my_command.py
+# commands/new_feature.py
 import click
-from flx_cli import cli
+from rich.console import Console
 
-@cli.command()
-@click.option('--name', required=True)
-def mycommand(name):
-    """My custom command."""
-    click.echo(f"Hello {name}!")
+@click.group()
+def new_feature():
+    """New feature commands."""
+    pass
+
+@new_feature.command()
+@click.pass_context
+def action(ctx: click.Context) -> None:
+    """Perform new feature action."""
+    console: Console = ctx.obj["console"]
+    console.print("[green]Success![/green]")
+
+# Register in cli.py
+from flext_cli.commands import new_feature
+cli.add_command(new_feature.new_feature)
 ```
 
-### Plugin Commands
+## Quality Standards
 
-Plugins can register CLI commands:
+### Mandatory Requirements
 
-```python
-# In plugin setup.py
-entry_points={
-    'flx.cli': [
-        'my-plugin = my_plugin.cli:commands',
-    ],
-}
-```
+- **Zero lint violations**: Ruff with ALL rules enabled
+- **Zero type errors**: MyPy strict mode (no `Any` types)
+- **90% test coverage**: Enforced by pytest-cov
+- **Security scanning**: Bandit + pip-audit clean
+- **Pre-commit hooks**: Automatic quality enforcement
+
+### Code Style
+
+- **Python 3.13+**: Modern syntax and type hints
+- **Clean Architecture**: Strict layer separation
+- **Domain-Driven Design**: Rich domain entities
+- **Type Safety**: Complete type coverage with MyPy
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Authentication Errors**
-
+1. **Import Errors**
    ```bash
-   flx auth login
-   flx auth status
+   # Clean and reinstall dependencies
+   rm -rf .venv && poetry install --all-extras
    ```
 
-2. **Connection Issues**
-
+2. **Type Check Failures**
    ```bash
-   flx debug connectivity
+   # Run MyPy with specific paths
+   poetry run mypy src/flext_cli --show-error-codes
    ```
 
-3. **Performance Problems**
-
+3. **Test Failures**
    ```bash
-   flx debug performance
+   # Run tests with verbose output
+   poetry run pytest tests/ -v -s
    ```
 
 ### Getting Help
 
 ```bash
 # General help
-flx --help
+poetry run flext --help
 
-# Command help
-flx pipeline run --help
+# Command group help
+poetry run flext auth --help
+poetry run flext config --help
 
-# Online documentation
-flx docs
-
-# Report issues
-flx feedback
+# View project structure
+ls -la src/flext_cli/
 ```
 
-## Roadmap
+## Project Status
 
-- [ ] Interactive pipeline builder
-- [ ] Terminal UI (TUI) mode
-- [ ] Plugin development tools
-- [ ] Performance profiling
-- [ ] Offline mode support
-- [ ] Multi-profile execution
+- ✅ **Architecture**: Clean Architecture com flext-core implementado
+- ✅ **Commands**: Grupos de comandos principais implementados
+- ✅ **Quality Gates**: Makefile com validação completa
+- ✅ **Testing**: Estrutura de testes com pytest
+- 🔄 **Interactive Mode**: Em desenvolvimento
+- 🔄 **Documentation**: Docs/ em criação
 
 ## Contributing
 
-See CONTRIBUTING.md for development setup and guidelines.
+1. Fork o projeto
+2. Crie uma branch para feature (`git checkout -b feature/amazing-feature`)
+3. Execute `make validate` antes de commit
+4. Commit suas mudanças (`git commit -m 'Add amazing feature'`)
+5. Push para a branch (`git push origin feature/amazing-feature`)
+6. Abra um Pull Request
 
 ## License
 
-Part of the FLX Platform - See LICENSE file.
+MIT License - veja [LICENSE](LICENSE) para detalhes.
 
 ## 🔗 Cross-References
 
 ### Prerequisites
 
 - [../../docs/HOW_TO_DOCUMENT.md](../../docs/HOW_TO_DOCUMENT.md) — Guia de padronização de documentação
-- [../../.github/instructions/regras.instructions.regras.instructions.md](../../.github/instructions/regras.instructions.md) — Regras obrigatórias do projeto
+- [../../.github/instructions/regras.instructions.md](../../.github/instructions/regras.instructions.md) — Regras obrigatórias do projeto
 
-### Next Steps
+### Architecture Documentation
 
-- [../../docs/architecture/index.md](../../docs/architecture/index.md) — Detalhes da arquitetura
-- [../../docs/development/index.md](../../docs/development/index.md) — Padrões de desenvolvimento
+- [CLAUDE.md](CLAUDE.md) — Claude Code guidance for development
+- [ARCHITECTURE.md](ARCHITECTURE.md) — Detailed architectural decisions
+- [docs/](docs/) — Comprehensive project documentation
 
-### Related Topics
+### Related Projects
 
-- [../../docs/STANDARDIZATION_MASTER_PLAN.md](../../docs/STANDARDIZATION_MASTER_PLAN.md) — Estratégia de padronização
-- [../../docs/INCOMPLETE_CODE_REPORT.md](../../docs/INCOMPLETE_CODE_REPORT.md) — Relatório de código incompleto
+- [../../flext-core/](../../flext-core/) — Core foundation library
+- [../../flext-observability/](../../flext-observability/) — Monitoring and metrics
+- [../../flext-meltano/](../../flext-meltano/) — Meltano orchestration
 
 ---
 
-**📂 Projeto**: flext-cli | **🏠 Root**: [Documentação Principal](../../docs/index.md) | **Framework**: FLEXT 0.6.0+ | **Updated**: 2025-07-08
+**📂 Projeto**: flext-cli | **🏠 Root**: [Documentação Principal](../../docs/index.md) | **Framework**: FLEXT 0.8.0 | **Updated**: 2025-01-29
