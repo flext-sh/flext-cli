@@ -7,6 +7,14 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
+from flext_cli.core.data_exporter import FlextCliDataExporter
+from flext_cli.core.formatter import FlextCliFormatter
+from flext_cli import (
+from flext_cli import flext_cli_aggregate_data, flext_cli_transform_data
+from flext_cli.decorators import (
+from flext_cli import flext_cli_pipeline
+
+
 from __future__ import annotations
 
 # Sample dataset for demonstration
@@ -25,8 +33,8 @@ def traditional_approach() -> None:
     # TRADITIONAL CODE (21+ lines for basic operations)
     # ============================================================================
 
-    from flext_cli.core.data_exporter import FlextCliDataExporter
-    from flext_cli.core.formatter import FlextCliFormatter
+
+
 
     # Export operation
     exporter = FlextCliDataExporter()
@@ -54,7 +62,7 @@ def modern_unified_approach() -> None:
     # UNIFIED API CODE (5 lines for same operations + enhanced capabilities)
     # ============================================================================
 
-    from flext_cli import (
+
         flext_cli_export,
         flext_cli_format,
         flext_cli_table,
@@ -70,7 +78,7 @@ def modern_unified_approach() -> None:
 
 def enhanced_collections_demo() -> None:
     """Demonstrate enhanced collections with FlextResult integration."""
-    from flext_cli import flext_cli_aggregate_data, flext_cli_transform_data
+
 
     # Transform data - filter, sort, limit
     transform_result = flext_cli_transform_data(
@@ -93,7 +101,7 @@ def enhanced_collections_demo() -> None:
 
 def advanced_decorators_demo() -> None:
     """Demonstrate advanced decorators for boilerplate reduction."""
-    from flext_cli.decorators import (
+
         flext_cli_auto_result,
         flext_cli_cache_result,
         flext_cli_safe_operation,
@@ -121,7 +129,7 @@ def advanced_decorators_demo() -> None:
 
 def pipeline_operations_demo() -> None:
     """Demonstrate pipeline operations with single function call."""
-    from flext_cli import flext_cli_pipeline
+
 
     # Complete data pipeline in one call
     pipeline_result = flext_cli_pipeline(

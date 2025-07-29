@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from flext_cli.domain.entities import CommandType
 
@@ -22,26 +22,22 @@ class ExecuteCommandCommand:
         name: str,
         command_line: str,
         *,
-        arguments: dict[str, Any] | None = None,
-        options: dict[str, Any] | None = None,
         command_type: CommandType = CommandType.SYSTEM,
-        user_id: UUID | None = None,
-        session_id: str | None = None,
-        working_directory: str | None = None,
-        environment: dict[str, str] | None = None,
         timeout_seconds: float | None = None,
     ) -> None:
-        """Initialize the command."""
+        """Initialize the command with minimal parameters."""
         self.name = name
         self.command_line = command_line
-        self.arguments = arguments
-        self.options = options
         self.command_type = command_type
-        self.user_id = user_id
-        self.session_id = session_id
-        self.working_directory = working_directory
-        self.environment = environment
         self.timeout_seconds = timeout_seconds
+
+        # Optional parameters with defaults
+        self.arguments: dict[str, object] | None = None
+        self.options: dict[str, object] | None = None
+        self.user_id: UUID | None = None
+        self.session_id: str | None = None
+        self.working_directory: str | None = None
+        self.environment: dict[str, str] | None = None
 
 
 class CancelCommandCommand:
@@ -63,8 +59,8 @@ class CreateConfigCommand:
     """Command to create a CLI configuration."""
 
     name: str
-    description = None
-    config_data: dict[str, Any]
+    description: str | None = None
+    config_data: dict[str, object]
     config_type: str
     version = "1.0.0"
     user_id: UUID | None = None
@@ -75,9 +71,9 @@ class UpdateConfigCommand:
     """Command to update a CLI configuration."""
 
     config_id: UUID
-    name = None
+    name: str | None = None
     description: str | None = None
-    config_data: dict[str, Any] | None = None
+    config_data: dict[str, object] | None = None
     version: str | None = None
     user_id: UUID | None = None
 
@@ -86,21 +82,21 @@ class DeleteConfigCommand:
     """Command to delete a CLI configuration."""
 
     config_id: UUID
-    user_id = None
+    user_id: str | None = None
 
 
 class ValidateConfigCommand:
     """Command to validate a CLI configuration."""
 
     config_id: UUID
-    user_id = None
+    user_id: str | None = None
 
 
 class StartSessionCommand:
     """Command to start a CLI session."""
 
     session_id: str
-    user_id = None
+    user_id: str | None = None
     working_directory: str | None = None
     environment: dict[str, str] | None = None
 
@@ -109,14 +105,14 @@ class EndSessionCommand:
     """Command to end a CLI session."""
 
     session_id: UUID
-    user_id = None
+    user_id: str | None = None
 
 
 class InstallPluginCommand:
     """Command to install a CLI plugin."""
 
     name: str
-    version = None
+    version: str | None = None
     entry_point: str
     commands: list[str] | None = None
     dependencies: list[str] | None = None
@@ -130,21 +126,21 @@ class UninstallPluginCommand:
     """Command to uninstall a CLI plugin."""
 
     plugin_id: UUID
-    user_id = None
+    user_id: str | None = None
 
 
 class EnablePluginCommand:
     """Command to enable a CLI plugin."""
 
     plugin_id: UUID
-    user_id = None
+    user_id: str | None = None
 
 
 class DisablePluginCommand:
     """Command to disable a CLI plugin."""
 
     plugin_id: UUID
-    user_id = None
+    user_id: str | None = None
 
 
 class ListCommandsCommand:
@@ -168,7 +164,7 @@ class GetCommandStatusCommand:
     """Command to get command execution status."""
 
     command_id: UUID
-    user_id = None
+    user_id: str | None = None
 
 
 class ListConfigsCommand:
@@ -191,4 +187,4 @@ class GetSessionInfoCommand:
     """Command to get CLI session information."""
 
     session_id: UUID
-    user_id = None
+    user_id: str | None = None

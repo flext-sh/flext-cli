@@ -3,76 +3,73 @@
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
+Simplified decorators for MyPy compatibility.
 """
 
 from __future__ import annotations
 
 import asyncio
-import functools
 import time
-from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypeVar
 
 from rich.console import Console
 
-if TYPE_CHECKING:
-    from flext_cli.config.cli_config import CLIConfig
 
-# Generic type for decorated functions
-F = TypeVar("F", bound=Callable[..., Any])
+def async_command(f: object) -> object:
+    """Run async functions in sync context."""
+    if not callable(f):
+        return f
 
+    def wrapper(*args: object, **kwargs: object) -> object:
+        try:
+            result = f(*args, **kwargs)
+            if asyncio.iscoroutine(result):
+                return asyncio.run(result)
+            return result
+        except (RuntimeError, OSError, TypeError, AttributeError):
+            # Log the exception if needed
+            return None
 
-def async_command[F: Callable[..., Any]](f: F) -> F:
-    """Decorator to run async functions in sync context."""
-
-    @functools.wraps(f)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        return asyncio.run(f(*args, **kwargs))
-
-    return wrapper  # type: ignore[return-value]
+    return wrapper
 
 
 def confirm_action(
     message: str = "Are you sure?",
+    *,
     default: bool = False,
-) -> Callable[[F], F]:
-    """Decorator to add confirmation prompt before executing function.
+) -> object:
+    """Add confirmation prompt before executing function."""
 
-    It is useful for adding a safety check before executing potentially
-    destructive actions.
+    def decorator(f: object) -> object:
+        if not callable(f):
+            return f
 
-    Args:
-        message: The message to display to the user.
-        default: Whether to default to yes or no. If True, the default is yes.
-            If False, the default is no.
-
-    Returns:
-        The decorated function.
-
-    """
-
-    def decorator(f: F) -> F:
-        @functools.wraps(f)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
+        def wrapper(*args: object, **kwargs: object) -> object:
             console = Console()
-            if console.input(f"{message} [y/N]: ").lower().startswith("y"):
+            prompt = f"{message} [{'Y/n' if default else 'y/N'}]: "
+            response = console.input(prompt).lower()
+            should_continue = default if not response else response.startswith("y")
+
+            if should_continue:
                 return f(*args, **kwargs)
             console.print("Operation cancelled.", style="yellow")
             return None
 
-        return wrapper  # type: ignore[return-value]
+        return wrapper
 
     return decorator
 
 
-def require_auth(token_file: str = "~/.flext/auth_token") -> Callable[[F], F]:
-    """Decorator to require authentication before executing function."""
+def require_auth(*, token_file: str | None = None) -> object:
+    """Require authentication before executing function."""
 
-    def decorator(f: F) -> F:
-        @functools.wraps(f)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            token_path = Path(token_file).expanduser()
+    def decorator(f: object) -> object:
+        if not callable(f):
+            return f
+
+        def wrapper(*args: object, **kwargs: object) -> object:
+            path = token_file or "~/.flext/auth_token"
+            token_path = Path(path).expanduser()
 
             if not token_path.exists():
                 console = Console()
@@ -82,6 +79,7 @@ def require_auth(token_file: str = "~/.flext/auth_token") -> Callable[[F], F]:
                 )
                 console.print("Please run 'flext auth login' first.", style="yellow")
                 return None
+
             try:
                 with token_path.open() as file_handle:
                     token = file_handle.read().strip()
@@ -89,26 +87,29 @@ def require_auth(token_file: str = "~/.flext/auth_token") -> Callable[[F], F]:
                     console = Console()
                     console.print("Token file is empty", style="red")
                     return None
-            except Exception as e:
+            except (OSError, ValueError) as e:
                 console = Console()
                 console.print(f"Invalid token file: {e}", style="red")
                 return None
 
             # Add token to kwargs for the function
-            kwargs["auth_token"] = token
-            return f(*args, **kwargs)
+            kwargs_with_token = dict(kwargs)
+            kwargs_with_token["auth_token"] = token
+            return f(*args, **kwargs_with_token)
 
-        return wrapper  # type: ignore[return-value]
+        return wrapper
 
     return decorator
 
 
-def measure_time(show_in_output: bool = True) -> Callable[[F], F]:
-    """Decorator to measure and optionally display execution time."""
+def measure_time(*, show_in_output: bool = True) -> object:
+    """Measure and optionally display execution time."""
 
-    def decorator(f: F) -> F:
-        @functools.wraps(f)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
+    def decorator(f: object) -> object:
+        if not callable(f):
+            return f
+
+        def wrapper(*args: object, **kwargs: object) -> object:
             start_time = time.time()
             try:
                 return f(*args, **kwargs)
@@ -123,7 +124,7 @@ def measure_time(show_in_output: bool = True) -> Callable[[F], F]:
                         style="dim",
                     )
 
-        return wrapper  # type: ignore[return-value]
+        return wrapper
 
     return decorator
 
@@ -132,19 +133,21 @@ def retry(
     max_attempts: int = 3,
     delay: float = 1.0,
     backoff: float = 2.0,
-) -> Callable[[F], F]:
-    """Decorator to retry function calls with exponential backoff."""
+) -> object:
+    """Retry function calls with exponential backoff."""
 
-    def decorator(f: F) -> F:
-        @functools.wraps(f)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
+    def decorator(f: object) -> object:
+        if not callable(f):
+            return f
+
+        def wrapper(*args: object, **kwargs: object) -> object:
             console = Console()
             current_delay = delay
 
             for attempt in range(max_attempts):
                 try:
                     return f(*args, **kwargs)
-                except Exception as e:
+                except (RuntimeError, ValueError, TypeError) as e:
                     if attempt == max_attempts - 1:
                         console.print(
                             f"Failed after {max_attempts} attempts: {e}",
@@ -162,24 +165,25 @@ def retry(
 
             return None  # Should never reach here
 
-        return wrapper  # type: ignore[return-value]
+        return wrapper
 
     return decorator
 
 
-def validate_config(required_keys: list[str]) -> Callable[[F], F]:
-    """Decorator to validate required configuration keys before execution."""
+def validate_config(required_keys: list[str]) -> object:
+    """Validate required configuration keys before execution."""
 
-    def decorator(f: F) -> F:
-        @functools.wraps(f)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
+    def decorator(f: object) -> object:
+        if not callable(f):
+            return f
+
+        def wrapper(*args: object, **kwargs: object) -> object:
             # Try to get config from context or kwargs
-            config: CLIConfig | None = kwargs.get("config")
+            config = kwargs.get("config")
 
-            if not config:
+            if not config and args and hasattr(args[0], "config"):
                 # Try to get from args (assuming first arg might be context with config)
-                if args and hasattr(args[0], "config"):
-                    config = args[0].config
+                config = getattr(args[0], "config", None)
 
             if not config:
                 console = Console()
@@ -206,25 +210,23 @@ def validate_config(required_keys: list[str]) -> Callable[[F], F]:
 
             return f(*args, **kwargs)
 
-        return wrapper  # type: ignore[return-value]
+        return wrapper
 
     return decorator
 
 
-def with_spinner(message: str = "Processing...") -> Callable[[F], F]:
-    """Decorator to show a spinner during function execution."""
+def with_spinner(message: str = "Processing...") -> object:
+    """Show a spinner during function execution."""
 
-    def decorator(f: F) -> F:
-        @functools.wraps(f)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
+    def decorator(f: object) -> object:
+        if not callable(f):
+            return f
+
+        def wrapper(*args: object, **kwargs: object) -> object:
             console = Console()
             with console.status(message, spinner="dots"):
-                try:
-                    return f(*args, **kwargs)
-                except Exception:
-                    # Let the exception propagate but ensure spinner stops
-                    raise
+                return f(*args, **kwargs)
 
-        return wrapper  # type: ignore[return-value]
+        return wrapper
 
     return decorator

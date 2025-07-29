@@ -3,11 +3,7 @@
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Version 0.7.0 - Complete refactor using flext-core patterns:
-- Declarative configuration via BaseConfig/BaseSettings
-- Dependency injection via DIContainer
-- Clean architecture with domain/application layers
-- No legacy/fallback code
+Modern CLI implementation using flext-core and Click patterns.
 """
 
 from __future__ import annotations
@@ -16,16 +12,13 @@ import sys
 import traceback
 
 import click
-from flext_core.config.base import get_container
-from rich.console import Console
-
 from flext_cli.__version__ import __version__
 from flext_cli.commands import auth, config, debug, pipeline, plugin
-
-# Register project commands - Import early to avoid E402
 from flext_cli.commands.projects import client-a, client-b, meltano
 from flext_cli.domain import CLIServiceContainer
 from flext_cli.utils.config import CLISettings, get_config
+from flext_core import get_flext_container
+from rich.console import Console
 
 
 @click.group(
@@ -63,8 +56,8 @@ def cli(
     ctx: click.Context,
     profile: str,
     output: str,
-    debug: bool,
-    quiet: bool,
+    debug: bool,  # noqa: FBT001 - Click CLI parameter pattern
+    quiet: bool,  # noqa: FBT001 - Click CLI parameter pattern
 ) -> None:
     """FLEXT Command Line Interface."""
     # Load configuration using flext-core
@@ -79,14 +72,14 @@ def cli(
     config.verbose = debug
 
     # Create service container with dependency injection
-    container = get_container()
+    container = get_flext_container()
     service_container = CLIServiceContainer(
         name="flext-cli",
-        version="0.7.0",
+        version=__version__,
     )
 
     # Register services in DI container
-    container.register(CLIServiceContainer, service_container)
+    container.register("cli_service_container", service_container)
 
     # Setup click context with components
     console = Console()
@@ -145,7 +138,7 @@ def version(ctx: click.Context) -> None:
 
 
 def main() -> None:
-    """Main CLI entry point."""
+    """Execute the main CLI entry point."""
     try:
         cli()
     except KeyboardInterrupt:

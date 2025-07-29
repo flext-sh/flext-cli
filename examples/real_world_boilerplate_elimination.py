@@ -10,6 +10,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import json
+import logging
+
 # All imports from root namespace (as required)
 from flext_cli import (
     flext_cli_config_with_defaults,
@@ -29,8 +32,6 @@ def traditional_approach_example():
     """BEFORE: Traditional approach with massive boilerplate (45+ lines)."""
 
     def process_user_data_old_way(raw_users, config):
-        import json
-        import logging
 
         logger = logging.getLogger(__name__)
 
@@ -69,7 +70,7 @@ def traditional_approach_example():
                             transformed[old_key] = value
 
                     processed_users.append(transformed)
-                except Exception as e:
+                except (RuntimeError, ValueError, TypeError) as e:
                     logger.exception(f"Failed to process user {user}: {e}")
                     continue
 
@@ -85,7 +86,7 @@ def traditional_approach_example():
                 return {"success": True, "data": formatted_result}
             return {"success": False, "error": "No valid users processed"}
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.exception("Processing failed")
             return {"success": False, "error": str(e)}
 

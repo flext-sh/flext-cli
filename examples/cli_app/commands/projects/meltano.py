@@ -9,6 +9,7 @@ Preserves ALL original functionality from flext-meltano/cli.py.
 
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -184,7 +185,7 @@ def projects(
 
         if not quiet and not projects_list:
             click.echo("No Meltano projects found.")
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         click.echo(f"❌ Failed to list projects: {e}", err=True)
         ctx.exit(1)
 
@@ -251,7 +252,7 @@ def init(
         else:
             click.echo(f"❌ Failed to initialize project: {result.error}", err=True)
             ctx.exit(1)
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         click.echo(f"❌ Failed to initialize project: {e}", err=True)
         ctx.exit(1)
 
@@ -324,7 +325,7 @@ def add(
             if result.stderr:
                 click.echo(result.stderr.decode(), err=True)
             ctx.exit(result.returncode)
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         click.echo(f"❌ Failed to add plugin: {e}", err=True)
         ctx.exit(1)
 
@@ -396,7 +397,7 @@ def run(
     except subprocess.TimeoutExpired:
         click.echo("❌ Job timed out after 1 hour", err=True)
         ctx.exit(1)
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         click.echo(f"❌ Failed to run job: {e}", err=True)
         ctx.exit(1)
 
@@ -438,7 +439,6 @@ def discover(ctx: click.Context, plugin_name: str, project_dir: str | None) -> N
             click.echo("✅ Schema discovery completed!")
             if result.stdout:
                 # Pretty print the catalog
-                import json
 
                 try:
                     catalog = json.loads(result.stdout.decode())
@@ -450,7 +450,7 @@ def discover(ctx: click.Context, plugin_name: str, project_dir: str | None) -> N
             if result.stderr:
                 click.echo(result.stderr.decode(), err=True)
             ctx.exit(result.returncode)
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         click.echo(f"❌ Failed to discover schema: {e}", err=True)
         ctx.exit(1)
 
@@ -497,7 +497,7 @@ def test(ctx: click.Context, plugin_name: str, project_dir: str | None) -> None:
             if result.stderr:
                 click.echo(result.stderr.decode(), err=True)
             ctx.exit(result.returncode)
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         click.echo(f"❌ Failed to test plugin: {e}", err=True)
         ctx.exit(1)
 
@@ -542,7 +542,7 @@ def install(ctx: click.Context, project_dir: str | None) -> None:
             if result.stderr:
                 click.echo(result.stderr.decode(), err=True)
             ctx.exit(result.returncode)
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         click.echo(f"❌ Failed to install plugins: {e}", err=True)
         ctx.exit(1)
 
@@ -599,7 +599,7 @@ def config(
             if result.stderr:
                 click.echo(result.stderr.decode(), err=True)
             ctx.exit(result.returncode)
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         click.echo(f"❌ Failed to update configuration: {e}", err=True)
         ctx.exit(1)
 

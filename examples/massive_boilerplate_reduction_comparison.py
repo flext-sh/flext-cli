@@ -102,14 +102,14 @@ def example_silent_execution() -> None:
             print(f"Exported: {result.unwrap()}")
         else:
             print("Export failed")
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         print(f"Unexpected error: {e}")
 
     try:
         dashboard_result = flext_cli.flext_cli_auto_dashboard(data)
         if dashboard_result.success:
             print("Dashboard created")
-    except Exception:
+    except (RuntimeError, ValueError, TypeError):
         pass  # Dashboard errors are non-critical for this comparison
     """
 

@@ -8,7 +8,8 @@ Provides consistent output formatting across CLI commands.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+import json
+from typing import TYPE_CHECKING
 
 import yaml
 from rich.console import Console
@@ -18,8 +19,8 @@ if TYPE_CHECKING:
     from flext_cli.client import Pipeline, PipelineList
 
 
-def setup_console(no_color: bool = False, quiet: bool = False) -> Console:
-    """Setup Rich console with configuration.
+def setup_console(*, no_color: bool = False, quiet: bool = False) -> Console:
+    """Set up Rich console with configuration.
 
     Args:
         no_color: Disable color output
@@ -98,10 +99,17 @@ def format_pipeline(console: Console, pipeline: Pipeline) -> None:
 
 def format_plugin_list(
     console: Console,
-    plugins: list[dict[str, Any]],
+    plugins: list[dict[str, object]],
     output_format: str,
 ) -> None:
-    """Format plugin list for display."""
+    """Format plugin list for display.
+
+    Args:
+        console: Rich console instance
+        plugins: List of plugin dictionaries
+        output_format: Output format (table or json)
+
+    """
     if not plugins:
         console.print("[yellow]No plugins found[/yellow]")
         return
@@ -115,50 +123,87 @@ def format_plugin_list(
 
         for plugin in plugins:
             table.add_row(
-                plugin.get("name", "Unknown"),
-                plugin.get("type", "Unknown"),
-                plugin.get("version", "Unknown"),
-                plugin.get("description", "No description"),
+                str(plugin.get("name", "Unknown")),
+                str(plugin.get("type", "Unknown")),
+                str(plugin.get("version", "Unknown")),
+                str(plugin.get("description", "No description")),
             )
 
         console.print(table)
     else:
         # JSON format
-        import json
-
         console.print(json.dumps(plugins, indent=2))
 
 
 def format_json(data: object) -> str:
-    """Format object as JSON string."""
-    import json
+    """Format object as JSON string.
 
+    Args:
+        data: Object to format as JSON
+
+    Returns:
+        JSON string representation
+
+    """
     return json.dumps(data, indent=2, default=str)
 
 
 def format_yaml(data: object) -> str:
-    """Format object as YAML string."""
+    """Format object as YAML string.
+
+    Args:
+        data: Object to format as YAML
+
+    Returns:
+        YAML string representation
+
+    """
     result = yaml.dump(data, default_flow_style=False)
     return str(result)
 
 
 def print_error(console: Console, message: str, details: str | None = None) -> None:
-    """Print error message with optional details."""
+    """Print error message with optional details.
+
+    Args:
+        console: Rich console instance
+        message: Error message to display
+        details: Optional detailed error information
+
+    """
     console.print(f"[bold red]Error:[/bold red] {message}")
     if details:
         console.print(f"[dim]{details}[/dim]")
 
 
 def print_success(console: Console, message: str) -> None:
-    """Print success message."""
+    """Print success message.
+
+    Args:
+        console: Rich console instance
+        message: Success message to display
+
+    """
     console.print(f"[bold green]✓[/bold green] {message}")
 
 
 def print_warning(console: Console, message: str) -> None:
-    """Print warning message."""
+    """Print warning message.
+
+    Args:
+        console: Rich console instance
+        message: Warning message to display
+
+    """
     console.print(f"[bold yellow]⚠[/bold yellow] {message}")
 
 
 def print_info(console: Console, message: str) -> None:
-    """Print info message."""
-    console.print(f"[bold blue]ℹ[/bold blue] {message}")
+    """Print info message.
+
+    Args:
+        console: Rich console instance
+        message: Info message to display
+
+    """
+    console.print(f"[bold blue]i[/bold blue] {message}")

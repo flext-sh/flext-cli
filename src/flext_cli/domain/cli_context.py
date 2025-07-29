@@ -7,11 +7,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import contextlib
 from typing import TYPE_CHECKING
 
-from flext_core import Field
-from flext_core.domain.pydantic_base import DomainValueObject
-from pydantic import ConfigDict
+from flext_core.result import FlextResult
+from flext_core.value_objects import FlextValueObject
+from pydantic import ConfigDict, Field
 
 if TYPE_CHECKING:
     from rich.console import Console
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
     from flext_cli.utils.config import CLIConfig, CLISettings
 
 
-class CLIContext(DomainValueObject):
+class CLIContext(FlextValueObject):
     """CLI context containing configuration and services."""
 
     config: CLIConfig = Field(..., description="CLI configuration")
@@ -27,6 +28,16 @@ class CLIContext(DomainValueObject):
     console: Console = Field(..., description="Rich console instance")
 
     model_config = ConfigDict(arbitrary_types_allowed=True)  # Allow Console type
+
+    def validate_domain_rules(self) -> FlextResult[None]:
+        """Validate domain business rules for CLI context.
+
+        Returns:
+            FlextResult indicating success or failure with validation errors.
+
+        """
+        # No specific domain rules to validate for CLI context
+        return FlextResult.ok(None)
 
     @property
     def is_debug(self) -> bool:
@@ -114,3 +125,18 @@ class CLIContext(DomainValueObject):
         """
         if self.is_verbose:
             self.console.print(f"[dim][VERBOSE][/dim] {message}")
+
+
+# Model rebuilding to resolve forward references
+with contextlib.suppress(Exception):
+    # Import the actual types to ensure they're available
+    from rich.console import Console
+
+    from flext_cli.utils.config import CLIConfig, CLISettings
+
+    # Make types available in globals
+    globals()["CLIConfig"] = CLIConfig
+    globals()["CLISettings"] = CLISettings
+    globals()["Console"] = Console
+
+    CLIContext.model_rebuild()

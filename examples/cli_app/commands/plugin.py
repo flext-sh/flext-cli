@@ -12,10 +12,9 @@ import json
 from typing import TYPE_CHECKING
 
 import click
-from rich.progress import Progress, SpinnerColumn, TextColumn
-
 from flext_cli.client import FlextApiClient
 from flext_cli.utils.output import format_plugin_list
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 if TYPE_CHECKING:
     from rich.console import Console
@@ -55,7 +54,7 @@ def list_plugins(ctx: click.Context, plugin_type: str | None, installed: bool) -
                     console.print(json.dumps(plugins, indent=2))
                 else:
                     format_plugin_list(console, plugins, output_format)
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             console.print(f"[red]❌ Failed to list plugins: {e}[/red]")
             ctx.exit(1)
 
@@ -92,7 +91,7 @@ def show(ctx: click.Context, plugin_id: str) -> None:
                         console.print("\nSettings:")
                         for key, value in plugin["settings"].items():
                             console.print(f"  {key}: {value}")
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             console.print(f"[red]❌ Failed to get plugin details: {e}[/red]")
             ctx.exit(1)
 
@@ -125,7 +124,7 @@ def install(ctx: click.Context, plugin_id: str, version: str | None) -> None:
 
                 if "version" in result:
                     console.print(f"Version: {result['version']}")
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             console.print(f"[red]❌ Failed to install plugin: {e}[/red]")
             ctx.exit(1)
 
@@ -161,7 +160,7 @@ def update(ctx: click.Context, plugin_id: str, version: str | None) -> None:
                     new_ver = result["new_version"]
                     version_msg = f"Updated from {old_ver} to {new_ver}"
                     console.print(version_msg)
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             console.print(f"[red]❌ Failed to update plugin: {e}[/red]")
             ctx.exit(1)
 
@@ -202,7 +201,7 @@ def remove(ctx: click.Context, plugin_id: str, force: bool) -> None:
                 console.print(
                     f"[green]✅ Plugin '{plugin['name']}' removed successfully[/green]",
                 )
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             console.print(f"[red]❌ Failed to remove plugin: {e}[/red]")
             ctx.exit(1)
 

@@ -59,7 +59,7 @@ class CLIConfig:
 
     # Security settings
     verify_ssl: bool = True
-    token_file: str = "~/.flx/token"
+    token_file: str = "~/.flx/token"  # noqa: S105
 
     # Performance settings
     max_concurrent_commands: int = 5

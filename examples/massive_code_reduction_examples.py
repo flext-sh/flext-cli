@@ -10,6 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import traceback
+
 import flext_cli
 
 
@@ -26,12 +28,12 @@ def example_1_traditional_vs_flext() -> None:
     # TRADITIONAL APPROACH (50+ lines of code)
     # ===============================================
     """
-    import csv
-    import json
-    import pandas as pd
-    from pathlib import Path
-    from rich.console import Console
-    from rich.table import Table
+
+
+
+
+
+
 
     # Export to CSV
     try:
@@ -41,7 +43,7 @@ def example_1_traditional_vs_flext() -> None:
             writer.writeheader()
             writer.writerows(users_data)
         print("CSV export successful")
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         print(f"CSV export failed: {e}")
 
     # Export to JSON
@@ -49,7 +51,7 @@ def example_1_traditional_vs_flext() -> None:
         with open("users.json", "w") as jsonfile:
             json.dump(users_data, jsonfile, indent=2)
         print("JSON export successful")
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         print(f"JSON export failed: {e}")
 
     # Create Rich table
@@ -61,7 +63,7 @@ def example_1_traditional_vs_flext() -> None:
         for user in users_data:
             table.add_row(*[str(value) for value in user.values()])
         console.print(table)
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         print(f"Table creation failed: {e}")
 
     # Generate analysis
@@ -71,7 +73,7 @@ def example_1_traditional_vs_flext() -> None:
         roles = set(user["role"] for user in users_data)
         print(f"Analysis: {total_records} records, avg salary: ${avg_salary:,.2f}")
         print(f"Roles: {', '.join(roles)}")
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         print(f"Analysis failed: {e}")
     """
 
@@ -348,8 +350,7 @@ def main() -> None:
         example_4_interactive_dashboards()
         example_5_real_world_scenario()
 
-    except Exception:
-        import traceback
+    except (RuntimeError, ValueError, TypeError):
 
         traceback.print_exc()
 

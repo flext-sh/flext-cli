@@ -8,6 +8,19 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
+import json
+import logging
+import csv
+import json
+import logging
+import os
+import logging
+from collections import defaultdict
+import json
+import logging
+from datetime import datetime
+
+
 from __future__ import annotations
 
 # All imports from root namespace only (as required)
@@ -41,8 +54,8 @@ def example_1_before_massive_boilerplate() -> None:
 
     # BAD: Manual error handling, validation, formatting - 25+ lines
     def process_user_data(data):
-        import json
-        import logging
+
+
 
         logger = logging.getLogger(__name__)
 
@@ -82,7 +95,7 @@ def example_1_before_massive_boilerplate() -> None:
                 return {"success": True, "data": formatted}
             return {"success": False, "error": "No valid records processed"}
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.exception("Processing failed")
             return {"success": False, "error": str(e)}
 
@@ -118,10 +131,10 @@ def example_2_before_export_boilerplate() -> None:
     """BEFORE: Manual export with validation - 30+ lines."""
 
     def export_sales_data(sales_data, formats=None, base_path="./exports"):
-        import csv
-        import json
-        import logging
-        import os
+
+
+
+
 
         logger = logging.getLogger(__name__)
         formats = formats or ["json", "csv"]
@@ -161,7 +174,7 @@ def example_2_before_export_boilerplate() -> None:
 
             return {"success": True, "data": results}
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.exception("Export failed")
             return {"success": False, "error": str(e)}
 
@@ -188,8 +201,8 @@ def example_3_before_analysis_boilerplate() -> None:
     """BEFORE: Manual analysis with aggregation - 40+ lines."""
 
     def analyze_customer_data(customers):
-        import logging
-        from collections import defaultdict
+
+
 
         logger = logging.getLogger(__name__)
 
@@ -198,7 +211,8 @@ def example_3_before_analysis_boilerplate() -> None:
                 return {"success": False, "error": "No customer data"}
 
             # Manual filtering
-            active_customers = [customer for customer in customers if customer.get("status") == "active" and customer.get("purchases", 0) > 0]
+            active_customers = [customer for customer in customers if customer.get("status") == "active" and (
+                customer.get("purchases", 0) > 0])
 
             # Manual aggregation by region
             regions = defaultdict(lambda: {"count": 0, "total_purchases": 0, "avg_age": 0})
@@ -228,7 +242,7 @@ def example_3_before_analysis_boilerplate() -> None:
 
             return {"success": True, "data": "\n".join(report)}
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.exception("Analysis failed")
             return {"success": False, "error": str(e)}
 
@@ -272,9 +286,9 @@ def example_4_before_api_processing() -> None:
     """BEFORE: API response processing - 35+ lines."""
 
     def process_api_response(response_data, transform_rules=None, output_format="json"):
-        import json
-        import logging
-        from datetime import datetime
+
+
+
 
         logger = logging.getLogger(__name__)
         transform_rules = transform_rules or {}
@@ -320,7 +334,7 @@ def example_4_before_api_processing() -> None:
             logger.info(f"Successfully processed {len(processed)} items")
             return {"success": True, "data": formatted, "count": len(processed)}
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.exception("API processing failed")
             return {"success": False, "error": str(e)}
 

@@ -9,9 +9,10 @@ This module provides a basic dependency container without external dependencies.
 from __future__ import annotations
 
 import os
-from typing import Any, cast
+from typing import cast
 
-from flext_core.infrastructure.memory import InMemoryRepository
+from flext_core import FlextRepository
+from flext_core.result import FlextResult
 
 
 class SimpleDIContainer:
@@ -19,10 +20,10 @@ class SimpleDIContainer:
 
     def __init__(self) -> None:
         """Initialize the dependency injection container."""
-        self._instances: dict[str, Any] = {}
-        self._factories: dict[str, Any] = {}
+        self._instances: dict[str, object] = {}
+        self._factories: dict[str, object] = {}
 
-    def register_factory(self, name: str, factory: Any) -> None:
+    def register_factory(self, name: str, factory: object) -> None:
         """Register a factory function for a dependency.
 
         Args:
@@ -32,7 +33,7 @@ class SimpleDIContainer:
         """
         self._factories[name] = factory
 
-    def register_instance(self, name: str, instance: Any) -> None:
+    def register_instance(self, name: str, instance: object) -> None:
         """Register a concrete instance.
 
         Args:
@@ -42,7 +43,7 @@ class SimpleDIContainer:
         """
         self._instances[name] = instance
 
-    def get(self, name: str) -> Any:
+    def get(self, name: str) -> object:
         """Get dependency by name.
 
         Args:
@@ -59,7 +60,8 @@ class SimpleDIContainer:
             return self._instances[name]
 
         if name in self._factories:
-            instance = self._factories[name]()
+            factory = self._factories[name]
+            instance = factory() if callable(factory) else factory
             self._instances[name] = instance
             return instance
 
@@ -89,11 +91,8 @@ class CLIContainer:
         # This avoids the complex dependency injection issues
 
         # Configuration
-        def create_config() -> dict[str, Any]:
-            """Creates an instance of CLI config with environment defaults.
-
-            This method creates the CLI config with environment defaults.
-            It is used to create the CLI config with environment defaults.
+        def create_config() -> dict[str, object]:
+            """Create CLI config instance with environment defaults.
 
             Returns:
                 An instance of CLI config.
@@ -108,54 +107,99 @@ class CLIContainer:
 
         self._container.register_factory("config", create_config)
 
-    def get_config(self) -> dict[str, Any]:
-        """Gets an instance of CLI configuration.
-
-        This method gets the CLI configuration from the container.
-        It is used to get the CLI configuration from the container.
+    def get_config(self) -> dict[str, object]:
+        """Get CLI configuration instance.
 
         Returns:
             The CLI configuration.
 
         """
         config = self._container.get("config")
-        return cast("dict[str, Any]", config)
+        return cast("dict[str, object]", config)
 
-    def get_command_repository(self) -> InMemoryRepository[Any, Any]:
-        """Gets command repository (mock for now).
+    def get_command_repository(self) -> FlextRepository:
+        """Get command repository (mock for now).
 
-        This method gets the command repository from the container.
-        It is used to get the command repository from the container.
-
-        """
-        return InMemoryRepository[Any, Any]()
-
-    def get_config_repository(self) -> InMemoryRepository[Any, Any]:
-        """Gets config repository (mock for now).
-
-        This method gets the config repository from the container.
-        It is used to get the config repository from the container.
+        Returns:
+            Command repository instance.
 
         """
-        return InMemoryRepository[Any, Any]()
 
-    def get_session_repository(self) -> InMemoryRepository[Any, Any]:
-        """Gets session repository (mock for now).
+        # Placeholder implementation - concrete repository needed
+        class MockRepository(FlextRepository):
+            def save(self, _entity: object) -> FlextResult[None]:
+                return FlextResult.ok(None)
 
-        This method gets the session repository from the container.
-        It is used to get the session repository from the container.
+            def find_by_id(self, entity_id: str) -> FlextResult[object]:
+                return FlextResult.fail(f"Entity {entity_id} not found")
+
+            def delete(self, _entity_id: str) -> FlextResult[None]:
+                return FlextResult.ok(None)
+
+        return MockRepository()
+
+    def get_config_repository(self) -> FlextRepository:
+        """Get config repository (mock for now).
+
+        Returns:
+            Config repository instance.
 
         """
-        return InMemoryRepository[Any, Any]()
 
-    def get_plugin_repository(self) -> InMemoryRepository[Any, Any]:
-        """Gets plugin repository (mock for now).
+        # Placeholder implementation - concrete repository needed
+        class MockRepository(FlextRepository):
+            def save(self, _entity: object) -> FlextResult[None]:
+                return FlextResult.ok(None)
 
-        This method gets the plugin repository from the container.
-        It is used to get the plugin repository from the container.
+            def find_by_id(self, entity_id: str) -> FlextResult[object]:
+                return FlextResult.fail(f"Entity {entity_id} not found")
+
+            def delete(self, _entity_id: str) -> FlextResult[None]:
+                return FlextResult.ok(None)
+
+        return MockRepository()
+
+    def get_session_repository(self) -> FlextRepository:
+        """Get session repository (mock for now).
+
+        Returns:
+            Session repository instance.
 
         """
-        return InMemoryRepository[Any, Any]()
+
+        # Placeholder implementation - concrete repository needed
+        class MockRepository(FlextRepository):
+            def save(self, _entity: object) -> FlextResult[None]:
+                return FlextResult.ok(None)
+
+            def find_by_id(self, entity_id: str) -> FlextResult[object]:
+                return FlextResult.fail(f"Entity {entity_id} not found")
+
+            def delete(self, _entity_id: str) -> FlextResult[None]:
+                return FlextResult.ok(None)
+
+        return MockRepository()
+
+    def get_plugin_repository(self) -> FlextRepository:
+        """Get plugin repository (mock for now).
+
+        Returns:
+            Plugin repository instance.
+
+        """
+
+        # Placeholder implementation - concrete repository needed
+        class MockRepository(FlextRepository):
+            def save(self, _entity: object) -> FlextResult[None]:
+                return FlextResult.ok(None)
+
+            def find_by_id(self, entity_id: str) -> FlextResult[object]:
+                return FlextResult.fail(f"Entity {entity_id} not found")
+
+            def delete(self, _entity_id: str) -> FlextResult[None]:
+                return FlextResult.ok(None)
+
+        return MockRepository()
 
 
 # Global container instance
@@ -163,23 +207,23 @@ _container: CLIContainer | None = None
 
 
 def get_container() -> CLIContainer:
-    """Gets the global CLI container.
+    """Get the global CLI container.
 
-    This method gets the global CLI container from the container.
-    It is used to get the global CLI container from the container.
+    Returns:
+        Global CLI container instance.
 
     """
-    global _container
+    global _container  # noqa: PLW0603
     if _container is None:
         _container = CLIContainer()
     return _container
 
 
 def create_cli_container() -> CLIContainer:
-    """Creates a new CLI container instance.
+    """Create new CLI container instance.
 
-    This method creates a new CLI container instance.
-    It is used to create a new CLI container instance.
+    Returns:
+        New CLI container instance.
 
     """
     return CLIContainer()

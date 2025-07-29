@@ -11,33 +11,30 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
-from flext_core import Field
-from flext_core.config import singleton
-from flext_core.config.base import BaseConfig
-from flext_core.domain.pydantic_base import DomainValueObject
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class CLIOutputConfig(DomainValueObject):
+class CLIOutputConfig(BaseModel):
     """CLI output configuration."""
 
     format: Literal["table", "json", "yaml", "csv", "plain"] = Field(
         "table",
         description="Default output format",
     )
-    no_color: bool = Field(False, description="Disable color output")
-    quiet: bool = Field(False, description="Suppress non-error output")
-    verbose: bool = Field(False, description="Enable verbose output")
+    no_color: bool = Field(default=False, description="Disable color output")
+    quiet: bool = Field(default=False, description="Suppress non-error output")
+    verbose: bool = Field(default=False, description="Enable verbose output")
     pager: str | None = Field(None, description="Pager command for output")
 
 
-class CLIAPIConfig(DomainValueObject):
+class CLIAPIConfig(BaseModel):
     """CLI API client configuration."""
 
-    url: str = Field("http://localhost:8000", description="API base URL")
-    timeout: int = Field(30, description="Request timeout in seconds")
-    retries: int = Field(3, description="Number of retry attempts")
-    verify_ssl: bool = Field(True, description="Verify SSL certificates")
+    url: str = Field(default="http://localhost:8000", description="API base URL")
+    timeout: int = Field(default=30, description="Request timeout in seconds")
+    retries: int = Field(default=3, description="Number of retry attempts")
+    verify_ssl: bool = Field(default=True, description="Verify SSL certificates")
 
     @property
     def base_url(self) -> str:
@@ -50,7 +47,7 @@ class CLIAPIConfig(DomainValueObject):
         return self.url.rstrip("/")
 
 
-class CLIAuthConfig(DomainValueObject):
+class CLIAuthConfig(BaseModel):
     """CLI authentication configuration."""
 
     token_file: Path = Field(
@@ -61,10 +58,10 @@ class CLIAuthConfig(DomainValueObject):
         default_factory=lambda: Path.home() / ".flext" / "auth" / "refresh_token",
         description="Path to refresh token file",
     )
-    auto_refresh: bool = Field(True, description="Auto-refresh expired tokens")
+    auto_refresh: bool = Field(default=True, description="Auto-refresh expired tokens")
 
 
-class CLIDirectoryConfig(DomainValueObject):
+class CLIDirectoryConfig(BaseModel):
     """CLI directory configuration."""
 
     config_dir: Path = Field(
@@ -94,12 +91,12 @@ class CLIDirectoryConfig(DomainValueObject):
             dir_path.mkdir(parents=True, exist_ok=True)
 
 
-class CLIConfig(BaseConfig):
+class CLIConfig(BaseModel):
     """Main CLI configuration using flext-core base classes."""
 
     # Core configuration
-    profile: str = Field("default", description="Current configuration profile")
-    debug: bool = Field(False, description="Enable debug mode")
+    profile: str = Field(default="default", description="Current configuration profile")
+    debug: bool = Field(default=False, description="Enable debug mode")
 
     # Component configurations
     output: CLIOutputConfig = Field(
@@ -156,21 +153,26 @@ class CLIConfig(BaseConfig):
 _cli_config: CLIConfig | None = None
 
 
-def get_cli_config(reload: bool = False) -> CLIConfig:
+def get_cli_config(*, reload: bool = False) -> CLIConfig:
     """Get CLI configuration singleton."""
-    global _cli_config
+    global _cli_config  # noqa: PLW0603
 
     if _cli_config is None or reload:
-        _cli_config = CLIConfig(
-            profile="default",
-            debug=False,
-        )
-        _cli_config.ensure_setup()
+        _cli_config = _create_cli_config()
 
     return _cli_config
 
 
-@singleton()  # type: ignore[arg-type]
+def _create_cli_config() -> CLIConfig:
+    """Create and configure CLI config instance."""
+    config = CLIConfig(
+        profile="default",
+        debug=False,
+    )
+    config.ensure_setup()
+    return config
+
+
 class CLISettings(BaseSettings):
     """FLEXT CLI settings with environment variable support.
 
@@ -190,14 +192,14 @@ class CLISettings(BaseSettings):
     )
 
     # Project identification
-    project_name: str = Field("flext-cli", description="Project name")
-    project_version: str = Field("0.7.0", description="Project version")
+    project_name: str = Field(default="flext-cli", description="Project name")
+    project_version: str = Field(default="0.7.0", description="Project version")
 
     # CLI specific settings
-    api_url: str = Field("http://localhost:8000", description="API base URL")
-    timeout: int = Field(30, description="Request timeout in seconds")
-    output_format: str = Field("table", description="Default output format")
-    debug: bool = Field(False, description="Debug mode")
+    api_url: str = Field(default="http://localhost:8000", description="API base URL")
+    timeout: int = Field(default=30, description="Request timeout in seconds")
+    output_format: str = Field(default="table", description="Default output format")
+    debug: bool = Field(default=False, description="Debug mode")
 
 
 def get_cli_settings() -> CLISettings:

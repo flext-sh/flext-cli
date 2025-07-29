@@ -3,10 +3,23 @@
 Clean, simple functions for external use.
 """
 
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from flext_cli.api import FlextCliApi
-from flext_cli.types import TCliData, TCliFormat, TCliPath
+from flext_cli.types import (
+    FlextCliConfig,
+    FlextCliContext,
+)
+
+if TYPE_CHECKING:
+    from flext_cli.types import (
+        FlextCliPlugin,
+        TCliData,
+        TCliFormat,
+        TCliPath,
+    )
 
 # Global API instance
 _api = FlextCliApi()
@@ -45,7 +58,7 @@ def flext_cli_format(data: TCliData, format_type: TCliFormat = "json") -> str:
     return _api.flext_cli_format(data, format_type)
 
 
-def flext_cli_configure(config: dict) -> bool:
+def flext_cli_configure(config: dict[str, object]) -> bool:
     """Configure CLI service.
 
     Args:
@@ -58,7 +71,7 @@ def flext_cli_configure(config: dict) -> bool:
     return _api.flext_cli_configure(config)
 
 
-def flext_cli_health() -> dict:
+def flext_cli_health() -> dict[str, object]:
     """Get service health status.
 
     Returns:
@@ -68,7 +81,9 @@ def flext_cli_health() -> dict:
     return _api.flext_cli_health()
 
 
-def flext_cli_create_context(config: dict | None = None) -> Any:
+def flext_cli_create_context(
+    config: dict[str, object] | None = None,
+) -> FlextCliContext:
     """Create CLI execution context.
 
     Args:
@@ -78,13 +93,19 @@ def flext_cli_create_context(config: dict | None = None) -> Any:
         CLI context object
 
     """
-    return _api.flext_cli_create_context(config)
+    result = _api.flext_cli_create_context(config)
+    # Cast to expected type since API returns object
+    if isinstance(result, FlextCliContext):
+        return result
+    # Create fallback context if cast fails
+    cli_config = FlextCliConfig(config or {})
+    return FlextCliContext(cli_config)
 
 
 # RESTORED FROM BACKUP - All additional functionality
 
 
-def flext_cli_create_command(name: str, command_line: str, **options: Any) -> bool:
+def flext_cli_create_command(name: str, command_line: str, **options: object) -> bool:
     """Create command using shared API.
 
     Args:
@@ -112,7 +133,7 @@ def flext_cli_create_session(user_id: str | None = None) -> str:
     return _api.flext_cli_create_session(user_id)
 
 
-def flext_cli_register_handler(name: str, handler: Any) -> bool:
+def flext_cli_register_handler(name: str, handler: object) -> bool:
     """Register handler using unified method.
 
     Args:
@@ -140,7 +161,7 @@ def flext_cli_register_plugin(name: str, plugin: FlextCliPlugin) -> bool:
     return _api.flext_cli_register_plugin(name, plugin)
 
 
-def flext_cli_execute_handler(name: str, *args: Any, **kwargs: Any) -> Any:
+def flext_cli_execute_handler(name: str, *args: object, **kwargs: object) -> object:
     """Execute handler using shared API.
 
     Args:
@@ -156,8 +177,8 @@ def flext_cli_execute_handler(name: str, *args: Any, **kwargs: Any) -> Any:
 
 
 def flext_cli_render_with_context(
-    data: Any,
-    context: dict[str, Any] | None = None,
+    data: object,
+    context: dict[str, object] | None = None,
 ) -> str:
     """Render with context.
 
@@ -172,7 +193,7 @@ def flext_cli_render_with_context(
     return _api.flext_cli_render_with_context(data, context)
 
 
-def flext_cli_get_commands() -> dict[str, Any]:
+def flext_cli_get_commands() -> dict[str, object]:
     """Get all commands.
 
     Returns:
@@ -182,7 +203,7 @@ def flext_cli_get_commands() -> dict[str, Any]:
     return _api.flext_cli_get_commands()
 
 
-def flext_cli_get_sessions() -> dict[str, Any]:
+def flext_cli_get_sessions() -> dict[str, object]:
     """Get all sessions.
 
     Returns:
@@ -192,7 +213,7 @@ def flext_cli_get_sessions() -> dict[str, Any]:
     return _api.flext_cli_get_sessions()
 
 
-def flext_cli_get_plugins() -> dict[str, Any]:
+def flext_cli_get_plugins() -> dict[str, object]:
     """Get all plugins.
 
     Returns:
@@ -202,7 +223,7 @@ def flext_cli_get_plugins() -> dict[str, Any]:
     return _api.flext_cli_get_plugins()
 
 
-def flext_cli_get_handlers() -> dict[str, Any]:
+def flext_cli_get_handlers() -> dict[str, object]:
     """Get all handlers.
 
     Returns:

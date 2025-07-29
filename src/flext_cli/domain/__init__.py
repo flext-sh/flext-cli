@@ -11,7 +11,6 @@ from __future__ import annotations
 from flext_cli.domain.cli_services import CLIServiceContainer
 from flext_cli.domain.entities import (
     CLICommand,
-    CLIConfig,
     CLIPlugin,
     CLISession,
     CommandStatus,
@@ -20,7 +19,6 @@ from flext_cli.domain.entities import (
 
 __all__ = [
     "CLICommand",
-    "CLIConfig",
     "CLIPlugin",
     "CLIServiceContainer",
     "CLISession",

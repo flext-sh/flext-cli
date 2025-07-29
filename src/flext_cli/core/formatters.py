@@ -13,7 +13,7 @@ import csv
 import io
 import json
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 import yaml
 from rich.table import Table
@@ -26,7 +26,7 @@ class OutputFormatter(ABC):
     """Base class for output formatters."""
 
     @abstractmethod
-    def format(self, data: Any, console: Console) -> None:
+    def format(self, data: object, console: Console) -> None:
         """Format data and output to console."""
         ...
 
@@ -34,7 +34,7 @@ class OutputFormatter(ABC):
 class TableFormatter(OutputFormatter):
     """Format output as a Rich table."""
 
-    def format(self, data: Any, console: Console) -> None:
+    def format(self, data: object, console: Console) -> None:
         """Format data as Rich table."""
         if isinstance(data, list) and data:
             # List of dicts
@@ -73,7 +73,7 @@ class TableFormatter(OutputFormatter):
 class JSONFormatter(OutputFormatter):
     """Format output as JSON."""
 
-    def format(self, data: Any, console: Console) -> None:
+    def format(self, data: object, console: Console) -> None:
         """Format data as JSON."""
         console.print(json.dumps(data, indent=2, default=str))
 
@@ -81,7 +81,7 @@ class JSONFormatter(OutputFormatter):
 class YAMLFormatter(OutputFormatter):
     """Format output as YAML."""
 
-    def format(self, data: Any, console: Console) -> None:
+    def format(self, data: object, console: Console) -> None:
         """Format data as YAML."""
         console.print(yaml.dump(data, default_flow_style=False, sort_keys=False))
 
@@ -89,7 +89,7 @@ class YAMLFormatter(OutputFormatter):
 class CSVFormatter(OutputFormatter):
     """Format output as CSV."""
 
-    def format(self, data: Any, console: Console) -> None:
+    def format(self, data: object, console: Console) -> None:
         """Format data as CSV."""
         output = io.StringIO()
 
@@ -113,7 +113,7 @@ class CSVFormatter(OutputFormatter):
 class PlainFormatter(OutputFormatter):
     """Format output as plain text."""
 
-    def format(self, data: Any, console: Console) -> None:
+    def format(self, data: object, console: Console) -> None:
         """Format data as plain text."""
         if isinstance(data, list):
             for item in data:
@@ -161,7 +161,7 @@ class FormatterFactory:
         return list(cls._formatters.keys())
 
 
-def format_output(data: Any, format_type: str, console: Console) -> None:
+def format_output(data: object, format_type: str, console: Console) -> None:
     """Format and output data using specified formatter."""
     formatter = FormatterFactory.create(format_type)
     formatter.format(data, console)

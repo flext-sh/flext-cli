@@ -1,116 +1,140 @@
-"""Pytest configuration and fixtures for flext-cli tests."""
+"""Pytest configuration and fixtures for FLEXT CLI Library tests.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
+from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import Any
-from unittest.mock import Mock
+from typing import TYPE_CHECKING, Any
 
 import pytest
+from flext_cli import (
+    CLICommand,
+    CLIConfig,
+    CLIContext,
+    CLIPlugin,
+    CLISession,
+    CLISettings,
+    CommandType,
+)
+from rich.console import Console
 
-
-class MockFlextResult:
-    """Mock FlextResult for testing."""
-
-    def __init__(self, success: bool, data: Any = None, error: str | None = None) -> None:
-        self.is_success = success
-        self.data = data
-        self.error = error
-
-    @classmethod
-    def ok(cls, data: Any) -> "MockFlextResult":
-        """Create successful result."""
-        return cls(True, data=data)
-
-    @classmethod
-    def fail(cls, error: str) -> "MockFlextResult":
-        """Create failed result."""
-        return cls(False, error=error)
-
-
-class MockLogger:
-    """Mock logger for testing."""
-
-    def __init__(self) -> None:
-        self.messages: list[str] = []
-
-    def info(self, msg: str, *args: Any) -> None:
-        """Log info message."""
-        formatted = msg % args if args else msg
-        self.messages.append(f"INFO: {formatted}")
-
-    def exception(self, msg: str, *args: Any) -> None:
-        """Log exception message."""
-        formatted = msg % args if args else msg
-        self.messages.append(f"ERROR: {formatted}")
-
-    def clear(self) -> None:
-        """Clear logged messages."""
-        self.messages.clear()
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 @pytest.fixture
-def mock_flext_core(monkeypatch):
-    """Mock flext_core dependencies."""
-    logger = MockLogger()
-
-    mock_module = Mock()
-    mock_module.FlextResult = MockFlextResult
-    mock_module.get_logger = Mock(return_value=logger)
-
-    monkeypatch.setattr("flext_cli.api.FlextResult", MockFlextResult)
-    monkeypatch.setattr("flext_cli.api.get_logger", Mock(return_value=logger))
-    monkeypatch.setattr("flext_cli.api.logger", logger)
-
-    return {"logger": logger, "FlextResult": MockFlextResult}
+def temp_dir() -> Generator[Path]:
+    """Create a temporary directory for tests."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        yield Path(temp_dir)
 
 
 @pytest.fixture
-def temp_dir():
-    """Create temporary directory for test files."""
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        yield Path(tmp_dir)
+def cli_config() -> CLIConfig:
+    """Create a test CLI configuration."""
+    return CLIConfig(
+        api_url="http://localhost:8000",
+        output_format="json",
+        timeout=30,
+        profile="test",
+        debug=True,
+        quiet=False,
+        verbose=True,
+        no_color=True,
+    )
 
 
 @pytest.fixture
-def sample_data():
-    """Sample data for testing."""
-    return [
-        {"id": 1, "name": "Alice", "age": 30, "city": "New York"},
-        {"id": 2, "name": "Bob", "age": 25, "city": "San Francisco"},
-        {"id": 3, "name": "Charlie", "age": 35, "city": "Chicago"},
-    ]
+def cli_settings() -> CLISettings:
+    """Create test CLI settings."""
+    return CLISettings(
+        project_name="test-cli",
+        project_version="1.0.0",
+        project_description="Test CLI Library",
+        debug=True,
+        log_level="DEBUG",
+    )
 
 
 @pytest.fixture
-def single_record():
-    """Single record for testing."""
-    return {"id": 1, "name": "Test User", "status": "active"}
+def cli_context(cli_config: CLIConfig, cli_settings: CLISettings) -> CLIContext:
+    """Create a test CLI context."""
+    return CLIContext(
+        profile="test",
+        output_format="json",
+        debug=True,
+        quiet=False,
+        verbose=True,
+        no_color=True,
+    )
 
 
 @pytest.fixture
-def mixed_data():
-    """Mixed data types for testing."""
-    return [
-        {"type": "string", "value": "hello"},
-        {"type": "number", "value": 42},
-        {"type": "boolean", "value": True},
-        {"type": "null", "value": None},
-    ]
+def console() -> Console:
+    """Create a Rich console for testing."""
+    return Console(width=80, height=24, force_terminal=False)
 
 
 @pytest.fixture
-def json_file_path(temp_dir):
-    """Path for JSON test file."""
-    return temp_dir / "test_output.json"
+def sample_command() -> CLICommand:
+    """Create a sample CLI command for testing."""
+    return CLICommand(
+        id="test_cmd_001",
+        name="test-command",
+        description="A test command",
+        command_type=CommandType.SYSTEM,
+        command_line="echo hello",
+        arguments={"arg1": "value1"},
+        options={"--verbose": True},
+    )
 
 
 @pytest.fixture
-def csv_file_path(temp_dir):
-    """Path for CSV test file."""
-    return temp_dir / "test_output.csv"
+def sample_plugin() -> CLIPlugin:
+    """Create a sample CLI plugin for testing."""
+    return CLIPlugin(
+        id="test_plugin_001",
+        name="test-plugin",
+        version="0.8.0",
+        description="A test plugin",
+        entry_point="test_plugin.main",
+        commands=["test-cmd"],
+        dependencies=["click"],
+        author="Test Author",
+        license="MIT",
+    )
 
 
 @pytest.fixture
-def yaml_file_path(temp_dir):
-    """Path for YAML test file."""
-    return temp_dir / "test_output.yaml"
+def sample_session() -> CLISession:
+    """Create a sample CLI session for testing."""
+    return CLISession(
+        id="test_session_001",
+        session_id="test-session-123",
+        working_directory=tempfile.gettempdir(),
+        environment={"TEST": "true"},
+        active=True,
+    )
+
+
+@pytest.fixture
+def mock_data() -> dict[str, Any]:
+    """Mock data for testing."""
+    return {
+        "commands": [
+            {"name": "cmd1", "status": "completed"},
+            {"name": "cmd2", "status": "running"},
+        ],
+        "plugins": [
+            {"name": "plugin1", "enabled": True},
+            {"name": "plugin2", "enabled": False},
+        ],
+        "sessions": [
+            {"id": "session1", "active": True},
+            {"id": "session2", "active": False},
+        ],
+    }

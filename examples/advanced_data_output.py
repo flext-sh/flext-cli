@@ -417,7 +417,7 @@ def main() -> None:
         example_data_comparison()
         example_integrated_workflow()
 
-    except Exception:
+    except (RuntimeError, ValueError, TypeError):
         pass
 
 

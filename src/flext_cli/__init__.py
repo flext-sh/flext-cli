@@ -1,62 +1,125 @@
-"""FLEXT CLI - Developer Command Line Interface.
+"""FLEXT CLI Library - Command Line Interface Development Toolkit.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Built on flext-core foundation for robust command-line functionality.
-Uses modern Python 3.13 patterns and clean architecture.
+A powerful Python library for building command-line interfaces using
+flext-core foundation.
+Provides domain entities, utilities, and patterns for robust CLI development.
 """
 
 from __future__ import annotations
 
-import contextlib
+# Version from centralized version management
+from flext_cli.__version__ import __version__
 
-__version__ = "0.1.0"
-
-# Domain layer exports
-# Core layer exports
-from flext_cli.core.base import (
-    BaseCLI,
-    CLIContext,
-    CLIResultRenderer,
-    RichCLIRenderer,
-    handle_service_result,
-    with_context,
+# Convenience functions for library use
+from flext_cli.api import (
+    flext_cli_aggregate_data,
+    flext_cli_batch_export,
+    flext_cli_export,
+    flext_cli_format,
+    flext_cli_table,
+    flext_cli_transform_data,
+    flext_cli_unwrap_or_default,
+    flext_cli_unwrap_or_none,
 )
+
+# Core utilities for CLI development
+from flext_cli.core.base import (
+    CLIContext,
+    handle_service_result,
+)
+
+# Core decorators and helpers
+from flext_cli.core.decorators import (
+    async_command,
+    confirm_action,
+    measure_time,
+    require_auth,
+    retry,
+    validate_config,
+    with_spinner,
+)
+
+# Core formatters
+from flext_cli.core.formatters import (
+    FormatterFactory,
+    format_output,
+)
+from flext_cli.core.helpers import CLIHelper
+from flext_cli.core.types import (
+    URL,
+    ClickPath,
+    ExistingDir,
+    ExistingFile,
+    NewFile,
+    PositiveInt,
+)
+
+# Domain entities - core business objects
 from flext_cli.domain.entities import (
     CLICommand,
-    CLIConfig,
     CLIPlugin,
     CLISession,
     CommandStatus,
     CommandType,
 )
 
-# Application layer exports (when available)
-with contextlib.suppress(ImportError):
-    from flext_cli.domain.cli_services import CLIServiceContainer
+# Simple API for programmatic use
+from flext_cli.simple_api import setup_cli
 
-# CLI exports (when available)
-with contextlib.suppress(ImportError):
-    from flext_cli.cli import cli
-    from flext_cli.client import FlextApiClient
+# Configuration and utilities
+from flext_cli.utils.config import (
+    CLIConfig,
+    CLISettings,
+    get_config,
+    get_settings,
+)
 
-# Core exports that are always available
 __all__ = [
-    "BaseCLI",
+    "URL",
+    # Core Domain Entities
     "CLICommand",
+    # Configuration
     "CLIConfig",
     "CLIContext",
+    # Core Utilities
+    "CLIHelper",
     "CLIPlugin",
-    "CLIResultRenderer",
-    "CLIServiceContainer",
     "CLISession",
+    "CLISettings",
+    # Types
+    "ClickPath",
     "CommandStatus",
     "CommandType",
-    "FlextApiClient",
-    "RichCLIRenderer",
+    "ExistingDir",
+    "ExistingFile",
+    "FormatterFactory",
+    "NewFile",
+    "PositiveInt",
+    # Version
     "__version__",
-    "cli",
+    # Decorators
+    "async_command",
+    "confirm_action",
+    # Convenience API functions
+    "flext_cli_aggregate_data",
+    "flext_cli_batch_export",
+    "flext_cli_export",
+    "flext_cli_format",
+    "flext_cli_table",
+    "flext_cli_transform_data",
+    "flext_cli_unwrap_or_default",
+    "flext_cli_unwrap_or_none",
+    "format_output",
+    "get_config",
+    "get_settings",
     "handle_service_result",
-    "with_context",
+    "measure_time",
+    "require_auth",
+    "retry",
+    "setup_cli",
+    "validate_config",
+    "with_spinner",
 ]

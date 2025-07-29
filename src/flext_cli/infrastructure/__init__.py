@@ -1,14 +1,5 @@
-"""FLEXT CLI infrastructure layer.
+"""Infrastructure layer for FLEXT CLI.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
+This module provides infrastructure components including configuration
+and dependency injection container.
 """
-
-from __future__ import annotations
-
-from flext_cli.infrastructure.config import CLIConfig
-
-__all__ = [
-    "CLIConfig",
-]

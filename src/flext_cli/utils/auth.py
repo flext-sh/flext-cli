@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-# Use centralized ServiceResult from flext-core - ELIMINATE DUPLICATION
-from flext_core.domain.types import ServiceResult
+# Use centralized FlextResult from flext-core - ELIMINATE DUPLICATION
+from flext_core import FlextResult
 
 from flext_cli.utils.config import get_config
 
@@ -40,7 +40,7 @@ def get_refresh_token_path() -> Path:
     return config.refresh_token_file
 
 
-def save_auth_token(token: str) -> ServiceResult[None]:
+def save_auth_token(token: str) -> FlextResult[None]:
     """Save the auth token to the file.
 
     Args:
@@ -58,12 +58,13 @@ def save_auth_token(token: str) -> ServiceResult[None]:
         token_path.write_text(token)
         token_path.chmod(0o600)  # Read/write for owner only
 
-        return ServiceResult.ok(None)
-    except Exception as e:
-        return ServiceResult.fail(f"Failed to save auth token: {e}")
+        return FlextResult.ok(None)
+    except (OSError, PermissionError, ValueError) as e:
+        error_msg = f"Failed to save auth token: {e}"
+        return FlextResult.fail(error_msg)
 
 
-def save_refresh_token(refresh_token: str) -> ServiceResult[None]:
+def save_refresh_token(refresh_token: str) -> FlextResult[None]:
     """Save the refresh token to the file.
 
     Args:
@@ -81,9 +82,10 @@ def save_refresh_token(refresh_token: str) -> ServiceResult[None]:
         refresh_token_path.write_text(refresh_token)
         refresh_token_path.chmod(0o600)  # Read/write for owner only
 
-        return ServiceResult.ok(None)
-    except Exception as e:
-        return ServiceResult.fail(f"Failed to save refresh token: {e}")
+        return FlextResult.ok(None)
+    except (OSError, PermissionError, ValueError) as e:
+        error_msg = f"Failed to save refresh token: {e}"
+        return FlextResult.fail(error_msg)
 
 
 def get_auth_token() -> str | None:
@@ -116,7 +118,7 @@ def get_refresh_token() -> str | None:
     return None
 
 
-def clear_auth_tokens() -> ServiceResult[None]:
+def clear_auth_tokens() -> FlextResult[None]:
     """Clear the auth tokens from the file.
 
     Returns:
@@ -133,9 +135,10 @@ def clear_auth_tokens() -> ServiceResult[None]:
         if refresh_token_path.exists():
             refresh_token_path.unlink()
 
-        return ServiceResult.ok(None)
-    except Exception as e:
-        return ServiceResult.fail(f"Failed to clear auth tokens: {e}")
+        return FlextResult.ok(None)
+    except (OSError, PermissionError) as e:
+        error_msg = f"Failed to clear auth tokens: {e}"
+        return FlextResult.fail(error_msg)
 
 
 def is_authenticated() -> bool:
