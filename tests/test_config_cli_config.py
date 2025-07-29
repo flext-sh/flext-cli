@@ -1,9 +1,5 @@
 """Tests for CLI configuration module.
 
-# Constants
-EXPECTED_BULK_SIZE = 2
-EXPECTED_DATA_COUNT = 3
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
@@ -30,6 +26,10 @@ from flext_cli.config.cli_config import (
     get_cli_config,
     get_cli_settings,
 )
+
+# Constants
+EXPECTED_BULK_SIZE = 2
+EXPECTED_DATA_COUNT = 3
 
 
 class TestCLIOutputConfig:

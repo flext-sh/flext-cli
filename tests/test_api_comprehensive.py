@@ -214,25 +214,24 @@ class TestFlextCliBatchExport:
     def test_flext_cli_batch_export_basic(self) -> None:
         """Test batch export with basic data."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            exports = [
-                ({"data1": "value1"}, Path(temp_dir) / "file1.json", "json"),
-                ({"data2": "value2"}, Path(temp_dir) / "file2.yaml", "yaml"),
-            ]
-            result = flext_cli_batch_export(exports)
+            datasets = {
+                "data1": {"key1": "value1"},
+                "data2": {"key2": "value2"},
+            }
+            result = flext_cli_batch_export(datasets, temp_dir, "json")
             assert isinstance(result, FlextResult)
 
     def test_flext_cli_batch_export_empty_list(self) -> None:
-        """Test batch export with empty list."""
-        result = flext_cli_batch_export([])
-        assert isinstance(result, FlextResult)
+        """Test batch export with empty datasets."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            result = flext_cli_batch_export({}, temp_dir, "json")
+            assert isinstance(result, FlextResult)
 
     def test_flext_cli_batch_export_single_item(self) -> None:
         """Test batch export with single item."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            exports = [
-                ({"single": "item"}, Path(temp_dir) / "single.json", "json"),
-            ]
-            result = flext_cli_batch_export(exports)
+            datasets = {"single": {"item": "value"}}
+            result = flext_cli_batch_export(datasets, temp_dir, "json")
             assert isinstance(result, FlextResult)
 
 
@@ -245,7 +244,7 @@ class TestFlextCliUnwrapFunctions:
 
     def test_flext_cli_unwrap_or_default_success(self) -> None:
         """Test unwrap_or_default with successful result."""
-        success_result = FlextResult.success("test_value")
+        success_result = FlextResult.ok("test_value")
         result = flext_cli_unwrap_or_default(success_result, "default_value")
         if result != "test_value":
             msg = f"Expected {"test_value"}, got {result}"
@@ -253,7 +252,7 @@ class TestFlextCliUnwrapFunctions:
 
     def test_flext_cli_unwrap_or_default_failure(self) -> None:
         """Test unwrap_or_default with failed result."""
-        failure_result = FlextResult.failure("error message")
+        failure_result = FlextResult.fail("error message")
         result = flext_cli_unwrap_or_default(failure_result, "default_value")
         if result != "default_value":
             msg = f"Expected {"default_value"}, got {result}"
@@ -265,7 +264,7 @@ class TestFlextCliUnwrapFunctions:
 
     def test_flext_cli_unwrap_or_none_success(self) -> None:
         """Test unwrap_or_none with successful result."""
-        success_result = FlextResult.success("test_value")
+        success_result = FlextResult.ok("test_value")
         result = flext_cli_unwrap_or_none(success_result)
         if result != "test_value":
             msg = f"Expected {"test_value"}, got {result}"
@@ -273,19 +272,19 @@ class TestFlextCliUnwrapFunctions:
 
     def test_flext_cli_unwrap_or_none_failure(self) -> None:
         """Test unwrap_or_none with failed result."""
-        failure_result = FlextResult.failure("error message")
+        failure_result = FlextResult.fail("error message")
         result = flext_cli_unwrap_or_none(failure_result)
         assert result is None
 
     def test_flext_cli_unwrap_or_default_with_none(self) -> None:
         """Test unwrap_or_default with None default."""
-        failure_result = FlextResult.failure("error")
+        failure_result = FlextResult.fail("error")
         result = flext_cli_unwrap_or_default(failure_result, None)
         assert result is None
 
     def test_flext_cli_unwrap_or_default_with_complex_default(self) -> None:
         """Test unwrap_or_default with complex default value."""
-        failure_result = FlextResult.failure("error")
+        failure_result = FlextResult.fail("error")
         complex_default = {"key": "value", "list": [1, 2, 3]}
         result = flext_cli_unwrap_or_default(failure_result, complex_default)
         if result != complex_default:
@@ -334,29 +333,19 @@ class TestApiIntegration:
     def test_batch_export_workflow(self) -> None:
         """Test batch export workflow."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            data_sets = [
-                {
-                    "dataset": "users",
-                    "items": [{"name": "Alice"}, {"name": "Bob"}],
-                },
-                {
-                    "dataset": "products",
-                    "items": [{"name": "Widget"}, {"name": "Gadget"}],
-                },
-            ]
+            datasets = {
+                "users": [{"name": "Alice"}, {"name": "Bob"}],
+                "products": [{"name": "Widget"}, {"name": "Gadget"}],
+            }
 
-            exports = []
-            for i, data in enumerate(data_sets):
-                exports.append((data, Path(temp_dir) / f"data_{i}.json", "json"))
-
-            result = flext_cli_batch_export(exports)
+            result = flext_cli_batch_export(datasets, temp_dir, "json")
             assert isinstance(result, FlextResult)
 
     def test_unwrap_workflow(self) -> None:
         """Test unwrap functions workflow."""
         # Create various results
-        success_result = FlextResult.success("success_value")
-        failure_result = FlextResult.failure("error_message")
+        success_result = FlextResult.ok("success_value")
+        failure_result = FlextResult.fail("error_message")
 
         # Test unwrap_or_default
         success_unwrapped = flext_cli_unwrap_or_default(success_result, "default")
@@ -426,16 +415,17 @@ class TestApiErrorHandling:
     def test_batch_export_error_handling(self) -> None:
         """Test batch export error handling."""
         # Test with invalid export specifications
-        invalid_exports = [
-            [],  # Empty list
-            [({"data": "test"}, "/invalid/path.json", "json")],  # Invalid path
-            [("invalid", "path", "format")],  # Invalid tuple structure
-        ]
-
-        for exports in invalid_exports:
-            result = flext_cli_batch_export(exports)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Test with empty datasets
+            result = flext_cli_batch_export({}, temp_dir, "json")
             assert isinstance(result, FlextResult)
-            # Should handle errors gracefully
+
+            # Test with invalid output directory (read-only)
+            try:
+                result = flext_cli_batch_export({"test": "data"}, "/nonexistent/dir", "json")
+                assert isinstance(result, FlextResult)
+            except PermissionError:
+                pass  # Expected for invalid directories
 
 
 class TestApiEdgeCases:

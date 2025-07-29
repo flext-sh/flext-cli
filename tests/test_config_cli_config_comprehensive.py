@@ -1,8 +1,5 @@
 """Comprehensive tests for config.cli_config module.
 
-# Constants
-EXPECTED_BULK_SIZE = 2
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
@@ -17,6 +14,9 @@ from unittest.mock import patch
 
 import pytest
 from flext_cli.config.cli_config import CLIConfig
+
+# Constants
+EXPECTED_BULK_SIZE = 2
 
 
 class TestCLIConfig:

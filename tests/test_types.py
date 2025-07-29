@@ -1,10 +1,5 @@
 """Comprehensive tests for types.py module.
 
-# Constants
-DEFAULT_TTL = 600
-EXPECTED_BULK_SIZE = 2
-EXPECTED_DATA_COUNT = 3
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
@@ -32,6 +27,11 @@ from flext_cli.types import (
     TCliHandler,
     TCliPath,
 )
+
+# Constants
+DEFAULT_TTL = 600
+EXPECTED_BULK_SIZE = 2
+EXPECTED_DATA_COUNT = 3
 
 
 class TestTypeAliases:

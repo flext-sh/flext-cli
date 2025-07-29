@@ -1,9 +1,5 @@
 """Tests for core decorators in FLEXT CLI Library.
 
-# Constants
-EXPECTED_BULK_SIZE = 2
-EXPECTED_DATA_COUNT = 3
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -26,6 +22,10 @@ from flext_cli.core.decorators import (
     with_spinner,
 )
 
+# Constants
+EXPECTED_BULK_SIZE = 2
+EXPECTED_DATA_COUNT = 3
+
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -47,7 +47,7 @@ class TestAsyncCommand:
         # Test execution (now sync)
         result = sample_async_function()
         if result != "async result":
-            msg = f"Expected {"async result"}, got {result}"
+            msg = f"Expected {'async result'}, got {result}"
             raise AssertionError(msg)
 
     def test_async_command_with_arguments(self) -> None:
@@ -61,7 +61,7 @@ class TestAsyncCommand:
         # Decorator converts async to sync
         result = async_function_with_args("test", 42)
         if result != "test-42":
-            msg = f"Expected {"test-42"}, got {result}"
+            msg = f"Expected {'test-42'}, got {result}"
             raise AssertionError(msg)
 
     def test_async_command_preserves_metadata(self) -> None:
@@ -73,8 +73,7 @@ class TestAsyncCommand:
             return "result"
 
         if documented_async_function.__name__ != "documented_async_function":
-
-            msg = f"Expected {"documented_async_function"}, got {documented_async_function.__name__}"
+            msg = f"Expected {'documented_async_function'}, got {documented_async_function.__name__}"
             raise AssertionError(msg)
         assert documented_async_function.__doc__ == "A documented async function."
 
@@ -93,7 +92,7 @@ class TestConfirmAction:
 
         result = dangerous_action()
         if result != "action executed":
-            msg = f"Expected {"action executed"}, got {result}"
+            msg = f"Expected {'action executed'}, got {result}"
             raise AssertionError(msg)
 
     @patch("rich.console.Console.input")
@@ -119,7 +118,7 @@ class TestConfirmAction:
 
         result = delete_files()
         if result != "files deleted":
-            msg = f"Expected {"files deleted"}, got {result}"
+            msg = f"Expected {'files deleted'}, got {result}"
             raise AssertionError(msg)
 
     @patch("rich.console.Console.input")
@@ -133,7 +132,7 @@ class TestConfirmAction:
 
         result = action_with_args("test", 5)
         if result != "processed 5 items for test":
-            msg = f"Expected {"processed 5 items for test"}, got {result}"
+            msg = f"Expected {'processed 5 items for test'}, got {result}"
             raise AssertionError(msg)
 
 
@@ -151,7 +150,7 @@ class TestRequireAuth:
 
         result = protected_function()
         if result != "access granted":
-            msg = f"Expected {"access granted"}, got {result}"
+            msg = f"Expected {'access granted'}, got {result}"
             raise AssertionError(msg)
 
     def test_require_auth_missing_token_file(self, temp_dir: Path) -> None:
@@ -205,15 +204,16 @@ class TestMeasureTime:
         result = timed_function()
 
         if result != "completed":
-
-            msg = f"Expected {"completed"}, got {result}"
+            msg = f"Expected {'completed'}, got {result}"
             raise AssertionError(msg)
         mock_print.assert_called_once_with("⏱️  Execution time: 2.50s", style="dim")
 
     @patch("flext_cli.core.decorators.time.time")
     @patch("rich.console.Console.print")
     def test_measure_time_without_output(
-        self, mock_print: Mock, mock_time: Mock,
+        self,
+        mock_print: Mock,
+        mock_time: Mock,
     ) -> None:
         """Test measure_time decorator with output disabled."""
         mock_time.side_effect = [1000.0, 1001.0]  # 1 second elapsed
@@ -225,8 +225,7 @@ class TestMeasureTime:
         result = timed_function()
 
         if result != "completed":
-
-            msg = f"Expected {"completed"}, got {result}"
+            msg = f"Expected {'completed'}, got {result}"
             raise AssertionError(msg)
         mock_print.assert_not_called()
 
@@ -241,7 +240,7 @@ class TestMeasureTime:
 
         result = function_with_args("test", 42, kwarg1="custom")
         if result != "test-42-custom":
-            msg = f"Expected {"test-42-custom"}, got {result}"
+            msg = f"Expected {'test-42-custom'}, got {result}"
             raise AssertionError(msg)
 
 
@@ -260,7 +259,7 @@ class TestRetry:
 
         result = reliable_function()
         if result != "success":
-            msg = f"Expected {"success"}, got {result}"
+            msg = f"Expected {'success'}, got {result}"
             raise AssertionError(msg)
         assert call_count == 1
 
@@ -279,7 +278,7 @@ class TestRetry:
 
         result = flaky_function()
         if result != "success":
-            msg = f"Expected {"success"}, got {result}"
+            msg = f"Expected {'success'}, got {result}"
             raise AssertionError(msg)
         assert call_count == EXPECTED_DATA_COUNT
 
@@ -298,7 +297,6 @@ class TestRetry:
             failing_function()
 
         if call_count != EXPECTED_BULK_SIZE:
-
             msg = f"Expected {2}, got {call_count}"
             raise AssertionError(msg)
 
@@ -318,7 +316,7 @@ class TestRetry:
 
         result = flaky_function()
         if result != "success":
-            msg = f"Expected {"success"}, got {result}"
+            msg = f"Expected {'success'}, got {result}"
             raise AssertionError(msg)
         mock_sleep.assert_called_once_with(0.5)
 
@@ -340,7 +338,7 @@ class TestValidateConfig:
 
         result = function_requiring_config(config=MockConfig())
         if result != "config validated":
-            msg = f"Expected {"config validated"}, got {result}"
+            msg = f"Expected {'config validated'}, got {result}"
             raise AssertionError(msg)
 
     @patch("rich.console.Console.print")
@@ -396,7 +394,7 @@ class TestWithSpinner:
 
         result = long_running_task()
         if result != "task completed":
-            msg = f"Expected {"task completed"}, got {result}"
+            msg = f"Expected {'task completed'}, got {result}"
             raise AssertionError(msg)
         mock_status.assert_called_once_with("Processing...", spinner="dots")
 
@@ -414,7 +412,7 @@ class TestWithSpinner:
 
         result = calculation_task()
         if result != "calculation done":
-            msg = f"Expected {"calculation done"}, got {result}"
+            msg = f"Expected {'calculation done'}, got {result}"
             raise AssertionError(msg)
         mock_status.assert_called_once_with("Calculating results...", spinner="dots")
 
@@ -454,7 +452,7 @@ class TestDecoratorCombinations:
 
         result = complex_function()
         if result != "all decorators applied":
-            msg = f"Expected {"all decorators applied"}, got {result}"
+            msg = f"Expected {'all decorators applied'}, got {result}"
             raise AssertionError(msg)
 
     def test_decorator_order_preservation(self) -> None:
@@ -469,6 +467,6 @@ class TestDecoratorCombinations:
         # Function should still be callable and maintain behavior
         assert callable(decorated_function)
         if decorated_function() != "result":
-            msg = f"Expected {"result"}, got {decorated_function()}"
+            msg = f"Expected {'result'}, got {decorated_function()}"
             raise AssertionError(msg)
         assert decorated_function.__doc__ == "A decorated function."

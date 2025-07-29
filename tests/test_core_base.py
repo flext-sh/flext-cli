@@ -1,8 +1,5 @@
 """Tests for core base functionality in FLEXT CLI Library.
 
-# Constants
-EXPECTED_DATA_COUNT = 3
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -16,6 +13,9 @@ import pytest
 from flext_cli.core.base import CLIContext, handle_service_result
 from flext_core.result import FlextResult
 from pydantic import ValidationError
+
+# Constants
+EXPECTED_DATA_COUNT = 3
 
 
 class TestCLIContext:

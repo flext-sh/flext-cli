@@ -325,7 +325,7 @@ class TestDebugFunctionality:
                 display_value = value
 
             # Verify masking works correctly
-            if key in ["FLX_TOKEN", "FLX_SECRET_KEY", "FLX_API_KEY"]:
+            if key in {"FLX_TOKEN", "FLX_SECRET_KEY", "FLX_API_KEY"}:
                 if "****" not in display_value:
                     raise AssertionError(f"Expected {'****'} in {display_value}")
             elif display_value != value:
@@ -342,7 +342,7 @@ class TestDebugFunctionality:
 
         for path in test_paths.values():
             exists = "✅" if path.exists() else "❌"
-            if exists not in ["✅", "❌"]:  # Should be one of these symbols
+            if exists not in {"✅", "❌"}:  # Should be one of these symbols
                 raise AssertionError(f"Expected {exists} in {['✅', '❌']}")
 
 
@@ -403,5 +403,5 @@ class TestDebugCommandErrorHandling:
                 )
 
                 # Should complete (may exit 0 or 1 depending on actual packages)
-                if result.exit_code not in [0, 1]:
+                if result.exit_code not in {0, 1}:
                     raise AssertionError(f"Expected {result.exit_code} in {[0, 1]}")

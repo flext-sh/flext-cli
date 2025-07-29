@@ -136,6 +136,41 @@ class CLIConfig(BaseModel):
         description="Directory configuration",
     )
 
+    def __init__(self, **data: object) -> None:
+        """Initialize CLIConfig with backward compatibility for flat parameters."""
+        self._migrate_legacy_parameters(data)
+        super().__init__(**data)
+
+    def _migrate_legacy_parameters(self, data: dict[str, object]) -> None:
+        """Migrate legacy flat parameters to nested structure."""
+        # API-related parameters
+        api_migrations = [
+            ("api_url", "url"),
+            ("timeout", "timeout"),
+            ("max_retries", "retries"),
+        ]
+        self._migrate_to_section(data, "api", api_migrations)
+
+        # Directory-related parameters
+        dir_migrations = [
+            ("cache_dir", "cache_dir"),
+            ("config_dir", "config_dir"),
+        ]
+        self._migrate_to_section(data, "directories", dir_migrations)
+
+    def _migrate_to_section(
+        self,
+        data: dict[str, object],
+        section: str,
+        migrations: list[tuple[str, str]],
+    ) -> None:
+        """Migrate parameters to a specific section."""
+        for old_key, new_key in migrations:
+            if old_key in data:
+                if section not in data:
+                    data[section] = {}
+                data[section][new_key] = data.pop(old_key)  # type: ignore[index]
+
     def ensure_setup(self) -> None:
         """Ensure CLI environment is properly set up.
 
@@ -147,6 +182,57 @@ class CLIConfig(BaseModel):
         # Ensure auth directory exists
         self.auth.token_file.parent.mkdir(parents=True, exist_ok=True)
         self.auth.refresh_token_file.parent.mkdir(parents=True, exist_ok=True)
+
+    # Compatibility properties for backward compatibility with tests
+    @property
+    def api_url(self) -> str:
+        """API URL for backward compatibility."""
+        return self.api.url
+
+    @property
+    def timeout(self) -> int:
+        """Timeout for backward compatibility."""
+        return self.api.timeout
+
+    @property
+    def max_retries(self) -> int:
+        """Max retries for backward compatibility."""
+        return self.api.retries
+
+    @property
+    def cache_dir(self) -> Path:
+        """Cache directory for backward compatibility."""
+        return self.directories.cache_dir
+
+    @property
+    def config_dir(self) -> Path:
+        """Config directory for backward compatibility."""
+        return self.directories.config_dir
+
+    @property
+    def token_file(self) -> Path:
+        """Token file for backward compatibility."""
+        return Path.home() / ".flext" / ".token"
+
+    @property
+    def refresh_token_file(self) -> Path:
+        """Refresh token file for backward compatibility."""
+        return Path.home() / ".flext" / ".refresh_token"
+
+    @property
+    def auto_refresh(self) -> bool:
+        """Auto refresh for backward compatibility."""
+        return self.auth.auto_refresh
+
+    @property
+    def log_level(self) -> str:
+        """Log level for backward compatibility."""
+        return "INFO"  # Default log level
+
+    @property
+    def output_format(self) -> str:
+        """Output format for backward compatibility."""
+        return self.output.format
 
 
 # Singleton instance

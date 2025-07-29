@@ -149,7 +149,7 @@ class TestFlextCliService:
         service = FlextCliService()
         data = {"name": "test", "value": 42}
 
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as tmp:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as tmp:
             temp_path = tmp.name
 
         try:
@@ -159,7 +159,7 @@ class TestFlextCliService:
                 raise AssertionError(f"Expected True, got {result.unwrap()}")
 
             # Verify file content
-            exported_data = json.loads(Path(temp_path).read_text())
+            exported_data = json.loads(Path(temp_path).read_text(encoding="utf-8"))
             if exported_data != data:
                 raise AssertionError(f"Expected {data}, got {exported_data}")
         finally:
@@ -182,7 +182,7 @@ class TestFlextCliService:
         service = FlextCliService()
         data = {"test": "data"}
 
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as tmp:
             temp_path = tmp.name
 
         try:
@@ -588,7 +588,6 @@ class TestFlextCliService:
         service = FlextCliService()
 
         # Mock FlextUtilities to raise exception
-
 
         flext_cli.core.__dict__.get("FlextUtilities")
 
