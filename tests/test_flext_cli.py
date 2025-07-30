@@ -266,7 +266,7 @@ class TestFlextCliHealth:
 
     def test_flext_cli_health_success(self) -> None:
         """Test successful health check."""
-        expected_health = {"status": "healthy", "version": "1.0.0", "uptime": 3600}
+        expected_health = {"status": "healthy", "version": "0.9.0", "uptime": 3600}
 
         with patch.object(
             flext_cli._api, "flext_cli_health", return_value=expected_health
@@ -637,7 +637,7 @@ class TestFlextCliRegisterPlugin:
         # Create a mock that behaves like FlextCliPlugin
         plugin = MagicMock()
         plugin.name = "test_plugin"
-        plugin.version = "1.0.0"
+        plugin.version = "0.9.0"
         plugin.description = "Test plugin"
 
         with patch.object(
@@ -1034,7 +1034,7 @@ class TestFlextCliGetPlugins:
     def test_flext_cli_get_plugins_success(self) -> None:
         """Test successful plugins retrieval."""
         expected_plugins = {
-            "auth_plugin": {"name": "auth_plugin", "version": "1.0.0", "enabled": True},
+            "auth_plugin": {"name": "auth_plugin", "version": "0.9.0", "enabled": True},
             "metrics_plugin": {
                 "name": "metrics_plugin",
                 "version": "2.1.0",

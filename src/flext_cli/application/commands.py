@@ -62,7 +62,7 @@ class CreateConfigCommand:
     description: str | None = None
     config_data: dict[str, object]
     config_type: str
-    version = "1.0.0"
+    version = "0.9.0"
     user_id: UUID | None = None
     is_global: bool = False
 

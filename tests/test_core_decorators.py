@@ -102,7 +102,8 @@ class TestConfirmAction:
 
             # Apply decorator manually to avoid typing issues
             decorated_func = confirm_action("Are you sure?")(dangerous_action)
-            result = decorated_func()
+            assert callable(decorated_func)  # Type assertion for MyPy
+            result = decorated_func()  # type: ignore[operator]
             if result != "action executed":
                 msg = f"Expected {'action executed'}, got {result}"
                 raise AssertionError(msg)
@@ -116,7 +117,8 @@ class TestConfirmAction:
                 return "action executed"
 
             decorated_func = confirm_action("Are you sure?")(dangerous_action)
-            result = decorated_func()
+            assert callable(decorated_func)  # Type assertion for MyPy
+            result = decorated_func()  # type: ignore[operator]
             assert result is None  # Should return None when cancelled
 
     def test_confirm_action_with_custom_message(self) -> None:
@@ -128,7 +130,8 @@ class TestConfirmAction:
                 return "files deleted"
 
             decorated_func = confirm_action("Delete all files?")(delete_files)
-            result = decorated_func()
+            assert callable(decorated_func)  # Type assertion for MyPy
+            result = decorated_func()  # type: ignore[operator]
             if result != "files deleted":
                 msg = f"Expected {'files deleted'}, got {result}"
                 raise AssertionError(msg)
@@ -142,7 +145,8 @@ class TestConfirmAction:
                 return f"processed {count} items for {name}"
 
             decorated_func = confirm_action("Proceed with action?")(action_with_args)
-            result = decorated_func("test", 5)
+            assert callable(decorated_func)  # Type assertion for MyPy
+            result = decorated_func("test", 5)  # type: ignore[operator]
             if result != "processed 5 items for test":
                 msg = f"Expected {'processed 5 items for test'}, got {result}"
                 raise AssertionError(msg)
@@ -160,6 +164,7 @@ class TestRequireAuth:
             return "access granted"
 
         decorated_func = require_auth(token_file=str(token_file))(protected_function)
+        assert callable(decorated_func)  # Type assertion for MyPy
         result = decorated_func()
         if result != "access granted":
             msg = f"Expected {'access granted'}, got {result}"
@@ -173,6 +178,7 @@ class TestRequireAuth:
             return "access granted"
 
         decorated_func = require_auth(token_file=str(token_file))(protected_function)
+        assert callable(decorated_func)  # Type assertion for MyPy
         result = decorated_func()
         assert result is None  # Should return None when auth fails
 
@@ -185,6 +191,7 @@ class TestRequireAuth:
             return "access granted"
 
         decorated_func = require_auth(token_file=str(token_file))(protected_function)
+        assert callable(decorated_func)  # Type assertion for MyPy
         result = decorated_func()
         assert result is None  # Should return None when token is empty
 
@@ -213,7 +220,7 @@ class TestMeasureTime:
             def timed_function() -> str:
                 return "completed"
 
-            result = timed_function()
+            result = timed_function()  # type: ignore[operator]
 
             if result != "completed":
                 msg = f"Expected {'completed'}, got {result}"
@@ -230,7 +237,7 @@ class TestMeasureTime:
             def timed_function() -> str:
                 return "completed"
 
-            result = timed_function()
+            result = timed_function()  # type: ignore[operator]
 
             if result != "completed":
                 msg = f"Expected {'completed'}, got {result}"
@@ -265,7 +272,7 @@ class TestRetry:
             call_count += 1
             return "success"
 
-        result = reliable_function()
+        result = reliable_function()  # type: ignore[operator]
         if result != "success":
             msg = f"Expected {'success'}, got {result}"
             raise AssertionError(msg)
@@ -284,7 +291,7 @@ class TestRetry:
                 raise ValueError(msg)
             return "success"
 
-        result = flaky_function()
+        result = flaky_function()  # type: ignore[operator]
         if result != "success":
             msg = f"Expected {'success'}, got {result}"
             raise AssertionError(msg)
@@ -302,7 +309,7 @@ class TestRetry:
             raise ValueError(msg)
 
         with pytest.raises(ValueError, match="persistent error"):
-            failing_function()
+            failing_function()  # type: ignore[operator]
 
         if call_count != EXPECTED_BULK_SIZE:
             msg = f"Expected {2}, got {call_count}"
@@ -322,7 +329,7 @@ class TestRetry:
                     raise ValueError(msg)
                 return "success"
 
-            result = flaky_function()
+            result = flaky_function()  # type: ignore[operator]
             if result != "success":
                 msg = f"Expected {'success'}, got {result}"
                 raise AssertionError(msg)
@@ -344,7 +351,7 @@ class TestValidateConfig:
         def function_requiring_config(config: MockConfig) -> str:
             return "config validated"
 
-        result = function_requiring_config(config=MockConfig())
+        result = function_requiring_config(config=MockConfig())  # type: ignore[operator]
         if result != "config validated":
             msg = f"Expected {'config validated'}, got {result}"
             raise AssertionError(msg)
@@ -361,7 +368,7 @@ class TestValidateConfig:
             def function_requiring_config(config: MockConfig) -> str:
                 return "config validated"
 
-            result = function_requiring_config(config=MockConfig())
+            result = function_requiring_config(config=MockConfig())  # type: ignore[operator]
             assert result is None
             mock_print.assert_called_once_with(
                 "Missing required configuration: timeout",
@@ -375,7 +382,7 @@ class TestValidateConfig:
             def function_requiring_config() -> str:
                 return "config validated"
 
-            result = function_requiring_config()  # No config provided
+            result = function_requiring_config()  # type: ignore[operator]  # No config provided
             assert result is None
             mock_print.assert_called_once_with(
                 "Configuration not available for validation.",
@@ -398,7 +405,7 @@ class TestWithSpinner:
                 time.sleep(0.01)  # Simulate work
                 return "task completed"
 
-            result = long_running_task()
+            result = long_running_task()  # type: ignore[operator]
             if result != "task completed":
                 msg = f"Expected {'task completed'}, got {result}"
                 raise AssertionError(msg)
@@ -416,7 +423,7 @@ class TestWithSpinner:
                 time.sleep(0.01)
                 return "calculation done"
 
-            result = calculation_task()
+            result = calculation_task()  # type: ignore[operator]
             if result != "calculation done":
                 msg = f"Expected {'calculation done'}, got {result}"
                 raise AssertionError(msg)
@@ -435,7 +442,7 @@ class TestWithSpinner:
                 raise ValueError(msg)
 
             with pytest.raises(ValueError, match="task failed"):
-                failing_task()
+                failing_task()  # type: ignore[operator]
 
             mock_status.assert_called_once_with("Processing...", spinner="dots")
 

@@ -316,7 +316,7 @@ def example_integrated_workflow() -> None:
     """Example 7: Integrated CLI workflow with all features."""
     # Create CLI with advanced capabilities
     cli = (
-        FlextCliBuilder("data-processor", "2.0.0", "Advanced Data Processing CLI")
+        FlextCliBuilder("data-processor", "0.9.0", "Advanced Data Processing CLI")
         .set_formatter("rich")
         .add_global_flag("--export", "Enable data export")
         .add_global_flag("--dashboard", "Show GUI dashboard")

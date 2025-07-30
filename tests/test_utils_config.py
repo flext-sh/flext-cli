@@ -128,7 +128,7 @@ class TestCLISettings:
 
         if settings.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {settings.project_name}")
-        assert settings.project_version == "0.8.0"
+        assert settings.project_version == "0.9.0"
         expected_desc = "FLEXT CLI - Developer Command Line Interface"
         if settings.project_description != expected_desc:
             raise AssertionError(
@@ -148,7 +148,7 @@ class TestCLISettings:
             raise AssertionError(
                 f"Expected {'test-cli'}, got {cli_settings.project_name}"
             )
-        assert cli_settings.project_version == "1.0.0"
+        assert cli_settings.project_version == "0.9.0"
         if cli_settings.project_description != "Test CLI Library":
             raise AssertionError(
                 f"Expected {'Test CLI Library'}, got {cli_settings.project_description}"
@@ -233,7 +233,7 @@ class TestConfigurationFunctions:
         assert isinstance(settings, CLISettings)
         if settings.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {settings.project_name}")
-        assert settings.project_version == "0.8.0"
+        assert settings.project_version == "0.9.0"
 
     def test_multiple_config_instances(self) -> None:
         """Test multiple config instances are independent."""

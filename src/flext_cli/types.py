@@ -14,7 +14,6 @@ from pathlib import Path
 # DRY: Use REAL flext-core imports from main API - NO DUPLICATION
 from flext_core import (
     FlextEntity,
-    FlextResult,
     FlextUtilities,
     FlextValueObject,
     TValue,
@@ -114,67 +113,75 @@ class FlextCliCommand(FlextEntity):
         """Check if command completed successfully."""
         return self.command_status == FlextCliCommandStatus.COMPLETED
 
-    def validate_domain_rules(self) -> FlextResult[None]:
+    def validate_domain_rules(self) -> bool:
         """Validate domain rules for CLI command."""
-        if self.name and self.command_line:
-            return FlextResult.ok(None)
-        return FlextResult.fail("Command must have name and command_line")
+        return bool(self.name and self.command_line)
 
 
 class FlextCliConfig(FlextValueObject):
     """CLI configuration value object - restored from backup."""
 
+    # Pydantic fields for proper MyPy attribute recognition
+    debug: bool = Field(default=False)
+    trace: bool = Field(default=False)
+    log_level: str = Field(default="INFO")
+    api_url: str = Field(default="http://localhost:8000")
+    api_timeout: int = Field(default=30)
+    format_type: str = Field(default="table")
+    no_color: bool = Field(default=False)
+    profile: str = Field(default="default")
+    connect_timeout: int = Field(default=10)
+    read_timeout: int = Field(default=30)
+    command_timeout: int = Field(default=300)
+
     def __init__(self, data: TCliConfig | None = None) -> None:
-        super().__init__()
         config_data = data or {}
 
-        # Configuration from original backup
-        object.__setattr__(self, "debug", config_data.get("debug", False))
-        object.__setattr__(self, "trace", config_data.get("trace", False))
-        object.__setattr__(self, "log_level", config_data.get("log_level", "INFO"))
-        object.__setattr__(
-            self,
-            "api_url",
-            config_data.get("api_url", "http://localhost:8000"),
-        )
-        object.__setattr__(self, "api_timeout", config_data.get("api_timeout", 30))
-        object.__setattr__(
-            self,
-            "format_type",
-            config_data.get("output_format", "table"),
-        )
-        object.__setattr__(self, "no_color", config_data.get("no_color", False))
-        object.__setattr__(self, "profile", config_data.get("profile", "default"))
-        object.__setattr__(
-            self,
-            "connect_timeout",
-            config_data.get("connect_timeout", 10),
-        )
-        object.__setattr__(self, "read_timeout", config_data.get("read_timeout", 30))
-        object.__setattr__(
-            self,
-            "command_timeout",
-            config_data.get("command_timeout", 300),
-        )
+        # Initialize with proper values from data or defaults
+        init_data = {
+            "debug": config_data.get("debug", False),
+            "trace": config_data.get("trace", False),
+            "log_level": config_data.get("log_level", "INFO"),
+            "api_url": config_data.get("api_url", "http://localhost:8000"),
+            "api_timeout": config_data.get("api_timeout", 30),
+            "format_type": config_data.get("output_format", "table"),
+            "no_color": config_data.get("no_color", False),
+            "profile": config_data.get("profile", "default"),
+            "connect_timeout": config_data.get("connect_timeout", 10),
+            "read_timeout": config_data.get("read_timeout", 30),
+            "command_timeout": config_data.get("command_timeout", 300),
+        }
+
+        # Use Pydantic's model initialization
+        super().__init__(**init_data)
 
     def configure(self, config: object) -> bool:
         """Configure with new settings."""
         try:
             if isinstance(config, dict):
-                # Create new instance with updated config
-                updated_data = {**self.__dict__, **config}
+                # Create updated data by merging current model data with new config
+                current_data = self.model_dump()
+                updated_data = {**current_data, **config}
+
+                # Create new instance and copy its values to self
                 new_config = FlextCliConfig(updated_data)
-                # Copy attributes
-                for key, value in new_config.__dict__.items():
-                    object.__setattr__(self, key, value)
+                new_data = new_config.model_dump()
+
+                # Update self with new values using model_copy
+                updated_self = self.model_copy(update=new_data)
+
+                # Copy all fields from updated instance to self
+                for field_name in self.model_fields:
+                    object.__setattr__(self, field_name, getattr(updated_self, field_name))
+
                 return True
             return False
         except (AttributeError, ValueError, TypeError):
             return False
 
-    def validate_domain_rules(self) -> FlextResult[None]:
+    def validate_domain_rules(self) -> bool:
         """Validate domain rules for CLI configuration."""
-        return FlextResult.ok(None)  # Configuration is always valid
+        return True  # Configuration is always valid according to tests
 
 
 class FlextCliContext(FlextValueObject):
@@ -258,11 +265,9 @@ class FlextCliContext(FlextValueObject):
             profile="production",
         )
 
-    def validate_domain_rules(self) -> FlextResult[None]:
+    def validate_domain_rules(self) -> bool:
         """Validate domain rules for CLI context."""
-        if self.session_id:
-            return FlextResult.ok(None)
-        return FlextResult.fail("Context must have session_id")
+        return bool(self.session_id)
 
 
 class FlextCliPlugin(FlextValueObject):
@@ -288,11 +293,9 @@ class FlextCliPlugin(FlextValueObject):
         }
         super().__init__(**init_data)
 
-    def validate_domain_rules(self) -> FlextResult[None]:
+    def validate_domain_rules(self) -> bool:
         """Validate domain rules for CLI plugin."""
-        if self.name and self.version:
-            return FlextResult.ok(None)
-        return FlextResult.fail("Plugin must have name and version")
+        return bool(self.name and self.version)
 
 
 class FlextCliSession(FlextEntity):
@@ -317,8 +320,6 @@ class FlextCliSession(FlextEntity):
         except (AttributeError, ValueError, TypeError):
             return False
 
-    def validate_domain_rules(self) -> FlextResult[None]:
+    def validate_domain_rules(self) -> bool:
         """Validate domain rules for CLI session."""
-        if self.id:
-            return FlextResult.ok(None)
-        return FlextResult.fail("Session must have id")
+        return bool(self.id)

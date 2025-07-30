@@ -53,7 +53,7 @@ def cli_settings() -> CLISettings:
     """Create test CLI settings."""
     return CLISettings(
         project_name="test-cli",
-        project_version="1.0.0",
+        project_version="0.9.0",
         project_description="Test CLI Library",
         debug=True,
         log_level="DEBUG",
@@ -99,7 +99,7 @@ def sample_plugin() -> CLIPlugin:
     return CLIPlugin(
         id="test_plugin_001",
         name="test-plugin",
-        plugin_version="0.8.0",
+        plugin_version="0.9.0",
         description="A test plugin",
         entry_point="test_plugin.main",
         commands=["test-cmd"],

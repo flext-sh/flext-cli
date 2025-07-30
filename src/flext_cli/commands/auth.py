@@ -42,6 +42,7 @@ def login(ctx: click.Context, username: str, password: str) -> None:
             ctx.exit(1)
 
         # Real authentication response (password-based token generation)
+        client.login(username, password)
         response: dict[str, object] = {
             "token": f"token_{username}_{hash(password) % 10000}",
             "user": {"name": username, "authenticated": True},
@@ -100,7 +101,7 @@ def logout(ctx: click.Context) -> None:
         # Clear token even if any other error occurs:
         clear_auth_tokens()
         console.print(
-            f"[yellow]⚠️  Error during logout, logged out locally ({e})[/yellow]"
+            f"[yellow]⚠️  Error during logout, logged out locally ({e})[/yellow]",
         )
 
 

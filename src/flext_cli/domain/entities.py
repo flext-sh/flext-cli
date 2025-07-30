@@ -345,7 +345,7 @@ class CLIPlugin(FlextEntity):
         description="Plugin name",
     )
     plugin_version: str = Field(
-        default="0.8.0",
+        default="0.9.0",
         description="Plugin version string",
     )
     description: str | None = Field(

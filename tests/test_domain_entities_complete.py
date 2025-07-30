@@ -645,7 +645,7 @@ class TestCLIPlugin:
         # Test valid plugin data
         name = "valid_plugin"
         entry_point = "valid.entry.point"
-        version = "1.0.0"
+        version = "0.9.0"
 
         # Test valid name
         assert name
@@ -899,7 +899,7 @@ class TestDomainEntityIntegration:
         # Simulate plugin creation
         plugin_data = {
             "name": "test_plugin",
-            "version": "1.0.0",
+            "version": "0.9.0",
             "entry_point": "test.plugin.main",
             "enabled": False,
             "installed": False,

@@ -353,7 +353,7 @@ class TestCLIConfigEntityIntegration:
             assert result.exit_code == 0
 
             # Type the expected dict for MyPy
-            expected: dict[str, object] = scenario["expected"]  # type: ignore[assignment]
+            expected = scenario["expected"]
 
             # Create config entity that reflects the CLI options
             config = CLIConfig(

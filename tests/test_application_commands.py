@@ -167,7 +167,7 @@ class TestCreateConfigCommand:
 
         # Test default values
         assert cmd.description is None
-        if cmd.version != "1.0.0":
+        if cmd.version != "0.9.0":
             raise AssertionError(f"Expected {'1.0.0'}, got {cmd.version}")
         assert cmd.user_id is None
         if cmd.is_global:
@@ -181,7 +181,7 @@ class TestCreateConfigCommand:
         cmd.description = "Test configuration"
         cmd.config_data = {"key": "value"}
         cmd.config_type = "application"
-        cmd.version = "2.0.0"
+        cmd.version = "0.9.0"
         cmd.user_id = uuid4()
         cmd.is_global = True
 
@@ -191,7 +191,7 @@ class TestCreateConfigCommand:
         if cmd.config_data != {"key": "value"}:
             raise AssertionError(f'Expected {{"key": "value"}}, got {cmd.config_data}')
         assert cmd.config_type == "application"
-        if cmd.version != "2.0.0":
+        if cmd.version != "0.9.0":
             raise AssertionError(f"Expected {'2.0.0'}, got {cmd.version}")
         assert isinstance(cmd.user_id, UUID)
         if not (cmd.is_global):
@@ -412,7 +412,7 @@ class TestInstallPluginCommand:
         user_id = uuid4()
 
         cmd.name = "test_plugin"
-        cmd.version = "1.0.0"
+        cmd.version = "0.9.0"
         cmd.entry_point = "test_plugin.main"
         cmd.commands = ["cmd1", "cmd2"]
         cmd.dependencies = ["dep1", "dep2"]
@@ -423,7 +423,7 @@ class TestInstallPluginCommand:
 
         if cmd.name != "test_plugin":
             raise AssertionError(f"Expected {'test_plugin'}, got {cmd.name}")
-        assert cmd.version == "1.0.0"
+        assert cmd.version == "0.9.0"
         if cmd.entry_point != "test_plugin.main":
             raise AssertionError(
                 f"Expected {'test_plugin.main'}, got {cmd.entry_point}"
@@ -856,7 +856,7 @@ class TestCommandInstantiation:
         config_cmd = CreateConfigCommand()
         # These are defined as class attributes in the command classes
         assert config_cmd.description is None
-        if config_cmd.version != "1.0.0":
+        if config_cmd.version != "0.9.0":
             raise AssertionError(f"Expected {'1.0.0'}, got {config_cmd.version}")
         assert config_cmd.user_id is None
         if config_cmd.is_global:

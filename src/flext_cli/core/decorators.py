@@ -10,6 +10,7 @@ Focus on functionality over complex typing.
 from __future__ import annotations
 
 import asyncio
+import functools
 import time
 from pathlib import Path
 
@@ -17,10 +18,11 @@ from rich.console import Console
 
 
 def async_command(f: object) -> object:
-    """Run async functions in sync context."""
+    """Run async functions in sync context (SOLID: Open/Closed Principle)."""
     if not callable(f):
         return f
 
+    @functools.wraps(f)
     def wrapper(*args: object, **kwargs: object) -> object:
         try:
             result = f(*args, **kwargs)
@@ -45,6 +47,7 @@ def confirm_action(
         if not callable(f):
             return f
 
+        @functools.wraps(f)
         def wrapper(*args: object, **kwargs: object) -> object:
             console = Console()
             prompt = f"{message} [{'Y/n' if default else 'y/N'}]: "
@@ -68,6 +71,7 @@ def require_auth(*, token_file: str | None = None) -> object:
         if not callable(f):
             return f
 
+        @functools.wraps(f)
         def wrapper(*args: object, **kwargs: object) -> object:
             path = token_file or "~/.flext/auth_token"
             token_path = Path(path).expanduser()
@@ -108,6 +112,7 @@ def measure_time(*, show_in_output: bool = True) -> object:
         if not callable(f):
             return f
 
+        @functools.wraps(f)
         def wrapper(*args: object, **kwargs: object) -> object:
             start_time = time.time()
             try:
@@ -139,6 +144,7 @@ def retry(
         if not callable(f):
             return f
 
+        @functools.wraps(f)
         def wrapper(*args: object, **kwargs: object) -> object:
             console = Console()
             current_delay = delay

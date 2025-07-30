@@ -148,7 +148,7 @@ class TestFormatPipeline:
         # This should handle gracefully - test defensive programming
         with contextlib.suppress(AttributeError, TypeError):
             # Expected for None input - function assumes valid Pipeline object
-            format_pipeline(console, None)  # type: ignore[arg-type]
+            format_pipeline(console, None)
 
     def test_format_pipeline_missing_fields(self) -> None:
         """Test pipeline formatting with minimal required fields."""
@@ -202,7 +202,7 @@ class TestFormatPluginList:
         plugins = [
             {
                 "name": "test-plugin",
-                "version": "1.0.0",
+                "version": "0.9.0",
                 "enabled": True,
                 "description": "A test plugin",
             },
@@ -218,7 +218,7 @@ class TestFormatPluginList:
         # Check output was written to console
         output = string_io.getvalue()
         assert "test-plugin" in output
-        assert "1.0.0" in output
+        assert "0.9.0" in output
 
     def test_format_plugin_list_multiple(self) -> None:
         """Test formatting multiple plugins."""
@@ -229,12 +229,12 @@ class TestFormatPluginList:
         plugins = [
             {
                 "name": "plugin-1",
-                "version": "1.0.0",
+                "version": "0.9.0",
                 "enabled": True,
             },
             {
                 "name": "plugin-2",
-                "version": "2.0.0",
+                "version": "0.9.0",
                 "enabled": False,
             },
         ]
@@ -250,8 +250,8 @@ class TestFormatPluginList:
         output = string_io.getvalue()
         assert "plugin-1" in output
         assert "plugin-2" in output
-        assert "1.0.0" in output
-        assert "2.0.0" in output
+        assert "0.9.0" in output
+        assert "0.9.0" in output
 
     def test_format_plugin_list_missing_fields(self) -> None:
         """Test formatting plugins with missing fields."""
@@ -285,7 +285,7 @@ class TestFormatPluginList:
         # This should handle gracefully - test defensive programming
         with contextlib.suppress(AttributeError, TypeError):
             # Expected for None input - function assumes valid list
-            format_plugin_list(console, None, "table")  # type: ignore[arg-type]
+            format_plugin_list(console, None, "table")
 
 
 class TestFormatJson:

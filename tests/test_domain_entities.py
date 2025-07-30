@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import tempfile
 from datetime import UTC, datetime
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from flext_cli import (
     CLICommand,
@@ -137,7 +137,7 @@ class TestCLICommand:
         assert not failed_command.is_successful
 
     @patch("flext_cli.domain.entities.datetime")
-    def test_duration_calculation(self, mock_datetime: any) -> None:
+    def test_duration_calculation(self, mock_datetime: Mock) -> None:
         """Test duration calculation."""
         start_time = datetime(2025, 1, 1, 10, 0, 0, tzinfo=UTC)
         end_time = datetime(2025, 1, 1, 10, 0, 5, tzinfo=UTC)  # 5 seconds later
@@ -162,7 +162,7 @@ class TestCLIPlugin:
         """Test plugin creation."""
         if sample_plugin.name != "test-plugin":
             raise AssertionError(f"Expected {'test-plugin'}, got {sample_plugin.name}")
-        assert sample_plugin.plugin_version == "0.8.0"  # Using correct plugin_version field
+        assert sample_plugin.plugin_version == "0.9.0"  # Using correct plugin_version field
         if sample_plugin.entry_point != "test_plugin.main":
             raise AssertionError(
                 f"Expected {'test_plugin.main'}, got {sample_plugin.entry_point}"
@@ -269,7 +269,7 @@ class TestCLISession:
         assert ended_session.current_command is None
 
     @patch("flext_cli.domain.entities.datetime")
-    def test_session_activity_tracking(self, mock_datetime: any) -> None:
+    def test_session_activity_tracking(self, mock_datetime: Mock) -> None:
         """Test session activity tracking."""
         activity_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=UTC)
         mock_datetime.now.return_value = activity_time

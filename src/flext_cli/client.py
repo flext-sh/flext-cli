@@ -25,6 +25,13 @@ class FlextApiClient:
     def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialize stub client."""
 
+    def login(self, username: str, password: str) -> dict[str, object]:
+        """Stub login method."""
+        return {
+            "token": f"token_{username}_{hash(password) % 10000}",
+            "user": {"name": username, "authenticated": True},
+        }
+
 
 class Pipeline:
     """Stub class for Pipeline."""
