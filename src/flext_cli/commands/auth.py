@@ -40,7 +40,7 @@ def login(ctx: click.Context, username: str, password: str) -> None:
         if not password or len(password) < 1:
             console.print("[red]❌ Password cannot be empty[/red]")
             ctx.exit(1)
-            
+
         # Real authentication response (password-based token generation)
         response: dict[str, object] = {
             "token": f"token_{username}_{hash(password) % 10000}",
