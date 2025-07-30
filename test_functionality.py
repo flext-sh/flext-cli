@@ -69,7 +69,10 @@ def test_exports():
     """Test export functionality."""
     # Test single export
     with tempfile.NamedTemporaryFile(
-        encoding="utf-8", mode="w", suffix=".json", delete=False,
+        encoding="utf-8",
+        mode="w",
+        suffix=".json",
+        delete=False,
     ) as tmp:
         export_result = flext_cli_export(sample_data, tmp.name, "json")
 

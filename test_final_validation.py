@@ -44,7 +44,8 @@ def test_api_functionality() -> bool:
 
         # Test data transformation
         transform_result = flext_cli_transform_data(
-            data, filter_func=lambda x: x["age"] >= 30,
+            data,
+            filter_func=lambda x: x["age"] >= 30,
         )
         assert transform_result.is_success
         if len(transform_result.unwrap()) != 1:
@@ -123,7 +124,9 @@ def test_domain_functionality() -> bool:
     try:
         # Test domain entities
         command = CLICommand(
-            name="test-command", command_line="echo hello", description="Test command",
+            name="test-command",
+            command_line="echo hello",
+            description="Test command",
         )
         if command.name != "test-command":
             msg = f"Expected {'test-command'}, got {command.name}"
@@ -135,7 +138,9 @@ def test_domain_functionality() -> bool:
         console = Console()
 
         domain_context = DomainCLIContext(
-            config=config, settings=settings, console=console,
+            config=config,
+            settings=settings,
+            console=console,
         )
         assert domain_context.config is config
 
