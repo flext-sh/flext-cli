@@ -178,7 +178,9 @@ class FlextCliConfig(FlextValueObject):
                 # Copy all fields from updated instance to self
                 for field_name in self.model_fields:
                     object.__setattr__(
-                        self, field_name, getattr(updated_self, field_name),
+                        self,
+                        field_name,
+                        getattr(updated_self, field_name),
                     )
 
                 return True
