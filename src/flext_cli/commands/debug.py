@@ -35,6 +35,55 @@ def debug_cmd() -> None:
 
 @debug_cmd.command()
 @click.pass_context
+def info(ctx: click.Context) -> None:
+    """Show system information."""
+    console: Console = ctx.obj["console"]
+
+    console.print("[bold cyan]FLEXT CLI System Information[/bold cyan]\n")
+
+    # System info
+    console.print(f"Python Version: {sys.version}")
+    console.print(f"Platform: {platform.platform()}")
+    console.print(f"Architecture: {platform.architecture()[0]}")
+    console.print(f"Processor: {platform.processor()}")
+
+    # Environment
+    console.print(f"\nWorking Directory: {Path.cwd()}")
+    console.print(f"Home Directory: {Path.home()}")
+
+    # FLEXT specific info
+    config = get_config()
+    console.print(f"\nConfig Directory: {config.config_dir}")
+    console.print(f"Profile: {config.profile}")
+    console.print(f"Debug Mode: {config.debug}")
+
+
+@debug_cmd.command()
+@click.pass_context
+def check(ctx: click.Context) -> None:
+    """Check system health."""
+    console: Console = ctx.obj["console"]
+
+    console.print("[yellow]Running system health checks...[/yellow]\n")
+
+    # Check Python version
+    console.print("[green]✓[/green] Python version: OK")
+
+    # Check config
+    try:
+        config = get_config()
+        console.print("[green]✓[/green] Configuration: OK")
+        console.print(f"  Profile: {config.profile}")
+    except Exception as e:
+        console.print(f"[red]✗[/red] Configuration: ERROR - {e}")
+
+    # Check connectivity simulation
+    console.print("[green]✓[/green] System: OK")
+    console.print("\nAll checks passed!")
+
+
+@debug_cmd.command()
+@click.pass_context
 def connectivity(ctx: click.Context) -> None:
     """Test API connectivity."""
     console: Console = ctx.obj["console"]

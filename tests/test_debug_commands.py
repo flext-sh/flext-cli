@@ -30,7 +30,7 @@ class TestDebugCommands:
 
     @patch("flext_cli.commands.debug.FlextApiClient")
     @patch("asyncio.run")
-    def test_connectivity_command(self, mock_asyncio_run, mock_client_class) -> None:
+    def test_connectivity_command(self, mock_asyncio_run: MagicMock, mock_client_class: MagicMock) -> None:
         """Test connectivity command."""
         # Mock client
         mock_client = AsyncMock()
@@ -51,7 +51,7 @@ class TestDebugCommands:
 
     @patch("flext_cli.commands.debug.FlextApiClient")
     @patch("asyncio.run")
-    def test_performance_command(self, mock_asyncio_run, mock_client_class) -> None:
+    def test_performance_command(self, mock_asyncio_run: MagicMock, mock_client_class: MagicMock) -> None:
         """Test performance command."""
         # Mock client
         mock_client = AsyncMock()
@@ -70,46 +70,50 @@ class TestDebugCommands:
     @patch("flext_cli.commands.debug.get_config")
     @patch("sys.version_info", (3, 11, 0))
     @patch("sys.version", "3.11.0 (main, Oct 24 2022)")
-    def test_validate_command_success(self, mock_get_config) -> None:
+    def test_validate_command_success(self, mock_get_config: MagicMock) -> None:
         """Test validate command with success."""
         # Mock config
         mock_config = MagicMock()
         mock_config.config_dir = Path("/home/user/.flext")
         mock_get_config.return_value = mock_config
 
-        with patch.object(Path, "exists", return_value=True):
-            with patch("builtins.__import__") as mock_import:
-                mock_import.return_value = MagicMock()
+        with (
+            patch.object(Path, "exists", return_value=True),
+            patch("builtins.__import__") as mock_import,
+        ):
+            mock_import.return_value = MagicMock()
 
-                result = self.runner.invoke(
-                    debug_cmd, ["validate"], obj={"console": MagicMock()}
-                )
+            result = self.runner.invoke(
+                debug_cmd, ["validate"], obj={"console": MagicMock()}
+            )
 
-                # Should complete without error exit
-                if result.exit_code != 0:
-                    raise AssertionError(f"Expected {0}, got {result.exit_code}")
+            # Should complete without error exit
+            if result.exit_code != 0:
+                raise AssertionError(f"Expected {0}, got {result.exit_code}")
 
     @patch("flext_cli.commands.debug.get_config")
     @patch("sys.version_info", (3, 9, 0))
     @patch("sys.version", "3.9.0 (main, Oct 24 2021)")
-    def test_validate_command_old_python(self, mock_get_config) -> None:
+    def test_validate_command_old_python(self, mock_get_config: MagicMock) -> None:
         """Test validate command with old Python."""
         # Mock config
         mock_config = MagicMock()
         mock_config.config_dir = Path("/home/user/.flext")
         mock_get_config.return_value = mock_config
 
-        with patch.object(Path, "exists", return_value=True):
-            with patch("builtins.__import__") as mock_import:
-                mock_import.return_value = MagicMock()
+        with (
+            patch.object(Path, "exists", return_value=True),
+            patch("builtins.__import__") as mock_import,
+        ):
+            mock_import.return_value = MagicMock()
 
-                result = self.runner.invoke(
-                    debug_cmd, ["validate"], obj={"console": MagicMock()}
-                )
+            result = self.runner.invoke(
+                debug_cmd, ["validate"], obj={"console": MagicMock()}
+            )
 
-                # Should exit with error due to old Python
-                if result.exit_code != 1:
-                    raise AssertionError(f"Expected {1}, got {result.exit_code}")
+            # Should exit with error due to old Python
+            if result.exit_code != 1:
+                raise AssertionError(f"Expected {1}, got {result.exit_code}")
 
     def test_trace_command(self) -> None:
         """Test trace command."""
@@ -147,7 +151,7 @@ class TestDebugCommands:
 
     @patch("flext_cli.commands.debug.get_config")
     @patch("flext_cli.commands.debug.Path")
-    def test_paths_command(self, mock_path_class, mock_get_config) -> None:
+    def test_paths_command(self, mock_path_class: MagicMock, mock_get_config: MagicMock) -> None:
         """Test paths command."""
         # Mock config
         mock_config = MagicMock()
@@ -190,7 +194,7 @@ class TestDebugFunctionality:
     @patch("platform.release")
     @patch("platform.machine")
     def test_platform_info_access(
-        self, mock_machine, mock_release, mock_system
+        self, mock_machine: MagicMock, mock_release: MagicMock, mock_system: MagicMock
     ) -> None:
         """Test that platform information is accessed correctly."""
         mock_system.return_value = "Linux"
@@ -229,7 +233,7 @@ class TestDebugFunctionality:
             raise AssertionError(f"Expected {'/test/path/subpath'}, got {joined!s}")
 
     @patch("flext_cli.commands.debug.get_config")
-    def test_config_access(self, mock_get_config) -> None:
+    def test_config_access(self, mock_get_config: MagicMock) -> None:
         """Test config access in debug commands."""
         mock_config = MagicMock()
         mock_config.config_dir = Path("/test/config")
@@ -356,7 +360,7 @@ class TestDebugCommandErrorHandling:
     @patch("flext_cli.commands.debug.FlextApiClient")
     @patch("asyncio.run")
     def test_connectivity_with_exception(
-        self, mock_asyncio_run, mock_client_class
+        self, mock_asyncio_run: MagicMock, mock_client_class: MagicMock
     ) -> None:
         """Test connectivity command with exception."""
         # Make asyncio.run raise an exception
@@ -370,7 +374,7 @@ class TestDebugCommandErrorHandling:
     @patch("flext_cli.commands.debug.FlextApiClient")
     @patch("asyncio.run")
     def test_performance_with_exception(
-        self, mock_asyncio_run, mock_client_class
+        self, mock_asyncio_run: MagicMock, mock_client_class: MagicMock
     ) -> None:
         """Test performance command with exception."""
         # Make asyncio.run raise an exception
@@ -382,7 +386,7 @@ class TestDebugCommandErrorHandling:
         assert mock_asyncio_run.called
 
     @patch("flext_cli.commands.debug.get_config")
-    def test_validate_with_missing_packages(self, mock_get_config) -> None:
+    def test_validate_with_missing_packages(self, mock_get_config: MagicMock) -> None:
         """Test validate with missing packages."""
         mock_config = MagicMock()
         mock_config.config_dir = Path("/home/user/.flext")
@@ -390,7 +394,7 @@ class TestDebugCommandErrorHandling:
 
         with patch.object(Path, "exists", return_value=True):
 
-            def mock_import(package, *args, **kwargs):
+            def mock_import(package: str, *args: object, **kwargs: object) -> MagicMock:
                 if package == "missing_package":
                     msg = f"No module named '{package}'"
                     raise ImportError(msg)

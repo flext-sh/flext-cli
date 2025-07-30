@@ -255,15 +255,19 @@ class TestConfigCommands:
         # Should have printed path information
         assert self.mock_cli_context.print_info.called
 
-    @patch("subprocess.run")
-    @patch.dict(os.environ, {"EDITOR": "nano"})
-    def test_edit_command_with_existing_config(self, mock_subprocess) -> None:
+    def test_edit_command_with_existing_config(self) -> None:
         """Test edit command with existing config file."""
-        mock_subprocess.return_value = MagicMock()
+        with (
+            patch("subprocess.run") as mock_subprocess,
+            patch.dict(os.environ, {"EDITOR": "nano"}),
+        ):
+            mock_subprocess.return_value = MagicMock()
 
-        # Mock config file exists
-        with patch.object(Path, "exists", return_value=True):
-            with patch.object(Path, "mkdir"):
+            # Mock config file exists
+            with (
+                patch.object(Path, "exists", return_value=True),
+                patch.object(Path, "mkdir"),
+            ):
                 result = self.runner.invoke(
                     config,
                     ["edit"],
@@ -273,14 +277,18 @@ class TestConfigCommands:
                 if result.exit_code not in {0, 1, 2}:
                     raise AssertionError(f"Expected {result.exit_code} in {[0, 1, 2]}")
 
-    @patch("subprocess.run")
-    @patch.dict(os.environ, {}, clear=True)  # No EDITOR env var
-    def test_edit_command_default_editor(self, mock_subprocess) -> None:
+    def test_edit_command_default_editor(self) -> None:
         """Test edit command with default editor (vim)."""
-        mock_subprocess.return_value = MagicMock()
+        with (
+            patch("subprocess.run") as mock_subprocess,
+            patch.dict(os.environ, {}, clear=True),  # No EDITOR env var
+        ):
+            mock_subprocess.return_value = MagicMock()
 
-        with patch.object(Path, "exists", return_value=False):
-            with patch.object(Path, "mkdir"):
+            with (
+                patch.object(Path, "exists", return_value=False),
+                patch.object(Path, "mkdir"),
+            ):
                 result = self.runner.invoke(
                     config,
                     ["edit"],
@@ -291,54 +299,58 @@ class TestConfigCommands:
                 if result.exit_code not in {0, 1, 2}:
                     raise AssertionError(f"Expected {result.exit_code} in {[0, 1, 2]}")
 
-    @patch("subprocess.run")
-    def test_edit_command_create_default_config(self, mock_subprocess) -> None:
+    def test_edit_command_create_default_config(self) -> None:
         """Test edit command creates default config when none exists."""
-        mock_subprocess.return_value = MagicMock()
+        with patch("subprocess.run") as mock_subprocess:
+            mock_subprocess.return_value = MagicMock()
 
-        # Mock config file doesn't exist
-        with patch.object(Path, "exists", return_value=False):
-            with patch.object(Path, "mkdir"):
-                # Mock file opening for writing
-                mock_file = MagicMock()
-                with patch.object(Path, "open", return_value=mock_file):
+            # Mock config file doesn't exist
+            with (
+                patch.object(Path, "exists", return_value=False),
+                patch.object(Path, "mkdir"),
+            ):
+                    # Mock file opening for writing
+                    mock_file = MagicMock()
+                    with patch.object(Path, "open", return_value=mock_file):
+                        result = self.runner.invoke(
+                            config,
+                            ["edit"],
+                            obj={"cli_context": self.mock_cli_context},
+                        )
+
+                        if result.exit_code not in {0, 1, 2}:
+                            raise AssertionError(
+                                f"Expected {result.exit_code} in {[0, 1, 2]}"
+                            )
+
+    def test_edit_command_subprocess_error(self) -> None:
+        """Test edit command with subprocess error."""
+        with patch("subprocess.run") as mock_subprocess:
+            mock_subprocess.side_effect = subprocess.CalledProcessError(1, "vim")
+
+            with (
+                patch.object(Path, "exists", return_value=True),
+                patch.object(Path, "mkdir"),
+            ):
                     result = self.runner.invoke(
                         config,
                         ["edit"],
                         obj={"cli_context": self.mock_cli_context},
                     )
 
-                    if result.exit_code not in {0, 1, 2}:
-                        raise AssertionError(
-                            f"Expected {result.exit_code} in {[0, 1, 2]}"
-                        )
+                    if result.exit_code != 1:
+                        raise AssertionError(f"Expected {1}, got {result.exit_code}")
 
-    @patch("subprocess.run")
-    def test_edit_command_subprocess_error(self, mock_subprocess) -> None:
-        """Test edit command with subprocess error."""
-        mock_subprocess.side_effect = subprocess.CalledProcessError(1, "vim")
+    def test_edit_command_file_error(self) -> None:
+        """Test edit command with file error."""
+        with patch("subprocess.run") as mock_subprocess:
+            mock_subprocess.return_value = MagicMock()
 
-        with patch.object(Path, "exists", return_value=True):
-            with patch.object(Path, "mkdir"):
+            # Mock Path.mkdir to raise OSError
+            with patch.object(Path, "mkdir", side_effect=OSError("Permission denied")):
                 result = self.runner.invoke(
                     config,
                     ["edit"],
-                    obj={"cli_context": self.mock_cli_context},
-                )
-
-                if result.exit_code != 1:
-                    raise AssertionError(f"Expected {1}, got {result.exit_code}")
-
-    @patch("subprocess.run")
-    def test_edit_command_file_error(self, mock_subprocess) -> None:
-        """Test edit command with file error."""
-        mock_subprocess.return_value = MagicMock()
-
-        # Mock Path.mkdir to raise OSError
-        with patch.object(Path, "mkdir", side_effect=OSError("Permission denied")):
-            result = self.runner.invoke(
-                config,
-                ["edit"],
                 obj={"cli_context": self.mock_cli_context},
             )
 
@@ -391,7 +403,7 @@ class TestConfigHelperFunctions:
 
         self.mock_cli_context.config.output_format = "json"
 
-        _print_config_value(self.mock_cli_context, "debug", True)
+        _print_config_value(self.mock_cli_context, "debug", value=True)
 
         # Should have called console.print with JSON
         self.mock_cli_context.console.print.assert_called()
@@ -401,7 +413,7 @@ class TestConfigHelperFunctions:
 
         self.mock_cli_context.config.output_format = "yaml"
 
-        _print_config_value(self.mock_cli_context, "debug", True)
+        _print_config_value(self.mock_cli_context, "debug", value=True)
 
         # Should have called console.print with YAML
         self.mock_cli_context.console.print.assert_called()
@@ -411,7 +423,7 @@ class TestConfigHelperFunctions:
 
         self.mock_cli_context.config.output_format = "table"
 
-        _print_config_value(self.mock_cli_context, "debug", True)
+        _print_config_value(self.mock_cli_context, "debug", value=True)
 
         # Should have called console.print with simple format
         self.mock_cli_context.console.print.assert_called()
@@ -471,14 +483,14 @@ class TestConfigIntegration:
     def test_config_imports(self) -> None:
         """Test that all required imports work."""
 
-        # All imports should work
-        assert json
-        assert os
-        assert subprocess
-        assert Path
-        assert click
-        assert yaml
-        assert Table
+        # All imports should work - check they are the expected types
+        assert json is not None
+        assert os is not None
+        assert subprocess is not None
+        assert Path is not None
+        assert click is not None
+        assert yaml is not None
+        assert Table is not None
 
     def test_json_operations(self) -> None:
         """Test JSON operations used in config commands."""
@@ -553,23 +565,37 @@ class TestConfigIntegration:
         cli_context = mock_context.obj["cli_context"]
         assert cli_context is not None
 
+    def _test_standard_exception(self, exc_type: type[Exception]) -> None:
+        """Test a specific standard exception type."""
+        def _raise_test_exception() -> None:
+            msg = "Test error"
+            raise exc_type(msg)
+
+        try:
+            _raise_test_exception()
+        except exc_type as e:
+            # Different exceptions format error messages differently
+            if "Test error" not in str(e):
+                raise AssertionError(f"Expected {'Test error'} in {e!s}") from e
+
+    def _test_called_process_error(self) -> None:
+        """Test CalledProcessError separately (needs different constructor)."""
+        def _raise_process_error() -> None:
+            raise subprocess.CalledProcessError(1, "test_cmd", "Test error")
+
+        try:
+            _raise_process_error()
+        except subprocess.CalledProcessError as e:
+            if "test_cmd" not in str(e):
+                raise AssertionError(f"Expected {'test_cmd'} in {e!s}") from e
+
     def test_exception_handling_patterns(self) -> None:
         """Test exception handling patterns used in config commands."""
         # Test the exception types used in config commands
         standard_exceptions = [AttributeError, KeyError, ValueError, OSError]
 
         for exc_type in standard_exceptions:
-            try:
-                msg = "Test error"
-                raise exc_type(msg)
-            except exc_type as e:
-                # Different exceptions format error messages differently
-                if "Test error" not in str(e):
-                    raise AssertionError(f"Expected {'Test error'} in {e!s}")
+            self._test_standard_exception(exc_type)
 
         # Test CalledProcessError separately (needs different constructor)
-        try:
-            raise subprocess.CalledProcessError(1, "test_cmd", "Test error")
-        except subprocess.CalledProcessError as e:
-            if "test_cmd" not in str(e):
-                raise AssertionError(f"Expected {'test_cmd'} in {e!s}")
+        self._test_called_process_error()

@@ -8,6 +8,7 @@ Tests CLI configuration classes and functions for coverage.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import tempfile
 from pathlib import Path
@@ -70,7 +71,11 @@ class TestCLIOutputConfig:
 
     def test_format_literal_validation(self) -> None:
         """Test format field accepts valid literal values."""
-        valid_formats = ["table", "json", "yaml", "csv", "plain"]
+        from typing import Literal
+
+        valid_formats: list[Literal["table", "json", "yaml", "csv", "plain"]] = [
+            "table", "json", "yaml", "csv", "plain"
+        ]
 
         for fmt in valid_formats:
             config = CLIOutputConfig(format=fmt)
@@ -198,20 +203,22 @@ class TestCLIAuthConfig:
 
     def test_custom_paths(self) -> None:
         """Test custom path configuration."""
-        custom_token = Path("/tmp/custom_token")
-        custom_refresh = Path("/tmp/custom_refresh")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            custom_token = temp_path / "custom_token"
+            custom_refresh = temp_path / "custom_refresh"
 
-        config = CLIAuthConfig(
-            token_file=custom_token,
-            refresh_token_file=custom_refresh,
-            auto_refresh=False,
-        )
+            config = CLIAuthConfig(
+                token_file=custom_token,
+                refresh_token_file=custom_refresh,
+                auto_refresh=False,
+            )
 
-        if config.token_file != custom_token:
-            raise AssertionError(f"Expected {custom_token}, got {config.token_file}")
-        assert config.refresh_token_file == custom_refresh
-        if config.auto_refresh:
-            raise AssertionError(f"Expected False, got {config.auto_refresh}")
+            if config.token_file != custom_token:
+                raise AssertionError(f"Expected {custom_token}, got {config.token_file}")
+            assert config.refresh_token_file == custom_refresh
+            if config.auto_refresh:
+                raise AssertionError(f"Expected False, got {config.auto_refresh}")
 
     def test_path_types(self) -> None:
         """Test that paths are Path objects."""
@@ -252,21 +259,28 @@ class TestCLIDirectoryConfig:
 
     def test_custom_directories(self) -> None:
         """Test custom directory paths."""
-        config = CLIDirectoryConfig(
-            config_dir=Path("/tmp/config"),
-            cache_dir=Path("/tmp/cache"),
-            log_dir=Path("/tmp/logs"),
-            data_dir=Path("/tmp/data"),
-        )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            config_dir = temp_path / "config"
+            cache_dir = temp_path / "cache"
+            log_dir = temp_path / "logs"
+            data_dir = temp_path / "data"
 
-        if config.config_dir != Path("/tmp/config"):
-            raise AssertionError(
-                f"Expected {Path('/tmp/config')}, got {config.config_dir}"
+            config = CLIDirectoryConfig(
+                config_dir=config_dir,
+                cache_dir=cache_dir,
+                log_dir=log_dir,
+                data_dir=data_dir,
             )
-        assert config.cache_dir == Path("/tmp/cache")
-        if config.log_dir != Path("/tmp/logs"):
-            raise AssertionError(f"Expected {Path('/tmp/logs')}, got {config.log_dir}")
-        assert config.data_dir == Path("/tmp/data")
+
+            if config.config_dir != config_dir:
+                raise AssertionError(
+                    f"Expected {config_dir}, got {config.config_dir}"
+                )
+            assert config.cache_dir == cache_dir
+            if config.log_dir != log_dir:
+                raise AssertionError(f"Expected {log_dir}, got {config.log_dir}")
+            assert config.data_dir == data_dir
 
     def test_ensure_directories(self) -> None:
         """Test ensure_directories creates all directories."""
@@ -740,13 +754,10 @@ class TestConfigurationIntegration:
             )
 
             # This should handle the error gracefully or raise appropriate exception
-            try:
+            with contextlib.suppress(OSError, FileExistsError):
                 config.ensure_setup()
                 # If no exception is raised, verify what was created
                 # Since ensure_setup may fail on the first directory but succeed on others
-            except (OSError, FileExistsError):
-                # Expected behavior when trying to create directory over existing file
-                pass
 
             # Other directories that can be created should exist
             # We can't guarantee all will be created due to the conflict we set up

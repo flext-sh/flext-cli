@@ -73,7 +73,7 @@ class URLType(click.ParamType):
 class ClickPath(click.Path):
     """Enhanced Click Path type with flext-core integration."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913, FBT001, FBT002
         self,
         *,
         exists: bool = False,
@@ -81,6 +81,9 @@ class ClickPath(click.Path):
         dir_okay: bool = True,
         writable: bool = False,
         readable: bool = True,
+        resolve_path: bool = True,
+        allow_dash: bool = False,
+        path_type: type = str,
     ) -> None:
         """Initialize enhanced Click Path."""
         super().__init__(
@@ -89,9 +92,9 @@ class ClickPath(click.Path):
             dir_okay=dir_okay,
             writable=writable,
             readable=readable,
-            resolve_path=True,
-            allow_dash=False,
-            path_type=str,
+            resolve_path=resolve_path,
+            allow_dash=allow_dash,
+            path_type=path_type,
         )
 
 

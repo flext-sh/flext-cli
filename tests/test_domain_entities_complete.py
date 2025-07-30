@@ -36,7 +36,7 @@ with patch.dict(
 
 
 # Constants
-EXPECTED_DATA_COUNT = 2
+EXPECTED_DATA_COUNT = 3
 
 
 class TestCLIConstants:
@@ -414,8 +414,7 @@ class TestCLICommand:
             # Simulate validation logic
             if not name or not name.strip():
                 with pytest.raises(ValueError, match="Command name cannot be empty"):
-                    msg = "Command name cannot be empty"
-                    raise ValueError(msg)
+                    raise ValueError("Command name cannot be empty")  # noqa: EM101
 
     def test_command_validate_domain_rules_invalid_command_line(self) -> None:
         """Test validate_domain_rules with invalid command line."""
@@ -425,8 +424,7 @@ class TestCLICommand:
             # Simulate validation logic
             if not command_line or not command_line.strip():
                 with pytest.raises(ValueError, match="Command line cannot be empty"):
-                    msg = "Command line cannot be empty"
-                    raise ValueError(msg)
+                    raise ValueError("Command line cannot be empty")  # noqa: EM101
 
     def test_command_validate_domain_rules_invalid_duration(self) -> None:
         """Test validate_domain_rules with invalid duration."""
@@ -436,8 +434,7 @@ class TestCLICommand:
             # Simulate validation logic
             if duration is not None and duration < 0:
                 with pytest.raises(ValueError, match="Duration cannot be negative"):
-                    msg = "Duration cannot be negative"
-                    raise ValueError(msg)
+                    raise ValueError("Duration cannot be negative")  # noqa: EM101
 
 
 class TestCLISession:
@@ -485,7 +482,7 @@ class TestCLISession:
 
             if len(updates["commands_executed"]) != EXPECTED_DATA_COUNT:
                 raise AssertionError(
-                    f"Expected {3}, got {len(updates['commands_executed'])}"
+                    f"Expected {EXPECTED_DATA_COUNT}, got {len(updates['commands_executed'])}"
                 )
             assert updates["current_command"] == command_id
             if updates["last_activity"] != now:
@@ -541,8 +538,7 @@ class TestCLISession:
         for session_id in invalid_session_ids:
             if not session_id or not session_id.strip():
                 with pytest.raises(ValueError, match="Session ID cannot be empty"):
-                    msg = "Session ID cannot be empty"
-                    raise ValueError(msg)
+                    raise ValueError("Session ID cannot be empty")  # noqa: EM101
 
     def test_session_validate_domain_rules_invalid_timing(self) -> None:
         """Test validate_domain_rules with invalid timing."""
@@ -550,11 +546,8 @@ class TestCLISession:
         last_activity = started_at - timedelta(minutes=1)  # Before start
 
         if last_activity < started_at:
-            with pytest.raises(
-                ValueError, match="Last activity cannot be before session start"
-            ):
-                msg = "Last activity cannot be before session start"
-                raise ValueError(msg)
+            with pytest.raises(ValueError, match="Last activity cannot be before session start"):
+                raise ValueError("Last activity cannot be before session start")  # noqa: EM101
 
     def test_session_validate_domain_rules_invalid_current_command(self) -> None:
         """Test validate_domain_rules with invalid current command."""
@@ -562,11 +555,8 @@ class TestCLISession:
         current_command = "cmd3"  # Not in executed commands
 
         if current_command is not None and current_command not in commands_executed:
-            with pytest.raises(
-                ValueError, match="Current command must be in executed commands list"
-            ):
-                msg = "Current command must be in executed commands list"
-                raise ValueError(msg)
+            with pytest.raises(ValueError, match="Current command must be in executed commands list"):
+                raise ValueError("Current command must be in executed commands list")  # noqa: EM101
 
 
 class TestCLIPlugin:
@@ -676,8 +666,7 @@ class TestCLIPlugin:
         for name in invalid_names:
             if not name or not name.strip():
                 with pytest.raises(ValueError, match="Plugin name cannot be empty"):
-                    msg = "Plugin name cannot be empty"
-                    raise ValueError(msg)
+                    raise ValueError("Plugin name cannot be empty")  # noqa: EM101
 
     def test_plugin_validate_domain_rules_invalid_entry_point(self) -> None:
         """Test validate_domain_rules with invalid entry point."""
@@ -685,11 +674,8 @@ class TestCLIPlugin:
 
         for entry_point in invalid_entry_points:
             if not entry_point or not entry_point.strip():
-                with pytest.raises(
-                    ValueError, match="Plugin entry point cannot be empty"
-                ):
-                    msg = "Plugin entry point cannot be empty"
-                    raise ValueError(msg)
+                with pytest.raises(ValueError, match="Plugin entry point cannot be empty"):
+                    raise ValueError("Plugin entry point cannot be empty")  # noqa: EM101
 
     def test_plugin_validate_domain_rules_invalid_version(self) -> None:
         """Test validate_domain_rules with invalid version."""
@@ -698,8 +684,7 @@ class TestCLIPlugin:
         for version in invalid_versions:
             if not version or not version.strip():
                 with pytest.raises(ValueError, match="Plugin version cannot be empty"):
-                    msg = "Plugin version cannot be empty"
-                    raise ValueError(msg)
+                    raise ValueError("Plugin version cannot be empty")  # noqa: EM101
 
 
 class TestDomainEvents:
@@ -903,7 +888,7 @@ class TestDomainEntityIntegration:
         # Verify final state
         if len(session_data["commands_executed"]) != EXPECTED_DATA_COUNT:
             raise AssertionError(
-                f"Expected {3}, got {len(session_data['commands_executed'])}"
+                f"Expected {EXPECTED_DATA_COUNT}, got {len(session_data['commands_executed'])}"
             )
         if session_data["active"]:
             raise AssertionError(f"Expected False, got {session_data['active']}")
@@ -1044,8 +1029,8 @@ class TestDomainEntityIntegration:
         # Verify original is unchanged (simulated)
         if original_data["status"] != "pending":
             raise AssertionError(f"Expected {'pending'}, got {original_data['status']}")
-        if "started_at" not in original_data:
-            raise AssertionError(f"Expected {'started_at'} not in {original_data}")
+        if "started_at" in original_data:
+            raise AssertionError(f"Expected 'started_at' not in {original_data}")
 
         # Verify new instance has updates
         if new_data["status"] != "running":

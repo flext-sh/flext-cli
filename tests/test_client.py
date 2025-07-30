@@ -160,9 +160,10 @@ class TestClientModule:
         pipeline = Pipeline()
         pipeline_list = PipelineList()
 
-        assert type(client) is not type(pipeline)
-        assert type(client) is not type(pipeline_list)
-        assert type(pipeline) is not type(pipeline_list)
+        # Verify classes are independent (different types)
+        assert not isinstance(client, type(pipeline))
+        assert not isinstance(client, type(pipeline_list))
+        assert not isinstance(pipeline, type(pipeline_list))
         assert isinstance(client, FlextApiClient)
         assert isinstance(pipeline, Pipeline)
         assert isinstance(pipeline_list, PipelineList)

@@ -274,7 +274,7 @@ class TestFormatPluginList:
     def test_format_empty_plugin_list(self) -> None:
         """Test formatting empty plugin list."""
         console = MagicMock(spec=Console)
-        plugins = []
+        plugins: list[dict[str, object]] = []
 
         format_plugin_list(console, plugins, "table")
 
@@ -500,8 +500,8 @@ class TestFormatYaml:
         result = format_yaml(data)
 
         # Should use block style (default_flow_style=False)
-        if "- 1" in result or "list:" not in result:
-            msg = f"Expected {'- 1' in result or 'list:'} in {result}"
+        if not ("- 1" in result and "list:" in result):
+            msg = f"Expected block style with '- 1' and 'list:' in {result}"
             raise AssertionError(msg)
         assert "{" not in result  # Flow style would use braces
 
@@ -558,7 +558,7 @@ class TestPrintFunctions:
         print_info(console, "Information message")
 
         console.print.assert_called_once_with(
-            "[bold blue]ℹ[/bold blue] Information message",
+            "[bold blue]i[/bold blue] Information message",
         )
 
 

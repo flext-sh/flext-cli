@@ -11,11 +11,14 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
 
-from flext_core.entities import FlextEntity
-from flext_core.result import FlextResult
-from flext_core.types import TValue
-from flext_core.utilities import FlextUtilities
-from flext_core.value_objects import FlextValueObject
+# DRY: Use REAL flext-core imports from main API - NO DUPLICATION
+from flext_core import (
+    FlextEntity,
+    FlextResult,
+    FlextUtilities,
+    FlextValueObject,
+    TValue,
+)
 from pydantic import Field
 
 # Core data types

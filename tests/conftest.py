@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pytest
 from flext_cli import (
@@ -99,7 +99,7 @@ def sample_plugin() -> CLIPlugin:
     return CLIPlugin(
         id="test_plugin_001",
         name="test-plugin",
-        version="0.8.0",
+        plugin_version="0.8.0",
         description="A test plugin",
         entry_point="test_plugin.main",
         commands=["test-cmd"],
@@ -122,7 +122,7 @@ def sample_session() -> CLISession:
 
 
 @pytest.fixture
-def mock_data() -> dict[str, Any]:
+def mock_data() -> dict[str, object]:
     """Mock data for testing."""
     return {
         "commands": [

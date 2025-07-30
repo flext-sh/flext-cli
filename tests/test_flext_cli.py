@@ -69,11 +69,12 @@ class TestFlextCliExport:
 
     def test_flext_cli_export_default_format(self) -> None:
         """Test export with default format."""
-        with patch.object(
-            flext_cli._api, "flext_cli_export", return_value=True
-        ) as mock_export:
+        with (
+            patch.object(flext_cli._api, "flext_cli_export", return_value=True) as mock_export,
+            tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp_file,
+        ):
             data = {"test": "data"}
-            path = "/tmp/test.json"
+            path = temp_file.name
 
             result = flext_cli.flext_cli_export(data, path)
 
@@ -86,11 +87,12 @@ class TestFlextCliExport:
         formats = ["json", "yaml", "csv", "table", "plain"]
 
         for fmt in formats:
-            with patch.object(
-                flext_cli._api, "flext_cli_export", return_value=True
-            ) as mock_export:
+            with (
+                patch.object(flext_cli._api, "flext_cli_export", return_value=True) as mock_export,
+                tempfile.NamedTemporaryFile(suffix=f".{fmt}", delete=False) as temp_file,
+            ):
                 data = {"format": fmt}
-                path = f"/tmp/test.{fmt}"
+                path = temp_file.name
 
                 result = flext_cli.flext_cli_export(data, path, fmt)
 
@@ -100,16 +102,17 @@ class TestFlextCliExport:
 
     def test_flext_cli_export_complex_data(self) -> None:
         """Test export with complex data structures."""
-        with patch.object(
-            flext_cli._api, "flext_cli_export", return_value=True
-        ) as mock_export:
+        with (
+            patch.object(flext_cli._api, "flext_cli_export", return_value=True) as mock_export,
+            tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp_file,
+        ):
             complex_data = {
                 "nested": {"deep": {"value": 42}},
                 "list": [1, 2, 3],
                 "boolean": True,
                 "null": None,
             }
-            path = "/tmp/complex.json"
+            path = temp_file.name
 
             result = flext_cli.flext_cli_export(complex_data, path)
 
@@ -176,7 +179,7 @@ class TestFlextCliFormat:
         with patch.object(
             flext_cli._api, "flext_cli_format", return_value="{}"
         ) as mock_format:
-            data = {}
+            data: dict[str, object] = {}
 
             result = flext_cli.flext_cli_format(data)
 
@@ -430,20 +433,21 @@ class TestFlextCliCreateCommand:
             command_line = "test"
 
             # Test different option combinations
-            test_cases = [
-                {"retries": 3},
-                {"working_dir": "/tmp", "shell": True},
-                {"env": {"VAR": "value"}, "capture_output": False},
-                {"timeout": 60, "retries": 2, "async": True},
-            ]
+            with tempfile.TemporaryDirectory() as temp_dir:
+                test_cases = [
+                    {"retries": 3},
+                    {"working_dir": temp_dir, "shell": True},
+                    {"env": {"VAR": "value"}, "capture_output": False},
+                    {"timeout": 60, "retries": 2, "async": True},
+                ]
 
-            for options in test_cases:
-                result = flext_cli.flext_cli_create_command(
-                    name, command_line, **options
-                )
-                if not (result):
-                    raise AssertionError(f"Expected True, got {result}")
-                mock_create.assert_called_with(name, command_line, **options)
+                for options in test_cases:
+                    result = flext_cli.flext_cli_create_command(
+                        name, command_line, **options
+                    )
+                    if not (result):
+                        raise AssertionError(f"Expected True, got {result}")
+                    mock_create.assert_called_with(name, command_line, **options)
 
 
 class TestFlextCliCreateSession:
@@ -575,7 +579,7 @@ class TestFlextCliRegisterHandler:
         """Test registering class instance as handler."""
 
         class TestHandler:
-            def __call__(self):
+            def __call__(self) -> str:
                 return "called"
 
             def process(self) -> str:

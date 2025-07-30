@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import tempfile
 from datetime import UTC, datetime
 from unittest.mock import patch
 
@@ -222,7 +223,7 @@ class TestCLISession:
             raise AssertionError(
                 f"Expected {'test-session-123'}, got {sample_session.session_id}"
             )
-        assert sample_session.working_directory == "/tmp"
+        assert sample_session.working_directory == tempfile.gettempdir()
         if sample_session.environment["TEST"] != "true":
             raise AssertionError(
                 f"Expected {'true'}, got {sample_session.environment['TEST']}"

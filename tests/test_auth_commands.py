@@ -453,18 +453,26 @@ class TestAuthFunctionality:
             raise AssertionError(f"Expected {'admin'}, got {role}")
         assert missing == "Unknown"
 
+    def _test_exception_type(self, exc_type: type[Exception]) -> None:
+        """Test a specific exception type - DRY abstracted raise pattern."""
+        def _raise_test_exception() -> None:
+            """DRY helper to abstract raise in inner function."""
+            msg = "Test error"
+            raise exc_type(msg)
+
+        try:
+            _raise_test_exception()
+        except exc_type as e:
+            if "Test error" not in str(e):
+                raise AssertionError(f"Expected {'Test error'} in {e!s}") from e
+
     def test_exception_handling_patterns(self) -> None:
         """Test exception handling patterns used in auth commands."""
         # Test the exception types used in auth commands
         exceptions = [ConnectionError, TimeoutError, ValueError, KeyError, OSError]
 
         for exc_type in exceptions:
-            try:
-                msg = "Test error"
-                raise exc_type(msg)
-            except exc_type as e:
-                if "Test error" not in str(e):
-                    raise AssertionError(f"Expected {'Test error'} in {e!s}")
+            self._test_exception_type(exc_type)
 
 
 class TestAuthErrorHandling:
@@ -691,14 +699,16 @@ class TestAuthIntegration:
         """Test command option handling."""
         runner = CliRunner()
 
-        # Test login command with options
-        with patch("flext_cli.commands.auth.FlextApiClient"):
-            with patch("asyncio.run"):
-                result = runner.invoke(
-                    auth,
-                    ["login", "--username", "test", "--password", "pass"],
-                    obj={"console": MagicMock()},
-                )
+        # Test login command with options - DRY combined context managers
+        with (
+            patch("flext_cli.commands.auth.FlextApiClient"),
+            patch("asyncio.run"),
+        ):
+            result = runner.invoke(
+                auth,
+                ["login", "--username", "test", "--password", "pass"],
+                obj={"console": MagicMock()},
+            )
 
         # Should complete without error
         if result.exit_code not in {0, 1, 2}:
@@ -708,15 +718,17 @@ class TestAuthIntegration:
         """Test prompt handling in login command."""
         runner = CliRunner()
 
-        # Test that login prompts for username and password
-        with patch("flext_cli.commands.auth.FlextApiClient"):
-            with patch("asyncio.run"):
-                result = runner.invoke(
-                    auth,
-                    ["login"],
-                    input="testuser\ntestpass\n",
-                    obj={"console": MagicMock()},
-                )
+        # Test that login prompts for username and password - DRY combined context managers
+        with (
+            patch("flext_cli.commands.auth.FlextApiClient"),
+            patch("asyncio.run"),
+        ):
+            result = runner.invoke(
+                auth,
+                ["login"],
+                input="testuser\ntestpass\n",
+                obj={"console": MagicMock()},
+            )
 
         # Should complete after prompting
         if result.exit_code not in {0, 1, 2}:

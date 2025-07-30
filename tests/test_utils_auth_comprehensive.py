@@ -317,11 +317,13 @@ class TestClearAuthTokens:
             token_path.write_text("auth-token")
             refresh_token_path.write_text("refresh-token")
 
-            with patch("flext_cli.utils.auth.get_token_path", return_value=token_path):
-                with patch(
+            with (
+                patch("flext_cli.utils.auth.get_token_path", return_value=token_path),
+                patch(
                     "flext_cli.utils.auth.get_refresh_token_path",
                     return_value=refresh_token_path,
-                ):
+                ),
+            ):
                     result = clear_auth_tokens()
 
                     assert result.is_success
@@ -338,11 +340,13 @@ class TestClearAuthTokens:
             # Create only token file
             token_path.write_text("auth-token")
 
-            with patch("flext_cli.utils.auth.get_token_path", return_value=token_path):
-                with patch(
+            with (
+                patch("flext_cli.utils.auth.get_token_path", return_value=token_path),
+                patch(
                     "flext_cli.utils.auth.get_refresh_token_path",
                     return_value=refresh_token_path,
-                ):
+                ),
+            ):
                     result = clear_auth_tokens()
 
                     assert result.is_success
@@ -358,11 +362,13 @@ class TestClearAuthTokens:
             # Create only refresh token file
             refresh_token_path.write_text("refresh-token")
 
-            with patch("flext_cli.utils.auth.get_token_path", return_value=token_path):
-                with patch(
+            with (
+                patch("flext_cli.utils.auth.get_token_path", return_value=token_path),
+                patch(
                     "flext_cli.utils.auth.get_refresh_token_path",
                     return_value=refresh_token_path,
-                ):
+                ),
+            ):
                     result = clear_auth_tokens()
 
                     assert result.is_success
@@ -375,11 +381,13 @@ class TestClearAuthTokens:
             token_path = Path(temp_dir) / "token.txt"
             refresh_token_path = Path(temp_dir) / "refresh_token.txt"
 
-            with patch("flext_cli.utils.auth.get_token_path", return_value=token_path):
-                with patch(
+            with (
+                patch("flext_cli.utils.auth.get_token_path", return_value=token_path),
+                patch(
                     "flext_cli.utils.auth.get_refresh_token_path",
                     return_value=refresh_token_path,
-                ):
+                ),
+            ):
                     result = clear_auth_tokens()
 
                     assert result.is_success
@@ -393,11 +401,13 @@ class TestClearAuthTokens:
         mock_token_path.exists.return_value = True
         mock_token_path.unlink.side_effect = PermissionError("Cannot delete")
 
-        with patch("flext_cli.utils.auth.get_token_path", return_value=mock_token_path):
-            with patch(
+        with (
+            patch("flext_cli.utils.auth.get_token_path", return_value=mock_token_path),
+            patch(
                 "flext_cli.utils.auth.get_refresh_token_path",
                 return_value=mock_refresh_path,
-            ):
+            ),
+        ):
                 result = clear_auth_tokens()
 
                 assert result.is_failure
@@ -413,11 +423,13 @@ class TestClearAuthTokens:
         mock_refresh_path.exists.return_value = True
         mock_refresh_path.unlink.side_effect = OSError("Unlink failed")
 
-        with patch("flext_cli.utils.auth.get_token_path", return_value=mock_token_path):
-            with patch(
+        with (
+            patch("flext_cli.utils.auth.get_token_path", return_value=mock_token_path),
+            patch(
                 "flext_cli.utils.auth.get_refresh_token_path",
                 return_value=mock_refresh_path,
-            ):
+            ),
+        ):
                 result = clear_auth_tokens()
 
                 assert result.is_failure
@@ -458,10 +470,12 @@ class TestShouldAutoRefresh:
         mock_config = MagicMock()
         mock_config.auto_refresh = True
 
-        with patch("flext_cli.utils.auth.get_config", return_value=mock_config):
-            with patch(
+        with (
+            patch("flext_cli.utils.auth.get_config", return_value=mock_config),
+            patch(
                 "flext_cli.utils.auth.get_refresh_token", return_value="refresh-token"
-            ):
+            ),
+        ):
                 result = should_auto_refresh()
                 if not (result):
                     raise AssertionError(f"Expected True, got {result}")
@@ -471,21 +485,25 @@ class TestShouldAutoRefresh:
         mock_config = MagicMock()
         mock_config.auto_refresh = True
 
-        with patch("flext_cli.utils.auth.get_config", return_value=mock_config):
-            with patch("flext_cli.utils.auth.get_refresh_token", return_value=None):
-                result = should_auto_refresh()
-                if result:
-                    raise AssertionError(f"Expected False, got {result}")
+        with (
+            patch("flext_cli.utils.auth.get_config", return_value=mock_config),
+            patch("flext_cli.utils.auth.get_refresh_token", return_value=None),
+        ):
+            result = should_auto_refresh()
+            if result:
+                raise AssertionError(f"Expected False, got {result}")
 
     def test_should_auto_refresh_disabled_with_token(self) -> None:
         """Test auto refresh when disabled but refresh token exists."""
         mock_config = MagicMock()
         mock_config.auto_refresh = False
 
-        with patch("flext_cli.utils.auth.get_config", return_value=mock_config):
-            with patch(
+        with (
+            patch("flext_cli.utils.auth.get_config", return_value=mock_config),
+            patch(
                 "flext_cli.utils.auth.get_refresh_token", return_value="refresh-token"
-            ):
+            ),
+        ):
                 result = should_auto_refresh()
                 if result:
                     raise AssertionError(f"Expected False, got {result}")
@@ -495,11 +513,13 @@ class TestShouldAutoRefresh:
         mock_config = MagicMock()
         mock_config.auto_refresh = False
 
-        with patch("flext_cli.utils.auth.get_config", return_value=mock_config):
-            with patch("flext_cli.utils.auth.get_refresh_token", return_value=None):
-                result = should_auto_refresh()
-                if result:
-                    raise AssertionError(f"Expected False, got {result}")
+        with (
+            patch("flext_cli.utils.auth.get_config", return_value=mock_config),
+            patch("flext_cli.utils.auth.get_refresh_token", return_value=None),
+        ):
+            result = should_auto_refresh()
+            if result:
+                raise AssertionError(f"Expected False, got {result}")
 
 
 class TestAuthIntegration:
@@ -511,11 +531,13 @@ class TestAuthIntegration:
             token_path = Path(temp_dir) / "token.txt"
             refresh_token_path = Path(temp_dir) / "refresh_token.txt"
 
-            with patch("flext_cli.utils.auth.get_token_path", return_value=token_path):
-                with patch(
+            with (
+                patch("flext_cli.utils.auth.get_token_path", return_value=token_path),
+                patch(
                     "flext_cli.utils.auth.get_refresh_token_path",
                     return_value=refresh_token_path,
-                ):
+                ),
+            ):
                     # Initially not authenticated
                     assert not is_authenticated()
 
@@ -575,10 +597,8 @@ class TestAuthIntegration:
         )
 
         with patch("flext_cli.utils.auth.get_token_path", return_value=mock_path):
-            # Should not crash, but won't return valid token
-            try:
+            # Should not crash, but won't return valid token - DRY using contextlib.suppress
+            import contextlib
+            with contextlib.suppress(UnicodeDecodeError):
                 get_auth_token()
                 # If exception not raised, that's fine too
-            except UnicodeDecodeError:
-                # Expected behavior - let the exception bubble up
-                pass

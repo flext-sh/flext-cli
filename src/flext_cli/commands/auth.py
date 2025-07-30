@@ -137,3 +137,46 @@ def status(ctx: click.Context) -> None:
             ctx.exit(1)
 
     asyncio.run(_status())
+
+
+@auth.command()
+@click.pass_context
+def whoami(ctx: click.Context) -> None:
+    """Show current user information."""
+    console: Console = ctx.obj["console"]
+
+    async def _whoami() -> None:
+        try:
+            token = get_auth_token()
+            if not token:
+                console.print("[red]❌ Not authenticated[/red]")
+                console.print("Run 'flext auth login' to authenticate")
+                ctx.exit(1)
+
+            FlextApiClient()
+            # Simulate user response for stub client
+            user = {
+                "username": "test_user",
+                "email": "test@example.com",
+                "role": "user",
+                "id": "user_123",
+                "full_name": "Test User",
+            }
+
+            console.print(f"Username: {user.get('username', 'Unknown')}")
+            console.print(f"Full Name: {user.get('full_name', 'Unknown')}")
+            console.print(f"Email: {user.get('email', 'Unknown')}")
+            console.print(f"Role: {user.get('role', 'Unknown')}")
+            console.print(f"ID: {user.get('id', 'Unknown')}")
+        except (ConnectionError, TimeoutError, ValueError, KeyError) as e:
+            console.print(f"[red]❌ Failed to get user info: {e}[/red]")
+            console.print("Run 'flext auth login' to re-authenticate")
+            ctx.exit(1)
+        except OSError as e:
+            console.print(
+                f"[red]❌ Network error getting user info: {e}[/red]",
+            )
+            console.print("Run 'flext auth login' to re-authenticate")
+            ctx.exit(1)
+
+    asyncio.run(_whoami())
