@@ -119,7 +119,7 @@ def main() -> None:
         return "Operation completed successfully"
 
     @flext_cli.handle_service_result
-    def example_service_with_result():
+    def example_service_with_result() -> str:
         """Example service operation that returns a FlextResult."""
         return FlextResult.ok("Service result data")
 
