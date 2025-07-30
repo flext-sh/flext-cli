@@ -42,15 +42,15 @@ if TYPE_CHECKING:
     default="table",
     help="Output format",
 )
-@click.option("--debug/--no-debug", default=False, help="Enable debug mode")
-@click.option("--verbose", "-v", is_flag=True, help="Verbose output")
+@click.option("--debug/--no-debug", default=False, help="Enable debug mode")  # noqa: FBT001
+@click.option("--verbose", "-v", is_flag=True, help="Verbose output")  # noqa: FBT001
 @click.pass_context
 def cli(
     ctx: click.Context,
     config_file: Path | None,
     output_format: str,
-    debug: bool,
-    verbose: bool,
+    debug: bool,  # noqa: FBT001
+    verbose: bool,  # noqa: FBT001
 ) -> None:
     """FLEXT CLI Example Application."""
     # Create CLI context with FLEXT CLI library
@@ -151,7 +151,7 @@ def transform(
     console.print(f"File size: {formatted_size}")
 
     # Simulate transformation
-    import time
+    import time  # noqa: PLC0415
 
     time.sleep(0.5)  # Simulate processing time
 
@@ -192,7 +192,8 @@ def validate(ctx: click.Context, email: str, phone: str | None) -> None:
     # Validate phone if provided
     if phone:
         # Simple phone validation (could be enhanced)
-        if len(phone.replace("-", "").replace(" ", "")) >= 10:
+        min_phone_length = 10
+        if len(phone.replace("-", "").replace(" ", "")) >= min_phone_length:
             helper.print_success(f"Phone number looks valid: {phone}")
         else:
             helper.print_warning(f"Phone number may be invalid: {phone}")
@@ -237,13 +238,14 @@ async def async_task(ctx: click.Context, delay: float) -> str:
 @click.pass_context
 @flext_cli.retry(max_attempts=3, delay=0.5)
 @flext_cli.handle_service_result
-def unreliable(ctx: click.Context, max_attempts: int) -> str:
+def unreliable(ctx: click.Context, max_attempts: int) -> str:  # noqa: ARG001
     """Demonstrate retry decorator with potentially failing operation."""
     console = Console()
     console.print("[bold blue]Unreliable Operation with Retry[/bold blue]")
 
     # Simulate random failure
-    if random.random() < 0.7:  # 70% chance of failure
+    failure_probability = 0.7  # 70% chance of failure
+    if random.random() < failure_probability:  # noqa: S311
         msg = "Simulated random failure"
         raise click.ClickException(msg)
 
