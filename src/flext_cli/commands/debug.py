@@ -7,7 +7,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
 import os
 import platform
 import sys
@@ -88,45 +87,43 @@ def connectivity(ctx: click.Context) -> None:
     """Test API connectivity."""
     console: Console = ctx.obj["console"]
 
-    async def _test_connectivity() -> None:
-        try:
-            FlextApiClient()
-            console.print("[yellow]Testing API connectivity...[/yellow]")
+    # SOLID: Single Responsibility - simplified synchronous implementation
+    try:
+        client = FlextApiClient()
+        console.print("[yellow]Testing API connectivity...[/yellow]")
 
-            # Simulate connectivity test for stub client
-            connected = True  # Simulate successful connection
-            base_url = "http://localhost:8000"  # Default API URL
+        # Simulate connectivity test for stub client
+        connected = True  # Simulate successful connection
+        base_url = "http://localhost:8000"  # Default API URL
 
-            if connected:
+        if connected:
+            console.print(
+                f"[green]✅ Connected to API at {base_url}[/green]",
+            )
+            try:
+                # Simulate system status for stub client
+                status = {"version": "0.9.0", "status": "healthy", "uptime": "24h"}
+                console.print("\nSystem Status:")
+                console.print(f"  Version: {status.get('version', 'Unknown')}")
+                console.print(f"  Status: {status.get('status', 'Unknown')}")
+                console.print(f"  Uptime: {status.get('uptime', 'Unknown')}")
+            except (
+                FlextConnectionError,
+                FlextOperationError,
+                ValueError,
+                KeyError,
+            ) as e:
                 console.print(
-                    f"[green]✅ Connected to API at {base_url}[/green]",
+                    f"[yellow]⚠️  Could not get system status: {e}[/yellow]",
                 )
-                try:
-                    # Simulate system status for stub client
-                    status = {"version": "1.0.0", "status": "healthy", "uptime": "24h"}
-                    console.print("\nSystem Status:")
-                    console.print(f"  Version: {status.get('version', 'Unknown')}")
-                    console.print(f"  Status: {status.get('status', 'Unknown')}")
-                    console.print(f"  Uptime: {status.get('uptime', 'Unknown')}")
-                except (
-                    FlextConnectionError,
-                    FlextOperationError,
-                    ValueError,
-                    KeyError,
-                ) as e:
-                    console.print(
-                        f"[yellow]⚠️  Could not get system status: {e}[/yellow]",
-                    )
-            else:
-                console.print(
-                    f"[red]❌ Failed to connect to API at {base_url}[/red]",
-                )
-                ctx.exit(1)
-        except (FlextConnectionError, FlextOperationError, ValueError, OSError) as e:
-            console.print(f"[red]❌ Connection test failed: {e}[/red]")
+        else:
+            console.print(
+                f"[red]❌ Failed to connect to API at {base_url}[/red]",
+            )
             ctx.exit(1)
-
-    asyncio.run(_test_connectivity())
+    except (FlextConnectionError, FlextOperationError, ValueError, OSError) as e:
+        console.print(f"[red]❌ Connection test failed: {e}[/red]")
+        ctx.exit(1)
 
 
 @debug_cmd.command()
@@ -135,34 +132,32 @@ def performance(ctx: click.Context) -> None:
     """Check system performance metrics."""
     console: Console = ctx.obj["console"]
 
-    async def _check_performance() -> None:
-        try:
-            FlextApiClient()
-            console.print("[yellow]Fetching performance metrics...[/yellow]")
+    # SOLID: Single Responsibility - simplified synchronous implementation
+    try:
+        client = FlextApiClient()
+        console.print("[yellow]Fetching performance metrics...[/yellow]")
 
-            # Simulate metrics for stub client
-            metrics = {
-                "CPU Usage": "15%",
-                "Memory Usage": "512MB",
-                "Active Connections": "42",
-                "Response Time": "120ms",
-                "Uptime": "24h 15m",
-            }
+        # Simulate metrics for stub client
+        metrics = {
+            "CPU Usage": "15%",
+            "Memory Usage": "512MB",
+            "Active Connections": "42",
+            "Response Time": "120ms",
+            "Uptime": "24h 15m",
+        }
 
-            # Display metrics in table
-            table = Table(title="System Performance Metrics")
-            table.add_column("Metric", style="cyan")
-            table.add_column("Value", style="white")
+        # Display metrics in table
+        table = Table(title="System Performance Metrics")
+        table.add_column("Metric", style="cyan")
+        table.add_column("Value", style="white")
 
-            for key, value in metrics.items():
-                table.add_row(key, str(value))
+        for key, value in metrics.items():
+            table.add_row(key, str(value))
 
-            console.print(table)
-        except (FlextConnectionError, FlextOperationError, ValueError, KeyError) as e:
-            console.print(f"[red]❌ Failed to get performance metrics: {e}[/red]")
-            ctx.exit(1)
-
-    asyncio.run(_check_performance())
+        console.print(table)
+    except (FlextConnectionError, FlextOperationError, ValueError, KeyError) as e:
+        console.print(f"[red]❌ Failed to get performance metrics: {e}[/red]")
+        ctx.exit(1)
 
 
 @debug_cmd.command()

@@ -288,13 +288,13 @@ class TestFormatPluginList:
             {
                 "name": "plugin1",
                 "type": "tap",
-                "version": "1.0.0",
+                "version": "0.9.0",
                 "description": "Test plugin 1",
             },
             {
                 "name": "plugin2",
                 "type": "target",
-                "version": "2.0.0",
+                "version": "0.9.0",
                 "description": "Test plugin 2",
             },
         ]
@@ -321,13 +321,13 @@ class TestFormatPluginList:
             mock_table.add_row.assert_any_call(
                 "plugin1",
                 "tap",
-                "1.0.0",
+                "0.9.0",
                 "Test plugin 1",
             )
             mock_table.add_row.assert_any_call(
                 "plugin2",
                 "target",
-                "2.0.0",
+                "0.9.0",
                 "Test plugin 2",
             )
 
@@ -341,7 +341,7 @@ class TestFormatPluginList:
             {
                 "name": "plugin1",
                 "type": "tap",
-                "version": "1.0.0",
+                "version": "0.9.0",
                 "description": "Test plugin 1",
             },
         ]
@@ -363,7 +363,7 @@ class TestFormatPluginList:
             },
             {
                 "type": "target",
-                "version": "1.0.0",
+                "version": "0.9.0",
                 # Missing name, description
             },
         ]
@@ -384,7 +384,7 @@ class TestFormatPluginList:
             mock_table.add_row.assert_any_call(
                 "Unknown",
                 "target",
-                "1.0.0",
+                "0.9.0",
                 "No description",
             )
 

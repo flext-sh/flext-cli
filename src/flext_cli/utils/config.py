@@ -81,7 +81,7 @@ class CLISettings(FlextBaseSettings):
     """CLI settings from environment variables using flext-core patterns."""
 
     project_name: str = "flext-cli"
-    project_version: str = "0.8.0"
+    project_version: str = "0.9.0"
     project_description: str = "FLEXT CLI - Developer Command Line Interface"
 
     # Override defaults from environment

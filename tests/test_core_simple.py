@@ -78,7 +78,7 @@ class TestFlextCliService:
 
     def setup_method(self) -> None:
         """Setup mocks for each test."""
-        # Patch the imports in core module
+        # Patch the imports in core module (dynamic assignment for testing)
         core_module.FlextCliConfig = MockFlextCliConfig
         core_module.FlextCliCommand = MockFlextCliCommand
         core_module.FlextCliSession = MockFlextCliSession
@@ -395,7 +395,7 @@ class TestFlextCliService:
     def test_flext_cli_register_plugin(self) -> None:
         """Test registering plugin."""
         service = FlextCliService()
-        plugin = MockFlextCliPlugin("test-plugin", "1.0.0")
+        plugin = MockFlextCliPlugin("test-plugin", "0.9.0")
 
         result = service.flext_cli_register_plugin("test-plugin", plugin)
         assert result.is_success
@@ -403,8 +403,8 @@ class TestFlextCliService:
     def test_flext_cli_register_plugin_duplicate(self) -> None:
         """Test registering duplicate plugin."""
         service = FlextCliService()
-        plugin1 = MockFlextCliPlugin("test-plugin", "1.0.0")
-        plugin2 = MockFlextCliPlugin("test-plugin", "2.0.0")
+        plugin1 = MockFlextCliPlugin("test-plugin", "0.9.0")
+        plugin2 = MockFlextCliPlugin("test-plugin", "0.9.0")
 
         # Register first plugin
         result1 = service.flext_cli_register_plugin("test-plugin", plugin1)

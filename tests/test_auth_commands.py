@@ -60,8 +60,12 @@ class TestAuthCommands:
         # Should complete successfully
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
-        # Auth implementation saves token for stub client
-        mock_save_token.assert_called_once_with("token_testuser")
+        # Auth implementation saves password-based token (SOLID: Interface Segregation)
+        mock_save_token.assert_called_once()
+        # Verify token format: token_username_hash
+        saved_token = mock_save_token.call_args[0][0]
+        if not saved_token.startswith("token_testuser_"):
+            raise AssertionError(f"Expected token starting with 'token_testuser_', got {saved_token}")
 
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("flext_cli.commands.auth.save_auth_token")
@@ -86,8 +90,12 @@ class TestAuthCommands:
         # Should complete (stub client always provides valid response)
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
-        # Stub client implementation always saves token
-        mock_save_token.assert_called_once_with("token_testuser")
+        # Auth implementation saves password-based token (SOLID: Interface Segregation)
+        mock_save_token.assert_called_once()
+        # Verify token format: token_username_hash
+        saved_token = mock_save_token.call_args[0][0]
+        if not saved_token.startswith("token_testuser_"):
+            raise AssertionError(f"Expected token starting with 'token_testuser_', got {saved_token}")
 
     @patch("flext_cli.commands.auth.FlextApiClient")
     def test_login_connection_error(
@@ -432,7 +440,7 @@ class TestAuthFunctionality:
         # Test user data patterns
         user_data = success_response["user"]
         if not isinstance(user_data, dict):
-            raise AssertionError(f"Expected dict, got {type(user_data)}")
+            raise TypeError(f"Expected dict, got {type(user_data)}")
         assert "name" in user_data
 
     def test_user_info_patterns(self) -> None:
@@ -733,7 +741,7 @@ class TestAuthIntegration:
     def test_auth_utils_integration(self) -> None:
         """Test integration with auth utils."""
         # Test that auth utility functions are importable
-        from flext_cli.commands.auth import (
+        from flext_cli.utils.auth import (
             clear_auth_tokens,
             get_auth_token,
             save_auth_token,

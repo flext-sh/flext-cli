@@ -45,7 +45,8 @@ class TestSetupCli:
 
             result = setup_cli()
             assert not result.is_success
-            if "Failed to setup CLI: Test error" not in result.error:
+            # Check error exists and contains expected message
+            if result.error is None or "Failed to setup CLI: Test error" not in result.error:
                 raise AssertionError(
                     f"Expected {'Failed to setup CLI: Test error'} in {result.error}"
                 )
@@ -66,7 +67,7 @@ class TestCreateDevelopmentCliConfig:
         # Check that default CLISettings fields are present
         if config.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {config.project_name}")
-        assert config.project_version == "0.8.0"
+        assert config.project_version == "0.9.0"
 
     def test_create_development_config_with_overrides(self) -> None:
         """Test development config with overrides."""
@@ -84,7 +85,7 @@ class TestCreateDevelopmentCliConfig:
         # Default values should still be present
         if config.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {config.project_name}")
-        assert config.project_version == "0.8.0"
+        assert config.project_version == "0.9.0"
 
     def test_create_development_config_with_all_overrides(self) -> None:
         """Test development config with all available overrides."""
@@ -106,7 +107,7 @@ class TestCreateDevelopmentCliConfig:
         # Default fields should still be present
         if config.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {config.project_name}")
-        assert config.project_version == "0.8.0"
+        assert config.project_version == "0.9.0"
 
 
 class TestCreateProductionCliConfig:
@@ -123,7 +124,7 @@ class TestCreateProductionCliConfig:
         # Check that default CLISettings fields are present
         if config.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {config.project_name}")
-        assert config.project_version == "0.8.0"
+        assert config.project_version == "0.9.0"
 
     def test_create_production_config_with_overrides(self) -> None:
         """Test production config with overrides."""
@@ -141,7 +142,7 @@ class TestCreateProductionCliConfig:
         # Default values should still be present
         if config.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {config.project_name}")
-        assert config.project_version == "0.8.0"
+        assert config.project_version == "0.9.0"
 
     def test_create_production_config_with_all_overrides(self) -> None:
         """Test production config with all available overrides."""
@@ -161,7 +162,7 @@ class TestCreateProductionCliConfig:
         # Default fields should still be present
         if config.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {config.project_name}")
-        assert config.project_version == "0.8.0"
+        assert config.project_version == "0.9.0"
 
 
 class TestGetCliSettings:

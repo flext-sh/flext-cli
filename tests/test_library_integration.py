@@ -23,8 +23,8 @@ class TestLibraryImports:
         """Test library version is accessible."""
         assert hasattr(flext_cli, "__version__")
         assert isinstance(flext_cli.__version__, str)
-        if flext_cli.__version__ != "0.8.0":
-            raise AssertionError(f"Expected {"0.8.0"}, got {flext_cli.__version__}")
+        if flext_cli.__version__ != "0.9.0":
+            raise AssertionError(f"Expected {"0.9.0"}, got {flext_cli.__version__}")
 
     def test_all_public_api_accessible(self) -> None:
         """Test all public API components are accessible."""

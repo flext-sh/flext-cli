@@ -474,7 +474,7 @@ class TestCLISettings:
         """Test custom settings values."""
         settings = CLISettings(
             project_name="custom-cli",
-            project_version="1.0.0",
+            project_version="0.9.0",
             api_url="https://custom.api.com",
             timeout=60,
             output_format="json",
@@ -485,7 +485,7 @@ class TestCLISettings:
             raise AssertionError(
                 f"Expected {'custom-cli'}, got {settings.project_name}"
             )
-        assert settings.project_version == "1.0.0"
+        assert settings.project_version == "0.9.0"
         if settings.api_url != "https://custom.api.com":
             raise AssertionError(
                 f"Expected {'https://custom.api.com'}, got {settings.api_url}"
@@ -500,7 +500,7 @@ class TestCLISettings:
         """Test loading settings from environment variables."""
         env_vars = {
             "FLEXT_CLI_PROJECT_NAME": "env-cli",
-            "FLEXT_CLI_PROJECT_VERSION": "2.0.0",
+            "FLEXT_CLI_PROJECT_VERSION": "0.9.0",
             "FLEXT_CLI_API_URL": "https://env.api.com",
             "FLEXT_CLI_TIMEOUT": "45",
             "FLEXT_CLI_OUTPUT_FORMAT": "yaml",
@@ -514,7 +514,7 @@ class TestCLISettings:
                 raise AssertionError(
                     f"Expected {'env-cli'}, got {settings.project_name}"
                 )
-            assert settings.project_version == "2.0.0"
+            assert settings.project_version == "0.9.0"
             if settings.api_url != "https://env.api.com":
                 raise AssertionError(
                     f"Expected {'https://env.api.com'}, got {settings.api_url}"

@@ -53,19 +53,19 @@ class TestEnums:
 
     def test_command_status_enum(self) -> None:
         """Test FlextCliCommandStatus enum values."""
-        if FlextCliCommandStatus.PENDING != "pending":
+        if FlextCliCommandStatus.PENDING.value != "pending":
             raise AssertionError(
-                f"Expected {'pending'}, got {FlextCliCommandStatus.PENDING}"
+                f"Expected {'pending'}, got {FlextCliCommandStatus.PENDING.value}"
             )
-        assert FlextCliCommandStatus.RUNNING == "running"
-        if FlextCliCommandStatus.COMPLETED != "completed":
+        assert FlextCliCommandStatus.RUNNING.value == "running"
+        if FlextCliCommandStatus.COMPLETED.value != "completed":
             raise AssertionError(
-                f"Expected {'completed'}, got {FlextCliCommandStatus.COMPLETED}"
+                f"Expected {'completed'}, got {FlextCliCommandStatus.COMPLETED.value}"
             )
-        assert FlextCliCommandStatus.FAILED == "failed"
-        if FlextCliCommandStatus.CANCELLED != "cancelled":
+        assert FlextCliCommandStatus.FAILED.value == "failed"
+        if FlextCliCommandStatus.CANCELLED.value != "cancelled":
             raise AssertionError(
-                f"Expected {'cancelled'}, got {FlextCliCommandStatus.CANCELLED}"
+                f"Expected {'cancelled'}, got {FlextCliCommandStatus.CANCELLED.value}"
             )
 
         # Test all values exist
@@ -75,24 +75,24 @@ class TestEnums:
 
     def test_command_type_enum(self) -> None:
         """Test FlextCliCommandType enum values."""
-        if FlextCliCommandType.SYSTEM != "system":
+        if FlextCliCommandType.SYSTEM.value != "system":
             raise AssertionError(
-                f"Expected {'system'}, got {FlextCliCommandType.SYSTEM}"
+                f"Expected {'system'}, got {FlextCliCommandType.SYSTEM.value}"
             )
-        assert FlextCliCommandType.PIPELINE == "pipeline"
-        if FlextCliCommandType.PLUGIN != "plugin":
+        assert FlextCliCommandType.PIPELINE.value == "pipeline"
+        if FlextCliCommandType.PLUGIN.value != "plugin":
             raise AssertionError(
-                f"Expected {'plugin'}, got {FlextCliCommandType.PLUGIN}"
+                f"Expected {'plugin'}, got {FlextCliCommandType.PLUGIN.value}"
             )
-        assert FlextCliCommandType.DATA == "data"
-        if FlextCliCommandType.CONFIG != "config":
+        assert FlextCliCommandType.DATA.value == "data"
+        if FlextCliCommandType.CONFIG.value != "config":
             raise AssertionError(
-                f"Expected {'config'}, got {FlextCliCommandType.CONFIG}"
+                f"Expected {'config'}, got {FlextCliCommandType.CONFIG.value}"
             )
-        assert FlextCliCommandType.AUTH == "auth"
-        if FlextCliCommandType.MONITORING != "monitoring":
+        assert FlextCliCommandType.AUTH.value == "auth"
+        if FlextCliCommandType.MONITORING.value != "monitoring":
             raise AssertionError(
-                f"Expected {'monitoring'}, got {FlextCliCommandType.MONITORING}"
+                f"Expected {'monitoring'}, got {FlextCliCommandType.MONITORING.value}"
             )
 
         # Test all values exist
@@ -593,11 +593,11 @@ class TestFlextCliPlugin:
 
     def test_plugin_basic_creation(self) -> None:
         """Test creating plugin with basic parameters."""
-        plugin = FlextCliPlugin(name="test-plugin", version="1.0.0")
+        plugin = FlextCliPlugin(name="test-plugin", version="0.9.0")
 
         if plugin.name != "test-plugin":
             raise AssertionError(f"Expected {'test-plugin'}, got {plugin.name}")
-        assert plugin.version == "1.0.0"
+        assert plugin.version == "0.9.0"
         assert plugin.description is None
         if not (plugin.enabled):
             raise AssertionError(f"Expected True, got {plugin.enabled}")
@@ -635,12 +635,12 @@ class TestFlextCliPlugin:
     def test_validate_domain_rules(self) -> None:
         """Test domain rule validation."""
         # Valid plugin
-        plugin = FlextCliPlugin(name="test-plugin", version="1.0.0")
+        plugin = FlextCliPlugin(name="test-plugin", version="0.9.0")
         if not (plugin.validate_domain_rules()):
             raise AssertionError(f"Expected True, got {plugin.validate_domain_rules()}")
 
         # Invalid plugin - empty name
-        plugin_invalid = FlextCliPlugin(name="", version="1.0.0")
+        plugin_invalid = FlextCliPlugin(name="", version="0.9.0")
         if plugin_invalid.validate_domain_rules():
             raise AssertionError(
                 f"Expected False, got {plugin_invalid.validate_domain_rules()}"

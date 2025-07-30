@@ -202,7 +202,7 @@ class CLIContainer:
         return MockRepository()
 
 
-# Global container instance
+# Global container instance - using singleton pattern
 _container: CLIContainer | None = None
 
 

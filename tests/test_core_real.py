@@ -621,7 +621,7 @@ class TestFlextCliService:
     def test_flext_cli_register_plugin(self) -> None:
         """Test registering plugin."""
         service = FlextCliService()
-        plugin = FlextCliPlugin("test-plugin", "1.0.0")
+        plugin = FlextCliPlugin("test-plugin", "0.9.0")
 
         result = service.flext_cli_register_plugin("test-plugin", plugin)
         assert result.is_success
@@ -637,8 +637,8 @@ class TestFlextCliService:
     def test_flext_cli_register_plugin_duplicate(self) -> None:
         """Test registering duplicate plugin."""
         service = FlextCliService()
-        plugin1 = FlextCliPlugin("test-plugin", "1.0.0")
-        plugin2 = FlextCliPlugin("test-plugin", "2.0.0")
+        plugin1 = FlextCliPlugin("test-plugin", "0.9.0")
+        plugin2 = FlextCliPlugin("test-plugin", "0.9.0")
 
         # Register first plugin
         result1 = service.flext_cli_register_plugin("test-plugin", plugin1)
@@ -807,8 +807,8 @@ class TestFlextCliService:
         service = FlextCliService()
 
         # Register some plugins
-        plugin1 = FlextCliPlugin("plugin1", "1.0.0")
-        plugin2 = FlextCliPlugin("plugin2", "2.0.0")
+        plugin1 = FlextCliPlugin("plugin1", "0.9.0")
+        plugin2 = FlextCliPlugin("plugin2", "0.9.0")
         service.flext_cli_register_plugin("plugin1", plugin1)
         service.flext_cli_register_plugin("plugin2", plugin2)
 
@@ -947,7 +947,7 @@ class TestIntegration:
         assert handler_result.is_success
 
         # 6. Register plugin
-        plugin = FlextCliPlugin("test-plugin", "1.0.0")
+        plugin = FlextCliPlugin("test-plugin", "0.9.0")
         plugin_result = service.flext_cli_register_plugin("test-plugin", plugin)
         assert plugin_result.is_success
 
@@ -1021,7 +1021,7 @@ class TestIntegration:
         def handler(x: int) -> int:
             return x
 
-        plugin = FlextCliPlugin("test", "1.0.0")
+        plugin = FlextCliPlugin("test", "0.9.0")
 
         service.flext_cli_register_handler("test", handler)
         service.flext_cli_register_plugin("test", plugin)

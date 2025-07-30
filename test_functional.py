@@ -17,38 +17,51 @@ class MockResult:
 
 
 class MockService:
-    def start(self): return MockResult(True)
-    def stop(self): return MockResult(True)
+    def start(self):
+        return MockResult(True)
+
+    def stop(self):
+        return MockResult(True)
 
 
 class MockUtilities:
     @staticmethod
-    def generate_entity_id() -> str: return "entity_123"
+    def generate_entity_id() -> str:
+        return "entity_123"
+
     @staticmethod
-    def generate_session_id() -> str: return "session_456"
+    def generate_session_id() -> str:
+        return "session_456"
+
     @staticmethod
-    def generate_iso_timestamp() -> str: return "2025-01-01T00:00:00Z"
+    def generate_iso_timestamp() -> str:
+        return "2025-01-01T00:00:00Z"
 
 
 class MockLogger:
-    def info(self, *args) -> None: pass
+    def info(self, *args) -> None:
+        """Mock info method for testing."""
 
 
-sys.modules["flext_core"] = type("M", (), {
-    "FlextResult": MockResult,
-    "FlextService": MockService,
-    "FlextConfigurable": type,
-    "FlextHandler": type,
-    "FlextPlugin": type,
-    "FlextEntity": type,
-    "FlextValueObject": type,
-    "FlextUtilities": MockUtilities,
-    "FlextConfig": dict,
-    "safe_call": lambda f: MockResult(True, f()),
-    "chain": lambda *args: MockResult(True, "chained"),
-    "get_logger": lambda n: MockLogger(),
-    "make_factory": lambda cls: cls,
-})()
+sys.modules["flext_core"] = type(
+    "M",
+    (),
+    {
+        "FlextResult": MockResult,
+        "FlextService": MockService,
+        "FlextConfigurable": type,
+        "FlextHandler": type,
+        "FlextPlugin": type,
+        "FlextEntity": type,
+        "FlextValueObject": type,
+        "FlextUtilities": MockUtilities,
+        "FlextConfig": dict,
+        "safe_call": lambda f: MockResult(True, f()),
+        "chain": lambda *args: MockResult(True, "chained"),
+        "get_logger": lambda n: MockLogger(),
+        "make_factory": lambda cls: cls,
+    },
+)()
 
 
 try:
@@ -93,4 +106,5 @@ try:
 
 except (RuntimeError, ValueError, TypeError):
     import traceback
+
     traceback.print_exc()

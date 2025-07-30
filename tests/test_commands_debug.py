@@ -85,7 +85,7 @@ class TestConnectivityCommand:
         mock_client.base_url = "http://localhost:8000"
         mock_client.test_connection.return_value = True
         mock_client.get_system_status.return_value = {
-            "version": "1.0.0",
+            "version": "0.9.0",
             "status": "healthy",
             "uptime": "5 days",
         }

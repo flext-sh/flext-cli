@@ -8,20 +8,14 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-import json
-import logging
+from __future__ import annotations
+
 import csv
 import json
 import logging
 import os
-import logging
 from collections import defaultdict
-import json
-import logging
 from datetime import datetime
-
-
-from __future__ import annotations
 
 # All imports from root namespace only (as required)
 from flext_cli import (
@@ -211,8 +205,11 @@ def example_3_before_analysis_boilerplate() -> None:
                 return {"success": False, "error": "No customer data"}
 
             # Manual filtering
-            active_customers = [customer for customer in customers if customer.get("status") == "active" and (
-                customer.get("purchases", 0) > 0])
+            active_customers = [
+                customer
+                for customer in customers
+                if customer.get("status") == "active" and customer.get("purchases", 0) > 0
+            ]
 
             # Manual aggregation by region
             regions = defaultdict(lambda: {"count": 0, "total_purchases": 0, "avg_age": 0})

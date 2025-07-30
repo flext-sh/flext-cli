@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 # Library version - FLEXT CLI Development Toolkit
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 __version_info__ = (0, 8, 0)
 
 # Library metadata
