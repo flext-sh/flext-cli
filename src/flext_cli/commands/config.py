@@ -37,6 +37,14 @@ def get(ctx: click.Context, key: str | None) -> None:
         _get_all_config(cli_context)
 
 
+@config.command()
+@click.pass_context
+def show(ctx: click.Context) -> None:
+    """Show current configuration."""
+    cli_context: CLIContext = ctx.obj["cli_context"]
+    _get_all_config(cli_context)
+
+
 def _get_single_key(ctx: click.Context, cli_context: CLIContext, key: str) -> None:
     """Get single configuration key value."""
     try:

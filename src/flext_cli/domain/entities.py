@@ -12,11 +12,57 @@ import contextlib
 from datetime import UTC, datetime
 from enum import StrEnum
 
-from flext_core.entities import FlextEntity
-from flext_core.result import FlextResult
-from flext_core.types import TEntityId, TUserId
-from flext_core.value_objects import FlextValueObject
+# DRY: Use REAL flext-core imports from main API - NO DUPLICATION
+from flext_core import FlextEntity, FlextResult, FlextValueObject, TEntityId
 from pydantic import Field
+
+# DRY: Use real type alias - NO DUPLICATION
+TUserId = TEntityId
+
+
+class PluginStatus(StrEnum):
+    """Plugin status enumeration using StrEnum for type safety."""
+
+    INACTIVE = "inactive"
+    ACTIVE = "active"
+    ERROR = "error"
+    LOADING = "loading"
+    DISABLED = "disabled"
+
+
+class SessionStatus(StrEnum):
+    """Session status enumeration using StrEnum for type safety."""
+
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    ENDED = "ended"
+    INACTIVE = "inactive"
+
+
+class CommandStatus(StrEnum):
+    """Command status enumeration using StrEnum for type safety."""
+
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+class CommandType(StrEnum):
+    """Command type enumeration using StrEnum for type safety."""
+
+    CLI = "cli"
+    SYSTEM = "system"
+    SCRIPT = "script"
+    SQL = "sql"
+    # Additional command types consolidated from duplicated definition (DRY principle)
+    PIPELINE = "pipeline"
+    PLUGIN = "plugin"
+    DATA = "data"
+    CONFIG = "config"
+    AUTH = "auth"
+    MONITORING = "monitoring"
 
 
 # Constants for domain entities
@@ -28,26 +74,136 @@ class CLIConstants:
     DEFAULT_TIMEOUT = 30
 
 
-class CommandStatus(StrEnum):
-    """Command execution status using StrEnum for type safety."""
+class CLICommand(FlextEntity):
+    """CLI command entity with execution tracking."""
 
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
+    name: str = Field(..., description="Command name")
+    command_line: str = Field(..., description="Command line string")
+    command_type: CommandType = Field(..., description="Type of command")
+    command_status: CommandStatus = Field(default=CommandStatus.PENDING, description="Command status")
+    exit_code: int | None = Field(default=None, description="Exit code")
+    stdout: str | None = Field(default=None, description="Standard output")
+    stderr: str | None = Field(default=None, description="Standard error")
+    started_at: datetime | None = Field(default=None, description="Start time")
+    finished_at: datetime | None = Field(default=None, description="Finish time")
+
+    def start_execution(self) -> None:
+        """Start command execution."""
+        if self.command_status != CommandStatus.PENDING:
+            msg = f"Cannot start command that is in {self.command_status} status"
+            raise ValueError(msg)
+        
+        object.__setattr__(self, 'command_status', CommandStatus.RUNNING)
+        object.__setattr__(self, 'started_at', datetime.now(UTC))
+
+    def complete_execution(
+        self, 
+        exit_code: int, 
+        stdout: str | None = None, 
+        stderr: str | None = None
+    ) -> None:
+        """Complete command execution."""
+        if self.command_status != CommandStatus.RUNNING:
+            msg = "Cannot complete command that hasn't been started"
+            raise ValueError(msg)
+        
+        object.__setattr__(self, 'exit_code', exit_code)
+        object.__setattr__(self, 'stdout', stdout)
+        object.__setattr__(self, 'stderr', stderr)
+        object.__setattr__(self, 'finished_at', datetime.now(UTC))
+        
+        if exit_code == 0:
+            object.__setattr__(self, 'command_status', CommandStatus.COMPLETED)
+        else:
+            object.__setattr__(self, 'command_status', CommandStatus.FAILED)
+
+    @property
+    def is_successful(self) -> bool:
+        """Check if command was successful."""
+        return self.command_status == CommandStatus.COMPLETED and self.exit_code == 0
+
+    def validate_domain_rules(self) -> FlextResult[None]:
+        """Validate domain business rules for CLI commands."""
+        if not self.name or not self.name.strip():
+            return FlextResult.failure("Command name cannot be empty")
+        
+        if not self.command_line or not self.command_line.strip():
+            return FlextResult.failure("Command line cannot be empty")
+        
+        return FlextResult.ok(None)
 
 
-class CommandType(StrEnum):
-    """Command types using StrEnum for type safety."""
+class CLISession(FlextEntity):
+    """CLI session entity for tracking command execution sessions."""
 
-    SYSTEM = "system"
-    PIPELINE = "pipeline"
-    PLUGIN = "plugin"
-    DATA = "data"
-    CONFIG = "config"
-    AUTH = "auth"
-    MONITORING = "monitoring"
+    session_id: str = Field(..., description="Session identifier")
+    session_status: SessionStatus = Field(default=SessionStatus.ACTIVE, description="Session status")
+    command_history: list[TEntityId] = Field(default_factory=list, description="Command history")
+    started_at: datetime = Field(default_factory=lambda: datetime.now(UTC), description="Session start time")
+    ended_at: datetime | None = Field(default=None, description="Session end time")
+
+    def add_command(self, command_id: TEntityId) -> None:
+        """Add command to session history."""
+        self.command_history.append(command_id)
+
+    def end_session(self) -> None:
+        """End the CLI session."""
+        object.__setattr__(self, 'session_status', SessionStatus.COMPLETED)
+        object.__setattr__(self, 'ended_at', datetime.now(UTC))
+
+    def validate_domain_rules(self) -> FlextResult[None]:
+        """Validate domain business rules for CLI sessions."""
+        if not self.session_id or not self.session_id.strip():
+            return FlextResult.failure("Session ID cannot be empty")
+        
+        return FlextResult.ok(None)
+
+
+class CLIPlugin(FlextEntity):
+    """CLI plugin entity for managing plugin lifecycle."""
+
+    name: str = Field(..., description="Plugin name")
+    entry_point: str = Field(..., description="Plugin entry point")
+    commands: list[str] = Field(default_factory=list, description="Plugin commands")
+    dependencies: list[str] = Field(default_factory=list, description="Plugin dependencies")
+    plugin_status: PluginStatus = Field(default=PluginStatus.INACTIVE, description="Plugin status")
+
+    def activate(self) -> None:
+        """Activate the plugin."""
+        object.__setattr__(self, 'plugin_status', PluginStatus.ACTIVE)
+
+    def deactivate(self) -> None:
+        """Deactivate the plugin."""
+        object.__setattr__(self, 'plugin_status', PluginStatus.INACTIVE)
+
+    def validate_domain_rules(self) -> FlextResult[None]:
+        """Validate domain business rules for CLI plugins."""
+        if not self.name or not self.name.strip():
+            return FlextResult.failure("Plugin name cannot be empty")
+        
+        if not self.entry_point or not self.entry_point.strip():
+            return FlextResult.failure("Entry point cannot be empty")
+        
+        return FlextResult.ok(None)
+
+
+class CLIConfig(FlextValueObject):
+    """CLI configuration value object."""
+
+    profile: str = Field(default="default", description="Configuration profile")
+    debug: bool = Field(default=False, description="Debug mode")
+    output_format: str = Field(default="table", description="Output format")
+
+    def validate_domain_rules(self) -> FlextResult[None]:
+        """Validate domain business rules for CLI configuration."""
+        valid_formats = ["table", "json", "yaml", "csv", "plain"]
+        if self.output_format not in valid_formats:
+            return FlextResult.failure("Invalid output format")
+        
+        return FlextResult.ok(None)
+
+
+# DRY: CommandStatus and CommandType already defined above - removing duplicates
 
 
 class CLICommand(FlextEntity):
@@ -259,6 +415,16 @@ class CLISession(FlextEntity):
 
     # Status - inherits from StatusMixin in EntityMixin
     active: bool = Field(default=True)
+    session_status: SessionStatus = Field(default=SessionStatus.ACTIVE)
+
+    @property
+    def command_history(self) -> list[TEntityId]:
+        """Get command history (alias for commands_executed for backward compatibility).
+        
+        Returns:
+            List of executed command IDs.
+        """
+        return self.commands_executed
 
     def add_command(self, command_id: TEntityId) -> CLISession:
         """Add a command to the session.
@@ -278,6 +444,7 @@ class CLISession(FlextEntity):
             "commands_executed": new_commands,
             "current_command": command_id,
             "last_activity": datetime.now(UTC),
+            "session_status": SessionStatus.ACTIVE,
         }
 
         # Create new instance with updates (immutable pattern)
@@ -298,6 +465,7 @@ class CLISession(FlextEntity):
             "active": False,
             "current_command": None,
             "last_activity": datetime.now(UTC),
+            "session_status": SessionStatus.COMPLETED,
         }
 
         # Create new instance with updates (immutable pattern)
@@ -361,6 +529,7 @@ class CLIPlugin(FlextEntity):
     # Status - inherits from StatusMixin in EntityMixin
     enabled: bool = Field(default=True)
     installed: bool = Field(default=False)
+    plugin_status: PluginStatus = Field(default=PluginStatus.INACTIVE)
 
     # Dependencies
     dependencies: list[str] = Field(default_factory=list)
@@ -379,7 +548,17 @@ class CLIPlugin(FlextEntity):
         """
         current_dict = self.model_dump()
         current_dict["enabled"] = True
+        current_dict["plugin_status"] = PluginStatus.ACTIVE
         return CLIPlugin.model_validate(current_dict)
+
+    def activate(self) -> CLIPlugin:
+        """Activate the plugin (alias for enable for backward compatibility).
+
+        Returns:
+            New plugin instance with activated status.
+
+        """
+        return self.enable()
 
     def disable(self) -> CLIPlugin:
         """Disable the plugin.
@@ -390,7 +569,17 @@ class CLIPlugin(FlextEntity):
         """
         current_dict = self.model_dump()
         current_dict["enabled"] = False
+        current_dict["plugin_status"] = PluginStatus.INACTIVE
         return CLIPlugin.model_validate(current_dict)
+
+    def deactivate(self) -> CLIPlugin:
+        """Deactivate the plugin (alias for disable for backward compatibility).
+
+        Returns:
+            New plugin instance with deactivated status.
+
+        """
+        return self.disable()
 
     def install(self) -> CLIPlugin:
         """Install the plugin.
@@ -401,6 +590,7 @@ class CLIPlugin(FlextEntity):
         """
         current_dict = self.model_dump()
         current_dict["installed"] = True
+        current_dict["plugin_status"] = PluginStatus.ACTIVE
         return CLIPlugin.model_validate(current_dict)
 
     def uninstall(self) -> CLIPlugin:
@@ -410,7 +600,11 @@ class CLIPlugin(FlextEntity):
             New plugin instance with uninstalled and disabled status.
 
         """
-        updates = {"installed": False, "enabled": False}
+        updates = {
+            "installed": False, 
+            "enabled": False,
+            "plugin_status": PluginStatus.INACTIVE
+        }
         current_dict = self.model_dump()
         current_dict.update(updates)
         return CLIPlugin.model_validate(current_dict)

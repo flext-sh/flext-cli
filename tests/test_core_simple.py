@@ -39,7 +39,7 @@ class MockFlextCliConfig:
 
 
 class MockFlextCliCommand:
-    def __init__(self, name: str, command_line: str, **options) -> None:
+    def __init__(self, name: str, command_line: str, **options: object) -> None:
         self.name = name
         self.command_line = command_line
         self.options = options
@@ -59,7 +59,7 @@ class MockFlextCliPlugin:
 
 
 class MockFlextCliContext:
-    def __init__(self, config, **overrides) -> None:
+    def __init__(self, config: MockFlextCliConfig | None, **overrides: object) -> None:
         self.config = config or MockFlextCliConfig()
         self.output_format = overrides.get("output_format", self.config.format_type)
 
@@ -237,7 +237,7 @@ class TestFlextCliService:
     def test_flext_cli_format_csv_empty_list(self) -> None:
         """Test formatting empty list as CSV."""
         service = FlextCliService()
-        data = []
+        data: list[dict[str, object]] = []
 
         result = service.flext_cli_format(data, "csv")
         assert result.is_success
@@ -260,7 +260,7 @@ class TestFlextCliService:
     def test_flext_cli_format_table_empty_dict(self) -> None:
         """Test formatting empty dict as table."""
         service = FlextCliService()
-        data = {}
+        data: dict[str, object] = {}
 
         result = service.flext_cli_format(data, "table")
         assert result.is_success
@@ -366,7 +366,7 @@ class TestFlextCliService:
         """Test registering handler."""
         service = FlextCliService()
 
-        def handler(x):
+        def handler(x: int) -> int:
             return x * 2
 
         result = service.flext_cli_register_handler("multiply", handler)
@@ -376,10 +376,10 @@ class TestFlextCliService:
         """Test registering duplicate handler."""
         service = FlextCliService()
 
-        def handler1(x):
+        def handler1(x: int) -> int:
             return x * 2
 
-        def handler2(x):
+        def handler2(x: int) -> int:
             return x * 3
 
         # Register first handler
@@ -420,7 +420,7 @@ class TestFlextCliService:
         """Test executing handler."""
         service = FlextCliService()
 
-        def handler(x, y=1):
+        def handler(x: int, y: int = 1) -> int:
             return x * y
 
         # Register handler
@@ -593,7 +593,7 @@ class TestFlextCliService:
 
         def mock_utilities() -> Never:
             msg = "Utilities error"
-            raise Exception(msg)
+            raise RuntimeError(msg)
 
         with patch.dict(
             "sys.modules",

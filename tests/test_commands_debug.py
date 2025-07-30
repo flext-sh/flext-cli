@@ -314,16 +314,18 @@ class TestValidateCommand:
         mock_get_config.return_value = mock_config
 
         # Mock config file exists
-        with patch.object(Path, "exists", return_value=True):
+        with (
+            patch.object(Path, "exists", return_value=True),
             # Mock all required packages available
-            with patch("builtins.__import__") as mock_import:
-                mock_import.return_value = MagicMock()
+            patch("builtins.__import__") as mock_import,
+        ):
+            mock_import.return_value = MagicMock()
 
-                # Call the command
-                validate(ctx)
+            # Call the command
+            validate(ctx)
 
-                # Should not exit
-                ctx.exit.assert_not_called()
+            # Should not exit
+            ctx.exit.assert_not_called()
 
     @patch("flext_cli.commands.debug.get_config")
     @patch("sys.version_info", (3, 9, 0))
@@ -342,16 +344,18 @@ class TestValidateCommand:
         mock_get_config.return_value = mock_config
 
         # Mock config file exists
-        with patch.object(Path, "exists", return_value=True):
+        with (
+            patch.object(Path, "exists", return_value=True),
             # Mock all required packages available
-            with patch("builtins.__import__") as mock_import:
-                mock_import.return_value = MagicMock()
+            patch("builtins.__import__") as mock_import,
+        ):
+            mock_import.return_value = MagicMock()
 
-                # Call the command
-                validate(ctx)
+            # Call the command
+            validate(ctx)
 
-                # Should exit with error
-                ctx.exit.assert_called_once_with(1)
+            # Should exit with error
+            ctx.exit.assert_called_once_with(1)
 
     @patch("flext_cli.commands.debug.get_config")
     @patch("sys.version_info", (3, 11, 0))
@@ -370,16 +374,18 @@ class TestValidateCommand:
         mock_get_config.return_value = mock_config
 
         # Mock config file doesn't exist
-        with patch.object(Path, "exists", return_value=False):
+        with (
+            patch.object(Path, "exists", return_value=False),
             # Mock all required packages available
-            with patch("builtins.__import__") as mock_import:
-                mock_import.return_value = MagicMock()
+            patch("builtins.__import__") as mock_import,
+        ):
+            mock_import.return_value = MagicMock()
 
-                # Call the command
-                validate(ctx)
+            # Call the command
+            validate(ctx)
 
-                # Should not exit (warnings don't cause exit)
-                ctx.exit.assert_not_called()
+            # Should not exit (warnings don't cause exit)
+            ctx.exit.assert_not_called()
 
     @patch("flext_cli.commands.debug.get_config")
     @patch("sys.version_info", (3, 11, 0))
@@ -436,18 +442,20 @@ class TestValidateCommand:
         mock_get_config.return_value = mock_config
 
         # Mock config file exists
-        with patch.object(Path, "exists", return_value=True):
+        with (
+            patch.object(Path, "exists", return_value=True),
             # Mock all required packages available
-            with patch("builtins.__import__") as mock_import:
-                mock_import.return_value = MagicMock()
+            patch("builtins.__import__") as mock_import,
+        ):
+            mock_import.return_value = MagicMock()
 
-                # Call the command
-                validate(ctx)
+            # Call the command
+            validate(ctx)
 
-                # Verify platform info was called
-                mock_system.assert_called_once()
-                mock_release.assert_called_once()
-                mock_machine.assert_called_once()
+            # Verify platform info was called
+            mock_system.assert_called_once()
+            mock_release.assert_called_once()
+            mock_machine.assert_called_once()
 
 
 class TestTraceCommand:
@@ -724,16 +732,20 @@ class TestDebugIntegration:
         ctx.obj = {"console": console}
 
         # Test validate command uses config
-        with patch.object(Path, "exists", return_value=True):
-            with patch("builtins.__import__", return_value=MagicMock()):
-                validate(ctx)
+        with (
+            patch.object(Path, "exists", return_value=True),
+            patch("builtins.__import__", return_value=MagicMock()),
+        ):
+            validate(ctx)
 
         mock_get_config.assert_called()
 
         # Test paths command uses config
         mock_get_config.reset_mock()
-        with patch("flext_cli.commands.debug.Table"):
-            with patch("flext_cli.commands.debug.Path"):
-                paths(ctx)
+        with (
+            patch("flext_cli.commands.debug.Table"),
+            patch("flext_cli.commands.debug.Path"),
+        ):
+            paths(ctx)
 
         mock_get_config.assert_called()

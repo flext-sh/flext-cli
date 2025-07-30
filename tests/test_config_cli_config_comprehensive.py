@@ -8,6 +8,7 @@ Tests for CLI configuration to achieve near 100% coverage.
 
 from __future__ import annotations
 
+import contextlib
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -213,8 +214,8 @@ class TestCLIConfig:
         """Test that config is immutable (frozen)."""
         config = CLIConfig()
 
-        # Should not be able to modify attributes directly
-        with pytest.raises(Exception):  # ValidationError or AttributeError
+        # Should not be able to modify attributes directly (frozen model)
+        with pytest.raises((AttributeError, ValueError), match="cannot assign to field"):
             config.api_url = "https://new.url.com"
 
     def test_config_equality(self) -> None:
@@ -339,12 +340,9 @@ class TestCLIConfigIntegration:
     def test_config_validation_edge_cases(self) -> None:
         """Test config validation with edge cases."""
         # Empty strings (if allowed)
-        try:
+        with contextlib.suppress(RuntimeError, ValueError, TypeError):
             config = CLIConfig(api_url="")
             # If this doesn't raise, empty strings are allowed
-        except (RuntimeError, ValueError, TypeError):
-            # If it raises, validation is working
-            pass
 
         # Very large timeout
         config = CLIConfig(timeout=999999)

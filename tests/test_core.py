@@ -288,7 +288,7 @@ class TestFlextCliService:
     def test_flext_cli_format_csv_empty_list(self) -> None:
         """Test formatting empty list as CSV."""
         service = FlextCliService()
-        data = []
+        data: list[dict[str, object]] = []
 
         result = service.flext_cli_format(data, "csv")
         assert result.is_success
@@ -372,7 +372,7 @@ class TestFlextCliService:
     def test_flext_cli_format_table_empty_dict(self) -> None:
         """Test formatting empty dict as table."""
         service = FlextCliService()
-        data = {}
+        data: dict[str, object] = {}
 
         result = service.flext_cli_format(data, "table")
         assert result.is_success
