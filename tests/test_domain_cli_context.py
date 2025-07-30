@@ -10,7 +10,7 @@ import io
 from unittest.mock import Mock
 
 import pytest
-from flext_cli.domain.cli_context import CLIContext
+from flext_cli.core.base import CLIContext
 from flext_cli.utils.config import CLIConfig, CLISettings
 from rich.console import Console
 
@@ -331,7 +331,7 @@ class TestCLIContext:
         """Test that context validates required fields."""
         # Should raise validation error if required fields are missing
         with pytest.raises(ValueError, match="validation error"):
-            CLIContext()  # type: ignore[call-arg]
+            CLIContext()
 
         # Should work with all required fields
         config = CLIConfig()

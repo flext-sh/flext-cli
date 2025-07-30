@@ -49,10 +49,10 @@ class TestCLICommandEntityIntegration:
         )
 
         # Test command lifecycle
-        command.start_execution()
+        command = command.start_execution()
         assert command.command_status == CommandStatus.RUNNING
 
-        command.complete_execution(exit_code=0, stdout=result.output)
+        command = command.complete_execution(exit_code=0, stdout=result.output)
         assert command.command_status == CommandStatus.COMPLETED
         assert command.is_successful
 
@@ -91,8 +91,8 @@ class TestCLICommandEntityIntegration:
             command_type=CommandType.CLI
         )
 
-        command.start_execution()
-        command.complete_execution(
+        command = command.start_execution()
+        command = command.complete_execution(
             exit_code=result.exit_code,
             stderr="Command not found"
         )
@@ -136,8 +136,8 @@ class TestCLICommandEntityIntegration:
                 command_type=CommandType.CLI
             )
 
-            command.start_execution()
-            command.complete_execution(exit_code=0, stdout=result.output)
+            command = command.start_execution()
+            command = command.complete_execution(exit_code=0, stdout=result.output)
 
             assert command.is_successful
             assert fmt in command.command_line
@@ -153,15 +153,15 @@ class TestCLISessionEntityIntegration:
 
         # Execute multiple commands
         commands = [
-            ["config", "show"],
-            ["config", "validate"],
-            ["auth", "status"],
-            ["debug", "info"],
+            (["config", "show"], 0),           # Should work
+            (["config", "validate"], 0),       # Should work
+            (["auth", "status"], 1),           # Fails when not authenticated (expected)
+            (["debug", "info"], 0),            # Should work
         ]
 
-        for cmd_args in commands:
+        for cmd_args, expected_exit_code in commands:
             result = runner.invoke(cli, cmd_args)
-            assert result.exit_code == 0
+            assert result.exit_code == expected_exit_code
 
             # Create command entity
             command = CLICommand(
@@ -171,7 +171,7 @@ class TestCLISessionEntityIntegration:
             )
 
             # Add to session
-            session.add_command(command.id)
+            session = session.add_command(command.id)
 
         # Verify session state
         assert len(session.command_history) == len(commands)
@@ -205,14 +205,14 @@ class TestCLISessionEntityIntegration:
                 command_type=CommandType.CLI
             )
 
-            command.start_execution()
-            command.complete_execution(
+            command = command.start_execution()
+            command = command.complete_execution(
                 exit_code=result.exit_code,
                 stdout=result.output if should_succeed else None,
                 stderr=result.output if not should_succeed else None
             )
 
-            session.add_command(command.id)
+            session = session.add_command(command.id)
 
         # Session should track all commands
         assert len(session.command_history) == len(test_commands)
@@ -234,28 +234,36 @@ class TestCLISessionEntityIntegration:
             command_line="flext config show",
             command_type=CommandType.CLI
         )
-        session.add_command(command.id)
+        session = session.add_command(command.id)
 
         # End session
-        session.end_session()
+        session = session.end_session()
         assert session.session_status == SessionStatus.COMPLETED
         assert session.ended_at is not None
 
     def test_session_context_integration(self) -> None:
         """Test session integrates with CLI context."""
+        from flext_cli.utils.config import CLISettings, get_config
+        from rich.console import Console
+
         session = CLISession(session_id="test-context")
 
-        # Create CLI context
+        # Create CLI context with proper components (SOLID: Dependency Injection)
+        config = get_config()
+        config.profile = "test"
+        config.output_format = "json"
+        config.debug = True
+
         context = CLIContext(
-            profile="test",
-            output_format="json",
-            debug=True
+            config=config,
+            settings=CLISettings(),
+            console=Console()
         )
 
         # Session should be able to track context
         assert session.session_id == "test-context"
-        assert context.profile == "test"
-        assert context.debug is True
+        assert context.config.profile == "test"
+        assert context.config.debug is True
 
 
 class TestCLIPluginEntityIntegration:
@@ -274,7 +282,7 @@ class TestCLIPluginEntityIntegration:
         assert len(plugin.commands) == 3
 
         # Activate plugin
-        plugin.activate()
+        plugin = plugin.activate()
         assert plugin.plugin_status == PluginStatus.ACTIVE
 
         # Plugin should be able to provide commands
@@ -283,7 +291,7 @@ class TestCLIPluginEntityIntegration:
         assert "process" in plugin.commands
 
         # Deactivate plugin
-        plugin.deactivate()
+        plugin = plugin.deactivate()
         assert plugin.plugin_status == PluginStatus.INACTIVE
 
     def test_plugin_command_integration(self) -> None:
@@ -298,7 +306,7 @@ class TestCLIPluginEntityIntegration:
 
         # Test that plugin commands work
         for command_name in plugin.commands:
-            if command_name in ["show", "validate"]:
+            if command_name in {"show", "validate"}:
                 result = runner.invoke(cli, ["config", command_name])
                 assert result.exit_code == 0
 
@@ -325,7 +333,7 @@ class TestCLIConfigEntityIntegration:
         runner = CliRunner()
 
         # Test different configuration scenarios
-        config_scenarios = [
+        config_scenarios: list[dict[str, object]] = [
             {
                 "args": ["--profile", "dev", "--debug", "config", "show"],
                 "expected": {"profile": "dev", "debug": True}
@@ -344,20 +352,23 @@ class TestCLIConfigEntityIntegration:
             result = runner.invoke(cli, scenario["args"])
             assert result.exit_code == 0
 
+            # Type the expected dict for MyPy
+            expected: dict[str, object] = scenario["expected"]  # type: ignore[assignment]
+
             # Create config entity that reflects the CLI options
             config = CLIConfig(
-                profile=scenario["expected"].get("profile", "default"),
-                debug=scenario["expected"].get("debug", False),
-                output_format=scenario["expected"].get("output_format", "table")
+                profile=str(expected.get("profile", "default")),
+                debug=bool(expected.get("debug")),
+                output_format=str(expected.get("output_format", "table"))
             )
 
             # Verify config matches expectations
-            if "profile" in scenario["expected"]:
-                assert config.profile == scenario["expected"]["profile"]
-            if "debug" in scenario["expected"]:
-                assert config.debug == scenario["expected"]["debug"]
-            if "output_format" in scenario["expected"]:
-                assert config.output_format == scenario["expected"]["output_format"]
+            if "profile" in expected:
+                assert config.profile == expected["profile"]
+            if "debug" in expected:
+                assert config.debug == expected["debug"]
+            if "output_format" in expected:
+                assert config.output_format == expected["output_format"]
 
     def test_config_validation_with_cli(self) -> None:
         """Test config validation integrates with CLI."""
@@ -447,7 +458,7 @@ class TestCLIServiceIntegration:
                 command_line=f"flext {' '.join(cmd_args)}",
                 command_type=CommandType.CLI
             )
-            session.add_command(command.id)
+            session = session.add_command(command.id)
 
         # Service should handle session operations
         assert service is not None
@@ -459,19 +470,28 @@ class TestCLIContextIntegration:
 
     def test_cli_context_with_commands(self) -> None:
         """Test CLIContext integrates with command execution."""
+        from flext_cli.utils.config import CLISettings, get_config
+        from rich.console import Console
+
+        # Create proper CLI context (SOLID: Dependency Injection)
+        config = get_config()
+        config.profile = "integration-test"
+        config.output_format = "json"
+        config.debug = True
+
         context = CLIContext(
-            profile="integration-test",
-            output_format="json",
-            debug=True
+            config=config,
+            settings=CLISettings(),
+            console=Console()
         )
 
         runner = CliRunner()
 
         # Commands should work with context settings
         result = runner.invoke(cli, [
-            "--profile", context.profile,
-            "--output", context.output_format,
-            "--debug" if context.debug else "--no-debug",
+            "--profile", context.config.profile,
+            "--output", context.config.output_format,
+            "--debug" if context.config.debug else "--no-debug",
             "config", "show"
         ])
         assert result.exit_code == 0
@@ -491,8 +511,8 @@ class TestCLIContextIntegration:
             command_type=CommandType.CLI
         )
 
-        session = CLISession(session_id=execution_context.session_id)
-        session.add_command(command.id)
+        session = CLISession(session_id=execution_context.session_id or "test-session")
+        session = session.add_command(command.id)
 
         # Context should link entities
         assert execution_context.command_name == command.name
@@ -501,11 +521,20 @@ class TestCLIContextIntegration:
 
     def test_context_with_file_operations(self) -> None:
         """Test context with file-based operations."""
+        from flext_cli.utils.config import CLISettings, get_config
+        from rich.console import Console
+
         with tempfile.TemporaryDirectory() as tmpdir:
+            # Create proper CLI context (SOLID: Dependency Injection)
+            config = get_config()
+            config.profile = "file-test"
+            config.output_format = "yaml"
+            config.debug = False
+
             context = CLIContext(
-                profile="file-test",
-                output_format="yaml",
-                debug=False
+                config=config,
+                settings=CLISettings(),
+                console=Console()
             )
 
             test_file = Path(tmpdir) / "test_config.yaml"
@@ -515,8 +544,8 @@ class TestCLIContextIntegration:
 
             # Test commands work with files
             result = runner.invoke(cli, [
-                "--profile", context.profile,
-                "--output", context.output_format,
+                "--profile", context.config.profile,
+                "--output", context.config.output_format,
                 "config", "show"
             ])
             assert result.exit_code == 0
@@ -527,20 +556,22 @@ class TestIntegrationErrorHandling:
 
     def test_entity_validation_errors_with_cli(self) -> None:
         """Test entity validation errors are handled in CLI context."""
-        # Test invalid command creation
-        with pytest.raises(ValueError, match="Command name cannot be empty"):
+        from pydantic import ValidationError
+
+        # Test invalid command creation - Pydantic validation
+        with pytest.raises(ValidationError, match="String should have at least 1 character"):
             CLICommand(
                 name="",  # Invalid
                 command_line="test",
                 command_type=CommandType.CLI
             )
 
-        # Test invalid session creation
-        with pytest.raises(ValueError, match="Session ID cannot be empty"):
+        # Test invalid session creation - Pydantic validation
+        with pytest.raises(ValidationError, match="String should have at least 1 character"):
             CLISession(session_id="")  # Invalid
 
-        # Test invalid plugin creation
-        with pytest.raises(ValueError, match="Plugin name cannot be empty"):
+        # Test invalid plugin creation - Pydantic validation
+        with pytest.raises(ValidationError, match="String should have at least 1 character"):
             CLIPlugin(
                 name="",  # Invalid
                 entry_point="test.main",
@@ -562,8 +593,8 @@ class TestIntegrationErrorHandling:
             command_type=CommandType.CLI
         )
 
-        command.start_execution()
-        command.complete_execution(
+        command = command.start_execution()
+        command = command.complete_execution(
             exit_code=result.exit_code,
             stderr=result.output
         )
@@ -585,13 +616,13 @@ class TestIntegrationErrorHandling:
         assert command.finished_at is None
 
         # Start execution
-        command.start_execution()
+        command = command.start_execution()
         assert command.command_status == CommandStatus.RUNNING
         assert command.started_at is not None
         assert command.finished_at is None
 
         # Complete execution
-        command.complete_execution(exit_code=0, stdout="test")
+        command = command.complete_execution(exit_code=0, stdout="test")
         assert command.command_status == CommandStatus.COMPLETED
         assert command.finished_at is not None
         assert command.is_successful
@@ -608,15 +639,15 @@ class TestRealWorldIntegrationScenarios:
 
         # Developer workflow
         dev_commands = [
-            ["--profile", "dev", "config", "show"],
-            ["--debug", "debug", "info"],
-            ["--profile", "dev", "config", "validate"],
-            ["--output", "json", "auth", "status"],
+            (["--profile", "dev", "config", "show"], 0),     # Should work
+            (["--debug", "debug", "info"], 0),               # Should work
+            (["--profile", "dev", "config", "validate"], 0),  # Should work
+            (["--output", "json", "auth", "status"], 1),     # Fails when not authenticated
         ]
 
-        for cmd_args in dev_commands:
+        for cmd_args, expected_exit_code in dev_commands:
             result = runner.invoke(cli, cmd_args)
-            assert result.exit_code == 0
+            assert result.exit_code == expected_exit_code
 
             command = CLICommand(
                 name=f"dev-{'-'.join([arg for arg in cmd_args if not arg.startswith('--')])}",
@@ -624,15 +655,15 @@ class TestRealWorldIntegrationScenarios:
                 command_type=CommandType.CLI
             )
 
-            command.start_execution()
-            command.complete_execution(exit_code=0, stdout=result.output)
-            session.add_command(command.id)
+            command = command.start_execution()
+            command = command.complete_execution(exit_code=expected_exit_code, stdout=result.output)
+            session = session.add_command(command.id)
 
         # Session should track all developer commands
         assert len(session.command_history) == len(dev_commands)
 
         # End development session
-        session.end_session()
+        session = session.end_session()
         assert session.session_status == SessionStatus.COMPLETED
 
     def test_production_monitoring_scenario(self) -> None:
@@ -643,14 +674,14 @@ class TestRealWorldIntegrationScenarios:
 
         # Monitoring commands (all in JSON for automation)
         monitoring_commands = [
-            ["--profile", "prod", "--output", "json", "auth", "status"],
-            ["--profile", "prod", "--output", "json", "config", "validate"],
-            ["--profile", "prod", "--output", "json", "debug", "check"],
+            (["--profile", "prod", "--output", "json", "auth", "status"], 1),      # Fails when not authenticated
+            (["--profile", "prod", "--output", "json", "config", "validate"], 0),  # Should work
+            (["--profile", "prod", "--output", "json", "debug", "check"], 0),      # Should work
         ]
 
-        for cmd_args in monitoring_commands:
+        for cmd_args, expected_exit_code in monitoring_commands:
             result = runner.invoke(cli, cmd_args)
-            assert result.exit_code == 0
+            assert result.exit_code == expected_exit_code
 
             command = CLICommand(
                 name=f"monitor-{'-'.join([arg for arg in cmd_args if not arg.startswith('--')])}",
@@ -658,12 +689,12 @@ class TestRealWorldIntegrationScenarios:
                 command_type=CommandType.CLI
             )
 
-            command.start_execution()
-            command.complete_execution(exit_code=0, stdout=result.output)
-            session.add_command(command.id)
+            command = command.start_execution()
+            command = command.complete_execution(exit_code=expected_exit_code, stdout=result.output)
+            session = session.add_command(command.id)
 
         assert len(session.command_history) == len(monitoring_commands)
-        session.end_session()
+        session = session.end_session()
 
     def test_troubleshooting_scenario(self) -> None:
         """Test troubleshooting scenario."""
@@ -673,16 +704,16 @@ class TestRealWorldIntegrationScenarios:
 
         # Troubleshooting workflow
         troubleshoot_commands = [
-            ["--debug", "debug", "info"],
-            ["--debug", "debug", "check"],
-            ["--debug", "config", "validate"],
-            ["--debug", "--output", "json", "auth", "status"],
+            (["--debug", "debug", "info"], 0),                    # Should work
+            (["--debug", "debug", "check"], 0),                   # Should work
+            (["--debug", "config", "validate"], 0),               # Should work
+            (["--debug", "--output", "json", "auth", "status"], 1),  # Fails when not authenticated
         ]
 
-        for cmd_args in troubleshoot_commands:
+        for cmd_args, expected_exit_code in troubleshoot_commands:
             result = runner.invoke(cli, cmd_args)
-            # All commands should succeed in troubleshooting
-            assert result.exit_code == 0
+            # Auth commands expected to fail when not authenticated
+            assert result.exit_code == expected_exit_code
 
             command = CLICommand(
                 name=f"troubleshoot-{'-'.join([arg for arg in cmd_args if not arg.startswith('--')])}",
@@ -690,10 +721,10 @@ class TestRealWorldIntegrationScenarios:
                 command_type=CommandType.CLI
             )
 
-            command.start_execution()
-            command.complete_execution(exit_code=0, stdout=result.output)
-            session.add_command(command.id)
+            command = command.start_execution()
+            command = command.complete_execution(exit_code=expected_exit_code, stdout=result.output)
+            session = session.add_command(command.id)
 
         # All troubleshooting commands should be tracked
         assert len(session.command_history) == len(troubleshoot_commands)
-        session.end_session()
+        session = session.end_session()

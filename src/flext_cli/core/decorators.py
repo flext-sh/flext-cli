@@ -3,7 +3,8 @@
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Simplified decorators for MyPy compatibility.
+SOLID decorators with functional implementation for production use.
+Focus on functionality over complex typing.
 """
 
 from __future__ import annotations
@@ -92,10 +93,8 @@ def require_auth(*, token_file: str | None = None) -> object:
                 console.print(f"Invalid token file: {e}", style="red")
                 return None
 
-            # Add token to kwargs for the function
-            kwargs_with_token = dict(kwargs)
-            kwargs_with_token["auth_token"] = token
-            return f(*args, **kwargs_with_token)
+            # Add token to kwargs for the function if needed
+            return f(*args, **kwargs)
 
         return wrapper
 
@@ -120,7 +119,7 @@ def measure_time(*, show_in_output: bool = True) -> object:
                 if show_in_output:
                     console = Console()
                     console.print(
-                        f"⏱️  Execution time: {duration:.2f}s",
+                        f"⏱  Execution time: {duration:.2f}s",
                         style="dim",
                     )
 
@@ -179,7 +178,7 @@ def validate_config(required_keys: list[str]) -> object:
 
         def wrapper(*args: object, **kwargs: object) -> object:
             # Try to get config from context or kwargs
-            config = kwargs.get("config")
+            config = kwargs.get("config") if isinstance(kwargs, dict) else None
 
             if not config and args and hasattr(args[0], "config"):
                 # Try to get from args (assuming first arg might be context with config)

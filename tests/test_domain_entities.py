@@ -125,12 +125,14 @@ class TestCLICommand:
         assert not command.is_successful  # Not completed successfully
 
         # Test completed status
-        completed_command = command.complete_execution(exit_code=0)
+        running_command = command.start_execution()
+        completed_command = running_command.complete_execution(exit_code=0)
         assert completed_command.is_completed
         assert completed_command.is_successful
 
         # Test failed status
-        failed_command = command.complete_execution(exit_code=1)
+        running_command2 = command.start_execution()
+        failed_command = running_command2.complete_execution(exit_code=1)
         assert failed_command.is_completed
         assert not failed_command.is_successful
 
@@ -160,7 +162,7 @@ class TestCLIPlugin:
         """Test plugin creation."""
         if sample_plugin.name != "test-plugin":
             raise AssertionError(f"Expected {'test-plugin'}, got {sample_plugin.name}")
-        assert sample_plugin.version == "0.8.0"  # Corrected version
+        assert sample_plugin.plugin_version == "0.8.0"  # Using correct plugin_version field
         if sample_plugin.entry_point != "test_plugin.main":
             raise AssertionError(
                 f"Expected {'test_plugin.main'}, got {sample_plugin.entry_point}"

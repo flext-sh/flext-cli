@@ -16,7 +16,7 @@ import yaml
 from rich.table import Table
 
 if TYPE_CHECKING:
-    from flext_cli.domain.cli_context import CLIContext
+    from flext_cli.core.base import CLIContext
 
 
 @click.group()

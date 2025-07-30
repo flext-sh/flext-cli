@@ -153,8 +153,8 @@ class TestCommandType:
     def test_type_iteration(self) -> None:
         """Test iterating over command types."""
         types_list = list(CommandType)
-        if len(types_list) != 7:
-            raise AssertionError(f"Expected {7}, got {len(types_list)}")
+        if len(types_list) != 10:
+            raise AssertionError(f"Expected {10}, got {len(types_list)}")
         if CommandType.SYSTEM not in types_list:
             raise AssertionError(f"Expected {CommandType.SYSTEM} in {types_list}")
 

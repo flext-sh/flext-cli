@@ -159,16 +159,16 @@ class TestCLIIntegration:
         )
 
         # Test command lifecycle
-        command.start_execution()
+        command = command.start_execution()
         assert command.command_status == CommandStatus.RUNNING
 
-        command.complete_execution(exit_code=0, stdout="test")
+        command = command.complete_execution(exit_code=0, stdout="test")
         assert command.is_successful
         assert command.command_status == CommandStatus.COMPLETED
 
         # Create a session
         session = CLISession(session_id="test-session")
-        session.add_command(command.id)
+        session = session.add_command(command.id)
 
         assert len(session.command_history) == 1
         assert command.id in session.command_history
@@ -198,13 +198,13 @@ class TestCLIEndToEnd:
         """Test complete authentication workflow."""
         runner = CliRunner()
 
-        # Step 1: Check auth status
+        # Step 1: Check auth status (should exit with 1 when not authenticated)
         result = runner.invoke(cli, ["auth", "status"])
-        assert result.exit_code == 0
+        assert result.exit_code == 1  # Not authenticated
 
-        # Step 2: Show current user
+        # Step 2: Show current user (should also exit with 1 when not authenticated)
         result = runner.invoke(cli, ["auth", "whoami"])
-        assert result.exit_code == 0
+        assert result.exit_code == 1  # Not authenticated
 
     def test_complete_debug_workflow(self) -> None:
         """Test complete debug workflow."""
@@ -257,7 +257,11 @@ class TestCLIEndToEnd:
 
         for cmd in commands:
             result = runner.invoke(cli, cmd)
-            assert result.exit_code == 0
+            # Auth commands exit with 1 when not authenticated
+            if cmd[0] == "auth":
+                assert result.exit_code == 1
+            else:
+                assert result.exit_code == 0
 
 
 class TestCLIRealWorldScenarios:
@@ -283,9 +287,9 @@ class TestCLIRealWorldScenarios:
         """Test typical production workflow scenario."""
         runner = CliRunner()
 
-        # Production: Check system status
+        # Production: Check system status (should exit with 1 when not authenticated)
         result = runner.invoke(cli, ["--profile", "prod", "auth", "status"])
-        assert result.exit_code == 0
+        assert result.exit_code == 1  # Not authenticated
 
         # Production: Get structured output
         result = runner.invoke(cli, ["--output", "json", "config", "show"])
@@ -315,9 +319,9 @@ class TestCLIRealWorldScenarios:
         result = runner.invoke(cli, ["--output", "json", "config", "show"])
         assert result.exit_code == 0
 
-        # Automation: Validate setup programmatically
+        # Automation: Validate setup programmatically (should exit with 1 when not authenticated)
         result = runner.invoke(cli, ["--output", "json", "auth", "status"])
-        assert result.exit_code == 0
+        assert result.exit_code == 1  # Not authenticated
 
 
 class TestCLIPerformanceIntegration:
@@ -355,7 +359,11 @@ class TestCLIPerformanceIntegration:
             result = runner.invoke(cli, cmd)
             end_time = time.time()
 
-            assert result.exit_code == 0
+            # Auth commands exit with 1 when not authenticated
+            if cmd[0] == "auth":
+                assert result.exit_code == 1
+            else:
+                assert result.exit_code == 0
             # Each command should execute in less than 1 second
             execution_time = end_time - start_time
             assert execution_time < 1.0

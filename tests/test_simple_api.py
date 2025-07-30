@@ -239,12 +239,12 @@ class TestConfigValidation:
     def test_development_config_validation_error(self) -> None:
         """Test development config with invalid values."""
         with pytest.raises(ValueError, match="validation error"):
-            create_development_cli_config(debug="invalid")  # type: ignore[arg-type]
+            create_development_cli_config(debug="invalid")
 
     def test_production_config_validation_error(self) -> None:
         """Test production config with invalid values."""
         with pytest.raises(ValueError, match="validation error"):
-            create_production_cli_config(debug="invalid")  # type: ignore[arg-type]
+            create_production_cli_config(debug="invalid")
 
     def test_development_config_with_none_values(self) -> None:
         """Test development config handles None values properly."""

@@ -284,7 +284,7 @@ class TestFormatPluginList:
         """Test formatting plugin list as table."""
         console = MagicMock(spec=Console)
 
-        plugins = [
+        plugins: list[dict[str, object]] = [
             {
                 "name": "plugin1",
                 "type": "tap",
@@ -337,7 +337,7 @@ class TestFormatPluginList:
         """Test formatting plugin list as JSON."""
         console = MagicMock(spec=Console)
 
-        plugins = [
+        plugins: list[dict[str, object]] = [
             {
                 "name": "plugin1",
                 "type": "tap",
@@ -356,7 +356,7 @@ class TestFormatPluginList:
         """Test formatting plugin list with missing fields."""
         console = MagicMock(spec=Console)
 
-        plugins = [
+        plugins: list[dict[str, object]] = [
             {
                 "name": "plugin1",
                 # Missing type, version, description
@@ -577,14 +577,15 @@ class TestUtilsOutputIntegration:
 
     def test_rich_imports(self) -> None:
         """Test that Rich imports work correctly."""
-        assert Console
-        assert Table
+        # Console and Table are classes, not None
+        assert Console is not None
+        assert Table is not None
 
         # Test creation
         console = Console()
         table = Table()
-        assert console
-        assert table
+        assert console is not None
+        assert table is not None
 
     def test_yaml_integration(self) -> None:
         """Test YAML integration."""
@@ -620,7 +621,7 @@ class TestUtilsOutputIntegration:
         format_plugin_list(console, [], "table")
 
         # Test with plugin list
-        plugins = [
+        plugins: list[dict[str, object]] = [
             {"name": "test", "type": "tap", "version": "1.0", "description": "Test"},
         ]
         format_plugin_list(console, plugins, "table")

@@ -302,8 +302,9 @@ class TestFormatterFactory:
 
     def test_register_custom_formatter(self) -> None:
         """Test registering custom formatter."""
+        from flext_cli.core.formatters import OutputFormatter
 
-        class CustomFormatter:
+        class CustomFormatter(OutputFormatter):
             def format(self, data: object, console: Console) -> None:
                 console.print("custom")
 
