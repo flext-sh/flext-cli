@@ -97,10 +97,12 @@ class CLICommand(FlextEntity):
     )
     command_line: str = Field(..., min_length=1, description="Command line string")
     command_type: CommandType = Field(
-        default=CommandType.SYSTEM, description="Type of command",
+        default=CommandType.SYSTEM,
+        description="Type of command",
     )
     command_status: CommandStatus = Field(
-        default=CommandStatus.PENDING, description="Command status",
+        default=CommandStatus.PENDING,
+        description="Command status",
     )
     exit_code: int | None = Field(default=None, description="Exit code")
     stdout: str | None = Field(default=None, description="Standard output")
@@ -108,26 +110,32 @@ class CLICommand(FlextEntity):
     started_at: datetime | None = Field(default=None, description="Start time")
     finished_at: datetime | None = Field(default=None, description="Finish time")
     duration_seconds: float | None = Field(
-        default=None, description="Execution duration",
+        default=None,
+        description="Execution duration",
     )
     timeout: int | None = Field(
-        default=CLIConstants.DEFAULT_TIMEOUT, description="Timeout in seconds",
+        default=CLIConstants.DEFAULT_TIMEOUT,
+        description="Timeout in seconds",
     )
 
     # Context
     user_id: TUserId | None = Field(default=None, description="User ID")
     session_id: str | None = Field(default=None, description="Session ID")
     working_directory: str | None = Field(
-        default=None, description="Working directory",
+        default=None,
+        description="Working directory",
     )
     environment: dict[str, str] = Field(
-        default_factory=dict, description="Environment variables",
+        default_factory=dict,
+        description="Environment variables",
     )
     arguments: dict[str, object] = Field(
-        default_factory=dict, description="Command arguments",
+        default_factory=dict,
+        description="Command arguments",
     )
     options: dict[str, object] = Field(
-        default_factory=dict, description="Command options",
+        default_factory=dict,
+        description="Command options",
     )
 
     @property
@@ -156,10 +164,12 @@ class CLICommand(FlextEntity):
             raise ValueError(msg)
 
         # Create new instance with updated fields (immutable pattern)
-        return self.model_copy(update={
-            "command_status": CommandStatus.RUNNING,
-            "started_at": datetime.now(UTC),
-        })
+        return self.model_copy(
+            update={
+                "command_status": CommandStatus.RUNNING,
+                "started_at": datetime.now(UTC),
+            },
+        )
 
     def complete_execution(
         self,
@@ -187,14 +197,16 @@ class CLICommand(FlextEntity):
         status = CommandStatus.COMPLETED if exit_code == 0 else CommandStatus.FAILED
 
         # Create new instance with updated fields (immutable pattern)
-        return self.model_copy(update={
-            "exit_code": exit_code,
-            "stdout": stdout,
-            "stderr": stderr,
-            "finished_at": finished_at,
-            "duration_seconds": duration_seconds,
-            "command_status": status,
-        })
+        return self.model_copy(
+            update={
+                "exit_code": exit_code,
+                "stdout": stdout,
+                "stderr": stderr,
+                "finished_at": finished_at,
+                "duration_seconds": duration_seconds,
+                "command_status": status,
+            },
+        )
 
     def cancel_execution(self) -> CLICommand:
         """Cancel command execution.
@@ -211,11 +223,13 @@ class CLICommand(FlextEntity):
             duration_seconds = duration.total_seconds()
 
         # Create new instance with updated fields (immutable pattern)
-        return self.model_copy(update={
-            "command_status": CommandStatus.CANCELLED,
-            "finished_at": finished_at,
-            "duration_seconds": duration_seconds,
-        })
+        return self.model_copy(
+            update={
+                "command_status": CommandStatus.CANCELLED,
+                "finished_at": finished_at,
+                "duration_seconds": duration_seconds,
+            },
+        )
 
     def validate_domain_rules(self) -> FlextResult[None]:
         """Validate domain business rules for CLI commands."""
@@ -249,22 +263,28 @@ class CLISession(FlextEntity):
     )
     user_id: TUserId | None = Field(default=None, description="User ID")
     session_status: SessionStatus = Field(
-        default=SessionStatus.ACTIVE, description="Session status",
+        default=SessionStatus.ACTIVE,
+        description="Session status",
     )
     command_history: list[TEntityId] = Field(
-        default_factory=list, description="Command history",
+        default_factory=list,
+        description="Command history",
     )
     commands_executed: list[TEntityId] = Field(
-        default_factory=list, description="Executed commands",
+        default_factory=list,
+        description="Executed commands",
     )
     current_command: TEntityId | None = Field(
-        default=None, description="Current command",
+        default=None,
+        description="Current command",
     )
     started_at: datetime = Field(
-        default_factory=lambda: datetime.now(UTC), description="Session start time",
+        default_factory=lambda: datetime.now(UTC),
+        description="Session start time",
     )
     last_activity: datetime = Field(
-        default_factory=lambda: datetime.now(UTC), description="Last activity",
+        default_factory=lambda: datetime.now(UTC),
+        description="Last activity",
     )
     ended_at: datetime | None = Field(default=None, description="Session end time")
     active: bool = Field(default=True, description="Session active status")
@@ -272,7 +292,8 @@ class CLISession(FlextEntity):
     # Context
     working_directory: str | None = Field(default=None, description="Working directory")
     environment: dict[str, str] = Field(
-        default_factory=dict, description="Environment variables",
+        default_factory=dict,
+        description="Environment variables",
     )
 
     def add_command(self, command_id: TEntityId) -> CLISession:
@@ -287,12 +308,14 @@ class CLISession(FlextEntity):
         new_executed = [*self.commands_executed, command_id]
 
         # Create new instance with updated fields (immutable pattern)
-        return self.model_copy(update={
-            "command_history": new_history,
-            "commands_executed": new_executed,
-            "current_command": command_id,
-            "last_activity": datetime.now(UTC),
-        })
+        return self.model_copy(
+            update={
+                "command_history": new_history,
+                "commands_executed": new_executed,
+                "current_command": command_id,
+                "last_activity": datetime.now(UTC),
+            },
+        )
 
     def end_session(self) -> CLISession:
         """End the CLI session.
@@ -302,12 +325,14 @@ class CLISession(FlextEntity):
 
         """
         # Create new instance with updated fields (immutable pattern)
-        return self.model_copy(update={
-            "session_status": SessionStatus.COMPLETED,
-            "ended_at": datetime.now(UTC),
-            "active": False,
-            "current_command": None,
-        })
+        return self.model_copy(
+            update={
+                "session_status": SessionStatus.COMPLETED,
+                "ended_at": datetime.now(UTC),
+                "active": False,
+                "current_command": None,
+            },
+        )
 
     def validate_domain_rules(self) -> FlextResult[None]:
         """Validate domain business rules for CLI sessions."""
@@ -356,10 +381,12 @@ class CLIPlugin(FlextEntity):
     entry_point: str = Field(..., min_length=1, description="Plugin entry point")
     commands: list[str] = Field(default_factory=list, description="Plugin commands")
     dependencies: list[str] = Field(
-        default_factory=list, description="Plugin dependencies",
+        default_factory=list,
+        description="Plugin dependencies",
     )
     plugin_status: PluginStatus = Field(
-        default=PluginStatus.INACTIVE, description="Plugin status",
+        default=PluginStatus.INACTIVE,
+        description="Plugin status",
     )
 
     # Status
@@ -378,10 +405,12 @@ class CLIPlugin(FlextEntity):
             New plugin instance with activated status.
 
         """
-        return self.model_copy(update={
-            "plugin_status": PluginStatus.ACTIVE,
-            "enabled": True,
-        })
+        return self.model_copy(
+            update={
+                "plugin_status": PluginStatus.ACTIVE,
+                "enabled": True,
+            },
+        )
 
     def deactivate(self) -> CLIPlugin:
         """Deactivate the plugin.
@@ -390,10 +419,12 @@ class CLIPlugin(FlextEntity):
             New plugin instance with deactivated status.
 
         """
-        return self.model_copy(update={
-            "plugin_status": PluginStatus.INACTIVE,
-            "enabled": False,
-        })
+        return self.model_copy(
+            update={
+                "plugin_status": PluginStatus.INACTIVE,
+                "enabled": False,
+            },
+        )
 
     def enable(self) -> CLIPlugin:
         """Enable the plugin (alias for activate).
@@ -420,10 +451,12 @@ class CLIPlugin(FlextEntity):
             New plugin instance with installed status.
 
         """
-        return self.model_copy(update={
-            "installed": True,
-            "plugin_status": PluginStatus.ACTIVE,
-        })
+        return self.model_copy(
+            update={
+                "installed": True,
+                "plugin_status": PluginStatus.ACTIVE,
+            },
+        )
 
     def uninstall(self) -> CLIPlugin:
         """Uninstall the plugin and disable it.
@@ -432,11 +465,13 @@ class CLIPlugin(FlextEntity):
             New plugin instance with uninstalled status.
 
         """
-        return self.model_copy(update={
-            "installed": False,
-            "enabled": False,
-            "plugin_status": PluginStatus.INACTIVE,
-        })
+        return self.model_copy(
+            update={
+                "installed": False,
+                "enabled": False,
+                "plugin_status": PluginStatus.INACTIVE,
+            },
+        )
 
     def validate_domain_rules(self) -> FlextResult[None]:
         """Validate domain business rules for CLI plugins."""

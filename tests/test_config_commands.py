@@ -309,19 +309,19 @@ class TestConfigCommands:
                 patch.object(Path, "exists", return_value=False),
                 patch.object(Path, "mkdir"),
             ):
-                    # Mock file opening for writing
-                    mock_file = MagicMock()
-                    with patch.object(Path, "open", return_value=mock_file):
-                        result = self.runner.invoke(
-                            config,
-                            ["edit"],
-                            obj={"cli_context": self.mock_cli_context},
-                        )
+                # Mock file opening for writing
+                mock_file = MagicMock()
+                with patch.object(Path, "open", return_value=mock_file):
+                    result = self.runner.invoke(
+                        config,
+                        ["edit"],
+                        obj={"cli_context": self.mock_cli_context},
+                    )
 
-                        if result.exit_code not in {0, 1, 2}:
-                            raise AssertionError(
-                                f"Expected {result.exit_code} in {[0, 1, 2]}"
-                            )
+                    if result.exit_code not in {0, 1, 2}:
+                        raise AssertionError(
+                            f"Expected {result.exit_code} in {[0, 1, 2]}"
+                        )
 
     def test_edit_command_subprocess_error(self) -> None:
         """Test edit command with subprocess error."""
@@ -332,14 +332,14 @@ class TestConfigCommands:
                 patch.object(Path, "exists", return_value=True),
                 patch.object(Path, "mkdir"),
             ):
-                    result = self.runner.invoke(
-                        config,
-                        ["edit"],
-                        obj={"cli_context": self.mock_cli_context},
-                    )
+                result = self.runner.invoke(
+                    config,
+                    ["edit"],
+                    obj={"cli_context": self.mock_cli_context},
+                )
 
-                    if result.exit_code != 1:
-                        raise AssertionError(f"Expected {1}, got {result.exit_code}")
+                if result.exit_code != 1:
+                    raise AssertionError(f"Expected {1}, got {result.exit_code}")
 
     def test_edit_command_file_error(self) -> None:
         """Test edit command with file error."""
@@ -351,8 +351,8 @@ class TestConfigCommands:
                 result = self.runner.invoke(
                     config,
                     ["edit"],
-                obj={"cli_context": self.mock_cli_context},
-            )
+                    obj={"cli_context": self.mock_cli_context},
+                )
 
             if result.exit_code != 1:
                 raise AssertionError(f"Expected {1}, got {result.exit_code}")
@@ -567,6 +567,7 @@ class TestConfigIntegration:
 
     def _test_standard_exception(self, exc_type: type[Exception]) -> None:
         """Test a specific standard exception type."""
+
         def _raise_test_exception() -> None:
             msg = "Test error"
             raise exc_type(msg)
@@ -580,6 +581,7 @@ class TestConfigIntegration:
 
     def _test_called_process_error(self) -> None:
         """Test CalledProcessError separately (needs different constructor)."""
+
         def _raise_process_error() -> None:
             raise subprocess.CalledProcessError(1, "test_cmd", "Test error")
 

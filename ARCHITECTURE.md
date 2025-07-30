@@ -168,7 +168,7 @@ from flext_cli.application.services import CLIApplicationService
 class MyApp(CLIFoundation):
     def register_commands(self, cli_group: click.Group) -> None:
         """Register application-specific commands."""
-        
+
         @cli_group.command()
         @self.create_command_decorator()
         @handle_service_result
@@ -179,7 +179,7 @@ class MyApp(CLIFoundation):
 # Usage
 app = MyApp(
     name="my-cli",
-    version="1.0.0", 
+    version="1.0.0",
     description="My CLI application",
     app_service=app_service
 )
@@ -224,7 +224,7 @@ class NewApp(CLIFoundation):
     def __init__(self, app_service: CLIApplicationService):
         super().__init__(
             name="app",
-            version="1.0.0", 
+            version="1.0.0",
             description="My app",
             app_service=app_service
         )
@@ -247,7 +247,7 @@ from flext_cli.adapters.output import CLIRenderer
 ### 1. Clear Responsibility Separation
 
 - **Domain**: Pure business logic with no external dependencies
-- **Application**: Orchestration and use case coordination  
+- **Application**: Orchestration and use case coordination
 - **Adapters**: Framework integration and external interfaces
 - **Infrastructure**: Concrete implementations and external systems
 
@@ -271,10 +271,10 @@ from flext_cli.adapters.output import CLIRenderer
 def test_command_execution():
     command = Command(name="test", command_line="echo hello")
     result = CommandResult(exit_code=0, stdout="hello", duration_seconds=0.1)
-    
+
     command.start_execution()
     assert command.is_running
-    
+
     command.complete_execution(result)
     assert command.is_successful
 
@@ -284,7 +284,7 @@ async def test_cli_service():
         command_repository=MockCommandRepository(),
         session_repository=MockSessionRepository()
     )
-    
+
     result = await app_service.execute_command(command_id)
     assert result.is_success
 
@@ -292,7 +292,7 @@ async def test_cli_service():
 def test_cli_foundation():
     app = TestApp(app_service=mock_service)
     cli = app.create_cli()
-    
+
     runner = CliRunner()
     result = runner.invoke(cli, ['test-command'])
     assert result.exit_code == 0
@@ -307,7 +307,7 @@ def test_cli_foundation():
 class Pipeline(DomainAggregateRoot, TimestampMixin):
     name: NonEmptyStr
     steps: list[PipelineStep]
-    
+
     def execute(self) -> FlextResult[PipelineResult]:
         # Domain logic here
         pass
@@ -329,7 +329,7 @@ class SlackRenderer(CLIRenderer):
 # Create new application service method
 class CLIApplicationService:
     async def bulk_execute_commands(
-        self, 
+        self,
         commands: list[EntityId],
         parallel: bool = False
     ) -> FlextResult[list[CommandResult]]:

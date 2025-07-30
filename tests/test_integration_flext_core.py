@@ -89,7 +89,7 @@ class TestFlextCoreDomainEntityIntegration:
         command = CLICommand(
             name="test-command",
             command_line="echo hello",
-            command_type=CommandType.SYSTEM
+            command_type=CommandType.SYSTEM,
         )
 
         # Should have domain entity properties
@@ -109,7 +109,7 @@ class TestFlextCoreDomainEntityIntegration:
         command = CLICommand(
             name="test-command",
             command_line="echo hello",
-            command_type=CommandType.SYSTEM
+            command_type=CommandType.SYSTEM,
         )
 
         # Initial state
@@ -148,9 +148,7 @@ class TestFlextCoreDomainEntityIntegration:
     def test_cli_plugin_domain_entity_lifecycle(self) -> None:
         """Test CLIPlugin domain entity lifecycle."""
         plugin = CLIPlugin(
-            name="test-plugin",
-            entry_point="test.main",
-            commands=["test", "validate"]
+            name="test-plugin", entry_point="test.main", commands=["test", "validate"]
         )
 
         # Domain entity properties
@@ -171,17 +169,9 @@ class TestFlextCoreDomainEntityIntegration:
 
     def test_cli_config_value_object_behavior(self) -> None:
         """Test CLIConfig behaves as a proper value object."""
-        config1 = CLIConfig(
-            profile="test",
-            debug=True,
-            output_format="json"
-        )
+        config1 = CLIConfig(profile="test", debug=True, output_format="json")
 
-        config2 = CLIConfig(
-            profile="test",
-            debug=True,
-            output_format="json"
-        )
+        config2 = CLIConfig(profile="test", debug=True, output_format="json")
 
         # Value objects should be equal with same values
         assert config1.profile == config2.profile
@@ -199,14 +189,14 @@ class TestFlextCoreValidationIntegration:
             CLICommand(
                 name="",  # Invalid empty name
                 command_line="echo hello",
-                command_type=CommandType.SYSTEM
+                command_type=CommandType.SYSTEM,
             )
 
         with pytest.raises(ValueError, match="Command line cannot be empty"):
             CLICommand(
                 name="test",
                 command_line="",  # Invalid empty command line
-                command_type=CommandType.SYSTEM
+                command_type=CommandType.SYSTEM,
             )
 
     def test_cli_session_validation_rules(self) -> None:
@@ -219,39 +209,30 @@ class TestFlextCoreValidationIntegration:
         """Test CLIPlugin validation rules."""
         # Test plugin name validation
         with pytest.raises(ValueError, match="Plugin name cannot be empty"):
-            CLIPlugin(
-                name="",
-                entry_point="test.main",
-                commands=["test"]
-            )
+            CLIPlugin(name="", entry_point="test.main", commands=["test"])
 
         # Test entry point validation
         with pytest.raises(ValueError, match="Entry point cannot be empty"):
-            CLIPlugin(
-                name="test-plugin",
-                entry_point="",
-                commands=["test"]
-            )
+            CLIPlugin(name="test-plugin", entry_point="", commands=["test"])
 
     def test_cli_config_validation_rules(self) -> None:
         """Test CLIConfig validation rules."""
         # Test output format validation
         with pytest.raises(ValueError, match="Invalid output format"):
-            CLIConfig(
-                profile="test",
-                output_format="invalid_format"
-            )
+            CLIConfig(profile="test", output_format="invalid_format")
 
     def test_business_rule_validation(self) -> None:
         """Test business rule validation in domain entities."""
         command = CLICommand(
             name="test-command",
             command_line="echo hello",
-            command_type=CommandType.SYSTEM
+            command_type=CommandType.SYSTEM,
         )
 
         # Test business rule: cannot complete before starting
-        with pytest.raises(ValueError, match="Cannot complete command that hasn't been started"):
+        with pytest.raises(
+            ValueError, match="Cannot complete command that hasn't been started"
+        ):
             command = command.complete_execution(exit_code=0)
 
 
@@ -270,11 +251,7 @@ class TestFlextCoreDependencyInjectionIntegration:
 
     def test_cli_context_dependency_injection(self) -> None:
         """Test CLI context uses dependency injection patterns."""
-        context = CLIContext(
-            profile="test",
-            output_format="json",
-            debug=True
-        )
+        context = CLIContext(profile="test", output_format="json", debug=True)
 
         # Context should be properly configured
         assert context.profile == "test"
@@ -284,9 +261,7 @@ class TestFlextCoreDependencyInjectionIntegration:
     def test_cli_execution_context_integration(self) -> None:
         """Test CLI execution context integration."""
         execution_context = CLIExecutionContext(
-            command_name="test",
-            user_id="user123",
-            session_id="session123"
+            command_name="test", user_id="user123", session_id="session123"
         )
 
         # Execution context should track command execution
@@ -303,7 +278,7 @@ class TestFlextCoreLoggingIntegration:
         command = CLICommand(
             name="test-command",
             command_line="echo hello",
-            command_type=CommandType.SYSTEM
+            command_type=CommandType.SYSTEM,
         )
 
         # Start execution
@@ -334,7 +309,7 @@ class TestFlextCoreErrorHandlingIntegration:
         command = CLICommand(
             name="test-command",
             command_line="echo hello",
-            command_type=CommandType.SYSTEM
+            command_type=CommandType.SYSTEM,
         )
 
         # Test error handling in command execution
@@ -377,7 +352,7 @@ class TestFlextCoreTypeIntegration:
         command = CLICommand(
             name="test-command",
             command_line="echo hello",
-            command_type=CommandType.SYSTEM
+            command_type=CommandType.SYSTEM,
         )
 
         # Type checks (these would be caught by MyPy in CI)
@@ -402,11 +377,7 @@ class TestFlextCoreTypeIntegration:
 
     def test_value_object_type_safety(self) -> None:
         """Test value objects maintain type safety."""
-        config = CLIConfig(
-            profile="test",
-            debug=True,
-            output_format="json"
-        )
+        config = CLIConfig(profile="test", debug=True, output_format="json")
 
         # Type checks
         assert isinstance(config.profile, str)
@@ -422,7 +393,7 @@ class TestFlextCoreEventIntegration:
         command = CLICommand(
             name="test-command",
             command_line="echo hello",
-            command_type=CommandType.SYSTEM
+            command_type=CommandType.SYSTEM,
         )
 
         # Events should be generated for state changes
@@ -466,7 +437,7 @@ class TestFlextCorePatternCompliance:
         command = CLICommand(
             name="test-command",
             command_line="echo hello",
-            command_type=CommandType.SYSTEM
+            command_type=CommandType.SYSTEM,
         )
 
         # Domain entities should be pure business logic
@@ -478,15 +449,11 @@ class TestFlextCorePatternCompliance:
         """Test CLI follows DDD principles."""
         # Entities should have identity
         command1 = CLICommand(
-            name="test1",
-            command_line="echo hello",
-            command_type=CommandType.SYSTEM
+            name="test1", command_line="echo hello", command_type=CommandType.SYSTEM
         )
 
         command2 = CLICommand(
-            name="test2",
-            command_line="echo hello",
-            command_type=CommandType.SYSTEM
+            name="test2", command_line="echo hello", command_type=CommandType.SYSTEM
         )
 
         # Entities should have unique identities
@@ -503,17 +470,9 @@ class TestFlextCorePatternCompliance:
 
     def test_value_object_pattern_compliance(self) -> None:
         """Test value objects follow value object pattern."""
-        config1 = CLIConfig(
-            profile="test",
-            debug=True,
-            output_format="json"
-        )
+        config1 = CLIConfig(profile="test", debug=True, output_format="json")
 
-        config2 = CLIConfig(
-            profile="test",
-            debug=True,
-            output_format="json"
-        )
+        config2 = CLIConfig(profile="test", debug=True, output_format="json")
 
         # Value objects with same values should be equal
         assert config1.profile == config2.profile
@@ -526,7 +485,7 @@ class TestFlextCorePatternCompliance:
         command = CLICommand(
             name="test-command",
             command_line="echo hello",
-            command_type=CommandType.SYSTEM
+            command_type=CommandType.SYSTEM,
         )
 
         # Should have UUID ID for repository pattern

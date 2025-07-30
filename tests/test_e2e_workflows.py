@@ -380,7 +380,7 @@ class TestE2EIntegrationWithCore:
         command = CLICommand(
             name="test-workflow",
             command_line="echo 'Hello, World!'",
-            command_type=CommandType.SYSTEM
+            command_type=CommandType.SYSTEM,
         )
 
         # Test complete lifecycle
@@ -406,7 +406,7 @@ class TestE2EIntegrationWithCore:
             cmd = CLICommand(
                 name=f"test-cmd-{i}",
                 command_line=f"echo 'Command {i}'",
-                command_type=CommandType.SYSTEM
+                command_type=CommandType.SYSTEM,
             )
             commands.append(cmd)
             session.add_command(cmd.id)
@@ -425,7 +425,7 @@ class TestE2EIntegrationWithCore:
         plugin = CLIPlugin(
             name="test-plugin",
             entry_point="test.main",
-            commands=["test", "validate", "process"]
+            commands=["test", "validate", "process"],
         )
 
         # Test plugin lifecycle
@@ -449,7 +449,7 @@ class TestE2EConfigurationWorkflows:
         test_env = {
             "FLEXT_CLI_DEBUG": "true",
             "FLEXT_CLI_PROFILE": "test",
-            "FLEXT_CLI_LOG_LEVEL": "DEBUG"
+            "FLEXT_CLI_LOG_LEVEL": "DEBUG",
         }
 
         with patch.dict(os.environ, test_env):

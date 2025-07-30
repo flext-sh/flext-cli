@@ -40,7 +40,9 @@ def example_2_web_service_cli() -> None:
     )
 
     def deploy_service(
-        url: str, port: str, REDACTED_LDAP_BIND_PASSWORD_email: str,
+        url: str,
+        port: str,
+        REDACTED_LDAP_BIND_PASSWORD_email: str,
     ) -> FlextResult[dict[str, str]]:
         """Deploy web service with validation."""
         # Validate all inputs using consolidated validator
@@ -79,7 +81,9 @@ def example_2_web_service_cli() -> None:
 
     # Test commands directly (in real usage, cli.run() would handle this)
     deploy_result = deploy_service(
-        "https://api.example.com", "8080", "REDACTED_LDAP_BIND_PASSWORD@example.com",
+        "https://api.example.com",
+        "8080",
+        "REDACTED_LDAP_BIND_PASSWORD@example.com",
     )
     if deploy_result.success:
         flext_cli_format_output(deploy_result.unwrap(), "json")
@@ -106,7 +110,10 @@ def example_3_database_management() -> None:
     cli._validator = db_validator
 
     def connect_database(
-        host: str, port: str, database: str, username: str,
+        host: str,
+        port: str,
+        database: str,
+        username: str,
     ) -> FlextResult[dict[str, str]]:
         """Connect to database with validation."""
         connection_data = {
@@ -197,7 +204,9 @@ def example_4_advanced_features() -> None:
     cli.set_error_handler(custom_error_handler)
 
     def process_user_data(
-        email: str, token: str, ipv6_addr: str,
+        email: str,
+        token: str,
+        ipv6_addr: str,
     ) -> FlextResult[dict[str, Any]]:
         """Process user data with comprehensive validation."""
         user_data = {"email": email, "jwt": token, "ipv6": ipv6_addr}

@@ -81,7 +81,10 @@ class TestAsyncCommand:
         # Decorator returns object type - test directly without type narrowing
         assert callable(documented_async_function)
 
-        if hasattr(documented_async_function, "__name__") and documented_async_function.__name__ != "documented_async_function":
+        if (
+            hasattr(documented_async_function, "__name__")
+            and documented_async_function.__name__ != "documented_async_function"
+        ):
             msg = f"Expected {'documented_async_function'}, got {documented_async_function.__name__}"
             raise AssertionError(msg)
         if hasattr(documented_async_function, "__doc__"):
@@ -212,8 +215,10 @@ class TestMeasureTime:
 
     def test_measure_time_with_output(self) -> None:
         """Test measure_time decorator with output enabled."""
-        with patch("flext_cli.core.decorators.time.time") as mock_time, \
-             patch("rich.console.Console.print") as mock_print:
+        with (
+            patch("flext_cli.core.decorators.time.time") as mock_time,
+            patch("rich.console.Console.print") as mock_print,
+        ):
             mock_time.side_effect = [1000.0, 1002.5]  # 2.5 seconds elapsed
 
             @measure_time(show_in_output=True)
@@ -229,8 +234,10 @@ class TestMeasureTime:
 
     def test_measure_time_without_output(self) -> None:
         """Test measure_time decorator with output disabled."""
-        with patch("flext_cli.core.decorators.time.time") as mock_time, \
-             patch("rich.console.Console.print") as mock_print:
+        with (
+            patch("flext_cli.core.decorators.time.time") as mock_time,
+            patch("rich.console.Console.print") as mock_print,
+        ):
             mock_time.side_effect = [1000.0, 1001.0]  # 1 second elapsed
 
             @measure_time(show_in_output=False)
@@ -250,7 +257,9 @@ class TestMeasureTime:
             mock_time.side_effect = [1000.0, 1001.0]
 
             @measure_time()
-            def function_with_args(arg1: str, arg2: int, kwarg1: str = "default") -> str:
+            def function_with_args(
+                arg1: str, arg2: int, kwarg1: str = "default"
+            ) -> str:
                 return f"{arg1}-{arg2}-{kwarg1}"
 
             result = function_with_args("test", 42, kwarg1="custom")
@@ -378,6 +387,7 @@ class TestValidateConfig:
     def test_validate_config_no_context(self) -> None:
         """Test validate_config when no config available."""
         with patch("rich.console.Console.print") as mock_print:
+
             @validate_config(["api_url"])
             def function_requiring_config() -> str:
                 return "config validated"
@@ -427,7 +437,9 @@ class TestWithSpinner:
             if result != "calculation done":
                 msg = f"Expected {'calculation done'}, got {result}"
                 raise AssertionError(msg)
-            mock_status.assert_called_once_with("Calculating results...", spinner="dots")
+            mock_status.assert_called_once_with(
+                "Calculating results...", spinner="dots"
+            )
 
     def test_with_spinner_exception_handling(self) -> None:
         """Test with_spinner decorator with exception handling."""
@@ -452,8 +464,10 @@ class TestDecoratorCombinations:
 
     def test_multiple_decorators(self) -> None:
         """Test combining multiple decorators."""
-        with patch("rich.console.Console.input") as mock_input, \
-             patch("flext_cli.core.decorators.time.time") as mock_time:
+        with (
+            patch("rich.console.Console.input") as mock_input,
+            patch("flext_cli.core.decorators.time.time") as mock_time,
+        ):
             mock_input.return_value = "y"
             mock_time.side_effect = [1000.0, 1001.0]
 

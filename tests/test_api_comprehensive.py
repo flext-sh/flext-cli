@@ -37,7 +37,7 @@ class TestFlextCliFormat:
             formatted = result.unwrap()
             assert isinstance(formatted, str)
             if "test" not in formatted:
-                msg = f"Expected {"test"} in {formatted}"
+                msg = f"Expected {'test'} in {formatted}"
                 raise AssertionError(msg)
             assert "data" in formatted
 
@@ -153,7 +153,9 @@ class TestFlextCliExport:
 
     def test_flext_cli_export_json(self) -> None:
         """Test export in JSON format."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".json"
+        ) as f:
             temp_path = f.name
 
         try:
@@ -164,7 +166,9 @@ class TestFlextCliExport:
 
     def test_flext_cli_export_yaml(self) -> None:
         """Test export in YAML format."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".yaml") as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".yaml"
+        ) as f:
             temp_path = f.name
 
         try:
@@ -175,12 +179,16 @@ class TestFlextCliExport:
 
     def test_flext_cli_export_csv(self) -> None:
         """Test export in CSV format."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".csv") as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".csv"
+        ) as f:
             temp_path = f.name
 
         try:
             result = flext_cli_export(
-                [{"name": "test", "value": 123}], temp_path, "csv",
+                [{"name": "test", "value": 123}],
+                temp_path,
+                "csv",
             )
             assert isinstance(result, FlextResult)
         finally:
@@ -194,7 +202,9 @@ class TestFlextCliExport:
 
     def test_flext_cli_export_empty_data(self) -> None:
         """Test export with empty data."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".json"
+        ) as f:
             temp_path = f.name
 
         try:
@@ -247,7 +257,7 @@ class TestFlextCliUnwrapFunctions:
         success_result = FlextResult.ok("test_value")
         result = flext_cli_unwrap_or_default(success_result, "default_value")
         if result != "test_value":
-            msg = f"Expected {"test_value"}, got {result}"
+            msg = f"Expected {'test_value'}, got {result}"
             raise AssertionError(msg)
 
     def test_flext_cli_unwrap_or_default_failure(self) -> None:
@@ -255,7 +265,7 @@ class TestFlextCliUnwrapFunctions:
         failure_result = FlextResult.fail("error message")
         result = flext_cli_unwrap_or_default(failure_result, "default_value")
         if result != "default_value":
-            msg = f"Expected {"default_value"}, got {result}"
+            msg = f"Expected {'default_value'}, got {result}"
             raise AssertionError(msg)
 
     def test_flext_cli_unwrap_or_none_exists(self) -> None:
@@ -267,7 +277,7 @@ class TestFlextCliUnwrapFunctions:
         success_result = FlextResult.ok("test_value")
         result = flext_cli_unwrap_or_none(success_result)
         if result != "test_value":
-            msg = f"Expected {"test_value"}, got {result}"
+            msg = f"Expected {'test_value'}, got {result}"
             raise AssertionError(msg)
 
     def test_flext_cli_unwrap_or_none_failure(self) -> None:
@@ -304,7 +314,9 @@ class TestApiIntegration:
         assert isinstance(format_result, FlextResult)
 
         # Export data
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".json"
+        ) as f:
             temp_path = f.name
 
         try:
@@ -352,8 +364,7 @@ class TestApiIntegration:
         failure_unwrapped = flext_cli_unwrap_or_default(failure_result, "default")
 
         if success_unwrapped != "success_value":
-
-            msg = f"Expected {"success_value"}, got {success_unwrapped}"
+            msg = f"Expected {'success_value'}, got {success_unwrapped}"
             raise AssertionError(msg)
         assert failure_unwrapped == "default"
 
@@ -362,8 +373,7 @@ class TestApiIntegration:
         failure_none = flext_cli_unwrap_or_none(failure_result)
 
         if success_none != "success_value":
-
-            msg = f"Expected {"success_value"}, got {success_none}"
+            msg = f"Expected {'success_value'}, got {success_none}"
             raise AssertionError(msg)
         assert failure_none is None
 
@@ -422,7 +432,9 @@ class TestApiErrorHandling:
 
             # Test with invalid output directory (read-only)
             try:
-                result = flext_cli_batch_export({"test": "data"}, "/nonexistent/dir", "json")
+                result = flext_cli_batch_export(
+                    {"test": "data"}, "/nonexistent/dir", "json"
+                )
                 assert isinstance(result, FlextResult)
             except PermissionError:
                 pass  # Expected for invalid directories

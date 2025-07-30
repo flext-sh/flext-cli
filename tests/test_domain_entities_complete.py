@@ -546,7 +546,9 @@ class TestCLISession:
         last_activity = started_at - timedelta(minutes=1)  # Before start
 
         if last_activity < started_at:
-            with pytest.raises(ValueError, match="Last activity cannot be before session start"):
+            with pytest.raises(
+                ValueError, match="Last activity cannot be before session start"
+            ):
                 raise ValueError("Last activity cannot be before session start")  # noqa: EM101
 
     def test_session_validate_domain_rules_invalid_current_command(self) -> None:
@@ -555,7 +557,9 @@ class TestCLISession:
         current_command = "cmd3"  # Not in executed commands
 
         if current_command is not None and current_command not in commands_executed:
-            with pytest.raises(ValueError, match="Current command must be in executed commands list"):
+            with pytest.raises(
+                ValueError, match="Current command must be in executed commands list"
+            ):
                 raise ValueError("Current command must be in executed commands list")  # noqa: EM101
 
 
@@ -674,7 +678,9 @@ class TestCLIPlugin:
 
         for entry_point in invalid_entry_points:
             if not entry_point or not entry_point.strip():
-                with pytest.raises(ValueError, match="Plugin entry point cannot be empty"):
+                with pytest.raises(
+                    ValueError, match="Plugin entry point cannot be empty"
+                ):
                     raise ValueError("Plugin entry point cannot be empty")  # noqa: EM101
 
     def test_plugin_validate_domain_rules_invalid_version(self) -> None:

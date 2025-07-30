@@ -37,7 +37,9 @@ class TestTokenPaths:
 
             result = get_token_path()
             if result != Path("/test/token.txt"):
-                raise AssertionError(f"Expected {Path("/test/token.txt")}, got {result}")
+                raise AssertionError(
+                    f"Expected {Path('/test/token.txt')}, got {result}"
+                )
             mock_get_config.assert_called_once()
 
     def test_get_refresh_token_path(self) -> None:
@@ -49,7 +51,9 @@ class TestTokenPaths:
 
             result = get_refresh_token_path()
             if result != Path("/test/refresh_token.txt"):
-                raise AssertionError(f"Expected {Path("/test/refresh_token.txt")}, got {result}")
+                raise AssertionError(
+                    f"Expected {Path('/test/refresh_token.txt')}, got {result}"
+                )
             mock_get_config.assert_called_once()
 
 
@@ -68,12 +72,16 @@ class TestSaveAuthToken:
                 assert result.unwrap() is None
                 assert token_path.exists()
                 if token_path.read_text() != "test-token-123":
-                    raise AssertionError(f"Expected {"test-token-123"}, got {token_path.read_text()}")
+                    raise AssertionError(
+                        f"Expected {'test-token-123'}, got {token_path.read_text()}"
+                    )
 
                 # Check file permissions
                 stat = token_path.stat()
                 if oct(stat.st_mode)[-3:] != "600":
-                    raise AssertionError(f"Expected {"600"}, got {oct(stat.st_mode)[-3:]}")
+                    raise AssertionError(
+                        f"Expected {'600'}, got {oct(stat.st_mode)[-3:]}"
+                    )
 
     def test_save_auth_token_creates_parent_directories(self) -> None:
         """Test that parent directories are created."""
@@ -86,7 +94,9 @@ class TestSaveAuthToken:
                 assert result.is_success
                 assert token_path.exists()
                 if token_path.read_text() != "test-token-456":
-                    raise AssertionError(f"Expected {"test-token-456"}, got {token_path.read_text()}")
+                    raise AssertionError(
+                        f"Expected {'test-token-456'}, got {token_path.read_text()}"
+                    )
 
     def test_save_auth_token_permission_error(self) -> None:
         """Test handling permission error when saving."""
@@ -98,7 +108,9 @@ class TestSaveAuthToken:
 
             assert result.is_failure
             if "Failed to save auth token" not in result.error:
-                raise AssertionError(f"Expected {"Failed to save auth token"} in {result.error}")
+                raise AssertionError(
+                    f"Expected {'Failed to save auth token'} in {result.error}"
+                )
             assert "Permission denied" in result.error
 
     def test_save_auth_token_write_error(self) -> None:
@@ -111,7 +123,9 @@ class TestSaveAuthToken:
 
             assert result.is_failure
             if "Failed to save auth token" not in result.error:
-                raise AssertionError(f"Expected {"Failed to save auth token"} in {result.error}")
+                raise AssertionError(
+                    f"Expected {'Failed to save auth token'} in {result.error}"
+                )
             assert "Disk full" in result.error
 
     def test_save_auth_token_chmod_error(self) -> None:
@@ -126,7 +140,9 @@ class TestSaveAuthToken:
 
             assert result.is_failure
             if "Failed to save auth token" not in result.error:
-                raise AssertionError(f"Expected {"Failed to save auth token"} in {result.error}")
+                raise AssertionError(
+                    f"Expected {'Failed to save auth token'} in {result.error}"
+                )
             assert "chmod failed" in result.error
 
 
@@ -148,12 +164,16 @@ class TestSaveRefreshToken:
                 assert result.unwrap() is None
                 assert refresh_token_path.exists()
                 if refresh_token_path.read_text() != "refresh-token-789":
-                    raise AssertionError(f"Expected {"refresh-token-789"}, got {refresh_token_path.read_text()}")
+                    raise AssertionError(
+                        f"Expected {'refresh-token-789'}, got {refresh_token_path.read_text()}"
+                    )
 
                 # Check file permissions
                 stat = refresh_token_path.stat()
                 if oct(stat.st_mode)[-3:] != "600":
-                    raise AssertionError(f"Expected {"600"}, got {oct(stat.st_mode)[-3:]}")
+                    raise AssertionError(
+                        f"Expected {'600'}, got {oct(stat.st_mode)[-3:]}"
+                    )
 
     def test_save_refresh_token_creates_parent_directories(self) -> None:
         """Test that parent directories are created."""
@@ -171,7 +191,9 @@ class TestSaveRefreshToken:
                 assert result.is_success
                 assert refresh_token_path.exists()
                 if refresh_token_path.read_text() != "refresh-token-abc":
-                    raise AssertionError(f"Expected {"refresh-token-abc"}, got {refresh_token_path.read_text()}")
+                    raise AssertionError(
+                        f"Expected {'refresh-token-abc'}, got {refresh_token_path.read_text()}"
+                    )
 
     def test_save_refresh_token_permission_error(self) -> None:
         """Test handling permission error when saving refresh token."""
@@ -185,7 +207,9 @@ class TestSaveRefreshToken:
 
             assert result.is_failure
             if "Failed to save refresh token" not in result.error:
-                raise AssertionError(f"Expected {"Failed to save refresh token"} in {result.error}")
+                raise AssertionError(
+                    f"Expected {'Failed to save refresh token'} in {result.error}"
+                )
             assert "Access denied" in result.error
 
     def test_save_refresh_token_write_error(self) -> None:
@@ -200,7 +224,9 @@ class TestSaveRefreshToken:
 
             assert result.is_failure
             if "Failed to save refresh token" not in result.error:
-                raise AssertionError(f"Expected {"Failed to save refresh token"} in {result.error}")
+                raise AssertionError(
+                    f"Expected {'Failed to save refresh token'} in {result.error}"
+                )
             assert "Write failed" in result.error
 
 
@@ -239,8 +265,7 @@ class TestGetAuthToken:
                 result = get_auth_token()
 
                 if result != "":
-
-                    raise AssertionError(f"Expected {""}, got {result}")
+                    raise AssertionError(f"Expected {''}, got {result}")
 
     def test_get_auth_token_whitespace_only(self) -> None:
         """Test getting auth token from file with only whitespace."""
@@ -252,8 +277,7 @@ class TestGetAuthToken:
                 result = get_auth_token()
 
                 if result != "":
-
-                    raise AssertionError(f"Expected {""}, got {result}")
+                    raise AssertionError(f"Expected {''}, got {result}")
 
 
 class TestGetRefreshToken:
@@ -300,8 +324,7 @@ class TestGetRefreshToken:
                 result = get_refresh_token()
 
                 if result != "":
-
-                    raise AssertionError(f"Expected {""}, got {result}")
+                    raise AssertionError(f"Expected {''}, got {result}")
 
 
 class TestClearAuthTokens:
@@ -324,12 +347,12 @@ class TestClearAuthTokens:
                     return_value=refresh_token_path,
                 ),
             ):
-                    result = clear_auth_tokens()
+                result = clear_auth_tokens()
 
-                    assert result.is_success
-                    assert result.unwrap() is None
-                    assert not token_path.exists()
-                    assert not refresh_token_path.exists()
+                assert result.is_success
+                assert result.unwrap() is None
+                assert not token_path.exists()
+                assert not refresh_token_path.exists()
 
     def test_clear_auth_tokens_only_token_exists(self) -> None:
         """Test clearing tokens when only auth token exists."""
@@ -347,11 +370,11 @@ class TestClearAuthTokens:
                     return_value=refresh_token_path,
                 ),
             ):
-                    result = clear_auth_tokens()
+                result = clear_auth_tokens()
 
-                    assert result.is_success
-                    assert not token_path.exists()
-                    assert not refresh_token_path.exists()  # Still doesn't exist
+                assert result.is_success
+                assert not token_path.exists()
+                assert not refresh_token_path.exists()  # Still doesn't exist
 
     def test_clear_auth_tokens_only_refresh_exists(self) -> None:
         """Test clearing tokens when only refresh token exists."""
@@ -369,11 +392,11 @@ class TestClearAuthTokens:
                     return_value=refresh_token_path,
                 ),
             ):
-                    result = clear_auth_tokens()
+                result = clear_auth_tokens()
 
-                    assert result.is_success
-                    assert not token_path.exists()  # Still doesn't exist
-                    assert not refresh_token_path.exists()
+                assert result.is_success
+                assert not token_path.exists()  # Still doesn't exist
+                assert not refresh_token_path.exists()
 
     def test_clear_auth_tokens_neither_exists(self) -> None:
         """Test clearing tokens when neither file exists."""
@@ -388,11 +411,11 @@ class TestClearAuthTokens:
                     return_value=refresh_token_path,
                 ),
             ):
-                    result = clear_auth_tokens()
+                result = clear_auth_tokens()
 
-                    assert result.is_success
-                    assert not token_path.exists()
-                    assert not refresh_token_path.exists()
+                assert result.is_success
+                assert not token_path.exists()
+                assert not refresh_token_path.exists()
 
     def test_clear_auth_tokens_permission_error(self) -> None:
         """Test handling permission error when clearing tokens."""
@@ -408,12 +431,14 @@ class TestClearAuthTokens:
                 return_value=mock_refresh_path,
             ),
         ):
-                result = clear_auth_tokens()
+            result = clear_auth_tokens()
 
-                assert result.is_failure
-                if "Failed to clear auth tokens" not in result.error:
-                    raise AssertionError(f"Expected {"Failed to clear auth tokens"} in {result.error}")
-                assert "Cannot delete" in result.error
+            assert result.is_failure
+            if "Failed to clear auth tokens" not in result.error:
+                raise AssertionError(
+                    f"Expected {'Failed to clear auth tokens'} in {result.error}"
+                )
+            assert "Cannot delete" in result.error
 
     def test_clear_auth_tokens_unlink_error_refresh(self) -> None:
         """Test handling unlink error on refresh token."""
@@ -430,12 +455,14 @@ class TestClearAuthTokens:
                 return_value=mock_refresh_path,
             ),
         ):
-                result = clear_auth_tokens()
+            result = clear_auth_tokens()
 
-                assert result.is_failure
-                if "Failed to clear auth tokens" not in result.error:
-                    raise AssertionError(f"Expected {"Failed to clear auth tokens"} in {result.error}")
-                assert "Unlink failed" in result.error
+            assert result.is_failure
+            if "Failed to clear auth tokens" not in result.error:
+                raise AssertionError(
+                    f"Expected {'Failed to clear auth tokens'} in {result.error}"
+                )
+            assert "Unlink failed" in result.error
 
 
 class TestIsAuthenticated:
@@ -476,9 +503,9 @@ class TestShouldAutoRefresh:
                 "flext_cli.utils.auth.get_refresh_token", return_value="refresh-token"
             ),
         ):
-                result = should_auto_refresh()
-                if not (result):
-                    raise AssertionError(f"Expected True, got {result}")
+            result = should_auto_refresh()
+            if not (result):
+                raise AssertionError(f"Expected True, got {result}")
 
     def test_should_auto_refresh_enabled_without_token(self) -> None:
         """Test auto refresh when enabled but no refresh token."""
@@ -504,9 +531,9 @@ class TestShouldAutoRefresh:
                 "flext_cli.utils.auth.get_refresh_token", return_value="refresh-token"
             ),
         ):
-                result = should_auto_refresh()
-                if result:
-                    raise AssertionError(f"Expected False, got {result}")
+            result = should_auto_refresh()
+            if result:
+                raise AssertionError(f"Expected False, got {result}")
 
     def test_should_auto_refresh_disabled_without_token(self) -> None:
         """Test auto refresh when disabled and no refresh token."""
@@ -538,30 +565,32 @@ class TestAuthIntegration:
                     return_value=refresh_token_path,
                 ),
             ):
-                    # Initially not authenticated
-                    assert not is_authenticated()
+                # Initially not authenticated
+                assert not is_authenticated()
 
-                    # Save tokens
-                    auth_result = save_auth_token("my-auth-token")
-                    refresh_result = save_refresh_token("my-refresh-token")
+                # Save tokens
+                auth_result = save_auth_token("my-auth-token")
+                refresh_result = save_refresh_token("my-refresh-token")
 
-                    assert auth_result.is_success
-                    assert refresh_result.is_success
+                assert auth_result.is_success
+                assert refresh_result.is_success
 
-                    # Now authenticated
-                    assert is_authenticated()
-                    if get_auth_token() != "my-auth-token":
-                        raise AssertionError(f"Expected {"my-auth-token"}, got {get_auth_token()}")
-                    assert get_refresh_token() == "my-refresh-token"
+                # Now authenticated
+                assert is_authenticated()
+                if get_auth_token() != "my-auth-token":
+                    raise AssertionError(
+                        f"Expected {'my-auth-token'}, got {get_auth_token()}"
+                    )
+                assert get_refresh_token() == "my-refresh-token"
 
-                    # Clear tokens
-                    clear_result = clear_auth_tokens()
-                    assert clear_result.is_success
+                # Clear tokens
+                clear_result = clear_auth_tokens()
+                assert clear_result.is_success
 
-                    # No longer authenticated
-                    assert not is_authenticated()
-                    assert get_auth_token() is None
-                    assert get_refresh_token() is None
+                # No longer authenticated
+                assert not is_authenticated()
+                assert get_auth_token() is None
+                assert get_refresh_token() is None
 
     def test_auth_workflow_with_config(self) -> None:
         """Test auth workflow with configuration."""
@@ -599,6 +628,7 @@ class TestAuthIntegration:
         with patch("flext_cli.utils.auth.get_token_path", return_value=mock_path):
             # Should not crash, but won't return valid token - DRY using contextlib.suppress
             import contextlib
+
             with contextlib.suppress(UnicodeDecodeError):
                 get_auth_token()
                 # If exception not raised, that's fine too

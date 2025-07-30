@@ -16,7 +16,7 @@ The project follows Clean Architecture principles with flext-core integration:
 src/flext_cli/
 ├── domain/                    # Core business logic (innermost layer)
 │   ├── entities.py           # Domain entities (CLICommand, CLIConfig, CLISession, CLIPlugin)
-│   ├── cli_context.py        # CLI context value objects  
+│   ├── cli_context.py        # CLI context value objects
 │   └── cli_services.py       # Domain services
 ├── application/               # Application orchestration layer
 │   └── commands.py           # Command handlers
@@ -56,6 +56,7 @@ src/flext_cli/
 ## Development Commands
 
 ### Essential Quality Gates
+
 ```bash
 # Complete validation pipeline (run before commits)
 make validate                 # lint + type-check + security + test (90% coverage)
@@ -71,6 +72,7 @@ make security                # Bandit + pip-audit + secrets scan
 ```
 
 ### Development Setup
+
 ```bash
 # Full development environment
 make setup                   # Complete setup with pre-commit hooks
@@ -78,7 +80,7 @@ make install                 # Install dependencies with Poetry
 make dev-install             # Development mode with all extras
 
 # CLI-specific operations
-make install-cli             # Install CLI globally with pip  
+make install-cli             # Install CLI globally with pip
 make test-cli                # Test CLI commands
 make cli-smoke-test          # Run smoke tests
 make cli-validate            # Validate CLI implementation
@@ -87,6 +89,7 @@ make build-docs              # Build CLI documentation
 ```
 
 ### Testing Commands
+
 ```bash
 # Test execution
 make test                    # Full test suite with 90% coverage requirement
@@ -95,7 +98,7 @@ make coverage-html           # Generate and open HTML coverage report
 
 # Individual test types (use pytest markers)
 pytest -m unit               # Unit tests only
-pytest -m integration        # Integration tests only  
+pytest -m integration        # Integration tests only
 pytest -m "not slow"         # Exclude slow tests
 
 # Test specific modules
@@ -181,7 +184,7 @@ def list(ctx: click.Context, output: str) -> None:
     """List all pipelines."""
     console: Console = ctx.obj["console"]
     config = ctx.obj["config"]
-    
+
     # Use Rich for beautiful output
     console.print("[green]Available Pipelines:[/green]")
 ```
@@ -193,7 +196,7 @@ Available commands as currently implemented:
 ```python
 # Commands registered in cli.py
 cli.add_command(auth.auth)           # Authentication commands
-cli.add_command(config.config)       # Configuration commands  
+cli.add_command(config.config)       # Configuration commands
 cli.add_command(debug.debug_cmd)     # Debug commands
 
 # Built-in commands
@@ -227,6 +230,7 @@ for item in track(items, description="Processing..."):
 ## Testing Strategy
 
 ### Domain Entity Testing
+
 ```python
 from flext_cli.domain.entities import CLICommand, CommandStatus
 
@@ -236,18 +240,19 @@ def test_command_lifecycle():
         command_line="echo hello",
         command_type=CommandType.SYSTEM
     )
-    
+
     # Test execution lifecycle
     command.start_execution()
     assert command.command_status == CommandStatus.RUNNING
     assert command.started_at is not None
-    
+
     command.complete_execution(exit_code=0, stdout="hello")
     assert command.is_successful
     assert command.command_status == CommandStatus.COMPLETED
 ```
 
 ### CLI Command Testing
+
 ```python
 from click.testing import CliRunner
 from flext_cli.cli import cli
@@ -265,6 +270,7 @@ def test_pipeline_list():
 ```
 
 ### Service Testing with ServiceResult
+
 ```python
 from flext_cli.simple_api import setup_cli
 from flext_cli.utils.config import CLISettings
@@ -279,15 +285,19 @@ def test_cli_setup():
 ## Configuration Management
 
 ### CLI Entry Points
+
 The project provides the main CLI entry point:
+
 - `flext`: Main CLI command (`flext --help`)
 
 ### Configuration Files
+
 - Project config: `config/dev.yaml`, `config/prod.yaml`
 - User config: `~/.flx/config.yaml` (future)
 - Environment variables override file settings
 
 ### Environment Variables
+
 ```bash
 export FLEXT_CLI_DEV_MODE=true
 export FLEXT_CLI_LOG_LEVEL=debug
@@ -299,6 +309,7 @@ export FLX_DEBUG=true
 ## Quality Standards
 
 ### Mandatory Requirements
+
 - **Zero lint violations**: Ruff with ALL rules enabled
 - **Zero type errors**: MyPy strict mode (no `Any` types)
 - **90% test coverage**: Enforced by pytest-cov
@@ -306,6 +317,7 @@ export FLX_DEBUG=true
 - **Pre-commit hooks**: Automatic quality enforcement
 
 ### Code Style
+
 - **Python 3.13+**: Modern syntax and type hints
 - **Clean Architecture**: Strict layer separation
 - **Domain-Driven Design**: Rich domain entities
@@ -314,20 +326,23 @@ export FLX_DEBUG=true
 ## Dependencies
 
 ### Core Dependencies
+
 - **flext-core**: Foundation library with FlextEntity, FlextResult patterns
-- **flext-observability**: Monitoring and metrics  
+- **flext-observability**: Monitoring and metrics
 - **Click 8.2+**: CLI framework with groups and commands
 - **Rich 14.0+**: Terminal UI components (tables, progress, panels)
 - **Pydantic 2.11+**: Data validation and settings management
 - **httpx**: HTTP client for API communication
 - **structlog**: Structured logging
 
-### FLEXT Ecosystem Dependencies  
+### FLEXT Ecosystem Dependencies
+
 - **client-a-oud-mig**: client-a project integration (local dependency)
 - **client-b-meltano-native**: client-b project integration (local dependency)
 - **flext-meltano**: Meltano orchestration (local dependency)
 
 ### Quality & Development Tools
+
 - **MyPy**: Strict type checking (zero errors tolerated)
 - **Ruff**: Linting with ALL rules enabled
 - **pytest**: Testing with 90% coverage requirement
@@ -337,6 +352,7 @@ export FLX_DEBUG=true
 ## Common Workflows
 
 ### Adding New CLI Commands
+
 1. Create command module in `commands/` or `commands/projects/`
 2. Use Click decorators with Rich output formatting
 3. Register command in `cli.py` main group
@@ -344,6 +360,7 @@ export FLX_DEBUG=true
 5. Run `make validate` before committing
 
 Example new command:
+
 ```python
 # commands/new_feature.py
 import click
@@ -367,6 +384,7 @@ cli.add_command(new_feature.new_feature)
 ```
 
 ### Extending Domain Entities
+
 1. Add new entities in `domain/entities.py` using flext-core patterns
 2. Follow `DomainEntity` base class with proper field validation
 3. Add domain events for entity lifecycle changes
@@ -374,6 +392,7 @@ cli.add_command(new_feature.new_feature)
 5. Consider adding to service container if needed
 
 ### Adding New Command Groups
+
 1. Create new command module in `commands/`
 2. Follow existing patterns from `auth.py`, `config.py`, `debug.py`
 3. Use Click groups and Rich console for output
@@ -381,6 +400,7 @@ cli.add_command(new_feature.new_feature)
 5. Add comprehensive tests with CliRunner
 
 ### Testing Commands
+
 ```bash
 # Test specific command module
 pytest tests/test_auth_commands.py -v
@@ -388,7 +408,7 @@ pytest tests/test_debug_commands.py -v
 
 # Test with actual CLI
 poetry run flext auth --help
-poetry run flext config --help  
+poetry run flext config --help
 poetry run flext debug --help
 poetry run flext --version
 
@@ -404,13 +424,14 @@ The CLI currently provides these command groups:
 ```bash
 flext --help                     # Main CLI help
 ├── auth                        # Authentication commands
-├── config                      # Configuration management  
+├── config                      # Configuration management
 ├── debug                       # Debug and diagnostic tools
 ├── interactive                 # Interactive mode (placeholder)
 └── version                     # Version information
 ```
 
 Entry point is defined in `pyproject.toml`:
+
 ```toml
 [project.scripts]
 flext = "flext_cli.cli:main"
@@ -419,6 +440,7 @@ flext = "flext_cli.cli:main"
 ## CLI Development Patterns
 
 ### Adding New Commands
+
 Follow the established pattern using Click groups:
 
 ```python
@@ -446,38 +468,46 @@ cli.add_command(new_feature.new_feature)
 ## Key Files Reference
 
 ### Core Entry Points
+
 - `src/flext_cli/cli.py:54` - Main CLI group definition with global options
 - `src/flext_cli/cli.py:132` - Main entry point function with error handling
 
 ### Domain Layer
+
 - `src/flext_cli/domain/entities.py:77` - CLICommand entity with execution tracking
 - `src/flext_cli/domain/cli_context.py` - CLI context value objects
 - `src/flext_cli/domain/cli_services.py` - Domain services
 
 ### Command Implementations
+
 - `src/flext_cli/commands/auth.py` - Authentication commands
 - `src/flext_cli/commands/config.py` - Configuration management
 - `src/flext_cli/commands/debug.py` - Debug and diagnostic tools
 
 ### Core Utilities
+
 - `src/flext_cli/core/decorators.py` - CLI decorators and patterns
 - `src/flext_cli/core/formatters.py` - Output formatting utilities
 - `src/flext_cli/utils/output.py` - Rich console output utilities
 
 ### Configuration & Infrastructure
+
 - `src/flext_cli/infrastructure/container.py` - Dependency injection container
 - `src/flext_cli/utils/config.py` - Configuration utilities and settings
 
 ## TODO: GAPS DE ARQUITETURA IDENTIFICADOS - PRIORIDADE ALTA
 
 ### 🚨 GAP 1: Funcionalidade CLI Incompleta (Apenas 3 Commands)
+
 **Status**: CRÍTICO - CLI tem apenas auth, config, debug commands
 **Problema**:
+
 - CLI menciona pipeline management mas não implementado
 - Ecosystem services (32 projetos) não têm CLI commands
 - Commands críticos missing: pipeline, deploy, service, data, monitor
 
 **TODO**:
+
 - [ ] Implementar pipeline management commands (list, start, stop, status)
 - [ ] Criar service management commands para ecosystem services
 - [ ] Adicionar data management commands (taps, targets, dbt)
@@ -485,40 +515,49 @@ cli.add_command(new_feature.new_feature)
 - [ ] Criar deployment/orchestration commands
 
 ### 🚨 GAP 2: Integração com Ecosystem Services Missing
+
 **Status**: ALTO - CLI não integra com FlexCore, FLEXT Service, etc
 **Problema**:
+
 - HTTP client existe mas não integra com ecosystem services
 - Não tem commands para FlexCore (Go) port 8080
 - Não tem commands para FLEXT Service (Go/Python) port 8081
 - Service discovery não implementado
 
 **TODO**:
+
 - [ ] Implementar integration com FlexCore (Go) service
 - [ ] Criar commands para FLEXT Service management
 - [ ] Implementar service discovery patterns
 - [ ] Adicionar health check commands para todos os services
 
 ### 🚨 GAP 3: Interactive Mode Placeholder
+
 **Status**: ALTO - Interactive mode mencionado mas não implementado
 **Problema**:
+
 - Interactive command é placeholder
 - Não tem REPL ou interactive shell
 - Tab completion não implementado
 
 **TODO**:
+
 - [ ] Implementar interactive mode com Rich-based REPL
 - [ ] Adicionar tab completion para commands e options
 - [ ] Criar context-aware help system
 - [ ] Implementar command history e recall
 
 ### 🚨 GAP 4: Configuration Profile System Incomplete
+
 **Status**: ALTO - Profile system mencionado mas não completo
 **Problema**:
+
 - Profile option existe mas profile loading não implementado
 - Multi-environment configuration não funcional
-- User config (~/.flx/config.yaml) não implementado
+- User config (~/.flx/config.YAML) não implementado
 
 **TODO**:
+
 - [ ] Implementar profile loading system
 - [ ] Criar user configuration directory e files
 - [ ] Implementar environment-specific profiles

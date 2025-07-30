@@ -135,16 +135,20 @@ class CLIExecutionContext(FlextValueObject):
 
     command_name: str = Field(..., description="Name of the command being executed")
     user_id: str | None = Field(
-        default=None, description="User ID executing the command",
+        default=None,
+        description="User ID executing the command",
     )
     session_id: str | None = Field(
-        default=None, description="Session ID for command execution",
+        default=None,
+        description="Session ID for command execution",
     )
     started_at: str | None = Field(
-        default=None, description="Execution start timestamp",
+        default=None,
+        description="Execution start timestamp",
     )
     context_data: dict[str, object] = Field(
-        default_factory=dict, description="Additional context data",
+        default_factory=dict,
+        description="Additional context data",
     )
 
     def validate_domain_rules(self) -> FlextResult[None]:

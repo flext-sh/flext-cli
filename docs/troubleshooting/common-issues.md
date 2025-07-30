@@ -7,12 +7,14 @@ Este guia cobre os problemas mais comuns encontrados ao usar o FLEXT CLI e suas 
 ### Poetry Installation Problems
 
 **Problem**: Poetry não encontrado ou versão incorreta
+
 ```bash
 $ poetry --version
 poetry: command not found
 ```
 
 **Solution**:
+
 ```bash
 # Install Poetry
 curl -sSL https://install.python-poetry.org | python3 -
@@ -27,6 +29,7 @@ poetry --version
 ### Python Version Issues
 
 **Problem**: Python 3.13+ não encontrado
+
 ```bash
 $ python --version
 Python 3.12.0
@@ -35,6 +38,7 @@ Python 3.12.0
 **Solutions**:
 
 Using pyenv:
+
 ```bash
 # Install Python 3.13
 pyenv install 3.13.0
@@ -45,6 +49,7 @@ python --version
 ```
 
 Using system package manager:
+
 ```bash
 # Ubuntu/Debian
 sudo apt update
@@ -57,6 +62,7 @@ brew install python@3.13
 ### Dependency Installation Failures
 
 **Problem**: Poetry install falha com conflitos de dependência
+
 ```bash
 $ poetry install
 The conflict is caused by:
@@ -65,6 +71,7 @@ The conflict is caused by:
 ```
 
 **Solutions**:
+
 ```bash
 # Clear Poetry cache
 poetry cache clear pypi --all
@@ -85,11 +92,13 @@ poetry install
 ### Circular Import Errors
 
 **Problem**: Circular import quando importando flext-core
+
 ```bash
 ImportError: cannot import name 'FlextOperationError' from partially initialized module 'flext_core.exceptions'
 ```
 
 **Solutions**:
+
 ```bash
 # Verify flext-core installation
 cd ../flext-core
@@ -106,11 +115,13 @@ poetry install --sync
 ### Module Not Found Errors
 
 **Problem**: Módulos não encontrados durante execução
+
 ```bash
 ModuleNotFoundError: No module named 'flext_cli'
 ```
 
 **Solutions**:
+
 ```bash
 # Install in development mode
 poetry install -e .
@@ -131,12 +142,14 @@ python -c "import flext_cli; print('OK')"
 ### Command Not Found
 
 **Problem**: Comando `flext` não encontrado após instalação
+
 ```bash
 $ flext --help
 flext: command not found
 ```
 
 **Solutions**:
+
 ```bash
 # Use Poetry to run
 poetry run flext --help
@@ -156,11 +169,13 @@ flext --version
 ### Permission Errors
 
 **Problem**: Problemas de permissão ao executar comandos
+
 ```bash
 PermissionError: [Errno 13] Permission denied: '/usr/local/bin/flext'
 ```
 
 **Solutions**:
+
 ```bash
 # Use Poetry run instead of global install
 poetry run flext --help
@@ -177,11 +192,13 @@ sudo chmod +x /usr/local/bin/flext
 ### Configuration File Not Found
 
 **Problem**: Arquivo de configuração não encontrado
+
 ```bash
 Configuration file not found: /home/user/.flx/config.yaml
 ```
 
 **Solutions**:
+
 ```bash
 # Create configuration directory
 mkdir -p ~/.flx
@@ -202,11 +219,13 @@ export FLX_PROFILE=development
 ### Invalid Configuration
 
 **Problem**: Configuração inválida ou corrompida
+
 ```bash
 Error: Invalid configuration format
 ```
 
 **Solutions**:
+
 ```bash
 # Validate YAML syntax
 poetry run python -c "import yaml; yaml.safe_load(open('~/.flx/config.yaml'))"
@@ -224,12 +243,14 @@ poetry run flext --debug config show
 ### Test Failures
 
 **Problem**: Testes falhando durante desenvolvimento
+
 ```bash
 $ make test
 FAILED tests/unit/test_domain.py::test_command_lifecycle
 ```
 
 **Solutions**:
+
 ```bash
 # Run specific test with verbose output
 pytest tests/unit/test_domain.py::test_command_lifecycle -v -s
@@ -247,11 +268,13 @@ pytest --pdb tests/unit/test_domain.py::test_command_lifecycle
 ### Coverage Issues
 
 **Problem**: Cobertura de testes abaixo do mínimo (90%)
+
 ```bash
 FAILED Required test coverage of 90% not reached. Total coverage: 85.23%
 ```
 
 **Solutions**:
+
 ```bash
 # Generate detailed coverage report
 make coverage-html
@@ -269,12 +292,14 @@ pytest --cov=src/flext_cli/domain tests/unit/test_domain.py
 ### Slow Tests
 
 **Problem**: Testes executando muito lentamente
+
 ```bash
 $ make test
 ====== 45.67s elapsed ======
 ```
 
 **Solutions**:
+
 ```bash
 # Run only fast tests
 pytest -m "not slow"
@@ -294,6 +319,7 @@ pytest --durations=10
 ### IDE Configuration Problems
 
 **Problem**: VS Code não reconhece tipos ou imports
+
 ```bash
 "flext_cli" is not defined
 ```
@@ -301,10 +327,12 @@ pytest --durations=10
 **Solutions**:
 
 1. **Configure Python Interpreter**:
+
    - Ctrl+Shift+P → "Python: Select Interpreter"
    - Choose Poetry virtual environment
 
 2. **Update VS Code settings**:
+
 ```json
 {
   "python.defaultInterpreterPath": ".venv/bin/python",
@@ -320,12 +348,14 @@ pytest --durations=10
 ### Pre-commit Hook Failures
 
 **Problem**: Pre-commit hooks falhando e bloqueando commits
+
 ```bash
 $ git commit -m "Fix bug"
 mypy....................................................................Failed
 ```
 
 **Solutions**:
+
 ```bash
 # Run pre-commit manually to see detailed errors
 poetry run pre-commit run --all-files
@@ -347,12 +377,14 @@ poetry run pre-commit autoupdate
 ### Slow CLI Response
 
 **Problem**: CLI comandos executando lentamente
+
 ```bash
 $ time poetry run flext config show
 real    0m5.123s
 ```
 
 **Solutions**:
+
 ```bash
 # Use global installation instead of Poetry
 make install-cli
@@ -371,12 +403,14 @@ poetry run python -X importtime -m flext_cli.cli --help
 ### Memory Usage Issues
 
 **Problem**: Alto uso de memória durante execução
+
 ```bash
 $ poetry run flext debug info
 MemoryError: Unable to allocate memory
 ```
 
 **Solutions**:
+
 ```bash
 # Monitor memory usage
 poetry run python -m memory_profiler flext_cli/cli.py
@@ -395,11 +429,13 @@ ulimit -v unlimited
 ### API Connection Failures
 
 **Problem**: Falha ao conectar com serviços FLEXT
+
 ```bash
 ConnectionError: HTTPSConnectionPool(host='api.flext.sh', port=443)
 ```
 
 **Solutions**:
+
 ```bash
 # Test connectivity
 curl -v https://api.flext.sh/health
@@ -419,11 +455,13 @@ poetry run flext config show
 ### Certificate Issues
 
 **Problem**: Problemas de certificado SSL
+
 ```bash
 SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed
 ```
 
 **Solutions**:
+
 ```bash
 # Update certificates
 # macOS
@@ -441,12 +479,14 @@ export PYTHONHTTPSVERIFY=0
 ### Linting Failures
 
 **Problem**: Ruff linting falhando
+
 ```bash
 $ make lint
 Found 15 errors
 ```
 
 **Solutions**:
+
 ```bash
 # Auto-fix most issues
 make format
@@ -463,12 +503,14 @@ poetry run ruff check src/ tests/ --show-source
 ### Type Checking Failures
 
 **Problem**: MyPy type checking falhando
+
 ```bash
 $ make type-check
 src/flext_cli/cli.py:45: error: Incompatible return value type
 ```
 
 **Solutions**:
+
 ```bash
 # Show detailed error information
 poetry run mypy src/ --show-error-codes --show-traceback
@@ -485,12 +527,14 @@ poetry run stubgen -p untyped_package
 ### Security Scan Failures
 
 **Problem**: Bandit security scan falhando
+
 ```bash
 $ make security
 Issue: [B602:subprocess_popen_with_shell_equals_true]
 ```
 
 **Solutions**:
+
 ```bash
 # Show detailed security issues
 poetry run bandit -r src/ -f json
@@ -509,11 +553,13 @@ poetry run bandit -r src/ -f json
 ### File Permission Problems
 
 **Problem**: Problemas de permissão ao acessar arquivos
+
 ```bash
 PermissionError: [Errno 13] Permission denied: '/path/to/file'
 ```
 
 **Solutions**:
+
 ```bash
 # Check file permissions
 ls -la /path/to/file
@@ -529,11 +575,13 @@ sudo -u appropriate_user poetry run flext command
 ### Data Format Issues
 
 **Problem**: Problemas com formatos de dados
+
 ```bash
 JSONDecodeError: Expecting value: line 1 column 1 (char 0)
 ```
 
 **Solutions**:
+
 ```bash
 # Validate JSON format
 echo '{"key": "value"}' | jq .
@@ -622,7 +670,8 @@ tail -f /var/log/syslog | grep python
 
 ### Community Support
 
-1. **Check Documentation**: 
+1. **Check Documentation**:
+
    - [CLAUDE.md](../../CLAUDE.md)
    - [README.md](../../README.md)
    - [docs/](../)

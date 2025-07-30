@@ -65,7 +65,9 @@ class TestAuthCommands:
         # Verify token format: token_username_hash
         saved_token = mock_save_token.call_args[0][0]
         if not saved_token.startswith("token_testuser_"):
-            raise AssertionError(f"Expected token starting with 'token_testuser_', got {saved_token}")
+            raise AssertionError(
+                f"Expected token starting with 'token_testuser_', got {saved_token}"
+            )
 
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("flext_cli.commands.auth.save_auth_token")
@@ -95,7 +97,9 @@ class TestAuthCommands:
         # Verify token format: token_username_hash
         saved_token = mock_save_token.call_args[0][0]
         if not saved_token.startswith("token_testuser_"):
-            raise AssertionError(f"Expected token starting with 'token_testuser_', got {saved_token}")
+            raise AssertionError(
+                f"Expected token starting with 'token_testuser_', got {saved_token}"
+            )
 
     @patch("flext_cli.commands.auth.FlextApiClient")
     def test_login_connection_error(
@@ -466,6 +470,7 @@ class TestAuthFunctionality:
 
     def _test_exception_type(self, exc_type: type[Exception]) -> None:
         """Test a specific exception type - DRY abstracted raise pattern."""
+
         def _raise_test_exception() -> None:
             """DRY helper to abstract raise in inner function."""
             msg = "Test error"

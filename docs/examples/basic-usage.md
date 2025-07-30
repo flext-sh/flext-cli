@@ -67,6 +67,7 @@ poetry run flext --output yaml config show
 ```
 
 Example output:
+
 ```yaml
 profile: default
 output_format: table
@@ -194,6 +195,7 @@ poetry run flext pipeline list
 ```
 
 Pretty-printed table with colors and formatting:
+
 ```
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃                                                          Pipeline Status                                                           ┃
@@ -212,6 +214,7 @@ poetry run flext --output json pipeline list
 ```
 
 Structured JSON output:
+
 ```json
 {
   "pipelines": [
@@ -242,19 +245,20 @@ poetry run flext --output yaml pipeline list
 ```
 
 Human-readable YAML:
+
 ```yaml
 pipelines:
   - name: data-extraction
     status: running
-    last_run: '2025-01-29T10:30:00Z'
-    duration: '00:05:23'
+    last_run: "2025-01-29T10:30:00Z"
+    duration: "00:05:23"
   - name: analytics-pipeline
     status: completed
-    last_run: '2025-01-29T09:15:00Z'
-    duration: '00:12:45'
+    last_run: "2025-01-29T09:15:00Z"
+    duration: "00:12:45"
 meta:
   total: 2
-  timestamp: '2025-01-29T10:35:00Z'
+  timestamp: "2025-01-29T10:35:00Z"
 ```
 
 ### CSV Format
@@ -264,6 +268,7 @@ poetry run flext --output csv pipeline list
 ```
 
 Comma-separated values for data processing:
+
 ```csv
 name,status,last_run,duration
 data-extraction,running,2025-01-29T10:30:00Z,00:05:23
@@ -319,6 +324,7 @@ poetry run flext --debug --profile development pipeline list
 ```
 
 Example debug output:
+
 ```
 [DEBUG] Loading configuration from: /home/user/.flx/config.yaml
 [DEBUG] Profile: development

@@ -8,18 +8,32 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 # Mock flext_core for standalone testing
-sys.modules["flext_core"] = type("M", (), {
-    "FlextResult": type("R", (), {
-        "ok": lambda d: type("R", (), {"is_success": True, "data": d})(),
-        "fail": lambda e: type("R", (), {"is_success": False, "error": e})(),
-    }),
-    "get_logger": lambda name: type("L", (), {"info": lambda *a: None, "exception": lambda *a: None})(),
-})()
+sys.modules["flext_core"] = type(
+    "M",
+    (),
+    {
+        "FlextResult": type(
+            "R",
+            (),
+            {
+                "ok": lambda d: type("R", (), {"is_success": True, "data": d})(),
+                "fail": lambda e: type("R", (), {"is_success": False, "error": e})(),
+            },
+        ),
+        "get_logger": lambda name: type(
+            "L", (), {"info": lambda *a: None, "exception": lambda *a: None}
+        )(),
+    },
+)()
 sys.modules["flext_core.types"] = type("M", (), {})()
-sys.modules["pydantic"] = type("M", (), {
-    "BaseModel": type,
-    "Field": lambda *a, **k: None,
-})()
+sys.modules["pydantic"] = type(
+    "M",
+    (),
+    {
+        "BaseModel": type,
+        "Field": lambda *a, **k: None,
+    },
+)()
 
 # Import the complete restored interface
 from flext_cli import (
@@ -78,7 +92,9 @@ def demonstrate_restored_functionality() -> None:
     print(f"✅ Command creation: {cmd_success}")
 
     # Plugin system (RESTORED)
-    plugin_success = register_plugin("test_plugin", {"name": "TestPlugin", "version": "1.0"})
+    plugin_success = register_plugin(
+        "test_plugin", {"name": "TestPlugin", "version": "1.0"}
+    )
     print(f"✅ Plugin registration: {plugin_success}")
 
     # Rich context rendering (RESTORED)
@@ -113,7 +129,9 @@ def demonstrate_restored_functionality() -> None:
     # Health check with comprehensive info
     health_data = health()
     print(f"✅ Health check: {health_data.get('status')}")
-    print(f"   Framework features: {len(health_data.get('framework', {}).get('features', []))}")
+    print(
+        f"   Framework features: {len(health_data.get('framework', {}).get('features', []))}"
+    )
     print(f"   Capabilities: {len(health_data.get('capabilities', {}))}")
 
     print("\n4️⃣ INTEGRATION WITH FLEXT-CORE")

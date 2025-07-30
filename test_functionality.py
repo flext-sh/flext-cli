@@ -68,7 +68,9 @@ def test_new_helpers():
 def test_exports():
     """Test export functionality."""
     # Test single export
-    with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".json", delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(
+        encoding="utf-8", mode="w", suffix=".json", delete=False,
+    ) as tmp:
         export_result = flext_cli_export(sample_data, tmp.name, "json")
 
         # Cleanup
@@ -110,7 +112,14 @@ def main() -> int | None:
     test_results = []
 
     try:
-        test_results.extend((test_basic_helpers(), test_new_helpers(), test_exports(), test_core_helpers()))
+        test_results.extend(
+            (
+                test_basic_helpers(),
+                test_new_helpers(),
+                test_exports(),
+                test_core_helpers(),
+            ),
+        )
 
         success_count = sum(test_results)
         total_tests = len(test_results)
@@ -120,7 +129,6 @@ def main() -> int | None:
         return 1
 
     except (RuntimeError, ValueError, TypeError):
-
         traceback.print_exc()
         return 1
 

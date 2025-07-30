@@ -5,29 +5,34 @@ Comprehensive test suite for the flext-cli library with 70+ tests covering all f
 ## Test Structure
 
 ### Core Tests (`test_api_core.py`)
+
 - **CliApi Class Tests**: Initialization, health checks, supported formats
 - **Export Functionality**: JSON/CSV export, validation, error handling
 - **Formatting Tests**: JSON, table, error handling
 - **Command System**: Registration, execution, validation
 
 ### Convenience Functions (`test_convenience_functions.py`)
+
 - **Export Function**: Boolean return values, error handling
-- **Format Function**: String returns, error handling  
+- **Format Function**: String returns, error handling
 - **Health Function**: Dict returns, consistency
 - **Module Exports**: Validation of public API
 
 ### Export Formats (`test_export_formats.py`)
+
 - **JSON Export**: Basic, complex data, Unicode, file size reporting
 - **CSV Export**: Valid/invalid data, special characters, field detection
 - **YAML Export**: PyYAML availability, error handling
 - **Error Handling**: Permissions, disk space, serialization
 
 ### Integration Tests (`test_integration.py`)
+
 - **FlextCore Patterns**: FlextResult usage, logger integration, type safety
 - **Real-World Workflows**: Data pipelines, batch processing, error recovery
 - **API Consistency**: Module-level vs direct API usage
 
 ### Performance Tests (`test_performance.py`)
+
 - **Export Performance**: Small/medium/large datasets
 - **Format Performance**: Table rendering, multiple operations
 - **Scalability**: Command registry, concurrent operations
@@ -36,6 +41,7 @@ Comprehensive test suite for the flext-cli library with 70+ tests covering all f
 ## Usage Examples (`../examples/basic_usage.py`)
 
 Comprehensive real-world examples demonstrating:
+
 - Basic export and formatting operations
 - Advanced API usage with custom commands
 - Error handling patterns
@@ -44,23 +50,27 @@ Comprehensive real-world examples demonstrating:
 ## Test Features
 
 ### Comprehensive Mocking
+
 - Mock `flext_core` dependencies for isolated testing
 - Mock logger for message validation
 - Mock file system operations for error testing
 
 ### Edge Case Coverage
+
 - Empty data, None values, Unicode content
 - Invalid formats, unsupported operations
 - File system errors, permission issues
 - Command failures, validation errors
 
 ### Performance Validation
+
 - Export operations complete in < 500ms for 1000 records
 - Table formatting in < 200ms for 100 records
 - Command operations in < 1ms average
 - Benchmark consistency within 10ms variance
 
 ### Integration Validation
+
 - FlextResult pattern usage throughout
 - Proper error handling without exceptions
 - Type safety with flext-core types
@@ -69,6 +79,7 @@ Comprehensive real-world examples demonstrating:
 ## Running Tests
 
 ### Individual Test Files
+
 ```bash
 # Run specific test file
 python -m pytest tests/test_api_core.py -v
@@ -78,6 +89,7 @@ python -m pytest tests/ --cov=src/flext_cli --cov-report=html
 ```
 
 ### Functional Testing
+
 ```bash
 # Simple functional validation
 python -c "
@@ -104,6 +116,7 @@ print('✅ Core functionality working')
 ## Quality Assurance
 
 ### Validation Criteria
+
 - All core functionality tested with positive/negative cases
 - Error handling covers all failure modes
 - Performance tests ensure scalability
@@ -111,6 +124,7 @@ print('✅ Core functionality working')
 - Examples demonstrate real-world usage
 
 ### Test Environment
+
 - Python 3.13+ compatible
 - Mocked external dependencies
 - Temporary file handling

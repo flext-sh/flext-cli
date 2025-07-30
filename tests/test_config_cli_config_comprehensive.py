@@ -147,14 +147,16 @@ class TestCLIConfig:
 
         # Test actual structure returned by CLIConfig
         if config_dict["profile"] != "test":
-            raise AssertionError(
-                f"Expected {'test'}, got {config_dict['profile']}"
-            )
+            raise AssertionError(f"Expected {'test'}, got {config_dict['profile']}")
         if not config_dict["debug"]:
             raise AssertionError(f"Expected True, got {config_dict['debug']}")
         # output_format is nested in output.format
-        if config_dict["output"]["format"] != "table":  # Note: defaults to table regardless of input
-            raise AssertionError(f"Expected {'table'}, got {config_dict['output']['format']}")
+        if (
+            config_dict["output"]["format"] != "table"
+        ):  # Note: defaults to table regardless of input
+            raise AssertionError(
+                f"Expected {'table'}, got {config_dict['output']['format']}"
+            )
 
     def test_config_from_dict(self) -> None:
         """Test creating config from dictionary."""
@@ -213,7 +215,9 @@ class TestCLIConfig:
         config = CLIConfig()
 
         # Should not be able to modify attributes directly (frozen model)
-        with pytest.raises((AttributeError, ValueError), match="cannot assign to field"):
+        with pytest.raises(
+            (AttributeError, ValueError), match="cannot assign to field"
+        ):
             config.api_url = "https://new.url.com"
 
     def test_config_equality(self) -> None:

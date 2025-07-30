@@ -82,7 +82,7 @@ class TestJSONFormatter:
         formatter.format(data, console)
         result = output.getvalue()
         if "Alice" not in result:
-            msg = f"Expected {"Alice"} in {result}"
+            msg = f"Expected {'Alice'} in {result}"
             raise AssertionError(msg)
         assert "30" in result
 
@@ -97,7 +97,7 @@ class TestJSONFormatter:
         formatter.format(data, console)
         result = output.getvalue()
         if "Alice" not in result:
-            msg = f"Expected {"Alice"} in {result}"
+            msg = f"Expected {'Alice'} in {result}"
             raise AssertionError(msg)
         assert "Bob" in result
 
@@ -116,7 +116,7 @@ class TestYAMLFormatter:
         formatter.format(data, console)
         result = output.getvalue()
         if "name: Alice" not in result:
-            msg = f"Expected {"name: Alice"} in {result}"
+            msg = f"Expected {'name: Alice'} in {result}"
             raise AssertionError(msg)
         assert "age: 30" in result
 
@@ -131,7 +131,7 @@ class TestYAMLFormatter:
         formatter.format(data, console)
         result = output.getvalue()
         if "Alice" not in result:
-            msg = f"Expected {"Alice"} in {result}"
+            msg = f"Expected {'Alice'} in {result}"
             raise AssertionError(msg)
         assert "Bob" in result
 
@@ -153,11 +153,11 @@ class TestCSVFormatter:
         formatter.format(data, console)
         result = output.getvalue()
         if "name,age" not in result:
-            msg = f"Expected {"name,age"} in {result}"
+            msg = f"Expected {'name,age'} in {result}"
             raise AssertionError(msg)
         assert "Alice,30" in result
         if "Bob,25" not in result:
-            msg = f"Expected {"Bob,25"} in {result}"
+            msg = f"Expected {'Bob,25'} in {result}"
             raise AssertionError(msg)
 
     def test_format_simple_list(self) -> None:
@@ -171,11 +171,11 @@ class TestCSVFormatter:
         formatter.format(data, console)
         result = output.getvalue()
         if "item1" not in result:
-            msg = f"Expected {"item1"} in {result}"
+            msg = f"Expected {'item1'} in {result}"
             raise AssertionError(msg)
         assert "item2" in result
         if "item3" not in result:
-            msg = f"Expected {"item3"} in {result}"
+            msg = f"Expected {'item3'} in {result}"
             raise AssertionError(msg)
 
     def test_format_single_dict(self) -> None:
@@ -189,7 +189,7 @@ class TestCSVFormatter:
         formatter.format(data, console)
         result = output.getvalue()
         if "name,age" not in result:
-            msg = f"Expected {"name,age"} in {result}"
+            msg = f"Expected {'name,age'} in {result}"
             raise AssertionError(msg)
         assert "Alice,30" in result
 
@@ -211,11 +211,11 @@ class TestPlainFormatter:
         formatter.format(data, console)
         result = output.getvalue()
         if "name: Alice" not in result:
-            msg = f"Expected {"name: Alice"} in {result}"
+            msg = f"Expected {'name: Alice'} in {result}"
             raise AssertionError(msg)
         assert "age: 30" in result
         if "name: Bob" not in result:
-            msg = f"Expected {"name: Bob"} in {result}"
+            msg = f"Expected {'name: Bob'} in {result}"
             raise AssertionError(msg)
         assert "age: 25" in result
 
@@ -230,11 +230,11 @@ class TestPlainFormatter:
         formatter.format(data, console)
         result = output.getvalue()
         if "item1" not in result:
-            msg = f"Expected {"item1"} in {result}"
+            msg = f"Expected {'item1'} in {result}"
             raise AssertionError(msg)
         assert "item2" in result
         if "item3" not in result:
-            msg = f"Expected {"item3"} in {result}"
+            msg = f"Expected {'item3'} in {result}"
             raise AssertionError(msg)
 
     def test_format_single_dict(self) -> None:
@@ -248,7 +248,7 @@ class TestPlainFormatter:
         formatter.format(data, console)
         result = output.getvalue()
         if "name: Alice" not in result:
-            msg = f"Expected {"name: Alice"} in {result}"
+            msg = f"Expected {'name: Alice'} in {result}"
             raise AssertionError(msg)
         assert "age: 30" in result
 
@@ -263,7 +263,7 @@ class TestPlainFormatter:
         formatter.format(data, console)
         result = output.getvalue()
         if "simple string" not in result:
-            msg = f"Expected {"simple string"} in {result}"
+            msg = f"Expected {'simple string'} in {result}"
             raise AssertionError(msg)
 
 
@@ -316,15 +316,15 @@ class TestFormatterFactory:
         """Test listing available formats."""
         formats = FormatterFactory.list_formats()
         if "table" not in formats:
-            msg = f"Expected {"table"} in {formats}"
+            msg = f"Expected {'table'} in {formats}"
             raise AssertionError(msg)
         assert "json" in formats
         if "yaml" not in formats:
-            msg = f"Expected {"yaml"} in {formats}"
+            msg = f"Expected {'yaml'} in {formats}"
             raise AssertionError(msg)
         assert "csv" in formats
         if "plain" not in formats:
-            msg = f"Expected {"plain"} in {formats}"
+            msg = f"Expected {'plain'} in {formats}"
             raise AssertionError(msg)
 
 
@@ -351,7 +351,7 @@ class TestFormatOutput:
         format_output(data, "json", console)
         result = output.getvalue()
         if "Alice" not in result:
-            msg = f"Expected {"Alice"} in {result}"
+            msg = f"Expected {'Alice'} in {result}"
             raise AssertionError(msg)
 
     def test_format_output_unknown_format(self) -> None:

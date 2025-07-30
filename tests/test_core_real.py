@@ -125,7 +125,9 @@ class TestFlextCliService:
         service = FlextCliService()
         data = {"name": "test", "value": 42}
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as tmp:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".json"
+        ) as tmp:
             temp_path = tmp.name
 
         try:
@@ -146,7 +148,9 @@ class TestFlextCliService:
         service = FlextCliService()
         data = {"name": "test", "items": ["a", "b", "c"]}
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".yaml") as tmp:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".yaml"
+        ) as tmp:
             temp_path = tmp.name
 
         try:
@@ -181,7 +185,9 @@ class TestFlextCliService:
         service = FlextCliService()
         data = {"test": "data"}
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as tmp:
             temp_path = tmp.name
 
         try:
@@ -965,7 +971,9 @@ class TestIntegration:
         format_result = service.flext_cli_format(data, "json")
         assert format_result.is_success
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as tmp:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".json"
+        ) as tmp:
             temp_path = tmp.name
 
         try:

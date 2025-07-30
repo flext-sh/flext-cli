@@ -24,7 +24,7 @@ class TestLibraryImports:
         assert hasattr(flext_cli, "__version__")
         assert isinstance(flext_cli.__version__, str)
         if flext_cli.__version__ != "0.9.0":
-            raise AssertionError(f"Expected {"0.9.0"}, got {flext_cli.__version__}")
+            raise AssertionError(f"Expected {'0.9.0'}, got {flext_cli.__version__}")
 
     def test_all_public_api_accessible(self) -> None:
         """Test all public API components are accessible."""
@@ -79,7 +79,7 @@ class TestLibraryImports:
             command_line="echo test",
         )
         if command.name != "test":
-            raise AssertionError(f"Expected {"test"}, got {command.name}")
+            raise AssertionError(f"Expected {'test'}, got {command.name}")
 
         # CLIPlugin
         plugin = flext_cli.CLIPlugin(
@@ -88,76 +88,97 @@ class TestLibraryImports:
             entry_point="test.main",
         )
         if plugin.name != "test-plugin":
-            raise AssertionError(f"Expected {"test-plugin"}, got {plugin.name}")
+            raise AssertionError(f"Expected {'test-plugin'}, got {plugin.name}")
 
         # CLISession
         session = flext_cli.CLISession(id="test_session_001", session_id="test-session")
         if session.session_id != "test-session":
-            raise AssertionError(f"Expected {"test-session"}, got {session.session_id}")
+            raise AssertionError(f"Expected {'test-session'}, got {session.session_id}")
 
         # CLIContext
         context = flext_cli.CLIContext()
         if context.profile != "default":
-            raise AssertionError(f"Expected {"default"}, got {context.profile}")
+            raise AssertionError(f"Expected {'default'}, got {context.profile}")
 
     def test_configuration_classes_instantiable(self) -> None:
         """Test that configuration classes can be instantiated."""
         config = flext_cli.CLIConfig()
         if config.api_url != "http://localhost:8000":
-            raise AssertionError(f"Expected {"http://localhost:8000"}, got {config.api_url}")
+            raise AssertionError(
+                f"Expected {'http://localhost:8000'}, got {config.api_url}"
+            )
 
         settings = flext_cli.CLISettings()
         if settings.project_name != "flext-cli":
-            raise AssertionError(f"Expected {"flext-cli"}, got {settings.project_name}")
+            raise AssertionError(f"Expected {'flext-cli'}, got {settings.project_name}")
 
     def test_enums_accessible(self) -> None:
         """Test that enums are accessible and have expected values."""
         # CommandStatus
         if flext_cli.CommandStatus.PENDING != "pending":
-            raise AssertionError(f"Expected {"pending"}, got {flext_cli.CommandStatus.PENDING}")
+            raise AssertionError(
+                f"Expected {'pending'}, got {flext_cli.CommandStatus.PENDING}"
+            )
         assert flext_cli.CommandStatus.RUNNING == "running"
         if flext_cli.CommandStatus.COMPLETED != "completed":
-            raise AssertionError(f"Expected {"completed"}, got {flext_cli.CommandStatus.COMPLETED}")
+            raise AssertionError(
+                f"Expected {'completed'}, got {flext_cli.CommandStatus.COMPLETED}"
+            )
         assert flext_cli.CommandStatus.FAILED == "failed"
         if flext_cli.CommandStatus.CANCELLED != "cancelled":
-            raise AssertionError(f"Expected {"cancelled"}, got {flext_cli.CommandStatus.CANCELLED}")
+            raise AssertionError(
+                f"Expected {'cancelled'}, got {flext_cli.CommandStatus.CANCELLED}"
+            )
 
         # CommandType
         if flext_cli.CommandType.SYSTEM != "system":
-            raise AssertionError(f"Expected {"system"}, got {flext_cli.CommandType.SYSTEM}")
+            raise AssertionError(
+                f"Expected {'system'}, got {flext_cli.CommandType.SYSTEM}"
+            )
         assert flext_cli.CommandType.PIPELINE == "pipeline"
         if flext_cli.CommandType.PLUGIN != "plugin":
-            raise AssertionError(f"Expected {"plugin"}, got {flext_cli.CommandType.PLUGIN}")
+            raise AssertionError(
+                f"Expected {'plugin'}, got {flext_cli.CommandType.PLUGIN}"
+            )
         assert flext_cli.CommandType.DATA == "data"
         if flext_cli.CommandType.CONFIG != "config":
-            raise AssertionError(f"Expected {"config"}, got {flext_cli.CommandType.CONFIG}")
+            raise AssertionError(
+                f"Expected {'config'}, got {flext_cli.CommandType.CONFIG}"
+            )
         assert flext_cli.CommandType.AUTH == "auth"
         if flext_cli.CommandType.MONITORING != "monitoring":
-            raise AssertionError(f"Expected {"monitoring"}, got {flext_cli.CommandType.MONITORING}")
+            raise AssertionError(
+                f"Expected {'monitoring'}, got {flext_cli.CommandType.MONITORING}"
+            )
 
     def test_click_types_accessible(self) -> None:
         """Test that Click types are accessible and configured."""
         # PositiveInt
         assert hasattr(flext_cli.PositiveInt, "name")
         if flext_cli.PositiveInt.name != "positive_int":
-            raise AssertionError(f"Expected {"positive_int"}, got {flext_cli.PositiveInt.name}")
+            raise AssertionError(
+                f"Expected {'positive_int'}, got {flext_cli.PositiveInt.name}"
+            )
 
         # URL
         assert hasattr(flext_cli.URL, "name")
         if flext_cli.URL.name != "url":
-            raise AssertionError(f"Expected {"url"}, got {flext_cli.URL.name}")
+            raise AssertionError(f"Expected {'url'}, got {flext_cli.URL.name}")
 
         # Path types
         if not (flext_cli.ExistingFile.exists):
             raise AssertionError(f"Expected True, got {flext_cli.ExistingFile.exists}")
         assert flext_cli.ExistingFile.file_okay is True
         if flext_cli.ExistingFile.dir_okay:
-            raise AssertionError(f"Expected False, got {flext_cli.ExistingFile.dir_okay}")
+            raise AssertionError(
+                f"Expected False, got {flext_cli.ExistingFile.dir_okay}"
+            )
         if not (flext_cli.ExistingDir.exists):
-
             raise AssertionError(f"Expected True, got {flext_cli.ExistingDir.exists}")
         if flext_cli.ExistingDir.file_okay:
-            raise AssertionError(f"Expected False, got {flext_cli.ExistingDir.file_okay}")
+            raise AssertionError(
+                f"Expected False, got {flext_cli.ExistingDir.file_okay}"
+            )
         if not (flext_cli.ExistingDir.dir_okay):
             raise AssertionError(f"Expected True, got {flext_cli.ExistingDir.dir_okay}")
 
@@ -186,13 +207,14 @@ class TestLibraryFunctionality:
 
     def test_handle_service_result_decorator(self) -> None:
         """Test handle_service_result decorator works."""
+
         @flext_cli.handle_service_result
         def test_function() -> FlextResult[str]:
             return FlextResult.ok("test result")
 
         result = test_function()
         if result != "test result":
-            raise AssertionError(f"Expected {"test result"}, got {result}")
+            raise AssertionError(f"Expected {'test result'}, got {result}")
 
     def test_decorator_functions_accessible(self) -> None:
         """Test that decorator functions are accessible and callable."""
@@ -225,7 +247,7 @@ class TestLibraryCompatibility:
         config_dict = config.model_dump()
         assert isinstance(config_dict, dict)
         if "api_url" not in config_dict:
-            raise AssertionError(f"Expected {"api_url"} in {config_dict}")
+            raise AssertionError(f"Expected {'api_url'} in {config_dict}")
 
     def test_click_compatibility(self) -> None:
         """Test compatibility with Click."""
@@ -245,7 +267,7 @@ class TestLibraryCompatibility:
 
         result = test_function()
         if result != "test":
-            raise AssertionError(f"Expected {"test"}, got {result}")
+            raise AssertionError(f"Expected {'test'}, got {result}")
 
     def test_pathlib_compatibility(self) -> None:
         """Test compatibility with pathlib."""
@@ -255,7 +277,9 @@ class TestLibraryCompatibility:
         custom_path = Path("/custom/path")
         config_with_path = flext_cli.CLIConfig(config_dir=custom_path)
         if config_with_path.config_dir != custom_path:
-            raise AssertionError(f"Expected {custom_path}, got {config_with_path.config_dir}")
+            raise AssertionError(
+                f"Expected {custom_path}, got {config_with_path.config_dir}"
+            )
 
 
 class TestLibraryDocumentation:
@@ -265,7 +289,9 @@ class TestLibraryDocumentation:
         """Test module has proper docstring."""
         assert flext_cli.__doc__ is not None
         if "FLEXT CLI Library" not in flext_cli.__doc__:
-            raise AssertionError(f"Expected {"FLEXT CLI Library"} in {flext_cli.__doc__}")
+            raise AssertionError(
+                f"Expected {'FLEXT CLI Library'} in {flext_cli.__doc__}"
+            )
         assert "Command Line Interface Development Toolkit" in flext_cli.__doc__
 
     def test_classes_have_docstrings(self) -> None:

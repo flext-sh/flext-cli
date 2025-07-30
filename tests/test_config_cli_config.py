@@ -74,7 +74,11 @@ class TestCLIOutputConfig:
         from typing import Literal
 
         valid_formats: list[Literal["table", "json", "yaml", "csv", "plain"]] = [
-            "table", "json", "yaml", "csv", "plain"
+            "table",
+            "json",
+            "yaml",
+            "csv",
+            "plain",
         ]
 
         for fmt in valid_formats:
@@ -215,7 +219,9 @@ class TestCLIAuthConfig:
             )
 
             if config.token_file != custom_token:
-                raise AssertionError(f"Expected {custom_token}, got {config.token_file}")
+                raise AssertionError(
+                    f"Expected {custom_token}, got {config.token_file}"
+                )
             assert config.refresh_token_file == custom_refresh
             if config.auto_refresh:
                 raise AssertionError(f"Expected False, got {config.auto_refresh}")
@@ -274,9 +280,7 @@ class TestCLIDirectoryConfig:
             )
 
             if config.config_dir != config_dir:
-                raise AssertionError(
-                    f"Expected {config_dir}, got {config.config_dir}"
-                )
+                raise AssertionError(f"Expected {config_dir}, got {config.config_dir}")
             assert config.cache_dir == cache_dir
             if config.log_dir != log_dir:
                 raise AssertionError(f"Expected {log_dir}, got {config.log_dir}")
@@ -459,7 +463,7 @@ class TestCLISettings:
 
         if settings.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {settings.project_name}")
-        assert settings.project_version == "0.7.0"
+        assert settings.project_version == "0.9.0"
         if settings.api_url != "http://localhost:8000":
             raise AssertionError(
                 f"Expected {'http://localhost:8000'}, got {settings.api_url}"
@@ -627,7 +631,7 @@ class TestConfigurationFunctions:
         assert isinstance(settings, CLISettings)
         if settings.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {settings.project_name}")
-        assert settings.project_version == "0.7.0"
+        assert settings.project_version == "0.9.0"
         if settings.api_url != "http://localhost:8000":
             raise AssertionError(
                 f"Expected {'http://localhost:8000'}, got {settings.api_url}"

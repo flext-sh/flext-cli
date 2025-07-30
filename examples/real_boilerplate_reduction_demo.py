@@ -33,9 +33,6 @@ def traditional_approach() -> None:
     # TRADITIONAL CODE (21+ lines for basic operations)
     # ============================================================================
 
-
-
-
     # Export operation
     exporter = FlextCliDataExporter()
     exporter.export_data(sample_data, "/tmp/traditional_employees.json", "json")

@@ -57,11 +57,11 @@ class TestPipeline:
 
         # Check default stub attributes
         if pipeline.name != "stub-pipeline":
-            msg = f"Expected {"stub-pipeline"}, got {pipeline.name}"
+            msg = f"Expected {'stub-pipeline'}, got {pipeline.name}"
             raise AssertionError(msg)
         assert pipeline.id == "stub-id"
         if pipeline.status != "stub-status":
-            msg = f"Expected {"stub-status"}, got {pipeline.status}"
+            msg = f"Expected {'stub-status'}, got {pipeline.status}"
             raise AssertionError(msg)
 
     def test_pipeline_initialization_with_args(self) -> None:
@@ -71,11 +71,11 @@ class TestPipeline:
 
         # Stub attributes should still be defaults
         if pipeline.name != "stub-pipeline":
-            msg = f"Expected {"stub-pipeline"}, got {pipeline.name}"
+            msg = f"Expected {'stub-pipeline'}, got {pipeline.name}"
             raise AssertionError(msg)
         assert pipeline.id == "stub-id"
         if pipeline.status != "stub-status":
-            msg = f"Expected {"stub-status"}, got {pipeline.status}"
+            msg = f"Expected {'stub-status'}, got {pipeline.status}"
             raise AssertionError(msg)
 
     def test_pipeline_initialization_with_mixed_args(self) -> None:
@@ -90,11 +90,11 @@ class TestPipeline:
 
         # Stub attributes should still be defaults regardless of kwargs
         if pipeline.name != "stub-pipeline":
-            msg = f"Expected {"stub-pipeline"}, got {pipeline.name}"
+            msg = f"Expected {'stub-pipeline'}, got {pipeline.name}"
             raise AssertionError(msg)
         assert pipeline.id == "stub-id"
         if pipeline.status != "stub-status":
-            msg = f"Expected {"stub-status"}, got {pipeline.status}"
+            msg = f"Expected {'stub-status'}, got {pipeline.status}"
             raise AssertionError(msg)
 
     def test_pipeline_attributes_are_strings(self) -> None:
@@ -134,11 +134,11 @@ class TestPipeline:
 
         # Values are as expected
         if pipeline.name != "stub-pipeline":
-            msg = f"Expected {"stub-pipeline"}, got {pipeline.name}"
+            msg = f"Expected {'stub-pipeline'}, got {pipeline.name}"
             raise AssertionError(msg)
         assert pipeline.id == "stub-id"
         if pipeline.status != "stub-status":
-            msg = f"Expected {"stub-status"}, got {pipeline.status}"
+            msg = f"Expected {'stub-status'}, got {pipeline.status}"
             raise AssertionError(msg)
 
 
@@ -192,11 +192,11 @@ class TestClientModule:
 
         # Pipeline should still have stub attributes
         if pipeline.name != "stub-pipeline":
-            msg = f"Expected {"stub-pipeline"}, got {pipeline.name}"
+            msg = f"Expected {'stub-pipeline'}, got {pipeline.name}"
             raise AssertionError(msg)
         assert pipeline.id == "stub-id"
         if pipeline.status != "stub-status":
-            msg = f"Expected {"stub-status"}, got {pipeline.status}"
+            msg = f"Expected {'stub-status'}, got {pipeline.status}"
             raise AssertionError(msg)
 
 
@@ -286,7 +286,6 @@ class TestPipelineList:
         pipeline_list = PipelineList()
 
         if len(pipeline_list.pipelines) != 0:
-
             msg = f"Expected {0}, got {len(pipeline_list.pipelines)}"
             raise AssertionError(msg)
         assert pipeline_list.pipelines == []

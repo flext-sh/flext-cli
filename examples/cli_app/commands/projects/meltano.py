@@ -9,7 +9,9 @@ Preserves ALL original functionality from flext-meltano/cli.py.
 
 from __future__ import annotations
 
+import asyncio
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -98,7 +100,7 @@ def _safe_subprocess_run(
         raise ValueError(msg)
 
     try:
-        return subprocess.run(
+        return subprocess.run(  # noqa: S603
             cmd,
             cwd=cwd,
             capture_output=capture_output,
@@ -118,7 +120,7 @@ def _safe_subprocess_run(
 
 
 @click.group(name="meltano")
-@click.version_option(version="0.7.0")
+@click.version_option(version="0.9.0")
 @click.pass_context
 def meltano(ctx: click.Context) -> None:
     """FLEXT Meltano - Enterprise ETL/ELT Pipeline Engine."""
@@ -145,6 +147,7 @@ def meltano(ctx: click.Context) -> None:
 def projects(
     ctx: click.Context,
     output_format: str,
+    *,
     quiet: bool,
     project_root: str,
 ) -> None:
@@ -158,8 +161,6 @@ def projects(
 
     """
     try:
-        from pathlib import Path
-
         project_root_path = Path(project_root)
 
         if not quiet:
@@ -177,8 +178,6 @@ def projects(
             for project in projects_list:
                 click.echo(f"• {project['name']} ({project['path']})")
         elif output_format == "json":
-            import json
-
             click.echo(json.dumps(projects_list, indent=2))
         elif output_format == "yaml":
             click.echo(yaml.dump(projects_list, default_flow_style=False))
@@ -211,8 +210,6 @@ def init(
 
     """
     try:
-        import asyncio
-
         # Determine parent directory
         parent_dir = Path(directory) if directory else Path.cwd()
 
@@ -273,7 +270,7 @@ def init(
     help="Meltano project directory",
 )
 @click.pass_context
-def add(
+def add(  # noqa: PLR0913
     ctx: click.Context,
     plugin_type: str,
     plugin_name: str,
@@ -345,6 +342,7 @@ def run(
     job_name: str,
     project_dir: str | None,
     environment: str | None,
+    *,
     full_refresh: bool,
 ) -> None:
     """Run a Meltano job.
@@ -372,14 +370,12 @@ def run(
             cmd.append("--full-refresh")
 
         # Set environment if specified
-        import os
-
         env = os.environ.copy()
         if environment:
             env["MELTANO_ENVIRONMENT"] = environment
 
         # Execute meltano command
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603
             cmd,
             check=False,
             cwd=str(project_path),
@@ -410,7 +406,11 @@ def run(
     help="Meltano project directory",
 )
 @click.pass_context
-def discover(ctx: click.Context, plugin_name: str, project_dir: str | None) -> None:
+def discover(
+    ctx: click.Context,
+    plugin_name: str,
+    project_dir: str | None,
+) -> None:
     """Discover schema for a plugin.
 
     Args:
@@ -463,7 +463,11 @@ def discover(ctx: click.Context, plugin_name: str, project_dir: str | None) -> N
     help="Meltano project directory",
 )
 @click.pass_context
-def test(ctx: click.Context, plugin_name: str, project_dir: str | None) -> None:
+def test(
+    ctx: click.Context,
+    plugin_name: str,
+    project_dir: str | None,
+) -> None:
     """Test a plugin.
 
     Args:
@@ -509,7 +513,10 @@ def test(ctx: click.Context, plugin_name: str, project_dir: str | None) -> None:
     help="Meltano project directory",
 )
 @click.pass_context
-def install(ctx: click.Context, project_dir: str | None) -> None:
+def install(
+    ctx: click.Context,
+    project_dir: str | None,
+) -> None:
     """Install all plugins for a Meltano project.
 
     Args:
@@ -606,7 +613,7 @@ def config(
 
 # Legacy CLI entry point for backward compatibility
 @click.group()
-@click.version_option(version="0.7.0")
+@click.version_option(version="0.9.0")
 def cli() -> None:
     """FLEXT Meltano CLI (legacy entry point)."""
 

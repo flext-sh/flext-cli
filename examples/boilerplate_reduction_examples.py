@@ -48,9 +48,6 @@ def example_1_before_massive_boilerplate() -> None:
 
     # BAD: Manual error handling, validation, formatting - 25+ lines
     def process_user_data(data):
-
-
-
         logger = logging.getLogger(__name__)
 
         try:
@@ -76,11 +73,13 @@ def example_1_before_massive_boilerplate() -> None:
                     logger.warning(f"Skipping record without name: {record}")
                     continue
 
-                processed.append({
-                    "name": record["name"].upper(),
-                    "processed": True,
-                    "original_keys": len(record),
-                })
+                processed.append(
+                    {
+                        "name": record["name"].upper(),
+                        "processed": True,
+                        "original_keys": len(record),
+                    }
+                )
 
             # Manual formatting
             if processed:
@@ -98,9 +97,12 @@ def example_1_after_zero_boilerplate() -> None:
     """AFTER: FlextCli enhanced approach - ZERO boilerplate."""
 
     # GOOD: Single class with mixins - 8 lines total
-    class UserProcessor(FlextCliResultMixin, FlextCliEnhancedDataMixin,
-                       FlextCliProcessorMixin, FlextCliFormatterMixin):
-
+    class UserProcessor(
+        FlextCliResultMixin,
+        FlextCliEnhancedDataMixin,
+        FlextCliProcessorMixin,
+        FlextCliFormatterMixin,
+    ):
         @flext_cli_auto_result("Processing failed")
         @flext_cli_measure_time()
         @flext_cli_ensure_list()
@@ -109,11 +111,17 @@ def example_1_after_zero_boilerplate() -> None:
             result = self.flext_cli_filter_process(
                 data,
                 lambda r: isinstance(r, dict) and "name" in r,  # Filter
-                lambda r: {"name": r["name"].upper(), "processed": True, "original_keys": len(r)},  # Transform
+                lambda r: {
+                    "name": r["name"].upper(),
+                    "processed": True,
+                    "original_keys": len(r),
+                },  # Transform
             )
 
             if result.success:
-                return self.flext_cli_format_dict({"processed_users": result.data}, "json").data
+                return self.flext_cli_format_dict(
+                    {"processed_users": result.data}, "json"
+                ).data
             return "No valid records"
 
 
@@ -121,15 +129,11 @@ def example_1_after_zero_boilerplate() -> None:
 # EXAMPLE 2: BEFORE vs AFTER - Data Export Pipeline
 # =============================================================================
 
+
 def example_2_before_export_boilerplate() -> None:
     """BEFORE: Manual export with validation - 30+ lines."""
 
     def export_sales_data(sales_data, formats=None, base_path="./exports"):
-
-
-
-
-
         logger = logging.getLogger(__name__)
         formats = formats or ["json", "csv"]
         results = {}
@@ -191,13 +195,11 @@ def example_2_after_functional_helpers() -> None:
 # EXAMPLE 3: BEFORE vs AFTER - Complex Data Analysis
 # =============================================================================
 
+
 def example_3_before_analysis_boilerplate() -> None:
     """BEFORE: Manual analysis with aggregation - 40+ lines."""
 
     def analyze_customer_data(customers):
-
-
-
         logger = logging.getLogger(__name__)
 
         try:
@@ -208,11 +210,14 @@ def example_3_before_analysis_boilerplate() -> None:
             active_customers = [
                 customer
                 for customer in customers
-                if customer.get("status") == "active" and customer.get("purchases", 0) > 0
+                if customer.get("status") == "active"
+                and customer.get("purchases", 0) > 0
             ]
 
             # Manual aggregation by region
-            regions = defaultdict(lambda: {"count": 0, "total_purchases": 0, "avg_age": 0})
+            regions = defaultdict(
+                lambda: {"count": 0, "total_purchases": 0, "avg_age": 0}
+            )
             age_sums = defaultdict(int)
 
             for customer in active_customers:
@@ -229,13 +234,15 @@ def example_3_before_analysis_boilerplate() -> None:
             # Manual formatting
             report = ["Customer Analysis Report", "=" * 25, ""]
             for region, data in regions.items():
-                report.extend([
-                    f"Region: {region}",
-                    f"  Active Customers: {data['count']}",
-                    f"  Total Purchases: {data['total_purchases']}",
-                    f"  Average Age: {data['avg_age']:.1f}",
-                    "",
-                ])
+                report.extend(
+                    [
+                        f"Region: {region}",
+                        f"  Active Customers: {data['count']}",
+                        f"  Total Purchases: {data['total_purchases']}",
+                        f"  Average Age: {data['avg_age']:.1f}",
+                        "",
+                    ]
+                )
 
             return {"success": True, "data": "\n".join(report)}
 
@@ -248,7 +255,6 @@ def example_3_after_enhanced_pipeline() -> None:
     """AFTER: FlextCli enhanced pipeline - 5 lines."""
 
     class CustomerAnalyzer(FlextCliProcessorMixin, FlextCliFormatterMixin):
-
         @flext_cli_auto_result("Analysis failed")
         @flext_cli_cache_simple(cache_size=50)
         def analyze_customers(self, customers: FlextCliDataSet) -> str:
@@ -279,14 +285,11 @@ def example_3_after_enhanced_pipeline() -> None:
 # EXAMPLE 4: BEFORE vs AFTER - API Data Processing
 # =============================================================================
 
+
 def example_4_before_api_processing() -> None:
     """BEFORE: API response processing - 35+ lines."""
 
     def process_api_response(response_data, transform_rules=None, output_format="json"):
-
-
-
-
         logger = logging.getLogger(__name__)
         transform_rules = transform_rules or {}
 
@@ -346,9 +349,11 @@ def example_4_after_decorator_magic() -> None:
     )
     @flext_cli_ensure_list()
     @flext_cli_measure_time()
-    def process_api_data(response_data: FlextCliDataSet,
-                        transform_rules: dict[str, str] | None = None,
-                        output_format: str = "json") -> str:
+    def process_api_data(
+        response_data: FlextCliDataSet,
+        transform_rules: dict[str, str] | None = None,
+        output_format: str = "json",
+    ) -> str:
         # Transform and format in one pipeline
         transformed = flext_cli_transform_data(
             response_data,
@@ -368,14 +373,33 @@ def example_4_after_decorator_magic() -> None:
 # EXAMPLE 5: BEFORE vs AFTER - Complete Data Workflow
 # =============================================================================
 
+
 def example_5_complete_workflow_demo() -> None:
     """Complete workflow demonstration - MASSIVE boilerplate reduction."""
     # Sample data
     raw_data = [
-        {"id": 1, "name": "Alice", "region": "North", "sales": 15000, "status": "active"},
+        {
+            "id": 1,
+            "name": "Alice",
+            "region": "North",
+            "sales": 15000,
+            "status": "active",
+        },
         {"id": 2, "name": "Bob", "region": "South", "sales": 12000, "status": "active"},
-        {"id": 3, "name": "Charlie", "region": "North", "sales": 18000, "status": "inactive"},
-        {"id": 4, "name": "Diana", "region": "East", "sales": 20000, "status": "active"},
+        {
+            "id": 3,
+            "name": "Charlie",
+            "region": "North",
+            "sales": 18000,
+            "status": "inactive",
+        },
+        {
+            "id": 4,
+            "name": "Diana",
+            "region": "East",
+            "sales": 20000,
+            "status": "active",
+        },
     ]
 
     # EXAMPLE 1: Zero-boilerplate processing
@@ -384,7 +408,9 @@ def example_5_complete_workflow_demo() -> None:
 
     # EXAMPLE 2: Functional export pipeline
     example_2_after_functional_helpers().export_sales_pipeline(
-        raw_data, ["json"], "./temp_exports",
+        raw_data,
+        ["json"],
+        "./temp_exports",
     )
 
     # EXAMPLE 3: Enhanced analysis
@@ -402,6 +428,7 @@ def example_5_complete_workflow_demo() -> None:
 # =============================================================================
 # BOILERPLATE REDUCTION METRICS
 # =============================================================================
+
 
 def show_boilerplate_reduction_metrics() -> None:
     """Show quantified boilerplate reduction achieved."""

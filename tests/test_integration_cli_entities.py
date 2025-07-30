@@ -45,7 +45,7 @@ class TestCLICommandEntityIntegration:
         command = CLICommand(
             name="config-show",
             command_line="flext config show",
-            command_type=CommandType.CLI
+            command_type=CommandType.CLI,
         )
 
         # Test command lifecycle
@@ -69,7 +69,7 @@ class TestCLICommandEntityIntegration:
             command = CLICommand(
                 name=f"test-{cmd_type.value}",
                 command_line=cmd_line,
-                command_type=cmd_type
+                command_type=cmd_type,
             )
 
             # All command types should be creatable
@@ -88,13 +88,12 @@ class TestCLICommandEntityIntegration:
         command = CLICommand(
             name="invalid-command",
             command_line="flext invalid-command",
-            command_type=CommandType.CLI
+            command_type=CommandType.CLI,
         )
 
         command = command.start_execution()
         command = command.complete_execution(
-            exit_code=result.exit_code,
-            stderr="Command not found"
+            exit_code=result.exit_code, stderr="Command not found"
         )
 
         assert command.command_status == CommandStatus.FAILED
@@ -113,7 +112,7 @@ class TestCLICommandEntityIntegration:
         command = CLICommand(
             name="config-show-dev",
             command_line="flext --profile dev config show",
-            command_type=CommandType.CLI
+            command_type=CommandType.CLI,
         )
 
         # Test command metadata
@@ -133,7 +132,7 @@ class TestCLICommandEntityIntegration:
             command = CLICommand(
                 name=f"config-show-{fmt}",
                 command_line=f"flext --output {fmt} config show",
-                command_type=CommandType.CLI
+                command_type=CommandType.CLI,
             )
 
             command = command.start_execution()
@@ -153,10 +152,10 @@ class TestCLISessionEntityIntegration:
 
         # Execute multiple commands
         commands = [
-            (["config", "show"], 0),           # Should work
-            (["config", "validate"], 0),       # Should work
-            (["auth", "status"], 1),           # Fails when not authenticated (expected)
-            (["debug", "info"], 0),            # Should work
+            (["config", "show"], 0),  # Should work
+            (["config", "validate"], 0),  # Should work
+            (["auth", "status"], 1),  # Fails when not authenticated (expected)
+            (["debug", "info"], 0),  # Should work
         ]
 
         for cmd_args, expected_exit_code in commands:
@@ -167,7 +166,7 @@ class TestCLISessionEntityIntegration:
             command = CLICommand(
                 name="-".join(cmd_args),
                 command_line=f"flext {' '.join(cmd_args)}",
-                command_type=CommandType.CLI
+                command_type=CommandType.CLI,
             )
 
             # Add to session
@@ -202,14 +201,14 @@ class TestCLISessionEntityIntegration:
             command = CLICommand(
                 name="-".join(cmd_args),
                 command_line=f"flext {' '.join(cmd_args)}",
-                command_type=CommandType.CLI
+                command_type=CommandType.CLI,
             )
 
             command = command.start_execution()
             command = command.complete_execution(
                 exit_code=result.exit_code,
                 stdout=result.output if should_succeed else None,
-                stderr=result.output if not should_succeed else None
+                stderr=result.output if not should_succeed else None,
             )
 
             session = session.add_command(command.id)
@@ -232,7 +231,7 @@ class TestCLISessionEntityIntegration:
         command = CLICommand(
             name="config-show",
             command_line="flext config show",
-            command_type=CommandType.CLI
+            command_type=CommandType.CLI,
         )
         session = session.add_command(command.id)
 
@@ -254,11 +253,7 @@ class TestCLISessionEntityIntegration:
         config.output_format = "json"
         config.debug = True
 
-        context = CLIContext(
-            config=config,
-            settings=CLISettings(),
-            console=Console()
-        )
+        context = CLIContext(config=config, settings=CLISettings(), console=Console())
 
         # Session should be able to track context
         assert session.session_id == "test-context"
@@ -274,7 +269,7 @@ class TestCLIPluginEntityIntegration:
         plugin = CLIPlugin(
             name="test-plugin",
             entry_point="test.main",
-            commands=["test", "validate", "process"]
+            commands=["test", "validate", "process"],
         )
 
         # Initial state
@@ -299,7 +294,7 @@ class TestCLIPluginEntityIntegration:
         plugin = CLIPlugin(
             name="config-plugin",
             entry_point="flext_cli.commands.config",
-            commands=["show", "validate"]
+            commands=["show", "validate"],
         )
 
         runner = CliRunner()
@@ -316,7 +311,7 @@ class TestCLIPluginEntityIntegration:
             name="advanced-plugin",
             entry_point="advanced.main",
             commands=["advanced-cmd"],
-            dependencies=["flext-core", "flext-cli"]
+            dependencies=["flext-core", "flext-cli"],
         )
 
         # Plugin should track dependencies
@@ -336,16 +331,16 @@ class TestCLIConfigEntityIntegration:
         config_scenarios: list[dict[str, object]] = [
             {
                 "args": ["--profile", "dev", "--debug", "config", "show"],
-                "expected": {"profile": "dev", "debug": True}
+                "expected": {"profile": "dev", "debug": True},
             },
             {
                 "args": ["--output", "json", "config", "show"],
-                "expected": {"output_format": "json"}
+                "expected": {"output_format": "json"},
             },
             {
                 "args": ["--profile", "prod", "--output", "yaml", "config", "show"],
-                "expected": {"profile": "prod", "output_format": "yaml"}
-            }
+                "expected": {"profile": "prod", "output_format": "yaml"},
+            },
         ]
 
         for scenario in config_scenarios:
@@ -359,7 +354,7 @@ class TestCLIConfigEntityIntegration:
             config = CLIConfig(
                 profile=str(expected.get("profile", "default")),
                 debug=bool(expected.get("debug")),
-                output_format=str(expected.get("output_format", "table"))
+                output_format=str(expected.get("output_format", "table")),
             )
 
             # Verify config matches expectations
@@ -396,7 +391,7 @@ class TestCLIConfigEntityIntegration:
         test_env = {
             "FLEXT_CLI_DEBUG": "true",
             "FLEXT_CLI_PROFILE": "testing",
-            "FLEXT_CLI_OUTPUT_FORMAT": "json"
+            "FLEXT_CLI_OUTPUT_FORMAT": "json",
         }
 
         with patch.dict(os.environ, test_env):
@@ -404,7 +399,7 @@ class TestCLIConfigEntityIntegration:
             config = CLIConfig(
                 profile=os.getenv("FLEXT_CLI_PROFILE", "default"),
                 debug=os.getenv("FLEXT_CLI_DEBUG", "false").lower() == "true",
-                output_format=os.getenv("FLEXT_CLI_OUTPUT_FORMAT", "table")
+                output_format=os.getenv("FLEXT_CLI_OUTPUT_FORMAT", "table"),
             )
 
             assert config.profile == "testing"
@@ -428,7 +423,7 @@ class TestCLIServiceIntegration:
         command = CLICommand(
             name="config-show",
             command_line="flext config show",
-            command_type=CommandType.CLI
+            command_type=CommandType.CLI,
         )
 
         # Service operations should work
@@ -456,7 +451,7 @@ class TestCLIServiceIntegration:
             command = CLICommand(
                 name="-".join(cmd_args),
                 command_line=f"flext {' '.join(cmd_args)}",
-                command_type=CommandType.CLI
+                command_type=CommandType.CLI,
             )
             session = session.add_command(command.id)
 
@@ -479,36 +474,36 @@ class TestCLIContextIntegration:
         config.output_format = "json"
         config.debug = True
 
-        context = CLIContext(
-            config=config,
-            settings=CLISettings(),
-            console=Console()
-        )
+        context = CLIContext(config=config, settings=CLISettings(), console=Console())
 
         runner = CliRunner()
 
         # Commands should work with context settings
-        result = runner.invoke(cli, [
-            "--profile", context.config.profile,
-            "--output", context.config.output_format,
-            "--debug" if context.config.debug else "--no-debug",
-            "config", "show"
-        ])
+        result = runner.invoke(
+            cli,
+            [
+                "--profile",
+                context.config.profile,
+                "--output",
+                context.config.output_format,
+                "--debug" if context.config.debug else "--no-debug",
+                "config",
+                "show",
+            ],
+        )
         assert result.exit_code == 0
 
     def test_execution_context_with_entities(self) -> None:
         """Test CLIExecutionContext with command entities."""
         execution_context = CLIExecutionContext(
-            command_name="config-show",
-            user_id="test-user",
-            session_id="test-session"
+            command_name="config-show", user_id="test-user", session_id="test-session"
         )
 
         # Create related entities
         command = CLICommand(
             name=execution_context.command_name,
             command_line="flext config show",
-            command_type=CommandType.CLI
+            command_type=CommandType.CLI,
         )
 
         session = CLISession(session_id=execution_context.session_id or "test-session")
@@ -532,9 +527,7 @@ class TestCLIContextIntegration:
             config.debug = False
 
             context = CLIContext(
-                config=config,
-                settings=CLISettings(),
-                console=Console()
+                config=config, settings=CLISettings(), console=Console()
             )
 
             test_file = Path(tmpdir) / "test_config.yaml"
@@ -543,11 +536,17 @@ class TestCLIContextIntegration:
             runner = CliRunner()
 
             # Test commands work with files
-            result = runner.invoke(cli, [
-                "--profile", context.config.profile,
-                "--output", context.config.output_format,
-                "config", "show"
-            ])
+            result = runner.invoke(
+                cli,
+                [
+                    "--profile",
+                    context.config.profile,
+                    "--output",
+                    context.config.output_format,
+                    "config",
+                    "show",
+                ],
+            )
             assert result.exit_code == 0
 
 
@@ -559,23 +558,29 @@ class TestIntegrationErrorHandling:
         from pydantic import ValidationError
 
         # Test invalid command creation - Pydantic validation
-        with pytest.raises(ValidationError, match="String should have at least 1 character"):
+        with pytest.raises(
+            ValidationError, match="String should have at least 1 character"
+        ):
             CLICommand(
                 name="",  # Invalid
                 command_line="test",
-                command_type=CommandType.CLI
+                command_type=CommandType.CLI,
             )
 
         # Test invalid session creation - Pydantic validation
-        with pytest.raises(ValidationError, match="String should have at least 1 character"):
+        with pytest.raises(
+            ValidationError, match="String should have at least 1 character"
+        ):
             CLISession(session_id="")  # Invalid
 
         # Test invalid plugin creation - Pydantic validation
-        with pytest.raises(ValidationError, match="String should have at least 1 character"):
+        with pytest.raises(
+            ValidationError, match="String should have at least 1 character"
+        ):
             CLIPlugin(
                 name="",  # Invalid
                 entry_point="test.main",
-                commands=["test"]
+                commands=["test"],
             )
 
     def test_cli_error_handling_with_entities(self) -> None:
@@ -590,13 +595,12 @@ class TestIntegrationErrorHandling:
         command = CLICommand(
             name="completely-invalid-command",
             command_line="flext completely-invalid-command",
-            command_type=CommandType.CLI
+            command_type=CommandType.CLI,
         )
 
         command = command.start_execution()
         command = command.complete_execution(
-            exit_code=result.exit_code,
-            stderr=result.output
+            exit_code=result.exit_code, stderr=result.output
         )
 
         assert command.command_status == CommandStatus.FAILED
@@ -607,7 +611,7 @@ class TestIntegrationErrorHandling:
         command = CLICommand(
             name="test-consistency",
             command_line="echo test",
-            command_type=CommandType.SYSTEM
+            command_type=CommandType.SYSTEM,
         )
 
         # Initial state
@@ -639,10 +643,10 @@ class TestRealWorldIntegrationScenarios:
 
         # Developer workflow
         dev_commands = [
-            (["--profile", "dev", "config", "show"], 0),     # Should work
-            (["--debug", "debug", "info"], 0),               # Should work
+            (["--profile", "dev", "config", "show"], 0),  # Should work
+            (["--debug", "debug", "info"], 0),  # Should work
             (["--profile", "dev", "config", "validate"], 0),  # Should work
-            (["--output", "json", "auth", "status"], 1),     # Fails when not authenticated
+            (["--output", "json", "auth", "status"], 1),  # Fails when not authenticated
         ]
 
         for cmd_args, expected_exit_code in dev_commands:
@@ -652,11 +656,13 @@ class TestRealWorldIntegrationScenarios:
             command = CLICommand(
                 name=f"dev-{'-'.join([arg for arg in cmd_args if not arg.startswith('--')])}",
                 command_line=f"flext {' '.join(cmd_args)}",
-                command_type=CommandType.CLI
+                command_type=CommandType.CLI,
             )
 
             command = command.start_execution()
-            command = command.complete_execution(exit_code=expected_exit_code, stdout=result.output)
+            command = command.complete_execution(
+                exit_code=expected_exit_code, stdout=result.output
+            )
             session = session.add_command(command.id)
 
         # Session should track all developer commands
@@ -674,9 +680,18 @@ class TestRealWorldIntegrationScenarios:
 
         # Monitoring commands (all in JSON for automation)
         monitoring_commands = [
-            (["--profile", "prod", "--output", "json", "auth", "status"], 1),      # Fails when not authenticated
-            (["--profile", "prod", "--output", "json", "config", "validate"], 0),  # Should work
-            (["--profile", "prod", "--output", "json", "debug", "check"], 0),      # Should work
+            (
+                ["--profile", "prod", "--output", "json", "auth", "status"],
+                1,
+            ),  # Fails when not authenticated
+            (
+                ["--profile", "prod", "--output", "json", "config", "validate"],
+                0,
+            ),  # Should work
+            (
+                ["--profile", "prod", "--output", "json", "debug", "check"],
+                0,
+            ),  # Should work
         ]
 
         for cmd_args, expected_exit_code in monitoring_commands:
@@ -686,11 +701,13 @@ class TestRealWorldIntegrationScenarios:
             command = CLICommand(
                 name=f"monitor-{'-'.join([arg for arg in cmd_args if not arg.startswith('--')])}",
                 command_line=f"flext {' '.join(cmd_args)}",
-                command_type=CommandType.CLI
+                command_type=CommandType.CLI,
             )
 
             command = command.start_execution()
-            command = command.complete_execution(exit_code=expected_exit_code, stdout=result.output)
+            command = command.complete_execution(
+                exit_code=expected_exit_code, stdout=result.output
+            )
             session = session.add_command(command.id)
 
         assert len(session.command_history) == len(monitoring_commands)
@@ -704,10 +721,13 @@ class TestRealWorldIntegrationScenarios:
 
         # Troubleshooting workflow
         troubleshoot_commands = [
-            (["--debug", "debug", "info"], 0),                    # Should work
-            (["--debug", "debug", "check"], 0),                   # Should work
-            (["--debug", "config", "validate"], 0),               # Should work
-            (["--debug", "--output", "json", "auth", "status"], 1),  # Fails when not authenticated
+            (["--debug", "debug", "info"], 0),  # Should work
+            (["--debug", "debug", "check"], 0),  # Should work
+            (["--debug", "config", "validate"], 0),  # Should work
+            (
+                ["--debug", "--output", "json", "auth", "status"],
+                1,
+            ),  # Fails when not authenticated
         ]
 
         for cmd_args, expected_exit_code in troubleshoot_commands:
@@ -718,11 +738,13 @@ class TestRealWorldIntegrationScenarios:
             command = CLICommand(
                 name=f"troubleshoot-{'-'.join([arg for arg in cmd_args if not arg.startswith('--')])}",
                 command_line=f"flext {' '.join(cmd_args)}",
-                command_type=CommandType.CLI
+                command_type=CommandType.CLI,
             )
 
             command = command.start_execution()
-            command = command.complete_execution(exit_code=expected_exit_code, stdout=result.output)
+            command = command.complete_execution(
+                exit_code=expected_exit_code, stdout=result.output
+            )
             session = session.add_command(command.id)
 
         # All troubleshooting commands should be tracked

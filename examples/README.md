@@ -20,6 +20,7 @@ The FLEXT CLI library provides a comprehensive toolkit for building CLI applicat
 **Purpose**: Introduction to core FLEXT CLI library functionality
 
 **Features demonstrated**:
+
 - Configuration management with `CLIConfig` and `CLISettings`
 - CLI context creation and management
 - Helper utilities for validation and formatting
@@ -27,12 +28,14 @@ The FLEXT CLI library provides a comprehensive toolkit for building CLI applicat
 - Service result handling patterns
 - CLI setup and initialization
 
-**Run**: 
+**Run**:
+
 ```bash
 python examples/01_basic_cli_usage.py
 ```
 
 **Key concepts**:
+
 - `flext_cli.get_config()` - Load CLI configuration
 - `flext_cli.CLIContext()` - Create execution context
 - `flext_cli.CLIHelper()` - Access utility functions
@@ -43,6 +46,7 @@ python examples/01_basic_cli_usage.py
 **Purpose**: Complete Click-based CLI application using FLEXT CLI library
 
 **Features demonstrated**:
+
 - Full Click command group with FLEXT CLI types
 - Enhanced decorators for time measurement, confirmation, spinners
 - Async command support
@@ -51,6 +55,7 @@ python examples/01_basic_cli_usage.py
 - Configuration-aware command execution
 
 **Run**:
+
 ```bash
 python examples/02_click_integration.py --help
 python examples/02_click_integration.py process --count 5 --url https://api.example.com
@@ -59,6 +64,7 @@ python examples/02_click_integration.py info
 ```
 
 **Key concepts**:
+
 - `flext_cli.PositiveInt`, `flext_cli.URL`, `flext_cli.ExistingFile` - Custom Click types
 - `@flext_cli.measure_time()` - Time execution measurement
 - `@flext_cli.confirm_action()` - User confirmation prompts
@@ -71,6 +77,7 @@ python examples/02_click_integration.py info
 **Purpose**: Demonstrate CLI domain modeling with FLEXT CLI entities
 
 **Features demonstrated**:
+
 - CLI command lifecycle management
 - CLI session tracking with command history
 - CLI plugin management with dependencies
@@ -79,11 +86,13 @@ python examples/02_click_integration.py info
 - Practical usage patterns
 
 **Run**:
+
 ```bash
 python examples/03_domain_entities.py
 ```
 
 **Key concepts**:
+
 - `flext_cli.CLICommand` - Command execution modeling
 - `flext_cli.CLISession` - Session management
 - `flext_cli.CLIPlugin` - Plugin system support
@@ -94,6 +103,7 @@ python examples/03_domain_entities.py
 ## Library Components
 
 ### Configuration Management
+
 ```python
 # Get configuration
 config = flext_cli.get_config()
@@ -108,15 +118,17 @@ context = flext_cli.CLIContext(
 ```
 
 ### Click Parameter Types
+
 ```python
 @click.option("--count", type=flext_cli.PositiveInt)
-@click.option("--url", type=flext_cli.URL) 
+@click.option("--url", type=flext_cli.URL)
 @click.option("--input-file", type=flext_cli.ExistingFile)
 @click.option("--output-dir", type=flext_cli.ExistingDir)
 @click.option("--new-file", type=flext_cli.NewFile)
 ```
 
 ### CLI Decorators
+
 ```python
 @flext_cli.measure_time(show_in_output=True)
 @flext_cli.confirm_action("Are you sure?")
@@ -127,6 +139,7 @@ context = flext_cli.CLIContext(
 ```
 
 ### Helper Utilities
+
 ```python
 helper = flext_cli.CLIHelper()
 
@@ -152,6 +165,7 @@ helper.print_info("FYI")
 ```
 
 ### Domain Entities
+
 ```python
 # Command modeling
 command = flext_cli.CLICommand(
@@ -175,20 +189,22 @@ plugin = flext_cli.CLIPlugin(
 ## Getting Started
 
 1. **Install the FLEXT CLI library** (when published):
+
    ```bash
    pip install flext-cli
    ```
 
 2. **Start with basic usage**:
+
    ```python
    import flext_cli
-   
+
    # Get configuration
    config = flext_cli.get_config()
-   
+
    # Create helper
    helper = flext_cli.CLIHelper()
-   
+
    # Use in your CLI
    @flext_cli.handle_service_result
    def my_command():
@@ -196,10 +212,11 @@ plugin = flext_cli.CLIPlugin(
    ```
 
 3. **Build Click commands**:
+
    ```python
    import click
    import flext_cli
-   
+
    @click.command()
    @click.option("--count", type=flext_cli.PositiveInt)
    @flext_cli.measure_time()
@@ -209,6 +226,7 @@ plugin = flext_cli.CLIPlugin(
    ```
 
 4. **Use domain entities** for complex CLI applications:
+
    ```python
    # Model your CLI operations
    command = flext_cli.CLICommand(name="task", command_line="python script.py")
@@ -220,21 +238,25 @@ plugin = flext_cli.CLIPlugin(
 ## Best Practices
 
 1. **Configuration Management**:
+
    - Use environment variables with `FLEXT_CLI_` prefix
    - Leverage `CLIConfig` and `CLISettings` for structured configuration
    - Create contexts for different execution environments
 
 2. **Error Handling**:
+
    - Use `@handle_service_result` for consistent error handling
    - Leverage `FlextResult` patterns from flext-core
    - Implement proper validation with business rules
 
 3. **User Experience**:
+
    - Use Rich for beautiful output formatting
    - Implement progress indicators with spinners
    - Provide clear confirmation prompts for destructive operations
 
 4. **Domain Modeling**:
+
    - Model CLI operations as domain entities
    - Use domain events for integration and audit trails
    - Implement business rules for data integrity
@@ -249,11 +271,12 @@ plugin = flext_cli.CLIPlugin(
 The FLEXT CLI library follows Clean Architecture principles:
 
 - **Domain Layer**: Entities, value objects, and business rules
-- **Application Layer**: Use cases and application services  
+- **Application Layer**: Use cases and application services
 - **Infrastructure Layer**: External integrations and frameworks
 - **Interface Layer**: CLI commands, decorators, and user interface
 
 This provides:
+
 - ✅ **Type Safety**: Complete type coverage with MyPy
 - ✅ **Domain-Driven Design**: Rich domain entities and business rules
 - ✅ **Clean Architecture**: Clear separation of concerns
