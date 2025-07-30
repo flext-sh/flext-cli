@@ -7,7 +7,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import contextlib
 from typing import TYPE_CHECKING
 
 from flext_core.result import FlextResult
@@ -18,6 +17,10 @@ if TYPE_CHECKING:
     from rich.console import Console
 
     from flext_cli.utils.config import CLIConfig, CLISettings
+
+else:
+    # Import at runtime for Pydantic to work correctly
+    pass
 
 
 class CLIContext(FlextValueObject):
@@ -127,16 +130,34 @@ class CLIContext(FlextValueObject):
             self.console.print(f"[dim][VERBOSE][/dim] {message}")
 
 
-# Model rebuilding to resolve forward references
-with contextlib.suppress(Exception):
-    # Import the actual types to ensure they're available
-    from rich.console import Console
+class CLIExecutionContext(FlextValueObject):
+    """CLI execution context for tracking command execution state."""
 
-    from flext_cli.utils.config import CLIConfig, CLISettings
+    command_name: str = Field(..., description="Name of the command being executed")
+    user_id: str | None = Field(
+        default=None, description="User ID executing the command",
+    )
+    session_id: str | None = Field(
+        default=None, description="Session ID for command execution",
+    )
+    started_at: str | None = Field(
+        default=None, description="Execution start timestamp",
+    )
+    context_data: dict[str, object] = Field(
+        default_factory=dict, description="Additional context data",
+    )
 
-    # Make types available in globals
-    globals()["CLIConfig"] = CLIConfig
-    globals()["CLISettings"] = CLISettings
-    globals()["Console"] = Console
+    def validate_domain_rules(self) -> FlextResult[None]:
+        """Validate domain business rules for CLI execution context.
 
-    CLIContext.model_rebuild()
+        Returns:
+            FlextResult indicating success or failure with validation errors.
+
+        """
+        if not self.command_name or not self.command_name.strip():
+            return FlextResult.fail("Command name cannot be empty")
+
+        return FlextResult.ok(None)
+
+
+# No need for manual model rebuilding since we import types at runtime

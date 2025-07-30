@@ -73,7 +73,7 @@ class URLType(click.ParamType):
 class ClickPath(click.Path):
     """Enhanced Click Path type with flext-core integration."""
 
-    def __init__(  # noqa: PLR0913, FBT001, FBT002
+    def __init__(  # noqa: PLR0913
         self,
         *,
         exists: bool = False,

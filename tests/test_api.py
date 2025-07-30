@@ -161,7 +161,7 @@ class TestFlextCliTransformData:
 
     def test_transform_invalid_data_type(self) -> None:
         """Test transformation with invalid data type."""
-        result = flext_cli_transform_data("not a list")  # type: ignore[arg-type]
+        result = flext_cli_transform_data("not a list")
         assert not result.is_success
         if "Data must be a list" not in result.error:
             msg = f"Expected {'Data must be a list'} in {result.error}"
@@ -219,7 +219,7 @@ class TestFlextCliAggregateData:
 
     def test_aggregate_invalid_data_type(self) -> None:
         """Test aggregation with invalid data type."""
-        result = flext_cli_aggregate_data("not a list", group_by="field")  # type: ignore[arg-type]
+        result = flext_cli_aggregate_data("not a list", group_by="field")
         assert not result.is_success
         if "Data must be a list" not in result.error:
             msg = f"Expected {'Data must be a list'} in {result.error}"

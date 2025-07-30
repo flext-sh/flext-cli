@@ -386,11 +386,11 @@ class TestE2EIntegrationWithCore:
         # Test complete lifecycle
         assert command.command_status == CommandStatus.PENDING
 
-        command.start_execution()
+        command = command.start_execution()
         assert command.command_status == CommandStatus.RUNNING
         assert command.started_at is not None
 
-        command.complete_execution(exit_code=0, stdout="Hello, World!")
+        command = command.complete_execution(exit_code=0, stdout="Hello, World!")
         assert command.command_status == CommandStatus.COMPLETED
         assert command.is_successful
         assert command.finished_at is not None

@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from flext_cli.core.helpers import CLIHelper
 from rich.console import Console
@@ -307,42 +307,38 @@ class TestCLIHelper:
         helper = CLIHelper()
 
         # Mock the console print method
-        helper.console.print = Mock()
-        helper.print_success("Operation successful")
-
-        helper.console.print.assert_called_once_with(
-            "[bold green]✓[/bold green] Operation successful"
-        )
+        with patch.object(helper.console, "print") as mock_print:
+            helper.print_success("Operation successful")
+            mock_print.assert_called_once_with(
+                "[bold green]✓[/bold green] Operation successful"
+            )
 
     def test_print_error(self) -> None:
         """Test error message printing."""
         helper = CLIHelper()
 
-        helper.console.print = Mock()
-        helper.print_error("Operation failed")
-
-        helper.console.print.assert_called_once_with(
-            "[bold red]✗[/bold red] Operation failed"
-        )
+        with patch.object(helper.console, "print") as mock_print:
+            helper.print_error("Operation failed")
+            mock_print.assert_called_once_with(
+                "[bold red]✗[/bold red] Operation failed"
+            )
 
     def test_print_warning(self) -> None:
         """Test warning message printing."""
         helper = CLIHelper()
 
-        helper.console.print = Mock()
-        helper.print_warning("Warning message")
-
-        helper.console.print.assert_called_once_with(
-            "[bold yellow]⚠[/bold yellow] Warning message"
-        )
+        with patch.object(helper.console, "print") as mock_print:
+            helper.print_warning("Warning message")
+            mock_print.assert_called_once_with(
+                "[bold yellow]⚠[/bold yellow] Warning message"
+            )
 
     def test_print_info(self) -> None:
         """Test info message printing."""
         helper = CLIHelper()
 
-        helper.console.print = Mock()
-        helper.print_info("Info message")
-
-        helper.console.print.assert_called_once_with(
-            "[bold blue]i[/bold blue] Info message"
-        )
+        with patch.object(helper.console, "print") as mock_print:
+            helper.print_info("Info message")
+            mock_print.assert_called_once_with(
+                "[bold blue]i[/bold blue] Info message"
+            )

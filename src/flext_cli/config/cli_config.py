@@ -9,7 +9,7 @@ Provides unified configuration using flext-core base classes.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal
+from typing import Literal, cast
 
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -169,7 +169,8 @@ class CLIConfig(BaseModel):
             if old_key in data:
                 if section not in data:
                     data[section] = {}
-                data[section][new_key] = data.pop(old_key)  # type: ignore[index]
+                section_dict = cast("dict[str, object]", data[section])
+                section_dict[new_key] = data.pop(old_key)
 
     def ensure_setup(self) -> None:
         """Ensure CLI environment is properly set up.

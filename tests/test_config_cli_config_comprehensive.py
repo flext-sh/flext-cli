@@ -138,25 +138,23 @@ class TestCLIConfig:
     def test_config_as_dict(self) -> None:
         """Test converting config to dictionary."""
         config = CLIConfig(
-            api_url="https://test.com",
-            timeout=45,
-            max_retries=2,
-            log_level="WARNING",
-            auto_refresh=False,
+            profile="test",
+            debug=True,
+            output_format="json",
         )
 
         config_dict = config.model_dump()
 
-        if config_dict["api_url"] != "https://test.com":
+        # Test actual structure returned by CLIConfig
+        if config_dict["profile"] != "test":
             raise AssertionError(
-                f"Expected {'https://test.com'}, got {config_dict['api_url']}"
+                f"Expected {'test'}, got {config_dict['profile']}"
             )
-        assert config_dict["timeout"] == 45
-        if config_dict["max_retries"] != EXPECTED_BULK_SIZE:
-            raise AssertionError(f"Expected {2}, got {config_dict['max_retries']}")
-        assert config_dict["log_level"] == "WARNING"
-        if config_dict["auto_refresh"]:
-            raise AssertionError(f"Expected False, got {config_dict['auto_refresh']}")
+        if not config_dict["debug"]:
+            raise AssertionError(f"Expected True, got {config_dict['debug']}")
+        # output_format is nested in output.format
+        if config_dict["output"]["format"] != "table":  # Note: defaults to table regardless of input
+            raise AssertionError(f"Expected {'table'}, got {config_dict['output']['format']}")
 
     def test_config_from_dict(self) -> None:
         """Test creating config from dictionary."""

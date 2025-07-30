@@ -35,8 +35,8 @@ except ImportError as e:
 
 # Define fallback values when imports fail
 if not GRUPONOS_AVAILABLE:
-    GrupoNOSConfig = None  # type: ignore[misc,assignment]
-    GrupoNOSMeltanoOrchestrator = None  # type: ignore[misc,assignment]
+    GrupoNOSConfig = None
+    GrupoNOSMeltanoOrchestrator = None
 
 # Setup logger
 logger = structlog.get_logger(__name__)
@@ -99,7 +99,7 @@ def gruponos(
 
     try:
         if config_file:
-            config = GrupoNOSConfig.from_file(config_file)  # type: ignore[attr-defined]
+            config = GrupoNOSConfig.from_file(config_file)
         else:
             config = GrupoNOSConfig()
 
@@ -131,7 +131,7 @@ def status(ctx: click.Context, output_format: str) -> None:
         orchestrator = GrupoNOSMeltanoOrchestrator(config)
 
         # Get status
-        status_info = orchestrator.get_status()  # type: ignore[attr-defined]
+        status_info = orchestrator.get_status()
 
         if output_format == "table":
             click.echo("GrupoNOS Meltano Native Status")
@@ -206,22 +206,22 @@ async def run(
             click.echo("🔄 Mode: Full refresh")
 
         # Execute pipeline
-        result = await orchestrator.run_pipeline(  # type: ignore[call-arg]
+        result = await orchestrator.run_pipeline(
             pipeline_name=pipeline_name,
             environment=environment,
             full_refresh=full_refresh,
         )
 
-        if result.success:  # type: ignore[truthy-function]
+        if result.success:
             click.echo("✅ Pipeline completed successfully!")
-            if result.metrics:  # type: ignore[attr-defined]
+            if result.metrics:
                 click.echo(
                     f"📊 Records processed: "
-                    f"{result.metrics.get('records_processed', 0)}",  # type: ignore[attr-defined]
+                    f"{result.metrics.get('records_processed', 0)}",
                 )
-                click.echo(f"⏱️  Duration: {result.metrics.get('duration', 'unknown')}")  # type: ignore[attr-defined]
+                click.echo(f"⏱️  Duration: {result.metrics.get('duration', 'unknown')}")
         else:
-            click.echo(f"❌ Pipeline failed: {result.error}", err=True)  # type: ignore[unreachable]
+            click.echo(f"❌ Pipeline failed: {result.error}", err=True)
             if debug and result.details:
                 click.echo(f"Details: {result.details}", err=True)
             ctx.exit(1)
@@ -250,7 +250,7 @@ def pipelines(ctx: click.Context, output_format: str) -> None:
         orchestrator = GrupoNOSMeltanoOrchestrator(config)
 
         # Get pipelines
-        pipelines_list = orchestrator.list_pipelines()  # type: ignore[attr-defined]
+        pipelines_list = orchestrator.list_pipelines()
 
         if output_format == "table":
             click.echo("GrupoNOS Pipelines")
@@ -299,7 +299,7 @@ def logs(ctx: click.Context, pipeline_name: str, output_format: str) -> None:
         orchestrator = GrupoNOSMeltanoOrchestrator(config)
 
         # Get logs
-        logs_data = orchestrator.get_pipeline_logs(pipeline_name)  # type: ignore[attr-defined]
+        logs_data = orchestrator.get_pipeline_logs(pipeline_name)
 
         if output_format == "table":
             click.echo(f"Logs for pipeline: {pipeline_name}")
@@ -354,7 +354,7 @@ def health(ctx: click.Context) -> None:
         click.echo("=" * 24)
 
         # Perform health check
-        health_status = orchestrator.health_check()  # type: ignore[attr-defined]
+        health_status = orchestrator.health_check()
 
         # Database connectivity
         db_status = health_status.get("database", {})

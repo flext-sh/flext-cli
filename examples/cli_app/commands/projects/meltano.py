@@ -32,10 +32,10 @@ try:
 except ImportError as e:
     # Graceful handling when flext-meltano is not available
     click.echo(f"Warning: FLEXT Meltano not available: {e}", err=True)
-    get_meltano_settings = None  # type: ignore[assignment]
-    MeltanoSettings = None  # type: ignore[misc,assignment]
-    FlextMeltanoOrchestrator = None  # type: ignore[misc,assignment]
-    MeltanoProjectManager = None  # type: ignore[misc,assignment]
+    get_meltano_settings = None
+    MeltanoSettings = None
+    FlextMeltanoOrchestrator = None
+    MeltanoProjectManager = None
     FLEXT_MELTANO_AVAILABLE = False
 
 

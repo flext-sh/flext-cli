@@ -51,7 +51,7 @@ class TestCLIContext:
         """Test CLI context immutability (FlextValueObject pattern)."""
         # Should be immutable as FlextValueObject - expect ValidationError for frozen instance
         with pytest.raises(ValidationError):
-            cli_context.profile = "new-profile"  # type: ignore[misc]
+            cli_context.profile = "new-profile"
 
     def test_context_validation_empty_profile(self) -> None:
         """Test CLI context validation with empty profile."""

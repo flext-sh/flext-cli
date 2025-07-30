@@ -39,13 +39,13 @@ except ImportError as e:
 
 # Define fallback values when imports fail
 if not ALGAR_AVAILABLE:
-    MigrateLDIFCommand = None  # type: ignore[assignment,misc]
-    MigrateLDIFHandler = None  # type: ignore[assignment,misc]
-    MigrationService = None  # type: ignore[assignment,misc]
-    LDIFEntry = None  # type: ignore[assignment,misc]
-    MigrationConfig = None  # type: ignore[assignment,misc]
-    MigrationPhase = None  # type: ignore[assignment,misc]
-    AlgarMigrationEngine = None  # type: ignore[assignment,misc]
+    MigrateLDIFCommand = None
+    MigrateLDIFHandler = None
+    MigrationService = None
+    LDIFEntry = None
+    MigrationConfig = None
+    MigrationPhase = None
+    AlgarMigrationEngine = None
 
 
 def _raise_missing_env(var_name: str) -> str:

@@ -72,11 +72,11 @@ def cli(
     # Setup click context with components
     console = Console(quiet=quiet)
 
-    # Create CLI context with required fields
+    # Create CLI context with correct fields (SOLID: Single Responsibility)
     cli_context = CLIContext(
         config=config,
         settings=settings,
-        console=console
+        console=console,
     )
 
     ctx.ensure_object(dict)
