@@ -89,7 +89,7 @@ def connectivity(ctx: click.Context) -> None:
 
     # SOLID: Single Responsibility - simplified synchronous implementation
     try:
-        client = FlextApiClient()
+        FlextApiClient()
         console.print("[yellow]Testing API connectivity...[/yellow]")
 
         # Simulate connectivity test for stub client
@@ -134,7 +134,7 @@ def performance(ctx: click.Context) -> None:
 
     # SOLID: Single Responsibility - simplified synchronous implementation
     try:
-        client = FlextApiClient()
+        FlextApiClient()
         console.print("[yellow]Fetching performance metrics...[/yellow]")
 
         # Simulate metrics for stub client

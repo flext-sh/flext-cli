@@ -30,7 +30,9 @@ class TestDebugCommands:
 
     @patch("flext_cli.commands.debug.FlextApiClient")
     @patch("asyncio.run")
-    def test_connectivity_command(self, mock_asyncio_run: MagicMock, mock_client_class: MagicMock) -> None:
+    def test_connectivity_command(
+        self, mock_asyncio_run: MagicMock, mock_client_class: MagicMock
+    ) -> None:
         """Test connectivity command."""
         # Mock client
         mock_client = AsyncMock()
@@ -51,7 +53,9 @@ class TestDebugCommands:
 
     @patch("flext_cli.commands.debug.FlextApiClient")
     @patch("asyncio.run")
-    def test_performance_command(self, mock_asyncio_run: MagicMock, mock_client_class: MagicMock) -> None:
+    def test_performance_command(
+        self, mock_asyncio_run: MagicMock, mock_client_class: MagicMock
+    ) -> None:
         """Test performance command."""
         # Mock client
         mock_client = AsyncMock()
@@ -151,7 +155,9 @@ class TestDebugCommands:
 
     @patch("flext_cli.commands.debug.get_config")
     @patch("flext_cli.commands.debug.Path")
-    def test_paths_command(self, mock_path_class: MagicMock, mock_get_config: MagicMock) -> None:
+    def test_paths_command(
+        self, mock_path_class: MagicMock, mock_get_config: MagicMock
+    ) -> None:
         """Test paths command."""
         # Mock config
         mock_config = MagicMock()

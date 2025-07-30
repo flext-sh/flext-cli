@@ -162,7 +162,9 @@ class TestCLIPlugin:
         """Test plugin creation."""
         if sample_plugin.name != "test-plugin":
             raise AssertionError(f"Expected {'test-plugin'}, got {sample_plugin.name}")
-        assert sample_plugin.plugin_version == "0.9.0"  # Using correct plugin_version field
+        assert (
+            sample_plugin.plugin_version == "0.9.0"
+        )  # Using correct plugin_version field
         if sample_plugin.entry_point != "test_plugin.main":
             raise AssertionError(
                 f"Expected {'test_plugin.main'}, got {sample_plugin.entry_point}"

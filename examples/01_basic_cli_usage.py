@@ -95,7 +95,9 @@ def main() -> None:
     console.print(f"   URL type name: {url_type.name}")
 
     # Path types
-    console.print(f"   ExistingFile allows existing files: {flext_cli.ExistingFile.exists}")
+    console.print(
+        f"   ExistingFile allows existing files: {flext_cli.ExistingFile.exists}"
+    )
     console.print(f"   NewFile allows new files: {not flext_cli.NewFile.exists}")
     console.print()
 

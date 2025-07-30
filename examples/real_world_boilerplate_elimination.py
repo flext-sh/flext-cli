@@ -32,7 +32,6 @@ def traditional_approach_example():
     """BEFORE: Traditional approach with massive boilerplate (45+ lines)."""
 
     def process_user_data_old_way(raw_users, config):
-
         logger = logging.getLogger(__name__)
 
         try:
@@ -110,15 +109,35 @@ def ultra_flext_cli_approach():
         # 3. Execute complete processing pipeline (3 lines - replaces 15+ lines)
         return flext_cli_data_pipeline(
             raw_users,
-            (lambda data: flext_cli_validate_and_process(
-                data,
-                [lambda d: isinstance(d, list), lambda d: all("name" in u for u in d if isinstance(u, dict))],
-                lambda d: transformer.transform_list_structure(d, key_mappings={"old_email": "email", "old_status": "status"}),
-            ), "Transform"),
-            (lambda data: flext_cli_process_list_safe(data, lambda u: {**u, "processed": True}), "Process"),
-            (lambda data: flext_cli_safe_execute(
-                lambda: {"processed_count": len(data), "users": data, "config": config_result.data},
-            ), "Format"),
+            (
+                lambda data: flext_cli_validate_and_process(
+                    data,
+                    [
+                        lambda d: isinstance(d, list),
+                        lambda d: all("name" in u for u in d if isinstance(u, dict)),
+                    ],
+                    lambda d: transformer.transform_list_structure(
+                        d, key_mappings={"old_email": "email", "old_status": "status"}
+                    ),
+                ),
+                "Transform",
+            ),
+            (
+                lambda data: flext_cli_process_list_safe(
+                    data, lambda u: {**u, "processed": True}
+                ),
+                "Process",
+            ),
+            (
+                lambda data: flext_cli_safe_execute(
+                    lambda: {
+                        "processed_count": len(data),
+                        "users": data,
+                        "config": config_result.data,
+                    },
+                ),
+                "Format",
+            ),
         )
 
     return process_user_data_flext_way
@@ -150,7 +169,11 @@ def demonstrate_real_reduction():
     new_lines = 5
     reduction_percentage = int((1 - new_lines / old_lines) * 100)
 
-    return {"old_lines": old_lines, "new_lines": new_lines, "reduction": reduction_percentage}
+    return {
+        "old_lines": old_lines,
+        "new_lines": new_lines,
+        "reduction": reduction_percentage,
+    }
 
 
 def advanced_pipeline_example():
@@ -165,23 +188,40 @@ def advanced_pipeline_example():
     # Using FlextCli operation chain (replaces 25+ lines of manual chaining)
     chain = flext_cli_create_operation_chain(raw_data)
 
-    result = (chain
-              .then(lambda data: flext_cli_safe_execute(
-                  lambda: [user for user in data if "user_id" in user],
-                  "User validation failed",
-              ), "Validate Users")
-              .then(lambda data: flext_cli_safe_execute(
-                  lambda: [{
-                      **user,
-                      "sales": [float(s) for s in user["sales"] if s.replace(".", "").isdigit()],
-                  } for user in data],
-                  "Sales conversion failed",
-              ), "Convert Sales")
-              .then(lambda data: flext_cli_safe_execute(
-                  lambda: [{**user, "total_sales": sum(user["sales"])} for user in data],
-                  "Total calculation failed",
-              ), "Calculate Totals")
-              .result_with_log())
+    result = (
+        chain.then(
+            lambda data: flext_cli_safe_execute(
+                lambda: [user for user in data if "user_id" in user],
+                "User validation failed",
+            ),
+            "Validate Users",
+        )
+        .then(
+            lambda data: flext_cli_safe_execute(
+                lambda: [
+                    {
+                        **user,
+                        "sales": [
+                            float(s)
+                            for s in user["sales"]
+                            if s.replace(".", "").isdigit()
+                        ],
+                    }
+                    for user in data
+                ],
+                "Sales conversion failed",
+            ),
+            "Convert Sales",
+        )
+        .then(
+            lambda data: flext_cli_safe_execute(
+                lambda: [{**user, "total_sales": sum(user["sales"])} for user in data],
+                "Total calculation failed",
+            ),
+            "Calculate Totals",
+        )
+        .result_with_log()
+    )
 
     if result.success:
         for _user in result.data["data"]:
@@ -202,10 +242,12 @@ def configuration_management_example():
     }
 
     # Using FlextCli config manager (replaces 15+ lines of manual validation)
-    config_manager = flext_cli_create_config_manager({
-        "debug": False,
-        "max_connections": 50,
-    })
+    config_manager = flext_cli_create_config_manager(
+        {
+            "debug": False,
+            "max_connections": 50,
+        }
+    )
 
     schema = {
         "database_url": (str, "sqlite:///default.db"),

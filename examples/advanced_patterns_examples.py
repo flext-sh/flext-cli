@@ -111,11 +111,15 @@ def example_2_flext_result_chaining() -> None:
         """Validate and clean data."""
         try:
             # Simple validation
-            cleaned = [{
-                            **item,
-                            "value": float(item["value"]),  # Convert to float
-                            "processed": True,
-                        } for item in data if item["value"] != "invalid"]
+            cleaned = [
+                {
+                    **item,
+                    "value": float(item["value"]),  # Convert to float
+                    "processed": True,
+                }
+                for item in data
+                if item["value"] != "invalid"
+            ]
 
             if not cleaned:
                 return flext_cli.FlextResult.fail("No valid data after cleaning")
@@ -130,12 +134,15 @@ def example_2_flext_result_chaining() -> None:
     ) -> flext_cli.FlextResult[list[dict[str, Any]]]:
         """Enrich data with additional calculations."""
         try:
-            enriched = [{
-                        **item,
-                        "value_squared": item["value"] ** 2,
-                        "is_high_value": item["value"] > 80,
-                        "enrichment_timestamp": "2024-01-15T10:30:00Z",
-                    } for item in data]
+            enriched = [
+                {
+                    **item,
+                    "value_squared": item["value"] ** 2,
+                    "is_high_value": item["value"] > 80,
+                    "enrichment_timestamp": "2024-01-15T10:30:00Z",
+                }
+                for item in data
+            ]
 
             return flext_cli.FlextResult.ok(enriched)
 
@@ -203,7 +210,10 @@ def example_3_factory_patterns() -> None:
     # Log data -> Database for querying
     log_exporter = flext_cli.FlextCliDataExporter.create_database_exporter()
     log_result = log_exporter.export_data(
-        log_data, "logs.sqlite", "sqlite", table_name="application_logs",
+        log_data,
+        "logs.sqlite",
+        "sqlite",
+        table_name="application_logs",
     )
 
     # User data -> CSV for business users
@@ -426,7 +436,6 @@ def main() -> None:
         example_5_performance_patterns()
 
     except (RuntimeError, ValueError, TypeError):
-
         traceback.print_exc()
 
 

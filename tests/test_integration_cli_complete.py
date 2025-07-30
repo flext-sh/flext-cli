@@ -102,7 +102,7 @@ class TestCLIIntegration:
                 "profile": "test",
                 "debug": True,
                 "output_format": "json",
-                "log_level": "INFO"
+                "log_level": "INFO",
             }
 
             with config_file.open("w") as f:
@@ -155,7 +155,7 @@ class TestCLIIntegration:
         command = CLICommand(
             name="test-command",
             command_line="echo 'test'",
-            command_type=CommandType.SYSTEM
+            command_type=CommandType.SYSTEM,
         )
 
         # Test command lifecycle

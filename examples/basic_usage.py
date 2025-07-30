@@ -25,9 +25,24 @@ SALES_DATA = [
 ]
 
 SYSTEM_METRICS = [
-    {"timestamp": "2024-01-15T10:00:00", "cpu_usage": 45.2, "memory_usage": 68.5, "disk_usage": 23.1},
-    {"timestamp": "2024-01-15T10:05:00", "cpu_usage": 52.1, "memory_usage": 71.2, "disk_usage": 23.2},
-    {"timestamp": "2024-01-15T10:10:00", "cpu_usage": 38.9, "memory_usage": 69.8, "disk_usage": 23.1},
+    {
+        "timestamp": "2024-01-15T10:00:00",
+        "cpu_usage": 45.2,
+        "memory_usage": 68.5,
+        "disk_usage": 23.1,
+    },
+    {
+        "timestamp": "2024-01-15T10:05:00",
+        "cpu_usage": 52.1,
+        "memory_usage": 71.2,
+        "disk_usage": 23.2,
+    },
+    {
+        "timestamp": "2024-01-15T10:10:00",
+        "cpu_usage": 38.9,
+        "memory_usage": 69.8,
+        "disk_usage": 23.1,
+    },
 ]
 
 
@@ -146,7 +161,9 @@ def example_error_handling() -> None:
 
     # 1. Export with invalid data
     success = export(None, "/tmp/invalid.json")
-    print(f"✓ Invalid data handling: {'Handled' if not success else 'Unexpected success'}")
+    print(
+        f"✓ Invalid data handling: {'Handled' if not success else 'Unexpected success'}"
+    )
 
     # 2. Export with unsupported format
     success = export(SAMPLE_USERS, "/tmp/test.xyz", "xml")
@@ -154,12 +171,16 @@ def example_error_handling() -> None:
 
     # 3. Format with unsupported style
     result = format_data(SAMPLE_USERS, "xml")
-    print(f"✓ Format error handling: {'Handled' if result.startswith('Error:') else 'Unexpected success'}")
+    print(
+        f"✓ Format error handling: {'Handled' if result.startswith('Error:') else 'Unexpected success'}"
+    )
 
     # 4. CSV export with invalid data structure
     invalid_csv_data = ["string1", "string2"]  # Not list of dicts
     csv_result = api.export(invalid_csv_data, "/tmp/invalid.csv", "csv")
-    print(f"✓ CSV validation: {'Handled' if not csv_result.is_success else 'Unexpected success'}")
+    print(
+        f"✓ CSV validation: {'Handled' if not csv_result.is_success else 'Unexpected success'}"
+    )
 
     # 5. Command execution errors
     def failing_command() -> Never:
@@ -168,7 +189,9 @@ def example_error_handling() -> None:
 
     api.add_command("fail_test", failing_command)
     fail_result = api.execute("fail_test")
-    print(f"✓ Command error handling: {'Handled' if not fail_result.is_success else 'Unexpected success'}")
+    print(
+        f"✓ Command error handling: {'Handled' if not fail_result.is_success else 'Unexpected success'}"
+    )
 
 
 def example_real_world_scenarios() -> None:
@@ -177,15 +200,39 @@ def example_real_world_scenarios() -> None:
 
     # Scenario 1: Processing survey results
     survey_responses = [
-        {"respondent_id": 1, "satisfaction": 4, "recommend": True, "feedback": "Great service!"},
-        {"respondent_id": 2, "satisfaction": 5, "recommend": True, "feedback": "Excellent experience"},
-        {"respondent_id": 3, "satisfaction": 3, "recommend": False, "feedback": "Could be better"},
-        {"respondent_id": 4, "satisfaction": 5, "recommend": True, "feedback": "Perfect!"},
+        {
+            "respondent_id": 1,
+            "satisfaction": 4,
+            "recommend": True,
+            "feedback": "Great service!",
+        },
+        {
+            "respondent_id": 2,
+            "satisfaction": 5,
+            "recommend": True,
+            "feedback": "Excellent experience",
+        },
+        {
+            "respondent_id": 3,
+            "satisfaction": 3,
+            "recommend": False,
+            "feedback": "Could be better",
+        },
+        {
+            "respondent_id": 4,
+            "satisfaction": 5,
+            "recommend": True,
+            "feedback": "Perfect!",
+        },
     ]
 
     print("Survey Analysis:")
-    avg_satisfaction = sum(r["satisfaction"] for r in survey_responses) / len(survey_responses)
-    recommend_rate = sum(1 for r in survey_responses if r["recommend"]) / len(survey_responses)
+    avg_satisfaction = sum(r["satisfaction"] for r in survey_responses) / len(
+        survey_responses
+    )
+    recommend_rate = sum(1 for r in survey_responses if r["recommend"]) / len(
+        survey_responses
+    )
 
     print(f"  Average satisfaction: {avg_satisfaction:.1f}/5")
     print(f"  Recommendation rate: {recommend_rate:.1%}")
@@ -197,10 +244,26 @@ def example_real_world_scenarios() -> None:
 
     # Scenario 2: Log analysis and export
     log_entries = [
-        {"timestamp": "2024-01-15T10:30:00", "level": "INFO", "message": "Application started"},
-        {"timestamp": "2024-01-15T10:31:22", "level": "WARNING", "message": "High memory usage detected"},
-        {"timestamp": "2024-01-15T10:32:15", "level": "ERROR", "message": "Database connection failed"},
-        {"timestamp": "2024-01-15T10:32:45", "level": "INFO", "message": "Database connection restored"},
+        {
+            "timestamp": "2024-01-15T10:30:00",
+            "level": "INFO",
+            "message": "Application started",
+        },
+        {
+            "timestamp": "2024-01-15T10:31:22",
+            "level": "WARNING",
+            "message": "High memory usage detected",
+        },
+        {
+            "timestamp": "2024-01-15T10:32:15",
+            "level": "ERROR",
+            "message": "Database connection failed",
+        },
+        {
+            "timestamp": "2024-01-15T10:32:45",
+            "level": "INFO",
+            "message": "Database connection restored",
+        },
     ]
 
     # Filter and export error logs
@@ -218,8 +281,18 @@ def example_real_world_scenarios() -> None:
     api_responses = [
         {"endpoint": "/users", "response_time": 120, "status_code": 200, "errors": 0},
         {"endpoint": "/orders", "response_time": 450, "status_code": 200, "errors": 0},
-        {"endpoint": "/products", "response_time": 200, "status_code": 500, "errors": 1},
-        {"endpoint": "/reports", "response_time": 1200, "status_code": 200, "errors": 0},
+        {
+            "endpoint": "/products",
+            "response_time": 200,
+            "status_code": 500,
+            "errors": 1,
+        },
+        {
+            "endpoint": "/reports",
+            "response_time": 1200,
+            "status_code": 200,
+            "errors": 0,
+        },
     ]
 
     # Generate performance report

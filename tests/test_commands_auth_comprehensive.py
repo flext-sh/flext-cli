@@ -23,7 +23,7 @@ class TestAuthGroup:
         """Test that auth group is properly defined."""
         assert isinstance(auth, click.Group)
         if auth.name != "auth":
-            msg = f"Expected {"auth"}, got {auth.name}"
+            msg = f"Expected {'auth'}, got {auth.name}"
             raise AssertionError(msg)
 
     def test_auth_group_help(self) -> None:
@@ -34,18 +34,18 @@ class TestAuthGroup:
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         if "Manage authentication commands" not in result.output:
-            msg = f"Expected {"Manage authentication commands"} in {result.output}"
+            msg = f"Expected {'Manage authentication commands'} in {result.output}"
             raise AssertionError(msg)
 
     def test_auth_group_commands(self) -> None:
         """Test that auth group has expected commands."""
         commands = auth.list_commands(None)
         if "login" not in commands:
-            msg = f"Expected {"login"} in {commands}"
+            msg = f"Expected {'login'} in {commands}"
             raise AssertionError(msg)
         assert "logout" in commands
         if "status" not in commands:
-            msg = f"Expected {"status"} in {commands}"
+            msg = f"Expected {'status'} in {commands}"
             raise AssertionError(msg)
 
 
@@ -56,7 +56,7 @@ class TestLoginCommand:
         """Test that login command is properly defined."""
         assert isinstance(login, click.Command)
         if login.name != "login":
-            msg = f"Expected {"login"}, got {login.name}"
+            msg = f"Expected {'login'}, got {login.name}"
             raise AssertionError(msg)
 
     def test_login_help(self) -> None:
@@ -67,17 +67,19 @@ class TestLoginCommand:
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         if "Login to FLEXT" not in result.output:
-            msg = f"Expected {"Login to FLEXT"} in {result.output}"
+            msg = f"Expected {'Login to FLEXT'} in {result.output}"
             raise AssertionError(msg)
         assert "--username" in result.output
         if "--password" not in result.output:
-            msg = f"Expected {"--password"} in {result.output}"
+            msg = f"Expected {'--password'} in {result.output}"
             raise AssertionError(msg)
 
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("flext_cli.commands.auth.save_auth_token")
     def test_login_success(
-        self, mock_save_token: MagicMock, mock_client_class: MagicMock,
+        self,
+        mock_save_token: MagicMock,
+        mock_client_class: MagicMock,
     ) -> None:
         """Test successful login."""
         # Setup mocks
@@ -98,7 +100,6 @@ class TestLoginCommand:
         )
 
         if result.exit_code != 0:
-
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_save_token.assert_called_once_with("test-token-123")
@@ -109,7 +110,9 @@ class TestLoginCommand:
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("flext_cli.commands.auth.save_auth_token")
     def test_login_success_no_user_name(
-        self, mock_save_token: MagicMock, mock_client_class: MagicMock,
+        self,
+        mock_save_token: MagicMock,
+        mock_client_class: MagicMock,
     ) -> None:
         """Test successful login without user name in response."""
         # Setup mocks
@@ -130,7 +133,6 @@ class TestLoginCommand:
         )
 
         if result.exit_code != 0:
-
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_save_token.assert_called_once_with("test-token-456")
@@ -156,7 +158,6 @@ class TestLoginCommand:
         )
 
         if result.exit_code != 0:
-
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_console.print.assert_any_call(
@@ -181,7 +182,6 @@ class TestLoginCommand:
         )
 
         if result.exit_code != 1:
-
             msg = f"Expected {1}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_console.print.assert_any_call(
@@ -206,7 +206,6 @@ class TestLoginCommand:
         )
 
         if result.exit_code != 1:
-
             msg = f"Expected {1}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_console.print.assert_any_call(
@@ -231,7 +230,6 @@ class TestLoginCommand:
         )
 
         if result.exit_code != 1:
-
             msg = f"Expected {1}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_console.print.assert_any_call(
@@ -256,7 +254,6 @@ class TestLoginCommand:
         )
 
         if result.exit_code != 1:
-
             msg = f"Expected {1}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_console.print.assert_any_call(
@@ -281,7 +278,6 @@ class TestLoginCommand:
         )
 
         if result.exit_code != 1:
-
             msg = f"Expected {1}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_console.print.assert_any_call(
@@ -295,7 +291,7 @@ class TestLoginCommand:
 
         # Should prompt for username and password
         if "Username:" not in result.output:
-            msg = f"Expected {"Username:"} in {result.output}"
+            msg = f"Expected {'Username:'} in {result.output}"
             raise AssertionError(msg)
 
 
@@ -306,7 +302,7 @@ class TestLogoutCommand:
         """Test that logout command is properly defined."""
         assert isinstance(logout, click.Command)
         if logout.name != "logout":
-            msg = f"Expected {"logout"}, got {logout.name}"
+            msg = f"Expected {'logout'}, got {logout.name}"
             raise AssertionError(msg)
 
     def test_logout_help(self) -> None:
@@ -317,7 +313,7 @@ class TestLogoutCommand:
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         if "Logout from FLEXT" not in result.output:
-            msg = f"Expected {"Logout from FLEXT"} in {result.output}"
+            msg = f"Expected {'Logout from FLEXT'} in {result.output}"
             raise AssertionError(msg)
 
     @patch("flext_cli.commands.auth.get_auth_token")
@@ -330,7 +326,6 @@ class TestLogoutCommand:
         result = runner.invoke(logout, obj={"console": mock_console})
 
         if result.exit_code != 0:
-
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_console.print.assert_any_call("[yellow]Not logged in[/yellow]")
@@ -345,7 +340,6 @@ class TestLogoutCommand:
         result = runner.invoke(logout, obj={"console": mock_console})
 
         if result.exit_code != 0:
-
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_console.print.assert_any_call("[yellow]Not logged in[/yellow]")
@@ -371,7 +365,6 @@ class TestLogoutCommand:
         result = runner.invoke(logout, obj={"console": mock_console})
 
         if result.exit_code != 0:
-
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_client.logout.assert_called_once()
@@ -401,7 +394,6 @@ class TestLogoutCommand:
         result = runner.invoke(logout, obj={"console": mock_console})
 
         if result.exit_code != 0:
-
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_clear_tokens.assert_called_once()  # Still clears tokens locally
@@ -431,7 +423,6 @@ class TestLogoutCommand:
         result = runner.invoke(logout, obj={"console": mock_console})
 
         if result.exit_code != 0:
-
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_clear_tokens.assert_called_once()
@@ -461,7 +452,6 @@ class TestLogoutCommand:
         result = runner.invoke(logout, obj={"console": mock_console})
 
         if result.exit_code != 0:
-
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_clear_tokens.assert_called_once()
@@ -491,7 +481,6 @@ class TestLogoutCommand:
         result = runner.invoke(logout, obj={"console": mock_console})
 
         if result.exit_code != 0:
-
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_clear_tokens.assert_called_once()
@@ -521,7 +510,6 @@ class TestLogoutCommand:
         result = runner.invoke(logout, obj={"console": mock_console})
 
         if result.exit_code != 0:
-
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_clear_tokens.assert_called_once()
@@ -536,7 +524,7 @@ class TestStatusCommand:
         """Test that status command is properly defined."""
         assert isinstance(status, click.Command)
         if status.name != "status":
-            msg = f"Expected {"status"}, got {status.name}"
+            msg = f"Expected {'status'}, got {status.name}"
             raise AssertionError(msg)
 
     def test_status_help(self) -> None:
@@ -547,7 +535,7 @@ class TestStatusCommand:
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         if "Check authentication status" not in result.output:
-            msg = f"Expected {"Check authentication status"} in {result.output}"
+            msg = f"Expected {'Check authentication status'} in {result.output}"
             raise AssertionError(msg)
 
     @patch("flext_cli.commands.auth.get_auth_token")
@@ -560,7 +548,6 @@ class TestStatusCommand:
         result = runner.invoke(status, obj={"console": mock_console})
 
         if result.exit_code != 1:
-
             msg = f"Expected {1}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_console.print.assert_any_call("[red]❌ Not authenticated[/red]")
@@ -576,7 +563,6 @@ class TestStatusCommand:
         result = runner.invoke(status, obj={"console": mock_console})
 
         if result.exit_code != 1:
-
             msg = f"Expected {1}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_console.print.assert_any_call("[red]❌ Not authenticated[/red]")
@@ -584,7 +570,9 @@ class TestStatusCommand:
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("flext_cli.commands.auth.get_auth_token")
     def test_status_authenticated(
-        self, mock_get_token: MagicMock, mock_client_class: MagicMock,
+        self,
+        mock_get_token: MagicMock,
+        mock_client_class: MagicMock,
     ) -> None:
         """Test status when authenticated."""
         # Setup mocks
@@ -603,7 +591,6 @@ class TestStatusCommand:
         result = runner.invoke(status, obj={"console": mock_console})
 
         if result.exit_code != 0:
-
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_console.print.assert_any_call(
@@ -617,7 +604,9 @@ class TestStatusCommand:
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("flext_cli.commands.auth.get_auth_token")
     def test_status_authenticated_missing_fields(
-        self, mock_get_token: MagicMock, mock_client_class: MagicMock,
+        self,
+        mock_get_token: MagicMock,
+        mock_client_class: MagicMock,
     ) -> None:
         """Test status when authenticated but user data is incomplete."""
         # Setup mocks
@@ -632,7 +621,6 @@ class TestStatusCommand:
         result = runner.invoke(status, obj={"console": mock_console})
 
         if result.exit_code != 0:
-
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_console.print.assert_any_call("User: Unknown")
@@ -642,7 +630,9 @@ class TestStatusCommand:
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("flext_cli.commands.auth.get_auth_token")
     def test_status_connection_error(
-        self, mock_get_token: MagicMock, mock_client_class: MagicMock,
+        self,
+        mock_get_token: MagicMock,
+        mock_client_class: MagicMock,
     ) -> None:
         """Test status with connection error."""
         # Setup mocks
@@ -657,7 +647,6 @@ class TestStatusCommand:
         result = runner.invoke(status, obj={"console": mock_console})
 
         if result.exit_code != 1:
-
             msg = f"Expected {1}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_console.print.assert_any_call(
@@ -668,7 +657,9 @@ class TestStatusCommand:
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("flext_cli.commands.auth.get_auth_token")
     def test_status_timeout_error(
-        self, mock_get_token: MagicMock, mock_client_class: MagicMock,
+        self,
+        mock_get_token: MagicMock,
+        mock_client_class: MagicMock,
     ) -> None:
         """Test status with timeout error."""
         # Setup mocks
@@ -683,7 +674,6 @@ class TestStatusCommand:
         result = runner.invoke(status, obj={"console": mock_console})
 
         if result.exit_code != 1:
-
             msg = f"Expected {1}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_console.print.assert_any_call(
@@ -693,7 +683,9 @@ class TestStatusCommand:
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("flext_cli.commands.auth.get_auth_token")
     def test_status_value_error(
-        self, mock_get_token: MagicMock, mock_client_class: MagicMock,
+        self,
+        mock_get_token: MagicMock,
+        mock_client_class: MagicMock,
     ) -> None:
         """Test status with value error."""
         # Setup mocks
@@ -708,7 +700,6 @@ class TestStatusCommand:
         result = runner.invoke(status, obj={"console": mock_console})
 
         if result.exit_code != 1:
-
             msg = f"Expected {1}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_console.print.assert_any_call(
@@ -718,7 +709,9 @@ class TestStatusCommand:
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("flext_cli.commands.auth.get_auth_token")
     def test_status_key_error(
-        self, mock_get_token: MagicMock, mock_client_class: MagicMock,
+        self,
+        mock_get_token: MagicMock,
+        mock_client_class: MagicMock,
     ) -> None:
         """Test status with key error."""
         # Setup mocks
@@ -733,7 +726,6 @@ class TestStatusCommand:
         result = runner.invoke(status, obj={"console": mock_console})
 
         if result.exit_code != 1:
-
             msg = f"Expected {1}, got {result.exit_code}"
             raise AssertionError(msg)
         mock_console.print.assert_any_call(
@@ -743,7 +735,9 @@ class TestStatusCommand:
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("flext_cli.commands.auth.get_auth_token")
     def test_status_os_error(
-        self, mock_get_token: MagicMock, mock_client_class: MagicMock,
+        self,
+        mock_get_token: MagicMock,
+        mock_client_class: MagicMock,
     ) -> None:
         """Test status with OS error."""
         # Setup mocks
@@ -758,7 +752,6 @@ class TestStatusCommand:
         result = runner.invoke(status, obj={"console": mock_console})
 
         if result.exit_code != 1:
-
             msg = f"Expected {1}, got {result.exit_code}"
             raise AssertionError(msg)
         expected_msg = "[red]❌ Network error during authentication check: Network unreachable[/red]"
@@ -775,15 +768,14 @@ class TestAuthIntegration:
         result = runner.invoke(auth, ["--help"])
 
         if result.exit_code != 0:
-
             msg = f"Expected {0}, got {result.exit_code}"
             raise AssertionError(msg)
         if "login" not in result.output:
-            msg = f"Expected {"login"} in {result.output}"
+            msg = f"Expected {'login'} in {result.output}"
             raise AssertionError(msg)
         assert "logout" in result.output
         if "status" not in result.output:
-            msg = f"Expected {"status"} in {result.output}"
+            msg = f"Expected {'status'} in {result.output}"
             raise AssertionError(msg)
 
     @patch("flext_cli.commands.auth.FlextApiClient")

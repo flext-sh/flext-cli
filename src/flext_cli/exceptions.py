@@ -60,7 +60,11 @@ class FlextCliValidationError(FlextValidationError):
 
         super().__init__(
             f"CLI validation: {message}",
-            validation_details=validation_details,
+            validation_details=(
+                validation_details
+                if validation_details is None
+                else dict(validation_details)
+            ),
             context=context,
         )
 
@@ -200,7 +204,13 @@ class FlextCliArgumentError(FlextCliError):
         if argument_value is not None:
             context["argument_value"] = argument_value
 
-        super().__init__(f"CLI argument: {message}", **context)
+        command = context.get("command")
+        filtered_context = {k: v for k, v in context.items() if k != "command"}
+        super().__init__(
+            f"CLI argument: {message}",
+            command=command if isinstance(command, str) else None,
+            **filtered_context,
+        )
 
 
 class FlextCliFormatError(FlextCliError):
@@ -220,7 +230,13 @@ class FlextCliFormatError(FlextCliError):
         if data_type is not None:
             context["data_type"] = data_type
 
-        super().__init__(f"CLI format: {message}", **context)
+        command = context.get("command")
+        filtered_context = {k: v for k, v in context.items() if k != "command"}
+        super().__init__(
+            f"CLI format: {message}",
+            command=command if isinstance(command, str) else None,
+            **filtered_context,
+        )
 
 
 class FlextCliOutputError(FlextCliError):
@@ -240,7 +256,13 @@ class FlextCliOutputError(FlextCliError):
         if output_path is not None:
             context["output_path"] = output_path
 
-        super().__init__(f"CLI output: {message}", **context)
+        command = context.get("command")
+        filtered_context = {k: v for k, v in context.items() if k != "command"}
+        super().__init__(
+            f"CLI output: {message}",
+            command=command if isinstance(command, str) else None,
+            **filtered_context,
+        )
 
 
 class FlextCliContextError(FlextCliError):
@@ -260,7 +282,13 @@ class FlextCliContextError(FlextCliError):
         if context_state is not None:
             context_dict["context_state"] = context_state
 
-        super().__init__(f"CLI context: {message}", **context_dict)
+        command = context_dict.get("command")
+        filtered_context = {k: v for k, v in context_dict.items() if k != "command"}
+        super().__init__(
+            f"CLI context: {message}",
+            command=command if isinstance(command, str) else None,
+            **filtered_context,
+        )
 
 
 __all__ = [

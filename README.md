@@ -51,7 +51,7 @@ src/flext_cli/
 cd /home/marlonsc/flext/flext-cli
 poetry install --all-extras --with dev,test,docs,security
 
-# Install CLI globally 
+# Install CLI globally
 make install-cli
 
 # Verify installation
@@ -180,11 +180,11 @@ def test_command_lifecycle():
         command_line="echo hello",
         command_type=CommandType.SYSTEM
     )
-    
+
     # Test execution lifecycle
     command.start_execution()
     assert command.command_status == CommandStatus.RUNNING
-    
+
     command.complete_execution(exit_code=0, stdout="hello")
     assert command.is_successful
 ```
@@ -197,11 +197,11 @@ from flext_cli.cli import cli
 
 def test_cli_commands():
     runner = CliRunner()
-    
+
     # Test main CLI
     result = runner.invoke(cli, ['--version'])
     assert result.exit_code == 0
-    
+
     # Test command groups
     result = runner.invoke(cli, ['auth', '--help'])
     assert result.exit_code == 0
@@ -293,18 +293,21 @@ cli.add_command(new_feature.new_feature)
 ### Common Issues
 
 1. **Import Errors**
+
    ```bash
    # Clean and reinstall dependencies
    rm -rf .venv && poetry install --all-extras
    ```
 
 2. **Type Check Failures**
+
    ```bash
    # Run MyPy with specific paths
    poetry run mypy src/flext_cli --show-error-codes
    ```
 
 3. **Test Failures**
+
    ```bash
    # Run tests with verbose output
    poetry run pytest tests/ -v -s
@@ -350,16 +353,19 @@ MIT License - see [LICENSE](LICENSE) for details.
 ## Documentation
 
 ### Architecture & Development
+
 - [CLAUDE.md](CLAUDE.md) - Development guidance and architectural patterns
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Detailed architectural decisions and patterns
 - [docs/](docs/) - Comprehensive project documentation
 
 ### Related Projects
+
 - [../../flext-core/](../../flext-core/) - Foundation library with shared patterns
 - [../../flext-observability/](../../flext-observability/) - Monitoring and metrics integration
 - [../../flext-meltano/](../../flext-meltano/) - Meltano orchestration platform
 
 ### Ecosystem Integration
+
 - [../../flexcore/](../../flexcore/) - Go runtime container service (port 8080)
 - [../../cmd/flext/](../../cmd/flext/) - Go/Python data integration service (port 8081)
 - [../../flext-api/](../../flext-api/) - REST API services

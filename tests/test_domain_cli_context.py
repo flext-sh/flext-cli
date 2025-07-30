@@ -146,9 +146,7 @@ class TestCLIContext:
         with patch.object(cli_context.console, "print") as mock_print:
             cli_context.print_debug("Test debug message")
 
-            mock_print.assert_called_once_with(
-                "[dim][DEBUG][/dim] Test debug message"
-            )
+            mock_print.assert_called_once_with("[dim][DEBUG][/dim] Test debug message")
 
     def test_print_debug_when_debug_disabled(
         self,
@@ -176,9 +174,7 @@ class TestCLIContext:
         with patch.object(cli_context.console, "print") as mock_print:
             cli_context.print_info("Test info message")
 
-            mock_print.assert_called_once_with(
-                "[blue][INFO][/blue] Test info message"
-            )
+            mock_print.assert_called_once_with("[blue][INFO][/blue] Test info message")
 
     def test_print_info_when_quiet(
         self,
@@ -226,9 +222,7 @@ class TestCLIContext:
         with patch.object(cli_context.console, "print") as mock_print:
             cli_context.print_error("Test error message")
 
-            mock_print.assert_called_once_with(
-                "[red][ERROR][/red] Test error message"
-            )
+            mock_print.assert_called_once_with("[red][ERROR][/red] Test error message")
 
     def test_print_verbose_when_verbose_enabled(self, cli_context: CLIContext) -> None:
         """Test print_verbose when verbose mode is enabled."""
@@ -276,9 +270,7 @@ class TestCLIContext:
 
             # Verify all calls were made
             if mock_print.call_count != 6:
-                raise AssertionError(
-                    f"Expected {6}, got {mock_print.call_count}"
-                )
+                raise AssertionError(f"Expected {6}, got {mock_print.call_count}")
 
             # Verify specific calls
             expected_calls = [

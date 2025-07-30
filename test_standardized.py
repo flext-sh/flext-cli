@@ -10,7 +10,9 @@ for _name, _exists in structure.items():
     pass
 
 # Test file sizes
-sizes = {name: Path(name).stat().st_size if Path(name).exists() else 0 for name in modules}
+sizes = {
+    name: Path(name).stat().st_size if Path(name).exists() else 0 for name in modules
+}
 
 for _name, _size in sizes.items():
     pass
@@ -18,10 +20,10 @@ for _name, _size in sizes.items():
 # Test standardized naming
 naming_tests = {
     "FlextCli classes": True,  # FlextCliService, FlextCliApi, etc.
-    "TCli types": True,        # TCliData, TCliHandler, etc.
+    "TCli types": True,  # TCliData, TCliHandler, etc.
     "flext_cli functions": True,  # flext_cli_export, flext_cli_format, etc.
-    "No aliases": True,        # No duplicate or alias functions
-    "No fallbacks": True,      # No backward compatibility code
+    "No aliases": True,  # No duplicate or alias functions
+    "No fallbacks": True,  # No backward compatibility code
 }
 
 for _test, _passed in naming_tests.items():

@@ -351,7 +351,6 @@ def main() -> None:
         example_5_real_world_scenario()
 
     except (RuntimeError, ValueError, TypeError):
-
         traceback.print_exc()
 
 

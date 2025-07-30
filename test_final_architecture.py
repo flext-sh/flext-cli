@@ -27,10 +27,14 @@ for backup in backups:
     exists = "✅" if Path(backup).exists() else "❌"
 
 # Calculate metrics
-active_sizes = {name: Path(name).stat().st_size if Path(name).exists() else 0 for name in modules}
+active_sizes = {
+    name: Path(name).stat().st_size if Path(name).exists() else 0 for name in modules
+}
 total_active = sum(active_sizes.values())
 
-backup_sizes = {name: Path(name).stat().st_size if Path(name).exists() else 0 for name in backups}
+backup_sizes = {
+    name: Path(name).stat().st_size if Path(name).exists() else 0 for name in backups
+}
 total_backup = sum(backup_sizes.values())
 
 

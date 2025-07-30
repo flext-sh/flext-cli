@@ -339,6 +339,4 @@ class TestCLIHelper:
 
         with patch.object(helper.console, "print") as mock_print:
             helper.print_info("Info message")
-            mock_print.assert_called_once_with(
-                "[bold blue]i[/bold blue] Info message"
-            )
+            mock_print.assert_called_once_with("[bold blue]i[/bold blue] Info message")

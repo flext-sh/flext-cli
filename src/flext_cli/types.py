@@ -14,6 +14,7 @@ from pathlib import Path
 # DRY: Use REAL flext-core imports from main API - NO DUPLICATION
 from flext_core import (
     FlextEntity,
+    FlextResult,
     FlextUtilities,
     FlextValueObject,
     TValue,
@@ -113,9 +114,13 @@ class FlextCliCommand(FlextEntity):
         """Check if command completed successfully."""
         return self.command_status == FlextCliCommandStatus.COMPLETED
 
-    def validate_domain_rules(self) -> bool:
+    def validate_domain_rules(self) -> FlextResult[None]:
         """Validate domain rules for CLI command."""
-        return bool(self.name and self.command_line)
+        if not self.name:
+            return FlextResult.fail("Command name cannot be empty")
+        if not self.command_line:
+            return FlextResult.fail("Command line cannot be empty")
+        return FlextResult.ok(None)
 
 
 class FlextCliConfig(FlextValueObject):
@@ -172,16 +177,18 @@ class FlextCliConfig(FlextValueObject):
 
                 # Copy all fields from updated instance to self
                 for field_name in self.model_fields:
-                    object.__setattr__(self, field_name, getattr(updated_self, field_name))
+                    object.__setattr__(
+                        self, field_name, getattr(updated_self, field_name),
+                    )
 
                 return True
             return False
         except (AttributeError, ValueError, TypeError):
             return False
 
-    def validate_domain_rules(self) -> bool:
+    def validate_domain_rules(self) -> FlextResult[None]:
         """Validate domain rules for CLI configuration."""
-        return True  # Configuration is always valid according to tests
+        return FlextResult.ok(None)  # Configuration is always valid according to tests
 
 
 class FlextCliContext(FlextValueObject):
@@ -265,9 +272,11 @@ class FlextCliContext(FlextValueObject):
             profile="production",
         )
 
-    def validate_domain_rules(self) -> bool:
+    def validate_domain_rules(self) -> FlextResult[None]:
         """Validate domain rules for CLI context."""
-        return bool(self.session_id)
+        if not self.session_id:
+            return FlextResult.fail("Session ID cannot be empty")
+        return FlextResult.ok(None)
 
 
 class FlextCliPlugin(FlextValueObject):
@@ -293,9 +302,13 @@ class FlextCliPlugin(FlextValueObject):
         }
         super().__init__(**init_data)
 
-    def validate_domain_rules(self) -> bool:
+    def validate_domain_rules(self) -> FlextResult[None]:
         """Validate domain rules for CLI plugin."""
-        return bool(self.name and self.version)
+        if not self.name:
+            return FlextResult.fail("Plugin name cannot be empty")
+        if not self.version:
+            return FlextResult.fail("Plugin version cannot be empty")
+        return FlextResult.ok(None)
 
 
 class FlextCliSession(FlextEntity):
@@ -320,6 +333,8 @@ class FlextCliSession(FlextEntity):
         except (AttributeError, ValueError, TypeError):
             return False
 
-    def validate_domain_rules(self) -> bool:
+    def validate_domain_rules(self) -> FlextResult[None]:
         """Validate domain rules for CLI session."""
-        return bool(self.id)
+        if not self.id:
+            return FlextResult.fail("Session ID cannot be empty")
+        return FlextResult.ok(None)

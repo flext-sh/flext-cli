@@ -280,7 +280,7 @@ class CLISettings(BaseSettings):
 
     # Project identification
     project_name: str = Field(default="flext-cli", description="Project name")
-    project_version: str = Field(default="0.7.0", description="Project version")
+    project_version: str = Field(default="0.9.0", description="Project version")
 
     # CLI specific settings
     api_url: str = Field(default="http://localhost:8000", description="API base URL")
@@ -293,7 +293,7 @@ def get_cli_settings() -> CLISettings:
     """Get CLI settings instance."""
     return CLISettings(
         project_name="flext-cli",
-        project_version="0.7.0",
+        project_version="0.9.0",
         api_url="http://localhost:8000",
         timeout=30,
         output_format="table",

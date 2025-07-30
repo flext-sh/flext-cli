@@ -40,14 +40,22 @@ def demonstrate_cli_commands() -> None:
         console.print("🔧 CLI Command Structure:")
         console.print("   - name: Command identifier")
         console.print("   - command_line: Actual command to execute")
-        console.print("   - command_type: system, pipeline, plugin, data, config, auth, monitoring")
+        console.print(
+            "   - command_type: system, pipeline, plugin, data, config, auth, monitoring"
+        )
         console.print("   - arguments: Command arguments dictionary")
         console.print("   - options: Command options dictionary")
-        console.print("   - command_status: pending, running, completed, failed, cancelled")
+        console.print(
+            "   - command_status: pending, running, completed, failed, cancelled"
+        )
         console.print("   - exit_code: Process exit code")
         console.print("   - stdout/stderr: Command output")
-        console.print("   - execution timing: started_at, completed_at, duration_seconds")
-        console.print("   - context: user_id, session_id, working_directory, environment")
+        console.print(
+            "   - execution timing: started_at, completed_at, duration_seconds"
+        )
+        console.print(
+            "   - context: user_id, session_id, working_directory, environment"
+        )
         console.print()
 
         # Show command types
@@ -63,15 +71,21 @@ def demonstrate_cli_commands() -> None:
         console.print()
 
         console.print("✨ Command lifecycle methods:")
-        console.print("   - start_execution(): Set status to running, record start time")
-        console.print("   - complete_execution(): Set final status, record completion, calculate duration")
+        console.print(
+            "   - start_execution(): Set status to running, record start time"
+        )
+        console.print(
+            "   - complete_execution(): Set final status, record completion, calculate duration"
+        )
         console.print("   - cancel_execution(): Cancel command, record completion time")
         console.print("   - is_completed: Property to check if execution finished")
         console.print("   - is_successful: Property to check if completed successfully")
         console.print()
 
     except (RuntimeError, ValueError, TypeError) as e:
-        console.print(f"[yellow]Note: Full entity instantiation requires ID management: {e}[/yellow]")
+        console.print(
+            f"[yellow]Note: Full entity instantiation requires ID management: {e}[/yellow]"
+        )
         console.print("In production, use proper entity factories or repositories.")
         console.print()
 
@@ -238,14 +252,18 @@ def demonstrate_practical_usage() -> None:
     console.print("1. **Command Execution Service**:")
     console.print("   ```python")
     console.print("   # Create command entity")
-    console.print("   command = CLICommand(name='deploy', command_line='kubectl apply -f app.yaml')")
+    console.print(
+        "   command = CLICommand(name='deploy', command_line='kubectl apply -f app.yaml')"
+    )
     console.print("   command.start_execution()")
     console.print("   ")
     console.print("   # Execute actual command")
     console.print("   result = subprocess.run(command.command_line, ...)")
     console.print("   ")
     console.print("   # Complete execution")
-    console.print("   command.complete_execution(result.returncode, result.stdout, result.stderr)")
+    console.print(
+        "   command.complete_execution(result.returncode, result.stdout, result.stderr)"
+    )
     console.print("   ```")
     console.print()
 
@@ -278,7 +296,9 @@ def demonstrate_practical_usage() -> None:
     console.print("4. **Event-Driven Architecture**:")
     console.print("   ```python")
     console.print("   # Publish events")
-    console.print("   event = CommandStartedEvent(command_id=command.id, command_name=command.name)")
+    console.print(
+        "   event = CommandStartedEvent(command_id=command.id, command_name=command.name)"
+    )
     console.print("   event_bus.publish(event)")
     console.print("   ```")
     console.print()
@@ -287,7 +307,9 @@ def demonstrate_practical_usage() -> None:
 def main() -> None:
     """Run the domain entities demonstration."""
     console = Console()
-    console.print("[bold green]🏗️ FLEXT CLI Library Domain Entities Example[/bold green]\n")
+    console.print(
+        "[bold green]🏗️ FLEXT CLI Library Domain Entities Example[/bold green]\n"
+    )
 
     demonstrate_cli_commands()
     demonstrate_cli_sessions()

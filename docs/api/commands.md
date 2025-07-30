@@ -12,14 +12,14 @@ flext [GLOBAL_OPTIONS] COMMAND [COMMAND_OPTIONS]
 
 ### Global Options
 
-| Option | Short | Type | Default | Description |
-|--------|-------|------|---------|-------------|
-| `--profile` | | `str` | `default` | Configuration profile to use |
-| `--output` | `-o` | `choice` | `table` | Output format (table, json, yaml, csv, plain) |
-| `--debug` | | `flag` | `false` | Enable debug mode |
-| `--quiet` | `-q` | `flag` | `false` | Suppress non-error output |
-| `--help` | `-h` | `flag` | | Show help message |
-| `--version` | | `flag` | | Show version information |
+| Option      | Short | Type     | Default   | Description                                   |
+| ----------- | ----- | -------- | --------- | --------------------------------------------- |
+| `--profile` |       | `str`    | `default` | Configuration profile to use                  |
+| `--output`  | `-o`  | `choice` | `table`   | Output format (table, JSON, YAML, csv, plain) |
+| `--debug`   |       | `flag`   | `false`   | Enable debug mode                             |
+| `--quiet`   | `-q`  | `flag`   | `false`   | Suppress non-error output                     |
+| `--help`    | `-h`  | `flag`   |           | Show help message                             |
+| `--version` |       | `flag`   |           | Show version information                      |
 
 ### Examples
 
@@ -42,12 +42,12 @@ flext auth SUBCOMMAND [OPTIONS]
 
 #### Subcommands
 
-| Command | Description | Status |
-|---------|-------------|--------|
-| `login` | Login to FLEXT platform | 🔄 Planned |
-| `logout` | Logout from FLEXT platform | 🔄 Planned |
+| Command  | Description                 | Status     |
+| -------- | --------------------------- | ---------- |
+| `login`  | Login to FLEXT platform     | 🔄 Planned |
+| `logout` | Logout from FLEXT platform  | 🔄 Planned |
 | `status` | Check authentication status | 🔄 Planned |
-| `token` | Manage API tokens | 🔄 Planned |
+| `token`  | Manage API tokens           | 🔄 Planned |
 
 #### Examples
 
@@ -75,13 +75,13 @@ flext config SUBCOMMAND [OPTIONS]
 
 #### Subcommands
 
-| Command | Description | Status |
-|---------|-------------|--------|
-| `show` | Display current configuration | ✅ Implemented |
-| `set` | Set configuration value | 🔄 Planned |
-| `get` | Get configuration value | 🔄 Planned |
-| `validate` | Validate configuration | 🔄 Planned |
-| `reset` | Reset configuration to defaults | 🔄 Planned |
+| Command    | Description                     | Status         |
+| ---------- | ------------------------------- | -------------- |
+| `show`     | Display current configuration   | ✅ Implemented |
+| `set`      | Set configuration value         | 🔄 Planned     |
+| `get`      | Get configuration value         | 🔄 Planned     |
+| `validate` | Validate configuration          | 🔄 Planned     |
+| `reset`    | Reset configuration to defaults | 🔄 Planned     |
 
 #### Examples
 
@@ -112,15 +112,15 @@ flext pipeline SUBCOMMAND [OPTIONS]
 
 #### Subcommands
 
-| Command | Description | Status |
-|---------|-------------|--------|
-| `list` | List available pipelines | ✅ Implemented |
-| `create` | Create new pipeline | 🔄 Planned |
-| `run` | Execute pipeline | 🔄 Planned |
-| `status` | Check pipeline status | 🔄 Planned |
-| `logs` | View pipeline logs | 🔄 Planned |
-| `stop` | Stop running pipeline | 🔄 Planned |
-| `delete` | Delete pipeline | 🔄 Planned |
+| Command  | Description              | Status         |
+| -------- | ------------------------ | -------------- |
+| `list`   | List available pipelines | ✅ Implemented |
+| `create` | Create new pipeline      | 🔄 Planned     |
+| `run`    | Execute pipeline         | 🔄 Planned     |
+| `status` | Check pipeline status    | 🔄 Planned     |
+| `logs`   | View pipeline logs       | 🔄 Planned     |
+| `stop`   | Stop running pipeline    | 🔄 Planned     |
+| `delete` | Delete pipeline          | 🔄 Planned     |
 
 #### Examples
 
@@ -154,14 +154,14 @@ flext plugin SUBCOMMAND [OPTIONS]
 
 #### Subcommands
 
-| Command | Description | Status |
-|---------|-------------|--------|
-| `list` | List installed plugins | ✅ Implemented |
-| `search` | Search plugin registry | 🔄 Planned |
-| `install` | Install plugin | 🔄 Planned |
-| `update` | Update plugin | 🔄 Planned |
-| `remove` | Remove plugin | 🔄 Planned |
-| `info` | Show plugin information | 🔄 Planned |
+| Command   | Description             | Status         |
+| --------- | ----------------------- | -------------- |
+| `list`    | List installed plugins  | ✅ Implemented |
+| `search`  | Search plugin registry  | 🔄 Planned     |
+| `install` | Install plugin          | 🔄 Planned     |
+| `update`  | Update plugin           | 🔄 Planned     |
+| `remove`  | Remove plugin           | 🔄 Planned     |
+| `info`    | Show plugin information | 🔄 Planned     |
 
 #### Examples
 
@@ -192,13 +192,13 @@ flext debug SUBCOMMAND [OPTIONS]
 
 #### Subcommands
 
-| Command | Description | Status |
-|---------|-------------|--------|
-| `info` | Show system information | ✅ Implemented |
-| `connectivity` | Test network connectivity | 🔄 Planned |
-| `performance` | Performance analysis | 🔄 Planned |
-| `validate` | Validate CLI setup | 🔄 Planned |
-| `logs` | Show debug logs | 🔄 Planned |
+| Command        | Description               | Status         |
+| -------------- | ------------------------- | -------------- |
+| `info`         | Show system information   | ✅ Implemented |
+| `connectivity` | Test network connectivity | 🔄 Planned     |
+| `performance`  | Performance analysis      | 🔄 Planned     |
+| `validate`     | Validate CLI setup        | 🔄 Planned     |
+| `logs`         | Show debug logs           | 🔄 Planned     |
 
 #### Examples
 
@@ -228,10 +228,10 @@ flext algar SUBCOMMAND [OPTIONS]
 
 #### Subcommands
 
-| Command | Description | Status |
-|---------|-------------|--------|
-| `migrate` | Run ALGAR OUD migration | ✅ Implemented |
-| `status` | Check migration status | ✅ Implemented |
+| Command    | Description              | Status         |
+| ---------- | ------------------------ | -------------- |
+| `migrate`  | Run ALGAR OUD migration  | ✅ Implemented |
+| `status`   | Check migration status   | ✅ Implemented |
 | `validate` | Validate migration setup | ✅ Implemented |
 
 #### Examples
@@ -257,11 +257,11 @@ flext gruponos SUBCOMMAND [OPTIONS]
 
 #### Subcommands
 
-| Command | Description | Status |
-|---------|-------------|--------|
+| Command  | Description              | Status         |
+| -------- | ------------------------ | -------------- |
 | `deploy` | Deploy GrupoNos services | ✅ Implemented |
-| `status` | Check deployment status | ✅ Implemented |
-| `logs` | View service logs | ✅ Implemented |
+| `status` | Check deployment status  | ✅ Implemented |
+| `logs`   | View service logs        | ✅ Implemented |
 
 #### Examples
 
@@ -286,11 +286,11 @@ flext meltano SUBCOMMAND [OPTIONS]
 
 #### Subcommands
 
-| Command | Description | Status |
-|---------|-------------|--------|
-| `run` | Run Meltano command | ✅ Implemented |
-| `install` | Install Meltano plugins | ✅ Implemented |
-| `invoke` | Invoke Meltano operations | ✅ Implemented |
+| Command   | Description               | Status         |
+| --------- | ------------------------- | -------------- |
+| `run`     | Run Meltano command       | ✅ Implemented |
+| `install` | Install Meltano plugins   | ✅ Implemented |
+| `invoke`  | Invoke Meltano operations | ✅ Implemented |
 
 #### Examples
 
@@ -317,8 +317,8 @@ flext version [OPTIONS]
 
 #### Options
 
-| Option | Description |
-|--------|-------------|
+| Option       | Description                       |
+| ------------ | --------------------------------- |
 | `--detailed` | Show detailed version information |
 
 #### Examples
@@ -361,6 +361,7 @@ flext pipeline list
 ```
 
 Output:
+
 ```
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃                                                          Pipeline Status                                                           ┃
@@ -379,6 +380,7 @@ flext --output json pipeline list
 ```
 
 Output:
+
 ```json
 {
   "pipelines": [
@@ -405,16 +407,17 @@ flext --output yaml pipeline list
 ```
 
 Output:
+
 ```yaml
 pipelines:
   - name: data-extraction-github
     status: running
-    last_run: '2025-01-29T10:30:00Z'
-    duration: '00:05:23'
+    last_run: "2025-01-29T10:30:00Z"
+    duration: "00:05:23"
   - name: analytics-pipeline
     status: completed
-    last_run: '2025-01-29T09:15:00Z'
-    duration: '00:12:45'
+    last_run: "2025-01-29T09:15:00Z"
+    duration: "00:12:45"
 ```
 
 ### CSV Format
@@ -424,6 +427,7 @@ flext --output csv pipeline list
 ```
 
 Output:
+
 ```csv
 name,status,last_run,duration
 data-extraction-github,running,2025-01-29T10:30:00Z,00:05:23

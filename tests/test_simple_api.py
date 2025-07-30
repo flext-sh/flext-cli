@@ -46,7 +46,10 @@ class TestSetupCli:
             result = setup_cli()
             assert not result.is_success
             # Check error exists and contains expected message
-            if result.error is None or "Failed to setup CLI: Test error" not in result.error:
+            if (
+                result.error is None
+                or "Failed to setup CLI: Test error" not in result.error
+            ):
                 raise AssertionError(
                     f"Expected {'Failed to setup CLI: Test error'} in {result.error}"
                 )

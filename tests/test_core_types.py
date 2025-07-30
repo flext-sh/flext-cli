@@ -31,13 +31,19 @@ class TestPositiveIntType:
 
         # Test various positive integers
         if param_type.convert(1, None, None) != 1:
-            raise AssertionError(f"Expected {1}, got {param_type.convert(1, None, None)}")
+            raise AssertionError(
+                f"Expected {1}, got {param_type.convert(1, None, None)}"
+            )
         assert param_type.convert(42, None, None) == 42
         if param_type.convert(1000, None, None) != 1000:
-            raise AssertionError(f"Expected {1000}, got {param_type.convert(1000, None, None)}")
+            raise AssertionError(
+                f"Expected {1000}, got {param_type.convert(1000, None, None)}"
+            )
         assert param_type.convert("5", None, None) == 5
         if param_type.convert("999", None, None) != 999:
-            raise AssertionError(f"Expected {999}, got {param_type.convert("999", None, None)}")
+            raise AssertionError(
+                f"Expected {999}, got {param_type.convert('999', None, None)}"
+            )
 
     def test_invalid_values(self) -> None:
         """Test invalid values raise click.BadParameter."""
@@ -70,7 +76,7 @@ class TestPositiveIntType:
         """Test convenience PositiveInt instance."""
         assert isinstance(PositiveInt, PositiveIntType)
         if PositiveInt.name != "positive_int":
-            raise AssertionError(f"Expected {"positive_int"}, got {PositiveInt.name}")
+            raise AssertionError(f"Expected {'positive_int'}, got {PositiveInt.name}")
 
 
 class TestURLType:
@@ -91,7 +97,9 @@ class TestURLType:
 
         for url in valid_urls:
             if url_type.convert(url, None, None) != url:
-                raise AssertionError(f"Expected {url}, got {url_type.convert(url, None, None)}")
+                raise AssertionError(
+                    f"Expected {url}, got {url_type.convert(url, None, None)}"
+                )
 
     def test_invalid_urls(self) -> None:
         """Test invalid URLs raise click.BadParameter."""
@@ -127,7 +135,7 @@ class TestURLType:
         """Test convenience URL instance."""
         assert isinstance(URL, URLType)
         if URL.name != "url":
-            raise AssertionError(f"Expected {"url"}, got {URL.name}")
+            raise AssertionError(f"Expected {'url'}, got {URL.name}")
 
 
 class TestClickPath:
@@ -153,6 +161,7 @@ class TestClickPath:
 
     def test_path_type_parameter(self) -> None:
         """Test path_type parameter configuration."""
+
         # Test with Path type (default)
         @click.command()
         @click.argument("path", type=ClickPath(path_type=Path))
@@ -295,7 +304,7 @@ class TestIntegrationWithClick:
     def test_type_names_for_help(self) -> None:
         """Test type names appear correctly in help."""
         if PositiveInt.name != "positive_int":
-            raise AssertionError(f"Expected {"positive_int"}, got {PositiveInt.name}")
+            raise AssertionError(f"Expected {'positive_int'}, got {PositiveInt.name}")
         assert URL.name == "url"
 
         # Click.Path doesn't have a specific name attribute in the same way,

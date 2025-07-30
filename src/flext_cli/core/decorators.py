@@ -10,7 +10,6 @@ Focus on functionality over complex typing.
 from __future__ import annotations
 
 import asyncio
-import functools
 import time
 from pathlib import Path
 
@@ -22,7 +21,6 @@ def async_command(f: object) -> object:
     if not callable(f):
         return f
 
-    @functools.wraps(f)
     def wrapper(*args: object, **kwargs: object) -> object:
         try:
             result = f(*args, **kwargs)
@@ -32,6 +30,11 @@ def async_command(f: object) -> object:
         except (RuntimeError, OSError, TypeError, AttributeError):
             # Log the exception if needed
             return None
+
+    # Copy function metadata manually to avoid functools.wraps typing issues
+    wrapper.__name__ = getattr(f, "__name__", "wrapped_function")
+    wrapper.__doc__ = getattr(f, "__doc__", wrapper.__doc__)
+    wrapper.__module__ = getattr(f, "__module__", __name__)
 
     return wrapper
 
@@ -47,7 +50,6 @@ def confirm_action(
         if not callable(f):
             return f
 
-        @functools.wraps(f)
         def wrapper(*args: object, **kwargs: object) -> object:
             console = Console()
             prompt = f"{message} [{'Y/n' if default else 'y/N'}]: "
@@ -58,6 +60,11 @@ def confirm_action(
                 return f(*args, **kwargs)
             console.print("Operation cancelled.", style="yellow")
             return None
+
+        # Copy function metadata manually
+        wrapper.__name__ = getattr(f, "__name__", "wrapped_function")
+        wrapper.__doc__ = getattr(f, "__doc__", wrapper.__doc__)
+        wrapper.__module__ = getattr(f, "__module__", __name__)
 
         return wrapper
 
@@ -71,7 +78,6 @@ def require_auth(*, token_file: str | None = None) -> object:
         if not callable(f):
             return f
 
-        @functools.wraps(f)
         def wrapper(*args: object, **kwargs: object) -> object:
             path = token_file or "~/.flext/auth_token"
             token_path = Path(path).expanduser()
@@ -100,6 +106,11 @@ def require_auth(*, token_file: str | None = None) -> object:
             # Add token to kwargs for the function if needed
             return f(*args, **kwargs)
 
+        # Copy function metadata manually
+        wrapper.__name__ = getattr(f, "__name__", "wrapped_function")
+        wrapper.__doc__ = getattr(f, "__doc__", wrapper.__doc__)
+        wrapper.__module__ = getattr(f, "__module__", __name__)
+
         return wrapper
 
     return decorator
@@ -112,7 +123,6 @@ def measure_time(*, show_in_output: bool = True) -> object:
         if not callable(f):
             return f
 
-        @functools.wraps(f)
         def wrapper(*args: object, **kwargs: object) -> object:
             start_time = time.time()
             try:
@@ -127,6 +137,11 @@ def measure_time(*, show_in_output: bool = True) -> object:
                         f"⏱  Execution time: {duration:.2f}s",
                         style="dim",
                     )
+
+        # Copy function metadata manually
+        wrapper.__name__ = getattr(f, "__name__", "wrapped_function")
+        wrapper.__doc__ = getattr(f, "__doc__", wrapper.__doc__)
+        wrapper.__module__ = getattr(f, "__module__", __name__)
 
         return wrapper
 
@@ -144,7 +159,6 @@ def retry(
         if not callable(f):
             return f
 
-        @functools.wraps(f)
         def wrapper(*args: object, **kwargs: object) -> object:
             console = Console()
             current_delay = delay
@@ -169,6 +183,11 @@ def retry(
                     current_delay *= backoff
 
             return None  # Should never reach here
+
+        # Copy function metadata manually
+        wrapper.__name__ = getattr(f, "__name__", "wrapped_function")
+        wrapper.__doc__ = getattr(f, "__doc__", wrapper.__doc__)
+        wrapper.__module__ = getattr(f, "__module__", __name__)
 
         return wrapper
 

@@ -152,6 +152,7 @@ def transform(
 
     # Simulate transformation
     import time
+
     time.sleep(0.5)  # Simulate processing time
 
     output_file = output_dir / f"transformed_{input_file.name}"

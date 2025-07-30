@@ -70,7 +70,9 @@ class TestFlextCliExport:
     def test_flext_cli_export_default_format(self) -> None:
         """Test export with default format."""
         with (
-            patch.object(flext_cli._api, "flext_cli_export", return_value=True) as mock_export,
+            patch.object(
+                flext_cli._api, "flext_cli_export", return_value=True
+            ) as mock_export,
             tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp_file,
         ):
             data = {"test": "data"}
@@ -88,8 +90,12 @@ class TestFlextCliExport:
 
         for fmt in formats:
             with (
-                patch.object(flext_cli._api, "flext_cli_export", return_value=True) as mock_export,
-                tempfile.NamedTemporaryFile(suffix=f".{fmt}", delete=False) as temp_file,
+                patch.object(
+                    flext_cli._api, "flext_cli_export", return_value=True
+                ) as mock_export,
+                tempfile.NamedTemporaryFile(
+                    suffix=f".{fmt}", delete=False
+                ) as temp_file,
             ):
                 data = {"format": fmt}
                 path = temp_file.name
@@ -103,7 +109,9 @@ class TestFlextCliExport:
     def test_flext_cli_export_complex_data(self) -> None:
         """Test export with complex data structures."""
         with (
-            patch.object(flext_cli._api, "flext_cli_export", return_value=True) as mock_export,
+            patch.object(
+                flext_cli._api, "flext_cli_export", return_value=True
+            ) as mock_export,
             tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp_file,
         ):
             complex_data = {

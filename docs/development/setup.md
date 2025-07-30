@@ -417,7 +417,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.13'
+          python-version: "3.13"
       - run: pip install poetry
       - run: poetry install
       - run: make validate
