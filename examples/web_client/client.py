@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Any, Self, cast
+from typing import Self, cast
 from urllib.parse import urljoin
 
 import httpx
@@ -29,8 +29,8 @@ class PipelineConfig(APIBaseModel):
     tap: str = Field(description="Source tap plugin")
     target: str = Field(description="Target plugin")
     transform: str | None = Field(None, description="Transform plugin")
-    state: dict[str, Any] | None = Field(None, description="Pipeline state")
-    config: dict[str, Any] | None = Field(None, description="Additional config")
+    state: dict[str, object] | None = Field(None, description="Pipeline state")
+    config: dict[str, object] | None = Field(None, description="Additional config")
 
 
 class Pipeline(APIBaseModel):
@@ -115,8 +115,8 @@ class FlextApiClient:
         self,
         method: str,
         path: str,
-        json_data: dict[str, Any] | None = None,
-        params: dict[str, Any] | None = None,
+        json_data: dict[str, object] | None = None,
+        params: dict[str, object] | None = None,
     ) -> httpx.Response:
         """Make HTTP request to API."""
         if not self._session:
@@ -136,7 +136,7 @@ class FlextApiClient:
         return response
 
     # Authentication methods
-    async def login(self, username: str, password: str) -> dict[str, Any]:
+    async def login(self, username: str, password: str) -> dict[str, object]:
         """Login with username and password.
 
         Returns:
@@ -148,13 +148,13 @@ class FlextApiClient:
             "/api/v1/auth/login",
             json_data={"username": username, "password": password},
         )
-        return cast("dict[str, Any]", response.json())
+        return cast("dict[str, object]", response.json())
 
     async def logout(self) -> None:
         """Logout the current user and invalidate token."""
         await self._request("POST", "/api/v1/auth/logout")
 
-    async def get_current_user(self) -> dict[str, Any]:
+    async def get_current_user(self) -> dict[str, object]:
         """Get current authenticated user information.
 
         Returns:
@@ -162,7 +162,7 @@ class FlextApiClient:
 
         """
         response = await self._request("GET", "/api/v1/auth/user")
-        return cast("dict[str, Any]", response.json())
+        return cast("dict[str, object]", response.json())
 
     # Pipeline methods
     async def list_pipelines(
@@ -182,7 +182,7 @@ class FlextApiClient:
             Paginated pipeline list
 
         """
-        params: dict[str, Any] = {"page": page, "page_size": page_size}
+        params: dict[str, object] = {"page": page, "page_size": page_size}
         if status:
             params["status"] = status
 
@@ -254,7 +254,7 @@ class FlextApiClient:
         self,
         pipeline_id: str,
         full_refresh: bool = False,
-    ) -> dict[str, Any]:
+    ) -> dict[str, object]:
         """Run a pipeline manually.
 
         Args:
@@ -270,9 +270,9 @@ class FlextApiClient:
             f"/api/v1/pipelines/{pipeline_id}/run",
             json_data={"full_refresh": full_refresh},
         )
-        return cast("dict[str, Any]", response.json())
+        return cast("dict[str, object]", response.json())
 
-    async def get_pipeline_status(self, pipeline_id: str) -> dict[str, Any]:
+    async def get_pipeline_status(self, pipeline_id: str) -> dict[str, object]:
         """Get current pipeline status.
 
         Args:
@@ -283,7 +283,7 @@ class FlextApiClient:
 
         """
         response = await self._request("GET", f"/api/v1/pipelines/{pipeline_id}/status")
-        return cast("dict[str, Any]", response.json())
+        return cast("dict[str, object]", response.json())
 
     async def get_pipeline_logs(
         self,
@@ -302,7 +302,7 @@ class FlextApiClient:
             List of log lines
 
         """
-        params: dict[str, Any] = {"tail": tail}
+        params: dict[str, object] = {"tail": tail}
         if execution_id:
             params["execution_id"] = execution_id
 
@@ -311,7 +311,7 @@ class FlextApiClient:
             f"/api/v1/pipelines/{pipeline_id}/logs",
             params=params,
         )
-        result = cast("dict[str, Any]", response.json())
+        result = cast("dict[str, object]", response.json())
         return cast("list[str]", result["logs"])
 
     # Plugin methods
@@ -319,7 +319,7 @@ class FlextApiClient:
         self,
         plugin_type: str | None = None,
         installed_only: bool = False,
-    ) -> list[dict[str, Any]]:
+    ) -> list[dict[str, object]]:
         """List available plugins.
 
         Args:
@@ -330,15 +330,15 @@ class FlextApiClient:
             List of plugin information dictionaries
 
         """
-        params: dict[str, Any] = {"installed_only": installed_only}
+        params: dict[str, object] = {"installed_only": installed_only}
         if plugin_type:
             params["type"] = plugin_type
 
         response = await self._request("GET", "/api/v1/plugins", params=params)
-        result = cast("dict[str, Any]", response.json())
-        return cast("list[dict[str, Any]]", result["plugins"])
+        result = cast("dict[str, object]", response.json())
+        return cast("list[dict[str, object]]", result["plugins"])
 
-    async def get_plugin(self, plugin_id: str) -> dict[str, Any]:
+    async def get_plugin(self, plugin_id: str) -> dict[str, object]:
         """Get detailed plugin information.
 
         Args:
@@ -349,13 +349,13 @@ class FlextApiClient:
 
         """
         response = await self._request("GET", f"/api/v1/plugins/{plugin_id}")
-        return cast("dict[str, Any]", response.json())
+        return cast("dict[str, object]", response.json())
 
     async def install_plugin(
         self,
         plugin_id: str,
         version: str | None = None,
-    ) -> dict[str, Any]:
+    ) -> dict[str, object]:
         """Install a plugin.
 
         Args:
@@ -366,7 +366,7 @@ class FlextApiClient:
             Installation response
 
         """
-        json_data: dict[str, Any] = {"plugin_id": plugin_id}
+        json_data: dict[str, object] = {"plugin_id": plugin_id}
         if version:
             json_data["version"] = version
 
@@ -375,7 +375,7 @@ class FlextApiClient:
             "/api/v1/plugins/install",
             json_data=json_data,
         )
-        return cast("dict[str, Any]", response.json())
+        return cast("dict[str, object]", response.json())
 
     async def uninstall_plugin(self, plugin_id: str) -> None:
         """Uninstall a plugin.
@@ -390,7 +390,7 @@ class FlextApiClient:
         self,
         plugin_id: str,
         version: str | None = None,
-    ) -> dict[str, Any]:
+    ) -> dict[str, object]:
         """Update a plugin to newer version.
 
         Args:
@@ -401,7 +401,7 @@ class FlextApiClient:
             Update response
 
         """
-        json_data: dict[str, Any] = {"plugin_id": plugin_id}
+        json_data: dict[str, object] = {"plugin_id": plugin_id}
         if version:
             json_data["version"] = version
 
@@ -410,10 +410,10 @@ class FlextApiClient:
             f"/api/v1/plugins/{plugin_id}",
             json_data=json_data,
         )
-        return cast("dict[str, Any]", response.json())
+        return cast("dict[str, object]", response.json())
 
     # System methods
-    async def get_system_status(self) -> dict[str, Any]:
+    async def get_system_status(self) -> dict[str, object]:
         """Get system status and health information.
 
         Returns:
@@ -421,9 +421,9 @@ class FlextApiClient:
 
         """
         response = await self._request("GET", "/api/v1/system/status")
-        return cast("dict[str, Any]", response.json())
+        return cast("dict[str, object]", response.json())
 
-    async def get_system_metrics(self) -> dict[str, Any]:
+    async def get_system_metrics(self) -> dict[str, object]:
         """Get system performance metrics.
 
         Returns:
@@ -431,7 +431,7 @@ class FlextApiClient:
 
         """
         response = await self._request("GET", "/api/v1/system/metrics")
-        return cast("dict[str, Any]", response.json())
+        return cast("dict[str, object]", response.json())
 
     async def test_connection(self) -> bool:
         """Test API connection.

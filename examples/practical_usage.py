@@ -9,8 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Any
-
 from flext_cli import (
     FlextCliBuilder,
     flext_cli_create_builder,
@@ -186,7 +184,7 @@ def example_4_advanced_features() -> None:
     )
 
     # Add middleware
-    def audit_middleware(data: dict[str, Any]) -> dict[str, Any]:
+    def audit_middleware(data: dict[str, object]) -> dict[str, object]:
         """Add audit information to all commands."""
         data["audit"] = {
             "timestamp": "2025-07-25T10:30:00Z",
@@ -207,7 +205,7 @@ def example_4_advanced_features() -> None:
         email: str,
         token: str,
         ipv6_addr: str,
-    ) -> FlextResult[dict[str, Any]]:
+    ) -> FlextResult[dict[str, object]]:
         """Process user data with comprehensive validation."""
         user_data = {"email": email, "jwt": token, "ipv6": ipv6_addr}
 
@@ -279,7 +277,7 @@ def example_5_input_collection() -> None:
 
     # Define input schema
 
-    def create_user_interactive() -> FlextResult[dict[str, Any]]:
+    def create_user_interactive() -> FlextResult[dict[str, object]]:
         """Create user with interactive input (simulated)."""
         # In real usage, this would collect interactive input
         # For demo, we'll simulate the collected data

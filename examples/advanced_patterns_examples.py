@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import traceback
-from typing import Any
 
 import flext_cli
 
@@ -106,8 +105,8 @@ def example_2_flext_result_chaining() -> None:
     # ===============================================
 
     def validate_data(
-        data: list[dict[str, Any]],
-    ) -> flext_cli.FlextResult[list[dict[str, Any]]]:
+        data: list[dict[str, object]],
+    ) -> flext_cli.FlextResult[list[dict[str, object]]]:
         """Validate and clean data."""
         try:
             # Simple validation
@@ -130,8 +129,8 @@ def example_2_flext_result_chaining() -> None:
             return flext_cli.FlextResult.fail(f"Validation failed: {e}")
 
     def enrich_data(
-        data: list[dict[str, Any]],
-    ) -> flext_cli.FlextResult[list[dict[str, Any]]]:
+        data: list[dict[str, object]],
+    ) -> flext_cli.FlextResult[list[dict[str, object]]]:
         """Enrich data with additional calculations."""
         try:
             enriched = [

@@ -11,7 +11,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 from flext_cli import (
     FlextCliBuilder,
@@ -325,7 +324,7 @@ def example_integrated_workflow() -> None:
     def process_sales_data(
         export: bool = False,
         dashboard: bool = False,
-    ) -> FlextResult[dict[str, Any]]:
+    ) -> FlextResult[dict[str, object]]:
         """Process sales data with export and dashboard options."""
         # Sample sales data
         sales_data = [

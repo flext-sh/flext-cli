@@ -70,7 +70,7 @@ class FlextCliApi:
         self,
         name: str,
         command_line: str,
-        **options: dict[str, Any],
+        **options: dict[str, object],
     ) -> bool:
         """Create command using shared service."""
         result = self._service.flext_cli_create_command(name, command_line, **options)
@@ -96,7 +96,7 @@ class FlextCliApi:
         name: str,
         *args: Any,
         **kwargs: Any,
-    ) -> dict[str, Any]:
+    ) -> dict[str, object]:
         """Execute handler using shared service."""
         result = self._service.flext_cli_execute_handler(name, *args, **kwargs)
         return result.unwrap() if result.is_success else {"error": result.error}
@@ -104,7 +104,7 @@ class FlextCliApi:
     def flext_cli_render_with_context(
         self,
         data: Any,
-        context: dict[str, Any] | None = None,
+        context: dict[str, object] | None = None,
     ) -> str:
         """Render with context."""
         result = self._service.flext_cli_render_with_context(data, context)

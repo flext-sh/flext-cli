@@ -9,7 +9,6 @@ import io
 import json
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any
 
 import yaml
 from flext_core.interfaces import FlextConfigurable
@@ -347,6 +346,6 @@ class FlextCliService(FlextService, FlextConfigurable):
         """Get all plugins - restored from backup."""
         return FlextResult.ok(self._plugins.copy())
 
-    def flext_cli_get_handlers(self) -> FlextResult[dict[str, Any]]:
+    def flext_cli_get_handlers(self) -> FlextResult[dict[str, object]]:
         """Get all handlers - restored from backup."""
         return FlextResult.ok(self._handlers.copy())

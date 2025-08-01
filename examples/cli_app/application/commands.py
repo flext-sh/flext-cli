@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from flext_cli.domain.entities import CommandType
 
@@ -22,8 +22,8 @@ class ExecuteCommandCommand:
         name: str,
         command_line: str,
         *,
-        arguments: dict[str, Any] | None = None,
-        options: dict[str, Any] | None = None,
+        arguments: dict[str, object] | None = None,
+        options: dict[str, object] | None = None,
         command_type: CommandType = CommandType.SYSTEM,
         user_id: UUID | None = None,
         session_id: str | None = None,
@@ -64,7 +64,7 @@ class CreateConfigCommand:
 
     name: str
     description = None
-    config_data: dict[str, Any]
+    config_data: dict[str, object]
     config_type: str
     version = "0.9.0"
     user_id: UUID | None = None
@@ -77,7 +77,7 @@ class UpdateConfigCommand:
     config_id: UUID
     name = None
     description: str | None = None
-    config_data: dict[str, Any] | None = None
+    config_data: dict[str, object] | None = None
     version: str | None = None
     user_id: UUID | None = None
 
