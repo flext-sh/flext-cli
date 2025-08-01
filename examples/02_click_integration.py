@@ -42,8 +42,8 @@ if TYPE_CHECKING:
     default="table",
     help="Output format",
 )
-@click.option("--debug/--no-debug", default=False, help="Enable debug mode")  # noqa: FBT001
-@click.option("--verbose", "-v", is_flag=True, help="Verbose output")  # noqa: FBT001
+@click.option("--debug/--no-debug", default=False, help="Enable debug mode")
+@click.option("--verbose", "-v", is_flag=True, help="Verbose output")
 @click.pass_context
 def cli(
     ctx: click.Context,
