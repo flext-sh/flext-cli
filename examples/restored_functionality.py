@@ -1,43 +1,19 @@
-"""Example demonstrating all restored functionality in simplified interface."""
+"""Example demonstrating all restored functionality with real flext-core integration.
+
+This example shows how to use the FLEXT CLI with real dependencies,
+following SOLID principles without mocks or placeholders.
+"""
 
 import sys
-import tempfile
 from pathlib import Path
 
-# Add src to path for testing
+# Add src to path for development testing
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-# Mock flext_core for standalone testing
-sys.modules["flext_core"] = type(
-    "M",
-    (),
-    {
-        "FlextResult": type(
-            "R",
-            (),
-            {
-                "ok": lambda d: type("R", (), {"is_success": True, "data": d})(),
-                "fail": lambda e: type("R", (), {"is_success": False, "error": e})(),
-            },
-        ),
-        "get_logger": lambda name: type(
-            "L", (), {"info": lambda *a: None, "exception": lambda *a: None}
-        )(),
-    },
-)()
-sys.modules["flext_core.types"] = type("M", (), {})()
-sys.modules["pydantic"] = type(
-    "M",
-    (),
-    {
-        "BaseModel": type,
-        "Field": lambda *a, **k: None,
-    },
-)()
+# Use real flext-core imports - no mocks/placeholders allowed
 
-# Import the complete restored interface
+# Import the complete CLI interface using real dependencies
 from flext_cli import (
-    # Advanced classes available if needed
     CliApi,
     # All restored functionality through simple interface
     create_command,  # CLI command creation and tracking
