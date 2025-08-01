@@ -391,14 +391,12 @@ class FlextCliApi:
             # Update specific fields from config with type validation
             if "project_name" in config and isinstance(config["project_name"], str):
                 settings.project_name = config["project_name"]
-            if (
-                "project_version" in config
-                and isinstance(config["project_version"], str)
+            if "project_version" in config and isinstance(
+                config["project_version"], str
             ):
                 settings.project_version = config["project_version"]
-            if (
-                "project_description" in config
-                and isinstance(config["project_description"], str)
+            if "project_description" in config and isinstance(
+                config["project_description"], str
             ):
                 settings.project_description = config["project_description"]
             if "debug" in config and isinstance(config["debug"], bool):
@@ -444,7 +442,6 @@ class FlextCliApi:
     ) -> FlextResult[object]:
         """Create command using real domain entities."""
         try:
-
             # Determine command type from options or default to SYSTEM
             # (valid enum value)
             command_type = CommandType.SYSTEM
@@ -464,8 +461,7 @@ class FlextCliApi:
             environment = env_vars if isinstance(env_vars, dict) else {}
             # Convert dict[str, object] to dict[str, str]
             environment_str = {
-                k: str(v) for k, v in environment.items()
-                if isinstance(k, str)
+                k: str(v) for k, v in environment.items() if isinstance(k, str)
             }
 
             timeout_val = options.get("timeout_seconds", 30)
@@ -516,7 +512,9 @@ class FlextCliApi:
             return FlextResult.fail(f"Failed to create session: {e}")
 
     def flext_cli_register_handler(
-        self, name: str, handler: object,
+        self,
+        name: str,
+        handler: object,
     ) -> FlextResult[None]:
         """Register command handler with validation."""
         try:
@@ -539,7 +537,6 @@ class FlextCliApi:
     def flext_cli_register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
         """Register plugin using real flext-plugin functionality."""
         try:
-
             # Initialize plugin service if needed
             if not hasattr(self, "_plugin_service"):
                 container = get_flext_container()
@@ -618,7 +615,9 @@ class FlextCliApi:
             with redirect_stdout(output_buffer):
                 # Use a console that writes to our buffer
                 buffer_console = Console(
-                    file=output_buffer, width=80, legacy_windows=False,
+                    file=output_buffer,
+                    width=80,
+                    legacy_windows=False,
                 )
                 formatter.format(data, buffer_console)
 
@@ -683,9 +682,8 @@ class FlextCliApi:
         """Get all registered plugins with real implementation."""
         try:
             # Check if plugin service is available
-            if (
-                hasattr(self, "_plugin_service")
-                and isinstance(self._plugin_service, FlextPluginService)
+            if hasattr(self, "_plugin_service") and isinstance(
+                self._plugin_service, FlextPluginService
             ):
                 # Get plugins using discovery from standard paths
                 plugins_result = self._plugin_service.discover_plugins("plugins")
@@ -702,7 +700,9 @@ class FlextCliApi:
                                     "version": getattr(plugin, "version", "1.0.0"),
                                     "status": getattr(plugin, "status", "unknown"),
                                     "plugin_type": getattr(
-                                        plugin, "plugin_type", "unknown",
+                                        plugin,
+                                        "plugin_type",
+                                        "unknown",
                                     ),
                                 }
                     return plugins_dict

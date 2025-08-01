@@ -155,7 +155,10 @@ class TestFlextCliApiIntegration:
         exec_result = api.flext_cli_execute_handler("nonexistent")
         assert isinstance(exec_result, FlextResult)
         assert not exec_result.is_success
-        assert ("not found" in exec_result.error or "No handlers registry" in exec_result.error)
+        assert (
+            "not found" in exec_result.error
+            or "No handlers registry" in exec_result.error
+        )
 
     def test_api_render_with_context_default_format(self) -> None:
         """Test rendering with context using default format."""

@@ -127,12 +127,7 @@ def main() -> None:
         print("   ✅ Registered calculator handler")
 
         # Execute the handler
-        exec_result = api.flext_cli_execute_handler(
-            "calculator",
-            "multiply",
-            15.5,
-            4.2
-        )
+        exec_result = api.flext_cli_execute_handler("calculator", "multiply", 15.5, 4.2)
 
         if exec_result.is_success:
             calc_result = exec_result.unwrap()
@@ -156,8 +151,7 @@ def main() -> None:
 
     # Render with custom context
     context_result = api.flext_cli_render_with_context(
-        sample_data,
-        {"format": "json", "title": "User Data"}
+        sample_data, {"format": "json", "title": "User Data"}
     )
     if context_result.is_success:
         rendered = context_result.unwrap()
@@ -173,7 +167,7 @@ def main() -> None:
             "export_time": datetime.now(UTC).isoformat(),
             "total_records": len(sample_data),
             "format": "json",
-        }
+        },
     }
 
     # Use the formatting functionality
