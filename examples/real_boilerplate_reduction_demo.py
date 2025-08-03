@@ -11,11 +11,23 @@ from __future__ import annotations
 
 from flext_cli import (
     flext_cli_aggregate_data,
+    flext_cli_export,
+    flext_cli_format,
     flext_cli_pipeline,
+    flext_cli_table,
     flext_cli_transform_data,
 )
 from flext_cli.core.data_exporter import FlextCliDataExporter
 from flext_cli.core.formatter import FlextCliFormatter
+from flext_cli.decorators import (
+    flext_cli_auto_result,
+    flext_cli_cache_result,
+    flext_cli_safe_operation,
+    flext_cli_validate_data,
+)
+
+# Constants
+HIGH_SALARY_THRESHOLD = 100000
 
 # Sample dataset for demonstration
 sample_data = [
@@ -58,11 +70,6 @@ def modern_unified_approach() -> None:
     # ============================================================================
     # UNIFIED API CODE (5 lines for same operations + enhanced capabilities)
     # ============================================================================
-    from flext_cli import (
-        flext_cli_export,
-        flext_cli_format,
-        flext_cli_table,
-    )
 
     # All operations in 3 lines with automatic error handling
     flext_cli_export(sample_data, "/tmp/unified_employees.json", "json")
@@ -77,7 +84,7 @@ def enhanced_collections_demo() -> None:
     # Transform data - filter, sort, limit
     transform_result = flext_cli_transform_data(
         sample_data,
-        filter_func=lambda emp: emp["salary"] > 100000,
+        filter_func=lambda emp: emp["salary"] > HIGH_SALARY_THRESHOLD,
         sort_key="salary",
     )
     if transform_result.success:
@@ -95,12 +102,6 @@ def enhanced_collections_demo() -> None:
 
 def advanced_decorators_demo() -> None:
     """Demonstrate advanced decorators for boilerplate reduction."""
-    from flext_cli.decorators import (
-        flext_cli_auto_result,
-        flext_cli_cache_result,
-        flext_cli_safe_operation,
-        flext_cli_validate_data,
-    )
 
     @flext_cli_auto_result("Salary calculation failed")
     @flext_cli_validate_data(not_empty=True, expected_type=list, min_length=1)

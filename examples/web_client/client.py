@@ -11,6 +11,7 @@ from typing import Self, cast
 from urllib.parse import urljoin
 
 import httpx
+from flext_cli.config.cli_config import get_cli_config
 from flext_core.fields import Field
 from pydantic import BaseModel
 
@@ -64,6 +65,7 @@ class FlextApiClient:
         base_url: str | None = None,
         token: str | None = None,
         timeout: float = 30.0,
+        *,
         verify_ssl: bool = True,
     ) -> None:
         """Initialize API client.
@@ -75,8 +77,6 @@ class FlextApiClient:
             verify_ssl: Whether to verify SSL certificates
 
         """
-        from flext_cli.config.cli_config import get_cli_config
-
         config = get_cli_config()
         self.base_url = base_url or config.api.url or "http://localhost:8000"
         self.token = token
@@ -253,6 +253,7 @@ class FlextApiClient:
     async def run_pipeline(
         self,
         pipeline_id: str,
+        *,
         full_refresh: bool = False,
     ) -> dict[str, object]:
         """Run a pipeline manually.
@@ -318,6 +319,7 @@ class FlextApiClient:
     async def list_plugins(
         self,
         plugin_type: str | None = None,
+        *,
         installed_only: bool = False,
     ) -> list[dict[str, object]]:
         """List available plugins.

@@ -1,7 +1,69 @@
-"""Type definitions for FLEXT CLI with full backup functionality restored.
+"""FLEXT CLI Types - Type Definitions and Domain Models for CLI Operations.
 
-Based on the original backup - all types and interfaces restored.
-Following strict naming conventions: FlextCli*, TCli*, flext_cli_*
+This module provides comprehensive type definitions, domain models, and entities
+for FLEXT CLI operations. Implements Clean Architecture patterns with flext-core
+integration for type-safe CLI development with domain-driven design.
+
+Type Categories:
+    - Core Types: TCliData, TCliPath, TCliFormat, TCliHandler, etc.
+    - Enums: Command status, types, and output formats
+    - Entities: FlextCliCommand, FlextCliSession with business logic
+    - Value Objects: FlextCliConfig, FlextCliContext, FlextCliPlugin
+    - Type Aliases: Extending flext-core types for CLI-specific use
+
+Architecture:
+    - flext-core integration (FlextEntity, FlextValueObject, FlextResult)
+    - Domain-Driven Design (DDD) with rich domain entities
+    - Type-safe CLI operations with comprehensive validation
+    - Clean Architecture domain layer compliance
+    - Immutable value objects with validation
+
+Current Implementation Status:
+    ✅ Complete type system with flext-core integration
+    ✅ Domain entities with business logic and validation
+    ✅ Value objects for configuration and context
+    ✅ Type-safe enums for CLI operations
+    ✅ Comprehensive domain validation with FlextResult
+    ✅ Command execution lifecycle management
+    ⚠️ Full functionality (TODO: Sprint 2 - enhance domain features)
+
+Domain Entities:
+    - FlextCliCommand: Command execution with lifecycle tracking
+    - FlextCliSession: User session with command history
+
+Value Objects:
+    - FlextCliConfig: Immutable configuration with validation
+    - FlextCliContext: Execution context with session management
+    - FlextCliPlugin: Plugin definition with dependencies
+
+Enums:
+    - FlextCliCommandStatus: PENDING, RUNNING, COMPLETED, FAILED, CANCELLED
+    - FlextCliCommandType: SYSTEM, PIPELINE, PLUGIN, DATA, CONFIG, AUTH, MONITORING
+    - FlextCliOutputFormat: JSON, YAML, CSV, TABLE, PLAIN
+
+Usage Examples:
+    Command creation and execution:
+    >>> command = FlextCliCommand(
+    ...     name="test",
+    ...     command_line="echo hello",
+    ...     command_type=FlextCliCommandType.SYSTEM
+    ... )
+    >>> command.flext_cli_start_execution()
+    >>> command.flext_cli_complete_execution(exit_code=0, stdout="hello")
+
+    Configuration management:
+    >>> config = FlextCliConfig({"debug": True, "api_url": "http://localhost:8080"})
+    >>> context = FlextCliContext(config=config)
+    >>> debug_context = context.flext_cli_with_debug(debug=True)
+
+Integration:
+    - Used throughout FLEXT CLI for type safety
+    - Provides domain model for Clean Architecture
+    - Integrates with flext-core patterns and utilities
+    - Supports comprehensive validation and error handling
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -17,17 +79,24 @@ from flext_core import (
     FlextResult,
     FlextUtilities,
     FlextValueObject,
+    TAnyDict,
+    TEntityId,
+    TServiceName,
+    TUserData,
     TValue,
 )
 from pydantic import Field
 
-# Core data types
+# Core data types - Extend flext-core types consistently
 type TCliData = TValue
 type TCliPath = str | Path
 type TCliFormat = str
+type TCliEntityId = TEntityId  # CLI entities use core entity ID
+type TCliServiceName = TServiceName  # CLI services use core service name
+type TCliUserData = TUserData  # CLI user data uses core user data
 # Type alias for CLI handlers without ellipsis (avoids Any)
 TCliHandler = Callable[[object], object]
-type TCliConfig = dict[str, object]
+type TCliConfig = TAnyDict  # Use core dict type instead of duplicating
 type TCliArgs = list[str]
 
 
@@ -149,7 +218,10 @@ class FlextCliConfig(FlextValueObject):
             "log_level": config_data.get("log_level", "INFO"),
             "api_url": config_data.get("api_url", "http://localhost:8000"),
             "api_timeout": config_data.get("api_timeout", 30),
-            "format_type": config_data.get("output_format", "table"),
+            "format_type": config_data.get(
+                "format_type",
+                config_data.get("output_format", "table"),
+            ),
             "no_color": config_data.get("no_color", False),
             "profile": config_data.get("profile", "default"),
             "connect_timeout": config_data.get("connect_timeout", 10),

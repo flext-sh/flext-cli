@@ -7,9 +7,14 @@ with practical, real-world examples.
 
 import tempfile
 from pathlib import Path
-from typing import Never
+from typing import Any, Never
 
 from flext_cli import CliApi, export, format_data
+
+# Constants
+PREVIEW_LENGTH_LIMIT = 100
+SLOW_RESPONSE_THRESHOLD_MS = 500
+HTTP_ERROR_STATUS_CODE = 400
 
 # Example data sets for demonstrations
 SAMPLE_USERS = [
@@ -88,7 +93,12 @@ def example_data_formatting() -> None:
     # 1. Format as JSON (pretty-printed)
     json_output = format_data(SAMPLE_USERS[:2], "json")
     print("JSON format:")
-    print(json_output[:100] + "..." if len(json_output) > 100 else json_output)
+    preview = (
+        json_output[:PREVIEW_LENGTH_LIMIT] + "..."
+        if len(json_output) > PREVIEW_LENGTH_LIMIT
+        else json_output
+    )
+    print(preview)
 
     # 2. Format as table for console display
     table_output = format_data(SALES_DATA, "table")
@@ -117,11 +127,11 @@ def example_api_class_usage() -> None:
         print(f"  Version: {health_data['version']}")
 
     # 2. Add custom commands
-    def calculate_total_revenue(sales_data):
+    def calculate_total_revenue(sales_data: list[dict[str, Any]]) -> float:
         """Calculate total revenue from sales data."""
         return sum(item["revenue"] for item in sales_data)
 
-    def user_count_by_role(users_data):
+    def user_count_by_role(users_data: list[dict[str, Any]]) -> dict[str, int]:
         """Count users by role."""
         role_counts = {}
         for user in users_data:
@@ -172,14 +182,16 @@ def example_error_handling() -> None:
     # 3. Format with unsupported style
     result = format_data(SAMPLE_USERS, "xml")
     print(
-        f"✓ Format error handling: {'Handled' if result.startswith('Error:') else 'Unexpected success'}"
+        f"✓ Format error handling: "
+        f"{'Handled' if result.startswith('Error:') else 'Unexpected success'}"
     )
 
     # 4. CSV export with invalid data structure
     invalid_csv_data = ["string1", "string2"]  # Not list of dicts
     csv_result = api.export(invalid_csv_data, "/tmp/invalid.csv", "csv")
     print(
-        f"✓ CSV validation: {'Handled' if not csv_result.is_success else 'Unexpected success'}"
+        f"✓ CSV validation: "
+        f"{'Handled' if not csv_result.is_success else 'Unexpected success'}"
     )
 
     # 5. Command execution errors
@@ -190,7 +202,8 @@ def example_error_handling() -> None:
     api.add_command("fail_test", failing_command)
     fail_result = api.execute("fail_test")
     print(
-        f"✓ Command error handling: {'Handled' if not fail_result.is_success else 'Unexpected success'}"
+        f"✓ Command error handling: "
+        f"{'Handled' if not fail_result.is_success else 'Unexpected success'}"
     )
 
 
@@ -296,8 +309,12 @@ def example_real_world_scenarios() -> None:
     ]
 
     # Generate performance report
-    slow_endpoints = [r for r in api_responses if r["response_time"] > 500]
-    error_endpoints = [r for r in api_responses if r["status_code"] >= 400]
+    slow_endpoints = [
+        r for r in api_responses if r["response_time"] > SLOW_RESPONSE_THRESHOLD_MS
+    ]
+    error_endpoints = [
+        r for r in api_responses if r["status_code"] >= HTTP_ERROR_STATUS_CODE
+    ]
 
     print("\nAPI Performance Analysis:")
     print(f"  Slow endpoints (>500ms): {len(slow_endpoints)}")

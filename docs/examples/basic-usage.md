@@ -1,6 +1,6 @@
 # Basic Usage Examples
 
-Este guia apresenta exemplos práticos de uso do FLEXT CLI, desde comandos básicos até operações mais avançadas.
+This guide presents practical examples of using FLEXT CLI, from basic commands to more advanced operations.
 
 ## Getting Started
 

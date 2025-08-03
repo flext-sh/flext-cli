@@ -16,6 +16,7 @@ import logging
 import os
 from collections import defaultdict
 from datetime import datetime
+from typing import Any
 
 # All imports from root namespace only (as required)
 from flext_cli import (
@@ -47,7 +48,7 @@ def example_1_before_massive_boilerplate() -> None:
     """BEFORE: Traditional approach with massive boilerplate."""
 
     # BAD: Manual error handling, validation, formatting - 25+ lines
-    def process_user_data(data):
+    def process_user_data(data: object) -> dict[str, object]:
         logger = logging.getLogger(__name__)
 
         try:
@@ -133,7 +134,11 @@ def example_1_after_zero_boilerplate() -> None:
 def example_2_before_export_boilerplate() -> None:
     """BEFORE: Manual export with validation - 30+ lines."""
 
-    def export_sales_data(sales_data, formats=None, base_path="./exports"):
+    def export_sales_data(
+        sales_data: list[dict[str, Any]],
+        formats: list[str] | None = None,
+        base_path: str = "./exports",
+    ) -> dict[str, Any]:
         logger = logging.getLogger(__name__)
         formats = formats or ["json", "csv"]
         results = {}
@@ -181,7 +186,11 @@ def example_2_after_functional_helpers() -> None:
     """AFTER: FlextCli functional approach - 1 line."""
 
     # GOOD: Single function call handles everything
-    def export_sales_pipeline(sales_data, formats=None, base_path="./exports"):
+    def export_sales_pipeline(
+        sales_data: list[dict[str, object]],
+        formats: list[str] | None = None,
+        base_path: str = "./exports",
+    ) -> object:
         return flext_cli_pipeline(
             sales_data,
             export_path=base_path,
@@ -199,7 +208,7 @@ def example_2_after_functional_helpers() -> None:
 def example_3_before_analysis_boilerplate() -> None:
     """BEFORE: Manual analysis with aggregation - 40+ lines."""
 
-    def analyze_customer_data(customers):
+    def analyze_customer_data(customers: list[dict[str, Any]]) -> dict[str, Any]:
         logger = logging.getLogger(__name__)
 
         try:
@@ -289,7 +298,11 @@ def example_3_after_enhanced_pipeline() -> None:
 def example_4_before_api_processing() -> None:
     """BEFORE: API response processing - 35+ lines."""
 
-    def process_api_response(response_data, transform_rules=None, output_format="json"):
+    def process_api_response(
+        response_data: dict[str, Any],
+        transform_rules: dict[str, Any] | None = None,
+        output_format: str = "json",
+    ) -> dict[str, Any]:
         logger = logging.getLogger(__name__)
         transform_rules = transform_rules or {}
 

@@ -107,9 +107,9 @@ class TestFlextCliService:
         """Test configure method exception handling."""
         service = FlextCliService()
 
-        # Mock FlextCliConfig to raise exception
-        with patch(
-            "flext_cli.core.FlextCliConfig", side_effect=Exception("Config error")
+        # Mock FlextCliConfig in the correct module namespace
+        with patch.object(
+            core_module, "FlextCliConfig", side_effect=Exception("Config error")
         ):
             result = service.configure({"test": "data"})
             assert not result.is_success
@@ -523,9 +523,9 @@ class TestFlextCliService:
         """Test create command exception handling."""
         service = FlextCliService()
 
-        # Mock FlextCliCommand to raise exception
-        with patch(
-            "flext_cli.core.FlextCliCommand", side_effect=Exception("Command error")
+        # Mock FlextCliCommand in the correct module namespace
+        with patch.object(
+            core_module, "FlextCliCommand", side_effect=Exception("Command error")
         ):
             result = service.flext_cli_create_command("test-cmd", "echo hello")
             assert not result.is_success
@@ -575,9 +575,9 @@ class TestFlextCliService:
         """Test create session exception handling."""
         service = FlextCliService()
 
-        # Mock FlextCliSession to raise exception
-        with patch(
-            "flext_cli.core.FlextCliSession", side_effect=Exception("Session error")
+        # Mock FlextCliSession in the correct module namespace
+        with patch.object(
+            core_module, "FlextCliSession", side_effect=Exception("Session error")
         ):
             result = service.flext_cli_create_session()
             assert not result.is_success

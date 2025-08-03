@@ -11,13 +11,16 @@ import asyncio
 import os
 import platform
 import sys
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import click
 from flext_cli.client import FlextApiClient
 from flext_cli.utils.config import get_config
+from flext_cli.utils.output import show_flext_cli_paths
 from rich.table import Table
+
+# Constants
+SENSITIVE_VALUE_PREVIEW_LENGTH = 4
 
 if TYPE_CHECKING:
     from rich.console import Console
@@ -191,7 +194,11 @@ def env(ctx: click.Context) -> None:
         for key, value in sorted(flext_vars.items()):
             # Mask sensitive values
             if "TOKEN" in key or "KEY" in key or "SECRET" in key:
-                display_value = value[:4] + "****" if len(value) > 4 else "****"
+                display_value = (
+                    value[:SENSITIVE_VALUE_PREVIEW_LENGTH] + "****"
+                    if len(value) > SENSITIVE_VALUE_PREVIEW_LENGTH
+                    else "****"
+                )
             else:
                 display_value = value
 
@@ -205,24 +212,10 @@ def env(ctx: click.Context) -> None:
 @debug_cmd.command()
 @click.pass_context
 def paths(ctx: click.Context) -> None:
-    """Show FLEXT CLI paths."""
+    """Show FLEXT CLI paths.
+
+    REFACTORED: Uses show_flext_cli_paths utility to eliminate code duplication.
+    """
     console: Console = ctx.obj["console"]
-
-    paths = {
-        "Config Directory": Path.home() / ".flext",
-        "Config File": get_config().config_dir / "config.yaml",
-        "Cache Directory": Path.home() / ".flext" / "cache",
-        "Log Directory": Path.home() / ".flext" / "logs",
-        "Token File": Path.home() / ".flext" / ".token",
-    }
-
-    table = Table(title="FLEXT CLI Paths")
-    table.add_column("Path Type", style="cyan")
-    table.add_column("Location", style="white")
-    table.add_column("Exists", style="green")
-
-    for name, path in paths.items():
-        exists = "✅" if path.exists() else "❌"
-        table.add_row(name, str(path), exists)
-
-    console.print(table)
+    # Use centralized paths display function to follow DRY principle
+    show_flext_cli_paths(console)

@@ -1,9 +1,80 @@
-"""CLI service exception hierarchy using flext-core patterns.
+"""FLEXT CLI Exception Hierarchy - Domain-Specific Exceptions with flext-core.
+
+This module provides a comprehensive exception hierarchy for FLEXT CLI operations,
+inheriting from flext-core base exceptions with domain-specific context and
+error handling patterns. Designed for precise error classification and
+comprehensive error reporting.
+
+Exception Categories:
+    - FlextCliError: Base CLI exception with command context
+    - FlextCliValidationError: Input validation and argument errors
+    - FlextCliAuthenticationError: Authentication and authorization errors
+    - FlextCliConfigurationError: Configuration and setup errors
+    - FlextCliConnectionError: Service and network connection errors
+    - FlextCliProcessingError: Command execution and processing errors
+    - FlextCliTimeoutError: Operation timeout and cancellation errors
+    - Specialized exceptions: Command, argument, format, output, context errors
+
+Architecture:
+    - Inherits from flext-core exception hierarchy
+    - Domain-specific context information for debugging
+    - Consistent error message formatting and structure
+    - Integration with FlextResult error handling patterns
+    - Rich error context for monitoring and diagnostics
+
+Current Implementation Status:
+    ✅ Complete exception hierarchy with flext-core inheritance
+    ✅ Domain-specific exceptions with rich context
+    ✅ Consistent error message formatting
+    ✅ Context information for debugging and monitoring
+    ✅ Integration with CLI command and argument handling
+    ⚠️ Full functionality (TODO: Sprint 2 - enhance error recovery)
+
+TODO (docs/TODO.md):
+    Sprint 2: Add error recovery suggestions and help text
+    Sprint 3: Add localization support for error messages
+    Sprint 5: Add error analytics and reporting
+    Sprint 7: Add error monitoring and alerting integration
+    Sprint 8: Add interactive error handling and user guidance
+
+Exception Features:
+    - Rich context information (command, arguments, values)
+    - Consistent error code assignment and categorization
+    - Integration with logging and monitoring systems
+    - User-friendly error messages with actionable information
+    - Support for error recovery and retry mechanisms
+
+Usage Examples:
+    Validation error:
+    >>> raise FlextCliValidationError(
+    ...     "Invalid output format",
+    ...     field="format",
+    ...     value="invalid",
+    ...     argument_name="--output"
+    ... )
+
+    Command error:
+    >>> raise FlextCliCommandError(
+    ...     "Command execution failed",
+    ...     command="flext auth login",
+    ...     exit_code=1
+    ... )
+
+    Configuration error:
+    >>> raise FlextCliConfigurationError(
+    ...     "Missing API URL",
+    ...     config_key="api_url",
+    ...     config_file="~/.flext/config.yaml"
+    ... )
+
+Integration:
+    - Used throughout FLEXT CLI for consistent error handling
+    - Integrates with FlextResult patterns for error propagation
+    - Provides foundation for error monitoring and reporting
+    - Supports CLI help systems and user guidance
 
 Copyright (c) 2025 FLEXT Contributors
 SPDX-License-Identifier: MIT
-
-Domain-specific exceptions for CLI service operations inheriting from flext-core.
 """
 
 from __future__ import annotations

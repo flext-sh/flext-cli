@@ -1,10 +1,52 @@
-"""Decorators for FLEXT CLI framework.
+"""FLEXT CLI Core Decorators - Cross-Cutting Concerns and CLI Patterns.
+
+This module provides essential decorators for FLEXT CLI operations including
+async/sync integration, error handling, performance monitoring, authentication,
+and other cross-cutting concerns that apply across CLI commands.
+
+Decorator Categories:
+    - Execution: async_command for async/sync integration
+    - Error Handling: retry, with error recovery and logging
+    - Performance: measure_time for operation timing
+    - Security: require_auth for authentication enforcement
+    - UX: with_spinner for long-running operations, confirm_action for safety
+    - Validation: validate_config for configuration checks
+
+Architecture:
+    - SOLID principles with Open/Closed principle for extensibility
+    - Functional implementation for production reliability
+    - Integration with Rich console for enhanced UX
+    - FlextResult integration for error handling patterns
+
+Current Implementation Status:
+    ✅ Basic decorators implemented (async_command, measure_time, etc.)
+    ✅ Rich console integration for UX enhancements
+    ✅ Error handling and retry logic
+    ⚠️ Basic implementation (TODO: Sprint 2 - enhance with metrics)
+    ❌ Advanced authentication integration not implemented (TODO: Sprint 2)
+
+TODO (docs/TODO.md):
+    Sprint 2: Add correlation ID tracking to all decorators
+    Sprint 2: Enhance authentication integration with FLEXT services
+    Sprint 3: Add comprehensive validation decorators
+    Sprint 7: Add performance metrics collection and monitoring
+    Sprint 8: Add interactive confirmation and progress decorators
+
+Usage Patterns:
+    @async_command: Convert async functions for CLI command use
+    @measure_time: Track operation performance
+    @require_auth: Enforce authentication for sensitive operations
+    @retry: Add resilience with exponential backoff
+    @with_spinner: Enhance UX for long operations
+
+Integration:
+    - Used by all CLI commands for consistent behavior
+    - Integrates with authentication and authorization systems
+    - Supports monitoring and observability patterns
+    - Provides consistent error handling across commands
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
-SOLID decorators with functional implementation for production use.
-Focus on functionality over complex typing.
 """
 
 from __future__ import annotations

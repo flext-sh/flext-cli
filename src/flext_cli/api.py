@@ -1,10 +1,72 @@
-"""FLEXT CLI Convenience API Functions.
+"""FLEXT CLI API - High-Level Convenience Functions and API Wrapper.
+
+This module provides high-level convenience functions and API wrapper classes
+for common FLEXT CLI operations. Designed for programmatic use and integration
+with other applications, providing easy-to-use APIs that return FlextResult
+objects for comprehensive error handling.
+
+API Categories:
+    - Data Operations: Formatting, transformation, aggregation, and export
+    - CLI Management: Command creation, session management, context handling
+    - Plugin System: Plugin registration and management with flext-plugin
+    - Output Generation: Table creation, rendering, and multi-format export
+    - Service Operations: Health checks, configuration, and system status
+
+Architecture:
+    - FlextResult-based error handling for all operations
+    - Rich console integration for beautiful output generation
+    - flext-core and flext-plugin integration
+    - Clean Architecture service layer patterns
+    - Type-safe operations with comprehensive validation
+
+Current Implementation Status:
+    ✅ Complete data operation functions (format, transform, aggregate, export)
+    ✅ CLI management functions (command, session, context creation)
+    ✅ Plugin system integration with flext-plugin
+    ✅ Output generation with Rich console
+    ✅ Service operations (health, configuration)
+    ✅ FlextCliApi wrapper class for object-oriented use
+    ⚠️ Full functionality (TODO: Sprint 2 - enhance features)
+
+Core Functions:
+    - flext_cli_format: Format data in multiple output formats
+    - flext_cli_table: Create Rich tables from data
+    - flext_cli_transform_data: Filter and sort data operations
+    - flext_cli_aggregate_data: Group and aggregate data
+    - flext_cli_export/flext_cli_batch_export: Export data to files
+    - flext_cli_unwrap_or_default/flext_cli_unwrap_or_none: Result utilities
+
+FlextCliApi Class:
+    - Object-oriented wrapper for all CLI functions
+    - Service management (health, configuration, sessions)
+    - Plugin and handler registration
+    - Command and context management
+    - Template rendering with context substitution
+
+Usage Examples:
+    Data formatting:
+    >>> result = flext_cli_format(data, "json")
+    >>> if result.is_success:
+    ...     print(result.unwrap())
+
+    API wrapper:
+    >>> api = FlextCliApi()
+    >>> api.flext_cli_configure({"debug": True})
+    >>> health = api.flext_cli_health()
+
+    Data export:
+    >>> result = flext_cli_export(data, "output.json", "json")
+    >>> if result.is_success:
+    ...     print("Data exported successfully")
+
+Integration:
+    - Used by CLI commands for data operations
+    - Provides programmatic interface for FLEXT CLI
+    - Integrates with flext-core and flext-plugin
+    - Supports embedding CLI functionality in applications
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
-High-level convenience functions for common CLI operations.
-Provides easy-to-use APIs that return FlextResult objects.
 """
 
 from __future__ import annotations
@@ -68,6 +130,63 @@ def flext_cli_format(data: object, format_type: str = "table") -> FlextResult[st
         return FlextResult.fail(f"Format error: {e}")
 
 
+def _create_table_from_dict_list(data: list[dict[str, object]], table: Table) -> None:
+    """Create table from list of dictionaries.
+
+    Args:
+        data: List of dictionaries
+        table: Table to populate
+
+    """
+    headers = list(data[0].keys())
+
+    for header in headers:
+        table.add_column(header.replace("_", " ").title())
+
+    for item in data:
+        table.add_row(*[str(item.get(h, "")) for h in headers])
+
+
+def _create_table_from_simple_list(data: list[object], table: Table) -> None:
+    """Create table from simple list.
+
+    Args:
+        data: Simple list of values
+        table: Table to populate
+
+    """
+    table.add_column("Value")
+    for item in data:
+        table.add_row(str(item))
+
+
+def _create_table_from_dict(data: dict[str, object], table: Table) -> None:
+    """Create table from single dictionary.
+
+    Args:
+        data: Dictionary data
+        table: Table to populate
+
+    """
+    table.add_column("Key", style="cyan")
+    table.add_column("Value")
+
+    for key, value in data.items():
+        table.add_row(key.replace("_", " ").title(), str(value))
+
+
+def _create_table_from_single_value(data: object, table: Table) -> None:
+    """Create table from single value.
+
+    Args:
+        data: Single value
+        table: Table to populate
+
+    """
+    table.add_column("Value")
+    table.add_row(str(data))
+
+
 def flext_cli_table(data: object, title: str | None = None) -> FlextResult[Table]:
     """Create a Rich table from data.
 
@@ -84,33 +203,13 @@ def flext_cli_table(data: object, title: str | None = None) -> FlextResult[Table
 
         if isinstance(data, list) and data:
             if isinstance(data[0], dict):
-                # List of dicts
-                headers = list(data[0].keys())
-
-                for header in headers:
-                    table.add_column(header.replace("_", " ").title())
-
-                for item in data:
-                    table.add_row(*[str(item.get(h, "")) for h in headers])
-
+                _create_table_from_dict_list(data, table)
             else:
-                # Simple list
-                table.add_column("Value")
-                for item in data:
-                    table.add_row(str(item))
-
+                _create_table_from_simple_list(data, table)
         elif isinstance(data, dict):
-            # Single dict as vertical table
-            table.add_column("Key", style="cyan")
-            table.add_column("Value")
-
-            for key, value in data.items():
-                table.add_row(key.replace("_", " ").title(), str(value))
-
+            _create_table_from_dict(data, table)
         else:
-            # Single value
-            table.add_column("Value")
-            table.add_row(str(data))
+            _create_table_from_single_value(data, table)
 
         return FlextResult.ok(table)
 
@@ -392,11 +491,13 @@ class FlextCliApi:
             if "project_name" in config and isinstance(config["project_name"], str):
                 settings.project_name = config["project_name"]
             if "project_version" in config and isinstance(
-                config["project_version"], str
+                config["project_version"],
+                str,
             ):
                 settings.project_version = config["project_version"]
             if "project_description" in config and isinstance(
-                config["project_description"], str
+                config["project_description"],
+                str,
             ):
                 settings.project_description = config["project_description"]
             if "debug" in config and isinstance(config["debug"], bool):
@@ -598,8 +699,32 @@ class FlextCliApi:
         data: object,
         context: dict[str, object] | None = None,
     ) -> FlextResult[str]:
-        """Render data with context using real template rendering."""
+        """Render data with context using template substitution."""
         try:
+            # Handle simple template substitution for strings
+            if isinstance(data, dict) and context:
+                # Look for template patterns in dict values
+                for value in data.values():
+                    if isinstance(value, str) and "{{" in value and "}}" in value:
+                        # Simple template substitution
+                        template_str = value
+                        for ctx_key, ctx_value in context.items():
+                            template_str = template_str.replace(
+                                f"{{{{{ctx_key}}}}}",
+                                str(ctx_value),
+                            )
+                        return FlextResult.ok(template_str)
+
+            # Handle string data directly
+            if isinstance(data, str) and context and "{{" in data and "}}" in data:
+                template_str = data
+                for ctx_key, ctx_value in context.items():
+                    template_str = template_str.replace(
+                        f"{{{{{ctx_key}}}}}",
+                        str(ctx_value),
+                    )
+                return FlextResult.ok(template_str)
+
             # Use context to determine format or default to table
             format_type = "table"
             if context:
@@ -683,29 +808,16 @@ class FlextCliApi:
         try:
             # Check if plugin service is available
             if hasattr(self, "_plugin_service") and isinstance(
-                self._plugin_service, FlextPluginService
+                self._plugin_service,
+                FlextPluginService,
             ):
                 # Get plugins using discovery from standard paths
                 plugins_result = self._plugin_service.discover_plugins("plugins")
-                if plugins_result.is_success:
-                    plugins_list = plugins_result.unwrap()
-                    # Convert list to dict for API consistency
-                    plugins_dict: dict[str, object] = {}
-                    if isinstance(plugins_list, list):
-                        for plugin in plugins_list:
-                            if hasattr(plugin, "name") and hasattr(plugin, "id"):
-                                plugins_dict[plugin.name] = {
-                                    "id": plugin.id,
-                                    "name": plugin.name,
-                                    "version": getattr(plugin, "version", "1.0.0"),
-                                    "status": getattr(plugin, "status", "unknown"),
-                                    "plugin_type": getattr(
-                                        plugin,
-                                        "plugin_type",
-                                        "unknown",
-                                    ),
-                                }
-                    return plugins_dict
+                if not plugins_result.is_success:
+                    return {}
+
+                plugins_list = plugins_result.unwrap()
+                return self._convert_plugins_list_to_dict(plugins_list)
 
             # Fallback: return empty dict if no plugin service
             return {}
@@ -713,6 +825,47 @@ class FlextCliApi:
         except Exception:
             # Return empty dict on error for consistency
             return {}
+
+    def _convert_plugins_list_to_dict(self, plugins_list: object) -> dict[str, object]:
+        """Convert plugins list to dictionary format.
+
+        Args:
+            plugins_list: List of plugin objects
+
+        Returns:
+            Dictionary mapping plugin names to plugin data
+
+        """
+        plugins_dict: dict[str, object] = {}
+
+        if not isinstance(plugins_list, list):
+            return plugins_dict
+
+        for plugin in plugins_list:
+            if not self._is_valid_plugin(plugin):
+                continue
+
+            plugins_dict[plugin.name] = {
+                "id": plugin.id,
+                "name": plugin.name,
+                "version": getattr(plugin, "version", "1.0.0"),
+                "status": getattr(plugin, "status", "unknown"),
+                "plugin_type": getattr(plugin, "plugin_type", "unknown"),
+            }
+
+        return plugins_dict
+
+    def _is_valid_plugin(self, plugin: object) -> bool:
+        """Check if plugin object has required attributes.
+
+        Args:
+            plugin: Plugin object to validate
+
+        Returns:
+            True if plugin has required attributes
+
+        """
+        return hasattr(plugin, "name") and hasattr(plugin, "id")
 
     def flext_cli_get_handlers(self) -> dict[str, object]:
         """Get all registered handlers with real implementation."""

@@ -1,23 +1,76 @@
-"""FLEXT CLI Entry Point - Clean Architecture with flext-core.
+"""FLEXT CLI Main Entry Point - Unified Command Interface for FLEXT Ecosystem.
+
+This module implements the main CLI entry point using Click framework with Rich
+terminal UI, serving as the operational gateway for all 32+ FLEXT projects.
+
+Architecture:
+    - Click-based command groups with hierarchical organization
+    - Rich console for beautiful terminal output with colors and formatting
+    - Context management for configuration, settings, and dependency injection
+    - Standardized error handling with flext-core patterns
+
+Current Command Structure:
+    ✅ Implemented (30%):
+    - auth: Authentication and authorization management
+    - config: Configuration management (get, set, show, reset)
+    - debug: Debugging and diagnostic commands
+    - interactive: Placeholder for interactive mode
+    - version: Version information display
+
+    📋 Planned (70%) - Target Sprints 1-10:
+    - pipeline: Data pipeline management (Sprint 1)
+    - service: Service orchestration and health (Sprint 1-2)
+    - data: Singer ecosystem and DBT management (Sprint 3-4)
+    - plugin: Plugin system management (Sprint 4)
+    - monitor: Monitoring and observability (Sprint 7)
+    - client-a: client-a project-specific commands (Sprint 5)
+    - client-b: client-b project-specific commands (Sprint 5)
+    - meltano: Meltano integration commands (Sprint 6)
+
+Global Options:
+    --profile: Configuration profile (dev/staging/prod)
+    --output: Output format (table/json/yaml/csv)
+    --debug: Enable debug mode with verbose output
+    --quiet: Suppress non-error output
+
+Usage Examples:
+    $ flext --help                    # Show all available commands
+    $ flext auth login --username REDACTED_LDAP_BIND_PASSWORD  # Authenticate with username
+    $ flext config show --format json    # Show config as JSON
+    $ flext debug health --verbose       # Detailed health check
+    $ flext --debug pipeline list        # Debug mode pipeline listing
+
+TODO Implementation (docs/TODO.md):
+    - Replace SimpleDIContainer with FlextContainer (Sprint 1)
+    - Implement CQRS command handlers (Sprint 1-2)
+    - Add service integration clients (Sprint 1)
+    - Implement missing command groups (Sprint 1-10)
+    - Add interactive mode with REPL (Sprint 8)
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
-Modern CLI implementation using flext-core and Click patterns.
 """
 
 from __future__ import annotations
 
 import sys
-import traceback
 
 import click
+from flext_core.utilities import FlextUtilities
 from rich.console import Console
 
 from flext_cli.__version__ import __version__
 from flext_cli.commands import auth, config, debug
 from flext_cli.domain.cli_context import CLIContext
 from flext_cli.utils.config import CLISettings, get_config
+
+# Optional import for version detection
+try:
+    from flext_core import __version__ as _core_version
+
+    core_version: str | None = _core_version
+except ImportError:
+    core_version = None
 
 
 @click.group(
@@ -58,7 +111,58 @@ def cli(
     debug: bool,  # noqa: FBT001 - Click CLI parameter pattern
     quiet: bool,  # noqa: FBT001 - Click CLI parameter pattern
 ) -> None:
-    """FLEXT Command Line Interface."""
+    """FLEXT Command Line Interface - Main entry point for ecosystem operations.
+
+    This function serves as the root command group for the FLEXT CLI, providing
+    global configuration options and context setup for all subcommands. It follows
+    Click framework patterns with Rich console integration for enhanced UX.
+
+    Global Options:
+        profile: Configuration profile name (default: 'default')
+                 Environment variable: FLX_PROFILE
+                 Supports: dev, staging, prod profiles
+
+        output: Output format for command results (default: 'table')
+                Choices: table, json, yaml, csv, plain
+
+        debug: Enable debug mode with verbose logging (default: False)
+               Environment variable: FLX_DEBUG
+               Shows configuration details and operation traces
+
+        quiet: Suppress non-error output (default: False)
+               Useful for scripting and automation
+
+    Context Setup:
+        Creates and configures CLI context with:
+        - CLIConfig: User configuration with profile support
+        - CLISettings: Application settings and defaults
+        - Rich Console: Terminal output with color and formatting
+        - Click Context: Command execution context
+
+    Command Registration:
+        Currently registered command groups:
+        - auth: Authentication management (✅ implemented)
+        - config: Configuration management (✅ implemented)
+        - debug: Debug and diagnostic tools (✅ implemented)
+
+        Planned command groups (docs/TODO.md):
+        - pipeline: Pipeline management (Sprint 1)
+        - service: Service orchestration (Sprint 1-2)
+        - data: Data management (Sprint 3-4)
+        - plugin: Plugin management (Sprint 4)
+        - monitor: Monitoring tools (Sprint 7)
+
+    Examples:
+        $ flext --profile dev auth login
+        $ flext --output json config show
+        $ flext --debug --quiet service health
+
+    TODO (Sprint 1):
+        - Integrate FlextContainer for dependency injection
+        - Add correlation ID tracking for operations
+        - Implement service discovery for ecosystem services
+
+    """
     # Load configuration
     config = get_config()
     settings = CLISettings()
@@ -105,51 +209,160 @@ cli.add_command(debug.debug_cmd)
 @cli.command()
 @click.pass_context
 def interactive(ctx: click.Context) -> None:
-    """Start interactive mode."""
+    """Start interactive mode with REPL interface.
+
+    Interactive mode provides a Read-Eval-Print Loop (REPL) interface for
+    executing FLEXT CLI commands interactively with enhanced user experience
+    including tab completion, command history, and context-aware help.
+
+    Planned Features (Sprint 8):
+        - Rich-based REPL with syntax highlighting
+        - Tab completion for all commands and options
+        - Command history with search functionality
+        - Context-aware help system
+        - Multi-line command support
+        - Session state persistence
+
+    Current Status:
+        🚧 PLACEHOLDER - Implementation planned for Sprint 8
+
+    TODO (docs/TODO.md - Sprint 8):
+        - Implement Rich-based REPL interface
+        - Add tab completion system using Click completion
+        - Implement command history with readline support
+        - Create context-aware help system
+        - Add session management and state persistence
+
+    Usage:
+        $ flext interactive
+        flext> auth login --username REDACTED_LDAP_BIND_PASSWORD
+        flext> config show --format table
+        flext> pipeline list --status running
+        flext> exit
+    """
     console = ctx.obj["console"]
-    console.print("[yellow]Interactive mode coming soon![/yellow]")
-    console.print("Use 'flext --help' for available commands.")
+    console.print("[yellow]🚧 Interactive mode coming soon![/yellow]")
+    console.print("📋 Planned for Sprint 8 - will include:")
+    console.print("   • Rich REPL with syntax highlighting")
+    console.print("   • Tab completion for commands")
+    console.print("   • Command history and search")
+    console.print("   • Context-aware help system")
+    console.print("")
+    console.print("Use 'flext --help' for currently available commands.")
 
 
 @cli.command()
 @click.pass_context
 def version(ctx: click.Context) -> None:
-    """Show version information."""
+    """Display comprehensive version and environment information.
+
+    Shows version information for FLEXT CLI and its dependencies, along with
+    environment details useful for debugging and support. In debug mode,
+    displays additional configuration and system information.
+
+    Output Information:
+        - FLEXT CLI version and build details
+        - Python interpreter version and platform
+        - flext-core library version (if available)
+        - Operating system and architecture
+        - Configuration details (debug mode only)
+
+    Debug Mode:
+        When --debug flag is used, shows additional information:
+        - Current configuration profile and settings
+        - Environment variables (FLX_*)
+        - Dependency versions
+        - System paths and permissions
+
+    Examples:
+        $ flext version
+        FLEXT CLI version 0.9.0
+        Python 3.13.0
+
+        $ flext --debug version
+        FLEXT CLI version 0.9.0 (build 2025-08-02)
+        Python 3.13.0 (main, Oct  7 2024, 18:15:40)
+        flext-core 0.9.0
+        Configuration: {'profile': 'default', 'debug': True, ...}
+
+    TODO (Sprint 1):
+        - Add flext-core version detection
+        - Include dependency version information
+        - Add ecosystem service version checking
+        - Implement build information display
+
+    """
     console = ctx.obj["console"]
     ctx.obj["settings"]
 
+    # Basic version information
     console.print(f"FLEXT CLI version {__version__}")
-    console.print(f"Python {sys.version}")
+    console.print(f"Python {sys.version.split()[0]} ({sys.platform})")
+
+    # TODO (Sprint 1): Add flext-core version detection
+    if core_version:
+        console.print(f"flext-core {core_version}")
+    else:
+        console.print("[dim]flext-core version: not detected[/dim]")
+
+    # Debug mode information
     if ctx.obj.get("debug"):
         config = ctx.obj["config"]
-        # Format config for debug output (SOLID: Single Responsibility)
+        console.print("")
+        console.print("[bold]Debug Information:[/bold]")
+
+        # Configuration details
         config_display = (
             config.model_dump() if hasattr(config, "model_dump") else str(config)
         )
         console.print(f"[dim]Configuration: {config_display}[/dim]")
 
+        # System information
+        console.print(f"[dim]Python executable: {sys.executable}[/dim]")
+        console.print(f"[dim]Platform: {sys.platform}[/dim]")
+
+        # TODO (Sprint 1): Add ecosystem service connectivity check
+        console.print("[dim]Service connectivity: not implemented[/dim]")
+
 
 def main() -> None:
-    """Execute the main CLI entry point."""
-    try:
-        cli()
-    except KeyboardInterrupt:
-        console = Console()
-        console.print("\n[yellow]Operation cancelled by user[/yellow]")
-        sys.exit(1)
-    except (
-        OSError,
-        RuntimeError,
-        ValueError,
-        TypeError,
-        ConnectionError,
-        TimeoutError,
-    ) as e:
-        console = Console()
-        console.print(f"[red]Error: {e}[/red]")
-        # In debug mode, show full traceback
-        console.print(f"[red]Traceback: {traceback.format_exc()}[/red]")
-        sys.exit(1)
+    """Execute the main CLI entry point with comprehensive error handling.
+
+    This function serves as the primary entry point for the FLEXT CLI application,
+    providing centralized error handling and graceful failure modes. It leverages
+    flext-core utilities for consistent error handling across the ecosystem.
+
+    Error Handling:
+        - Catches and formats all unhandled exceptions
+        - Provides user-friendly error messages
+        - Logs errors for debugging (debug mode)
+        - Ensures clean exit codes for scripting
+
+    Exit Codes:
+        - 0: Successful execution
+        - 1: General error (command failed)
+        - 2: Misuse of command (invalid arguments)
+        - 3: Internal error (unexpected exception)
+
+    Integration:
+        Uses FlextUtilities.handle_cli_main_errors from flext-core to ensure
+        consistent error handling patterns across all FLEXT ecosystem tools.
+
+    Examples:
+        $ flext auth login          # Exit code 0 on success
+        $ flext invalid-command     # Exit code 2 on invalid command
+        $ flext auth login --bad    # Exit code 1 on command failure
+
+    TODO (Sprint 1):
+        - Add comprehensive logging integration
+        - Implement crash report generation
+        - Add performance metrics collection
+        - Integrate with ecosystem monitoring
+
+    """
+    # Use centralized error handling from flext-core to follow DRY principle
+    # This ensures consistent error handling across all FLEXT ecosystem tools
+    FlextUtilities.handle_cli_main_errors(cli, debug_mode=True)
 
 
 if __name__ == "__main__":

@@ -1,15 +1,70 @@
-"""FLEXT CLI Entry Point - Clean Architecture with flext-core.
+"""FLEXT CLI Example Application - Complete Clean Architecture Implementation.
+
+This module demonstrates a complete CLI application using FLEXT CLI patterns with
+Clean Architecture, Domain-Driven Design, and flext-core integration. Serves as
+a reference implementation for production-ready CLI applications.
+
+Architecture:
+    - Clean Architecture with proper layer separation
+    - Click-based command framework with Rich terminal UI
+    - flext-core integration with FlextResult patterns
+    - Domain-driven design with CLI entities and services
+    - Sprint-aligned command implementation roadmap
+
+Current Implementation Status:
+    ✅ Core Infrastructure: CLI setup, configuration, context management
+    ✅ Foundation Commands: auth, config, debug (fully functional)
+    🎯 Pipeline Commands: Planned for Sprint 1 implementation
+    🎯 Plugin Commands: Planned for Sprint 6 implementation
+    🎯 Project Commands: Planned for Sprint 9 implementation
+
+Command Structure:
+    flext [GLOBAL_OPTIONS] COMMAND [COMMAND_OPTIONS] [ARGS...]
+
+    Global Options:
+        --profile PROFILE    Configuration profile (dev/staging/prod)
+        --output FORMAT      Output format (table/json/yaml/csv/plain)
+        --debug             Enable debug mode with verbose output
+        --quiet             Suppress non-error output
+
+    Available Commands:
+        auth                Authentication and session management
+        config              Configuration management and profiles
+        debug               Diagnostic tools and health checks
+        pipeline            Data pipeline management (Sprint 1)
+        plugin              Plugin system management (Sprint 6)
+        projects            Project-specific integrations (Sprint 9)
+
+Usage Examples:
+    Basic usage:
+    >>> python cli.py --help
+    >>> python cli.py auth login --username REDACTED_LDAP_BIND_PASSWORD
+    >>> python cli.py config show --format json
+    >>> python cli.py debug health --verbose
+
+    Advanced usage:
+    >>> python cli.py --profile production --output json pipeline list
+    >>> python cli.py --debug plugin install kubernetes-plugin
+    >>> python cli.py projects client-a migration --type oud
+
+Integration:
+    - Uses main FLEXT CLI library patterns and components
+    - Demonstrates proper dependency injection with flext-core
+    - Shows Clean Architecture implementation in practice
+    - Provides template for production CLI applications
+
+TODO (Sprint Implementation):
+    Sprint 1: Implement pipeline management commands (CRITICAL)
+    Sprint 6: Add plugin system with discovery and lifecycle
+    Sprint 9: Complete project-specific command integration
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
-Modern CLI implementation using flext-core and Click patterns.
 """
 
 from __future__ import annotations
 
 import sys
-import traceback
 
 import click
 from flext_cli.__version__ import __version__
@@ -18,6 +73,7 @@ from flext_cli.commands.projects import client-a, client-b, meltano
 from flext_cli.domain import CLIServiceContainer
 from flext_cli.utils.config import CLISettings, get_config
 from flext_core import get_flext_container
+from flext_core.utilities import FlextUtilities
 from rich.console import Console
 
 
@@ -138,27 +194,13 @@ def version(ctx: click.Context) -> None:
 
 
 def main() -> None:
-    """Execute the main CLI entry point."""
-    try:
-        cli()
-    except KeyboardInterrupt:
-        console = Console()
-        console.print("\n[yellow]Operation cancelled by user[/yellow]")
-        sys.exit(1)
-    except (
-        OSError,
-        RuntimeError,
-        ValueError,
-        TypeError,
-        ConnectionError,
-        TimeoutError,
-    ) as e:
-        console = Console()
-        console.print(f"[red]Error: {e}[/red]")
-        # In debug mode, show full traceback
+    """Execute the main CLI entry point.
 
-        console.print(f"[red]Traceback: {traceback.format_exc()}[/red]")
-        sys.exit(1)
+    REFACTORED: Uses FlextUtilities.handle_cli_main_errors to eliminate
+    code duplication.
+    """
+    # Use centralized error handling from flext-core to follow DRY principle
+    FlextUtilities.handle_cli_main_errors(cli, debug_mode=True)
 
 
 if __name__ == "__main__":

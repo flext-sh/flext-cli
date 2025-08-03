@@ -30,7 +30,15 @@ class TestDebugConnectivity:
     ) -> None:
         """Test connectivity success with system status."""
         # Setup mocks - synchronous implementation (SOLID: Single Responsibility)
-        mock_client_class.return_value = MagicMock()
+        mock_client = MagicMock()
+        mock_client.test_connection.return_value = True
+        mock_client.base_url = "http://localhost:8000"
+        mock_client.get_system_status.return_value = {
+            "version": "1.0.0",
+            "status": "healthy",
+            "uptime": "24h",
+        }
+        mock_client_class.return_value = mock_client
 
         mock_console = MagicMock()
         runner = CliRunner()

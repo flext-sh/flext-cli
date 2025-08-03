@@ -3,6 +3,7 @@
 Single API class with all functionality, no duplication.
 """
 
+from collections.abc import Callable
 from typing import Any
 
 from flext_cli.core import FlextCliService
@@ -81,7 +82,9 @@ class FlextCliApi:
         result = self._service.flext_cli_create_session(user_id)
         return result.unwrap() if result.is_success else f"Error: {result.error}"
 
-    def flext_cli_register_handler(self, name: str, handler) -> bool:
+    def flext_cli_register_handler(
+        self, name: str, handler: Callable[..., Any]
+    ) -> bool:
         """Register handler using unified method."""
         result = self._service.flext_cli_register_handler(name, handler)
         return result.is_success
@@ -94,8 +97,8 @@ class FlextCliApi:
     def flext_cli_execute_handler(
         self,
         name: str,
-        *args: Any,
-        **kwargs: Any,
+        *args: object,
+        **kwargs: object,
     ) -> dict[str, object]:
         """Execute handler using shared service."""
         result = self._service.flext_cli_execute_handler(name, *args, **kwargs)
@@ -103,7 +106,7 @@ class FlextCliApi:
 
     def flext_cli_render_with_context(
         self,
-        data: Any,
+        data: object,
         context: dict[str, object] | None = None,
     ) -> str:
         """Render with context."""

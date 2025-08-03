@@ -1,10 +1,64 @@
-"""Output formatters for FLEXT CLI framework.
+"""FLEXT CLI Output Formatters - Rich Console Output with Multiple Format Support.
+
+This module provides comprehensive output formatting capabilities for FLEXT CLI
+commands, supporting multiple output formats with Rich console integration for
+enhanced terminal user experience.
+
+Output Formats Supported:
+    - table: Rich tables with colors and formatting (default)
+    - json: JSON output for machine consumption and APIs
+    - yaml: YAML format for configuration and data exchange
+    - csv: CSV format for data analysis and spreadsheet import
+    - plain: Plain text output for scripting and automation
+
+Architecture:
+    - Abstract base class pattern with format-specific implementations
+    - Rich console integration for beautiful terminal output
+    - Factory pattern for format selection and instantiation
+    - Type-safe formatting with comprehensive error handling
+
+Formatter Classes:
+    - OutputFormatter: Abstract base class for all formatters
+    - TableFormatter: Rich table output with styling and colors
+    - JsonFormatter: JSON output with proper indentation
+    - YamlFormatter: YAML output with readable formatting
+    - CsvFormatter: CSV output with proper escaping
+    - PlainFormatter: Simple text output for scripting
+
+Current Implementation Status:
+    ✅ Complete formatter implementations for all formats
+    ✅ Rich console integration with colors and styling
+    ✅ Factory pattern for format selection
+    ✅ Error handling and validation
+    ⚠️ Basic styling (TODO: Sprint 2 - enhance themes and customization)
+
+TODO (docs/TODO.md):
+    Sprint 2: Add customizable themes and styling options
+    Sprint 3: Add format-specific configuration and templates
+    Sprint 7: Add performance metrics and monitoring integration
+    Sprint 8: Add interactive formatting with user preferences
+
+Usage Examples:
+    # Table format (default)
+    >>> formatter = FormatterFactory.get_formatter("table")
+    >>> formatter.format(data, console)
+
+    # JSON for APIs
+    >>> formatter = FormatterFactory.get_formatter("json")
+    >>> formatter.format(data, console)
+
+    # CSV for data analysis
+    >>> formatter = FormatterFactory.get_formatter("csv")
+    >>> formatter.format(data, console)
+
+Integration:
+    - Used by all CLI commands for consistent output
+    - Integrates with Click options for format selection
+    - Supports Rich console features (colors, tables, progress)
+    - Compatible with terminal capabilities detection
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
-Built on flext-core foundation with Rich integration.
-Provides multiple output formats for CLI commands.
 """
 
 from __future__ import annotations
@@ -23,11 +77,45 @@ if TYPE_CHECKING:
 
 
 class OutputFormatter(ABC):
-    """Base class for output formatters."""
+    """Abstract base class for all output formatters.
+
+    Defines the contract for formatting and outputting data in different formats.
+    All concrete formatters must implement the format method to handle specific
+    output formats while maintaining consistent behavior.
+
+    Design Pattern:
+        Uses Template Method pattern with abstract format method that concrete
+        formatters must implement. Ensures consistent interface across all
+        output formats while allowing format-specific customization.
+
+    Integration:
+        - Works with Rich console for enhanced terminal output
+        - Supports error handling and graceful degradation
+        - Compatible with all CLI command output requirements
+
+    Usage:
+        Should not be instantiated directly. Use FormatterFactory to get
+        concrete formatter implementations based on desired output format.
+
+    TODO (Sprint 2):
+        - Add format validation and schema support
+        - Add theme and styling configuration options
+        - Add output streaming for large datasets
+    """
 
     @abstractmethod
     def format(self, data: object, console: Console) -> None:
-        """Format data and output to console."""
+        """Format data and output to console in format-specific way.
+
+        Args:
+            data: Data to be formatted (lists, dicts, objects)
+            console: Rich console instance for output
+
+        Abstract Method:
+            Must be implemented by all concrete formatter classes to handle
+            format-specific rendering and output logic.
+
+        """
         ...
 
 

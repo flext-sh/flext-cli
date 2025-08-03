@@ -1,4 +1,46 @@
-"""Configuration management commands using flext-core patterns.
+"""FLEXT CLI Configuration Commands - Settings and Profile Management.
+
+This module implements configuration management commands for the FLEXT CLI,
+providing comprehensive configuration operations including profile management,
+setting manipulation, and hierarchical configuration support.
+
+Commands:
+    ✅ show: Display current configuration with various output formats
+    ✅ get: Retrieve specific configuration values with type safety
+    ✅ set: Update configuration values with validation
+    ✅ reset: Reset configuration to defaults with confirmation
+
+Architecture:
+    - Click-based command definitions with Rich table output
+    - FlextBaseSettings integration for type-safe configuration
+    - Hierarchical configuration with profile support (dev/staging/prod)
+    - YAML/JSON export and import capabilities
+
+Configuration Features:
+    - Profile-based configuration management
+    - Environment variable override support
+    - Type-safe value parsing and validation
+    - Secure value handling (passwords, tokens)
+    - Configuration inheritance and merging
+
+Current Implementation Status:
+    ✅ Basic configuration commands implemented
+    ✅ Profile support and type validation
+    ✅ Multiple output formats (table, json, yaml)
+    ⚠️ Basic profile loading (TODO: Sprint 1 - enhance profiles)
+    ❌ Configuration encryption not implemented (TODO: Sprint 2)
+
+TODO (docs/TODO.md):
+    Sprint 1: Implement hierarchical profile loading system
+    Sprint 2: Add configuration value encryption for secrets
+    Sprint 3: Add configuration templates and validation schemas
+    Sprint 9: Add advanced profile management and inheritance
+
+Integration:
+    - Used by all CLI commands for configuration access
+    - Integrates with authentication for secure settings
+    - Supports ecosystem service configuration
+    - Profile-aware for multi-environment deployments
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -15,13 +57,50 @@ import click
 import yaml
 from rich.table import Table
 
+from flext_cli.utils.config import parse_config_value, set_config_attribute
+
 if TYPE_CHECKING:
     from flext_cli.domain.cli_context import CLIContext
 
 
 @click.group()
 def config() -> None:
-    """Manage configuration commands."""
+    """Configuration management for FLEXT CLI and ecosystem services.
+
+    Provides comprehensive configuration commands for managing CLI settings,
+    profiles, and service configurations. Supports hierarchical configuration
+    with environment-specific overrides and secure value handling.
+
+    Available Commands:
+        show   - Display current configuration with formatting options
+        get    - Retrieve specific configuration values
+        set    - Update configuration values with type validation
+        reset  - Reset configuration to defaults
+
+    Profile Support:
+        - dev: Development environment settings
+        - staging: Staging environment configuration
+        - prod: Production environment settings
+        - custom: User-defined profiles
+
+    Configuration Hierarchy:
+        1. Command-line options (highest priority)
+        2. Environment variables (FLX_*, FLEXT_CLI_*)
+        3. Profile-specific configuration files
+        4. Default configuration values (lowest priority)
+
+    Examples:
+        $ flext config show --format json
+        $ flext config get auth.username
+        $ flext config set debug.enabled true --type bool
+        $ flext config reset --key auth --confirm
+
+    TODO (Sprint 1):
+        - Implement advanced profile management
+        - Add configuration validation schemas
+        - Integrate with ecosystem service configs
+
+    """
 
 
 @config.command()
@@ -129,24 +208,32 @@ def set_value(ctx: click.Context, key: str, value: str) -> None:
     cli_context: CLIContext = ctx.obj["cli_context"]
 
     try:
-        try:
-            parsed_value = json.loads(value)
-        except json.JSONDecodeError:
-            # If not JSON, treat as string
-            parsed_value = value
-
-        # Try to set in config first, then settings
-        if hasattr(cli_context.config, key):
-            setattr(cli_context.config, key, parsed_value)
-            cli_context.print_success(f"Set config.{key} = {parsed_value}")
-        elif hasattr(cli_context.settings, key):
-            setattr(cli_context.settings, key, parsed_value)
-            cli_context.print_success(f"Set settings.{key} = {parsed_value}")
-        else:
-            cli_context.print_warning(
-                f"Configuration key '{key}' not found in config or settings",
-            )
+        # Parse configuration value using utility function
+        parse_result = parse_config_value(value)
+        if not parse_result.is_success:
+            error_msg = parse_result.error or "Configuration parsing failed"
+            cli_context.print_error(error_msg)
             ctx.exit(1)
+
+        parsed_value = parse_result.data
+
+        # Try to set in config first, then settings using utility function
+        config_result = set_config_attribute(cli_context.config, key, parsed_value)
+        if config_result.is_success:
+            success_msg = config_result.data or "Configuration updated successfully"
+            cli_context.print_success(success_msg)
+            return
+
+        settings_result = set_config_attribute(cli_context.settings, key, parsed_value)
+        if settings_result.is_success:
+            success_msg = settings_result.data or "Settings updated successfully"
+            cli_context.print_success(success_msg)
+            return
+
+        cli_context.print_warning(
+            f"Configuration key '{key}' not found in config or settings",
+        )
+        ctx.exit(1)
     except (AttributeError, KeyError, ValueError, TypeError) as e:
         cli_context.print_error(f"Failed to set configuration: {e}")
         ctx.exit(1)

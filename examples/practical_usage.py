@@ -17,6 +17,11 @@ from flext_cli import (
 )
 from flext_core import FlextResult
 
+# Constants
+MAX_PORT_NUMBER = 65535
+MIN_PRIVILEGED_PORT = 1024
+MIN_DATABASE_NAME_LENGTH = 3
+
 
 def example_1_simple_cli() -> None:
     """Example 1: Ultra-simple CLI creation."""
@@ -32,7 +37,9 @@ def example_2_web_service_cli() -> None:
     # Create CLI with web validation
     cli = (
         flext_cli_create_builder("webservice", version="2.1.0")
-        .set_validator(url="url", email="email", port=lambda x: 1 <= int(x) <= 65535)
+        .set_validator(
+            url="url", email="email", port=lambda x: 1 <= int(x) <= MAX_PORT_NUMBER
+        )
         .set_formatter("json")
         .add_global_flag("--verbose", "Enable verbose logging")
     )
@@ -92,8 +99,8 @@ def example_3_database_management() -> None:
     # Create validator with database-specific patterns
     db_validator = flext_cli_validate_inputs(
         host="domain",
-        port=lambda x: 1024 <= int(x) <= 65535,
-        database=lambda x: len(str(x)) >= 3,
+        port=lambda x: MIN_PRIVILEGED_PORT <= int(x) <= MAX_PORT_NUMBER,
+        database=lambda x: len(str(x)) >= MIN_DATABASE_NAME_LENGTH,
         username="username",
         ssl_cert="file_path",
     )
@@ -257,7 +264,11 @@ def example_4_advanced_features() -> None:
     # Demonstrate usage
 
     # Test with valid data
-    valid_jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+    valid_jwt = (
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+        "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ."
+        "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+    )
     valid_ipv6 = "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
 
     process_result = process_user_data("user@example.com", valid_jwt, valid_ipv6)

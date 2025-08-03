@@ -1,9 +1,45 @@
-"""Simple dependency injection container for FLEXT CLI.
+"""FLEXT CLI Dependency Injection Container - Service Registration and Resolution.
+
+This module provides dependency injection infrastructure for the FLEXT CLI,
+currently using a simple custom container with plans to migrate to FlextContainer
+from flext-core for full ecosystem integration.
+
+Architecture:
+    - Simple custom container for basic dependency management
+    - Factory and instance registration patterns
+    - Type-safe service resolution with FlextResult error handling
+    - Mock repository implementations for development and testing
+
+Current Implementation:
+    ✅ SimpleDIContainer with basic registration and resolution
+    ✅ Mock repositories for all domain entities
+    ✅ Service factory registration
+    ⚠️ Custom container (should migrate to FlextContainer)
+
+Target Architecture (Sprint 1):
+    🎯 FlextContainer integration from flext-core
+    🎯 Type-safe dependency resolution
+    🎯 Lifecycle management (singleton, transient, scoped)
+    🎯 Real repository implementations with persistence
+
+Services Registered:
+    - CLICommandService: Domain service for command operations
+    - AuthService: Authentication and authorization
+    - ConfigService: Configuration management
+    - Mock repositories for all entities (temporary)
+
+TODO (docs/TODO.md - Sprint 1):
+    Priority 1: Replace SimpleDIContainer with FlextContainer
+    Priority 2: Implement real repository patterns
+    Priority 2: Add service lifecycle management
+    Priority 3: Add circular dependency detection
+
+Integration:
+    Used by CLI commands for service resolution and dependency injection.
+    Will integrate with FlexCore and FLEXT services for ecosystem connectivity.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
-This module provides a basic dependency container without external dependencies.
 """
 
 from __future__ import annotations
@@ -16,7 +52,43 @@ from flext_core.result import FlextResult
 
 
 class SimpleDIContainer:
-    """Simple dependency injection container."""
+    """Simple Dependency Injection Container - Temporary Implementation.
+
+    Provides basic dependency injection functionality for FLEXT CLI services
+    and repositories. This is a temporary implementation that will be replaced
+    with FlextContainer from flext-core in Sprint 1.
+
+    Features:
+        - Factory registration for lazy service instantiation
+        - Instance registration for singleton services
+        - Type-safe service resolution with error handling
+        - Simple lifecycle management (singleton pattern)
+
+    Limitations:
+        - No circular dependency detection
+        - Basic lifetime management
+        - No scoped services support
+        - Custom implementation (not ecosystem standard)
+
+    Usage:
+        >>> container = SimpleDIContainer()
+        >>> container.register_factory("service", lambda: MyService())
+        >>> container.register_instance("config", my_config)
+        >>> service = container.get("service")
+
+    Migration Plan (Sprint 1):
+        This class will be replaced with FlextContainer from flext-core:
+        - Better type safety with generic constraints
+        - Advanced lifecycle management
+        - Circular dependency detection
+        - Ecosystem standard patterns
+
+    TODO (Sprint 1):
+        - Replace with FlextContainer from flext-core
+        - Migrate all service registrations
+        - Update CLI commands to use new container
+        - Add comprehensive container tests
+    """
 
     def __init__(self) -> None:
         """Initialize the dependency injection container."""
