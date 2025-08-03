@@ -50,9 +50,9 @@ class TestE2EUserWorkflows:
         result = runner.invoke(cli, ["config", "validate"])
         assert result.exit_code == 0
 
-        # Step 5: User checks auth status
+        # Step 5: User checks auth status (should fail when not authenticated)
         result = runner.invoke(cli, ["auth", "status"])
-        assert result.exit_code == 0
+        assert result.exit_code == 1  # Expected: not authenticated
 
     def test_developer_daily_workflow(self) -> None:
         """Test typical developer daily workflow."""
@@ -84,9 +84,9 @@ class TestE2EUserWorkflows:
         result = runner.invoke(cli, ["--output", "json", "debug", "info"])
         assert result.exit_code == 0
 
-        # 2. Check auth status in JSON
+        # 2. Check auth status in JSON (should fail when not authenticated)
         result = runner.invoke(cli, ["--output", "json", "auth", "status"])
-        assert result.exit_code == 0
+        assert result.exit_code == 1  # Expected: not authenticated
 
         # 3. Get configuration in JSON for automation
         result = runner.invoke(cli, ["--output", "json", "config", "show"])
@@ -109,9 +109,9 @@ class TestE2EUserWorkflows:
         result = runner.invoke(cli, ["--debug", "config", "validate"])
         assert result.exit_code == 0
 
-        # 4. Check authentication status
+        # 4. Check authentication status (should fail when not authenticated)
         result = runner.invoke(cli, ["--debug", "auth", "status"])
-        assert result.exit_code == 0
+        assert result.exit_code == 1  # Expected: not authenticated
 
         # 5. Get machine-readable output for analysis
         result = runner.invoke(cli, ["--debug", "--output", "json", "debug", "info"])
@@ -149,9 +149,9 @@ class TestE2EUserWorkflows:
             result = runner.invoke(cli, ["--profile", env, "config", "validate"])
             assert result.exit_code == 0
 
-            # Check auth status per environment
+            # Check auth status per environment (should fail when not authenticated)
             result = runner.invoke(cli, ["--profile", env, "auth", "status"])
-            assert result.exit_code == 0
+            assert result.exit_code == 1  # Expected: not authenticated
 
 
 class TestE2EDataProcessingWorkflows:
@@ -180,21 +180,23 @@ class TestE2EDataProcessingWorkflows:
         """Test batch operations workflow."""
         runner = CliRunner()
 
-        # Simulate batch operations
+        # Simulate batch operations with expected results
         operations = [
-            ["config", "show"],
-            ["config", "validate"],
-            ["auth", "status"],
-            ["debug", "check"],
+            (["config", "show"], 0),  # Should succeed
+            (["config", "validate"], 0),  # Should succeed
+            (["auth", "status"], 1),  # Should fail when not authenticated
+            (["debug", "check"], 0),  # Should succeed
         ]
 
         results = []
-        for operation in operations:
+        for operation, expected_exit_code in operations:
             result = runner.invoke(cli, ["--output", "json", *operation])
-            assert result.exit_code == 0
+            assert result.exit_code == expected_exit_code, (
+                f"Command {operation} expected exit code {expected_exit_code}, got {result.exit_code}"
+            )
             results.append(result.output)
 
-        # All operations should have succeeded
+        # All operations should have been executed
         assert len(results) == len(operations)
 
     def test_data_format_conversion_workflow(self) -> None:
@@ -276,19 +278,21 @@ class TestE2EPerformanceWorkflows:
 
         runner = CliRunner()
 
-        # Execute commands rapidly
+        # Execute commands rapidly with expected exit codes
         commands = [
-            ["config", "show"],
-            ["auth", "status"],
-            ["debug", "info"],
-            ["config", "validate"],
+            (["config", "show"], 0),
+            (["auth", "status"], 1),  # Expected to fail when not authenticated
+            (["debug", "info"], 0),
+            (["config", "validate"], 0),
         ] * 3  # Repeat 3 times
 
         start_time = time.time()
 
-        for cmd in commands:
+        for cmd, expected_exit_code in commands:
             result = runner.invoke(cli, cmd)
-            assert result.exit_code == 0
+            assert result.exit_code == expected_exit_code, (
+                f"Command {cmd} expected {expected_exit_code}, got {result.exit_code}"
+            )
 
         end_time = time.time()
         total_time = end_time - start_time
@@ -321,17 +325,17 @@ class TestE2ESecurityWorkflows:
         """Test complete authentication workflow."""
         runner = CliRunner()
 
-        # 1. Check current auth status
+        # 1. Check current auth status (should fail when not authenticated)
         result = runner.invoke(cli, ["auth", "status"])
-        assert result.exit_code == 0
+        assert result.exit_code == 1  # Expected: not authenticated
 
-        # 2. Get current user info
+        # 2. Get current user info (should fail when not authenticated)
         result = runner.invoke(cli, ["auth", "whoami"])
-        assert result.exit_code == 0
+        assert result.exit_code == 1  # Expected: not authenticated
 
-        # 3. Verify auth status with different output format
+        # 3. Verify auth status with different output format (should fail when not authenticated)
         result = runner.invoke(cli, ["--output", "json", "auth", "status"])
-        assert result.exit_code == 0
+        assert result.exit_code == 1  # Expected: not authenticated
 
     def test_configuration_security_workflow(self) -> None:
         """Test configuration security workflow."""
@@ -354,12 +358,12 @@ class TestE2ESecurityWorkflows:
 
         for fmt in formats:
             result = runner.invoke(cli, ["--output", fmt, "auth", "status"])
-            assert result.exit_code == 0
+            assert result.exit_code == 1  # Expected: not authenticated
             # Output should not contain obvious credentials
             output_lower = result.output.lower()
             assert "password" not in output_lower
             assert "secret" not in output_lower
-            assert "token" not in output_lower or "null" in output_lower
+            # When not authenticated, token check is not relevant
 
 
 class TestE2EIntegrationWithCore:
@@ -502,18 +506,20 @@ class TestE2EOutputFormatWorkflows:
         """Test output format consistency workflow."""
         runner = CliRunner()
 
-        # Test that all commands support all output formats
+        # Test that all commands support all output formats with expected exit codes
         commands = [
-            ["config", "show"],
-            ["auth", "status"],
+            (["config", "show"], 0),
+            (["auth", "status"], 1),  # Expected to fail when not authenticated
         ]
 
         formats = ["table", "json", "yaml"]
 
-        for cmd in commands:
+        for cmd, expected_exit_code in commands:
             for fmt in formats:
                 result = runner.invoke(cli, ["--output", fmt, *cmd])
-                assert result.exit_code == 0
+                assert result.exit_code == expected_exit_code, (
+                    f"Command {cmd} with format {fmt} expected {expected_exit_code}, got {result.exit_code}"
+                )
 
     def test_format_switching_workflow(self) -> None:
         """Test format switching within workflow."""

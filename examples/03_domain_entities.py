@@ -41,7 +41,8 @@ def demonstrate_cli_commands() -> None:
         console.print("   - name: Command identifier")
         console.print("   - command_line: Actual command to execute")
         console.print(
-            "   - command_type: system, pipeline, plugin, data, config, auth, monitoring"
+            "   - command_type: system, pipeline, plugin, data, config, auth, "
+            "monitoring"
         )
         console.print("   - arguments: Command arguments dictionary")
         console.print("   - options: Command options dictionary")
@@ -75,7 +76,8 @@ def demonstrate_cli_commands() -> None:
             "   - start_execution(): Set status to running, record start time"
         )
         console.print(
-            "   - complete_execution(): Set final status, record completion, calculate duration"
+            "   - complete_execution(): Set final status, record completion, "
+            "calculate duration"
         )
         console.print("   - cancel_execution(): Cancel command, record completion time")
         console.print("   - is_completed: Property to check if execution finished")
@@ -84,7 +86,8 @@ def demonstrate_cli_commands() -> None:
 
     except (RuntimeError, ValueError, TypeError) as e:
         console.print(
-            f"[yellow]Note: Full entity instantiation requires ID management: {e}[/yellow]"
+            f"[yellow]Note: Full entity instantiation requires ID management: "
+            f"{e}[/yellow]"
         )
         console.print("In production, use proper entity factories or repositories.")
         console.print()
@@ -253,7 +256,8 @@ def demonstrate_practical_usage() -> None:
     console.print("   ```python")
     console.print("   # Create command entity")
     console.print(
-        "   command = CLICommand(name='deploy', command_line='kubectl apply -f app.yaml')"
+        "   command = CLICommand(name='deploy', "
+        "command_line='kubectl apply -f app.yaml')"
     )
     console.print("   command.start_execution()")
     console.print("   ")
@@ -297,7 +301,8 @@ def demonstrate_practical_usage() -> None:
     console.print("   ```python")
     console.print("   # Publish events")
     console.print(
-        "   event = CommandStartedEvent(command_id=command.id, command_name=command.name)"
+        "   event = CommandStartedEvent(command_id=command.id, "
+        "command_name=command.name)"
     )
     console.print("   event_bus.publish(event)")
     console.print("   ```")

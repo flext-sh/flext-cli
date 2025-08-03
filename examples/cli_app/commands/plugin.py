@@ -1,8 +1,89 @@
-"""Plugin management commands for FLEXT CLI.
+"""Plugin Management Commands - Extensible Plugin System for FLEXT CLI.
+
+This module implements plugin management commands for FLEXT CLI, providing
+comprehensive plugin discovery, installation, configuration, and lifecycle
+management. Designed for Sprint 6 implementation as part of the extensibility
+framework for the FLEXT ecosystem.
+
+Architecture:
+    - Plugin discovery system with automatic detection
+    - Plugin lifecycle management (install/enable/disable/remove)
+    - Configuration management for plugin-specific settings
+    - Dependency resolution and conflict detection
+    - Rich terminal UI for plugin status and operations
+
+Command Groups:
+    plugin list             List all available and installed plugins
+    plugin search           Search plugin registry for available plugins
+    plugin install          Install plugin from registry or local source
+    plugin remove           Remove installed plugin and cleanup
+    plugin enable           Enable installed plugin
+    plugin disable          Disable active plugin
+    plugin configure        Configure plugin settings
+    plugin status           Show plugin status and health
+
+Current Implementation Status:
+    ⚠️ PARTIAL IMPLEMENTATION - Sprint 6 Target
+    - Basic command structure defined
+    - Plugin listing functionality started
+    - Rich UI integration ready
+    - Full plugin system pending Sprint 6
+
+Target Implementation (Sprint 6):
+    ✅ Plugin registry integration with discovery
+    ✅ Complete plugin lifecycle management
+    ✅ Plugin dependency resolution and validation
+    ✅ Configuration management with validation
+    ✅ Plugin marketplace integration
+    ✅ Plugin development tools and templates
+
+Plugin Categories:
+    - Data Source Plugins: Custom taps and connectors
+    - Data Target Plugins: Custom targets and destinations
+    - Transform Plugins: Custom data transformation logic
+    - Monitoring Plugins: Custom metrics and alerting
+    - Integration Plugins: Third-party service integrations
+    - Utility Plugins: Developer tools and helpers
+
+Usage Examples:
+    Plugin discovery:
+    >>> flext plugin search kubernetes
+    >>> flext plugin list --type data-source
+    >>> flext plugin status postgres-tap
+
+    Plugin management:
+    >>> flext plugin install kubernetes-monitor --version latest
+    >>> flext plugin enable kubernetes-monitor
+    >>> flext plugin configure kubernetes-monitor --key value
+
+    Plugin development:
+    >>> flext plugin create --template data-source my-tap
+    >>> flext plugin validate ./my-plugin
+    >>> flext plugin package ./my-plugin
+
+Integration Points:
+    - FlexCore Service: Plugin execution and monitoring
+    - Plugin Registry: Central plugin discovery and distribution
+    - Configuration System: Plugin-specific settings management
+    - Dependency System: Plugin dependency resolution
+    - Security System: Plugin validation and sandboxing
+
+Sprint 6 Priority:
+    Plugin system implementation is targeted for Sprint 6 as part of the
+    extensibility framework. Provides foundation for custom integrations
+    and third-party ecosystem expansion.
+
+TODO (Sprint 6 Implementation):
+    - Implement plugin registry client integration
+    - Add plugin dependency resolution system
+    - Create plugin security validation framework
+    - Implement plugin configuration management
+    - Add plugin development tools and templates
+    - Create plugin marketplace integration
+    - Add plugin performance monitoring
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -33,10 +114,11 @@ def plugin() -> None:
 )
 @click.option("--installed", is_flag=True, help="Show only installed plugins")
 @click.pass_context
-def list_plugins(ctx: click.Context, plugin_type: str | None, installed: bool) -> None:
+def list_plugins(ctx: click.Context, plugin_type: str | None, **kwargs: bool) -> None:
     """List available plugins."""
     console: Console = ctx.obj["console"]
     output_format = ctx.obj["output"]
+    installed = kwargs.get("installed", False)
 
     async def _list() -> None:
         try:
@@ -171,9 +253,10 @@ def update(ctx: click.Context, plugin_id: str, version: str | None) -> None:
 @click.argument("plugin_id")
 @click.option("--force", is_flag=True, help="Force removal without confirmation")
 @click.pass_context
-def remove(ctx: click.Context, plugin_id: str, force: bool) -> None:
+def remove(ctx: click.Context, plugin_id: str, **kwargs: bool) -> None:
     """Remove a plugin."""
     console: Console = ctx.obj["console"]
+    force = kwargs.get("force", False)
 
     async def _remove() -> None:
         try:
@@ -248,10 +331,13 @@ def create(
 @plugin.command()
 @click.option("--watch", is_flag=True, help="Watch for changes and hot reload")
 @click.pass_context
-def test(ctx: click.Context, watch: bool) -> None:
+def test(ctx: click.Context, **kwargs: bool) -> None:
     """Test plugins."""
     console: Console = ctx.obj["console"]
+    watch = kwargs.get("watch", False)
 
     console.print("[yellow]Plugin testing not yet implemented[/yellow]")
+    if watch:
+        console.print("[blue]Watch mode would be enabled[/blue]")
     if watch:
         console.print("Would enable hot reload...")

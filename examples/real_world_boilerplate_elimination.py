@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import logging
+from typing import Any
 
 # All imports from root namespace (as required)
 from flext_cli import (
@@ -28,10 +29,12 @@ from flext_cli import (
 )
 
 
-def traditional_approach_example():
+def traditional_approach_example() -> None:
     """BEFORE: Traditional approach with massive boilerplate (45+ lines)."""
 
-    def process_user_data_old_way(raw_users, config):
+    def process_user_data_old_way(
+        raw_users: list[dict[str, Any]], config: dict[str, Any]
+    ) -> dict[str, Any]:
         logger = logging.getLogger(__name__)
 
         try:
@@ -92,10 +95,12 @@ def traditional_approach_example():
     return process_user_data_old_way
 
 
-def ultra_flext_cli_approach():
+def ultra_flext_cli_approach() -> None:
     """AFTER: FlextCli ultra approach (5 lines total)."""
 
-    def process_user_data_flext_way(raw_users, config):
+    def process_user_data_flext_way(
+        raw_users: list[dict[str, object]], config: dict[str, object]
+    ) -> object:
         # 1. Config validation with defaults (1 line - replaces 8 lines)
         config_result = flext_cli_config_with_defaults(
             config,
@@ -143,7 +148,7 @@ def ultra_flext_cli_approach():
     return process_user_data_flext_way
 
 
-def demonstrate_real_reduction():
+def demonstrate_real_reduction() -> None:
     """Demonstrate the actual boilerplate reduction in a real scenario."""
     # Sample data
     sample_users = [
@@ -176,7 +181,7 @@ def demonstrate_real_reduction():
     }
 
 
-def advanced_pipeline_example():
+def advanced_pipeline_example() -> None:
     """Advanced example showing operation chaining with error handling."""
     # Complex data processing scenario
     raw_data = [
@@ -230,7 +235,7 @@ def advanced_pipeline_example():
     return result
 
 
-def configuration_management_example():
+def configuration_management_example() -> None:
     """Example of zero-boilerplate configuration management."""
     # Complex configuration scenario
     user_config = {

@@ -39,17 +39,27 @@ class MockFlextCliConfig:
 
 
 class MockFlextCliCommand:
-    def __init__(self, name: str, command_line: str, **options: object) -> None:
-        self.name = name
-        self.command_line = command_line
+    def __init__(
+        self,
+        entity_id: str | None = None,
+        name: str | None = None,
+        command_line: str | None = None,
+        **options: object,
+    ) -> None:
+        self.id = entity_id or f"cmd_{name or 'unknown'}"
+        self.name = name or "unknown"
+        self.command_line = command_line or "echo test"
         self.options = options
-        self.entity_id = f"cmd_{name}"
+        self.entity_id = self.id  # For backward compatibility
 
 
 class MockFlextCliSession:
-    def __init__(self, user_id: str | None = None) -> None:
+    def __init__(
+        self, entity_id: str | None = None, user_id: str | None = None
+    ) -> None:
+        self.id = entity_id or f"session_{'_'.join(str(hash(self)).split())}"
         self.user_id = user_id
-        self.entity_id = f"session_{'_'.join(str(id(self)).split())}"
+        self.entity_id = self.id  # For backward compatibility
 
 
 class MockFlextCliPlugin:

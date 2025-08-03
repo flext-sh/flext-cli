@@ -8,7 +8,7 @@ Tests authentication command functionality for coverage.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import click
 from click.testing import CliRunner
@@ -44,8 +44,13 @@ class TestAuthCommands:
         mock_client_class: MagicMock,
     ) -> None:
         """Test successful login."""
-        # Mock client (synchronous now)
-        mock_client_class.return_value = MagicMock()
+        # Mock async client
+        mock_client = AsyncMock()
+        mock_client.login.return_value = {
+            "token": "token_testuser_abc123",
+            "user": {"name": "Test User", "username": "testuser"},
+        }
+        mock_client_class.return_value.__aenter__.return_value = mock_client
 
         # Mock console
         mock_console = MagicMock()
@@ -60,14 +65,8 @@ class TestAuthCommands:
         # Should complete successfully
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
-        # Auth implementation saves password-based token (SOLID: Interface Segregation)
-        mock_save_token.assert_called_once()
-        # Verify token format: token_username_hash
-        saved_token = mock_save_token.call_args[0][0]
-        if not saved_token.startswith("token_testuser_"):
-            raise AssertionError(
-                f"Expected token starting with 'token_testuser_', got {saved_token}"
-            )
+        # Auth implementation saves token from response
+        mock_save_token.assert_called_once_with("token_testuser_abc123")
 
     @patch("flext_cli.commands.auth.FlextApiClient")
     @patch("flext_cli.commands.auth.save_auth_token")
@@ -77,8 +76,10 @@ class TestAuthCommands:
         mock_client_class: MagicMock,
     ) -> None:
         """Test login with invalid response."""
-        # Mock client (synchronous now)
-        mock_client_class.return_value = MagicMock()
+        # Mock async client with no token in response
+        mock_client = AsyncMock()
+        mock_client.login.return_value = {"message": "Login failed"}
+        mock_client_class.return_value.__aenter__.return_value = mock_client
 
         mock_console = MagicMock()
 
@@ -89,17 +90,11 @@ class TestAuthCommands:
             obj={"console": mock_console},
         )
 
-        # Should complete (stub client always provides valid response)
+        # Should complete without saving token
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
-        # Auth implementation saves password-based token (SOLID: Interface Segregation)
-        mock_save_token.assert_called_once()
-        # Verify token format: token_username_hash
-        saved_token = mock_save_token.call_args[0][0]
-        if not saved_token.startswith("token_testuser_"):
-            raise AssertionError(
-                f"Expected token starting with 'token_testuser_', got {saved_token}"
-            )
+        # No token should be saved for invalid response
+        mock_save_token.assert_not_called()
 
     @patch("flext_cli.commands.auth.FlextApiClient")
     def test_login_connection_error(
@@ -107,8 +102,10 @@ class TestAuthCommands:
         mock_client_class: MagicMock,
     ) -> None:
         """Test login with connection error."""
-        # Make client raise an exception
-        mock_client_class.side_effect = ConnectionError("Connection failed")
+        # Mock async client that raises exception
+        mock_client = AsyncMock()
+        mock_client.login.side_effect = ConnectionError("Connection failed")
+        mock_client_class.return_value.__aenter__.return_value = mock_client
 
         mock_console = MagicMock()
 
@@ -134,8 +131,9 @@ class TestAuthCommands:
         """Test successful logout."""
         mock_get_token.return_value = "test_token"
 
-        # Mock client (synchronous now)
-        mock_client_class.return_value = MagicMock()
+        # Mock async client
+        mock_client = AsyncMock()
+        mock_client_class.return_value.__aenter__.return_value = mock_client
 
         mock_console = MagicMock()
 
@@ -183,8 +181,10 @@ class TestAuthCommands:
         """Test logout with API error."""
         mock_get_token.return_value = "test_token"
 
-        # Mock client to raise exception
-        mock_client_class.side_effect = ConnectionError("API error")
+        # Mock async client to raise exception
+        mock_client = AsyncMock()
+        mock_client.logout.side_effect = ConnectionError("API error")
+        mock_client_class.return_value.__aenter__.return_value = mock_client
 
         mock_console = MagicMock()
 
@@ -208,8 +208,14 @@ class TestAuthCommands:
         """Test status when authenticated."""
         mock_get_token.return_value = "test_token"
 
-        # Mock client (synchronous now)
-        mock_client_class.return_value = MagicMock()
+        # Mock async client
+        mock_client = AsyncMock()
+        mock_client.get_current_user.return_value = {
+            "username": "testuser",
+            "email": "test@example.com",
+            "role": "user",
+        }
+        mock_client_class.return_value.__aenter__.return_value = mock_client
 
         mock_console = MagicMock()
 
@@ -253,8 +259,10 @@ class TestAuthCommands:
         """Test status with API error."""
         mock_get_token.return_value = "test_token"
 
-        # Mock client to raise exception
-        mock_client_class.side_effect = ConnectionError("API error")
+        # Mock async client to raise exception
+        mock_client = AsyncMock()
+        mock_client.get_current_user.side_effect = ConnectionError("API error")
+        mock_client_class.return_value.__aenter__.return_value = mock_client
 
         mock_console = MagicMock()
 
@@ -277,8 +285,16 @@ class TestAuthCommands:
         """Test whoami when authenticated."""
         mock_get_token.return_value = "test_token"
 
-        # Mock client (synchronous now)
-        mock_client_class.return_value = MagicMock()
+        # Mock async client
+        mock_client = AsyncMock()
+        mock_client.get_current_user.return_value = {
+            "username": "testuser",
+            "full_name": "Test User",
+            "email": "test@example.com",
+            "role": "user",
+            "id": "123",
+        }
+        mock_client_class.return_value.__aenter__.return_value = mock_client
 
         mock_console = MagicMock()
 
@@ -374,17 +390,17 @@ class TestAuthCommands:
 class TestAuthFunctionality:
     """Test auth functionality."""
 
-    def test_synchronous_implementation(self) -> None:
-        """Test synchronous implementation (no asyncio)."""
-        # Auth commands should now be synchronous
-        # This test validates the refactoring worked correctly
+    def test_async_implementation(self) -> None:
+        """Test async implementation with asyncio wrapper pattern."""
+        # Auth commands use asyncio.run() wrapper pattern
+        # This validates the async refactoring worked correctly
         from flext_cli.commands.auth import login, logout, status, whoami
 
-        # Commands should be regular functions, not coroutines
-        assert not hasattr(login, "__awaitable__")
-        assert not hasattr(logout, "__awaitable__")
-        assert not hasattr(status, "__awaitable__")
-        assert not hasattr(whoami, "__awaitable__")
+        # Commands should be regular functions but contain async inner functions
+        assert callable(login)
+        assert callable(logout)
+        assert callable(status)
+        assert callable(whoami)
 
     def test_click_context_pattern(self) -> None:
         """Test Click context pattern used in commands."""
@@ -407,27 +423,27 @@ class TestAuthFunctionality:
 
     def test_mock_client_patterns(self) -> None:
         """Test mock client patterns used in tests."""
-        # Test synchronous mock pattern
-        mock_client = MagicMock()
+        # Test async mock pattern
+        mock_client = AsyncMock()
 
-        # Test that client can be mocked synchronously
+        # Test that client can be mocked for async use
         assert mock_client is not None
         assert callable(mock_client)
 
-    def test_synchronous_client_pattern(self) -> None:
-        """Test synchronous client pattern used with FlextApiClient."""
-        # Auth commands now use synchronous pattern
+    def test_async_client_pattern(self) -> None:
+        """Test async client pattern used with FlextApiClient."""
+        # Auth commands use async context manager pattern
         mock_client_class = MagicMock()
-        mock_client = MagicMock()
-        mock_client_class.return_value = mock_client
+        mock_client = AsyncMock()
+        mock_client_class.return_value.__aenter__.return_value = mock_client
 
-        # This is the pattern used in refactored auth commands
-        client_instance = mock_client_class()
-        assert client_instance is mock_client
+        # This is the pattern used in async refactored auth commands
+        client_context = mock_client_class()
+        assert client_context.__aenter__.return_value is mock_client
 
     def test_auth_response_patterns(self) -> None:
         """Test authentication response patterns."""
-        # Test stub client response (synchronous implementation)
+        # Test async client response patterns
         success_response = {
             "token": "token_testuser",
             "user": {"name": "testuser"},
@@ -585,8 +601,10 @@ class TestAuthErrorHandling:
         error_types = [ConnectionError, TimeoutError, OSError]
 
         for error_type in error_types:
-            # Mock client to raise exception (synchronous now)
-            mock_client_class.side_effect = error_type("Network error")
+            # Mock async client to raise exception
+            mock_client = AsyncMock()
+            mock_client.login.side_effect = error_type("Network error")
+            mock_client_class.return_value.__aenter__.return_value = mock_client
 
             mock_console = MagicMock()
 
@@ -600,7 +618,7 @@ class TestAuthErrorHandling:
             # Should handle error and exit with error code
             assert result.exit_code == 1
             # Reset for next iteration
-            mock_client_class.side_effect = None
+            mock_client_class.reset_mock()
 
     @patch("flext_cli.commands.auth.get_auth_token")
     @patch("flext_cli.commands.auth.FlextApiClient")
@@ -616,8 +634,10 @@ class TestAuthErrorHandling:
         error_types = [ConnectionError, TimeoutError, OSError]
 
         for error_type in error_types:
-            # Mock client to raise exception (synchronous now)
-            mock_client_class.side_effect = error_type("Network error")
+            # Mock async client to raise exception
+            mock_client = AsyncMock()
+            mock_client.logout.side_effect = error_type("Network error")
+            mock_client_class.return_value.__aenter__.return_value = mock_client
 
             mock_console = MagicMock()
 
@@ -630,7 +650,7 @@ class TestAuthErrorHandling:
             # Should clear tokens even on network error
             mock_clear_tokens.assert_called()
             # Reset for next iteration
-            mock_client_class.side_effect = None
+            mock_client_class.reset_mock()
             mock_clear_tokens.reset_mock()
 
     @patch("flext_cli.commands.auth.get_auth_token")
@@ -645,8 +665,10 @@ class TestAuthErrorHandling:
         error_types = [ConnectionError, TimeoutError, OSError]
 
         for error_type in error_types:
-            # Mock client to raise exception (synchronous now)
-            mock_client_class.side_effect = error_type("Network error")
+            # Mock async client to raise exception
+            mock_client = AsyncMock()
+            mock_client.get_current_user.side_effect = error_type("Network error")
+            mock_client_class.return_value.__aenter__.return_value = mock_client
 
             mock_console = MagicMock()
 
@@ -659,7 +681,7 @@ class TestAuthErrorHandling:
             # Should handle error and exit with error code
             assert result.exit_code == 1
             # Reset for next iteration
-            mock_client_class.side_effect = None
+            mock_client_class.reset_mock()
 
 
 class TestAuthIntegration:
@@ -776,14 +798,26 @@ class TestAuthIntegration:
     def test_synchronous_patterns_used(self) -> None:
         """Test synchronous patterns used in auth commands."""
 
-        # Test synchronous client pattern
-        mock_client = MagicMock()
+        # Test async client pattern
+        mock_client = AsyncMock()
         mock_client.login.return_value = {"token": "test"}
 
-        # Verify synchronous execution works
-        result = mock_client.login("user", "pass")
-        if result != {"token": "test"}:
-            raise AssertionError(f"Expected {{'token': 'test'}}, got {result}")
+        # Verify async mock setup works
+        async def test_async_call() -> None:
+            result = await mock_client.login("user", "pass")
+            if result != {"token": "test"}:
+                raise AssertionError(f"Expected {{'token': 'test'}}, got {result}")
+
+        # Execute async test
+        import asyncio
+
+        if hasattr(asyncio, "_get_running_loop") and asyncio._get_running_loop():
+            # Already in async context
+            result = mock_client.login.return_value
+            if result != {"token": "test"}:
+                raise AssertionError(f"Expected {{'token': 'test'}}, got {result}")
+        else:
+            asyncio.run(test_async_call())
 
     def test_auth_flow_simulation(self) -> None:
         """Test complete auth flow simulation."""

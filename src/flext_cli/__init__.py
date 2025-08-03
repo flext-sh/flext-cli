@@ -1,11 +1,48 @@
-"""FLEXT CLI Library - Command Line Interface Development Toolkit.
+"""FLEXT CLI - Unified Command Line Interface for FLEXT Ecosystem.
+
+This module provides the primary API for FLEXT CLI, a comprehensive command-line
+interface that serves as the operational gateway for the entire FLEXT distributed
+data integration ecosystem (32+ projects).
+
+Key Features:
+    - Domain-driven design with rich CLI entities (CLICommand, CLISession, CLIPlugin)
+    - Railway-oriented programming with FlextResult error handling
+    - Click-based command framework with Rich terminal UI
+    - Ecosystem integration with FlexCore and FLEXT services
+    - CQRS patterns for enterprise-grade command handling
+
+Architecture:
+    Following Clean Architecture with flext-core integration:
+    - Presentation Layer: Click commands with Rich output
+    - Application Layer: CQRS command handlers
+    - Domain Layer: Business entities and services
+    - Infrastructure Layer: Service clients and DI container
+
+Usage:
+    Basic CLI setup:
+    >>> from flext_cli import setup_cli, CLISettings
+    >>> settings = CLISettings(debug=True)
+    >>> result = setup_cli(settings)
+    >>> if result.is_success:
+    ...     print("CLI ready")
+
+    Domain entity usage:
+    >>> from flext_cli import CLICommand, CommandType
+    >>> command = CLICommand(
+    ...     name="test-command",
+    ...     command_line="echo hello",
+    ...     command_type=CommandType.SYSTEM
+    ... )
+    >>> result = command.start_execution()
+
+Current Implementation Status:
+    ✅ 30% Complete: Core foundation, auth/config/debug commands
+    📋 70% Pending: Pipeline, service, data, plugin, monitoring commands
+
+    See docs/TODO.md for detailed implementation roadmap.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
-A powerful Python library for building command-line interfaces using
-flext-core foundation.
-Provides domain entities, utilities, and patterns for robust CLI development.
 """
 
 from __future__ import annotations

@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 
 import click
 import yaml
+from flext_cli.utils.config import parse_config_value, set_config_attribute
 from rich.table import Table
 
 if TYPE_CHECKING:
@@ -24,60 +25,98 @@ def config() -> None:
     """Configuration management commands."""
 
 
+class ConfigDisplayManager:
+    """Handles configuration display with SOLID SRP - focused responsibility."""
+
+    def __init__(self, cli_context: CLIContext) -> None:
+        """Initialize with CLI context."""
+        self.cli_context = cli_context
+
+    def get_config_value(self, key: str) -> object | None:
+        """Get a specific configuration value from config or settings."""
+        value = getattr(self.cli_context.config, key, None)
+        if value is None:
+            value = getattr(self.cli_context.settings, key, None)
+        return value
+
+    def format_single_value(self, key: str, value: object) -> None:
+        """Format and display a single configuration value."""
+        format_type = self.cli_context.config.output_format
+
+        if format_type == "json":
+            self.cli_context.console.print(
+                json.dumps({key: value}, indent=2, default=str),
+            )
+        elif format_type == "yaml":
+            self.cli_context.console.print(
+                yaml.dump({key: value}, default_flow_style=False),
+            )
+        else:
+            self.cli_context.console.print(f"{key}: {value}")
+
+    def get_all_config_data(self) -> dict[str, object]:
+        """Get all configuration data merged."""
+        return {
+            **self.cli_context.config.model_dump(),
+            **self.cli_context.settings.model_dump(),
+        }
+
+    def format_all_values(self, config_data: dict[str, object]) -> None:
+        """Format and display all configuration values."""
+        format_type = self.cli_context.config.output_format
+
+        if format_type == "json":
+            self.cli_context.console.print(
+                json.dumps(config_data, indent=2, default=str)
+            )
+        elif format_type == "yaml":
+            self.cli_context.console.print(
+                yaml.dump(config_data, default_flow_style=False)
+            )
+        else:
+            self._display_as_table(config_data)
+
+    def _display_as_table(self, config_data: dict[str, object]) -> None:
+        """Display configuration data as a Rich table."""
+        table = Table(title="FLEXT Configuration v0.7.0")
+        table.add_column("Key", style="cyan")
+        table.add_column("Value", style="white")
+        table.add_column("Source", style="dim")
+
+        for k, v in config_data.items():
+            source = "config" if hasattr(self.cli_context.config, k) else "settings"
+            table.add_row(k, str(v), source)
+
+        self.cli_context.console.print(table)
+
+
 @config.command()
 @click.argument("key", required=False)
 @click.pass_context
 def get(ctx: click.Context, key: str | None) -> None:
-    """Get configuration value."""
+    """Get configuration value.
+
+    REFACTORED: Applied SOLID SRP - reduced complexity from 23 to ~3-5 per method.
+    """
     cli_context: CLIContext = ctx.obj["cli_context"]
+    display_manager = ConfigDisplayManager(cli_context)
 
     if key:
         try:
-            value = getattr(cli_context.config, key, None)
-            if value is None:
-                # Try settings
-                value = getattr(cli_context.settings, key, None)
+            value = display_manager.get_config_value(key)
 
             if value is None:
                 cli_context.print_warning(f"Configuration key '{key}' not found")
                 ctx.exit(1)
 
-            if cli_context.config.output_format == "json":
-                cli_context.console.print(
-                    json.dumps({key: value}, indent=2, default=str),
-                )
-            elif cli_context.config.output_format == "yaml":
-                cli_context.console.print(
-                    yaml.dump({key: value}, default_flow_style=False),
-                )
-            else:
-                cli_context.console.print(f"{key}: {value}")
+            display_manager.format_single_value(key, value)
         except (RuntimeError, ValueError, TypeError) as e:
             cli_context.print_error(f"Failed to get configuration: {e}")
             ctx.exit(1)
     else:
-        # Get all values
-        config_data = {
-            **cli_context.config.model_dump(),
-            **cli_context.settings.model_dump(),
-        }
-
-        if cli_context.config.output_format == "json":
-            cli_context.console.print(json.dumps(config_data, indent=2, default=str))
-        elif cli_context.config.output_format == "yaml":
-            cli_context.console.print(yaml.dump(config_data, default_flow_style=False))
-        else:
-            # Table format
-            table = Table(title="FLEXT Configuration v0.7.0")
-            table.add_column("Key", style="cyan")
-            table.add_column("Value", style="white")
-            table.add_column("Source", style="dim")
-
-            for k, v in config_data.items():
-                source = "config" if hasattr(cli_context.config, k) else "settings"
-                table.add_row(k, str(v), source)
-
-            cli_context.console.print(table)
+        # Get and display all values
+        config_data = display_manager.get_all_config_data()
+        display_manager.format_all_values(config_data)
 
 
 @config.command()
@@ -88,24 +127,29 @@ def set_value(ctx: click.Context, key: str, value: str) -> None:
     cli_context: CLIContext = ctx.obj["cli_context"]
 
     try:
-        try:
-            parsed_value = json.loads(value)
-        except json.JSONDecodeError:
-            # If not JSON, treat as string
-            parsed_value = value
-
-        # Try to set in config first, then settings
-        if hasattr(cli_context.config, key):
-            setattr(cli_context.config, key, parsed_value)
-            cli_context.print_success(f"Set config.{key} = {parsed_value}")
-        elif hasattr(cli_context.settings, key):
-            setattr(cli_context.settings, key, parsed_value)
-            cli_context.print_success(f"Set settings.{key} = {parsed_value}")
-        else:
-            cli_context.print_warning(
-                f"Configuration key '{key}' not found in config or settings",
-            )
+        # Parse configuration value using utility function
+        parse_result = parse_config_value(value)
+        if not parse_result.is_success:
+            cli_context.print_error(parse_result.error)
             ctx.exit(1)
+
+        parsed_value = parse_result.value
+
+        # Try to set in config first, then settings using utility function
+        config_result = set_config_attribute(cli_context.config, key, parsed_value)
+        if config_result.is_success:
+            cli_context.print_success(config_result.value)
+            return
+
+        settings_result = set_config_attribute(cli_context.settings, key, parsed_value)
+        if settings_result.is_success:
+            cli_context.print_success(settings_result.value)
+            return
+
+        cli_context.print_warning(
+            f"Configuration key '{key}' not found in config or settings",
+        )
+        ctx.exit(1)
     except (RuntimeError, ValueError, TypeError) as e:
         cli_context.print_error(f"Failed to set configuration: {e}")
         ctx.exit(1)

@@ -1,4 +1,55 @@
-"""Application commands for FLEXT-CLI.
+"""FLEXT CLI Application Layer - Command Handlers and CQRS Implementation.
+
+This module implements the application layer for FLEXT CLI following CQRS
+(Command Query Responsibility Segregation) patterns with command handlers
+for orchestrating CLI operations and business logic.
+
+Architecture:
+    - CQRS command pattern implementation
+    - Command handlers for business operation orchestration
+    - Application services for cross-cutting concerns
+    - Integration with domain services and repositories
+
+Current Implementation:
+    ✅ Basic ExecuteCommandCommand structure
+    ⚠️ Simple command pattern (TODO: Sprint 1-2 - full CQRS)
+    ❌ Command handlers not implemented (TODO: Sprint 1-2)
+    ❌ Command bus not implemented (TODO: Sprint 2)
+
+Target Architecture (Sprint 1-2):
+    🎯 FlextCommand base class integration from flext-core
+    🎯 FlextCommandHandler implementations for all operations
+    🎯 Command validation and authorization
+    🎯 Event publishing after command execution
+
+Commands to Implement (docs/TODO.md):
+    Sprint 1:
+    - StartPipelineCommand / StartPipelineHandler
+    - StopPipelineCommand / StopPipelineHandler
+    - CheckServiceHealthCommand / CheckServiceHealthHandler
+
+    Sprint 2:
+    - AuthenticateCommand / AuthenticateHandler
+    - UpdateConfigCommand / UpdateConfigHandler
+    - ExecutePluginCommand / ExecutePluginHandler
+
+CQRS Pattern:
+    Commands (Write Operations):
+    - Represent user intentions and business operations
+    - Contain all data needed for operation execution
+    - Validated by command handlers before execution
+    - Generate domain events after successful execution
+
+    Queries (Read Operations):
+    - Separate from commands for performance optimization
+    - Read-only operations with optimized data access
+    - Support multiple output formats and projections
+
+TODO (docs/TODO.md):
+    Sprint 1-2: Implement full CQRS pattern with FlextCommand base
+    Sprint 2: Add command validation and authorization
+    Sprint 2: Implement command bus for routing and middleware
+    Sprint 3: Add command audit logging and monitoring
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -15,7 +66,44 @@ if TYPE_CHECKING:
 
 
 class ExecuteCommandCommand:
-    """Command to execute a CLI command."""
+    """Command to execute a CLI command - Basic CQRS implementation.
+
+    Represents a user intention to execute a command within the CLI system.
+    This is a basic implementation that will be enhanced with full CQRS
+    patterns using FlextCommand base class in Sprint 1-2.
+
+    Current Implementation:
+        ✅ Basic command structure with minimal validation
+        ⚠️ Simple data container (will become rich command)
+        ❌ No command handler implementation
+        ❌ No domain event publishing
+
+    Target Enhancement (Sprint 1-2):
+        🎯 Inherit from FlextCommand base class
+        🎯 Add comprehensive validation
+        🎯 Implement command handler pattern
+        🎯 Add domain event publishing
+
+    Attributes:
+        name: Human-readable command name for tracking
+        command_line: Full command line to execute
+        command_type: Type of command (CLI, SYSTEM, SCRIPT, etc.)
+        timeout_seconds: Execution timeout in seconds
+
+    Usage:
+        >>> command = ExecuteCommandCommand(
+        ...     name="list-pipelines",
+        ...     command_line="flext pipeline list",
+        ...     command_type=CommandType.CLI
+        ... )
+
+    TODO (Sprint 1-2):
+        - Migrate to FlextCommand base class
+        - Add command validation logic
+        - Implement ExecuteCommandHandler
+        - Add domain event publishing after execution
+
+    """
 
     def __init__(
         self,

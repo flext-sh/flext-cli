@@ -1,9 +1,69 @@
-"""CLI configuration management for FLEXT CLI.
+"""FLEXT CLI Configuration Management - Unified Configuration with flext-core.
+
+This module provides unified configuration management for FLEXT CLI operations,
+using Pydantic models and flext-core base classes for type-safe configuration
+with environment variable support and nested configuration structures.
+
+Configuration Components:
+    - CLIOutputConfig: Output formatting and display preferences
+    - CLIAPIConfig: API client settings and connection parameters
+    - CLIAuthConfig: Authentication and token management
+    - CLIDirectoryConfig: File system directories and paths
+    - CLIConfig: Main configuration container with component composition
+    - CLISettings: Environment variable-driven settings
+
+Architecture:
+    - Pydantic models for type safety and validation
+    - Nested configuration with component composition
+    - Environment variable support with prefix (FLEXT_CLI_)
+    - Backward compatibility with legacy flat parameter structure
+    - Singleton pattern for global configuration access
+
+Current Implementation Status:
+    ✅ Complete configuration model with type safety
+    ✅ Nested configuration structure with components
+    ✅ Environment variable support and validation
+    ✅ Backward compatibility with legacy interfaces
+    ✅ Directory creation and setup utilities
+    ✅ Authentication token management
+    ⚠️ Full functionality (TODO: Sprint 2 - enhance features)
+
+TODO (docs/TODO.md):
+    Sprint 2: Add configuration validation and schema enforcement
+    Sprint 3: Add profile-based configuration inheritance
+    Sprint 3: Add configuration file loading (YAML, JSON, TOML)
+    Sprint 5: Add encrypted configuration support
+    Sprint 7: Add configuration hot-reload and monitoring
+
+Configuration Structure:
+    CLIConfig (main):
+        - output: CLIOutputConfig (format, color, verbosity)
+        - api: CLIAPIConfig (URL, timeout, SSL settings)
+        - auth: CLIAuthConfig (tokens, auto-refresh)
+        - directories: CLIDirectoryConfig (paths and directory management)
+
+Usage Examples:
+    Basic configuration:
+    >>> config = CLIConfig()
+    >>> config.debug = True
+    >>> config.api.url = "https://api.example.com"
+
+    Environment variables:
+    >>> settings = CLISettings()  # Loads from FLEXT_CLI_* env vars
+
+    Component access:
+    >>> config.output.format = "json"
+    >>> config.auth.auto_refresh = True
+    >>> config.directories.ensure_directories()
+
+Integration:
+    - Used throughout FLEXT CLI for configuration management
+    - Provides type-safe configuration with validation
+    - Supports environment variable overrides
+    - Integrates with flext-core settings patterns
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
-Provides unified configuration using flext-core base classes.
 """
 
 from __future__ import annotations

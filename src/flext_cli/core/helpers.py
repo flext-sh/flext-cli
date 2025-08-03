@@ -1,8 +1,63 @@
-"""Helper classes for FLEXT CLI framework.
+"""FLEXT CLI Core Helper Classes - Utility Functions and Interactive Helpers.
+
+This module provides essential helper classes and utility functions for FLEXT CLI
+operations including user interaction, validation, file operations, and common
+CLI patterns that are reused across multiple commands.
+
+Helper Classes:
+    - CLIHelper: General-purpose CLI utilities with Rich integration
+    - Validation utilities for inputs, paths, and URLs
+    - Interactive prompts and confirmations
+    - Progress tracking and status reporting
+
+Core Utilities:
+    - User input validation and sanitization
+    - File and path operations with safety checks
+    - URL validation and parsing
+    - Interactive confirmations for destructive operations
+    - Progress tracking for long-running operations
+
+Architecture:
+    - Rich console integration for enhanced user interaction
+    - Type-safe validation with comprehensive error handling
+    - Reusable patterns for common CLI operations
+    - Integration with CLI context and configuration
+
+Current Implementation Status:
+    ✅ Basic CLIHelper with interactive prompts
+    ✅ Rich console integration for UX
+    ✅ Input validation and confirmation utilities
+    ⚠️ Basic implementation (TODO: Sprint 2 - enhance validation)
+    ❌ Advanced file operations not implemented (TODO: Sprint 3)
+
+TODO (docs/TODO.md):
+    Sprint 2: Add comprehensive input validation and sanitization
+    Sprint 3: Add advanced file and directory operations
+    Sprint 7: Add monitoring and metrics collection helpers
+    Sprint 8: Add interactive wizard and tutorial helpers
+
+Features:
+    - Safe user input collection with validation
+    - Rich prompts with default values and validation
+    - Confirmation dialogs for destructive operations
+    - Progress tracking with Rich progress bars
+    - Path validation and file safety checks
+
+Usage Examples:
+    >>> helper = CLIHelper()
+    >>> if helper.confirm("Delete all data?", default=False):
+    ...     # Perform destructive operation
+    >>> username = helper.prompt("Username:", default="admin")
+    >>> file_path = helper.validate_file_path("/path/to/file")
+
+Integration:
+    - Used by all CLI commands for user interaction
+    - Integrates with authentication for secure prompts
+    - Supports configuration validation and setup
+    - Compatible with Click command patterns
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations

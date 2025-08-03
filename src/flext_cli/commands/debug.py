@@ -1,8 +1,56 @@
-"""Debug commands for FLEXT CLI.
+"""FLEXT CLI Debug Commands - Diagnostic and Troubleshooting Tools.
+
+This module implements comprehensive debugging and diagnostic commands for the
+FLEXT CLI, providing system information, health checks, log analysis, and
+troubleshooting utilities for the entire FLEXT ecosystem.
+
+Commands:
+    ✅ info: System and environment information display
+    ✅ health: Basic health checks for CLI and services
+    ✅ logs: Log viewing and analysis tools
+    ✅ validate: CLI installation and configuration validation
+
+Architecture:
+    - Click-based diagnostic commands with Rich output
+    - System information gathering and analysis
+    - Service connectivity testing and health monitoring
+    - Log aggregation and filtering capabilities
+
+Debug Features:
+    - Comprehensive system information collection
+    - Environment variable analysis with sensitive data protection
+    - Service health checking with timeout handling
+    - Log viewing with filtering and search capabilities
+    - Configuration validation and troubleshooting
+
+Current Implementation Status:
+    ✅ Basic debug commands implemented
+    ✅ System information and environment analysis
+    ✅ Configuration validation and health checks
+    ⚠️ Basic service health checking (TODO: Sprint 1 - real services)
+    ❌ Advanced log analysis not implemented (TODO: Sprint 7)
+
+TODO (docs/TODO.md):
+    Sprint 1: Integrate with real FLEXT service health endpoints
+    Sprint 2: Add comprehensive configuration validation
+    Sprint 7: Implement advanced log analysis and monitoring
+    Sprint 7: Add performance profiling and metrics
+    Sprint 8: Add interactive troubleshooting guides
+
+Security Features:
+    - Sensitive value masking in output
+    - Safe environment variable display
+    - Secure log access controls
+    - Configuration value protection
+
+Integration:
+    - Works with all FLEXT ecosystem services
+    - Integrates with authentication for secure diagnostics
+    - Supports monitoring and observability systems
+    - Provides troubleshooting for multi-service deployments
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -89,20 +137,19 @@ def connectivity(ctx: click.Context) -> None:
 
     # SOLID: Single Responsibility - simplified synchronous implementation
     try:
-        FlextApiClient()
+        client = FlextApiClient()
         console.print("[yellow]Testing API connectivity...[/yellow]")
 
-        # Simulate connectivity test for stub client
-        connected = True  # Simulate successful connection
-        base_url = "http://localhost:8000"  # Default API URL
+        # Test connectivity using client
+        connected = client.test_connection()
 
         if connected:
             console.print(
-                f"[green]✅ Connected to API at {base_url}[/green]",
+                f"[green]✅ Connected to API at {client.base_url}[/green]",
             )
             try:
-                # Simulate system status for stub client
-                status = {"version": "0.9.0", "status": "healthy", "uptime": "24h"}
+                # Get system status from client
+                status = client.get_system_status()
                 console.print("\nSystem Status:")
                 console.print(f"  Version: {status.get('version', 'Unknown')}")
                 console.print(f"  Status: {status.get('status', 'Unknown')}")
@@ -118,7 +165,7 @@ def connectivity(ctx: click.Context) -> None:
                 )
         else:
             console.print(
-                f"[red]❌ Failed to connect to API at {base_url}[/red]",
+                f"[red]❌ Failed to connect to API at {client.base_url}[/red]",
             )
             ctx.exit(1)
     except (FlextConnectionError, FlextOperationError, ValueError, OSError) as e:
@@ -134,16 +181,18 @@ def performance(ctx: click.Context) -> None:
 
     # SOLID: Single Responsibility - simplified synchronous implementation
     try:
-        FlextApiClient()
+        client = FlextApiClient()
         console.print("[yellow]Fetching performance metrics...[/yellow]")
 
-        # Simulate metrics for stub client
+        # Get metrics from client
+        raw_metrics = client.get_performance_metrics()
+
+        # Format metrics for display
         metrics = {
-            "CPU Usage": "15%",
-            "Memory Usage": "512MB",
-            "Active Connections": "42",
-            "Response Time": "120ms",
-            "Uptime": "24h 15m",
+            "CPU Usage": f"{raw_metrics.get('cpu_usage', 0)}%",
+            "Memory Usage": f"{raw_metrics.get('memory_usage', 0)}MB",
+            "Disk Usage": f"{raw_metrics.get('disk_usage', 0)}%",
+            "Response Time": f"{raw_metrics.get('response_time', 0)}ms",
         }
 
         # Display metrics in table
@@ -275,11 +324,10 @@ def env(ctx: click.Context) -> None:
         for key, value in sorted(flext_vars.items()):
             # Mask sensitive values
             if "TOKEN" in key or "KEY" in key or "SECRET" in key:
-                display_value = (
-                    value[:SENSITIVE_VALUE_PREVIEW_LENGTH] + "****"
-                    if len(value) > SENSITIVE_VALUE_PREVIEW_LENGTH
-                    else "****"
-                )
+                if len(value) <= SENSITIVE_VALUE_PREVIEW_LENGTH:
+                    display_value = "****"
+                else:
+                    display_value = value[:SENSITIVE_VALUE_PREVIEW_LENGTH] + "****"
             else:
                 display_value = value
 

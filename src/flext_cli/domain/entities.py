@@ -1,9 +1,49 @@
-"""Domain entities for FLEXT-CLI.
+"""FLEXT CLI Domain Entities - Rich Domain Models for CLI Operations.
+
+This module implements domain entities following Domain-Driven Design (DDD) patterns
+with flext-core integration. These entities represent the core business concepts of
+CLI operations including commands, sessions, plugins, and configurations.
+
+Architecture:
+    - FlextEntity base class for rich domain entities with business logic
+    - FlextValueObject for immutable value types and data containers
+    - Domain events for entity lifecycle changes and cross-cutting concerns
+    - Business rule validation and domain invariant enforcement
+
+Core Entities:
+    - CLICommand: Command execution with lifecycle management and status tracking
+    - CLISession: User session with command history and context management
+    - CLIPlugin: Plugin system with lifecycle and dependency management
+    - CLIConfig: Configuration management with validation and profiles
+
+Entity Patterns:
+    - Rich domain entities with business methods and validation
+    - Domain events for entity state changes and integration
+    - Aggregate roots for complex business operations
+    - Value objects for data consistency and immutability
+
+Integration:
+    All entities integrate with the FLEXT ecosystem patterns:
+    - Railway-oriented programming with FlextResult error handling
+    - Event-driven architecture with domain event publishing
+    - CQRS patterns for command and query separation
+    - Repository patterns for data persistence abstraction
+
+Current Implementation Status:
+    ✅ Domain entities with flext-core integration (60% complete)
+    ✅ Basic lifecycle management and validation
+    ⚠️ Domain events defined but not published (Sprint 1-2)
+    ❌ Missing repository implementations (Sprint 2)
+    ❌ Missing aggregate root patterns (Sprint 2)
+
+TODO (docs/TODO.md):
+    Sprint 1-2: Complete domain event publishing system
+    Sprint 2: Implement repository pattern integration
+    Sprint 2: Add aggregate root patterns for complex operations
+    Sprint 3: Add domain service patterns for business logic
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
-Domain entities using flext-core foundation patterns.
 """
 
 from __future__ import annotations
@@ -75,7 +115,61 @@ class CLIConstants:
 
 
 class CLICommand(FlextEntity):
-    """CLI command entity with execution tracking."""
+    r"""CLI Command Domain Entity - Rich command execution with lifecycle management.
+
+    Represents a command execution in the FLEXT CLI system with complete lifecycle
+    tracking, status management, and business rule enforcement. Follows DDD patterns
+    with rich domain behavior and event publishing.
+
+    Core Responsibilities:
+        - Command execution lifecycle management (pending → running → completed/failed)
+        - Exit code tracking and success/failure determination
+        - Standard output/error capture and management
+        - Execution timing and duration calculation
+        - Environment and context management
+        - Domain event publishing for state changes
+
+    Business Rules:
+        - Commands must have non-empty names and command lines
+        - Only pending commands can be started
+        - Running commands can be completed or cancelled
+        - Completed commands cannot change state
+        - Exit code 0 indicates success for completed commands
+
+    Domain Events:
+        - CommandStartedEvent: Published when execution begins
+        - CommandCompletedEvent: Published when execution finishes
+        - CommandFailedEvent: Published when execution fails
+        - CommandCancelledEvent: Published when execution is cancelled
+
+    Usage Examples:
+        # Create and execute a command
+        >>> command = CLICommand(
+        ...     name="list-pipelines",
+        ...     command_line="flext pipeline list",
+        ...     command_type=CommandType.CLI
+        ... )
+        >>> result = command.start_execution()
+        >>> if result.is_success:
+        ...     # Command started successfully
+        ...     result = command.complete_execution(exit_code=0, stdout="Pipeline 1\n")
+
+        # Check command status
+        >>> if command.is_successful:
+        ...     print(f"Command completed in {command.duration_seconds}s")
+
+    Integration:
+        - Integrates with CLISession for command history
+        - Used by command handlers in application layer
+        - Persisted via repository pattern (Sprint 2)
+        - Monitored via observability system (Sprint 7)
+
+    TODO (docs/TODO.md):
+        Sprint 1-2: Implement domain event publishing
+        Sprint 2: Add repository persistence integration
+        Sprint 3: Add command validation and sanitization
+        Sprint 7: Add performance metrics and monitoring
+    """
 
     # Entity ID is inherited from FlextEntity but we need to provide a default factory
     id: str = Field(
@@ -140,7 +234,20 @@ class CLICommand(FlextEntity):
 
     @property
     def is_completed(self) -> bool:
-        """Check if command execution is completed."""
+        """Check if command execution has reached a terminal state.
+
+        Returns True if the command has finished executing in any way:
+        completed successfully, failed, or was cancelled. Once a command
+        is completed, its status cannot be changed.
+
+        Returns:
+            bool: True if command is in a terminal state, False otherwise.
+
+        Business Logic:
+            Terminal states: COMPLETED, FAILED, CANCELLED
+            Non-terminal states: PENDING, RUNNING
+
+        """
         return self.command_status in {
             CommandStatus.COMPLETED,
             CommandStatus.FAILED,
@@ -149,43 +256,142 @@ class CLICommand(FlextEntity):
 
     @property
     def is_successful(self) -> bool:
-        """Check if command was successful."""
-        return self.command_status == CommandStatus.COMPLETED and self.exit_code == 0
+        """Check if command executed successfully with zero exit code.
 
-    def start_execution(self) -> CLICommand:
-        """Start command execution.
+        A command is considered successful only if it completed execution
+        without errors (status=COMPLETED) and returned exit code 0, which
+        follows Unix convention for successful program execution.
 
         Returns:
-            New command instance with updated status.
+            bool: True if command completed successfully with exit code 0,
+                  False for any other status or non-zero exit code.
+
+        Business Logic:
+            Success requires both:
+            1. Command status must be COMPLETED (not FAILED or CANCELLED)
+            2. Exit code must be 0 (Unix success convention)
+
+        Examples:
+            >>> command.command_status = CommandStatus.COMPLETED
+            >>> command.exit_code = 0
+            >>> command.is_successful  # True
+
+            >>> command.exit_code = 1
+            >>> command.is_successful  # False (non-zero exit)
+
+        """
+        return self.command_status == CommandStatus.COMPLETED and self.exit_code == 0
+
+    def start_execution(self) -> FlextResult[CLICommand]:
+        """Start command execution with business rule validation.
+
+        Transitions the command from PENDING to RUNNING status and records
+        the start timestamp. Follows immutable entity pattern by returning
+        a new instance rather than modifying the current one.
+
+        Business Rules:
+            - Only commands in PENDING status can be started
+            - Starting a command records the current timestamp
+            - Command transitions to RUNNING status
+            - Domain event should be published (TODO: Sprint 1-2)
+
+        Returns:
+            FlextResult[CLICommand]: Success contains new command instance
+                                   with RUNNING status and start timestamp,
+                                   Failure contains validation error message.
+
+        Domain Events:
+            CommandStartedEvent: Published when execution begins (TODO)
+
+        Examples:
+            >>> command = CLICommand(name="test", command_line="echo hello")
+            >>> result = command.start_execution()
+            >>> if result.is_success:
+            ...     running_command = result.unwrap()
+            ...     assert running_command.command_status == CommandStatus.RUNNING
+            ...     assert running_command.started_at is not None
+
+        TODO (Sprint 1-2):
+            - Publish CommandStartedEvent domain event
+            - Add execution context validation
+            - Integrate with monitoring system
 
         """
         if self.command_status != CommandStatus.PENDING:
-            msg = f"Cannot start command that is in {self.command_status} status"
-            raise ValueError(msg)
+            return FlextResult.fail(
+                f"Cannot start command that is in {self.command_status} status",
+            )
 
         # Create new instance with updated fields (immutable pattern)
-        return self.model_copy(
+        updated_command = self.model_copy(
             update={
                 "command_status": CommandStatus.RUNNING,
                 "started_at": datetime.now(UTC),
             },
         )
 
+        # TODO (Sprint 1-2): Publish CommandStartedEvent domain event
+
+        return FlextResult.ok(updated_command)
+
     def complete_execution(
         self,
         exit_code: int,
         stdout: str | None = None,
         stderr: str | None = None,
-    ) -> CLICommand:
-        """Complete command execution.
+    ) -> FlextResult[CLICommand]:
+        """Complete command execution with result capture and status transition.
+
+        Transitions a RUNNING command to either COMPLETED (exit code 0) or
+        FAILED (non-zero exit code) status. Captures execution results and
+        calculates duration based on start timestamp.
+
+        Args:
+            exit_code: Process exit code (0 indicates success)
+            stdout: Standard output captured from command execution (optional)
+            stderr: Standard error captured from command execution (optional)
+
+        Business Rules:
+            - Only RUNNING commands can be completed
+            - Exit code 0 → COMPLETED status (success)
+            - Non-zero exit code → FAILED status
+            - Duration calculated from started_at timestamp
+            - Domain event should be published (TODO: Sprint 1-2)
 
         Returns:
-            New command instance with execution completed.
+            FlextResult[CLICommand]: Success contains new command instance
+                                   with terminal status and execution results,
+                                   Failure contains validation error message.
+
+        Domain Events:
+            CommandCompletedEvent: Published for successful completion (TODO)
+            CommandFailedEvent: Published for failed execution (TODO)
+
+        Examples:
+            # Successful completion
+            >>> result = running_command.complete_execution(
+            ...     exit_code=0,
+            ...     stdout="Operation successful"
+            ... )
+            >>> completed = result.unwrap()
+            >>> assert completed.is_successful
+
+            # Failed execution
+            >>> result = running_command.complete_execution(
+            ...     exit_code=1,
+            ...     stderr="Error occurred"
+            ... )
+            >>> failed = result.unwrap()
+            >>> assert not failed.is_successful
+
+        TODO (Sprint 1-2):
+            - Publish appropriate domain events
+            - Add output validation and sanitization
+            - Integrate with monitoring and metrics
 
         """
         if self.command_status != CommandStatus.RUNNING:
-            msg = "Cannot complete command that hasn't been started"
-            raise ValueError(msg)
+            return FlextResult.fail("Cannot complete command that hasn't been started")
 
         finished_at = datetime.now(UTC)
         duration_seconds = None
@@ -197,7 +403,7 @@ class CLICommand(FlextEntity):
         status = CommandStatus.COMPLETED if exit_code == 0 else CommandStatus.FAILED
 
         # Create new instance with updated fields (immutable pattern)
-        return self.model_copy(
+        updated_command = self.model_copy(
             update={
                 "exit_code": exit_code,
                 "stdout": stdout,
@@ -208,13 +414,43 @@ class CLICommand(FlextEntity):
             },
         )
 
-    def cancel_execution(self) -> CLICommand:
-        """Cancel command execution.
+        # TODO (Sprint 1-2): Publish appropriate domain events
+        # if status == CommandStatus.COMPLETED:
+        #     publish(CommandCompletedEvent(...))
+        # else:
+        #     publish(CommandFailedEvent(...))
+
+        return FlextResult.ok(updated_command)
+
+    def cancel_execution(self) -> FlextResult[CLICommand]:
+        """Cancel command execution and transition to CANCELLED status.
+
+        Allows cancellation of RUNNING commands, recording the cancellation
+        timestamp and calculating partial execution duration.
+
+        Business Rules:
+            - Only RUNNING commands can be cancelled
+            - Cancellation records finish timestamp
+            - Duration calculated from start to cancellation
+            - Domain event should be published (TODO: Sprint 1-2)
 
         Returns:
-            New command instance with cancelled status.
+            FlextResult[CLICommand]: Success contains new command instance
+                                   with CANCELLED status and timing info,
+                                   Failure contains validation error.
+
+        Domain Events:
+            CommandCancelledEvent: Published when command is cancelled (TODO)
+
+        TODO (Sprint 1-2):
+            - Publish CommandCancelledEvent domain event
+            - Add cancellation reason tracking
+            - Integrate with process management for cleanup
 
         """
+        if self.command_status != CommandStatus.RUNNING:
+            return FlextResult.fail("Cannot cancel command that is not running")
+
         finished_at = datetime.now(UTC)
         duration_seconds = None
 
@@ -223,13 +459,17 @@ class CLICommand(FlextEntity):
             duration_seconds = duration.total_seconds()
 
         # Create new instance with updated fields (immutable pattern)
-        return self.model_copy(
+        updated_command = self.model_copy(
             update={
                 "command_status": CommandStatus.CANCELLED,
                 "finished_at": finished_at,
                 "duration_seconds": duration_seconds,
             },
         )
+
+        # TODO (Sprint 1-2): Publish CommandCancelledEvent domain event
+
+        return FlextResult.ok(updated_command)
 
     def validate_domain_rules(self) -> FlextResult[None]:
         """Validate domain business rules for CLI commands."""

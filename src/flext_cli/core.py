@@ -1,7 +1,78 @@
-"""Core service implementation using flext-core patterns.
+"""FLEXT CLI Core Service - Primary Service Implementation with flext-core Integration.
 
-Implements FlextService interfaces with composition-based architecture.
-All functionality centralized without duplication.
+This module provides the core service implementation for FLEXT CLI operations,
+implementing FlextService interfaces with composition-based architecture and
+comprehensive functionality. Serves as the primary service class integrating
+all CLI operations with flext-core patterns.
+
+Service Architecture:
+    - FlextService interface implementation with Clean Architecture patterns
+    - FlextConfigurable interface for configuration management
+    - Composition-based design with centralized functionality
+    - flext-core integration (utilities, logging, result handling)
+    - Railway-oriented programming with FlextResult error handling
+
+Core Features:
+    - Data formatting in multiple formats (JSON, YAML, CSV, table, plain)
+    - File export capabilities with directory creation
+    - Command, session, plugin, and handler management
+    - Health monitoring and service status reporting
+    - Context-based rendering and data transformation
+
+Current Implementation Status:
+    ✅ Complete service implementation with all functionality
+    ✅ Multi-format data formatting and export
+    ✅ Command, session, plugin, handler management
+    ✅ Health monitoring and status reporting
+    ✅ flext-core integration with safe operations
+    ✅ Configuration management with validation
+    ⚠️ Full functionality (TODO: Sprint 2 - enhance performance and features)
+
+TODO (docs/TODO.md):
+    Sprint 2: Add advanced caching and performance optimization
+    Sprint 3: Add streaming support for large datasets
+    Sprint 5: Add persistence layer integration
+    Sprint 7: Add comprehensive monitoring and metrics collection
+    Sprint 8: Add plugin hot-reload and dynamic configuration
+
+Service Capabilities:
+    Data Operations:
+        - flext_cli_format: Multi-format data formatting
+        - flext_cli_export: File export with directory management
+        - flext_cli_render_with_context: Context-based rendering
+
+    Management Operations:
+        - flext_cli_create_command/session: Entity creation with ID generation
+        - flext_cli_register_handler/plugin: Service registration
+        - flext_cli_execute_handler: Safe handler execution
+
+    System Operations:
+        - flext_cli_health: Comprehensive health and status reporting
+        - configure: Service configuration with validation
+
+Usage Examples:
+    Service initialization:
+    >>> service = FlextCliService()
+    >>> config = FlextCliConfig({"debug": True})
+    >>> result = service.configure(config)
+
+    Data formatting:
+    >>> result = service.flext_cli_format(data, "json")
+    >>> if result.is_success:
+    ...     formatted = result.unwrap()
+
+    Command management:
+    >>> result = service.flext_cli_create_command("test", "echo hello")
+    >>> commands = service.flext_cli_get_commands().unwrap()
+
+Integration:
+    - Used by CLI commands for data operations and management
+    - Provides centralized service functionality
+    - Integrates with flext-core utilities and patterns
+    - Supports Clean Architecture service layer patterns
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 import csv
@@ -26,6 +97,14 @@ from flext_cli.types import (
     TCliFormat,
     TCliPath,
 )
+
+# Export imports for test access
+__all__ = [
+    "FlextCliService",
+    "FlextService",
+    "FlextUtilities",
+    "safe_call",
+]
 
 
 # FlextService interface
@@ -66,7 +145,7 @@ class FlextCliService(FlextService, FlextConfigurable):
                 f"CLI service configured with format: {self._config.format_type}",
             )
             return FlextResult.ok(None)
-        except (ValueError, TypeError, KeyError) as e:
+        except Exception as e:
             return FlextResult.fail(f"Configuration failed: {e}")
 
     def flext_cli_export(
@@ -91,9 +170,9 @@ class FlextCliService(FlextService, FlextConfigurable):
             path_obj.write_text(formatted_data, encoding="utf-8")
 
             self.logger.info(f"Data exported to {path} in {format_type} format")
-            return FlextResult.ok(value=True)
+            return FlextResult.ok(data=True)
 
-        except (RuntimeError, ValueError, TypeError) as e:
+        except Exception as e:
             self.logger.exception("Export failed")
             return FlextResult.fail(f"Export failed: {e}")
 
@@ -151,7 +230,7 @@ class FlextCliService(FlextService, FlextConfigurable):
 
             return FlextResult.ok(status)
 
-        except (ImportError, AttributeError, RuntimeError) as e:
+        except Exception as e:
             return FlextResult.fail(f"Health check failed: {e}")
 
     def _format_json(self, data: TCliData) -> FlextResult[str]:

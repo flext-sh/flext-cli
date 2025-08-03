@@ -1,493 +1,653 @@
-# CLI Commands Reference
+# FLEXT CLI Commands API Reference
 
-Esta página documenta todos os comandos disponíveis no FLEXT CLI, suas opções e exemplos de uso.
+**Document**: Complete command reference and usage guide  
+**Version: 0.9.0 (2025-08-01))  
+**Status**: 30% implemented - See implementation status per command  
+**Coverage\*\*: Current and planned commands for FLEXT ecosystem
 
-## Global Options
+## 🎯 **Command Structure Overview**
 
-Todas as opções globais estão disponíveis para todos os comandos:
+FLEXT CLI provides a hierarchical command structure for managing the entire FLEXT ecosystem:
 
-```bash
-flext [GLOBAL_OPTIONS] COMMAND [COMMAND_OPTIONS]
+```
+flext
+├── auth                    # ✅ Authentication & authorization
+├── config                  # ✅ Configuration management
+├── debug                   # ✅ Debugging & diagnostics
+├── pipeline                # ❌ Pipeline management (Sprint 1)
+├── service                 # ❌ Service orchestration (Sprint 1)
+├── data                    # ❌ Data management (Sprint 3)
+├── plugin                  # ❌ Plugin management (Sprint 4)
+├── monitor                 # ❌ Monitoring & observability (Sprint 7)
+├── algar                   # ❌ ALGAR project commands (Sprint 5)
+├── gruponos                # ❌ GrupoNos project commands (Sprint 5)
+├── meltano                 # ❌ Meltano integration (Sprint 6)
+├── interactive             # ⚠️ Interactive mode (placeholder)
+└── version                 # ⚠️ Version information (basic)
 ```
 
-### Global Options
+## ✅ **Implemented Commands (30%)**
 
-| Option      | Short | Type     | Default   | Description                                   |
-| ----------- | ----- | -------- | --------- | --------------------------------------------- |
-| `--profile` |       | `str`    | `default` | Configuration profile to use                  |
-| `--output`  | `-o`  | `choice` | `table`   | Output format (table, JSON, YAML, csv, plain) |
-| `--debug`   |       | `flag`   | `false`   | Enable debug mode                             |
-| `--quiet`   | `-q`  | `flag`   | `false`   | Suppress non-error output                     |
-| `--help`    | `-h`  | `flag`   |           | Show help message                             |
-| `--version` |       | `flag`   |           | Show version information                      |
+### **Authentication Commands (`flext auth`)**
 
-### Examples
+**Status**: ✅ Fully implemented and functional
+
+#### **`flext auth login`**
+
+Authenticate with the FLEXT ecosystem.
 
 ```bash
-# Using global options
-flext --profile development --output json auth status
-flext --debug pipeline list
-flext --quiet --output csv pipeline export
+flext auth login [OPTIONS]
+
+Options:
+  --username TEXT    Username for authentication
+  --password TEXT    Password (will prompt if not provided)
+  --profile TEXT     Configuration profile to use [default: default]
+  --help            Show this message and exit
+
+Examples:
+  flext auth login --username admin
+  flext auth login --profile production
 ```
 
-## Command Groups
+**Return Codes**:
 
-### 🔐 auth - Authentication Commands
+- `0`: Login successful
+- `1`: Authentication failed
+- `2`: Connection error
 
-Manage authentication and authorization.
+#### **`flext auth logout`**
+
+Logout and clear authentication tokens.
 
 ```bash
-flext auth SUBCOMMAND [OPTIONS]
+flext auth logout [OPTIONS]
+
+Options:
+  --profile TEXT     Configuration profile [default: default]
+  --all             Logout from all profiles
+  --help            Show this message and exit
+
+Examples:
+  flext auth logout
+  flext auth logout --all
 ```
 
-#### Subcommands
+#### **`flext auth status`**
 
-| Command  | Description                 | Status     |
-| -------- | --------------------------- | ---------- |
-| `login`  | Login to FLEXT platform     | 🔄 Planned |
-| `logout` | Logout from FLEXT platform  | 🔄 Planned |
-| `status` | Check authentication status | 🔄 Planned |
-| `token`  | Manage API tokens           | 🔄 Planned |
-
-#### Examples
+Check current authentication status.
 
 ```bash
-# Check authentication status
-flext auth status
+flext auth status [OPTIONS]
 
-# Login with interactive prompt
-flext auth login
+Options:
+  --profile TEXT     Configuration profile [default: default]
+  --verbose         Show detailed authentication information
+  --help            Show this message and exit
 
-# Login with token
-flext auth login --token YOUR_TOKEN
-
-# Logout
-flext auth logout
+Examples:
+  flext auth status
+  flext auth status --verbose
 ```
 
-### ⚙️ config - Configuration Management
+#### **`flext auth token`**
 
-Manage CLI configuration and settings.
+Display or manage authentication tokens.
 
 ```bash
-flext config SUBCOMMAND [OPTIONS]
+flext auth token [OPTIONS] COMMAND [ARGS]...
+
+Commands:
+  show     Display current authentication token
+  refresh  Refresh authentication token
+  revoke   Revoke authentication token
+
+Examples:
+  flext auth token show
+  flext auth token refresh
 ```
 
-#### Subcommands
+### **Configuration Commands (`flext config`)**
 
-| Command    | Description                     | Status         |
-| ---------- | ------------------------------- | -------------- |
-| `show`     | Display current configuration   | ✅ Implemented |
-| `set`      | Set configuration value         | 🔄 Planned     |
-| `get`      | Get configuration value         | 🔄 Planned     |
-| `validate` | Validate configuration          | 🔄 Planned     |
-| `reset`    | Reset configuration to defaults | 🔄 Planned     |
+**Status**: ✅ Fully implemented and functional
 
-#### Examples
+#### **`flext config show`**
+
+Display current configuration.
 
 ```bash
-# Show current configuration
-flext config show
+flext config show [OPTIONS]
 
-# Show configuration in JSON format
-flext --output json config show
+Options:
+  --profile TEXT     Configuration profile [default: default]
+  --format TEXT      Output format [default: table]
+  --key TEXT         Show specific configuration key
+  --help            Show this message and exit
 
-# Set configuration value (planned)
-flext config set api_url http://localhost:8080
-
-# Get specific configuration value (planned)
-flext config get api_url
-
-# Validate configuration (planned)
-flext config validate
+Examples:
+  flext config show
+  flext config show --format json
+  flext config show --key auth.username
 ```
 
-### 🚀 pipeline - Pipeline Management
+#### **`flext config set`**
 
-Manage data pipelines and ETL operations.
+Set configuration value.
 
 ```bash
-flext pipeline SUBCOMMAND [OPTIONS]
+flext config set [OPTIONS] KEY VALUE
+
+Options:
+  --profile TEXT     Configuration profile [default: default]
+  --type TEXT        Value type (string|int|bool|json) [default: string]
+  --help            Show this message and exit
+
+Examples:
+  flext config set auth.username admin
+  flext config set debug.enabled true --type bool
+  flext config set services.timeout 30 --type int
 ```
 
-#### Subcommands
+#### **`flext config get`**
 
-| Command  | Description              | Status         |
-| -------- | ------------------------ | -------------- |
-| `list`   | List available pipelines | ✅ Implemented |
-| `create` | Create new pipeline      | 🔄 Planned     |
-| `run`    | Execute pipeline         | 🔄 Planned     |
-| `status` | Check pipeline status    | 🔄 Planned     |
-| `logs`   | View pipeline logs       | 🔄 Planned     |
-| `stop`   | Stop running pipeline    | 🔄 Planned     |
-| `delete` | Delete pipeline          | 🔄 Planned     |
-
-#### Examples
+Get configuration value.
 
 ```bash
-# List all pipelines
-flext pipeline list
+flext config get [OPTIONS] KEY
 
-# List pipelines in JSON format
-flext --output json pipeline list
+Options:
+  --profile TEXT     Configuration profile [default: default]
+  --default TEXT     Default value if key not found
+  --help            Show this message and exit
 
-# Create new pipeline (planned)
-flext pipeline create my-pipeline --tap tap-github --target target-postgres
-
-# Run pipeline (planned)
-flext pipeline run my-pipeline
-
-# Check pipeline status (planned)
-flext pipeline status my-pipeline
-
-# Follow pipeline logs (planned)
-flext pipeline logs my-pipeline --follow
+Examples:
+  flext config get auth.username
+  flext config get services.timeout --default 30
 ```
 
-### 🔌 plugin - Plugin Management
+#### **`flext config reset`**
 
-Manage CLI plugins and extensions.
+Reset configuration to defaults.
 
 ```bash
-flext plugin SUBCOMMAND [OPTIONS]
+flext config reset [OPTIONS]
+
+Options:
+  --profile TEXT     Configuration profile [default: default]
+  --key TEXT         Reset specific key (resets all if not specified)
+  --confirm         Skip confirmation prompt
+  --help            Show this message and exit
+
+Examples:
+  flext config reset --confirm
+  flext config reset --key auth.username
 ```
 
-#### Subcommands
+### **Debug Commands (`flext debug`)**
 
-| Command   | Description             | Status         |
-| --------- | ----------------------- | -------------- |
-| `list`    | List installed plugins  | ✅ Implemented |
-| `search`  | Search plugin registry  | 🔄 Planned     |
-| `install` | Install plugin          | 🔄 Planned     |
-| `update`  | Update plugin           | 🔄 Planned     |
-| `remove`  | Remove plugin           | 🔄 Planned     |
-| `info`    | Show plugin information | 🔄 Planned     |
+**Status**: ✅ Fully implemented and functional
 
-#### Examples
+#### **`flext debug info`**
+
+Show system and environment information.
 
 ```bash
-# List installed plugins
-flext plugin list
+flext debug info [OPTIONS]
 
-# Search for plugins (planned)
-flext plugin search tap-
+Options:
+  --verbose         Show detailed system information
+  --format TEXT     Output format [default: table]
+  --help            Show this message and exit
 
-# Install plugin (planned)
-flext plugin install tap-github
-
-# Update all plugins (planned)
-flext plugin update --all
-
-# Remove plugin (planned)
-flext plugin remove tap-github
+Examples:
+  flext debug info
+  flext debug info --verbose --format json
 ```
 
-### 🐛 debug - Debug and Diagnostic Tools
+#### **`flext debug health`**
 
-Debug CLI operations and diagnose issues.
+Perform basic health checks.
 
 ```bash
-flext debug SUBCOMMAND [OPTIONS]
+flext debug health [OPTIONS]
+
+Options:
+  --service TEXT     Check specific service
+  --timeout INT      Health check timeout in seconds [default: 30]
+  --help            Show this message and exit
+
+Examples:
+  flext debug health
+  flext debug health --service flexcore
 ```
 
-#### Subcommands
+#### **`flext debug logs`**
 
-| Command        | Description               | Status         |
-| -------------- | ------------------------- | -------------- |
-| `info`         | Show system information   | ✅ Implemented |
-| `connectivity` | Test network connectivity | 🔄 Planned     |
-| `performance`  | Performance analysis      | 🔄 Planned     |
-| `validate`     | Validate CLI setup        | 🔄 Planned     |
-| `logs`         | Show debug logs           | 🔄 Planned     |
-
-#### Examples
+View application logs.
 
 ```bash
-# Show system information
-flext debug info
+flext debug logs [OPTIONS]
 
-# Test connectivity (planned)
-flext debug connectivity --endpoint http://localhost:8080
+Options:
+  --lines INT        Number of log lines to show [default: 100]
+  --level TEXT       Log level filter (debug|info|warning|error)
+  --follow          Follow log output (tail -f mode)
+  --help            Show this message and exit
 
-# Run performance analysis (planned)
-flext debug performance --command "pipeline list"
-
-# Validate CLI setup (planned)
-flext debug validate
+Examples:
+  flext debug logs
+  flext debug logs --lines 50 --level error
+  flext debug logs --follow
 ```
 
-## Project-Specific Commands
+#### **`flext debug validate`**
 
-### 🏢 algar - ALGAR Project Commands
-
-Commands specific to ALGAR project operations.
+Validate CLI installation and configuration.
 
 ```bash
-flext algar SUBCOMMAND [OPTIONS]
+flext debug validate [OPTIONS]
+
+Options:
+  --profile TEXT     Configuration profile [default: default]
+  --verbose         Show detailed validation results
+  --help            Show this message and exit
+
+Examples:
+  flext debug validate
+  flext debug validate --verbose
 ```
 
-#### Subcommands
+### **Basic Commands**
 
-| Command    | Description              | Status         |
-| ---------- | ------------------------ | -------------- |
-| `migrate`  | Run ALGAR OUD migration  | ✅ Implemented |
-| `status`   | Check migration status   | ✅ Implemented |
-| `validate` | Validate migration setup | ✅ Implemented |
+#### **`flext version`**
 
-#### Examples
+Show version information.
 
-```bash
-# Run ALGAR migration
-flext algar migrate
-
-# Check migration status
-flext algar status
-
-# Validate migration setup
-flext algar validate
-```
-
-### 🏭 gruponos - GrupoNos Project Commands
-
-Commands specific to GrupoNos project operations.
-
-```bash
-flext gruponos SUBCOMMAND [OPTIONS]
-```
-
-#### Subcommands
-
-| Command  | Description              | Status         |
-| -------- | ------------------------ | -------------- |
-| `deploy` | Deploy GrupoNos services | ✅ Implemented |
-| `status` | Check deployment status  | ✅ Implemented |
-| `logs`   | View service logs        | ✅ Implemented |
-
-#### Examples
-
-```bash
-# Deploy GrupoNos services
-flext gruponos deploy
-
-# Check deployment status
-flext gruponos status
-
-# View service logs
-flext gruponos logs --service api
-```
-
-### 🎭 meltano - Meltano Integration Commands
-
-Commands for Meltano orchestration and management.
-
-```bash
-flext meltano SUBCOMMAND [OPTIONS]
-```
-
-#### Subcommands
-
-| Command   | Description               | Status         |
-| --------- | ------------------------- | -------------- |
-| `run`     | Run Meltano command       | ✅ Implemented |
-| `install` | Install Meltano plugins   | ✅ Implemented |
-| `invoke`  | Invoke Meltano operations | ✅ Implemented |
-
-#### Examples
-
-```bash
-# Run Meltano command
-flext meltano run tap-github target-postgres
-
-# Install Meltano plugin
-flext meltano install extractor tap-github
-
-# Invoke Meltano operation
-flext meltano invoke tap-github --discover
-```
-
-## Utility Commands
-
-### 📋 version - Version Information
-
-Display version information.
+**Status**: ⚠️ Basic implementation
 
 ```bash
 flext version [OPTIONS]
+
+Options:
+  --verbose         Show detailed version information
+  --help            Show this message and exit
+
+Examples:
+  flext version
+  flext version --verbose
 ```
 
-#### Options
+#### **`flext interactive`**
 
-| Option       | Description                       |
-| ------------ | --------------------------------- |
-| `--detailed` | Show detailed version information |
+Start interactive mode.
 
-#### Examples
-
-```bash
-# Show version
-flext version
-
-# Show detailed version information
-flext version --detailed
-flext --debug version
-```
-
-### 🎮 interactive - Interactive Mode
-
-Start interactive CLI mode (future implementation).
+**Status**: ⚠️ Placeholder - shows "coming soon" message
 
 ```bash
 flext interactive [OPTIONS]
-```
 
-#### Examples
+Options:
+  --help            Show this message and exit
 
-```bash
-# Start interactive mode
-flext interactive
-
-# Interactive mode with debug
-flext --debug interactive
-```
-
-## Output Formats
-
-All commands support multiple output formats via the global `--output` option:
-
-### Table Format (Default)
-
-```bash
-flext pipeline list
-```
-
-Output:
-
-```
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃                                                          Pipeline Status                                                           ┃
-┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ Name                    │ Status      │ Last Run                    │ Duration                                                     │
-├─────────────────────────┼─────────────┼─────────────────────────────┼──────────────────────────────────────────────────────────┤
-│ data-extraction-github  │ Running     │ 2025-01-29 10:30:00        │ 00:05:23                                                     │
-│ analytics-pipeline      │ Completed   │ 2025-01-29 09:15:00        │ 00:12:45                                                     │
-└─────────────────────────┴─────────────┴─────────────────────────────┴──────────────────────────────────────────────────────────┘
-```
-
-### JSON Format
-
-```bash
-flext --output json pipeline list
-```
-
-Output:
-
-```json
-{
-  "pipelines": [
-    {
-      "name": "data-extraction-github",
-      "status": "running",
-      "last_run": "2025-01-29T10:30:00Z",
-      "duration": "00:05:23"
-    },
-    {
-      "name": "analytics-pipeline",
-      "status": "completed",
-      "last_run": "2025-01-29T09:15:00Z",
-      "duration": "00:12:45"
-    }
-  ]
-}
-```
-
-### YAML Format
-
-```bash
-flext --output yaml pipeline list
-```
-
-Output:
-
-```yaml
-pipelines:
-  - name: data-extraction-github
-    status: running
-    last_run: "2025-01-29T10:30:00Z"
-    duration: "00:05:23"
-  - name: analytics-pipeline
-    status: completed
-    last_run: "2025-01-29T09:15:00Z"
-    duration: "00:12:45"
-```
-
-### CSV Format
-
-```bash
-flext --output csv pipeline list
-```
-
-Output:
-
-```csv
-name,status,last_run,duration
-data-extraction-github,running,2025-01-29T10:30:00Z,00:05:23
-analytics-pipeline,completed,2025-01-29T09:15:00Z,00:12:45
-```
-
-## Error Handling
-
-### Common Error Messages
-
-```bash
-# Command not found
-$ flext unknown-command
-Error: No such command 'unknown-command'.
-
-# Invalid option
-$ flext pipeline list --invalid-option
-Error: No such option: --invalid-option
-
-# Missing required argument
-$ flext config set
-Error: Missing argument 'key'.
-```
-
-### Debug Mode
-
-Enable debug mode for detailed error information:
-
-```bash
-# Global debug
-flext --debug command
-
-# Environment variable
-export FLX_DEBUG=true
-flext command
-```
-
-## Shell Completion
-
-### Bash
-
-```bash
-# Add to ~/.bashrc
-eval "$(_FLEXT_COMPLETE=bash_source flext)"
-```
-
-### Zsh
-
-```bash
-# Add to ~/.zshrc
-eval "$(_FLEXT_COMPLETE=zsh_source flext)"
-```
-
-### Fish
-
-```bash
-# Add to ~/.config/fish/config.fish
-eval (env _FLEXT_COMPLETE=fish_source flext)
+Examples:
+  flext interactive
 ```
 
 ---
 
-**Next**: [Domain Entities](entities.md) | **Previous**: [API Reference Home](../README.md)
+## ❌ **Planned Commands (70%)**
+
+### **Pipeline Management (`flext pipeline`) - Sprint 1**
+
+**Status**: ❌ Not implemented - Target Sprint 1
+
+#### **`flext pipeline list`**
+
+List all data pipelines.
+
+```bash
+flext pipeline list [OPTIONS]
+
+Options:
+  --status TEXT      Filter by status (running|stopped|error|all) [default: all]
+  --format TEXT      Output format [default: table]
+  --help            Show this message and exit
+
+Examples:
+  flext pipeline list
+  flext pipeline list --status running
+  flext pipeline list --format json
+```
+
+#### **`flext pipeline start`**
+
+Start a data pipeline.
+
+```bash
+flext pipeline start [OPTIONS] PIPELINE_NAME
+
+Options:
+  --environment TEXT Environment to run in [default: development]
+  --config TEXT      Pipeline configuration file
+  --wait            Wait for pipeline to start
+  --help            Show this message and exit
+
+Examples:
+  flext pipeline start user-data-sync
+  flext pipeline start analytics-pipeline --environment production
+```
+
+#### **`flext pipeline stop`**
+
+Stop a running pipeline.
+
+```bash
+flext pipeline stop [OPTIONS] PIPELINE_NAME
+
+Options:
+  --force           Force stop without graceful shutdown
+  --wait            Wait for pipeline to stop
+  --help            Show this message and exit
+
+Examples:
+  flext pipeline stop user-data-sync
+  flext pipeline stop analytics-pipeline --force
+```
+
+#### **`flext pipeline status`**
+
+Show pipeline status and metrics.
+
+```bash
+flext pipeline status [OPTIONS] PIPELINE_NAME
+
+Options:
+  --verbose         Show detailed status information
+  --format TEXT     Output format [default: table]
+  --help            Show this message and exit
+
+Examples:
+  flext pipeline status user-data-sync
+  flext pipeline status analytics-pipeline --verbose
+```
+
+#### **`flext pipeline logs`**
+
+View pipeline execution logs.
+
+```bash
+flext pipeline logs [OPTIONS] PIPELINE_NAME
+
+Options:
+  --lines INT       Number of log lines to show [default: 100]
+  --follow          Follow log output
+  --level TEXT      Log level filter
+  --help            Show this message and exit
+
+Examples:
+  flext pipeline logs user-data-sync
+  flext pipeline logs analytics-pipeline --follow
+```
+
+### **Service Orchestration (`flext service`) - Sprint 1-2**
+
+**Status**: ❌ Not implemented - Target Sprint 1-2
+
+#### **`flext service health`**
+
+Check health of all FLEXT services.
+
+```bash
+flext service health [OPTIONS]
+
+Options:
+  --service TEXT     Check specific service
+  --format TEXT      Output format [default: table]
+  --timeout INT      Health check timeout [default: 30]
+  --help            Show this message and exit
+
+Examples:
+  flext service health
+  flext service health --service flexcore
+```
+
+#### **`flext service status`**
+
+Show overall ecosystem status.
+
+```bash
+flext service status [OPTIONS]
+
+Options:
+  --verbose         Show detailed status information
+  --format TEXT     Output format [default: table]
+  --help            Show this message and exit
+
+Examples:
+  flext service status
+  flext service status --verbose --format json
+```
+
+#### **`flext service logs`**
+
+View service logs.
+
+```bash
+flext service logs [OPTIONS] SERVICE_NAME
+
+Options:
+  --lines INT       Number of log lines [default: 100]
+  --follow          Follow log output
+  --level TEXT      Log level filter
+  --help            Show this message and exit
+
+Examples:
+  flext service logs flexcore
+  flext service logs flext-service --follow
+```
+
+### **Data Management (`flext data`) - Sprint 3-4**
+
+**Status**: ❌ Not implemented - Target Sprint 3-4
+
+#### **`flext data taps list`**
+
+List available Singer taps.
+
+```bash
+flext data taps list [OPTIONS]
+
+Options:
+  --status TEXT      Filter by status
+  --format TEXT      Output format [default: table]
+  --help            Show this message and exit
+```
+
+#### **`flext data targets list`**
+
+List available Singer targets.
+
+```bash
+flext data targets list [OPTIONS]
+
+Options:
+  --status TEXT      Filter by status
+  --format TEXT      Output format [default: table]
+  --help            Show this message and exit
+```
+
+#### **`flext data dbt run`**
+
+Execute DBT transformations.
+
+```bash
+flext data dbt run [OPTIONS] PROJECT
+
+Options:
+  --models TEXT      Specific models to run
+  --environment TEXT Environment configuration
+  --help            Show this message and exit
+
+Examples:
+  flext data dbt run oracle-transforms
+  flext data dbt run ldap-transforms --models user_sync
+```
+
+### **Plugin Management (`flext plugin`) - Sprint 4**
+
+**Status**: ❌ Not implemented - Target Sprint 4
+
+#### **`flext plugin list`**
+
+List installed plugins.
+
+```bash
+flext plugin list [OPTIONS]
+
+Options:
+  --status TEXT      Filter by status (active|inactive|error)
+  --format TEXT      Output format [default: table]
+  --help            Show this message and exit
+```
+
+#### **`flext plugin install`**
+
+Install a plugin.
+
+```bash
+flext plugin install [OPTIONS] PLUGIN_NAME
+
+Options:
+  --version TEXT     Specific version to install
+  --force           Force reinstall if already exists
+  --help            Show this message and exit
+
+Examples:
+  flext plugin install oracle-connector
+  flext plugin install ldap-sync --version 1.2.0
+```
+
+### **Project-Specific Commands - Sprint 5-6**
+
+#### **ALGAR Commands (`flext algar`) - Sprint 5**
+
+```bash
+# ALGAR Oracle Unified Directory migration
+flext algar migration status [OPTIONS]
+flext algar oud sync [OPTIONS]
+flext algar pipeline deploy [OPTIONS] PIPELINE_NAME
+flext algar logs [OPTIONS]
+```
+
+#### **GrupoNos Commands (`flext gruponos`) - Sprint 5**
+
+```bash
+# GrupoNos-specific Meltano operations
+flext gruponos pipeline deploy [OPTIONS] PIPELINE_NAME
+flext gruponos status [OPTIONS]
+flext gruponos logs [OPTIONS]
+```
+
+#### **Meltano Commands (`flext meltano`) - Sprint 6**
+
+```bash
+# Meltano project management
+flext meltano project init [OPTIONS] PROJECT_NAME
+flext meltano run [OPTIONS] JOB_NAME
+flext meltano schedule [OPTIONS] SCHEDULE_NAME
+flext meltano test [OPTIONS]
+```
+
+### **Monitoring Commands (`flext monitor`) - Sprint 7**
+
+```bash
+# Real-time monitoring and observability
+flext monitor dashboard [OPTIONS]
+flext monitor metrics [OPTIONS] SERVICE_NAME
+flext monitor alerts list [OPTIONS]
+flext logs search [OPTIONS] QUERY
+```
+
+---
+
+## 🔧 **Command Development Guidelines**
+
+### **Adding New Commands**
+
+1. **Follow Naming Convention**:
+
+   ```
+   flext <group> <action> [<resource>] [OPTIONS]
+   ```
+
+2. **Use Standard Options**:
+
+   ```bash
+   --format TEXT      # Output format (table|json|yaml|csv)
+   --verbose         # Detailed output
+   --help            # Command help
+   ```
+
+3. **Implement Error Handling**:
+
+   ```python
+   @handle_service_result
+   async def command_function() -> FlextResult[Any]:
+       # Command implementation with proper error handling
+   ```
+
+4. **Add Comprehensive Tests**:
+
+   ```python
+   def test_command_success():
+       runner = CliRunner()
+       result = runner.invoke(cli, ['group', 'action'])
+       assert result.exit_code == 0
+   ```
+
+### **Output Format Standards**
+
+All commands should support multiple output formats:
+
+- **table**: Human-readable table (default)
+- **JSON**: Machine-readable JSON
+- **YAML**: YAML format
+- **csv**: CSV for data export
+
+### **Error Handling Standards**
+
+Standard exit codes:
+
+- `0`: Success
+- `1`: General error
+- `2`: Connection/network error
+- `3`: Authentication error
+- `4`: Configuration error
+- `5`: Not found error
+
+---
+
+## 📊 **Implementation Progress**
+
+### **Completion Status**
+
+- **✅ Implemented**: 30% (auth, config, debug commands)
+- **🚧 In Progress**: 0% (no commands currently in development)
+- **📋 Planned**: 70% (pipeline, service, data, plugin, monitor, project commands)
+
+### **Sprint Targets**
+
+- **Sprint 1**: +20% (pipeline, service commands) → 50% total
+- **Sprint 3**: +20% (data management commands) → 70% total
+- **Sprint 5**: +15% (project-specific commands) → 85% total
+- **Sprint 7**: +10% (monitoring commands) → 95% total
+- **Sprint 10**: +5% (advanced features) → 100% total
+
+### **Quality Metrics**
+
+- **Test Coverage**: 90%+ maintained for all commands
+- **Response Time**: <1s for all basic commands
+- **Error Coverage**: All error scenarios handled with proper messages
+- **Documentation**: 100% command coverage with examples
+
+This command reference will be updated as commands are implemented according to the development roadmap.

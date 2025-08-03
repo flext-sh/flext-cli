@@ -14,6 +14,9 @@ import traceback
 
 import flext_cli
 
+# Constants
+PREVIEW_LENGTH_LIMIT = 200
+
 
 def example_1_traditional_vs_flext() -> None:
     """Example 1: Traditional approach vs FlextCli approach."""
@@ -204,7 +207,9 @@ def example_3_data_analysis_and_comparison() -> None:
     if format_result.success:
         formats = format_result.unwrap()
         for output in formats.values():
-            output[:200] + "..." if len(output) > 200 else output
+            output[:PREVIEW_LENGTH_LIMIT] + "..." if len(
+                output
+            ) > PREVIEW_LENGTH_LIMIT else output
 
 
 def example_4_interactive_dashboards() -> None:

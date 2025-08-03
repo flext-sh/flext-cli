@@ -577,9 +577,9 @@ class TestFlextCliService:
         """Test create session exception handling."""
         service = FlextCliService()
 
-        # Mock FlextCliSession to raise exception
-        with patch(
-            "flext_cli.core.FlextCliSession", side_effect=Exception("Session error")
+        # Mock FlextCliSession in the correct module namespace
+        with patch.object(
+            core_module, "FlextCliSession", side_effect=Exception("Session error")
         ):
             result = service.flext_cli_create_session()
             assert not result.is_success

@@ -1,8 +1,71 @@
-"""Configuration for FLEXT-CLI infrastructure.
+"""FLEXT CLI Infrastructure Configuration - Environment and System Settings.
+
+This module provides infrastructure-level configuration for FLEXT CLI operations,
+managing system settings, directories, timeouts, and environment-specific
+configurations. This is the legacy configuration module that will be consolidated
+with the main configuration system.
+
+Configuration Categories:
+    - API Settings: URL, token, timeouts for service communication
+    - Directory Settings: Config, cache, plugin directories with path expansion
+    - Output Settings: Format, color, pager, editor preferences
+    - Profile Settings: Multi-profile support and configuration files
+    - Debug Settings: Logging, tracing, and diagnostic configurations
+    - Security Settings: SSL verification, token management
+    - Performance Settings: Timeouts, concurrency, history limits
+
+Architecture:
+    - Class-based configuration with property methods
+    - Path expansion utilities for user directories (~/)
+    - Environment variable integration
+    - Default value management with override support
+
+Current Implementation Status:
+    ✅ Complete configuration settings with defaults
+    ✅ Path expansion properties for all directories
+    ✅ Environment variable integration
+    ✅ Debug and security configuration
+    ✅ Directory creation utilities
+    ⚠️ Legacy implementation (TODO: Sprint 2 - consolidate with main config)
+
+TODO (docs/TODO.md):
+    Sprint 2: Consolidate with main CLIConfig from utils/config.py
+    Sprint 2: Add configuration validation and type safety
+    Sprint 3: Add profile-specific configuration inheritance
+    Sprint 5: Add encrypted configuration support
+    Sprint 7: Add configuration monitoring and hot-reload
+
+Configuration Groups:
+    API: Service communication settings
+    Directories: File system paths with expansion
+    Output: Display and formatting preferences
+    Profile: Multi-environment configuration
+    Debug: Logging and diagnostic settings
+    Database: Persistence connection settings
+    Plugin: Plugin management and registry
+    Security: Authentication and SSL settings
+    Performance: Timeout and concurrency limits
+    UI: User interface preferences
+
+Usage Examples:
+    Basic configuration:
+    >>> config = CLIConfig()
+    >>> config.debug = True
+    >>> config.api_url = "https://api.example.com"
+
+    Directory management:
+    >>> config.ensure_directories()
+    >>> config_path = config.expanded_config_dir
+    >>> log_path = config.expanded_log_file
+
+Integration:
+    - Used by infrastructure layer for system configuration
+    - Provides default settings for CLI operations
+    - Supports environment variable overrides
+    - Will be consolidated with main configuration system
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -12,7 +75,40 @@ from pathlib import Path
 
 
 class CLIConfig:
-    """CLI configuration."""
+    """Legacy CLI configuration class with comprehensive system settings.
+
+    Provides infrastructure-level configuration for FLEXT CLI operations including
+    API settings, directories, timeouts, and environment-specific configurations.
+    This class will be consolidated with the main CLIConfig in Sprint 2.
+
+    Features:
+        - Comprehensive configuration with sensible defaults
+        - Path expansion for user directories (~/)
+        - Environment variable integration
+        - Property methods for computed values
+        - Directory creation utilities
+
+    Configuration Categories:
+        API: Service endpoints and authentication
+        Directories: File system paths and storage
+        Output: Display preferences and formatting
+        Debug: Logging and diagnostic settings
+        Security: Authentication and SSL settings
+        Performance: Timeouts and limits
+        UI: User interface preferences
+
+    TODO (Sprint 2):
+        - Consolidate with main CLIConfig from utils/config.py
+        - Add Pydantic validation and type safety
+        - Implement profile-based configuration inheritance
+        - Add configuration hot-reload capabilities
+
+    Usage:
+        >>> config = CLIConfig()
+        >>> config.debug = True
+        >>> config.ensure_directories()
+        >>> expanded_path = config.expanded_config_dir
+    """
 
     # API settings
     api_url: str = "http://localhost:8000"

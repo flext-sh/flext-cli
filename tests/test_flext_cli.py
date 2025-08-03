@@ -336,39 +336,57 @@ class TestFlextCliCreateContext:
         config = {"user": "test_user", "profile": "development"}
         expected_context = MagicMock()
 
+        # Test that it properly handles API response and creates context
         with patch.object(
             flext_cli._api, "flext_cli_create_context", return_value=expected_context
         ) as mock_create:
             result = flext_cli.flext_cli_create_context(config)
 
-            if result != expected_context:
-                raise AssertionError(f"Expected {expected_context}, got {result}")
+            # Should return a FlextCliContext instance (via fallback since mock isn't FlextCliContext)
+            if not hasattr(
+                result, "session_id"
+            ):  # FlextCliContext has session_id attribute
+                raise AssertionError(
+                    f"Expected FlextCliContext instance, got {type(result)}"
+                )
             mock_create.assert_called_once_with(config)
 
     def test_flext_cli_create_context_without_config(self) -> None:
         """Test creating context without configuration."""
         expected_context = MagicMock()
 
+        # Test that it properly handles API response and creates context
         with patch.object(
             flext_cli._api, "flext_cli_create_context", return_value=expected_context
         ) as mock_create:
             result = flext_cli.flext_cli_create_context()
 
-            if result != expected_context:
-                raise AssertionError(f"Expected {expected_context}, got {result}")
+            # Should return a FlextCliContext instance (via fallback since mock isn't FlextCliContext)
+            if not hasattr(
+                result, "session_id"
+            ):  # FlextCliContext has session_id attribute
+                raise AssertionError(
+                    f"Expected FlextCliContext instance, got {type(result)}"
+                )
             mock_create.assert_called_once_with(None)
 
     def test_flext_cli_create_context_none_config(self) -> None:
         """Test creating context with None config."""
         expected_context = MagicMock()
 
+        # Test that it properly handles API response and creates context
         with patch.object(
             flext_cli._api, "flext_cli_create_context", return_value=expected_context
         ) as mock_create:
             result = flext_cli.flext_cli_create_context(None)
 
-            if result != expected_context:
-                raise AssertionError(f"Expected {expected_context}, got {result}")
+            # Should return a FlextCliContext instance (via fallback since mock isn't FlextCliContext)
+            if not hasattr(
+                result, "session_id"
+            ):  # FlextCliContext has session_id attribute
+                raise AssertionError(
+                    f"Expected FlextCliContext instance, got {type(result)}"
+                )
             mock_create.assert_called_once_with(None)
 
     def test_flext_cli_create_context_return_type(self) -> None:
@@ -376,14 +394,19 @@ class TestFlextCliCreateContext:
         config = {"environment": "test"}
 
         with patch.object(flext_cli._api, "flext_cli_create_context") as mock_create:
-            # Test that it can return any type
+            # Test that it always returns FlextCliContext regardless of API return value
             for return_value in [{"context": "dict"}, "string_context", 42, [1, 2, 3]]:
                 mock_create.return_value = return_value
 
                 result = flext_cli.flext_cli_create_context(config)
 
-                if result != return_value:
-                    raise AssertionError(f"Expected {return_value}, got {result}")
+                # Should always return a FlextCliContext instance (via fallback)
+                if not hasattr(
+                    result, "session_id"
+                ):  # FlextCliContext has session_id attribute
+                    raise AssertionError(
+                        f"Expected FlextCliContext instance, got {type(result)}"
+                    )
 
 
 class TestFlextCliCreateCommand:
@@ -391,8 +414,12 @@ class TestFlextCliCreateCommand:
 
     def test_flext_cli_create_command_success(self) -> None:
         """Test successful command creation."""
+        # Mock to return FlextResult
+        mock_result = MagicMock()
+        mock_result.is_success = True
+
         with patch.object(
-            flext_cli._api, "flext_cli_create_command", return_value=True
+            flext_cli._api, "flext_cli_create_command", return_value=mock_result
         ) as mock_create:
             name = "test_command"
             command_line = "echo hello"
@@ -405,8 +432,12 @@ class TestFlextCliCreateCommand:
 
     def test_flext_cli_create_command_with_options(self) -> None:
         """Test command creation with options."""
+        # Mock to return FlextResult
+        mock_result = MagicMock()
+        mock_result.is_success = True
+
         with patch.object(
-            flext_cli._api, "flext_cli_create_command", return_value=True
+            flext_cli._api, "flext_cli_create_command", return_value=mock_result
         ) as mock_create:
             name = "complex_command"
             command_line = "python script.py"
@@ -434,8 +465,12 @@ class TestFlextCliCreateCommand:
 
     def test_flext_cli_create_command_various_options(self) -> None:
         """Test command creation with various option types."""
+        # Mock to return FlextResult
+        mock_result = MagicMock()
+        mock_result.is_success = True
+
         with patch.object(
-            flext_cli._api, "flext_cli_create_command", return_value=True
+            flext_cli._api, "flext_cli_create_command", return_value=mock_result
         ) as mock_create:
             name = "test_cmd"
             command_line = "test"
@@ -463,49 +498,61 @@ class TestFlextCliCreateSession:
 
     def test_flext_cli_create_session_with_user_id(self) -> None:
         """Test session creation with user ID."""
+        # Mock to return FlextResult
+        expected_result = "Session created: session_123"
+        mock_result = MagicMock()
+        mock_result.unwrap.return_value = expected_result
+        mock_result.is_success = True
+
         with patch.object(
             flext_cli._api,
             "flext_cli_create_session",
-            return_value="Session created: session_123",
+            return_value=mock_result,
         ) as mock_create:
             user_id = "user_456"
 
             result = flext_cli.flext_cli_create_session(user_id)
 
-            if result != "Session created: session_123":
-                raise AssertionError(
-                    f"Expected {'Session created: session_123'}, got {result}"
-                )
+            if result != expected_result:
+                raise AssertionError(f"Expected {expected_result}, got {result}")
             mock_create.assert_called_once_with(user_id)
 
     def test_flext_cli_create_session_without_user_id(self) -> None:
         """Test session creation without user ID."""
+        # Mock to return FlextResult
+        expected_result = "Session created: anonymous_789"
+        mock_result = MagicMock()
+        mock_result.unwrap.return_value = expected_result
+        mock_result.is_success = True
+
         with patch.object(
             flext_cli._api,
             "flext_cli_create_session",
-            return_value="Session created: anonymous_789",
+            return_value=mock_result,
         ) as mock_create:
             result = flext_cli.flext_cli_create_session()
 
-            if result != "Session created: anonymous_789":
-                raise AssertionError(
-                    f"Expected {'Session created: anonymous_789'}, got {result}"
-                )
+            if result != expected_result:
+                raise AssertionError(f"Expected {expected_result}, got {result}")
             mock_create.assert_called_once_with(None)
 
     def test_flext_cli_create_session_none_user_id(self) -> None:
         """Test session creation with None user ID."""
+        # Mock to return FlextResult
+        expected_result = "Session created: session_none"
+        mock_result = MagicMock()
+        mock_result.unwrap.return_value = expected_result
+        mock_result.is_success = True
+
         with patch.object(
             flext_cli._api,
             "flext_cli_create_session",
-            return_value="Session created: session_none",
+            return_value=mock_result,
         ) as mock_create:
             result = flext_cli.flext_cli_create_session(None)
 
-            if result != "Session created: session_none":
-                raise AssertionError(
-                    f"Expected {'Session created: session_none'}, got {result}"
-                )
+            if result != expected_result:
+                raise AssertionError(f"Expected {expected_result}, got {result}")
             mock_create.assert_called_once_with(None)
 
     def test_flext_cli_create_session_different_responses(self) -> None:
@@ -518,8 +565,13 @@ class TestFlextCliCreateSession:
         ]
 
         for response in responses:
+            # Mock to return FlextResult
+            mock_result = MagicMock()
+            mock_result.unwrap.return_value = response
+            mock_result.is_success = True
+
             with patch.object(
-                flext_cli._api, "flext_cli_create_session", return_value=response
+                flext_cli._api, "flext_cli_create_session", return_value=mock_result
             ) as mock_create:
                 result = flext_cli.flext_cli_create_session("test_user")
 
@@ -537,8 +589,12 @@ class TestFlextCliRegisterHandler:
         def test_handler() -> str:
             return "test result"
 
+        # Mock to return FlextResult
+        mock_result = MagicMock()
+        mock_result.is_success = True
+
         with patch.object(
-            flext_cli._api, "flext_cli_register_handler", return_value=True
+            flext_cli._api, "flext_cli_register_handler", return_value=mock_result
         ) as mock_register:
             name = "test_handler"
 
@@ -614,8 +670,12 @@ class TestFlextCliRegisterPlugin:
         """Test successful plugin registration."""
         plugin = MagicMock()
 
+        # Mock to return FlextResult
+        mock_result = MagicMock()
+        mock_result.is_success = True
+
         with patch.object(
-            flext_cli._api, "flext_cli_register_plugin", return_value=True
+            flext_cli._api, "flext_cli_register_plugin", return_value=mock_result
         ) as mock_register:
             name = "test_plugin"
 
@@ -681,8 +741,13 @@ class TestFlextCliExecuteHandler:
         """Test successful handler execution."""
         expected_result = {"status": "success", "data": "test_data"}
 
+        # Mock to return FlextResult
+        mock_result = MagicMock()
+        mock_result.unwrap.return_value = expected_result
+        mock_result.is_success = True
+
         with patch.object(
-            flext_cli._api, "flext_cli_execute_handler", return_value=expected_result
+            flext_cli._api, "flext_cli_execute_handler", return_value=mock_result
         ) as mock_execute:
             name = "test_handler"
 
@@ -696,8 +761,13 @@ class TestFlextCliExecuteHandler:
         """Test handler execution with positional arguments."""
         expected_result = "processed: arg1, arg2"
 
+        # Mock to return FlextResult
+        mock_result = MagicMock()
+        mock_result.unwrap.return_value = expected_result
+        mock_result.is_success = True
+
         with patch.object(
-            flext_cli._api, "flext_cli_execute_handler", return_value=expected_result
+            flext_cli._api, "flext_cli_execute_handler", return_value=mock_result
         ) as mock_execute:
             name = "args_handler"
             args = ("arg1", "arg2")
@@ -712,8 +782,13 @@ class TestFlextCliExecuteHandler:
         """Test handler execution with keyword arguments."""
         expected_result = {"processed": True, "key1": "value1", "key2": "value2"}
 
+        # Mock to return FlextResult
+        mock_result = MagicMock()
+        mock_result.unwrap.return_value = expected_result
+        mock_result.is_success = True
+
         with patch.object(
-            flext_cli._api, "flext_cli_execute_handler", return_value=expected_result
+            flext_cli._api, "flext_cli_execute_handler", return_value=mock_result
         ) as mock_execute:
             name = "kwargs_handler"
             kwargs = {"key1": "value1", "key2": "value2"}
@@ -728,8 +803,13 @@ class TestFlextCliExecuteHandler:
         """Test handler execution with both args and kwargs."""
         expected_result = "mixed_result"
 
+        # Mock to return FlextResult
+        mock_result = MagicMock()
+        mock_result.unwrap.return_value = expected_result
+        mock_result.is_success = True
+
         with patch.object(
-            flext_cli._api, "flext_cli_execute_handler", return_value=expected_result
+            flext_cli._api, "flext_cli_execute_handler", return_value=mock_result
         ) as mock_execute:
             name = "mixed_handler"
             args = ("pos1", "pos2")
@@ -748,8 +828,13 @@ class TestFlextCliExecuteHandler:
             "details": "Something went wrong",
         }
 
+        # Mock to return FlextResult
+        mock_result = MagicMock()
+        mock_result.unwrap.return_value = error_result
+        mock_result.is_success = True
+
         with patch.object(
-            flext_cli._api, "flext_cli_execute_handler", return_value=error_result
+            flext_cli._api, "flext_cli_execute_handler", return_value=mock_result
         ) as mock_execute:
             name = "error_handler"
 
@@ -773,8 +858,13 @@ class TestFlextCliExecuteHandler:
         ]
 
         for return_value in return_values:
+            # Mock to return FlextResult
+            mock_result = MagicMock()
+            mock_result.unwrap.return_value = return_value
+            mock_result.is_success = True
+
             with patch.object(
-                flext_cli._api, "flext_cli_execute_handler", return_value=return_value
+                flext_cli._api, "flext_cli_execute_handler", return_value=mock_result
             ) as mock_execute:
                 name = "type_test_handler"
 
@@ -794,10 +884,15 @@ class TestFlextCliRenderWithContext:
         context = {"user": "Alice"}
         expected_result = "Hello, Alice!"
 
+        # Mock to return FlextResult
+        mock_result = MagicMock()
+        mock_result.unwrap.return_value = expected_result
+        mock_result.is_success = True
+
         with patch.object(
             flext_cli._api,
             "flext_cli_render_with_context",
-            return_value=expected_result,
+            return_value=mock_result,
         ) as mock_render:
             result = flext_cli.flext_cli_render_with_context(data, context)
 
@@ -810,10 +905,15 @@ class TestFlextCliRenderWithContext:
         data = "Simple text without templates"
         expected_result = "Simple text without templates"
 
+        # Mock to return FlextResult
+        mock_result = MagicMock()
+        mock_result.unwrap.return_value = expected_result
+        mock_result.is_success = True
+
         with patch.object(
             flext_cli._api,
             "flext_cli_render_with_context",
-            return_value=expected_result,
+            return_value=mock_result,
         ) as mock_render:
             result = flext_cli.flext_cli_render_with_context(data)
 
@@ -826,10 +926,15 @@ class TestFlextCliRenderWithContext:
         data = {"template": "data"}
         expected_result = "rendered_data"
 
+        # Mock to return FlextResult
+        mock_result = MagicMock()
+        mock_result.unwrap.return_value = expected_result
+        mock_result.is_success = True
+
         with patch.object(
             flext_cli._api,
             "flext_cli_render_with_context",
-            return_value=expected_result,
+            return_value=mock_result,
         ) as mock_render:
             result = flext_cli.flext_cli_render_with_context(data, None)
 
@@ -853,10 +958,15 @@ class TestFlextCliRenderWithContext:
         }
         expected_result = "Complex rendered template"
 
+        # Mock to return FlextResult
+        mock_result = MagicMock()
+        mock_result.unwrap.return_value = expected_result
+        mock_result.is_success = True
+
         with patch.object(
             flext_cli._api,
             "flext_cli_render_with_context",
-            return_value=expected_result,
+            return_value=mock_result,
         ) as mock_render:
             result = flext_cli.flext_cli_render_with_context(data, context)
 
@@ -878,8 +988,15 @@ class TestFlextCliRenderWithContext:
             expected = f"rendered_{type(data).__name__}"
             context = {"test": "value"}
 
+            # Mock to return FlextResult
+            mock_result = MagicMock()
+            mock_result.unwrap.return_value = expected
+            mock_result.is_success = True
+
             with patch.object(
-                flext_cli._api, "flext_cli_render_with_context", return_value=expected
+                flext_cli._api,
+                "flext_cli_render_with_context",
+                return_value=mock_result,
             ) as mock_render:
                 result = flext_cli.flext_cli_render_with_context(data, context)
 

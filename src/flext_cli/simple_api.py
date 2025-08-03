@@ -1,9 +1,63 @@
-"""Simple API for FLEXT CLI setup and configuration.
+"""FLEXT CLI Simple API - Programmatic CLI Setup and Configuration.
+
+This module provides a simplified programmatic interface for setting up and
+configuring the FLEXT CLI application. Designed for embedding CLI functionality
+into other applications or for programmatic CLI initialization.
+
+API Functions:
+    - setup_cli: Initialize CLI application with custom settings
+    - Simplified configuration and initialization patterns
+    - Integration with flext-core FlextResult patterns
+
+Features:
+    - Programmatic CLI initialization without Click entry points
+    - Custom settings injection for embedded use cases
+    - FlextResult-based error handling and validation
+    - Integration with dependency injection container
+    - Configuration validation and setup
+
+Current Implementation Status:
+    ✅ Basic setup_cli function with settings
+    ✅ FlextResult integration for error handling
+    ⚠️ Simple implementation (TODO: Sprint 2 - enhance setup)
+    ❌ Advanced container setup not implemented (TODO: Sprint 1)
+
+Use Cases:
+    - Embedding CLI in other applications
+    - Programmatic CLI testing and automation
+    - Custom CLI initialization workflows
+    - Integration with application frameworks
+
+TODO (docs/TODO.md):
+    Sprint 1: Integrate with FlextContainer setup
+    Sprint 2: Add comprehensive CLI validation
+    Sprint 3: Add programmatic command execution
+    Sprint 8: Add embedded interactive mode support
+
+Usage Examples:
+    Basic setup:
+    >>> from flext_cli.simple_api import setup_cli
+    >>> from flext_cli.utils.config import CLISettings
+    >>> settings = CLISettings(debug=True)
+    >>> result = setup_cli(settings)
+    >>> if result.is_success:
+    ...     print("CLI ready for use")
+
+    Custom configuration:
+    >>> settings = CLISettings(
+    ...     api_url="https://api.example.com",
+    ...     output_format="json"
+    ... )
+    >>> setup_cli(settings)
+
+Integration:
+    - Used by main CLI entry point for initialization
+    - Supports testing frameworks for CLI testing
+    - Integrates with configuration management
+    - Provides foundation for embedded CLI use
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
-Provides a simple interface for setting up the FLEXT CLI application.
 """
 
 from __future__ import annotations

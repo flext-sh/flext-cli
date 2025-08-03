@@ -12,7 +12,6 @@ from __future__ import annotations
 import importlib.metadata
 import json
 import sys
-from typing import Any
 
 import click
 import structlog
@@ -179,13 +178,14 @@ async def run(
     ctx: click.Context,
     pipeline_name: str,
     environment: str | None,
-    full_refresh: bool,
-    dry_run: bool,
+    **kwargs: bool,
 ) -> None:
     """Run a GrupoNOS pipeline."""
     try:
         config = ctx.obj["config"]
         debug = ctx.obj.get("debug", False)
+        full_refresh = kwargs.get("full_refresh", False)
+        dry_run = kwargs.get("dry_run", False)
 
         # Initialize orchestrator
         orchestrator = GrupoNOSMeltanoOrchestrator(config)
@@ -410,7 +410,7 @@ def config_show(ctx: click.Context) -> None:
         # Mask sensitive fields
         sensitive_fields = ["password", "secret", "key", "token"]
 
-        def mask_sensitive(obj: Any, path: str = "") -> Any:
+        def mask_sensitive(obj: object, path: str = "") -> object:
             if isinstance(obj, dict):
                 return {
                     k: mask_sensitive(v, f"{path}.{k}" if path else k)

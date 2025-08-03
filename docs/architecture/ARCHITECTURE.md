@@ -1,6 +1,6 @@
 # FLEXT CLI Architecture Documentation
 
-**Version**: 0.8.0  
+**Version**: 0.9.0
 **Status**: Clean Architecture Refactoring  
 **Foundation**: flext_core
 

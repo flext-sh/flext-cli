@@ -5,6 +5,7 @@ following SOLID principles without mocks or placeholders.
 """
 
 import sys
+import tempfile
 from pathlib import Path
 
 # Add src to path for development testing
@@ -106,7 +107,8 @@ def demonstrate_restored_functionality() -> None:
     health_data = health()
     print(f"✅ Health check: {health_data.get('status')}")
     print(
-        f"   Framework features: {len(health_data.get('framework', {}).get('features', []))}"
+        f"   Framework features: "
+        f"{len(health_data.get('framework', {}).get('features', []))}"
     )
     print(f"   Capabilities: {len(health_data.get('capabilities', {}))}")
 

@@ -1,4 +1,46 @@
-"""Configuration utilities for FLEXT CLI.
+"""FLEXT CLI Configuration Utilities - Settings Management with FlextBaseSettings.
+
+This module provides configuration management utilities for the FLEXT CLI using
+flext-core FlextBaseSettings patterns. Supports hierarchical configuration,
+environment variable overrides, and profile-based settings management.
+
+Configuration Classes:
+    - CLIConfig: Main CLI configuration with flext-core integration
+    - CLISettings: Application settings with environment variable support
+    - Profile-specific configuration loading and validation
+
+Features:
+    - FlextBaseSettings integration for type safety
+    - Environment variable override support (FLX_*, FLEXT_CLI_*)
+    - Profile-based configuration (dev, staging, prod)
+    - Configuration validation and error handling
+    - Secure value handling for sensitive data
+
+Current Implementation Status:
+    ✅ Basic CLIConfig with FlextBaseSettings
+    ✅ Environment variable support
+    ✅ Configuration validation and parsing
+    ⚠️ Basic profile support (TODO: Sprint 1 - hierarchical profiles)
+    ❌ Configuration encryption not implemented (TODO: Sprint 2)
+
+Configuration Hierarchy:
+    1. Command-line arguments (highest priority)
+    2. Environment variables (FLX_*, FLEXT_CLI_*)
+    3. Profile-specific configuration files (~/.flx/profiles/)
+    4. Global configuration file (~/.flx/config.yaml)
+    5. Default values (lowest priority)
+
+TODO (docs/TODO.md):
+    Sprint 1: Implement hierarchical profile loading system
+    Sprint 2: Add configuration value encryption for secrets
+    Sprint 3: Add configuration templates and validation schemas
+    Sprint 9: Add advanced profile management with inheritance
+
+Integration:
+    - Used by all CLI commands for configuration access
+    - Integrates with authentication for secure settings
+    - Supports ecosystem service configuration
+    - Profile-aware for multi-environment deployments
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -6,11 +48,17 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from flext_core import FlextBaseSettings
+from flext_core.models import FlextBaseSettings
+from flext_core.result import FlextResult
 from pydantic import Field
 from pydantic_settings import SettingsConfigDict
+
+if TYPE_CHECKING:
+    from flext_core.flext_types import TConfigValue
 
 
 class CLIConfig(FlextBaseSettings):
@@ -115,3 +163,59 @@ def get_settings() -> CLISettings:
 
     """
     return CLISettings()
+
+
+def parse_config_value(value: str) -> FlextResult[TConfigValue]:
+    """Parse configuration value from string, attempting JSON first.
+
+    This function eliminates code duplication in config commands.
+    Follows SOLID principles and DRY pattern.
+
+    Args:
+        value: String value to parse
+
+    Returns:
+        FlextResult containing parsed value or error
+
+    """
+    try:
+        # Try parsing as JSON first
+        parsed_value = json.loads(value)
+        return FlextResult.ok(parsed_value)
+    except json.JSONDecodeError:
+        # If not JSON, treat as string
+        return FlextResult.ok(value)
+    except (ValueError, TypeError) as e:
+        return FlextResult.fail(f"Failed to parse config value: {e}")
+
+
+def set_config_attribute(
+    target_object: object,
+    key: str,
+    value: TConfigValue,
+) -> FlextResult[str]:
+    """Set configuration attribute on target object.
+
+    This function eliminates code duplication in config commands.
+    Follows SOLID principles and DRY pattern.
+
+    Args:
+        target_object: Object to set attribute on
+        key: Attribute key
+        value: Parsed value to set
+
+    Returns:
+        FlextResult containing success message or error
+
+    """
+    try:
+        if hasattr(target_object, key):
+            setattr(target_object, key, value)
+            return FlextResult.ok(
+                f"Set {target_object.__class__.__name__.lower()}.{key} = {value}",
+            )
+        return FlextResult.fail(
+            f"Attribute '{key}' not found on {target_object.__class__.__name__}",
+        )
+    except (AttributeError, TypeError, ValueError) as e:
+        return FlextResult.fail(f"Failed to set attribute '{key}': {e}")

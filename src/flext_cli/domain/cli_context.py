@@ -1,8 +1,66 @@
-"""CLI context for dependency injection and state management.
+"""FLEXT CLI Domain Context - CLI Context Value Objects and State Management.
+
+This module provides context value objects for FLEXT CLI operations, managing
+state, configuration, and execution context throughout command lifecycle.
+Uses flext-core FlextValueObject patterns for immutable context management.
+
+Context Classes:
+    - CLIContext: Main CLI context with configuration and console
+    - CLIExecutionContext: Command execution tracking and metadata
+
+Architecture:
+    - FlextValueObject base for immutable context objects
+    - Rich console integration for enhanced output
+    - Domain validation with FlextResult error handling
+    - Type-safe context management with Pydantic
+    - Centralized state management for CLI operations
+
+Current Implementation Status:
+    ✅ CLIContext with configuration and console management
+    ✅ CLIExecutionContext for command tracking
+    ✅ FlextValueObject integration with domain validation
+    ✅ Rich console integration for output management
+    ✅ Debug, info, success, warning, error output methods
+    ⚠️ Basic implementation (TODO: Sprint 2 - enhance context features)
+
+TODO (docs/TODO.md):
+    Sprint 2: Add correlation ID tracking across commands
+    Sprint 3: Add user session management and persistence
+    Sprint 5: Add command history and audit logging
+    Sprint 7: Add performance metrics and monitoring context
+    Sprint 8: Add interactive mode context and state
+
+Features:
+    - Immutable context objects with validation
+    - Rich console integration for beautiful output
+    - Debug mode and quiet mode support
+    - Command execution tracking and metadata
+    - Type-safe context passing between commands
+
+Usage Examples:
+    Basic CLI context:
+    >>> context = CLIContext(
+    ...     config=cli_config,
+    ...     settings=cli_settings,
+    ...     console=Console()
+    ... )
+    >>> context.print_success("Operation completed")
+
+    Execution context:
+    >>> exec_context = CLIExecutionContext(
+    ...     command_name="auth login",
+    ...     user_id="user123",
+    ...     session_id="session456"
+    ... )
+
+Integration:
+    - Used by all CLI commands for consistent context
+    - Integrates with dependency injection container
+    - Provides foundation for command lifecycle management
+    - Supports debugging and monitoring patterns
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -13,18 +71,43 @@ from flext_core.result import FlextResult
 from flext_core.value_objects import FlextValueObject
 from pydantic import ConfigDict, Field
 
+# Import all dependencies at runtime for Pydantic model_rebuild
+
 if TYPE_CHECKING:
     from rich.console import Console
 
     from flext_cli.utils.config import CLIConfig, CLISettings
 
-else:
-    # Import at runtime for Pydantic to work correctly
-    pass
-
 
 class CLIContext(FlextValueObject):
-    """CLI context containing configuration and services."""
+    """Main CLI context value object for state and configuration management.
+
+    Immutable context object that carries configuration, settings, and console
+    throughout command execution. Provides convenience methods for different
+    types of output and integrates with Rich console for enhanced UX.
+
+    Features:
+        - Immutable value object with validation
+        - Rich console integration for beautiful output
+        - Debug, quiet, and verbose mode support
+        - Convenient output methods (debug, info, success, warning, error)
+        - Type-safe configuration and settings access
+
+    Design Pattern:
+        Uses Value Object pattern from DDD with FlextValueObject base for
+        immutable state management and validation. Ensures consistency
+        across command executions.
+
+    Usage:
+        >>> context = CLIContext(
+        ...     config=cli_config,
+        ...     settings=cli_settings,
+        ...     console=Console()
+        ... )
+        >>> context.print_success("Command completed successfully")
+        >>> if context.is_debug:
+        ...     context.print_debug("Debug information")
+    """
 
     config: CLIConfig = Field(..., description="CLI configuration")
     settings: CLISettings = Field(..., description="CLI settings")
@@ -131,7 +214,41 @@ class CLIContext(FlextValueObject):
 
 
 class CLIExecutionContext(FlextValueObject):
-    """CLI execution context for tracking command execution state."""
+    """CLI execution context for tracking command execution state and metadata.
+
+    Immutable value object that tracks command execution lifecycle, user context,
+    and session information. Used for audit logging, performance monitoring,
+    and command history tracking across CLI operations.
+
+    Features:
+        - Command execution tracking and metadata
+        - User and session identification
+        - Timestamp tracking for performance analysis
+        - Additional context data for command-specific information
+        - Domain validation for execution context integrity
+
+    Use Cases:
+        - Command audit logging and history
+        - Performance monitoring and analysis
+        - User session tracking
+        - Error tracking and debugging
+        - Command lifecycle management
+
+    TODO (Sprint 5):
+        - Add execution duration tracking
+        - Add command result and exit code tracking
+        - Add parent/child command relationships
+        - Add correlation ID for distributed tracing
+
+    Usage:
+        >>> exec_context = CLIExecutionContext(
+        ...     command_name="auth login",
+        ...     user_id="user123",
+        ...     session_id="session456",
+        ...     started_at="2025-01-01T12:00:00Z"
+        ... )
+        >>> # Track command execution metadata
+    """
 
     command_name: str = Field(..., description="Name of the command being executed")
     user_id: str | None = Field(
@@ -164,4 +281,6 @@ class CLIExecutionContext(FlextValueObject):
         return FlextResult.ok(None)
 
 
-# No need for manual model rebuilding since we import types at runtime
+# Ensure models are rebuilt after imports are complete
+CLIContext.model_rebuild()
+CLIExecutionContext.model_rebuild()

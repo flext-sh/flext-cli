@@ -13,6 +13,9 @@ import traceback
 
 import flext_cli
 
+# Constants
+HIGH_VALUE_THRESHOLD = 80
+
 
 def example_1_enterprise_data_pipeline() -> None:
     """Example 1: Enterprise-grade data pipeline with error handling."""
@@ -137,7 +140,7 @@ def example_2_flext_result_chaining() -> None:
                 {
                     **item,
                     "value_squared": item["value"] ** 2,
-                    "is_high_value": item["value"] > 80,
+                    "is_high_value": item["value"] > HIGH_VALUE_THRESHOLD,
                     "enrichment_timestamp": "2024-01-15T10:30:00Z",
                 }
                 for item in data

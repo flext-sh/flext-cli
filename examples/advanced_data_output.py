@@ -322,6 +322,7 @@ def example_integrated_workflow() -> None:
     )
 
     def process_sales_data(
+        *,
         export: bool = False,
         dashboard: bool = False,
     ) -> FlextResult[dict[str, object]]:

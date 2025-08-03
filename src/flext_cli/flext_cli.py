@@ -1,6 +1,77 @@
-"""Public interface for FLEXT CLI library.
+"""FLEXT CLI Public Interface - Legacy Compatibility and Simple Function API.
 
-Clean, simple functions for external use.
+This module provides a simplified public interface for FLEXT CLI library,
+offering clean, simple functions for external use and backward compatibility.
+Acts as a facade over the main FlextCliApi implementation for easy integration.
+
+Interface Categories:
+    - Data Operations: Export, formatting, and rendering functions
+    - Configuration: Service configuration and health monitoring
+    - Context Management: CLI execution context creation and management
+    - Command Management: Command, session, plugin, handler registration
+    - System Operations: Health checks and service status
+
+Architecture:
+    - Facade pattern over FlextCliApi for simplified access
+    - Backward compatibility for legacy integrations
+    - Error handling with graceful degradation
+    - Type safety with proper error propagation
+    - Global API instance for stateful operations
+
+Current Implementation Status:
+    ✅ Complete public interface with all operations
+    ✅ FlextCliApi integration with error handling
+    ✅ Context creation and management functions
+    ✅ Command, session, plugin, handler registration
+    ✅ Data export, formatting, and rendering
+    ✅ Health monitoring and service status
+    ⚠️ Legacy compatibility layer (TODO: Sprint 3 - modernize interface)
+
+TODO (docs/TODO.md):
+    Sprint 3: Modernize interface with async support
+    Sprint 3: Add type safety improvements and validation
+    Sprint 5: Add comprehensive error recovery and fallbacks
+    Sprint 7: Add performance monitoring and metrics integration
+    Sprint 8: Add interactive features and user guidance
+
+Public Functions:
+    Data Operations:
+        - flext_cli_export: Export data to files in multiple formats
+        - flext_cli_format: Format data for display and output
+        - flext_cli_render_with_context: Context-based rendering
+
+    System Operations:
+        - flext_cli_configure: Service configuration
+        - flext_cli_health: Health status and monitoring
+        - flext_cli_create_context: CLI execution context creation
+
+    Management Operations:
+        - flext_cli_create_command/session: Entity creation
+        - flext_cli_register_handler/plugin: Service registration
+        - flext_cli_get_commands/sessions/plugins/handlers: Registry access
+
+Usage Examples:
+    Basic data operations:
+    >>> flext_cli_configure({"debug": True})
+    >>> formatted = flext_cli_format(data, "json")
+    >>> flext_cli_export(data, "output.json", "json")
+
+    Context management:
+    >>> context = flext_cli_create_context({"output_format": "table"})
+    >>> health = flext_cli_health()
+
+    Registration operations:
+    >>> flext_cli_register_handler("my_handler", handler_func)
+    >>> commands = flext_cli_get_commands()
+
+Integration:
+    - Used by external applications for FLEXT CLI integration
+    - Provides backward compatibility for existing code
+    - Acts as facade over complex FlextCliApi implementation
+    - Supports simple function-based interface patterns
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -95,8 +166,12 @@ def flext_cli_create_context(
     """
     result = _api.flext_cli_create_context(config)
     # Cast to expected type since API returns object
-    if isinstance(result, FlextCliContext):
-        return result
+    try:
+        if isinstance(result, FlextCliContext):
+            return result
+    except TypeError:
+        # Handle cases where isinstance fails due to import issues
+        pass
     # Create fallback context if cast fails
     cli_config = FlextCliConfig(config or {})
     return FlextCliContext(cli_config)

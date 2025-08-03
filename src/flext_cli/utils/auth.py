@@ -1,8 +1,70 @@
-"""Authentication utilities using flext-core patterns.
+"""FLEXT CLI Authentication Utilities - Token Management and Security Operations.
+
+This module provides authentication utilities for FLEXT CLI operations including
+token storage, retrieval, validation, and security patterns. Uses flext-core
+FlextResult patterns for comprehensive error handling and security best practices.
+
+Authentication Features:
+    - Secure token storage with restricted file permissions (0o600)
+    - Auth token and refresh token management
+    - Authentication state validation
+    - Auto-refresh token capabilities
+    - Secure token cleanup and logout operations
+
+Security Features:
+    - Restricted file permissions for token storage
+    - Secure token file location in user's home directory
+    - Error handling for permission and filesystem issues
+    - Token validation and integrity checks
+    - Secure token cleanup operations
+
+Current Implementation Status:
+    ✅ Token storage and retrieval with security
+    ✅ Auth and refresh token management
+    ✅ FlextResult integration for error handling
+    ✅ Authentication state validation
+    ✅ Auto-refresh token support
+    ⚠️ Basic implementation (TODO: Sprint 2 - enhance security features)
+
+TODO (docs/TODO.md):
+    Sprint 2: Add token expiration and validation
+    Sprint 2: Add JWT token parsing and validation
+    Sprint 3: Add multi-profile authentication support
+    Sprint 5: Add authentication audit logging
+    Sprint 7: Add authentication metrics and monitoring
+
+Functions:
+    - get_token_path/get_refresh_token_path: Token file location management
+    - save_auth_token/save_refresh_token: Secure token storage
+    - get_auth_token/get_refresh_token: Token retrieval
+    - clear_auth_tokens: Secure token cleanup
+    - is_authenticated: Authentication state validation
+    - should_auto_refresh: Auto-refresh token logic
+
+Usage Examples:
+    Save authentication token:
+    >>> result = save_auth_token("jwt_token_here")
+    >>> if result.is_success:
+    ...     print("Token saved securely")
+
+    Check authentication status:
+    >>> if is_authenticated():
+    ...     token = get_auth_token()
+    ...     # Use token for API calls
+
+    Logout and clear tokens:
+    >>> result = clear_auth_tokens()
+    >>> if result.is_success:
+    ...     print("Logged out successfully")
+
+Integration:
+    - Used by authentication commands for token management
+    - Integrates with CLI configuration for token paths
+    - Supports authentication decorators and middleware
+    - Provides foundation for secure CLI operations
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
