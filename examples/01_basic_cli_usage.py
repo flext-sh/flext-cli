@@ -11,11 +11,14 @@ Key features demonstrated:
 - Helper utilities for common CLI operations
 - Click parameter types integration
 - Service result handling patterns
+
+Copyright (c) 2025 Flext. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
 
-# Import FLEXT CLI library components
 import flext_cli
 from flext_core.result import FlextResult
 from rich.console import Console

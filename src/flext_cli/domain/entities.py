@@ -44,6 +44,7 @@ TODO (docs/TODO.md):
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -52,11 +53,9 @@ import contextlib
 from datetime import UTC, datetime
 from enum import StrEnum
 
-# DRY: Use REAL flext-core imports from main API - NO DUPLICATION
 from flext_core import FlextEntity, FlextResult, FlextValueObject, TEntityId
 from pydantic import Field
 
-# DRY: Use real type alias - NO DUPLICATION
 TUserId = TEntityId
 
 
@@ -147,7 +146,7 @@ class CLICommand(FlextEntity):
         >>> command = CLICommand(
         ...     name="list-pipelines",
         ...     command_line="flext pipeline list",
-        ...     command_type=CommandType.CLI
+        ...     command_type=CommandType.CLI,
         ... )
         >>> result = command.start_execution()
         >>> if result.is_success:
@@ -370,16 +369,14 @@ class CLICommand(FlextEntity):
         Examples:
             # Successful completion
             >>> result = running_command.complete_execution(
-            ...     exit_code=0,
-            ...     stdout="Operation successful"
+            ...     exit_code=0, stdout="Operation successful"
             ... )
             >>> completed = result.unwrap()
             >>> assert completed.is_successful
 
             # Failed execution
             >>> result = running_command.complete_execution(
-            ...     exit_code=1,
-            ...     stderr="Error occurred"
+            ...     exit_code=1, stderr="Error occurred"
             ... )
             >>> failed = result.unwrap()
             >>> assert not failed.is_successful

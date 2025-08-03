@@ -2,18 +2,17 @@
 
 This example shows how to use the FLEXT CLI with real dependencies,
 following SOLID principles without mocks or placeholders.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
-import sys
+from __future__ import annotations
+
 import tempfile
 from pathlib import Path
 
-# Add src to path for development testing
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-# Use real flext-core imports - no mocks/placeholders allowed
-
-# Import the complete CLI interface using real dependencies
 from flext_cli import (
     CliApi,
     # All restored functionality through simple interface

@@ -1,9 +1,10 @@
 """Tests for utils output utilities.
 
+Tests output formatting utilities for coverage.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Tests output formatting utilities for coverage.
 """
 
 from __future__ import annotations

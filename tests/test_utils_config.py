@@ -1,10 +1,8 @@
 """Tests for utils configuration in FLEXT CLI Library.
 
-# Constants
-EXPECTED_DATA_COUNT = 3
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -16,6 +14,9 @@ from flext_cli.utils.config import CLIConfig, CLISettings, get_config, get_setti
 
 if TYPE_CHECKING:
     import pytest
+
+# Constants
+EXPECTED_DATA_COUNT = 3
 
 
 class TestCLIConfig:

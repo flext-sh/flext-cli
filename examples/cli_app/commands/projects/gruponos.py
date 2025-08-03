@@ -1,10 +1,11 @@
 """GrupoNOS Meltano Native commands for flext-cli.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
 GrupoNOS Meltano Native CLI commands integrated into the unified FLEXT CLI.
 Preserves ALL original functionality from gruponos-meltano-native/cli.py.
+
+Copyright (c) 2025 Flext. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations

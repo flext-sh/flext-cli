@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Debug E2E test failures."""
+"""Debug E2E test failures.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
+
+from __future__ import annotations
 
 import traceback
 

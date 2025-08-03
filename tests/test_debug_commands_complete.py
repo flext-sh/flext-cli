@@ -1,9 +1,10 @@
 """Complete tests for debug commands to achieve 90%+ coverage.
 
+Focused tests to cover the remaining uncovered lines in debug commands.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Focused tests to cover the remaining uncovered lines in debug commands.
 """
 
 from __future__ import annotations

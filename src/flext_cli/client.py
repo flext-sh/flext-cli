@@ -33,6 +33,10 @@ Migration Plan:
 
 Service-related functionality has been moved to examples for development.
 This module will be enhanced with real ecosystem integration in Sprint 1.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -64,7 +68,10 @@ class FlextApiClient:
         return self
 
     async def __aexit__(
-        self, exc_type: object, exc_val: object, exc_tb: object,
+        self,
+        exc_type: object,
+        exc_val: object,
+        exc_tb: object,
     ) -> None:
         """Async context manager exit."""
 

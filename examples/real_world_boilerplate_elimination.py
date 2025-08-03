@@ -6,6 +6,7 @@ Shows before/after code with measurable line reduction.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -14,12 +15,10 @@ import json
 import logging
 from typing import Any
 
-# All imports from root namespace (as required)
 from flext_cli import (
     flext_cli_config_with_defaults,
     flext_cli_create_config_manager,
     flext_cli_create_operation_chain,
-    # Zero boilerplate classes
     flext_cli_create_processor,
     flext_cli_create_transformer,
     flext_cli_data_pipeline,

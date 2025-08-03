@@ -35,6 +35,7 @@ TODO (docs/TODO.md):
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -45,8 +46,6 @@ from flext_core.result import FlextResult
 from flext_core.value_objects import FlextValueObject
 from pydantic import Field
 from rich.console import Console
-
-# Simplified type handling for MyPy compatibility
 
 
 class CLIContext(FlextValueObject):
@@ -71,11 +70,7 @@ class CLIContext(FlextValueObject):
         - All context values are immutable after creation
 
     Usage:
-        >>> context = CLIContext(
-        ...     profile="dev",
-        ...     output_format="json",
-        ...     debug=True
-        ... )
+        >>> context = CLIContext(profile="dev", output_format="json", debug=True)
         >>> assert context.profile == "dev"
         >>> assert context.debug is True
 

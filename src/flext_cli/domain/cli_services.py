@@ -42,9 +42,7 @@ Usage Examples:
     Command service:
     >>> command_service = CLICommandService()
     >>> result = command_service.create_command(
-    ...     name="test",
-    ...     command_line="echo hello",
-    ...     command_type="system"
+    ...     name="test", command_line="echo hello", command_type="system"
     ... )
     >>> if result.is_success:
     ...     command = result.unwrap()
@@ -63,6 +61,7 @@ Integration:
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -73,7 +72,6 @@ from flext_core import ValidatedModel
 from flext_core.result import FlextResult
 from pydantic import Field
 
-# Real imports at top level for better performance and clarity
 from flext_cli.domain.entities import CLICommand, CLISession, CommandType
 
 logger = logging.getLogger(__name__)
@@ -99,10 +97,7 @@ class CLIServiceContainer(ValidatedModel):
         - Add configuration injection patterns
 
     Usage:
-        >>> container = CLIServiceContainer(
-        ...     name="CLI Services",
-        ...     version="1.0.0"
-        ... )
+        >>> container = CLIServiceContainer(name="CLI Services", version="1.0.0")
         >>> # Register and resolve services
     """
 

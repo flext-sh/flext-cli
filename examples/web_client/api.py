@@ -1,10 +1,15 @@
 """Clean API implementation using service composition.
 
 Single API class with all functionality, no duplication.
+
+Copyright (c) 2025 Flext. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
-from collections.abc import Callable
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 from flext_cli.core import FlextCliService
 from flext_cli.types import (
@@ -16,6 +21,9 @@ from flext_cli.types import (
     TCliPath,
 )
 from flext_core.loggings import get_logger
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class FlextCliApi:

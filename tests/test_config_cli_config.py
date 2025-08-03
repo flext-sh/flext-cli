@@ -1,9 +1,10 @@
 """Tests for CLI configuration module.
 
+Tests CLI configuration classes and functions for coverage.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Tests CLI configuration classes and functions for coverage.
 """
 
 from __future__ import annotations

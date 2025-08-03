@@ -56,11 +56,11 @@ Integration:
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
 
-# Only export what's needed - clean architecture
 from flext_cli.utils.config import CLIConfig, CLISettings, get_config
 
 __all__ = [

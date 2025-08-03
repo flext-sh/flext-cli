@@ -47,10 +47,11 @@ Integration:
     - Works with all FLEXT ecosystem services
     - Integrates with authentication for secure diagnostics
     - Supports monitoring and observability systems
-    - Provides troubleshooting for multi-service deployments
+    - Provides troubleshooting for multi-service
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations

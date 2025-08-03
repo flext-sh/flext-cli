@@ -67,6 +67,7 @@ Integration:
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -701,63 +702,89 @@ class FlextCliApi:
     ) -> FlextResult[str]:
         """Render data with context using template substitution."""
         try:
-            # Handle simple template substitution for strings
-            if isinstance(data, dict) and context:
-                # Look for template patterns in dict values
-                for value in data.values():
-                    if isinstance(value, str) and "{{" in value and "}}" in value:
-                        # Simple template substitution
-                        template_str = value
-                        for ctx_key, ctx_value in context.items():
-                            template_str = template_str.replace(
-                                f"{{{{{ctx_key}}}}}",
-                                str(ctx_value),
-                            )
-                        return FlextResult.ok(template_str)
-
-            # Handle string data directly
-            if isinstance(data, str) and context and "{{" in data and "}}" in data:
-                template_str = data
-                for ctx_key, ctx_value in context.items():
-                    template_str = template_str.replace(
-                        f"{{{{{ctx_key}}}}}",
-                        str(ctx_value),
-                    )
-                return FlextResult.ok(template_str)
-
-            # Use context to determine format or default to table
-            format_type = "table"
-            if context:
-                format_obj = context.get("format", "table")
-                if isinstance(format_obj, str):
-                    format_type = format_obj
-
-            # Create formatter and render
-            formatter = FormatterFactory.create(format_type)
-
-            # Capture output to string
-            output_buffer = io.StringIO()
-            with redirect_stdout(output_buffer):
-                # Use a console that writes to our buffer
-                buffer_console = Console(
-                    file=output_buffer,
-                    width=80,
-                    legacy_windows=False,
-                )
-                formatter.format(data, buffer_console)
-
-            rendered_output = output_buffer.getvalue()
-
-            # Apply context-based transformations if any
-            if context and "title" in context:
-                title = context["title"]
-                if isinstance(title, str):
-                    rendered_output = f"# {title}\n\n{rendered_output}"
-
-            return FlextResult.ok(rendered_output)
-
+            renderer = ContextRenderingStrategy(data, context)
+            return renderer.render()
         except Exception as e:
             return FlextResult.fail(f"Failed to render with context: {e}")
+
+
+class ContextRenderingStrategy:
+    """Strategy pattern for context-based rendering with SOLID principles."""
+
+    def __init__(self, data: object, context: dict[str, object] | None = None) -> None:
+        """Initialize rendering strategy."""
+        self.data = data
+        self.context = context or {}
+
+    def render(self) -> FlextResult[str]:
+        """Render data using appropriate strategy."""
+        # Template substitution has priority
+        template_result = self._try_template_substitution()
+        if template_result.is_success:
+            return template_result
+
+        # Fall back to formatter-based rendering
+        return self._render_with_formatter()
+
+    def _try_template_substitution(self) -> FlextResult[str]:
+        """Try template substitution first."""
+        if isinstance(self.data, dict):
+            return self._render_dict_templates()
+
+        if isinstance(self.data, str):
+            return self._render_string_template()
+
+        return FlextResult.fail("No template patterns found")
+
+    def _render_dict_templates(self) -> FlextResult[str]:
+        """Render templates in dictionary values."""
+        for value in self.data.values():
+            if self._is_template_string(value):
+                return FlextResult.ok(self._substitute_template(str(value)))
+        return FlextResult.fail("No template patterns in dict")
+
+    def _render_string_template(self) -> FlextResult[str]:
+        """Render string template directly."""
+        if self._is_template_string(self.data):
+            return FlextResult.ok(self._substitute_template(str(self.data)))
+        return FlextResult.fail("Not a template string")
+
+    def _is_template_string(self, value: object) -> bool:
+        """Check if value is a template string."""
+        return (
+            isinstance(value, str) and "{{" in value and "}}" in value and self.context
+        )
+
+    def _substitute_template(self, template_str: str) -> str:
+        """Substitute template variables."""
+        for ctx_key, ctx_value in self.context.items():
+            template_str = template_str.replace(f"{{{{{ctx_key}}}}}", str(ctx_value))
+        return template_str
+
+    def _render_with_formatter(self) -> FlextResult[str]:
+        """Render using formatter strategy."""
+        format_type = self._get_format_type()
+        formatter = FormatterFactory.create(format_type)
+
+        output_buffer = io.StringIO()
+        with redirect_stdout(output_buffer):
+            buffer_console = Console(file=output_buffer, width=80, legacy_windows=False)
+            formatter.format(self.data, buffer_console)
+
+        rendered_output = output_buffer.getvalue()
+        return FlextResult.ok(self._apply_title_if_needed(rendered_output))
+
+    def _get_format_type(self) -> str:
+        """Get format type from context."""
+        format_obj = self.context.get("format", "table")
+        return str(format_obj) if isinstance(format_obj, str) else "table"
+
+    def _apply_title_if_needed(self, output: str) -> str:
+        """Apply title transformation if needed."""
+        title = self.context.get("title")
+        if isinstance(title, str):
+            return f"# {title}\n\n{output}"
+        return output
 
     def flext_cli_get_commands(self) -> dict[str, object]:
         """Get all registered commands with real implementation."""

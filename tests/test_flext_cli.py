@@ -1,10 +1,10 @@
 """Tests for flext_cli module.
 
+Tests for the public interface functions in flext_cli module.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Tests for the public interface functions in flext_cli module.
 """
 
 from __future__ import annotations
@@ -16,6 +16,7 @@ from unittest.mock import MagicMock, patch
 # Constants
 EXPECTED_BULK_SIZE = 2
 EXPECTED_DATA_COUNT = 3
+
 # Mock the problematic imports before importing flext_cli
 mock_api = MagicMock()
 mock_plugin = MagicMock()

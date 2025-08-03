@@ -40,17 +40,13 @@ Features:
 Usage Examples:
     Basic CLI context:
     >>> context = CLIContext(
-    ...     config=cli_config,
-    ...     settings=cli_settings,
-    ...     console=Console()
+    ...     config=cli_config, settings=cli_settings, console=Console()
     ... )
     >>> context.print_success("Operation completed")
 
     Execution context:
     >>> exec_context = CLIExecutionContext(
-    ...     command_name="auth login",
-    ...     user_id="user123",
-    ...     session_id="session456"
+    ...     command_name="auth login", user_id="user123", session_id="session456"
     ... )
 
 Integration:
@@ -61,6 +57,7 @@ Integration:
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -70,8 +67,6 @@ from typing import TYPE_CHECKING
 from flext_core.result import FlextResult
 from flext_core.value_objects import FlextValueObject
 from pydantic import ConfigDict, Field
-
-# Import all dependencies at runtime for Pydantic model_rebuild
 
 if TYPE_CHECKING:
     from rich.console import Console
@@ -100,9 +95,7 @@ class CLIContext(FlextValueObject):
 
     Usage:
         >>> context = CLIContext(
-        ...     config=cli_config,
-        ...     settings=cli_settings,
-        ...     console=Console()
+        ...     config=cli_config, settings=cli_settings, console=Console()
         ... )
         >>> context.print_success("Command completed successfully")
         >>> if context.is_debug:
@@ -245,7 +238,7 @@ class CLIExecutionContext(FlextValueObject):
         ...     command_name="auth login",
         ...     user_id="user123",
         ...     session_id="session456",
-        ...     started_at="2025-01-01T12:00:00Z"
+        ...     started_at="2025-01-01T12:00:00Z",
         ... )
         >>> # Track command execution metadata
     """

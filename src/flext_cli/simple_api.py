@@ -44,10 +44,7 @@ Usage Examples:
     ...     print("CLI ready for use")
 
     Custom configuration:
-    >>> settings = CLISettings(
-    ...     api_url="https://api.example.com",
-    ...     output_format="json"
-    ... )
+    >>> settings = CLISettings(api_url="https://api.example.com", output_format="json")
     >>> setup_cli(settings)
 
 Integration:
@@ -58,6 +55,7 @@ Integration:
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations

@@ -49,6 +49,7 @@ TODO Implementation (docs/TODO.md):
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -64,13 +65,10 @@ from flext_cli.commands import auth, config, debug
 from flext_cli.domain.cli_context import CLIContext
 from flext_cli.utils.config import CLISettings, get_config
 
-# Optional import for version detection
 try:
     from flext_core import __version__ as _core_version
 
     core_version: str | None = _core_version
-except ImportError:
-    core_version = None
 
 
 @click.group(

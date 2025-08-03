@@ -1,9 +1,10 @@
 """Comprehensive tests for api module.
 
+Tests for API functions to achieve near 100% coverage.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Tests for API functions to achieve near 100% coverage.
 """
 
 from __future__ import annotations

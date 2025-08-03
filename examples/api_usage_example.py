@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
 """Example of FLEXT CLI API usage.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
 This example demonstrates the real functionality implemented in the FLEXT CLI API.
 It shows how to use all the major features without placeholders or mockups.
 
 REFACTORED: Applied Single Responsibility Principle (SRP) from SOLID.
 Each function now has a single, focused responsibility.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
 
 import json
 import operator
+import tempfile
 from datetime import UTC, datetime
 
 from flext_cli.api import FlextCliApi
@@ -79,13 +81,16 @@ class FlextCliDemoRunner:
         else:
             print(f"   ❌ Failed to create command: {result.error}")
 
-        # Create script command
+        # Create script command using secure temporary directory
+
+        secure_backup_dir = tempfile.mkdtemp(prefix="backup_")
+
         script_result = self.api.flext_cli_create_command(
             "backup-data",
             "python backup_script.py",
             description="Backup application data",
             command_type="script",
-            environment_vars={"BACKUP_DIR": "/tmp/backup"},
+            environment_vars={"BACKUP_DIR": secure_backup_dir},
             timeout_seconds=300,
         )
 

@@ -46,7 +46,7 @@ Usage Examples:
     >>> command = FlextCliCommand(
     ...     name="test",
     ...     command_line="echo hello",
-    ...     command_type=FlextCliCommandType.SYSTEM
+    ...     command_type=FlextCliCommandType.SYSTEM,
     ... )
     >>> command.flext_cli_start_execution()
     >>> command.flext_cli_complete_execution(exit_code=0, stdout="hello")

@@ -47,9 +47,7 @@ Enums and Types:
 Usage Examples:
     Creating commands:
     >>> command = CLICommand(
-    ...     name="test",
-    ...     command_line="echo hello",
-    ...     command_type=CommandType.SYSTEM
+    ...     name="test", command_line="echo hello", command_type=CommandType.SYSTEM
     ... )
     >>> command.start_execution()
 
@@ -65,11 +63,11 @@ Integration:
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
 
-# Only import the entities that work
 from flext_cli.domain.cli_services import CLIServiceContainer
 from flext_cli.domain.entities import (
     CLICommand,
