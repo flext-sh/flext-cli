@@ -1,10 +1,11 @@
 """FLEXT Meltano commands for flext-cli.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
 FLEXT Meltano CLI commands integrated into the unified FLEXT CLI.
 Preserves ALL original functionality from flext-meltano/cli.py.
+
+Copyright (c) 2025 Flext. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -19,7 +20,6 @@ from typing import TYPE_CHECKING
 import click
 import yaml
 
-# Import FLEXT Meltano modules - preserving original imports
 if TYPE_CHECKING:
     from flext_meltano.config import MeltanoSettings
     from flext_meltano.orchestrator import FlextMeltanoOrchestrator

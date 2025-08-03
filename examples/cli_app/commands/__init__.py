@@ -1,9 +1,10 @@
 """FLEXT CLI Commands.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Command modules for the FLEXT CLI.
+
+Copyright (c) 2025 Flext. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Command modules for the FLEXT CLI.
 """
 
 from __future__ import annotations

@@ -12,13 +12,16 @@ Key features demonstrated:
 - Domain events for CLI operations
 - Business rule validation
 - Entity state transitions
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
 
 from uuid import uuid4
 
-# Import FLEXT CLI library components
 import flext_cli
 from rich.console import Console
 from rich.table import Table

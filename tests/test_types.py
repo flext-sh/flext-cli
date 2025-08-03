@@ -1,9 +1,10 @@
 """Comprehensive tests for types.py module.
 
+Tests all type definitions and entities in types.py for 100% coverage.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Tests all type definitions and entities in types.py for 100% coverage.
 """
 
 from __future__ import annotations

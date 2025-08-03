@@ -1,9 +1,10 @@
 """Tests for debug commands.
 
+Tests debug command functionality for coverage.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Tests debug command functionality for coverage.
 """
 
 from __future__ import annotations

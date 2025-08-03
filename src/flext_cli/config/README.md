@@ -38,7 +38,7 @@ src/flext_cli/config/
 ### **Target Architecture (Sprint 3-4)**
 
 - 🎯 **Profile Management**: Complete profile system with inheritance
-- 🎯 **User Configuration**: ~/.flx/config.yaml user configuration
+- 🎯 **User Configuration**: ~/.flx/config.YAML user configuration
 - 🎯 **Hierarchical Loading**: Command-line > Environment > Profile > Defaults
 - 🎯 **Dynamic Configuration**: Runtime configuration updates and validation
 
@@ -47,6 +47,7 @@ src/flext_cli/config/
 ### ✅ **Currently Implemented**
 
 #### **cli_config.py - Configuration Models**
+
 - **CLIConfig**: Basic CLI configuration with Pydantic validation
 - **Environment integration**: Environment variable loading
 - **Default values**: Sensible defaults for all configuration options
@@ -55,6 +56,7 @@ src/flext_cli/config/
 ### ⚠️ **Needs Enhancement (Sprint 3)**
 
 #### **Profile System Implementation**
+
 ```python
 # Current (Basic Configuration)
 class CLIConfig(BaseSettings):
@@ -74,6 +76,7 @@ class CLIProfileConfig(FlextBaseSettings):
 ```
 
 #### **Hierarchical Configuration Loading**
+
 ```python
 # Target implementation (Sprint 3)
 class ConfigurationManager:
@@ -96,6 +99,7 @@ class ConfigurationManager:
 ### ❌ **Missing Critical Components**
 
 #### **User Configuration Directory (Sprint 4)**
+
 ```python
 # Target implementation
 class UserConfigManager:
@@ -112,6 +116,7 @@ class UserConfigManager:
 ```
 
 #### **Dynamic Configuration Updates (Sprint 4)**
+
 ```python
 # Target implementation
 class DynamicConfigManager:
@@ -127,11 +132,13 @@ class DynamicConfigManager:
 ## 🎯 Sprint Roadmap Alignment
 
 ### **Sprint 1-2: Foundation** (Current Status)
+
 - ✅ Basic configuration models implemented
 - ✅ Environment variable integration
 - ✅ Pydantic validation patterns
 
 ### **Sprint 3: Profile System** (CRITICAL)
+
 ```python
 # Profile inheritance system
 class ProfileConfigLoader:
@@ -150,6 +157,7 @@ class ProfileConfigLoader:
 ```
 
 ### **Sprint 4: User Configuration**
+
 ```python
 # User-specific configuration
 class UserProfileManager:
@@ -168,6 +176,7 @@ class UserProfileManager:
 ```
 
 ### **Sprint 5: Advanced Configuration**
+
 ```python
 # Advanced configuration features
 class AdvancedConfigManager:
@@ -352,16 +361,19 @@ max_retries: 3
 ## 🔗 Integration Points
 
 ### **CLI Commands Integration**
+
 - Global options (`--profile`, `--debug`, `--output`) use configuration
 - Command-specific configuration overrides
 - Dynamic configuration updates from CLI operations
 
 ### **Application Layer Integration**
+
 - Application services access configuration through dependency injection
 - Configuration changes trigger application-level updates
 - Service configuration validation and management
 
 ### **Infrastructure Layer Integration**
+
 - External service configuration (API endpoints, timeouts)
 - Database and persistence configuration
 - Logging and monitoring configuration
@@ -376,18 +388,21 @@ max_retries: 3
 ## 📋 Sprint Implementation Checklist
 
 ### **Sprint 3: Profile System** (HIGH PRIORITY)
+
 - [ ] Implement profile inheritance system
 - [ ] Add profile creation and management commands
 - [ ] Create hierarchical configuration loading
 - [ ] Add profile validation and error handling
 
 ### **Sprint 4: User Configuration** (HIGH PRIORITY)
+
 - [ ] Implement ~/.flx directory structure creation
 - [ ] Add user profile management (create, list, switch, delete)
 - [ ] Create interactive profile setup wizard
 - [ ] Add profile migration and upgrade system
 
 ### **Sprint 5: Advanced Features** (MEDIUM PRIORITY)
+
 - [ ] Add configuration integrity validation
 - [ ] Implement configuration change monitoring
 - [ ] Add configuration backup and restore

@@ -50,21 +50,17 @@ Usage Examples:
     ...     "Invalid output format",
     ...     field="format",
     ...     value="invalid",
-    ...     argument_name="--output"
+    ...     argument_name="--output",
     ... )
 
     Command error:
     >>> raise FlextCliCommandError(
-    ...     "Command execution failed",
-    ...     command="flext auth login",
-    ...     exit_code=1
+    ...     "Command execution failed", command="flext auth login", exit_code=1
     ... )
 
     Configuration error:
     >>> raise FlextCliConfigurationError(
-    ...     "Missing API URL",
-    ...     config_key="api_url",
-    ...     config_file="~/.flext/config.yaml"
+    ...     "Missing API URL", config_key="api_url", config_file="~/.flext/config.yaml"
     ... )
 
 Integration:
@@ -75,6 +71,7 @@ Integration:
 
 Copyright (c) 2025 FLEXT Contributors
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations

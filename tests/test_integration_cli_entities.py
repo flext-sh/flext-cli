@@ -1,9 +1,10 @@
 """Integration tests between CLI commands and core entities.
 
+Tests that validate CLI commands work correctly with domain entities.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Tests that validate CLI commands work correctly with domain entities.
 """
 
 from __future__ import annotations

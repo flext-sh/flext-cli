@@ -1,12 +1,10 @@
 """Tests for config commands.
 
-# Constants
-EXPECTED_DATA_COUNT = 3
+Tests configuration command functionality for coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Tests configuration command functionality for coverage.
 """
 
 from __future__ import annotations
@@ -28,6 +26,9 @@ from flext_cli.commands.config import (
     config,
 )
 from rich.table import Table
+
+# Constants
+EXPECTED_DATA_COUNT = 3
 
 
 class TestConfigCommands:

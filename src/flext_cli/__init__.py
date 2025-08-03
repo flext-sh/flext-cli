@@ -31,7 +31,7 @@ Usage:
     >>> command = CLICommand(
     ...     name="test-command",
     ...     command_line="echo hello",
-    ...     command_type=CommandType.SYSTEM
+    ...     command_type=CommandType.SYSTEM,
     ... )
     >>> result = command.start_execution()
 
@@ -43,14 +43,12 @@ Current Implementation Status:
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
 
-# Version from centralized version management
 from flext_cli.__version__ import __version__
-
-# Convenience functions for library use
 from flext_cli.api import (
     flext_cli_aggregate_data,
     flext_cli_batch_export,
@@ -61,14 +59,10 @@ from flext_cli.api import (
     flext_cli_unwrap_or_default,
     flext_cli_unwrap_or_none,
 )
-
-# Core utilities for CLI development
 from flext_cli.core.base import (
     CLIContext,
     handle_service_result,
 )
-
-# Core decorators and helpers
 from flext_cli.core.decorators import (
     async_command,
     confirm_action,
@@ -78,8 +72,6 @@ from flext_cli.core.decorators import (
     validate_config,
     with_spinner,
 )
-
-# Core formatters
 from flext_cli.core.formatters import (
     FormatterFactory,
     format_output,
@@ -93,8 +85,6 @@ from flext_cli.core.types import (
     NewFile,
     PositiveInt,
 )
-
-# Domain entities - core business objects
 from flext_cli.domain.entities import (
     CLICommand,
     CLIPlugin,
@@ -102,11 +92,7 @@ from flext_cli.domain.entities import (
     CommandStatus,
     CommandType,
 )
-
-# Simple API for programmatic use
 from flext_cli.simple_api import setup_cli
-
-# Configuration and utilities
 from flext_cli.utils.config import (
     CLIConfig,
     CLISettings,

@@ -1,9 +1,10 @@
 """Comprehensive tests for src/flext_cli/commands/debug.py module.
 
+Tests all debug command functionality for 100% coverage.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Tests all debug command functionality for 100% coverage.
 """
 
 from __future__ import annotations

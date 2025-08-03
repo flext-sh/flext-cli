@@ -11,6 +11,10 @@ Key features demonstrated:
 - Configuration-aware commands
 - Rich output formatting
 - Error handling and validation
+
+Copyright (c) 2025 Flext. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -20,8 +24,6 @@ import random
 from typing import TYPE_CHECKING
 
 import click
-
-# Import FLEXT CLI library components
 import flext_cli
 from rich.console import Console
 

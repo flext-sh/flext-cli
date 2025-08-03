@@ -74,20 +74,17 @@ Integration:
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
 
-# Import from flext-core for test compatibility
 from flext_core.utilities import FlextUtilities
 
-# Base classes
 from flext_cli.core.base import (
     CLIContext,
     handle_service_result,
 )
-
-# Decorators
 from flext_cli.core.decorators import (
     async_command,
     confirm_action,
@@ -97,11 +94,7 @@ from flext_cli.core.decorators import (
     validate_config,
     with_spinner,
 )
-
-# Helpers
 from flext_cli.core.helpers import CLIHelper
-
-# Import types for test compatibility
 from flext_cli.types import (
     FlextCliCommand,
     FlextCliConfig,

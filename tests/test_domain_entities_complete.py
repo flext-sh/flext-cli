@@ -1,13 +1,11 @@
 """Comprehensive tests for domain entities.
 
-# Constants
-EXPECTED_BULK_SIZE = 2
-EXPECTED_DATA_COUNT = 3
+
+Complete test coverage for all domain entities and their functionality.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Complete test coverage for all domain entities and their functionality.
 """
 
 from __future__ import annotations
@@ -16,6 +14,10 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+# Constants
+EXPECTED_BULK_SIZE = 2
+EXPECTED_DATA_COUNT = 3
 
 # Mock problematic imports first
 with patch.dict(
@@ -33,10 +35,6 @@ with patch.dict(
         CommandStatus,
         CommandType,
     )
-
-
-# Constants
-EXPECTED_DATA_COUNT = 3
 
 
 class TestCLIConstants:

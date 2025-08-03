@@ -94,7 +94,7 @@ class ExecuteCommandCommand:
         >>> command = ExecuteCommandCommand(
         ...     name="list-pipelines",
         ...     command_line="flext pipeline list",
-        ...     command_type=CommandType.CLI
+        ...     command_type=CommandType.CLI,
         ... )
 
     TODO (Sprint 1-2):

@@ -169,15 +169,33 @@ def example_error_handling() -> None:
 
     api = CliApi()
 
+    # Use secure temporary files instead of hardcoded paths
+    import tempfile
+
     # 1. Export with invalid data
-    success = export(None, "/tmp/invalid.json")
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp_file:
+        invalid_path = tmp_file.name
+
+    success = export(None, invalid_path)
     print(
         f"✓ Invalid data handling: {'Handled' if not success else 'Unexpected success'}"
     )
 
     # 2. Export with unsupported format
-    success = export(SAMPLE_USERS, "/tmp/test.xyz", "xml")
+    with tempfile.NamedTemporaryFile(suffix=".xyz", delete=False) as tmp_file:
+        test_path = tmp_file.name
+
+    success = export(SAMPLE_USERS, test_path, "xml")
     print(f"✓ Unsupported format: {'Handled' if not success else 'Unexpected success'}")
+
+    # Clean up temporary files
+    import os
+
+    try:
+        os.unlink(invalid_path)
+        os.unlink(test_path)
+    except (OSError, FileNotFoundError):
+        pass  # Files may not exist or already cleaned up
 
     # 3. Format with unsupported style
     result = format_data(SAMPLE_USERS, "xml")

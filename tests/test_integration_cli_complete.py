@@ -1,9 +1,10 @@
 """Complete CLI integration tests for FLEXT CLI Library.
 
+Integration tests that validate the entire CLI application with real workflows.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Integration tests that validate the entire CLI application with real workflows.
 """
 
 from __future__ import annotations

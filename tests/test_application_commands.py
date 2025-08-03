@@ -1,12 +1,10 @@
 """Tests for application commands.
 
-# Constants
-EXPECTED_DATA_COUNT = 3
+Tests application command classes for coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Tests application command classes for coverage.
 """
 
 from __future__ import annotations
@@ -34,6 +32,9 @@ from flext_cli.application.commands import (
     ValidateConfigCommand,
 )
 from flext_cli.domain.entities import CommandType
+
+# Constants
+EXPECTED_DATA_COUNT = 3
 
 
 class TestExecuteCommandCommand:

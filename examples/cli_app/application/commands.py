@@ -60,7 +60,7 @@ Usage Examples:
     >>> config = CommandExecutionConfig(
     ...     name="deploy",
     ...     command_line="kubectl apply -f app.yaml",
-    ...     command_type=CommandType.SYSTEM
+    ...     command_type=CommandType.SYSTEM,
     ... )
     >>> handler = ExecuteCliCommandHandler(service)
     >>> result = await handler.handle(config)
@@ -91,6 +91,7 @@ TODO (Sprint 2-3 Implementation):
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations

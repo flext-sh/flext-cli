@@ -1,9 +1,10 @@
 """Comprehensive tests for utils.output module.
 
+Tests for output utilities to achieve near 100% coverage.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Tests for output utilities to achieve near 100% coverage.
 """
 
 from __future__ import annotations

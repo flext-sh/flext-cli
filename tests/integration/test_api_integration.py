@@ -1,9 +1,10 @@
 """Integration tests for FLEXT CLI API implementation.
 
+Tests for the real API functionality that was implemented.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Tests for the real API functionality that was implemented.
 """
 
 from __future__ import annotations

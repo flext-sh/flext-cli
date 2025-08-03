@@ -1,9 +1,9 @@
 """End-to-End workflow tests for FLEXT CLI Library.
 
+E2E tests that simulate real user workflows and validate complete functionality.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
-E2E tests that simulate real user workflows and validate complete functionality.
 """
 
 from __future__ import annotations
