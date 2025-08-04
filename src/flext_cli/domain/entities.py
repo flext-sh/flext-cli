@@ -149,12 +149,12 @@ class CLICommand(FlextEntity):
         ...     command_type=CommandType.CLI,
         ... )
         >>> result = command.start_execution()
-        >>> if result.is_success:
+        >>> if result.success:
         ...     # Command started successfully
         ...     result = command.complete_execution(exit_code=0, stdout="Pipeline 1\n")
 
         # Check command status
-        >>> if command.is_successful:
+        >>> if command.successful:
         ...     print(f"Command completed in {command.duration_seconds}s")
 
     Integration:
@@ -254,7 +254,7 @@ class CLICommand(FlextEntity):
         }
 
     @property
-    def is_successful(self) -> bool:
+    def successful(self) -> bool:
         """Check if command executed successfully with zero exit code.
 
         A command is considered successful only if it completed execution
@@ -273,10 +273,10 @@ class CLICommand(FlextEntity):
         Examples:
             >>> command.command_status = CommandStatus.COMPLETED
             >>> command.exit_code = 0
-            >>> command.is_successful  # True
+            >>> command.successful  # True
 
             >>> command.exit_code = 1
-            >>> command.is_successful  # False (non-zero exit)
+            >>> command.successful  # False (non-zero exit)
 
         """
         return self.command_status == CommandStatus.COMPLETED and self.exit_code == 0
@@ -305,7 +305,7 @@ class CLICommand(FlextEntity):
         Examples:
             >>> command = CLICommand(name="test", command_line="echo hello")
             >>> result = command.start_execution()
-            >>> if result.is_success:
+            >>> if result.success:
             ...     running_command = result.unwrap()
             ...     assert running_command.command_status == CommandStatus.RUNNING
             ...     assert running_command.started_at is not None
@@ -372,14 +372,14 @@ class CLICommand(FlextEntity):
             ...     exit_code=0, stdout="Operation successful"
             ... )
             >>> completed = result.unwrap()
-            >>> assert completed.is_successful
+            >>> assert completed.successful
 
             # Failed execution
             >>> result = running_command.complete_execution(
             ...     exit_code=1, stderr="Error occurred"
             ... )
             >>> failed = result.unwrap()
-            >>> assert not failed.is_successful
+            >>> assert not failed.successful
 
         TODO (Sprint 1-2):
             - Publish appropriate domain events

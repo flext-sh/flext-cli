@@ -241,7 +241,7 @@ def update(ctx: click.Context, plugin_id: str, version: str | None) -> None:
                 if "old_version" in result and "new_version" in result:
                     old_ver = result["old_version"]
                     new_ver = result["new_version"]
-                    version_msg = f"Updated from {old_ver} to {new_ver}"
+                    version_msg: str = f"Updated from {old_ver} to {new_ver}"
                     console.print(version_msg)
         except (RuntimeError, ValueError, TypeError) as e:
             console.print(f"[red]❌ Failed to update plugin: {e}[/red]")

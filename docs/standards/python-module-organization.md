@@ -155,7 +155,7 @@ async def start(ctx: click.Context, pipeline_name: str, environment: str):
 
     # Use domain service with proper error handling
     result = await pipeline_service.start_pipeline(pipeline_name, environment)
-    if result.is_success:
+    if result.success:
         console.print(f"[green]✅ Pipeline '{pipeline_name}' started[/green]")
     else:
         console.print(f"[red]❌ Failed: {result.error}[/red]")
@@ -537,7 +537,7 @@ async def start_pipeline(ctx: click.Context, pipeline_name: str):
     console: Console = ctx.obj["console"]
 
     result = await pipeline_service.start_pipeline(pipeline_name)
-    if result.is_success:
+    if result.success:
         console.print(f"[green]✅ Pipeline started: {pipeline_name}[/green]")
     # Error handling automatically handled by decorators
 ```
@@ -581,7 +581,7 @@ async def list_resources(ctx: click.Context, format: str, verbose: bool, resourc
         verbose=verbose
     )
 
-    if result.is_success:
+    if result.success:
         resources = result.unwrap()
         output = format_output(resources, format)
         console.print(output)
@@ -753,15 +753,15 @@ def test_cli_command_lifecycle():
 
     # Start execution
     result = command.start_execution()
-    assert result.is_success
+    assert result.success
     assert command.command_status == CommandStatus.RUNNING
     assert command.started_at is not None
 
     # Complete execution
     result = command.complete_execution(exit_code=0, stdout="hello")
-    assert result.is_success
+    assert result.success
     assert command.command_status == CommandStatus.COMPLETED
-    assert command.is_successful
+    assert command.successful
     assert command.stdout == "hello"
 
 def test_cli_command_failure():
@@ -775,9 +775,9 @@ def test_cli_command_failure():
     command.start_execution()
     result = command.complete_execution(exit_code=1, stderr="Command failed")
 
-    assert result.is_success  # Completion is successful even if command failed
+    assert result.success  # Completion is successful even if command failed
     assert command.command_status == CommandStatus.FAILED
-    assert not command.is_successful
+    assert not command.successful
     assert command.stderr == "Command failed"
 ```
 
@@ -794,7 +794,7 @@ async def test_flexcore_health_check():
     client = FlexCoreClient()
     result = await client.health_check()
 
-    if result.is_success:
+    if result.success:
         health = result.unwrap()
         assert health.service_name == "flexcore"
         assert health.status in ["healthy", "unhealthy"]
@@ -813,10 +813,10 @@ async def test_cli_container_setup():
 
     # Test service resolution
     auth_service = container.get_typed(AuthService)
-    assert auth_service.is_success
+    assert auth_service.success
 
     config_service = container.get_typed(ConfigService)
-    assert config_service.is_success
+    assert config_service.success
 ```
 
 ---
@@ -877,7 +877,7 @@ async def cli_operation() -> FlextResult[Any]:
     """CLI operation with proper error handling"""
     try:
         result = await external_service.perform_operation()
-        if result.is_success:
+        if result.success:
             return result
         else:
             # Domain error - handled by decorator

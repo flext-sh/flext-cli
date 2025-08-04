@@ -46,7 +46,7 @@ FlextCliApi Class:
 Usage Examples:
     Data formatting:
     >>> result = flext_cli_format(data, "json")
-    >>> if result.is_success:
+    >>> if result.success:
     ...     print(result.unwrap())
 
     API wrapper:
@@ -56,7 +56,7 @@ Usage Examples:
 
     Data export:
     >>> result = flext_cli_export(data, "output.json", "json")
-    >>> if result.is_success:
+    >>> if result.success:
     ...     print("Data exported successfully")
 
 Integration:
@@ -421,7 +421,7 @@ def flext_cli_batch_export(
             file_path = output_path / f"{name}.{format_type}"
             result = flext_cli_export(data, file_path, format_type)
 
-            if not result.is_success:
+            if not result.success:
                 return FlextResult.fail(f"Failed to export {name}: {result.error}")
 
             created_files.append(str(file_path))
@@ -443,7 +443,7 @@ def flext_cli_unwrap_or_default(result: FlextResult[object], default: object) ->
         Result data or default value
 
     """
-    if result.is_success:
+    if result.success:
         return result.unwrap()
     return default
 
@@ -458,7 +458,7 @@ def flext_cli_unwrap_or_none(result: FlextResult[object]) -> object | None:
         Result data or None
 
     """
-    if result.is_success:
+    if result.success:
         return result.unwrap()
     return None
 
@@ -474,12 +474,12 @@ class FlextCliApi:
     ) -> bool:
         """Export data to file."""
         result = flext_cli_export(data, path, format_type)
-        return result.is_success
+        return result.success
 
     def flext_cli_format(self, data: object, format_type: str = "table") -> str:
         """Format data for display."""
         result = flext_cli_format(data, format_type)
-        return result.unwrap() if result.is_success else ""
+        return result.unwrap() if result.success else ""
 
     def flext_cli_configure(self, config: dict[str, object]) -> bool:
         """Configure CLI service using real configuration management."""
@@ -596,7 +596,7 @@ class FlextCliApi:
 
             # Store session information for tracking
             if not hasattr(self, "_sessions"):
-                self._sessions = {}
+                self._sessions: dict[str, object] = {}
 
             session_data: dict[str, object] = {
                 "id": session_id,
@@ -622,7 +622,7 @@ class FlextCliApi:
         try:
             # Initialize handlers registry if needed
             if not hasattr(self, "_handlers"):
-                self._handlers = {}
+                self._handlers: dict[str, object] = {}
 
             # Validate handler and register
             if not callable(handler):
@@ -647,7 +647,7 @@ class FlextCliApi:
             # If plugin is already a FlextPlugin, load it directly
             if isinstance(plugin, FlextPlugin):
                 result = self._plugin_service.load_plugin(plugin)
-                if result.is_success:
+                if result.success:
                     return FlextResult.ok(None)
                 return FlextResult.fail(f"Failed to load plugin: {result.error}")
 
@@ -662,7 +662,7 @@ class FlextCliApi:
             )
 
             result = self._plugin_service.load_plugin(plugin_entity)
-            if result.is_success:
+            if result.success:
                 return FlextResult.ok(None)
             return FlextResult.fail(f"Failed to load plugin: {result.error}")
 
@@ -689,7 +689,10 @@ class FlextCliApi:
 
             # Execute the handler with provided arguments
             # Handler is guaranteed to be callable since we validate during registration
-            result = handler(*args, **kwargs)
+            if callable(handler):
+                result = handler(*args, **kwargs)
+            else:
+                return FlextResult.fail(f"Handler '{name}' is not callable")
             return FlextResult.ok(result)
 
         except Exception as e:
@@ -707,6 +710,26 @@ class FlextCliApi:
         except Exception as e:
             return FlextResult.fail(f"Failed to render with context: {e}")
 
+    def flext_cli_get_commands(self) -> dict[str, object]:
+        """Get all registered commands."""
+        if not hasattr(self, "_commands"):
+            self._commands: dict[str, object] = {}
+        return dict(self._commands)
+
+    def flext_cli_get_sessions(self) -> dict[str, object]:
+        """Get all active sessions."""
+        return dict(getattr(self, "_sessions", {}))
+
+    def flext_cli_get_plugins(self) -> dict[str, object]:
+        """Get all registered plugins."""
+        if not hasattr(self, "_plugins"):
+            self._plugins: dict[str, object] = {}
+        return dict(self._plugins)
+
+    def flext_cli_get_handlers(self) -> dict[str, object]:
+        """Get all registered handlers."""
+        return dict(getattr(self, "_handlers", {}))
+
 
 class ContextRenderingStrategy:
     """Strategy pattern for context-based rendering with SOLID principles."""
@@ -720,7 +743,7 @@ class ContextRenderingStrategy:
         """Render data using appropriate strategy."""
         # Template substitution has priority
         template_result = self._try_template_substitution()
-        if template_result.is_success:
+        if template_result.success:
             return template_result
 
         # Fall back to formatter-based rendering
@@ -738,9 +761,10 @@ class ContextRenderingStrategy:
 
     def _render_dict_templates(self) -> FlextResult[str]:
         """Render templates in dictionary values."""
-        for value in self.data.values():
-            if self._is_template_string(value):
-                return FlextResult.ok(self._substitute_template(str(value)))
+        if isinstance(self.data, dict):
+            for value in self.data.values():
+                if self._is_template_string(value):
+                    return FlextResult.ok(self._substitute_template(str(value)))
         return FlextResult.fail("No template patterns in dict")
 
     def _render_string_template(self) -> FlextResult[str]:
@@ -752,7 +776,10 @@ class ContextRenderingStrategy:
     def _is_template_string(self, value: object) -> bool:
         """Check if value is a template string."""
         return (
-            isinstance(value, str) and "{{" in value and "}}" in value and self.context
+            isinstance(value, str)
+            and "{{" in value
+            and "}}" in value
+            and bool(self.context)
         )
 
     def _substitute_template(self, template_str: str) -> str:
@@ -805,7 +832,7 @@ class ContextRenderingStrategy:
         try:
             # Initialize sessions registry if needed
             if not hasattr(self, "_sessions"):
-                self._sessions = {}
+                self._sessions: dict[str, object] = {}
 
             # Filter active sessions only and return summary data
             active_sessions: dict[str, object] = {}
@@ -840,7 +867,7 @@ class ContextRenderingStrategy:
             ):
                 # Get plugins using discovery from standard paths
                 plugins_result = self._plugin_service.discover_plugins("plugins")
-                if not plugins_result.is_success:
+                if not plugins_result.success:
                     return {}
 
                 plugins_list = plugins_result.unwrap()
@@ -899,7 +926,7 @@ class ContextRenderingStrategy:
         try:
             # Initialize handlers registry if needed
             if not hasattr(self, "_handlers"):
-                self._handlers = {}
+                self._handlers: dict[str, object] = {}
 
             # Return summary information about handlers (not the actual handler
             # functions)

@@ -11,4 +11,4 @@ from __future__ import annotations
 
 from flext_cli.commands.projects import client-a, client-b, meltano
 
-__all__ = ["client-a", "client-b", "meltano"]
+__all__: list[str] = ["client-a", "client-b", "meltano"]

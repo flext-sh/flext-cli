@@ -77,7 +77,7 @@ from flext_cli.domain.entities import (
     CommandType,
 )
 
-__all__ = [
+__all__: list[str] = [
     "CLICommand",
     "CLIPlugin",
     "CLIServiceContainer",

@@ -147,7 +147,7 @@ class TestCLIIntegration:
 
         # Test setup succeeds
         result = setup_cli(settings)
-        assert result.is_success
+        assert result.success
         assert result.unwrap() is True
 
     def test_domain_entities_integration(self) -> None:
@@ -164,7 +164,7 @@ class TestCLIIntegration:
         assert command.command_status == CommandStatus.RUNNING
 
         command = command.complete_execution(exit_code=0, stdout="test")
-        assert command.is_successful
+        assert command.successful
         assert command.command_status == CommandStatus.COMPLETED
 
         # Create a session

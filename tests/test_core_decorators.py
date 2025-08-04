@@ -51,7 +51,7 @@ class TestAsyncCommand:
         # Test execution (now sync)
         result = sample_async_function()
         if result != "async result":
-            msg = f"Expected {'async result'}, got {result}"
+            msg: str = f"Expected {'async result'}, got {result}"
             raise AssertionError(msg)
 
     def test_async_command_with_arguments(self) -> None:
@@ -68,7 +68,7 @@ class TestAsyncCommand:
         # Decorator converts async to sync
         result = async_function_with_args("test", 42)
         if result != "test-42":
-            msg = f"Expected {'test-42'}, got {result}"
+            msg: str = f"Expected {'test-42'}, got {result}"
             raise AssertionError(msg)
 
     def test_async_command_preserves_metadata(self) -> None:
@@ -86,7 +86,7 @@ class TestAsyncCommand:
             hasattr(documented_async_function, "__name__")
             and documented_async_function.__name__ != "documented_async_function"
         ):
-            msg = f"Expected {'documented_async_function'}, got {documented_async_function.__name__}"
+            msg: str = f"Expected {'documented_async_function'}, got {documented_async_function.__name__}"
             raise AssertionError(msg)
         if hasattr(documented_async_function, "__doc__"):
             assert documented_async_function.__doc__ == "A documented async function."
@@ -109,7 +109,7 @@ class TestConfirmAction:
             assert callable(decorated_func)  # Type assertion for MyPy
             result = decorated_func()  # type: ignore[operator]
             if result != "action executed":
-                msg = f"Expected {'action executed'}, got {result}"
+                msg: str = f"Expected {'action executed'}, got {result}"
                 raise AssertionError(msg)
 
     def test_confirm_action_cancelled(self) -> None:
@@ -137,7 +137,7 @@ class TestConfirmAction:
             assert callable(decorated_func)  # Type assertion for MyPy
             result = decorated_func()  # type: ignore[operator]
             if result != "files deleted":
-                msg = f"Expected {'files deleted'}, got {result}"
+                msg: str = f"Expected {'files deleted'}, got {result}"
                 raise AssertionError(msg)
 
     def test_confirm_action_with_arguments(self) -> None:
@@ -152,7 +152,7 @@ class TestConfirmAction:
             assert callable(decorated_func)  # Type assertion for MyPy
             result = decorated_func("test", 5)  # type: ignore[operator]
             if result != "processed 5 items for test":
-                msg = f"Expected {'processed 5 items for test'}, got {result}"
+                msg: str = f"Expected {'processed 5 items for test'}, got {result}"
                 raise AssertionError(msg)
 
 
@@ -171,7 +171,7 @@ class TestRequireAuth:
         assert callable(decorated_func)  # Type assertion for MyPy
         result = decorated_func()
         if result != "access granted":
-            msg = f"Expected {'access granted'}, got {result}"
+            msg: str = f"Expected {'access granted'}, got {result}"
             raise AssertionError(msg)
 
     def test_require_auth_missing_token_file(self, temp_dir: Path) -> None:
@@ -229,7 +229,7 @@ class TestMeasureTime:
             result = timed_function()  # type: ignore[operator]
 
             if result != "completed":
-                msg = f"Expected {'completed'}, got {result}"
+                msg: str = f"Expected {'completed'}, got {result}"
                 raise AssertionError(msg)
             mock_print.assert_called_once_with("⏱  Execution time: 2.50s", style="dim")
 
@@ -248,7 +248,7 @@ class TestMeasureTime:
             result = timed_function()  # type: ignore[operator]
 
             if result != "completed":
-                msg = f"Expected {'completed'}, got {result}"
+                msg: str = f"Expected {'completed'}, got {result}"
                 raise AssertionError(msg)
             mock_print.assert_not_called()
 
@@ -265,7 +265,7 @@ class TestMeasureTime:
 
             result = function_with_args("test", 42, kwarg1="custom")
             if result != "test-42-custom":
-                msg = f"Expected {'test-42-custom'}, got {result}"
+                msg: str = f"Expected {'test-42-custom'}, got {result}"
                 raise AssertionError(msg)
 
 
@@ -284,7 +284,7 @@ class TestRetry:
 
         result = reliable_function()  # type: ignore[operator]
         if result != "success":
-            msg = f"Expected {'success'}, got {result}"
+            msg: str = f"Expected {'success'}, got {result}"
             raise AssertionError(msg)
         assert call_count == 1
 
@@ -303,7 +303,7 @@ class TestRetry:
 
         result = flaky_function()  # type: ignore[operator]
         if result != "success":
-            msg = f"Expected {'success'}, got {result}"
+            msg: str = f"Expected {'success'}, got {result}"
             raise AssertionError(msg)
         assert call_count == EXPECTED_DATA_COUNT
 
@@ -322,7 +322,7 @@ class TestRetry:
             failing_function()  # type: ignore[operator]
 
         if call_count != EXPECTED_BULK_SIZE:
-            msg = f"Expected {2}, got {call_count}"
+            msg: str = f"Expected {2}, got {call_count}"
             raise AssertionError(msg)
 
     def test_retry_delay_between_attempts(self) -> None:
@@ -341,7 +341,7 @@ class TestRetry:
 
             result = flaky_function()  # type: ignore[operator]
             if result != "success":
-                msg = f"Expected {'success'}, got {result}"
+                msg: str = f"Expected {'success'}, got {result}"
                 raise AssertionError(msg)
             mock_sleep.assert_called_once_with(0.5)
 
@@ -363,7 +363,7 @@ class TestValidateConfig:
 
         result = function_requiring_config(config=MockConfig())  # type: ignore[operator]
         if result != "config validated":
-            msg = f"Expected {'config validated'}, got {result}"
+            msg: str = f"Expected {'config validated'}, got {result}"
             raise AssertionError(msg)
 
     def test_validate_config_with_missing_keys(self) -> None:
@@ -418,7 +418,7 @@ class TestWithSpinner:
 
             result = long_running_task()  # type: ignore[operator]
             if result != "task completed":
-                msg = f"Expected {'task completed'}, got {result}"
+                msg: str = f"Expected {'task completed'}, got {result}"
                 raise AssertionError(msg)
             mock_status.assert_called_once_with("Processing...", spinner="dots")
 
@@ -436,7 +436,7 @@ class TestWithSpinner:
 
             result = calculation_task()  # type: ignore[operator]
             if result != "calculation done":
-                msg = f"Expected {'calculation done'}, got {result}"
+                msg: str = f"Expected {'calculation done'}, got {result}"
                 raise AssertionError(msg)
             mock_status.assert_called_once_with(
                 "Calculating results...", spinner="dots"
@@ -480,7 +480,7 @@ class TestDecoratorCombinations:
 
             result = complex_function()
             if result != "all decorators applied":
-                msg = f"Expected {'all decorators applied'}, got {result}"
+                msg: str = f"Expected {'all decorators applied'}, got {result}"
                 raise AssertionError(msg)
 
     def test_decorator_order_preservation(self) -> None:
@@ -495,6 +495,6 @@ class TestDecoratorCombinations:
         # Function should still be callable and maintain behavior
         assert callable(decorated_function)
         if decorated_function() != "result":
-            msg = f"Expected {'result'}, got {decorated_function()}"
+            msg: str = f"Expected {'result'}, got {decorated_function()}"
             raise AssertionError(msg)
         assert decorated_function.__doc__ == "A decorated function."

@@ -52,20 +52,20 @@ def _validate_command_args(args: list[str]) -> None:
 
     """
     if not args:
-        msg = "No command arguments provided"
-        raise ValueError(msg)
+        no_args_msg = "No command arguments provided"
+        raise ValueError(no_args_msg)
 
     # Check for command injection patterns
     unsafe_chars = [";", "&", "|", "`", "$", "$(", ")", ">", "<", "*", "?"]
     for arg in args:
         if any(char in str(arg) for char in unsafe_chars):
-            msg = f"Unsafe character detected in argument: {arg}"
-            raise ValueError(msg)
+            unsafe_char_msg: str = f"Unsafe character detected in argument: {arg}"
+            raise ValueError(unsafe_char_msg)
 
     # Validate first argument is the expected meltano command
     if args[0] != "meltano":
-        msg = f"Expected 'meltano' command, got: {args[0]}"
-        raise ValueError(msg)
+        invalid_command_msg: str = f"Expected 'meltano' command, got: {args[0]}"
+        raise ValueError(invalid_command_msg)
 
 
 def _safe_subprocess_run(
@@ -96,8 +96,8 @@ def _safe_subprocess_run(
 
     # Validate working directory if provided
     if cwd and not Path(cwd).is_dir():
-        msg = f"Working directory does not exist: {cwd}"
-        raise ValueError(msg)
+        invalid_dir_msg: str = f"Working directory does not exist: {cwd}"
+        raise ValueError(invalid_dir_msg)
 
     try:
         return subprocess.run(  # noqa: S603
@@ -238,7 +238,7 @@ def init(
             ),
         )
 
-        if result.is_success:
+        if result.success:
             project_path = parent_dir / project_name
             click.echo("✅ Meltano project initialized successfully!")
             click.echo(f"📍 Project path: {project_path}")

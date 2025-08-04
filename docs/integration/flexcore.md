@@ -236,7 +236,7 @@ async def health(ctx: click.Context):
     flexcore_client = FlexCoreClient()
     health_result = await flexcore_client.health_check()
 
-    if health_result.is_success:
+    if health_result.success:
         health = health_result.unwrap()
         status_color = "green" if health.status == "healthy" else "red"
         table.add_row(
@@ -266,7 +266,7 @@ async def status(ctx: click.Context):
     flexcore_client = FlexCoreClient()
     health_result = await flexcore_client.health_check()
 
-    if health_result.is_success:
+    if health_result.success:
         health = health_result.unwrap()
         console.print(f"✅ FlexCore: {health.status} (v{health.version})")
     else:
@@ -287,7 +287,7 @@ async def logs(ctx: click.Context, service_name: str, lines: int):
         flexcore_client = FlexCoreClient()
         logs_result = await flexcore_client.get_service_logs(lines)
 
-        if logs_result.is_success:
+        if logs_result.success:
             logs = logs_result.unwrap()
             console.print(f"[bold]FlexCore Logs (last {lines} lines):[/bold]")
             for log_line in logs:
@@ -323,7 +323,7 @@ async def list(ctx: click.Context):
     flexcore_client = FlexCoreClient()
     plugins_result = await flexcore_client.list_plugins()
 
-    if plugins_result.is_success:
+    if plugins_result.success:
         plugins = plugins_result.unwrap()
 
         table = Table(title="Installed Plugins")
@@ -358,7 +358,7 @@ async def info(ctx: click.Context, plugin_name: str):
     flexcore_client = FlexCoreClient()
     plugin_result = await flexcore_client.get_plugin_info(plugin_name)
 
-    if plugin_result.is_success:
+    if plugin_result.success:
         plugin = plugin_result.unwrap()
 
         console.print(f"[bold blue]Plugin: {plugin.name}[/bold blue]")
@@ -431,14 +431,14 @@ class FlextPluginLoader:
 
         # Get plugin manifest
         plugin_result = await flexcore_client.get_plugin_info(plugin_name)
-        if not plugin_result.is_success:
+        if not plugin_result.success:
             return plugin_result
 
         plugin = plugin_result.unwrap()
 
         # Load command definitions from plugin
         commands_result = await flexcore_client.get_plugin_commands(plugin_name)
-        if not commands_result.is_success:
+        if not commands_result.success:
             return commands_result
 
         # Create Click command group dynamically
@@ -472,7 +472,7 @@ async def test_health_check_success():
 
     result = await client.health_check()
 
-    assert result.is_success
+    assert result.success
     health = result.unwrap()
     assert health.service_name == "flexcore"
     assert health.status == "healthy"
@@ -493,7 +493,7 @@ async def test_flexcore_health_check_real():
     result = await client.health_check()
 
     # Should succeed if FlexCore is running
-    if result.is_success:
+    if result.success:
         health = result.unwrap()
         assert health.service_name == "flexcore"
         assert health.status in ["healthy", "unhealthy"]

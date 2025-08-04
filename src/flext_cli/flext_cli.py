@@ -194,7 +194,7 @@ def flext_cli_create_command(name: str, command_line: str, **options: object) ->
 
     """
     result = _api.flext_cli_create_command(name, command_line, **options)
-    return result.is_success if hasattr(result, "is_success") else False
+    return result.success if hasattr(result, "success") else False
 
 
 def flext_cli_create_session(user_id: str | None = None) -> str:
@@ -208,7 +208,7 @@ def flext_cli_create_session(user_id: str | None = None) -> str:
 
     """
     result = _api.flext_cli_create_session(user_id)
-    return result.unwrap() if hasattr(result, "unwrap") and result.is_success else ""
+    return result.unwrap() if hasattr(result, "unwrap") and result.success else ""
 
 
 def flext_cli_register_handler(name: str, handler: object) -> bool:
@@ -223,7 +223,7 @@ def flext_cli_register_handler(name: str, handler: object) -> bool:
 
     """
     result = _api.flext_cli_register_handler(name, handler)
-    return result.is_success if hasattr(result, "is_success") else False
+    return result.success if hasattr(result, "success") else False
 
 
 def flext_cli_register_plugin(name: str, plugin: FlextCliPlugin) -> bool:
@@ -238,7 +238,7 @@ def flext_cli_register_plugin(name: str, plugin: FlextCliPlugin) -> bool:
 
     """
     result = _api.flext_cli_register_plugin(name, plugin)
-    return result.is_success if hasattr(result, "is_success") else False
+    return result.success if hasattr(result, "success") else False
 
 
 def flext_cli_execute_handler(name: str, *args: object, **kwargs: object) -> object:
@@ -254,7 +254,7 @@ def flext_cli_execute_handler(name: str, *args: object, **kwargs: object) -> obj
 
     """
     result = _api.flext_cli_execute_handler(name, *args, **kwargs)
-    return result.unwrap() if hasattr(result, "unwrap") and result.is_success else {}
+    return result.unwrap() if hasattr(result, "unwrap") and result.success else {}
 
 
 def flext_cli_render_with_context(
@@ -272,7 +272,7 @@ def flext_cli_render_with_context(
 
     """
     result = _api.flext_cli_render_with_context(data, context)
-    return result.unwrap() if hasattr(result, "unwrap") and result.is_success else ""
+    return result.unwrap() if hasattr(result, "unwrap") and result.success else ""
 
 
 def flext_cli_get_commands() -> dict[str, object]:

@@ -211,10 +211,8 @@ class TestFlextCliCommand:
         assert command.exit_code == 0
         if command.output != "hello world":
             raise AssertionError(f"Expected {'hello world'}, got {command.output}")
-        if not (command.flext_cli_is_successful):
-            raise AssertionError(
-                f"Expected True, got {command.flext_cli_is_successful}"
-            )
+        if not (command.flext_cli_successful):
+            raise AssertionError(f"Expected True, got {command.flext_cli_successful}")
 
     def test_complete_execution_failure(self) -> None:
         """Test completing command execution with failure."""
@@ -241,10 +239,8 @@ class TestFlextCliCommand:
         assert command.exit_code == 1
         if command.output != "error output":
             raise AssertionError(f"Expected {'error output'}, got {command.output}")
-        if command.flext_cli_is_successful:
-            raise AssertionError(
-                f"Expected False, got {command.flext_cli_is_successful}"
-            )
+        if command.flext_cli_successful:
+            raise AssertionError(f"Expected False, got {command.flext_cli_successful}")
 
     def test_complete_execution_invalid_state(self) -> None:
         """Test completing execution from invalid state."""
@@ -279,30 +275,24 @@ class TestFlextCliCommand:
         if command.flext_cli_is_running:
             raise AssertionError(f"Expected False, got {command.flext_cli_is_running}")
 
-    def test_is_successful_property(self) -> None:
-        """Test is_successful property."""
+    def test_successful_property(self) -> None:
+        """Test successful property."""
         command = FlextCliCommand(
             id="test-cmd-130",
             name="test-command",
             command_line="echo hello",
         )
 
-        if command.flext_cli_is_successful:
-            raise AssertionError(
-                f"Expected False, got {command.flext_cli_is_successful}"
-            )
+        if command.flext_cli_successful:
+            raise AssertionError(f"Expected False, got {command.flext_cli_successful}")
 
         command.flext_cli_start_execution()
-        if command.flext_cli_is_successful:
-            raise AssertionError(
-                f"Expected False, got {command.flext_cli_is_successful}"
-            )
+        if command.flext_cli_successful:
+            raise AssertionError(f"Expected False, got {command.flext_cli_successful}")
 
         command.flext_cli_complete_execution(exit_code=0)
-        if not (command.flext_cli_is_successful):
-            raise AssertionError(
-                f"Expected True, got {command.flext_cli_is_successful}"
-            )
+        if not (command.flext_cli_successful):
+            raise AssertionError(f"Expected True, got {command.flext_cli_successful}")
 
         # Test failed command
         command2 = FlextCliCommand(
@@ -312,10 +302,8 @@ class TestFlextCliCommand:
         )
         command2.flext_cli_start_execution()
         command2.flext_cli_complete_execution(exit_code=1)
-        if command2.flext_cli_is_successful:
-            raise AssertionError(
-                f"Expected False, got {command2.flext_cli_is_successful}"
-            )
+        if command2.flext_cli_successful:
+            raise AssertionError(f"Expected False, got {command2.flext_cli_successful}")
 
     def test_validate_domain_rules(self) -> None:
         """Test domain rule validation."""
@@ -760,7 +748,7 @@ class TestIntegration:
                 f"Expected {FlextCliCommandStatus.PENDING}, got {command.command_status}"
             )
         assert not command.flext_cli_is_running
-        assert not command.flext_cli_is_successful
+        assert not command.flext_cli_successful
 
         # Start execution
         assert command.flext_cli_start_execution()
@@ -769,7 +757,7 @@ class TestIntegration:
                 f"Expected {FlextCliCommandStatus.RUNNING}, got {command.command_status}"
             )
         assert command.flext_cli_is_running
-        assert not command.flext_cli_is_successful
+        assert not command.flext_cli_successful
 
         # Complete successfully
         assert command.flext_cli_complete_execution(exit_code=0, stdout="success")
@@ -778,7 +766,7 @@ class TestIntegration:
                 f"Expected {FlextCliCommandStatus.COMPLETED}, got {command.command_status}"
             )
         assert not command.flext_cli_is_running
-        assert command.flext_cli_is_successful
+        assert command.flext_cli_successful
 
     def test_context_with_all_formats(self) -> None:
         """Test context with all output formats."""

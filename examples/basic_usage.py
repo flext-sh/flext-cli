@@ -120,7 +120,7 @@ def example_api_class_usage() -> None:
 
     # 1. Health check
     health_result = api.health()
-    if health_result.is_success:
+    if health_result.success:
         health_data = health_result.data
         print(f"✓ Service status: {health_data['status']}")
         print(f"  Supported formats: {', '.join(health_data['formats'])}")
@@ -141,17 +141,17 @@ def example_api_class_usage() -> None:
 
     # Register commands
     add_result = api.add_command("total_revenue", calculate_total_revenue)
-    print(f"✓ Command registration: {'Success' if add_result.is_success else 'Failed'}")
+    print(f"✓ Command registration: {'Success' if add_result.success else 'Failed'}")
 
     api.add_command("user_roles", user_count_by_role)
 
     # 3. Execute commands
     revenue_result = api.execute("total_revenue", SALES_DATA)
-    if revenue_result.is_success:
+    if revenue_result.success:
         print(f"  Total revenue: ${revenue_result.data:,.2f}")
 
     roles_result = api.execute("user_roles", SAMPLE_USERS)
-    if roles_result.is_success:
+    if roles_result.success:
         print(f"  User roles: {roles_result.data}")
 
     # 4. Export with detailed results
@@ -159,7 +159,7 @@ def example_api_class_usage() -> None:
         export_file = Path(temp_dir) / "detailed_export.json"
         export_result = api.export(SYSTEM_METRICS, str(export_file), "json")
 
-        if export_result.is_success:
+        if export_result.success:
             print(f"✓ Detailed export result: {export_result.data}")
 
 
@@ -208,7 +208,7 @@ def example_error_handling() -> None:
         csv_result = api.export(invalid_csv_data, tmp_file.name, "csv")
     print(
         f"✓ CSV validation: "
-        f"{'Handled' if not csv_result.is_success else 'Unexpected success'}"
+        f"{'Handled' if not csv_result.success else 'Unexpected success'}"
     )
 
     # 5. Command execution errors
@@ -220,7 +220,7 @@ def example_error_handling() -> None:
     fail_result = api.execute("fail_test")
     print(
         f"✓ Command error handling: "
-        f"{'Handled' if not fail_result.is_success else 'Unexpected success'}"
+        f"{'Handled' if not fail_result.success else 'Unexpected success'}"
     )
 
 

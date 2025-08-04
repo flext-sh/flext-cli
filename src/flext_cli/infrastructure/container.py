@@ -137,7 +137,7 @@ class SimpleDIContainer:
             self._instances[name] = instance
             return instance
 
-        msg = f"Dependency '{name}' not found"
+        msg: str = f"Dependency '{name}' not found"
         raise KeyError(msg)
 
 

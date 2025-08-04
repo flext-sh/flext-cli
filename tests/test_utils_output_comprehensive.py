@@ -49,7 +49,7 @@ class TestConsoleSetup:
         console = setup_console(quiet=True)
         assert console is not None
         if not (console.quiet):
-            msg = f"Expected True, got {console.quiet}"
+            msg: str = f"Expected True, got {console.quiet}"
             raise AssertionError(msg)
 
 
@@ -300,7 +300,7 @@ class TestFormatJson:
         # Parse back to verify valid JSON
         parsed = json.loads(result)
         if parsed != data:
-            msg = f"Expected {data}, got {parsed}"
+            msg: str = f"Expected {data}, got {parsed}"
             raise AssertionError(msg)
 
     def test_format_json_list(self) -> None:
@@ -310,7 +310,7 @@ class TestFormatJson:
 
         parsed = json.loads(result)
         if parsed != data:
-            msg = f"Expected {data}, got {parsed}"
+            msg: str = f"Expected {data}, got {parsed}"
             raise AssertionError(msg)
 
     def test_format_json_string(self) -> None:
@@ -320,7 +320,7 @@ class TestFormatJson:
 
         parsed = json.loads(result)
         if parsed != data:
-            msg = f"Expected {data}, got {parsed}"
+            msg: str = f"Expected {data}, got {parsed}"
             raise AssertionError(msg)
 
     def test_format_json_none(self) -> None:
@@ -346,7 +346,7 @@ class TestFormatJson:
         result = format_json(data)
         parsed = json.loads(result)
         if parsed != data:
-            msg = f"Expected {data}, got {parsed}"
+            msg: str = f"Expected {data}, got {parsed}"
             raise AssertionError(msg)
 
 
@@ -360,7 +360,7 @@ class TestFormatYaml:
 
         parsed = yaml.safe_load(result)
         if parsed != data:
-            msg = f"Expected {data}, got {parsed}"
+            msg: str = f"Expected {data}, got {parsed}"
             raise AssertionError(msg)
 
     def test_format_yaml_list(self) -> None:
@@ -370,7 +370,7 @@ class TestFormatYaml:
 
         parsed = yaml.safe_load(result)
         if parsed != data:
-            msg = f"Expected {data}, got {parsed}"
+            msg: str = f"Expected {data}, got {parsed}"
             raise AssertionError(msg)
 
     def test_format_yaml_nested(self) -> None:
@@ -388,14 +388,14 @@ class TestFormatYaml:
         result = format_yaml(data)
         parsed = yaml.safe_load(result)
         if parsed != data:
-            msg = f"Expected {data}, got {parsed}"
+            msg: str = f"Expected {data}, got {parsed}"
             raise AssertionError(msg)
 
     def test_format_yaml_none(self) -> None:
         """Test formatting None as YAML."""
         result = format_yaml(None)
         if result.strip() != "null":
-            msg = f"Expected {'null'}, got {result.strip()}"
+            msg: str = f"Expected {'null'}, got {result.strip()}"
             raise AssertionError(msg)
 
     def test_format_yaml_string(self) -> None:
@@ -405,7 +405,7 @@ class TestFormatYaml:
 
         parsed = yaml.safe_load(result)
         if parsed != data:
-            msg = f"Expected {data}, got {parsed}"
+            msg: str = f"Expected {data}, got {parsed}"
             raise AssertionError(msg)
 
 
@@ -490,7 +490,7 @@ class TestUtilsOutputIntegration:
 
         # Both should match original
         if json_parsed != original_data:
-            msg = f"Expected {original_data}, got {json_parsed}"
+            msg: str = f"Expected {original_data}, got {json_parsed}"
             raise AssertionError(msg)
         assert yaml_parsed == original_data
 

@@ -116,7 +116,7 @@ def demonstrate_restored_functionality() -> None:
 
     # Show flext-core integration
     api_result = api.health()
-    print(f"✅ FlextResult pattern: {api_result.is_success}")
+    print(f"✅ FlextResult pattern: {api_result.success}")
     print("✅ Logging integration: Available")
     print("✅ Type safety: All methods return FlextResult[T]")
 

@@ -71,7 +71,7 @@ class FlextCliDemoRunner:
         )
 
         system_success = False
-        if result.is_success:
+        if result.success:
             command = result.unwrap()
             print(f"   ✅ Created command: {command.name}")
             print(f"      Type: {command.command_type}")
@@ -95,7 +95,7 @@ class FlextCliDemoRunner:
         )
 
         script_success = False
-        if script_result.is_success:
+        if script_result.success:
             script_cmd = script_result.unwrap()
             print(f"   ✅ Created script command: {script_cmd.name}")
             print(f"      Environment: {script_cmd.environment}")
@@ -108,7 +108,7 @@ class FlextCliDemoRunner:
         print("\n4. Creating and Managing Sessions...")
 
         session_result = self.api.flext_cli_create_session("demo_user")
-        if session_result.is_success:
+        if session_result.success:
             session_id = session_result.unwrap()
             print(f"   ✅ Created session: {session_id}")
 
@@ -157,7 +157,7 @@ class FlextCliDemoRunner:
         register_result = self.api.flext_cli_register_handler(
             "calculator", calculator_handler
         )
-        if register_result.is_success:
+        if register_result.success:
             print("   ✅ Registered calculator handler")
 
             # Execute the handler
@@ -165,7 +165,7 @@ class FlextCliDemoRunner:
                 "calculator", "multiply", 15.5, 4.2
             )
 
-            if exec_result.is_success:
+            if exec_result.success:
                 calc_result = exec_result.unwrap()
                 print(f"      Calculation result: {calc_result}")
                 print(f"      15.5 × 4.2 = {calc_result['result']}")  # noqa: RUF001
@@ -189,7 +189,7 @@ class FlextCliDemoRunner:
 
         # Render as table (default)
         table_result = self.api.flext_cli_render_with_context(sample_data)
-        if table_result.is_success:
+        if table_result.success:
             print("   ✅ Rendered as table:")
             print(table_result.unwrap())
 
@@ -197,7 +197,7 @@ class FlextCliDemoRunner:
             context_result = self.api.flext_cli_render_with_context(
                 sample_data, {"format": "json", "title": "User Data"}
             )
-            if context_result.is_success:
+            if context_result.success:
                 rendered = context_result.unwrap()
                 print("\n   ✅ Rendered with context:")
                 preview = (

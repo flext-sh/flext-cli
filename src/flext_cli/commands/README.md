@@ -261,7 +261,7 @@ def command_action(ctx: click.Context, option: str, argument: str) -> FlextResul
     # Use application layer services
     result = service.execute_operation(argument, option)
 
-    if result.is_success:
+    if result.success:
         console.print("[green]Operation completed successfully[/green]")
 
     return result
@@ -320,7 +320,7 @@ def list(ctx: click.Context, format: str) -> FlextResult[None]:
     service: NewService = ctx.obj["services"]["new_service"]
 
     result = service.list_items()
-    if result.is_success:
+    if result.success:
         # Format and display results
         display_items(console, result.unwrap(), format)
 

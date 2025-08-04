@@ -12,7 +12,7 @@ from __future__ import annotations
 from flext_cli.commands import auth, config, debug, pipeline, plugin
 from flext_cli.commands.projects import client-a, client-b, meltano
 
-__all__ = [
+__all__: list[str] = [
     "client-a",
     "auth",
     "config",

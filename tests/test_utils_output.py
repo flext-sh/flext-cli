@@ -59,7 +59,7 @@ class TestSetupConsole:
 
         assert isinstance(console, Console)
         if not (console.quiet):
-            msg = f"Expected True, got {console.quiet}"
+            msg: str = f"Expected True, got {console.quiet}"
             raise AssertionError(msg)
 
     def test_setup_console_both_options(self) -> None:
@@ -70,7 +70,7 @@ class TestSetupConsole:
         # Verify console has expected attributes
         assert hasattr(console, "_color_system")
         if not (console.quiet):
-            msg = f"Expected True, got {console.quiet}"
+            msg: str = f"Expected True, got {console.quiet}"
             raise AssertionError(msg)
 
 
@@ -317,7 +317,7 @@ class TestFormatPluginList:
 
             # Check table rows
             if mock_table.add_row.call_count != EXPECTED_BULK_SIZE:
-                msg = f"Expected {2}, got {mock_table.add_row.call_count}"
+                msg: str = f"Expected {2}, got {mock_table.add_row.call_count}"
                 raise AssertionError(msg)
             mock_table.add_row.assert_any_call(
                 "plugin1",
@@ -401,17 +401,17 @@ class TestFormatJson:
 
         assert isinstance(result, str)
         if "key" not in result:
-            msg = f"Expected {'key'} in {result}"
+            msg: str = f"Expected {'key'} in {result}"
             raise AssertionError(msg)
         assert "value" in result
         if "42" not in result:
-            msg = f"Expected {'42'} in {result}"
+            msg: str = f"Expected {'42'} in {result}"
             raise AssertionError(msg)
 
         # Should be valid JSON
         parsed = json.loads(result)
         if parsed != data:
-            msg = f"Expected {data}, got {parsed}"
+            msg: str = f"Expected {data}, got {parsed}"
             raise AssertionError(msg)
 
     def test_format_json_complex(self) -> None:
@@ -430,7 +430,7 @@ class TestFormatJson:
         assert isinstance(result, str)
         parsed = json.loads(result)
         if parsed != data:
-            msg = f"Expected {data}, got {parsed}"
+            msg: str = f"Expected {data}, got {parsed}"
             raise AssertionError(msg)
 
     def test_format_json_with_objects(self) -> None:
@@ -446,11 +446,11 @@ class TestFormatJson:
         assert isinstance(result, str)
         parsed = json.loads(result)
         if "timestamp" not in parsed:
-            msg = f"Expected {'timestamp'} in {parsed}"
+            msg: str = f"Expected {'timestamp'} in {parsed}"
             raise AssertionError(msg)
         assert "value" in parsed
         if parsed["value"] != "test":
-            msg = f"Expected {'test'}, got {parsed['value']}"
+            msg: str = f"Expected {'test'}, got {parsed['value']}"
             raise AssertionError(msg)
 
 
@@ -465,14 +465,14 @@ class TestFormatYaml:
 
         assert isinstance(result, str)
         if "key: value" not in result:
-            msg = f"Expected {'key: value'} in {result}"
+            msg: str = f"Expected {'key: value'} in {result}"
             raise AssertionError(msg)
         assert "number: 42" in result
 
         # Should be valid YAML
         parsed = yaml.safe_load(result)
         if parsed != data:
-            msg = f"Expected {data}, got {parsed}"
+            msg: str = f"Expected {data}, got {parsed}"
             raise AssertionError(msg)
 
     def test_format_yaml_complex(self) -> None:
@@ -491,7 +491,7 @@ class TestFormatYaml:
         assert isinstance(result, str)
         parsed = yaml.safe_load(result)
         if parsed != data:
-            msg = f"Expected {data}, got {parsed}"
+            msg: str = f"Expected {data}, got {parsed}"
             raise AssertionError(msg)
 
     def test_format_yaml_flow_style(self) -> None:
@@ -502,7 +502,7 @@ class TestFormatYaml:
 
         # Should use block style (default_flow_style=False)
         if not ("- 1" in result and "list:" in result):
-            msg = f"Expected block style with '- 1' and 'list:' in {result}"
+            msg: str = f"Expected block style with '- 1' and 'list:' in {result}"
             raise AssertionError(msg)
         assert "{" not in result  # Flow style would use braces
 
@@ -531,7 +531,7 @@ class TestPrintFunctions:
         )
         console.print.assert_any_call("[dim]Additional details here[/dim]")
         if console.print.call_count != EXPECTED_BULK_SIZE:
-            msg = f"Expected {2}, got {console.print.call_count}"
+            msg: str = f"Expected {2}, got {console.print.call_count}"
             raise AssertionError(msg)
 
     def test_print_success(self) -> None:
@@ -598,7 +598,7 @@ class TestUtilsOutputIntegration:
         # Should be parseable back
         parsed = yaml.safe_load(yaml_output)
         if parsed != test_data:
-            msg = f"Expected {test_data}, got {parsed}"
+            msg: str = f"Expected {test_data}, got {parsed}"
             raise AssertionError(msg)
 
     def test_json_integration(self) -> None:
@@ -611,7 +611,7 @@ class TestUtilsOutputIntegration:
         # Should be parseable back
         parsed = json.loads(json_output)
         if parsed != test_data:
-            msg = f"Expected {test_data}, got {parsed}"
+            msg: str = f"Expected {test_data}, got {parsed}"
             raise AssertionError(msg)
 
     def test_table_formatting_integration(self) -> None:
@@ -667,26 +667,26 @@ class TestUtilsOutputIntegration:
         # Should handle None gracefully
         json_result = format_json(None)
         if json_result != "null":
-            msg = f"Expected {'null'}, got {json_result}"
+            msg: str = f"Expected {'null'}, got {json_result}"
             raise AssertionError(msg)
 
         yaml_result = format_yaml(None)
         # YAML adds newline, so we check if it contains "null"
         if "null" not in yaml_result:
-            msg = f"Expected {'null'} in {yaml_result}"
+            msg: str = f"Expected {'null'} in {yaml_result}"
             raise AssertionError(msg)
 
     def test_format_functions_with_empty_data(self) -> None:
         """Test format functions with empty data structures."""
         # Empty dict
         if format_json({}) != "{}":
-            msg = f"Expected {'{}'}, got {format_json({})}"
+            msg: str = f"Expected {'{}'}, got {format_json({})}"
             raise AssertionError(msg)
         assert format_yaml({}).strip() == "{}"
 
         # Empty list
         if format_json([]) != "[]":
-            msg = f"Expected {'[]'}, got {format_json([])}"
+            msg: str = f"Expected {'[]'}, got {format_json([])}"
             raise AssertionError(msg)
         assert format_yaml([]).strip() == "[]"
 

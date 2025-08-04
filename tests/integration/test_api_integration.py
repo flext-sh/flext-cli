@@ -76,7 +76,7 @@ class TestFlextCliApiIntegration:
         )
 
         assert isinstance(result, FlextResult)
-        assert result.is_success
+        assert result.success
 
         command = result.unwrap()
         assert isinstance(command, CLICommand)
@@ -97,7 +97,7 @@ class TestFlextCliApiIntegration:
         )
 
         assert isinstance(result, FlextResult)
-        assert not result.is_success
+        assert not result.success
         assert "invalid_type" in result.error
 
     def test_api_create_session_generates_unique_id(self) -> None:
@@ -109,8 +109,8 @@ class TestFlextCliApiIntegration:
 
         assert isinstance(result1, FlextResult)
         assert isinstance(result2, FlextResult)
-        assert result1.is_success
-        assert result2.is_success
+        assert result1.success
+        assert result2.success
 
         session_id1 = result1.unwrap()
         session_id2 = result2.unwrap()
@@ -131,12 +131,12 @@ class TestFlextCliApiIntegration:
 
         register_result = api.flext_cli_register_handler("add", test_handler)
         assert isinstance(register_result, FlextResult)
-        assert register_result.is_success
+        assert register_result.success
 
         # Execute the handler
         exec_result = api.flext_cli_execute_handler("add", 5, 3)
         assert isinstance(exec_result, FlextResult)
-        assert exec_result.is_success
+        assert exec_result.success
         assert exec_result.unwrap() == 8
 
     def test_api_handler_registration_invalid_handler(self) -> None:
@@ -146,7 +146,7 @@ class TestFlextCliApiIntegration:
         # Try to register non-callable
         register_result = api.flext_cli_register_handler("invalid", "not_callable")
         assert isinstance(register_result, FlextResult)
-        assert not register_result.is_success
+        assert not register_result.success
         assert "not callable" in register_result.error
 
     def test_api_handler_execution_nonexistent(self) -> None:
@@ -155,7 +155,7 @@ class TestFlextCliApiIntegration:
 
         exec_result = api.flext_cli_execute_handler("nonexistent")
         assert isinstance(exec_result, FlextResult)
-        assert not exec_result.is_success
+        assert not exec_result.success
         assert (
             "not found" in exec_result.error
             or "No handlers registry" in exec_result.error
@@ -169,7 +169,7 @@ class TestFlextCliApiIntegration:
         result = api.flext_cli_render_with_context(data)
 
         assert isinstance(result, FlextResult)
-        assert result.is_success
+        assert result.success
         rendered = result.unwrap()
         assert isinstance(rendered, str)
         assert len(rendered) > 0
@@ -183,7 +183,7 @@ class TestFlextCliApiIntegration:
         result = api.flext_cli_render_with_context(data, context)
 
         assert isinstance(result, FlextResult)
-        assert result.is_success
+        assert result.success
         rendered = result.unwrap()
         assert isinstance(rendered, str)
         assert "# Test Data" in rendered  # Title should be added
@@ -214,7 +214,7 @@ class TestFlextCliApiIntegration:
 
         # Create a session
         session_result = api.flext_cli_create_session("test_user")
-        assert session_result.is_success
+        assert session_result.success
         session_id = session_result.unwrap()
 
         # Check sessions are tracked

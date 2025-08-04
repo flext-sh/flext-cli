@@ -107,7 +107,7 @@ def main() -> None:
     # 6. CLI Setup
     console.print("[bold blue]6. CLI Setup[/bold blue]")
     setup_result = flext_cli.setup_cli()
-    if setup_result.is_success:
+    if setup_result.success:
         console.print("   ✅ CLI setup completed successfully")
     else:
         console.print(f"   ❌ CLI setup failed: {setup_result.error}")

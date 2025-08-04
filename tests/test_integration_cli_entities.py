@@ -55,7 +55,7 @@ class TestCLICommandEntityIntegration:
 
         command = command.complete_execution(exit_code=0, stdout=result.output)
         assert command.command_status == CommandStatus.COMPLETED
-        assert command.is_successful
+        assert command.successful
 
     def test_command_with_different_types(self) -> None:
         """Test CLI commands with different command types."""
@@ -98,7 +98,7 @@ class TestCLICommandEntityIntegration:
         )
 
         assert command.command_status == CommandStatus.FAILED
-        assert not command.is_successful
+        assert not command.successful
         assert command.exit_code == result.exit_code
 
     def test_command_with_arguments(self) -> None:
@@ -139,7 +139,7 @@ class TestCLICommandEntityIntegration:
             command = command.start_execution()
             command = command.complete_execution(exit_code=0, stdout=result.output)
 
-            assert command.is_successful
+            assert command.successful
             assert fmt in command.command_line
 
 
@@ -605,7 +605,7 @@ class TestIntegrationErrorHandling:
         )
 
         assert command.command_status == CommandStatus.FAILED
-        assert not command.is_successful
+        assert not command.successful
 
     def test_entity_state_consistency(self) -> None:
         """Test entity state remains consistent during CLI operations."""
@@ -630,7 +630,7 @@ class TestIntegrationErrorHandling:
         command = command.complete_execution(exit_code=0, stdout="test")
         assert command.command_status == CommandStatus.COMPLETED
         assert command.finished_at is not None
-        assert command.is_successful
+        assert command.successful
 
 
 class TestRealWorldIntegrationScenarios:

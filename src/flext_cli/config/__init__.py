@@ -46,6 +46,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-__all__ = ["cli_config"]
+__all__: list[str] = ["cli_config"]
 
 from . import cli_config

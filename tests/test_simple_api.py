@@ -26,7 +26,7 @@ class TestSetupCli:
     def test_setup_cli_without_settings(self) -> None:
         """Test CLI setup without providing settings."""
         result = setup_cli()
-        assert result.is_success
+        assert result.success
         if not (result.unwrap()):
             raise AssertionError(f"Expected True, got {result.unwrap()}")
 
@@ -34,7 +34,7 @@ class TestSetupCli:
         """Test CLI setup with provided settings."""
         settings = CLISettings(debug=True, log_level="DEBUG")
         result = setup_cli(settings)
-        assert result.is_success
+        assert result.success
         if not (result.unwrap()):
             raise AssertionError(f"Expected True, got {result.unwrap()}")
 
@@ -45,7 +45,7 @@ class TestSetupCli:
             mock_settings.side_effect = RuntimeError("Test error")
 
             result = setup_cli()
-            assert not result.is_success
+            assert not result.success
             # Check error exists and contains expected message
             if (
                 result.error is None

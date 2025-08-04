@@ -58,7 +58,7 @@ Usage Examples:
 
     Data formatting:
     >>> result = service.flext_cli_format(data, "json")
-    >>> if result.is_success:
+    >>> if result.success:
     ...     formatted = result.unwrap()
 
     Command management:
@@ -100,7 +100,7 @@ from flext_cli.types import (
 )
 
 # Export imports for test access
-__all__ = [
+__all__: list[str] = [
     "FlextCliService",
     "FlextService",
     "FlextUtilities",
@@ -143,7 +143,8 @@ class FlextCliService(FlextService, FlextConfigurable):
                 return FlextResult.fail(f"Invalid config type: {type(config)}")
 
             self.logger.info(
-                f"CLI service configured with format: {self._config.format_type}",
+                "CLI service configured with format: %s",
+                self._config.format_type,
             )
             return FlextResult.ok(None)
         except Exception as e:
@@ -158,7 +159,7 @@ class FlextCliService(FlextService, FlextConfigurable):
         """Export data to file in specified format."""
         try:
             formatted_result = self.flext_cli_format(data, format_type)
-            if not formatted_result.is_success:
+            if not formatted_result.success:
                 return FlextResult.fail(formatted_result.error)
 
             formatted_data = formatted_result.unwrap()
@@ -170,7 +171,7 @@ class FlextCliService(FlextService, FlextConfigurable):
             # Write file
             path_obj.write_text(formatted_data, encoding="utf-8")
 
-            self.logger.info(f"Data exported to {path} in {format_type} format")
+            self.logger.info("Data exported to %s in %s format", path, format_type)
             return FlextResult.ok(data=True)
 
         except Exception as e:

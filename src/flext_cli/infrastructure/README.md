@@ -253,11 +253,11 @@ async def test_repository_persistence():
 
     # Test save
     save_result = await repository.save(command)
-    assert save_result.is_success
+    assert save_result.success
 
     # Test retrieval
     find_result = await repository.find_by_id(command.id)
-    assert find_result.is_success
+    assert find_result.success
     assert find_result.unwrap().name == "test"
 ```
 
@@ -284,7 +284,7 @@ def test_configuration_loading():
 
     # Test profile loading
     result = await config_manager.load_profile("development")
-    assert result.is_success
+    assert result.success
 
     config = result.unwrap()
     assert config.profile == "development"
