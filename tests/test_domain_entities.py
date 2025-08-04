@@ -48,7 +48,7 @@ class TestCLICommand:
         """Test command execution lifecycle."""
         # Initial state
         assert not sample_command.is_completed
-        assert not sample_command.is_successful
+        assert not sample_command.successful
         assert sample_command.started_at is None
 
         # Start execution - immutable pattern returns new instance
@@ -74,7 +74,7 @@ class TestCLICommand:
         if completed_command.stdout != "hello":
             raise AssertionError(f"Expected {'hello'}, got {completed_command.stdout}")
         assert completed_command.is_completed
-        assert completed_command.is_successful
+        assert completed_command.successful
         assert completed_command.duration_seconds is not None
 
     def test_command_failed_execution(self, sample_command: CLICommand) -> None:
@@ -97,7 +97,7 @@ class TestCLICommand:
                 f"Expected {'Error occurred'}, got {failed_command.stderr}"
             )
         assert failed_command.is_completed
-        assert not failed_command.is_successful
+        assert not failed_command.successful
 
     def test_command_cancellation(self, sample_command: CLICommand) -> None:
         """Test command cancellation."""
@@ -110,7 +110,7 @@ class TestCLICommand:
                 f"Expected {CommandStatus.CANCELLED}, got {cancelled_command.command_status}"
             )
         assert cancelled_command.is_completed
-        assert not cancelled_command.is_successful
+        assert not cancelled_command.successful
         assert cancelled_command.duration_seconds is not None
 
     def test_command_status_properties(self) -> None:
@@ -123,19 +123,19 @@ class TestCLICommand:
 
         # Test status properties based on initial state
         assert not command.is_completed  # PENDING is not completed
-        assert not command.is_successful  # Not completed successfully
+        assert not command.successful  # Not completed successfully
 
         # Test completed status
         running_command = command.start_execution()
         completed_command = running_command.complete_execution(exit_code=0)
         assert completed_command.is_completed
-        assert completed_command.is_successful
+        assert completed_command.successful
 
         # Test failed status
         running_command2 = command.start_execution()
         failed_command = running_command2.complete_execution(exit_code=1)
         assert failed_command.is_completed
-        assert not failed_command.is_successful
+        assert not failed_command.successful
 
     @patch("flext_cli.domain.entities.datetime")
     def test_duration_calculation(self, mock_datetime: Mock) -> None:

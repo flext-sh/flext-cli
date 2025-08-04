@@ -338,7 +338,7 @@ def test_command_lifecycle():
     assert command.started_at is not None
 
     command.complete_execution(exit_code=0, stdout="hello")
-    assert command.is_successful
+    assert command.successful
     assert command.command_status == CommandStatus.COMPLETED
 ```
 
@@ -369,7 +369,7 @@ from flext_cli.utils.config import CLISettings
 def test_cli_setup():
     settings = CLISettings()
     result = setup_cli(settings)
-    assert result.is_success
+    assert result.success
     assert result.unwrap() is True
 ```
 

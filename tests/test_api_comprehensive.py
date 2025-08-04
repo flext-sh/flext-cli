@@ -34,11 +34,11 @@ class TestFlextCliFormat:
         """Test format as JSON."""
         result = flext_cli_format({"test": "data"}, "json")
         assert isinstance(result, FlextResult)
-        if result.is_success:
+        if result.success:
             formatted = result.unwrap()
             assert isinstance(formatted, str)
             if "test" not in formatted:
-                msg = f"Expected {'test'} in {formatted}"
+                msg: str = f"Expected {'test'} in {formatted}"
                 raise AssertionError(msg)
             assert "data" in formatted
 
@@ -46,7 +46,7 @@ class TestFlextCliFormat:
         """Test format as YAML."""
         result = flext_cli_format({"test": "data"}, "yaml")
         assert isinstance(result, FlextResult)
-        if result.is_success:
+        if result.success:
             formatted = result.unwrap()
             assert isinstance(formatted, str)
 
@@ -54,7 +54,7 @@ class TestFlextCliFormat:
         """Test format as table."""
         result = flext_cli_format([{"name": "test", "value": 123}], "table")
         assert isinstance(result, FlextResult)
-        if result.is_success:
+        if result.success:
             formatted = result.unwrap()
             assert isinstance(formatted, str)
 
@@ -62,7 +62,7 @@ class TestFlextCliFormat:
         """Test format as CSV."""
         result = flext_cli_format([{"name": "test", "value": 123}], "csv")
         assert isinstance(result, FlextResult)
-        if result.is_success:
+        if result.success:
             formatted = result.unwrap()
             assert isinstance(formatted, str)
 
@@ -70,7 +70,7 @@ class TestFlextCliFormat:
         """Test format as plain text."""
         result = flext_cli_format("simple text", "plain")
         assert isinstance(result, FlextResult)
-        if result.is_success:
+        if result.success:
             formatted = result.unwrap()
             assert isinstance(formatted, str)
 
@@ -258,7 +258,7 @@ class TestFlextCliUnwrapFunctions:
         success_result = FlextResult.ok("test_value")
         result = flext_cli_unwrap_or_default(success_result, "default_value")
         if result != "test_value":
-            msg = f"Expected {'test_value'}, got {result}"
+            msg: str = f"Expected {'test_value'}, got {result}"
             raise AssertionError(msg)
 
     def test_flext_cli_unwrap_or_default_failure(self) -> None:
@@ -266,7 +266,7 @@ class TestFlextCliUnwrapFunctions:
         failure_result = FlextResult.fail("error message")
         result = flext_cli_unwrap_or_default(failure_result, "default_value")
         if result != "default_value":
-            msg = f"Expected {'default_value'}, got {result}"
+            msg: str = f"Expected {'default_value'}, got {result}"
             raise AssertionError(msg)
 
     def test_flext_cli_unwrap_or_none_exists(self) -> None:
@@ -278,7 +278,7 @@ class TestFlextCliUnwrapFunctions:
         success_result = FlextResult.ok("test_value")
         result = flext_cli_unwrap_or_none(success_result)
         if result != "test_value":
-            msg = f"Expected {'test_value'}, got {result}"
+            msg: str = f"Expected {'test_value'}, got {result}"
             raise AssertionError(msg)
 
     def test_flext_cli_unwrap_or_none_failure(self) -> None:
@@ -299,7 +299,7 @@ class TestFlextCliUnwrapFunctions:
         complex_default = {"key": "value", "list": [1, 2, 3]}
         result = flext_cli_unwrap_or_default(failure_result, complex_default)
         if result != complex_default:
-            msg = f"Expected {complex_default}, got {result}"
+            msg: str = f"Expected {complex_default}, got {result}"
             raise AssertionError(msg)
 
 
@@ -365,7 +365,7 @@ class TestApiIntegration:
         failure_unwrapped = flext_cli_unwrap_or_default(failure_result, "default")
 
         if success_unwrapped != "success_value":
-            msg = f"Expected {'success_value'}, got {success_unwrapped}"
+            msg: str = f"Expected {'success_value'}, got {success_unwrapped}"
             raise AssertionError(msg)
         assert failure_unwrapped == "default"
 
@@ -374,7 +374,7 @@ class TestApiIntegration:
         failure_none = flext_cli_unwrap_or_none(failure_result)
 
         if success_none != "success_value":
-            msg = f"Expected {'success_value'}, got {success_none}"
+            msg: str = f"Expected {'success_value'}, got {success_none}"
             raise AssertionError(msg)
         assert failure_none is None
 

@@ -398,7 +398,7 @@ class TestValidateCommand:
             # Mock some packages missing
             def mock_import(package: str, *args: object, **kwargs: object) -> object:
                 if package in {"click", "missing_package"}:
-                    msg = f"No module named '{package}'"
+                    msg: str = f"No module named '{package}'"
                     raise ImportError(msg)
                 return MagicMock()
 

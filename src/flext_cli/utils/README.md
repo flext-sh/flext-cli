@@ -233,7 +233,7 @@ class AuthenticationUtility:
     ) -> FlextResult[AuthResult]:
         # Input validation
         validation = self._validate_credential_format(credentials)
-        if not validation.is_success:
+        if not validation.success:
             return validation
 
         # Authentication logic
@@ -290,24 +290,24 @@ def test_token_validation():
     # Test valid token
     valid_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
     result = validate_token(valid_token)
-    assert result.is_success
+    assert result.success
 
     # Test invalid token
     invalid_token = "invalid.token.here"
     result = validate_token(invalid_token)
-    assert not result.is_success
+    assert not result.success
     assert "Invalid token" in result.error
 
 def test_credential_validation():
     # Test valid credentials
     credentials = Credentials(username="user", password="password123")
     result = validate_credentials(credentials)
-    assert result.is_success
+    assert result.success
 
     # Test invalid credentials
     credentials = Credentials(username="", password="")
     result = validate_credentials(credentials)
-    assert not result.is_success
+    assert not result.success
 ```
 
 ### **Configuration Utility Testing**
@@ -316,7 +316,7 @@ def test_credential_validation():
 def test_config_loading():
     # Test successful config loading
     result = load_configuration("test_profile")
-    assert result.is_success
+    assert result.success
 
     config = result.unwrap()
     assert isinstance(config, CLIConfig)
@@ -326,12 +326,12 @@ def test_config_validation():
     # Test valid configuration
     config_data = {"debug": True, "output_format": "json"}
     result = validate_configuration(config_data)
-    assert result.is_success
+    assert result.success
 
     # Test invalid configuration
     config_data = {"debug": "invalid", "output_format": "unknown"}
     result = validate_configuration(config_data)
-    assert not result.is_success
+    assert not result.success
 ```
 
 ### **Output Utility Testing**
@@ -345,7 +345,7 @@ def test_table_formatting():
     formatter = OutputFormatter(console)
 
     result = formatter.format_data(data, "table")
-    assert result.is_success
+    assert result.success
 
     output = console.file.getvalue()
     assert "test" in output
@@ -358,7 +358,7 @@ def test_multiple_format_support():
     # Test all supported formats
     for format_type in ["table", "json", "yaml", "csv"]:
         result = formatter.format_data(data, format_type)
-        assert result.is_success
+        assert result.success
 ```
 
 ## 📈 Utility Coverage and Quality

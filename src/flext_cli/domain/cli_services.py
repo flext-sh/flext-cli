@@ -44,13 +44,13 @@ Usage Examples:
     >>> result = command_service.create_command(
     ...     name="test", command_line="echo hello", command_type="system"
     ... )
-    >>> if result.is_success:
+    >>> if result.success:
     ...     command = result.unwrap()
 
     Session service:
     >>> session_service = CLISessionService()
     >>> result = session_service.create_session("session123")
-    >>> if result.is_success:
+    >>> if result.success:
     ...     session = result.unwrap()
 
 Integration:
@@ -128,7 +128,7 @@ class CLICommandService:
     Usage:
         >>> service = CLICommandService()
         >>> result = service.create_command("test", "echo hello", "system")
-        >>> if result.is_success:
+        >>> if result.success:
         ...     command = result.unwrap()
         ...     validation_result = service.validate_command(command)
     """
@@ -209,7 +209,7 @@ class CLISessionService:
     Usage:
         >>> service = CLISessionService()
         >>> result = service.create_session("session123")
-        >>> if result.is_success:
+        >>> if result.success:
         ...     session = result.unwrap()
         ...     validation_result = service.validate_session(session)
     """

@@ -11,4 +11,4 @@ from __future__ import annotations
 
 from flext_cli.commands.projects import algar, gruponos, meltano
 
-__all__ = ["algar", "gruponos", "meltano"]
+__all__: list[str] = ["algar", "gruponos", "meltano"]

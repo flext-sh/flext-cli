@@ -14,7 +14,7 @@
 
 > **⚠️ Current Status**: 30% functional - Core foundations implemented with comprehensive documentation standardization complete. Major functionality in development. See [10-sprint roadmap](docs/TODO.md) for completion timeline.
 
-### 📋 **Recent Major Achievements**
+## 📋 **Recent Major Achievements**
 
 - ✅ **Complete docstring standardization** - All 35 source files updated with comprehensive documentation
 - ✅ **English standardization** - Zero Portuguese text remaining across entire codebase
@@ -463,14 +463,14 @@ def test_command_lifecycle_with_flext_patterns():
 
     # ✅ Good: Domain validation with FlextResult
     validation_result = command.validate_domain_rules()
-    assert validation_result.is_success
+    assert validation_result.success
 
     # ✅ Good: Immutable updates with model_copy
     running_command = command.start_execution()
     assert running_command.command_status == CommandStatus.RUNNING
 
     completed_command = running_command.complete_execution(exit_code=0, stdout="hello")
-    assert completed_command.is_successful
+    assert completed_command.successful
 ```
 
 ### CLI Command Testing

@@ -199,7 +199,7 @@ class TestLibraryFunctionality:
         """Test setup_cli function works."""
         result = flext_cli.setup_cli()
         assert isinstance(result, FlextResult)
-        assert result.is_success
+        assert result.success
 
     def test_helper_class_instantiation(self) -> None:
         """Test helper class can be instantiated."""

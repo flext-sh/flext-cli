@@ -246,7 +246,7 @@ class ProfileOperations:
     ) -> FlextResult[CLIProfile]:
         # Validate profile name
         validation = self.validate_profile_name(profile_name)
-        if not validation.is_success:
+        if not validation.success:
             return validation
         
         # Create profile with inheritance
@@ -294,7 +294,7 @@ async def test_profile_inheritance():
     
     # Load derived profile
     result = await manager.load_profile_chain("development")
-    assert result.is_success
+    assert result.success
     
     config = result.unwrap()
     assert config.debug is True  # Inherited from base

@@ -152,7 +152,7 @@ def example_2_before_export_boilerplate() -> None:
             required_fields = ["id", "amount", "date"]
             missing = [f for f in required_fields if f not in record]
             if missing:
-                msg = f"Missing fields: {missing}"
+                msg: str = f"Missing fields: {missing}"
                 raise ValueError(msg)
 
         try:

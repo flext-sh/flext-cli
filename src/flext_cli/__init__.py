@@ -23,7 +23,7 @@ Usage:
     >>> from flext_cli import setup_cli, CLISettings
     >>> settings = CLISettings(debug=True)
     >>> result = setup_cli(settings)
-    >>> if result.is_success:
+    >>> if result.success:
     ...     print("CLI ready")
 
     Domain entity usage:
@@ -100,7 +100,7 @@ from flext_cli.utils.config import (
     get_settings,
 )
 
-__all__ = [
+__all__: list[str] = [
     "URL",
     # Core Domain Entities
     "CLICommand",

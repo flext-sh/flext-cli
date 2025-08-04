@@ -291,7 +291,7 @@ def test_table_formatter():
 ```python
 def test_configuration_helper():
     result = load_config_with_validation("test_config.yaml")
-    assert result.is_success
+    assert result.success
 
     config = result.unwrap()
     assert isinstance(config, CLIConfig)

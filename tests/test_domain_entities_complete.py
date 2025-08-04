@@ -221,40 +221,40 @@ class TestCLICommand:
             if is_completed:
                 raise AssertionError(f"Expected False, got {is_completed}")
 
-    def test_command_properties_is_successful(self) -> None:
-        """Test is_successful property."""
+    def test_command_properties_successful(self) -> None:
+        """Test successful property."""
         # Test successful command
         mock_command = MagicMock()
         mock_command.command_status = CommandStatus.COMPLETED
         mock_command.exit_code = 0
 
-        # Simulate the is_successful property logic
-        is_successful = (
+        # Simulate the successful property logic
+        successful = (
             mock_command.command_status == CommandStatus.COMPLETED
             and mock_command.exit_code == 0
         )
-        if not (is_successful):
-            raise AssertionError(f"Expected True, got {is_successful}")
+        if not (successful):
+            raise AssertionError(f"Expected True, got {successful}")
 
         # Test failed command
         mock_command.command_status = CommandStatus.FAILED
         mock_command.exit_code = 1
-        is_successful = (
+        successful = (
             mock_command.command_status == CommandStatus.COMPLETED
             and mock_command.exit_code == 0
         )
-        if is_successful:
-            raise AssertionError(f"Expected False, got {is_successful}")
+        if successful:
+            raise AssertionError(f"Expected False, got {successful}")
 
         # Test completed but with error exit code
         mock_command.command_status = CommandStatus.COMPLETED
         mock_command.exit_code = 1
-        is_successful = (
+        successful = (
             mock_command.command_status == CommandStatus.COMPLETED
             and mock_command.exit_code == 0
         )
-        if is_successful:
-            raise AssertionError(f"Expected False, got {is_successful}")
+        if successful:
+            raise AssertionError(f"Expected False, got {successful}")
 
     def test_command_start_execution(self) -> None:
         """Test start_execution method."""

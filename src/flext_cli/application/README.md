@@ -190,7 +190,7 @@ class NewCommandHandler(FlextCommandHandler[NewCommand]):
     async def handle(self, command: NewCommand) -> FlextResult[Any]:
         # 1. Validate command
         validation = self.validate_command(command)
-        if not validation.is_success:
+        if not validation.success:
             return validation
 
         # 2. Execute domain logic
@@ -211,7 +211,7 @@ class ApplicationService:
         try:
             # Validate request
             validation = self.validate_request(request)
-            if not validation.is_success:
+            if not validation.success:
                 return validation
 
             # Execute operation
@@ -239,7 +239,7 @@ def test_command_handler():
 
     result = await handler.handle(command)
 
-    assert result.is_success
+    assert result.success
     assert isinstance(result.unwrap(), CLICommand)
 ```
 
@@ -251,7 +251,7 @@ def test_application_service():
 
     result = await service.coordinate_complex_operation(request)
 
-    assert result.is_success
+    assert result.success
     mock_event_publisher.publish.assert_called_once()
 ```
 
@@ -264,7 +264,7 @@ async def test_end_to_end_command_flow():
     command = CreateEntityCommand(name="test")
     result = await command_bus.execute(command)
 
-    assert result.is_success
+    assert result.success
     # Verify persistence
     entity = await repository.find_by_name("test")
     assert entity is not None

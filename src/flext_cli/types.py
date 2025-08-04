@@ -179,7 +179,7 @@ class FlextCliCommand(FlextEntity):
         return self.command_status == FlextCliCommandStatus.RUNNING
 
     @property
-    def flext_cli_is_successful(self) -> bool:
+    def flext_cli_successful(self) -> bool:
         """Check if command completed successfully."""
         return self.command_status == FlextCliCommandStatus.COMPLETED
 

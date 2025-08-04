@@ -359,7 +359,7 @@ class FlextCliContextError(FlextCliError):
         )
 
 
-__all__ = [
+__all__: list[str] = [
     "FlextCliArgumentError",
     "FlextCliAuthenticationError",
     "FlextCliCommandError",

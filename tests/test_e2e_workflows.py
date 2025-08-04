@@ -375,7 +375,7 @@ class TestE2EIntegrationWithCore:
         settings = CLISettings()
         result = setup_cli(settings)
 
-        assert result.is_success
+        assert result.success
         assert result.unwrap() is True
 
     def test_domain_entity_lifecycle_workflow(self) -> None:
@@ -396,7 +396,7 @@ class TestE2EIntegrationWithCore:
 
         command = command.complete_execution(exit_code=0, stdout="Hello, World!")
         assert command.command_status == CommandStatus.COMPLETED
-        assert command.is_successful
+        assert command.successful
         assert command.finished_at is not None
 
     def test_cli_session_workflow(self) -> None:

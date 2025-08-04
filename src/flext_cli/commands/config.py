@@ -211,7 +211,7 @@ def set_value(ctx: click.Context, key: str, value: str) -> None:
     try:
         # Parse configuration value using utility function
         parse_result = parse_config_value(value)
-        if not parse_result.is_success:
+        if not parse_result.success:
             error_msg = parse_result.error or "Configuration parsing failed"
             cli_context.print_error(error_msg)
             ctx.exit(1)
@@ -220,13 +220,13 @@ def set_value(ctx: click.Context, key: str, value: str) -> None:
 
         # Try to set in config first, then settings using utility function
         config_result = set_config_attribute(cli_context.config, key, parsed_value)
-        if config_result.is_success:
+        if config_result.success:
             success_msg = config_result.data or "Configuration updated successfully"
             cli_context.print_success(success_msg)
             return
 
         settings_result = set_config_attribute(cli_context.settings, key, parsed_value)
-        if settings_result.is_success:
+        if settings_result.success:
             success_msg = settings_result.data or "Settings updated successfully"
             cli_context.print_success(success_msg)
             return

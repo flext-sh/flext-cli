@@ -40,7 +40,7 @@ Usage Examples:
     >>> from flext_cli.utils.config import CLISettings
     >>> settings = CLISettings(debug=True)
     >>> result = setup_cli(settings)
-    >>> if result.is_success:
+    >>> if result.success:
     ...     print("CLI ready for use")
 
     Custom configuration:
@@ -92,7 +92,7 @@ def setup_cli(settings: CLISettings | None = None) -> FlextResult[bool]:
     except (ImportError, AttributeError, ValueError) as e:
         return FlextResult.fail(f"Failed to setup CLI: {e}")
     except (RuntimeError, TypeError, OSError) as e:
-        error_msg = f"Unexpected CLI setup error: {e}"
+        error_msg: str = f"Unexpected CLI setup error: {e}"
         return FlextResult.fail(error_msg)
 
 
@@ -132,7 +132,7 @@ def get_cli_settings() -> CLISettings:
 
 
 # Export convenience functions
-__all__ = [
+__all__: list[str] = [
     "create_development_cli_config",
     "create_production_cli_config",
     "get_cli_settings",

@@ -135,7 +135,7 @@ if not ALGAR_AVAILABLE:
 
 def _raise_missing_env(var_name: str) -> str:
     """Raise error for missing required environment variable."""
-    msg = f"Required environment variable {var_name} is not set"
+    msg: str = f"Required environment variable {var_name} is not set"
     raise ValueError(msg)
 
 
@@ -267,7 +267,7 @@ def migrate(
             ),
         )
 
-        if result.is_success:
+        if result.success:
             click.echo("✅ Migration completed successfully!")
             if result.data:
                 click.echo(
@@ -442,7 +442,7 @@ def sync_acls(ctx: click.Context, **kwargs: bool) -> None:
                 service.execute_full_migration(job_name=f"acl_sync_{int(time.time())}"),
             )
 
-            if result.is_success:
+            if result.success:
                 click.echo("✅ ACL sync completed successfully!")
             else:
                 click.echo(f"❌ ACL sync failed: {result.error}", err=True)

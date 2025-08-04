@@ -144,7 +144,7 @@ assert running_command.command_status == CommandStatus.RUNNING
 
 # Complete execution
 completed = running_command.complete_execution(exit_code=0, stdout="Success")
-assert completed.is_successful
+assert completed.successful
 
 # Session management
 session = flext_cli.CLISession(session_id="session-123")
@@ -334,7 +334,7 @@ command = flext_cli.CLICommand(
 
 # Domain validation
 validation_result = command.validate_domain_rules()
-if not validation_result.is_success:
+if not validation_result.success:
     print(f"Validation failed: {validation_result.error}")
 
 # Execution with tracking

@@ -44,7 +44,7 @@ Functions:
 Usage Examples:
     Save authentication token:
     >>> result = save_auth_token("jwt_token_here")
-    >>> if result.is_success:
+    >>> if result.success:
     ...     print("Token saved securely")
 
     Check authentication status:
@@ -54,7 +54,7 @@ Usage Examples:
 
     Logout and clear tokens:
     >>> result = clear_auth_tokens()
-    >>> if result.is_success:
+    >>> if result.success:
     ...     print("Logged out successfully")
 
 Integration:
@@ -121,7 +121,7 @@ def save_auth_token(token: str) -> FlextResult[None]:
 
         return FlextResult.ok(None)
     except (OSError, PermissionError, ValueError) as e:
-        error_msg = f"Failed to save auth token: {e}"
+        error_msg: str = f"Failed to save auth token: {e}"
         return FlextResult.fail(error_msg)
 
 
@@ -145,7 +145,7 @@ def save_refresh_token(refresh_token: str) -> FlextResult[None]:
 
         return FlextResult.ok(None)
     except (OSError, PermissionError, ValueError) as e:
-        error_msg = f"Failed to save refresh token: {e}"
+        error_msg: str = f"Failed to save refresh token: {e}"
         return FlextResult.fail(error_msg)
 
 
@@ -198,7 +198,7 @@ def clear_auth_tokens() -> FlextResult[None]:
 
         return FlextResult.ok(None)
     except (OSError, PermissionError) as e:
-        error_msg = f"Failed to clear auth tokens: {e}"
+        error_msg: str = f"Failed to clear auth tokens: {e}"
         return FlextResult.fail(error_msg)
 
 

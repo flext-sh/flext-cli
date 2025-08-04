@@ -235,7 +235,7 @@ class FormatterFactory:
         """Create formatter by type."""
         formatter_class = cls._formatters.get(format_type)
         if not formatter_class:
-            msg = f"Unknown formatter type: {format_type}"
+            msg: str = f"Unknown formatter type: {format_type}"
             raise ValueError(msg)
         return formatter_class()
 

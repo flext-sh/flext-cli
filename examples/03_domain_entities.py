@@ -84,7 +84,7 @@ def demonstrate_cli_commands() -> None:
         )
         console.print("   - cancel_execution(): Cancel command, record completion time")
         console.print("   - is_completed: Property to check if execution finished")
-        console.print("   - is_successful: Property to check if completed successfully")
+        console.print("   - successful: Property to check if completed successfully")
         console.print()
 
     except (RuntimeError, ValueError, TypeError) as e:

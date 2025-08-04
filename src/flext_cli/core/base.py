@@ -98,7 +98,7 @@ class CLIContext(FlextValueObject):
         """Post-initialization validation hook."""
         super().model_post_init(__context)
         result = self.validate_domain_rules()
-        if not result.is_success:
+        if not result.success:
             raise ValueError(result.error)
 
     def validate_domain_rules(self) -> FlextResult[None]:
@@ -135,7 +135,7 @@ def _handle_flext_result(result: object) -> object:
 
     """
     if isinstance(result, FlextResult):
-        if result.is_success:
+        if result.success:
             return result.data
         console = Console()
         console.print(f"[red]Error: {result.error}[/red]")

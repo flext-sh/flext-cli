@@ -44,7 +44,7 @@ class TestFlextCoreFlextResultIntegration:
 
         # Should return FlextResult
         assert isinstance(result, FlextResult)
-        assert result.is_success
+        assert result.success
         assert result.unwrap() is True
 
     def test_cli_setup_with_invalid_settings(self) -> None:
@@ -57,7 +57,7 @@ class TestFlextCoreFlextResultIntegration:
         # Should handle gracefully and still succeed (with fallback)
         assert isinstance(result, FlextResult)
         # Implementation should handle invalid log levels gracefully
-        assert result.is_success or result.is_failure
+        assert result.success or result.is_failure
 
     def test_config_retrieval_service_result(self) -> None:
         """Test configuration retrieval uses FlextResult patterns."""
@@ -126,7 +126,7 @@ class TestFlextCoreDomainEntityIntegration:
         command = command.complete_execution(exit_code=0, stdout="hello")
         assert command.command_status == CommandStatus.COMPLETED
         assert command.finished_at is not None
-        assert command.is_successful
+        assert command.successful
 
     def test_cli_session_domain_entity_behavior(self) -> None:
         """Test CLISession follows domain entity patterns."""
@@ -290,7 +290,7 @@ class TestFlextCoreLoggingIntegration:
         # Complete execution
         command = command.complete_execution(exit_code=0, stdout="hello")
         assert command.command_status == CommandStatus.COMPLETED
-        assert command.is_successful
+        assert command.successful
 
     def test_service_logging_integration(self) -> None:
         """Test services integrate with logging."""
@@ -319,7 +319,7 @@ class TestFlextCoreErrorHandlingIntegration:
 
         # Test command failure
         command = command.complete_execution(exit_code=1, stderr="Command failed")
-        assert not command.is_successful
+        assert not command.successful
         assert command.command_status == CommandStatus.FAILED
         assert command.stderr == "Command failed"
 
@@ -370,7 +370,7 @@ class TestFlextCoreTypeIntegration:
 
         # Type safety checks
         assert isinstance(result, FlextResult)
-        if result.is_success:
+        if result.success:
             value = result.unwrap()
             assert isinstance(value, bool)
         else:
@@ -445,7 +445,7 @@ class TestFlextCorePatternCompliance:
         # Domain entities should be pure business logic
         assert hasattr(command, "start_execution")
         assert hasattr(command, "complete_execution")
-        assert hasattr(command, "is_successful")
+        assert hasattr(command, "successful")
 
     def test_domain_driven_design_compliance(self) -> None:
         """Test CLI follows DDD principles."""

@@ -224,7 +224,7 @@ def test_cli_command_lifecycle():
 
     # Test validation
     validation_result = command.validate_domain_rules()
-    assert validation_result.is_success
+    assert validation_result.success
 
     # Test lifecycle
     running_command = command.start_execution()
@@ -237,7 +237,7 @@ def test_cli_command_lifecycle():
 def test_command_service_execution():
     service = CLICommandService(mock_repository)
     result = await service.execute_command(command)
-    assert result.is_success
+    assert result.success
 ```
 
 ## 🔗 Related Documentation

@@ -105,7 +105,7 @@ from flext_cli.types import (
 
 # This will be resolved when the core.py file is imported
 
-__all__ = [
+__all__: list[str] = [
     # Base classes
     "CLIContext",
     # Helpers

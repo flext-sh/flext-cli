@@ -276,7 +276,7 @@ def test_command_execution():
     assert command.is_running
 
     command.complete_execution(result)
-    assert command.is_successful
+    assert command.successful
 
 # Application layer - Service tests with mocked repositories
 async def test_cli_service():
@@ -286,7 +286,7 @@ async def test_cli_service():
     )
 
     result = await app_service.execute_command(command_id)
-    assert result.is_success
+    assert result.success
 
 # Adapter layer - Integration tests with real frameworks
 def test_cli_foundation():

@@ -403,7 +403,7 @@ class TestDebugCommandErrorHandling:
 
             def mock_import(package: str, *args: object, **kwargs: object) -> MagicMock:
                 if package == "missing_package":
-                    msg = f"No module named '{package}'"
+                    msg: str = f"No module named '{package}'"
                     raise ImportError(msg)
                 return MagicMock()
 
