@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import click
@@ -161,10 +162,14 @@ def set_value(ctx: click.Context, key: str, value: str) -> None:
 def validate(ctx: click.Context) -> None:
     cli_context: CLIContext = ctx.obj["cli_context"]
 
-    try:
-        if not cli_context.config:
+    def _validate_config_loaded(context: CLIContext) -> None:
+        """Validate configuration is loaded - TRY301 compliance."""
+        if not context.config:
             msg = "Configuration not loaded"
             raise ValueError(msg)
+
+    try:
+        _validate_config_loaded(cli_context)
 
         if cli_context.settings:
             cli_context.print_info(
@@ -241,7 +246,7 @@ def edit(ctx: click.Context, profile: str | None) -> None:
                 "settings": cli_context.settings.model_dump(),
             }
 
-            with open(config_file, "w", encoding="utf-8") as f:
+            with Path(config_file).open("w", encoding="utf-8") as f:
                 yaml.dump(default_config, f, default_flow_style=False)
 
             cli_context.print_info(f"Created default configuration at {config_file}")

@@ -274,6 +274,4 @@ class CLIExecutionContext(FlextValueObject):
         return FlextResult.ok(None)
 
 
-# Ensure models are rebuilt after imports are complete
-CLIContext.model_rebuild()
-CLIExecutionContext.model_rebuild()
+# Models use forward references - no runtime imports needed for types

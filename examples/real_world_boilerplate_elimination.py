@@ -31,13 +31,14 @@ from flext_cli import (
 def traditional_approach_example() -> None:
     """BEFORE: Traditional approach with massive boilerplate (45+ lines)."""
 
-    def process_user_data_old_way(
-        raw_users: list[dict[str, Any]], config: dict[str, Any]
-    ) -> dict[str, Any]:
-        logger = logging.getLogger(__name__)
+    class TraditionalUserProcessingStrategy:
+        """Strategy Pattern for traditional user processing - complexity reduction."""
 
-        try:
-            # Manual config validation (8 lines)
+        def __init__(self, logger: logging.Logger) -> None:
+            self.logger = logger
+
+        def validate_config(self, config: dict[str, Any]) -> dict[str, Any]:
+            """Validate configuration with defaults."""
             validated_config = {}
             if not isinstance(config.get("batch_size"), int):
                 if config.get("batch_size"):
@@ -46,36 +47,54 @@ def traditional_approach_example() -> None:
                     validated_config["batch_size"] = 100
             else:
                 validated_config["batch_size"] = config["batch_size"]
+            return validated_config
 
-            # Manual data validation (6 lines)
+        def validate_data(self, raw_users: list[dict[str, Any]]) -> bool:
+            """Validate input data format."""
             if not raw_users or not isinstance(raw_users, list):
-                logger.error("Invalid user data")
-                return {"success": False, "error": "Invalid user data"}
+                self.logger.error("Invalid user data")
+                return False
+            return True
 
-            # Manual list processing with error handling (12 lines)
+        def transform_user(self, user: dict[str, Any]) -> dict[str, Any] | None:
+            """Transform a single user object."""
+            try:
+                if not isinstance(user, dict) or "name" not in user:
+                    self.logger.warning(f"Skipping invalid user: {user}")
+                    return None
+
+                # Transform keys
+                transformed = {}
+                for old_key, value in user.items():
+                    if old_key == "old_email":
+                        transformed["email"] = value
+                    elif old_key == "old_status":
+                        transformed["status"] = value
+                    else:
+                        transformed[old_key] = value
+
+                return transformed
+            except (RuntimeError, ValueError, TypeError) as e:
+                self.logger.exception(f"Failed to process user {user}: {e}")
+                return None
+
+        def process_users(
+            self, raw_users: list[dict[str, Any]]
+        ) -> list[dict[str, Any]]:
+            """Process all users with transformation."""
             processed_users = []
             for user in raw_users:
-                try:
-                    if not isinstance(user, dict) or "name" not in user:
-                        logger.warning(f"Skipping invalid user: {user}")
-                        continue
-
-                    # Transform keys
-                    transformed = {}
-                    for old_key, value in user.items():
-                        if old_key == "old_email":
-                            transformed["email"] = value
-                        elif old_key == "old_status":
-                            transformed["status"] = value
-                        else:
-                            transformed[old_key] = value
-
+                transformed = self.transform_user(user)
+                if transformed is not None:
                     processed_users.append(transformed)
-                except (RuntimeError, ValueError, TypeError) as e:
-                    logger.exception(f"Failed to process user {user}: {e}")
-                    continue
+            return processed_users
 
-            # Manual result formatting (8 lines)
+        def format_result(
+            self,
+            processed_users: list[dict[str, Any]],
+            validated_config: dict[str, Any],
+        ) -> dict[str, Any]:
+            """Format final result."""
             if processed_users:
                 result = {
                     "processed_count": len(processed_users),
@@ -83,9 +102,27 @@ def traditional_approach_example() -> None:
                     "config": validated_config,
                 }
                 formatted_result = json.dumps(result, indent=2)
-                logger.info(f"Processed {len(processed_users)} users successfully")
+                self.logger.info(f"Processed {len(processed_users)} users successfully")
                 return {"success": True, "data": formatted_result}
             return {"success": False, "error": "No valid users processed"}
+
+    def process_user_data_old_way(
+        raw_users: list[dict[str, Any]], config: dict[str, Any]
+    ) -> dict[str, Any]:
+        logger = logging.getLogger(__name__)
+
+        try:
+            # Strategy Pattern implementation - Single Responsibility
+            processor = TraditionalUserProcessingStrategy(logger)
+
+            validated_config = processor.validate_config(config)
+
+            if not processor.validate_data(raw_users):
+                return {"success": False, "error": "Invalid user data"}
+
+            processed_users = processor.process_users(raw_users)
+
+            return processor.format_result(processed_users, validated_config)
 
         except (RuntimeError, ValueError, TypeError) as e:
             logger.exception("Processing failed")
