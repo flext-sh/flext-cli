@@ -40,6 +40,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import contextlib
+
 from flext_core import get_logger
 from flext_core.decorators import FlextDecorators
 from flext_core.result import FlextResult
@@ -158,3 +160,10 @@ def _handle_exception(e: Exception) -> None:
 
 # Use FlextDecorators from flext-core for proper type safety
 handle_service_result = FlextDecorators.safe_result
+
+# Rebuild Pydantic models to resolve forward references
+with contextlib.suppress(Exception):
+    # Import CLIConfig and rebuild it first, then CLIContext
+    from flext_cli.domain.entities import CLIConfig
+    CLIConfig.model_rebuild()
+    CLIContext.model_rebuild()

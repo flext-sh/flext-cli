@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
 import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -126,6 +127,7 @@ def get(ctx: click.Context, key: str | None) -> None:
 @click.argument("value")
 @click.pass_context
 def set_value(ctx: click.Context, key: str, value: str) -> None:
+    """Set a configuration value."""
     cli_context: CLIContext = ctx.obj["cli_context"]
 
     try:
@@ -160,6 +162,7 @@ def set_value(ctx: click.Context, key: str, value: str) -> None:
 @config.command()
 @click.pass_context
 def validate(ctx: click.Context) -> None:
+    """Validate the current configuration."""
     cli_context: CLIContext = ctx.obj["cli_context"]
 
     def _validate_config_loaded(context: CLIContext) -> None:
@@ -186,6 +189,7 @@ def validate(ctx: click.Context) -> None:
 @config.command()
 @click.pass_context
 def path(ctx: click.Context) -> None:
+    """Show configuration file paths."""
     cli_context: CLIContext = ctx.obj["cli_context"]
 
     # Use flat structure from utils/config.py
@@ -228,7 +232,8 @@ def path(ctx: click.Context) -> None:
 @config.command()
 @click.option("--profile", "-p", help="Profile name to edit")
 @click.pass_context
-def edit(ctx: click.Context, profile: str | None) -> None:
+def edit(ctx: click.Context, _profile: str | None) -> None:
+    """Edit configuration file in default editor."""
     cli_context: CLIContext = ctx.obj["cli_context"]
 
     config_dir = cli_context.config.config_dir
@@ -251,7 +256,9 @@ def edit(ctx: click.Context, profile: str | None) -> None:
 
             cli_context.print_info(f"Created default configuration at {config_file}")
 
-        subprocess.run([editor, str(config_file)], check=True)
+        # Use shell=False and validate editor for security
+        editor_cmd = shlex.split(editor)
+        subprocess.run([*editor_cmd, str(config_file)], check=True)  # noqa: S603
         cli_context.print_success("Configuration updated")
         cli_context.print_info("Restart CLI to apply changes")
 

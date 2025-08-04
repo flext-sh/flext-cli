@@ -41,10 +41,10 @@ try:
                 function_counts[module] = content.count("def ")
                 class_counts[module] = content.count("class ")
 
-    for module in function_counts:
+    for _module in function_counts:
         pass
 
-    for module in class_counts:
+    for _module in class_counts:
         pass
 
     total_functions = sum(function_counts.values())

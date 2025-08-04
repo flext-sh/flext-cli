@@ -15,6 +15,7 @@ from flext_cli.cli import cli
 
 
 def main() -> None:
+    """Debug E2E test runner for CLI operations."""
     runner = CliRunner()
     operations = [
         ["config", "show"],

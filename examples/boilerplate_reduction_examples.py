@@ -14,9 +14,8 @@ from __future__ import annotations
 import csv
 import json
 import logging
-import os
 from collections import defaultdict
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -163,11 +162,11 @@ def example_2_before_export_boilerplate() -> None:
                 _validate_record_fields(record)
 
             # Manual directory creation
-            os.makedirs(base_path, exist_ok=True)
+            Path(base_path).mkdir(parents=True, exist_ok=True)
 
             # Manual export for each format
             for fmt in formats:
-                filepath = os.path.join(base_path, f"sales.{fmt}")
+                filepath = Path(base_path) / f"sales.{fmt}"
 
                 if fmt == "json":
                     with Path(filepath).open("w", encoding="utf-8") as f:
@@ -322,7 +321,7 @@ def example_4_before_api_processing() -> None:
             """Validate response format - TRY301 compliance."""
             if not isinstance(data, (list, dict)):
                 msg = "Invalid response format"
-                raise ValueError(msg)
+                raise TypeError(msg)
 
         try:
             # Validation using helper functions
@@ -344,7 +343,7 @@ def example_4_before_api_processing() -> None:
                         transformed_item[new_key] = item[old_key]
 
                 # Add metadata
-                transformed_item["processed_at"] = datetime.now().isoformat()
+                transformed_item["processed_at"] = datetime.now(UTC).isoformat()
                 transformed_item["original_keys"] = list(item.keys())
 
                 processed.append(transformed_item)

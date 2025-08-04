@@ -92,7 +92,7 @@ def example_data_export() -> None:
     )
 
     if multi_result.success:
-        for fmt in multi_result.unwrap():
+        for _fmt in multi_result.unwrap():
             pass
 
 
