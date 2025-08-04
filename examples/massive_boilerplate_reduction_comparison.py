@@ -9,6 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import flext_cli
 
 
@@ -78,7 +80,7 @@ def example_before_vs_after() -> None:
         flext_cli.flext_cli_analyze_data(data),
         "No analysis available",
     )
-    with open("analysis.txt", "w", encoding="utf-8") as f:
+    with Path("analysis.txt").open("w", encoding="utf-8") as f:
         f.write(analysis)
 
     # Compare with conditional execution

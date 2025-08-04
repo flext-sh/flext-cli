@@ -69,6 +69,8 @@ try:
     from flext_core import __version__ as _core_version
 
     core_version: str | None = _core_version
+except ImportError:
+    core_version = None
 
 
 @click.group(
@@ -297,7 +299,7 @@ def version(ctx: click.Context) -> None:
     console.print(f"FLEXT CLI version {__version__}")
     console.print(f"Python {sys.version.split()[0]} ({sys.platform})")
 
-    # TODO (Sprint 1): Add flext-core version detection
+    # Issue #1: Add flext-core version detection (Sprint 1)
     if core_version:
         console.print(f"flext-core {core_version}")
     else:
@@ -319,7 +321,7 @@ def version(ctx: click.Context) -> None:
         console.print(f"[dim]Python executable: {sys.executable}[/dim]")
         console.print(f"[dim]Platform: {sys.platform}[/dim]")
 
-        # TODO (Sprint 1): Add ecosystem service connectivity check
+        # Issue #2: Add ecosystem service connectivity check (Sprint 1)
         console.print("[dim]Service connectivity: not implemented[/dim]")
 
 

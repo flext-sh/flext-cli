@@ -168,7 +168,7 @@ class FlextCliDemoRunner:
             if exec_result.is_success:
                 calc_result = exec_result.unwrap()
                 print(f"      Calculation result: {calc_result}")
-                print(f"      15.5 × 4.2 = {calc_result['result']}")
+                print(f"      15.5 × 4.2 = {calc_result['result']}")  # noqa: RUF001
                 return True
 
         return False

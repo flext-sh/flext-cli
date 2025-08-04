@@ -17,6 +17,7 @@ import logging
 import os
 from collections import defaultdict
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from flext_cli import (
@@ -140,18 +141,26 @@ def example_2_before_export_boilerplate() -> None:
         formats = formats or ["json", "csv"]
         results = {}
 
-        try:
-            # Manual validation
-            if not sales_data or not isinstance(sales_data, list):
+        def _validate_sales_data(data: list[dict[str, object]]) -> None:
+            """Validate sales data format - TRY301 compliance."""
+            if not data or not isinstance(data, list):
                 msg = "Invalid sales data"
                 raise ValueError(msg)
 
+        def _validate_record_fields(record: dict[str, object]) -> None:
+            """Validate required fields in record - TRY301 compliance."""
+            required_fields = ["id", "amount", "date"]
+            missing = [f for f in required_fields if f not in record]
+            if missing:
+                msg = f"Missing fields: {missing}"
+                raise ValueError(msg)
+
+        try:
+            # Validation using helper functions
+            _validate_sales_data(sales_data)
+
             for record in sales_data:
-                required_fields = ["id", "amount", "date"]
-                missing = [f for f in required_fields if f not in record]
-                if missing:
-                    msg = f"Missing fields: {missing}"
-                    raise ValueError(msg)
+                _validate_record_fields(record)
 
             # Manual directory creation
             os.makedirs(base_path, exist_ok=True)
@@ -161,10 +170,10 @@ def example_2_before_export_boilerplate() -> None:
                 filepath = os.path.join(base_path, f"sales.{fmt}")
 
                 if fmt == "json":
-                    with open(filepath, "w", encoding="utf-8") as f:
+                    with Path(filepath).open("w", encoding="utf-8") as f:
                         json.dump(sales_data, f, indent=2, default=str)
                 elif fmt == "csv":
-                    with open(filepath, "w", encoding="utf-8", newline="") as f:
+                    with Path(filepath).open("w", encoding="utf-8", newline="") as f:
                         writer = csv.DictWriter(f, fieldnames=sales_data[0].keys())
                         writer.writeheader()
                         writer.writerows(sales_data)
@@ -303,15 +312,22 @@ def example_4_before_api_processing() -> None:
         logger = logging.getLogger(__name__)
         transform_rules = transform_rules or {}
 
-        try:
-            # Manual validation
-            if not response_data:
+        def _validate_response_data(data: dict[str, Any]) -> None:
+            """Validate response data - TRY301 compliance."""
+            if not data:
                 msg = "Empty response data"
                 raise ValueError(msg)
 
-            if not isinstance(response_data, (list, dict)):
+        def _validate_response_format(data: dict[str, Any]) -> None:
+            """Validate response format - TRY301 compliance."""
+            if not isinstance(data, (list, dict)):
                 msg = "Invalid response format"
                 raise ValueError(msg)
+
+        try:
+            # Validation using helper functions
+            _validate_response_data(response_data)
+            _validate_response_format(response_data)
 
             # Convert single dict to list
             if isinstance(response_data, dict):

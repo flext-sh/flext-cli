@@ -329,7 +329,7 @@ class CLICommand(FlextEntity):
             },
         )
 
-        # TODO (Sprint 1-2): Publish CommandStartedEvent domain event
+        # Issue #3: Publish CommandStartedEvent domain event (Sprint 1-2)
 
         return FlextResult.ok(updated_command)
 
@@ -411,7 +411,7 @@ class CLICommand(FlextEntity):
             },
         )
 
-        # TODO (Sprint 1-2): Publish appropriate domain events
+        # Issue #4: Publish appropriate domain events (Sprint 1-2)
         # if status == CommandStatus.COMPLETED:
         #     publish(CommandCompletedEvent(...))
         # else:
@@ -464,7 +464,7 @@ class CLICommand(FlextEntity):
             },
         )
 
-        # TODO (Sprint 1-2): Publish CommandCancelledEvent domain event
+        # Issue #5: Publish CommandCancelledEvent domain event (Sprint 1-2)
 
         return FlextResult.ok(updated_command)
 

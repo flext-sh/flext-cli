@@ -187,8 +187,7 @@ logger = get_logger(__name__)
 @click.option("--dry-run", is_flag=True, help="Dry run mode - no actual changes")
 @click.pass_context
 def algar(ctx: click.Context, **kwargs: bool) -> None:
-    """ALGAR OUD Migration - Oracle Internet Directory to Oracle Unified
-    Directory migration.
+    """ALGAR OUD Migration - OID to OUD migration.
 
     This command provides comprehensive Oracle Internet Directory (OID) to
     Oracle Unified Directory (OUD) migration capabilities for ALGAR.
@@ -289,26 +288,20 @@ def migrate(
         ctx.exit(1)
 
 
-@algar.command()
-@click.option("--health-check", is_flag=True, help="Perform health check")
-@click.pass_context
-def diagnose(ctx: click.Context, **kwargs: bool) -> None:
-    """Run diagnostics for ALGAR OUD Migration."""
-    health_check = kwargs.get("health_check", False)
-    try:
-        debug = ctx.obj.get("debug", False)
+class AlgarDiagnosticStrategy:
+    """Strategy Pattern for ALGAR diagnostics - SOLID compliance."""
 
-        click.echo("🔍 ALGAR OUD Migration Diagnostics")
-        click.echo("=" * 40)
+    def __init__(self) -> None:
+        self.missing_vars: list[str] = []
 
-        # Check environment variables
+    def check_environment_variables(self) -> None:
+        """Check required environment variables."""
         required_vars = [
             "ALGAR_OUD_BASE_DN",
             "OID_HOST",
             "OUD_HOST",
         ]
 
-        missing_vars = []
         for var in required_vars:
             value = os.environ.get(var)
             if value:
@@ -321,16 +314,18 @@ def diagnose(ctx: click.Context, **kwargs: bool) -> None:
                 click.echo(f"✅ {var}: {masked_value}")
             else:
                 click.echo(f"❌ {var}: Not set")
-                missing_vars.append(var)
+                self.missing_vars.append(var)
 
-        # Check package versions
+    def check_package_versions(self) -> None:
+        """Check ALGAR package version."""
         try:
             algar_version = importlib.metadata.version("algar-oud-mig")
             click.echo(f"✅ ALGAR OUD Migration version: {algar_version}")
         except (RuntimeError, ValueError, TypeError):
             click.echo("❌ ALGAR OUD Migration package not installed")
 
-        # Check dependencies
+    def check_dependencies(self) -> None:
+        """Check required dependencies."""
         deps_to_check = [
             ("flext-core", "flext_core"),
             ("flext-observability", "flext_observability"),
@@ -344,35 +339,62 @@ def diagnose(ctx: click.Context, **kwargs: bool) -> None:
             except ImportError:
                 click.echo(f"❌ {dep_name}: Not available")
 
-        # Health check
-        if health_check:
-            click.echo("\n🏥 Health Check")
-            click.echo("-" * 20)
+    def perform_health_check(self) -> None:
+        """Perform health check operations."""
+        click.echo("\n🏥 Health Check")
+        click.echo("-" * 20)
 
-            # Check LDAP connectivity (if configured)
-            oid_host = os.environ.get("OID_HOST")
-            oud_host = os.environ.get("OUD_HOST")
+        # Check LDAP connectivity (if configured)
+        oid_host = os.environ.get("OID_HOST")
+        oud_host = os.environ.get("OUD_HOST")
 
-            if oid_host:
-                click.echo(f"Checking OID connectivity to {oid_host}...")
-                # Would perform actual LDAP connection test here
-                click.echo("⚠️  LDAP connectivity check not implemented yet")
+        if oid_host:
+            click.echo(f"Checking OID connectivity to {oid_host}...")
+            # Would perform actual LDAP connection test here
+            click.echo("⚠️  LDAP connectivity check not implemented yet")
 
-            if oud_host:
-                click.echo(f"Checking OUD connectivity to {oud_host}...")
-                # Would perform actual LDAP connection test here
-                click.echo("⚠️  LDAP connectivity check not implemented yet")
+        if oud_host:
+            click.echo(f"Checking OUD connectivity to {oud_host}...")
+            # Would perform actual LDAP connection test here
+            click.echo("⚠️  LDAP connectivity check not implemented yet")
 
-        # Summary
+    def display_summary(self, ctx: click.Context) -> None:
+        """Display diagnostic summary."""
         click.echo("\n📊 Summary")
         click.echo("-" * 10)
-        if missing_vars:
-            click.echo(f"❌ {len(missing_vars)} required environment variables missing")
+        if self.missing_vars:
+            click.echo(
+                f"❌ {len(self.missing_vars)} required environment variables missing"
+            )
             click.echo("Please check your .env configuration")
             ctx.exit(1)
         else:
             click.echo("✅ All required environment variables are set")
             click.echo("Environment appears to be configured correctly")
+
+
+@algar.command()
+@click.option("--health-check", is_flag=True, help="Perform health check")
+@click.pass_context
+def diagnose(ctx: click.Context, **kwargs: bool) -> None:
+    """Run diagnostics for ALGAR OUD Migration using Strategy Pattern."""
+    health_check = kwargs.get("health_check", False)
+    try:
+        debug = ctx.obj.get("debug", False)
+
+        click.echo("🔍 ALGAR OUD Migration Diagnostics")
+        click.echo("=" * 40)
+
+        # Strategy Pattern implementation - Single Responsibility
+        diagnostic = AlgarDiagnosticStrategy()
+        diagnostic.check_environment_variables()
+        diagnostic.check_package_versions()
+        diagnostic.check_dependencies()
+
+        if health_check:
+            diagnostic.perform_health_check()
+
+        diagnostic.display_summary(ctx)
 
     except (RuntimeError, ValueError, TypeError) as e:
         logger.exception("Diagnostic failed")
@@ -448,7 +470,7 @@ def validate_rules(ctx: click.Context, rules_file: str) -> None:
         # Validate rules file
 
         try:
-            with open(rules_file, encoding="utf-8") as f:
+            with Path(rules_file).open(encoding="utf-8") as f:
                 rules = json.load(f)
 
             # Basic validation

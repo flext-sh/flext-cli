@@ -36,7 +36,7 @@ try:
 
     for module in modules:
         if Path(module).exists():
-            with open(module, encoding="utf-8") as f:
+            with Path(module).open(encoding="utf-8") as f:
                 content = f.read()
                 function_counts[module] = content.count("def ")
                 class_counts[module] = content.count("class ")

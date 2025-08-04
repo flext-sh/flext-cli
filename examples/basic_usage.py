@@ -170,7 +170,6 @@ def example_error_handling() -> None:
     api = CliApi()
 
     # Use secure temporary files instead of hardcoded paths
-    import tempfile
 
     # 1. Export with invalid data
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp_file:
@@ -189,11 +188,10 @@ def example_error_handling() -> None:
     print(f"✓ Unsupported format: {'Handled' if not success else 'Unexpected success'}")
 
     # Clean up temporary files
-    import os
 
     try:
-        os.unlink(invalid_path)
-        os.unlink(test_path)
+        Path(invalid_path).unlink()
+        Path(test_path).unlink()
     except (OSError, FileNotFoundError):
         pass  # Files may not exist or already cleaned up
 
@@ -206,7 +204,8 @@ def example_error_handling() -> None:
 
     # 4. CSV export with invalid data structure
     invalid_csv_data = ["string1", "string2"]  # Not list of dicts
-    csv_result = api.export(invalid_csv_data, "/tmp/invalid.csv", "csv")
+    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as tmp_file:
+        csv_result = api.export(invalid_csv_data, tmp_file.name, "csv")
     print(
         f"✓ CSV validation: "
         f"{'Handled' if not csv_result.is_success else 'Unexpected success'}"

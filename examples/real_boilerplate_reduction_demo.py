@@ -10,6 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import tempfile
+
 from flext_cli import (
     flext_cli_aggregate_data,
     flext_cli_export,
@@ -48,7 +50,8 @@ def traditional_approach() -> None:
 
     # Export operation
     exporter = FlextCliDataExporter()
-    exporter.export_data(sample_data, "/tmp/traditional_employees.json", "json")
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp_file:
+        exporter.export_data(sample_data, tmp_file.name, "json")
 
     # Format operation
     formatter = FlextCliFormatter()
@@ -73,7 +76,8 @@ def modern_unified_approach() -> None:
     # ============================================================================
 
     # All operations in 3 lines with automatic error handling
-    flext_cli_export(sample_data, "/tmp/unified_employees.json", "json")
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp_file:
+        flext_cli_export(sample_data, tmp_file.name, "json")
     flext_cli_format(sample_data)
     flext_cli_table(sample_data, "Employee Table", "grid")
 
@@ -126,13 +130,14 @@ def advanced_decorators_demo() -> None:
 def pipeline_operations_demo() -> None:
     """Demonstrate pipeline operations with single function call."""
     # Complete data pipeline in one call
-    pipeline_result = flext_cli_pipeline(
-        sample_data,
-        export_path="/tmp/pipeline_employees",
-        formats=["json", "csv"],
-        dashboard=False,  # Would create dashboard if True
-        analysis=True,
-    )
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        pipeline_result = flext_cli_pipeline(
+            sample_data,
+            export_path=tmp_dir + "/pipeline_employees",
+            formats=["json", "csv"],
+            dashboard=False,  # Would create dashboard if True
+            analysis=True,
+        )
 
     if pipeline_result.success:
         pass
