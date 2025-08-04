@@ -21,7 +21,11 @@ import flext_cli.core
 # Import directly from the core.py file to avoid conflicts
 core_path = Path(__file__).parent.parent / "src" / "flext_cli" / "core.py"
 spec = importlib.util.spec_from_file_location("flext_cli_core", core_path)
+if spec is None:
+    raise ImportError(f"Could not load spec from {core_path}")
 core_module = importlib.util.module_from_spec(spec)
+if spec.loader is None:
+    raise ImportError(f"No loader found for spec from {core_path}")
 spec.loader.exec_module(core_module)
 
 FlextCliService = core_module.FlextCliService
@@ -30,7 +34,7 @@ FlextService = core_module.FlextService
 
 # Mock the flext_cli.types imports needed for testing
 class MockFlextCliConfig:
-    def __init__(self, data: dict | None = None) -> None:
+    def __init__(self, data: dict[str, object] | None = None) -> None:
         data = data or {}
         self.debug = data.get("debug", False)
         self.trace = data.get("trace", False)
@@ -90,11 +94,16 @@ class TestFlextCliService:
     def setup_method(self) -> None:
         """Setup mocks for each test."""
         # Patch the imports in core module (dynamic assignment for testing)
-        core_module.FlextCliConfig = MockFlextCliConfig
-        core_module.FlextCliCommand = MockFlextCliCommand
-        core_module.FlextCliSession = MockFlextCliSession
-        core_module.FlextCliPlugin = MockFlextCliPlugin
-        core_module.FlextCliContext = MockFlextCliContext
+        if hasattr(core_module, "FlextCliConfig"):
+            core_module.FlextCliConfig = MockFlextCliConfig
+        if hasattr(core_module, "FlextCliCommand"):
+            core_module.FlextCliCommand = MockFlextCliCommand
+        if hasattr(core_module, "FlextCliSession"):
+            core_module.FlextCliSession = MockFlextCliSession
+        if hasattr(core_module, "FlextCliPlugin"):
+            core_module.FlextCliPlugin = MockFlextCliPlugin
+        if hasattr(core_module, "FlextCliContext"):
+            core_module.FlextCliContext = MockFlextCliContext
 
     def test_service_initialization(self) -> None:
         """Test service initialization."""

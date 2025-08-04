@@ -74,8 +74,8 @@ def traditional_approach_example() -> None:
                         transformed[old_key] = value
 
                 return transformed
-            except (RuntimeError, ValueError, TypeError) as e:
-                self.logger.exception(f"Failed to process user {user}: {e}")
+            except (RuntimeError, ValueError, TypeError):
+                self.logger.exception("Failed to process user %s", user)
                 return None
 
         def process_users(

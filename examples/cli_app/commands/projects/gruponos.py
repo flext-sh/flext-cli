@@ -492,7 +492,7 @@ def version(ctx: click.Context) -> None:
 )
 @click.pass_context
 def main(
-    ctx: click.Context,
+    _ctx: click.Context,
     *,
     debug: bool,
     config_file: str | None,

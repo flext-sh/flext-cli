@@ -818,6 +818,7 @@ with contextlib.suppress(Exception):
     CLICommand.model_rebuild()
     CLISession.model_rebuild()
     CLIPlugin.model_rebuild()
+    CLIConfig.model_rebuild()
 
     # Rebuild event classes too
     CommandStartedEvent.model_rebuild()

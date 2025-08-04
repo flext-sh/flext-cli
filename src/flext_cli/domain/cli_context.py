@@ -62,6 +62,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import contextlib
 from typing import TYPE_CHECKING
 
 from flext_core.result import FlextResult
@@ -69,9 +70,11 @@ from flext_core.value_objects import FlextValueObject
 from pydantic import ConfigDict, Field
 
 if TYPE_CHECKING:
-    from rich.console import Console
-
     from flext_cli.utils.config import CLIConfig, CLISettings
+
+from rich.console import (
+    Console,  # noqa: TC002 - needed for runtime Pydantic model_rebuild
+)
 
 
 class CLIContext(FlextValueObject):
@@ -275,3 +278,15 @@ class CLIExecutionContext(FlextValueObject):
 
 
 # Models use forward references - no runtime imports needed for types
+
+# Rebuild Pydantic models to resolve forward references
+with contextlib.suppress(Exception):
+    # Import dependencies for runtime model building
+
+    from flext_cli.utils.config import CLIConfig, CLISettings
+
+    # Rebuild all models in dependency order
+    CLIConfig.model_rebuild()
+    CLISettings.model_rebuild()
+    CLIContext.model_rebuild()
+    CLIExecutionContext.model_rebuild()

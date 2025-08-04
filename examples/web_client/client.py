@@ -97,9 +97,11 @@ class FlextApiClient:
         return headers
 
     async def __aenter__(self) -> Self:
+        """Enter async context manager."""
         return self
 
     async def __aexit__(self, *args: object) -> None:
+        """Exit async context manager and close client."""
         await self.close()
 
     async def close(self) -> None:

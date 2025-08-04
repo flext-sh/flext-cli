@@ -107,7 +107,7 @@ class TestConfirmAction:
             # Apply decorator manually to avoid typing issues
             decorated_func = confirm_action("Are you sure?")(dangerous_action)
             assert callable(decorated_func)  # Type assertion for MyPy
-            result = decorated_func()  # type: ignore[operator]
+            result = decorated_func()
             if result != "action executed":
                 msg: str = f"Expected {'action executed'}, got {result}"
                 raise AssertionError(msg)
@@ -122,7 +122,7 @@ class TestConfirmAction:
 
             decorated_func = confirm_action("Are you sure?")(dangerous_action)
             assert callable(decorated_func)  # Type assertion for MyPy
-            result = decorated_func()  # type: ignore[operator]
+            result = decorated_func()
             assert result is None  # Should return None when cancelled
 
     def test_confirm_action_with_custom_message(self) -> None:
@@ -135,7 +135,7 @@ class TestConfirmAction:
 
             decorated_func = confirm_action("Delete all files?")(delete_files)
             assert callable(decorated_func)  # Type assertion for MyPy
-            result = decorated_func()  # type: ignore[operator]
+            result = decorated_func()
             if result != "files deleted":
                 msg: str = f"Expected {'files deleted'}, got {result}"
                 raise AssertionError(msg)
@@ -150,8 +150,7 @@ class TestConfirmAction:
 
             decorated_func = confirm_action("Proceed with action?")(action_with_args)
             assert callable(decorated_func)  # Type assertion for MyPy
-            result = decorated_func("test", 5)  # type: ignore[operator]
-            if result != "processed 5 items for test":
+            result = decorated_func("test", 5)            if result != "processed 5 items for test":
                 msg: str = f"Expected {'processed 5 items for test'}, got {result}"
                 raise AssertionError(msg)
 
@@ -226,8 +225,7 @@ class TestMeasureTime:
             def timed_function() -> str:
                 return "completed"
 
-            result = timed_function()  # type: ignore[operator]
-
+            result = timed_function()
             if result != "completed":
                 msg: str = f"Expected {'completed'}, got {result}"
                 raise AssertionError(msg)
@@ -245,8 +243,7 @@ class TestMeasureTime:
             def timed_function() -> str:
                 return "completed"
 
-            result = timed_function()  # type: ignore[operator]
-
+            result = timed_function()
             if result != "completed":
                 msg: str = f"Expected {'completed'}, got {result}"
                 raise AssertionError(msg)
@@ -282,8 +279,7 @@ class TestRetry:
             call_count += 1
             return "success"
 
-        result = reliable_function()  # type: ignore[operator]
-        if result != "success":
+        result = reliable_function()        if result != "success":
             msg: str = f"Expected {'success'}, got {result}"
             raise AssertionError(msg)
         assert call_count == 1
@@ -301,8 +297,7 @@ class TestRetry:
                 raise ValueError(msg)
             return "success"
 
-        result = flaky_function()  # type: ignore[operator]
-        if result != "success":
+        result = flaky_function()        if result != "success":
             msg: str = f"Expected {'success'}, got {result}"
             raise AssertionError(msg)
         assert call_count == EXPECTED_DATA_COUNT
@@ -319,8 +314,7 @@ class TestRetry:
             raise ValueError(msg)
 
         with pytest.raises(ValueError, match="persistent error"):
-            failing_function()  # type: ignore[operator]
-
+            failing_function()
         if call_count != EXPECTED_BULK_SIZE:
             msg: str = f"Expected {2}, got {call_count}"
             raise AssertionError(msg)
@@ -339,8 +333,7 @@ class TestRetry:
                     raise ValueError(msg)
                 return "success"
 
-            result = flaky_function()  # type: ignore[operator]
-            if result != "success":
+            result = flaky_function()            if result != "success":
                 msg: str = f"Expected {'success'}, got {result}"
                 raise AssertionError(msg)
             mock_sleep.assert_called_once_with(0.5)
@@ -361,8 +354,7 @@ class TestValidateConfig:
         def function_requiring_config(config: MockConfig) -> str:
             return "config validated"
 
-        result = function_requiring_config(config=MockConfig())  # type: ignore[operator]
-        if result != "config validated":
+        result = function_requiring_config(config=MockConfig())        if result != "config validated":
             msg: str = f"Expected {'config validated'}, got {result}"
             raise AssertionError(msg)
 
@@ -378,8 +370,7 @@ class TestValidateConfig:
             def function_requiring_config(config: MockConfig) -> str:
                 return "config validated"
 
-            result = function_requiring_config(config=MockConfig())  # type: ignore[operator]
-            assert result is None
+            result = function_requiring_config(config=MockConfig())            assert result is None
             mock_print.assert_called_once_with(
                 "Missing required configuration: timeout",
                 style="red",
@@ -416,8 +407,7 @@ class TestWithSpinner:
                 time.sleep(0.01)  # Simulate work
                 return "task completed"
 
-            result = long_running_task()  # type: ignore[operator]
-            if result != "task completed":
+            result = long_running_task()            if result != "task completed":
                 msg: str = f"Expected {'task completed'}, got {result}"
                 raise AssertionError(msg)
             mock_status.assert_called_once_with("Processing...", spinner="dots")
@@ -434,8 +424,7 @@ class TestWithSpinner:
                 time.sleep(0.01)
                 return "calculation done"
 
-            result = calculation_task()  # type: ignore[operator]
-            if result != "calculation done":
+            result = calculation_task()            if result != "calculation done":
                 msg: str = f"Expected {'calculation done'}, got {result}"
                 raise AssertionError(msg)
             mock_status.assert_called_once_with(
@@ -455,8 +444,7 @@ class TestWithSpinner:
                 raise ValueError(msg)
 
             with pytest.raises(ValueError, match="task failed"):
-                failing_task()  # type: ignore[operator]
-
+                failing_task()
             mock_status.assert_called_once_with("Processing...", spinner="dots")
 
 

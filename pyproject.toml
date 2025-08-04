@@ -36,11 +36,11 @@ dependencies = [
     "structlog (>=25.4.0)",
     "tabulate (>=0.9.0)",
 
-    "algar-oud-mig @ ../algar-oud-mig",
-    "flext-core @ ../flext-core",
-    "flext-meltano @ ../flext-meltano",
-    "flext-observability @ ../flext-observability",
-    "gruponos-meltano-native @ ../gruponos-meltano-native",
+    "algar-oud-mig @ file://../algar-oud-mig",
+    "flext-core @ file://../flext-core",
+    "flext-meltano @ file://../flext-meltano",
+    "flext-observability @ file://../flext-observability",
+    "gruponos-meltano-native @ file://../gruponos-meltano-native",
 ]
 keywords = [
     "async",
