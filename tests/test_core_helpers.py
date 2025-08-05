@@ -100,7 +100,7 @@ class TestCLIHelper:
         """Test URL validation with values that cause exceptions."""
         helper = CLIHelper()
 
-        assert helper.validate_url(None) is False  # type: ignore[arg-type]
+        assert helper.validate_url(None) is False
 
     def test_validate_path_existing(self) -> None:
         """Test path validation with existing path."""

@@ -41,9 +41,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
+from typing import cast
 
-from flext_core import get_logger
-from flext_core.decorators import FlextDecorators
+from flext_core import F, get_logger
 from flext_core.result import FlextResult
 from flext_core.value_objects import FlextValueObject
 from pydantic import Field
@@ -158,8 +158,83 @@ def _handle_exception(e: Exception) -> None:
     logger.error("Unhandled exception in CLI command")
 
 
-# Use FlextDecorators from flext-core for proper type safety
-handle_service_result = FlextDecorators.safe_result
+def handle_service_result(f: F) -> F:
+    """Handle FlextResult by unwrapping successful results and handling failures.
+
+    This decorator handles functions that return FlextResult:
+    - If result is successful, returns the data
+    - If result is failure, prints error and returns None
+    - Preserves async/await behavior
+    - Catches exceptions, logs them, prints error, and re-raises
+
+    Args:
+        f: Function that returns FlextResult or any other value
+
+    Returns:
+        Decorated function that handles FlextResult appropriately
+
+    """
+    if not callable(f):
+        return f
+
+    import inspect
+
+    # Check if the function is async
+    if inspect.iscoroutinefunction(f):
+        async def async_wrapper(*args: object, **kwargs: object) -> object:
+            try:
+                result = await f(*args, **kwargs)
+
+                # If it's a FlextResult, handle it appropriately
+                if isinstance(result, FlextResult):
+                    if result.success:
+                        return result.data  # Return unwrapped data
+                    # Handle failure - print error and return None
+                    console = Console()
+                    error_msg = result.error or "Unknown error"
+                    console.print(f"[red]Error: {error_msg}[/red]")
+                    return None
+                # Not a FlextResult, return as-is
+                return result
+            except Exception as e:
+                # Handle exceptions: log, print error, and re-raise
+                _handle_exception(e)
+                raise
+
+        # Copy function metadata
+        async_wrapper.__name__ = getattr(f, "__name__", "wrapped_function")
+        async_wrapper.__doc__ = getattr(f, "__doc__", async_wrapper.__doc__)
+        async_wrapper.__module__ = getattr(f, "__module__", __name__)
+
+        return cast("F", async_wrapper)
+
+    def sync_wrapper(*args: object, **kwargs: object) -> object:
+        try:
+            result = f(*args, **kwargs)
+
+            # If it's a FlextResult, handle it appropriately
+            if isinstance(result, FlextResult):
+                if result.success:
+                    return result.data  # Return unwrapped data
+                # Handle failure - print error and return None
+                console = Console()
+                error_msg = result.error or "Unknown error"
+                console.print(f"[red]Error: {error_msg}[/red]")
+                return None
+            # Not a FlextResult, return as-is
+            return result
+        except Exception as e:
+            # Handle exceptions: log, print error, and re-raise
+            _handle_exception(e)
+            raise
+
+    # Copy function metadata
+    sync_wrapper.__name__ = getattr(f, "__name__", "wrapped_function")
+    sync_wrapper.__doc__ = getattr(f, "__doc__", sync_wrapper.__doc__)
+    sync_wrapper.__module__ = getattr(f, "__module__", __name__)
+
+    return cast("F", sync_wrapper)
+
 
 # Rebuild Pydantic models to resolve forward references
 with contextlib.suppress(Exception):

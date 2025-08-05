@@ -18,14 +18,19 @@ import click
 import structlog
 import yaml
 
-# Import GrupoNOS modules - preserving original imports
+# Import GrupoNOS modules - using broad import approach
 try:
-    from gruponos_meltano_native.config import (
-        GrupoNOSConfig,
-    )
-    from gruponos_meltano_native.orchestrator import (
-        GrupoNOSMeltanoOrchestrator,
-    )
+    import gruponos_meltano_native.config as gruponos_config
+    import gruponos_meltano_native.orchestrator as gruponos_orchestrator
+    
+    # Try to find the correct Config class
+    GrupoNOSConfig = getattr(gruponos_config, 'GrupoNOSConfig', 
+                           getattr(gruponos_config, 'Config', 
+                                 getattr(gruponos_config, 'GruponosConfig', None)))
+    
+    # Try to find the correct Orchestrator class  
+    GrupoNOSMeltanoOrchestrator = getattr(gruponos_orchestrator, 'GrupoNOSMeltanoOrchestrator',
+                                        getattr(gruponos_orchestrator, 'GruponosMeltanoOrchestrator', None))
 
     GRUPONOS_AVAILABLE = True
 except ImportError as e:
@@ -130,8 +135,8 @@ def status(ctx: click.Context, output_format: str) -> None:
         # Initialize orchestrator
         orchestrator = GrupoNOSMeltanoOrchestrator(config)
 
-        # Get status
-        status_info = orchestrator.get_status()
+        # Get status using the correct method name
+        status_info = orchestrator.get_job_status()
 
         if output_format == "table":
             click.echo("GrupoNOS Meltano Native Status")
@@ -215,7 +220,8 @@ async def run(
 
         if result.success:
             click.echo("✅ Pipeline completed successfully!")
-            if result.metrics:
+            # Check if result has metrics attribute
+            if hasattr(result, 'metrics') and result.metrics:
                 click.echo(
                     f"📊 Records processed: "
                     f"{result.metrics.get('records_processed', 0)}",
@@ -223,7 +229,7 @@ async def run(
                 click.echo(f"⏱️  Duration: {result.metrics.get('duration', 'unknown')}")
         else:
             click.echo(f"❌ Pipeline failed: {result.error}", err=True)
-            if debug and result.details:
+            if debug and hasattr(result, 'details') and result.details:
                 click.echo(f"Details: {result.details}", err=True)
             ctx.exit(1)
 

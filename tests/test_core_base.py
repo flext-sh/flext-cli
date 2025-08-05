@@ -86,9 +86,13 @@ class TestHandleServiceResult:
         if result != "success data":
             raise AssertionError(f"Expected {'success data'}, got {result}")
 
-    @patch("flext_cli.core.base.Console")
-    def test_failed_result_handling(self, mock_console_class: Mock) -> None:
+    def test_failed_result_handling(self) -> None:
         """Test handling of failed FlextResult."""
+        with patch("flext_cli.core.base.Console") as mock_console_class:
+            self._test_failed_result_handling_impl(mock_console_class)
+
+    def _test_failed_result_handling_impl(self, mock_console_class: Mock) -> None:
+        """Test handling of failed FlextResult implementation."""
         mock_console = Mock()
         mock_console_class.return_value = mock_console
 
@@ -112,14 +116,18 @@ class TestHandleServiceResult:
         if result != "regular data":
             raise AssertionError(f"Expected {'regular data'}, got {result}")
 
-    @patch("flext_cli.core.base.Console")
-    @patch("flext_cli.core.base.get_logger")
-    def test_exception_handling(
+    def test_exception_handling(self) -> None:
+        """Test exception handling in decorator."""
+        with patch("flext_cli.core.base.Console") as mock_console_class, \
+             patch("flext_cli.core.base.get_logger") as mock_get_logger:
+            self._test_exception_handling_impl(mock_get_logger, mock_console_class)
+
+    def _test_exception_handling_impl(
         self,
         mock_get_logger: Mock,
         mock_console_class: Mock,
     ) -> None:
-        """Test exception handling in decorator."""
+        """Test exception handling in decorator implementation."""
         mock_console = Mock()
         mock_console_class.return_value = mock_console
         mock_logger = Mock()
@@ -203,10 +211,13 @@ class TestHandleServiceResult:
         # Run the async test
         asyncio.run(test_runner())
 
-    @patch("flext_cli.core.base.Console")
-    def test_async_failed_result_handling(self, mock_console_class: Mock) -> None:
+    def test_async_failed_result_handling(self) -> None:
         """Test async handling of failed FlextResult."""
+        with patch("flext_cli.core.base.Console") as mock_console_class:
+            self._test_async_failed_result_handling_impl(mock_console_class)
 
+    def _test_async_failed_result_handling_impl(self, mock_console_class: Mock) -> None:
+        """Test async handling of failed FlextResult implementation."""
         mock_console = Mock()
         mock_console_class.return_value = mock_console
 
@@ -225,14 +236,18 @@ class TestHandleServiceResult:
         # Run the async test
         asyncio.run(test_runner())
 
-    @patch("flext_cli.core.base.Console")
-    @patch("flext_cli.core.base.get_logger")
-    def test_async_exception_handling(
+    def test_async_exception_handling(self) -> None:
+        """Test async exception handling in decorator."""
+        with patch("flext_cli.core.base.Console") as mock_console_class, \
+             patch("flext_cli.core.base.get_logger") as mock_get_logger:
+            self._test_async_exception_handling_impl(mock_get_logger, mock_console_class)
+
+    def _test_async_exception_handling_impl(
         self,
         mock_get_logger: Mock,
         mock_console_class: Mock,
     ) -> None:
-        """Test async exception handling in decorator."""
+        """Test async exception handling in decorator implementation."""
         import asyncio
 
         mock_console = Mock()

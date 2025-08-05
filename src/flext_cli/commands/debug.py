@@ -149,8 +149,9 @@ def connectivity(ctx: click.Context) -> None:
                 f"[green]✅ Connected to API at {client.base_url}[/green]",
             )
             try:
-                # Get system status from client
-                status = client.get_system_status()
+                # Get system status from client (async call)
+                import asyncio
+                status = asyncio.run(client.get_system_status())
                 console.print("\nSystem Status:")
                 console.print(f"  Version: {status.get('version', 'Unknown')}")
                 console.print(f"  Status: {status.get('status', 'Unknown')}")
@@ -185,8 +186,9 @@ def performance(ctx: click.Context) -> None:
         client = FlextApiClient()
         console.print("[yellow]Fetching performance metrics...[/yellow]")
 
-        # Get metrics from client
-        raw_metrics = client.get_performance_metrics()
+        # Get metrics from client (async call)
+        import asyncio
+        raw_metrics = asyncio.run(client.get_system_metrics())
 
         # Format metrics for display
         metrics = {

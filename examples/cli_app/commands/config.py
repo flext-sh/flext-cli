@@ -20,7 +20,7 @@ from flext_cli.utils.config import parse_config_value, set_config_attribute
 from rich.table import Table
 
 if TYPE_CHECKING:
-    from flext_cli.core.base import CLIContext
+    from flext_cli.domain.cli_context import CLIContext
 
 
 @click.group()
@@ -33,7 +33,7 @@ class ConfigDisplayManager:
 
     def __init__(self, cli_context: CLIContext) -> None:
         """Initialize with CLI context."""
-        self.cli_context = cli_context
+        self.cli_context: CLIContext = cli_context
 
     def get_config_value(self, key: str) -> object | None:
         """Get a specific configuration value from config or settings."""
@@ -137,17 +137,17 @@ def set_value(ctx: click.Context, key: str, value: str) -> None:
             cli_context.print_error(parse_result.error)
             ctx.exit(1)
 
-        parsed_value = parse_result.value
+        parsed_value = parse_result.data
 
         # Try to set in config first, then settings using utility function
         config_result = set_config_attribute(cli_context.config, key, parsed_value)
         if config_result.success:
-            cli_context.print_success(config_result.value)
+            cli_context.print_success(str(config_result.data))
             return
 
         settings_result = set_config_attribute(cli_context.settings, key, parsed_value)
         if settings_result.success:
-            cli_context.print_success(settings_result.value)
+            cli_context.print_success(str(settings_result.data))
             return
 
         cli_context.print_warning(

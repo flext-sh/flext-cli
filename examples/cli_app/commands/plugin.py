@@ -131,7 +131,7 @@ def list_plugins(ctx: click.Context, plugin_type: str | None, **kwargs: bool) ->
                     transient=True,
                 ) as progress:
                     progress.add_task("Loading plugins...")
-                    plugins = await client.list_plugins(plugin_type, installed)
+                    plugins = await client.list_plugins(plugin_type, installed_only=installed)
 
                 if output_format == "json":
                     console.print(json.dumps(plugins, indent=2))
@@ -172,8 +172,12 @@ def show(ctx: click.Context, plugin_id: str) -> None:
 
                     if "settings" in plugin:
                         console.print("\nSettings:")
-                        for key, value in plugin["settings"].items():
-                            console.print(f"  {key}: {value}")
+                        settings = plugin["settings"]
+                        if isinstance(settings, dict):
+                            for key, value in settings.items():
+                                console.print(f"  {key}: {value}")
+                        else:
+                            console.print(f"  {settings}")
         except (RuntimeError, ValueError, TypeError) as e:
             console.print(f"[red]❌ Failed to get plugin details: {e}[/red]")
             ctx.exit(1)

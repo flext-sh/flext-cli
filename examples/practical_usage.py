@@ -11,10 +11,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import (
-    FlextCliBuilder,
-    flext_cli_create_builder,
-    flext_cli_format_output,
-    flext_cli_validate_inputs,
+    # Use actually available exports
+    format_output,  # available formatter function
+    setup_cli,     # available CLI setup function
+    flext_cli_format,  # available format function
+    flext_cli_table,   # available table function
 )
 from flext_core import FlextResult
 
@@ -28,22 +29,24 @@ def example_1_simple_cli() -> None:
     """Example 1: Ultra-simple CLI creation."""
     # Zero-boilerplate CLI with just commands
 
-    # Create and run CLI in one line (without actually running to avoid sys.exit)
-    # result = flext_cli_quick_commands(commands, name="simple-app")
-    # In a real scenario, this would create and run the CLI
+    # Create basic CLI setup using available functions
+    from flext_cli import CLISettings
+    settings = CLISettings(debug=True)
+    result = setup_cli(settings)
+    # This demonstrates the actual available API
 
 
 def example_2_web_service_cli() -> None:
     """Example 2: Web service management CLI."""
-    # Create CLI with web validation
-    cli = (
-        flext_cli_create_builder("webservice", version="2.1.0")
-        .set_validator(
-            url="url", email="email", port=lambda x: 1 <= int(x) <= MAX_PORT_NUMBER
-        )
-        .set_formatter("json")
-        .add_global_flag("--verbose", "Enable verbose logging")
+    # Create CLI with configuration
+    from flext_cli import CLIConfig, CLISettings
+    config = CLIConfig(
+        output_format="json",
+        verbose=True,
+        debug=True,
     )
+    settings = CLISettings(debug=True, project_name="webservice")
+    cli_result = setup_cli(settings)
 
     def deploy_service(
         url: str,
@@ -51,12 +54,16 @@ def example_2_web_service_cli() -> None:
         admin_email: str,
     ) -> FlextResult[dict[str, str]]:
         """Deploy web service with validation."""
-        # Validate all inputs using consolidated validator
-        validation_data = {"url": url, "email": admin_email, "port": port}
-        validation_result = cli.validate_data(validation_data)
-
-        if not validation_result.success:
-            return FlextResult.fail(f"Validation failed: {validation_result.error}")
+        # Basic validation using available patterns
+        if not url or not admin_email or not port:
+            return FlextResult.fail("Missing required parameters")
+        
+        try:
+            port_num = int(port)
+            if not (1 <= port_num <= MAX_PORT_NUMBER):
+                return FlextResult.fail(f"Port must be between 1 and {MAX_PORT_NUMBER}")
+        except ValueError:
+            return FlextResult.fail("Port must be a valid number")
 
         # Simulate deployment
         deployment_info = {
@@ -81,9 +88,8 @@ def example_2_web_service_cli() -> None:
             },
         )
 
-    # Add commands with fluent interface
-    cli.add_command("deploy", deploy_service, "Deploy web service")
-    cli.add_command("health", check_health, "Check service health")
+    # Commands would be added to actual CLI in practice
+    # This demonstrates the service function patterns available
 
     # Test commands directly (in real usage, cli.run() would handle this)
     deploy_result = deploy_service(
@@ -92,28 +98,37 @@ def example_2_web_service_cli() -> None:
         "admin@example.com",
     )
     if deploy_result.success:
-        flext_cli_format_output(deploy_result.unwrap(), "json")
+        format_output(deploy_result.unwrap(), "json")
 
 
 def example_3_database_management() -> None:
     """Example 3: Database management with comprehensive validation."""
-    # Create validator with database-specific patterns
-    db_validator = flext_cli_validate_inputs(
-        host="domain",
-        port=lambda x: MIN_PRIVILEGED_PORT <= int(x) <= MAX_PORT_NUMBER,
-        database=lambda x: len(str(x)) >= MIN_DATABASE_NAME_LENGTH,
-        username="username",
-        ssl_cert="file_path",
+    # Create configuration for database management
+    from flext_cli import CLIConfig, CLISettings
+    config = CLIConfig(
+        output_format="table",
+        debug=True,
     )
-
-    cli = (
-        FlextCliBuilder("dbmanager", "3.0.0", "Database Management Tool")
-        .set_formatter("table")
-        .add_config_file_support("db.yaml")
+    settings = CLISettings(
+        debug=True,
+        project_name="dbmanager",
     )
-
-    # Set custom validator
-    cli._validator = db_validator
+    
+    def validate_db_params(host: str, port: str, database: str, username: str) -> FlextResult[None]:
+        """Validate database connection parameters."""
+        if not host or len(host) < 3:
+            return FlextResult.fail("Host must be at least 3 characters")
+        try:
+            port_num = int(port)
+            if not (MIN_PRIVILEGED_PORT <= port_num <= MAX_PORT_NUMBER):
+                return FlextResult.fail(f"Port must be between {MIN_PRIVILEGED_PORT} and {MAX_PORT_NUMBER}")
+        except ValueError:
+            return FlextResult.fail("Port must be a valid number")
+        if len(database) < MIN_DATABASE_NAME_LENGTH:
+            return FlextResult.fail(f"Database name must be at least {MIN_DATABASE_NAME_LENGTH} characters")
+        if not username or len(username) < 2:
+            return FlextResult.fail("Username must be at least 2 characters")
+        return FlextResult.ok(None)
 
     def connect_database(
         host: str,
@@ -129,7 +144,7 @@ def example_3_database_management() -> None:
             "username": username,
         }
 
-        validation_result = cli.validate_data(connection_data)
+        validation_result = validate_db_params(host, port, database, username)
         if not validation_result.success:
             return FlextResult.fail(validation_result.error)
 
@@ -164,10 +179,8 @@ def example_3_database_management() -> None:
             },
         )
 
-    # Add commands
-    cli.add_command("connect", connect_database, "Connect to database")
-    cli.add_command("tables", list_tables, "List all tables")
-    cli.add_command("backup", backup_database, "Create database backup")
+    # Functions demonstrate available patterns
+    # In practice, these would be registered as CLI commands
 
     # Demonstrate usage
     connect_result = connect_database("db.example.com", "5432", "production", "dbadmin")
@@ -175,23 +188,45 @@ def example_3_database_management() -> None:
         # Test table listing
         tables_result = list_tables()
         if tables_result.success:
-            # Format as table
-            formatter = cli._get_formatter()
-            formatter.table(tables_result.unwrap(), "Database Tables")
+            # Format as table using available function
+            table_data = tables_result.unwrap()
+            flext_cli_table(table_data, "Database Tables", "grid")
 
 
 def example_4_advanced_features() -> None:
     """Example 4: Advanced features demonstration."""
-    # Create CLI with all advanced features
-    cli = (
-        FlextCliBuilder("advanced-app", "4.0.0", "Advanced CLI Demo")
-        .set_validator(email="email", jwt="jwt", ipv6="ipv6")
-        .set_formatter("rich")
-        .add_global_flag("--debug", "Debug mode")
-        .add_global_flag("--dry-run", "Dry run mode")
+    # Create advanced CLI configuration
+    from flext_cli import CLIConfig, CLISettings
+    config = CLIConfig(
+        output_format="rich",
+        debug=True,
+        verbose=True,
     )
+    settings = CLISettings(
+        debug=True,
+        project_name="advanced-app",
+    )
+    
+    def validate_advanced_inputs(email: str, token: str, ipv6_addr: str) -> FlextResult[None]:
+        """Validate advanced input parameters."""
+        import re
+        
+        # Basic email validation
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, email):
+            return FlextResult.fail("Invalid email format")
+        
+        # Basic JWT validation (simplified)
+        if not token or len(token.split('.')) != 3:
+            return FlextResult.fail("Invalid JWT token format")
+        
+        # Basic IPv6 validation (simplified)
+        if ':' not in ipv6_addr or len(ipv6_addr) < 15:
+            return FlextResult.fail("Invalid IPv6 address format")
+        
+        return FlextResult.ok(None)
 
-    # Add middleware
+    # Middleware and error handling patterns (would be implemented in actual CLI)
     def audit_middleware(data: dict[str, object]) -> dict[str, object]:
         """Add audit information to all commands."""
         data["audit"] = {
@@ -201,13 +236,8 @@ def example_4_advanced_features() -> None:
         }
         return data
 
-    cli.add_middleware(audit_middleware)
-
-    # Set custom error handler
     def custom_error_handler(exc: Exception) -> str:
         return f"🚨 Custom error handler: {exc}"
-
-    cli.set_error_handler(custom_error_handler)
 
     def process_user_data(
         email: str,
@@ -215,9 +245,7 @@ def example_4_advanced_features() -> None:
         ipv6_addr: str,
     ) -> FlextResult[dict[str, object]]:
         """Process user data with comprehensive validation."""
-        user_data = {"email": email, "jwt": token, "ipv6": ipv6_addr}
-
-        validation_result = cli.validate_data(user_data)
+        validation_result = validate_advanced_inputs(email, token, ipv6_addr)
         if not validation_result.success:
             return FlextResult.fail(validation_result.error)
 
@@ -248,19 +276,18 @@ def example_4_advanced_features() -> None:
         }
 
         # Use different formatting based on request
-        if format_type == "tree":
-            formatter = cli._get_formatter()
-            result = formatter.format_tree(report_data, "System Report")
+        if format_type == "table":
+            table_result = flext_cli_table(report_data.get("services", []), "System Report", "grid")
+            result = str(table_result.unwrap() if table_result.success else "No data")
         elif format_type == "json":
-            result = flext_cli_format_output(report_data, "json").unwrap()
+            result = str(format_output(report_data, "json"))
         else:
-            result = flext_cli_format_output(report_data, "rich").unwrap()
+            format_result = flext_cli_format(report_data)
+            result = str(format_result.unwrap() if format_result.success else "")
 
         return FlextResult.ok(result)
 
-    # Add commands
-    cli.add_command("process", process_user_data, "Process user data")
-    cli.add_command("report", generate_report, "Generate system report")
+    # Functions demonstrate available patterns for CLI commands
 
     # Demonstrate usage
 
@@ -275,8 +302,8 @@ def example_4_advanced_features() -> None:
     process_result = process_user_data("user@example.com", valid_jwt, valid_ipv6)
     if process_result.success:
         # Generate different report formats
-        tree_report = generate_report("tree")
-        if tree_report.success:
+        table_report = generate_report("table")
+        if table_report.success:
             pass
 
 
@@ -285,7 +312,9 @@ def example_5_input_collection() -> None:
     # This example shows how the input system would work
     # (In practice, this would require actual user interaction)
 
-    cli = FlextCliBuilder("interactive-app")
+    # Interactive CLI configuration
+    from flext_cli import CLISettings
+    settings = CLISettings(project_name="interactive-app")
 
     # Define input schema
 
@@ -302,11 +331,10 @@ def example_5_input_collection() -> None:
         }
 
         # Validate collected data
-        validator = flext_cli_validate_inputs(email="email")
-        validation_result = validator.validate_dict({"email": collected_data["email"]})
-
-        if not validation_result.success:
-            return FlextResult.fail(validation_result.error)
+        import re
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, collected_data["email"]):
+            return FlextResult.fail("Invalid email format")
 
         return FlextResult.ok(
             {
@@ -316,12 +344,12 @@ def example_5_input_collection() -> None:
             },
         )
 
-    cli.add_command("create-user", create_user_interactive, "Create user interactively")
+    # Function demonstrates interactive input collection pattern
 
     # Demonstrate
     result = create_user_interactive()
     if result.success:
-        flext_cli_format_output(result.unwrap(), "yaml")
+        format_output(result.unwrap(), "yaml")
 
 
 def main() -> None:

@@ -118,12 +118,16 @@ class TestFlextCoreDomainEntityIntegration:
         assert command.command_status == CommandStatus.PENDING
 
         # Start execution (should generate domain event)
-        command = command.start_execution()
+        start_result = command.start_execution()
+        assert start_result.success, f"Start execution failed: {start_result.error}"
+        command = start_result.data
         assert command.command_status == CommandStatus.RUNNING
         assert command.started_at is not None
 
         # Complete execution (should generate domain event)
-        command = command.complete_execution(exit_code=0, stdout="hello")
+        complete_result = command.complete_execution(exit_code=0, stdout="hello")
+        assert complete_result.success, f"Complete execution failed: {complete_result.error}"
+        command = complete_result.data
         assert command.command_status == CommandStatus.COMPLETED
         assert command.finished_at is not None
         assert command.successful
@@ -235,7 +239,7 @@ class TestFlextCoreValidationIntegration:
         with pytest.raises(
             ValueError, match="Cannot complete command that hasn't been started"
         ):
-            command = command.complete_execution(exit_code=0)
+            command.complete_execution(exit_code=0)
 
 
 class TestFlextCoreDependencyInjectionIntegration:

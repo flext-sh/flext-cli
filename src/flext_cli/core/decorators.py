@@ -55,11 +55,17 @@ from __future__ import annotations
 import asyncio
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING, TypeVar, cast
 
 from rich.console import Console
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
-def async_command(f: object) -> object:
+F = TypeVar("F")
+
+
+def async_command[F](f: F) -> F:
     """Run async functions in sync context (SOLID: Open/Closed Principle)."""
     if not callable(f):
         return f
@@ -79,17 +85,17 @@ def async_command(f: object) -> object:
     wrapper.__doc__ = getattr(f, "__doc__", wrapper.__doc__)
     wrapper.__module__ = getattr(f, "__module__", __name__)
 
-    return wrapper
+    return cast("F", wrapper)
 
 
 def confirm_action(
     message: str = "Are you sure?",
     *,
     default: bool = False,
-) -> object:
+) -> Callable[[F], F]:
     """Add confirmation prompt before executing function."""
 
-    def decorator(f: object) -> object:
+    def decorator(f: F) -> F:
         if not callable(f):
             return f
 
@@ -109,15 +115,15 @@ def confirm_action(
         wrapper.__doc__ = getattr(f, "__doc__", wrapper.__doc__)
         wrapper.__module__ = getattr(f, "__module__", __name__)
 
-        return wrapper
+        return cast("F", wrapper)
 
     return decorator
 
 
-def require_auth(*, token_file: str | None = None) -> object:
+def require_auth(*, token_file: str | None = None) -> Callable[[F], F]:
     """Require authentication before executing function."""
 
-    def decorator(f: object) -> object:
+    def decorator(f: F) -> F:
         if not callable(f):
             return f
 
@@ -154,15 +160,15 @@ def require_auth(*, token_file: str | None = None) -> object:
         wrapper.__doc__ = getattr(f, "__doc__", wrapper.__doc__)
         wrapper.__module__ = getattr(f, "__module__", __name__)
 
-        return wrapper
+        return cast("F", wrapper)
 
     return decorator
 
 
-def measure_time(*, show_in_output: bool = True) -> object:
+def measure_time(*, show_in_output: bool = True) -> Callable[[F], F]:
     """Measure and optionally display execution time."""
 
-    def decorator(f: object) -> object:
+    def decorator(f: F) -> F:
         if not callable(f):
             return f
 
@@ -186,7 +192,7 @@ def measure_time(*, show_in_output: bool = True) -> object:
         wrapper.__doc__ = getattr(f, "__doc__", wrapper.__doc__)
         wrapper.__module__ = getattr(f, "__module__", __name__)
 
-        return wrapper
+        return cast("F", wrapper)
 
     return decorator
 
@@ -195,10 +201,10 @@ def retry(
     max_attempts: int = 3,
     delay: float = 1.0,
     backoff: float = 2.0,
-) -> object:
+) -> Callable[[F], F]:
     """Retry function calls with exponential backoff."""
 
-    def decorator(f: object) -> object:
+    def decorator(f: F) -> F:
         if not callable(f):
             return f
 
@@ -232,15 +238,15 @@ def retry(
         wrapper.__doc__ = getattr(f, "__doc__", wrapper.__doc__)
         wrapper.__module__ = getattr(f, "__module__", __name__)
 
-        return wrapper
+        return cast("F", wrapper)
 
     return decorator
 
 
-def validate_config(required_keys: list[str]) -> object:
+def validate_config(required_keys: list[str]) -> Callable[[F], F]:
     """Validate required configuration keys before execution."""
 
-    def decorator(f: object) -> object:
+    def decorator(f: F) -> F:
         if not callable(f):
             return f
 
@@ -277,15 +283,15 @@ def validate_config(required_keys: list[str]) -> object:
 
             return f(*args, **kwargs)
 
-        return wrapper
+        return cast("F", wrapper)
 
     return decorator
 
 
-def with_spinner(message: str = "Processing...") -> object:
+def with_spinner(message: str = "Processing...") -> Callable[[F], F]:
     """Show a spinner during function execution."""
 
-    def decorator(f: object) -> object:
+    def decorator(f: F) -> F:
         if not callable(f):
             return f
 
@@ -294,6 +300,6 @@ def with_spinner(message: str = "Processing...") -> object:
             with console.status(message, spinner="dots"):
                 return f(*args, **kwargs)
 
-        return wrapper
+        return cast("F", wrapper)
 
     return decorator

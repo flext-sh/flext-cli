@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import tempfile
 from datetime import UTC, datetime
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from flext_cli import (
     CLICommand,
@@ -51,8 +51,11 @@ class TestCLICommand:
         assert not sample_command.successful
         assert sample_command.started_at is None
 
-        # Start execution - immutable pattern returns new instance
-        running_command = sample_command.start_execution()
+        # Start execution - immutable pattern returns FlextResult[CLICommand]
+        running_result = sample_command.start_execution()
+        assert running_result.success, f"Start execution failed: {running_result.error}"
+        running_command = running_result.data
+        assert running_command is not None
         if running_command.command_status != CommandStatus.RUNNING:
             raise AssertionError(
                 f"Expected {CommandStatus.RUNNING}, got {running_command.command_status}"
@@ -60,12 +63,15 @@ class TestCLICommand:
         assert running_command.started_at is not None
         assert not running_command.is_completed
 
-        # Complete execution successfully - immutable pattern returns new instance
-        completed_command = running_command.complete_execution(
+        # Complete execution successfully - immutable pattern returns FlextResult[CLICommand]
+        completed_result = running_command.complete_execution(
             exit_code=0,
             stdout="hello",
             stderr="",
         )
+        assert completed_result.success, f"Complete execution failed: {completed_result.error}"
+        completed_command = completed_result.data
+        assert completed_command is not None
         if completed_command.command_status != CommandStatus.COMPLETED:
             raise AssertionError(
                 f"Expected {CommandStatus.COMPLETED}, got {completed_command.command_status}"
@@ -79,13 +85,20 @@ class TestCLICommand:
 
     def test_command_failed_execution(self, sample_command: CLICommand) -> None:
         """Test command failed execution."""
-        # Immutable pattern - each method returns new instance
-        running_command = sample_command.start_execution()
-        failed_command = running_command.complete_execution(
+        # Immutable pattern - each method returns FlextResult[CLICommand]
+        running_result = sample_command.start_execution()
+        assert running_result.success, f"Start execution failed: {running_result.error}"
+        running_command = running_result.data
+        assert running_command is not None
+
+        failed_result = running_command.complete_execution(
             exit_code=1,
             stdout="",
             stderr="Error occurred",
         )
+        assert failed_result.success, f"Complete execution failed: {failed_result.error}"
+        failed_command = failed_result.data
+        assert failed_command is not None
 
         if failed_command.command_status != CommandStatus.FAILED:
             raise AssertionError(
@@ -101,9 +114,16 @@ class TestCLICommand:
 
     def test_command_cancellation(self, sample_command: CLICommand) -> None:
         """Test command cancellation."""
-        # Immutable pattern - each method returns new instance
-        running_command = sample_command.start_execution()
-        cancelled_command = running_command.cancel_execution()
+        # Immutable pattern - each method returns FlextResult[CLICommand]
+        running_result = sample_command.start_execution()
+        assert running_result.success, f"Start execution failed: {running_result.error}"
+        running_command = running_result.data
+        assert running_command is not None
+
+        cancelled_result = running_command.cancel_execution()
+        assert cancelled_result.success, f"Cancel execution failed: {cancelled_result.error}"
+        cancelled_command = cancelled_result.data
+        assert cancelled_command is not None
 
         if cancelled_command.command_status != CommandStatus.CANCELLED:
             raise AssertionError(
@@ -126,34 +146,55 @@ class TestCLICommand:
         assert not command.successful  # Not completed successfully
 
         # Test completed status
-        running_command = command.start_execution()
-        completed_command = running_command.complete_execution(exit_code=0)
+        running_result = command.start_execution()
+        assert running_result.success, f"Start execution failed: {running_result.error}"
+        running_command = running_result.data
+        assert running_command is not None
+
+        completed_result = running_command.complete_execution(exit_code=0)
+        assert completed_result.success, f"Complete execution failed: {completed_result.error}"
+        completed_command = completed_result.data
+        assert completed_command is not None
         assert completed_command.is_completed
         assert completed_command.successful
 
         # Test failed status
-        running_command2 = command.start_execution()
-        failed_command = running_command2.complete_execution(exit_code=1)
+        running_result2 = command.start_execution()
+        assert running_result2.success, f"Start execution failed: {running_result2.error}"
+        running_command2 = running_result2.data
+        assert running_command2 is not None
+
+        failed_result = running_command2.complete_execution(exit_code=1)
+        assert failed_result.success, f"Complete execution failed: {failed_result.error}"
+        failed_command = failed_result.data
+        assert failed_command is not None
         assert failed_command.is_completed
         assert not failed_command.successful
 
-    @patch("flext_cli.domain.entities.datetime")
-    def test_duration_calculation(self, mock_datetime: Mock) -> None:
+    def test_duration_calculation(self) -> None:
         """Test duration calculation."""
         start_time = datetime(2025, 1, 1, 10, 0, 0, tzinfo=UTC)
         end_time = datetime(2025, 1, 1, 10, 0, 5, tzinfo=UTC)  # 5 seconds later
 
-        mock_datetime.now.side_effect = [start_time, end_time]
+        with patch("flext_cli.domain.entities.datetime") as mock_dt:
+            mock_dt.now.side_effect = [start_time, end_time]
 
-        command = CLICommand(id="test_duration", name="test", command_line="test")
-        # Immutable pattern - use returned instances
-        running_command = command.start_execution()
-        completed_command = running_command.complete_execution(exit_code=0)
+            command = CLICommand(id="test_duration", name="test", command_line="test")
+            # Immutable pattern - use returned FlextResult[CLICommand] instances
+            running_result = command.start_execution()
+            assert running_result.success, f"Start execution failed: {running_result.error}"
+            running_command = running_result.data
+            assert running_command is not None
 
-        if completed_command.duration_seconds != 5.0:
-            raise AssertionError(
-                f"Expected {5.0}, got {completed_command.duration_seconds}"
-            )
+            completed_result = running_command.complete_execution(exit_code=0)
+            assert completed_result.success, f"Complete execution failed: {completed_result.error}"
+            completed_command = completed_result.data
+            assert completed_command is not None
+
+            if completed_command.duration_seconds != 5.0:
+                raise AssertionError(
+                    f"Expected {5.0}, got {completed_command.duration_seconds}"
+                )
 
 
 class TestCLIPlugin:
@@ -271,19 +312,20 @@ class TestCLISession:
             raise AssertionError(f"Expected False, got {ended_session.active}")
         assert ended_session.current_command is None
 
-    @patch("flext_cli.domain.entities.datetime")
-    def test_session_activity_tracking(self, mock_datetime: Mock) -> None:
+    def test_session_activity_tracking(self) -> None:
         """Test session activity tracking."""
         activity_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=UTC)
-        mock_datetime.now.return_value = activity_time
 
-        session = CLISession(id="test_session_001", session_id="test")
-        updated_session = session.add_command("cmd-1")
+        with patch("flext_cli.domain.entities.datetime") as mock_dt:
+            mock_dt.now.return_value = activity_time
 
-        if updated_session.last_activity != activity_time:
-            raise AssertionError(
-                f"Expected {activity_time}, got {updated_session.last_activity}"
-            )
+            session = CLISession(id="test_session_001", session_id="test")
+            updated_session = session.add_command("cmd-1")
+
+            if updated_session.last_activity != activity_time:
+                raise AssertionError(
+                    f"Expected {activity_time}, got {updated_session.last_activity}"
+                )
 
 
 class TestCommandStatus:

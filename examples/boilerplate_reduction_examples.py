@@ -20,21 +20,23 @@ from pathlib import Path
 from typing import Any
 
 from flext_cli import (
-    FlextCliDataSet,
-    FlextCliEnhancedDataMixin,
-    FlextCliFormatterMixin,
-    FlextCliProcessorMixin,
-    FlextCliResultMixin,
+    # Use only available exports
     flext_cli_aggregate_data,
-    flext_cli_auto_result,
-    flext_cli_cache_simple,
-    flext_cli_ensure_list,
+    flext_cli_batch_export,
+    flext_cli_export,
     flext_cli_format,
-    flext_cli_measure_time,
-    flext_cli_pipeline,
+    flext_cli_table,
     flext_cli_transform_data,
-    flext_cli_validate_input,
+    flext_cli_unwrap_or_default,
+    flext_cli_unwrap_or_none,
+    # Available decorators
+    measure_time,
+    retry,
+    with_spinner,
+    # Format utilities
+    format_output,
 )
+from flext_core import FlextResult
 
 # =============================================================================
 # EXAMPLE 1: BEFORE vs AFTER - Data Processing
@@ -94,33 +96,37 @@ def example_1_before_massive_boilerplate() -> None:
 def example_1_after_zero_boilerplate() -> None:
     """AFTER: FlextCli enhanced approach - ZERO boilerplate."""
 
-    # GOOD: Single class with mixins - 8 lines total
-    class UserProcessor(
-        FlextCliResultMixin,
-        FlextCliEnhancedDataMixin,
-        FlextCliProcessorMixin,
-        FlextCliFormatterMixin,
-    ):
-        @flext_cli_auto_result("Processing failed")
-        @flext_cli_measure_time()
-        @flext_cli_ensure_list()
-        def process_users(self, data: FlextCliDataSet) -> str:
-            # Process with built-in validation and error handling
-            result = self.flext_cli_filter_process(
-                data,
-                lambda r: isinstance(r, dict) and "name" in r,  # Filter
-                lambda r: {
-                    "name": r["name"].upper(),
-                    "processed": True,
-                    "original_keys": len(r),
-                },  # Transform
-            )
-
-            if result.success:
-                return self.flext_cli_format_dict(
-                    {"processed_users": result.data}, "json"
-                ).data
-            return "No valid records"
+    # GOOD: Using available decorators and functions
+    class UserProcessor:
+        @measure_time
+        @retry(max_attempts=2)
+        def process_users(self, data: list[dict[str, Any]]) -> FlextResult[str]:
+            """Process users with built-in validation and error handling."""
+            try:
+                # Filter and transform using available functions
+                valid_users = [
+                    r for r in data 
+                    if isinstance(r, dict) and "name" in r
+                ]
+                
+                transformed_users = [
+                    {
+                        "name": r["name"].upper(),
+                        "processed": True,
+                        "original_keys": len(r),
+                    }
+                    for r in valid_users
+                ]
+                
+                # Format using available function
+                format_result = flext_cli_format({"processed_users": transformed_users})
+                if format_result.success:
+                    return FlextResult.ok(str(format_result.unwrap()))
+                else:
+                    return FlextResult.fail("Formatting failed")
+                    
+            except (ValueError, TypeError, KeyError) as e:
+                return FlextResult.fail(f"Processing failed: {e}")
 
 
 # =============================================================================
@@ -195,13 +201,12 @@ def example_2_after_functional_helpers() -> None:
         sales_data: list[dict[str, object]],
         formats: list[str] | None = None,
         base_path: str = "./exports",
-    ) -> object:
-        return flext_cli_pipeline(
-            sales_data,
-            export_path=base_path,
+    ) -> FlextResult[Any]:
+        """Export sales data using available batch export function."""
+        return flext_cli_batch_export(
+            {"sales": sales_data},
+            base_path=base_path,
             formats=formats or ["json", "csv"],
-            analysis=True,
-            dashboard=False,
         )
 
 

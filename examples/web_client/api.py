@@ -11,7 +11,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from flext_cli.core import FlextCliService
+import flext_cli.core
+FlextCliService = flext_cli.core.FlextCliService
 from flext_cli.types import (
     FlextCliConfig,
     FlextCliContext,

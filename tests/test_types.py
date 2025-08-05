@@ -268,12 +268,10 @@ class TestFlextCliCommand:
             raise AssertionError(f"Expected False, got {command.flext_cli_is_running}")
 
         command.flext_cli_start_execution()
-        if not (command.flext_cli_is_running):
-            raise AssertionError(f"Expected True, got {command.flext_cli_is_running}")
+        assert command.flext_cli_is_running, f"Expected True, got {command.flext_cli_is_running}"
 
         command.flext_cli_complete_execution()
-        if command.flext_cli_is_running:
-            raise AssertionError(f"Expected False, got {command.flext_cli_is_running}")
+        assert not command.flext_cli_is_running, f"Expected False, got {command.flext_cli_is_running}"
 
     def test_successful_property(self) -> None:
         """Test successful property."""

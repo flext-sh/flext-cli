@@ -49,11 +49,17 @@ class TestCLICommandEntityIntegration:
             command_type=CommandType.CLI,
         )
 
-        # Test command lifecycle
-        command = command.start_execution()
+        # Test command lifecycle - properly unwrap FlextResult
+        start_result = command.start_execution()
+        assert start_result.success, f"Start execution failed: {start_result.error}"
+        command = start_result.data
+
         assert command.command_status == CommandStatus.RUNNING
 
-        command = command.complete_execution(exit_code=0, stdout=result.output)
+        complete_result = command.complete_execution(exit_code=0, stdout=result.output)
+        assert complete_result.success, f"Complete execution failed: {complete_result.error}"
+        command = complete_result.data
+
         assert command.command_status == CommandStatus.COMPLETED
         assert command.successful
 
@@ -92,10 +98,15 @@ class TestCLICommandEntityIntegration:
             command_type=CommandType.CLI,
         )
 
-        command = command.start_execution()
-        command = command.complete_execution(
+        start_result = command.start_execution()
+        assert start_result.success, f"Start execution failed: {start_result.error}"
+        command = start_result.data
+
+        complete_result = command.complete_execution(
             exit_code=result.exit_code, stderr="Command not found"
         )
+        assert complete_result.success, f"Complete execution failed: {complete_result.error}"
+        command = complete_result.data
 
         assert command.command_status == CommandStatus.FAILED
         assert not command.successful
@@ -349,7 +360,7 @@ class TestCLIConfigEntityIntegration:
             assert result.exit_code == 0
 
             # Type the expected dict for MyPy
-            expected = scenario["expected"]
+            expected: dict[str, object] = scenario["expected"]
 
             # Create config entity that reflects the CLI options
             config = CLIConfig(

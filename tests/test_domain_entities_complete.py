@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from typing import cast
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -867,7 +868,7 @@ class TestDomainEntityIntegration:
     def test_session_with_multiple_commands(self) -> None:
         """Test session with multiple commands."""
         # Simulate session creation and command tracking
-        session_data = {
+        session_data: dict[str, object] = {
             "session_id": "test_session",
             "commands_executed": [],
             "active": True,
@@ -877,7 +878,8 @@ class TestDomainEntityIntegration:
         # Add commands
         command_ids = ["cmd1", "cmd2", "cmd3"]
         for cmd_id in command_ids:
-            session_data["commands_executed"].append(cmd_id)
+            commands_list = cast("list[str]", session_data["commands_executed"])
+            commands_list.append(cmd_id)
             session_data["current_command"] = cmd_id
             session_data["last_activity"] = datetime.now(UTC)
 

@@ -100,9 +100,13 @@ import sys
 import time
 import traceback
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import click
 from flext_core.loggings import get_logger
+
+if TYPE_CHECKING:
+    from flext_core.result import FlextResult
 
 # Constants
 SENSITIVE_VALUE_SUFFIX_LENGTH = 4
@@ -114,7 +118,7 @@ try:
     from algar_oud_mig.application.services import MigrationService
     from algar_oud_mig.domain.models import LDIFEntry, MigrationConfig
     from algar_oud_mig.domain.value_objects import MigrationPhase
-    from algar_oud_mig.migration import AlgarMigrationEngine
+    from algar_oud_mig.migration import AlgarMigration
 
     ALGAR_AVAILABLE = True
 except ImportError as e:
@@ -124,13 +128,13 @@ except ImportError as e:
 
 # Define fallback values when imports fail
 if not ALGAR_AVAILABLE:
-    MigrateLDIFCommand = type(None)  # type: ignore[assignment]
-    MigrateLDIFHandler = type(None)  # type: ignore[assignment]
-    MigrationService = type(None)  # type: ignore[assignment]
-    LDIFEntry = type(None)  # type: ignore[assignment]
-    MigrationConfig = type(None)  # type: ignore[assignment]
-    MigrationPhase = type(None)  # type: ignore[assignment]
-    AlgarMigrationEngine = type(None)  # type: ignore[assignment]
+    MigrateLDIFCommand = type(None)
+    MigrateLDIFHandler = type(None)
+    MigrationService = type(None)
+    LDIFEntry = type(None)
+    MigrationConfig = type(None)
+    MigrationPhase = type(None)
+    AlgarMigration = type(None)
 
 
 def _raise_missing_env(var_name: str) -> str:
@@ -256,15 +260,13 @@ def migrate(
         )
 
         # Initialize migration engine with rules file path
-        engine = AlgarMigrationEngine(rules_file=None)  # Uses default rules.json
+        engine = AlgarMigration(rules_file=None)  # Uses default rules.json
 
-        # Run migration using correct method name
-        result = asyncio.run(
-            engine.execute_migration_async(
-                input_dir=config.source_ldif_path,
-                output_dir=config.target_output_path,
-                sync_to_oud=False,
-            ),
+        # Run migration using the correct method name suggested by mypy
+        result: FlextResult[dict[str, object]] = engine._execute_ldif_migration(
+            input_dir=config.source_ldif_path,
+            output_dir=config.target_output_path,
+            sync_to_oud=False,
         )
 
         if result.success:
@@ -438,7 +440,7 @@ def sync_acls(ctx: click.Context, **kwargs: bool) -> None:
         else:
             click.echo("🔄 Syncing ACLs to OUD...")
             # Use correct migration service method
-            result = asyncio.run(
+            result: FlextResult[dict[str, object]] = asyncio.run(
                 service.execute_full_migration(job_name=f"acl_sync_{int(time.time())}"),
             )
 

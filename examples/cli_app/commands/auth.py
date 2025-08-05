@@ -43,7 +43,11 @@ def login(ctx: click.Context, username: str, password: str) -> None:
 
                     if "user" in response:
                         user = response["user"]
-                        console.print(f"Welcome, {user.get('name', username)}!")
+                        if isinstance(user, dict):
+                            name = user.get('name', username)
+                        else:
+                            name = username
+                        console.print(f"Welcome, {name}!")
                 else:
                     console.print("[red]❌ Login failed: Invalid response[/red]")
         except (RuntimeError, ValueError, TypeError) as e:
