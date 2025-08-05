@@ -108,11 +108,12 @@ class TestSaveAuthToken:
             result = save_auth_token("test-token")
 
             assert result.is_failure
-            if "Failed to save auth token" not in result.error:
+            error_msg = result.error or ""
+            if "Failed to save auth token" not in error_msg:
                 raise AssertionError(
-                    f"Expected {'Failed to save auth token'} in {result.error}"
+                    f"Expected {'Failed to save auth token'} in {error_msg}"
                 )
-            assert "Permission denied" in result.error
+            assert "Permission denied" in error_msg
 
     def test_save_auth_token_write_error(self) -> None:
         """Test handling write error when saving."""
@@ -123,11 +124,12 @@ class TestSaveAuthToken:
             result = save_auth_token("test-token")
 
             assert result.is_failure
-            if "Failed to save auth token" not in result.error:
+            error_msg = result.error or ""
+            if "Failed to save auth token" not in error_msg:
                 raise AssertionError(
-                    f"Expected {'Failed to save auth token'} in {result.error}"
+                    f"Expected {'Failed to save auth token'} in {error_msg}"
                 )
-            assert "Disk full" in result.error
+            assert "Disk full" in error_msg
 
     def test_save_auth_token_chmod_error(self) -> None:
         """Test handling chmod error when saving."""

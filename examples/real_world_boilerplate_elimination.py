@@ -16,15 +16,14 @@ import logging
 from typing import Any
 
 from flext_cli import (
-    flext_cli_config_with_defaults,
-    flext_cli_create_config_manager,
-    flext_cli_create_operation_chain,
-    flext_cli_create_processor,
-    flext_cli_create_transformer,
-    flext_cli_data_pipeline,
-    flext_cli_process_list_safe,
-    flext_cli_safe_execute,
-    flext_cli_validate_and_process,
+    # Use actually available exports
+    CLIConfig,
+    CLIHelper,
+    setup_cli,
+    flext_cli_format,
+    flext_cli_aggregate_data,
+    flext_cli_transform_data,
+    handle_service_result,
 )
 
 

@@ -68,15 +68,22 @@ class TestConnectivityCommand:
         self.runner = CliRunner()
         self.mock_console = MagicMock(spec=Console)
 
-    @patch("flext_cli.commands.debug.FlextApiClient")
-    @patch("asyncio.run")
     def test_connectivity_success(
+        self,
+        mock_context: tuple[MagicMock, MagicMock],
+    ) -> None:
+        """Test successful connectivity check."""
+        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class, \
+             patch("asyncio.run") as mock_asyncio_run:
+            self._test_connectivity_success_impl(mock_asyncio_run, mock_client_class, mock_context)
+
+    def _test_connectivity_success_impl(
         self,
         mock_asyncio_run: MagicMock,
         mock_client_class: MagicMock,
         mock_context: tuple[MagicMock, MagicMock],
     ) -> None:
-        """Test successful connectivity check."""
+        """Test successful connectivity check implementation."""
         ctx, _console = mock_context
 
         # Mock client
@@ -106,12 +113,13 @@ class TestConnectivityCommand:
         mock_client.test_connection.assert_called_once()
         mock_client.get_system_status.assert_called_once()
 
-    @patch("flext_cli.commands.debug.FlextApiClient")
-    def test_connectivity_connection_failed(
-        self,
-        mock_client_class: MagicMock,
-    ) -> None:
+    def test_connectivity_connection_failed(self) -> None:
         """Test connectivity check with connection failure."""
+        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class:
+            self._test_connectivity_connection_failed_impl(mock_client_class)
+
+    def _test_connectivity_connection_failed_impl(self, mock_client_class: MagicMock) -> None:
+        """Test connectivity check with connection failure implementation."""
         # Mock synchronous client
         mock_client = MagicMock()
         mock_client.base_url = "http://localhost:8000"
@@ -129,15 +137,22 @@ class TestConnectivityCommand:
         assert result.exit_code == 1
         mock_client.test_connection.assert_called_once()
 
-    @patch("flext_cli.commands.debug.FlextApiClient")
-    @patch("asyncio.run")
     def test_connectivity_status_exception(
+        self,
+        mock_context: tuple[MagicMock, MagicMock],
+    ) -> None:
+        """Test connectivity check with status retrieval exception."""
+        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class, \
+             patch("asyncio.run") as mock_asyncio_run:
+            self._test_connectivity_status_exception_impl(mock_asyncio_run, mock_client_class, mock_context)
+
+    def _test_connectivity_status_exception_impl(
         self,
         mock_asyncio_run: MagicMock,
         mock_client_class: MagicMock,
         mock_context: tuple[MagicMock, MagicMock],
     ) -> None:
-        """Test connectivity check with status retrieval exception."""
+        """Test connectivity check with status retrieval exception implementation."""
         ctx, _console = mock_context
 
         # Mock client
@@ -161,15 +176,22 @@ class TestConnectivityCommand:
         mock_client.test_connection.assert_called_once()
         mock_client.get_system_status.assert_called_once()
 
-    @patch("flext_cli.commands.debug.FlextApiClient")
-    @patch("asyncio.run")
     def test_connectivity_general_exception(
+        self,
+        mock_context: tuple[MagicMock, MagicMock],
+    ) -> None:
+        """Test connectivity check with general exception."""
+        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class, \
+             patch("asyncio.run") as mock_asyncio_run:
+            self._test_connectivity_general_exception_impl(mock_asyncio_run, mock_client_class, mock_context)
+
+    def _test_connectivity_general_exception_impl(
         self,
         mock_asyncio_run: MagicMock,
         mock_client_class: MagicMock,
         mock_context: tuple[MagicMock, MagicMock],
     ) -> None:
-        """Test connectivity check with general exception."""
+        """Test connectivity check with general exception implementation."""
         ctx, _console = mock_context
 
         # Mock client to raise exception
@@ -199,17 +221,24 @@ class TestPerformanceCommand:
         ctx.obj = {"console": console}
         return ctx, console
 
-    @patch("flext_cli.commands.debug.FlextApiClient")
-    @patch("flext_cli.commands.debug.Table")
-    @patch("asyncio.run")
     def test_performance_success(
+        self,
+        mock_context: tuple[MagicMock, MagicMock],
+    ) -> None:
+        """Test successful performance metrics retrieval."""
+        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class, \
+             patch("flext_cli.commands.debug.Table") as mock_table_class, \
+             patch("asyncio.run") as mock_asyncio_run:
+            self._test_performance_success_impl(mock_asyncio_run, mock_table_class, mock_client_class, mock_context)
+
+    def _test_performance_success_impl(
         self,
         mock_asyncio_run: MagicMock,
         mock_table_class: MagicMock,
         mock_client_class: MagicMock,
         mock_context: tuple[MagicMock, MagicMock],
     ) -> None:
-        """Test successful performance metrics retrieval."""
+        """Test successful performance metrics retrieval implementation."""
         ctx, _console = mock_context
 
         # Mock client
@@ -247,15 +276,22 @@ class TestPerformanceCommand:
         if mock_table.add_row.call_count != EXPECTED_DATA_COUNT:
             raise AssertionError(f"Expected {3}, got {mock_table.add_row.call_count}")
 
-    @patch("flext_cli.commands.debug.FlextApiClient")
-    @patch("asyncio.run")
     def test_performance_exception(
+        self,
+        mock_context: tuple[MagicMock, MagicMock],
+    ) -> None:
+        """Test performance command with exception."""
+        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class, \
+             patch("asyncio.run") as mock_asyncio_run:
+            self._test_performance_exception_impl(mock_asyncio_run, mock_client_class, mock_context)
+
+    def _test_performance_exception_impl(
         self,
         mock_asyncio_run: MagicMock,
         mock_client_class: MagicMock,
         mock_context: tuple[MagicMock, MagicMock],
     ) -> None:
-        """Test performance command with exception."""
+        """Test performance command with exception implementation."""
         ctx, _console = mock_context
 
         # Mock client to raise exception
@@ -287,15 +323,22 @@ class TestValidateCommand:
         ctx.obj = {"console": console}
         return ctx, console
 
-    @patch("flext_cli.commands.debug.get_config")
-    @patch("sys.version_info", (3, 11, 0))
-    @patch("sys.version", "3.11.0 (main, Oct 24 2022)")
     def test_validate_success(
+        self,
+        mock_context: tuple[MagicMock, MagicMock],
+    ) -> None:
+        """Test successful validation."""
+        with patch("flext_cli.commands.debug.get_config") as mock_get_config, \
+             patch("sys.version_info", (3, 11, 0)), \
+             patch("sys.version", "3.11.0 (main, Oct 24 2022)"):
+            self._test_validate_success_impl(mock_get_config, mock_context)
+
+    def _test_validate_success_impl(
         self,
         mock_get_config: MagicMock,
         mock_context: tuple[MagicMock, MagicMock],
     ) -> None:
-        """Test successful validation."""
+        """Test successful validation implementation."""
         ctx, _console = mock_context
 
         # Mock config
@@ -688,8 +731,9 @@ class TestDebugIntegration:
 
         # Verify they all have click decorators
         for func in command_functions:
+            func_name = getattr(func, "__name__", "unknown_function")
             assert hasattr(func, "__click_params__"), (
-                f"Function {func.__name__} missing click decorators"
+                f"Function {func_name} missing click decorators"
             )
 
         # Verify they're all part of the debug group

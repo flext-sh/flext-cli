@@ -14,19 +14,17 @@ import tempfile
 from pathlib import Path
 
 from flext_cli import (
-    CliApi,
-    # All restored functionality through simple interface
-    create_command,  # CLI command creation and tracking
-    create_session,  # Session tracking
-    execute_command,  # Command execution
-    # Core functionality
-    export,
-    format_data,
-    health,
-    register_plugin,  # Plugin system
-    render_with_context,  # Rich context rendering
-    supported_formats,  # Format capabilities
+    # Actually available exports from __init__.py
+    CLICommand,
+    CLISession,
+    CLIPlugin,
+    CommandType,
+    setup_cli,
+    flext_cli_export,
+    flext_cli_format,
+    format_output,
 )
+from flext_cli.api import FlextCliApi
 
 
 def demonstrate_restored_functionality() -> None:

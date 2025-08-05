@@ -181,18 +181,18 @@ class TestCLIConfig:
         if not (config.auto_refresh):
             raise AssertionError(f"Expected True, got {config.auto_refresh}")
 
-    @patch.dict("os.environ", {"FLEXT_API_URL": "https://env.test.com"})
     def test_config_environment_variables(self) -> None:
         """Test config reading from environment variables."""
         # Note: This test assumes CLIConfig supports env var loading
         # If not implemented, this test documents expected behavior
-        config = CLIConfig()
+        with patch.dict("os.environ", {"FLEXT_API_URL": "https://env.test.com"}):
+            config = CLIConfig()
 
-        # Either reads from env or uses default - both are valid
-        if config.api_url not in {"https://env.test.com", "https://api.flext.com"}:
-            raise AssertionError(
-                f"Expected {config.api_url} in {['https://env.test.com', 'https://api.flext.com']}"
-            )
+            # Either reads from env or uses default - both are valid
+            if config.api_url not in {"https://env.test.com", "https://api.flext.com"}:
+                raise AssertionError(
+                    f"Expected {config.api_url} in {['https://env.test.com', 'https://api.flext.com']}"
+                )
 
     def test_config_path_creation(self) -> None:
         """Test that config paths are properly created."""

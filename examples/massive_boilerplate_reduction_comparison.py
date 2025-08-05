@@ -64,29 +64,35 @@ def example_before_vs_after() -> None:
     # NEW APPROACH (massive reduction!)
     # ===============================================
 
-    # Export data - single line instead of 6!
-    flext_cli.flext_cli_unwrap_or_none(
-        flext_cli.flext_cli_export_data(data, "users.csv"),
-    )
+    # Export data - using available functions
+    export_result = flext_cli.flext_cli_export(data, "users.csv")
+    flext_cli.flext_cli_unwrap_or_none(export_result)
 
-    # Format and print data - auto handles failures
-    flext_cli.flext_cli_execute_if_success(
-        flext_cli.flext_cli_format_output(data, "json"),
-        print,
-    )
+    # Format and print data - using available functions
+    format_result = flext_cli.flext_cli_format(data)
+    if format_result.success:
+        print(format_result.unwrap())
 
-    # Analyze and save - with default fallback
+    # Analyze and save - using available aggregation
+    analysis_result = flext_cli.flext_cli_aggregate_data(
+        data,
+        group_by="id",
+        sum_fields=[],
+    )
     analysis = flext_cli.flext_cli_unwrap_or_default(
-        flext_cli.flext_cli_analyze_data(data),
+        analysis_result,
         "No analysis available",
     )
     with Path("analysis.txt").open("w", encoding="utf-8") as f:
-        f.write(analysis)
+        f.write(str(analysis))
 
-    # Compare with conditional execution
-    comparison = flext_cli.flext_cli_unwrap_or_none(
-        flext_cli.flext_cli_data_compare(data, data),
+    # Transform data for comparison-like functionality
+    comparison_result = flext_cli.flext_cli_transform_data(
+        data,
+        filter_func=lambda x: True,  # Keep all data
+        sort_key="id",
     )
+    comparison = flext_cli.flext_cli_unwrap_or_none(comparison_result)
     if comparison:
         pass
 
@@ -120,21 +126,19 @@ def example_silent_execution() -> None:
     # NEW APPROACH (fire-and-forget)
     # ===============================================
 
-    # Silent execution - returns None if any error, no exceptions
-    exported_file = flext_cli.flext_cli_silent_execute(
-        flext_cli.flext_cli_instant_export,
-        data,
-        "csv",
-    )
+    # Simple execution using available functions
+    export_result = flext_cli.flext_cli_export(data, "metrics.csv")
+    exported_file = flext_cli.flext_cli_unwrap_or_none(export_result)
     if exported_file:
         pass
 
-    # Fire-and-forget dashboard creation
-    flext_cli.flext_cli_silent_execute(
-        flext_cli.flext_cli_auto_dashboard,
+    # Table creation for dashboard-like functionality
+    table_result = flext_cli.flext_cli_table(
         data,
-        title="System Metrics",
+        "System Metrics",
+        "grid",
     )
+    flext_cli.flext_cli_unwrap_or_none(table_result)
 
 
 def example_chainable_operations() -> None:
@@ -172,28 +176,36 @@ def example_chainable_operations() -> None:
     # NEW APPROACH (flat chain with defaults)
     # ===============================================
 
-    # Chain operations with sensible defaults
+    # Chain operations with sensible defaults using available functions
+    export_result = flext_cli.flext_cli_export(users, "users.json")
     flext_cli.flext_cli_unwrap_or_default(
-        flext_cli.flext_cli_export_data(users, "users.json"),
+        export_result,
         "Export unavailable",
     )
 
+    analysis_result = flext_cli.flext_cli_aggregate_data(
+        users,
+        group_by="role",
+        sum_fields=[],
+    )
     flext_cli.flext_cli_unwrap_or_default(
-        flext_cli.flext_cli_analyze_data(users),
+        analysis_result,
         "Analysis unavailable",
     )
 
+    format_result = flext_cli.flext_cli_format(users)
     flext_cli.flext_cli_unwrap_or_default(
-        flext_cli.flext_cli_format_all(users, ["table", "yaml"]),
-        {"table": "Data unavailable", "yaml": "Data unavailable"},
+        format_result,
+        "Data unavailable",
     )
 
-    # Silent dashboard creation (doesn't block on failure)
-    flext_cli.flext_cli_silent_execute(
-        flext_cli.flext_cli_auto_dashboard,
+    # Table creation for dashboard-like functionality
+    table_result = flext_cli.flext_cli_table(
         users,
-        title="User Dashboard",
+        "User Dashboard",
+        "grid",
     )
+    flext_cli.flext_cli_unwrap_or_none(table_result)
 
 
 def example_batch_operations() -> None:
@@ -235,26 +247,30 @@ def example_batch_operations() -> None:
 
     results = {}
     for name, data in datasets.items():
-        # All operations in one line each, with automatic defaults
+        # All operations using available functions with automatic defaults
+        export_result = flext_cli.flext_cli_export(data, f"{name}.json")
         results[f"{name}_export"] = flext_cli.flext_cli_unwrap_or_default(
-            flext_cli.flext_cli_instant_export(data, "json"),
+            export_result,
             "Export failed",
         )
 
+        analysis_result = flext_cli.flext_cli_aggregate_data(
+            data,
+            group_by="id" if "id" in str(data) else "name",
+            sum_fields=[],
+        )
         results[f"{name}_analysis"] = (
             "Available"
-            if flext_cli.flext_cli_unwrap_or_none(
-                flext_cli.flext_cli_analyze_data(data),
-            )
+            if flext_cli.flext_cli_unwrap_or_none(analysis_result)
             else "Failed"
         )
 
-        results[f"{name}_table_size"] = len(
-            flext_cli.flext_cli_unwrap_or_default(
-                flext_cli.flext_cli_format_output(data, "table"),
-                "",
-            ),
+        format_result = flext_cli.flext_cli_format(data)
+        formatted_output = flext_cli.flext_cli_unwrap_or_default(
+            format_result,
+            "",
         )
+        results[f"{name}_table_size"] = len(str(formatted_output))
 
     # Print summary
     for _key, _value in results.items():

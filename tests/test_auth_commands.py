@@ -37,14 +37,18 @@ class TestAuthCommands:
         if "whoami" not in auth.commands:
             raise AssertionError(f"Expected {'whoami'} in {auth.commands}")
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.save_auth_token")
-    def test_login_success(
+    def test_login_success(self) -> None:
+        """Test successful login."""
+        with patch("flext_cli.commands.auth.FlextApiClient") as mock_client_class, \
+             patch("flext_cli.commands.auth.save_auth_token") as mock_save_token:
+            self._test_login_success_impl(mock_save_token, mock_client_class)
+
+    def _test_login_success_impl(
         self,
         mock_save_token: MagicMock,
         mock_client_class: MagicMock,
     ) -> None:
-        """Test successful login."""
+        """Test successful login implementation."""
         # Mock async client
         mock_client = AsyncMock()
         mock_client.login.return_value = {
@@ -149,12 +153,13 @@ class TestAuthCommands:
         # Should clear tokens on successful logout
         mock_clear_tokens.assert_called_once()
 
-    @patch("flext_cli.commands.auth.get_auth_token")
-    def test_logout_not_logged_in(
-        self,
-        mock_get_token: MagicMock,
-    ) -> None:
+    def test_logout_not_logged_in(self) -> None:
         """Test logout when not logged in."""
+        with patch("flext_cli.commands.auth.get_auth_token") as mock_get_token:
+            self._test_logout_not_logged_in_impl(mock_get_token)
+
+    def _test_logout_not_logged_in_impl(self, mock_get_token: MagicMock) -> None:
+        """Test logout when not logged in implementation."""
         mock_get_token.return_value = None
 
         mock_console = MagicMock()

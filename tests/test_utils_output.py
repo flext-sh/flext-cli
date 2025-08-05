@@ -401,18 +401,18 @@ class TestFormatJson:
 
         assert isinstance(result, str)
         if "key" not in result:
-            msg: str = f"Expected {'key'} in {result}"
-            raise AssertionError(msg)
+            key_msg: str = f"Expected {'key'} in {result}"
+            raise AssertionError(key_msg)
         assert "value" in result
         if "42" not in result:
-            msg: str = f"Expected {'42'} in {result}"
-            raise AssertionError(msg)
+            value_msg: str = f"Expected {'42'} in {result}"
+            raise AssertionError(value_msg)
 
         # Should be valid JSON
         parsed = json.loads(result)
         if parsed != data:
-            msg: str = f"Expected {data}, got {parsed}"
-            raise AssertionError(msg)
+            parse_msg: str = f"Expected {data}, got {parsed}"
+            raise AssertionError(parse_msg)
 
     def test_format_json_complex(self) -> None:
         """Test formatting complex data as JSON."""
@@ -446,12 +446,12 @@ class TestFormatJson:
         assert isinstance(result, str)
         parsed = json.loads(result)
         if "timestamp" not in parsed:
-            msg: str = f"Expected {'timestamp'} in {parsed}"
-            raise AssertionError(msg)
+            timestamp_msg: str = f"Expected {'timestamp'} in {parsed}"
+            raise AssertionError(timestamp_msg)
         assert "value" in parsed
         if parsed["value"] != "test":
-            msg: str = f"Expected {'test'}, got {parsed['value']}"
-            raise AssertionError(msg)
+            value_check_msg: str = f"Expected {'test'}, got {parsed['value']}"
+            raise AssertionError(value_check_msg)
 
 
 class TestFormatYaml:
@@ -465,15 +465,15 @@ class TestFormatYaml:
 
         assert isinstance(result, str)
         if "key: value" not in result:
-            msg: str = f"Expected {'key: value'} in {result}"
-            raise AssertionError(msg)
+            key_yaml_msg: str = f"Expected {'key: value'} in {result}"
+            raise AssertionError(key_yaml_msg)
         assert "number: 42" in result
 
         # Should be valid YAML
         parsed = yaml.safe_load(result)
         if parsed != data:
-            msg: str = f"Expected {data}, got {parsed}"
-            raise AssertionError(msg)
+            yaml_parse_msg: str = f"Expected {data}, got {parsed}"
+            raise AssertionError(yaml_parse_msg)
 
     def test_format_yaml_complex(self) -> None:
         """Test formatting complex data as YAML."""
@@ -667,27 +667,27 @@ class TestUtilsOutputIntegration:
         # Should handle None gracefully
         json_result = format_json(None)
         if json_result != "null":
-            msg: str = f"Expected {'null'}, got {json_result}"
-            raise AssertionError(msg)
+            json_null_msg: str = f"Expected {'null'}, got {json_result}"
+            raise AssertionError(json_null_msg)
 
         yaml_result = format_yaml(None)
         # YAML adds newline, so we check if it contains "null"
         if "null" not in yaml_result:
-            msg: str = f"Expected {'null'} in {yaml_result}"
-            raise AssertionError(msg)
+            yaml_null_msg: str = f"Expected {'null'} in {yaml_result}"
+            raise AssertionError(yaml_null_msg)
 
     def test_format_functions_with_empty_data(self) -> None:
         """Test format functions with empty data structures."""
         # Empty dict
         if format_json({}) != "{}":
-            msg: str = f"Expected {'{}'}, got {format_json({})}"
-            raise AssertionError(msg)
+            empty_dict_msg: str = f"Expected {'{}'}, got {format_json({})}"
+            raise AssertionError(empty_dict_msg)
         assert format_yaml({}).strip() == "{}"
 
         # Empty list
         if format_json([]) != "[]":
-            msg: str = f"Expected {'[]'}, got {format_json([])}"
-            raise AssertionError(msg)
+            empty_list_msg: str = f"Expected {'[]'}, got {format_json([])}"
+            raise AssertionError(empty_list_msg)
         assert format_yaml([]).strip() == "[]"
 
     def test_pipeline_status_case_insensitive(self) -> None:

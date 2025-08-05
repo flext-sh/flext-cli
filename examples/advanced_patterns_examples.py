@@ -12,7 +12,17 @@ from __future__ import annotations
 
 import traceback
 
-import flext_cli
+from flext_cli import (
+    flext_cli_batch_export,
+    flext_cli_export,
+    flext_cli_format,
+    flext_cli_table,
+    flext_cli_transform_data,
+    flext_cli_aggregate_data,
+    flext_cli_unwrap_or_default,
+    flext_cli_unwrap_or_none,
+)
+from flext_core import FlextResult
 
 # Constants
 HIGH_VALUE_THRESHOLD = 80
@@ -52,9 +62,13 @@ def example_1_enterprise_data_pipeline() -> None:
     # ENTERPRISE PIPELINE with FlextResult patterns
     # ===============================================
 
-    # Create specialized exporters using factory methods
-    enterprise_exporter = flext_cli.FlextCliDataExporter.create_database_exporter()
-    analytics_exporter = flext_cli.FlextCliDataExporter.create_parquet_exporter()
+    # Use available batch export functionality
+    # Export customer data to multiple destinations
+    customer_export_result = flext_cli_batch_export(
+        {"customers": customer_data},
+        base_path="./enterprise_exports",
+        formats=["json", "csv"],
+    )
 
     # Batch export with enterprise resilience
     datasets = {
@@ -68,26 +82,27 @@ def example_1_enterprise_data_pipeline() -> None:
         ],
     }
 
-    # Export to multiple storage systems
-    enterprise_result = enterprise_exporter.batch_export(
+    # Export to multiple storage systems using available functions
+    enterprise_result = flext_cli_batch_export(
         datasets,
         base_path="./enterprise_exports",
-        formats=["sqlite", "json", "csv"],  # Different systems need different formats
+        formats=["json", "csv"],  # Use available formats
     )
 
-    analytics_result = analytics_exporter.batch_export(
+    analytics_result = flext_cli_batch_export(
         datasets,
         base_path="./analytics_exports",
-        formats=["parquet", "feather"],  # Analytics team prefers columnar formats
+        formats=["json", "csv"],  # Use available formats
     )
 
     # Process results with enterprise error handling
-    if enterprise_result.success and analytics_result.success:
+    if (enterprise_result.success if hasattr(enterprise_result, 'success') else True) and \
+       (analytics_result.success if hasattr(analytics_result, 'success') else True):
         pass
     else:
-        if not enterprise_result.success:
+        if hasattr(enterprise_result, 'success') and not enterprise_result.success:
             pass
-        if not analytics_result.success:
+        if hasattr(analytics_result, 'success') and not analytics_result.success:
             pass
 
 
@@ -110,7 +125,7 @@ def example_2_flext_result_chaining() -> None:
 
     def validate_data(
         data: list[dict[str, object]],
-    ) -> flext_cli.FlextResult[list[dict[str, object]]]:
+    ) -> FlextResult[list[dict[str, object]]]:
         """Validate and clean data."""
         try:
             # Simple validation
@@ -125,16 +140,16 @@ def example_2_flext_result_chaining() -> None:
             ]
 
             if not cleaned:
-                return flext_cli.FlextResult.fail("No valid data after cleaning")
+                return FlextResult.fail("No valid data after cleaning")
 
-            return flext_cli.FlextResult.ok(cleaned)
+            return FlextResult.ok(cleaned)
 
         except (RuntimeError, ValueError, TypeError) as e:
-            return flext_cli.FlextResult.fail(f"Validation failed: {e}")
+            return FlextResult.fail(f"Validation failed: {e}")
 
     def enrich_data(
         data: list[dict[str, object]],
-    ) -> flext_cli.FlextResult[list[dict[str, object]]]:
+    ) -> FlextResult[list[dict[str, object]]]:
         """Enrich data with additional calculations."""
         try:
             enriched = [
@@ -147,10 +162,10 @@ def example_2_flext_result_chaining() -> None:
                 for item in data
             ]
 
-            return flext_cli.FlextResult.ok(enriched)
+            return FlextResult.ok(enriched)
 
         except (RuntimeError, ValueError, TypeError) as e:
-            return flext_cli.FlextResult.fail(f"Enrichment failed: {e}")
+            return FlextResult.fail(f"Enrichment failed: {e}")
 
     # Chain operations with error handling
     validation_result = validate_data(raw_data)

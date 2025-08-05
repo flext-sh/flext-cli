@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
 import json
 import os
 import subprocess
@@ -21,23 +20,23 @@ import click
 import yaml
 
 if TYPE_CHECKING:
-    from flext_meltano.config import MeltanoSettings
-    from flext_meltano.orchestrator import FlextMeltanoOrchestrator
-    from flext_meltano.project_manager import MeltanoProjectManager
+    from flext_meltano import FlextMeltanoConfig
+    from flext_meltano.base import FlextMeltanoBaseService
+    from flext_meltano.core import FlextMeltanoOrchestrationService
 
 try:
-    from flext_meltano.config import MeltanoSettings, get_meltano_settings
-    from flext_meltano.orchestrator import FlextMeltanoOrchestrator
-    from flext_meltano.project_manager import MeltanoProjectManager
+    from flext_meltano import FlextMeltanoConfig, create_flext_meltano_bridge
+    from flext_meltano.base import FlextMeltanoBaseService
+    from flext_meltano.core import FlextMeltanoOrchestrationService
 
     FLEXT_MELTANO_AVAILABLE = True
 except ImportError as e:
     # Graceful handling when flext-meltano is not available
     click.echo(f"Warning: FLEXT Meltano not available: {e}", err=True)
-    get_meltano_settings = None
-    MeltanoSettings = None
-    FlextMeltanoOrchestrator = None
-    MeltanoProjectManager = None
+    FlextMeltanoConfig = type(None)
+    create_flext_meltano_bridge = type(None)
+    FlextMeltanoOrchestrationService = type(None)
+    FlextMeltanoBaseService = type(None)
     FLEXT_MELTANO_AVAILABLE = False
 
 
@@ -214,14 +213,16 @@ def init(
         parent_dir = Path(directory) if directory else Path.cwd()
 
         # Initialize project manager with parent directory
-        if not FLEXT_MELTANO_AVAILABLE or MeltanoProjectManager is None:
+        if not FLEXT_MELTANO_AVAILABLE or FlextMeltanoBaseService is None:
             click.echo(
                 "❌ FLEXT Meltano not available. Please install flext-meltano.",
                 err=True,
             )
             ctx.exit(1)
 
-        project_manager = MeltanoProjectManager(project_root=parent_dir)
+        # Create configuration and bridge
+        config = FlextMeltanoConfig(project_root=str(parent_dir))
+        create_flext_meltano_bridge(config)
 
         click.echo(f"🚀 Initializing Meltano project: {project_name}")
         click.echo(f"📁 Parent directory: {parent_dir}")
@@ -230,12 +231,16 @@ def init(
         if template:
             click.echo(f"📋 Template: {template}")
 
-        # Create the project using the actual API
-        result = asyncio.run(
-            project_manager.create_project(
-                project_name=project_name,
-                environment="dev",
-            ),
+        # Create the project directory - meltano init will be handled via subprocess
+        project_path = parent_dir / project_name
+        project_path.mkdir(parents=True, exist_ok=True)
+
+        # Use meltano CLI to initialize project
+        from flext_meltano.execution import flext_meltano_run_command
+
+        result = flext_meltano_run_command(
+            ["init", project_name],
+            cwd=str(parent_dir)
         )
 
         if result.success:
@@ -247,7 +252,7 @@ def init(
             if template:
                 click.echo("⚠️  Template support not yet implemented in project manager")
         else:
-            click.echo(f"❌ Failed to initialize project: {result.error}", err=True)
+            click.echo(f"❌ Failed to initialize project: {result.error_message}", err=True)
             ctx.exit(1)
     except (RuntimeError, ValueError, TypeError) as e:
         click.echo(f"❌ Failed to initialize project: {e}", err=True)

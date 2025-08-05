@@ -90,7 +90,7 @@ class TestCLIOutputConfig:
     def test_invalid_format_validation(self) -> None:
         """Test format field rejects invalid values."""
         with pytest.raises((ValueError, TypeError)):
-            CLIOutputConfig(format="invalid_format")  # type: ignore[arg-type]
+            CLIOutputConfig(format="invalid_format")
 
     def test_boolean_field_types(self) -> None:
         """Test boolean field type validation."""

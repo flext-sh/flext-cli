@@ -50,7 +50,8 @@ class TestAsyncCommand:
 
         # Test execution (now sync)
         result = sample_async_function()
-        if result != "async result":
+        # Type guard: decorator converts async to sync
+        if not isinstance(result, str) or result != "async result":
             msg: str = f"Expected {'async result'}, got {result}"
             raise AssertionError(msg)
 
@@ -67,7 +68,8 @@ class TestAsyncCommand:
 
         # Decorator converts async to sync
         result = async_function_with_args("test", 42)
-        if result != "test-42":
+        # Type guard: decorator converts async to sync
+        if not isinstance(result, str) or result != "test-42":
             msg: str = f"Expected {'test-42'}, got {result}"
             raise AssertionError(msg)
 
@@ -150,7 +152,8 @@ class TestConfirmAction:
 
             decorated_func = confirm_action("Proceed with action?")(action_with_args)
             assert callable(decorated_func)  # Type assertion for MyPy
-            result = decorated_func("test", 5)            if result != "processed 5 items for test":
+            result = decorated_func("test", 5)
+            if result != "processed 5 items for test":
                 msg: str = f"Expected {'processed 5 items for test'}, got {result}"
                 raise AssertionError(msg)
 
@@ -279,7 +282,8 @@ class TestRetry:
             call_count += 1
             return "success"
 
-        result = reliable_function()        if result != "success":
+        result = reliable_function()
+        if result != "success":
             msg: str = f"Expected {'success'}, got {result}"
             raise AssertionError(msg)
         assert call_count == 1
@@ -297,7 +301,8 @@ class TestRetry:
                 raise ValueError(msg)
             return "success"
 
-        result = flaky_function()        if result != "success":
+        result = flaky_function()
+        if result != "success":
             msg: str = f"Expected {'success'}, got {result}"
             raise AssertionError(msg)
         assert call_count == EXPECTED_DATA_COUNT
@@ -333,7 +338,8 @@ class TestRetry:
                     raise ValueError(msg)
                 return "success"
 
-            result = flaky_function()            if result != "success":
+            result = flaky_function()
+            if result != "success":
                 msg: str = f"Expected {'success'}, got {result}"
                 raise AssertionError(msg)
             mock_sleep.assert_called_once_with(0.5)
@@ -354,7 +360,8 @@ class TestValidateConfig:
         def function_requiring_config(config: MockConfig) -> str:
             return "config validated"
 
-        result = function_requiring_config(config=MockConfig())        if result != "config validated":
+        result = function_requiring_config(config=MockConfig())
+        if result != "config validated":
             msg: str = f"Expected {'config validated'}, got {result}"
             raise AssertionError(msg)
 
@@ -370,11 +377,18 @@ class TestValidateConfig:
             def function_requiring_config(config: MockConfig) -> str:
                 return "config validated"
 
-            result = function_requiring_config(config=MockConfig())            assert result is None
-            mock_print.assert_called_once_with(
-                "Missing required configuration: timeout",
-                style="red",
-            )
+            result = function_requiring_config(config=MockConfig())
+            # Validate that function returned None when validation failed
+            validation_passed = result is None
+            if not validation_passed:
+                pytest.fail(f"Expected None, got {result}")
+
+            # Mock print assertion - only executed if validation passed
+            if validation_passed:
+                mock_print.assert_called_once_with(
+                    "Missing required configuration: timeout",
+                    style="red",
+                )
 
     def test_validate_config_no_context(self) -> None:
         """Test validate_config when no config available."""
@@ -384,12 +398,18 @@ class TestValidateConfig:
             def function_requiring_config() -> str:
                 return "config validated"
 
-            result = function_requiring_config()  # type: ignore[operator]  # No config provided
-            assert result is None
-            mock_print.assert_called_once_with(
-                "Configuration not available for validation.",
-                style="red",
-            )
+            result = function_requiring_config()  # No config provided - this is intentional for testing
+            # Validate that function returned None when no config available
+            validation_passed = result is None
+            if not validation_passed:
+                pytest.fail(f"Expected None, got {result}")
+
+            # Mock print assertion - only executed if validation passed
+            if validation_passed:
+                mock_print.assert_called_once_with(
+                    "Configuration not available for validation.",
+                    style="red",
+                )
 
 
 class TestWithSpinner:
@@ -407,7 +427,8 @@ class TestWithSpinner:
                 time.sleep(0.01)  # Simulate work
                 return "task completed"
 
-            result = long_running_task()            if result != "task completed":
+            result = long_running_task()
+            if result != "task completed":
                 msg: str = f"Expected {'task completed'}, got {result}"
                 raise AssertionError(msg)
             mock_status.assert_called_once_with("Processing...", spinner="dots")
@@ -424,7 +445,8 @@ class TestWithSpinner:
                 time.sleep(0.01)
                 return "calculation done"
 
-            result = calculation_task()            if result != "calculation done":
+            result = calculation_task()
+            if result != "calculation done":
                 msg: str = f"Expected {'calculation done'}, got {result}"
                 raise AssertionError(msg)
             mock_status.assert_called_once_with(

@@ -69,7 +69,7 @@ import sys
 
 import click
 from flext_cli.__version__ import __version__
-from flext_cli.commands import auth, config, debug, pipeline, plugin
+from flext_cli.commands import auth, config, debug  # pipeline and plugin don't exist yet
 from flext_cli.commands.projects import client-a, client-b, meltano
 from flext_cli.domain import CLIServiceContainer
 from flext_cli.utils.config import CLISettings, get_config

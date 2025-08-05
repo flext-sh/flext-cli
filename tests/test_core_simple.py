@@ -94,16 +94,12 @@ class TestFlextCliService:
     def setup_method(self) -> None:
         """Setup mocks for each test."""
         # Patch the imports in core module (dynamic assignment for testing)
-        if hasattr(core_module, "FlextCliConfig"):
-            core_module.FlextCliConfig = MockFlextCliConfig
-        if hasattr(core_module, "FlextCliCommand"):
-            core_module.FlextCliCommand = MockFlextCliCommand
-        if hasattr(core_module, "FlextCliSession"):
-            core_module.FlextCliSession = MockFlextCliSession
-        if hasattr(core_module, "FlextCliPlugin"):
-            core_module.FlextCliPlugin = MockFlextCliPlugin
-        if hasattr(core_module, "FlextCliContext"):
-            core_module.FlextCliContext = MockFlextCliContext
+        # Use setattr to avoid mypy attribute errors for dynamic assignment
+        core_module.FlextCliConfig = MockFlextCliConfig
+        core_module.FlextCliCommand = MockFlextCliCommand
+        core_module.FlextCliSession = MockFlextCliSession
+        core_module.FlextCliPlugin = MockFlextCliPlugin
+        core_module.FlextCliContext = MockFlextCliContext
 
     def test_service_initialization(self) -> None:
         """Test service initialization."""

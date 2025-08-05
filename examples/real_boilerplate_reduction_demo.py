@@ -13,21 +13,19 @@ from __future__ import annotations
 import tempfile
 
 from flext_cli import (
+    # Use only actually available exports
     flext_cli_aggregate_data,
     flext_cli_export,
     flext_cli_format,
-    flext_cli_pipeline,
     flext_cli_table,
     flext_cli_transform_data,
+    # flext_cli_pipeline not available - remove
 )
-from flext_cli.core.data_exporter import FlextCliDataExporter
-from flext_cli.core.formatter import FlextCliFormatter
-from flext_cli.decorators import (
-    flext_cli_auto_result,
-    flext_cli_cache_result,
-    flext_cli_safe_operation,
-    flext_cli_validate_data,
-)
+# Removed non-existent imports:
+# - FlextCliDataExporter, FlextCliFormatter don't exist
+# - flext_cli.decorators module doesn't exist
+# Use available functionality instead
+from flext_cli.core.formatters import format_output
 
 # Constants
 HIGH_SALARY_THRESHOLD = 100000
@@ -48,19 +46,19 @@ def traditional_approach() -> None:
     # TRADITIONAL CODE (21+ lines for basic operations)
     # ============================================================================
 
-    # Export operation
-    exporter = FlextCliDataExporter()
+    # Export operation using available functions
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp_file:
-        exporter.export_data(sample_data, tmp_file.name, "json")
+        export_result = flext_cli_export(sample_data, tmp_file.name)
+        if export_result.success:
+            pass
 
-    # Format operation
-    formatter = FlextCliFormatter()
-    format_result = formatter.format(sample_data)
-    if isinstance(format_result, str):
+    # Format operation using available functions
+    format_result = flext_cli_format(sample_data)
+    if format_result.success and isinstance(format_result.unwrap(), str):
         pass
 
-    # Table creation
-    table_result = formatter.format_tabulate_table(
+    # Table creation using available functions
+    table_result = flext_cli_table(
         sample_data,
         "Employee Table",
         "grid",
@@ -75,13 +73,13 @@ def modern_unified_approach() -> None:
     # UNIFIED API CODE (5 lines for same operations + enhanced capabilities)
     # ============================================================================
 
-    # All operations in 3 lines with automatic error handling
+    # All operations in 3 lines with automatic FlextResult handling
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp_file:
-        flext_cli_export(sample_data, tmp_file.name, "json")
+        flext_cli_export(sample_data, tmp_file.name)
     flext_cli_format(sample_data)
     flext_cli_table(sample_data, "Employee Table", "grid")
 
-    # Results automatically handled - no manual error checking needed
+    # FlextResult pattern handles success/failure automatically
 
 
 def enhanced_collections_demo() -> None:
@@ -106,41 +104,73 @@ def enhanced_collections_demo() -> None:
 
 
 def advanced_decorators_demo() -> None:
-    """Demonstrate advanced decorators for boilerplate reduction."""
+    """Demonstrate function patterns with available decorators."""
+    from flext_cli import measure_time, retry
+    from flext_core import FlextResult
 
-    @flext_cli_auto_result("Salary calculation failed")
-    @flext_cli_validate_data(not_empty=True, expected_type=list, min_length=1)
-    def calculate_average_salary(data: list[dict[str, int]]) -> float:
-        """Calculate average salary with automatic validation and result wrapping."""
-        total = sum(emp["salary"] for emp in data)
-        return total / len(data)
+    @measure_time
+    @retry(max_attempts=3)
+    def calculate_average_salary(data: list[dict[str, int]]) -> FlextResult[float]:
+        """Calculate average salary with timing and retry capabilities."""
+        if not data:
+            return FlextResult.fail("Data cannot be empty")
+        
+        try:
+            total = sum(emp["salary"] for emp in data)
+            average = total / len(data)
+            return FlextResult.ok(average)
+        except (KeyError, TypeError, ZeroDivisionError) as e:
+            return FlextResult.fail(f"Salary calculation failed: {e}")
 
-    @flext_cli_cache_result(ttl_seconds=60)
-    @flext_cli_safe_operation(default_return="N/A")
-    def format_salary_range(data: list[dict[str, int]]) -> str:
-        """Get salary range with caching and safe operation."""
-        salaries = [emp["salary"] for emp in data]
-        return f"${min(salaries):,} - ${max(salaries):,}"
+    def format_salary_range(data: list[dict[str, int]]) -> FlextResult[str]:
+        """Get salary range with error handling."""
+        if not data:
+            return FlextResult.fail("Data cannot be empty")
+        
+        try:
+            salaries = [emp["salary"] for emp in data]
+            range_str = f"${min(salaries):,} - ${max(salaries):,}"
+            return FlextResult.ok(range_str)
+        except (KeyError, TypeError) as e:
+            return FlextResult.fail(f"Range calculation failed: {e}")
 
-    # These functions now have automatic error handling, validation, and caching
-    calculate_average_salary(sample_data)
-    format_salary_range(sample_data)
+    # These functions now use available decorators and FlextResult patterns
+    avg_result = calculate_average_salary(sample_data)
+    range_result = format_salary_range(sample_data)
+    
+    if avg_result.success and range_result.success:
+        pass  # Results available via .unwrap()
 
 
 def pipeline_operations_demo() -> None:
-    """Demonstrate pipeline operations with single function call."""
-    # Complete data pipeline in one call
+    """Demonstrate pipeline operations using available functions."""
+    # Complete data pipeline using batch export and aggregation
     with tempfile.TemporaryDirectory() as tmp_dir:
-        pipeline_result = flext_cli_pipeline(
-            sample_data,
-            export_path=tmp_dir + "/pipeline_employees",
+        # Export in multiple formats
+        export_result = flext_cli_batch_export(
+            {"employees": sample_data},
+            base_path=tmp_dir + "/pipeline_employees",
             formats=["json", "csv"],
-            dashboard=False,  # Would create dashboard if True
-            analysis=True,
+        )
+        
+        # Perform analysis using transform and aggregate
+        analysis_result = flext_cli_aggregate_data(
+            sample_data,
+            group_by="role",
+            sum_fields=["salary"],
+        )
+        
+        # Create summary table
+        table_result = flext_cli_table(
+            sample_data,
+            "Employee Summary",
+            "grid",
         )
 
-    if pipeline_result.success:
-        pass
+    if (export_result.success if hasattr(export_result, 'success') else True) and \
+       (analysis_result.success if hasattr(analysis_result, 'success') else True) and \
+       (table_result.success if hasattr(table_result, 'success') else True):
+        pass  # Pipeline completed successfully
 
 
 def main() -> None:
