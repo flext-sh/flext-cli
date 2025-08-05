@@ -14,13 +14,6 @@ import traceback
 
 from flext_cli import (
     flext_cli_batch_export,
-    flext_cli_export,
-    flext_cli_format,
-    flext_cli_table,
-    flext_cli_transform_data,
-    flext_cli_aggregate_data,
-    flext_cli_unwrap_or_default,
-    flext_cli_unwrap_or_none,
 )
 from flext_core import FlextResult
 
@@ -64,7 +57,7 @@ def example_1_enterprise_data_pipeline() -> None:
 
     # Use available batch export functionality
     # Export customer data to multiple destinations
-    customer_export_result = flext_cli_batch_export(
+    flext_cli_batch_export(
         {"customers": customer_data},
         base_path="./enterprise_exports",
         formats=["json", "csv"],
@@ -96,13 +89,13 @@ def example_1_enterprise_data_pipeline() -> None:
     )
 
     # Process results with enterprise error handling
-    if (enterprise_result.success if hasattr(enterprise_result, 'success') else True) and \
-       (analytics_result.success if hasattr(analytics_result, 'success') else True):
+    if (enterprise_result.success if hasattr(enterprise_result, "success") else True) and \
+       (analytics_result.success if hasattr(analytics_result, "success") else True):
         pass
     else:
-        if hasattr(enterprise_result, 'success') and not enterprise_result.success:
+        if hasattr(enterprise_result, "success") and not enterprise_result.success:
             pass
-        if hasattr(analytics_result, 'success') and not analytics_result.success:
+        if hasattr(analytics_result, "success") and not analytics_result.success:
             pass
 
 

@@ -21,11 +21,11 @@ from flext_cli import (
     flext_cli_transform_data,
     # flext_cli_pipeline not available - remove
 )
+
 # Removed non-existent imports:
 # - FlextCliDataExporter, FlextCliFormatter don't exist
 # - flext_cli.decorators module doesn't exist
 # Use available functionality instead
-from flext_cli.core.formatters import format_output
 
 # Constants
 HIGH_SALARY_THRESHOLD = 100000
@@ -114,7 +114,7 @@ def advanced_decorators_demo() -> None:
         """Calculate average salary with timing and retry capabilities."""
         if not data:
             return FlextResult.fail("Data cannot be empty")
-        
+
         try:
             total = sum(emp["salary"] for emp in data)
             average = total / len(data)
@@ -126,7 +126,7 @@ def advanced_decorators_demo() -> None:
         """Get salary range with error handling."""
         if not data:
             return FlextResult.fail("Data cannot be empty")
-        
+
         try:
             salaries = [emp["salary"] for emp in data]
             range_str = f"${min(salaries):,} - ${max(salaries):,}"
@@ -137,7 +137,7 @@ def advanced_decorators_demo() -> None:
     # These functions now use available decorators and FlextResult patterns
     avg_result = calculate_average_salary(sample_data)
     range_result = format_salary_range(sample_data)
-    
+
     if avg_result.success and range_result.success:
         pass  # Results available via .unwrap()
 
@@ -152,14 +152,14 @@ def pipeline_operations_demo() -> None:
             base_path=tmp_dir + "/pipeline_employees",
             formats=["json", "csv"],
         )
-        
+
         # Perform analysis using transform and aggregate
         analysis_result = flext_cli_aggregate_data(
             sample_data,
             group_by="role",
             sum_fields=["salary"],
         )
-        
+
         # Create summary table
         table_result = flext_cli_table(
             sample_data,
@@ -167,9 +167,9 @@ def pipeline_operations_demo() -> None:
             "grid",
         )
 
-    if (export_result.success if hasattr(export_result, 'success') else True) and \
-       (analysis_result.success if hasattr(analysis_result, 'success') else True) and \
-       (table_result.success if hasattr(table_result, 'success') else True):
+    if (export_result.success if hasattr(export_result, "success") else True) and \
+       (analysis_result.success if hasattr(analysis_result, "success") else True) and \
+       (table_result.success if hasattr(table_result, "success") else True):
         pass  # Pipeline completed successfully
 
 

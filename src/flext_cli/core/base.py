@@ -41,6 +41,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
+import inspect
 from typing import cast
 
 from flext_core import F, get_logger
@@ -176,8 +177,6 @@ def handle_service_result(f: F) -> F:
     """
     if not callable(f):
         return f
-
-    import inspect
 
     # Check if the function is async
     if inspect.iscoroutinefunction(f):

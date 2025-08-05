@@ -56,6 +56,8 @@ from enum import StrEnum
 from flext_core import FlextEntity, FlextResult, FlextValueObject, TEntityId
 from pydantic import Field
 
+from flext_cli.constants import FlextCliConstants
+
 TUserId = TEntityId
 
 
@@ -104,13 +106,8 @@ class CommandType(StrEnum):
     MONITORING = "monitoring"
 
 
-# Constants for domain entities
-class CLIConstants:
-    """Constants for FLEXT CLI domain."""
-
-    MAX_ENTITY_NAME_LENGTH = 255
-    MAX_ERROR_MESSAGE_LENGTH = 1000
-    DEFAULT_TIMEOUT = 30
+# Legacy alias for backward compatibility (DEPRECATED - use FlextCliConstants)
+CLIConstants = FlextCliConstants
 
 
 class CLICommand(FlextEntity):

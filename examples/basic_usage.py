@@ -10,13 +10,11 @@ from pathlib import Path
 from typing import Any, Never
 
 from flext_cli import (
+    CLIHelper,
     flext_cli_export,
     flext_cli_format,
     flext_cli_table,
-    format_output,
-    CLIHelper,
 )
-from flext_core import FlextResult
 
 # Constants
 PREVIEW_LENGTH_LIMIT = 100
@@ -71,7 +69,7 @@ def example_basic_export() -> None:
         # 1. Export user data to JSON
         json_file = temp_path / "users.json"
         result = flext_cli_export(SAMPLE_USERS, str(json_file))
-        success = result.success if hasattr(result, 'success') else True
+        success = result.success if hasattr(result, "success") else True
         print(f"✓ JSON export: {'Success' if success else 'Failed'}")
 
         if success and json_file.exists():
@@ -80,20 +78,20 @@ def example_basic_export() -> None:
         # 2. Export sales data to CSV
         csv_file = temp_path / "sales.csv"
         result = flext_cli_export(SALES_DATA, str(csv_file))
-        success = result.success if hasattr(result, 'success') else True
+        success = result.success if hasattr(result, "success") else True
         print(f"✓ CSV export: {'Success' if success else 'Failed'}")
 
         # 3. Auto-detect format from extension
         auto_json = temp_path / "metrics.json"
         result = flext_cli_export(SYSTEM_METRICS, str(auto_json))
-        success = result.success if hasattr(result, 'success') else True
+        success = result.success if hasattr(result, "success") else True
         print(f"✓ Auto-detect export: {'Success' if success else 'Failed'}")
 
         # 4. Export single record (automatically converted to list)
         single_user = {"id": 99, "name": "Test User", "email": "test@example.com"}
         single_file = temp_path / "single_user.json"
         result = flext_cli_export([single_user], str(single_file))
-        success = result.success if hasattr(result, 'success') else True
+        success = result.success if hasattr(result, "success") else True
         print(f"✓ Single record export: {'Success' if success else 'Failed'}")
 
 
@@ -130,7 +128,7 @@ def example_api_class_usage() -> None:
     print("\n=== Advanced API Usage ===")
 
     # Create helper instance
-    api = CLIHelper()
+    CLIHelper()
 
     # 1. Simulate health check
     print("✓ Service status: healthy")
@@ -165,7 +163,7 @@ def example_api_class_usage() -> None:
         export_file = Path(temp_dir) / "detailed_export.json"
         export_result = flext_cli_export(SYSTEM_METRICS, str(export_file))
 
-        success = export_result.success if hasattr(export_result, 'success') else True
+        success = export_result.success if hasattr(export_result, "success") else True
         if success:
             print("✓ Detailed export result: Success")
 
@@ -184,7 +182,7 @@ def example_error_handling() -> None:
 
     try:
         result = flext_cli_export([], invalid_path)  # Use empty list instead of None
-        success = result.success if hasattr(result, 'success') else False
+        success = result.success if hasattr(result, "success") else False
     except (ValueError, TypeError):
         success = False
     print(
@@ -197,7 +195,7 @@ def example_error_handling() -> None:
 
     try:
         result = flext_cli_export(SAMPLE_USERS, test_path)  # Remove unsupported format
-        success = result.success if hasattr(result, 'success') else False
+        success = result.success if hasattr(result, "success") else False
     except (ValueError, TypeError):
         success = False
     print(f"✓ Unsupported format: {'Handled' if not success else 'Unexpected success'}")
@@ -226,7 +224,7 @@ def example_error_handling() -> None:
     with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as tmp_file:
         try:
             csv_result = flext_cli_export(invalid_csv_data, tmp_file.name)
-            success = csv_result.success if hasattr(csv_result, 'success') else False
+            success = csv_result.success if hasattr(csv_result, "success") else False
         except (ValueError, TypeError):
             success = False
     print(
@@ -330,7 +328,7 @@ def example_real_world_scenarios() -> None:
     with tempfile.TemporaryDirectory() as temp_dir:
         error_file = Path(temp_dir) / "error_logs.json"
         result = flext_cli_export(error_logs, str(error_file))
-        success = result.success if hasattr(result, 'success') else True
+        success = result.success if hasattr(result, "success") else True
         print(f"\n✓ Error log export: {'Success' if success else 'Failed'}")
 
         if success:

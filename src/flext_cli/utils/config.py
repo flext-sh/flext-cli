@@ -53,7 +53,7 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_core.models import FlextBaseSettings
+from flext_core.config import FlextBaseSettings
 from flext_core.result import FlextResult
 from pydantic import Field
 from pydantic_settings import SettingsConfigDict

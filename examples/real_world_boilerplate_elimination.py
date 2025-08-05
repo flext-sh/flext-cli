@@ -15,17 +15,6 @@ import json
 import logging
 from typing import Any
 
-from flext_cli import (
-    # Use actually available exports
-    CLIConfig,
-    CLIHelper,
-    setup_cli,
-    flext_cli_format,
-    flext_cli_aggregate_data,
-    flext_cli_transform_data,
-    handle_service_result,
-)
-
 
 def traditional_approach_example() -> None:
     """BEFORE: Traditional approach with massive boilerplate (45+ lines)."""

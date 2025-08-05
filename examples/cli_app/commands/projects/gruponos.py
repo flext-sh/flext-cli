@@ -22,15 +22,15 @@ import yaml
 try:
     import gruponos_meltano_native.config as gruponos_config
     import gruponos_meltano_native.orchestrator as gruponos_orchestrator
-    
+
     # Try to find the correct Config class
-    GrupoNOSConfig = getattr(gruponos_config, 'GrupoNOSConfig', 
-                           getattr(gruponos_config, 'Config', 
-                                 getattr(gruponos_config, 'GruponosConfig', None)))
-    
-    # Try to find the correct Orchestrator class  
-    GrupoNOSMeltanoOrchestrator = getattr(gruponos_orchestrator, 'GrupoNOSMeltanoOrchestrator',
-                                        getattr(gruponos_orchestrator, 'GruponosMeltanoOrchestrator', None))
+    GrupoNOSConfig = getattr(gruponos_config, "GrupoNOSConfig",
+                           getattr(gruponos_config, "Config",
+                                 getattr(gruponos_config, "GruponosConfig", None)))
+
+    # Try to find the correct Orchestrator class
+    GrupoNOSMeltanoOrchestrator = getattr(gruponos_orchestrator, "GrupoNOSMeltanoOrchestrator",
+                                        getattr(gruponos_orchestrator, "GruponosMeltanoOrchestrator", None))
 
     GRUPONOS_AVAILABLE = True
 except ImportError as e:
@@ -221,7 +221,7 @@ async def run(
         if result.success:
             click.echo("✅ Pipeline completed successfully!")
             # Check if result has metrics attribute
-            if hasattr(result, 'metrics') and result.metrics:
+            if hasattr(result, "metrics") and result.metrics:
                 click.echo(
                     f"📊 Records processed: "
                     f"{result.metrics.get('records_processed', 0)}",
@@ -229,7 +229,7 @@ async def run(
                 click.echo(f"⏱️  Duration: {result.metrics.get('duration', 'unknown')}")
         else:
             click.echo(f"❌ Pipeline failed: {result.error}", err=True)
-            if debug and hasattr(result, 'details') and result.details:
+            if debug and hasattr(result, "details") and result.details:
                 click.echo(f"Details: {result.details}", err=True)
             ctx.exit(1)
 

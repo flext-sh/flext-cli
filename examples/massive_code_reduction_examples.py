@@ -91,8 +91,8 @@ def example_1_traditional_vs_flext() -> None:
         data=users_data,
         output_path="./output/users.json"
     )
-    format_result = flext_cli.flext_cli_format(users_data)
-    
+    flext_cli.flext_cli_format(users_data)
+
     # Combine results (simplified approach using available APIs)
     result = export_result  # Use export result as primary
 
@@ -141,7 +141,7 @@ def example_2_instant_data_operations() -> None:
         if isinstance(results, dict):
             for details in results.values():
                 if isinstance(details, dict):
-                    status = "✅" if details.get("success", False) else "❌"
+                    "✅" if details.get("success", False) else "❌"
 
     # ===============================================
     # BATCH EXPORT multiple datasets
@@ -166,7 +166,7 @@ def example_2_instant_data_operations() -> None:
                 if isinstance(format_results, dict):
                     for details in format_results.values():
                         if isinstance(details, dict):
-                            status = "✅" if details.get("success", False) else "❌"
+                            "✅" if details.get("success", False) else "❌"
 
 
 def example_3_data_analysis_and_comparison() -> None:
@@ -221,7 +221,7 @@ def example_3_data_analysis_and_comparison() -> None:
     if format_result.success:
         output = format_result.unwrap()
         if isinstance(output, str):
-            preview = output[:PREVIEW_LENGTH_LIMIT] + "..." if len(
+            output[:PREVIEW_LENGTH_LIMIT] + "..." if len(
                 output
             ) > PREVIEW_LENGTH_LIMIT else output
 

@@ -13,19 +13,6 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from flext_cli import (
-    # Actually available exports from __init__.py
-    CLICommand,
-    CLISession,
-    CLIPlugin,
-    CommandType,
-    setup_cli,
-    flext_cli_export,
-    flext_cli_format,
-    format_output,
-)
-from flext_cli.api import FlextCliApi
-
 
 def demonstrate_restored_functionality() -> None:
     """Demonstrate that ALL original functionality has been restored."""
