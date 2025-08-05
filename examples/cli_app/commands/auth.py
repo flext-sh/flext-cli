@@ -44,7 +44,7 @@ def login(ctx: click.Context, username: str, password: str) -> None:
                     if "user" in response:
                         user = response["user"]
                         if isinstance(user, dict):
-                            name = user.get('name', username)
+                            name = user.get("name", username)
                         else:
                             name = username
                         console.print(f"Welcome, {name}!")

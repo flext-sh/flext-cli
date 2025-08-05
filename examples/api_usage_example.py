@@ -18,10 +18,12 @@ import json
 import operator
 import tempfile
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING, cast
 
 from flext_cli.api import FlextCliApi
-from flext_cli.domain.entities import CLICommand
-from typing import cast
+
+if TYPE_CHECKING:
+    from flext_cli.domain.entities import CLICommand
 
 # Constants
 PREVIEW_LENGTH_LIMIT = 200
@@ -56,7 +58,7 @@ class FlextCliDemoRunner:
         print(f"   Status: {health['status']}")
         print(f"   Service: {health['service']}")
         print(f"   Version: {health['version']}")
-        python_version = health['python_version']
+        python_version = health["python_version"]
         if isinstance(python_version, str):
             print(f"   Python: {python_version.split()[0]}")
         else:
@@ -78,7 +80,7 @@ class FlextCliDemoRunner:
 
         system_success = False
         if result.success:
-            command = cast(CLICommand, result.data)  # Cast to proper type
+            command = cast("CLICommand", result.data)  # Cast to proper type
             print(f"   ✅ Created command: {command.name}")
             print(f"      Type: {command.command_type}")
             print(f"      Command line: {command.command_line}")
@@ -102,7 +104,7 @@ class FlextCliDemoRunner:
 
         script_success = False
         if script_result.success:
-            script_cmd = cast(CLICommand, script_result.data)  # Cast to proper type
+            script_cmd = cast("CLICommand", script_result.data)  # Cast to proper type
             print(f"   ✅ Created script command: {script_cmd.name}")
             print(f"      Environment: {script_cmd.environment}")
             script_success = True

@@ -56,6 +56,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import asyncio
 import os
 import platform
 import sys
@@ -150,7 +151,6 @@ def connectivity(ctx: click.Context) -> None:
             )
             try:
                 # Get system status from client (async call)
-                import asyncio
                 status = asyncio.run(client.get_system_status())
                 console.print("\nSystem Status:")
                 console.print(f"  Version: {status.get('version', 'Unknown')}")
@@ -187,7 +187,6 @@ def performance(ctx: click.Context) -> None:
         console.print("[yellow]Fetching performance metrics...[/yellow]")
 
         # Get metrics from client (async call)
-        import asyncio
         raw_metrics = asyncio.run(client.get_system_metrics())
 
         # Format metrics for display

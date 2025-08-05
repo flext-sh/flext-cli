@@ -427,4 +427,3 @@ class TestDebugCommandErrorHandling:
 
         # Command should handle the exception
         assert mock_asyncio_run.called
-

@@ -864,7 +864,7 @@ class TestFlextCliService:
 class TestIntegration:
     """Integration tests for core service functionality."""
 
-    def test_full_service_workflow(self) -> None:  # noqa: PLR0915
+    def test_full_service_workflow(self) -> None:
         """Test complete service workflow."""
         service = FlextCliService()
 

@@ -23,18 +23,10 @@ from flext_cli import (
     # Use only available exports
     flext_cli_aggregate_data,
     flext_cli_batch_export,
-    flext_cli_export,
     flext_cli_format,
-    flext_cli_table,
     flext_cli_transform_data,
-    flext_cli_unwrap_or_default,
-    flext_cli_unwrap_or_none,
-    # Available decorators
     measure_time,
     retry,
-    with_spinner,
-    # Format utilities
-    format_output,
 )
 from flext_core import FlextResult
 
@@ -105,10 +97,10 @@ def example_1_after_zero_boilerplate() -> None:
             try:
                 # Filter and transform using available functions
                 valid_users = [
-                    r for r in data 
+                    r for r in data
                     if isinstance(r, dict) and "name" in r
                 ]
-                
+
                 transformed_users = [
                     {
                         "name": r["name"].upper(),
@@ -117,14 +109,13 @@ def example_1_after_zero_boilerplate() -> None:
                     }
                     for r in valid_users
                 ]
-                
+
                 # Format using available function
                 format_result = flext_cli_format({"processed_users": transformed_users})
                 if format_result.success:
                     return FlextResult.ok(str(format_result.unwrap()))
-                else:
-                    return FlextResult.fail("Formatting failed")
-                    
+                return FlextResult.fail("Formatting failed")
+
             except (ValueError, TypeError, KeyError) as e:
                 return FlextResult.fail(f"Processing failed: {e}")
 
