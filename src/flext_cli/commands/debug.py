@@ -61,14 +61,14 @@ import os
 import platform
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NoReturn
 
 import click
 from flext_core.exceptions import FlextConnectionError, FlextOperationError
 from rich.table import Table
 
-from flext_cli.client import FlextApiClient
-from flext_cli.utils.config import get_config
+from flext_cli.config import get_config
+from flext_cli.flext_api_integration import FLEXT_API_AVAILABLE, get_default_cli_client
 
 if TYPE_CHECKING:
     from rich.console import Console
@@ -137,41 +137,111 @@ def connectivity(ctx: click.Context) -> None:
     """Test API connectivity."""
     console: Console = ctx.obj["console"]
 
-    # SOLID: Single Responsibility - simplified synchronous implementation
+    # FLEXT-API Integration: Use flext-api library for consistent HTTP operations
+    if not FLEXT_API_AVAILABLE:
+        console.print("[red]❌ flext-api library not available - cannot test connectivity[/red]")
+        ctx.exit(1)
+
     try:
-        client = FlextApiClient()
-        console.print("[yellow]Testing API connectivity...[/yellow]")
+        client = get_default_cli_client()
+        console.print("[yellow]Testing API connectivity using flext-api...[/yellow]")
 
-        # Test connectivity using client
-        connected = client.test_connection()
-
-        if connected:
-            console.print(
-                f"[green]✅ Connected to API at {client.base_url}[/green]",
-            )
-            try:
-                # Get system status from client (async call)
-                status = asyncio.run(client.get_system_status())
-                console.print("\nSystem Status:")
-                console.print(f"  Version: {status.get('version', 'Unknown')}")
-                console.print(f"  Status: {status.get('status', 'Unknown')}")
-                console.print(f"  Uptime: {status.get('uptime', 'Unknown')}")
-            except (
-                FlextConnectionError,
-                FlextOperationError,
-                ValueError,
-                KeyError,
-            ) as e:
+        # Test connectivity using flext-api integration
+        async def test_connectivity() -> None:
+            connected_result = await client.test_connection()
+            if connected_result.success and connected_result.data:
                 console.print(
-                    f"[yellow]⚠️  Could not get system status: {e}[/yellow]",
+                    f"[green]✅ Connected to API at {client.base_url}[/green]",
                 )
-        else:
-            console.print(
-                f"[red]❌ Failed to connect to API at {client.base_url}[/red]",
-            )
-            ctx.exit(1)
+
+                # Get system status using flext-api patterns
+                status_result = await client.get_system_status()
+                if status_result.success and status_result.data:
+                    status = status_result.data
+                    console.print("\nSystem Status:")
+                    # Type-safe dictionary access
+                    if isinstance(status, dict):
+                        console.print(f"  Version: {status.get('version', 'Unknown')}")
+                        console.print(f"  Status: {status.get('status', 'Unknown')}")
+                        console.print(f"  Uptime: {status.get('uptime', 'Unknown')}")
+                else:
+                    console.print(
+                        f"[yellow]⚠️  Could not get system status: {status_result.error}[/yellow]",
+                    )
+            else:
+                console.print(
+                    f"[red]❌ Failed to connect to API: {connected_result.error}[/red]",
+                )
+                ctx.exit(1)
+
+        # Run async test
+        asyncio.run(test_connectivity())
     except (FlextConnectionError, FlextOperationError, ValueError, OSError) as e:
         console.print(f"[red]❌ Connection test failed: {e}[/red]")
+        ctx.exit(1)
+
+
+@debug_cmd.command()
+@click.pass_context
+def services(ctx: click.Context) -> None:
+    """List and check all FLEXT services using flext-api integration."""
+    console: Console = ctx.obj["console"]
+
+    if not FLEXT_API_AVAILABLE:
+        console.print("[red]❌ flext-api library not available - cannot check services[/red]")
+        ctx.exit(1)
+
+    try:
+        client = get_default_cli_client()
+        console.print("[yellow]Checking FLEXT services using flext-api integration...[/yellow]")
+
+        async def check_services() -> None:
+            services_result = await client.list_services()
+            if services_result.success and services_result.data:
+                services = services_result.data
+
+                # Create Rich table for service status
+                table = Table(title="FLEXT Services Status")
+                table.add_column("Service", style="cyan")
+                table.add_column("URL", style="blue")
+                table.add_column("Status", style="bold")
+                table.add_column("Response Time", style="green")
+
+                # Type-safe iteration
+                if isinstance(services, list):
+                    for service in services:
+                        if isinstance(service, dict):
+                            # Safe access to service dictionary with defaults
+                            name = service.get("name", "Unknown")
+                            url = service.get("url", "Unknown")
+                            status = service.get("status", "unknown")
+                            response_time_raw = service.get("response_time", 0.0)
+
+                            # Type-safe response time conversion
+                            try:
+                                response_time = float(str(response_time_raw)) if response_time_raw is not None else 0.0
+                            except (ValueError, TypeError):
+                                response_time = 0.0
+
+                            status_color = "green" if status == "healthy" else "red"
+                            status_emoji = "✅" if status == "healthy" else "❌"
+
+                            table.add_row(
+                                str(name),
+                                str(url),
+                                f"[{status_color}]{status_emoji} {status}[/{status_color}]",
+                                f"{response_time:.3f}s",
+                            )
+
+                console.print(table)
+            else:
+                console.print(f"[red]❌ Failed to check services: {services_result.error}[/red]")
+
+        # Run async service check
+        asyncio.run(check_services())
+
+    except Exception as e:
+        console.print(f"[red]❌ Service check failed: {e}[/red]")
         ctx.exit(1)
 
 
@@ -181,13 +251,30 @@ def performance(ctx: click.Context) -> None:
     """Check system performance metrics."""
     console: Console = ctx.obj["console"]
 
-    # SOLID: Single Responsibility - simplified synchronous implementation
-    try:
-        client = FlextApiClient()
-        console.print("[yellow]Fetching performance metrics...[/yellow]")
+    # FLEXT-API Integration: Use flext-api for consistent HTTP operations
+    if not FLEXT_API_AVAILABLE:
+        console.print("[red]❌ flext-api library not available - cannot fetch metrics[/red]")
+        ctx.exit(1)
 
-        # Get metrics from client (async call)
-        raw_metrics = asyncio.run(client.get_system_metrics())
+    try:
+        client = get_default_cli_client()
+        console.print("[yellow]Fetching performance metrics using flext-api...[/yellow]")
+
+        # Get metrics using flext-api integration
+        def handle_metrics_error(error_msg: str) -> NoReturn:
+            """Handle metrics fetch error and exit."""
+            console.print(f"[red]❌ Failed to fetch metrics: {error_msg}[/red]")
+            ctx.exit(1)
+
+        async def fetch_metrics() -> dict[str, object]:
+            # For now, use system status as metrics (placeholder)
+            status_result = await client.get_system_status()
+            if status_result.success and status_result.data is not None:
+                return status_result.data
+            # If we reach here, show error and exit
+            handle_metrics_error(status_result.error or "Unknown error")
+
+        raw_metrics = asyncio.run(fetch_metrics())
 
         # Format metrics for display
         metrics = {

@@ -24,12 +24,9 @@ from flext_core.result import FlextResult
 from rich.console import Console
 
 
-def main() -> None:
-    """Demonstrate basic FLEXT CLI library usage."""
+def demonstrate_configuration() -> None:
+    """Demonstrate configuration management."""
     console = Console()
-    console.print("[bold green]🚀 FLEXT CLI Library Basic Usage Example[/bold green]\n")
-
-    # 1. Configuration Management
     console.print("[bold blue]1. Configuration Management[/bold blue]")
     config = flext_cli.get_config()
     console.print(f"   API URL: {config.api_url}")
@@ -37,7 +34,10 @@ def main() -> None:
     console.print(f"   Debug Mode: {config.debug}")
     console.print()
 
-    # 2. Settings from Environment
+
+def demonstrate_settings() -> None:
+    """Demonstrate environment settings."""
+    console = Console()
     console.print("[bold blue]2. Environment Settings[/bold blue]")
     settings = flext_cli.get_settings()
     console.print(f"   Project: {settings.project_name}")
@@ -45,7 +45,10 @@ def main() -> None:
     console.print(f"   Log Level: {settings.log_level}")
     console.print()
 
-    # 3. CLI Context Management
+
+def demonstrate_context_management() -> None:
+    """Demonstrate CLI context management."""
+    console = Console()
     console.print("[bold blue]3. CLI Context Management[/bold blue]")
 
     # Create default context
@@ -53,7 +56,45 @@ def main() -> None:
     console.print(f"   Default profile: {default_context.profile}")
     console.print(f"   Output format: {default_context.output_format}")
 
-    # Create custom context
+
+def demonstrate_utilities() -> None:
+    """Demonstrate helper utilities."""
+    console = Console()
+    console.print("[bold blue]4. Helper Utilities[/bold blue]")
+    helper = flext_cli.CLIHelper()
+
+    # Validation examples
+    test_url = "https://api.example.com"
+    is_valid_url = helper.validate_url(test_url)
+    console.print(f"   URL '{test_url}' is valid: {is_valid_url}")
+
+
+def demonstrate_advanced_helpers() -> None:
+    """Demonstrate advanced helper utilities following SOLID principles."""
+    console = Console()
+    console.print("[bold blue]5. Advanced Helper Examples[/bold blue]")
+    helper = flext_cli.CLIHelper()
+
+    # Email validation
+    test_email = "user@example.com"
+    is_valid_email = helper.validate_email(test_email)
+    console.print(f"   Email '{test_email}' is valid: {is_valid_email}")
+
+    # File size formatting
+    file_size = 1024 * 1024 * 5  # 5MB
+    formatted_size = helper.format_size(file_size)
+    console.print(f"   Formatted size: {formatted_size}")
+
+    # Text truncation
+    long_text = "This is a very long text that needs to be truncated for display"
+    truncated = helper.truncate_text(long_text, max_length=30)
+    console.print(f"   Truncated text: {truncated}")
+    console.print()
+
+
+def demonstrate_debug_context() -> None:
+    """Demonstrate debug context."""
+    console = Console()
     debug_context = flext_cli.CLIContext(
         profile="development",
         output_format="json",
@@ -64,28 +105,19 @@ def main() -> None:
     console.print(f"   Debug format: {debug_context.output_format}")
     console.print()
 
-    # 4. Helper Utilities
-    console.print("[bold blue]4. Helper Utilities[/bold blue]")
-    helper = flext_cli.CLIHelper()
 
-    # Validation examples
-    test_url = "https://api.example.com"
-    is_valid_url = helper.validate_url(test_url)
-    console.print(f"   URL '{test_url}' is valid: {is_valid_url}")
+def main() -> None:
+    """Demonstrate basic FLEXT CLI library usage."""
+    console = Console()
+    console.print("[bold green]🚀 FLEXT CLI Library Basic Usage Example[/bold green]\n")
 
-    test_email = "user@example.com"
-    is_valid_email = helper.validate_email(test_email)
-    console.print(f"   Email '{test_email}' is valid: {is_valid_email}")
-
-    # Formatting examples
-    file_size = 1024 * 1024 * 5  # 5MB
-    formatted_size = helper.format_size(file_size)
-    console.print(f"   Formatted size: {formatted_size}")
-
-    long_text = "This is a very long text that needs to be truncated for display"
-    truncated = helper.truncate_text(long_text, max_length=30)
-    console.print(f"   Truncated text: {truncated}")
-    console.print()
+    # Break down into smaller functions following SOLID principles
+    demonstrate_configuration()
+    demonstrate_settings()
+    demonstrate_context_management()
+    demonstrate_debug_context()
+    demonstrate_utilities()
+    demonstrate_advanced_helpers()
 
     # 5. Click Parameter Types
     console.print("[bold blue]5. Click Parameter Types Integration[/bold blue]")

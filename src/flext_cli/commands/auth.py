@@ -53,7 +53,7 @@ from typing import TYPE_CHECKING
 
 import click
 
-from flext_cli.client import FlextApiClient
+from flext_cli.flext_api_integration import FlextCLIApiClient as FlextApiClient
 from flext_cli.utils.auth import clear_auth_tokens, get_auth_token, save_auth_token
 
 if TYPE_CHECKING:
@@ -62,41 +62,7 @@ if TYPE_CHECKING:
 
 @click.group()
 def auth() -> None:
-    """Authentication and authorization management for FLEXT ecosystem.
-
-    Provides comprehensive authentication commands for securely accessing
-    FLEXT services and ecosystem components. Supports username/password
-    authentication with secure token storage and session management.
-
-    Available Commands:
-        login   - Authenticate with FLEXT services
-        logout  - Clear authentication and end session
-        status  - Check current authentication status
-        token   - Manage authentication tokens
-
-    Security Features:
-        - Secure credential input (passwords hidden)
-        - Token-based authentication with automatic refresh
-        - Session validation and timeout handling
-        - Clean logout with token revocation
-
-    Examples:
-        $ flext auth login --username admin
-        $ flext auth status --verbose
-        $ flext auth logout --all
-        $ flext auth token refresh
-
-    Integration:
-        Currently uses mock authentication. Real FLEXT service integration
-        planned for Sprint 1 with support for FlexCore and FLEXT Service
-        authentication endpoints.
-
-    TODO (Sprint 1):
-        - Integrate with real FLEXT authentication services
-        - Add token encryption for secure storage
-        - Implement automatic token refresh
-
-    """
+    """Manage authentication commands."""
 
 
 @auth.command()
@@ -163,9 +129,14 @@ def login(ctx: click.Context, username: str, password: str) -> None:
                     ctx.exit(1)
 
                 # Real authentication via API client
-                response = await client.login(username, password)
+                login_result = await client.login(username, password)
 
-                if "token" in response:
+                if login_result.is_failure:
+                    console.print(f"[red]❌ Login failed: {login_result.error}[/red]")
+                    ctx.exit(1)
+
+                response = login_result.data
+                if response and "token" in response:
                     token_value = response["token"]
                     if isinstance(token_value, str):
                         save_auth_token(token_value)
@@ -206,7 +177,11 @@ def logout(ctx: click.Context) -> None:
 
             async with FlextApiClient() as client:
                 console.print("[yellow]Logging out...[/yellow]")
-                await client.logout()
+                logout_result = await client.logout()
+
+                if logout_result.is_failure:
+                    console.print(f"[red]❌ Logout failed: {logout_result.error}[/red]")
+                    # Continue with token cleanup anyway
                 clear_auth_tokens()
                 console.print("[green]✅ Logged out successfully[/green]")
         except KeyError:
@@ -252,12 +227,19 @@ def status(ctx: click.Context) -> None:
 
             async with FlextApiClient() as client:
                 console.print("[yellow]Checking authentication...[/yellow]")
-                user = await client.get_current_user()
+                user_result = await client.get_current_user()
 
-                console.print("[green]✅ Authenticated[/green]")
-                console.print(f"User: {user.get('username', 'Unknown')}")
-                console.print(f"Email: {user.get('email', 'Unknown')}")
-                console.print(f"Role: {user.get('role', 'Unknown')}")
+                if user_result.success and user_result.data:
+                    user = user_result.data
+                    console.print("[green]✅ Authenticated[/green]")
+                    console.print(f"User: {user.get('username', 'Unknown')}")
+                    console.print(f"Email: {user.get('email', 'Unknown')}")
+                    console.print(f"Role: {user.get('role', 'Unknown')}")
+                else:
+                    error_msg = user_result.error or "Unknown error"
+                    console.print(f"[red]❌ Authentication check failed: {error_msg}[/red]")
+                    console.print("Run 'flext auth login' to re-authenticate")
+                    ctx.exit(1)
         except KeyError as e:
             console.print(f"[red]❌ Authentication check failed: {e}[/red]")
             console.print("Run 'flext auth login' to re-authenticate")
@@ -293,13 +275,20 @@ def whoami(ctx: click.Context) -> None:
                 ctx.exit(1)
 
             async with FlextApiClient() as client:
-                user = await client.get_current_user()
+                user_result = await client.get_current_user()
 
-                console.print(f"Username: {user.get('username', 'Unknown')}")
-                console.print(f"Full Name: {user.get('full_name', 'Unknown')}")
-                console.print(f"Email: {user.get('email', 'Unknown')}")
-                console.print(f"Role: {user.get('role', 'Unknown')}")
-                console.print(f"ID: {user.get('id', 'Unknown')}")
+                if user_result.success and user_result.data:
+                    user = user_result.data
+                    console.print(f"Username: {user.get('username', 'Unknown')}")
+                    console.print(f"Full Name: {user.get('full_name', 'Unknown')}")
+                    console.print(f"Email: {user.get('email', 'Unknown')}")
+                    console.print(f"Role: {user.get('role', 'Unknown')}")
+                    console.print(f"ID: {user.get('id', 'Unknown')}")
+                else:
+                    error_msg = user_result.error or "Unknown error"
+                    console.print(f"[red]❌ Failed to get user info: {error_msg}[/red]")
+                    console.print("Run 'flext auth login' to re-authenticate")
+                    ctx.exit(1)
         except (ConnectionError, TimeoutError, ValueError, KeyError) as e:
             console.print(f"[red]❌ Failed to get user info: {e}[/red]")
             console.print("Run 'flext auth login' to re-authenticate")

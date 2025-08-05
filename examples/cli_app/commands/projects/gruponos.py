@@ -24,13 +24,20 @@ try:
     import gruponos_meltano_native.orchestrator as gruponos_orchestrator
 
     # Try to find the correct Config class
-    GrupoNOSConfig = getattr(gruponos_config, "GrupoNOSConfig",
-                           getattr(gruponos_config, "Config",
-                                 getattr(gruponos_config, "GruponosConfig", None)))
+    GrupoNOSConfig = getattr(
+        gruponos_config,
+        "GrupoNOSConfig",
+        getattr(
+            gruponos_config, "Config", getattr(gruponos_config, "GruponosConfig", None)
+        ),
+    )
 
     # Try to find the correct Orchestrator class
-    GrupoNOSMeltanoOrchestrator = getattr(gruponos_orchestrator, "GrupoNOSMeltanoOrchestrator",
-                                        getattr(gruponos_orchestrator, "GruponosMeltanoOrchestrator", None))
+    GrupoNOSMeltanoOrchestrator = getattr(
+        gruponos_orchestrator,
+        "GrupoNOSMeltanoOrchestrator",
+        getattr(gruponos_orchestrator, "GruponosMeltanoOrchestrator", None),
+    )
 
     GRUPONOS_AVAILABLE = True
 except ImportError as e:

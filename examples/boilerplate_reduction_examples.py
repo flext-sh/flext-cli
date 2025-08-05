@@ -28,7 +28,83 @@ from flext_cli import (
     measure_time,
     retry,
 )
-from flext_core import FlextResult
+from flext_core import ServiceResult as FlextResult
+
+
+# Simple stubs for boilerplate reduction demonstration
+class FlextCliProcessorMixin:
+    """Stub for processing mixin functionality."""
+
+
+class FlextCliFormatterMixin:
+    """Stub for formatting mixin functionality."""
+
+
+class FlextCliDataSet:
+    """Stub for dataset functionality."""
+
+
+def flext_cli_auto_result(_error_message: str) -> object:
+    """Stub decorator for automatic result handling."""
+    def decorator(func: object) -> object:
+        return func
+    return decorator
+
+
+def flext_cli_cache_simple(_cache_size: int) -> object:
+    """Stub decorator for simple caching."""
+    def decorator(func: object) -> object:
+        return func
+    return decorator
+
+
+def flext_cli_aggregate_result(_operation: str) -> object:
+    """Stub decorator for result aggregation."""
+    def decorator(func: object) -> object:
+        return func
+    return decorator
+
+
+def flext_cli_log_time(_operation: str) -> object:
+    """Stub decorator for time logging."""
+    def decorator(func: object) -> object:
+        return func
+    return decorator
+
+
+def flext_cli_validate_data(_validation_rules: dict[str, object]) -> object:
+    """Stub decorator for data validation."""
+    def decorator(func: object) -> object:
+        return func
+    return decorator
+
+
+def flext_cli_optimized_export(_format_type: str, **_kwargs: object) -> object:
+    """Stub decorator for optimized export."""
+    def decorator(func: object) -> object:
+        return func
+    return decorator
+
+
+def flext_cli_validate_input(_validation_schema: object) -> object:
+    """Stub decorator for input validation."""
+    def decorator(func: object) -> object:
+        return func
+    return decorator
+
+
+def flext_cli_ensure_list() -> object:
+    """Stub decorator to ensure list output."""
+    def decorator(func: object) -> object:
+        return func
+    return decorator
+
+
+def flext_cli_measure_time() -> object:
+    """Stub decorator for time measurement."""
+    def decorator(func: object) -> object:
+        return func
+    return decorator
 
 # =============================================================================
 # EXAMPLE 1: BEFORE vs AFTER - Data Processing
@@ -96,10 +172,7 @@ def example_1_after_zero_boilerplate() -> None:
             """Process users with built-in validation and error handling."""
             try:
                 # Filter and transform using available functions
-                valid_users = [
-                    r for r in data
-                    if isinstance(r, dict) and "name" in r
-                ]
+                valid_users = [r for r in data if isinstance(r, dict) and "name" in r]
 
                 transformed_users = [
                     {

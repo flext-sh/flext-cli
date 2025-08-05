@@ -31,8 +31,10 @@ class TestDebugCommands:
 
     def test_connectivity_command(self) -> None:
         """Test connectivity command."""
-        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class, \
-             patch("asyncio.run") as mock_asyncio_run:
+        with (
+            patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class,
+            patch("asyncio.run") as mock_asyncio_run,
+        ):
             self._test_connectivity_command_impl(mock_asyncio_run, mock_client_class)
 
     def _test_connectivity_command_impl(
@@ -58,8 +60,10 @@ class TestDebugCommands:
 
     def test_performance_command(self) -> None:
         """Test performance command."""
-        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class, \
-             patch("asyncio.run") as mock_asyncio_run:
+        with (
+            patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class,
+            patch("asyncio.run") as mock_asyncio_run,
+        ):
             self._test_performance_command_impl(mock_asyncio_run, mock_client_class)
 
     def _test_performance_command_impl(
@@ -82,9 +86,11 @@ class TestDebugCommands:
 
     def test_validate_command_success(self) -> None:
         """Test validate command with success."""
-        with patch("flext_cli.commands.debug.get_config") as mock_get_config, \
-             patch("sys.version_info", (3, 11, 0)), \
-             patch("sys.version", "3.11.0 (main, Oct 24 2022)"):
+        with (
+            patch("flext_cli.commands.debug.get_config") as mock_get_config,
+            patch("sys.version_info", (3, 11, 0)),
+            patch("sys.version", "3.11.0 (main, Oct 24 2022)"),
+        ):
             self._test_validate_command_success_impl(mock_get_config)
 
     def _test_validate_command_success_impl(self, mock_get_config: MagicMock) -> None:
@@ -110,12 +116,16 @@ class TestDebugCommands:
 
     def test_validate_command_old_python(self) -> None:
         """Test validate command with old Python."""
-        with patch("flext_cli.commands.debug.get_config") as mock_get_config, \
-             patch("sys.version_info", (3, 9, 0)), \
-             patch("sys.version", "3.9.0 (main, Oct 24 2021)"):
+        with (
+            patch("flext_cli.commands.debug.get_config") as mock_get_config,
+            patch("sys.version_info", (3, 9, 0)),
+            patch("sys.version", "3.9.0 (main, Oct 24 2021)"),
+        ):
             self._test_validate_command_old_python_impl(mock_get_config)
 
-    def _test_validate_command_old_python_impl(self, mock_get_config: MagicMock) -> None:
+    def _test_validate_command_old_python_impl(
+        self, mock_get_config: MagicMock
+    ) -> None:
         """Test validate command with old Python implementation."""
         # Mock config
         mock_config = MagicMock()
@@ -157,7 +167,9 @@ class TestDebugCommands:
                 "OTHER_VAR": "not_flext",
             },
         ):
-            result = self.runner.invoke(debug_cmd, ["env"], obj={"console": MagicMock()})
+            result = self.runner.invoke(
+                debug_cmd, ["env"], obj={"console": MagicMock()}
+            )
 
             if result.exit_code != 0:
                 raise AssertionError(f"Expected {0}, got {result.exit_code}")
@@ -165,15 +177,19 @@ class TestDebugCommands:
     def test_env_command_no_vars(self) -> None:
         """Test env command with no FLEXT variables."""
         with patch.dict(os.environ, {}, clear=True):
-            result = self.runner.invoke(debug_cmd, ["env"], obj={"console": MagicMock()})
+            result = self.runner.invoke(
+                debug_cmd, ["env"], obj={"console": MagicMock()}
+            )
 
             if result.exit_code != 0:
                 raise AssertionError(f"Expected {0}, got {result.exit_code}")
 
     def test_paths_command(self) -> None:
         """Test paths command."""
-        with patch("flext_cli.commands.debug.get_config") as mock_get_config, \
-             patch("flext_cli.commands.debug.Path") as mock_path_class:
+        with (
+            patch("flext_cli.commands.debug.get_config") as mock_get_config,
+            patch("flext_cli.commands.debug.Path") as mock_path_class,
+        ):
             self._test_paths_command_impl(mock_path_class, mock_get_config)
 
     def _test_paths_command_impl(
@@ -219,10 +235,14 @@ class TestDebugFunctionality:
 
     def test_platform_info_access(self) -> None:
         """Test that platform information is accessed correctly."""
-        with patch("platform.system") as mock_system, \
-             patch("platform.release") as mock_release, \
-             patch("platform.machine") as mock_machine:
-            self._test_platform_info_access_impl(mock_machine, mock_release, mock_system)
+        with (
+            patch("platform.system") as mock_system,
+            patch("platform.release") as mock_release,
+            patch("platform.machine") as mock_machine,
+        ):
+            self._test_platform_info_access_impl(
+                mock_machine, mock_release, mock_system
+            )
 
     def _test_platform_info_access_impl(
         self, mock_machine: MagicMock, mock_release: MagicMock, mock_system: MagicMock
@@ -394,9 +414,13 @@ class TestDebugCommandErrorHandling:
 
     def test_connectivity_with_exception(self) -> None:
         """Test connectivity command with exception."""
-        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class, \
-             patch("asyncio.run") as mock_asyncio_run:
-            self._test_connectivity_with_exception_impl(mock_asyncio_run, mock_client_class)
+        with (
+            patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class,
+            patch("asyncio.run") as mock_asyncio_run,
+        ):
+            self._test_connectivity_with_exception_impl(
+                mock_asyncio_run, mock_client_class
+            )
 
     def _test_connectivity_with_exception_impl(
         self, mock_asyncio_run: MagicMock, mock_client_class: MagicMock
@@ -412,9 +436,13 @@ class TestDebugCommandErrorHandling:
 
     def test_performance_with_exception(self) -> None:
         """Test performance command with exception."""
-        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class, \
-             patch("asyncio.run") as mock_asyncio_run:
-            self._test_performance_with_exception_impl(mock_asyncio_run, mock_client_class)
+        with (
+            patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class,
+            patch("asyncio.run") as mock_asyncio_run,
+        ):
+            self._test_performance_with_exception_impl(
+                mock_asyncio_run, mock_client_class
+            )
 
     def _test_performance_with_exception_impl(
         self, mock_asyncio_run: MagicMock, mock_client_class: MagicMock

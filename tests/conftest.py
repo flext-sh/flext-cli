@@ -18,7 +18,6 @@ from flext_cli import (
     CLIContext,
     CLIPlugin,
     CLISession,
-    CLISettings,
     CommandType,
 )
 from rich.console import Console
@@ -50,27 +49,22 @@ def cli_config() -> CLIConfig:
 
 
 @pytest.fixture
-def cli_settings() -> CLISettings:
+def cli_settings() -> CLIConfig:
     """Create test CLI settings."""
-    return CLISettings(
-        project_name="test-cli",
-        project_version="0.9.0",
-        project_description="Test CLI Library",
+    return CLIConfig(
         debug=True,
-        log_level="DEBUG",
+        profile="test",
+        output_format="json",
     )
 
 
 @pytest.fixture
-def cli_context(cli_config: CLIConfig, cli_settings: CLISettings) -> CLIContext:
+def cli_context(cli_config: CLIConfig) -> CLIContext:
     """Create a test CLI context."""
+    from rich.console import Console
     return CLIContext(
-        profile="test",
-        output_format="json",
-        debug=True,
-        quiet=False,
-        verbose=True,
-        no_color=True,
+        config=cli_config,
+        console=Console(),
     )
 
 
@@ -120,6 +114,17 @@ def sample_session() -> CLISession:
         environment={"TEST": "true"},
         active=True,
     )
+
+
+@pytest.fixture
+def mock_context() -> tuple[object, object]:
+    """Create mock Click context with console for testing commands."""
+    from unittest.mock import MagicMock
+
+    console = MagicMock(spec=Console)
+    ctx = MagicMock()
+    ctx.obj = {"console": console}
+    return ctx, console
 
 
 @pytest.fixture

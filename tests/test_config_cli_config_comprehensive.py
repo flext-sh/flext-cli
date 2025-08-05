@@ -14,7 +14,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from flext_cli.config.cli_config import CLIConfig
+from flext_cli.config import CLIConfig
 
 # Constants
 EXPECTED_BULK_SIZE = 2

@@ -183,7 +183,10 @@ class FlextApiClient:
             Paginated pipeline list
 
         """
-        params: dict[str, str | int | float | bool | None] = {"page": page, "page_size": page_size}
+        params: dict[str, str | int | float | bool | None] = {
+            "page": page,
+            "page_size": page_size,
+        }
         if status:
             params["status"] = status
 
@@ -333,7 +336,9 @@ class FlextApiClient:
             List of plugin information dictionaries
 
         """
-        params: dict[str, str | int | float | bool | None] = {"installed_only": installed_only}
+        params: dict[str, str | int | float | bool | None] = {
+            "installed_only": installed_only
+        }
         if plugin_type:
             params["type"] = plugin_type
 

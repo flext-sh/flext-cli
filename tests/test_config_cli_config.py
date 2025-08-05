@@ -15,9 +15,8 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-import flext_cli.config.cli_config
 import pytest
-from flext_cli.config.cli_config import (
+from flext_cli.config import (
     CLIAPIConfig,
     CLIAuthConfig,
     CLIConfig,
@@ -413,15 +412,11 @@ class TestCLIConfig:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
 
-            # Create custom config with temp directories
-            config = CLIConfig()
-            config.directories = CLIDirectoryConfig(
+            # Create config with custom directories from the start
+            config = CLIConfig(
                 config_dir=temp_path / "config",
                 cache_dir=temp_path / "cache",
                 log_dir=temp_path / "logs",
-                data_dir=temp_path / "data",
-            )
-            config.auth = CLIAuthConfig(
                 token_file=temp_path / "auth" / "token",
                 refresh_token_file=temp_path / "auth" / "refresh_token",
             )
@@ -433,7 +428,6 @@ class TestCLIConfig:
             assert config.directories.config_dir.exists()
             assert config.directories.cache_dir.exists()
             assert config.directories.log_dir.exists()
-            assert config.directories.data_dir.exists()
 
             # Verify auth directories were created
             assert config.auth.token_file.parent.exists()
@@ -567,8 +561,8 @@ class TestConfigurationFunctions:
     def test_get_cli_config(self) -> None:
         """Test get_cli_config function."""
         # Clear any existing global config
-
-        flext_cli.config.cli_config._cli_config = None
+        import flext_cli.config
+        flext_cli.config._config = None
 
         config = get_cli_config()
 

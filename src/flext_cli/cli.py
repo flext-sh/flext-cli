@@ -62,8 +62,8 @@ from rich.console import Console
 
 from flext_cli.__version__ import __version__
 from flext_cli.commands import auth, config, debug
+from flext_cli.config import get_config
 from flext_cli.domain.cli_context import CLIContext
-from flext_cli.utils.config import CLISettings, get_config
 
 try:
     from flext_core import __version__ as _core_version
@@ -163,15 +163,16 @@ def cli(
         - Implement service discovery for ecosystem services
 
     """
-    # Load configuration
-    config = get_config()
-    settings = CLISettings()
-
-    # Override config with CLI options
-    config.profile = profile
-    config.output_format = output
-    config.debug = debug
-    config.quiet = quiet
+    # Load configuration and override with CLI options
+    base_config = get_config()
+    config = base_config.model_copy(
+        update={
+            "profile": profile,
+            "output_format": output,
+            "debug": debug,
+            "quiet": quiet,
+        },
+    )
 
     # Setup click context with components
     console = Console(quiet=quiet)
@@ -179,15 +180,15 @@ def cli(
     # Create CLI context with correct fields (SOLID: Single Responsibility)
     cli_context = CLIContext(
         config=config,
-        settings=settings,
         console=console,
     )
 
     ctx.ensure_object(dict)
     ctx.obj["config"] = config
-    ctx.obj["settings"] = settings
     ctx.obj["cli_context"] = cli_context
     ctx.obj["console"] = console
+    ctx.obj["settings"] = config  # Backward compatibility alias
+    ctx.obj["debug"] = debug
 
     # Debug information
     if debug:
@@ -293,7 +294,6 @@ def version(ctx: click.Context) -> None:
 
     """
     console = ctx.obj["console"]
-    ctx.obj["settings"]
 
     # Basic version information
     console.print(f"FLEXT CLI version {__version__}")

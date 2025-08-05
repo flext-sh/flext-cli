@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli.client import FlextApiClient, Pipeline, PipelineList
+from flext_cli.client import FlextApiClient, Pipeline, PipelineConfig, PipelineList
 
 
 class TestFlextApiClient:
@@ -20,16 +20,15 @@ class TestFlextApiClient:
 
     def test_client_initialization_with_args(self) -> None:
         """Test client initialization with arguments."""
-        client = FlextApiClient("arg1", "arg2", key1="value1", key2="value2")
+        client = FlextApiClient(base_url="http://test.com", token="test-token", timeout=60.0)
         assert isinstance(client, FlextApiClient)
 
     def test_client_initialization_with_mixed_args(self) -> None:
         """Test client initialization with mixed arguments."""
         client = FlextApiClient(
-            "positional_arg",
-            timeout=30,
-            api_url="http://example.com",
-            debug=True,
+            base_url="http://example.com",
+            timeout=30.0,
+            verify_ssl=False,
         )
         assert isinstance(client, FlextApiClient)
 
@@ -53,54 +52,63 @@ class TestPipeline:
 
     def test_pipeline_initialization_without_args(self) -> None:
         """Test pipeline initialization without arguments."""
-        pipeline = Pipeline()
+        config = PipelineConfig(name="default-config", tap="default-tap", target="default-target")
+        pipeline = Pipeline(
+            id="default-id",
+            name="default-pipeline",
+            status="initialized",
+            created_at="2025-01-01T00:00:00Z",
+            updated_at="2025-01-01T00:00:00Z",
+            config=config
+        )
         assert isinstance(pipeline, Pipeline)
-
-        # Check default stub attributes
-        if pipeline.name != "stub-pipeline":
-            msg: str = f"Expected {'stub-pipeline'}, got {pipeline.name}"
-            raise AssertionError(msg)
-        assert pipeline.id == "stub-id"
-        if pipeline.status != "stub-status":
-            status_msg: str = f"Expected {'stub-status'}, got {pipeline.status}"
-            raise AssertionError(status_msg)
+        assert pipeline.name == "default-pipeline"
+        assert pipeline.id == "default-id"
+        assert pipeline.status == "initialized"
 
     def test_pipeline_initialization_with_args(self) -> None:
         """Test pipeline initialization with arguments."""
-        pipeline = Pipeline("arg1", "arg2", key1="value1", key2="value2")
+        config = PipelineConfig(name="test-config", tap="test-tap", target="test-target")
+        pipeline = Pipeline(
+            id="test-id",
+            name="test-pipeline",
+            status="running",
+            created_at="2025-01-01T00:00:00Z",
+            updated_at="2025-01-01T00:00:00Z",
+            config=config
+        )
         assert isinstance(pipeline, Pipeline)
-
-        # Stub attributes should still be defaults
-        if pipeline.name != "stub-pipeline":
-            msg: str = f"Expected {'stub-pipeline'}, got {pipeline.name}"
-            raise AssertionError(msg)
-        assert pipeline.id == "stub-id"
-        if pipeline.status != "stub-status":
-            args_status_msg: str = f"Expected {'stub-status'}, got {pipeline.status}"
-            raise AssertionError(args_status_msg)
+        assert pipeline.name == "test-pipeline"
+        assert pipeline.id == "test-id"
+        assert pipeline.status == "running"
 
     def test_pipeline_initialization_with_mixed_args(self) -> None:
         """Test pipeline initialization with mixed arguments."""
+        config = PipelineConfig(name="mixed-config", tap="test-tap", target="test-target")
         pipeline = Pipeline(
-            "positional_arg",
-            timeout=30,
-            name="custom-pipeline",
-            debug=True,
+            id="mixed-id",
+            name="mixed-pipeline",
+            status="pending",
+            created_at="2025-01-01T00:00:00Z",
+            updated_at="2025-01-01T00:00:00Z",
+            config=config
         )
         assert isinstance(pipeline, Pipeline)
-
-        # Stub attributes should still be defaults regardless of kwargs
-        if pipeline.name != "stub-pipeline":
-            msg: str = f"Expected {'stub-pipeline'}, got {pipeline.name}"
-            raise AssertionError(msg)
-        assert pipeline.id == "stub-id"
-        if pipeline.status != "stub-status":
-            mixed_status_msg: str = f"Expected {'stub-status'}, got {pipeline.status}"
-            raise AssertionError(mixed_status_msg)
+        assert pipeline.name == "mixed-pipeline"
+        assert pipeline.id == "mixed-id"
+        assert pipeline.status == "pending"
 
     def test_pipeline_attributes_are_strings(self) -> None:
         """Test that pipeline attributes are strings."""
-        pipeline = Pipeline()
+        config = PipelineConfig(name="attr-test", tap="test-tap", target="test-target")
+        pipeline = Pipeline(
+            id="attr-id",
+            name="attr-pipeline",
+            status="active",
+            created_at="2025-01-01T00:00:00Z",
+            updated_at="2025-01-01T00:00:00Z",
+            config=config
+        )
 
         assert isinstance(pipeline.name, str)
         assert isinstance(pipeline.id, str)
@@ -108,25 +116,37 @@ class TestPipeline:
 
     def test_pipeline_multiple_instances(self) -> None:
         """Test creating multiple pipeline instances."""
-        pipeline1 = Pipeline("arg1")
-        pipeline2 = Pipeline("arg2")
+        config1 = PipelineConfig(name="multi-1", tap="tap1", target="target1")
+        config2 = PipelineConfig(name="multi-2", tap="tap2", target="target2")
+
+        pipeline1 = Pipeline(id="multi-1", name="pipeline-1", status="active", created_at="2025-01-01T00:00:00Z", updated_at="2025-01-01T00:00:00Z", config=config1)
+        pipeline2 = Pipeline(id="multi-2", name="pipeline-2", status="inactive", created_at="2025-01-01T00:00:00Z", updated_at="2025-01-01T00:00:00Z", config=config2)
 
         assert isinstance(pipeline1, Pipeline)
         assert isinstance(pipeline2, Pipeline)
         assert pipeline1 is not pipeline2
 
-        # Both should have same stub attributes
-        if pipeline1.name != pipeline2.name:
-            msg: str = f"Expected {pipeline2.name}, got {pipeline1.name}"
-            raise AssertionError(msg)
-        assert pipeline1.id == pipeline2.id
-        if pipeline1.status != pipeline2.status:
-            comparison_status_msg: str = f"Expected {pipeline2.status}, got {pipeline1.status}"
-            raise AssertionError(comparison_status_msg)
+        # Verify they have different attributes as expected
+        assert pipeline1.name != pipeline2.name  # "pipeline-1" != "pipeline-2"
+        assert pipeline1.id != pipeline2.id      # "multi-1" != "multi-2"
+        assert pipeline1.status != pipeline2.status  # "active" != "inactive"
+
+        # But they should both be Pipeline instances
+        assert pipeline1.name == "pipeline-1"
+        assert pipeline2.name == "pipeline-2"
 
     def test_pipeline_attributes_not_modifiable(self) -> None:
         """Test that pipeline attributes are set during initialization."""
-        pipeline = Pipeline()
+        pipeline = Pipeline(
+            id="stub-id",
+            name="stub-pipeline",
+            status="stub-status",
+            created_at="2025-01-01T12:00:00Z",
+            updated_at="2025-01-01T12:00:00Z",
+            config=PipelineConfig(
+                name="stub-pipeline", tap="tap-csv", target="target-jsonl"
+            ),
+        )
 
         # Attributes exist and have expected values
         assert hasattr(pipeline, "name")
@@ -158,8 +178,12 @@ class TestClientModule:
     def test_classes_are_independent(self) -> None:
         """Test that the classes are independent."""
         client = FlextApiClient()
-        pipeline = Pipeline()
-        pipeline_list = PipelineList()
+
+        # Create proper Pipeline with required fields
+        config = PipelineConfig(name="test", tap="test-tap", target="test-target")
+        pipeline = Pipeline(id="test", name="test", status="active", created_at="2025-01-01T00:00:00Z", updated_at="2025-01-01T00:00:00Z", config=config)
+
+        pipeline_list = PipelineList(pipelines=[], total=0)
 
         # Verify classes are independent (different types)
         assert not isinstance(client, type(pipeline))
@@ -177,28 +201,29 @@ class TestClientModule:
         """Test that the stub maintains expected interface."""
         # Should be able to create instances without errors
         client = FlextApiClient(
-            url="http://example.com",
+            base_url="http://example.com",
             timeout=30,
-            headers={"Authorization": "Bearer token"},
+            token="Bearer token",
         )
 
+        # Create proper Pipeline with required fields
+        config = PipelineConfig(name="test-pipeline", tap="test-tap", target="test-target")
         pipeline = Pipeline(
+            id="test-id",
             name="test-pipeline",
-            config={"key": "value"},
-            steps=["step1", "step2"],
+            status="active",
+            created_at="2025-01-01T00:00:00Z",
+            updated_at="2025-01-01T00:00:00Z",
+            config=config
         )
 
         assert isinstance(client, FlextApiClient)
         assert isinstance(pipeline, Pipeline)
 
-        # Pipeline should still have stub attributes
-        if pipeline.name != "stub-pipeline":
-            msg: str = f"Expected {'stub-pipeline'}, got {pipeline.name}"
-            raise AssertionError(msg)
-        assert pipeline.id == "stub-id"
-        if pipeline.status != "stub-status":
-            compat_status_msg: str = f"Expected {'stub-status'}, got {pipeline.status}"
-            raise AssertionError(compat_status_msg)
+        # Pipeline should have the attributes we set
+        assert pipeline.name == "test-pipeline"
+        assert pipeline.id == "test-id"
+        assert pipeline.status == "active"
 
 
 class TestPipelineList:
@@ -206,57 +231,60 @@ class TestPipelineList:
 
     def test_pipeline_list_initialization_without_args(self) -> None:
         """Test pipeline list initialization without arguments."""
-        pipeline_list = PipelineList()
+        pipeline_list = PipelineList(pipelines=[], total=0)
         assert isinstance(pipeline_list, PipelineList)
 
-        # Check default stub attributes
-        if pipeline_list.pipelines != []:
-            msg: str = f"Expected {[]}, got {pipeline_list.pipelines}"
-            raise AssertionError(msg)
+        # Check attributes
+        assert pipeline_list.pipelines == []
         assert pipeline_list.total == 0
-        if pipeline_list.page != 1:
-            page_msg: str = f"Expected {1}, got {pipeline_list.page}"
-            raise AssertionError(page_msg)
-        assert pipeline_list.page_size == 10
+        assert pipeline_list.page == 1      # default value
+        assert pipeline_list.page_size == 20  # default value
 
     def test_pipeline_list_initialization_with_args(self) -> None:
         """Test pipeline list initialization with arguments."""
-        pipeline_list = PipelineList("arg1", "arg2", key1="value1", key2="value2")
+        # Create sample pipelines for the list
+        config = PipelineConfig(name="sample", tap="sample-tap", target="sample-target")
+        pipeline = Pipeline(id="sample-1", name="sample-pipeline", status="active", created_at="2025-01-01T00:00:00Z", updated_at="2025-01-01T00:00:00Z", config=config)
+
+        pipeline_list = PipelineList(pipelines=[pipeline], total=1, page=2, page_size=10)
         assert isinstance(pipeline_list, PipelineList)
 
-        # Stub attributes should still be defaults
-        if pipeline_list.pipelines != []:
-            msg: str = f"Expected {[]}, got {pipeline_list.pipelines}"
-            raise AssertionError(msg)
-        assert pipeline_list.total == 0
-        if pipeline_list.page != 1:
-            args_page_msg: str = f"Expected {1}, got {pipeline_list.page}"
-            raise AssertionError(args_page_msg)
+        # Check attributes
+        assert len(pipeline_list.pipelines) == 1
+        assert pipeline_list.total == 1
+        assert pipeline_list.page == 2
         assert pipeline_list.page_size == 10
 
     def test_pipeline_list_initialization_with_mixed_args(self) -> None:
         """Test pipeline list initialization with mixed arguments."""
+        # Create sample pipeline for mixed args test
+        config = PipelineConfig(name="mixed", tap="tap-mixed", target="target-mixed")
+        pipeline = Pipeline(
+            id="mixed-id",
+            name="mixed-pipeline",
+            status="pending",
+            created_at="2025-01-01T00:00:00Z",
+            updated_at="2025-01-01T00:00:00Z",
+            config=config
+        )
+
         pipeline_list = PipelineList(
-            "positional_arg",
-            timeout=30,
-            pipelines=["custom"],
-            debug=True,
+            pipelines=[pipeline],
+            total=1,
+            page=2,
+            page_size=10
         )
         assert isinstance(pipeline_list, PipelineList)
 
-        # Stub attributes should still be defaults regardless of kwargs
-        if pipeline_list.pipelines != []:
-            msg: str = f"Expected {[]}, got {pipeline_list.pipelines}"
-            raise AssertionError(msg)
-        assert pipeline_list.total == 0
-        if pipeline_list.page != 1:
-            mixed_page_msg: str = f"Expected {1}, got {pipeline_list.page}"
-            raise AssertionError(mixed_page_msg)
+        # Check that values are properly set (not stub values)
+        assert len(pipeline_list.pipelines) == 1
+        assert pipeline_list.total == 1
+        assert pipeline_list.page == 2
         assert pipeline_list.page_size == 10
 
     def test_pipeline_list_attributes_types(self) -> None:
         """Test that pipeline list attributes have correct types."""
-        pipeline_list = PipelineList()
+        pipeline_list = PipelineList(pipelines=[], total=0)
 
         assert isinstance(pipeline_list.pipelines, list)
         assert isinstance(pipeline_list.total, int)
@@ -265,26 +293,22 @@ class TestPipelineList:
 
     def test_pipeline_list_multiple_instances(self) -> None:
         """Test creating multiple pipeline list instances."""
-        list1 = PipelineList("arg1")
-        list2 = PipelineList("arg2")
+        list1 = PipelineList(pipelines=[], total=0, page=1, page_size=10)
+        list2 = PipelineList(pipelines=[], total=5, page=2, page_size=15)
 
         assert isinstance(list1, PipelineList)
         assert isinstance(list2, PipelineList)
         assert list1 is not list2
 
-        # Both should have same stub attributes
-        if list1.pipelines != list2.pipelines:
-            msg: str = f"Expected {list2.pipelines}, got {list1.pipelines}"
-            raise AssertionError(msg)
-        assert list1.total == list2.total
-        if list1.page != list2.page:
-            page_comparison_msg: str = f"Expected {list2.page}, got {list1.page}"
-            raise AssertionError(page_comparison_msg)
-        assert list1.page_size == list2.page_size
+        # They should have different attributes as specified
+        assert list1.pipelines == list2.pipelines  # Both empty
+        assert list1.total != list2.total          # 0 vs 5
+        assert list1.page != list2.page            # 1 vs 2
+        assert list1.page_size != list2.page_size  # 10 vs 15
 
     def test_pipeline_list_empty_pipelines(self) -> None:
         """Test that pipelines list is empty by default."""
-        pipeline_list = PipelineList()
+        pipeline_list = PipelineList(pipelines=[], total=0)
 
         if len(pipeline_list.pipelines) != 0:
             length_msg: str = f"Expected {0}, got {len(pipeline_list.pipelines)}"

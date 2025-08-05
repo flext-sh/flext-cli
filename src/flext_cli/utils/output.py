@@ -77,7 +77,7 @@ import yaml
 from rich.console import Console
 from rich.table import Table
 
-from flext_cli.utils.config import get_config
+from flext_cli.config import get_config
 
 if TYPE_CHECKING:
     from flext_cli.client import Pipeline, PipelineList

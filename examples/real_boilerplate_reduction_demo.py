@@ -106,7 +106,7 @@ def enhanced_collections_demo() -> None:
 def advanced_decorators_demo() -> None:
     """Demonstrate function patterns with available decorators."""
     from flext_cli import measure_time, retry
-    from flext_core import FlextResult
+    from flext_core import ServiceResult as FlextResult
 
     @measure_time
     @retry(max_attempts=3)
@@ -167,9 +167,11 @@ def pipeline_operations_demo() -> None:
             "grid",
         )
 
-    if (export_result.success if hasattr(export_result, "success") else True) and \
-       (analysis_result.success if hasattr(analysis_result, "success") else True) and \
-       (table_result.success if hasattr(table_result, "success") else True):
+    if (
+        (export_result.success if hasattr(export_result, "success") else True)
+        and (analysis_result.success if hasattr(analysis_result, "success") else True)
+        and (table_result.success if hasattr(table_result, "success") else True)
+    ):
         pass  # Pipeline completed successfully
 
 

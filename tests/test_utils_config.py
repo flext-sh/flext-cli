@@ -10,7 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_cli.utils.config import CLIConfig, CLISettings, get_config, get_settings
+from flext_cli.config import CLIConfig, CLISettings, get_config, get_settings
 
 if TYPE_CHECKING:
     import pytest

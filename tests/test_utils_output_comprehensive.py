@@ -63,9 +63,7 @@ class TestFormatPipeline:
         from rich.console import Console
 
         pipeline_config = PipelineConfig(
-            name="test-pipeline",
-            tap="tap-csv",
-            target="target-csv"
+            name="test-pipeline", tap="tap-csv", target="target-csv"
         )
         pipeline = Pipeline(
             id="pipeline-123",
@@ -73,7 +71,7 @@ class TestFormatPipeline:
             status="running",
             created_at="2025-01-01T00:00:00Z",
             updated_at="2025-01-01T00:00:00Z",
-            config=pipeline_config
+            config=pipeline_config,
         )
 
         # Capture console output
@@ -96,9 +94,7 @@ class TestFormatPipeline:
         from rich.console import Console
 
         pipeline_config = PipelineConfig(
-            name="data-pipeline",
-            tap="tap-postgres",
-            target="target-snowflake"
+            name="data-pipeline", tap="tap-postgres", target="target-snowflake"
         )
         pipeline = Pipeline(
             id="pipeline-456",
@@ -106,7 +102,7 @@ class TestFormatPipeline:
             status="completed",
             created_at="2025-01-20T10:30:00Z",
             updated_at="2025-01-20T10:35:00Z",
-            config=pipeline_config
+            config=pipeline_config,
         )
 
         # Verify existing pipeline config
@@ -134,9 +130,7 @@ class TestFormatPipeline:
         from rich.console import Console
 
         empty_config = PipelineConfig(
-            name="empty-pipeline",
-            tap="tap-none",
-            target="target-none"
+            name="empty-pipeline", tap="tap-none", target="target-none"
         )
         pipeline = Pipeline(
             id="pipeline-empty",
@@ -144,7 +138,7 @@ class TestFormatPipeline:
             status="pending",
             created_at="2025-01-01T00:00:00Z",
             updated_at="2025-01-01T00:00:00Z",
-            config=empty_config
+            config=empty_config,
         )
 
         # Capture console output
@@ -169,9 +163,7 @@ class TestFormatPipeline:
 
         # Create proper pipeline config
         pipeline_config = PipelineConfig(
-            name="incomplete-pipeline",
-            tap="tap-csv",
-            target="target-csv"
+            name="incomplete-pipeline", tap="tap-csv", target="target-csv"
         )
 
         # Create pipeline with all required fields
@@ -181,7 +173,7 @@ class TestFormatPipeline:
             status="running",
             created_at="2025-01-01T00:00:00Z",
             updated_at="2025-01-01T00:00:00Z",
-            config=pipeline_config
+            config=pipeline_config,
         )
 
         # Capture console output
@@ -520,8 +512,8 @@ class TestUtilsOutputIntegration:
             config={
                 "records_processed": 50000,
                 "last_execution": "2025-01-20T10:45:00Z",
-                "data_source": "Oracle Production DB"
-            }
+                "data_source": "Oracle Production DB",
+            },
         )
 
         # Create pipeline with all required fields
@@ -531,7 +523,7 @@ class TestUtilsOutputIntegration:
             status="completed",
             created_at="2025-01-20T10:30:00Z",
             updated_at="2025-01-20T10:45:00Z",
-            config=config
+            config=config,
         )
 
         # Capture console output
@@ -690,9 +682,7 @@ class TestOutputErrorHandling:
 
         # Create pipeline config for edge case
         config = PipelineConfig(
-            name="malformed-pipeline",
-            tap="tap-unknown",
-            target="target-unknown"
+            name="malformed-pipeline", tap="tap-unknown", target="target-unknown"
         )
 
         # Create pipeline with potentially problematic data
@@ -702,7 +692,7 @@ class TestOutputErrorHandling:
             status="unknown",
             created_at="invalid-timestamp",
             updated_at="another-invalid-timestamp",
-            config=config
+            config=config,
         )
 
         # Capture console output

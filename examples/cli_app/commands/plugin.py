@@ -131,7 +131,9 @@ def list_plugins(ctx: click.Context, plugin_type: str | None, **kwargs: bool) ->
                     transient=True,
                 ) as progress:
                     progress.add_task("Loading plugins...")
-                    plugins = await client.list_plugins(plugin_type, installed_only=installed)
+                    plugins = await client.list_plugins(
+                        plugin_type, installed_only=installed
+                    )
 
                 if output_format == "json":
                     console.print(json.dumps(plugins, indent=2))

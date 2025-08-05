@@ -1,14 +1,6 @@
-# FLEXT CLI - Unified Command Interface for FLEXT Ecosystem
+# flext-cli - FLEXT Command Interface
 
-[![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
-[![Poetry](https://img.shields.io/badge/poetry-1.8+-blue.svg)](https://python-poetry.org/)
-[![Clean Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture%20%2B%20DDD-green.svg)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-[![Coverage](https://img.shields.io/badge/coverage-90%25+-brightgreen.svg)](https://pytest.org)
-[![Development Status](https://img.shields.io/badge/status-30%25%20functional-orange.svg)](docs/TODO.md)
-[![flext-core Integration](https://img.shields.io/badge/flext--core-60%25%20complete-yellow.svg)](docs/integration/)
-[![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-[![Type Checking: MyPy](https://img.shields.io/badge/type%20checking-mypy-blue.svg)](https://mypy.readthedocs.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+**Type**: Application | **Status**: Development (30% functional) | **Dependencies**: flext-core
 
 **Unified command-line interface for the FLEXT distributed data integration ecosystem**. Provides centralized management, orchestration, and monitoring for all 32+ FLEXT projects including FlexCore services, data pipelines, Singer taps/targets, DBT transformations, and project-specific integrations.
 

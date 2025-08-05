@@ -68,11 +68,15 @@ from __future__ import annotations
 
 import logging
 
-from flext_core import ValidatedModel
-from flext_core.result import FlextResult
+from flext_core import FlextResult, ValidatedModel
 from pydantic import Field
 
-from flext_cli.domain.entities import CLICommand, CLISession, CommandType
+from flext_cli.domain.entities import (
+    CLICommand,
+    CLIEntityFactory,
+    CLISession,
+    CommandType,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -163,13 +167,18 @@ class CLICommandService:
             else:
                 cmd_type = CommandType.CLI
 
-            command = CLICommand(
+            command_result = CLIEntityFactory.create_command(
                 name=name,
                 command_line=command_line,
                 command_type=cmd_type,
             )
 
-            return FlextResult.ok(command)
+            if command_result.is_failure:
+                return FlextResult.fail(
+                    command_result.error or "Failed to create command",
+                )
+
+            return command_result
         except Exception as e:
             return FlextResult.fail(f"Failed to create command: {e}")
 
@@ -183,7 +192,7 @@ class CLICommandService:
             FlextResult indicating validation success or failure.
 
         """
-        return command.validate_domain_rules()
+        return command.validate_business_rules()
 
 
 class CLISessionService:
@@ -229,8 +238,14 @@ class CLISessionService:
 
         """
         try:
-            session = CLISession(session_id=session_id)
-            return FlextResult.ok(session)
+            session_result = CLIEntityFactory.create_session(session_id=session_id)
+
+            if session_result.is_failure:
+                return FlextResult.fail(
+                    session_result.error or "Failed to create session",
+                )
+
+            return session_result
         except Exception as e:
             return FlextResult.fail(f"Failed to create session: {e}")
 
@@ -244,4 +259,4 @@ class CLISessionService:
             FlextResult indicating validation success or failure.
 
         """
-        return session.validate_domain_rules()
+        return session.validate_business_rules()

@@ -165,8 +165,8 @@ def cli(
 # Register command groups
 cli.add_command(auth.auth)
 cli.add_command(config.config)
-cli.add_command(pipeline.pipeline)
-cli.add_command(plugin.plugin)
+# cli.add_command(pipeline.pipeline)  # Sprint 1 - implement pipeline commands
+# cli.add_command(plugin.plugin)      # Sprint 6 - implement plugin commands
 cli.add_command(debug.debug_cmd)
 
 # Register project commands

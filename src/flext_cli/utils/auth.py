@@ -73,7 +73,7 @@ from typing import TYPE_CHECKING
 
 from flext_core import FlextResult
 
-from flext_cli.utils.config import get_config
+from flext_cli.config import get_config
 
 if TYPE_CHECKING:
     from pathlib import Path

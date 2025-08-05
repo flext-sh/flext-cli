@@ -88,8 +88,7 @@ def example_1_traditional_vs_flext() -> None:
     # Use available functionality
     # Export data using available functions
     export_result = flext_cli.flext_cli_export(
-        data=users_data,
-        output_path="./output/users.json"
+        data=users_data, output_path="./output/users.json"
     )
     flext_cli.flext_cli_format(users_data)
 
@@ -115,8 +114,7 @@ def example_2_instant_data_operations() -> None:
     # ===============================================
     # Use available export function directly
     result = flext_cli.flext_cli_export(
-        data=sales_data,
-        output_path="./sales_export.json"
+        data=sales_data, output_path="./sales_export.json"
     )
     if result.success:
         result.unwrap()

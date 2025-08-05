@@ -398,7 +398,9 @@ class TestValidateConfig:
             def function_requiring_config() -> str:
                 return "config validated"
 
-            result = function_requiring_config()  # No config provided - this is intentional for testing
+            result = (
+                function_requiring_config()
+            )  # No config provided - this is intentional for testing
             # Validate that function returned None when no config available
             validation_passed = result is None
             if not validation_passed:

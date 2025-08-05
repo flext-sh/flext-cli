@@ -118,8 +118,10 @@ class TestHandleServiceResult:
 
     def test_exception_handling(self) -> None:
         """Test exception handling in decorator."""
-        with patch("flext_cli.core.base.Console") as mock_console_class, \
-             patch("flext_cli.core.base.get_logger") as mock_get_logger:
+        with (
+            patch("flext_cli.core.base.Console") as mock_console_class,
+            patch("flext_cli.core.base.get_logger") as mock_get_logger,
+        ):
             self._test_exception_handling_impl(mock_get_logger, mock_console_class)
 
     def _test_exception_handling_impl(
@@ -238,9 +240,13 @@ class TestHandleServiceResult:
 
     def test_async_exception_handling(self) -> None:
         """Test async exception handling in decorator."""
-        with patch("flext_cli.core.base.Console") as mock_console_class, \
-             patch("flext_cli.core.base.get_logger") as mock_get_logger:
-            self._test_async_exception_handling_impl(mock_get_logger, mock_console_class)
+        with (
+            patch("flext_cli.core.base.Console") as mock_console_class,
+            patch("flext_cli.core.base.get_logger") as mock_get_logger,
+        ):
+            self._test_async_exception_handling_impl(
+                mock_get_logger, mock_console_class
+            )
 
     def _test_async_exception_handling_impl(
         self,
