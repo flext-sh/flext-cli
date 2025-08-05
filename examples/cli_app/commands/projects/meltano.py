@@ -238,10 +238,7 @@ def init(
         # Use meltano CLI to initialize project
         from flext_meltano.execution import flext_meltano_run_command
 
-        result = flext_meltano_run_command(
-            ["init", project_name],
-            cwd=str(parent_dir)
-        )
+        result = flext_meltano_run_command(["init", project_name], cwd=str(parent_dir))
 
         if result.success:
             project_path = parent_dir / project_name
@@ -252,7 +249,9 @@ def init(
             if template:
                 click.echo("⚠️  Template support not yet implemented in project manager")
         else:
-            click.echo(f"❌ Failed to initialize project: {result.error_message}", err=True)
+            click.echo(
+                f"❌ Failed to initialize project: {result.error_message}", err=True
+            )
             ctx.exit(1)
     except (RuntimeError, ValueError, TypeError) as e:
         click.echo(f"❌ Failed to initialize project: {e}", err=True)

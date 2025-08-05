@@ -101,7 +101,9 @@ def example_data_formatting() -> None:
 
     # 1. Format as JSON (pretty-printed)
     format_result = flext_cli_format(SAMPLE_USERS[:2])
-    json_output = str(format_result.unwrap() if format_result.success else "Format failed")
+    json_output = str(
+        format_result.unwrap() if format_result.success else "Format failed"
+    )
     print("JSON format:")
     preview = (
         json_output[:PREVIEW_LENGTH_LIMIT] + "..."
@@ -112,13 +114,17 @@ def example_data_formatting() -> None:
 
     # 2. Format as table for console display
     table_result = flext_cli_table(SALES_DATA, "Sales Data", "grid")
-    table_output = str(table_result.unwrap() if table_result.success else "Table failed")
+    table_output = str(
+        table_result.unwrap() if table_result.success else "Table failed"
+    )
     print("\nTable format:")
     print(table_output)
 
     # 3. Format single record as table
     single_result = flext_cli_table([SAMPLE_USERS[0]], "User Data", "grid")
-    single_table = str(single_result.unwrap() if single_result.success else "Table failed")
+    single_table = str(
+        single_result.unwrap() if single_result.success else "Table failed"
+    )
     print("\nSingle record table:")
     print(single_table)
 
@@ -211,7 +217,9 @@ def example_error_handling() -> None:
     # 3. Format with error handling
     try:
         format_result = flext_cli_format(SAMPLE_USERS)
-        result = str(format_result.unwrap() if format_result.success else "Error: Format failed")
+        result = str(
+            format_result.unwrap() if format_result.success else "Error: Format failed"
+        )
     except (ValueError, TypeError):
         result = "Error: Format failed"
     print(
@@ -227,10 +235,7 @@ def example_error_handling() -> None:
             success = csv_result.success if hasattr(csv_result, "success") else False
         except (ValueError, TypeError):
             success = False
-    print(
-        f"✓ CSV validation: "
-        f"{'Handled' if not success else 'Unexpected success'}"
-    )
+    print(f"✓ CSV validation: {'Handled' if not success else 'Unexpected success'}")
 
     # 5. Command execution errors
     def failing_command() -> Never:
@@ -294,7 +299,9 @@ def example_real_world_scenarios() -> None:
 
     # Format results for reporting
     table_result = flext_cli_table(survey_responses, "Survey Responses", "grid")
-    summary_table = str(table_result.unwrap() if table_result.success else "Table failed")
+    summary_table = str(
+        table_result.unwrap() if table_result.success else "Table failed"
+    )
     print("\nSurvey responses table:")
     print(summary_table)
 
@@ -367,7 +374,9 @@ def example_real_world_scenarios() -> None:
     if slow_endpoints:
         print("\nSlow endpoints:")
         table_result = flext_cli_table(slow_endpoints, "Slow Endpoints", "grid")
-        slow_table = str(table_result.unwrap() if table_result.success else "Table failed")
+        slow_table = str(
+            table_result.unwrap() if table_result.success else "Table failed"
+        )
         print(slow_table)
 
 

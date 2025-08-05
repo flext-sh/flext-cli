@@ -15,6 +15,7 @@ import click
 from click.testing import CliRunner
 from flext_cli.client import FlextApiClient
 from flext_cli.commands.auth import auth
+from flext_core import FlextResult
 from rich.console import Console
 
 
@@ -39,8 +40,10 @@ class TestAuthCommands:
 
     def test_login_success(self) -> None:
         """Test successful login."""
-        with patch("flext_cli.commands.auth.FlextApiClient") as mock_client_class, \
-             patch("flext_cli.commands.auth.save_auth_token") as mock_save_token:
+        with (
+            patch("flext_cli.commands.auth.FlextApiClient") as mock_client_class,
+            patch("flext_cli.commands.auth.save_auth_token") as mock_save_token,
+        ):
             self._test_login_success_impl(mock_save_token, mock_client_class)
 
     def _test_login_success_impl(
@@ -51,10 +54,12 @@ class TestAuthCommands:
         """Test successful login implementation."""
         # Mock async client
         mock_client = AsyncMock()
-        mock_client.login.return_value = {
+        # Mock FlextResult success response
+        mock_login_result = FlextResult.ok({
             "token": "token_testuser_abc123",
             "user": {"name": "Test User", "username": "testuser"},
-        }
+        })
+        mock_client.login.return_value = mock_login_result
         mock_client_class.return_value.__aenter__.return_value = mock_client
 
         # Mock console
@@ -83,7 +88,8 @@ class TestAuthCommands:
         """Test login with invalid response."""
         # Mock async client with no token in response
         mock_client = AsyncMock()
-        mock_client.login.return_value = {"message": "Login failed"}
+        # Mock FlextResult failure response
+        mock_client.login.return_value = FlextResult.fail("Login failed")
         mock_client_class.return_value.__aenter__.return_value = mock_client
 
         mock_console = MagicMock()
@@ -95,9 +101,9 @@ class TestAuthCommands:
             obj={"console": mock_console},
         )
 
-        # Should complete without saving token
-        if result.exit_code != 0:
-            raise AssertionError(f"Expected {0}, got {result.exit_code}")
+        # Should fail with exit code 1 for invalid response
+        if result.exit_code != 1:
+            raise AssertionError(f"Expected {1}, got {result.exit_code}")
         # No token should be saved for invalid response
         mock_save_token.assert_not_called()
 
@@ -216,11 +222,12 @@ class TestAuthCommands:
 
         # Mock async client
         mock_client = AsyncMock()
-        mock_client.get_current_user.return_value = {
+        # Mock FlextResult success response
+        mock_client.get_current_user.return_value = FlextResult.ok({
             "username": "testuser",
             "email": "test@example.com",
             "role": "user",
-        }
+        })
         mock_client_class.return_value.__aenter__.return_value = mock_client
 
         mock_console = MagicMock()
@@ -293,13 +300,14 @@ class TestAuthCommands:
 
         # Mock async client
         mock_client = AsyncMock()
-        mock_client.get_current_user.return_value = {
+        # Mock FlextResult success response
+        mock_client.get_current_user.return_value = FlextResult.ok({
             "username": "testuser",
             "full_name": "Test User",
             "email": "test@example.com",
             "role": "user",
             "id": "123",
-        }
+        })
         mock_client_class.return_value.__aenter__.return_value = mock_client
 
         mock_console = MagicMock()
@@ -806,13 +814,16 @@ class TestAuthIntegration:
 
         # Test async client pattern
         mock_client = AsyncMock()
-        mock_client.login.return_value = {"token": "test"}
+        # Mock FlextResult success response
+        mock_client.login.return_value = FlextResult.ok({"token": "test"})
 
         # Verify async mock setup works
         async def test_async_call() -> None:
             result = await mock_client.login("user", "pass")
-            if result != {"token": "test"}:
-                raise AssertionError(f"Expected {{'token': 'test'}}, got {result}")
+            # FlextResult should have data containing the token
+            expected_data = {"token": "test"}
+            if not (result.success and result.data == expected_data):
+                raise AssertionError(f"Expected success with data {expected_data}, got {result}")
 
         # Execute async test
         import asyncio

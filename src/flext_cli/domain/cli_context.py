@@ -2,14 +2,14 @@
 
 This module provides context value objects for FLEXT CLI operations, managing
 state, configuration, and execution context throughout command lifecycle.
-Uses flext-core FlextValueObject patterns for immutable context management.
+Uses flext-core DomainValueObject patterns for immutable context management.
 
 Context Classes:
     - CLIContext: Main CLI context with configuration and console
     - CLIExecutionContext: Command execution tracking and metadata
 
 Architecture:
-    - FlextValueObject base for immutable context objects
+    - DomainValueObject base for immutable context objects
     - Rich console integration for enhanced output
     - Domain validation with FlextResult error handling
     - Type-safe context management with Pydantic
@@ -18,7 +18,7 @@ Architecture:
 Current Implementation Status:
     ✅ CLIContext with configuration and console management
     ✅ CLIExecutionContext for command tracking
-    ✅ FlextValueObject integration with domain validation
+    ✅ DomainValueObject integration with domain validation
     ✅ Rich console integration for output management
     ✅ Debug, info, success, warning, error output methods
     ⚠️ Basic implementation (TODO: Sprint 2 - enhance context features)
@@ -65,19 +65,21 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING
 
-from flext_core.result import FlextResult
-from flext_core.value_objects import FlextValueObject
+from flext_core import (
+    FlextDomainValueObject as DomainValueObject,
+    FlextResult,
+)
 from pydantic import ConfigDict, Field
 
 if TYPE_CHECKING:
-    from flext_cli.utils.config import CLIConfig, CLISettings
+    from flext_cli.config import CLIConfig
 
 from rich.console import (
     Console,  # noqa: TC002 - needed for runtime Pydantic model_rebuild
 )
 
 
-class CLIContext(FlextValueObject):
+class CLIContext(DomainValueObject):
     """Main CLI context value object for state and configuration management.
 
     Immutable context object that carries configuration, settings, and console
@@ -92,7 +94,7 @@ class CLIContext(FlextValueObject):
         - Type-safe configuration and settings access
 
     Design Pattern:
-        Uses Value Object pattern from DDD with FlextValueObject base for
+        Uses Value Object pattern from DDD with DomainValueObject base for
         immutable state management and validation. Ensures consistency
         across command executions.
 
@@ -106,12 +108,11 @@ class CLIContext(FlextValueObject):
     """
 
     config: CLIConfig = Field(..., description="CLI configuration")
-    settings: CLISettings = Field(..., description="CLI settings")
     console: Console = Field(..., description="Rich console instance")
 
     model_config = ConfigDict(arbitrary_types_allowed=True)  # Allow Console type
 
-    def validate_domain_rules(self) -> FlextResult[None]:
+    def validate_business_rules(self) -> FlextResult[None]:
         """Validate domain business rules for CLI context.
 
         Returns:
@@ -129,7 +130,7 @@ class CLIContext(FlextValueObject):
             True if debug/verbose mode is enabled.
 
         """
-        return self.config.verbose
+        return self.config.debug or self.config.verbose
 
     @property
     def is_quiet(self) -> bool:
@@ -209,7 +210,7 @@ class CLIContext(FlextValueObject):
             self.console.print(f"[dim][VERBOSE][/dim] {message}")
 
 
-class CLIExecutionContext(FlextValueObject):
+class CLIExecutionContext(DomainValueObject):
     """CLI execution context for tracking command execution state and metadata.
 
     Immutable value object that tracks command execution lifecycle, user context,
@@ -264,7 +265,7 @@ class CLIExecutionContext(FlextValueObject):
         description="Additional context data",
     )
 
-    def validate_domain_rules(self) -> FlextResult[None]:
+    def validate_business_rules(self) -> FlextResult[None]:
         """Validate domain business rules for CLI execution context.
 
         Returns:
@@ -282,11 +283,9 @@ class CLIExecutionContext(FlextValueObject):
 # Rebuild Pydantic models to resolve forward references
 with contextlib.suppress(Exception):
     # Import dependencies for runtime model building
-
-    from flext_cli.utils.config import CLIConfig, CLISettings
+    from flext_cli.config import CLIConfig
 
     # Rebuild all models in dependency order
     CLIConfig.model_rebuild()
-    CLISettings.model_rebuild()
     CLIContext.model_rebuild()
     CLIExecutionContext.model_rebuild()

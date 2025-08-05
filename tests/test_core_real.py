@@ -527,8 +527,12 @@ class TestFlextCliService:
         service = FlextCliService()
 
         # Debug: Check that patch is working by showing the successful case first
-        result_success = service.flext_cli_create_command("test-cmd-success", "echo hello")
-        assert result_success.success, f"Control test should succeed: {result_success.error}"
+        result_success = service.flext_cli_create_command(
+            "test-cmd-success", "echo hello"
+        )
+        assert result_success.success, (
+            f"Control test should succeed: {result_success.error}"
+        )
 
         # Mock FlextCliCommand to raise exception in the core module where it's imported
         with patch(

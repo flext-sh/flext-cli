@@ -30,9 +30,9 @@ with patch.dict(
         "flext_core.types": MagicMock(TEntityId=str, TUserId=str),
     },
 ):
+    from flext_cli.constants import CLI_CONSTANTS
     from flext_cli.domain.entities import (
         CLICommand,
-        CLIConstants,
         CommandStatus,
         CommandType,
     )
@@ -43,25 +43,25 @@ class TestCLIConstants:
 
     def test_constants_values(self) -> None:
         """Test that constants have expected values."""
-        if CLIConstants.MAX_ENTITY_NAME_LENGTH != 255:
+        if CLI_CONSTANTS.MAX_ENTITY_NAME_LENGTH != 255:
             raise AssertionError(
-                f"Expected {255}, got {CLIConstants.MAX_ENTITY_NAME_LENGTH}"
+                f"Expected {255}, got {CLI_CONSTANTS.MAX_ENTITY_NAME_LENGTH}"
             )
-        assert CLIConstants.MAX_ERROR_MESSAGE_LENGTH == 1000
-        if CLIConstants.DEFAULT_TIMEOUT != 30:
-            raise AssertionError(f"Expected {30}, got {CLIConstants.DEFAULT_TIMEOUT}")
+        assert CLI_CONSTANTS.MAX_ERROR_MESSAGE_LENGTH == 1000
+        if CLI_CONSTANTS.DEFAULT_TIMEOUT != 30:
+            raise AssertionError(f"Expected {30}, got {CLI_CONSTANTS.DEFAULT_TIMEOUT}")
 
     def test_constants_types(self) -> None:
         """Test that constants have expected types."""
-        assert isinstance(CLIConstants.MAX_ENTITY_NAME_LENGTH, int)
-        assert isinstance(CLIConstants.MAX_ERROR_MESSAGE_LENGTH, int)
-        assert isinstance(CLIConstants.DEFAULT_TIMEOUT, int)
+        assert isinstance(CLI_CONSTANTS.MAX_ENTITY_NAME_LENGTH, int)
+        assert isinstance(CLI_CONSTANTS.MAX_ERROR_MESSAGE_LENGTH, int)
+        assert isinstance(CLI_CONSTANTS.DEFAULT_TIMEOUT, int)
 
     def test_constants_positive_values(self) -> None:
         """Test that constants have positive values."""
-        assert CLIConstants.MAX_ENTITY_NAME_LENGTH > 0
-        assert CLIConstants.MAX_ERROR_MESSAGE_LENGTH > 0
-        assert CLIConstants.DEFAULT_TIMEOUT > 0
+        assert CLI_CONSTANTS.MAX_ENTITY_NAME_LENGTH > 0
+        assert CLI_CONSTANTS.MAX_ERROR_MESSAGE_LENGTH > 0
+        assert CLI_CONSTANTS.DEFAULT_TIMEOUT > 0
 
 
 class TestCommandStatus:
@@ -994,8 +994,8 @@ class TestDomainEntityIntegration:
     def test_domain_validation_edge_cases(self) -> None:
         """Test domain validation edge cases."""
         # Test boundary conditions for string lengths
-        max_name_length = CLIConstants.MAX_ENTITY_NAME_LENGTH
-        max_desc_length = CLIConstants.MAX_ERROR_MESSAGE_LENGTH
+        max_name_length = CLI_CONSTANTS.MAX_ENTITY_NAME_LENGTH
+        max_desc_length = CLI_CONSTANTS.MAX_ERROR_MESSAGE_LENGTH
 
         # Test valid boundary values
         valid_name = "a" * max_name_length

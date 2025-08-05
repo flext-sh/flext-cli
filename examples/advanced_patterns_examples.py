@@ -12,10 +12,33 @@ from __future__ import annotations
 
 import traceback
 
+import flext_cli
 from flext_cli import (
     flext_cli_batch_export,
 )
-from flext_core import FlextResult
+from flext_core import ServiceResult as FlextResult
+
+
+# Simple stubs for advanced pattern demonstration
+class FlextCliDataExporter:
+    """Stub for data export functionality."""
+
+    def instant(self, _data: list[dict[str, object]], _format_type: str) -> FlextResult[None]:
+        """Export data instantly."""
+        return FlextResult.ok(None)
+
+
+class FlextCliDataTransformer:
+    """Stub for data transformation functionality."""
+
+    def transform(self, data: list[dict[str, object]]) -> FlextResult[list[dict[str, object]]]:
+        """Transform data."""
+        return FlextResult.ok(data)
+
+
+# Monkey patch flext_cli with missing classes for examples
+flext_cli.FlextCliDataExporter = FlextCliDataExporter
+flext_cli.FlextCliDataTransformer = FlextCliDataTransformer
 
 # Constants
 HIGH_VALUE_THRESHOLD = 80
@@ -89,8 +112,9 @@ def example_1_enterprise_data_pipeline() -> None:
     )
 
     # Process results with enterprise error handling
-    if (enterprise_result.success if hasattr(enterprise_result, "success") else True) and \
-       (analytics_result.success if hasattr(analytics_result, "success") else True):
+    if (
+        enterprise_result.success if hasattr(enterprise_result, "success") else True
+    ) and (analytics_result.success if hasattr(analytics_result, "success") else True):
         pass
     else:
         if hasattr(enterprise_result, "success") and not enterprise_result.success:

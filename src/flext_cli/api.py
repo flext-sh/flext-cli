@@ -84,18 +84,17 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import yaml
-from flext_core import get_flext_container
-from flext_core.result import FlextResult
-from flext_plugin import FlextPlugin, FlextPluginService
+
+# get_flext_container removed - not used
+from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table
 
 from flext_cli.core.formatters import FormatterFactory
 
 # Real imports - no fallbacks, proper error handling
-from flext_cli.domain.entities import CLICommand, CommandType
+from flext_cli.domain.entities import CLIEntityFactory, CLIPlugin, CommandType
 from flext_cli.types import FlextCliConfig, FlextCliContext
-from flext_cli.utils.config import CLISettings
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -484,29 +483,18 @@ class FlextCliApi:
     def flext_cli_configure(self, config: dict[str, object]) -> bool:
         """Configure CLI service using real configuration management."""
         try:
-            # Create settings using explicit constructor calls for type safety
-            # Initialize with defaults first
-            settings = CLISettings()
-
-            # Update specific fields from config with type validation
-            if "project_name" in config and isinstance(config["project_name"], str):
-                settings.project_name = config["project_name"]
-            if "project_version" in config and isinstance(
-                config["project_version"],
-                str,
-            ):
-                settings.project_version = config["project_version"]
-            if "project_description" in config and isinstance(
-                config["project_description"],
-                str,
-            ):
-                settings.project_description = config["project_description"]
-            if "debug" in config and isinstance(config["debug"], bool):
-                settings.debug = config["debug"]
-            if "log_level" in config and isinstance(config["log_level"], str):
-                settings.log_level = config["log_level"]
-            if "config_path" in config and isinstance(config["config_path"], str):
-                settings.config_path = config["config_path"]
+            # Create config with defaults and update with provided values
+            base_config = FlextCliConfig()
+            if config:
+                # Filter out invalid fields for CLIConfig using dict comprehension
+                valid_updates = {
+                    key: value
+                    for key, value in config.items()
+                    if hasattr(base_config, key)
+                }
+                settings = base_config.model_copy(update=valid_updates)
+            else:
+                settings = base_config
 
             # Store configuration in context
             self._config = settings
@@ -533,8 +521,11 @@ class FlextCliApi:
         config: dict[str, object] | None = None,
     ) -> object:
         """Create CLI execution context - placeholder implementation."""
-        cli_config = FlextCliConfig(config or {})
-        return FlextCliContext(cli_config)
+        # Create config with defaults and override with passed values
+        cli_config = FlextCliConfig()
+        if config:
+            cli_config = cli_config.model_copy(update=config)
+        return FlextCliContext(config=cli_config, console=Console())
 
     def flext_cli_create_command(
         self,
@@ -569,17 +560,23 @@ class FlextCliApi:
             timeout_val = options.get("timeout_seconds", 30)
             timeout_int = timeout_val if isinstance(timeout_val, int) else 30
 
-            # Create the domain entity with correct field names and types
-            command = CLICommand(
+            # Create the domain entity using modern factory pattern
+            command_result = CLIEntityFactory.create_command(
                 name=name,
                 command_line=command_line,
                 command_type=command_type,
                 description=description_str,
                 working_directory=working_dir_str,
-                environment=environment_str,  # Correct field name with proper type
+                environment=environment_str,
                 timeout=timeout_int,  # Correct field name with proper type
             )
 
+            if command_result.is_failure:
+                return FlextResult.fail(
+                    command_result.error or "Failed to create command",
+                )
+
+            command = command_result.unwrap()
             return FlextResult.ok(command)
 
         except Exception as e:
@@ -637,34 +634,37 @@ class FlextCliApi:
             return FlextResult.fail(f"Failed to register handler {name}: {e}")
 
     def flext_cli_register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
-        """Register plugin using real flext-plugin functionality."""
+        """Register plugin with proper validation and storage."""
         try:
-            # Initialize plugin service if needed
-            if not hasattr(self, "_plugin_service"):
-                container = get_flext_container()
-                self._plugin_service = FlextPluginService(container=container)
+            # Initialize plugin registry if needed
+            if not hasattr(self, "_plugin_registry"):
+                self._plugin_registry: dict[str, CLIPlugin] = {}
 
-            # If plugin is already a FlextPlugin, load it directly
-            if isinstance(plugin, FlextPlugin):
-                result = self._plugin_service.load_plugin(plugin)
-                if result.success:
-                    return FlextResult.ok(None)
-                return FlextResult.fail(f"Failed to load plugin: {result.error}")
+            # If plugin is already a CLIPlugin, register it directly
+            if isinstance(plugin, CLIPlugin):
+                validation_result = plugin.validate_business_rules()
+                if not validation_result.success:
+                    return FlextResult.fail(
+                        f"Plugin validation failed: {validation_result.error}",
+                    )
 
-            # Otherwise, try to create a FlextPlugin from the object
-            # This is a simplified approach - real implementation would be more
-            # sophisticated
-            plugin_entity = FlextPlugin(
+                self._plugin_registry[name] = plugin
+                return FlextResult.ok(None)
+
+            # Otherwise, try to create a CLIPlugin from the object
+            plugin_result = CLIEntityFactory.create_plugin(
                 name=name,
-                version="1.0.0",
-                plugin_type="UTILITY",  # Default type
-                entry_point=str(plugin) if plugin else "",
+                entry_point=str(plugin) if plugin else f"plugin_{name}",
             )
 
-            result = self._plugin_service.load_plugin(plugin_entity)
-            if result.success:
-                return FlextResult.ok(None)
-            return FlextResult.fail(f"Failed to load plugin: {result.error}")
+            if plugin_result.is_failure:
+                return FlextResult.fail(
+                    f"Plugin creation failed: {plugin_result.error}",
+                )
+
+            plugin_entity = plugin_result.unwrap()
+            self._plugin_registry[name] = plugin_entity
+            return FlextResult.ok(None)
 
         except Exception as e:
             return FlextResult.fail(f"Failed to register plugin {name}: {e}")
@@ -858,22 +858,23 @@ class ContextRenderingStrategy:
             return {}
 
     def flext_cli_get_plugins(self) -> dict[str, object]:
-        """Get all registered plugins with real implementation."""
+        """Get all registered plugins from the plugin registry."""
         try:
-            # Check if plugin service is available
-            if hasattr(self, "_plugin_service") and isinstance(
-                self._plugin_service,
-                FlextPluginService,
-            ):
-                # Get plugins using discovery from standard paths
-                plugins_result = self._plugin_service.discover_plugins("plugins")
-                if not plugins_result.success:
-                    return {}
+            # Return registered plugins if available
+            if hasattr(self, "_plugin_registry"):
+                return {
+                    name: {
+                        "name": plugin.name,
+                        "version": plugin.plugin_version,
+                        "status": "active" if plugin.enabled else "inactive",
+                        "commands": plugin.commands,
+                        "entry_point": plugin.entry_point,
+                        "dependencies": plugin.dependencies,
+                    }
+                    for name, plugin in self._plugin_registry.items()
+                }
 
-                plugins_list = plugins_result.unwrap()
-                return self._convert_plugins_list_to_dict(plugins_list)
-
-            # Fallback: return empty dict if no plugin service
+            # No plugins registered yet
             return {}
 
         except Exception:

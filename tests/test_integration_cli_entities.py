@@ -57,7 +57,9 @@ class TestCLICommandEntityIntegration:
         assert command.command_status == CommandStatus.RUNNING
 
         complete_result = command.complete_execution(exit_code=0, stdout=result.output)
-        assert complete_result.success, f"Complete execution failed: {complete_result.error}"
+        assert complete_result.success, (
+            f"Complete execution failed: {complete_result.error}"
+        )
         command = complete_result.data
 
         assert command.command_status == CommandStatus.COMPLETED
@@ -105,7 +107,9 @@ class TestCLICommandEntityIntegration:
         complete_result = command.complete_execution(
             exit_code=result.exit_code, stderr="Command not found"
         )
-        assert complete_result.success, f"Complete execution failed: {complete_result.error}"
+        assert complete_result.success, (
+            f"Complete execution failed: {complete_result.error}"
+        )
         command = complete_result.data
 
         assert command.command_status == CommandStatus.FAILED
@@ -254,7 +258,7 @@ class TestCLISessionEntityIntegration:
 
     def test_session_context_integration(self) -> None:
         """Test session integrates with CLI context."""
-        from flext_cli.utils.config import CLISettings, get_config
+        from flext_cli.config import CLISettings, get_config
         from rich.console import Console
 
         session = CLISession(session_id="test-context")
@@ -477,7 +481,7 @@ class TestCLIContextIntegration:
 
     def test_cli_context_with_commands(self) -> None:
         """Test CLIContext integrates with command execution."""
-        from flext_cli.utils.config import CLISettings, get_config
+        from flext_cli.config import CLISettings, get_config
         from rich.console import Console
 
         # Create proper CLI context (SOLID: Dependency Injection)
@@ -528,7 +532,7 @@ class TestCLIContextIntegration:
 
     def test_context_with_file_operations(self) -> None:
         """Test context with file-based operations."""
-        from flext_cli.utils.config import CLISettings, get_config
+        from flext_cli.config import CLISettings, get_config
         from rich.console import Console
 
         with tempfile.TemporaryDirectory() as tmpdir:

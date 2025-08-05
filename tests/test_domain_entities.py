@@ -69,7 +69,9 @@ class TestCLICommand:
             stdout="hello",
             stderr="",
         )
-        assert completed_result.success, f"Complete execution failed: {completed_result.error}"
+        assert completed_result.success, (
+            f"Complete execution failed: {completed_result.error}"
+        )
         completed_command = completed_result.data
         assert completed_command is not None
         if completed_command.command_status != CommandStatus.COMPLETED:
@@ -96,7 +98,9 @@ class TestCLICommand:
             stdout="",
             stderr="Error occurred",
         )
-        assert failed_result.success, f"Complete execution failed: {failed_result.error}"
+        assert failed_result.success, (
+            f"Complete execution failed: {failed_result.error}"
+        )
         failed_command = failed_result.data
         assert failed_command is not None
 
@@ -121,7 +125,9 @@ class TestCLICommand:
         assert running_command is not None
 
         cancelled_result = running_command.cancel_execution()
-        assert cancelled_result.success, f"Cancel execution failed: {cancelled_result.error}"
+        assert cancelled_result.success, (
+            f"Cancel execution failed: {cancelled_result.error}"
+        )
         cancelled_command = cancelled_result.data
         assert cancelled_command is not None
 
@@ -152,7 +158,9 @@ class TestCLICommand:
         assert running_command is not None
 
         completed_result = running_command.complete_execution(exit_code=0)
-        assert completed_result.success, f"Complete execution failed: {completed_result.error}"
+        assert completed_result.success, (
+            f"Complete execution failed: {completed_result.error}"
+        )
         completed_command = completed_result.data
         assert completed_command is not None
         assert completed_command.is_completed
@@ -160,12 +168,16 @@ class TestCLICommand:
 
         # Test failed status
         running_result2 = command.start_execution()
-        assert running_result2.success, f"Start execution failed: {running_result2.error}"
+        assert running_result2.success, (
+            f"Start execution failed: {running_result2.error}"
+        )
         running_command2 = running_result2.data
         assert running_command2 is not None
 
         failed_result = running_command2.complete_execution(exit_code=1)
-        assert failed_result.success, f"Complete execution failed: {failed_result.error}"
+        assert failed_result.success, (
+            f"Complete execution failed: {failed_result.error}"
+        )
         failed_command = failed_result.data
         assert failed_command is not None
         assert failed_command.is_completed
@@ -176,19 +188,25 @@ class TestCLICommand:
         start_time = datetime(2025, 1, 1, 10, 0, 0, tzinfo=UTC)
         end_time = datetime(2025, 1, 1, 10, 0, 5, tzinfo=UTC)  # 5 seconds later
 
-        with patch("flext_cli.domain.entities.datetime") as mock_dt:
-            mock_dt.now.side_effect = [start_time, end_time]
+        # Create command manually with started_at to test duration
+        command = CLICommand(
+            id="test_duration",
+            name="test",
+            command_line="test",
+            command_status=CommandStatus.RUNNING,
+            started_at=start_time,
+        )
 
-            command = CLICommand(id="test_duration", name="test", command_line="test")
-            # Immutable pattern - use returned FlextResult[CLICommand] instances
-            running_result = command.start_execution()
-            assert running_result.success, f"Start execution failed: {running_result.error}"
-            running_command = running_result.data
-            assert running_command is not None
+        with patch("flext_cli.domain.entities.datetime") as mock_datetime:
+            # Make the UTC attribute available
+            mock_datetime.UTC = UTC
+            mock_datetime.now.return_value = end_time
 
-            completed_result = running_command.complete_execution(exit_code=0)
-            assert completed_result.success, f"Complete execution failed: {completed_result.error}"
-            completed_command = completed_result.data
+            completed_result = command.complete_execution(exit_code=0)
+            assert completed_result.success, (
+                f"Complete execution failed: {completed_result.error}"
+            )
+            completed_command = completed_result.unwrap()
             assert completed_command is not None
 
             if completed_command.duration_seconds != 5.0:
@@ -218,26 +236,34 @@ class TestCLIPlugin:
 
     def test_plugin_lifecycle(self, sample_plugin: CLIPlugin) -> None:
         """Test plugin lifecycle operations."""
-        # Install plugin - immutable pattern returns new instance
-        installed_plugin = sample_plugin.install()
+        # Install plugin - FlextResult pattern
+        install_result = sample_plugin.install()
+        assert install_result.success, f"Install failed: {install_result.error}"
+        installed_plugin = install_result.unwrap()
         if not (installed_plugin.installed):
             raise AssertionError(f"Expected True, got {installed_plugin.installed}")
         assert installed_plugin.enabled is True
 
-        # Disable plugin - immutable pattern returns new instance
-        disabled_plugin = installed_plugin.disable()
+        # Disable plugin - FlextResult pattern
+        disable_result = installed_plugin.disable()
+        assert disable_result.success, f"Disable failed: {disable_result.error}"
+        disabled_plugin = disable_result.unwrap()
         if disabled_plugin.enabled:
             raise AssertionError(f"Expected False, got {disabled_plugin.enabled}")
         if not (disabled_plugin.installed):
             raise AssertionError(f"Expected True, got {disabled_plugin.installed}")
 
-        # Enable plugin - immutable pattern returns new instance
-        enabled_plugin = disabled_plugin.enable()
+        # Enable plugin - FlextResult pattern
+        enable_result = disabled_plugin.enable()
+        assert enable_result.success, f"Enable failed: {enable_result.error}"
+        enabled_plugin = enable_result.unwrap()
         if not (enabled_plugin.enabled):
             raise AssertionError(f"Expected True, got {enabled_plugin.enabled}")
 
-        # Uninstall plugin - immutable pattern returns new instance
-        uninstalled_plugin = enabled_plugin.uninstall()
+        # Uninstall plugin - FlextResult pattern
+        uninstall_result = enabled_plugin.uninstall()
+        assert uninstall_result.success, f"Uninstall failed: {uninstall_result.error}"
+        uninstalled_plugin = uninstall_result.unwrap()
         if uninstalled_plugin.installed:
             raise AssertionError(f"Expected False, got {uninstalled_plugin.installed}")
         assert uninstalled_plugin.enabled is False
@@ -287,15 +313,19 @@ class TestCLISession:
         command_id_1 = "cmd-1"
         command_id_2 = "cmd-2"
 
-        # Sessions are immutable, so methods return new instances
-        session_with_cmd1 = sample_session.add_command(command_id_1)
+        # Sessions are immutable, so methods return FlextResult with new instances
+        result1 = sample_session.add_command(command_id_1)
+        assert result1.success, f"Add command failed: {result1.error}"
+        session_with_cmd1 = result1.unwrap()
         if len(session_with_cmd1.commands_executed) != 1:
             raise AssertionError(
                 f"Expected {1}, got {len(session_with_cmd1.commands_executed)}"
             )
         assert session_with_cmd1.current_command == command_id_1
 
-        session_with_cmd2 = session_with_cmd1.add_command(command_id_2)
+        result2 = session_with_cmd1.add_command(command_id_2)
+        assert result2.success, f"Add command failed: {result2.error}"
+        session_with_cmd2 = result2.unwrap()
         if len(session_with_cmd2.commands_executed) != EXPECTED_BULK_SIZE:
             raise AssertionError(
                 f"Expected {2}, got {len(session_with_cmd2.commands_executed)}"
@@ -304,9 +334,14 @@ class TestCLISession:
 
     def test_session_end(self, sample_session: CLISession) -> None:
         """Test session ending."""
-        # Sessions are immutable, so methods return new instances
-        session_with_command = sample_session.add_command("cmd-1")
-        ended_session = session_with_command.end_session()
+        # Sessions are immutable, so methods return FlextResult with new instances
+        result1 = sample_session.add_command("cmd-1")
+        assert result1.success, f"Add command failed: {result1.error}"
+        session_with_command = result1.unwrap()
+
+        result2 = session_with_command.end_session()
+        assert result2.success, f"End session failed: {result2.error}"
+        ended_session = result2.unwrap()
 
         if ended_session.active:
             raise AssertionError(f"Expected False, got {ended_session.active}")
@@ -320,7 +355,9 @@ class TestCLISession:
             mock_dt.now.return_value = activity_time
 
             session = CLISession(id="test_session_001", session_id="test")
-            updated_session = session.add_command("cmd-1")
+            result = session.add_command("cmd-1")
+            assert result.success, f"Add command failed: {result.error}"
+            updated_session = result.unwrap()
 
             if updated_session.last_activity != activity_time:
                 raise AssertionError(

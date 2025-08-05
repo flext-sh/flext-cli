@@ -13,7 +13,7 @@ from urllib.parse import urljoin
 import httpx
 from pydantic import BaseModel, Field
 
-from flext_cli.config.cli_config import get_cli_config
+from flext_cli.config import get_config as get_cli_config
 
 
 class APIBaseModel(BaseModel):
@@ -184,7 +184,10 @@ class FlextApiClient:
             Paginated pipeline list
 
         """
-        params: dict[str, str | int | float | bool | None] = {"page": page, "page_size": page_size}
+        params: dict[str, str | int | float | bool | None] = {
+            "page": page,
+            "page_size": page_size,
+        }
         if status:
             params["status"] = status
 
@@ -334,7 +337,9 @@ class FlextApiClient:
             List of plugin information dictionaries
 
         """
-        params: dict[str, str | int | float | bool | None] = {"installed_only": installed_only}
+        params: dict[str, str | int | float | bool | None] = {
+            "installed_only": installed_only,
+        }
         if plugin_type:
             params["type"] = plugin_type
 

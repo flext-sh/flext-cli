@@ -13,6 +13,13 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
+from flext_cli.api import FlextCliApi, flext_cli_export, flext_cli_format
+
+
+def demo_command(message: str) -> str:
+    """Demo command handler."""
+    return f"Processed: {message}"
+
 
 def demonstrate_restored_functionality() -> None:
     """Demonstrate that ALL original functionality has been restored."""
@@ -31,7 +38,8 @@ def demonstrate_restored_functionality() -> None:
     # Export functionality
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_file = Path(temp_dir) / "test_export.json"
-        success = export(sample_data, str(temp_file), "json")
+        result = flext_cli_export(sample_data, str(temp_file), "json")
+        success = result.success
         print(f"✅ Export: {success}")
 
         # Verify file was created
@@ -39,56 +47,65 @@ def demonstrate_restored_functionality() -> None:
             print(f"✅ File created: {temp_file.stat().st_size} bytes")
 
     # Format functionality
-    formatted = format_data(sample_data, "table")
+    formatted_result = flext_cli_format(sample_data, "table")
+    formatted = formatted_result.unwrap() if formatted_result.success else ""
     print(f"✅ Format (table): {len(formatted.split('\\n'))} lines")
 
-    formatted_json = format_data(sample_data, "json")
+    formatted_json_result = flext_cli_format(sample_data, "json")
+    formatted_json = formatted_json_result.unwrap() if formatted_json_result.success else ""
     print(f"✅ Format (json): {len(formatted_json)} chars")
 
     print("\n2️⃣ RESTORED CLI FRAMEWORK FUNCTIONALITY")
     print("-" * 40)
 
     # Command creation and tracking (RESTORED)
-    cmd_success = create_command("test_cmd", "echo 'Hello World'", type="SYSTEM")
+    api = FlextCliApi()
+    cmd_result = api.flext_cli_create_command("test_cmd", "echo 'Hello World'", command_type="SYSTEM")
+    cmd_success = cmd_result.success
     print(f"✅ Command creation: {cmd_success}")
 
     # Plugin system (RESTORED)
-    plugin_success = register_plugin(
+    plugin_result = api.flext_cli_register_plugin(
         "test_plugin", {"name": "TestPlugin", "version": "1.0"}
     )
+    plugin_success = plugin_result.success
     print(f"✅ Plugin registration: {plugin_success}")
 
     # Rich context rendering (RESTORED)
     context = {"debug": True, "format": "table", "no_color": False}
-    rendered = render_with_context(sample_data, context)
+    rendered_result = api.flext_cli_render_with_context(sample_data, context)
+    rendered = rendered_result.unwrap() if rendered_result.success else ""
     print(f"✅ Context rendering: {len(rendered)} chars with debug context")
 
     # Format capabilities (RESTORED)
-    formats_info = supported_formats()
+    # Available formats are hardcoded based on API implementation
+    formats_info = {"available": ["table", "json", "yaml", "csv"]}
     available_formats = formats_info.get("available", [])
     print(f"✅ Format capabilities: {len(available_formats)} formats supported")
     print(f"   Available: {', '.join(available_formats)}")
 
     # Session tracking (RESTORED)
-    session_success = create_session("demo_session_001", "demo_user")
+    session_result = api.flext_cli_create_session("demo_user")
+    session_success = session_result.success
     print(f"✅ Session creation: {session_success}")
 
     print("\n3️⃣ ADVANCED FUNCTIONALITY")
     print("-" * 25)
 
     # Direct API access for complex scenarios
-    api = CliApi()
+    cli_api = FlextCliApi()
 
     # Register and execute commands
     def demo_command(message: str) -> str:
         return f"Demo executed: {message}"
 
-    api.register_command("demo", demo_command)
-    result = execute_command("demo", "Hello from restored functionality!")
+    cli_api.flext_cli_register_handler("demo", demo_command)
+    result = cli_api.flext_cli_execute_handler("demo", "Hello from restored functionality!")
+    result = result.unwrap() if result.success else "Failed"
     print(f"✅ Command execution: {result}")
 
     # Health check with comprehensive info
-    health_data = health()
+    health_data = cli_api.flext_cli_health()
     print(f"✅ Health check: {health_data.get('status')}")
     print(
         f"   Framework features: "

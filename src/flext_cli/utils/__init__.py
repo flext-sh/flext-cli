@@ -61,10 +61,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli.utils.config import CLIConfig, CLISettings, get_config
+from flext_cli.config import CLIConfig, get_config
 
 __all__: list[str] = [
     "CLIConfig",
-    "CLISettings",
     "get_config",
 ]

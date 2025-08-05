@@ -12,7 +12,7 @@ Domain Components:
 
 Architecture:
     - Domain-Driven Design (DDD) with rich domain entities
-    - flext-core integration (FlextEntity, FlextValueObject, FlextResult)
+    - flext-core integration (FlextEntity, DomainValueObject, FlextResult)
     - Clean Architecture domain layer isolation
     - Type-safe domain modeling with comprehensive validation
     - Business rule enforcement through domain entities

@@ -83,9 +83,9 @@ from collections.abc import Callable
 from pathlib import Path
 
 import yaml
+from flext_core import FlextResult
 from flext_core.interfaces import FlextConfigurable
 from flext_core.loggings import get_logger
-from flext_core.result import FlextResult
 from flext_core.utilities import FlextUtilities, safe_call
 
 from flext_cli.types import (

@@ -11,8 +11,8 @@ import io
 from unittest.mock import patch
 
 import pytest
+from flext_cli.config import CLIConfig, CLISettings
 from flext_cli.domain.cli_context import CLIContext
-from flext_cli.utils.config import CLIConfig, CLISettings
 from rich.console import Console
 
 

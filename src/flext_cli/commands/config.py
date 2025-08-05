@@ -58,8 +58,6 @@ import click
 import yaml
 from rich.table import Table
 
-from flext_cli.utils.config import parse_config_value, set_config_attribute
-
 if TYPE_CHECKING:
     from flext_cli.domain.cli_context import CLIContext
 
@@ -144,10 +142,16 @@ def _get_single_key(ctx: click.Context, cli_context: CLIContext, key: str) -> No
 
 def _find_config_value(cli_context: CLIContext, key: str) -> object:
     """Find configuration value in config or settings."""
+    # First try config object
     value = getattr(cli_context.config, key, None)
-    if value is None:
-        value = getattr(cli_context.settings, key, None)
-    return value
+    if value is not None:
+        return value
+
+    # Fall back to settings if available
+    if hasattr(cli_context, "settings"):
+        return getattr(cli_context.settings, key, None)
+
+    return None
 
 
 def _print_config_value(cli_context: CLIContext, key: str, value: object) -> None:
@@ -168,10 +172,7 @@ def _print_config_value(cli_context: CLIContext, key: str, value: object) -> Non
 
 def _get_all_config(cli_context: CLIContext) -> None:
     """Get all configuration values."""
-    config_data = {
-        **cli_context.config.model_dump(),
-        **cli_context.settings.model_dump(),
-    }
+    config_data = cli_context.config.model_dump()
 
     output_format = cli_context.config.output_format
 
@@ -209,30 +210,20 @@ def set_value(ctx: click.Context, key: str, value: str) -> None:
     cli_context: CLIContext = ctx.obj["cli_context"]
 
     try:
-        # Parse configuration value using utility function
-        parse_result = parse_config_value(value)
-        if not parse_result.success:
-            error_msg = parse_result.error or "Configuration parsing failed"
-            cli_context.print_error(error_msg)
-            ctx.exit(1)
+        # Parse configuration value (simple approach)
+        try:
+            parsed_value = json.loads(value)
+        except json.JSONDecodeError:
+            parsed_value = value
 
-        parsed_value = parse_result.data
-
-        # Try to set in config first, then settings using utility function
-        config_result = set_config_attribute(cli_context.config, key, parsed_value)
-        if config_result.success:
-            success_msg = config_result.data or "Configuration updated successfully"
-            cli_context.print_success(success_msg)
-            return
-
-        settings_result = set_config_attribute(cli_context.settings, key, parsed_value)
-        if settings_result.success:
-            success_msg = settings_result.data or "Settings updated successfully"
-            cli_context.print_success(success_msg)
+        # Try to set configuration attribute
+        if hasattr(cli_context.config, key):
+            setattr(cli_context.config, key, parsed_value)
+            cli_context.print_success(f"Set config.{key} = {parsed_value}")
             return
 
         cli_context.print_warning(
-            f"Configuration key '{key}' not found in config or settings",
+            f"Configuration key '{key}' not found in config",
         )
         ctx.exit(1)
     except (AttributeError, KeyError, ValueError, TypeError) as e:
@@ -258,7 +249,7 @@ def validate(ctx: click.Context) -> None:
         if not cli_context.config:
             _raise_config_error()
 
-        if cli_context.settings:
+        if cli_context.config:
             cli_context.print_info(
                 f"Config directory: {cli_context.config.config_dir}",
             )
@@ -335,7 +326,6 @@ def edit(ctx: click.Context, _profile: str | None) -> None:
             # Create default config using flext-core models
             default_config = {
                 "config": cli_context.config.model_dump(),
-                "settings": cli_context.settings.model_dump(),
             }
 
             with config_file.open("w", encoding="utf-8") as f:

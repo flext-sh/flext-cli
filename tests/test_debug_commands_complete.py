@@ -133,7 +133,9 @@ class TestDebugConnectivity:
         with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class:
             self._test_connectivity_failed_connection_impl(mock_client_class)
 
-    def _test_connectivity_failed_connection_impl(self, mock_client_class: MagicMock) -> None:
+    def _test_connectivity_failed_connection_impl(
+        self, mock_client_class: MagicMock
+    ) -> None:
         """Test connectivity when connection fails."""
         # Setup mocks
         mock_client = MagicMock()
@@ -157,7 +159,9 @@ class TestDebugConnectivity:
         with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class:
             self._test_connectivity_connection_error_impl(mock_client_class)
 
-    def _test_connectivity_connection_error_impl(self, mock_client_class: MagicMock) -> None:
+    def _test_connectivity_connection_error_impl(
+        self, mock_client_class: MagicMock
+    ) -> None:
         """Test connectivity with connection error."""
         # Setup mocks - use import with appropriate error
         with patch("flext_cli.commands.debug.FlextConnectionError", Exception):
@@ -356,6 +360,7 @@ class TestDebugIntegrationScenarios:
     def test_debug_command_registration(self) -> None:
         """Test that debug commands are properly registered."""
         from click import Context
+
         ctx = Context(debug_cmd)
         commands = debug_cmd.list_commands(ctx)
         expected_commands = ["connectivity", "performance"]

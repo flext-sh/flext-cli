@@ -15,6 +15,7 @@ from unittest.mock import patch
 import yaml
 from click.testing import CliRunner
 from flext_cli.cli import cli
+from flext_cli.config import CLISettings
 from flext_cli.domain.entities import (
     CLICommand,
     CLIPlugin,
@@ -23,7 +24,6 @@ from flext_cli.domain.entities import (
     CommandType,
 )
 from flext_cli.simple_api import setup_cli
-from flext_cli.utils.config import CLISettings
 
 
 class TestE2EUserWorkflows:

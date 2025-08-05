@@ -79,6 +79,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from rich.console import Console
+
 from flext_cli.api import FlextCliApi
 from flext_cli.types import (
     FlextCliConfig,
@@ -174,8 +176,10 @@ def flext_cli_create_context(
         # Handle cases where isinstance fails due to import issues
         pass
     # Create fallback context if cast fails
-    cli_config = FlextCliConfig(config or {})
-    return FlextCliContext(cli_config)
+    cli_config = FlextCliConfig()
+    if config:
+        cli_config = cli_config.model_copy(update=config)
+    return FlextCliContext(config=cli_config, console=Console())
 
 
 # RESTORED FROM BACKUP - All additional functionality

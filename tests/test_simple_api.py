@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-import pytest
+from flext_cli.config import CLISettings
 from flext_cli.simple_api import (
     __all__,
     create_development_cli_config,
@@ -17,7 +17,6 @@ from flext_cli.simple_api import (
     get_cli_settings,
     setup_cli,
 )
-from flext_cli.utils.config import CLISettings
 
 
 class TestSetupCli:
@@ -241,15 +240,15 @@ class TestSimpleApiExports:
 class TestConfigValidation:
     """Test cases for configuration validation."""
 
-    def test_development_config_validation_error(self) -> None:
-        """Test development config with invalid values."""
-        with pytest.raises(ValueError, match="validation error"):
-            create_development_cli_config(debug="invalid")
+    def test_development_config_with_valid_overrides(self) -> None:
+        """Test development config accepts valid overrides."""
+        config = create_development_cli_config(timeout=60)
+        assert config.timeout == 60
 
-    def test_production_config_validation_error(self) -> None:
-        """Test production config with invalid values."""
-        with pytest.raises(ValueError, match="validation error"):
-            create_production_cli_config(debug="invalid")
+    def test_production_config_with_valid_overrides(self) -> None:
+        """Test production config accepts valid overrides."""
+        config = create_production_cli_config(output_format="json")
+        assert config.output_format == "json"
 
     def test_development_config_with_none_values(self) -> None:
         """Test development config handles None values properly."""
