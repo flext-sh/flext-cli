@@ -117,8 +117,9 @@ def cli(
     ctx: click.Context,
     profile: str,
     output: str,
-    debug: bool,  # noqa: FBT001 - Click CLI parameter pattern
-    quiet: bool,  # noqa: FBT001 - Click CLI parameter pattern
+    *,
+    debug: bool,
+    quiet: bool,
 ) -> None:
     """FLEXT Command Line Interface."""
     # Load configuration using flext-core
@@ -165,8 +166,9 @@ def cli(
 # Register command groups
 cli.add_command(auth.auth)
 cli.add_command(config.config)
-# cli.add_command(pipeline.pipeline)  # Sprint 1 - implement pipeline commands
-# cli.add_command(plugin.plugin)      # Sprint 6 - implement plugin commands
+# Pipeline and plugin commands will be added in future sprints:
+# Sprint 1: pipeline management commands
+# Sprint 6: plugin system commands
 cli.add_command(debug.debug_cmd)
 
 # Register project commands

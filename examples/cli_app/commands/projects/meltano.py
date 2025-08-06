@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING
 
 import click
 import yaml
+from flext_meltano.execution import flext_meltano_run_command
 
 if TYPE_CHECKING:
     from flext_meltano import FlextMeltanoConfig
@@ -99,7 +100,7 @@ def _safe_subprocess_run(
         raise ValueError(invalid_dir_msg)
 
     try:
-        return subprocess.run(  # noqa: S603
+        return subprocess.run(  # noqa: S603  # Safe: shell=False, validated inputs
             cmd,
             cwd=cwd,
             capture_output=capture_output,
@@ -236,8 +237,6 @@ def init(
         project_path.mkdir(parents=True, exist_ok=True)
 
         # Use meltano CLI to initialize project
-        from flext_meltano.execution import flext_meltano_run_command
-
         result = flext_meltano_run_command(["init", project_name], cwd=str(parent_dir))
 
         if result.success:
@@ -274,10 +273,11 @@ def init(
     help="Meltano project directory",
 )
 @click.pass_context
-def add(  # noqa: PLR0913
+def add(
     ctx: click.Context,
     plugin_type: str,
     plugin_name: str,
+    *,
     variant: str | None,
     pip_url: str | None,
     project_dir: str | None,
@@ -379,7 +379,7 @@ def run(
             env["MELTANO_ENVIRONMENT"] = environment
 
         # Execute meltano command
-        result = subprocess.run(  # noqa: S603
+        result = subprocess.run(  # noqa: S603  # Safe: shell=False, validated inputs
             cmd,
             check=False,
             cwd=str(project_path),

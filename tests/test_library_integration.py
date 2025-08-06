@@ -96,10 +96,13 @@ class TestLibraryImports:
         if session.session_id != "test-session":
             raise AssertionError(f"Expected {'test-session'}, got {session.session_id}")
 
-        # CLIContext
-        context = flext_cli.CLIContext()
-        if context.profile != "default":
-            raise AssertionError(f"Expected {'default'}, got {context.profile}")
+        # CLIContext - requires config and console
+        from rich.console import Console
+        config = flext_cli.CLIConfig()
+        console = Console()
+        context = flext_cli.CLIContext(config=config, console=console)
+        if context.config.profile != "default":
+            raise AssertionError(f"Expected {'default'}, got {context.config.profile}")
 
     def test_configuration_classes_instantiable(self) -> None:
         """Test that configuration classes can be instantiated."""

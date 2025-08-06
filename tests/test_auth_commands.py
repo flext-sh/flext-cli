@@ -560,7 +560,7 @@ class TestAuthErrorHandling:
     ) -> None:
         """Test logout command with exception."""
         mock_get_token.return_value = "test_token"
-        mock_client_class.side_effect = Exception("Client error")
+        mock_client_class.side_effect = ValueError("Client error")
 
         mock_console = MagicMock()
 

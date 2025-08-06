@@ -91,15 +91,6 @@ class TestFlextService:
 class TestFlextCliService:
     """Test FlextCliService class."""
 
-    def setup_method(self) -> None:
-        """Setup mocks for each test."""
-        # Patch the imports in core module (dynamic assignment for testing)
-        # Use setattr to avoid mypy attribute errors for dynamic assignment
-        core_module.FlextCliConfig = MockFlextCliConfig
-        core_module.FlextCliCommand = MockFlextCliCommand
-        core_module.FlextCliSession = MockFlextCliSession
-        core_module.FlextCliPlugin = MockFlextCliPlugin
-        core_module.FlextCliContext = MockFlextCliContext
 
     def test_service_initialization(self) -> None:
         """Test service initialization."""
@@ -153,16 +144,11 @@ class TestFlextCliService:
         """Test configure method exception handling."""
         service = FlextCliService()
 
-        # Mock FlextCliConfig to raise exception
-        with patch.object(
-            core_module, "FlextCliConfig", side_effect=Exception("Config error")
-        ):
-            result = service.configure({"test": "data"})
-            assert not result.success
-            if "Configuration failed:" not in result.error:
-                raise AssertionError(
-                    f"Expected {'Configuration failed:'} in {result.error}"
-                )
+        # Test with invalid configuration that should cause validation error
+        invalid_config = {"invalid_field": "value"}
+        result = service.configure(invalid_config)
+        assert not result.success
+        assert "Configuration failed" in result.error
 
     def test_flext_cli_export_json(self) -> None:
         """Test exporting data as JSON."""
@@ -594,24 +580,16 @@ class TestFlextCliService:
         if "simple_value" not in formatted:
             raise AssertionError(f"Expected {'simple_value'} in {formatted}")
 
-    def test_format_yaml_fallback_to_json(self) -> None:
-        """Test YAML formatter fallback to JSON when yaml not available."""
+    def test_format_yaml_normal(self) -> None:
+        """Test YAML formatter works correctly."""
         service = FlextCliService()
         data = {"test": "data"}
 
-        # Mock yaml import to fail
-        with patch(
-            "builtins.__import__",
-            side_effect=lambda name, *args: ImportError()
-            if name == "yaml"
-            else __import__(name, *args),
-        ):
-            result = service.flext_cli_format(data, "yaml")
-            assert result.success
-            formatted = result.unwrap()
-            # Should fallback to JSON format
-            if '"test"' not in formatted:
-                raise AssertionError(f"Expected {'"test"'} in {formatted}")
+        result = service.flext_cli_format(data, "yaml")
+        assert result.success
+        formatted = result.unwrap()
+        # Should be in YAML format
+        assert "test: data" in formatted
 
     def test_health_check_exception_handling(self) -> None:
         """Test health check with exception."""

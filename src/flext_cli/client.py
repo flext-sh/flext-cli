@@ -451,6 +451,7 @@ class FlextApiClient:
         """
         try:
             await self._request("GET", "/api/v1/health")
-            return True
         except (RuntimeError, ValueError, TypeError):
             return False
+        else:
+            return True

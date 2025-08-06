@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Literal
 
 from flext_core import FlextResult
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -53,6 +53,18 @@ class CLIConfig(BaseSettings):
     verbose: bool = Field(default=False, description="Verbose mode")
     log_level: str = Field(default="INFO", description="Logging level")
     config_path: str | None = Field(default=None, description="Configuration file path")
+
+    # Debug and trace settings
+    trace: bool = Field(default=False, description="Enable tracing")
+
+    # Timeout configurations
+    api_timeout: int = Field(default=30, ge=1, le=300, description="API timeout (1-300s)")
+    connect_timeout: int = Field(default=10, ge=1, le=60, description="Connection timeout")
+    read_timeout: int = Field(default=30, ge=1, le=300, description="Read timeout")
+    command_timeout: int = Field(default=300, ge=1, le=3600, description="Command timeout")
+    
+    # Retry configurations
+    max_retries: int = Field(default=3, ge=0, le=10, description="Maximum retry attempts")
 
     # Project metadata
     project_name: str = Field(default="flext-cli", description="Project name")
@@ -92,6 +104,32 @@ class CLIConfig(BaseSettings):
         validate_assignment=True,
     )
 
+    @model_validator(mode="after")
+    def validate_config_rules(self) -> CLIConfig:
+        """Validate CLI configuration business rules (SOLID SRP)."""
+        # Validate quiet+verbose conflict
+        if self.quiet and self.verbose:
+            msg = "Cannot have both quiet and verbose modes enabled"
+            raise ValueError(msg)
+
+        # Validate profile not empty
+        if not self.profile or not self.profile.strip():
+            msg = "Profile cannot be empty"
+            raise ValueError(msg)
+
+        # Validate output format
+        valid_formats = ["table", "json", "yaml", "csv", "plain"]
+        if self.output_format not in valid_formats:
+            msg = f"Output format must be one of {valid_formats}"
+            raise ValueError(msg)
+
+        return self
+
+    @property
+    def format_type(self) -> str:
+        """Compatibility property for output format."""
+        return self.output_format
+
     @property
     def api(self) -> CLIAPIConfig:
         """API configuration compatibility property."""
@@ -101,7 +139,7 @@ class CLIConfig(BaseSettings):
     def output(self) -> CLIOutputConfig:
         """Output configuration compatibility property."""
         return CLIOutputConfig(
-            format=self.output_format,
+            output_format=self.output_format,
             no_color=self.no_color,
             quiet=self.quiet,
             verbose=self.verbose,
@@ -143,6 +181,15 @@ class CLIConfig(BaseSettings):
         except (OSError, PermissionError) as e:
             return FlextResult.fail(f"Failed to create directories: {e}")
 
+    def __str__(self) -> str:
+        """String representation of CLIConfig."""
+        fields_str = " ".join(f"{field}={value!r}" for field, value in self.model_dump().items())
+        return f"CLIConfig({fields_str})"
+
+    def __repr__(self) -> str:
+        """Repr representation of CLIConfig."""
+        return self.__str__()
+
 
 class ApiConfig:
     """API configuration helper class."""
@@ -151,20 +198,28 @@ class ApiConfig:
         self.url = url
 
 
-# Global configuration instance
-_config: CLIConfig | None = None
+class _CLIConfigSingleton:
+    """Thread-safe singleton for CLI config without global statements."""
+
+    def __init__(self) -> None:
+        self._instance: CLIConfig | None = None
+
+    def get_instance(self, *, reload: bool = False) -> CLIConfig:
+        """Get or create the singleton CLI config instance."""
+        if self._instance is None or reload:
+            self._instance = CLIConfig()
+            # Ensure directories - ignore failures
+            self._instance.ensure_directories()
+        return self._instance
+
+
+# Singleton instance - better than global variable
+_config_singleton = _CLIConfigSingleton()
 
 
 def get_config(*, reload: bool = False) -> CLIConfig:
     """Get CLI configuration singleton."""
-    global _config  # noqa: PLW0603
-
-    if _config is None or reload:
-        _config = CLIConfig()
-        # Ensure directories - ignore failures
-        _config.ensure_directories()
-
-    return _config
+    return _config_singleton.get_instance(reload=reload)
 
 
 # Backward compatibility classes for tests
@@ -173,14 +228,30 @@ class CLIOutputConfig:
 
     def __init__(
         self,
-        format: Literal["table", "json", "yaml", "csv", "plain"] = "table",  # noqa: A002
+        output_format: Literal["table", "json", "yaml", "csv", "plain"] | None = None,
         *,  # Rest are keyword-only
         no_color: bool = False,
         quiet: bool = False,
         verbose: bool = False,
         pager: str | None = None,
+        **kwargs: object,
     ) -> None:
-        self.format = format
+        # SOLID Open/Closed Principle: Support both old and new API
+        # Handle legacy 'format' parameter
+        legacy_format = kwargs.get("format")
+        if legacy_format is not None:
+            self.format = str(legacy_format)  # Legacy API
+        elif output_format is not None:
+            self.format = output_format  # New API
+        else:
+            self.format = "table"  # Default
+        
+        # Validate format
+        valid_formats = {"table", "json", "yaml", "csv", "plain"}
+        if self.format not in valid_formats:
+            msg = f"Invalid format '{self.format}'. Must be one of: {', '.join(sorted(valid_formats))}"
+            raise ValueError(msg)
+        
         self.no_color = no_color
         self.quiet = quiet
         self.verbose = verbose

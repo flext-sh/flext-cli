@@ -33,11 +33,16 @@ from flext_core import FlextResult
 
 from flext_cli.config import CLIConfig, CLISettings, get_cli_settings
 
-__all__ = ["create_development_cli_config", "create_production_cli_config", "get_cli_settings", "setup_cli"]
+__all__ = [
+    "create_development_cli_config",
+    "create_production_cli_config",
+    "get_cli_settings",
+    "setup_cli",
+]
 
 
 def setup_cli(config: CLIConfig | None = None) -> FlextResult[bool]:
-    """Setup CLI with modern zero-boilerplate approach.
+    """Set up CLI with modern zero-boilerplate approach.
 
     Args:
         config: Optional CLI configuration (auto-created if None)
@@ -48,7 +53,8 @@ def setup_cli(config: CLIConfig | None = None) -> FlextResult[bool]:
     """
     try:
         if config is None:
-            config = CLISettings()  # Use CLISettings for compatibility with test mocking
+            # Use CLISettings for compatibility with test mocking
+            config = CLISettings()
 
         # Ensure directories exist
         directory_result = config.ensure_directories()

@@ -37,7 +37,7 @@ class TestCLIContext:
 
     def test_context_defaults(self) -> None:
         """Test CLI context with defaults."""
-        context = CLIContext()
+        context = CLIContext.create_with_params()
         if context.profile != "default":
             raise AssertionError(f"Expected {'default'}, got {context.profile}")
         assert context.output_format == "table"
@@ -57,19 +57,19 @@ class TestCLIContext:
     def test_context_validation_empty_profile(self) -> None:
         """Test CLI context validation with empty profile."""
         with pytest.raises(ValueError, match="Profile cannot be empty"):
-            CLIContext(profile="")
+            CLIContext.create_with_params(profile="")
 
     def test_context_validation_invalid_output_format(self) -> None:
         """Test CLI context validation with invalid output format."""
         with pytest.raises(ValueError, match="Output format must be one of"):
-            CLIContext(output_format="invalid_format")
+            CLIContext.create_with_params(output_format="invalid_format")
 
     def test_context_validation_quiet_and_verbose(self) -> None:
         """Test CLI context validation with both quiet and verbose."""
         with pytest.raises(
             ValueError, match="Cannot have both quiet and verbose modes enabled"
         ):
-            CLIContext(quiet=True, verbose=True)
+            CLIContext.create_with_params(quiet=True, verbose=True)
 
 
 class TestHandleServiceResult:

@@ -123,6 +123,46 @@ class CLIContext(DomainValueObject):
 
         return FlextResult.ok(None)
 
+    @classmethod
+    def create_with_params(
+        cls,
+        *,
+        profile: str = "default",
+        output_format: str = "table",
+        debug: bool = False,
+        quiet: bool = False,
+        verbose: bool = False,
+        no_color: bool = False,
+        **kwargs: object,
+    ) -> CLIContext:
+        """Create CLIContext with individual parameters (backward compatibility).
+
+        SOLID OCP: Extends functionality without modifying existing code.
+        """
+        # Apply SOLID SRP: Validate parameters before creating object
+        if quiet and verbose:
+            msg = "Cannot have both quiet and verbose modes enabled"
+            raise ValueError(msg)
+
+        if not profile or not profile.strip():
+            msg = "Profile cannot be empty"
+            raise ValueError(msg)
+
+        valid_formats = ["table", "json", "yaml", "csv", "plain"]
+        if output_format not in valid_formats:
+            msg = f"Output format must be one of {valid_formats}"
+            raise ValueError(msg)
+
+        return cls(
+            profile=profile,
+            output_format=output_format,
+            debug=debug,
+            quiet=quiet,
+            verbose=verbose,
+            no_color=no_color,
+            **kwargs,
+        )
+
 
 def _handle_flext_result(result: object) -> object:
     """Handle FlextResult response.
@@ -153,11 +193,26 @@ def _handle_exception(e: Exception) -> None:
     console = Console()
     console.print(f"[red]Error: {e}[/red]")
     logger = get_logger(__name__)
-    logger.error("Unhandled exception in CLI command")
+    logger.exception("Unhandled exception in CLI command")
+
+
+# _handle_flext_result já definida acima - removendo duplicação
+
+
+def _copy_function_metadata(wrapper: object, original: object) -> None:
+    """Copy function metadata (Single Responsibility)."""
+    if hasattr(wrapper, "__name__") and hasattr(original, "__name__"):
+        wrapper.__name__ = getattr(original, "__name__", "wrapped_function")
+    if hasattr(wrapper, "__doc__") and hasattr(original, "__doc__"):
+        wrapper.__doc__ = getattr(original, "__doc__", wrapper.__doc__)
+    if hasattr(wrapper, "__module__"):
+        wrapper.__module__ = getattr(original, "__module__", __name__)
 
 
 def handle_service_result(f: F) -> F:
     """Handle FlextResult by unwrapping successful results and handling failures.
+
+    REFACTORED: Applied SOLID principles to reduce complexity.
 
     This decorator handles functions that return FlextResult:
     - If result is successful, returns the data
@@ -181,55 +236,23 @@ def handle_service_result(f: F) -> F:
         async def async_wrapper(*args: object, **kwargs: object) -> object:
             try:
                 result = await f(*args, **kwargs)
-
-                # If it's a FlextResult, handle it appropriately
-                if isinstance(result, FlextResult):
-                    if result.success:
-                        return result.data  # Return unwrapped data
-                    # Handle failure - print error and return None
-                    console = Console()
-                    error_msg = result.error or "Unknown error"
-                    console.print(f"[red]Error: {error_msg}[/red]")
-                    return None
-                # Not a FlextResult, return as-is
-                return result
+                return _handle_flext_result(result)
             except Exception as e:
-                # Handle exceptions: log, print error, and re-raise
                 _handle_exception(e)
                 raise
 
-        # Copy function metadata
-        async_wrapper.__name__ = getattr(f, "__name__", "wrapped_function")
-        async_wrapper.__doc__ = getattr(f, "__doc__", async_wrapper.__doc__)
-        async_wrapper.__module__ = getattr(f, "__module__", __name__)
-
+        _copy_function_metadata(async_wrapper, f)
         return cast("F", async_wrapper)
 
     def sync_wrapper(*args: object, **kwargs: object) -> object:
         try:
             result = f(*args, **kwargs)
-
-            # If it's a FlextResult, handle it appropriately
-            if isinstance(result, FlextResult):
-                if result.success:
-                    return result.data  # Return unwrapped data
-                # Handle failure - print error and return None
-                console = Console()
-                error_msg = result.error or "Unknown error"
-                console.print(f"[red]Error: {error_msg}[/red]")
-                return None
-            # Not a FlextResult, return as-is
-            return result
+            return _handle_flext_result(result)
         except Exception as e:
-            # Handle exceptions: log, print error, and re-raise
             _handle_exception(e)
             raise
 
-    # Copy function metadata
-    sync_wrapper.__name__ = getattr(f, "__name__", "wrapped_function")
-    sync_wrapper.__doc__ = getattr(f, "__doc__", sync_wrapper.__doc__)
-    sync_wrapper.__module__ = getattr(f, "__module__", __name__)
-
+    _copy_function_metadata(sync_wrapper, f)
     return cast("F", sync_wrapper)
 
 

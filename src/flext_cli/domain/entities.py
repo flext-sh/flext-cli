@@ -79,9 +79,11 @@ class FlextFactory:
     def create_entity(entity_class: type[T], **kwargs: object) -> FlextResult[T]:
         """Create entity instance."""
         try:
-            return FlextResult.ok(entity_class(**kwargs))
-        except Exception as e:
+            entity_instance = entity_class(**kwargs)
+        except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(str(e))
+        else:
+            return FlextResult.ok(entity_instance)
 
 
 TUserId = EntityId
@@ -422,11 +424,8 @@ class CLICommand(FlextEntity):
             },
         )
 
-        # Issue #4: Publish appropriate domain events (Sprint 1-2)
-        # if status == CommandStatus.COMPLETED:
-        #     publish(CommandCompletedEvent(...))
-        # else:
-        #     publish(CommandFailedEvent(...))
+        # TASK: Publish domain events when FlextEvent pattern is available (Sprint 1-2)
+        # Implementation will include CommandCompletedEvent or CommandFailedEvent based on status
 
         return FlextResult.ok(updated_command)
 

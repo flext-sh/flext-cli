@@ -188,19 +188,8 @@ def logout(ctx: click.Context) -> None:
             # KeyError is treated as successful logout (token cleanup)
             clear_auth_tokens()
             console.print("[green]✅ Logged out successfully[/green]")
-        except (ConnectionError, TimeoutError, ValueError) as e:
-            # Clear token even if API call fails:
-            clear_auth_tokens()
-            console.print(f"[yellow]⚠️  Logged out locally ({e})[/yellow]")
-        except OSError as e:
-            # Clear token even if API call fails:
-            clear_auth_tokens()
-            console.print(
-                f"[yellow]⚠️  Network error during logout, "
-                f"logged out locally ({e})[/yellow]",
-            )
-        except Exception as e:
-            # Clear token even if any other error occurs:
+        except (ConnectionError, TimeoutError, OSError, PermissionError, ValueError, AttributeError) as e:
+            # Clear token even if any error occurs:
             clear_auth_tokens()
             console.print(
                 f"[yellow]⚠️  Error during logout, logged out locally ({e})[/yellow]",
@@ -237,7 +226,9 @@ def status(ctx: click.Context) -> None:
                     console.print(f"Role: {user.get('role', 'Unknown')}")
                 else:
                     error_msg = user_result.error or "Unknown error"
-                    console.print(f"[red]❌ Authentication check failed: {error_msg}[/red]")
+                    console.print(
+                        f"[red]❌ Authentication check failed: {error_msg}[/red]",
+                    )
                     console.print("Run 'flext auth login' to re-authenticate")
                     ctx.exit(1)
         except KeyError as e:

@@ -122,7 +122,7 @@ class CLIContainer:
         self._setup_dependencies()
 
     def _setup_dependencies(self) -> None:
-        """Setup all CLI dependencies using FlextContainer patterns.
+        """Set up all CLI dependencies using FlextContainer patterns.
 
         Registers services using type-safe ServiceKey system and factory patterns
         for lazy initialization. All registration operations use FlextResult
@@ -317,8 +317,26 @@ class CLIContainer:
 # GLOBAL CONTAINER MANAGEMENT
 # =============================================================================
 
-# Global container instance using flext-core singleton patterns
-_cli_container: CLIContainer | None = None
+class _CLIContainerSingleton:
+    """Thread-safe singleton for CLI container without global statements."""
+
+    def __init__(self) -> None:
+        self._instance: CLIContainer | None = None
+
+    def get_instance(self) -> CLIContainer:
+        """Get or create the singleton CLI container instance."""
+        if self._instance is None:
+            self._instance = CLIContainer()
+        return self._instance
+
+    def set_instance(self, container: CLIContainer | None = None) -> CLIContainer:
+        """Set the singleton instance (for testing or specialized use)."""
+        self._instance = container or CLIContainer()
+        return self._instance
+
+
+# Singleton instance - better than global variable
+_container_singleton = _CLIContainerSingleton()
 
 
 def get_cli_container() -> CLIContainer:
@@ -334,10 +352,7 @@ def get_cli_container() -> CLIContainer:
         ...     service = command_service_result.unwrap()
 
     """
-    global _cli_container  # noqa: PLW0603
-    if _cli_container is None:
-        _cli_container = CLIContainer()
-    return _cli_container
+    return _container_singleton.get_instance()
 
 
 def create_cli_container() -> CLIContainer:
@@ -370,9 +385,7 @@ def configure_cli_container(container: CLIContainer | None = None) -> CLIContain
         >>> # Now all global access uses test container
 
     """
-    global _cli_container  # noqa: PLW0603
-    _cli_container = container or CLIContainer()
-    return _cli_container
+    return _container_singleton.set_instance(container)
 
 
 # Backward compatibility aliases

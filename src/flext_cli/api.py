@@ -498,11 +498,11 @@ class FlextCliApi:
 
             # Store configuration in context
             self._config = settings
-            return True
-
-        except Exception:
+        except (AttributeError, ValueError, TypeError):
             # If configuration fails, return False to indicate failure
             return False
+        else:
+            return True
 
     def flext_cli_health(self) -> dict[str, object]:
         """Get service health status with real system information."""
@@ -577,10 +577,10 @@ class FlextCliApi:
                 )
 
             command = command_result.unwrap()
-            return FlextResult.ok(command)
-
-        except Exception as e:
+        except (AttributeError, ValueError, TypeError) as e:
             return FlextResult.fail(f"Failed to create command: {e}")
+        else:
+            return FlextResult.ok(command)
 
     def flext_cli_create_session(self, user_id: str | None = None) -> FlextResult[str]:
         """Create CLI session with real session tracking."""
@@ -604,11 +604,10 @@ class FlextCliApi:
             }
 
             self._sessions[session_id] = session_data
-
-            return FlextResult.ok(session_id)
-
-        except Exception as e:
+        except (AttributeError, ValueError, TypeError, KeyError) as e:
             return FlextResult.fail(f"Failed to create session: {e}")
+        else:
+            return FlextResult.ok(session_id)
 
     def flext_cli_register_handler(
         self,
@@ -627,11 +626,10 @@ class FlextCliApi:
 
             # Register the handler
             self._handlers[name] = handler
-
-            return FlextResult.ok(None)
-
-        except Exception as e:
+        except (AttributeError, ValueError, TypeError, KeyError) as e:
             return FlextResult.fail(f"Failed to register handler {name}: {e}")
+        else:
+            return FlextResult.ok(None)
 
     def flext_cli_register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
         """Register plugin with proper validation and storage."""
@@ -664,10 +662,10 @@ class FlextCliApi:
 
             plugin_entity = plugin_result.unwrap()
             self._plugin_registry[name] = plugin_entity
-            return FlextResult.ok(None)
-
-        except Exception as e:
+        except (AttributeError, ValueError, TypeError, KeyError) as e:
             return FlextResult.fail(f"Failed to register plugin {name}: {e}")
+        else:
+            return FlextResult.ok(None)
 
     def flext_cli_execute_handler(
         self,
@@ -693,10 +691,10 @@ class FlextCliApi:
                 result = handler(*args, **kwargs)
             else:
                 return FlextResult.fail(f"Handler '{name}' is not callable")
-            return FlextResult.ok(result)
-
-        except Exception as e:
+        except (AttributeError, ValueError, TypeError, KeyError) as e:
             return FlextResult.fail(f"Failed to execute handler '{name}': {e}")
+        else:
+            return FlextResult.ok(result)
 
     def flext_cli_render_with_context(
         self,
@@ -706,9 +704,10 @@ class FlextCliApi:
         """Render data with context using template substitution."""
         try:
             renderer = ContextRenderingStrategy(data, context)
-            return renderer.render()
-        except Exception as e:
+        except (AttributeError, ValueError, TypeError) as e:
             return FlextResult.fail(f"Failed to render with context: {e}")
+        else:
+            return renderer.render()
 
     def flext_cli_get_commands(self) -> dict[str, object]:
         """Get all registered commands."""
@@ -821,11 +820,12 @@ class ContextRenderingStrategy:
                 self._commands: dict[str, object] = {}
 
             # Return copy of commands to prevent external modification
-            return dict(self._commands)
-
-        except Exception:
+            commands_copy = dict(self._commands)
+        except (ValueError, TypeError, KeyError):
             # Return empty dict on error for consistency
             return {}
+        else:
+            return commands_copy
 
     def flext_cli_get_sessions(self) -> dict[str, object]:
         """Get all active sessions with real implementation."""
@@ -850,12 +850,11 @@ class ContextRenderingStrategy:
                         "commands_count": commands_count,
                         "status": session_data.get("status"),
                     }
-
-            return active_sessions
-
-        except Exception:
+        except (ValueError, TypeError, KeyError, AttributeError):
             # Return empty dict on error for consistency
             return {}
+        else:
+            return active_sessions
 
     def flext_cli_get_plugins(self) -> dict[str, object]:
         """Get all registered plugins from the plugin registry."""
@@ -873,12 +872,11 @@ class ContextRenderingStrategy:
                     }
                     for name, plugin in self._plugin_registry.items()
                 }
-
-            # No plugins registered yet
-            return {}
-
-        except Exception:
+        except (ValueError, TypeError, KeyError, AttributeError):
             # Return empty dict on error for consistency
+            return {}
+        else:
+            # No plugins registered yet
             return {}
 
     def _convert_plugins_list_to_dict(self, plugins_list: object) -> dict[str, object]:
@@ -943,9 +941,8 @@ class ContextRenderingStrategy:
                         else "unknown"
                     ),
                 }
-
-            return handlers_summary
-
-        except Exception:
+        except (ValueError, TypeError, KeyError, AttributeError):
             # Return empty dict on error for consistency
             return {}
+        else:
+            return handlers_summary

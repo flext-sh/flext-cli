@@ -87,6 +87,7 @@ from flext_core import FlextResult
 from flext_core.interfaces import FlextConfigurable
 from flext_core.loggings import get_logger
 from flext_core.utilities import FlextUtilities, safe_call
+from rich.console import Console
 
 from flext_cli.types import (
     FlextCliCommand,
@@ -136,7 +137,11 @@ class FlextCliService(FlextService, FlextConfigurable):
         """Configure service with FlextCliConfig."""
         try:
             if isinstance(config, dict):
-                self._config = FlextCliConfig(config)
+                # Handle backward compatibility: format_type -> output_format
+                cleaned_config = dict(config)
+                if "format_type" in cleaned_config and "output_format" not in cleaned_config:
+                    cleaned_config["output_format"] = cleaned_config.pop("format_type")
+                self._config = FlextCliConfig(**cleaned_config)
             elif isinstance(config, FlextCliConfig):
                 self._config = config
             else:
@@ -147,7 +152,7 @@ class FlextCliService(FlextService, FlextConfigurable):
                 self._config.format_type,
             )
             return FlextResult.ok(None)
-        except Exception as e:
+        except (AttributeError, ValueError, TypeError, OSError) as e:
             return FlextResult.fail(f"Configuration failed: {e}")
 
     def flext_cli_export(
@@ -232,7 +237,7 @@ class FlextCliService(FlextService, FlextConfigurable):
 
             return FlextResult.ok(status)
 
-        except Exception as e:
+        except (AttributeError, ValueError, TypeError, OSError, ImportError) as e:
             return FlextResult.fail(f"Health check failed: {e}")
 
     def _format_json(self, data: TCliData) -> FlextResult[str]:
@@ -243,10 +248,7 @@ class FlextCliService(FlextService, FlextConfigurable):
         """Format data as YAML."""
 
         def format_yaml_data() -> str:
-            try:
-                return yaml.dump(data, default_flow_style=False, indent=2)
-            except ImportError:
-                return json.dumps(data, indent=2, default=str)
+            return yaml.dump(data, default_flow_style=False, indent=2)
 
         return safe_call(format_yaml_data)
 
@@ -367,7 +369,8 @@ class FlextCliService(FlextService, FlextConfigurable):
 
         def create_session() -> str:
             entity_id = FlextUtilities.generate_entity_id()
-            session = FlextCliSession(id=entity_id, user_id=user_id)
+            session_id = f"session_{entity_id}"
+            session = FlextCliSession(id=entity_id, session_id=session_id, user_id=user_id)
             self._sessions[session.id] = session
             return f"Session '{session.id}' created"
 
@@ -412,7 +415,12 @@ class FlextCliService(FlextService, FlextConfigurable):
         context_options: dict[str, object] | None = None,
     ) -> FlextResult[str]:
         """Render using immutable context - restored from backup."""
-        context = FlextCliContext(self._config, **(context_options or {}))
+        # Create context with required fields
+        context = FlextCliContext(
+            config=self._config,
+            console=Console(),
+            **(context_options or {})
+        )
         return self.flext_cli_format(data, context.output_format)
 
     def flext_cli_get_commands(self) -> FlextResult[dict[str, FlextCliCommand]]:

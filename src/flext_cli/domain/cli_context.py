@@ -63,20 +63,16 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING
+from typing import Literal
 
 from flext_core import (
     FlextDomainValueObject as DomainValueObject,
     FlextResult,
 )
 from pydantic import ConfigDict, Field
+from rich.console import Console
 
-if TYPE_CHECKING:
-    from flext_cli.config import CLIConfig
-
-from rich.console import (
-    Console,  # noqa: TC002 - needed for runtime Pydantic model_rebuild
-)
+from flext_cli.config import CLIConfig
 
 
 class CLIContext(DomainValueObject):
@@ -112,6 +108,32 @@ class CLIContext(DomainValueObject):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)  # Allow Console type
 
+    @classmethod
+    def create_with_params(
+        cls,
+        *,
+        profile: str = "default",
+        output_format: Literal["table", "json", "yaml", "csv", "plain"] = "table",
+        debug: bool = False,
+        quiet: bool = False,
+        verbose: bool = False,
+        no_color: bool = False,
+    ) -> CLIContext:
+        """Create CLIContext with individual parameters (backward compatibility).
+
+        SOLID OCP: Extends functionality without modifying existing code.
+        """
+        config = CLIConfig(
+            profile=profile,
+            output_format=output_format,
+            debug=debug,
+            quiet=quiet,
+            verbose=verbose,
+            no_color=no_color,
+        )
+        console = Console()
+        return cls(config=config, console=console)
+
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate domain business rules for CLI context.
 
@@ -121,6 +143,37 @@ class CLIContext(DomainValueObject):
         """
         # No specific domain rules to validate for CLI context
         return FlextResult.ok(None)
+
+    # SOLID ISP: Interface compatibility properties for backward compatibility
+    @property
+    def profile(self) -> str:
+        """Profile property delegating to config (SOLID ISP compliance)."""
+        return self.config.profile
+
+    @property
+    def output_format(self) -> str:
+        """Output format property delegating to config."""
+        return self.config.output_format
+
+    @property
+    def debug(self) -> bool:
+        """Debug property delegating to config."""
+        return self.config.debug
+
+    @property
+    def quiet(self) -> bool:
+        """Quiet property delegating to config."""
+        return self.config.quiet
+
+    @property
+    def verbose(self) -> bool:
+        """Verbose property delegating to config."""
+        return self.config.verbose
+
+    @property
+    def no_color(self) -> bool:
+        """No color property delegating to config."""
+        return self.config.no_color
 
     @property
     def is_debug(self) -> bool:

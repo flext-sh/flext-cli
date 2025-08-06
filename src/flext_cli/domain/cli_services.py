@@ -178,9 +178,10 @@ class CLICommandService:
                     command_result.error or "Failed to create command",
                 )
 
-            return command_result
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(f"Failed to create command: {e}")
+        else:
+            return command_result
 
     def validate_command(self, command: CLICommand) -> FlextResult[None]:
         """Validate a CLI command.
@@ -245,9 +246,10 @@ class CLISessionService:
                     session_result.error or "Failed to create session",
                 )
 
-            return session_result
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(f"Failed to create session: {e}")
+        else:
+            return session_result
 
     def validate_session(self, session: CLISession) -> FlextResult[None]:
         """Validate a CLI session.

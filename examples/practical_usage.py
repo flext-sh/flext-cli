@@ -10,7 +10,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import re
+
 from flext_cli import (
+    CLIConfig,  # available CLI config
+    CLISettings,  # available CLI settings
     flext_cli_format,  # available format function
     flext_cli_table,  # available table function
     # Use actually available exports
@@ -30,8 +34,6 @@ def example_1_simple_cli() -> None:
     # Zero-boilerplate CLI with just commands
 
     # Create basic CLI setup using available functions
-    from flext_cli import CLISettings
-
     settings = CLISettings(debug=True)
     setup_cli(settings)
     # This demonstrates the actual available API
@@ -40,8 +42,6 @@ def example_1_simple_cli() -> None:
 def example_2_web_service_cli() -> None:
     """Example 2: Web service management CLI."""
     # Create CLI with configuration
-    from flext_cli import CLIConfig, CLISettings
-
     CLIConfig(
         output_format="json",
         verbose=True,
@@ -106,8 +106,6 @@ def example_2_web_service_cli() -> None:
 def example_3_database_management() -> None:
     """Example 3: Database management with comprehensive validation."""
     # Create configuration for database management
-    from flext_cli import CLIConfig, CLISettings
-
     CLIConfig(
         output_format="table",
         debug=True,
@@ -118,15 +116,17 @@ def example_3_database_management() -> None:
     )
 
     # Constants for validation
-    MIN_HOST_LENGTH = 3
-    MIN_USERNAME_LENGTH = 2
+    min_host_length = 3
+    min_username_length = 2
 
     def validate_db_params(
         host: str, port: str, database: str, username: str
     ) -> FlextResult[None]:
         """Validate database connection parameters."""
-        if not host or len(host) < MIN_HOST_LENGTH:
-            return FlextResult.fail(f"Host must be at least {MIN_HOST_LENGTH} characters")
+        if not host or len(host) < min_host_length:
+            return FlextResult.fail(
+                f"Host must be at least {min_host_length} characters"
+            )
         try:
             port_num = int(port)
             if not (MIN_PRIVILEGED_PORT <= port_num <= MAX_PORT_NUMBER):
@@ -139,8 +139,10 @@ def example_3_database_management() -> None:
             return FlextResult.fail(
                 f"Database name must be at least {MIN_DATABASE_NAME_LENGTH} characters"
             )
-        if not username or len(username) < MIN_USERNAME_LENGTH:
-            return FlextResult.fail(f"Username must be at least {MIN_USERNAME_LENGTH} characters")
+        if not username or len(username) < min_username_length:
+            return FlextResult.fail(
+                f"Username must be at least {min_username_length} characters"
+            )
         return FlextResult.ok(None)
 
     def connect_database(
@@ -202,8 +204,6 @@ def example_3_database_management() -> None:
 def example_4_advanced_features() -> None:
     """Example 4: Advanced features demonstration."""
     # Create advanced CLI configuration
-    from flext_cli import CLIConfig, CLISettings
-
     CLIConfig(
         output_format="rich",
         debug=True,
@@ -218,11 +218,9 @@ def example_4_advanced_features() -> None:
         email: str, token: str, ipv6_addr: str
     ) -> FlextResult[None]:
         """Validate advanced input parameters."""
-        import re
-
         # Constants for validation
-        JWT_PARTS_COUNT = 3
-        MIN_IPV6_LENGTH = 15
+        jwt_parts_count = 3
+        min_ipv6_length = 15
 
         # Basic email validation
         email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
@@ -230,11 +228,11 @@ def example_4_advanced_features() -> None:
             return FlextResult.fail("Invalid email format")
 
         # Basic JWT validation (simplified)
-        if not token or len(token.split(".")) != JWT_PARTS_COUNT:
+        if not token or len(token.split(".")) != jwt_parts_count:
             return FlextResult.fail("Invalid JWT token format")
 
         # Basic IPv6 validation (simplified)
-        if ":" not in ipv6_addr or len(ipv6_addr) < MIN_IPV6_LENGTH:
+        if ":" not in ipv6_addr or len(ipv6_addr) < min_ipv6_length:
             return FlextResult.fail("Invalid IPv6 address format")
 
         return FlextResult.ok(None)
@@ -328,8 +326,6 @@ def example_5_input_collection() -> None:
     # (In practice, this would require actual user interaction)
 
     # Interactive CLI configuration
-    from flext_cli import CLISettings
-
     CLISettings(project_name="interactive-app")
 
     # Define input schema
@@ -347,8 +343,6 @@ def example_5_input_collection() -> None:
         }
 
         # Validate collected data
-        import re
-
         email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if not re.match(email_pattern, collected_data["email"]):
             return FlextResult.fail("Invalid email format")

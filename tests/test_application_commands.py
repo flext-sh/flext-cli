@@ -730,7 +730,7 @@ class TestCommandImports:
     def test_all_imports_work(self) -> None:
         """Test that all command classes can be imported."""
         # Test that all classes are importable
-        from flext_cli.commands.application import (
+        from flext_cli.application.commands import (
             CancelCommandCommand,
             CreateConfigCommand,
             DeleteConfigCommand,
@@ -878,7 +878,10 @@ class TestCommandTypeCompatibility:
             if cmd.command_type != cmd_type:
                 raise AssertionError(f"Expected {cmd_type}, got {cmd.command_type}")
             if cmd.command_type.value not in {
+                "cli",
                 "system",
+                "script",
+                "sql",
                 "pipeline",
                 "plugin",
                 "data",
@@ -889,7 +892,10 @@ class TestCommandTypeCompatibility:
                 raise AssertionError(
                     f"Expected {cmd.command_type.value} is not in {
                         [
+                            'cli',
                             'system',
+                            'script',
+                            'sql',
                             'pipeline',
                             'plugin',
                             'data',

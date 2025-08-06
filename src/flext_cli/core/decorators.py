@@ -75,10 +75,11 @@ def async_command[F](f: F) -> F:
             result = f(*args, **kwargs)
             if asyncio.iscoroutine(result):
                 return asyncio.run(result)
-            return result
         except (RuntimeError, OSError, TypeError, AttributeError):
             # Log the exception if needed
             return None
+        else:
+            return result
 
     # Copy function metadata manually to avoid functools.wraps typing issues
     wrapper.__name__ = getattr(f, "__name__", "wrapped_function")
