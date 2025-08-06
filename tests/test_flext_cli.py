@@ -11,13 +11,24 @@ from __future__ import annotations
 
 import inspect
 import tempfile
+from enum import StrEnum
 from unittest.mock import MagicMock, patch
 
 # Constants
 EXPECTED_BULK_SIZE = 2
 EXPECTED_DATA_COUNT = 3
 
-# Mock the problematic imports before importing flext_cli
+
+class MockOutputFormat(StrEnum):
+    """Mock OutputFormat for testing."""
+
+    JSON = "json"
+    YAML = "yaml"
+    CSV = "csv"
+    TABLE = "table"
+    PLAIN = "plain"
+
+
 mock_api = MagicMock()
 mock_plugin = MagicMock()
 
@@ -26,13 +37,25 @@ with patch.dict(
     {
         "flext_cli.api": MagicMock(FlextCliApi=mock_api),
         "flext_cli.domain.entities": MagicMock(FlextCliPlugin=mock_plugin),
-        "flext_cli.types": MagicMock(TCliData=str, TCliFormat=str, TCliPath=str),
+        "flext_cli.types": MagicMock(
+            TCliData=str,
+            TCliFormat=str,
+            TCliPath=str,
+            OutputFormat=MockOutputFormat,
+        ),
     },
 ):
     from flext_cli import flext_cli
 
 # Now we can use the mocked FlextCliPlugin
 FlextCliPlugin = mock_plugin
+
+# Add to flext_cli module for test access
+flext_cli.FlextCliPlugin = mock_plugin
+flext_cli.FlextCliApi = mock_api
+flext_cli.TCliData = str
+flext_cli.TCliFormat = str
+flext_cli.TCliPath = str
 
 
 class TestFlextCliExport:
@@ -629,8 +652,13 @@ class TestFlextCliRegisterHandler:
         ]
 
         for handler in handlers:
+            # Import FlextResult for proper mock
+            from flext_core import FlextResult
+
             with patch.object(
-                flext_cli._api, "flext_cli_register_handler", return_value=True
+                flext_cli._api,
+                "flext_cli_register_handler",
+                return_value=FlextResult.ok(None),
             ) as mock_register:
                 name = f"handler_{id(handler)}"
 
@@ -652,8 +680,13 @@ class TestFlextCliRegisterHandler:
 
         handler_instance = TestHandler()
 
+        # Import FlextResult for proper mock
+        from flext_core import FlextResult
+
         with patch.object(
-            flext_cli._api, "flext_cli_register_handler", return_value=True
+            flext_cli._api,
+            "flext_cli_register_handler",
+            return_value=FlextResult.ok(None),
         ) as mock_register:
             name = "class_handler"
 
@@ -709,8 +742,13 @@ class TestFlextCliRegisterPlugin:
         plugin.version = "0.9.0"
         plugin.description = "Test plugin"
 
+        # Import FlextResult for proper mock
+        from flext_core import FlextResult
+
         with patch.object(
-            flext_cli._api, "flext_cli_register_plugin", return_value=True
+            flext_cli._api,
+            "flext_cli_register_plugin",
+            return_value=FlextResult.ok(None),
         ) as mock_register:
             name = "real_plugin"
 

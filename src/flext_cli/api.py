@@ -442,9 +442,8 @@ def flext_cli_unwrap_or_default(result: FlextResult[object], default: object) ->
         Result data or default value
 
     """
-    if result.success:
-        return result.unwrap()
-    return default
+    # Use standard FlextResult.unwrap_or method following flext/docs/patterns
+    return result.unwrap_or(default)
 
 
 def flext_cli_unwrap_or_none(result: FlextResult[object]) -> object | None:
@@ -457,9 +456,8 @@ def flext_cli_unwrap_or_none(result: FlextResult[object]) -> object | None:
         Result data or None
 
     """
-    if result.success:
-        return result.unwrap()
-    return None
+    # Use standard FlextResult.unwrap_or method following flext/docs/patterns
+    return result.unwrap_or(None)
 
 
 class FlextCliApi:
@@ -478,7 +476,8 @@ class FlextCliApi:
     def flext_cli_format(self, data: object, format_type: str = "table") -> str:
         """Format data for display."""
         result = flext_cli_format(data, format_type)
-        return result.unwrap() if result.success else ""
+        # Use FlextResult.unwrap_or method following flext/docs/patterns
+        return result.unwrap_or("")
 
     def flext_cli_configure(self, config: dict[str, object]) -> bool:
         """Configure CLI service using real configuration management."""

@@ -10,10 +10,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 # Import project modules when they are available
-try:
+import contextlib
+
+with contextlib.suppress(ImportError):
     from . import algar, gruponos, meltano
-except ImportError:
-    # Modules may not be available in all configurations
-    pass
 
 __all__: list[str] = ["algar", "gruponos", "meltano"]

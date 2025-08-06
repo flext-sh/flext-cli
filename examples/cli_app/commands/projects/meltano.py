@@ -257,6 +257,25 @@ def init(
         ctx.exit(1)
 
 
+class MeltanoAddParams:
+    """Parameter Object pattern for Meltano add command - SOLID SRP."""
+
+    def __init__(
+        self,
+        *,
+        plugin_type: str,
+        plugin_name: str,
+        variant: str | None = None,
+        pip_url: str | None = None,
+        project_dir: str | None = None,
+    ) -> None:
+        self.plugin_type = plugin_type
+        self.plugin_name = plugin_name
+        self.variant = variant
+        self.pip_url = pip_url
+        self.project_dir = project_dir
+
+
 @meltano.command()
 @click.argument(
     "plugin_type",
@@ -277,10 +296,8 @@ def add(
     ctx: click.Context,
     plugin_type: str,
     plugin_name: str,
-    *,
-    variant: str | None,
-    pip_url: str | None,
-    project_dir: str | None,
+    project_dir: str | None = None,
+    **options: str | None,  # SOLID - combine variant/pip_url to reduce params
 ) -> None:
     """Add a plugin to the Meltano project.
 
@@ -288,26 +305,48 @@ def add(
         ctx: Click context
         plugin_type: Type of plugin to add
         plugin_name: Name of the plugin
-        variant: Optional plugin variant
-        pip_url: Optional custom pip URL
-        project_dir: Optional project directory
+        project_dir: Meltano project directory (optional)
+        **options: Plugin options (variant, pip_url)
+
+    """
+    # Extract options with defaults
+    variant = options.get("variant")
+    pip_url = options.get("pip_url")
+
+    # Apply Parameter Object pattern to reduce arguments (SOLID SRP)
+    params = MeltanoAddParams(
+        plugin_type=plugin_type,
+        plugin_name=plugin_name,
+        variant=variant,
+        pip_url=pip_url,
+        project_dir=project_dir,
+    )
+    _execute_add_command(ctx, params)
+
+
+def _execute_add_command(ctx: click.Context, params: MeltanoAddParams) -> None:
+    """Execute add command with Parameter Object - SOLID SRP.
+
+    Args:
+        ctx: Click context
+        params: Parameter object containing all command options
 
     """
     try:
-        project_path = Path(project_dir) if project_dir else Path.cwd()
+        project_path = Path(params.project_dir) if params.project_dir else Path.cwd()
 
-        click.echo(f"📦 Adding {plugin_type}: {plugin_name}")
-        if variant:
-            click.echo(f"🔧 Variant: {variant}")
-        if pip_url:
-            click.echo(f"🔗 Pip URL: {pip_url}")
+        click.echo(f"📦 Adding {params.plugin_type}: {params.plugin_name}")
+        if params.variant:
+            click.echo(f"🔧 Variant: {params.variant}")
+        if params.pip_url:
+            click.echo(f"🔗 Pip URL: {params.pip_url}")
 
         # Build meltano add command
-        cmd = ["meltano", "add", plugin_type, plugin_name]
-        if variant:
-            cmd.extend(["--variant", variant])
-        if pip_url:
-            cmd.extend(["--pip-url", pip_url])
+        cmd = ["meltano", "add", params.plugin_type, params.plugin_name]
+        if params.variant:
+            cmd.extend(["--variant", params.variant])
+        if params.pip_url:
+            cmd.extend(["--pip-url", params.pip_url])
 
         # Execute meltano command
         result = _safe_subprocess_run(

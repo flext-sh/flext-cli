@@ -20,7 +20,9 @@ class TestFlextApiClient:
 
     def test_client_initialization_with_args(self) -> None:
         """Test client initialization with arguments."""
-        client = FlextApiClient(base_url="http://test.com", token="test-token", timeout=60.0)
+        client = FlextApiClient(
+            base_url="http://test.com", token="test-token", timeout=60.0
+        )
         assert isinstance(client, FlextApiClient)
 
     def test_client_initialization_with_mixed_args(self) -> None:
@@ -52,14 +54,16 @@ class TestPipeline:
 
     def test_pipeline_initialization_without_args(self) -> None:
         """Test pipeline initialization without arguments."""
-        config = PipelineConfig(name="default-config", tap="default-tap", target="default-target")
+        config = PipelineConfig(
+            name="default-config", tap="default-tap", target="default-target"
+        )
         pipeline = Pipeline(
             id="default-id",
             name="default-pipeline",
             status="initialized",
             created_at="2025-01-01T00:00:00Z",
             updated_at="2025-01-01T00:00:00Z",
-            config=config
+            config=config,
         )
         assert isinstance(pipeline, Pipeline)
         assert pipeline.name == "default-pipeline"
@@ -68,14 +72,16 @@ class TestPipeline:
 
     def test_pipeline_initialization_with_args(self) -> None:
         """Test pipeline initialization with arguments."""
-        config = PipelineConfig(name="test-config", tap="test-tap", target="test-target")
+        config = PipelineConfig(
+            name="test-config", tap="test-tap", target="test-target"
+        )
         pipeline = Pipeline(
             id="test-id",
             name="test-pipeline",
             status="running",
             created_at="2025-01-01T00:00:00Z",
             updated_at="2025-01-01T00:00:00Z",
-            config=config
+            config=config,
         )
         assert isinstance(pipeline, Pipeline)
         assert pipeline.name == "test-pipeline"
@@ -84,14 +90,16 @@ class TestPipeline:
 
     def test_pipeline_initialization_with_mixed_args(self) -> None:
         """Test pipeline initialization with mixed arguments."""
-        config = PipelineConfig(name="mixed-config", tap="test-tap", target="test-target")
+        config = PipelineConfig(
+            name="mixed-config", tap="test-tap", target="test-target"
+        )
         pipeline = Pipeline(
             id="mixed-id",
             name="mixed-pipeline",
             status="pending",
             created_at="2025-01-01T00:00:00Z",
             updated_at="2025-01-01T00:00:00Z",
-            config=config
+            config=config,
         )
         assert isinstance(pipeline, Pipeline)
         assert pipeline.name == "mixed-pipeline"
@@ -107,7 +115,7 @@ class TestPipeline:
             status="active",
             created_at="2025-01-01T00:00:00Z",
             updated_at="2025-01-01T00:00:00Z",
-            config=config
+            config=config,
         )
 
         assert isinstance(pipeline.name, str)
@@ -119,8 +127,22 @@ class TestPipeline:
         config1 = PipelineConfig(name="multi-1", tap="tap1", target="target1")
         config2 = PipelineConfig(name="multi-2", tap="tap2", target="target2")
 
-        pipeline1 = Pipeline(id="multi-1", name="pipeline-1", status="active", created_at="2025-01-01T00:00:00Z", updated_at="2025-01-01T00:00:00Z", config=config1)
-        pipeline2 = Pipeline(id="multi-2", name="pipeline-2", status="inactive", created_at="2025-01-01T00:00:00Z", updated_at="2025-01-01T00:00:00Z", config=config2)
+        pipeline1 = Pipeline(
+            id="multi-1",
+            name="pipeline-1",
+            status="active",
+            created_at="2025-01-01T00:00:00Z",
+            updated_at="2025-01-01T00:00:00Z",
+            config=config1,
+        )
+        pipeline2 = Pipeline(
+            id="multi-2",
+            name="pipeline-2",
+            status="inactive",
+            created_at="2025-01-01T00:00:00Z",
+            updated_at="2025-01-01T00:00:00Z",
+            config=config2,
+        )
 
         assert isinstance(pipeline1, Pipeline)
         assert isinstance(pipeline2, Pipeline)
@@ -128,7 +150,7 @@ class TestPipeline:
 
         # Verify they have different attributes as expected
         assert pipeline1.name != pipeline2.name  # "pipeline-1" != "pipeline-2"
-        assert pipeline1.id != pipeline2.id      # "multi-1" != "multi-2"
+        assert pipeline1.id != pipeline2.id  # "multi-1" != "multi-2"
         assert pipeline1.status != pipeline2.status  # "active" != "inactive"
 
         # But they should both be Pipeline instances
@@ -181,7 +203,14 @@ class TestClientModule:
 
         # Create proper Pipeline with required fields
         config = PipelineConfig(name="test", tap="test-tap", target="test-target")
-        pipeline = Pipeline(id="test", name="test", status="active", created_at="2025-01-01T00:00:00Z", updated_at="2025-01-01T00:00:00Z", config=config)
+        pipeline = Pipeline(
+            id="test",
+            name="test",
+            status="active",
+            created_at="2025-01-01T00:00:00Z",
+            updated_at="2025-01-01T00:00:00Z",
+            config=config,
+        )
 
         pipeline_list = PipelineList(pipelines=[], total=0)
 
@@ -207,14 +236,16 @@ class TestClientModule:
         )
 
         # Create proper Pipeline with required fields
-        config = PipelineConfig(name="test-pipeline", tap="test-tap", target="test-target")
+        config = PipelineConfig(
+            name="test-pipeline", tap="test-tap", target="test-target"
+        )
         pipeline = Pipeline(
             id="test-id",
             name="test-pipeline",
             status="active",
             created_at="2025-01-01T00:00:00Z",
             updated_at="2025-01-01T00:00:00Z",
-            config=config
+            config=config,
         )
 
         assert isinstance(client, FlextApiClient)
@@ -237,16 +268,25 @@ class TestPipelineList:
         # Check attributes
         assert pipeline_list.pipelines == []
         assert pipeline_list.total == 0
-        assert pipeline_list.page == 1      # default value
+        assert pipeline_list.page == 1  # default value
         assert pipeline_list.page_size == 20  # default value
 
     def test_pipeline_list_initialization_with_args(self) -> None:
         """Test pipeline list initialization with arguments."""
         # Create sample pipelines for the list
         config = PipelineConfig(name="sample", tap="sample-tap", target="sample-target")
-        pipeline = Pipeline(id="sample-1", name="sample-pipeline", status="active", created_at="2025-01-01T00:00:00Z", updated_at="2025-01-01T00:00:00Z", config=config)
+        pipeline = Pipeline(
+            id="sample-1",
+            name="sample-pipeline",
+            status="active",
+            created_at="2025-01-01T00:00:00Z",
+            updated_at="2025-01-01T00:00:00Z",
+            config=config,
+        )
 
-        pipeline_list = PipelineList(pipelines=[pipeline], total=1, page=2, page_size=10)
+        pipeline_list = PipelineList(
+            pipelines=[pipeline], total=1, page=2, page_size=10
+        )
         assert isinstance(pipeline_list, PipelineList)
 
         # Check attributes
@@ -265,14 +305,11 @@ class TestPipelineList:
             status="pending",
             created_at="2025-01-01T00:00:00Z",
             updated_at="2025-01-01T00:00:00Z",
-            config=config
+            config=config,
         )
 
         pipeline_list = PipelineList(
-            pipelines=[pipeline],
-            total=1,
-            page=2,
-            page_size=10
+            pipelines=[pipeline], total=1, page=2, page_size=10
         )
         assert isinstance(pipeline_list, PipelineList)
 
@@ -302,8 +339,8 @@ class TestPipelineList:
 
         # They should have different attributes as specified
         assert list1.pipelines == list2.pipelines  # Both empty
-        assert list1.total != list2.total          # 0 vs 5
-        assert list1.page != list2.page            # 1 vs 2
+        assert list1.total != list2.total  # 0 vs 5
+        assert list1.page != list2.page  # 1 vs 2
         assert list1.page_size != list2.page_size  # 10 vs 15
 
     def test_pipeline_list_empty_pipelines(self) -> None:

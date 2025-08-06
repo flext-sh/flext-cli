@@ -51,39 +51,61 @@ from __future__ import annotations
 
 import contextlib
 import uuid
+import warnings
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import TypeVar
 
 from flext_core import (
-    FlextDomainEntity as FlextEntity,
     FlextDomainValueObject as DomainValueObject,
+    FlextEntity,  # Use the modern FlextEntity instead of FlextDomainEntity
     FlextEntityId as EntityId,
     FlextResult,
 )
-from pydantic import Field
+from pydantic import BaseModel, Field
 
+# Import CLIConfig from config module to avoid duplication (DRY principle)
+from flext_cli.config import CLIConfig
 from flext_cli.constants import (
     DEFAULT_TIMEOUT,
     MAX_ENTITY_NAME_LENGTH,
     MAX_ERROR_MESSAGE_LENGTH,
 )
 
-T = TypeVar("T")
+T = TypeVar("T", bound=BaseModel)
 
 
-class FlextFactory:
-    """Simple factory for creating entities."""
+# Legacy FlextFactory for backward compatibility - use flext-core FlextFactory for new code
+class LegacyFlextFactory:
+    """Legacy factory - DEPRECATED: Use flext_core.FlextFactory instead.
+
+    This class is maintained for backward compatibility only.
+    New code should use the standard FlextFactory from flext-core.
+    """
 
     @staticmethod
     def create_entity(entity_class: type[T], **kwargs: object) -> FlextResult[T]:
-        """Create entity instance."""
+        """Create entity instance - DEPRECATED: Use direct Pydantic model creation."""
+        # Using warnings imported at module level
+
+        warnings.warn(
+            "LegacyFlextFactory is deprecated. Use direct model creation instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        # Generate entity_id if not provided (for backward compatibility)
+        entity_id = str(kwargs.pop("entity_id", uuid.uuid4()))
+
+        # Create entity directly using Pydantic model validation
         try:
-            entity_instance = entity_class(**kwargs)
-        except (ValueError, TypeError, AttributeError) as e:
-            return FlextResult.fail(str(e))
-        else:
-            return FlextResult.ok(entity_instance)
+            entity = entity_class.model_validate({
+                "id": entity_id,
+                "entity_id": entity_id,
+                **kwargs,
+            })
+            return FlextResult.ok(entity)
+        except Exception as e:
+            return FlextResult.fail(f"Failed to create entity: {e}")
 
 
 TUserId = EntityId
@@ -185,7 +207,6 @@ class CLICommand(FlextEntity):
 
     name: str = Field(
         ...,
-        min_length=1,
         max_length=MAX_ENTITY_NAME_LENGTH,
         description="Command name",
     )
@@ -194,7 +215,7 @@ class CLICommand(FlextEntity):
         max_length=MAX_ERROR_MESSAGE_LENGTH,
         description="Command description",
     )
-    command_line: str = Field(..., min_length=1, description="Command line string")
+    command_line: str = Field(..., description="Command line string")
     command_type: CommandType = Field(
         default=CommandType.SYSTEM,
         description="Type of command",
@@ -216,7 +237,10 @@ class CLICommand(FlextEntity):
         default=DEFAULT_TIMEOUT,
         description="Timeout in seconds",
     )
-
+    options: dict[str, object] = Field(
+        default_factory=dict,
+        description="Command options",
+    )
     # Context
     user_id: TUserId | None = Field(default=None, description="User ID")
     session_id: str | None = Field(default=None, description="Session ID")
@@ -231,10 +255,6 @@ class CLICommand(FlextEntity):
     arguments: dict[str, object] = Field(
         default_factory=dict,
         description="Command arguments",
-    )
-    options: dict[str, object] = Field(
-        default_factory=dict,
-        description="Command options",
     )
 
     @property
@@ -258,6 +278,79 @@ class CLICommand(FlextEntity):
             CommandStatus.FAILED,
             CommandStatus.CANCELLED,
         }
+
+    @property
+    def output(self) -> str:
+        """Command output for backward compatibility.
+
+        Returns:
+            str: Standard output or empty string if None
+
+        """
+        return self.stdout or ""
+
+    @property
+    def flext_cli_is_running(self) -> bool:
+        """Check if command is currently running - compatibility property.
+
+        Returns:
+            bool: True if command status is RUNNING, False otherwise
+
+        """
+        return self.command_status == CommandStatus.RUNNING
+
+    @property
+    def flext_cli_successful(self) -> bool:
+        """Check if command was successful - compatibility property.
+
+        Returns:
+            bool: True if command completed successfully with exit code 0
+
+        """
+        return self.successful
+
+    def flext_cli_start_execution(self) -> bool:
+        """Start command execution - compatibility method.
+
+        Returns:
+            bool: True if command was started successfully, False otherwise
+
+        """
+        result = self.start_execution()
+        if result.success:
+            # Update this instance in place for compatibility
+            updated = result.unwrap()
+            self.command_status = updated.command_status
+            self.started_at = updated.started_at
+            return True
+        return False
+
+    def flext_cli_complete_execution(
+        self, exit_code: int = 0, stdout: str | None = None, stderr: str | None = None,
+    ) -> bool:
+        """Complete command execution - compatibility method.
+
+        Args:
+            exit_code: Process exit code (0 indicates success)
+            stdout: Standard output captured from execution
+            stderr: Standard error captured from execution
+
+        Returns:
+            bool: True if command was completed successfully, False otherwise
+
+        """
+        result = self.complete_execution(exit_code, stdout, stderr)
+        if result.success:
+            # Update this instance in place for compatibility
+            updated = result.unwrap()
+            self.command_status = updated.command_status
+            self.exit_code = updated.exit_code
+            self.stdout = updated.stdout
+            self.stderr = updated.stderr
+            self.finished_at = updated.finished_at
+            self.duration_seconds = updated.duration_seconds
+            return True
+        return False
 
     @property
     def successful(self) -> bool:
@@ -425,7 +518,8 @@ class CLICommand(FlextEntity):
         )
 
         # TASK: Publish domain events when FlextEvent pattern is available (Sprint 1-2)
-        # Implementation will include CommandCompletedEvent or CommandFailedEvent based on status
+        # Implementation will include CommandCompletedEvent or
+        # CommandFailedEvent based on status
 
         return FlextResult.ok(updated_command)
 
@@ -492,6 +586,16 @@ class CLICommand(FlextEntity):
 
         return FlextResult.ok(None)
 
+    def validate_domain_rules(self) -> bool:
+        """Validate domain business rules - compatibility method.
+
+        Returns:
+            bool: True if all domain rules are satisfied, False otherwise
+
+        """
+        result = self.validate_business_rules()
+        return result.success
+
 
 class CLISession(FlextEntity):
     """CLI Session Domain Entity - Modern foundation pattern implementation.
@@ -552,6 +656,10 @@ class CLISession(FlextEntity):
     environment: dict[str, str] = Field(
         default_factory=dict,
         description="Environment variables",
+    )
+    config: CLIConfig = Field(
+        default_factory=CLIConfig,
+        description="Session configuration",
     )
 
     def add_command(self, command_id: EntityId) -> FlextResult[CLISession]:
@@ -662,6 +770,36 @@ class CLISession(FlextEntity):
             return FlextResult.fail("Current command must be in executed commands list")
 
         return FlextResult.ok(None)
+
+    def validate_domain_rules(self) -> bool:
+        """Validate domain business rules - compatibility method.
+
+        Returns:
+            bool: True if all domain rules are satisfied, False otherwise
+
+        """
+        result = self.validate_business_rules()
+        return result.success
+
+    def flext_cli_record_command(self, command_name: str) -> bool:
+        """Record command execution - compatibility method.
+
+        Args:
+            command_name: Name of the command to record
+
+        Returns:
+            bool: True if command was recorded successfully, False otherwise
+
+        """
+        try:
+            # Add command to history and update activity
+            self.command_history.append(command_name)
+            self.commands_executed.append(command_name)
+            self.current_command = command_name
+            self.last_activity = datetime.now(UTC)
+            return True
+        except Exception:
+            return False
 
 
 class CLIPlugin(FlextEntity):
@@ -905,23 +1043,8 @@ class CLIPlugin(FlextEntity):
         return FlextResult.ok(None)
 
 
-class CLIConfig(DomainValueObject):
-    """CLI configuration value object."""
-
-    profile: str = Field(default="default", description="Configuration profile")
-    debug: bool = Field(default=False, description="Debug mode")
-    output_format: str = Field(default="table", description="Output format")
-
-    def validate_business_rules(self) -> FlextResult[None]:
-        """Validate domain business rules for CLI configuration."""
-        valid_formats = ["table", "json", "yaml", "csv", "plain"]
-        if self.output_format not in valid_formats:
-            return FlextResult.fail("Invalid output format")
-
-        return FlextResult.ok(None)
-
-
 # DRY: CommandStatus and CommandType already defined above - duplicates removed
+# DRY: CLIConfig imported from flext_cli.config - no duplication
 
 
 # Domain Events for CLI operations using flext-core patterns
@@ -1017,14 +1140,19 @@ class CLIEntityFactory:
         **kwargs: object,
     ) -> FlextResult[CLICommand]:
         """Create CLI command with automatic ID and timestamp generation."""
-        return FlextFactory.create_entity(
-            CLICommand,
-            entity_id=str(uuid.uuid4()),
-            name=name,
-            command_line=command_line,
-            command_type=command_type,
-            **kwargs,
-        )
+        entity_id = str(uuid.uuid4())
+        try:
+            command = CLICommand.model_validate({
+                "id": entity_id,
+                "entity_id": entity_id,
+                "name": name,
+                "command_line": command_line,
+                "command_type": command_type,
+                **kwargs,
+            })
+            return FlextResult.ok(command)
+        except Exception as e:
+            return FlextResult.fail(f"Failed to create CLICommand: {e}")
 
     @staticmethod
     def create_session(
@@ -1033,13 +1161,18 @@ class CLIEntityFactory:
         **kwargs: object,
     ) -> FlextResult[CLISession]:
         """Create CLI session with automatic ID and timestamp generation."""
-        return FlextFactory.create_entity(
-            CLISession,
-            entity_id=str(uuid.uuid4()),
-            session_id=session_id,
-            user_id=user_id,
-            **kwargs,
-        )
+        entity_id = str(uuid.uuid4())
+        try:
+            session = CLISession.model_validate({
+                "id": entity_id,
+                "entity_id": entity_id,
+                "session_id": session_id,
+                "user_id": user_id,
+                **kwargs,
+            })
+            return FlextResult.ok(session)
+        except Exception as e:
+            return FlextResult.fail(f"Failed to create CLISession: {e}")
 
     @staticmethod
     def create_plugin(
@@ -1049,14 +1182,19 @@ class CLIEntityFactory:
         **kwargs: object,
     ) -> FlextResult[CLIPlugin]:
         """Create CLI plugin with automatic ID and timestamp generation."""
-        return FlextFactory.create_entity(
-            CLIPlugin,
-            entity_id=str(uuid.uuid4()),
-            name=name,
-            entry_point=entry_point,
-            plugin_version=plugin_version,
-            **kwargs,
-        )
+        entity_id = str(uuid.uuid4())
+        try:
+            plugin = CLIPlugin.model_validate({
+                "id": entity_id,
+                "entity_id": entity_id,
+                "name": name,
+                "entry_point": entry_point,
+                "plugin_version": plugin_version,
+                **kwargs,
+            })
+            return FlextResult.ok(plugin)
+        except Exception as e:
+            return FlextResult.fail(f"Failed to create CLIPlugin: {e}")
 
 
 # Model rebuilding to resolve forward references

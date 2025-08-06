@@ -22,6 +22,7 @@ from rich.console import Console
 
 try:
     from tabulate import tabulate
+
     TABULATE_AVAILABLE = True
 except ImportError:
     TABULATE_AVAILABLE = False
@@ -32,9 +33,7 @@ class FlextCliRichGUI:
     """Simple stub for Rich GUI functionality."""
 
     def create_metrics_dashboard(
-        self,
-        _metrics: dict[str, object],
-        _title: str
+        self, _metrics: dict[str, object], _title: str
     ) -> FlextResult[str]:
         """Create a metrics dashboard."""
         return FlextResult.ok("Dashboard created successfully")
@@ -44,10 +43,7 @@ class FlextCliFormatter:
     """Simple stub for CLI formatting functionality."""
 
     def format_export_preview(
-        self,
-        _data: list[dict[str, object]],
-        export_format: str,
-        _sample_size: int
+        self, _data: list[dict[str, object]], export_format: str, _sample_size: int
     ) -> FlextResult[str]:
         """Format export preview."""
         return FlextResult.ok(f"Preview for {export_format} format")

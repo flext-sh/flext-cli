@@ -207,18 +207,29 @@ class PathValidationConfig:
         dir_okay: bool = True,
         **options: object,
     ) -> None:
+        """Initialize path validation configuration.
+
+        Args:
+            exists: Whether the path must exist
+            file_okay: Whether files are allowed
+            dir_okay: Whether directories are allowed
+            **options: Additional validation options
+
+        """
         # Core path validation options
         self.exists = exists
         self.file_okay = file_okay
         self.dir_okay = dir_okay
 
         # Extended options with defaults
-        self.writable = bool(options.get("writable", False))
+        self.writable = bool(options.get("writable"))
         self.readable = bool(options.get("readable", True))
         self.resolve_path = bool(options.get("resolve_path", True))
-        self.allow_dash = bool(options.get("allow_dash", False))
+        self.allow_dash = bool(options.get("allow_dash"))
         path_type_option = options.get("path_type", str)
-        self.path_type: type[str] | None = path_type_option if isinstance(path_type_option, type) else str
+        self.path_type: type[str] | None = (
+            path_type_option if isinstance(path_type_option, type) else str
+        )
 
 
 class ClickPath(click.Path):
@@ -256,7 +267,11 @@ class ClickPath(click.Path):
         ...     # output_dir is guaranteed to be existing directory
     """
 
-    def __init__(self, config: PathValidationConfig | None = None, **kwargs: object) -> None:
+    def __init__(
+        self,
+        config: PathValidationConfig | None = None,
+        **kwargs: object,
+    ) -> None:
         """Initialize enhanced Click Path with validation options.
 
         REFACTORED: Uses PathValidationConfig to reduce parameter count.
@@ -270,11 +285,21 @@ class ClickPath(click.Path):
         # Handle backward compatibility - if kwargs provided, use them
         if kwargs:
             config = PathValidationConfig(
-                exists=bool(kwargs.get("exists", False)),
+                exists=bool(kwargs.get("exists")),
                 file_okay=bool(kwargs.get("file_okay", True)),
                 dir_okay=bool(kwargs.get("dir_okay", True)),
-                **{k: v for k, v in kwargs.items()
-                   if k in {"writable", "readable", "resolve_path", "allow_dash", "path_type"}},
+                **{
+                    k: v
+                    for k, v in kwargs.items()
+                    if k
+                    in {
+                        "writable",
+                        "readable",
+                        "resolve_path",
+                        "allow_dash",
+                        "path_type",
+                    }
+                },
             )
         elif config is None:
             config = PathValidationConfig()

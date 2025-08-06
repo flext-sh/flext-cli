@@ -68,6 +68,7 @@ from flext_core import (
 )
 
 from flext_cli.domain.cli_services import CLICommandService, CLISessionService
+from flext_cli.flext_api_integration import create_cli_api_client
 
 # =============================================================================
 # SERVICE KEYS - Type-safe service registration keys
@@ -77,6 +78,7 @@ from flext_cli.domain.cli_services import CLICommandService, CLISessionService
 CLI_COMMAND_SERVICE_KEY = ServiceKey[CLICommandService]("cli_command_service")
 CLI_SESSION_SERVICE_KEY = ServiceKey[CLISessionService]("cli_session_service")
 CONFIG_SERVICE_KEY = ServiceKey[dict[str, object]]("config_service")
+API_CLIENT_FACTORY_KEY = ServiceKey[object]("api_client_factory")
 COMMAND_REPOSITORY_KEY = ServiceKey[FlextRepository]("command_repository")
 SESSION_REPOSITORY_KEY = ServiceKey[FlextRepository]("session_repository")
 PLUGIN_REPOSITORY_KEY = ServiceKey[FlextRepository]("plugin_repository")
@@ -130,7 +132,8 @@ class CLIContainer:
         """
         # Domain services - using factory pattern for proper initialization
         command_service_result = self._container.register_factory(
-            CLI_COMMAND_SERVICE_KEY.name, CLICommandService,
+            CLI_COMMAND_SERVICE_KEY.name,
+            CLICommandService,
         )
         if command_service_result.is_failure:
             # In a real application, this would be logged and handled appropriately
@@ -138,7 +141,8 @@ class CLIContainer:
             pass
 
         session_service_result = self._container.register_factory(
-            CLI_SESSION_SERVICE_KEY.name, CLISessionService,
+            CLI_SESSION_SERVICE_KEY.name,
+            CLISessionService,
         )
         if session_service_result.is_failure:
             pass
@@ -159,9 +163,42 @@ class CLIContainer:
             }
 
         config_result = self._container.register_factory(
-            CONFIG_SERVICE_KEY.name, create_config,
+            CONFIG_SERVICE_KEY.name,
+            create_config,
         )
         if config_result.is_failure:
+            pass
+
+        # API Client Factory for testability
+        def create_api_client_factory() -> object:
+            """Create API client factory for dependency injection.
+
+            Returns:
+                Factory function for creating API clients with proper testability.
+
+            """
+
+            def api_client_factory(
+                base_url: str | None = None,
+                token: str | None = None,
+                timeout: float = 30.0,
+                **kwargs: object,
+            ) -> object:
+                """Factory function for creating API clients with DI."""
+                return create_cli_api_client(
+                    base_url=base_url,
+                    token=token,
+                    timeout=timeout,
+                    **kwargs,
+                )
+
+            return api_client_factory
+
+        api_factory_result = self._container.register_factory(
+            API_CLIENT_FACTORY_KEY.name,
+            create_api_client_factory,
+        )
+        if api_factory_result.is_failure:
             pass
 
         # Repository services - mock implementations for development
@@ -229,7 +266,8 @@ class CLIContainer:
 
         """
         return self._container.get_typed(
-            CLI_COMMAND_SERVICE_KEY.name, CLICommandService,
+            CLI_COMMAND_SERVICE_KEY.name,
+            CLICommandService,
         )
 
     def get_session_service(self) -> FlextResult[CLISessionService]:
@@ -240,8 +278,25 @@ class CLIContainer:
 
         """
         return self._container.get_typed(
-            CLI_SESSION_SERVICE_KEY.name, CLISessionService,
+            CLI_SESSION_SERVICE_KEY.name,
+            CLISessionService,
         )
+
+    def get_api_client_factory(self) -> FlextResult[object]:
+        """Get API client factory for testable client creation.
+
+        Returns:
+            FlextResult containing API client factory function or error details.
+
+        Usage:
+            >>> container = get_cli_container()
+            >>> factory_result = container.get_api_client_factory()
+            >>> if factory_result.success:
+            ...     factory = factory_result.unwrap()
+            ...     client = factory(base_url="http://test:8000")
+
+        """
+        return self._container.get(API_CLIENT_FACTORY_KEY.name)
 
     def get_command_repository(self) -> FlextResult[object]:
         """Get command repository using type-safe FlextResult pattern.
@@ -316,6 +371,7 @@ class CLIContainer:
 # =============================================================================
 # GLOBAL CONTAINER MANAGEMENT
 # =============================================================================
+
 
 class _CLIContainerSingleton:
     """Thread-safe singleton for CLI container without global statements."""

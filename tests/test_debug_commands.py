@@ -32,25 +32,28 @@ class TestDebugCommands:
     def test_connectivity_command(self) -> None:
         """Test connectivity command."""
         with (
-            patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class,
+            patch("flext_cli.commands.debug.get_default_cli_client") as mock_get_client,
             patch("asyncio.run") as mock_asyncio_run,
         ):
-            self._test_connectivity_command_impl(mock_asyncio_run, mock_client_class)
+            self._test_connectivity_command_impl(mock_asyncio_run, mock_get_client)
 
     def _test_connectivity_command_impl(
-        self, mock_asyncio_run: MagicMock, mock_client_class: MagicMock
+        self, mock_asyncio_run: MagicMock, mock_get_client: MagicMock
     ) -> None:
         """Test connectivity command."""
         # Mock client
         mock_client = AsyncMock()
         mock_client.base_url = "http://localhost:8000"
-        mock_client.test_connection.return_value = True
-        mock_client.get_system_status.return_value = {
-            "version": "0.9.0",
-            "status": "healthy",
-            "uptime": "5 days",
-        }
-        mock_client_class.return_value.__aenter__.return_value = mock_client
+        mock_client.test_connection.return_value = MagicMock(success=True, data=True)
+        mock_client.get_system_status.return_value = MagicMock(
+            success=True,
+            data={
+                "version": "0.9.0",
+                "status": "healthy",
+                "uptime": "5 days",
+            },
+        )
+        mock_get_client.return_value = mock_client
 
         # Test the command
         self.runner.invoke(debug_cmd, ["connectivity"], obj={"console": MagicMock()})
@@ -61,23 +64,26 @@ class TestDebugCommands:
     def test_performance_command(self) -> None:
         """Test performance command."""
         with (
-            patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class,
+            patch("flext_cli.commands.debug.get_default_cli_client") as mock_get_client,
             patch("asyncio.run") as mock_asyncio_run,
         ):
-            self._test_performance_command_impl(mock_asyncio_run, mock_client_class)
+            self._test_performance_command_impl(mock_asyncio_run, mock_get_client)
 
     def _test_performance_command_impl(
-        self, mock_asyncio_run: MagicMock, mock_client_class: MagicMock
+        self, mock_asyncio_run: MagicMock, mock_get_client: MagicMock
     ) -> None:
         """Test performance command implementation."""
         # Mock client
         mock_client = AsyncMock()
-        mock_client.get_system_metrics.return_value = {
-            "cpu_usage": "25%",
-            "memory_usage": "60%",
-            "disk_usage": "40%",
-        }
-        mock_client_class.return_value.__aenter__.return_value = mock_client
+        mock_client.get_system_status.return_value = MagicMock(
+            success=True,
+            data={
+                "cpu_usage": "25%",
+                "memory_usage": "60%",
+                "disk_usage": "40%",
+            },
+        )
+        mock_get_client.return_value = mock_client
 
         # Test the command
         self.runner.invoke(debug_cmd, ["performance"], obj={"console": MagicMock()})
@@ -88,8 +94,8 @@ class TestDebugCommands:
         """Test validate command with success."""
         with (
             patch("flext_cli.commands.debug.get_config") as mock_get_config,
-            patch("sys.version_info", (3, 11, 0)),
-            patch("sys.version", "3.11.0 (main, Oct 24 2022)"),
+            patch("flext_cli.commands.debug.sys.version_info", (3, 11, 0)),
+            patch("flext_cli.commands.debug.sys.version", "3.11.0 (main, Oct 24 2022)"),
         ):
             self._test_validate_command_success_impl(mock_get_config)
 
@@ -100,11 +106,11 @@ class TestDebugCommands:
         mock_config.config_dir = Path("/home/user/.flext")
         mock_get_config.return_value = mock_config
 
-        with (
-            patch.object(Path, "exists", return_value=True),
-            patch("builtins.__import__") as mock_import,
-        ):
-            mock_import.return_value = MagicMock()
+        # Just patch the validate_dependencies function to avoid import issues
+        with patch(
+            "flext_cli.commands.debug._validate_dependencies"
+        ) as mock_validate_deps:
+            mock_validate_deps.return_value = None  # no issues added
 
             result = self.runner.invoke(
                 debug_cmd, ["validate"], obj={"console": MagicMock()}
@@ -118,8 +124,8 @@ class TestDebugCommands:
         """Test validate command with old Python."""
         with (
             patch("flext_cli.commands.debug.get_config") as mock_get_config,
-            patch("sys.version_info", (3, 9, 0)),
-            patch("sys.version", "3.9.0 (main, Oct 24 2021)"),
+            patch("flext_cli.commands.debug.sys.version_info", (3, 9, 0)),
+            patch("flext_cli.commands.debug.sys.version", "3.9.0 (main, Oct 24 2021)"),
         ):
             self._test_validate_command_old_python_impl(mock_get_config)
 
@@ -132,11 +138,11 @@ class TestDebugCommands:
         mock_config.config_dir = Path("/home/user/.flext")
         mock_get_config.return_value = mock_config
 
-        with (
-            patch.object(Path, "exists", return_value=True),
-            patch("builtins.__import__") as mock_import,
-        ):
-            mock_import.return_value = MagicMock()
+        # Just patch the validate_dependencies function to avoid import issues
+        with patch(
+            "flext_cli.commands.debug._validate_dependencies"
+        ) as mock_validate_deps:
+            mock_validate_deps.return_value = None  # no issues added
 
             result = self.runner.invoke(
                 debug_cmd, ["validate"], obj={"console": MagicMock()}
@@ -363,8 +369,10 @@ class TestDebugFunctionality:
                 missing_packages.append(package)
 
         # These packages should be available in test environment
-        if "click" not in missing_packages:
-            raise AssertionError(f"Expected click not in {missing_packages}")
+        if "click" in missing_packages:
+            raise AssertionError(
+                f"Expected click available, but found in missing: {missing_packages}"
+            )
         assert "rich" not in missing_packages
 
     def test_sensitive_value_masking(self) -> None:
@@ -415,15 +423,15 @@ class TestDebugCommandErrorHandling:
     def test_connectivity_with_exception(self) -> None:
         """Test connectivity command with exception."""
         with (
-            patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class,
+            patch("flext_cli.commands.debug.get_default_cli_client") as mock_get_client,
             patch("asyncio.run") as mock_asyncio_run,
         ):
             self._test_connectivity_with_exception_impl(
-                mock_asyncio_run, mock_client_class
+                mock_asyncio_run, mock_get_client
             )
 
     def _test_connectivity_with_exception_impl(
-        self, mock_asyncio_run: MagicMock, mock_client_class: MagicMock
+        self, mock_asyncio_run: MagicMock, mock_get_client: MagicMock
     ) -> None:
         """Test connectivity command with exception implementation."""
         # Make asyncio.run raise an exception
@@ -437,15 +445,15 @@ class TestDebugCommandErrorHandling:
     def test_performance_with_exception(self) -> None:
         """Test performance command with exception."""
         with (
-            patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class,
+            patch("flext_cli.commands.debug.get_default_cli_client") as mock_get_client,
             patch("asyncio.run") as mock_asyncio_run,
         ):
             self._test_performance_with_exception_impl(
-                mock_asyncio_run, mock_client_class
+                mock_asyncio_run, mock_get_client
             )
 
     def _test_performance_with_exception_impl(
-        self, mock_asyncio_run: MagicMock, mock_client_class: MagicMock
+        self, mock_asyncio_run: MagicMock, mock_get_client: MagicMock
     ) -> None:
         """Test performance command with exception implementation."""
         # Make asyncio.run raise an exception

@@ -50,6 +50,39 @@ from pydantic import Field
 from rich.console import Console
 
 
+class CLIContextParams:
+    """Parameter Object pattern for CLIContext creation - SOLID Single Responsibility.
+
+    Reduces function parameters by encapsulating related CLI context parameters
+    into a single, cohesive object following SOLID principles.
+    """
+
+    def __init__(
+        self,
+        profile: str = "default",
+        output_format: str = "table",
+        **options: bool,  # SOLID - combine options to reduce parameter count
+    ) -> None:
+        """Initialize CLI context parameters - SOLID Parameter Object Pattern.
+
+        SOLID SRP: Single responsibility for parameter encapsulation
+        Backward Compatibility: Maintains original parameter interface
+
+        Args:
+            profile: Configuration profile name
+            output_format: Output format (table, json, yaml, csv, plain)
+            **options: Boolean options (debug, quiet, verbose, no_color)
+
+        """
+        self.profile = profile
+        self.output_format = output_format
+        # Extract boolean options with defaults
+        self.debug = options.get("debug", False)
+        self.quiet = options.get("quiet", False)
+        self.verbose = options.get("verbose", False)
+        self.no_color = options.get("no_color", False)
+
+
 class CLIContext(DomainValueObject):
     """CLI Context Value Object - Immutable execution context for CLI operations.
 
@@ -127,40 +160,51 @@ class CLIContext(DomainValueObject):
     def create_with_params(
         cls,
         *,
-        profile: str = "default",
-        output_format: str = "table",
-        debug: bool = False,
-        quiet: bool = False,
-        verbose: bool = False,
-        no_color: bool = False,
+        params: CLIContextParams | None = None,
         **kwargs: object,
     ) -> CLIContext:
-        """Create CLIContext with individual parameters (backward compatibility).
+        """Create CLIContext using Parameter Object Pattern - SOLID compliant.
 
         SOLID OCP: Extends functionality without modifying existing code.
+
+        Args:
+            params: Pre-configured parameter object (optional)
+            **kwargs: Individual parameters for backward compatibility
+
         """
+        # Use default params if none provided
+        if params is None:
+            # Extract parameters from kwargs for backward compatibility
+            params = CLIContextParams(
+                profile=str(kwargs.get("profile", "default")),
+                output_format=str(kwargs.get("output_format", "table")),
+                debug=bool(kwargs.get("debug")),
+                quiet=bool(kwargs.get("quiet")),
+                verbose=bool(kwargs.get("verbose")),
+                no_color=bool(kwargs.get("no_color")),
+            )
+
         # Apply SOLID SRP: Validate parameters before creating object
-        if quiet and verbose:
+        if params.quiet and params.verbose:
             msg = "Cannot have both quiet and verbose modes enabled"
             raise ValueError(msg)
 
-        if not profile or not profile.strip():
+        if not params.profile or not params.profile.strip():
             msg = "Profile cannot be empty"
             raise ValueError(msg)
 
         valid_formats = ["table", "json", "yaml", "csv", "plain"]
-        if output_format not in valid_formats:
+        if params.output_format not in valid_formats:
             msg = f"Output format must be one of {valid_formats}"
             raise ValueError(msg)
 
         return cls(
-            profile=profile,
-            output_format=output_format,
-            debug=debug,
-            quiet=quiet,
-            verbose=verbose,
-            no_color=no_color,
-            **kwargs,
+            profile=params.profile,
+            output_format=params.output_format,
+            debug=params.debug,
+            quiet=params.quiet,
+            verbose=params.verbose,
+            no_color=params.no_color,
         )
 
 
@@ -193,7 +237,7 @@ def _handle_exception(e: Exception) -> None:
     console = Console()
     console.print(f"[red]Error: {e}[/red]")
     logger = get_logger(__name__)
-    logger.exception("Unhandled exception in CLI command")
+    logger.error("Unhandled exception in CLI command")
 
 
 # _handle_flext_result já definida acima - removendo duplicação
@@ -259,7 +303,7 @@ def handle_service_result(f: F) -> F:
 # Rebuild Pydantic models to resolve forward references
 with contextlib.suppress(Exception):
     # Import CLIConfig and rebuild it first, then CLIContext
-    from flext_cli.domain.entities import CLIConfig
+    from flext_cli.config import CLIConfig
 
     CLIConfig.model_rebuild()
     CLIContext.model_rebuild()

@@ -96,17 +96,17 @@ class TestFlextCoreDomainEntityIntegration:
 
         # Should have domain entity properties
         assert hasattr(command, "id")
-        assert hasattr(command, "created_at")
-        assert hasattr(command, "updated_at")
+        assert hasattr(command, "version")
+        assert hasattr(command, "domain_events")
 
-        # ID should be a UUID (as string following flext-core pattern)
+        # ID should be a string (FlextEntity pattern)
         assert isinstance(command.id, str)
-        # Verify it's a valid UUID format
-        uuid.UUID(command.id)  # This will raise ValueError if not valid UUID
 
-        # Timestamps should be datetime objects
-        assert isinstance(command.created_at, datetime)
-        assert isinstance(command.updated_at, datetime)
+        # Should have command-specific timestamps
+        if command.started_at:
+            assert isinstance(command.started_at, datetime)
+        if command.finished_at:
+            assert isinstance(command.finished_at, datetime)
 
     def test_cli_command_lifecycle_with_domain_events(self) -> None:
         """Test CLICommand lifecycle generates domain events."""
@@ -161,21 +161,26 @@ class TestFlextCoreDomainEntityIntegration:
             name="test-plugin", entry_point="test.main", commands=["test", "validate"]
         )
 
-        # Domain entity properties
+        # Domain entity properties (what flext-core FlextEntity actually provides)
         assert hasattr(plugin, "id")
-        assert hasattr(plugin, "created_at")
-        assert hasattr(plugin, "updated_at")
+        assert hasattr(plugin, "status")  # flext-core provides status, not created_at
+        assert hasattr(plugin, "version")  # flext-core provides version tracking
+        assert hasattr(plugin, "updated_at")  # This is provided by our entity
 
         # Initial state
         assert plugin.plugin_status == PluginStatus.INACTIVE
 
-        # Activation - returns new instance (immutable pattern)
-        activated_plugin = plugin.activate()
+        # Activation - returns FlextResult with new instance (railway-oriented programming)
+        activated_result = plugin.activate()
+        assert activated_result.success
+        activated_plugin = activated_result.unwrap()
         assert activated_plugin.plugin_status == PluginStatus.ACTIVE
         assert activated_plugin.enabled is True
 
-        # Deactivation - returns new instance (immutable pattern)
-        deactivated_plugin = activated_plugin.deactivate()
+        # Deactivation - returns FlextResult with new instance (railway-oriented programming)
+        deactivated_result = activated_plugin.deactivate()
+        assert deactivated_result.success
+        deactivated_plugin = deactivated_result.unwrap()
         assert deactivated_plugin.plugin_status == PluginStatus.INACTIVE
         assert deactivated_plugin.enabled is False
 

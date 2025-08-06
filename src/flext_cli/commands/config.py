@@ -51,7 +51,7 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
+import subprocess  # nosec B404  # Required for editor invocation
 from typing import TYPE_CHECKING
 
 import click
@@ -323,7 +323,10 @@ def edit(ctx: click.Context, _profile: str | None) -> None:
     editor_cmd = editor_env.split()[0] if editor_env else "vim"  # Get base command
 
     if editor_cmd not in safe_editors:
-        cli_context.print_error(f"Editor '{editor_cmd}' not in safe list: {', '.join(sorted(safe_editors))}")
+        safe_editors_str = ", ".join(sorted(safe_editors))
+        cli_context.print_error(
+            f"Editor '{editor_cmd}' not in safe list: {safe_editors_str}",
+        )
         ctx.exit(1)
 
     editor = editor_env
@@ -350,7 +353,7 @@ def edit(ctx: click.Context, _profile: str | None) -> None:
             )
             ctx.exit(1)
 
-        subprocess.run([editor, str(config_file)], check=True, shell=False)  # noqa: S603
+        subprocess.run([editor, str(config_file)], check=True, shell=False)  # nosec B603  # noqa: S603
         cli_context.print_success("Configuration updated")
         cli_context.print_info("Restart CLI to apply changes")
 

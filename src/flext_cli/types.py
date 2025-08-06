@@ -33,8 +33,18 @@ from flext_cli.config import CLIConfig
 from flext_cli.domain.cli_context import CLIContext
 from flext_cli.domain.entities import CLICommand, CLIPlugin, CLISession
 
+
 # CLI semantic types - leveraging flext-core
-OutputFormat = Literal["table", "json", "yaml", "csv", "plain"]
+class OutputFormat(StrEnum):
+    """Output format enumeration."""
+
+    TABLE = "table"
+    JSON = "json"
+    YAML = "yaml"
+    CSV = "csv"
+    PLAIN = "plain"
+
+
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR"]
 ProfileName = str
 CommandName = str
@@ -57,10 +67,7 @@ class CommandStatus(StrEnum):
 class CommandType(StrEnum):
     """Command categories."""
 
-    CLI = "cli"
     SYSTEM = "system"
-    SCRIPT = "script"
-    SQL = "sql"
     PIPELINE = "pipeline"
     PLUGIN = "plugin"
     DATA = "data"
@@ -76,14 +83,18 @@ class ProfileType(click.ParamType):
     name = "profile"
 
     def convert(
-        self, value: object, param: click.Parameter | None, ctx: click.Context | None,
+        self,
+        value: object,
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> str:
         """Convert value to profile string."""
         if isinstance(value, str):
             return value
-        # This will raise BadParameter and never return
+        # This will raise BadParameter - suppress unreachable code warning
         self.fail(f"{value!r} is not a valid profile", param, ctx)
-        return ""  # type: ignore[unreachable] # Satisfies RET503
+        msg = "unreachable"  # type: ignore[unreachable]
+        raise AssertionError(msg)  # pragma: no cover
 
 
 # Singleton instances

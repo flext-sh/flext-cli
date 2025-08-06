@@ -188,7 +188,14 @@ def logout(ctx: click.Context) -> None:
             # KeyError is treated as successful logout (token cleanup)
             clear_auth_tokens()
             console.print("[green]✅ Logged out successfully[/green]")
-        except (ConnectionError, TimeoutError, OSError, PermissionError, ValueError, AttributeError) as e:
+        except (
+            ConnectionError,
+            TimeoutError,
+            OSError,
+            PermissionError,
+            ValueError,
+            AttributeError,
+        ) as e:
             # Clear token even if any error occurs:
             clear_auth_tokens()
             console.print(
