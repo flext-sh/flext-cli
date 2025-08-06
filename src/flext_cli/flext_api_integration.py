@@ -28,10 +28,10 @@ from flext_api import (
 )
 from flext_core import FlextResult, get_logger
 
+from flext_cli.config import get_config as get_cli_config
+
 FLEXT_API_AVAILABLE = True
 logger = get_logger(__name__)
-
-from flext_cli.config import get_config as get_cli_config
 
 # HTTP status constants
 HTTP_OK = 200
@@ -135,7 +135,12 @@ class FlextCLIApiClient:
             raise RuntimeError(error_msg)
         return self
 
-    async def __aexit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
+    async def __aexit__(
+        self,
+        exc_type: object,
+        exc_val: object,
+        exc_tb: object,
+    ) -> None:
         """Async context manager exit."""
         await self.close()
 
@@ -179,7 +184,9 @@ class FlextCLIApiClient:
             # Get response from API client - handle FlextResult
             response_result = await self._api_client.get("/api/v1/system/status")
             if not response_result.success or response_result.data is None:
-                return FlextResult.fail(f"Status request failed: {response_result.error}")
+                return FlextResult.fail(
+                    f"Status request failed: {response_result.error}",
+                )
 
             response = response_result.data
             status_code = getattr(response, "status_code", None)
@@ -203,12 +210,18 @@ class FlextCLIApiClient:
             services = []
 
             # FlexCore service check
-            flexcore_result = await self._check_service("FlexCore", "http://localhost:8080")
+            flexcore_result = await self._check_service(
+                "FlexCore",
+                "http://localhost:8080",
+            )
             if flexcore_result.success and flexcore_result.data:
                 services.append(flexcore_result.data)
 
             # FLEXT Service check
-            flext_result = await self._check_service("FLEXT Service", "http://localhost:8081")
+            flext_result = await self._check_service(
+                "FLEXT Service",
+                "http://localhost:8081",
+            )
             if flext_result.success and flext_result.data:
                 services.append(flext_result.data)
 
@@ -218,7 +231,11 @@ class FlextCLIApiClient:
             logger.exception("Failed to list services")
             return FlextResult.fail(f"Service listing failed: {e}")
 
-    async def _check_service(self, name: str, url: str) -> FlextResult[dict[str, object]]:
+    async def _check_service(
+        self,
+        name: str,
+        url: str,
+    ) -> FlextResult[dict[str, object]]:
         """Check individual service status."""
         try:
             # Create temporary client for service check
@@ -235,7 +252,9 @@ class FlextCLIApiClient:
             # Get response from API client - handle FlextResult
             response_result = await client.get("/health")
             if not response_result.success or response_result.data is None:
-                return FlextResult.fail(f"{name} health check failed: {response_result.error}")
+                return FlextResult.fail(
+                    f"{name} health check failed: {response_result.error}",
+                )
 
             response = response_result.data
             # Handle response safely
@@ -245,18 +264,24 @@ class FlextCLIApiClient:
                 elapsed = getattr(response, "elapsed", None)
                 response_time = elapsed.total_seconds() if elapsed else 0.0
 
-                return FlextResult.ok({
-                    "name": name,
-                    "url": url,
-                    "status": "healthy",
-                    "response_time": response_time,
-                })
+                return FlextResult.ok(
+                    {
+                        "name": name,
+                        "url": url,
+                        "status": "healthy",
+                        "response_time": response_time,
+                    },
+                )
             return FlextResult.fail(f"{name} unhealthy: {status_code}")
 
         except (ConnectionError, TimeoutError, ValueError, AttributeError) as e:
             return FlextResult.fail(f"{name} check failed: {e}")
 
-    async def login(self, username: str, password: str) -> FlextResult[dict[str, object]]:
+    async def login(
+        self,
+        username: str,
+        password: str,
+    ) -> FlextResult[dict[str, object]]:
         """Login with username and password."""
         if not self.is_available():
             return FlextResult.fail("flext-api client not available")
@@ -266,11 +291,16 @@ class FlextCLIApiClient:
                 return FlextResult.fail("API client not initialized")
 
             # Post credentials to login endpoint
-            login_data = json.dumps({
-                "username": username,
-                "password": password,
-            })
-            response_result = await self._api_client.post("/auth/login", data=login_data)
+            login_data = json.dumps(
+                {
+                    "username": username,
+                    "password": password,
+                },
+            )
+            response_result = await self._api_client.post(
+                "/auth/login",
+                data=login_data,
+            )
             if not response_result.success or response_result.data is None:
                 return FlextResult.fail(f"Login failed: {response_result.error}")
 
@@ -345,6 +375,7 @@ class FlextCLIApiClient:
 
 
 # Factory functions for CLI integration
+
 
 def create_cli_api_client(
     base_url: str | None = None,

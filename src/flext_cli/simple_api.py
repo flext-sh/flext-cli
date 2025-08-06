@@ -31,7 +31,7 @@ from __future__ import annotations
 
 from flext_core import FlextResult
 
-from flext_cli.config import CLIConfig, CLISettings, get_cli_settings
+from flext_cli.config import CLIConfig, get_cli_settings
 
 __all__ = [
     "create_development_cli_config",
@@ -42,10 +42,15 @@ __all__ = [
 
 
 def setup_cli(config: CLIConfig | None = None) -> FlextResult[bool]:
-    """Set up CLI with modern zero-boilerplate approach.
+    """Set up CLI with modern zero-boilerplate approach using hierarchical configuration.
+
+    This function integrates the 3 main functions of flext-cli:
+    1. CLI Foundation Base: Provides setup for any CLI implementation
+    2. flext-core Integration Bridge: Uses hierarchical config patterns
+    3. Ecosystem Library Base: Reusable setup for flext-meltano, etc.
 
     Args:
-        config: Optional CLI configuration (auto-created if None)
+        config: Optional CLI configuration (auto-created with hierarchy if None)
 
     Returns:
         FlextResult[bool]: Success/failure with railway-oriented programming
@@ -53,8 +58,13 @@ def setup_cli(config: CLIConfig | None = None) -> FlextResult[bool]:
     """
     try:
         if config is None:
-            # Use CLISettings for compatibility with test mocking
-            config = CLISettings()
+            # Use hierarchical configuration following flext/docs/patterns
+            hierarchy_result = CLIConfig.create_with_hierarchy()
+            if hierarchy_result.is_failure:
+                return FlextResult.fail(
+                    f"Hierarchical config failed: {hierarchy_result.error}",
+                )
+            config = hierarchy_result.unwrap()
 
         # Ensure directories exist
         directory_result = config.ensure_directories()
@@ -68,7 +78,10 @@ def setup_cli(config: CLIConfig | None = None) -> FlextResult[bool]:
 
 
 def create_development_cli_config(**kwargs: object) -> CLIConfig:
-    """Create development CLI configuration.
+    """Create development CLI configuration with hierarchical precedence.
+
+    Uses flext/docs/patterns hierarchical configuration for ecosystem integration.
+    Suitable for flext-meltano, client-a-oud-mig, and other ecosystem projects.
 
     Args:
         **kwargs: Configuration overrides
@@ -77,7 +90,19 @@ def create_development_cli_config(**kwargs: object) -> CLIConfig:
         CLIConfig: Development configuration with debug enabled
 
     """
-    # Create base configuration with development defaults
+    # Use hierarchical config with development defaults
+    development_defaults = {
+        "debug": True,
+        "profile": "development",
+        "log_level": "DEBUG",
+        **kwargs,  # Apply overrides
+    }
+
+    hierarchy_result = CLIConfig.create_with_hierarchy(**development_defaults)
+    if hierarchy_result.success:
+        return hierarchy_result.unwrap()
+
+    # Fallback to direct creation for backward compatibility
     config = CLIConfig(
         debug=True,
         profile="development",

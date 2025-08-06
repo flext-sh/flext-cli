@@ -68,7 +68,10 @@ from flext_core.exceptions import FlextConnectionError, FlextOperationError
 from rich.table import Table
 
 from flext_cli.config import get_config
-from flext_cli.flext_api_integration import FLEXT_API_AVAILABLE, get_default_cli_client
+from flext_cli.flext_api_integration import (
+    FLEXT_API_AVAILABLE,
+    get_default_cli_client,
+)
 
 if TYPE_CHECKING:
     from rich.console import Console
@@ -168,7 +171,8 @@ def connectivity(ctx: click.Context) -> None:
                         console.print(f"  Uptime: {status.get('uptime', 'Unknown')}")
                 else:
                     console.print(
-                        f"[yellow]⚠️  Could not get system status: {status_result.error}[/yellow]",
+                        f"[yellow]⚠️  Could not get system status: "
+                        f"{status_result.error}[/yellow]",
                     )
             else:
                 console.print(
@@ -190,12 +194,16 @@ def services(ctx: click.Context) -> None:
     console: Console = ctx.obj["console"]
 
     if not FLEXT_API_AVAILABLE:
-        console.print("[red]❌ flext-api library not available - cannot check services[/red]")
+        console.print(
+            "[red]❌ flext-api library not available - cannot check services[/red]",
+        )
         ctx.exit(1)
 
     try:
         client = get_default_cli_client()
-        console.print("[yellow]Checking FLEXT services using flext-api integration...[/yellow]")
+        console.print(
+            "[yellow]Checking FLEXT services using flext-api integration...[/yellow]",
+        )
 
         async def check_services() -> None:
             services_result = await client.list_services()
@@ -221,7 +229,11 @@ def services(ctx: click.Context) -> None:
 
                             # Type-safe response time conversion
                             try:
-                                response_time = float(str(response_time_raw)) if response_time_raw is not None else 0.0
+                                response_time = (
+                                    float(str(response_time_raw))
+                                    if response_time_raw is not None
+                                    else 0.0
+                                )
                             except (ValueError, TypeError):
                                 response_time = 0.0
 
@@ -231,13 +243,18 @@ def services(ctx: click.Context) -> None:
                             table.add_row(
                                 str(name),
                                 str(url),
-                                f"[{status_color}]{status_emoji} {status}[/{status_color}]",
+                                (
+                                    f"[{status_color}]{status_emoji} {status}"
+                                    f"[/{status_color}]"
+                                ),
                                 f"{response_time:.3f}s",
                             )
 
                 console.print(table)
             else:
-                console.print(f"[red]❌ Failed to check services: {services_result.error}[/red]")
+                console.print(
+                    f"[red]❌ Failed to check services: {services_result.error}[/red]",
+                )
 
         # Run async service check
         asyncio.run(check_services())
@@ -255,12 +272,16 @@ def performance(ctx: click.Context) -> None:
 
     # FLEXT-API Integration: Use flext-api for consistent HTTP operations
     if not FLEXT_API_AVAILABLE:
-        console.print("[red]❌ flext-api library not available - cannot fetch metrics[/red]")
+        console.print(
+            "[red]❌ flext-api library not available - cannot fetch metrics[/red]",
+        )
         ctx.exit(1)
 
     try:
         client = get_default_cli_client()
-        console.print("[yellow]Fetching performance metrics using flext-api...[/yellow]")
+        console.print(
+            "[yellow]Fetching performance metrics using flext-api...[/yellow]",
+        )
 
         # Get metrics using flext-api integration
         def handle_metrics_error(error_msg: str) -> NoReturn:
@@ -323,11 +344,15 @@ def validate(ctx: click.Context) -> None:
 def _validate_python_version(console: Console, issues: list[str]) -> None:
     """Validate Python version requirements."""
     py_version = sys.version_info
+    # Safe version string extraction
+    version_parts = sys.version.split() if sys.version else ["unknown"]
+    version_str = version_parts[0] if version_parts else "unknown"
+
     if py_version >= (3, 10):
-        console.print(f"[green]✅ Python version: {sys.version.split()[0]}[/green]")
+        console.print(f"[green]✅ Python version: {version_str}[/green]")
     else:
         issues.append(
-            f"Python version {sys.version.split()[0]} is too old (requires 3.10+)",
+            f"Python version {version_str} is too old (requires 3.10+)",
         )
 
 
@@ -343,14 +368,25 @@ def _validate_configuration(console: Console, warnings: list[str]) -> None:
 
 def _validate_dependencies(console: Console, issues: list[str]) -> None:
     """Validate required package dependencies."""
-    required_packages = ["click", "rich", "httpx", "pydantic", "yaml"]
+    # Fixed: 'yaml' -> 'yaml' but import as yaml (PyYAML)
+    required_packages = ["click", "rich", "httpx", "pydantic"]
+    # Special case for yaml (PyYAML package installs as 'yaml' module)
+    yaml_packages = ["yaml"]
     missing_packages = []
 
+    # Check standard packages
     for package in required_packages:
         try:
             __import__(package)
         except ImportError:
             missing_packages.append(package)
+
+    # Check yaml package (special handling for PyYAML)
+    for package in yaml_packages:
+        try:
+            __import__(package)
+        except ImportError:
+            missing_packages.append("PyYAML")
 
     if not missing_packages:
         console.print("[green]✅ All required packages installed[/green]")

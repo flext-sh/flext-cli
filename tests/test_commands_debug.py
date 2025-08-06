@@ -96,11 +96,13 @@ class TestConnectivityCommand:
         mock_client = AsyncMock()
         mock_client.base_url = "http://localhost:8000"
         mock_client.test_connection.return_value = FlextResult.ok(True)
-        mock_client.get_system_status.return_value = FlextResult.ok({
-            "version": "0.9.0",
-            "status": "healthy",
-            "uptime": "5 days",
-        })
+        mock_client.get_system_status.return_value = FlextResult.ok(
+            {
+                "version": "0.9.0",
+                "status": "healthy",
+                "uptime": "5 days",
+            }
+        )
         mock_get_client.return_value = mock_client
 
         # Import and call command using Click runner
@@ -128,7 +130,9 @@ class TestConnectivityCommand:
 
     def test_connectivity_connection_failed(self) -> None:
         """Test connectivity check with connection failure."""
-        with patch("flext_cli.commands.debug.get_default_cli_client") as mock_get_client:
+        with patch(
+            "flext_cli.commands.debug.get_default_cli_client"
+        ) as mock_get_client:
             self._test_connectivity_connection_failed_impl(mock_get_client)
 
     def _test_connectivity_connection_failed_impl(
@@ -265,11 +269,13 @@ class TestPerformanceCommand:
         from flext_core import FlextResult
 
         mock_client = AsyncMock()
-        mock_client.get_system_status.return_value = FlextResult.ok({
-            "cpu_usage": "25%",
-            "memory_usage": "60%",
-            "disk_usage": "40%",
-        })
+        mock_client.get_system_status.return_value = FlextResult.ok(
+            {
+                "cpu_usage": "25%",
+                "memory_usage": "60%",
+                "disk_usage": "40%",
+            }
+        )
         mock_get_client.return_value = mock_client
 
         # Mock table
@@ -295,7 +301,9 @@ class TestPerformanceCommand:
 
     def test_performance_exception(self) -> None:
         """Test performance command with exception."""
-        with patch("flext_cli.commands.debug.get_default_cli_client") as mock_get_client:
+        with patch(
+            "flext_cli.commands.debug.get_default_cli_client"
+        ) as mock_get_client:
             # Setup mock to raise exception
             mock_client = AsyncMock()
             mock_client.get_system_status.side_effect = Exception("API error")
@@ -557,7 +565,9 @@ class TestEnvCommand:
         # Command should succeed
         assert result.exit_code == 0
         # Should call console.print with no variables message
-        mock_console.print.assert_called_with("[yellow]No FLEXT environment variables found[/yellow]")
+        mock_console.print.assert_called_with(
+            "[yellow]No FLEXT environment variables found[/yellow]"
+        )
 
     @patch("flext_cli.commands.debug.Table")
     @patch.dict(

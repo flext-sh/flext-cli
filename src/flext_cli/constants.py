@@ -20,6 +20,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 # API defaults
 DEFAULT_API_URL: str = "http://localhost:8000"
 DEFAULT_TIMEOUT: int = 30
@@ -57,3 +59,56 @@ class _CLIConstants:
 
 # Export constants for backward compatibility
 CLI_CONSTANTS = _CLIConstants()
+
+
+class FlextConfigSemanticConstants:
+    """Configuration semantic constants following docs/patterns/config-cli.md."""
+
+    class Hierarchy:
+        """Configuration precedence priorities."""
+
+        CLI_ARGS = 1      # Highest precedence
+        ENV_VARS = 2
+        ENV_FILES = 3
+        CONFIG_FILES = 4
+        CONSTANTS = 5     # Lowest precedence
+
+    class Sources:
+        """Configuration source identifiers."""
+
+        CLI = "cli_args"
+        ENVIRONMENT = "environment"
+        ENV_FILE = "env_file"
+        CONFIG = "config_file"
+        DEFAULT = "constants"
+
+    class Files:
+        """Standard configuration file patterns."""
+
+        DOTENV_FILES: ClassVar[list[str]] = [".env", ".internal.invalid", ".env.development", ".env.production"]
+        CONFIG_FILES: ClassVar[list[str]] = ["config.json", "config.yaml", "config.toml", "pyproject.toml"]
+
+    class Types:
+        """Configuration value types."""
+
+        STRING = "string"
+        INTEGER = "integer"
+        BOOLEAN = "boolean"
+        LIST = "list"
+        DICT = "dict"
+        PATH = "path"
+
+    class Formats:
+        """Supported configuration file formats."""
+
+        JSON = "json"
+        YAML = "yaml"
+        TOML = "toml"
+        ENV = "env"
+
+    class Validation:
+        """Configuration validation constants."""
+
+        REQUIRED = "required"
+        OPTIONAL = "optional"
+        DEFAULT_PROVIDED = "default_provided"

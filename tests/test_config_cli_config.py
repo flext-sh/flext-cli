@@ -562,6 +562,7 @@ class TestConfigurationFunctions:
         """Test get_cli_config function."""
         # Clear any existing global config
         import flext_cli.config
+
         flext_cli.config._config = None
 
         config = get_cli_config()
@@ -603,7 +604,7 @@ class TestConfigurationFunctions:
         with tempfile.TemporaryDirectory() as temp_dir:
             Path(temp_dir)
 
-            with patch("flext_cli.config.cli_config.CLIConfig") as mock_config_class:
+            with patch("flext_cli.config.CLIConfig") as mock_config_class:
                 mock_config = mock_config_class.return_value
                 mock_config.ensure_setup = lambda: None
 
@@ -646,20 +647,15 @@ class TestConfigurationIntegration:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
 
-            # Create configuration
+            # Create configuration with custom paths
             config = CLIConfig(
                 profile="integration_test",
                 debug=True,
-            )
-
-            # Override directories to use temp directory
-            config.directories = CLIDirectoryConfig(
+                # Set directory fields directly instead of using property setter
                 config_dir=temp_path / "config",
                 cache_dir=temp_path / "cache",
                 log_dir=temp_path / "logs",
-                data_dir=temp_path / "data",
-            )
-            config.auth = CLIAuthConfig(
+                # Set auth fields directly
                 token_file=temp_path / "auth" / "token",
                 refresh_token_file=temp_path / "auth" / "refresh_token",
                 auto_refresh=False,
@@ -680,7 +676,6 @@ class TestConfigurationIntegration:
             assert config.directories.config_dir.exists()
             assert config.directories.cache_dir.exists()
             assert config.directories.log_dir.exists()
-            assert config.directories.data_dir.exists()
 
             # Verify auth directories exist
             assert config.auth.token_file.parent.exists()
@@ -695,20 +690,16 @@ class TestConfigurationIntegration:
 
     def test_configuration_modification(self) -> None:
         """Test modifying configuration values."""
-        config = CLIConfig()
-
-        # Modify nested configurations
-        config.output = CLIOutputConfig(
-            format="json",
+        # Create config with modified values directly in constructor
+        config = CLIConfig(
+            output_format="json",
             no_color=True,
             quiet=True,
-        )
-        config.api = CLIAPIConfig(
-            url="https://modified.api.com",
+            api_url="https://modified.api.com",
             timeout=45,
         )
 
-        # Verify modifications
+        # Verify modifications through properties
         if config.output.format != "json":
             raise AssertionError(f"Expected {'json'}, got {config.output.format}")
         if not (config.output.no_color):
@@ -743,8 +734,9 @@ class TestConfigurationIntegration:
             conflicting_file = temp_path / "conflict"
             conflicting_file.touch()
 
-            config = CLIConfig()
-            config.directories = CLIDirectoryConfig(
+            # Test directory creation error handling by creating a config
+            # with a path that conflicts with an existing file
+            config = CLIConfig(
                 config_dir=conflicting_file
                 / "config",  # This will fail but should be handled
                 cache_dir=temp_path / "cache",

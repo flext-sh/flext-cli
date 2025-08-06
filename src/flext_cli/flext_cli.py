@@ -85,6 +85,7 @@ from flext_cli.api import FlextCliApi
 from flext_cli.types import (
     FlextCliConfig,
     FlextCliContext,
+    OutputFormat,
 )
 
 if TYPE_CHECKING:
@@ -102,7 +103,7 @@ _api = FlextCliApi()
 def flext_cli_export(
     data: TCliData,
     path: TCliPath,
-    format_type: TCliFormat = "json",
+    format_type: TCliFormat = OutputFormat.JSON,
 ) -> bool:
     """Export data to file in specified format.
 
@@ -118,7 +119,9 @@ def flext_cli_export(
     return _api.flext_cli_export(data, path, format_type)
 
 
-def flext_cli_format(data: TCliData, format_type: TCliFormat = "json") -> str:
+def flext_cli_format(
+    data: TCliData, format_type: TCliFormat = OutputFormat.JSON,
+) -> str:
     """Format data for display.
 
     Args:

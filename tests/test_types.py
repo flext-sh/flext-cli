@@ -144,7 +144,7 @@ class TestFlextCliCommand:
         if command.output != "":
             raise AssertionError(f"Expected {''}, got {command.output}")
         assert isinstance(command.options, dict)
-        assert isinstance(command.updated_at, datetime)
+        # Note: CLICommand does not have updated_at field - removed incorrect test
 
     def test_command_with_options(self) -> None:
         """Test command creation with options."""
@@ -450,7 +450,7 @@ class TestFlextCliConfig:
             raise AssertionError(f"Expected True, got {config.validate_domain_rules()}")
 
         # Config is always valid according to implementation
-        config_with_data = FlextCliConfig({"debug": True})
+        config_with_data = FlextCliConfig(debug=True)
         if not (config_with_data.validate_domain_rules()):
             raise AssertionError(
                 f"Expected True, got {config_with_data.validate_domain_rules()}"
@@ -474,11 +474,7 @@ class TestFlextCliContext:
     def test_context_with_custom_config(self) -> None:
         """Test creating context with custom config."""
         # Create config and console - CLIContext requires both
-        config = FlextCliConfig(
-            debug=True,
-            output_format="json",
-            profile="production"
-        )
+        config = FlextCliConfig(debug=True, output_format="json", profile="production")
         console = Console()
         context = FlextCliContext(config=config, console=console)
 
@@ -489,11 +485,7 @@ class TestFlextCliContext:
     def test_context_with_overrides(self) -> None:
         """Test creating context with override values."""
         # Create config with override values and console
-        config = FlextCliConfig(
-            debug=True,
-            output_format="yaml",
-            profile="development"
-        )
+        config = FlextCliConfig(debug=True, output_format="yaml", profile="development")
         console = Console()
         context = FlextCliContext(config=config, console=console)
 
@@ -566,7 +558,12 @@ class TestFlextCliPlugin:
 
     def test_plugin_basic_creation(self) -> None:
         """Test creating plugin with basic parameters."""
-        plugin = FlextCliPlugin(name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0")
+        plugin = FlextCliPlugin(
+            id="plugin-001",
+            name="test-plugin",
+            entry_point="test_plugin.main",
+            plugin_version="0.9.0",
+        )
 
         if plugin.name != "test-plugin":
             raise AssertionError(f"Expected {'test-plugin'}, got {plugin.name}")
@@ -584,6 +581,7 @@ class TestFlextCliPlugin:
     def test_plugin_full_creation(self) -> None:
         """Test creating plugin with all parameters."""
         plugin = FlextCliPlugin(
+            id="plugin-advanced",
             name="advanced-plugin",
             entry_point="advanced_plugin.main",
             plugin_version="2.1.0",
@@ -612,7 +610,12 @@ class TestFlextCliPlugin:
     def test_validate_domain_rules(self) -> None:
         """Test domain rule validation."""
         # Valid plugin
-        plugin = FlextCliPlugin(name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0")
+        plugin = FlextCliPlugin(
+            id="plugin-test",
+            name="test-plugin",
+            entry_point="test_plugin.main",
+            plugin_version="0.9.0",
+        )
         validation_result = plugin.validate_business_rules()
         if not validation_result.success:
             raise AssertionError(f"Expected success, got {validation_result.error}")
@@ -625,7 +628,9 @@ class TestFlextCliPlugin:
         plugin_copy = plugin.model_copy(update={"name": "x"})  # Still valid
         validation_result_copy = plugin_copy.validate_business_rules()
         if not validation_result_copy.success:
-            raise AssertionError(f"Expected success for copied plugin, got {validation_result_copy.error}")
+            raise AssertionError(
+                f"Expected success for copied plugin, got {validation_result_copy.error}"
+            )
 
 
 class TestFlextCliSession:
@@ -644,7 +649,11 @@ class TestFlextCliSession:
 
     def test_session_with_user(self) -> None:
         """Test session creation with user ID."""
-        session = FlextCliSession(id="test-session-101", session_id="test-session-101", user_id="test-user-123")
+        session = FlextCliSession(
+            id="test-session-101",
+            session_id="test-session-101",
+            user_id="test-user-123",
+        )
 
         if session.user_id != "test-user-123":
             raise AssertionError(f"Expected {'test-user-123'}, got {session.user_id}")
@@ -773,7 +782,9 @@ class TestIntegration:
     def test_session_with_multiple_commands(self) -> None:
         """Test session recording multiple commands."""
         # CLISession needs both id (entity_id) and session_id
-        session = FlextCliSession(id="test-session-135", session_id="test-session-135", user_id="test-user")
+        session = FlextCliSession(
+            id="test-session-135", session_id="test-session-135", user_id="test-user"
+        )
 
         commands = ["init", "run", "deploy", "monitor", "cleanup"]
 

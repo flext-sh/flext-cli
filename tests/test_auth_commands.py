@@ -55,10 +55,12 @@ class TestAuthCommands:
         # Mock async client
         mock_client = AsyncMock()
         # Mock FlextResult success response
-        mock_login_result = FlextResult.ok({
-            "token": "token_testuser_abc123",
-            "user": {"name": "Test User", "username": "testuser"},
-        })
+        mock_login_result = FlextResult.ok(
+            {
+                "token": "token_testuser_abc123",
+                "user": {"name": "Test User", "username": "testuser"},
+            }
+        )
         mock_client.login.return_value = mock_login_result
         mock_client_class.return_value.__aenter__.return_value = mock_client
 
@@ -223,11 +225,13 @@ class TestAuthCommands:
         # Mock async client
         mock_client = AsyncMock()
         # Mock FlextResult success response
-        mock_client.get_current_user.return_value = FlextResult.ok({
-            "username": "testuser",
-            "email": "test@example.com",
-            "role": "user",
-        })
+        mock_client.get_current_user.return_value = FlextResult.ok(
+            {
+                "username": "testuser",
+                "email": "test@example.com",
+                "role": "user",
+            }
+        )
         mock_client_class.return_value.__aenter__.return_value = mock_client
 
         mock_console = MagicMock()
@@ -301,13 +305,15 @@ class TestAuthCommands:
         # Mock async client
         mock_client = AsyncMock()
         # Mock FlextResult success response
-        mock_client.get_current_user.return_value = FlextResult.ok({
-            "username": "testuser",
-            "full_name": "Test User",
-            "email": "test@example.com",
-            "role": "user",
-            "id": "123",
-        })
+        mock_client.get_current_user.return_value = FlextResult.ok(
+            {
+                "username": "testuser",
+                "full_name": "Test User",
+                "email": "test@example.com",
+                "role": "user",
+                "id": "123",
+            }
+        )
         mock_client_class.return_value.__aenter__.return_value = mock_client
 
         mock_console = MagicMock()
@@ -823,7 +829,9 @@ class TestAuthIntegration:
             # FlextResult should have data containing the token
             expected_data = {"token": "test"}
             if not (result.success and result.data == expected_data):
-                raise AssertionError(f"Expected success with data {expected_data}, got {result}")
+                raise AssertionError(
+                    f"Expected success with data {expected_data}, got {result}"
+                )
 
         # Execute async test
         import asyncio

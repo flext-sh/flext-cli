@@ -94,7 +94,7 @@ from flext_cli.core.decorators import (
     validate_config,
     with_spinner,
 )
-from flext_cli.core.helpers import CLIHelper
+from flext_cli.core.helpers import CLIHelper, FlextCliHelper
 from flext_cli.types import (
     FlextCliCommand,
     FlextCliConfig,
@@ -103,22 +103,20 @@ from flext_cli.types import (
     FlextCliSession,
 )
 
+# Services will be imported when needed to avoid circular imports
+
 # This will be resolved when the core.py file is imported
 
 __all__: list[str] = [
-    # Base classes
     "CLIContext",
-    # Helpers
     "CLIHelper",
     "FlextCliCommand",
     "FlextCliConfig",
     "FlextCliContext",
+    "FlextCliHelper",
     "FlextCliPlugin",
-    # CLI types for test compatibility
     "FlextCliSession",
-    # flext-core utilities
     "FlextUtilities",
-    # Decorators
     "async_command",
     "confirm_action",
     "handle_service_result",

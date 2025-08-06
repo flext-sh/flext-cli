@@ -98,6 +98,7 @@ class TestLibraryImports:
 
         # CLIContext - requires config and console
         from rich.console import Console
+
         config = flext_cli.CLIConfig()
         console = Console()
         context = flext_cli.CLIContext(config=config, console=console)

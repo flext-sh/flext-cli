@@ -14,8 +14,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from pydantic_core import ValidationError
 from flext_cli.config import CLIConfig
+from pydantic_core import ValidationError
 
 # Constants
 EXPECTED_BULK_SIZE = 2

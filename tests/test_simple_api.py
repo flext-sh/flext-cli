@@ -184,11 +184,11 @@ class TestGetCliSettings:
         assert hasattr(settings, "project_version")
 
     def test_get_cli_settings_returns_fresh_instance(self) -> None:
-        """Test that get_cli_settings returns fresh instances."""
-        settings1 = get_cli_settings()
-        settings2 = get_cli_settings()
+        """Test that get_cli_settings returns fresh instances when reload=True."""
+        settings1 = get_cli_settings(reload=True)
+        settings2 = get_cli_settings(reload=True)
 
-        # Should be different instances
+        # Should be different instances when reload=True
         assert settings1 is not settings2
 
         # But should have same default values

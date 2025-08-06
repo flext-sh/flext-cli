@@ -87,14 +87,13 @@ from flext_core import FlextResult
 from flext_core.interfaces import FlextConfigurable
 from flext_core.loggings import get_logger
 from flext_core.utilities import FlextUtilities, safe_call
-from rich.console import Console
 
 from flext_cli.types import (
     FlextCliCommand,
     FlextCliConfig,
-    FlextCliContext,
     FlextCliPlugin,
     FlextCliSession,
+    OutputFormat,
     TCliData,
     TCliFormat,
     TCliPath,
@@ -118,6 +117,7 @@ class FlextCliService(FlextService, FlextConfigurable):
     """Core CLI service implementing all functionality."""
 
     def __init__(self) -> None:
+        """Initialize CLI service with all functionality."""
         self.logger = get_logger(__name__)
         self._config: FlextCliConfig | None = None
 
@@ -139,7 +139,10 @@ class FlextCliService(FlextService, FlextConfigurable):
             if isinstance(config, dict):
                 # Handle backward compatibility: format_type -> output_format
                 cleaned_config = dict(config)
-                if "format_type" in cleaned_config and "output_format" not in cleaned_config:
+                if (
+                    "format_type" in cleaned_config
+                    and "output_format" not in cleaned_config
+                ):
                     cleaned_config["output_format"] = cleaned_config.pop("format_type")
                 self._config = FlextCliConfig(**cleaned_config)
             elif isinstance(config, FlextCliConfig):
@@ -149,17 +152,17 @@ class FlextCliService(FlextService, FlextConfigurable):
 
             self.logger.info(
                 "CLI service configured with format: %s",
-                self._config.format_type,
+                self._config.output_format,
             )
             return FlextResult.ok(None)
-        except (AttributeError, ValueError, TypeError, OSError) as e:
+        except (AttributeError, ValueError, TypeError, OSError, Exception) as e:
             return FlextResult.fail(f"Configuration failed: {e}")
 
     def flext_cli_export(
         self,
         data: TCliData,
         path: TCliPath,
-        format_type: TCliFormat = "json",
+        format_type: TCliFormat = OutputFormat.JSON,
     ) -> FlextResult[bool]:
         """Export data to file in specified format."""
         try:
@@ -186,7 +189,7 @@ class FlextCliService(FlextService, FlextConfigurable):
     def flext_cli_format(
         self,
         data: TCliData,
-        format_type: TCliFormat = "json",
+        format_type: TCliFormat = OutputFormat.JSON,
     ) -> FlextResult[str]:
         """Format data in specified format."""
         formatters = {
@@ -229,7 +232,7 @@ class FlextCliService(FlextService, FlextConfigurable):
 
             if self._config:
                 status["config"] = {
-                    "format": self._config.format_type,
+                    "format": self._config.output_format,
                     "debug": self._config.debug,
                     "profile": self._config.profile,
                     "api_url": self._config.api_url,
@@ -237,7 +240,14 @@ class FlextCliService(FlextService, FlextConfigurable):
 
             return FlextResult.ok(status)
 
-        except (AttributeError, ValueError, TypeError, OSError, ImportError) as e:
+        except (
+            AttributeError,
+            ValueError,
+            TypeError,
+            OSError,
+            ImportError,
+            Exception,
+        ) as e:
             return FlextResult.fail(f"Health check failed: {e}")
 
     def _format_json(self, data: TCliData) -> FlextResult[str]:
@@ -370,7 +380,11 @@ class FlextCliService(FlextService, FlextConfigurable):
         def create_session() -> str:
             entity_id = FlextUtilities.generate_entity_id()
             session_id = f"session_{entity_id}"
-            session = FlextCliSession(id=entity_id, session_id=session_id, user_id=user_id)
+            session = FlextCliSession(
+                id=entity_id,
+                session_id=session_id,
+                user_id=user_id,
+            )
             self._sessions[session.id] = session
             return f"Session '{session.id}' created"
 
@@ -415,13 +429,15 @@ class FlextCliService(FlextService, FlextConfigurable):
         context_options: dict[str, object] | None = None,
     ) -> FlextResult[str]:
         """Render using immutable context - restored from backup."""
-        # Create context with required fields
-        context = FlextCliContext(
-            config=self._config,
-            console=Console(),
-            **(context_options or {})
-        )
-        return self.flext_cli_format(data, context.output_format)
+        # Create context with required fields - handle missing config
+        # and output override
+        config = self._config or FlextCliConfig()
+
+        # Extract output format from context options if provided
+        context_options = context_options or {}
+        output_format = context_options.get("output_format", config.output_format)
+
+        return self.flext_cli_format(data, output_format)
 
     def flext_cli_get_commands(self) -> FlextResult[dict[str, FlextCliCommand]]:
         """Get all commands - restored from backup."""

@@ -1,34 +1,31 @@
-"""FLEXT CLI - Modern Command Line Interface with Zero Boilerplate.
+"""FlextCli - Zero-Boilerplate Foundation Library for CLI Applications.
 
-Unified CLI for FLEXT ecosystem applying foundation-refactored.md patterns.
-Eliminates 85% boilerplate through modern flext-core integration.
+This library provides massive boilerplate reduction for CLI applications
+through flext-core integration, FlextResult patterns, and Rich console
+integration. All public APIs use FlextCli prefixes for consistency.
 
-Foundation Pattern Applied:
-    # NEW: 5 lines - 80% boilerplate reduction!
-    from flext_cli import CLIConfig, setup_cli
+Foundation Features:
+    - FlextCliEntity: Zero-boilerplate CLI entities with automatic features
+    - FlextCliConfig: Configuration management with FlextBaseSettings
+    - FlextCliHelper: Comprehensive utility functions for common operations
+    - Zero-boilerplate setup functions for immediate productivity
 
-    config = CLIConfig()  # Automatic env loading, validation
-    result = setup_cli()  # Railway-oriented setup
-
-Architecture:
-    - FlextEntity domain models with zero boilerplate
-    - FlextResult railway-oriented programming
-    - FlextBaseSettings automatic configuration
-    - Clean Architecture with DDD patterns
-
-Usage:
-    Basic setup:
-    >>> from flext_cli import CLIConfig, setup_cli
-    >>> config = CLIConfig()
-    >>> result = setup_cli()
-
-    Domain entities:
-    >>> from flext_cli import CLICommand, CommandType
-    >>> command = CLICommand(name="test", command_line="echo hello")
-    >>> result = command.start_execution()
+Examples:
+    >>> from flext_cli import FlextCliEntity, create_flext_cli_config
+    >>>
+    >>> # Zero-boilerplate entity
+    >>> class MyCommand(FlextCliEntity):
+    ...     name: str = "my-command"
+    ...
+    ...     def execute(self) -> FlextResult[str]:
+    ...         return FlextResult.ok("Command executed")
+    >>>
+    >>> # Railway-oriented configuration
+    >>> config = create_flext_cli_config(debug=True, profile="dev").unwrap()
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -36,42 +33,145 @@ from __future__ import annotations
 # Version
 from flext_cli.__version__ import __version__
 
-# Core configuration - modern FlextBaseSettings
-from flext_cli.config import CLIConfig, get_config
-
-# Domain context
-from flext_cli.domain.cli_context import CLIContext
-
-# Domain entities - modern FlextEntity
-from flext_cli.domain.entities import (
-    CLICommand,
-    CLIPlugin,
-    CLISession,
+# Advanced Types - Explicit imports to avoid F403
+from flext_cli.advanced_types import (
+    FlextCliDataDict,
+    FlextCliDataList,
+    FlextCliFilePath,
+    FlextCliOperationResult,
+    FlextCliOutputFormat,
+    FlextCliPathLike,
+    FlextCliValidationResult,
 )
 
-# CLI setup - railway-oriented programming
-from flext_cli.simple_api import setup_cli
-
-# Types - semantic type system
-from flext_cli.types import (
-    PROFILE_TYPE,
-    CommandStatus,
-    CommandType,
-    OutputFormat,
+# Helper Functions and Classes
+from flext_cli.core.helpers import (
+    FlextCliHelper,
+    flext_cli_create_helper,
+    flext_cli_create_progress,
+    flext_cli_load_json,
+    flext_cli_quick_confirm,
+    flext_cli_save_data,
+    flext_cli_validate_email,
 )
 
-# Modern public API - zero boilerplate
+# Core Mixins - Interactive patterns
+from flext_cli.core.mixins import (
+    FlextCliAdvancedMixin,
+    FlextCliInteractiveMixin,
+    FlextCliProgressMixin,
+    FlextCliResultMixin,
+    flext_cli_auto_retry,
+    flext_cli_auto_validate,
+    flext_cli_handle_exceptions,
+    flext_cli_require_confirmation,
+    flext_cli_with_progress,
+    flext_cli_zero_config,
+)
+
+# Type Definitions
+from flext_cli.core.typedefs import (
+    FlextCliCommandStatus,
+    FlextCliCommandType,
+    FlextCliConfigData,
+    FlextCliLogLevel,
+    FlextCliResult,
+    FlextCliValidationType,
+    flext_cli_command_error,
+    flext_cli_command_result,
+)
+
+# Advanced Decorators - Explicit imports to avoid F403
+from flext_cli.decorators import (
+    flext_cli_cache_result,
+    flext_cli_confirm,
+    flext_cli_enhanced,
+    flext_cli_file_operation,
+    flext_cli_handle_keyboard_interrupt,
+    flext_cli_inject_config,
+    flext_cli_log_execution,
+    flext_cli_measure_time,
+    flext_cli_retry,
+    flext_cli_validate_inputs,
+)
+
+# Foundation Classes (Primary API) - Fixed imports
+from flext_cli.foundation import (
+    FlextCliConfig,
+    FlextCliEntity,
+    create_cli_config,  # Deprecated: use create_flext_cli_config
+    create_flext_cli_config,
+    legacy_setup_cli,  # Deprecated: use setup_flext_cli
+    setup_cli,  # Deprecated: use setup_flext_cli
+    setup_flext_cli,
+)
+
+# Advanced Mixins - Explicit imports to avoid F403
+from flext_cli.mixins import (
+    FlextCliCompleteMixin,
+    FlextCliConfigMixin,
+    FlextCliDataMixin,
+    FlextCliExecutionMixin,
+    FlextCliUIMixin,
+    FlextCliValidationMixin,
+)
+
+# Foundation Library Public API - Only Root Namespace Access
 __all__ = [
-    "PROFILE_TYPE",
-    "CLICommand",
-    "CLIConfig",
-    "CLIContext",
-    "CLIPlugin",
-    "CLISession",
-    "CommandStatus",
-    "CommandType",
-    "OutputFormat",
+    "FlextCliAdvancedMixin",
+    "FlextCliCommandStatus",
+    "FlextCliCommandType",
+    "FlextCliCompleteMixin",
+    "FlextCliConfig",
+    "FlextCliConfigData",
+    "FlextCliConfigMixin",
+    "FlextCliDataDict",
+    "FlextCliDataList",
+    "FlextCliDataMixin",
+    "FlextCliEntity",
+    "FlextCliExecutionMixin",
+    "FlextCliFilePath",
+    "FlextCliHelper",
+    "FlextCliInteractiveMixin",
+    "FlextCliLogLevel",
+    "FlextCliOperationResult",
+    "FlextCliOutputFormat",
+    "FlextCliPathLike",
+    "FlextCliProgressMixin",
+    "FlextCliResult",
+    "FlextCliResultMixin",
+    "FlextCliUIMixin",
+    "FlextCliValidationMixin",
+    "FlextCliValidationResult",
+    "FlextCliValidationType",
     "__version__",
-    "get_config",
+    "create_cli_config",
+    "create_flext_cli_config",
+    "flext_cli_auto_retry",
+    "flext_cli_auto_validate",
+    "flext_cli_cache_result",
+    "flext_cli_command_error",
+    "flext_cli_command_result",
+    "flext_cli_confirm",
+    "flext_cli_create_helper",
+    "flext_cli_create_progress",
+    "flext_cli_enhanced",
+    "flext_cli_file_operation",
+    "flext_cli_handle_exceptions",
+    "flext_cli_handle_keyboard_interrupt",
+    "flext_cli_inject_config",
+    "flext_cli_load_json",
+    "flext_cli_log_execution",
+    "flext_cli_measure_time",
+    "flext_cli_quick_confirm",
+    "flext_cli_require_confirmation",
+    "flext_cli_retry",
+    "flext_cli_save_data",
+    "flext_cli_validate_email",
+    "flext_cli_validate_inputs",
+    "flext_cli_with_progress",
+    "flext_cli_zero_config",
+    "legacy_setup_cli",
     "setup_cli",
+    "setup_flext_cli",
 ]

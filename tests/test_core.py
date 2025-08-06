@@ -85,7 +85,7 @@ class TestFlextCliService:
     def test_configure_with_flext_cli_config(self) -> None:
         """Test configuring service with FlextCliConfig object."""
         service = FlextCliService()
-        config = FlextCliConfig({"debug": False, "output_format": "yaml"})
+        config = FlextCliConfig(debug=False, output_format="yaml")
 
         result = service.configure(config)
         assert result.success
@@ -434,9 +434,7 @@ class TestFlextCliService:
     def test_flext_cli_health_with_config(self) -> None:
         """Test health check with configuration."""
         service = FlextCliService()
-        config = FlextCliConfig(
-            {"debug": True, "output_format": "json", "profile": "test"}
-        )
+        config = FlextCliConfig(debug=True, output_format="json", profile="test")
         service.configure(config)
 
         result = service.flext_cli_health()
@@ -626,7 +624,9 @@ class TestFlextCliService:
     def test_flext_cli_register_plugin(self) -> None:
         """Test registering plugin."""
         service = FlextCliService()
-        plugin = FlextCliPlugin(name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0")
+        plugin = FlextCliPlugin(
+            name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0"
+        )
 
         result = service.flext_cli_register_plugin("test-plugin", plugin)
         assert result.success
@@ -642,8 +642,12 @@ class TestFlextCliService:
     def test_flext_cli_register_plugin_duplicate(self) -> None:
         """Test registering duplicate plugin."""
         service = FlextCliService()
-        plugin1 = FlextCliPlugin(name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0")
-        plugin2 = FlextCliPlugin(name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0")
+        plugin1 = FlextCliPlugin(
+            name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0"
+        )
+        plugin2 = FlextCliPlugin(
+            name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0"
+        )
 
         # Register first plugin
         result1 = service.flext_cli_register_plugin("test-plugin", plugin1)
@@ -699,7 +703,7 @@ class TestFlextCliService:
     def test_flext_cli_render_with_context_default(self) -> None:
         """Test rendering with default context."""
         service = FlextCliService()
-        config = FlextCliConfig({"output_format": "json"})
+        config = FlextCliConfig(output_format="json")
         service.configure(config)
 
         data = {"name": "test", "value": 42}
@@ -715,7 +719,7 @@ class TestFlextCliService:
     def test_flext_cli_render_with_context_override(self) -> None:
         """Test rendering with context override."""
         service = FlextCliService()
-        config = FlextCliConfig({"output_format": "json"})
+        config = FlextCliConfig(output_format="json")
         service.configure(config)
 
         data = {"name": "test", "value": 42}
@@ -812,8 +816,15 @@ class TestFlextCliService:
         service = FlextCliService()
 
         # Register some plugins
-        plugin1 = FlextCliPlugin(name="plugin1", entry_point="plugin1.main", plugin_version="0.9.0")
-        plugin2 = FlextCliPlugin(name="plugin2", entry_point="plugin2.main", plugin_version="0.9.0")
+        import uuid
+        plugin1 = FlextCliPlugin(
+            id=str(uuid.uuid4()),
+            name="plugin1", entry_point="plugin1.main", plugin_version="0.9.0"
+        )
+        plugin2 = FlextCliPlugin(
+            id=str(uuid.uuid4()),
+            name="plugin2", entry_point="plugin2.main", plugin_version="0.9.0"
+        )
         service.flext_cli_register_plugin("plugin1", plugin1)
         service.flext_cli_register_plugin("plugin2", plugin2)
 
@@ -895,7 +906,9 @@ class TestIntegration:
         assert handler_result.success
 
         # 6. Register plugin
-        plugin = FlextCliPlugin(name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0")
+        plugin = FlextCliPlugin(
+            name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0"
+        )
         plugin_result = service.flext_cli_register_plugin("test-plugin", plugin)
         assert plugin_result.success
 
@@ -971,7 +984,9 @@ class TestIntegration:
         def handler(x: int) -> int:
             return x
 
-        plugin = FlextCliPlugin(name="test", entry_point="test.main", plugin_version="0.9.0")
+        plugin = FlextCliPlugin(
+            name="test", entry_point="test.main", plugin_version="0.9.0"
+        )
 
         service.flext_cli_register_handler("test", handler)
         service.flext_cli_register_plugin("test", plugin)

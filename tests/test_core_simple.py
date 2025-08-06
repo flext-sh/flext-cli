@@ -16,20 +16,17 @@ from pathlib import Path
 from typing import Never
 from unittest.mock import patch
 
-import flext_cli.core
+# Import directly from core.py, not core/ directory
 
-# Import directly from the core.py file to avoid conflicts
-core_path = Path(__file__).parent.parent / "src" / "flext_cli" / "core.py"
-spec = importlib.util.spec_from_file_location("flext_cli_core", core_path)
-if spec is None:
-    raise ImportError(f"Could not load spec from {core_path}")
-core_module = importlib.util.module_from_spec(spec)
-if spec.loader is None:
-    raise ImportError(f"No loader found for spec from {core_path}")
-spec.loader.exec_module(core_module)
-
-FlextCliService = core_module.FlextCliService
-FlextService = core_module.FlextService
+core_py_path = Path(__file__).parent.parent / "src" / "flext_cli" / "core.py"
+spec = importlib.util.spec_from_file_location("flext_cli_core_module", core_py_path)
+if spec and spec.loader:
+    core_py_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(core_py_module)
+    FlextCliService = core_py_module.FlextCliService
+    FlextService = core_py_module.FlextService
+else:
+    raise ImportError(f"Could not load core.py from {core_py_path}")
 
 
 # Mock the flext_cli.types imports needed for testing
@@ -91,7 +88,6 @@ class TestFlextService:
 class TestFlextCliService:
     """Test FlextCliService class."""
 
-
     def test_service_initialization(self) -> None:
         """Test service initialization."""
         service = FlextCliService()
@@ -124,7 +120,10 @@ class TestFlextCliService:
     def test_configure_with_config_object(self) -> None:
         """Test configuring service with config object."""
         service = FlextCliService()
-        config = MockFlextCliConfig({"debug": False, "output_format": "yaml"})
+        # Use real FlextCliConfig instead of mock for proper type checking
+        from flext_cli.types import FlextCliConfig
+
+        config = FlextCliConfig(debug=False, output_format="yaml")
 
         result = service.configure(config)
         assert result.success
@@ -320,9 +319,10 @@ class TestFlextCliService:
     def test_flext_cli_health_with_config(self) -> None:
         """Test health check with configuration."""
         service = FlextCliService()
-        config = MockFlextCliConfig(
-            {"debug": True, "output_format": "json", "profile": "test"}
-        )
+        # Use real FlextCliConfig for proper type checking
+        from flext_cli.types import FlextCliConfig
+
+        config = FlextCliConfig(debug=True, output_format="json", profile="test")
         service.configure(config)
 
         result = service.flext_cli_health()
@@ -476,7 +476,10 @@ class TestFlextCliService:
     def test_flext_cli_render_with_context(self) -> None:
         """Test rendering with context."""
         service = FlextCliService()
-        config = MockFlextCliConfig({"output_format": "json"})
+        # Use real FlextCliConfig instead of mock
+        from flext_cli.types import FlextCliConfig
+
+        config = FlextCliConfig(output_format="json")
         service.configure(config)
 
         data = {"name": "test", "value": 42}
@@ -597,7 +600,7 @@ class TestFlextCliService:
 
         # Mock FlextUtilities to raise exception
 
-        flext_cli.core.__dict__.get("FlextUtilities")
+        core_py_module.__dict__.get("FlextUtilities")
 
         def mock_utilities() -> Never:
             msg = "Utilities error"
@@ -641,7 +644,7 @@ class TestFlextCliService:
 
         # Mock FlextCliCommand to raise exception
         with patch.object(
-            core_module, "FlextCliCommand", side_effect=Exception("Command error")
+            core_py_module, "FlextCliCommand", side_effect=Exception("Command error")
         ):
             result = service.flext_cli_create_command("test", "echo")
             assert not result.success
@@ -652,7 +655,7 @@ class TestFlextCliService:
 
         # Mock FlextCliSession to raise exception
         with patch.object(
-            core_module, "FlextCliSession", side_effect=Exception("Session error")
+            core_py_module, "FlextCliSession", side_effect=Exception("Session error")
         ):
             result = service.flext_cli_create_session()
             assert not result.success

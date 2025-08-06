@@ -38,25 +38,12 @@ F = TypeVar("F", bound="Callable[..., None]")
 class TestDebugConnectivity:
     """Test connectivity command missing coverage."""
 
-    def test_connectivity_success_with_status(self) -> None:
-        """Test connectivity success with system status."""
-        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class:
-            self._test_connectivity_success_with_status_impl(mock_client_class)
-
-    def _test_connectivity_success_with_status_impl(
-        self, mock_client_class: MagicMock
+    def test_connectivity_success_with_status(
+        self, mock_flext_api_client_with_patches: object
     ) -> None:
         """Test connectivity success with system status."""
-        # Setup mocks - synchronous implementation (SOLID: Single Responsibility)
-        mock_client = MagicMock()
-        mock_client.test_connection.return_value = True
-        mock_client.base_url = "http://localhost:8000"
-        mock_client.get_system_status.return_value = {
-            "version": "1.0.0",
-            "status": "healthy",
-            "uptime": "24h",
-        }
-        mock_client_class.return_value = mock_client
+        # Use the existing mock client with proper setup
+        mock_flext_api_client_with_patches.base_url = "http://localhost:8000"
 
         mock_console = MagicMock()
         runner = CliRunner()
@@ -65,19 +52,47 @@ class TestDebugConnectivity:
 
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
-        # Verify connectivity test was displayed
+        # Check for the actual messages that the command produces
         mock_console.print.assert_any_call(
-            "[yellow]Testing API connectivity...[/yellow]"
+            "[yellow]Testing API connectivity using flext-api...[/yellow]"
+        )
+        mock_console.print.assert_any_call(
+            "[green]✅ Connected to API at http://localhost:8000[/green]"
         )
         mock_console.print.assert_any_call("\nSystem Status:")
         mock_console.print.assert_any_call("  Version: 1.0.0")
         mock_console.print.assert_any_call("  Status: healthy")
         mock_console.print.assert_any_call("  Uptime: 24h")
 
-    def test_connectivity_success_status_unknown(self) -> None:
+    def test_connectivity_success_status_unknown(
+        self, mock_flext_api_client_with_patches: object
+    ) -> None:
         """Test connectivity success with unknown status fields."""
-        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class:
-            self._test_connectivity_success_status_unknown_impl(mock_client_class)
+        from flext_core import FlextResult
+
+        # Configure the mock to return status with missing fields (but still a valid dict)
+        async def mock_get_system_status_partial() -> FlextResult[dict[str, object]]:
+            return FlextResult.ok(
+                {"incomplete": "status"}
+            )  # Dict with missing expected fields
+
+        mock_flext_api_client_with_patches.get_system_status = (
+            mock_get_system_status_partial
+        )
+        mock_flext_api_client_with_patches.base_url = "https://api.flext.com"
+
+        mock_console = MagicMock()
+        runner = CliRunner()
+
+        result = runner.invoke(connectivity, obj={"console": mock_console})
+
+        if result.exit_code != 0:
+            raise AssertionError(f"Expected {0}, got {result.exit_code}")
+        # When status dict exists but has missing fields, the command shows "Unknown" values
+        mock_console.print.assert_any_call("\nSystem Status:")
+        mock_console.print.assert_any_call("  Version: Unknown")
+        mock_console.print.assert_any_call("  Status: Unknown")
+        mock_console.print.assert_any_call("  Uptime: Unknown")
 
     def _test_connectivity_success_status_unknown_impl(
         self, mock_client_class: MagicMock
@@ -101,9 +116,11 @@ class TestDebugConnectivity:
         mock_console.print.assert_any_call("  Status: Unknown")
         mock_console.print.assert_any_call("  Uptime: Unknown")
 
-    def test_connectivity_success_status_error(self) -> None:
+    def test_connectivity_success_status_error(
+        self, mock_flext_api_client_with_patches: object
+    ) -> None:
         """Test connectivity success but status fetch fails."""
-        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class:
+        with patch("flext_cli.client.FlextApiClient") as mock_client_class:
             self._test_connectivity_success_status_error_impl(mock_client_class)
 
     def _test_connectivity_success_status_error_impl(
@@ -128,20 +145,22 @@ class TestDebugConnectivity:
             "[yellow]⚠️  Could not get system status: Status error[/yellow]"
         )
 
-    def test_connectivity_failed_connection(self) -> None:
-        """Test connectivity when connection fails."""
-        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class:
-            self._test_connectivity_failed_connection_impl(mock_client_class)
-
-    def _test_connectivity_failed_connection_impl(
-        self, mock_client_class: MagicMock
+    def test_connectivity_failed_connection(
+        self, mock_flext_api_client_with_patches
     ) -> None:
-        """Test connectivity when connection fails."""
-        # Setup mocks
-        mock_client = MagicMock()
-        mock_client.test_connection.return_value = False
-        mock_client.base_url = "https://api.flext.com"
-        mock_client_class.return_value = mock_client
+        """Test connectivity when connection fails using SOLID fixture patterns."""
+        # Configure the existing mock to simulate connection failure
+        from flext_core import FlextResult
+
+        # Override the test_connection method to return failure
+        async def mock_test_connection_failure() -> FlextResult[bool]:
+            return FlextResult.fail("Connection failed")
+
+        # Modify the mock that's already in use to return failure
+        mock_flext_api_client_with_patches.test_connection = (
+            mock_test_connection_failure
+        )
+        mock_flext_api_client_with_patches.base_url = "https://api.flext.com"
 
         mock_console = MagicMock()
         runner = CliRunner()
@@ -151,38 +170,39 @@ class TestDebugConnectivity:
         if result.exit_code != 1:
             raise AssertionError(f"Expected {1}, got {result.exit_code}")
         mock_console.print.assert_any_call(
-            "[red]❌ Failed to connect to API at https://api.flext.com[/red]"
+            "[red]❌ Failed to connect to API: Connection failed[/red]"
         )
 
-    def test_connectivity_connection_error(self) -> None:
+    def test_connectivity_connection_error(
+        self, mock_failing_api_client: object
+    ) -> None:
         """Test connectivity with connection error."""
-        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class:
+        with patch("flext_cli.client.FlextApiClient") as mock_client_class:
             self._test_connectivity_connection_error_impl(mock_client_class)
 
     def _test_connectivity_connection_error_impl(
         self, mock_client_class: MagicMock
     ) -> None:
         """Test connectivity with connection error."""
-        # Setup mocks - use import with appropriate error
-        with patch("flext_cli.commands.debug.FlextConnectionError", Exception):
-            mock_client = MagicMock()
-            mock_client.test_connection.side_effect = Exception("Connection failed")
-            mock_client_class.return_value = mock_client
+        # Test already uses mock_failing_api_client fixture which provides failing client
+        # No additional mocking needed - the fixture handles everything
 
-            mock_console = MagicMock()
-            runner = CliRunner()
+        mock_console = MagicMock()
+        runner = CliRunner()
 
-            result = runner.invoke(connectivity, obj={"console": mock_console})
+        result = runner.invoke(connectivity, obj={"console": mock_console})
 
-            if result.exit_code != 1:
-                raise AssertionError(f"Expected {1}, got {result.exit_code}")
-            mock_console.print.assert_any_call(
-                "[red]❌ Connection test failed: Connection failed[/red]"
-            )
+        if result.exit_code != 1:
+            raise AssertionError(f"Expected {1}, got {result.exit_code}")
 
-    def test_connectivity_os_error(self) -> None:
+        # Our MockFailingApiClient returns "Connection failed" as error message
+        mock_console.print.assert_any_call(
+            "[red]❌ Failed to connect to API: Connection failed[/red]"
+        )
+
+    def test_connectivity_os_error(self, mock_failing_api_client: object) -> None:
         """Test connectivity with OS error."""
-        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class:
+        with patch("flext_cli.client.FlextApiClient") as mock_client_class:
             self._test_connectivity_os_error_impl(mock_client_class)
 
     def _test_connectivity_os_error_impl(self, mock_client_class: MagicMock) -> None:
@@ -209,7 +229,7 @@ class TestDebugPerformance:
 
     def test_performance_success(self) -> None:
         """Test performance command success."""
-        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class:
+        with patch("flext_cli.client.FlextApiClient") as mock_client_class:
             self._test_performance_success_impl(mock_client_class)
 
     def _test_performance_success_impl(self, mock_client_class: MagicMock) -> None:
@@ -236,7 +256,7 @@ class TestDebugPerformance:
 
     def test_performance_error(self) -> None:
         """Test performance command with error."""
-        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class:
+        with patch("flext_cli.client.FlextApiClient") as mock_client_class:
             self._test_performance_error_impl(mock_client_class)
 
     def _test_performance_error_impl(self, mock_client_class: MagicMock) -> None:
@@ -325,7 +345,7 @@ class TestDebugIntegrationScenarios:
 
     def test_multiple_debug_commands_sequence(self) -> None:
         """Test running multiple debug commands in sequence."""
-        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class:
+        with patch("flext_cli.client.FlextApiClient") as mock_client_class:
             self._test_multiple_debug_commands_sequence_impl(mock_client_class)
 
     def _test_multiple_debug_commands_sequence_impl(
@@ -371,7 +391,7 @@ class TestDebugIntegrationScenarios:
 
     def test_debug_error_consistency(self) -> None:
         """Test that debug commands handle errors consistently."""
-        with patch("flext_cli.commands.debug.FlextApiClient") as mock_client_class:
+        with patch("flext_cli.client.FlextApiClient") as mock_client_class:
             self._test_debug_error_consistency_impl(mock_client_class)
 
     def _test_debug_error_consistency_impl(self, mock_client_class: MagicMock) -> None:

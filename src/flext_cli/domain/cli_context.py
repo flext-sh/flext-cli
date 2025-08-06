@@ -63,7 +63,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
-from typing import Literal
+from typing import Literal, cast
 
 from flext_core import (
     FlextDomainValueObject as DomainValueObject,
@@ -73,6 +73,39 @@ from pydantic import ConfigDict, Field
 from rich.console import Console
 
 from flext_cli.config import CLIConfig
+
+
+class CLIContextParams:
+    """Parameter Object pattern for CLIContext creation - SOLID Single Responsibility.
+
+    Reduces function parameters by encapsulating related CLI context parameters
+    into a single, cohesive object following SOLID principles.
+    """
+
+    def __init__(
+        self,
+        profile: str = "default",
+        output_format: Literal["table", "json", "yaml", "csv", "plain"] = "table",
+        **options: bool,  # SOLID - combine options to reduce parameter count
+    ) -> None:
+        """Initialize CLI context parameters - SOLID Parameter Object Pattern.
+
+        SOLID SRP: Single responsibility for parameter encapsulation
+        Backward Compatibility: Maintains original parameter interface
+
+        Args:
+            profile: Configuration profile name
+            output_format: Output format (table, json, yaml, csv, plain)
+            **options: Boolean options (debug, quiet, verbose, no_color)
+
+        """
+        self.profile = profile
+        self.output_format = output_format
+        # Extract boolean options with defaults
+        self.debug = options.get("debug", False)
+        self.quiet = options.get("quiet", False)
+        self.verbose = options.get("verbose", False)
+        self.no_color = options.get("no_color", False)
 
 
 class CLIContext(DomainValueObject):
@@ -112,24 +145,48 @@ class CLIContext(DomainValueObject):
     def create_with_params(
         cls,
         *,
-        profile: str = "default",
-        output_format: Literal["table", "json", "yaml", "csv", "plain"] = "table",
-        debug: bool = False,
-        quiet: bool = False,
-        verbose: bool = False,
-        no_color: bool = False,
+        params: CLIContextParams | None = None,
+        **kwargs: object,
     ) -> CLIContext:
-        """Create CLIContext with individual parameters (backward compatibility).
+        """Create CLIContext using Parameter Object Pattern - SOLID compliant.
 
         SOLID OCP: Extends functionality without modifying existing code.
+
+        Args:
+            params: CLI context parameters object (Parameter Object pattern)
+            **kwargs: Additional keyword arguments for backward compatibility
+
         """
+        # Handle backward compatibility with individual parameters
+        if params is None:
+            # Extract individual parameters from kwargs for backward compatibility
+            # Safe type conversion with validation
+            output_format_value = kwargs.get("output_format", "table")
+            valid_formats = {"table", "json", "yaml", "csv", "plain"}
+            validated_format = (
+                output_format_value if output_format_value in valid_formats else "table"
+            )
+            # Cast to proper Literal type since we've validated it's in the allowed values
+            typed_output_format = cast(
+                "Literal['table', 'json', 'yaml', 'csv', 'plain']", validated_format,
+            )
+
+            params = CLIContextParams(
+                profile=str(kwargs.get("profile", "default")),
+                output_format=typed_output_format,
+                debug=bool(kwargs.get("debug")),
+                quiet=bool(kwargs.get("quiet")),
+                verbose=bool(kwargs.get("verbose")),
+                no_color=bool(kwargs.get("no_color")),
+            )
+
         config = CLIConfig(
-            profile=profile,
-            output_format=output_format,
-            debug=debug,
-            quiet=quiet,
-            verbose=verbose,
-            no_color=no_color,
+            profile=params.profile,
+            output_format=params.output_format,
+            debug=params.debug,
+            quiet=params.quiet,
+            verbose=params.verbose,
+            no_color=params.no_color,
         )
         console = Console()
         return cls(config=config, console=console)
