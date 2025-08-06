@@ -186,13 +186,45 @@ class URLType(click.ParamType):
             parsed = urlparse(value)
             if not parsed.scheme or not parsed.netloc:
                 self.fail(f"{value!r} is not a valid URL", param, ctx)
-            return value
         except (ValueError, TypeError):
             self.fail(f"{value!r} is not a valid URL", param, ctx)
+        else:
+            return value
+
+
+class PathValidationConfig:
+    """Configuration for ClickPath validation (Parameter Object pattern).
+
+    REFACTORED: Applied Parameter Object pattern to reduce argument count.
+    Groups related path validation parameters into a single configuration object.
+    """
+
+    def __init__(
+        self,
+        *,
+        exists: bool = False,
+        file_okay: bool = True,
+        dir_okay: bool = True,
+        **options: object,
+    ) -> None:
+        # Core path validation options
+        self.exists = exists
+        self.file_okay = file_okay
+        self.dir_okay = dir_okay
+
+        # Extended options with defaults
+        self.writable = bool(options.get("writable", False))
+        self.readable = bool(options.get("readable", True))
+        self.resolve_path = bool(options.get("resolve_path", True))
+        self.allow_dash = bool(options.get("allow_dash", False))
+        path_type_option = options.get("path_type", str)
+        self.path_type: type[str] | None = path_type_option if isinstance(path_type_option, type) else str
 
 
 class ClickPath(click.Path):
     """Enhanced Click Path type with flext-core integration and validation.
+
+    REFACTORED: Applied Parameter Object pattern to reduce constructor complexity.
 
     Extends Click's standard Path type with enhanced validation, better error
     handling, and integration with FLEXT CLI patterns. Provides comprehensive
@@ -204,7 +236,7 @@ class ClickPath(click.Path):
         - Integration with flext-core patterns and conventions
         - Flexible configuration for different path requirements
 
-    Validation Options:
+    Validation Options (via PathValidationConfig):
         - exists: Whether path must exist
         - file_okay: Whether files are acceptable
         - dir_okay: Whether directories are acceptable
@@ -224,40 +256,38 @@ class ClickPath(click.Path):
         ...     # output_dir is guaranteed to be existing directory
     """
 
-    def __init__(  # noqa: PLR0913
-        self,
-        *,
-        exists: bool = False,
-        file_okay: bool = True,
-        dir_okay: bool = True,
-        writable: bool = False,
-        readable: bool = True,
-        resolve_path: bool = True,
-        allow_dash: bool = False,
-        path_type: type = str,
-    ) -> None:
+    def __init__(self, config: PathValidationConfig | None = None, **kwargs: object) -> None:
         """Initialize enhanced Click Path with validation options.
 
+        REFACTORED: Uses PathValidationConfig to reduce parameter count.
+        Maintains backward compatibility with direct keyword arguments.
+
         Args:
-            exists: Whether path must exist on filesystem
-            file_okay: Whether files are acceptable paths
-            dir_okay: Whether directories are acceptable paths
-            writable: Whether path must be writable
-            readable: Whether path must be readable
-            resolve_path: Whether to resolve symbolic links and relative paths
-            allow_dash: Whether to allow '-' as stdin/stdout
-            path_type: Type to convert path to (str or pathlib.Path)
+            config: Path validation configuration (defaults to standard settings)
+            **kwargs: Direct validation options for backward compatibility
 
         """
+        # Handle backward compatibility - if kwargs provided, use them
+        if kwargs:
+            config = PathValidationConfig(
+                exists=bool(kwargs.get("exists", False)),
+                file_okay=bool(kwargs.get("file_okay", True)),
+                dir_okay=bool(kwargs.get("dir_okay", True)),
+                **{k: v for k, v in kwargs.items()
+                   if k in {"writable", "readable", "resolve_path", "allow_dash", "path_type"}},
+            )
+        elif config is None:
+            config = PathValidationConfig()
+
         super().__init__(
-            exists=exists,
-            file_okay=file_okay,
-            dir_okay=dir_okay,
-            writable=writable,
-            readable=readable,
-            resolve_path=resolve_path,
-            allow_dash=allow_dash,
-            path_type=path_type,
+            exists=config.exists,
+            file_okay=config.file_okay,
+            dir_okay=config.dir_okay,
+            writable=config.writable,
+            readable=config.readable,
+            resolve_path=config.resolve_path,
+            allow_dash=config.allow_dash,
+            path_type=config.path_type,
         )
 
 
@@ -272,39 +302,53 @@ URL = URLType()  # Validates proper URL format with scheme and netloc
 
 # File and directory path validation
 ExistingFile = ClickPath(
-    exists=True,
-    file_okay=True,
-    dir_okay=False,
+    config=PathValidationConfig(
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+    ),
 )  # Must be existing file
 ExistingDir = ClickPath(
-    exists=True,
-    file_okay=False,
-    dir_okay=True,
+    config=PathValidationConfig(
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
 )  # Must be existing directory
 NewFile = ClickPath(
-    exists=False,
-    file_okay=True,
-    dir_okay=False,
+    config=PathValidationConfig(
+        exists=False,
+        file_okay=True,
+        dir_okay=False,
+    ),
 )  # New file path (doesn't exist)
 NewDir = ClickPath(
-    exists=False,
-    file_okay=False,
-    dir_okay=True,
+    config=PathValidationConfig(
+        exists=False,
+        file_okay=False,
+        dir_okay=True,
+    ),
 )  # New directory path (doesn't exist)
 AnyPath = ClickPath(
-    exists=False,
-    file_okay=True,
-    dir_okay=True,
+    config=PathValidationConfig(
+        exists=False,
+        file_okay=True,
+        dir_okay=True,
+    ),
 )  # Any path (file or directory)
 ReadableFile = ClickPath(
-    exists=True,
-    file_okay=True,
-    dir_okay=False,
-    readable=True,
+    config=PathValidationConfig(
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+    ),
 )  # Readable existing file
 WritableFile = ClickPath(
-    exists=True,
-    file_okay=True,
-    dir_okay=False,
-    writable=True,
+    config=PathValidationConfig(
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        writable=True,
+    ),
 )  # Writable existing file

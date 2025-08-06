@@ -123,7 +123,7 @@ def check(ctx: click.Context) -> None:
         config = get_config()
         console.print("[green]✓[/green] Configuration: OK")
         console.print(f"  Profile: {config.profile}")
-    except Exception as e:
+    except (AttributeError, ValueError, TypeError, ImportError) as e:
         console.print(f"[red]✗[/red] Configuration: ERROR - {e}")
 
     # Check connectivity simulation
@@ -139,7 +139,9 @@ def connectivity(ctx: click.Context) -> None:
 
     # FLEXT-API Integration: Use flext-api library for consistent HTTP operations
     if not FLEXT_API_AVAILABLE:
-        console.print("[red]❌ flext-api library not available - cannot test connectivity[/red]")
+        console.print(
+            "[red]❌ flext-api library not available - cannot test connectivity[/red]",
+        )
         ctx.exit(1)
 
     try:
@@ -240,7 +242,7 @@ def services(ctx: click.Context) -> None:
         # Run async service check
         asyncio.run(check_services())
 
-    except Exception as e:
+    except (RuntimeError, ConnectionError, TimeoutError, ValueError) as e:
         console.print(f"[red]❌ Service check failed: {e}[/red]")
         ctx.exit(1)
 

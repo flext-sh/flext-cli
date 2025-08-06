@@ -9,6 +9,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-# Import project modules when they are available\ntry:\n    from . import client-a, client-b, meltano\nexcept ImportError:\n    # Modules may not be available in all configurations\n    pass
+# Import project modules when they are available
+try:
+    from . import client-a, client-b, meltano
+except ImportError:
+    # Modules may not be available in all configurations
+    pass
 
 __all__: list[str] = ["client-a", "client-b", "meltano"]

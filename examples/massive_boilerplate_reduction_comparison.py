@@ -89,7 +89,7 @@ def example_before_vs_after() -> None:
     # Transform data for comparison-like functionality
     comparison_result = flext_cli.flext_cli_transform_data(
         data,
-        filter_func=lambda x: True,  # Keep all data
+        filter_func=lambda _: True,  # Keep all data (noqa: ARG005)
         sort_key="id",
     )
     comparison = flext_cli.flext_cli_unwrap_or_none(comparison_result)

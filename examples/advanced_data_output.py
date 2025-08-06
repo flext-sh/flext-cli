@@ -89,7 +89,9 @@ class FlextCliBuilder:
         """Add command."""
 
 
-def flext_cli_export_data(_data: list[dict[str, object]], _path: str) -> FlextResult[None]:
+def flext_cli_export_data(
+    _data: list[dict[str, object]], _path: str
+) -> FlextResult[None]:
     """Simple stub for data export."""
     return FlextResult.ok(None)
 
@@ -203,7 +205,10 @@ def example_tabulate_formatting() -> None:
         try:
             # Format data for tabulate
             headers = ["Metric", "Current", "Target", "Status"]
-            rows = [[d["metric"], d["current"], d["target"], d["status"]] for d in metrics_data]
+            rows = [
+                [d["metric"], d["current"], d["target"], d["status"]]
+                for d in metrics_data
+            ]
 
             # Create formatted table
             formatted_table = tabulate(rows, headers=headers, tablefmt=fmt)
@@ -265,14 +270,16 @@ def example_data_analysis() -> None:
     best_product = max(sales_data, key=lambda x: x["price"] * x["quantity"])
 
     console.print(f"Total Revenue: ${total_revenue:,.2f}")
-    console.print(f"Best Product: {best_product['product']} (${best_product['price'] * best_product['quantity']:,.2f})")
+    best_revenue = best_product["price"] * best_product["quantity"]
+    console.print(f"Best Product: {best_product['product']} (${best_revenue:,.2f})")
     console.print(f"Average Product Revenue: ${total_revenue / len(sales_data):,.2f}")
 
 
 def example_rich_gui_dashboard() -> None:
     """Example 4: Rich GUI Dashboard."""
-    # Create Rich GUI
+    # Create Rich GUI and console
     gui = FlextCliRichGUI()
+    console = Console()
 
     # System metrics for dashboard
     system_metrics = {
@@ -294,7 +301,7 @@ def example_rich_gui_dashboard() -> None:
         dashboard_result.unwrap()
 
         # In a real application, this would start live updates
-        # gui.start_live_dashboard(layout)
+        console.print("[dim]Live dashboard would start here in production[/dim]")
 
         # Create data table for dashboard
         service_data = [

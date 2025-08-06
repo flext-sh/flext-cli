@@ -102,9 +102,10 @@ class CLIHelper:
             path = Path(path_str)
             if must_exist:
                 return path.exists()
-            return True
         except (ValueError, OSError):
             return False
+        else:
+            return True
 
     def validate_email(self, email: str) -> bool:
         """Validate email format."""

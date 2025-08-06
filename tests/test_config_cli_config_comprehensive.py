@@ -14,6 +14,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from pydantic_core import ValidationError
 from flext_cli.config import CLIConfig
 
 # Constants
@@ -346,15 +347,24 @@ class TestCLIConfigIntegration:
             config = CLIConfig(api_url="")
             # If this doesn't raise, empty strings are allowed
 
-        # Very large timeout
-        config = CLIConfig(timeout=999999)
-        if config.timeout != 999999:
-            raise AssertionError(f"Expected {999999}, got {config.timeout}")
+        # Very large timeout should raise ValidationError due to le=300 constraint
+        with pytest.raises(ValidationError):
+            CLIConfig(timeout=999999)
 
-        # Zero retries
+        # Valid maximum timeout
+        config = CLIConfig(timeout=300)
+        if config.timeout != 300:
+            raise AssertionError(f"Expected {300}, got {config.timeout}")
+
+        # Zero retries (valid since ge=0)
         config = CLIConfig(max_retries=0)
         if config.max_retries != 0:
             raise AssertionError(f"Expected {0}, got {config.max_retries}")
+
+        # Maximum retries
+        config = CLIConfig(max_retries=10)
+        if config.max_retries != 10:
+            raise AssertionError(f"Expected {10}, got {config.max_retries}")
 
     def test_config_paths_relationship(self) -> None:
         """Test relationship between different config paths."""

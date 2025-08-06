@@ -21,23 +21,15 @@ from __future__ import annotations
 import json
 from typing import Self
 
-try:
-    # Primary integration: Use flext-api for HTTP operations
-    from flext_api import (
-        FlextApiClient,
-        create_flext_api,
-    )
-    from flext_core import FlextResult, get_logger
+# Primary integration: Use flext-api for HTTP operations
+from flext_api import (
+    FlextApiClient,
+    create_flext_api,
+)
+from flext_core import FlextResult, get_logger
 
-    FLEXT_API_AVAILABLE = True
-    logger = get_logger(__name__)
-
-except ImportError as e:
-    # Graceful fallback for environments where flext-api is not available
-    FLEXT_API_AVAILABLE = False
-    import structlog
-    logger = structlog.get_logger(__name__)
-    logger.warning("flext-api not available", error=str(e))
+FLEXT_API_AVAILABLE = True
+logger = get_logger(__name__)
 
 from flext_cli.config import get_config as get_cli_config
 
@@ -261,7 +253,7 @@ class FlextCLIApiClient:
                 })
             return FlextResult.fail(f"{name} unhealthy: {status_code}")
 
-        except Exception as e:
+        except (ConnectionError, TimeoutError, ValueError, AttributeError) as e:
             return FlextResult.fail(f"{name} check failed: {e}")
 
     async def login(self, username: str, password: str) -> FlextResult[dict[str, object]]:
@@ -348,8 +340,8 @@ class FlextCLIApiClient:
             try:
                 await self._api_client.stop()
                 logger.info("flext-api client closed")
-            except Exception as e:
-                logger.warning(f"Error closing API client: {e}")
+            except (ConnectionError, OSError, RuntimeError, AttributeError) as e:
+                logger.warning("Error closing API client: %s", e)
 
 
 # Factory functions for CLI integration

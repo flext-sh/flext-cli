@@ -81,8 +81,9 @@ class ProfileType(click.ParamType):
         """Convert value to profile string."""
         if isinstance(value, str):
             return value
+        # This will raise BadParameter and never return
         self.fail(f"{value!r} is not a valid profile", param, ctx)
-        return ""  # type: ignore[unreachable]  # Click pattern requirement
+        return ""  # type: ignore[unreachable] # Satisfies RET503
 
 
 # Singleton instances

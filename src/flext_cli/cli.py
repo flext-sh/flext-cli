@@ -57,6 +57,7 @@ from __future__ import annotations
 import sys
 
 import click
+from flext_core import __version__ as core_version
 from flext_core.utilities import FlextUtilities
 from rich.console import Console
 
@@ -64,13 +65,6 @@ from flext_cli.__version__ import __version__
 from flext_cli.commands import auth, config, debug
 from flext_cli.config import get_config
 from flext_cli.domain.cli_context import CLIContext
-
-try:
-    from flext_core import __version__ as _core_version
-
-    core_version: str | None = _core_version
-except ImportError:
-    core_version = None
 
 
 @click.group(
@@ -108,8 +102,9 @@ def cli(
     ctx: click.Context,
     profile: str,
     output: str,
-    debug: bool,  # noqa: FBT001 - Click CLI parameter pattern
-    quiet: bool,  # noqa: FBT001 - Click CLI parameter pattern
+    *,  # Force keyword-only arguments for booleans
+    debug: bool,
+    quiet: bool,
 ) -> None:
     """FLEXT Command Line Interface - Main entry point for ecosystem operations.
 

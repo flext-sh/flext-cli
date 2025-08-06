@@ -64,7 +64,7 @@ if TYPE_CHECKING:
 
 @click.group()
 def config() -> None:
-    """Configuration management for FLEXT CLI and ecosystem services.
+    """Manage configuration for FLEXT CLI and ecosystem services.
 
     Provides comprehensive configuration commands for managing CLI settings,
     profiles, and service configurations. Supports hierarchical configuration
@@ -316,7 +316,17 @@ def edit(ctx: click.Context, _profile: str | None) -> None:
 
     config_dir = cli_context.config.config_dir
     config_file = config_dir / "config.yaml"
-    editor = os.environ.get("EDITOR", "vim")
+
+    # Security: Validate editor command against safe whitelist
+    editor_env = os.environ.get("EDITOR", "vim")
+    safe_editors = {"vim", "vi", "nano", "emacs", "code", "notepad", "gedit"}
+    editor_cmd = editor_env.split()[0] if editor_env else "vim"  # Get base command
+
+    if editor_cmd not in safe_editors:
+        cli_context.print_error(f"Editor '{editor_cmd}' not in safe list: {', '.join(sorted(safe_editors))}")
+        ctx.exit(1)
+
+    editor = editor_env
 
     try:
         # Ensure config directory exists

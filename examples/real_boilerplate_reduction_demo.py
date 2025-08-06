@@ -15,12 +15,16 @@ import tempfile
 from flext_cli import (
     # Use only actually available exports
     flext_cli_aggregate_data,
+    flext_cli_batch_export,
     flext_cli_export,
     flext_cli_format,
     flext_cli_table,
     flext_cli_transform_data,
+    measure_time,
+    retry,
     # flext_cli_pipeline not available - remove
 )
+from flext_core import ServiceResult as FlextResult
 
 # Removed non-existent imports:
 # - FlextCliDataExporter, FlextCliFormatter don't exist
@@ -105,8 +109,6 @@ def enhanced_collections_demo() -> None:
 
 def advanced_decorators_demo() -> None:
     """Demonstrate function patterns with available decorators."""
-    from flext_cli import measure_time, retry
-    from flext_core import ServiceResult as FlextResult
 
     @measure_time
     @retry(max_attempts=3)

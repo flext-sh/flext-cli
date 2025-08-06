@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import asyncio
 import random
+import time
 from typing import TYPE_CHECKING
 
 import click
@@ -51,8 +52,9 @@ def cli(
     ctx: click.Context,
     config_file: Path | None,
     output_format: str,
-    debug: bool,  # noqa: FBT001
-    verbose: bool,  # noqa: FBT001
+    *,
+    debug: bool,
+    verbose: bool,
 ) -> None:
     """FLEXT CLI Example Application."""
     # Create CLI context with FLEXT CLI library
@@ -153,8 +155,6 @@ def transform(
     console.print(f"File size: {formatted_size}")
 
     # Simulate transformation
-    import time  # noqa: PLC0415
-
     time.sleep(0.5)  # Simulate processing time
 
     output_file = output_dir / f"transformed_{input_file.name}"
@@ -240,14 +240,15 @@ async def async_task(ctx: click.Context, delay: float) -> str:
 @click.pass_context
 @flext_cli.retry(max_attempts=3, delay=0.5)
 @flext_cli.handle_service_result
-def unreliable(ctx: click.Context, max_attempts: int) -> str:  # noqa: ARG001
+def unreliable(ctx: click.Context, max_attempts: int) -> str:  # noqa: ARG001  # Click command arguments
     """Demonstrate retry decorator with potentially failing operation."""
     console = Console()
     console.print("[bold blue]Unreliable Operation with Retry[/bold blue]")
+    console.print(f"Maximum retry attempts configured: {max_attempts}")
 
     # Simulate random failure
     failure_probability = 0.7  # 70% chance of failure
-    if random.random() < failure_probability:  # noqa: S311
+    if random.random() < failure_probability:  # noqa: S311  # Non-cryptographic demo use
         msg = "Simulated random failure"
         raise click.ClickException(msg)
 

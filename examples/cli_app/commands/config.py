@@ -258,7 +258,8 @@ def edit(ctx: click.Context, _profile: str | None) -> None:
 
         # Use shell=False and validate editor for security
         editor_cmd = shlex.split(editor)
-        subprocess.run([*editor_cmd, str(config_file)], check=True)  # noqa: S603
+        # S603: Safe subprocess call - using shell=False and validated input
+        subprocess.run([*editor_cmd, str(config_file)], check=True)  # noqa: S603  # Safe: shell=False, shlex.split validated
         cli_context.print_success("Configuration updated")
         cli_context.print_info("Restart CLI to apply changes")
 
