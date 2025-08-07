@@ -167,10 +167,10 @@ def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
         # Add any other overrides that might not be in the default hierarchy
         for key, value in overrides.items():
             if (
-                key not in final_config_data
+                key not in final_config_data and
+                isinstance(value, (str, bool, int, float, type(None)))
             ):  # Avoid overwriting explicitly mapped fields
-                if isinstance(value, (str, bool, int, float, type(None))):
-                    final_config_data[key] = value
+                final_config_data[key] = value
 
         # Create configuration with merged values and explicit type mapping
         config = FlextCliConfig.model_validate(final_config_data)

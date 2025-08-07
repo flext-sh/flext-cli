@@ -42,6 +42,74 @@ from flext_cli.core.typedefs import FlextCliValidationType
 F = TypeVar("F", bound=Callable[[object], object])
 
 
+# =============================================================================
+# VALIDATION STRATEGY HANDLERS - Complexity reduction via Strategy Pattern
+# =============================================================================
+
+class FlextCliValidationHandler:
+    """Strategy Pattern: Handles input validation operations.
+
+    SOLID REFACTORING: Extracted from complex decorator to reduce complexity
+    from 17 to focused, single-responsibility methods.
+    """
+
+    def __init__(self, helper: FlextCliHelper) -> None:
+        self.helper = helper
+        self.validation_type_mapping = {
+            "email": FlextCliValidationType.EMAIL,
+            "port": FlextCliValidationType.PORT,
+            "url": FlextCliValidationType.URL,
+            "path": FlextCliValidationType.PATH,
+            "file": FlextCliValidationType.FILE,
+            "dir": FlextCliValidationType.DIR,
+            "uuid": FlextCliValidationType.UUID,
+        }
+
+    def validate_single_input(self, param_name: str, value: str, validation_type: str) -> FlextResult[None]:
+        """Validate single input - Single Responsibility Pattern."""
+        validation_enum = self.validation_type_mapping.get(validation_type)
+        if validation_enum is None:
+            # Skip unknown validation types silently (backward compatibility)
+            return FlextResult.ok(None)
+
+        result = self.helper.flext_cli_validate_input(value, validation_enum)
+        if not result.success:
+            return FlextResult.fail(f"Validation failed for {param_name}: {result.error}")
+
+        return FlextResult.ok(None)
+
+    def validate_positional_args(
+        self,
+        args: tuple[object, ...],
+        param_names: list[str],
+        validations: dict[str, str],
+    ) -> FlextResult[None]:
+        """Validate positional arguments - Single Responsibility Pattern."""
+        for i, value in enumerate(args):
+            if i < len(param_names) and param_names[i] in validations:
+                validation_result = self.validate_single_input(
+                    param_names[i], str(value), validations[param_names[i]],
+                )
+                if not validation_result.success:
+                    return validation_result
+        return FlextResult.ok(None)
+
+    def validate_keyword_args(
+        self,
+        kwargs: dict[str, object],
+        validations: dict[str, str],
+    ) -> FlextResult[None]:
+        """Validate keyword arguments - Single Responsibility Pattern."""
+        for param_name, value in kwargs.items():
+            if param_name in validations:
+                validation_result = self.validate_single_input(
+                    param_name, str(value), validations[param_name],
+                )
+                if not validation_result.success:
+                    return validation_result
+        return FlextResult.ok(None)
+
+
 def flext_cli_file_operation(
     *,
     backup: bool = False,
@@ -93,7 +161,10 @@ def flext_cli_file_operation(
 
 
 def flext_cli_validate_inputs(validations: dict[str, str]) -> Callable[[F], F]:
-    """Input validation decorator - eliminates 95% of validation boilerplate.
+    """Input validation decorator using Strategy Pattern.
+
+    SOLID REFACTORING: Reduced complexity from 17 to 3 by extracting
+    validation handler with focused responsibility methods.
 
     Args:
         validations: Mapping of parameter names to validation types
@@ -101,7 +172,6 @@ def flext_cli_validate_inputs(validations: dict[str, str]) -> Callable[[F], F]:
     Example:
         @flext_cli_validate_inputs({"email": "email", "port": "port"})
         def send_notification(email: str, port: int) -> FlextResult[str]:
-            # Validation handled automatically
             return FlextResult.ok("Sent")
 
     """
@@ -109,46 +179,22 @@ def flext_cli_validate_inputs(validations: dict[str, str]) -> Callable[[F], F]:
         @functools.wraps(func)
         def wrapper(*args: object, **kwargs: object) -> object:
             helper = FlextCliHelper()
+            validation_handler = FlextCliValidationHandler(helper)
 
             # Get function parameter names
             sig = inspect.signature(func)
             param_names = list(sig.parameters.keys())
 
-            # Validate positional arguments
-            for i, value in enumerate(args):
-                if i < len(param_names) and param_names[i] in validations:
-                    validation_type = validations[param_names[i]]
-                    if validation_type == "email":
-                        result = helper.flext_cli_validate_input(str(value), FlextCliValidationType.EMAIL)
-                    elif validation_type == "port":
-                        result = helper.flext_cli_validate_input(str(value), FlextCliValidationType.PORT)
-                    elif validation_type == "url":
-                        result = helper.flext_cli_validate_input(str(value), FlextCliValidationType.URL)
-                    elif validation_type == "path":
-                        result = helper.flext_cli_validate_input(str(value), FlextCliValidationType.PATH)
-                    elif validation_type == "file":
-                        result = helper.flext_cli_validate_input(str(value), FlextCliValidationType.FILE)
-                    elif validation_type == "uuid":
-                        result = helper.flext_cli_validate_input(str(value), FlextCliValidationType.UUID)
-                    else:
-                        continue
+            # Strategy Pattern: delegate to validation handler
+            positional_result = validation_handler.validate_positional_args(
+                args, param_names, validations,
+            )
+            if not positional_result.success:
+                return FlextResult.fail(positional_result.error or "Positional validation failed")
 
-                    if not result.success:
-                        return FlextResult.fail(f"Validation failed for {param_names[i]}: {result.error}")
-
-            # Validate keyword arguments
-            for param_name, value in kwargs.items():
-                if param_name in validations:
-                    validation_type = validations[param_name]
-                    if validation_type == "email":
-                        result = helper.flext_cli_validate_input(str(value), FlextCliValidationType.EMAIL)
-                    elif validation_type == "port":
-                        result = helper.flext_cli_validate_input(str(value), FlextCliValidationType.PORT)
-                    else:
-                        continue
-
-                    if not result.success:
-                        return FlextResult.fail(f"Validation failed for {param_name}: {result.error}")
+            keyword_result = validation_handler.validate_keyword_args(kwargs, validations)
+            if not keyword_result.success:
+                return FlextResult.fail(keyword_result.error or "Keyword validation failed")
 
             return func(*args, **kwargs)
 

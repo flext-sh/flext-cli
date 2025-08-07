@@ -61,7 +61,9 @@ from flext_core import (
     FlextEntity,  # Use the modern FlextEntity instead of FlextDomainEntity
     FlextEntityId as EntityId,
     FlextResult,
+    get_logger,
 )
+from flext_core.interfaces import FlextPlugin, FlextPluginContext
 from pydantic import BaseModel, Field
 
 # Import CLIConfig from config module to avoid duplication (DRY principle)
@@ -799,6 +801,10 @@ class CLISession(FlextEntity):
             self.last_activity = datetime.now(UTC)
             return True
         except Exception:
+            logger = get_logger(__name__)
+            logger.exception(f"Failed to record command '{command_name}' in CLI session")
+            logger.debug(f"Session state: commands_executed={len(self.commands_executed)}, history={len(self.command_history)}")
+            # Return False to indicate recording failure
             return False
 
 
@@ -1186,7 +1192,6 @@ class CLIEntityFactory:
         try:
             plugin = CLIPlugin.model_validate({
                 "id": entity_id,
-                "entity_id": entity_id,
                 "name": name,
                 "entry_point": entry_point,
                 "plugin_version": plugin_version,
@@ -1195,6 +1200,86 @@ class CLIEntityFactory:
             return FlextResult.ok(plugin)
         except Exception as e:
             return FlextResult.fail(f"Failed to create CLIPlugin: {e}")
+
+
+# =============================================================================
+# PLUGIN INTERFACE IMPLEMENTATION - FLEXT-CORE INTEGRATION
+# =============================================================================
+
+
+class FlextCliPluginImpl(FlextPlugin):
+    """CLI plugin implementation following flext-core FlextPlugin interface.
+
+    COMPLIANCE: Concrete implementation using composition with CLIPlugin domain entity.
+    NO MIXING: Uses domain entity for data, implements abstract interface for behavior.
+    """
+
+    def __init__(self, entity: CLIPlugin) -> None:
+        """Initialize plugin with domain entity."""
+        self._entity = entity
+        self._logger = get_logger(self.__class__.__name__)
+
+    @property
+    def name(self) -> str:
+        """Plugin name from abstract interface."""
+        return self._entity.name
+
+    @property
+    def version(self) -> str:
+        """Plugin version from abstract interface."""
+        return self._entity.plugin_version
+
+    def initialize(self, context: FlextPluginContext) -> FlextResult[None]:
+        """Initialize plugin with context from abstract interface."""
+        try:
+            # Use context for actual initialization if needed
+            _ = context  # Acknowledge parameter for interface compliance
+
+            # Update entity status
+            updated_entity = self._entity.model_copy(
+                update={"plugin_status": PluginStatus.ACTIVE, "enabled": True},
+            )
+            self._entity = updated_entity
+
+            self._logger.info("CLI plugin initialized", plugin_name=self.name)
+            return FlextResult.ok(None)
+        except Exception as e:
+            return FlextResult.fail(f"Plugin initialization failed: {e}")
+
+    def shutdown(self) -> FlextResult[None]:
+        """Shutdown plugin and release resources from abstract interface."""
+        try:
+            # Update entity status
+            updated_entity = self._entity.model_copy(
+                update={"plugin_status": PluginStatus.INACTIVE, "enabled": False},
+            )
+            self._entity = updated_entity
+
+            self._logger.info("CLI plugin shutdown", plugin_name=self.name)
+            return FlextResult.ok(None)
+        except Exception as e:
+            return FlextResult.fail(f"Plugin shutdown failed: {e}")
+
+    @property
+    def entity(self) -> CLIPlugin:
+        """Get the underlying domain entity."""
+        return self._entity
+
+    def get_commands(self) -> list[str]:
+        """Get available commands from CLI plugin."""
+        return self._entity.commands.copy()
+
+    def get_entry_point(self) -> str:
+        """Get plugin entry point."""
+        return self._entity.entry_point
+
+    def is_enabled(self) -> bool:
+        """Check if plugin is enabled."""
+        return self._entity.enabled
+
+    def is_active(self) -> bool:
+        """Check if plugin is active."""
+        return self._entity.plugin_status == PluginStatus.ACTIVE
 
 
 # Model rebuilding to resolve forward references

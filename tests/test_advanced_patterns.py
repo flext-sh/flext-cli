@@ -59,9 +59,13 @@ class TestFlextCliAdvancedMixin:
         def mock_operation() -> FlextResult[str]:
             return FlextResult.ok("Operation completed successfully")
 
-        result = self.test_instance.flext_cli_execute_with_full_validation(
-            inputs, mock_operation, operation_name="test operation"
-        )
+        # Mock confirmation to return success
+        with patch.object(self.test_instance, "flext_cli_require_confirmation") as mock_confirm:
+            mock_confirm.return_value = FlextResult.ok(True)
+
+            result = self.test_instance.flext_cli_execute_with_full_validation(
+                inputs, mock_operation, operation_name="test operation"
+            )
 
         assert result.success
         assert result.data == "Operation completed successfully"

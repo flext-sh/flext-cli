@@ -33,7 +33,7 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
 
-from flext_core import FlextBaseSettings, FlextResult
+from flext_core import FlextBaseSettings, FlextResult, get_logger
 from pydantic import Field, model_validator
 from pydantic_settings import SettingsConfigDict
 
@@ -213,7 +213,7 @@ class CLIConfig(FlextBaseSettings):
     project_name: str = Field(default="flext-cli", description="Project name")
     project_version: str = Field(default="0.9.0", description="Project version")
     project_description: str = Field(
-        default="FLEXT CLI Library",
+        default="FLEXT CLI - Developer Command Line Interface",
         description="Project description",
     )
 
@@ -379,7 +379,10 @@ class CLIConfig(FlextBaseSettings):
             current_data.update(settings)
             # Validate by creating new instance
             CLIConfig(**current_data)
-        except (ValueError, TypeError, AttributeError):
+        except (ValueError, TypeError, AttributeError) as e:
+            logger = get_logger(__name__)
+            logger.warning(f"Configuration validation failed during update: {e}")
+            logger.debug(f"Attempted to update settings: {settings}")
             return False
         else:
             # Update current instance if validation passes
@@ -399,7 +402,10 @@ class CLIConfig(FlextBaseSettings):
             # Use model validation to check business rules
             # Create new instance to trigger validation
             CLIConfig(**self.model_dump())
-        except ValueError:
+        except ValueError as e:
+            logger = get_logger(__name__)
+            logger.warning(f"Domain rule validation failed: {e}")
+            logger.debug(f"Current configuration state: {self.model_dump()}")
             return False
         else:
             return True
@@ -624,4 +630,8 @@ def get_cli_settings(*, reload: bool = False) -> CLIConfig:
 # Backward compatibility aliases for tests
 CLISettings = CLIConfig  # Alias for backward compatibility
 get_cli_config = get_cli_settings  # Use singleton for consistency
-get_settings = get_cli_settings  # Return fresh instances for testing
+
+
+def get_settings() -> CLIConfig:
+    """Return fresh instances for testing - not singleton."""
+    return CLIConfig()

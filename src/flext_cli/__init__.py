@@ -47,12 +47,18 @@ from flext_cli.advanced_types import (
 # Helper Functions and Classes
 from flext_cli.core.helpers import (
     FlextCliHelper,
+    flext_cli_create_data_processor,
+    flext_cli_create_file_manager,
     flext_cli_create_helper,
     flext_cli_create_progress,
     flext_cli_load_json,
     flext_cli_quick_confirm,
     flext_cli_save_data,
+    flext_cli_validate_dir,
     flext_cli_validate_email,
+    flext_cli_validate_file,
+    flext_cli_validate_path,
+    flext_cli_validate_url,
 )
 
 # Core Mixins - Interactive patterns
@@ -95,6 +101,15 @@ from flext_cli.decorators import (
     flext_cli_validate_inputs,
 )
 
+# Domain Entities
+from flext_cli.domain.entities import (
+    CLICommand,
+    CLIPlugin,
+    CLISession,
+    CommandStatus,
+    CommandType,
+)
+
 # Foundation Classes (Primary API) - Fixed imports
 from flext_cli.foundation import (
     FlextCliConfig,
@@ -118,6 +133,11 @@ from flext_cli.mixins import (
 
 # Foundation Library Public API - Only Root Namespace Access
 __all__ = [
+    "CLICommand",
+    "CLIPlugin",
+    "CLISession",
+    "CommandStatus",
+    "CommandType",
     "FlextCliAdvancedMixin",
     "FlextCliCommandStatus",
     "FlextCliCommandType",
@@ -153,6 +173,8 @@ __all__ = [
     "flext_cli_command_error",
     "flext_cli_command_result",
     "flext_cli_confirm",
+    "flext_cli_create_data_processor",
+    "flext_cli_create_file_manager",
     "flext_cli_create_helper",
     "flext_cli_create_progress",
     "flext_cli_enhanced",
@@ -167,8 +189,12 @@ __all__ = [
     "flext_cli_require_confirmation",
     "flext_cli_retry",
     "flext_cli_save_data",
+    "flext_cli_validate_dir",
     "flext_cli_validate_email",
+    "flext_cli_validate_file",
     "flext_cli_validate_inputs",
+    "flext_cli_validate_path",
+    "flext_cli_validate_url",
     "flext_cli_with_progress",
     "flext_cli_zero_config",
     "legacy_setup_cli",
