@@ -33,7 +33,7 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING, TypeVar
 
-from flext_core import FlextResult
+from flext_core import FlextResult, get_logger
 
 from flext_cli.core.helpers import (
     FlextCliHelper,
@@ -43,11 +43,13 @@ from flext_cli.core.helpers import (
 # Type aliases to avoid false positive FBT001 warnings
 FlextCliData = dict[str, object] | list[object] | str | float | int | None
 
-# Optional imports
+# Optional imports - YAML support for configuration export
 try:
     import yaml
 except ImportError:
     yaml = None  # type: ignore[assignment]
+    # Note: YAML export will be disabled if pyyaml is not installed
+    # Users can install it with: pip install pyyaml
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -152,9 +154,13 @@ main()
             helper.console.print("Initializing git repository...")
 
             try:
-                subprocess.run(["git", "init"], check=True, cwd=project_path, capture_output=True)
-                results["git"] = "initialized"
-                helper.console.print("[green]✓ Git repository initialized[/green]")
+                git_cmd = shutil.which("git")
+                if not git_cmd:
+                    results["git"] = "git not found in PATH"
+                else:
+                    subprocess.run([git_cmd, "init"], check=True, cwd=project_path, capture_output=True)  # noqa: S603
+                    results["git"] = "initialized"
+                    helper.console.print("[green]✓ Git repository initialized[/green]")
             except (subprocess.CalledProcessError, FileNotFoundError):
                 helper.console.print("[yellow]⚠ Git initialization failed[/yellow]")
 
@@ -206,6 +212,40 @@ def flext_cli_auto_config(data: dict[str, object], *, template_path: str | None 
         return FlextResult.fail(f"Auto config failed: {e}")
 
 
+def _load_file_content(path_obj: Path, encoding: str, *, format_detection: bool, helper: FlextCliHelper) -> tuple[dict[str, object] | None, str | None]:
+    """Helper function to load file content based on format detection."""
+    # Validate file first
+    if not path_obj.exists() or not path_obj.is_file():
+        error_msg = f"File not found: {path_obj}" if not path_obj.exists() else f"Path is not a file: {path_obj}"
+        return None, error_msg
+
+    # Handle non-format detection or simple text loading
+    if not format_detection:
+        with path_obj.open(encoding=encoding) as f:
+            return {"content": f.read()}, None
+
+    suffix = path_obj.suffix.lower()
+
+    # Handle JSON format via helper
+    if suffix == ".json":
+        result = helper.flext_cli_load_file(str(path_obj))
+        return (result.data, None) if result.success else (None, result.error)
+
+    # Handle YAML with dependency check
+    if suffix in {".yml", ".yaml"}:
+        try:
+            with path_obj.open(encoding=encoding) as f:
+                return yaml.safe_load(f) if yaml else {}, None
+        except AttributeError:
+            return None, "PyYAML not installed for YAML support"
+
+    # Handle all other formats (CSV and text) in single path
+    with path_obj.open(encoding=encoding) as f:
+        content_data: dict[str, object] = {"rows": list(csv.DictReader(f))} if suffix == ".csv" else {"content": f.read(), "type": "text"}
+
+    return content_data, None
+
+
 def flext_cli_load_file(file_path: str, *, encoding: str = "utf-8",
                        format_detection: bool = True) -> FlextResult[dict[str, object]]:
     """Smart file loading with automatic format detection - eliminates format-specific loading code."""
@@ -213,104 +253,90 @@ def flext_cli_load_file(file_path: str, *, encoding: str = "utf-8",
 
     try:
         path_obj = Path(file_path)
-        if not path_obj.exists():
-            return FlextResult.fail(f"File not found: {file_path}")
-        if not path_obj.is_file():
-            return FlextResult.fail(f"Path is not a file: {file_path}")
+        result_data, error_msg = _load_file_content(path_obj, encoding, format_detection=format_detection, helper=helper)
 
-        file_obj = path_obj
+        if error_msg:
+            return FlextResult.fail(error_msg)
 
-        # Auto-detect format if enabled
-        if format_detection:
-            suffix = file_obj.suffix.lower()
-
-            if suffix == ".json":
-                return helper.flext_cli_load_file(str(file_obj))
-            if suffix in {".yml", ".yaml"}:
-                try:
-                    with Path(file_obj).open(encoding=encoding) as f:
-                        data = yaml.safe_load(f)
-                    return FlextResult.ok(data)
-                except ImportError:
-                    return FlextResult.fail("PyYAML not installed for YAML support")
-            elif suffix == ".csv":
-                with Path(file_obj).open(encoding=encoding) as f:
-                    reader = csv.DictReader(f)
-                    data = list(reader)
-                return FlextResult.ok({"rows": data})
-            else:
-                # Plain text
-                with Path(file_obj).open(encoding=encoding) as f:
-                    content = f.read()
-                return FlextResult.ok({"content": content, "type": "text"})
-        else:
-            # Load as text
-            with Path(file_obj).open(encoding=encoding) as f:
-                content = f.read()
-            return FlextResult.ok({"content": content})
+        return FlextResult.ok(result_data or {})
 
     except Exception as e:
         return FlextResult.fail(f"File loading failed: {e}")
 
 
+def _detect_file_format(path_obj: Path, format_type: str | None) -> str:
+    """Helper function to detect file format from extension."""
+    if format_type:
+        return format_type
+
+    suffix = path_obj.suffix.lower()
+    format_mapping = {
+        ".json": "json",
+        ".yml": "yaml",
+        ".yaml": "yaml",
+        ".csv": "csv",
+    }
+    return format_mapping.get(suffix, "text")
+
+
+def _format_data_content(data: FlextCliData, format_type: str) -> FlextResult[str]:
+    """Helper function to format data content based on format type."""
+    content = ""
+
+    if format_type == "json":
+        content = json.dumps(data, indent=2, ensure_ascii=False)
+    elif format_type == "yaml":
+        try:
+            content = yaml.dump(data, default_flow_style=False, allow_unicode=True) if yaml else ""
+        except AttributeError:
+            return FlextResult.fail("PyYAML not installed for YAML support")
+    elif format_type == "csv":
+        if not isinstance(data, dict) or "rows" not in data:
+            return FlextResult.fail("CSV data must be dict with 'rows' key containing list of dicts")
+
+        rows = data["rows"]
+        if not rows or not isinstance(rows, list) or not rows[0] or not isinstance(rows[0], dict):
+            content = ""
+        else:
+            output = io.StringIO()
+            writer = csv.DictWriter(output, fieldnames=list(rows[0].keys()))
+            writer.writeheader()
+            writer.writerows(rows)
+            content = output.getvalue()
+    else:
+        # Text format
+        content = str(data) if not isinstance(data, str) else data
+
+    return FlextResult.ok(content)
+
+
 def flext_cli_save_file(data: FlextCliData, file_path: str, *, format_type: str | None = None,
                        encoding: str = "utf-8", backup: bool = False) -> FlextResult[str]:
     """Smart file saving with automatic format detection - eliminates format-specific saving code."""
-    FlextCliHelper()
-
     try:
         path_obj = Path(file_path)
+        detected_format = _detect_file_format(path_obj, format_type)
 
-        # Auto-detect format from extension if not specified
-        if not format_type:
-            suffix = path_obj.suffix.lower()
-            if suffix == ".json":
-                format_type = "json"
-            elif suffix in {".yml", ".yaml"}:
-                format_type = "yaml"
-            elif suffix == ".csv":
-                format_type = "csv"
-            else:
-                format_type = "text"
+        # Format data content
+        content_result = _format_data_content(data, detected_format)
+        if not content_result.success:
+            return content_result
 
-        # Convert data to appropriate string representation
-        if format_type == "json":
-            content = json.dumps(data, indent=2, ensure_ascii=False)
-        elif format_type == "yaml":
-            try:
-                content = yaml.dump(data, default_flow_style=False, allow_unicode=True)
-            except ImportError:
-                return FlextResult.fail("PyYAML not installed for YAML support")
-        elif format_type == "csv":
-            if isinstance(data, dict) and "rows" in data:
-                rows = data["rows"]
-                if rows and isinstance(rows, list) and len(rows) > 0 and isinstance(rows[0], dict):
-                    output = io.StringIO()
-                    writer = csv.DictWriter(output, fieldnames=list(rows[0].keys()))
-                    writer.writeheader()
-                    writer.writerows(rows)
-                    content = output.getvalue()
-                else:
-                    content = ""
-            else:
-                return FlextResult.fail("CSV data must be dict with 'rows' key containing list of dicts")
-        else:
-            # Text format
-            content = str(data) if not isinstance(data, str) else data
+        content = content_result.data or ""
 
-        # Save content directly
-        try:
-            if backup and path_obj.exists():
-                backup_path = f"{file_path}.bak"
-                shutil.copy2(file_path, backup_path)
+        # Handle backup if requested
+        if backup and path_obj.exists():
+            backup_path = f"{file_path}.bak"
+            shutil.copy2(file_path, backup_path)
 
-            with path_obj.open("w", encoding=encoding) as f:
-                f.write(content)
+        # Write content to file
+        with path_obj.open("w", encoding=encoding) as f:
+            f.write(content)
 
-            return FlextResult.ok(str(path_obj))
-        except (OSError, PermissionError) as e:
-            return FlextResult.fail(f"Failed to write file {file_path}: {e}")
+        return FlextResult.ok(str(path_obj))
 
+    except (OSError, PermissionError) as e:
+        return FlextResult.fail(f"Failed to write file {file_path}: {e}")
     except Exception as e:
         return FlextResult.fail(f"File saving failed: {e}")
 
@@ -327,8 +353,7 @@ def flext_cli_create_table(data: list[dict[str, object]], *, title: str | None =
 
 
 def flext_cli_batch_execute(operations: list[tuple[str, Callable[[], FlextResult[object]]]],
-                           *, stop_on_first_error: bool = True,
-                           show_progress: bool = True) -> FlextResult[dict[str, object]]:
+                           *, stop_on_first_error: bool = True) -> FlextResult[dict[str, object]]:
     """Execute multiple operations in batch with comprehensive error handling and progress."""
     helper = FlextCliHelper()
     results = {}
@@ -402,18 +427,20 @@ def flext_cli_require_all(requirements: list[str], *, check_commands: bool = Tru
             if check_commands:
                 # Check if it's a command
                 try:
-                    cmd_result = subprocess.run(f"which {requirement}", check=False, shell=True, capture_output=True, timeout=5)
-                    if cmd_result.returncode == 0:
+                    # Use shutil.which() instead of shell command for security
+                    cmd_path = shutil.which(requirement)
+                    if cmd_path:
                         results[f"command_{requirement}"] = True
                         continue
-                except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
-                    pass
+                except Exception as e:
+                    logger = get_logger(__name__)
+                    logger.debug(f"Command check failed for '{requirement}': {e}")
+                    # Continue checking other requirement types
 
-            if check_files:
+            if check_files and Path(requirement).exists():
                 # Check if it's a file/directory
-                if Path(requirement).exists():
-                    results[f"file_{requirement}"] = True
-                    continue
+                results[f"file_{requirement}"] = True
+                continue
 
             if check_env_vars and os.environ.get(requirement):
                     results[f"env_{requirement}"] = True

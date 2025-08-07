@@ -209,10 +209,13 @@ class FlextCliService(FlextService, FlextConfigurable):
     def flext_cli_health(self) -> FlextResult[dict]:
         """Get service health status."""
         try:
+            # Generate timestamp first to test utilities access
+            timestamp = FlextUtilities.generate_iso_timestamp()
+
             status = {
                 "service": "FlextCliService",
                 "status": "healthy",
-                "timestamp": FlextUtilities.generate_iso_timestamp(),
+                "timestamp": timestamp,
                 "configured": self._config is not None,
                 "handlers": len(self._handlers),
                 "plugins": len(self._plugins),
@@ -246,6 +249,7 @@ class FlextCliService(FlextService, FlextConfigurable):
             TypeError,
             OSError,
             ImportError,
+            RuntimeError,
             Exception,
         ) as e:
             return FlextResult.fail(f"Health check failed: {e}")

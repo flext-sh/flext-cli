@@ -13,7 +13,6 @@ import importlib.util
 import json
 import tempfile
 from pathlib import Path
-from typing import Never
 from unittest.mock import patch
 
 # Import directly from core.py, not core/ directory
@@ -598,28 +597,9 @@ class TestFlextCliService:
         """Test health check with exception."""
         service = FlextCliService()
 
-        # Mock FlextUtilities to raise exception
-
-        core_py_module.__dict__.get("FlextUtilities")
-
-        def mock_utilities() -> Never:
-            msg = "Utilities error"
-            raise RuntimeError(msg)
-
-        with patch.dict(
-            "sys.modules",
-            {
-                "flext_core.utilities": type(
-                    "MockModule",
-                    (),
-                    {
-                        "FlextUtilities": type(
-                            "MockUtils", (), {"generate_iso_timestamp": mock_utilities}
-                        )
-                    },
-                )()
-            },
-        ):
+        # Mock FlextUtilities.generate_iso_timestamp to raise exception
+        with patch("flext_cli.core.FlextUtilities.generate_iso_timestamp") as mock_timestamp:
+            mock_timestamp.side_effect = RuntimeError("Utilities error")
             result = service.flext_cli_health()
             assert not result.success
             if "Health check failed:" not in result.error:

@@ -79,6 +79,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from flext_core import get_logger
 from rich.console import Console
 
 from flext_cli.api import FlextCliApi
@@ -175,9 +176,10 @@ def flext_cli_create_context(
     try:
         if isinstance(result, FlextCliContext):
             return result
-    except TypeError:
+    except TypeError as e:
         # Handle cases where isinstance fails due to import issues
-        pass
+        logger = get_logger(__name__)
+        logger.warning(f"Type checking failed for FlextCliContext: {e}")
     # Create fallback context if cast fails
     cli_config = FlextCliConfig()
     if config:
