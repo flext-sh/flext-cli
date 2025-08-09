@@ -126,7 +126,7 @@ def flext_cli_format(data: object, format_type: str = "table") -> FlextResult[st
 
         return FlextResult.ok(output_buffer.getvalue())
 
-    except (ImportError, AttributeError, ValueError) as e:
+    except (AttributeError, ValueError, TypeError) as e:
         return FlextResult.fail(f"Format error: {e}")
 
 

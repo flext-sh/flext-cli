@@ -6,20 +6,20 @@ and common CLI patterns. Uses flext-core patterns exclusively with Clean
 Architecture principles.
 
 Utility Components:
-    - Configuration: CLIConfig, CLISettings with FlextBaseSettings integration
+    - Configuration: CLIConfig, CLISettings with FlextSettings integration
     - Authentication: Token management and security operations
     - Output: Rich console formatting and display utilities
     - Common patterns: Reusable CLI utilities and helpers
 
 Architecture:
     - Clean Architecture utility layer following infrastructure patterns
-    - flext-core integration (FlextBaseSettings, FlextResult)
+    - flext-core integration (FlextSettings, FlextResult)
     - Type-safe configuration management with validation
     - Security-first authentication and token management
     - Rich console integration for enhanced UX
 
 Current Implementation Status:
-    ✅ Configuration management with FlextBaseSettings
+    ✅ Configuration management with FlextSettings
     ✅ Authentication utilities with secure token storage
     ✅ Output formatting with Rich console integration
     ✅ flext-core pattern integration

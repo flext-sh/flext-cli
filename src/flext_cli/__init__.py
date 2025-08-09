@@ -6,7 +6,7 @@ integration. All public APIs use FlextCli prefixes for consistency.
 
 Foundation Features:
     - FlextCliEntity: Zero-boilerplate CLI entities with automatic features
-    - FlextCliConfig: Configuration management with FlextBaseSettings
+    - FlextCliConfig: Configuration management with FlextSettings
     - FlextCliHelper: Comprehensive utility functions for common operations
     - Zero-boilerplate setup functions for immediate productivity
 

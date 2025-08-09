@@ -43,13 +43,8 @@ from flext_cli.core.helpers import (
 # Type aliases to avoid false positive FBT001 warnings
 FlextCliData = dict[str, object] | list[object] | str | float | int | None
 
-# Optional imports - YAML support for configuration export
-try:
-    import yaml
-except ImportError:
-    yaml = None  # type: ignore[assignment]
-    # Note: YAML export will be disabled if pyyaml is not installed
-    # Users can install it with: pip install pyyaml
+# YAML support for configuration export
+import yaml
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -57,8 +52,13 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 
-def flext_cli_quick_setup(project_name: str, *, create_dirs: bool = True,
-                         create_config: bool = True, init_git: bool = False) -> FlextResult[dict[str, object]]:
+def flext_cli_quick_setup(
+    project_name: str,
+    *,
+    create_dirs: bool = True,
+    create_config: bool = True,
+    init_git: bool = False,
+) -> FlextResult[dict[str, object]]:
     """Create complete project setup in one function call - eliminates 50+ lines of setup code."""
     helper = FlextCliHelper()
     results: dict[str, object] = {}
@@ -71,7 +71,9 @@ def flext_cli_quick_setup(project_name: str, *, create_dirs: bool = True,
         project_path = Path(project_name).resolve()
 
         if project_path.exists():
-            confirmation = helper.flext_cli_confirm(f"Directory {project_path} exists. Continue?", default=False)
+            confirmation = helper.flext_cli_confirm(
+                f"Directory {project_path} exists. Continue?", default=False
+            )
             if not confirmation.success or not confirmation.data:
                 return FlextResult.fail("Setup cancelled")
 
@@ -138,7 +140,7 @@ pip install -e .
 ## Usage
 
 ```python
-from {project_name.replace('-', '_')} import main
+from {project_name.replace("-", "_")} import main
 main()
 ```
 """
@@ -158,7 +160,12 @@ main()
                 if not git_cmd:
                     results["git"] = "git not found in PATH"
                 else:
-                    subprocess.run([git_cmd, "init"], check=True, cwd=project_path, capture_output=True)  # noqa: S603
+                    subprocess.run(
+                        [git_cmd, "init"],
+                        check=True,
+                        cwd=project_path,
+                        capture_output=True,
+                    )
                     results["git"] = "initialized"
                     helper.console.print("[green]✓ Git repository initialized[/green]")
             except (subprocess.CalledProcessError, FileNotFoundError):
@@ -174,8 +181,13 @@ main()
         return FlextResult.fail(f"Project setup failed: {e}")
 
 
-def flext_cli_auto_config(data: dict[str, object], *, template_path: str | None = None,
-                         output_path: str | None = None, format_type: str = "json") -> FlextResult[str]:
+def flext_cli_auto_config(
+    data: dict[str, object],
+    *,
+    template_path: str | None = None,
+    output_path: str | None = None,
+    format_type: str = "json",
+) -> FlextResult[str]:
     """Generate configuration file from data with template support - eliminates config generation boilerplate."""
     helper = FlextCliHelper()
 
@@ -195,16 +207,22 @@ def flext_cli_auto_config(data: dict[str, object], *, template_path: str | None 
                     template_data.update(data)
                     data = template_data
             else:
-                helper.console.print(f"[yellow]⚠ Template load failed: {template_result.error}[/yellow]")
+                helper.console.print(
+                    f"[yellow]⚠ Template load failed: {template_result.error}[/yellow]"
+                )
 
         # Save configuration
         if format_type.lower() == "json":
-            save_result = helper.flext_cli_save_file(data, output_path, file_format="json")
+            save_result = helper.flext_cli_save_file(
+                data, output_path, file_format="json"
+            )
         else:
             return FlextResult.fail(f"Unsupported format: {format_type}")
 
         if save_result.success:
-            helper.console.print(f"[green]✓ Configuration saved to {output_path}[/green]")
+            helper.console.print(
+                f"[green]✓ Configuration saved to {output_path}[/green]"
+            )
             return FlextResult.ok(output_path)
         return FlextResult.fail(save_result.error or "Save failed")
 
@@ -212,11 +230,17 @@ def flext_cli_auto_config(data: dict[str, object], *, template_path: str | None 
         return FlextResult.fail(f"Auto config failed: {e}")
 
 
-def _load_file_content(path_obj: Path, encoding: str, *, format_detection: bool, helper: FlextCliHelper) -> tuple[dict[str, object] | None, str | None]:
+def _load_file_content(
+    path_obj: Path, encoding: str, *, format_detection: bool, helper: FlextCliHelper
+) -> tuple[dict[str, object] | None, str | None]:
     """Helper function to load file content based on format detection."""
     # Validate file first
     if not path_obj.exists() or not path_obj.is_file():
-        error_msg = f"File not found: {path_obj}" if not path_obj.exists() else f"Path is not a file: {path_obj}"
+        error_msg = (
+            f"File not found: {path_obj}"
+            if not path_obj.exists()
+            else f"Path is not a file: {path_obj}"
+        )
         return None, error_msg
 
     # Handle non-format detection or simple text loading
@@ -241,19 +265,26 @@ def _load_file_content(path_obj: Path, encoding: str, *, format_detection: bool,
 
     # Handle all other formats (CSV and text) in single path
     with path_obj.open(encoding=encoding) as f:
-        content_data: dict[str, object] = {"rows": list(csv.DictReader(f))} if suffix == ".csv" else {"content": f.read(), "type": "text"}
+        content_data: dict[str, object] = (
+            {"rows": list(csv.DictReader(f))}
+            if suffix == ".csv"
+            else {"content": f.read(), "type": "text"}
+        )
 
     return content_data, None
 
 
-def flext_cli_load_file(file_path: str, *, encoding: str = "utf-8",
-                       format_detection: bool = True) -> FlextResult[dict[str, object]]:
+def flext_cli_load_file(
+    file_path: str, *, encoding: str = "utf-8", format_detection: bool = True
+) -> FlextResult[dict[str, object]]:
     """Smart file loading with automatic format detection - eliminates format-specific loading code."""
     helper = FlextCliHelper()
 
     try:
         path_obj = Path(file_path)
-        result_data, error_msg = _load_file_content(path_obj, encoding, format_detection=format_detection, helper=helper)
+        result_data, error_msg = _load_file_content(
+            path_obj, encoding, format_detection=format_detection, helper=helper
+        )
 
         if error_msg:
             return FlextResult.fail(error_msg)
@@ -287,15 +318,26 @@ def _format_data_content(data: FlextCliData, format_type: str) -> FlextResult[st
         content = json.dumps(data, indent=2, ensure_ascii=False)
     elif format_type == "yaml":
         try:
-            content = yaml.dump(data, default_flow_style=False, allow_unicode=True) if yaml else ""
+            content = (
+                yaml.dump(data, default_flow_style=False, allow_unicode=True)
+                if yaml
+                else ""
+            )
         except AttributeError:
             return FlextResult.fail("PyYAML not installed for YAML support")
     elif format_type == "csv":
         if not isinstance(data, dict) or "rows" not in data:
-            return FlextResult.fail("CSV data must be dict with 'rows' key containing list of dicts")
+            return FlextResult.fail(
+                "CSV data must be dict with 'rows' key containing list of dicts"
+            )
 
         rows = data["rows"]
-        if not rows or not isinstance(rows, list) or not rows[0] or not isinstance(rows[0], dict):
+        if (
+            not rows
+            or not isinstance(rows, list)
+            or not rows[0]
+            or not isinstance(rows[0], dict)
+        ):
             content = ""
         else:
             output = io.StringIO()
@@ -310,8 +352,14 @@ def _format_data_content(data: FlextCliData, format_type: str) -> FlextResult[st
     return FlextResult.ok(content)
 
 
-def flext_cli_save_file(data: FlextCliData, file_path: str, *, format_type: str | None = None,
-                       encoding: str = "utf-8", backup: bool = False) -> FlextResult[str]:
+def flext_cli_save_file(
+    data: FlextCliData,
+    file_path: str,
+    *,
+    format_type: str | None = None,
+    encoding: str = "utf-8",
+    backup: bool = False,
+) -> FlextResult[str]:
     """Smart file saving with automatic format detection - eliminates format-specific saving code."""
     try:
         path_obj = Path(file_path)
@@ -341,8 +389,13 @@ def flext_cli_save_file(data: FlextCliData, file_path: str, *, format_type: str 
         return FlextResult.fail(f"File saving failed: {e}")
 
 
-def flext_cli_create_table(data: list[dict[str, object]], *, title: str | None = None,
-                          _max_width: int = 120, _show_lines: bool = True) -> FlextResult[None]:
+def flext_cli_create_table(
+    data: list[dict[str, object]],
+    *,
+    title: str | None = None,
+    _max_width: int = 120,
+    _show_lines: bool = True,
+) -> FlextResult[None]:
     """Create and display formatted table - eliminates table formatting boilerplate."""
     helper = FlextCliHelper()
     table_result = helper.flext_cli_create_table(data, title=title)
@@ -352,8 +405,11 @@ def flext_cli_create_table(data: list[dict[str, object]], *, title: str | None =
     return FlextResult.fail(table_result.error or "Table creation failed")
 
 
-def flext_cli_batch_execute(operations: list[tuple[str, Callable[[], FlextResult[object]]]],
-                           *, stop_on_first_error: bool = True) -> FlextResult[dict[str, object]]:
+def flext_cli_batch_execute(
+    operations: list[tuple[str, Callable[[], FlextResult[object]]]],
+    *,
+    stop_on_first_error: bool = True,
+) -> FlextResult[dict[str, object]]:
     """Execute multiple operations in batch with comprehensive error handling and progress."""
     helper = FlextCliHelper()
     results = {}
@@ -373,10 +429,14 @@ def flext_cli_batch_execute(operations: list[tuple[str, Callable[[], FlextResult
                     helper.console.print(f"[green]✓ {operation_name} completed[/green]")
                 else:
                     results[operation_name] = {"error": result.error}
-                    helper.console.print(f"[red]✗ {operation_name} failed: {result.error}[/red]")
+                    helper.console.print(
+                        f"[red]✗ {operation_name} failed: {result.error}[/red]"
+                    )
 
                     if stop_on_first_error:
-                        return FlextResult.fail(f"Batch execution stopped at {operation_name}: {result.error}")
+                        return FlextResult.fail(
+                            f"Batch execution stopped at {operation_name}: {result.error}"
+                        )
 
             except Exception as e:
                 error_msg = f"Operation {operation_name} raised exception: {e}"
@@ -387,22 +447,36 @@ def flext_cli_batch_execute(operations: list[tuple[str, Callable[[], FlextResult
                     return FlextResult.fail(error_msg)
 
         # Summary
-        successful = sum(1 for r in results.values() if not isinstance(r, dict) or ("error" not in r and "exception" not in r))
+        successful = sum(
+            1
+            for r in results.values()
+            if not isinstance(r, dict) or ("error" not in r and "exception" not in r)
+        )
         total = len(operations)
 
         if successful == total:
-            helper.console.print(f"[green]✓ All {total} operations completed successfully[/green]")
+            helper.console.print(
+                f"[green]✓ All {total} operations completed successfully[/green]"
+            )
         else:
-            helper.console.print(f"[yellow]⚠ {successful}/{total} operations completed successfully[/yellow]")
+            helper.console.print(
+                f"[yellow]⚠ {successful}/{total} operations completed successfully[/yellow]"
+            )
 
-        results["_summary"] = {"successful": successful, "total": total, "failed": total - successful}
+        results["_summary"] = {
+            "successful": successful,
+            "total": total,
+            "failed": total - successful,
+        }
         return FlextResult.ok(results)
 
     except Exception as e:
         return FlextResult.fail(f"Batch execution failed: {e}")
 
 
-def flext_cli_validate_all(inputs: dict[str, tuple[str, str]], *, _strict: bool = True) -> FlextResult[dict[str, object]]:
+def flext_cli_validate_all(
+    inputs: dict[str, tuple[str, str]], *, _strict: bool = True
+) -> FlextResult[dict[str, object]]:
     """Validate all inputs with comprehensive reporting - eliminates validation logic boilerplate.
 
     Note: _strict parameter is reserved for future use.
@@ -415,8 +489,13 @@ def flext_cli_validate_all(inputs: dict[str, tuple[str, str]], *, _strict: bool 
     return FlextResult.fail(validated_result.error or "Validation failed")
 
 
-def flext_cli_require_all(requirements: list[str], *, check_commands: bool = True,
-                         check_files: bool = True, check_env_vars: bool = True) -> FlextResult[dict[str, bool]]:
+def flext_cli_require_all(
+    requirements: list[str],
+    *,
+    check_commands: bool = True,
+    check_files: bool = True,
+    check_env_vars: bool = True,
+) -> FlextResult[dict[str, bool]]:
     """Check all requirements (commands, files, env vars) - eliminates prerequisite checking boilerplate."""
     helper = FlextCliHelper()
     results = {}
@@ -443,8 +522,8 @@ def flext_cli_require_all(requirements: list[str], *, check_commands: bool = Tru
                 continue
 
             if check_env_vars and os.environ.get(requirement):
-                    results[f"env_{requirement}"] = True
-                    continue
+                results[f"env_{requirement}"] = True
+                continue
 
             # Not found
             results[requirement] = False
@@ -460,8 +539,13 @@ def flext_cli_require_all(requirements: list[str], *, check_commands: bool = Tru
         return FlextResult.fail(f"Requirements check failed: {e}")
 
 
-def flext_cli_output_data(data: FlextCliData, *, format_type: str = "auto", file_path: str | None = None,
-                         console_output: bool = True) -> FlextResult[str | None]:
+def flext_cli_output_data(
+    data: FlextCliData,
+    *,
+    format_type: str = "auto",
+    file_path: str | None = None,
+    console_output: bool = True,
+) -> FlextResult[str | None]:
     """Output data in specified format to console and/or file - eliminates output formatting boilerplate."""
     helper = FlextCliHelper()
 
@@ -473,7 +557,12 @@ def flext_cli_output_data(data: FlextCliData, *, format_type: str = "auto", file
         # Format data
         if format_type == "json":
             formatted = json.dumps(data, indent=2, ensure_ascii=False)
-        elif format_type == "table" and isinstance(data, list) and data and isinstance(data[0], dict):
+        elif (
+            format_type == "table"
+            and isinstance(data, list)
+            and data
+            and isinstance(data[0], dict)
+        ):
             if console_output:
                 table_data = [dict(item) for item in data if isinstance(item, dict)]
                 table_result = helper.flext_cli_create_table(table_data)

@@ -45,7 +45,7 @@ import inspect
 from typing import cast
 
 from flext_core import F, FlextResult, get_logger
-from flext_core.value_objects import FlextValueObject as DomainValueObject
+from flext_core import FlextDomainValueObject as DomainValueObject
 from pydantic import Field
 from rich.console import Console
 
@@ -83,7 +83,12 @@ class CLIContextParams:
         self.no_color = options.get("no_color", False)
 
 
-class CLIContext(DomainValueObject):
+# Use the canonical implementation from domain/cli_context.py
+from flext_cli.domain.cli_context import CLIContext  # re-export for legacy imports
+
+
+# Legacy alias maintained for compatibility
+class _CLIContextLegacy(DomainValueObject):
     """CLI Context Value Object - Immutable execution context for CLI operations.
 
     Represents the execution context for CLI commands including configuration,
@@ -306,4 +311,4 @@ with contextlib.suppress(Exception):
     from flext_cli.config import CLIConfig
 
     CLIConfig.model_rebuild()
-    CLIContext.model_rebuild()
+    # CLIContext is imported from domain module; rebuild handled there

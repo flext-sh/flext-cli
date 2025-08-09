@@ -12,7 +12,7 @@ Foundation Pattern Applied:
 
 Architecture:
     - FlextResult railway-oriented programming
-    - FlextBaseSettings automatic configuration
+    - FlextSettings automatic configuration
     - Zero boilerplate setup functions
     - Modern error handling patterns
 
@@ -73,7 +73,7 @@ def setup_cli(config: CLIConfig | None = None) -> FlextResult[bool]:
 
         return FlextResult.ok(data=True)
 
-    except (ImportError, AttributeError, ValueError, RuntimeError) as e:
+    except (AttributeError, ValueError, RuntimeError) as e:
         return FlextResult.fail(f"Failed to setup CLI: {e}")
 
 
