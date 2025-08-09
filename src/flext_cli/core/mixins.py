@@ -21,10 +21,9 @@ Examples:
     >>> class MyCliCommand(FlextCliValidationMixin, FlextCliInteractiveMixin):
     ...     def execute(self, email: str, url: str) -> FlextResult[str]:
     ...         # Automatic validation via mixin
-    ...         validated = self.flext_cli_validate_inputs({
-    ...             "email": (email, "email"),
-    ...             "url": (url, "url")
-    ...         })
+    ...         validated = self.flext_cli_validate_inputs(
+    ...             {"email": (email, "email"), "url": (url, "url")}
+    ...         )
     ...         if not validated.success:
     ...             return validated
     ...
@@ -92,7 +91,9 @@ class FlextCliValidationMixin:
             self._flext_cli_helper = FlextCliHelper()
         return self._flext_cli_helper
 
-    def flext_cli_validate_inputs(self, inputs: dict[str, tuple[str, str]]) -> FlextResult[dict[str, object]]:
+    def flext_cli_validate_inputs(
+        self, inputs: dict[str, tuple[str, str]]
+    ) -> FlextResult[dict[str, object]]:
         """Validate multiple inputs with automatic type detection.
 
         Args:
@@ -102,32 +103,50 @@ class FlextCliValidationMixin:
             FlextResult[Dict]: Success with validated data or failure
 
         Examples:
-            >>> result = self.flext_cli_validate_inputs({
-            ...     "email": ("user@example.com", "email"),
-            ...     "url": ("https://api.flext.sh", "url"),
-            ...     "config_file": ("/path/to/config.yml", "file")
-            ... })
+            >>> result = self.flext_cli_validate_inputs(
+            ...     {
+            ...         "email": ("user@example.com", "email"),
+            ...         "url": ("https://api.flext.sh", "url"),
+            ...         "config_file": ("/path/to/config.yml", "file"),
+            ...     }
+            ... )
 
         """
         validated_data: dict[str, object] = {}
 
         for key, (value, validation_type) in inputs.items():
             if validation_type == "email":
-                result = self._helper.flext_cli_validate_input(value, FlextCliValidationType.EMAIL)
+                result = self._helper.flext_cli_validate_input(
+                    value, FlextCliValidationType.EMAIL
+                )
             elif validation_type == "url":
-                result = self._helper.flext_cli_validate_input(value, FlextCliValidationType.URL)
+                result = self._helper.flext_cli_validate_input(
+                    value, FlextCliValidationType.URL
+                )
             elif validation_type == "path":
-                result = self._helper.flext_cli_validate_input(value, FlextCliValidationType.PATH)
+                result = self._helper.flext_cli_validate_input(
+                    value, FlextCliValidationType.PATH
+                )
             elif validation_type == "file":
-                result = self._helper.flext_cli_validate_input(value, FlextCliValidationType.FILE)
+                result = self._helper.flext_cli_validate_input(
+                    value, FlextCliValidationType.FILE
+                )
             elif validation_type == "dir":
-                result = self._helper.flext_cli_validate_input(value, FlextCliValidationType.DIR)
+                result = self._helper.flext_cli_validate_input(
+                    value, FlextCliValidationType.DIR
+                )
             elif validation_type == "uuid":
-                result = self._helper.flext_cli_validate_input(value, FlextCliValidationType.UUID)
+                result = self._helper.flext_cli_validate_input(
+                    value, FlextCliValidationType.UUID
+                )
             elif validation_type == "port":
-                result = self._helper.flext_cli_validate_input(value, FlextCliValidationType.PORT)
+                result = self._helper.flext_cli_validate_input(
+                    value, FlextCliValidationType.PORT
+                )
             else:
-                return FlextResult.fail(f"Unknown validation type for {key}: {validation_type}")
+                return FlextResult.fail(
+                    f"Unknown validation type for {key}: {validation_type}"
+                )
 
             if not result.success:
                 return FlextResult.fail(f"Validation failed for {key}: {result.error}")
@@ -136,7 +155,9 @@ class FlextCliValidationMixin:
 
         return FlextResult.ok(validated_data)
 
-    def flext_cli_require_confirmation(self, operation: str, *, default: bool = False, dangerous: bool = False) -> FlextResult[bool]:
+    def flext_cli_require_confirmation(
+        self, operation: str, *, default: bool = False, dangerous: bool = False
+    ) -> FlextResult[bool]:
         """Require user confirmation for operations.
 
         Args:
@@ -199,7 +220,9 @@ class FlextCliInteractiveMixin:
         else:
             self.flext_cli_print_error(str(result.error))
 
-    def flext_cli_confirm_operation(self, operation: str, *, default: bool = False) -> bool:
+    def flext_cli_confirm_operation(
+        self, operation: str, *, default: bool = False
+    ) -> bool:
         """Simple confirmation with automatic error handling."""
         try:
             helper = FlextCliHelper(console=self.console)
@@ -228,7 +251,9 @@ class FlextCliProgressMixin:
             self._flext_cli_console = Console()
         return self._flext_cli_console
 
-    def flext_cli_track_progress(self, items: list[T], description: str = "Processing...") -> list[T]:
+    def flext_cli_track_progress(
+        self, items: list[T], description: str = "Processing..."
+    ) -> list[T]:
         """Track progress for iterable operations.
 
         Args:
@@ -250,7 +275,9 @@ class FlextCliProgressMixin:
             # Fallback for test environments - just return items without progress
             return list(items)
 
-    def flext_cli_with_progress(self, _total: int, _description: str = "Processing...") -> Progress:
+    def flext_cli_with_progress(
+        self, _total: int, _description: str = "Processing..."
+    ) -> Progress:
         """Create progress context manager.
 
         Args:
@@ -274,7 +301,9 @@ class FlextCliProgressMixin:
 class FlextCliResultMixin:
     """Mixin providing FlextResult integration utilities."""
 
-    def flext_cli_chain_results(self, *operations: Callable[[], FlextResult[object]]) -> FlextResult[list[object]]:
+    def flext_cli_chain_results(
+        self, *operations: Callable[[], FlextResult[object]]
+    ) -> FlextResult[list[object]]:
         """Chain multiple FlextResult operations.
 
         Args:
@@ -287,7 +316,7 @@ class FlextCliResultMixin:
             >>> result = self.flext_cli_chain_results(
             ...     lambda: validate_input("test@example.com"),
             ...     lambda: save_config(config_data),
-            ...     lambda: initialize_service()
+            ...     lambda: initialize_service(),
             ... )
 
         """
@@ -303,9 +332,13 @@ class FlextCliResultMixin:
 
         return FlextResult.ok(results)
 
-    def flext_cli_handle_result(self, result: FlextResult[T], *,
-                               success_action: Callable[[T], None] | None = None,
-                               error_action: Callable[[str], None] | None = None) -> T | None:
+    def flext_cli_handle_result(
+        self,
+        result: FlextResult[T],
+        *,
+        success_action: Callable[[T], None] | None = None,
+        error_action: Callable[[str], None] | None = None,
+    ) -> T | None:
         """Handle FlextResult with automatic success/error actions.
 
         Args:
@@ -334,7 +367,9 @@ class FlextCliConfigMixin:
         super().__init__(*args, **kwargs)
         self._flext_cli_config: object | None = None
 
-    def flext_cli_load_config(self, config_path: str | None = None) -> FlextResult[object]:
+    def flext_cli_load_config(
+        self, config_path: str | None = None
+    ) -> FlextResult[object]:
         """Load configuration with automatic type detection.
 
         Args:
@@ -349,7 +384,9 @@ class FlextCliConfigMixin:
 
             if config_path:
                 # Load specific config file
-                config_result = create_default_hierarchy(config_path=Path(config_path) if config_path else None)
+                config_result = create_default_hierarchy(
+                    config_path=Path(config_path) if config_path else None
+                )
             else:
                 # Auto-detect config
                 config_result = create_default_hierarchy()
@@ -372,6 +409,7 @@ class FlextCliConfigMixin:
 # AUTO-VALIDATION STRATEGY HANDLER - Complexity reduction
 # =============================================================================
 
+
 class FlextCliAutoValidationHandler:
     """Strategy Pattern: Handles auto-validation operations.
 
@@ -391,7 +429,9 @@ class FlextCliAutoValidationHandler:
             "port": FlextCliValidationType.PORT,
         }
 
-    def validate_argument(self, arg_name: str, value: str, validation_type: str) -> FlextResult[object]:
+    def validate_argument(
+        self, arg_name: str, value: str, validation_type: str
+    ) -> FlextResult[object]:
         """Validate single argument - Single Responsibility Pattern."""
         validation_enum = self.validation_type_mapping.get(validation_type)
         if validation_enum is None:
@@ -414,10 +454,14 @@ class FlextCliAutoValidationHandler:
         for arg_name, validation_type in validators.items():
             if arg_name in kwargs:
                 value = str(kwargs[arg_name])
-                validation_result = self.validate_argument(arg_name, value, validation_type)
+                validation_result = self.validate_argument(
+                    arg_name, value, validation_type
+                )
 
                 if not validation_result.success:
-                    return FlextResult.fail(validation_result.error or "Validation failed")
+                    return FlextResult.fail(
+                        validation_result.error or "Validation failed"
+                    )
 
                 validated_kwargs[arg_name] = validation_result.data
 
@@ -440,6 +484,7 @@ def flext_cli_auto_validate(**validators: str) -> Callable[[F], F]:
         ...     return FlextResult.ok("Success")
 
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: object, **kwargs: object) -> object:
@@ -447,7 +492,9 @@ def flext_cli_auto_validate(**validators: str) -> Callable[[F], F]:
             validation_handler = FlextCliAutoValidationHandler(helper)
 
             # Strategy Pattern: delegate to validation handler
-            validation_result = validation_handler.validate_all_arguments(validators, kwargs)
+            validation_result = validation_handler.validate_all_arguments(
+                validators, kwargs
+            )
             if not validation_result.success:
                 return FlextResult.fail(validation_result.error or "Validation failed")
 
@@ -456,10 +503,13 @@ def flext_cli_auto_validate(**validators: str) -> Callable[[F], F]:
             return func(*args, **validated_kwargs)
 
         return cast("F", wrapper)
+
     return decorator
 
 
-def flext_cli_handle_exceptions(error_message: str = "Operation failed") -> Callable[[F], F]:
+def flext_cli_handle_exceptions(
+    error_message: str = "Operation failed",
+) -> Callable[[F], F]:
     """Decorator for automatic exception handling with FlextResult.
 
     Args:
@@ -472,6 +522,7 @@ def flext_cli_handle_exceptions(error_message: str = "Operation failed") -> Call
         ...     return FlextResult.ok("Data saved")
 
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: object, **kwargs: object) -> FlextResult[object]:
@@ -480,19 +531,29 @@ def flext_cli_handle_exceptions(error_message: str = "Operation failed") -> Call
                 # If function doesn't return FlextResult, wrap it
                 if not hasattr(result, "success"):
                     return FlextResult.ok(result)
-                return result  # type: ignore[return-value]
+                return result
             except Exception as e:
                 logger = get_logger(__name__)
                 # EXPLICIT TRANSPARENCY: This decorator converts exceptions to FlextResult
-                logger.warning(f"Exception caught by flext_cli_handle_exceptions decorator: {e}")
-                logger.debug(f"Function: {getattr(func, '__name__', 'unknown')}, Args: {args}, Kwargs: {kwargs}")
-                logger.info(f"Converting exception to FlextResult.fail with message: {error_message}")
+                logger.warning(
+                    f"Exception caught by flext_cli_handle_exceptions decorator: {e}"
+                )
+                logger.debug(
+                    f"Function: {getattr(func, '__name__', 'unknown')}, Args: {args}, Kwargs: {kwargs}"
+                )
+                logger.info(
+                    f"Converting exception to FlextResult.fail with message: {error_message}"
+                )
                 return FlextResult.fail(f"{error_message}: {e}")
+
         return cast("F", wrapper)
+
     return decorator
 
 
-def flext_cli_require_confirmation(operation: str, *, default: bool = False) -> Callable[[F], F]:
+def flext_cli_require_confirmation(
+    operation: str, *, default: bool = False
+) -> Callable[[F], F]:
     """Decorator for requiring user confirmation before operation.
 
     Args:
@@ -506,11 +567,14 @@ def flext_cli_require_confirmation(operation: str, *, default: bool = False) -> 
         ...     return FlextResult.ok("Data deleted")
 
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: object, **kwargs: object) -> object:
             helper = FlextCliHelper()
-            confirmation = helper.flext_cli_confirm(f"Confirm: {operation}?", default=default)
+            confirmation = helper.flext_cli_confirm(
+                f"Confirm: {operation}?", default=default
+            )
 
             if not confirmation.success:
                 return FlextResult.fail(f"Confirmation failed: {confirmation.error}")
@@ -519,15 +583,30 @@ def flext_cli_require_confirmation(operation: str, *, default: bool = False) -> 
                 return FlextResult.ok("Operation cancelled by user")
 
             return func(*args, **kwargs)
+
         return cast("F", wrapper)
+
     return decorator
 
 
 # Advanced Mixin Combinations for Common Patterns
-class FlextCliAdvancedMixin(FlextCliValidationMixin, FlextCliInteractiveMixin, FlextCliProgressMixin, FlextCliResultMixin, FlextCliConfigMixin):
+class FlextCliAdvancedMixin(
+    FlextCliValidationMixin,
+    FlextCliInteractiveMixin,
+    FlextCliProgressMixin,
+    FlextCliResultMixin,
+    FlextCliConfigMixin,
+):
     """Advanced CLI mixin with enhanced patterns for massive boilerplate reduction."""
 
-    def flext_cli_execute_with_full_validation(self, inputs: dict[str, tuple[str, str]], operation: Callable[[], FlextResult[object]], *, operation_name: str = "operation", dangerous: bool = False) -> FlextResult[object]:
+    def flext_cli_execute_with_full_validation(
+        self,
+        inputs: dict[str, tuple[str, str]],
+        operation: Callable[[], FlextResult[object]],
+        *,
+        operation_name: str = "operation",
+        dangerous: bool = False,
+    ) -> FlextResult[object]:
         """Execute operation with full validation, confirmation, and error handling - eliminates 90%+ boilerplate.
 
         Args:
@@ -542,12 +621,15 @@ class FlextCliAdvancedMixin(FlextCliValidationMixin, FlextCliInteractiveMixin, F
         Examples:
             >>> class MyCommand(FlextCliAdvancedMixin):
             ...     def execute(self, email: str, file_path: str):
-            ...         inputs = {"email": (email, "email"), "config": (file_path, "file")}
+            ...         inputs = {
+            ...             "email": (email, "email"),
+            ...             "config": (file_path, "file"),
+            ...         }
             ...         return self.flext_cli_execute_with_full_validation(
             ...             inputs,
             ...             lambda: self.do_work(),
             ...             operation_name="process user data",
-            ...             dangerous=True
+            ...             dangerous=True,
             ...         )
 
         """
@@ -560,7 +642,9 @@ class FlextCliAdvancedMixin(FlextCliValidationMixin, FlextCliInteractiveMixin, F
         self.flext_cli_print_success("All inputs validated successfully")
 
         # Step 2: Get user confirmation
-        confirmation_result = self.flext_cli_require_confirmation(operation_name, dangerous=dangerous)
+        confirmation_result = self.flext_cli_require_confirmation(
+            operation_name, dangerous=dangerous
+        )
         if not confirmation_result.success:
             return FlextResult.fail(confirmation_result.error or "Confirmation failed")
 
@@ -570,9 +654,13 @@ class FlextCliAdvancedMixin(FlextCliValidationMixin, FlextCliInteractiveMixin, F
             result = operation()
 
             if result.success:
-                self.flext_cli_print_success(f"{operation_name.capitalize()} completed successfully")
+                self.flext_cli_print_success(
+                    f"{operation_name.capitalize()} completed successfully"
+                )
             else:
-                self.flext_cli_print_error(f"{operation_name.capitalize()} failed: {result.error}")
+                self.flext_cli_print_error(
+                    f"{operation_name.capitalize()} failed: {result.error}"
+                )
 
             return result
 
@@ -581,7 +669,13 @@ class FlextCliAdvancedMixin(FlextCliValidationMixin, FlextCliInteractiveMixin, F
             self.flext_cli_print_error(error_msg)
             return FlextResult.fail(error_msg)
 
-    def flext_cli_process_data_workflow(self, data: object, workflow_steps: list[tuple[str, Callable[[object], FlextResult[object]]]], *, show_progress: bool = True) -> FlextResult[object]:
+    def flext_cli_process_data_workflow(
+        self,
+        data: object,
+        workflow_steps: list[tuple[str, Callable[[object], FlextResult[object]]]],
+        *,
+        show_progress: bool = True,
+    ) -> FlextResult[object]:
         """Process data through workflow with progress tracking - eliminates workflow boilerplate.
 
         Args:
@@ -599,7 +693,7 @@ class FlextCliAdvancedMixin(FlextCliValidationMixin, FlextCliInteractiveMixin, F
             ...             ("validate", self.validate_data),
             ...             ("clean", self.clean_data),
             ...             ("transform", self.transform_data),
-            ...             ("save", self.save_data)
+            ...             ("save", self.save_data),
             ...         ]
             ...         return self.flext_cli_process_data_workflow(raw_data, steps)
 
@@ -607,7 +701,9 @@ class FlextCliAdvancedMixin(FlextCliValidationMixin, FlextCliInteractiveMixin, F
         current_data = data
 
         if show_progress:
-            steps_to_track = self.flext_cli_track_progress(workflow_steps, f"Processing {len(workflow_steps)} steps")
+            steps_to_track = self.flext_cli_track_progress(
+                workflow_steps, f"Processing {len(workflow_steps)} steps"
+            )
         else:
             steps_to_track = workflow_steps
 
@@ -631,7 +727,12 @@ class FlextCliAdvancedMixin(FlextCliValidationMixin, FlextCliInteractiveMixin, F
 
         return FlextResult.ok(current_data)
 
-    def flext_cli_handle_file_operations(self, file_operations: list[tuple[str, str, Callable[[str], FlextResult[object]]]], *, require_confirmation: bool = True) -> FlextResult[dict[str, object]]:
+    def flext_cli_handle_file_operations(
+        self,
+        file_operations: list[tuple[str, str, Callable[[str], FlextResult[object]]]],
+        *,
+        require_confirmation: bool = True,
+    ) -> FlextResult[dict[str, object]]:
         """Handle multiple file operations with validation and confirmation - eliminates file handling boilerplate.
 
         Args:
@@ -647,7 +748,7 @@ class FlextCliAdvancedMixin(FlextCliValidationMixin, FlextCliInteractiveMixin, F
             ...         operations = [
             ...             ("backup", "/path/to/data.json", self.backup_file),
             ...             ("process", "/path/to/data.json", self.process_file),
-            ...             ("cleanup", "/path/to/temp.json", self.cleanup_file)
+            ...             ("cleanup", "/path/to/temp.json", self.cleanup_file),
             ...         ]
             ...         return self.flext_cli_handle_file_operations(operations)
 
@@ -667,13 +768,23 @@ class FlextCliAdvancedMixin(FlextCliValidationMixin, FlextCliInteractiveMixin, F
             operation_names = [op_name for op_name, _, _ in file_operations]
             confirmation_msg = f"perform {len(file_operations)} file operations: {', '.join(operation_names)}"
 
-            confirmation_result = self.flext_cli_require_confirmation(confirmation_msg, dangerous=any("delete" in op.lower() or "remove" in op.lower() for op, _, _ in file_operations))
+            confirmation_result = self.flext_cli_require_confirmation(
+                confirmation_msg,
+                dangerous=any(
+                    "delete" in op.lower() or "remove" in op.lower()
+                    for op, _, _ in file_operations
+                ),
+            )
             if not confirmation_result.success:
-                return FlextResult.fail(confirmation_result.error or "Confirmation failed")
+                return FlextResult.fail(
+                    confirmation_result.error or "Confirmation failed"
+                )
 
         # Execute all operations with progress tracking
         results: dict[str, object] = {}
-        operations_to_track = self.flext_cli_track_progress(file_operations, "File operations")
+        operations_to_track = self.flext_cli_track_progress(
+            file_operations, "File operations"
+        )
 
         for operation_name, file_path, operation_func in operations_to_track:
             try:
@@ -682,7 +793,9 @@ class FlextCliAdvancedMixin(FlextCliValidationMixin, FlextCliInteractiveMixin, F
                 result = operation_func(file_path)
                 if result.success:
                     results[f"{operation_name}_{file_path}"] = result.data
-                    self.flext_cli_print_success(f"{operation_name.capitalize()} completed for {file_path}")
+                    self.flext_cli_print_success(
+                        f"{operation_name.capitalize()} completed for {file_path}"
+                    )
                 else:
                     error_msg = f"{operation_name.capitalize()} failed for {file_path}: {result.error}"
                     results[f"{operation_name}_{file_path}"] = error_msg
@@ -699,6 +812,7 @@ class FlextCliAdvancedMixin(FlextCliValidationMixin, FlextCliInteractiveMixin, F
 # =============================================================================
 # ZERO-CONFIG STRATEGY HANDLERS - Complexity reduction via Strategy Pattern
 # =============================================================================
+
 
 class FlextCliZeroConfigHandler:
     """Strategy Pattern: Handles zero-config decorator operations.
@@ -734,12 +848,17 @@ class FlextCliZeroConfigHandler:
                     validations.append((str(param_value), validation_type, param_name))
 
         if validations:
-            validation_inputs: dict[str, tuple[str, str]] = {param_name: (value, val_type) for value, val_type, param_name in validations}
+            validation_inputs: dict[str, tuple[str, str]] = {
+                param_name: (value, val_type)
+                for value, val_type, param_name in validations
+            }
             validation_result = flext_cli_batch_validate(validation_inputs)
             if not validation_result.success:
                 self.helper.console.print(f"[red]✗[/red] {validation_result.error}")
                 return FlextResult.fail(validation_result.error or "Validation failed")
-            self.helper.console.print("[green]✓[/green] All inputs validated successfully")
+            self.helper.console.print(
+                "[green]✓[/green] All inputs validated successfully"
+            )
 
         return FlextResult.ok(None)
 
@@ -766,7 +885,7 @@ class FlextCliZeroConfigHandler:
         result = func(*args, **kwargs)
         # If result is already a FlextResult, return it directly
         if hasattr(result, "success") and hasattr(result, "data"):
-            return result  # type: ignore[return-value]
+            return result
         # Otherwise wrap in FlextResult
         return FlextResult.ok(result)
 
@@ -775,19 +894,31 @@ class FlextCliZeroConfigHandler:
         if hasattr(result, "success"):
             # It's a FlextResult - return directly without double-wrapping
             if result.success:
-                self.helper.console.print(f"[green]✓[/green] {self.operation_name.capitalize()} completed successfully")
+                self.helper.console.print(
+                    f"[green]✓[/green] {self.operation_name.capitalize()} completed successfully"
+                )
             else:
                 error_msg = getattr(result, "error", "Unknown error")
-                self.helper.console.print(f"[red]✗[/red] {self.operation_name.capitalize()} failed: {error_msg}")
-            return result  # type: ignore[return-value]
+                self.helper.console.print(
+                    f"[red]✗[/red] {self.operation_name.capitalize()} failed: {error_msg}"
+                )
+            return result
 
         # Wrap non-FlextResult in success
-        self.helper.console.print(f"[green]✓[/green] {self.operation_name.capitalize()} completed successfully")
+        self.helper.console.print(
+            f"[green]✓[/green] {self.operation_name.capitalize()} completed successfully"
+        )
         return FlextResult.ok(result)
 
 
 # Zero-Configuration Decorators for Massive Boilerplate Reduction
-def flext_cli_zero_config(operation_name: str = "operation", *, dangerous: bool = False, confirm: bool = True, validate_inputs: dict[str, str] | None = None) -> Callable[[F], F]:
+def flext_cli_zero_config(
+    operation_name: str = "operation",
+    *,
+    dangerous: bool = False,
+    confirm: bool = True,
+    validate_inputs: dict[str, str] | None = None,
+) -> Callable[[F], F]:
     """Ultimate zero-configuration decorator using Strategy Pattern.
 
     SOLID REFACTORING: Reduced complexity from 18 to 2 by extracting
@@ -805,6 +936,7 @@ def flext_cli_zero_config(operation_name: str = "operation", *, dangerous: bool 
         ...     return FlextResult.ok("User deleted")
 
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: object, **kwargs: object) -> FlextResult[object]:
@@ -815,14 +947,22 @@ def flext_cli_zero_config(operation_name: str = "operation", *, dangerous: bool 
             try:
                 # Strategy Pattern: delegate to specialized handlers
                 if validate_inputs:
-                    validation_result = handler.validate_inputs(func, args, kwargs, validate_inputs)
+                    validation_result = handler.validate_inputs(
+                        func, args, kwargs, validate_inputs
+                    )
                     if not validation_result.success:
-                        return FlextResult.fail(validation_result.error or "Validation failed")
+                        return FlextResult.fail(
+                            validation_result.error or "Validation failed"
+                        )
 
                 if confirm:
-                    confirmation_result = handler.get_user_confirmation(dangerous=dangerous)
+                    confirmation_result = handler.get_user_confirmation(
+                        dangerous=dangerous
+                    )
                     if not confirmation_result.success:
-                        return FlextResult.fail(confirmation_result.error or "Confirmation failed")
+                        return FlextResult.fail(
+                            confirmation_result.error or "Confirmation failed"
+                        )
                     if not confirmation_result.data:
                         return FlextResult.ok("Operation cancelled by user")
 
@@ -838,12 +978,14 @@ def flext_cli_zero_config(operation_name: str = "operation", *, dangerous: bool 
                 return FlextResult.fail(error_msg)
 
         return cast("F", wrapper)
+
     return decorator
 
 
 # =============================================================================
 # AUTO-RETRY STRATEGY HANDLERS - Complexity reduction
 # =============================================================================
+
 
 class FlextCliRetryHandler:
     """Strategy Pattern: Handles retry operations.
@@ -858,11 +1000,13 @@ class FlextCliRetryHandler:
 
     def calculate_delay(self, attempt: int) -> float:
         """Calculate exponential backoff delay - Single Responsibility Pattern."""
-        return self.delay * (self.backoff_factor ** attempt)
+        return self.delay * (self.backoff_factor**attempt)
 
     def should_retry(self, attempt: int, exception: Exception) -> bool:
         """Determine if retry should be attempted - Single Responsibility Pattern."""
-        return attempt < self.max_attempts and not isinstance(exception, KeyboardInterrupt)
+        return attempt < self.max_attempts and not isinstance(
+            exception, KeyboardInterrupt
+        )
 
     def execute_with_retry(
         self,
@@ -880,9 +1024,9 @@ class FlextCliRetryHandler:
                 # If result is already a FlextResult, check if it's successful
                 if hasattr(result, "success") and hasattr(result, "data"):
                     if result.success:
-                        return result  # type: ignore[return-value]
+                        return result
                     # FlextResult failure - should retry if more attempts left
-                    last_error = result.error  # type: ignore[attr-defined]
+                    last_error = result.error
                     if attempt + 1 < self.max_attempts:  # More attempts left
                         time.sleep(self.calculate_delay(attempt))
                         continue
@@ -898,14 +1042,20 @@ class FlextCliRetryHandler:
 
         # If we have a last_error from FlextResult failure, use that
         if last_error:
-            return FlextResult.fail(f"Operation failed after {self.max_attempts} attempts. Last error: {last_error}")
+            return FlextResult.fail(
+                f"Operation failed after {self.max_attempts} attempts. Last error: {last_error}"
+            )
         # Otherwise use exception
         if last_exception:
-            return FlextResult.fail(f"Operation failed after {self.max_attempts} attempts: {last_exception}")
+            return FlextResult.fail(
+                f"Operation failed after {self.max_attempts} attempts: {last_exception}"
+            )
         return FlextResult.fail("Retry failed with no exception")
 
 
-def flext_cli_auto_retry(max_attempts: int = 3, delay: float = 1.0, backoff_factor: float = 2.0) -> Callable[[F], F]:
+def flext_cli_auto_retry(
+    max_attempts: int = 3, delay: float = 1.0, backoff_factor: float = 2.0
+) -> Callable[[F], F]:
     """Automatic retry decorator using Strategy Pattern.
 
     SOLID REFACTORING: Reduced complexity by extracting retry handler.
@@ -922,6 +1072,7 @@ def flext_cli_auto_retry(max_attempts: int = 3, delay: float = 1.0, backoff_fact
         ...     return self.make_api_call()
 
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: object, **kwargs: object) -> object:
@@ -933,7 +1084,9 @@ def flext_cli_auto_retry(max_attempts: int = 3, delay: float = 1.0, backoff_fact
                 # Strategy Pattern: delegate to retry handler
                 result = retry_handler.execute_with_retry(func, args, kwargs)
                 if hasattr(result, "success") and result.success:
-                    helper.console.print("[green]✓[/green] Operation completed successfully")
+                    helper.console.print(
+                        "[green]✓[/green] Operation completed successfully"
+                    )
                 return result
             except Exception as e:
                 error_msg = f"Operation failed after {max_attempts} attempts: {e}"
@@ -941,6 +1094,7 @@ def flext_cli_auto_retry(max_attempts: int = 3, delay: float = 1.0, backoff_fact
                 return FlextResult.fail(error_msg)
 
         return cast("F", wrapper)
+
     return decorator
 
 
@@ -957,6 +1111,7 @@ def flext_cli_with_progress(description: str = "Processing...") -> Callable[[F],
         ...     return FlextResult.ok(processed_users)
 
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: object, **kwargs: object) -> object:
@@ -972,10 +1127,14 @@ def flext_cli_with_progress(description: str = "Processing...") -> Callable[[F],
                 # Show result
                 if hasattr(result, "success"):
                     if result.success:
-                        helper.console.print(f"[green]✓[/green] {description} completed")
+                        helper.console.print(
+                            f"[green]✓[/green] {description} completed"
+                        )
                     else:
                         error_msg = getattr(result, "error", "Unknown error")
-                        helper.console.print(f"[red]✗[/red] {description} failed: {error_msg}")
+                        helper.console.print(
+                            f"[red]✗[/red] {description} failed: {error_msg}"
+                        )
                 else:
                     helper.console.print(f"[green]✓[/green] {description} completed")
 
@@ -986,16 +1145,21 @@ def flext_cli_with_progress(description: str = "Processing...") -> Callable[[F],
                 return FlextResult.fail(f"Operation failed: {e}")
 
         return cast("F", wrapper)
+
     return decorator
 
 
 # Enhanced Type aliases for improved ergonomics
 FlextCliMixin = FlextCliAdvancedMixin  # Primary recommendation
-FlextCliBasicMixin = type("FlextCliBasicMixin", (
-    FlextCliValidationMixin,
-    FlextCliInteractiveMixin,
-    FlextCliProgressMixin,
-    FlextCliResultMixin,
-    FlextCliConfigMixin,
-), {})
+FlextCliBasicMixin = type(
+    "FlextCliBasicMixin",
+    (
+        FlextCliValidationMixin,
+        FlextCliInteractiveMixin,
+        FlextCliProgressMixin,
+        FlextCliResultMixin,
+        FlextCliConfigMixin,
+    ),
+    {},
+)
 """Combined mixin with all FlextCli utilities."""

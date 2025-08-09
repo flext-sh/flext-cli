@@ -151,7 +151,9 @@ class FlextCliHelper:
         Examples:
             >>> helper = FlextCliHelper()
             >>> helper.flext_cli_save_file({"key": "value"}, "output.json").unwrap()
-            >>> helper.flext_cli_save_file(data, "output.yaml", file_format="yaml").unwrap()
+            >>> helper.flext_cli_save_file(
+            ...     data, "output.yaml", file_format="yaml"
+            ... ).unwrap()
 
         """
         try:
@@ -199,7 +201,9 @@ class FlextCliHelper:
 
         Examples:
             >>> helper = FlextCliHelper()
-            >>> result = helper.flext_cli_validate_input("test@example.com", FlextCliValidationType.EMAIL)
+            >>> result = helper.flext_cli_validate_input(
+            ...     "test@example.com", FlextCliValidationType.EMAIL
+            ... )
             >>> is_valid = result.unwrap()
 
         """
@@ -327,7 +331,9 @@ class FlextCliHelper:
         Examples:
             >>> helper = FlextCliHelper()
             >>> name = helper.flext_cli_prompt("Enter your name:").unwrap()
-            >>> email = helper.flext_cli_prompt("Email:", default="user@example.com").unwrap()
+            >>> email = helper.flext_cli_prompt(
+            ...     "Email:", default="user@example.com"
+            ... ).unwrap()
 
         """
         try:
@@ -381,7 +387,7 @@ class FlextCliHelper:
 
             # Execute command with proper error handling
             try:
-                process_result = subprocess.run(  # noqa: S602
+                process_result = subprocess.run(
                     command,
                     shell=True,  # Intentional for CLI helper functionality
                     capture_output=True,
@@ -589,7 +595,7 @@ class FlextCliHelper:
         if max_length <= min_ellipsis_length:
             return text[:max_length]
 
-        return text[:max_length - min_ellipsis_length] + "..."
+        return text[: max_length - min_ellipsis_length] + "..."
 
     def print_info(self, message: str) -> None:
         """Print info message with Rich console styling.
@@ -638,10 +644,14 @@ class FlextCliHelper:
             return False
         try:
             if must_exist:
-                result = self.flext_cli_validate_input(path, FlextCliValidationType.FILE)
+                result = self.flext_cli_validate_input(
+                    path, FlextCliValidationType.FILE
+                )
                 if not result.success:
                     # Try as directory too
-                    result = self.flext_cli_validate_input(path, FlextCliValidationType.DIR)
+                    result = self.flext_cli_validate_input(
+                        path, FlextCliValidationType.DIR
+                    )
                 return result.success
             # Just validate path format
             result = self.flext_cli_validate_input(path, FlextCliValidationType.PATH)
@@ -649,10 +659,9 @@ class FlextCliHelper:
         except Exception:
             return False
 
-
-# =============================================================================
-# VALIDATION STRATEGIES - Extracted for complexity reduction
-# =============================================================================
+    # =============================================================================
+    # VALIDATION STRATEGIES - Extracted for complexity reduction
+    # =============================================================================
 
     def _validate_email(self, value: str) -> FlextResult[bool]:
         """Validate email format using regex - Single Responsibility Pattern."""
@@ -863,7 +872,9 @@ def flext_cli_create_progress() -> Progress:
     )
 
 
-def flext_cli_batch_validate(inputs: dict[str, tuple[str, str]]) -> FlextResult[dict[str, str]]:
+def flext_cli_batch_validate(
+    inputs: dict[str, tuple[str, str]],
+) -> FlextResult[dict[str, str]]:
     """Batch validate multiple inputs with specified types.
 
     Args:
@@ -884,7 +895,9 @@ def flext_cli_batch_validate(inputs: dict[str, tuple[str, str]]) -> FlextResult[
 
     for field_name, (value, validation_type) in inputs.items():
         if validation_type == "email":
-            result = helper.flext_cli_validate_input(value, FlextCliValidationType.EMAIL)
+            result = helper.flext_cli_validate_input(
+                value, FlextCliValidationType.EMAIL
+            )
         elif validation_type == "url":
             result = helper.flext_cli_validate_input(value, FlextCliValidationType.URL)
         elif validation_type == "path":
@@ -906,7 +919,9 @@ def flext_cli_batch_validate(inputs: dict[str, tuple[str, str]]) -> FlextResult[
             return FlextResult.fail(f"Unknown validation type: {validation_type}")
 
         if not result.success:
-            return FlextResult.fail(f"Validation failed for {field_name}: {result.error}")
+            return FlextResult.fail(
+                f"Validation failed for {field_name}: {result.error}"
+            )
 
         validated[field_name] = value
 
@@ -937,7 +952,9 @@ def flext_cli_quick_confirm(message: str, *, default: bool = False) -> bool:
 
 
 # Factory functions for easy instantiation
-def flext_cli_create_helper(console: Console | None = None, *, quiet: bool = False) -> FlextCliHelper:
+def flext_cli_create_helper(
+    console: Console | None = None, *, quiet: bool = False
+) -> FlextCliHelper:
     """Create FlextCliHelper with optional configuration.
 
     Args:
@@ -955,7 +972,9 @@ def flext_cli_create_helper(console: Console | None = None, *, quiet: bool = Fal
     return FlextCliHelper(console=console, quiet=quiet)
 
 
-def flext_cli_create_data_processor(helper: FlextCliHelper | None = None) -> FlextCliDataProcessor:
+def flext_cli_create_data_processor(
+    helper: FlextCliHelper | None = None,
+) -> FlextCliDataProcessor:
     """Create FlextCliDataProcessor instance.
 
     Args:
@@ -972,7 +991,9 @@ def flext_cli_create_data_processor(helper: FlextCliHelper | None = None) -> Fle
     return FlextCliDataProcessor(helper=helper)
 
 
-def flext_cli_create_file_manager(helper: FlextCliHelper | None = None) -> FlextCliFileManager:
+def flext_cli_create_file_manager(
+    helper: FlextCliHelper | None = None,
+) -> FlextCliFileManager:
     """Create FlextCliFileManager instance.
 
     Args:
@@ -993,6 +1014,7 @@ def flext_cli_create_file_manager(helper: FlextCliHelper | None = None) -> Flext
 # CONCRETE IMPLEMENTATIONS - Pattern completion
 # =============================================================================
 
+
 class FlextCliDataProcessor:
     """Concrete data processor implementation."""
 
@@ -1011,7 +1033,9 @@ class FlextCliDataProcessor:
                 elif isinstance(value, (int, float, bool)):
                     processed_data[f"processed_{key}"] = value
                 else:
-                    processed_data[f"processed_{key}"] = str(value) if value is not None else ""
+                    processed_data[f"processed_{key}"] = (
+                        str(value) if value is not None else ""
+                    )
 
             return FlextResult.ok(processed_data)
 
@@ -1046,10 +1070,12 @@ class FlextCliDataProcessor:
             for step_name, step_func in workflow_steps:
                 try:
                     # Call step function and handle both FlextResult and direct returns
-                    step_result = step_func(current_data)  # type: ignore[operator]
+                    step_result = step_func(current_data)
                     if hasattr(step_result, "success"):  # It's a FlextResult
                         if not step_result.success:
-                            return FlextResult.fail(f"Step '{step_name}' failed: {step_result.error}")
+                            return FlextResult.fail(
+                                f"Step '{step_name}' failed: {step_result.error}"
+                            )
                         current_data = step_result.data
                     else:  # Direct return value
                         current_data = step_result
@@ -1079,16 +1105,22 @@ class FlextCliDataProcessor:
             result_data = dict(data)
 
             # Apply automatic transformations and custom transformers
-            transform_result = self._apply_transformations(result_data, validators, transformers)
+            transform_result = self._apply_transformations(
+                result_data, validators, transformers
+            )
             if not transform_result.success:
-                return FlextResult.fail(transform_result.error or "Transformation failed")
+                return FlextResult.fail(
+                    transform_result.error or "Transformation failed"
+                )
 
             return FlextResult.ok(transform_result.data or {})
 
         except Exception as e:
             return FlextResult.fail(f"Validation and transformation failed: {e}")
 
-    def _validate_fields(self, data: dict[str, object], validators: dict[str, str]) -> FlextResult[None]:
+    def _validate_fields(
+        self, data: dict[str, object], validators: dict[str, str]
+    ) -> FlextResult[None]:
         """Validate fields using Strategy Pattern - Single Responsibility."""
         helper = FlextCliHelper()
 
@@ -1097,14 +1129,20 @@ class FlextCliDataProcessor:
                 return FlextResult.fail(f"Required field '{field}' missing")
 
             value = str(data[field])
-            validation_result = self._get_validation_result(helper, value, validation_type)
+            validation_result = self._get_validation_result(
+                helper, value, validation_type
+            )
 
             if validation_result and not validation_result.success:
-                return FlextResult.fail(f"Validation failed for '{field}': {validation_result.error}")
+                return FlextResult.fail(
+                    f"Validation failed for '{field}': {validation_result.error}"
+                )
 
         return FlextResult.ok(None)
 
-    def _get_validation_result(self, helper: FlextCliHelper, value: str, validation_type: str) -> FlextResult[bool] | None:
+    def _get_validation_result(
+        self, helper: FlextCliHelper, value: str, validation_type: str
+    ) -> FlextResult[bool] | None:
         """Get validation result for specific type - Strategy Pattern."""
         validation_map = {
             "email": FlextCliValidationType.EMAIL,
@@ -1126,8 +1164,11 @@ class FlextCliDataProcessor:
         """Apply automatic and custom transformations - Single Responsibility."""
         # First apply automatic transformations based on validation types
         for field, validation_type in validators.items():
-            if (field in result_data and validation_type == "file" and
-                (not transformers or field not in transformers)):
+            if (
+                field in result_data
+                and validation_type == "file"
+                and (not transformers or field not in transformers)
+            ):
                 # Convert validated files to Path objects unless there's a specific transformer
                 result_data[field] = Path(str(result_data[field]))
 
@@ -1136,9 +1177,11 @@ class FlextCliDataProcessor:
             for field, transformer in transformers.items():
                 if field in result_data:
                     try:
-                        result_data[field] = transformer(result_data[field])  # type: ignore[operator]
+                        result_data[field] = transformer(result_data[field])
                     except Exception as e:
-                        return FlextResult.fail(f"Transformation failed for '{field}': {e}")
+                        return FlextResult.fail(
+                            f"Transformation failed for '{field}': {e}"
+                        )
 
         return FlextResult.ok(result_data)
 
@@ -1154,7 +1197,9 @@ class FlextCliDataProcessor:
             errors: list[str] = []
 
             for source_name, source_func in data_sources.items():
-                source_result = self._process_data_source(source_name, source_func, fail_fast=fail_fast)
+                source_result = self._process_data_source(
+                    source_name, source_func, fail_fast=fail_fast
+                )
 
                 if source_result is None:
                     # Early return due to fail_fast
@@ -1165,7 +1210,9 @@ class FlextCliDataProcessor:
                 else:
                     errors.append(f"{source_name}: {source_result.error}")
                     if fail_fast:
-                        return FlextResult.fail(f"Source {source_name} failed: {source_result.error}")
+                        return FlextResult.fail(
+                            f"Source {source_name} failed: {source_result.error}"
+                        )
 
             if errors and not aggregated_data:
                 return FlextResult.fail(f"All sources failed: {'; '.join(errors)}")
@@ -1190,13 +1237,15 @@ class FlextCliDataProcessor:
             if callable(source_func):
                 result = source_func()
                 if hasattr(result, "success"):
-                    return result  # type: ignore[no-any-return]
+                    return result
                 # Direct data return
                 return FlextResult.ok(result)
             # Direct data (not callable)
             return FlextResult.ok(source_func)
         except Exception as e:
-            error_result: FlextResult[object] = FlextResult.fail(f"Source {source_name} exception: {e!s}")
+            error_result: FlextResult[object] = FlextResult.fail(
+                f"Source {source_name} exception: {e!s}"
+            )
             if fail_fast:
                 return error_result
             return FlextResult.fail(f"{e!s}")
@@ -1213,18 +1262,22 @@ class FlextCliDataProcessor:
             for transformer_name, transformer_func in transformers:
                 try:
                     # Apply transformer
-                    transform_result = transformer_func(current_data)  # type: ignore[operator]
+                    transform_result = transformer_func(current_data)
 
                     # Handle both FlextResult and direct returns
                     if hasattr(transform_result, "success"):
                         if not transform_result.success:
-                            return FlextResult.fail(f"Transformer '{transformer_name}' failed: {transform_result.error}")
+                            return FlextResult.fail(
+                                f"Transformer '{transformer_name}' failed: {transform_result.error}"
+                            )
                         current_data = transform_result.data
                     else:
                         current_data = transform_result
 
                 except Exception as e:
-                    return FlextResult.fail(f"Transformer '{transformer_name}' raised exception: {e}")
+                    return FlextResult.fail(
+                        f"Transformer '{transformer_name}' raised exception: {e}"
+                    )
 
             return FlextResult.ok(current_data)
 
@@ -1278,7 +1331,9 @@ class FlextCliFileManager:
             # Create backup if requested and file exists
             if backup and file_path.exists():
                 backup_path = file_path.with_suffix(file_path.suffix + ".bak")
-                backup_path.write_text(file_path.read_text(encoding="utf-8"), encoding="utf-8")
+                backup_path.write_text(
+                    file_path.read_text(encoding="utf-8"), encoding="utf-8"
+                )
 
             # Write new content
             file_path.write_text(content, encoding="utf-8")
@@ -1319,11 +1374,15 @@ class FlextCliFileManager:
 
             try:
                 # Process content
-                result = processor_func(original_content)  # type: ignore[operator]
-                if hasattr(result, "success") and not result.success:  # FlextResult failed
+                result = processor_func(original_content)
+                if (
+                    hasattr(result, "success") and not result.success
+                ):  # FlextResult failed
                     # Restore from backup
                     path.write_text(original_content, encoding="utf-8")
-                    return FlextResult.fail(f"Processing failed, file restored: {result.error}")
+                    return FlextResult.fail(
+                        f"Processing failed, file restored: {result.error}"
+                    )
 
                 # Get processed content
                 processed_content = result.data if hasattr(result, "data") else result
@@ -1331,12 +1390,14 @@ class FlextCliFileManager:
                 # Write processed content
                 path.write_text(str(processed_content), encoding="utf-8")
 
-                return FlextResult.ok({
-                    "status": "completed",
-                    "original_file": str(path),
-                    "backup_file": str(backup_path),
-                    "processed": "true",
-                })
+                return FlextResult.ok(
+                    {
+                        "status": "completed",
+                        "original_file": str(path),
+                        "backup_file": str(backup_path),
+                        "processed": "true",
+                    }
+                )
 
             except Exception as e:
                 # Restore from backup on any exception

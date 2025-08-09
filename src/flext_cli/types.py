@@ -5,7 +5,7 @@ Eliminates 85% type duplication through flext-core integration.
 
 Foundation Pattern Applied:
     # NEW: Clear, hierarchical type system
-    from flext_core.types import FlextTypes
+    from flext_core.typings import FlextTypes
 
     # Self-documenting types
     user_predicate: FlextTypes.Core.Predicate[User] = lambda u: u.is_active
@@ -26,7 +26,7 @@ from enum import StrEnum
 from typing import Literal
 
 import click
-from flext_core.types import FlextTypes
+from flext_core.typings import FlextTypes
 
 # Type aliases for legacy compatibility
 from flext_cli.config import CLIConfig
@@ -93,7 +93,7 @@ class ProfileType(click.ParamType):
             return value
         # This will raise BadParameter - suppress unreachable code warning
         self.fail(f"{value!r} is not a valid profile", param, ctx)
-        msg = "unreachable"  # type: ignore[unreachable]
+        msg = "unreachable"
         raise AssertionError(msg)  # pragma: no cover
 
 

@@ -240,7 +240,7 @@ async def async_task(ctx: click.Context, delay: float) -> str:
 @click.pass_context
 @flext_cli.retry(max_attempts=3, delay=0.5)
 @flext_cli.handle_service_result
-def unreliable(ctx: click.Context, max_attempts: int) -> str:  # noqa: ARG001  # Click command arguments
+def unreliable(ctx: click.Context, max_attempts: int) -> str:
     """Demonstrate retry decorator with potentially failing operation."""
     console = Console()
     console.print("[bold blue]Unreliable Operation with Retry[/bold blue]")
@@ -248,7 +248,7 @@ def unreliable(ctx: click.Context, max_attempts: int) -> str:  # noqa: ARG001  #
 
     # Simulate random failure
     failure_probability = 0.7  # 70% chance of failure
-    if random.random() < failure_probability:  # noqa: S311  # Non-cryptographic demo use
+    if random.random() < failure_probability:
         msg = "Simulated random failure"
         raise click.ClickException(msg)
 

@@ -100,7 +100,7 @@ def _safe_subprocess_run(
         raise ValueError(invalid_dir_msg)
 
     try:
-        return subprocess.run(  # noqa: S603  # Safe: shell=False, validated inputs
+        return subprocess.run(
             cmd,
             cwd=cwd,
             capture_output=capture_output,
@@ -418,7 +418,7 @@ def run(
             env["MELTANO_ENVIRONMENT"] = environment
 
         # Execute meltano command
-        result = subprocess.run(  # noqa: S603  # Safe: shell=False, validated inputs
+        result = subprocess.run(
             cmd,
             check=False,
             cwd=str(project_path),

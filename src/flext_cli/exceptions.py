@@ -41,7 +41,7 @@ FlextCliTimeoutError = _cli_exceptions["FlextCliTimeoutError"]
 # =============================================================================
 
 
-class FlextCliCommandError(FlextCliError):  # type: ignore[valid-type,misc]
+class FlextCliCommandError(FlextCliError):
     """CLI service command errors using DRY foundation."""
 
     def __init__(
@@ -61,7 +61,7 @@ class FlextCliCommandError(FlextCliError):  # type: ignore[valid-type,misc]
         super().__init__(f"CLI command: {message}", **context)
 
 
-class FlextCliArgumentError(FlextCliError):  # type: ignore[valid-type,misc]
+class FlextCliArgumentError(FlextCliError):
     """CLI service argument errors using DRY foundation."""
 
     def __init__(
@@ -81,7 +81,7 @@ class FlextCliArgumentError(FlextCliError):  # type: ignore[valid-type,misc]
         super().__init__(f"CLI argument: {message}", **context)
 
 
-class FlextCliFormatError(FlextCliError):  # type: ignore[valid-type,misc]
+class FlextCliFormatError(FlextCliError):
     """CLI service formatting errors using DRY foundation."""
 
     def __init__(
@@ -101,7 +101,7 @@ class FlextCliFormatError(FlextCliError):  # type: ignore[valid-type,misc]
         super().__init__(f"CLI format: {message}", **context)
 
 
-class FlextCliOutputError(FlextCliError):  # type: ignore[valid-type,misc]
+class FlextCliOutputError(FlextCliError):
     """CLI service output errors using DRY foundation."""
 
     def __init__(
@@ -121,7 +121,7 @@ class FlextCliOutputError(FlextCliError):  # type: ignore[valid-type,misc]
         super().__init__(f"CLI output: {message}", **context)
 
 
-class FlextCliContextError(FlextCliError):  # type: ignore[valid-type,misc]
+class FlextCliContextError(FlextCliError):
     """CLI service context errors using DRY foundation."""
 
     def __init__(

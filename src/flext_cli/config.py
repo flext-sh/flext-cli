@@ -12,7 +12,7 @@ Configuration Hierarchy (highest to lowest precedence):
 
 Architecture:
     - FlextCLIConfigHierarchical for provider-based configuration
-    - FlextBaseSettings for modern environment integration
+    - FlextSettings for modern environment integration
     - FlextConfigSemanticConstants for hierarchical precedence
     - Railway-oriented programming with FlextResult
     - Zero configuration boilerplate for ecosystem projects
@@ -31,9 +31,9 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Literal
 
-from flext_core import FlextBaseSettings, FlextResult, get_logger
+from flext_core import FlextResult, FlextSettings, get_logger
 from pydantic import Field, model_validator
 from pydantic_settings import SettingsConfigDict
 
@@ -43,31 +43,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-@runtime_checkable
-class FlextConfigProvider(Protocol):
-    """Protocol for configuration providers following flext/docs/patterns."""
-
-    def get_config(self, key: str, default: object = None) -> FlextResult[object]:
-        """Get configuration value by key.
-
-        Args:
-            key: Configuration key to retrieve
-            default: Default value if key not found
-
-        Returns:
-            FlextResult with configuration value
-
-        """
-        ...
-
-    def get_priority(self) -> int:
-        """Get provider priority (lower numbers have higher precedence).
-
-        Returns:
-            Integer priority value
-
-        """
-        ...
+from flext_cli.protocols import FlextConfigProvider
 
 
 class FlextCLIConfigHierarchical:
@@ -152,7 +128,7 @@ class FlextEnvironmentProvider:
         return FlextConfigSemanticConstants.Hierarchy.ENV_VARS
 
 
-class CLIConfig(FlextBaseSettings):
+class CLIConfig(FlextSettings):
     """Modern CLI configuration eliminating 90% boilerplate."""
 
     # Core settings
@@ -242,7 +218,7 @@ class CLIConfig(FlextBaseSettings):
     )
     auto_refresh: bool = Field(default=True, description="Auto refresh tokens")
 
-    # FlextBaseSettings configuration - automatic environment loading
+    # FlextSettings configuration - automatic environment loading
     model_config = SettingsConfigDict(
         env_prefix="FLEXT_CLI_",
         env_file=".env",

@@ -126,7 +126,7 @@ def check(ctx: click.Context) -> None:
         config = get_config()
         console.print("[green]✓[/green] Configuration: OK")
         console.print(f"  Profile: {config.profile}")
-    except (AttributeError, ValueError, TypeError, ImportError) as e:
+    except (AttributeError, ValueError, TypeError) as e:
         console.print(f"[red]✗[/red] Configuration: ERROR - {e}")
 
     # Check connectivity simulation

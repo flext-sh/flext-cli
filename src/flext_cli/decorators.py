@@ -46,6 +46,7 @@ F = TypeVar("F", bound=Callable[[object], object])
 # VALIDATION STRATEGY HANDLERS - Complexity reduction via Strategy Pattern
 # =============================================================================
 
+
 class FlextCliValidationHandler:
     """Strategy Pattern: Handles input validation operations.
 
@@ -65,7 +66,9 @@ class FlextCliValidationHandler:
             "uuid": FlextCliValidationType.UUID,
         }
 
-    def validate_single_input(self, param_name: str, value: str, validation_type: str) -> FlextResult[None]:
+    def validate_single_input(
+        self, param_name: str, value: str, validation_type: str
+    ) -> FlextResult[None]:
         """Validate single input - Single Responsibility Pattern."""
         validation_enum = self.validation_type_mapping.get(validation_type)
         if validation_enum is None:
@@ -74,7 +77,9 @@ class FlextCliValidationHandler:
 
         result = self.helper.flext_cli_validate_input(value, validation_enum)
         if not result.success:
-            return FlextResult.fail(f"Validation failed for {param_name}: {result.error}")
+            return FlextResult.fail(
+                f"Validation failed for {param_name}: {result.error}"
+            )
 
         return FlextResult.ok(None)
 
@@ -88,7 +93,9 @@ class FlextCliValidationHandler:
         for i, value in enumerate(args):
             if i < len(param_names) and param_names[i] in validations:
                 validation_result = self.validate_single_input(
-                    param_names[i], str(value), validations[param_names[i]],
+                    param_names[i],
+                    str(value),
+                    validations[param_names[i]],
                 )
                 if not validation_result.success:
                     return validation_result
@@ -103,7 +110,9 @@ class FlextCliValidationHandler:
         for param_name, value in kwargs.items():
             if param_name in validations:
                 validation_result = self.validate_single_input(
-                    param_name, str(value), validations[param_name],
+                    param_name,
+                    str(value),
+                    validations[param_name],
                 )
                 if not validation_result.success:
                     return validation_result
@@ -130,6 +139,7 @@ def flext_cli_file_operation(
             return helper.flext_cli_save_file(data, path)
 
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: object, **kwargs: object) -> object:
@@ -156,7 +166,8 @@ def flext_cli_file_operation(
 
             return func(*args, **kwargs)
 
-        return wrapper  # type: ignore[return-value]
+        return wrapper
+
     return decorator
 
 
@@ -175,6 +186,7 @@ def flext_cli_validate_inputs(validations: dict[str, str]) -> Callable[[F], F]:
             return FlextResult.ok("Sent")
 
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: object, **kwargs: object) -> object:
@@ -187,18 +199,27 @@ def flext_cli_validate_inputs(validations: dict[str, str]) -> Callable[[F], F]:
 
             # Strategy Pattern: delegate to validation handler
             positional_result = validation_handler.validate_positional_args(
-                args, param_names, validations,
+                args,
+                param_names,
+                validations,
             )
             if not positional_result.success:
-                return FlextResult.fail(positional_result.error or "Positional validation failed")
+                return FlextResult.fail(
+                    positional_result.error or "Positional validation failed"
+                )
 
-            keyword_result = validation_handler.validate_keyword_args(kwargs, validations)
+            keyword_result = validation_handler.validate_keyword_args(
+                kwargs, validations
+            )
             if not keyword_result.success:
-                return FlextResult.fail(keyword_result.error or "Keyword validation failed")
+                return FlextResult.fail(
+                    keyword_result.error or "Keyword validation failed"
+                )
 
             return func(*args, **kwargs)
 
-        return wrapper  # type: ignore[return-value]
+        return wrapper
+
     return decorator
 
 
@@ -217,6 +238,7 @@ def flext_cli_retry(
             return FlextResult.ok("Connected")
 
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: object, **kwargs: object) -> object:
@@ -226,8 +248,12 @@ def flext_cli_retry(
                 try:
                     result = func(*args, **kwargs)
                     # If it's a FlextResult, check success
-                    if hasattr(result, "success") and not result.success and attempt < max_attempts - 1:
-                        wait_time = delay * (2 ** attempt if exponential_backoff else 1)
+                    if (
+                        hasattr(result, "success")
+                        and not result.success
+                        and attempt < max_attempts - 1
+                    ):
+                        wait_time = delay * (2**attempt if exponential_backoff else 1)
                         time.sleep(wait_time)
                         continue
                     return result
@@ -235,14 +261,19 @@ def flext_cli_retry(
                 except Exception as e:
                     last_error = e
                     if attempt < max_attempts - 1:
-                        wait_time = delay * (2 ** attempt if exponential_backoff else 1)
+                        wait_time = delay * (2**attempt if exponential_backoff else 1)
                         time.sleep(wait_time)
                     else:
-                        return FlextResult.fail(f"Failed after {max_attempts} attempts: {e}")
+                        return FlextResult.fail(
+                            f"Failed after {max_attempts} attempts: {e}"
+                        )
 
-            return FlextResult.fail(f"Failed after {max_attempts} attempts: {last_error}")
+            return FlextResult.fail(
+                f"Failed after {max_attempts} attempts: {last_error}"
+            )
 
-        return wrapper  # type: ignore[return-value]
+        return wrapper
+
     return decorator
 
 
@@ -256,6 +287,7 @@ def flext_cli_measure_time[F: Callable[[object], object]](func: F) -> F:
             return FlextResult.ok("Complete")
 
     """
+
     @functools.wraps(func)
     def wrapper(*args: object, **kwargs: object) -> object:
         console = Console()
@@ -266,16 +298,20 @@ def flext_cli_measure_time[F: Callable[[object], object]](func: F) -> F:
             end_time = time.perf_counter()
             execution_time = end_time - start_time
 
-            console.print(f"[dim]{func.__name__} completed in {execution_time:.3f}s[/dim]")
+            console.print(
+                f"[dim]{func.__name__} completed in {execution_time:.3f}s[/dim]"
+            )
             return result
 
         except Exception as e:
             end_time = time.perf_counter()
             execution_time = end_time - start_time
-            console.print(f"[red]{func.__name__} failed after {execution_time:.3f}s: {e}[/red]")
+            console.print(
+                f"[red]{func.__name__} failed after {execution_time:.3f}s: {e}[/red]"
+            )
             raise
 
-    return wrapper  # type: ignore[return-value]
+    return wrapper
 
 
 def flext_cli_confirm(message: str, *, default: bool = False) -> Callable[[F], F]:
@@ -288,6 +324,7 @@ def flext_cli_confirm(message: str, *, default: bool = False) -> Callable[[F], F
             return FlextResult.ok("Files deleted")
 
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: object, **kwargs: object) -> object:
@@ -302,7 +339,8 @@ def flext_cli_confirm(message: str, *, default: bool = False) -> Callable[[F], F
 
             return func(*args, **kwargs)
 
-        return wrapper  # type: ignore[return-value]
+        return wrapper
+
     return decorator
 
 
@@ -318,6 +356,7 @@ def flext_cli_handle_keyboard_interrupt(
             return FlextResult.ok("Complete")
 
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: object, **kwargs: object) -> object:
@@ -329,7 +368,8 @@ def flext_cli_handle_keyboard_interrupt(
                 console.print(f"\n[yellow]{cleanup_message}[/yellow]")
                 return FlextResult.fail("Operation interrupted by user")
 
-        return wrapper  # type: ignore[return-value]
+        return wrapper
+
     return decorator
 
 
@@ -346,10 +386,10 @@ def flext_cli_inject_config(config_keys: list[str]) -> Callable[[F], F]:
             return FlextResult.ok("Connected")
 
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: object, **kwargs: object) -> object:
-
             # Inject config values as keyword arguments
             for key in config_keys:
                 if key not in kwargs:
@@ -358,11 +398,14 @@ def flext_cli_inject_config(config_keys: list[str]) -> Callable[[F], F]:
                     if env_value:
                         kwargs[key] = env_value
                     else:
-                        return FlextResult.fail(f"Required config key '{key}' not found")
+                        return FlextResult.fail(
+                            f"Required config key '{key}' not found"
+                        )
 
             return func(*args, **kwargs)
 
-        return wrapper  # type: ignore[return-value]
+        return wrapper
+
     return decorator
 
 
@@ -398,7 +441,8 @@ def flext_cli_cache_result(ttl_seconds: int = 300) -> Callable[[F], F]:
 
             return result
 
-        return wrapper  # type: ignore[return-value]
+        return wrapper
+
     return decorator
 
 
@@ -416,6 +460,7 @@ def flext_cli_log_execution(
             return FlextResult.ok("Complete")
 
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: object, **kwargs: object) -> object:
@@ -432,9 +477,13 @@ def flext_cli_log_execution(
                 # Log success
                 if hasattr(result, "success"):
                     if result.success:
-                        console.print(f"[green]✓ {func.__name__} completed successfully[/green]")
+                        console.print(
+                            f"[green]✓ {func.__name__} completed successfully[/green]"
+                        )
                     elif hasattr(result, "error"):
-                        console.print(f"[red]✗ {func.__name__} failed: {result.error}[/red]")
+                        console.print(
+                            f"[red]✗ {func.__name__} failed: {result.error}[/red]"
+                        )
                     else:
                         console.print(f"[red]✗ {func.__name__} failed: {result}[/red]")
                 else:
@@ -446,7 +495,8 @@ def flext_cli_log_execution(
                 console.print(f"[red]✗ {func.__name__} raised exception: {e}[/red]")
                 raise
 
-        return wrapper  # type: ignore[return-value]
+        return wrapper
+
     return decorator
 
 
@@ -467,6 +517,7 @@ def flext_cli_enhanced(
             return FlextResult.ok("Complete")
 
     """
+
     def decorator(func: F) -> F:
         enhanced_func = func
 

@@ -27,7 +27,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import contextlib
 import json
 import logging
 import os
@@ -35,7 +34,6 @@ import tomllib
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-import toml
 import yaml
 from flext_core import FlextResult
 
@@ -52,15 +50,12 @@ class FlextConfigProvider(Protocol):
 
     def get_config(self, key: str, default: object = None) -> FlextResult[object]:
         """Get configuration value from this provider."""
-        ...
 
     def get_priority(self) -> int:
         """Get provider priority for hierarchical sorting."""
-        ...
 
     def get_all(self) -> dict[str, object]:
         """Get all configuration values from this provider."""
-        ...
 
 
 class FlextEnvironmentProvider:
@@ -106,9 +101,13 @@ class FlextDotenvProvider:
             content: str = self.dotenv_path.read_text()
             for content_line in content.splitlines():
                 stripped_line: str = content_line.strip()
-                if stripped_line and not stripped_line.startswith("#") and "=" in stripped_line:
+                if (
+                    stripped_line
+                    and not stripped_line.startswith("#")
+                    and "=" in stripped_line
+                ):
                     key, value = stripped_line.split("=", 1)
-                    self._config[key.strip()] = value.strip().strip('"\'')
+                    self._config[key.strip()] = value.strip().strip("\"'")
         except Exception as e:
             # Log warning for debugging but continue
             logging.getLogger(__name__).debug(f"Optional .env file parse error: {e}")
@@ -145,18 +144,11 @@ class FlextConfigFileProvider:
             content: str = self.config_path.read_text()
 
             if self.config_path.suffix == ".json":
-
                 self._config = json.loads(content)
             elif self.config_path.suffix in {".yaml", ".yml"}:
-                with contextlib.suppress(ImportError):
-                    self._config = yaml.safe_load(content)
+                self._config = yaml.safe_load(content)
             elif self.config_path.suffix == ".toml":
-                try:
-
-                    self._config = tomllib.loads(content)
-                except ImportError:
-                    with contextlib.suppress(ImportError):
-                        self._config = toml.loads(content)
+                self._config = tomllib.loads(content)
         except Exception as e:
             # Log warning for debugging but continue
             logging.getLogger(__name__).debug(f"Optional config file parse error: {e}")
@@ -235,7 +227,9 @@ class FlextCLIConfigHierarchical:
 
         return all_configs
 
-    def add_transformer(self, key: str, transformer: Callable[[object], object]) -> None:
+    def add_transformer(
+        self, key: str, transformer: Callable[[object], object]
+    ) -> None:
         """Add value transformer for specific configuration key."""
         self._transformers[key] = transformer
 
@@ -246,7 +240,9 @@ class FlextCLIConfigHierarchical:
                 return self._transformers[key](value)
             except Exception as e:
                 # Log transformation failure for debugging
-                logging.getLogger(__name__).debug(f"Config transformation failed for {key}: {e}")
+                logging.getLogger(__name__).debug(
+                    f"Config transformation failed for {key}: {e}"
+                )
         return value
 
     def clear_cache(self) -> None:
@@ -291,13 +287,17 @@ def create_default_hierarchy(
             cli_provider = FlextCliArgsProvider(cli_args)
             result = hierarchy.register_provider(cli_provider)
             if not result.success:
-                return FlextResult.fail(result.error or "Failed to register CLI provider")
+                return FlextResult.fail(
+                    result.error or "Failed to register CLI provider"
+                )
 
         # Environment variables
         env_provider = FlextEnvironmentProvider(env_prefix)
         result = hierarchy.register_provider(env_provider)
         if not result.success:
-            return FlextResult.fail(result.error or "Failed to register environment provider")
+            return FlextResult.fail(
+                result.error or "Failed to register environment provider"
+            )
 
         # .env files
         if dotenv_path is None:
@@ -305,14 +305,18 @@ def create_default_hierarchy(
         dotenv_provider = FlextDotenvProvider(dotenv_path)
         result = hierarchy.register_provider(dotenv_provider)
         if not result.success:
-            return FlextResult.fail(result.error or "Failed to register dotenv provider")
+            return FlextResult.fail(
+                result.error or "Failed to register dotenv provider"
+            )
 
         # Configuration files
         if config_path and config_path.exists():
             config_provider = FlextConfigFileProvider(config_path)
             result = hierarchy.register_provider(config_provider)
             if not result.success:
-                return FlextResult.fail(result.error or "Failed to register config file provider")
+                return FlextResult.fail(
+                    result.error or "Failed to register config file provider"
+                )
 
         return FlextResult.ok(hierarchy)
 

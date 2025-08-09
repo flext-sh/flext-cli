@@ -12,7 +12,7 @@ Commands:
 
 Architecture:
     - Click-based command definitions with Rich table output
-    - FlextBaseSettings integration for type-safe configuration
+    - FlextSettings integration for type-safe configuration
     - Hierarchical configuration with profile support (dev/staging/prod)
     - YAML/JSON export and import capabilities
 
@@ -353,7 +353,7 @@ def edit(ctx: click.Context, _profile: str | None) -> None:
             )
             ctx.exit(1)
 
-        subprocess.run([editor, str(config_file)], check=True, shell=False)  # nosec B603  # noqa: S603
+        subprocess.run([editor, str(config_file)], check=True, shell=False)  # nosec B603
         cli_context.print_success("Configuration updated")
         cli_context.print_info("Restart CLI to apply changes")
 

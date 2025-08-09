@@ -29,9 +29,9 @@ from __future__ import annotations
 import warnings
 
 from flext_core import (
-    FlextBaseSettings,
     FlextEntity,
     FlextResult,
+    FlextSettings,
 )
 
 from flext_cli.config_hierarchical import create_default_hierarchy
@@ -75,7 +75,7 @@ class FlextCliEntity(FlextEntity):
         return self.model_copy(update={"args": args})
 
 
-class FlextCliConfig(FlextBaseSettings):
+class FlextCliConfig(FlextSettings):
     """Modern CLI configuration following foundation-refactored.md patterns.
 
     Features:
@@ -166,9 +166,8 @@ def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
 
         # Add any other overrides that might not be in the default hierarchy
         for key, value in overrides.items():
-            if (
-                key not in final_config_data and
-                isinstance(value, (str, bool, int, float, type(None)))
+            if key not in final_config_data and isinstance(
+                value, (str, bool, int, float, type(None))
             ):  # Avoid overwriting explicitly mapped fields
                 final_config_data[key] = value
 
