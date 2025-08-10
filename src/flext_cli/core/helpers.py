@@ -668,7 +668,7 @@ class FlextCliHelper:
         pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if not re.match(pattern, value):
             return FlextResult.fail(f"Invalid email format: {value}")
-        return FlextResult.ok(data=True)
+        return FlextResult.ok(True)
 
     def _validate_url(self, value: str) -> FlextResult[bool]:
         """Validate URL format using urlparse - Single Responsibility Pattern."""
@@ -676,7 +676,7 @@ class FlextCliHelper:
             result = urlparse(value)
             if not all([result.scheme, result.netloc]):
                 return FlextResult.fail(f"Invalid URL format: {value}")
-            return FlextResult.ok(data=True)
+            return FlextResult.ok(True)
         except Exception:
             return FlextResult.fail(f"Invalid URL format: {value}")
 
@@ -684,7 +684,7 @@ class FlextCliHelper:
         """Validate path format - Single Responsibility Pattern."""
         try:
             Path(value)
-            return FlextResult.ok(data=True)
+            return FlextResult.ok(True)
         except (ValueError, TypeError):
             return FlextResult.fail(f"Invalid path format: {value}")
 
@@ -695,7 +695,7 @@ class FlextCliHelper:
             return FlextResult.fail(f"File does not exist: {value}")
         if not path.is_file():
             return FlextResult.fail(f"Path is not a file: {value}")
-        return FlextResult.ok(data=True)
+        return FlextResult.ok(True)
 
     def _validate_directory(self, value: str) -> FlextResult[bool]:
         """Validate directory existence and type - Single Responsibility Pattern."""
@@ -704,13 +704,13 @@ class FlextCliHelper:
             return FlextResult.fail(f"Directory does not exist: {value}")
         if not path.is_dir():
             return FlextResult.fail(f"Path is not a directory: {value}")
-        return FlextResult.ok(data=True)
+        return FlextResult.ok(True)
 
     def _validate_uuid(self, value: str) -> FlextResult[bool]:
         """Validate UUID format - Single Responsibility Pattern."""
         try:
             uuid.UUID(value)
-            return FlextResult.ok(data=True)
+            return FlextResult.ok(True)
         except ValueError:
             return FlextResult.fail(f"Invalid UUID format: {value}")
 
@@ -720,7 +720,7 @@ class FlextCliHelper:
             port = int(value)
             if not (MIN_PORT_NUMBER <= port <= MAX_PORT_NUMBER):
                 return FlextResult.fail(f"Invalid port number (1-65535): {value}")
-            return FlextResult.ok(data=True)
+            return FlextResult.ok(True)
         except ValueError:
             return FlextResult.fail(f"Invalid port number: {value}")
 
@@ -912,7 +912,7 @@ def flext_cli_batch_validate(
             # Handle integer validation
             try:
                 int(value)
-                result = FlextResult.ok(data=True)
+                result = FlextResult.ok(True)
             except ValueError:
                 result = FlextResult.fail(f"Invalid integer: {value}")
         else:
@@ -1048,7 +1048,7 @@ class FlextCliDataProcessor:
             if not data:
                 return FlextResult.fail("Data cannot be empty")
 
-            return FlextResult.ok(data=True)
+            return FlextResult.ok(True)
 
         except Exception as e:
             return FlextResult.fail(f"Data validation failed: {e}")

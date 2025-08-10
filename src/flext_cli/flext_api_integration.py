@@ -165,7 +165,7 @@ class FlextCLIApiClient:
             status_code = getattr(response, "status_code", None)
             if status_code == HTTP_OK:
                 logger.info("Connection test successful", base_url=self.base_url)
-                return FlextResult.ok(data=True)
+                return FlextResult.ok(True)
             return FlextResult.fail(f"Health check failed: {status_code}")
 
         except Exception as e:
