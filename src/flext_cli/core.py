@@ -180,7 +180,7 @@ class FlextCliService(FlextService, FlextConfigurable):
             path_obj.write_text(formatted_data, encoding="utf-8")
 
             self.logger.info("Data exported to %s in %s format", path, format_type)
-            return FlextResult.ok(data=True)
+            return FlextResult.ok(True)
 
         except Exception as e:
             self.logger.exception("Export failed")

@@ -179,7 +179,7 @@ class FlextCliValidationMixin:
         if not confirmation_result.data:
             return FlextResult.fail(f"Operation cancelled by user: {operation}")
 
-        return FlextResult.ok(data=True)
+        return FlextResult.ok(True)
 
 
 class FlextCliInteractiveMixin:
