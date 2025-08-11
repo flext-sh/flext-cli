@@ -83,10 +83,13 @@ from collections.abc import Callable
 from pathlib import Path
 
 import yaml
-from flext_core import FlextResult
-from flext_core.interfaces import FlextConfigurable
-from flext_core.loggings import get_logger
-from flext_core.utilities import FlextUtilities, safe_call
+from flext_core import (
+    FlextConfigurable,
+    FlextResult,
+    FlextUtilities,
+    get_logger,
+    safe_call,
+)
 
 from flext_cli.types import (
     FlextCliCommand,
@@ -180,7 +183,7 @@ class FlextCliService(FlextService, FlextConfigurable):
             path_obj.write_text(formatted_data, encoding="utf-8")
 
             self.logger.info("Data exported to %s in %s format", path, format_type)
-            return FlextResult.ok(True)
+            return FlextResult.ok(data=True)
 
         except Exception as e:
             self.logger.exception("Export failed")

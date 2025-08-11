@@ -71,7 +71,7 @@ def setup_cli(config: CLIConfig | None = None) -> FlextResult[bool]:
         if directory_result.is_failure:
             return FlextResult.fail(f"Directory setup failed: {directory_result.error}")
 
-        return FlextResult.ok(True)
+        return FlextResult.ok(data=True)
 
     except (AttributeError, ValueError, RuntimeError) as e:
         return FlextResult.fail(f"Failed to setup CLI: {e}")

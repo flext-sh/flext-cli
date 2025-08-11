@@ -103,7 +103,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import click
-from flext_core.loggings import get_logger
+from flext_core import get_logger
 
 if TYPE_CHECKING:
     from flext_core.result import FlextResult

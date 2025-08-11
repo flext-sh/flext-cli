@@ -57,8 +57,7 @@ from __future__ import annotations
 import sys
 
 import click
-from flext_core import __version__ as core_version
-from flext_core.utilities import FlextUtilities
+from flext_core import FlextUtilities, __version__ as core_version
 from rich.console import Console
 
 from flext_cli.__version__ import __version__

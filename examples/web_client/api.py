@@ -20,7 +20,7 @@ from flext_cli.types import (
     TCliFormat,
     TCliPath,
 )
-from flext_core.loggings import get_logger
+from flext_core import get_logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable
