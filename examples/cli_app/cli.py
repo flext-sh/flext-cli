@@ -77,8 +77,7 @@ from flext_cli.commands import (  # pipeline and plugin don't exist yet
 from flext_cli.commands.projects import client-a, client-b, meltano
 from flext_cli.domain import CLIServiceContainer
 from flext_cli.utils.config import CLISettings, get_config
-from flext_core import get_flext_container
-from flext_core.utilities import FlextUtilities
+from flext_core import FlextUtilities, get_flext_container
 from rich.console import Console
 
 

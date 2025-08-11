@@ -93,7 +93,7 @@ from rich.table import Table
 from flext_cli.core.formatters import FormatterFactory
 
 # Real imports - no fallbacks, proper error handling
-from flext_cli.domain.entities import CLIEntityFactory, CLIPlugin, CommandType
+from flext_cli.domain.entities import CLICommand, CLIPlugin, CommandType
 from flext_cli.types import FlextCliConfig, FlextCliContext
 
 if TYPE_CHECKING:
@@ -559,16 +559,21 @@ class FlextCliApi:
             timeout_val = options.get("timeout_seconds", 30)
             timeout_int = timeout_val if isinstance(timeout_val, int) else 30
 
-            # Create the domain entity using modern factory pattern
-            command_result = CLIEntityFactory.create_command(
-                name=name,
-                command_line=command_line,
-                command_type=command_type,
-                description=description_str,
-                working_directory=working_dir_str,
-                environment=environment_str,
-                timeout=timeout_int,  # Correct field name with proper type
-            )
+            # Create the domain entity using direct instantiation (no factory needed)
+            try:
+                command = CLICommand(
+                    id=str(uuid.uuid4()),
+                    name=name,
+                    command_line=command_line,
+                    command_type=command_type,
+                    description=description_str,
+                    working_directory=working_dir_str,
+                    environment=environment_str,
+                    timeout=timeout_int,
+                )
+                command_result = FlextResult.ok(command)
+            except Exception as e:
+                command_result = FlextResult.fail(f"Failed to create command: {e}")
 
             if command_result.is_failure:
                 return FlextResult.fail(
@@ -648,11 +653,16 @@ class FlextCliApi:
                 self._plugin_registry[name] = plugin
                 return FlextResult.ok(None)
 
-            # Otherwise, try to create a CLIPlugin from the object
-            plugin_result = CLIEntityFactory.create_plugin(
-                name=name,
-                entry_point=str(plugin) if plugin else f"plugin_{name}",
-            )
+            # Otherwise, try to create a CLIPlugin from the object using direct instantiation
+            try:
+                cli_plugin = CLIPlugin(
+                    id=str(uuid.uuid4()),
+                    name=name,
+                    entry_point=str(plugin) if plugin else f"plugin_{name}",
+                )
+                plugin_result = FlextResult.ok(cli_plugin)
+            except Exception as e:
+                plugin_result = FlextResult.fail(f"Failed to create plugin: {e}")
 
             if plugin_result.is_failure:
                 return FlextResult.fail(

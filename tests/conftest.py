@@ -13,14 +13,14 @@ from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import pytest
-from flext_cli.core import (
-    FlextCliCommand,
-    FlextCliConfig,
-    FlextCliContext,
-    FlextCliPlugin,
-    FlextCliSession,
+from flext_cli.config import CLIConfig
+from flext_cli.domain import (
+    CLICommand,
+    CLIContext,
+    CLIPlugin,
+    CLISession,
+    CommandType,
 )
-from flext_cli.core.typedefs import FlextCliCommandType
 from flext_core import FlextResult
 from rich.console import Console
 
@@ -71,9 +71,9 @@ def temp_dir() -> Generator[Path]:
 
 
 @pytest.fixture
-def cli_config() -> FlextCliConfig:
+def cli_config() -> CLIConfig:
     """Create a test CLI configuration."""
-    return FlextCliConfig(
+    return CLIConfig(
         api_url="http://localhost:8000",
         output_format="json",
         timeout=30,
@@ -86,9 +86,9 @@ def cli_config() -> FlextCliConfig:
 
 
 @pytest.fixture
-def cli_settings() -> FlextCliConfig:
+def cli_settings() -> CLIConfig:
     """Create test CLI settings."""
-    return FlextCliConfig(
+    return CLIConfig(
         debug=True,
         profile="test",
         output_format="json",
@@ -99,11 +99,11 @@ def cli_settings() -> FlextCliConfig:
 
 
 @pytest.fixture
-def cli_context(cli_config: FlextCliConfig) -> FlextCliContext:
+def cli_context(cli_config: CLIConfig) -> CLIContext:
     """Create a test CLI context."""
     from rich.console import Console
 
-    return FlextCliContext(
+    return CLIContext(
         config=cli_config,
         console=Console(),
     )
@@ -116,13 +116,13 @@ def console() -> Console:
 
 
 @pytest.fixture
-def sample_command() -> FlextCliCommand:
+def sample_command() -> CLICommand:
     """Create a sample CLI command for testing."""
-    return FlextCliCommand(
+    return CLICommand(
         id="test_cmd_001",
         name="test-command",
         description="A test command",
-        command_type=FlextCliCommandType.SYSTEM,
+        command_type=CommandType.SYSTEM,
         command_line="echo hello",
         arguments={"arg1": "value1"},
         options={"--verbose": True},
@@ -130,9 +130,9 @@ def sample_command() -> FlextCliCommand:
 
 
 @pytest.fixture
-def sample_plugin() -> FlextCliPlugin:
+def sample_plugin() -> CLIPlugin:
     """Create a sample CLI plugin for testing."""
-    return FlextCliPlugin(
+    return CLIPlugin(
         id="test_plugin_001",
         name="test-plugin",
         plugin_version="0.9.0",
@@ -146,9 +146,9 @@ def sample_plugin() -> FlextCliPlugin:
 
 
 @pytest.fixture
-def sample_session() -> FlextCliSession:
+def sample_session() -> CLISession:
     """Create a sample CLI session for testing."""
-    return FlextCliSession(
+    return CLISession(
         id="test_session_001",
         session_id="test-session-123",
         working_directory=tempfile.gettempdir(),
@@ -363,10 +363,10 @@ def mock_container():
 @pytest.fixture
 def isolated_config():
     """Create isolated config for tests without singleton contamination."""
-    from flext_cli.config import FlextCliConfig
+    from flext_cli.config import CLIConfig
 
     # Return fresh config instance for each test
-    return FlextCliConfig(
+    return CLIConfig(
         api_url="http://localhost:8000",
         timeout=30,
         debug=True,
