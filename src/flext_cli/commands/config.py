@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import json
-import shlex
 import subprocess
 from pathlib import Path
+from shutil import which
 
 import click
 import yaml
@@ -174,9 +174,9 @@ def edit(ctx: click.Context) -> None:
             with cfg_path.open("w", encoding="utf-8") as f:
                 f.write(yaml.dump({"debug": False, "timeout": 30}))
         # Simulate editor invocation which may fail in tests
-
         try:
-            subprocess.run(shlex.split("true"), check=True)
+            editor = which("true") or "true"
+            subprocess.run([editor], check=True)  # noqa: S603
         except subprocess.CalledProcessError as e:
             console.print(str(e))
             ctx.exit(1)
