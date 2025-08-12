@@ -27,13 +27,16 @@ from pathlib import Path
 import toml
 
 try:  # pragma: no cover - import bridge
-    from flext_core import FlextResult, FlextSettings  # type: ignore
+    from flext_core import (  # type: ignore[attr-defined, import-not-found]
+        FlextResult,
+        FlextSettings,
+    )
 except Exception:  # pragma: no cover
     from pydantic import BaseModel as FlextSettings  # type: ignore[assignment]
 
     class FlextResult:  # type: ignore[no-redef]
         def __init__(
-            self, success: bool, data: object | None = None, error: str | None = None,
+            self, *, success: bool, data: object | None = None, error: str | None = None,
         ) -> None:
             self.success = success
             self.is_success = success
@@ -43,11 +46,11 @@ except Exception:  # pragma: no cover
 
         @staticmethod
         def ok(data: object | None) -> FlextResult:
-            return FlextResult(True, data, None)
+            return FlextResult(success=True, data=data, error=None)
 
         @staticmethod
         def fail(error: str) -> FlextResult:
-            return FlextResult(False, None, error)
+            return FlextResult(success=False, data=None, error=error)
 
 
 from pydantic import Field, field_validator
@@ -245,10 +248,10 @@ class CLIConfig(FlextSettings):
         if isinstance(v, str):
             try:
                 return OutputFormat(v.lower())
-            except ValueError:
+            except ValueError as err:
                 valid_formats = [fmt.value for fmt in OutputFormat]
                 msg = f"Invalid output format '{v}'. Valid formats: {', '.join(valid_formats)}"
-                raise ValueError(msg)
+                raise ValueError(msg) from err
         if isinstance(v, OutputFormat):
             return v
         msg = f"Invalid output format type: {type(v)}"
@@ -263,7 +266,7 @@ class CLIConfig(FlextSettings):
             raise ValueError(msg)
         return v
 
-    def model_post_init(self, __context: object) -> None:
+    def model_post_init(self, __context: object, /) -> None:
         """Post-initialization setup."""
         super().model_post_init(__context)
 
@@ -282,28 +285,21 @@ class CLIConfig(FlextSettings):
     def validate_config(self) -> FlextResult[None]:
         """Validate complete configuration."""
         try:
-            # Validate conflicting settings
+            error: str | None = None
+
             if self.quiet and self.verbose:
-                return FlextResult.fail("Cannot enable both quiet and verbose mode")
+                error = "Cannot enable both quiet and verbose mode"
+            elif self.no_color and self.force_color:
+                error = "Cannot disable and force colors simultaneously"
+            elif self.config_file and not self.config_file.exists():
+                error = f"Configuration file does not exist: {self.config_file}"
+            elif self.api_timeout <= 0:
+                error = "API timeout must be positive"
+            elif self.command_timeout <= 0:
+                error = "Command timeout must be positive"
 
-            if self.no_color and self.force_color:
-                return FlextResult.fail(
-                    "Cannot disable and force colors simultaneously",
-                )
-
-            # Validate paths exist if specified
-            if self.config_file and not self.config_file.exists():
-                return FlextResult.fail(
-                    f"Configuration file does not exist: {self.config_file}",
-                )
-
-            # Validate API settings
-            if self.api_timeout <= 0:
-                return FlextResult.fail("API timeout must be positive")
-
-            if self.command_timeout <= 0:
-                return FlextResult.fail("Command timeout must be positive")
-
+            if error is not None:
+                return FlextResult.fail(error)
             return FlextResult.ok(None)
 
         except Exception as e:
@@ -324,7 +320,10 @@ class CLIConfig(FlextSettings):
         if self.no_color:
             return False
         # Check if running in TTY
-        return os.isatty(1)
+        try:
+            return os.isatty(1)
+        except Exception:
+            return False
 
     def get_api_headers(self) -> dict[str, str]:
         """Get API request headers."""
