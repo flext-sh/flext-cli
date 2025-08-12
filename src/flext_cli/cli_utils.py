@@ -282,7 +282,8 @@ def cli_batch_process_files(
             if progress and task_id is not None:
                 progress.update(task_id, advance=1)
             if should_stop:
-                return FlextResult.fail(stop_message or "Processing failed")
+                msg = stop_message or "Processing failed"
+                return FlextResult.fail(msg)
 
         # Show summary
         if show_progress:
@@ -325,22 +326,18 @@ def cli_load_data_file(
 
         # Detect format from extension
         suffix = path.suffix.lower()
-
         if suffix == ".json":
             return _load_json_file(path)
         if suffix in {".yaml", ".yml"}:
             return _load_yaml_file(path)
         if suffix == ".csv":
-            csv_result = _load_csv_file(path)
-            return csv_result.map(lambda data: data)  # Cast to object
+            return _load_csv_file(path).map(lambda data: data)  # Cast to object
         if suffix == ".txt":
-            text_result = _load_text_file(path)
-            return text_result.map(lambda data: data)  # Cast to object
+            return _load_text_file(path).map(lambda data: data)  # Cast to object
         if validate_format:
             return FlextResult.fail(f"Unsupported file format: {suffix}")
         # Try to load as text
-        text_result = _load_text_file(path)
-        return text_result.map(lambda data: data)  # Cast to object
+        return _load_text_file(path).map(lambda data: data)  # Cast to object
 
     except Exception as e:
         return FlextResult.fail(f"Failed to load data file: {e}")
