@@ -280,7 +280,6 @@ class TestDebugFunctionality:
 
     def test_path_operations(self) -> None:
         """Test Path operations used in commands."""
-
         # Test path operations used in the debug commands
         test_path = Path("/test/path")
 
@@ -320,7 +319,6 @@ class TestDebugFunctionality:
 
     def test_asyncio_integration(self) -> None:
         """Test asyncio integration."""
-
         # Test that asyncio.run exists (used in async commands)
         assert hasattr(asyncio, "run")
 
@@ -334,7 +332,6 @@ class TestDebugFunctionality:
 
     def test_rich_table_integration(self) -> None:
         """Test Rich table integration."""
-
         # Test table creation (used in performance and paths commands)
         table = Table(title="Test Table")
         table.add_column("Column 1", style="cyan")
@@ -346,7 +343,6 @@ class TestDebugFunctionality:
 
     def test_click_context_pattern(self) -> None:
         """Test Click context pattern used in commands."""
-
         # Test that we can create a mock context like used in commands
         console = MagicMock()
         ctx = MagicMock(spec=click.Context)
@@ -400,7 +396,6 @@ class TestDebugFunctionality:
 
     def test_path_existence_checking(self) -> None:
         """Test path existence checking pattern from paths command."""
-
         # Test the pattern used in paths command
         test_paths = {
             "Config Directory": Path.home() / ".flext",

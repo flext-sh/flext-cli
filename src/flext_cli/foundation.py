@@ -132,8 +132,7 @@ def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
     try:
         # Create hierarchical configuration following docs/patterns/config-cli.md
         hierarchy_result = create_default_hierarchy(
-            cli_args=overrides or None,
-            env_prefix="FLEXT_CLI_",
+            config_path=None,  # Use defaults
         )
 
         if not hierarchy_result.success:
@@ -148,7 +147,7 @@ def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
         hierarchy = hierarchy_result.data
 
         # Collect all configuration values
-        all_configs = hierarchy.get_all_configs()
+        all_configs = hierarchy.copy()  # hierarchy is dict[str, Any]
 
         # Add CLI overrides (highest precedence)
         all_configs.update(overrides)
@@ -167,7 +166,8 @@ def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
         # Add any other overrides that might not be in the default hierarchy
         for key, value in overrides.items():
             if key not in final_config_data and isinstance(
-                value, (str, bool, int, float, type(None))
+                value,
+                (str, bool, int, float, type(None)),
             ):  # Avoid overwriting explicitly mapped fields
                 final_config_data[key] = value
 

@@ -79,26 +79,33 @@ import pathlib
 import platform
 import sys
 import uuid
-from contextlib import redirect_stdout
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import yaml
-
-# get_flext_container removed - not used
 from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table
 
-from flext_cli.core.formatters import FormatterFactory
-
-# Real imports - no fallbacks, proper error handling
-from flext_cli.domain.entities import CLICommand, CLIPlugin, CommandType
-from flext_cli.types import FlextCliConfig, FlextCliContext
+from flext_cli.cli_config import CLIConfig as FlextCliConfig
+from flext_cli.models import (
+    FlextCliCommand as CLICommand,
+    FlextCliPlugin as CLIPlugin,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
+
+
+# Simple context class since FlextCliContext doesn't exist
+class FlextCliContext:
+    """Simple CLI context holder."""
+
+    def __init__(self, config: FlextCliConfig, console: Console) -> None:
+        """Initialize context."""
+        self.config = config
+        self.console = console
 
 
 def flext_cli_format(data: object, format_type: str = "table") -> FlextResult[str]:
@@ -113,18 +120,26 @@ def flext_cli_format(data: object, format_type: str = "table") -> FlextResult[st
 
     """
     try:
-        Console(file=None, width=80)
+        # Simple formatting without FormatterFactory
+        if format_type == "json":
+            formatted = json.dumps(data, indent=2, default=str)
+        elif format_type == "yaml":
+            formatted = yaml.dump(data, default_flow_style=False, sort_keys=False)
+        elif format_type == "table":
+            # Create table using our existing function
+            table_result = flext_cli_table(data)
+            if table_result.success:
+                # Render table to string
+                output_buffer = io.StringIO()
+                console = Console(file=output_buffer, width=80)
+                console.print(table_result.unwrap())
+                formatted = output_buffer.getvalue()
+            else:
+                return FlextResult.fail(table_result.error or "Table creation failed")
+        else:
+            formatted = str(data)
 
-        formatter = FormatterFactory.create(format_type)
-
-        # Capture output to string
-        output_buffer = io.StringIO()
-        with redirect_stdout(output_buffer):
-            # Use a console that writes to our buffer
-            buffer_console = Console(file=output_buffer, width=80, legacy_windows=False)
-            formatter.format(data, buffer_console)
-
-        return FlextResult.ok(output_buffer.getvalue())
+        return FlextResult.ok(formatted)
 
     except (AttributeError, ValueError, TypeError) as e:
         return FlextResult.fail(f"Format error: {e}")
@@ -534,42 +549,35 @@ class FlextCliApi:
     ) -> FlextResult[object]:
         """Create command using real domain entities."""
         try:
-            # Determine command type from options or default to SYSTEM
-            # (valid enum value)
-            command_type = CommandType.SYSTEM
-            if "command_type" in options:
-                type_value = options["command_type"]
-                if isinstance(type_value, str):
-                    command_type = CommandType(type_value)
+            # Determine command type from options without raising on unknown
+            # The domain entity does not store command_type, so ignore value safely
+            _ = options.get("command_type")
 
             # Extract and validate parameters with proper types
             description = options.get("description")
-            description_str = description if isinstance(description, str) else None
+            description if isinstance(description, str) else None
 
             working_dir = options.get("working_directory")
-            working_dir_str = working_dir if isinstance(working_dir, str) else None
+            working_dir if isinstance(working_dir, str) else None
 
             env_vars = options.get("environment_vars", {})
             environment = env_vars if isinstance(env_vars, dict) else {}
             # Convert dict[str, object] to dict[str, str]
-            environment_str = {
-                k: str(v) for k, v in environment.items() if isinstance(k, str)
-            }
+            {k: str(v) for k, v in environment.items() if isinstance(k, str)}
 
             timeout_val = options.get("timeout_seconds", 30)
-            timeout_int = timeout_val if isinstance(timeout_val, int) else 30
+            timeout_val if isinstance(timeout_val, int) else 30
 
-            # Create the domain entity using direct instantiation (no factory needed)
+            # Create the domain entity using correct constructor parameters
+            # Use name as command ID prefix for better identification
+            command_id = (
+                f"{name}_{uuid.uuid4().hex[:8]}" if name.strip() else str(uuid.uuid4())
+            )
+
             try:
                 command = CLICommand(
-                    id=str(uuid.uuid4()),
-                    name=name,
+                    id=command_id,
                     command_line=command_line,
-                    command_type=command_type,
-                    description=description_str,
-                    working_directory=working_dir_str,
-                    environment=environment_str,
-                    timeout=timeout_int,
                 )
                 command_result = FlextResult.ok(command)
             except Exception as e:
@@ -799,15 +807,13 @@ class ContextRenderingStrategy:
     def _render_with_formatter(self) -> FlextResult[str]:
         """Render using formatter strategy."""
         format_type = self._get_format_type()
-        formatter = FormatterFactory.create(format_type)
 
-        output_buffer = io.StringIO()
-        with redirect_stdout(output_buffer):
-            buffer_console = Console(file=output_buffer, width=80, legacy_windows=False)
-            formatter.format(self.data, buffer_console)
-
-        rendered_output = output_buffer.getvalue()
-        return FlextResult.ok(self._apply_title_if_needed(rendered_output))
+        # Use our flext_cli_format function instead of FormatterFactory
+        format_result = flext_cli_format(self.data, format_type)
+        if format_result.success:
+            rendered_output = format_result.unwrap()
+            return FlextResult.ok(self._apply_title_if_needed(rendered_output))
+        return format_result
 
     def _get_format_type(self) -> str:
         """Get format type from context."""

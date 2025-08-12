@@ -1,6 +1,5 @@
 """Integration tests with flext-core patterns for FLEXT CLI Library.
 
-
 Integration tests that validate flext-core pattern integration in CLI components.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.

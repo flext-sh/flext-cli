@@ -19,32 +19,34 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 # Import from flext-core ROOT only
-from flext_core import FlextResult
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     import click
+    from flext_core import FlextResult
     from rich.console import Console
 
 
 @runtime_checkable
 class FlextCliCommandProtocol(Protocol):
     """Protocol for CLI command implementations.
-    
+
     Extends FlextProtocol from flext-core for CLI-specific commands.
     """
 
     @abstractmethod
-    def execute(self, context: dict[str, Any], **kwargs: Any) -> FlextResult[Any]:
+    def execute(
+        self, context: dict[str, object], **kwargs: object,
+    ) -> FlextResult[object]:
         """Execute the CLI command."""
         ...
 
     @abstractmethod
-    def validate_args(self, **kwargs: Any) -> FlextResult[dict[str, Any]]:
+    def validate_args(self, **kwargs: object) -> FlextResult[dict[str, object]]:
         """Validate command arguments."""
         ...
 
@@ -64,16 +66,16 @@ class FlextCliCommandProtocol(Protocol):
 @runtime_checkable
 class FlextCliFormatterProtocol(Protocol):
     """Protocol for CLI output formatters.
-    
+
     Extends FlextProtocol for formatting CLI output.
     """
 
     @abstractmethod
     def format(
         self,
-        data: Any,
+        data: object,
         format_type: str = "table",
-        **options: Any
+        **options: object,
     ) -> FlextResult[str]:
         """Format data for display."""
         ...
@@ -93,7 +95,7 @@ class FlextCliFormatterProtocol(Protocol):
 @runtime_checkable
 class FlextCliValidatorProtocol(Protocol):
     """Protocol for CLI input validators.
-    
+
     Extends FlextValidatorProtocol from flext-core with CLI-specific validation.
     """
 
@@ -101,7 +103,7 @@ class FlextCliValidatorProtocol(Protocol):
     def validate_command(
         self,
         command: str,
-        available_commands: list[str]
+        available_commands: list[str],
     ) -> FlextResult[str]:
         """Validate a CLI command."""
         ...
@@ -121,7 +123,7 @@ class FlextCliValidatorProtocol(Protocol):
 @runtime_checkable
 class FlextCliServiceProtocol(Protocol):
     """Protocol for CLI services.
-    
+
     Extends FlextServiceProtocol from flext-core.
     """
 
@@ -139,7 +141,7 @@ class FlextCliServiceProtocol(Protocol):
         self,
         profile: str = "default",
         config_file: Path | None = None,
-    ) -> FlextResult[dict[str, Any]]:
+    ) -> FlextResult[dict[str, object]]:
         """Load CLI configuration."""
         ...
 
@@ -147,7 +149,7 @@ class FlextCliServiceProtocol(Protocol):
 @runtime_checkable
 class FlextCliPluginProtocol(Protocol):
     """Protocol for CLI plugins.
-    
+
     Extends FlextProtocol for plugin system.
     """
 
@@ -157,7 +159,7 @@ class FlextCliPluginProtocol(Protocol):
         ...
 
     @abstractmethod
-    def initialize(self, context: dict[str, Any]) -> FlextResult[None]:
+    def initialize(self, context: dict[str, object]) -> FlextResult[None]:
         """Initialize plugin."""
         ...
 
@@ -177,7 +179,7 @@ class FlextCliPluginProtocol(Protocol):
 @runtime_checkable
 class FlextCliInteractiveProtocol(Protocol):
     """Protocol for interactive CLI components.
-    
+
     Extends FlextProtocol for user interaction.
     """
 
@@ -210,12 +212,14 @@ class FlextCliInteractiveProtocol(Protocol):
 @runtime_checkable
 class FlextConfigProvider(Protocol):
     """Protocol for configuration providers.
-    
+
     Kept for backward compatibility. New code should use
     FlextCliConfigProtocol instead.
     """
 
-    def get_config(self, key: str, default: object | None = None) -> FlextResult[object]:
+    def get_config(
+        self, key: str, default: object | None = None,
+    ) -> FlextResult[object]:
         """Get configuration value by key."""
         ...
 
@@ -231,17 +235,17 @@ class FlextConfigProvider(Protocol):
 @runtime_checkable
 class FlextCliConfigProtocol(Protocol):
     """Protocol for CLI configuration management.
-    
+
     Extends FlextProtocol for configuration hierarchy.
     """
 
     @abstractmethod
-    def get(self, key: str, default: Any = None) -> FlextResult[Any]:
+    def get(self, key: str, default: object = None) -> FlextResult[object]:
         """Get configuration value."""
         ...
 
     @abstractmethod
-    def set(self, key: str, value: Any) -> FlextResult[None]:
+    def set(self, key: str, value: object) -> FlextResult[None]:
         """Set configuration value."""
         ...
 
@@ -273,21 +277,21 @@ FlextCliConfigImpl = FlextCliConfigProtocol
 
 
 __all__ = [
-    # Protocols
-    "FlextCliCommandProtocol",
-    "FlextCliFormatterProtocol",
-    "FlextCliValidatorProtocol",
-    "FlextCliServiceProtocol",
-    "FlextCliPluginProtocol",
-    "FlextCliInteractiveProtocol",
-    "FlextCliConfigProtocol",
-    "FlextConfigProvider",  # Backward compatibility
     # Implementation aliases
     "FlextCliCommandImpl",
-    "FlextCliFormatterImpl",
-    "FlextCliValidatorImpl",
-    "FlextCliServiceImpl",
-    "FlextCliPluginImpl",
-    "FlextCliInteractiveImpl",
+    # Protocols
+    "FlextCliCommandProtocol",
     "FlextCliConfigImpl",
+    "FlextCliConfigProtocol",
+    "FlextCliFormatterImpl",
+    "FlextCliFormatterProtocol",
+    "FlextCliInteractiveImpl",
+    "FlextCliInteractiveProtocol",
+    "FlextCliPluginImpl",
+    "FlextCliPluginProtocol",
+    "FlextCliServiceImpl",
+    "FlextCliServiceProtocol",
+    "FlextCliValidatorImpl",
+    "FlextCliValidatorProtocol",
+    "FlextConfigProvider",  # Backward compatibility
 ]

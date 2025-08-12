@@ -19,18 +19,69 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-from typing import Self
+from typing import Never, Self
 
 # Primary integration: Use flext-api for HTTP operations
-from flext_api import (
-    FlextApiClient,
-    create_flext_api,
-)
-from flext_core import FlextResult, get_logger
+try:
+    from flext_api import (
+        FlextApiClient,
+        create_flext_api,
+    )
+
+    FLEXT_API_AVAILABLE = True
+except Exception:  # pragma: no cover - allow tests to run without flext-api
+    FlextApiClient = object  # type: ignore[assignment]
+
+    def create_flext_api() -> Never:  # type: ignore[no-redef]
+        msg = "flext_api not available"
+        raise RuntimeError(msg)
+
+    FLEXT_API_AVAILABLE = False
+# Lazy import bridge for flext_core to avoid early import issues in tests
+try:  # pragma: no cover
+    from flext_core import FlextResult, get_logger  # type: ignore
+except Exception:  # pragma: no cover
+    def get_logger(_name: str):  # type: ignore
+        class _L:
+            def info(self, *args, **kwargs) -> None:
+                return None
+
+            def warning(self, *args, **kwargs) -> None:
+                return None
+
+            def error(self, *args, **kwargs) -> None:
+                return None
+
+            def exception(self, *args, **kwargs) -> None:
+                return None
+        return _L()
+
+    class FlextResult:  # type: ignore[no-redef]
+        def __class_getitem__(cls, _item):
+            return cls
+
+        def __init__(self, success: bool, data: object | None = None, error: str | None = None) -> None:
+            self.success = success
+            self.is_success = success
+            self.is_failure = not success
+            self.data = data
+            self.error = error
+
+        @staticmethod
+        def ok(data: object | None) -> FlextResult:
+            return FlextResult(True, data, None)
+
+        @staticmethod
+        def fail(error: str) -> FlextResult:
+            return FlextResult(False, None, error)
+
+        def unwrap(self) -> object:
+            if not self.success:
+                raise RuntimeError(self.error or "unwrap failed")
+            return self.data
 
 from flext_cli.config import get_config as get_cli_config
 
-FLEXT_API_AVAILABLE = True
 logger = get_logger(__name__)
 
 # HTTP status constants

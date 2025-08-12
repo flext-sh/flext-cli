@@ -1408,7 +1408,6 @@ class TestFlextCliModuleIntegration:
 
     def test_type_annotations(self) -> None:
         """Test that functions have proper type annotations."""
-
         # Test a few key functions for type annotations
         functions_to_test = [
             flext_cli.flext_cli_export,

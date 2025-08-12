@@ -15,12 +15,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, ClassVar, Final
+from typing import ClassVar, Final
 
 from flext_core import FlextConstants
-
-if TYPE_CHECKING:
-    from typing import Any
 
 # =============================================================================
 # CLI-SPECIFIC CONSTANTS
@@ -76,7 +73,7 @@ MAX_ERROR_MESSAGE_LENGTH: int = FlextConstants.Limits.MAX_STRING_LENGTH
 
 class _CLIConstants:
     """CLI constants namespace for backward compatibility.
-    
+
     DEPRECATED: Use FlextCliConstants or FlextConstants directly.
     """
 
@@ -84,13 +81,13 @@ class _CLIConstants:
     MAX_ERROR_MESSAGE_LENGTH: int = MAX_ERROR_MESSAGE_LENGTH
     DEFAULT_TIMEOUT: int = DEFAULT_TIMEOUT
 
-    def __getattribute__(self, name: str) -> Any:
+    def __getattribute__(self, name: str) -> object:
         """Warn on access to deprecated constants."""
         if not name.startswith("_"):
             warnings.warn(
                 f"CLI_CONSTANTS.{name} is deprecated. Use FlextCliConstants.{name} or FlextConstants instead.",
                 DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
         return super().__getattribute__(name)
 
@@ -101,7 +98,7 @@ CLI_CONSTANTS = _CLIConstants()
 
 class FlextCliConstants:
     """CLI-specific constants that extend FlextConstants.
-    
+
     This class provides CLI-specific constants while delegating
     to flext_core.FlextConstants for all shared constants.
     """
@@ -156,7 +153,7 @@ class FlextCliConstants:
             "pipeline",
             "service",
             "debug",
-            "admin"
+            "admin",
         ]
 
     class Validation:
@@ -203,7 +200,7 @@ class FlextCliConstants:
 
 class FlextConfigSemanticConstants:
     """Configuration semantic constants.
-    
+
     DEPRECATED: Use FlextConstants.Configuration or FlextCliConstants.Configuration instead.
     This class is kept for backward compatibility only.
     """
@@ -213,7 +210,7 @@ class FlextConfigSemanticConstants:
         warnings.warn(
             "FlextConfigSemanticConstants is deprecated. Use FlextConstants.Configuration instead.",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
 
     class Hierarchy:

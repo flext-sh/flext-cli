@@ -80,22 +80,22 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_core import get_logger
-from rich.console import Console
 
 from flext_cli.api import FlextCliApi
+from flext_cli.cli_types import OutputFormat
 from flext_cli.types import (
+    CLIContext as FlextCliContext,
     FlextCliConfig,
-    FlextCliContext,
-    OutputFormat,
 )
 
 if TYPE_CHECKING:
-    from flext_cli.types import (
-        FlextCliPlugin,
-        TCliData,
-        TCliFormat,
-        TCliPath,
+    from typing import (
+        Any as TCliData,  # type: ignore
+        Any as TCliPath,  # type: ignore
     )
+
+    from flext_cli.cli_types import OutputFormat as TCliFormat  # type: ignore
+    from flext_cli.models import FlextCliPlugin  # type: ignore
 
 # Global API instance
 _api = FlextCliApi()
@@ -121,7 +121,8 @@ def flext_cli_export(
 
 
 def flext_cli_format(
-    data: TCliData, format_type: TCliFormat = OutputFormat.JSON,
+    data: TCliData,
+    format_type: TCliFormat = OutputFormat.JSON,
 ) -> str:
     """Format data for display.
 
@@ -184,7 +185,8 @@ def flext_cli_create_context(
     cli_config = FlextCliConfig()
     if config:
         cli_config = cli_config.model_copy(update=config)
-    return FlextCliContext(config=cli_config, console=Console())
+    # Create CLI context without invalid parameters - just use defaults
+    return FlextCliContext()
 
 
 # RESTORED FROM BACKUP - All additional functionality

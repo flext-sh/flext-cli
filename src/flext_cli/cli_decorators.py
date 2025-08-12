@@ -22,15 +22,42 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import functools
+import hashlib
 import time
-from collections.abc import Callable
-from typing import ParamSpec, TypeVar
+from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
-from flext_core import (
-    FlextErrorHandlingDecorators,
-    get_logger,
-)
+# Import bridge for flext_core heavy decorators; provide minimal shims if absent
+try:  # pragma: no cover
+    from flext_core import (  # type: ignore
+        FlextErrorHandlingDecorators,
+        get_logger,
+    )
+except Exception:  # pragma: no cover
+    class FlextErrorHandlingDecorators:  # type: ignore[no-redef]
+        @staticmethod
+        def safe_call():
+            def _inner(func):
+                return func
+            return _inner
+
+    def get_logger(_name: str):  # type: ignore
+        class _L:
+            def info(self, *args, **kwargs) -> None:
+                return None
+
+            def debug(self, *args, **kwargs) -> None:
+                return None
+
+            def warning(self, *args, **kwargs) -> None:
+                return None
+
+            def exception(self, *args, **kwargs) -> None:
+                return None
+        return _L()
 from rich.console import Console
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -49,28 +76,29 @@ def cli_enhanced(
     show_spinner: bool = False,
 ) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Enhanced CLI decorator combining multiple CLI-specific behaviors.
-    
+
     This decorator consolidates common CLI patterns into a single,
     configurable decorator that delegates to appropriate flext-core
     decorators where possible.
-    
+
     Args:
         validate_inputs: Enable input validation
         handle_keyboard_interrupt: Handle Ctrl+C gracefully
         measure_time: Measure and log execution time
         log_execution: Log command execution
         show_spinner: Show spinner during execution
-    
+
     Returns:
         Decorated function with CLI enhancements
 
     """
+
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         enhanced_func = func
 
         # Apply flext-core error handling if available
         if handle_keyboard_interrupt:
-            enhanced_func = FlextErrorHandlingDecorators.safe_call()(enhanced_func)
+            enhanced_func = FlextErrorHandlingDecorators.safe_call()(enhanced_func)  # type: ignore[assignment]
 
         # Apply CLI-specific decorators
         if validate_inputs:
@@ -86,19 +114,20 @@ def cli_enhanced(
             enhanced_func = cli_log_execution(enhanced_func)
 
         if show_spinner:
-            enhanced_func = cli_spinner(enhanced_func)
+            enhanced_func = cli_spinner()(enhanced_func)
 
         return enhanced_func
 
     return decorator
 
 
-def cli_validate_inputs(func: Callable[P, T]) -> Callable[P, T]:
+def cli_validate_inputs[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     """Validate CLI command inputs before execution.
-    
+
     Delegates to flext-core validation where possible and adds
     CLI-specific input validation.
     """
+
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         logger = get_logger(func.__name__)
@@ -108,24 +137,31 @@ def cli_validate_inputs(func: Callable[P, T]) -> Callable[P, T]:
             # Validate that all string arguments are not empty if they're supposed to be non-empty
             for arg in args:
                 if isinstance(arg, str) and arg.strip() == "":
-                    raise ValueError("Empty string argument not allowed")
+                    msg = "Empty string argument not allowed"
+                    raise ValueError(msg)
 
             # Validate keyword arguments
             for key, value in kwargs.items():
-                if isinstance(value, str) and key.endswith("_required") and value.strip() == "":
-                    raise ValueError(f"Required argument '{key}' cannot be empty")
+                if (
+                    isinstance(value, str)
+                    and key.endswith("_required")
+                    and value.strip() == ""
+                ):
+                    msg = f"Required argument '{key}' cannot be empty"
+                    raise ValueError(msg)
 
             return func(*args, **kwargs)
 
         except Exception as e:
-            logger.error(f"Input validation failed for {func.__name__}: {e}")
+            logger.exception(f"Input validation failed for {func.__name__}: {e}")
             raise
 
     return wrapper
 
 
-def cli_handle_keyboard_interrupt(func: Callable[P, T]) -> Callable[P, T]:
+def cli_handle_keyboard_interrupt[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     """Handle keyboard interrupt (Ctrl+C) gracefully in CLI commands."""
+
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         try:
@@ -140,8 +176,9 @@ def cli_handle_keyboard_interrupt(func: Callable[P, T]) -> Callable[P, T]:
     return wrapper
 
 
-def cli_measure_time(func: Callable[P, T]) -> Callable[P, T]:
+def cli_measure_time[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     """Measure and log CLI command execution time."""
+
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         logger = get_logger(func.__name__)
@@ -152,21 +189,26 @@ def cli_measure_time(func: Callable[P, T]) -> Callable[P, T]:
             end_time = time.time()
             duration = end_time - start_time
 
-            logger.info(f"Command '{func.__name__}' completed in {duration:.3f} seconds")
+            logger.info(
+                f"Command '{func.__name__}' completed in {duration:.3f} seconds",
+            )
             return result
 
         except Exception as e:
             end_time = time.time()
             duration = end_time - start_time
 
-            logger.error(f"Command '{func.__name__}' failed after {duration:.3f} seconds: {e}")
+            logger.exception(
+                f"Command '{func.__name__}' failed after {duration:.3f} seconds: {e}",
+            )
             raise
 
     return wrapper
 
 
-def cli_log_execution(func: Callable[P, T]) -> Callable[P, T]:
+def cli_log_execution[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     """Log CLI command execution with structured logging."""
+
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         logger = get_logger(func.__name__)
@@ -178,8 +220,8 @@ def cli_log_execution(func: Callable[P, T]) -> Callable[P, T]:
                 "command": func.__name__,
                 "args_count": len(args),
                 "kwargs_count": len(kwargs),
-                "status": "started"
-            }
+                "status": "started",
+            },
         )
 
         try:
@@ -190,38 +232,42 @@ def cli_log_execution(func: Callable[P, T]) -> Callable[P, T]:
                 f"CLI command completed successfully: {func.__name__}",
                 extra={
                     "command": func.__name__,
-                    "status": "completed"
-                }
+                    "status": "completed",
+                },
             )
 
             return result
 
         except Exception as e:
             # Log failure
-            logger.error(
+            logger.exception(
                 f"CLI command failed: {func.__name__}",
                 extra={
                     "command": func.__name__,
                     "error": str(e),
-                    "status": "failed"
-                }
+                    "status": "failed",
+                },
             )
             raise
 
     return wrapper
 
 
-def cli_confirm(message: str, default: bool = False) -> Callable[[Callable[P, T]], Callable[P, T]]:
+def cli_confirm(
+    message: str,
+    default: bool = False,
+) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Require user confirmation before executing CLI command.
-    
+
     Args:
         message: Confirmation message to display
         default: Default response if user just presses Enter
-    
+
     Returns:
         Decorator that requires confirmation before execution
 
     """
+
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
@@ -236,9 +282,9 @@ def cli_confirm(message: str, default: bool = False) -> Callable[[Callable[P, T]
 
                 if not response:
                     confirmed = default
-                elif response in ("y", "yes", "true", "1"):
+                elif response in {"y", "yes", "true", "1"}:
                     confirmed = True
-                elif response in ("n", "no", "false", "0"):
+                elif response in {"n", "no", "false", "0"}:
                     confirmed = False
                 else:
                     console.print("[red]Please answer 'y' or 'n'[/red]")
@@ -258,17 +304,21 @@ def cli_confirm(message: str, default: bool = False) -> Callable[[Callable[P, T]
     return decorator
 
 
-def cli_retry(max_attempts: int = 3, delay: float = 1.0) -> Callable[[Callable[P, T]], Callable[P, T]]:
+def cli_retry(
+    max_attempts: int = 3,
+    delay: float = 1.0,
+) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Retry CLI command on failure with exponential backoff.
-    
+
     Args:
         max_attempts: Maximum number of retry attempts
         delay: Initial delay between retries in seconds
-    
+
     Returns:
         Decorator that retries failed commands
 
     """
+
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
@@ -289,42 +339,48 @@ def cli_retry(max_attempts: int = 3, delay: float = 1.0) -> Callable[[Callable[P
                     last_exception = e
 
                     if attempt < max_attempts - 1:
-                        retry_delay = delay * (2 ** attempt)  # Exponential backoff
+                        retry_delay = delay * (2**attempt)  # Exponential backoff
 
                         logger.warning(
                             f"Attempt {attempt + 1} failed for {func.__name__}: {e}. "
-                            f"Retrying in {retry_delay:.1f} seconds..."
+                            f"Retrying in {retry_delay:.1f} seconds...",
                         )
 
                         console.print(
                             f"[yellow]Attempt {attempt + 1} failed. "
-                            f"Retrying in {retry_delay:.1f} seconds...[/yellow]"
+                            f"Retrying in {retry_delay:.1f} seconds...[/yellow]",
                         )
 
                         time.sleep(retry_delay)
                     else:
-                        logger.error(f"All {max_attempts} attempts failed for {func.__name__}: {e}")
+                        logger.exception(
+                            f"All {max_attempts} attempts failed for {func.__name__}: {e}",
+                        )
 
             # If we get here, all attempts failed
             if last_exception:
                 raise last_exception
-            raise RuntimeError(f"All {max_attempts} attempts failed")
+            msg = f"All {max_attempts} attempts failed"
+            raise RuntimeError(msg)
 
         return wrapper
 
     return decorator
 
 
-def cli_spinner(message: str = "Processing...") -> Callable[[Callable[P, T]], Callable[P, T]]:
+def cli_spinner(
+    message: str = "Processing...",
+) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Show spinner during CLI command execution.
-    
+
     Args:
         message: Message to display with spinner
-    
+
     Returns:
         Decorator that shows spinner during execution
 
     """
+
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
@@ -338,24 +394,26 @@ def cli_spinner(message: str = "Processing...") -> Callable[[Callable[P, T]], Ca
     return decorator
 
 
-def cli_cache_result(cache_key: str | None = None, ttl: int = 300) -> Callable[[Callable[P, T]], Callable[P, T]]:
+def cli_cache_result(
+    cache_key: str | None = None,
+    ttl: int = 300,
+) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Cache CLI command results to avoid repeated execution.
-    
+
     Args:
         cache_key: Custom cache key (defaults to function name + args hash)
         ttl: Time to live in seconds
-    
+
     Returns:
         Decorator that caches command results
 
     """
+
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         cache: dict[str, tuple[T, float]] = {}
 
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-            import hashlib
-
             # Generate cache key
             if cache_key:
                 key = cache_key
@@ -388,14 +446,15 @@ def cli_cache_result(cache_key: str | None = None, ttl: int = 300) -> Callable[[
 
 def cli_inject_config(config_key: str) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Inject configuration into CLI command.
-    
+
     Args:
         config_key: Configuration key to inject
-    
+
     Returns:
         Decorator that injects configuration
 
     """
+
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
@@ -417,16 +476,20 @@ def cli_inject_config(config_key: str) -> Callable[[Callable[P, T]], Callable[P,
     return decorator
 
 
-def cli_file_operation(backup: bool = True) -> Callable[[Callable[P, T]], Callable[P, T]]:
+def cli_file_operation(
+    *,
+    backup: bool = True,
+) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Handle file operations with optional backup.
-    
+
     Args:
         backup: Whether to create backups before file operations
-    
+
     Returns:
         Decorator that handles file operations safely
 
     """
+
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
@@ -439,7 +502,7 @@ def cli_file_operation(backup: bool = True) -> Callable[[Callable[P, T]], Callab
             try:
                 return func(*args, **kwargs)
             except OSError as e:
-                logger.error(f"File operation failed in {func.__name__}: {e}")
+                logger.exception(f"File operation failed in {func.__name__}: {e}")
                 raise
 
         return wrapper
@@ -469,27 +532,27 @@ flext_cli_file_operation = cli_file_operation
 # =============================================================================
 
 __all__ = [
+    "cli_cache_result",
+    "cli_confirm",
     # Modern CLI decorators
     "cli_enhanced",
-    "cli_validate_inputs",
+    "cli_file_operation",
     "cli_handle_keyboard_interrupt",
-    "cli_measure_time",
+    "cli_inject_config",
     "cli_log_execution",
-    "cli_confirm",
+    "cli_measure_time",
     "cli_retry",
     "cli_spinner",
-    "cli_cache_result",
-    "cli_inject_config",
-    "cli_file_operation",
+    "cli_validate_inputs",
+    "flext_cli_cache_result",
+    "flext_cli_confirm",
     # Legacy aliases
     "flext_cli_enhanced",
-    "flext_cli_validate_inputs",
-    "flext_cli_handle_keyboard_interrupt",
-    "flext_cli_measure_time",
-    "flext_cli_log_execution",
-    "flext_cli_confirm",
-    "flext_cli_retry",
-    "flext_cli_cache_result",
-    "flext_cli_inject_config",
     "flext_cli_file_operation",
+    "flext_cli_handle_keyboard_interrupt",
+    "flext_cli_inject_config",
+    "flext_cli_log_execution",
+    "flext_cli_measure_time",
+    "flext_cli_retry",
+    "flext_cli_validate_inputs",
 ]

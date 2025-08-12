@@ -206,7 +206,6 @@ class TestSimpleApiExports:
 
     def test_all_exports_accessible(self) -> None:
         """Test that all exported functions are accessible."""
-
         expected_exports = [
             "create_development_cli_config",
             "create_production_cli_config",
