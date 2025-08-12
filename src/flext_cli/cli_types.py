@@ -27,34 +27,7 @@ from pathlib import Path
 from typing import Literal, Protocol, TypeVar
 
 import click
-
-try:  # pragma: no cover - import bridge
-    from flext_core import FlextEntityId, FlextResult  # type: ignore
-except Exception:  # pragma: no cover
-    FlextEntityId = str  # type: ignore[assignment]
-    class FlextResult:  # type: ignore[no-redef]
-        def __class_getitem__(cls, _item):
-            return cls
-
-        def __init__(self, success: bool, data: object | None = None, error: str | None = None) -> None:
-            self.success = success
-            self.is_success = success
-            self.is_failure = not success
-            self.data = data
-            self.error = error
-
-        @staticmethod
-        def ok(data: object | None) -> FlextResult:
-            return FlextResult(True, data, None)
-
-        @staticmethod
-        def fail(error: str) -> FlextResult:
-            return FlextResult(False, None, error)
-
-        def unwrap(self) -> object:
-            if not self.success:
-                raise RuntimeError(self.error or "unwrap failed")
-            return self.data
+from flext_core import FlextEntityId, FlextResult
 from rich.table import Table
 
 # =============================================================================
@@ -222,7 +195,8 @@ class URLType(click.ParamType):
 
         # Require scheme and non-empty netloc (basic check)
         parts = value.split("://", 1)
-        if len(parts) != 2 or parts[1].strip() == "":
+        required_parts = 2
+        if len(parts) != required_parts or parts[1].strip() == "":
             self.fail(f"Invalid URL format: '{value}'", param, ctx)
 
         return value

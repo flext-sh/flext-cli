@@ -26,52 +26,14 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-# Import bridge for flext_core mixins to work with older versions
-try:  # pragma: no cover
-    from flext_core import (  # type: ignore
-        FlextComparableMixin,
-        FlextLoggableMixin,
-        FlextResult,
-        FlextSerializableMixin,
-        FlextValidatableMixin,
-        get_logger,
-    )
-except Exception:  # pragma: no cover
-    class FlextComparableMixin:  # type: ignore[no-redef]
-        def mixin_setup(self) -> None:
-            return None
-    class FlextLoggableMixin:  # type: ignore[no-redef]
-        def mixin_setup(self) -> None:
-            return None
-    class FlextSerializableMixin:  # type: ignore[no-redef]
-        def to_json(self) -> str:
-            return "{}"
-    class FlextValidatableMixin:  # type: ignore[no-redef]
-        def mixin_setup(self) -> None:
-            return None
-    class FlextResult:  # type: ignore[no-redef]
-        def __init__(self, success: bool, data: object | None = None, error: str | None = None) -> None:
-            self.success = success
-            self.is_success = success
-            self.is_failure = not success
-            self.data = data
-            self.error = error
-
-        @staticmethod
-        def ok(data: object | None) -> FlextResult:
-            return FlextResult(True, data, None)
-
-        @staticmethod
-        def fail(error: str) -> FlextResult:
-            return FlextResult(False, None, error)
-    def get_logger(_name: str):  # type: ignore
-        class _L:
-            def info(self, *args, **kwargs) -> None:
-                return None
-
-            def error(self, *args, **kwargs) -> None:
-                return None
-        return _L()
+from flext_core import (
+    FlextComparableMixin,
+    FlextLoggableMixin,
+    FlextResult,
+    FlextSerializableMixin,
+    FlextValidatableMixin,
+    get_logger,
+)
 from rich.console import Console
 from rich.progress import Progress, TaskID
 
@@ -213,7 +175,7 @@ class CLIOutputMixin(FlextSerializableMixin):
         self,
         data: OutputData,
         format_type: OutputFormat = OutputFormat.TABLE,
-        **options: object,
+        **_options: object,
     ) -> FlextResult[str]:
         """Format data for CLI output in specified format."""
         # Validate format first using the single authoritative validator
@@ -225,29 +187,25 @@ class CLIOutputMixin(FlextSerializableMixin):
             return FlextResult.fail(error_msg)
 
         try:
+            result: FlextResult[str]
             if format_type == OutputFormat.JSON:
-                # Delegate to parent serialization
                 json_result = self.to_json()
-                return FlextResult.ok(json_result)
-
-            if format_type == OutputFormat.YAML:
-                # Basic YAML formatting (no to_yaml method available)
+                result = FlextResult.ok(json_result)
+            elif format_type == OutputFormat.YAML:
                 json_data = self.to_json()
-                return FlextResult.ok(f"# YAML representation\ndata: {json_data}")
-
-            if format_type == OutputFormat.TABLE:
-                return self._format_as_table(data, **options)
-
-            if format_type == OutputFormat.CSV:
-                return self._format_as_csv(data, **options)
-
-            # TEXT format
-            return FlextResult.ok(str(data))
-
+                result = FlextResult.ok("# YAML representation\ndata: " + json_data)
+            elif format_type == OutputFormat.TABLE:
+                result = self._format_as_table(data)
+            elif format_type == OutputFormat.CSV:
+                result = self._format_as_csv(data)
+            else:
+                fallback = str(data)
+                result = FlextResult.ok(fallback)
+            return result
         except Exception as e:
-            return FlextResult.fail(f"Output formatting failed: {e}")
+            return FlextResult.fail("Output formatting failed: " + str(e))
 
-    def _format_as_table(self, data: OutputData, **options: object) -> FlextResult[str]:
+    def _format_as_table(self, data: OutputData, **_options: object) -> FlextResult[str]:
         """Format data as table using Rich."""
         # Basic table formatting - can be enhanced
         if isinstance(data, list):
@@ -261,7 +219,7 @@ class CLIOutputMixin(FlextSerializableMixin):
 
         return FlextResult.ok(str(data))
 
-    def _format_as_csv(self, data: OutputData, **options: object) -> FlextResult[str]:
+    def _format_as_csv(self, data: OutputData, **_options: object) -> FlextResult[str]:
         """Format data as CSV."""
         # Basic CSV formatting - can be enhanced
         if isinstance(data, list):

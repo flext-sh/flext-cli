@@ -26,34 +26,7 @@ import hashlib
 import time
 from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
-# Import bridge for flext_core heavy decorators; provide minimal shims if absent
-try:  # pragma: no cover
-    from flext_core import (  # type: ignore
-        FlextErrorHandlingDecorators,
-        get_logger,
-    )
-except Exception:  # pragma: no cover
-    class FlextErrorHandlingDecorators:  # type: ignore[no-redef]
-        @staticmethod
-        def safe_call():
-            def _inner(func):
-                return func
-            return _inner
-
-    def get_logger(_name: str):  # type: ignore
-        class _L:
-            def info(self, *args, **kwargs) -> None:
-                return None
-
-            def debug(self, *args, **kwargs) -> None:
-                return None
-
-            def warning(self, *args, **kwargs) -> None:
-                return None
-
-            def exception(self, *args, **kwargs) -> None:
-                return None
-        return _L()
+from flext_core import FlextErrorHandlingDecorators, get_logger
 from rich.console import Console
 
 if TYPE_CHECKING:
@@ -132,29 +105,23 @@ def cli_validate_inputs[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         logger = get_logger(func.__name__)
 
-        # Basic input validation
-        try:
-            # Validate that all string arguments are not empty if they're supposed to be non-empty
-            for arg in args:
-                if isinstance(arg, str) and arg.strip() == "":
-                    msg = "Empty string argument not allowed"
-                    raise ValueError(msg)
+        # Basic input validation (linear, minimal branching)
+        for arg in args:
+            if isinstance(arg, str) and arg.strip() == "":
+                logger.error("Input validation failed for %s", func.__name__)
+                msg = "Empty string argument not allowed"
+                raise ValueError(msg)
 
-            # Validate keyword arguments
-            for key, value in kwargs.items():
-                if (
-                    isinstance(value, str)
-                    and key.endswith("_required")
-                    and value.strip() == ""
-                ):
-                    msg = f"Required argument '{key}' cannot be empty"
-                    raise ValueError(msg)
+        for key, value in kwargs.items():
+            if (
+                isinstance(value, str)
+                and key.endswith("_required")
+                and value.strip() == ""
+            ):
+                logger.error("Input validation failed for %s", func.__name__)
+                raise ValueError("Required argument '" + key + "' cannot be empty")
 
-            return func(*args, **kwargs)
-
-        except Exception as e:
-            logger.exception(f"Input validation failed for {func.__name__}: {e}")
-            raise
+        return func(*args, **kwargs)
 
     return wrapper
 
@@ -166,12 +133,10 @@ def cli_handle_keyboard_interrupt[**P, T](func: Callable[P, T]) -> Callable[P, T
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         try:
             return func(*args, **kwargs)
-        except KeyboardInterrupt:
+        except KeyboardInterrupt as err:
             console = Console()
             console.print("\n[yellow]Operation cancelled by user[/yellow]")
-            raise SystemExit(1)
-        except Exception:
-            raise
+            raise SystemExit(1) from err
 
     return wrapper
 
@@ -189,17 +154,17 @@ def cli_measure_time[**P, T](func: Callable[P, T]) -> Callable[P, T]:
             end_time = time.time()
             duration = end_time - start_time
 
-            logger.info(
-                f"Command '{func.__name__}' completed in {duration:.3f} seconds",
-            )
+            logger.info("Command '%s' completed in %.3f seconds", func.__name__, duration)
             return result
 
-        except Exception as e:
+        except Exception:
             end_time = time.time()
             duration = end_time - start_time
 
             logger.exception(
-                f"Command '{func.__name__}' failed after {duration:.3f} seconds: {e}",
+                "Command '%s' failed after %.3f seconds",
+                func.__name__,
+                duration,
             )
             raise
 
@@ -214,40 +179,19 @@ def cli_log_execution[**P, T](func: Callable[P, T]) -> Callable[P, T]:
         logger = get_logger(func.__name__)
 
         # Log command start
-        logger.info(
-            f"Starting CLI command: {func.__name__}",
-            extra={
-                "command": func.__name__,
-                "args_count": len(args),
-                "kwargs_count": len(kwargs),
-                "status": "started",
-            },
-        )
+        logger.info("Starting CLI command: %s", func.__name__)
 
         try:
             result = func(*args, **kwargs)
 
             # Log successful completion
-            logger.info(
-                f"CLI command completed successfully: {func.__name__}",
-                extra={
-                    "command": func.__name__,
-                    "status": "completed",
-                },
-            )
+            logger.info("CLI command completed successfully: %s", func.__name__)
 
             return result
 
-        except Exception as e:
+        except Exception:
             # Log failure
-            logger.exception(
-                f"CLI command failed: {func.__name__}",
-                extra={
-                    "command": func.__name__,
-                    "error": str(e),
-                    "status": "failed",
-                },
-            )
+            logger.exception("CLI command failed: %s", func.__name__)
             raise
 
     return wrapper
@@ -255,6 +199,7 @@ def cli_log_execution[**P, T](func: Callable[P, T]) -> Callable[P, T]:
 
 def cli_confirm(
     message: str,
+    *,
     default: bool = False,
 ) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Require user confirmation before executing CLI command.
@@ -295,9 +240,9 @@ def cli_confirm(
                 console.print("[yellow]Operation cancelled by user[/yellow]")
                 raise SystemExit(1)
 
-            except (EOFError, KeyboardInterrupt):
+            except (EOFError, KeyboardInterrupt) as err:
                 console.print("\n[yellow]Operation cancelled by user[/yellow]")
-                raise SystemExit(1)
+                raise SystemExit(1) from err
 
         return wrapper
 
@@ -305,6 +250,7 @@ def cli_confirm(
 
 
 def cli_retry(
+    *,
     max_attempts: int = 3,
     delay: float = 1.0,
 ) -> Callable[[Callable[P, T]], Callable[P, T]]:
@@ -342,8 +288,11 @@ def cli_retry(
                         retry_delay = delay * (2**attempt)  # Exponential backoff
 
                         logger.warning(
-                            f"Attempt {attempt + 1} failed for {func.__name__}: {e}. "
-                            f"Retrying in {retry_delay:.1f} seconds...",
+                            "Attempt %d failed for %s: %s. Retrying in %.1f seconds...",
+                            attempt + 1,
+                            func.__name__,
+                            e,
+                            retry_delay,
                         )
 
                         console.print(
@@ -354,7 +303,9 @@ def cli_retry(
                         time.sleep(retry_delay)
                     else:
                         logger.exception(
-                            f"All {max_attempts} attempts failed for {func.__name__}: {e}",
+                            "All %d attempts failed for %s",
+                            max_attempts,
+                            func.__name__,
                         )
 
             # If we get here, all attempts failed
@@ -369,6 +320,7 @@ def cli_retry(
 
 
 def cli_spinner(
+    *,
     message: str = "Processing...",
 ) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Show spinner during CLI command execution.
@@ -395,6 +347,7 @@ def cli_spinner(
 
 
 def cli_cache_result(
+    *,
     cache_key: str | None = None,
     ttl: int = 300,
 ) -> Callable[[Callable[P, T]], Callable[P, T]]:
@@ -420,7 +373,7 @@ def cli_cache_result(
             else:
                 # Create key from function name and arguments
                 arg_str = str(args) + str(sorted(kwargs.items()))
-                key = f"{func.__name__}_{hashlib.md5(arg_str.encode()).hexdigest()[:8]}"
+                key = f"{func.__name__}_{hashlib.sha256(arg_str.encode(), usedforsecurity=False).hexdigest()[:8]}"
 
             # Check cache
             current_time = time.time()
@@ -461,7 +414,7 @@ def cli_inject_config(config_key: str) -> Callable[[Callable[P, T]], Callable[P,
             # This would integrate with the actual configuration system
             # For now, it's a placeholder implementation
             logger = get_logger(func.__name__)
-            logger.debug(f"Injecting configuration key: {config_key}")
+            logger.debug("Injecting configuration key: %s", config_key)
 
             # Add config to kwargs if not already present
             if "config" not in kwargs:
@@ -501,8 +454,8 @@ def cli_file_operation(
 
             try:
                 return func(*args, **kwargs)
-            except OSError as e:
-                logger.exception(f"File operation failed in {func.__name__}: {e}")
+            except OSError:
+                logger.exception("File operation failed in %s", func.__name__)
                 raise
 
         return wrapper

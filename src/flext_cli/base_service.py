@@ -12,56 +12,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TypeVar
 
-# Import bridge to support older flext_core versions during tests
-try:  # pragma: no cover
-    from flext_core import (  # type: ignore
-        FlextContainer,
-        FlextDomainService,
-        FlextResult,
-        get_logger,
-    )
-except Exception:  # pragma: no cover
-    class FlextContainer:  # type: ignore[no-redef]
-        pass
-
-    class FlextResult:  # type: ignore[no-redef]
-        def __class_getitem__(cls, _item):  # allow FlextResult[T] syntax
-            return cls
-
-        def __init__(self, success: bool, data: object | None = None, error: str | None = None) -> None:
-            self.success = success
-            self.is_success = success
-            self.is_failure = not success
-            self.data = data
-            self.error = error
-
-        @staticmethod
-        def ok(data: object | None) -> FlextResult:
-            return FlextResult(True, data, None)
-
-        @staticmethod
-        def fail(error: str) -> FlextResult:
-            return FlextResult(False, None, error)
-
-        def unwrap(self) -> object:
-            if not self.success:
-                raise RuntimeError(self.error or "unwrap failed")
-            return self.data
-
-    def get_logger(_name: str):  # type: ignore
-        class _L:
-            def info(self, *args, **kwargs) -> None:
-                return None
-        return _L()
-
-    class _FDSBase:
-        def validate_config(self) -> FlextResult:
-            return FlextResult.ok(None)
-
-    class FlextDomainService(_FDSBase):  # type: ignore[no-redef]
-        # Allow subscription syntax in type annotations: FlextDomainService[object]
-        def __class_getitem__(cls, _item):  # type: ignore[override]
-            return cls
+from flext_core import FlextContainer, FlextDomainService, FlextResult, get_logger
 from pydantic import ConfigDict, Field
 
 # Type variables for generic services
@@ -223,7 +174,7 @@ class FlextCliCommandService(FlextCliService):
     def validate_command_args(
         self,
         command: str,
-        args: dict[str, object] | None = None,
+        _args: dict[str, object] | None = None,
     ) -> FlextResult[None]:
         """Validate command arguments.
 
@@ -364,7 +315,7 @@ class FlextCliValidatorService(FlextCliService):
     def add_validation_rule(
         self,
         rule_name: str,
-        rule_definition: object,
+        _rule_definition: object,
     ) -> FlextResult[None]:
         """Add a custom validation rule.
 
@@ -512,9 +463,9 @@ class FlextCliServiceFactory:
 
     @staticmethod
     def create_command_service(
-        service_name: str,
-        container: FlextContainer | None = None,
-        **config: object,
+        _service_name: str,
+        _container: FlextContainer | None = None,
+        **_config: object,
     ) -> FlextResult[FlextCliCommandService[object]]:
         """Create a command service instance.
 
@@ -538,9 +489,9 @@ class FlextCliServiceFactory:
 
     @staticmethod
     def create_formatter_service(
-        service_name: str,
-        container: FlextContainer | None = None,
-        **config: object,
+        _service_name: str,
+        _container: FlextContainer | None = None,
+        **_config: object,
     ) -> FlextResult[FlextCliFormatterService]:
         """Create a formatter service instance.
 
@@ -564,9 +515,9 @@ class FlextCliServiceFactory:
 
     @staticmethod
     def create_validator_service(
-        service_name: str,
-        container: FlextContainer | None = None,
-        **config: object,
+        _service_name: str,
+        _container: FlextContainer | None = None,
+        **_config: object,
     ) -> FlextResult[FlextCliValidatorService[object]]:
         """Create a validator service instance.
 
@@ -590,9 +541,9 @@ class FlextCliServiceFactory:
 
     @staticmethod
     def create_interactive_service(
-        service_name: str,
-        container: FlextContainer | None = None,
-        **config: object,
+        _service_name: str,
+        _container: FlextContainer | None = None,
+        **_config: object,
     ) -> FlextResult[FlextCliInteractiveService]:
         """Create an interactive service instance.
 

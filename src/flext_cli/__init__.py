@@ -78,32 +78,20 @@ import sys as _sys
 from flext_cli.cli_auth import login, logout, status
 
 from flext_cli.cmd import auth as _auth, debug as _debug, config as _config
+from flext_cli.cmd_config import (
+    _find_config_value,
+    _get_all_config,
+    _print_config_value,
+    _print_config_table,
+)
 
 import warnings
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, TypeVar, TYPE_CHECKING
+if TYPE_CHECKING:  # type hints only
+    from collections.abc import Callable
 
-try:  # pragma: no cover
-    from flext_core import FlextResult  # type: ignore
-except Exception:  # pragma: no cover
-    class FlextResult:  # type: ignore[no-redef]
-        def __class_getitem__(cls, _item):
-            return cls
-        def __init__(self, success: bool, data: object | None = None, error: str | None = None):
-            self.success = success
-            self.is_success = success
-            self.is_failure = not success
-            self.data = data
-            self.error = error
-        @staticmethod
-        def ok(data: object | None) -> FlextResult:
-            return FlextResult(True, data, None)
-        @staticmethod
-        def fail(error: str) -> FlextResult:
-            return FlextResult(False, None, error)
-        def unwrap(self) -> object:
-            if not self.success:
-                raise RuntimeError(self.error or "unwrap failed")
-            return self.data
+from flext_core import FlextResult
+
 
 # Version information
 from flext_cli.__version__ import __version__
@@ -242,14 +230,16 @@ retry = cli_retry
 validate_config = cli_inject_config
 with_spinner = cli_file_operation
 
+
 # Legacy helper/decorator shims expected by tests
-def handle_service_result(func):  # pragma: no cover - simple passthrough
+def handle_service_result(func: Callable[..., object]) -> Callable[..., object]:  # pragma: no cover - simple passthrough
     """Decorator that unwraps FlextResult and returns the data.
 
     If the wrapped function returns a FlextResult, return its .unwrap();
     otherwise, return the original result.
     """
-    def wrapper(*args, **kwargs):  # type: ignore[no-redef]
+
+    def wrapper(*args: object, **kwargs: object) -> object:
         result = func(*args, **kwargs)
         try:
             # Only unwrap if it looks like a FlextResult
@@ -263,11 +253,14 @@ def handle_service_result(func):  # pragma: no cover - simple passthrough
     wrapper.__doc__ = func.__doc__
     return wrapper
 
+
 class CLIHelper:  # pragma: no cover - minimal shim for docs tests
     """Minimal helper placeholder for tests expecting it at root."""
 
-    def __init__(self, *args, **kwargs):
-        pass
+    def __init__(self, *_args: object, **_kwargs: object) -> None:
+        """Initialize minimal helper with arbitrary arguments."""
+        return
+
 
 # Refactored mixins using flext-core delegation (consolidated)
 from flext_cli.cli_mixins import (
@@ -315,9 +308,12 @@ from flext_cli.cli_utils import (
 
 # Public aliases expected by tests
 flext_cli_format = cli_format_output
-def flext_cli_output_data(data, fmt, **options):
+
+
+def flext_cli_output_data(data: object, fmt: object, **options: object) -> str:
     """Format data with options passthrough (indent, etc.)."""
-    return cli_format_output(data, fmt, **options)
+    return str(cli_format_output(data, fmt, **options))
+
 
 from flext_cli.cli_auth import (
     # Token management
@@ -368,35 +364,27 @@ def __getattr__(name: str) -> object:  # pragma: no cover - compatibility layer
             debug_mod.get_default_cli_client = _debug.get_default_cli_client  # type: ignore[attr-defined]
             debug_mod.get_config = _debug.get_config  # type: ignore[attr-defined]
             debug_mod._validate_dependencies = _debug._validate_dependencies  # type: ignore[attr-defined]
-        except Exception:
-            pass
+        except Exception as e:
+            warnings.warn(f"flext_cli.commands.debug shim export failed: {e}", stacklevel=2)
         config_mod = _types.ModuleType("flext_cli.commands.config")
         config_mod.config = _config  # type: ignore[attr-defined]
         # expose internal helpers used by tests
         try:
-            from flext_cli.cmd_config import (  # noqa: PLC0415
-                _find_config_value,
-                _get_all_config,
-                _print_config_value,
-                _print_config_table,
-            )
-
             config_mod._find_config_value = _find_config_value  # type: ignore[attr-defined]
             config_mod._get_all_config = _get_all_config  # type: ignore[attr-defined]
             config_mod._print_config_value = _print_config_value  # type: ignore[attr-defined]
             config_mod._print_config_table = _print_config_table  # type: ignore[attr-defined]
-        except Exception:
-            pass
+        except Exception as e:
+            warnings.warn(f"flext_cli.commands.config shim export failed: {e}", stacklevel=2)
         auth_mod = _types.ModuleType("flext_cli.commands.auth")
         auth_mod.auth = _auth  # type: ignore[attr-defined]
         # expose command callbacks for tests
         try:
-            from flext_cli.cli_auth import login, logout, status  # noqa: PLC0415
             auth_mod.login = login  # type: ignore[attr-defined]
             auth_mod.logout = logout  # type: ignore[attr-defined]
             auth_mod.status = status  # type: ignore[attr-defined]
-        except Exception:
-            pass
+        except Exception as e:
+            warnings.warn(f"flext_cli.commands.auth shim export failed: {e}", stacklevel=2)
         # expose submodules on package for attribute traversal during resolve_name
         pkg.debug = debug_mod
         pkg.config = config_mod
@@ -416,31 +404,136 @@ def __getattr__(name: str) -> object:  # pragma: no cover - compatibility layer
 # =============================================================================
 
 __all__ = [
-    "annotations", "login", "logout", "status", "Any", "Generic", "TypeVar", "__version__", "CLIConfig",
-    "CLISettings", "get_config", "get_settings", "setup_cli", "CommandStatus", "CommandType",
-    "PluginStatus", "SessionStatus", "OutputFormat", "EntityId", "TUserId", "CommandArgs",
-    "CommandOptions", "ExitCode", "OutputData", "ErrorMessage", "ConfigDict", "EnvironmentDict",
-    "PositiveIntType", "URLType", "PathType", "ProfileType", "CommandResult", "ValidationResult",
-    "ConfigResult", "FlextCliCommandProtocol", "FlextCliServiceProtocol", "FlextCliValidatorProtocol",
-    "FlextCliContext", "FlextCliOutput", "FlextCliConfiguration", "FlextCliCommand", "FlextCliSession",
-    "FlextCliPlugin", "FlextCliWorkspace", "FlextCliCommandStatus", "FlextCliSessionState",
-    "FlextCliPluginState", "FlextCliOutputFormat", "CLICommand", "CLISession", "CLIPlugin", "CLIContext",
-    "CLIOutput", "CLIConfiguration", "CLISettingsModel", "FlextCliModel", "FlextCliEntity",
-    "FlextCliService", "FlextCliCommandService", "FlextCliFormatterService", "FlextCliValidatorService",
-    "FlextCliInteractiveService", "FlextCliServiceFactory", "CLIServiceBase", "FlextCliServiceBase",
-    "cli_enhanced", "cli_validate_inputs", "cli_handle_keyboard_interrupt", "cli_measure_time",
-    "cli_log_execution", "cli_confirm", "cli_retry", "cli_cache_result", "cli_inject_config",
-    "cli_file_operation", "CLIValidationMixin", "CLICompleteMixin", "CLIConfigMixin", "CLIDataMixin",
-    "CLIExecutionMixin", "CLIUIMixin", "CLIInteractiveMixin", "CLILoggingMixin", "CLIOutputMixin",
-    "FlextCliValidationMixin", "FlextCliCompleteMixin", "FlextCliConfigMixin", "FlextCliDataMixin",
-    "FlextCliExecutionMixin", "FlextCliUIMixin", "FlextCliInteractiveMixin", "FlextCliServiceMixin",
-    "cli_quick_setup", "cli_batch_process_files", "cli_load_data_file", "cli_save_data_file",
-    "cli_create_table", "cli_format_output", "cli_run_command", "cli_prompt", "save_auth_token",
-    "load_auth_token", "clear_auth_token", "get_auth_headers", "login_command", "logout_command",
-    "status_command", "LegacyFlextFactory", "CLIEntityFactory", "legacy_validate_result",
-    "legacy_handle_errors", "legacy_performance_monitor", "LegacyValidationMixin",
-    "LegacyInteractiveMixin", "LegacyServiceMixin", "create_legacy_config", "CLIContextParams",
-    "CLIExecutionContext", "CLICommandService", "CLIServiceContainer", "CLISessionService",
-    "async_command", "confirm_action", "measure_time", "require_auth", "retry", "validate_config",
-    "with_spinner", "handle_service_result", "CLIHelper", "flext_cli_format", "flext_cli_output_data",
+    "annotations",
+    "login",
+    "logout",
+    "status",
+    "Any",
+    "Generic",
+    "TypeVar",
+    "__version__",
+    "CLIConfig",
+    "CLISettings",
+    "get_config",
+    "get_settings",
+    "setup_cli",
+    "CommandStatus",
+    "CommandType",
+    "PluginStatus",
+    "SessionStatus",
+    "OutputFormat",
+    "EntityId",
+    "TUserId",
+    "CommandArgs",
+    "CommandOptions",
+    "ExitCode",
+    "OutputData",
+    "ErrorMessage",
+    "ConfigDict",
+    "EnvironmentDict",
+    "PositiveIntType",
+    "URLType",
+    "PathType",
+    "ProfileType",
+    "CommandResult",
+    "ValidationResult",
+    "ConfigResult",
+    "FlextCliCommandProtocol",
+    "FlextCliServiceProtocol",
+    "FlextCliValidatorProtocol",
+    "FlextCliContext",
+    "FlextCliOutput",
+    "FlextCliConfiguration",
+    "FlextCliCommand",
+    "FlextCliSession",
+    "FlextCliPlugin",
+    "FlextCliWorkspace",
+    "FlextCliCommandStatus",
+    "FlextCliSessionState",
+    "FlextCliPluginState",
+    "FlextCliOutputFormat",
+    "CLICommand",
+    "CLISession",
+    "CLIPlugin",
+    "CLIContext",
+    "CLIOutput",
+    "CLIConfiguration",
+    "CLISettingsModel",
+    "FlextCliModel",
+    "FlextCliEntity",
+    "FlextCliService",
+    "FlextCliCommandService",
+    "FlextCliFormatterService",
+    "FlextCliValidatorService",
+    "FlextCliInteractiveService",
+    "FlextCliServiceFactory",
+    "CLIServiceBase",
+    "FlextCliServiceBase",
+    "cli_enhanced",
+    "cli_validate_inputs",
+    "cli_handle_keyboard_interrupt",
+    "cli_measure_time",
+    "cli_log_execution",
+    "cli_confirm",
+    "cli_retry",
+    "cli_cache_result",
+    "cli_inject_config",
+    "cli_file_operation",
+    "CLIValidationMixin",
+    "CLICompleteMixin",
+    "CLIConfigMixin",
+    "CLIDataMixin",
+    "CLIExecutionMixin",
+    "CLIUIMixin",
+    "CLIInteractiveMixin",
+    "CLILoggingMixin",
+    "CLIOutputMixin",
+    "FlextCliValidationMixin",
+    "FlextCliCompleteMixin",
+    "FlextCliConfigMixin",
+    "FlextCliDataMixin",
+    "FlextCliExecutionMixin",
+    "FlextCliUIMixin",
+    "FlextCliInteractiveMixin",
+    "FlextCliServiceMixin",
+    "cli_quick_setup",
+    "cli_batch_process_files",
+    "cli_load_data_file",
+    "cli_save_data_file",
+    "cli_create_table",
+    "cli_format_output",
+    "cli_run_command",
+    "cli_prompt",
+    "save_auth_token",
+    "load_auth_token",
+    "clear_auth_token",
+    "get_auth_headers",
+    "login_command",
+    "logout_command",
+    "status_command",
+    "LegacyFlextFactory",
+    "CLIEntityFactory",
+    "legacy_validate_result",
+    "legacy_handle_errors",
+    "legacy_performance_monitor",
+    "LegacyValidationMixin",
+    "LegacyInteractiveMixin",
+    "LegacyServiceMixin",
+    "create_legacy_config",
+    "CLIContextParams",
+    "CLIExecutionContext",
+    "CLICommandService",
+    "CLIServiceContainer",
+    "CLISessionService",
+    "async_command",
+    "confirm_action",
+    "measure_time",
+    "require_auth",
+    "retry",
+    "validate_config",
+    "with_spinner",
+    "handle_service_result",
+    "CLIHelper",
+    "flext_cli_format",
+    "flext_cli_output_data",
 ]

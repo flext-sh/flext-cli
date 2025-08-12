@@ -34,53 +34,22 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
-# Import bridge to tolerate older flext_core during tests
-try:  # pragma: no cover
-    from flext_core import (  # type: ignore
-        FlextAggregateRoot,
-        FlextEntity,
-        FlextEntityId,
-        FlextResult,
-        FlextValueObject,
-    )
-except Exception:  # pragma: no cover
-    from pydantic import BaseModel, Field
-    FlextValueObject = BaseModel  # type: ignore[assignment]
-    class FlextEntity(BaseModel):  # type: ignore[no-redef, misc]
-        id: str
-        created_at: datetime = Field(default_factory=datetime.utcnow)
-        updated_at: datetime = Field(default_factory=datetime.utcnow)
-
-        def add_domain_event(self, *_: object, **__: object) -> FlextResult:
-            return FlextResult.ok(None)
-
-    class FlextAggregateRoot(FlextEntity):  # type: ignore[no-redef]
-        pass
-
-    FlextEntityId = str  # type: ignore[assignment]
-    class FlextResult:  # type: ignore[no-redef]
-        def __init__(self, success: bool, data: object | None = None, error: str | None = None) -> None:
-            self.success = success
-            self.is_success = success
-            self.is_failure = not success
-            self.data = data
-            self.error = error
-
-        @staticmethod
-        def ok(data: object | None) -> FlextResult:
-            return FlextResult(True, data, None)
-
-        @staticmethod
-        def fail(error: str) -> FlextResult:
-            return FlextResult(False, None, error)
-from pathlib import Path
-
+from flext_core import (
+    FlextAggregateRoot,
+    FlextEntity,
+    FlextEntityId,
+    FlextResult,
+    FlextValueObject,
+)
 from pydantic import ConfigDict, Field, field_validator
 from rich.console import Console
 
 from flext_cli.config import CLIConfig as FlextCliConfig
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 # Local import to avoid circular during module import
@@ -95,6 +64,7 @@ class FlextCliCommandType(StrEnum):
     CLI = "cli"
     SCRIPT = "script"
     SQL = "sql"
+
 
 # =============================================================================
 # CLI-SPECIFIC ENUMERATIONS
@@ -581,13 +551,19 @@ class FlextCliCommand(FlextEntity):
         return False
 
     def flext_cli_complete_execution(
-        self, *, exit_code: int | None = None, stdout: str = "", stderr: str = "",
+        self,
+        *,
+        exit_code: int | None = None,
+        stdout: str = "",
+        stderr: str = "",
     ) -> bool:
         """Legacy boolean wrapper around complete_execution()."""
         if exit_code is None:
             # tests sometimes call without args, treat as no-op failure
             return False
-        result = self.complete_execution(exit_code=exit_code, stdout=stdout, stderr=stderr)
+        result = self.complete_execution(
+            exit_code=exit_code, stdout=stdout, stderr=stderr,
+        )
         if result.is_success:
             updated = result.unwrap()
             object.__setattr__(self, "status", updated.status)
@@ -673,7 +649,9 @@ class FlextCliCommand(FlextEntity):
                 "command_id": result.id,
                 "exit_code": exit_code,
                 "status": final_status.value,
-                "execution_time": None if not self.started_at else (now - self.started_at).total_seconds(),
+                "execution_time": None
+                if not self.started_at
+                else (now - self.started_at).total_seconds(),
                 "completed_at": now.isoformat(),
             },
         )
@@ -850,7 +828,9 @@ class FlextCliSession(FlextEntity):
                 # assign back
                 new_obj = updated.unwrap()
                 object.__setattr__(self, "command_history", new_obj.command_history)
-                object.__setattr__(self, "current_command_id", new_obj.current_command_id)
+                object.__setattr__(
+                    self, "current_command_id", new_obj.current_command_id,
+                )
                 object.__setattr__(self, "last_activity_at", new_obj.last_activity_at)
                 return True
             return False
@@ -967,7 +947,9 @@ class FlextCliPlugin(FlextEntity):
     # Provide default id for legacy tests that omit it
     id: str = Field(default_factory=lambda: __import__("uuid").uuid4().hex)
     name: str = Field(
-        ..., min_length=1, description="Unique plugin name",
+        ...,
+        min_length=1,
+        description="Unique plugin name",
     )
     description: str | None = Field(
         default=None,
@@ -1316,7 +1298,8 @@ class FlextCliWorkspace(FlextAggregateRoot):
         return FlextResult.ok(result)
 
     def remove_session(
-        self, session_id: FlextEntityId,
+        self,
+        session_id: FlextEntityId,
     ) -> FlextResult[FlextCliWorkspace]:
         """Remove session from workspace."""
         if session_id not in self.session_ids:
@@ -1344,7 +1327,8 @@ class FlextCliWorkspace(FlextAggregateRoot):
         return FlextResult.ok(result)
 
     def install_plugin(
-        self, plugin_id: FlextEntityId,
+        self,
+        plugin_id: FlextEntityId,
     ) -> FlextResult[FlextCliWorkspace]:
         """Install plugin in workspace."""
         if plugin_id in self.plugin_ids:

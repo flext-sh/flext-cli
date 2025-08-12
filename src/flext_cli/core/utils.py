@@ -9,17 +9,14 @@ from __future__ import annotations
 
 import json
 import os
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import yaml
 from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 
 def _generate_session_id() -> str:
@@ -29,8 +26,7 @@ def _generate_session_id() -> str:
 
 def _get_version() -> str:
     try:
-        from flext_cli.__version__ import __version__  # noqa: PLC0415
-
+        from flext_cli.__version__ import __version__
         return __version__
     except Exception:  # noqa: BLE001
         return "unknown"
@@ -144,7 +140,7 @@ def flext_cli_validate_all(
 
 
 def flext_cli_require_all(confirmations: list[tuple[str, bool]]) -> FlextResult[bool]:  # noqa: D103
-    from .helpers import FlextCliHelper  # noqa: PLC0415
+    from .helpers import FlextCliHelper
 
     helper = FlextCliHelper()
     for message, _default in confirmations:
@@ -168,8 +164,8 @@ def flext_cli_output_data(
             table = flext_cli_create_table(data)
             console.print(table)
         elif format_type == "csv":
-            import csv  # noqa: PLC0415
-            import io  # noqa: PLC0415
+            import csv
+            import io
 
             output = io.StringIO()
             if isinstance(data, list) and data and isinstance(data[0], dict):

@@ -21,10 +21,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
-try:  # pragma: no cover - import bridge
-    from flext_core.config import FlextSettings
-except Exception:  # pragma: no cover
-    from pydantic import BaseModel as FlextSettings
+from flext_core.config import FlextSettings
 from pydantic import BaseModel, Field
 
 # ----------------------------------------------------------------------------
@@ -236,7 +233,14 @@ class CLIConfig(BaseModel):
 
         # Map flat API fields
         api_overrides: dict[str, object] = {}
-        for key in ("api_url", "timeout", "retries", "verify_ssl", "connect_timeout", "read_timeout"):
+        for key in (
+            "api_url",
+            "timeout",
+            "retries",
+            "verify_ssl",
+            "connect_timeout",
+            "read_timeout",
+        ):
             if key in mapped:
                 target = "url" if key == "api_url" else key
                 api_overrides[target] = mapped.pop(key)
