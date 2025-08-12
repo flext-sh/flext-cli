@@ -424,7 +424,6 @@ class TestAuthFunctionality:
 
     def test_click_context_pattern(self) -> None:
         """Test Click context pattern used in commands."""
-
         # Test that we can create a mock context like used in commands
         console = MagicMock(spec=Console)
         ctx = MagicMock(spec=click.Context)
@@ -436,7 +435,6 @@ class TestAuthFunctionality:
 
     def test_auth_imports(self) -> None:
         """Test that all required imports work."""
-
         # All imports should work (asyncio removed from auth commands)
         assert click
         assert MagicMock
@@ -801,13 +799,11 @@ class TestAuthIntegration:
 
     def test_client_integration(self) -> None:
         """Test integration with FlextApiClient."""
-
         # Client should be importable
         assert FlextApiClient
 
     def test_rich_console_integration(self) -> None:
         """Test Rich console integration."""
-
         # Console should be importable and usable
         console = Console()
         assert console
@@ -817,7 +813,6 @@ class TestAuthIntegration:
 
     def test_synchronous_patterns_used(self) -> None:
         """Test synchronous patterns used in auth commands."""
-
         # Test async client pattern
         mock_client = AsyncMock()
         # Mock FlextResult success response

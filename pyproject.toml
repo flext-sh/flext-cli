@@ -226,6 +226,7 @@ exclude = [
     "node_modules/",
     "vendor/",
 ]
+
 [tool.pydantic-mypy]
 init_forbid_extra = true
 init_typed = true

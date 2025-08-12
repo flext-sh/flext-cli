@@ -249,7 +249,7 @@ def migrate_to_modern_patterns(legacy_setup_function: str, project_name: str) ->
         str: Migration code example
 
     """
-    return f"""
+    return f"""\
 # MIGRATION: {project_name} - Legacy to Modern FlextCli Patterns
 #
 # OLD (Legacy Pattern): 30+ lines of boilerplate
@@ -267,7 +267,7 @@ def migrate_to_modern_patterns(legacy_setup_function: str, project_name: str) ->
 from flext_cli import setup_flext_cli_ecosystem
 
 def {legacy_setup_function}_modern(**config_overrides):
-    '''Modern setup with railway-oriented programming following FlextCli patterns.'''
+    "Modern setup with railway-oriented programming following FlextCli patterns."
     return setup_flext_cli_ecosystem("{project_name}", **config_overrides)
 
 # Usage in {project_name} project:
@@ -295,7 +295,8 @@ def {legacy_setup_function}_modern(**config_overrides):
 
 # Legacy compatibility facades with warnings
 def setup_ecosystem_cli(
-    *args: object, **kwargs: object,
+    *args: object,
+    **kwargs: object,
 ) -> FlextResult[dict[str, object]]:  # Changed return type to object
     """Legacy facade for setup_flext_cli_ecosystem (deprecated).
 

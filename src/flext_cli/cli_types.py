@@ -24,10 +24,37 @@ from __future__ import annotations
 from collections.abc import Callable
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Literal, Protocol, TypeAlias, TypeVar
+from typing import Literal, Protocol, TypeVar
 
 import click
-from flext_core import FlextEntityId, FlextResult
+
+try:  # pragma: no cover - import bridge
+    from flext_core import FlextEntityId, FlextResult  # type: ignore
+except Exception:  # pragma: no cover
+    FlextEntityId = str  # type: ignore[assignment]
+    class FlextResult:  # type: ignore[no-redef]
+        def __class_getitem__(cls, _item):
+            return cls
+
+        def __init__(self, success: bool, data: object | None = None, error: str | None = None) -> None:
+            self.success = success
+            self.is_success = success
+            self.is_failure = not success
+            self.data = data
+            self.error = error
+
+        @staticmethod
+        def ok(data: object | None) -> FlextResult:
+            return FlextResult(True, data, None)
+
+        @staticmethod
+        def fail(error: str) -> FlextResult:
+            return FlextResult(False, None, error)
+
+        def unwrap(self) -> object:
+            if not self.success:
+                raise RuntimeError(self.error or "unwrap failed")
+            return self.data
 from rich.table import Table
 
 # =============================================================================
@@ -44,6 +71,11 @@ class CommandType(StrEnum):
     INTERACTIVE = "interactive"
     BATCH = "batch"
     DEBUG = "debug"
+    PIPELINE = "pipeline"
+    DATA = "data"
+    CONFIG = "config"
+    AUTH = "auth"
+    MONITORING = "monitoring"
 
 
 class CommandStatus(StrEnum):
@@ -81,12 +113,11 @@ class PluginStatus(StrEnum):
 class OutputFormat(StrEnum):
     """CLI output format enumeration."""
 
-    TEXT = "text"
     JSON = "json"
-    XML = "xml"
     CSV = "csv"
     YAML = "yaml"
     TABLE = "table"
+    PLAIN = "plain"
 
 
 # =============================================================================
@@ -94,42 +125,42 @@ class OutputFormat(StrEnum):
 # =============================================================================
 
 # Entity identifiers
-EntityId: TypeAlias = FlextEntityId
-TUserId: TypeAlias = str
+type EntityId = FlextEntityId
+type TUserId = str
 
 # Configuration types
-ConfigDict: TypeAlias = dict[str, Any]
-EnvironmentDict: TypeAlias = dict[str, str]
+type ConfigDict = dict[str, object]
+type EnvironmentDict = dict[str, str]
 
 # Command execution types
-CommandArgs: TypeAlias = list[str]
-CommandOptions: TypeAlias = dict[str, Any]
-ExitCode: TypeAlias = int
+type CommandArgs = list[str]
+type CommandOptions = dict[str, object]
+type ExitCode = int
 
 # Output types
-OutputData: TypeAlias = str | dict[str, Any] | list[Any]
-ErrorMessage: TypeAlias = str
+type OutputData = str | dict[str, object] | list[object]
+type ErrorMessage = str
 
 # Path types
-WorkingDirectory: TypeAlias = Path
-ConfigPath: TypeAlias = Path
+type WorkingDirectory = Path
+type ConfigPath = Path
 
 # Time types
-TimeoutSeconds: TypeAlias = int
-DurationSeconds: TypeAlias = float
+type TimeoutSeconds = int
+type DurationSeconds = float
 
 # Plugin types
-PluginName: TypeAlias = str
-EntryPoint: TypeAlias = str
-PluginVersion: TypeAlias = str
+type PluginName = str
+type EntryPoint = str
+type PluginVersion = str
 
 # Session types
-SessionId: TypeAlias = str
-SessionData: TypeAlias = dict[str, Any]
+type SessionId = str
+type SessionData = dict[str, object]
 
 # CLI context types
-ContextParams: TypeAlias = dict[str, Any]
-UserInput: TypeAlias = str
+type ContextParams = dict[str, object]
+type UserInput = str
 
 
 # =============================================================================
@@ -144,7 +175,7 @@ class PositiveIntType(click.ParamType):
 
     def convert(
         self,
-        value: Any,
+        value: object,
         param: click.Parameter | None,
         ctx: click.Context | None,
     ) -> int:
@@ -163,7 +194,9 @@ class PositiveIntType(click.ParamType):
             except ValueError:
                 self.fail(f"'{value}' is not a valid integer", param, ctx)
 
-        self.fail(f"'{value}' is not a valid positive integer", param, ctx)
+        # Fall back to explicit raise to satisfy linters
+        msg = f"'{value}' is not a valid positive integer"
+        raise click.BadParameter(msg)
 
 
 class URLType(click.ParamType):
@@ -173,7 +206,7 @@ class URLType(click.ParamType):
 
     def convert(
         self,
-        value: Any,
+        value: object,
         param: click.Parameter | None,
         ctx: click.Context | None,
     ) -> str:
@@ -182,10 +215,14 @@ class URLType(click.ParamType):
             self.fail(f"URL must be a string, got {type(value).__name__}", param, ctx)
 
         # Basic URL validation
-        if not value.startswith(("http://", "https://")):
-            self.fail(f"URL must start with http:// or https://, got '{value}'", param, ctx)
+        if not value.startswith(("http://", "https://", "ftp://")):
+            self.fail(
+                f"URL must start with http://, https://, or ftp://, got '{value}'", param, ctx,
+            )
 
-        if not value.count("://") == 1:
+        # Require scheme and non-empty netloc (basic check)
+        parts = value.split("://", 1)
+        if len(parts) != 2 or parts[1].strip() == "":
             self.fail(f"Invalid URL format: '{value}'", param, ctx)
 
         return value
@@ -196,7 +233,9 @@ class PathType(click.ParamType):
 
     name = "path"
 
-    def __init__(self, exists: bool = False, dir_okay: bool = True, file_okay: bool = True):
+    def __init__(
+        self, *, exists: bool = False, dir_okay: bool = True, file_okay: bool = True,
+    ) -> None:
         """Initialize path type with validation options."""
         self.exists = exists
         self.dir_okay = dir_okay
@@ -204,7 +243,7 @@ class PathType(click.ParamType):
 
     def convert(
         self,
-        value: Any,
+        value: object,
         param: click.Parameter | None,
         ctx: click.Context | None,
     ) -> Path:
@@ -214,7 +253,9 @@ class PathType(click.ParamType):
         elif isinstance(value, str):
             path = Path(value)
         else:
-            self.fail(f"Path must be string or Path, got {type(value).__name__}", param, ctx)
+            self.fail(
+                f"Path must be string or Path, got {type(value).__name__}", param, ctx,
+            )
 
         if self.exists and not path.exists():
             self.fail(f"Path does not exist: '{path}'", param, ctx)
@@ -224,7 +265,11 @@ class PathType(click.ParamType):
                 self.fail(f"Path is a file but files not allowed: '{path}'", param, ctx)
 
             if path.is_dir() and not self.dir_okay:
-                self.fail(f"Path is a directory but directories not allowed: '{path}'", param, ctx)
+                self.fail(
+                    f"Path is a directory but directories not allowed: '{path}'",
+                    param,
+                    ctx,
+                )
 
         return path
 
@@ -236,13 +281,15 @@ class ProfileType(click.ParamType):
 
     def convert(
         self,
-        value: Any,
+        value: object,
         param: click.Parameter | None,
         ctx: click.Context | None,
     ) -> str:
         """Convert and validate profile name."""
         if not isinstance(value, str):
-            self.fail(f"Profile must be a string, got {type(value).__name__}", param, ctx)
+            self.fail(
+                f"Profile must be a string, got {type(value).__name__}", param, ctx,
+            )
 
         # Validate profile name format
         if not value.replace("_", "a").replace("-", "a").isalnum():
@@ -299,7 +346,9 @@ type FlextCliOutputFormat = Literal["json", "yaml", "toml", "csv", "table", "pla
 type FlextCliLogLevel = Literal["debug", "info", "warning", "error", "critical"]
 type FlextCliValidationType = Literal["email", "url", "path", "file", "uuid", "port"]
 type FlextCliStatusType = Literal["success", "error", "warning", "info", "pending"]
-type FlextCliOperationType = Literal["create", "read", "update", "delete", "process", "validate"]
+type FlextCliOperationType = Literal[
+    "create", "read", "update", "delete", "process", "validate",
+]
 
 # Collection Types
 type FlextCliDataList = list[FlextCliDataDict]
@@ -336,20 +385,21 @@ type FlextCliCommandRegistry[T] = dict[str, FlextCliCommand[T]]
 type FlextCliCommandPipeline[T] = list[FlextCliCommand[T]]
 
 # Legacy CLI-specific result types using FlextResult (for backward compatibility)
-CommandResult: TypeAlias = FlextResult[OutputData]
-ValidationResult: TypeAlias = FlextResult[bool]
-ConfigResult: TypeAlias = FlextResult[ConfigDict]
-PluginResult: TypeAlias = FlextResult[PluginName]
-SessionResult: TypeAlias = FlextResult[SessionId]
-ConfigurationResult: TypeAlias = FlextResult[ConfigDict]
-ProcessingResult: TypeAlias = FlextResult[OutputData]
-FileOperationResult: TypeAlias = FlextResult[Path]
-NetworkResult: TypeAlias = FlextResult[dict[str, Any]]
+type CommandResult = FlextResult[OutputData]
+type ValidationResult = FlextResult[bool]
+type ConfigResult = FlextResult[ConfigDict]
+type PluginResult = FlextResult[PluginName]
+type SessionResult = FlextResult[SessionId]
+type ConfigurationResult = FlextResult[ConfigDict]
+type ProcessingResult = FlextResult[OutputData]
+type FileOperationResult = FlextResult[Path]
+type NetworkResult = FlextResult[dict[str, object]]
 
 
 # =============================================================================
 # PROTOCOL DEFINITIONS - Interface types for dependency injection
 # =============================================================================
+
 
 class FlextCliDataProcessor(Protocol):
     """Protocol for data processing operations - enables dependency injection."""
@@ -370,7 +420,9 @@ class FlextCliFileHandler(Protocol):
         """Load file and return parsed data."""
         ...
 
-    def save_file(self, data: FlextCliDataDict, path: FlextCliFilePath) -> FlextCliResult[None]:
+    def save_file(
+        self, data: FlextCliDataDict, path: FlextCliFilePath,
+    ) -> FlextCliResult[None]:
         """Save data to file."""
         ...
 
@@ -394,11 +446,15 @@ class FlextCliUIRenderer(Protocol):
         """Render data as table."""
         ...
 
-    def show_progress[T](self, items: list[T], operation_name: str) -> FlextCliResult[list[T]]:
+    def show_progress[T](
+        self, items: list[T], operation_name: str,
+    ) -> FlextCliResult[list[T]]:
         """Show progress for operation."""
         ...
 
-    def confirm_action(self, message: str, *, default: bool = False) -> FlextCliResult[bool]:
+    def confirm_action(
+        self, message: str, *, default: bool = False,
+    ) -> FlextCliResult[bool]:
         """Get user confirmation."""
         ...
 
@@ -406,7 +462,9 @@ class FlextCliUIRenderer(Protocol):
 class FlextCliConfigProvider(Protocol):
     """Protocol for configuration management - standardizes config access."""
 
-    def get_value(self, key: str, *, default: str | int | bool | None = None) -> str | int | bool | None:
+    def get_value(
+        self, key: str, *, default: str | int | bool | None = None,
+    ) -> str | int | bool | None:
         """Get configuration value."""
         ...
 
@@ -424,110 +482,113 @@ class FlextCliConfigProvider(Protocol):
 # =============================================================================
 
 __all__ = [
-    # Basic enumerations
-    "CommandType",
-    "CommandStatus",
-    "SessionStatus",
-    "PluginStatus",
-    "OutputFormat",
-    # Basic type aliases
-    "EntityId",
-    "TUserId",
-    "ConfigDict",
-    "EnvironmentDict",
     "CommandArgs",
     "CommandOptions",
-    "ExitCode",
-    "OutputData",
-    "ErrorMessage",
-    "WorkingDirectory",
-    "ConfigPath",
-    "TimeoutSeconds",
-    "DurationSeconds",
-    "PluginName",
-    "EntryPoint",
-    "PluginVersion",
-    "SessionId",
-    "SessionData",
-    "ContextParams",
-    "UserInput",
-    # Click parameter types
-    "PositiveIntType",
-    "URLType",
-    "PathType",
-    "ProfileType",
     # Legacy result types (for backward compatibility)
     "CommandResult",
-    "ValidationResult",
+    "CommandStatus",
+    # Basic enumerations
+    "CommandType",
+    "ConfigDict",
+    "ConfigPath",
     "ConfigResult",
-    "PluginResult",
-    "SessionResult",
     "ConfigurationResult",
-    "ProcessingResult",
+    "ContextParams",
+    "DurationSeconds",
+    # Basic type aliases
+    "EntityId",
+    "EntryPoint",
+    "EnvironmentDict",
+    "ErrorMessage",
+    "ExitCode",
     "FileOperationResult",
-    "NetworkResult",
-    # Type variables
-    "T", "U", "K", "V",
-    # Advanced FlextResult types
-    "FlextCliResult",
-    "FlextCliOperationResult",
-    "FlextCliValidationResult",
-    "FlextCliDataResult",
-    "FlextCliFileResult",
-    "FlextCliTableResult",
-    # Data types
-    "FlextCliDataDict",
-    "FlextCliConfigDict",
-    "FlextCliMetadataDict",
-    "FlextCliErrorDict",
-    # Path types
-    "FlextCliPathLike",
-    "FlextCliFilePath",
-    "FlextCliDirectoryPath",
-    "FlextCliOptionalPath",
-    # Operation types
-    "FlextCliOperation",
-    "FlextCliValidator",
-    "FlextCliTransformer",
-    "FlextCliProcessor",
-    # Literal types
-    "FlextCliOutputFormat",
-    "FlextCliLogLevel",
-    "FlextCliValidationType",
-    "FlextCliStatusType",
-    "FlextCliOperationType",
-    # Collection types
-    "FlextCliDataList",
-    "FlextCliStringList",
-    "FlextCliPathList",
-    "FlextCliOperationList",
-    # Configuration types
-    "FlextCliSettings",
-    "FlextCliEnvironment",
     "FlextCliArguments",
-    # Specialized result types
-    "FlextCliLoadResult",
-    "FlextCliSaveResult",
-    "FlextCliValidateResult",
-    "FlextCliProcessResult",
-    "FlextCliExecuteResult",
-    "FlextCliRenderResult",
-    # Callback types
-    "FlextCliSuccessCallback",
-    "FlextCliErrorCallback",
-    "FlextCliProgressCallback",
-    # Factory types
-    "FlextCliEntityFactory",
-    "FlextCliServiceFactory",
-    "FlextCliValidatorFactory",
     # Command types
     "FlextCliCommand",
-    "FlextCliCommandRegistry",
     "FlextCliCommandPipeline",
+    "FlextCliCommandRegistry",
+    "FlextCliConfigDict",
+    "FlextCliConfigProvider",
+    # Data types
+    "FlextCliDataDict",
+    # Collection types
+    "FlextCliDataList",
     # Protocol types
     "FlextCliDataProcessor",
+    "FlextCliDataResult",
+    "FlextCliDirectoryPath",
+    # Factory types
+    "FlextCliEntityFactory",
+    "FlextCliEnvironment",
+    "FlextCliErrorCallback",
+    "FlextCliErrorDict",
+    "FlextCliExecuteResult",
     "FlextCliFileHandler",
+    "FlextCliFilePath",
+    "FlextCliFileResult",
+    # Specialized result types
+    "FlextCliLoadResult",
+    "FlextCliLogLevel",
+    "FlextCliMetadataDict",
+    # Operation types
+    "FlextCliOperation",
+    "FlextCliOperationList",
+    "FlextCliOperationResult",
+    "FlextCliOperationType",
+    "FlextCliOptionalPath",
+    # Literal types
+    "FlextCliOutputFormat",
+    # Path types
+    "FlextCliPathLike",
+    "FlextCliPathList",
+    "FlextCliProcessResult",
+    "FlextCliProcessor",
+    "FlextCliProgressCallback",
+    "FlextCliRenderResult",
+    # Advanced FlextResult types
+    "FlextCliResult",
+    "FlextCliSaveResult",
+    "FlextCliServiceFactory",
+    # Configuration types
+    "FlextCliSettings",
     "FlextCliSimpleValidatorProtocol",
+    "FlextCliStatusType",
+    "FlextCliStringList",
+    # Callback types
+    "FlextCliSuccessCallback",
+    "FlextCliTableResult",
+    "FlextCliTransformer",
     "FlextCliUIRenderer",
-    "FlextCliConfigProvider",
+    "FlextCliValidateResult",
+    "FlextCliValidationResult",
+    "FlextCliValidationType",
+    "FlextCliValidator",
+    "FlextCliValidatorFactory",
+    "K",
+    "NetworkResult",
+    "OutputData",
+    "OutputFormat",
+    "PathType",
+    "PluginName",
+    "PluginResult",
+    "PluginStatus",
+    "PluginVersion",
+    # Click parameter types
+    "PositiveIntType",
+    "ProcessingResult",
+    "ProfileType",
+    "SessionData",
+    "SessionId",
+    "SessionResult",
+    "SessionStatus",
+    # Type variables
+    "T",
+    "TUserId",
+    "TimeoutSeconds",
+    "U",
+    "URLType",
+    "UserInput",
+    "V",
+    "ValidationResult",
+    "WorkingDirectory",
 ]

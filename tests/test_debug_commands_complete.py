@@ -324,7 +324,6 @@ class TestDebugUtilityFunctions:
 
     def test_sensitive_value_preview_length_constant(self) -> None:
         """Test SENSITIVE_VALUE_PREVIEW_LENGTH constant."""
-
         if SENSITIVE_VALUE_PREVIEW_LENGTH != 4:
             raise AssertionError(f"Expected {4}, got {SENSITIVE_VALUE_PREVIEW_LENGTH}")
         assert isinstance(SENSITIVE_VALUE_PREVIEW_LENGTH, int)

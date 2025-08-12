@@ -773,7 +773,6 @@ class TestCommandImports:
 
     def test_command_type_import(self) -> None:
         """Test CommandType import."""
-
         assert CommandType
         assert CommandType.SYSTEM
         assert CommandType.PIPELINE
@@ -785,7 +784,6 @@ class TestCommandImports:
 
     def test_uuid_import(self) -> None:
         """Test UUID import and usage."""
-
         # Test that UUID works as expected
         test_uuid = uuid4()
         assert isinstance(test_uuid, UUID)

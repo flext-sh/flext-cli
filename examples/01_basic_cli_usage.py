@@ -150,12 +150,12 @@ def main() -> None:
 
     @flext_cli.handle_service_result
     def example_service_operation() -> str:
-        """Example service operation that returns a simple result."""
+        """Return a simple result from a service operation."""
         return "Operation completed successfully"
 
     @flext_cli.handle_service_result
     def example_service_with_result() -> str:
-        """Example service operation that returns a FlextResult."""
+        """Return a FlextResult from a service operation."""
         return FlextResult.ok("Service result data")
 
     # Test the decorators

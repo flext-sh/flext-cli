@@ -23,11 +23,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import csv
+import getpass
 import io
 import json
+import shlex
 import subprocess
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, TypeVar, cast
 
 import yaml
 from flext_core import FlextResult, get_logger
@@ -43,7 +45,7 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 # Type aliases for utility functions
-FlextCliData = dict[str, Any] | list[Any] | str | float | int | None
+FlextCliData = dict[str, object] | list[object] | str | float | int | None
 
 
 # =============================================================================
@@ -57,23 +59,23 @@ def cli_quick_setup(
     create_dirs: bool = True,
     create_config: bool = True,
     init_git: bool = False,
-) -> FlextResult[dict[str, Any]]:
+) -> FlextResult[dict[str, object]]:
     """Create complete project setup in one function call.
-    
+
     Eliminates 50+ lines of setup code by providing intelligent automation.
-    
+
     Args:
         project_name: Name of the project to create
         create_dirs: Create standard directory structure
         create_config: Create basic configuration files
         init_git: Initialize git repository
-        
+
     Returns:
         Result with setup information or error
 
     """
     console = Console()
-    results: dict[str, Any] = {}
+    results: dict[str, object] = {}
 
     try:
         # Validate project name
@@ -85,7 +87,7 @@ def cli_quick_setup(
         if project_path.exists():
             confirmation = cli_confirm(
                 f"Directory {project_path} exists. Continue?",
-                default=False
+                default=False,
             )
             if not confirmation.success or not confirmation.data:
                 return FlextResult.fail("Setup cancelled")
@@ -148,7 +150,7 @@ ruff = "*"
                     cwd=project_path,
                     check=True,
                     capture_output=True,
-                    text=True
+                    text=True,
                 )
                 results["git_init"] = True
                 console.print("[green]✓ Git repository initialized[/green]")
@@ -169,29 +171,29 @@ ruff = "*"
 
 def cli_batch_process_files(
     file_paths: list[Path | str],
-    processor: Callable[[Path], FlextResult[Any]],
+    processor: Callable[[Path], FlextResult[object]],
     *,
     show_progress: bool = True,
     fail_fast: bool = False,
-) -> FlextResult[dict[str, Any]]:
+) -> FlextResult[dict[str, object]]:
     """Process multiple files with progress tracking and error handling.
-    
+
     Args:
         file_paths: List of file paths to process
         processor: Function to process each file
         show_progress: Show progress bar during processing
         fail_fast: Stop on first error
-        
+
     Returns:
         Result with processing statistics
 
     """
     console = Console()
-    results: dict[str, Any] = {
+    results: dict[str, object] = {
         "processed": 0,
         "failed": 0,
         "errors": [],
-        "successful": []
+        "successful": [],
     }
 
     if not file_paths:
@@ -213,36 +215,53 @@ def cli_batch_process_files(
             try:
                 result = processor(path)
                 if result.is_success:
-                    results["processed"] += 1
-                    results["successful"].append(str(path))
+                    processed_count = cast("int", results["processed"])
+                    results["processed"] = processed_count + 1
+                    successful_list = cast("list[str]", results["successful"])
+                    successful_list.append(str(path))
+                    results["successful"] = successful_list
                 else:
-                    results["failed"] += 1
-                    results["errors"].append({
-                        "file": str(path),
-                        "error": result.error
-                    })
+                    failed_count = cast("int", results["failed"])
+                    results["failed"] = failed_count + 1
+                    errors_list = cast("list[dict[str, str]]", results["errors"])
+                    errors_list.append(
+                        {
+                            "file": str(path),
+                            "error": result.error or "Unknown error",
+                        },
+                    )
+                    results["errors"] = errors_list
 
                     if fail_fast:
-                        return FlextResult.fail(f"Processing failed for {path}: {result.error}")
+                        return FlextResult.fail(
+                            f"Processing failed for {path}: {result.error}",
+                        )
 
                 if progress and task_id is not None:
                     progress.update(task_id, advance=1)
 
             except Exception as e:
-                results["failed"] += 1
-                results["errors"].append({
-                    "file": str(path),
-                    "error": str(e)
-                })
+                failed_count = cast("int", results["failed"])
+                results["failed"] = failed_count + 1
+                errors_list = cast("list[dict[str, str]]", results["errors"])
+                errors_list.append(
+                    {
+                        "file": str(path),
+                        "error": str(e),
+                    },
+                )
+                results["errors"] = errors_list
 
                 if fail_fast:
                     return FlextResult.fail(f"Processing failed for {path}: {e}")
 
         # Show summary
         if show_progress:
-            console.print(f"[green]✓ Processed {results['processed']} files[/green]")
-            if results["failed"] > 0:
-                console.print(f"[yellow]⚠ {results['failed']} files failed[/yellow]")
+            processed_count = cast("int", results["processed"])
+            console.print(f"[green]✓ Processed {processed_count} files[/green]")
+            failed_count = cast("int", results["failed"])
+            if failed_count > 0:
+                console.print(f"[yellow]⚠ {failed_count} files failed[/yellow]")
 
         return FlextResult.ok(results)
 
@@ -256,13 +275,15 @@ def cli_batch_process_files(
 # =============================================================================
 
 
-def cli_load_data_file(file_path: Path | str, *, validate_format: bool = True) -> FlextResult[Any]:
+def cli_load_data_file(
+    file_path: Path | str, *, validate_format: bool = True,
+) -> FlextResult[object]:
     """Load data from various file formats with automatic format detection.
-    
+
     Args:
         file_path: Path to the data file
         validate_format: Validate file format before loading
-        
+
     Returns:
         Result with loaded data or error
 
@@ -278,22 +299,25 @@ def cli_load_data_file(file_path: Path | str, *, validate_format: bool = True) -
 
         if suffix == ".json":
             return _load_json_file(path)
-        if suffix in (".yaml", ".yml"):
+        if suffix in {".yaml", ".yml"}:
             return _load_yaml_file(path)
         if suffix == ".csv":
-            return _load_csv_file(path)
+            csv_result = _load_csv_file(path)
+            return csv_result.map(lambda data: data)  # Cast to object
         if suffix == ".txt":
-            return _load_text_file(path)
+            text_result = _load_text_file(path)
+            return text_result.map(lambda data: data)  # Cast to object
         if validate_format:
             return FlextResult.fail(f"Unsupported file format: {suffix}")
         # Try to load as text
-        return _load_text_file(path)
+        text_result = _load_text_file(path)
+        return text_result.map(lambda data: data)  # Cast to object
 
     except Exception as e:
         return FlextResult.fail(f"Failed to load data file: {e}")
 
 
-def _load_json_file(path: Path) -> FlextResult[Any]:
+def _load_json_file(path: Path) -> FlextResult[object]:
     """Load JSON file with error handling."""
     try:
         with path.open("r", encoding="utf-8") as f:
@@ -305,7 +329,7 @@ def _load_json_file(path: Path) -> FlextResult[Any]:
         return FlextResult.fail(f"Failed to read JSON file {path}: {e}")
 
 
-def _load_yaml_file(path: Path) -> FlextResult[Any]:
+def _load_yaml_file(path: Path) -> FlextResult[object]:
     """Load YAML file with error handling."""
     try:
         with path.open("r", encoding="utf-8") as f:
@@ -338,20 +362,20 @@ def _load_text_file(path: Path) -> FlextResult[str]:
 
 
 def cli_save_data_file(
-    data: Any,
+    data: object,
     file_path: Path | str,
     format_type: OutputFormat | str | None = None,
     *,
     create_dirs: bool = True,
 ) -> FlextResult[None]:
     """Save data to various file formats with automatic format detection.
-    
+
     Args:
         data: Data to save
         file_path: Path where to save the file
         format_type: Format to use (auto-detected if None)
         create_dirs: Create parent directories if needed
-        
+
     Returns:
         Result indicating success or error
 
@@ -367,7 +391,7 @@ def cli_save_data_file(
             suffix = path.suffix.lower()
             if suffix == ".json":
                 format_type = OutputFormat.JSON
-            elif suffix in (".yaml", ".yml"):
+            elif suffix in {".yaml", ".yml"}:
                 format_type = OutputFormat.YAML
             elif suffix == ".csv":
                 format_type = OutputFormat.CSV
@@ -390,7 +414,7 @@ def cli_save_data_file(
         return FlextResult.fail(f"Failed to save data file: {e}")
 
 
-def _save_json_file(data: Any, path: Path) -> FlextResult[None]:
+def _save_json_file(data: object, path: Path) -> FlextResult[None]:
     """Save data as JSON file."""
     try:
         with path.open("w", encoding="utf-8") as f:
@@ -400,17 +424,19 @@ def _save_json_file(data: Any, path: Path) -> FlextResult[None]:
         return FlextResult.fail(f"Failed to write JSON file {path}: {e}")
 
 
-def _save_yaml_file(data: Any, path: Path) -> FlextResult[None]:
+def _save_yaml_file(data: object, path: Path) -> FlextResult[None]:
     """Save data as YAML file."""
     try:
         with path.open("w", encoding="utf-8") as f:
-            yaml.dump(data, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+            yaml.dump(
+                data, f, default_flow_style=False, sort_keys=False, allow_unicode=True,
+            )
         return FlextResult.ok(None)
     except (OSError, yaml.YAMLError) as e:
         return FlextResult.fail(f"Failed to write YAML file {path}: {e}")
 
 
-def _save_csv_file(data: Any, path: Path) -> FlextResult[None]:
+def _save_csv_file(data: object, path: Path) -> FlextResult[None]:
     """Save data as CSV file."""
     try:
         if not isinstance(data, list) or not data:
@@ -429,7 +455,7 @@ def _save_csv_file(data: Any, path: Path) -> FlextResult[None]:
         return FlextResult.fail(f"Failed to write CSV file {path}: {e}")
 
 
-def _save_text_file(data: Any, path: Path) -> FlextResult[None]:
+def _save_text_file(data: object, path: Path) -> FlextResult[None]:
     """Save data as text file."""
     try:
         content = str(data)
@@ -445,20 +471,20 @@ def _save_text_file(data: Any, path: Path) -> FlextResult[None]:
 
 
 def cli_create_table(
-    data: list[dict[str, Any]] | dict[str, Any],
+    data: object,
     title: str | None = None,
     *,
     show_lines: bool = False,
     max_width: int | None = None,
 ) -> FlextResult[Table]:
     """Create a Rich table from data with intelligent formatting.
-    
+
     Args:
         data: Data to display in table format
         title: Optional table title
         show_lines: Show lines between rows
         max_width: Maximum table width
-        
+
     Returns:
         Result with Rich Table or error
 
@@ -511,17 +537,17 @@ def cli_create_table(
 
 
 def cli_format_output(
-    data: Any,
+    data: object,
     format_type: OutputFormat = OutputFormat.TABLE,
-    **options: Any
+    **options: object,
 ) -> FlextResult[str]:
     """Format data for CLI output in specified format.
-    
+
     Args:
         data: Data to format
         format_type: Output format
         **options: Additional formatting options
-        
+
     Returns:
         Result with formatted output string
 
@@ -546,12 +572,25 @@ def cli_format_output(
             return FlextResult.fail("CSV format requires list of dictionaries")
 
         if format_type == OutputFormat.TABLE:
-            table_result = cli_create_table(data, **options)
+            # Extract title from options for cli_create_table
+            title = str(options.get("title")) if options.get("title") else None
+            show_lines = bool(options.get("show_lines"))
+            max_width = (
+                cast("int", options["max_width"]) if options.get("max_width") else None
+            )
+
+            table_result = cli_create_table(
+                data, title=title, show_lines=show_lines, max_width=max_width,
+            )
             if table_result.is_success:
-                console = Console(file=io.StringIO(), width=80)
+                output = io.StringIO()
+                console = Console(file=output, width=80)
                 console.print(table_result.unwrap())
-                return FlextResult.ok(console.file.getvalue())
-            return table_result
+                return FlextResult.ok(output.getvalue())
+            # Convert table result error to string result error
+            if table_result.error:
+                return FlextResult.fail(table_result.error)
+            return FlextResult.fail("Table creation failed")
 
         # TEXT
         return FlextResult.ok(str(data))
@@ -572,27 +611,23 @@ def cli_run_command(
     timeout: int = 30,
     capture_output: bool = True,
     check: bool = False,
-) -> FlextResult[dict[str, Any]]:
+) -> FlextResult[dict[str, object]]:
     """Run system command with comprehensive error handling.
-    
+
     Args:
         command: Command to run (string or list)
         cwd: Working directory
         timeout: Command timeout in seconds
         capture_output: Capture stdout/stderr
         check: Raise exception on non-zero exit code
-        
+
     Returns:
         Result with command execution information
 
     """
     try:
         # Convert string command to list
-        if isinstance(command, str):
-            import shlex
-            cmd_list = shlex.split(command)
-        else:
-            cmd_list = command
+        cmd_list = shlex.split(command) if isinstance(command, str) else command
 
         logger = get_logger(__name__)
         logger.debug(f"Running command: {cmd_list}")
@@ -633,11 +668,11 @@ def cli_run_command(
 
 def cli_confirm(message: str, *, default: bool = False) -> FlextResult[bool]:
     """Ask user for confirmation with default value.
-    
+
     Args:
         message: Confirmation message
         default: Default value if user just presses Enter
-        
+
     Returns:
         Result with user's confirmation
 
@@ -651,9 +686,9 @@ def cli_confirm(message: str, *, default: bool = False) -> FlextResult[bool]:
         if not response:
             return FlextResult.ok(default)
 
-        if response in ("y", "yes", "true", "1"):
+        if response in {"y", "yes", "true", "1"}:
             return FlextResult.ok(True)
-        if response in ("n", "no", "false", "0"):
+        if response in {"n", "no", "false", "0"}:
             return FlextResult.ok(False)
         return FlextResult.fail("Please answer 'y' or 'n'")
 
@@ -663,14 +698,16 @@ def cli_confirm(message: str, *, default: bool = False) -> FlextResult[bool]:
         return FlextResult.fail(f"Confirmation error: {e}")
 
 
-def cli_prompt(message: str, *, default: str | None = None, hidden: bool = False) -> FlextResult[str]:
+def cli_prompt(
+    message: str, *, default: str | None = None, hidden: bool = False,
+) -> FlextResult[str]:
     """Prompt user for input with optional default and hidden input.
-    
+
     Args:
         message: Prompt message
         default: Default value if user just presses Enter
         hidden: Hide input (for passwords)
-        
+
     Returns:
         Result with user input
 
@@ -681,11 +718,7 @@ def cli_prompt(message: str, *, default: str | None = None, hidden: bool = False
             prompt_text += f" [{default}]"
         prompt_text += ": "
 
-        if hidden:
-            import getpass
-            user_input = getpass.getpass(prompt_text)
-        else:
-            user_input = input(prompt_text)
+        user_input = getpass.getpass(prompt_text) if hidden else input(prompt_text)
 
         user_input = user_input.strip()
         if not user_input and default:
@@ -716,28 +749,28 @@ flext_cli_prompt = cli_prompt
 # =============================================================================
 
 __all__ = [
-    # Workflow utilities
-    "cli_quick_setup",
     "cli_batch_process_files",
-    # Data utilities
-    "cli_load_data_file",
-    "cli_save_data_file",
+    # Interactive utilities
+    "cli_confirm",
     # Output utilities
     "cli_create_table",
     "cli_format_output",
+    # Data utilities
+    "cli_load_data_file",
+    "cli_prompt",
+    # Workflow utilities
+    "cli_quick_setup",
     # System utilities
     "cli_run_command",
-    # Interactive utilities
-    "cli_confirm",
-    "cli_prompt",
-    # Legacy aliases
-    "flext_cli_quick_setup",
+    "cli_save_data_file",
     "flext_cli_batch_process_files",
-    "flext_cli_load_data_file",
-    "flext_cli_save_data_file",
+    "flext_cli_confirm",
     "flext_cli_create_table",
     "flext_cli_format_output",
-    "flext_cli_run_command",
-    "flext_cli_confirm",
+    "flext_cli_load_data_file",
     "flext_cli_prompt",
+    # Legacy aliases
+    "flext_cli_quick_setup",
+    "flext_cli_run_command",
+    "flext_cli_save_data_file",
 ]

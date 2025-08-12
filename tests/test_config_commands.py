@@ -371,7 +371,6 @@ class TestConfigHelperFunctions:
 
     def test_find_config_value_in_config(self) -> None:
         """Test finding configuration value in config object."""
-
         # Mock config has the attribute
         self.mock_cli_context.config.debug = True
         value = _find_config_value(self.mock_cli_context, "debug")
@@ -380,7 +379,6 @@ class TestConfigHelperFunctions:
 
     def test_find_config_value_in_settings(self) -> None:
         """Test finding configuration value in settings object."""
-
         # Mock value not in config but in settings
         delattr(self.mock_cli_context.config, "timeout") if hasattr(
             self.mock_cli_context.config, "timeout"
@@ -393,7 +391,6 @@ class TestConfigHelperFunctions:
 
     def test_find_config_value_not_found(self) -> None:
         """Test finding configuration value that doesn't exist."""
-
         # Try to find a key that doesn't exist
         value = _find_config_value(self.mock_cli_context, "nonexistent")
         # May return None or default Mock value
@@ -401,7 +398,6 @@ class TestConfigHelperFunctions:
 
     def test_print_config_value_json(self) -> None:
         """Test printing config value in JSON format."""
-
         self.mock_cli_context.config.output_format = "json"
 
         _print_config_value(self.mock_cli_context, "debug", value=True)
@@ -411,7 +407,6 @@ class TestConfigHelperFunctions:
 
     def test_print_config_value_yaml(self) -> None:
         """Test printing config value in YAML format."""
-
         self.mock_cli_context.config.output_format = "yaml"
 
         _print_config_value(self.mock_cli_context, "debug", value=True)
@@ -421,7 +416,6 @@ class TestConfigHelperFunctions:
 
     def test_print_config_value_default(self) -> None:
         """Test printing config value in default format."""
-
         self.mock_cli_context.config.output_format = "table"
 
         _print_config_value(self.mock_cli_context, "debug", value=True)
@@ -431,7 +425,6 @@ class TestConfigHelperFunctions:
 
     def test_get_all_config_table_format(self) -> None:
         """Test getting all config in table format."""
-
         self.mock_cli_context.config.output_format = "table"
         self.mock_cli_context.config.model_dump.return_value = {"debug": False}
         self.mock_cli_context.settings.model_dump.return_value = {"timeout": 30}
@@ -443,7 +436,6 @@ class TestConfigHelperFunctions:
 
     def test_get_all_config_json_format(self) -> None:
         """Test getting all config in JSON format."""
-
         self.mock_cli_context.config.output_format = "json"
         self.mock_cli_context.config.model_dump.return_value = {"debug": False}
         self.mock_cli_context.settings.model_dump.return_value = {"timeout": 30}
@@ -455,7 +447,6 @@ class TestConfigHelperFunctions:
 
     def test_get_all_config_yaml_format(self) -> None:
         """Test getting all config in YAML format."""
-
         self.mock_cli_context.config.output_format = "yaml"
         self.mock_cli_context.config.model_dump.return_value = {"debug": False}
         self.mock_cli_context.settings.model_dump.return_value = {"timeout": 30}
@@ -467,7 +458,6 @@ class TestConfigHelperFunctions:
 
     def test_print_config_table(self) -> None:
         """Test printing config as table."""
-
         # Mock hasattr to return True for config attributes
         with patch("builtins.hasattr", return_value=True):
             config_data = {"debug": False, "timeout": 30}
@@ -483,7 +473,6 @@ class TestConfigIntegration:
 
     def test_config_imports(self) -> None:
         """Test that all required imports work."""
-
         # All imports should work - check they are the expected types
         assert json is not None
         assert os is not None
@@ -515,7 +504,6 @@ class TestConfigIntegration:
 
     def test_rich_table_creation(self) -> None:
         """Test Rich table creation used in config commands."""
-
         table = Table(title="FLEXT Configuration v0.7.0")
         table.add_column("Key", style="cyan")
         table.add_column("Value", style="white")
@@ -531,7 +519,6 @@ class TestConfigIntegration:
 
     def test_path_operations(self) -> None:
         """Test Path operations used in config commands."""
-
         # Test path operations used in edit and path commands
         config_dir = Path("/home/user/.flext")
         config_file = config_dir / "config.yaml"
@@ -557,7 +544,6 @@ class TestConfigIntegration:
 
     def test_click_context_handling(self) -> None:
         """Test Click context handling patterns."""
-
         # Test context object pattern used in commands
         mock_context = MagicMock(spec=click.Context)
         mock_context.obj = {"cli_context": MagicMock()}
