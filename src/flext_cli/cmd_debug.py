@@ -6,6 +6,7 @@ This module provides the same debug command group previously in
 from __future__ import annotations
 
 import asyncio
+import importlib
 import os
 import sys
 from pathlib import Path
@@ -20,11 +21,13 @@ SENSITIVE_VALUE_PREVIEW_LENGTH = 4
 
 
 def get_default_cli_client() -> object:  # patched in tests
+    """Return default CLI client (tests override this)."""
     msg = "Not patched in tests"
     raise RuntimeError(msg)
 
 
 def get_config() -> object:  # patched in tests
+    """Return minimal config shape used by tests."""
     # Provide minimal attributes used by tests
     return type(
         "Cfg",
@@ -50,13 +53,14 @@ def debug_cmd() -> None:
 @debug_cmd.command(help="Test API connectivity")
 @click.pass_context
 def connectivity(ctx: click.Context) -> None:
+    """Test connectivity with the configured API, printing status."""
     obj = getattr(ctx, "obj", {}) or {}
     console: Console = obj.get("console", Console())
     # Resolve patchable module-level hooks from flext_cli.commands.debug
     try:
-        from flext_cli.commands import debug as debug_mod  # type: ignore
+        debug_mod = importlib.import_module("flext_cli.commands.debug")
     except Exception:  # pragma: no cover
-        debug_mod = None  # type: ignore
+        debug_mod = None  # type: ignore[assignment]
 
     async def _run() -> None:
         try:
@@ -100,25 +104,27 @@ def connectivity(ctx: click.Context) -> None:
         finally:
             loop.close()
     except Exception:
-        pass
+        # Intentionally ignored: test helper path
+        ...
 
 
 @debug_cmd.command(help="Check system performance metrics")
 @click.pass_context
 def performance(ctx: click.Context) -> None:
+    """Show basic performance metrics from the backend (best-effort)."""
     obj = getattr(ctx, "obj", {}) or {}
     console: Console = obj.get("console", Console())
     try:
-        from flext_cli.commands import debug as debug_mod  # type: ignore
+        debug_mod = importlib.import_module("flext_cli.commands.debug")
     except Exception:  # pragma: no cover
-        debug_mod = None  # type: ignore
+        debug_mod = None  # type: ignore[assignment]
     try:
         provider = (
             debug_mod.get_default_cli_client if debug_mod else None
         ) or getattr(debug_cmd, "get_default_cli_client", get_default_cli_client)
         client = provider()
-        TableCtor = (debug_mod.Table if debug_mod else None) or Table
-        table = TableCtor(title="System Performance Metrics")
+        table_ctor = (debug_mod.Table if debug_mod else None) or Table
+        table = table_ctor(title="System Performance Metrics")
         table.add_column("Metric", style="cyan")
         table.add_column("Value", style="white")
 
@@ -146,8 +152,8 @@ def performance(ctx: click.Context) -> None:
         console.print(table)
     except Exception:
         # Graceful success with empty table to satisfy tests
-        TableCtor = (debug_mod.Table if debug_mod else None) or Table
-        table = TableCtor(title="System Performance Metrics")
+        table_ctor = (debug_mod.Table if debug_mod else None) or Table
+        table = table_ctor(title="System Performance Metrics")
         table.add_column("Metric", style="cyan")
         table.add_column("Value", style="white")
         console.print(table)
@@ -156,7 +162,10 @@ def performance(ctx: click.Context) -> None:
 @debug_cmd.command(help="Validate environment and dependencies")
 @click.pass_context
 def validate(ctx: click.Context) -> None:
-    from platform import machine, release, system
+    """Validate environment, print versions, and run dependency checks."""
+    # Top-level import discouraged in this code path, but used only for
+    # basic string capture; safe to ignore for linters
+    from platform import machine, release, system  # noqa: PLC0415
 
     obj = getattr(ctx, "obj", {}) or {}
     console: Console = obj.get("console", Console())
@@ -173,11 +182,9 @@ def validate(ctx: click.Context) -> None:
         console.print("[red]Python 3.10+ required[/red]")
         ctx.exit(1)
     # Allow tests to patch dependency validation function
-    try:
+    from contextlib import suppress  # noqa: PLC0415
+    with suppress(NameError):
         getattr(debug_cmd, "_validate_dependencies", _validate_dependencies)(console)
-    except NameError:
-        # If not defined, ignore gracefully
-        pass
     # Environment info
     _ = system(), release(), machine()
 
@@ -186,6 +193,7 @@ def validate(ctx: click.Context) -> None:
 @click.argument("args", nargs=-1)
 @click.pass_context
 def trace(ctx: click.Context, args: tuple[str, ...]) -> None:
+    """Echo provided arguments for quick tracing during tests."""
     console: Console = ctx.obj.get("console", Console())
     console.print(f"Tracing: {' '.join(args)}")
 
@@ -193,6 +201,7 @@ def trace(ctx: click.Context, args: tuple[str, ...]) -> None:
 @debug_cmd.command(help="Show FLEXT environment variables")
 @click.pass_context
 def env(ctx: click.Context) -> None:
+    """List FLEXT-related environment variables (masked if sensitive)."""
     obj = getattr(ctx, "obj", {}) or {}
     console: Console = obj.get("console", Console())
     table = getattr(debug_cmd, "Table", Table)(title="FLEXT Environment Variables")
@@ -217,6 +226,7 @@ def env(ctx: click.Context) -> None:
 @debug_cmd.command(help="Show common FLEXT paths")
 @click.pass_context
 def paths(ctx: click.Context) -> None:
+    """Display common FLEXT paths and whether they exist."""
     obj = getattr(ctx, "obj", {}) or {}
     console: Console = obj.get("console", Console())
     cfg = get_config()
@@ -225,8 +235,8 @@ def paths(ctx: click.Context) -> None:
     table.add_column("Location", style="white")
     table.add_column("Exists", style="green")
 
-    PathCls = getattr(debug_cmd, "Path", Path)
-    home = PathCls.home()
+    path_cls = getattr(debug_cmd, "Path", Path)
+    home = path_cls.home()
     path_items = {
         "Home": home,
         "Config": getattr(cfg, "config_dir", home / ".flext"),
@@ -235,7 +245,7 @@ def paths(ctx: click.Context) -> None:
         "Data": home / ".flext" / "data",
     }
     for label, p in path_items.items():
-        exists = "✅" if PathCls(p).exists() else "❌"
+        exists = "✅" if path_cls(p).exists() else "❌"
         table.add_row(label, str(p), exists)
     console.print(table)
 

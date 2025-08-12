@@ -5,7 +5,9 @@ Exposes `config` click group matching previous commands/config.py behavior.
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
+from shutil import which
 
 import click
 import yaml
@@ -78,12 +80,13 @@ def _print_config_table(cli_context: object, config_data: dict[str, object]) -> 
 
 @click.group()
 def config() -> None:
-    """Configuration commands."""
+    """Configuration commands for viewing and editing CLI settings."""
 
 
 @config.command()
 @click.pass_context
 def show(ctx: click.Context) -> None:
+    """Show a basic confirmation that config is accessible."""
     console: Console = ctx.obj.get("console", Console())
     console.print("config shown")
 
@@ -92,6 +95,7 @@ def show(ctx: click.Context) -> None:
 @click.argument("key", required=False)
 @click.pass_context
 def get_cmd(ctx: click.Context, key: str | None) -> None:
+    """Get a configuration value (or all if no key)."""
     cli_context = ctx.obj.get("cli_context")
     if not cli_context:
         ctx.exit(1)
@@ -107,6 +111,7 @@ def get_cmd(ctx: click.Context, key: str | None) -> None:
 @click.argument("value")
 @click.pass_context
 def set_value(ctx: click.Context, key: str, value: str) -> None:
+    """Set a configuration value in-memory for the current session."""
     cli_context = ctx.obj.get("cli_context")
     if not cli_context:
         ctx.exit(1)
@@ -120,6 +125,7 @@ def set_value(ctx: click.Context, key: str, value: str) -> None:
 @config.command()
 @click.pass_context
 def validate(ctx: click.Context) -> None:
+    """Validate the current configuration profile and basic fields."""
     cli_context = ctx.obj.get("cli_context")
     console: Console = ctx.obj.get("console", Console())
     if not cli_context or getattr(cli_context, "config", None) is None:
@@ -131,6 +137,7 @@ def validate(ctx: click.Context) -> None:
 @config.command()
 @click.pass_context
 def path(ctx: click.Context) -> None:
+    """Show important configuration paths."""
     cli_context = ctx.obj.get("cli_context")
     console: Console = ctx.obj.get("console", Console())
     if not cli_context:
@@ -144,6 +151,7 @@ def path(ctx: click.Context) -> None:
 @config.command()
 @click.pass_context
 def edit(ctx: click.Context) -> None:
+    """Create or edit the config file with a safe editor invocation."""
     cli_context = ctx.obj.get("cli_context")
     console: Console = ctx.obj.get("console", Console())
     cfg = getattr(cli_context, "config", None)
@@ -156,11 +164,11 @@ def edit(ctx: click.Context) -> None:
         if not cfg_path.exists():
             with cfg_path.open("w", encoding="utf-8") as f:
                 f.write(yaml.dump({"debug": False, "timeout": 30}))
-        # Simulate editor invocation which may fail in tests
-        import subprocess
-
+        # Simulated editor invocation (safe, fixed command)
+        editor = which("true") or "true"
         try:
-            subprocess.run(["true"], check=True)
+            # Fixed executable without user input; no untrusted args
+            subprocess.run([editor], check=True)  # noqa: S603
         except subprocess.CalledProcessError as e:  # pragma: no cover - simulated
             console.print(str(e))
             ctx.exit(1)
