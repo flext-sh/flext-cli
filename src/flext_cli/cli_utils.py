@@ -29,6 +29,7 @@ import json
 import shlex
 import subprocess
 from pathlib import Path
+from shutil import which
 from typing import TYPE_CHECKING, TypeVar, cast
 
 import yaml
@@ -51,6 +52,82 @@ FlextCliData = dict[str, object] | list[object] | str | float | int | None
 # =============================================================================
 # WORKFLOW UTILITIES - Complete operations in single function calls
 # =============================================================================
+
+
+def _write_basic_pyproject(project_name: str, project_path: Path) -> Path:
+    """Write a minimal pyproject.toml and return its path."""
+    config_content = f"""[project]
+name = "{project_name}"
+version = "0.1.0"
+description = "FLEXT CLI Project"
+requires-python = ">=3.13"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "{project_name}"
+version = "0.1.0"
+description = "FLEXT CLI Project"
+authors = ["Your Name <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+flext-cli = "*"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+mypy = "*"
+ruff = "*"
+"""
+    config_path = project_path / "pyproject.toml"
+    config_path.write_text(config_content, encoding="utf-8")
+    return config_path
+
+
+def _init_git_repo(project_path: Path) -> bool:
+    """Initialize a git repository, returning True on success."""
+    git_exe = which("git") or "git"
+    try:
+        subprocess.run(  # noqa: S603, S607
+            [git_exe, "init"],
+            cwd=project_path,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
+def _create_directory_structure(base: Path, dir_names: list[str]) -> dict[str, str]:
+    """Create directories under base and return a map for results."""
+    created: dict[str, str] = {}
+    for dir_name in dir_names:
+        dir_path = base / dir_name
+        dir_path.mkdir(parents=True, exist_ok=True)
+        created[f"dir_{dir_name}"] = str(dir_path)
+    return created
+
+
+def _record_success(results: dict[str, object], path: Path) -> None:
+    processed_count = cast("int", results["processed"])
+    results["processed"] = processed_count + 1
+    successful_list = cast("list[str]", results["successful"])
+    successful_list.append(str(path))
+    results["successful"] = successful_list
+
+
+def _record_failure(
+    results: dict[str, object], path: Path, error_msg: str,
+) -> None:
+    failed_count = cast("int", results["failed"])
+    results["failed"] = failed_count + 1
+    errors_list = cast("list[dict[str, str]]", results["errors"])
+    errors_list.append({"file": str(path), "error": error_msg})
+    results["errors"] = errors_list
 
 
 def cli_quick_setup(
@@ -96,47 +173,13 @@ def cli_quick_setup(
         if create_dirs:
             dirs = ["src", "tests", "docs", "scripts", "config"]
             console.print("[blue]Creating directory structure...[/blue]")
-
-            for dir_name in dirs:
-                dir_path = project_path / dir_name
-                dir_path.mkdir(parents=True, exist_ok=True)
-                results[f"dir_{dir_name}"] = str(dir_path)
-
+            results.update(_create_directory_structure(project_path, dirs))
             console.print("[green]✓ Directory structure created[/green]")
 
         # Create basic configuration
         if create_config:
             console.print("[blue]Creating configuration files...[/blue]")
-
-            # Create pyproject.toml
-            config_content = f"""[project]
-name = "{project_name}"
-version = "0.1.0"
-description = "FLEXT CLI Project"
-requires-python = ">=3.13"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry]
-name = "{project_name}"
-version = "0.1.0"
-description = "FLEXT CLI Project"
-authors = ["Your Name <you@example.com>"]
-
-[tool.poetry.dependencies]
-python = "^3.13"
-flext-cli = "*"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "*"
-mypy = "*"
-ruff = "*"
-"""
-
-            config_path = project_path / "pyproject.toml"
-            config_path.write_text(config_content, encoding="utf-8")
+            config_path = _write_basic_pyproject(project_name, project_path)
             results["config_file"] = str(config_path)
 
             console.print("[green]✓ Configuration files created[/green]")
@@ -144,18 +187,11 @@ ruff = "*"
         # Initialize git repository
         if init_git:
             console.print("[blue]Initializing git repository...[/blue]")
-            try:
-                subprocess.run(
-                    ["git", "init"],
-                    cwd=project_path,
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                )
+            if _init_git_repo(project_path):
                 results["git_init"] = True
                 console.print("[green]✓ Git repository initialized[/green]")
-            except subprocess.CalledProcessError as e:
-                console.print(f"[yellow]⚠ Git init failed: {e}[/yellow]")
+            else:
+                console.print("[yellow]⚠ Git init failed[/yellow]")
                 results["git_init"] = False
 
         results["project_path"] = str(project_path)
@@ -202,8 +238,8 @@ def cli_batch_process_files(
     # Convert string paths to Path objects
     paths = [Path(p) for p in file_paths]
 
-    progress = None
-    task_id = None
+    progress: Progress | None = None
+    task_id: int | None = None
 
     try:
         if show_progress:
@@ -215,22 +251,9 @@ def cli_batch_process_files(
             try:
                 result = processor(path)
                 if result.is_success:
-                    processed_count = cast("int", results["processed"])
-                    results["processed"] = processed_count + 1
-                    successful_list = cast("list[str]", results["successful"])
-                    successful_list.append(str(path))
-                    results["successful"] = successful_list
+                    _record_success(results, path)
                 else:
-                    failed_count = cast("int", results["failed"])
-                    results["failed"] = failed_count + 1
-                    errors_list = cast("list[dict[str, str]]", results["errors"])
-                    errors_list.append(
-                        {
-                            "file": str(path),
-                            "error": result.error or "Unknown error",
-                        },
-                    )
-                    results["errors"] = errors_list
+                    _record_failure(results, path, result.error or "Unknown error")
 
                     if fail_fast:
                         return FlextResult.fail(
@@ -241,16 +264,7 @@ def cli_batch_process_files(
                     progress.update(task_id, advance=1)
 
             except Exception as e:
-                failed_count = cast("int", results["failed"])
-                results["failed"] = failed_count + 1
-                errors_list = cast("list[dict[str, str]]", results["errors"])
-                errors_list.append(
-                    {
-                        "file": str(path),
-                        "error": str(e),
-                    },
-                )
-                results["errors"] = errors_list
+                _record_failure(results, path, str(e))
 
                 if fail_fast:
                     return FlextResult.fail(f"Processing failed for {path}: {e}")
@@ -258,8 +272,8 @@ def cli_batch_process_files(
         # Show summary
         if show_progress:
             processed_count = cast("int", results["processed"])
-            console.print(f"[green]✓ Processed {processed_count} files[/green]")
             failed_count = cast("int", results["failed"])
+            console.print(f"[green]✓ Processed {processed_count} files[/green]")
             if failed_count > 0:
                 console.print(f"[yellow]⚠ {failed_count} files failed[/yellow]")
 
@@ -626,13 +640,15 @@ def cli_run_command(
 
     """
     try:
-        # Convert string command to list
+        # Convert string command to list and ensure an executable is present
         cmd_list = shlex.split(command) if isinstance(command, str) else command
+        if not cmd_list:
+            return FlextResult.fail("Empty command")
 
         logger = get_logger(__name__)
         logger.debug(f"Running command: {cmd_list}")
 
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603
             cmd_list,
             cwd=cwd,
             timeout=timeout,
@@ -684,12 +700,12 @@ def cli_confirm(message: str, *, default: bool = False) -> FlextResult[bool]:
         response = input(prompt).strip().lower()
 
         if not response:
-            return FlextResult.ok(default)
+            return FlextResult.ok(data=default)
 
         if response in {"y", "yes", "true", "1"}:
-            return FlextResult.ok(True)
+            return FlextResult.ok(data=True)
         if response in {"n", "no", "false", "0"}:
-            return FlextResult.ok(False)
+            return FlextResult.ok(data=False)
         return FlextResult.fail("Please answer 'y' or 'n'")
 
     except (EOFError, KeyboardInterrupt):
