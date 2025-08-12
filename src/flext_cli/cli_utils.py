@@ -326,18 +326,22 @@ def cli_load_data_file(
 
         # Detect format from extension
         suffix = path.suffix.lower()
+        result: FlextResult[object]
         if suffix == ".json":
-            return _load_json_file(path)
-        if suffix in {".yaml", ".yml"}:
-            return _load_yaml_file(path)
-        if suffix == ".csv":
-            return _load_csv_file(path).map(lambda data: data)  # Cast to object
-        if suffix == ".txt":
-            return _load_text_file(path).map(lambda data: data)  # Cast to object
-        if validate_format:
-            return FlextResult.fail(f"Unsupported file format: {suffix}")
-        # Try to load as text
-        return _load_text_file(path).map(lambda data: data)  # Cast to object
+            result = _load_json_file(path)
+        elif suffix in {".yaml", ".yml"}:
+            result = _load_yaml_file(path)
+        elif suffix == ".csv":
+            # Cast list[dict] to object
+            result = _load_csv_file(path).map(lambda data: data)
+        elif suffix == ".txt":
+            result = _load_text_file(path).map(lambda data: data)
+        else:
+            if validate_format:
+                return FlextResult.fail(f"Unsupported file format: {suffix}")
+            result = _load_text_file(path).map(lambda data: data)
+
+        return result
 
     except Exception as e:
         return FlextResult.fail(f"Failed to load data file: {e}")
@@ -585,32 +589,31 @@ def cli_format_output(
 
     """
     try:
+        error: str | None = None
+        formatted: str | None = None
+
         if format_type == OutputFormat.JSON:
             formatted = json.dumps(data, indent=2, default=str, ensure_ascii=False)
-            return FlextResult.ok(formatted)
-
-        if format_type == OutputFormat.YAML:
+        elif format_type == OutputFormat.YAML:
             output = io.StringIO()
             yaml.dump(data, output, default_flow_style=False, allow_unicode=True)
-            return FlextResult.ok(output.getvalue())
-
-        if format_type == OutputFormat.CSV:
+            formatted = output.getvalue()
+        elif format_type == OutputFormat.CSV:
             if isinstance(data, list) and data and isinstance(data[0], dict):
                 output = io.StringIO()
                 writer = csv.DictWriter(output, fieldnames=data[0].keys())
                 writer.writeheader()
                 writer.writerows(data)
-                return FlextResult.ok(output.getvalue())
-            return FlextResult.fail("CSV format requires list of dictionaries")
-
-        if format_type == OutputFormat.TABLE:
+                formatted = output.getvalue()
+            else:
+                error = "CSV format requires list of dictionaries"
+        elif format_type == OutputFormat.TABLE:
             # Extract title from options for cli_create_table
             title = str(options.get("title")) if options.get("title") else None
             show_lines = bool(options.get("show_lines"))
             max_width = (
                 cast("int", options["max_width"]) if options.get("max_width") else None
             )
-
             table_result = cli_create_table(
                 data, title=title, show_lines=show_lines, max_width=max_width,
             )
@@ -618,14 +621,15 @@ def cli_format_output(
                 output = io.StringIO()
                 console = Console(file=output, width=80)
                 console.print(table_result.unwrap())
-                return FlextResult.ok(output.getvalue())
-            # Convert table result error to string result error
-            if table_result.error:
-                return FlextResult.fail(table_result.error)
-            return FlextResult.fail("Table creation failed")
+                formatted = output.getvalue()
+            else:
+                error = table_result.error or "Table creation failed"
+        else:
+            formatted = str(data)
 
-        # TEXT
-        return FlextResult.ok(str(data))
+        if error is not None:
+            return FlextResult.fail(error)
+        return FlextResult.ok(formatted or "")
 
     except Exception as e:
         return FlextResult.fail(f"Failed to format output: {e}")
