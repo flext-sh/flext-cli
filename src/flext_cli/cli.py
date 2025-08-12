@@ -56,23 +56,32 @@ from __future__ import annotations
 
 import sys
 from contextlib import suppress
+from typing import TYPE_CHECKING
 
 import click
 
 # Import bridge for flext_core utilities/version
 try:  # pragma: no cover
-    from flext_core import FlextUtilities, __version__ as core_version  # type: ignore
+    from flext_core import (
+        FlextUtilities,
+        __version__ as core_version,
+    )  # type: ignore[attr-defined, import-not-found]
 except Exception:  # pragma: no cover
     class FlextUtilities:  # type: ignore[no-redef]
+        """Minimal fallback for flext-core CLI utilities.
+
+        Used only when `flext_core` is unavailable during tests.
+        """
+
         @staticmethod
-        def handle_cli_main_errors(entrypoint, debug_mode: bool = False) -> None:
-            # Directly invoke entrypoint for tests if flext_core missing
-            try:
-                entrypoint()
-            except SystemExit:
-                raise
-            except Exception:
-                raise
+        def handle_cli_main_errors(entrypoint: Callable[[], None], *, debug_mode: bool = False) -> None:
+            """Invoke the CLI entrypoint with optional debug flag.
+
+            The fallback performs a direct call without extra handling.
+            """
+            _ = debug_mode  # retained for signature compatibility
+            entrypoint()
+
     core_version = ""
 from rich.console import Console
 
@@ -80,6 +89,9 @@ from flext_cli.__version__ import __version__
 from flext_cli.cmd import auth, config, debug
 from flext_cli.config import get_config
 from flext_cli.models import FlextCliContext as CLIContext
+
+if TYPE_CHECKING:
+    from collections.abc import Callable  # noqa: TC003
 
 
 @click.group(
@@ -205,9 +217,8 @@ def cli(
 
     # Show help if no command:
     if ctx.invoked_subcommand is None:
-        # Avoid SystemExit(2) for tests calling debug/info via CLI root
-        with suppress(Exception):
-            click.echo(ctx.get_help())
+        # Avoid raising SystemExit(2) when invoked without a subcommand
+        click.echo(ctx.get_help())
 
 
 def _register_commands() -> None:
