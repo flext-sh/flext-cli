@@ -27,43 +27,14 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import click
-
-# Lazy/fallback import to avoid initialization issues in early import stages
-try:  # pragma: no cover - import bridge
-    from flext_core import FlextResult  # type: ignore
-except Exception:  # pragma: no cover - minimal fallback for tests
-    class FlextResult:  # type: ignore[no-redef]
-        """Minimal FlextResult fallback used only if flext_core import fails."""
-
-        def __init__(self, success: bool, data: object | None = None, error: str | None = None) -> None:
-            self.success = success
-            self.is_success = success
-            self.is_failure = not success
-            self.data = data
-            self.error = error
-
-        @staticmethod
-        def ok(data: object | None) -> FlextResult:
-            return FlextResult(True, data, None)
-
-        @staticmethod
-        def fail(error: str) -> FlextResult:
-            return FlextResult(False, None, error)
-
-        def unwrap(self) -> object:
-            if not self.success:
-                raise RuntimeError(self.error or "unwrap failed")
-            return self.data
-
-        def __class_getitem__(cls, _item):  # allow FlextResult[T]
-            return cls
+from flext_core import FlextResult
 from rich.console import Console
 
 from flext_cli.config import get_config as _get_config
 from flext_cli.flext_api_integration import FlextCLIApiClient as FlextApiClient
 
 if TYPE_CHECKING:
-    from flext_cli.cli_config import CLIConfig
+    from flext_cli.config import CLIConfig
 
 # =============================================================================
 # AUTHENTICATION UTILITIES - Token management and security operations
@@ -111,11 +82,13 @@ def get_token_path() -> Path:
     config = get_cli_config()
     # Prefer explicit token_file attribute when available
     direct = getattr(config, "token_file", None)
-    if direct is not None:
-        return direct  # type: ignore[return-value]
+    if isinstance(direct, Path):
+        return direct
     auth_cfg = getattr(config, "auth", None)
     if auth_cfg is not None and hasattr(auth_cfg, "token_file"):
-        return auth_cfg.token_file
+        token_file_value = getattr(auth_cfg, "token_file", None)
+        if isinstance(token_file_value, Path):
+            return token_file_value
     # Fallback to standard location under data_dir
     data_dir = getattr(config, "data_dir", Path.home() / ".flext")
     return data_dir / "auth_token"
@@ -131,11 +104,13 @@ def get_refresh_token_path() -> Path:
     config = get_cli_config()
     # Prefer explicit refresh_token_file attribute when available
     direct = getattr(config, "refresh_token_file", None)
-    if direct is not None:
-        return direct  # type: ignore[return-value]
+    if isinstance(direct, Path):
+        return direct
     auth_cfg = getattr(config, "auth", None)
     if auth_cfg is not None and hasattr(auth_cfg, "refresh_token_file"):
-        return auth_cfg.refresh_token_file
+        refresh_token_value = getattr(auth_cfg, "refresh_token_file", None)
+        if isinstance(refresh_token_value, Path):
+            return refresh_token_value
     data_dir = getattr(config, "data_dir", Path.home() / ".flext")
     return data_dir / "refresh_token"
 
@@ -279,6 +254,54 @@ def auth() -> None:
     """Manage authentication commands."""
 
 
+async def _async_login_impl(
+    ctx: click.Context, console: Console, username: str, password: str,
+) -> None:
+    """Async login workflow extracted to reduce function complexity."""
+    try:
+        async with FlextApiClient() as client:
+            console.print(f"[yellow]Logging in as {username}...[/yellow]")
+
+            if not password or len(password) < 1:
+                console.print("[red]❌ Password cannot be empty[/red]")
+                ctx.exit(1)
+
+            login_result = await client.login(username, password)
+
+            if login_result.is_failure:
+                console.print(f"[red]❌ Login failed: {login_result.error}[/red]")
+                ctx.exit(1)
+
+            response = login_result.data
+            if response and "token" in response:
+                token_value = response["token"]
+                if isinstance(token_value, str):
+                    save_result = save_auth_token(token_value)
+                    if save_result.is_success:
+                        console.print("[green]✅ Login successful![/green]")
+                    else:
+                        console.print(
+                            f"[red]❌ Failed to save token: {save_result.error}[/red]",
+                        )
+                        ctx.exit(1)
+
+                if "user" in response:
+                    user_data = response["user"]
+                    if isinstance(user_data, dict):
+                        console.print(
+                            f"Welcome, {user_data.get('name', username)}!",
+                        )
+            else:
+                console.print("[red]❌ Login failed: Invalid response[/red]")
+                ctx.exit(1)
+    except (ConnectionError, TimeoutError, ValueError, KeyError) as e:
+        console.print(f"[red]❌ Login failed: {e}[/red]")
+        ctx.exit(1)
+    except OSError as e:
+        console.print(f"[red]❌ Network error during login: {e}[/red]")
+        ctx.exit(1)
+
+
 @auth.command()
 @click.option("--username", "-u", prompt=True, help="Username for authentication")
 @click.option(
@@ -302,55 +325,71 @@ def login(ctx: click.Context, username: str, password: str) -> None:
     """
     console: Console = ctx.obj.get("console", Console())
 
-    async def _async_login() -> None:
-        """Async login implementation."""
+    asyncio.run(_async_login_impl(ctx, console, username, password))
+
+
+async def _async_logout_impl(_ctx: click.Context, console: Console) -> None:
+    """Async logout workflow extracted to reduce function complexity."""
+    try:
+        # Proactive clear; tests can patch `clear_auth_tokens` here
+        with contextlib.suppress(Exception):
+            clear_auth_tokens()
+
+        token = _get_auth_token_bridge()
+        if not token:
+            console.print("[yellow]Not logged in[/yellow]")
+            return
+        # Proactively clear tokens; tests expect token cleanup even on early failures
+        _clear_tokens_bridge()
+
         try:
-            async with FlextApiClient() as client:
-                console.print(f"[yellow]Logging in as {username}...[/yellow]")
+            client_class = _get_client_class()
+            client_manager = client_class()
+        except Exception:
+            _clear_tokens_bridge()
+            raise
 
-                # Validate password before authentication
-                if not password or len(password) < 1:
-                    console.print("[red]❌ Password cannot be empty[/red]")
-                    ctx.exit(1)
+        async with client_manager as client:
+            console.print("[yellow]Logging out...[/yellow]")
+            logout_result = await client.logout()
 
-                # Real authentication via API client
-                login_result = await client.login(username, password)
+            if logout_result.is_failure:
+                console.print(f"[red]❌ Logout failed: {logout_result.error}[/red]")
 
-                if login_result.is_failure:
-                    console.print(f"[red]❌ Login failed: {login_result.error}[/red]")
-                    ctx.exit(1)
-
-                response = login_result.data
-                if response and "token" in response:
-                    token_value = response["token"]
-                    if isinstance(token_value, str):
-                        save_result = save_auth_token(token_value)
-                        if save_result.is_success:
-                            console.print("[green]✅ Login successful![/green]")
-                        else:
-                            console.print(
-                                f"[red]❌ Failed to save token: {save_result.error}[/red]",
-                            )
-                            ctx.exit(1)
-
-                    if "user" in response:
-                        user_data = response["user"]
-                        if isinstance(user_data, dict):
-                            console.print(
-                                f"Welcome, {user_data.get('name', username)}!",
-                            )
-                else:
-                    console.print("[red]❌ Login failed: Invalid response[/red]")
-                    ctx.exit(1)
-        except (ConnectionError, TimeoutError, ValueError, KeyError) as e:
-            console.print(f"[red]❌ Login failed: {e}[/red]")
-            ctx.exit(1)
-        except OSError as e:
-            console.print(f"[red]❌ Network error during login: {e}[/red]")
-            ctx.exit(1)
-
-    # Run async function
-    asyncio.run(_async_login())
+            clear_result = FlextResult.ok(None)  # already cleared proactively
+            if clear_result.is_success:
+                console.print("[green]✅ Logged out successfully[/green]")
+            else:
+                console.print(
+                    f"[yellow]⚠️ Logged out, but failed to clear tokens: {clear_result.error}[/yellow]",
+                )
+    except KeyError:
+        clear_result = _clear_tokens_bridge()
+        if clear_result.is_success:
+            console.print("[green]✅ Logged out successfully[/green]")
+        else:
+            console.print(
+                f"[yellow]⚠️ Logged out, but failed to clear tokens: {clear_result.error}[/yellow]",
+            )
+    except (
+        ConnectionError,
+        TimeoutError,
+        OSError,
+        PermissionError,
+        ValueError,
+        AttributeError,
+    ) as e:
+        clear_result = _clear_tokens_bridge()
+        if clear_result.is_success:
+            console.print(
+                f"[yellow]⚠️ Error during logout, logged out locally ({e})[/yellow]",
+            )
+        else:
+            console.print(
+                f"[red]❌ Logout error and failed to clear tokens: {e}[/red]",
+            )
+    except Exception:
+        _clear_tokens_bridge()
 
 
 @auth.command()
@@ -365,77 +404,9 @@ def logout(ctx: click.Context) -> None:
     """
     console: Console = ctx.obj.get("console", Console())
 
-    async def _async_logout() -> None:
-        """Async logout implementation."""
-        try:
-            # Proactive clear; tests can patch `clear_auth_tokens` here
-            with contextlib.suppress(Exception):
-                clear_auth_tokens()
-
-            token = _get_auth_token_bridge()
-            if not token:
-                console.print("[yellow]Not logged in[/yellow]")
-                return
-            # Proactively clear tokens; tests expect token cleanup even on early failures
-            _clear_tokens_bridge()
-
-            try:
-                ClientClass = _get_client_class()
-                client_manager = ClientClass()
-            except Exception:
-                # Ensure tokens are cleared when client construction fails
-                _clear_tokens_bridge()
-                raise
-
-            async with client_manager as client:
-                console.print("[yellow]Logging out...[/yellow]")
-                logout_result = await client.logout()
-
-                if logout_result.is_failure:
-                    console.print(f"[red]❌ Logout failed: {logout_result.error}[/red]")
-                    # Continue with token cleanup anyway
-
-                clear_result = FlextResult.ok(None)  # already cleared proactively
-                if clear_result.is_success:
-                    console.print("[green]✅ Logged out successfully[/green]")
-                else:
-                    console.print(
-                        f"[yellow]⚠️ Logged out, but failed to clear tokens: {clear_result.error}[/yellow]",
-                    )
-        except KeyError:
-            # KeyError is treated as successful logout (token cleanup)
-            clear_result = _clear_tokens_bridge()
-            if clear_result.is_success:
-                console.print("[green]✅ Logged out successfully[/green]")
-            else:
-                console.print(
-                    f"[yellow]⚠️ Logged out, but failed to clear tokens: {clear_result.error}[/yellow]",
-                )
-        except (
-            ConnectionError,
-            TimeoutError,
-            OSError,
-            PermissionError,
-            ValueError,
-            AttributeError,
-        ) as e:
-            # Clear token even if any error occurs
-            clear_result = _clear_tokens_bridge()
-            if clear_result.is_success:
-                console.print(
-                    f"[yellow]⚠️ Error during logout, logged out locally ({e})[/yellow]",
-                )
-            else:
-                console.print(
-                    f"[red]❌ Logout error and failed to clear tokens: {e}[/red]",
-                )
-        except Exception:
-            # Fallback: ensure tokens are cleared on any unexpected exception
-            _clear_tokens_bridge()
-
     # Run async function, ensure tokens are cleared even if it crashes early
     try:
-        asyncio.run(_async_logout())
+        asyncio.run(_async_logout_impl(ctx, console))
     except Exception:
         _clear_tokens_bridge()
 

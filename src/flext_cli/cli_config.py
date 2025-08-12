@@ -32,7 +32,9 @@ except Exception:  # pragma: no cover
     from pydantic import BaseModel as FlextSettings  # type: ignore[assignment]
 
     class FlextResult:  # type: ignore[no-redef]
-        def __init__(self, success: bool, data: object | None = None, error: str | None = None) -> None:
+        def __init__(
+            self, success: bool, data: object | None = None, error: str | None = None,
+        ) -> None:
             self.success = success
             self.is_success = success
             self.is_failure = not success
@@ -46,6 +48,8 @@ except Exception:  # pragma: no cover
         @staticmethod
         def fail(error: str) -> FlextResult:
             return FlextResult(False, None, error)
+
+
 from pydantic import Field, field_validator
 
 from flext_cli.cli_types import ConfigDict, OutputFormat

@@ -21,8 +21,6 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-# Import from flext-core ROOT only
-
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -40,7 +38,9 @@ class FlextCliCommandProtocol(Protocol):
 
     @abstractmethod
     def execute(
-        self, context: dict[str, object], **kwargs: object,
+        self,
+        context: dict[str, object],
+        **kwargs: object,
     ) -> FlextResult[object]:
         """Execute the CLI command."""
         ...
@@ -218,7 +218,9 @@ class FlextConfigProvider(Protocol):
     """
 
     def get_config(
-        self, key: str, default: object | None = None,
+        self,
+        key: str,
+        default: object | None = None,
     ) -> FlextResult[object]:
         """Get configuration value by key."""
         ...

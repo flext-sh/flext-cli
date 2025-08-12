@@ -51,49 +51,14 @@ from collections.abc import Callable
 from enum import StrEnum
 from typing import TypeVar
 
-# Import bridge for flext_core legacy symbols used in tests
-try:  # pragma: no cover
-    from flext_core import (  # type: ignore
-        FlextEntity,
-        FlextEntityFactory,
-        FlextErrorHandlingDecorators,
-        FlextPerformanceDecorators,
-        FlextResult,
-        FlextValidationDecorators,
-    )
-except Exception:  # pragma: no cover
-    from pydantic import BaseModel as FlextEntity  # type: ignore[assignment]
-    class FlextResult:  # type: ignore[no-redef]
-        def __init__(self, success: bool, data: object | None = None, error: str | None = None) -> None:
-            self.success = success
-            self.is_success = success
-            self.is_failure = not success
-            self.data = data
-            self.error = error
-
-        @staticmethod
-        def ok(data: object | None) -> FlextResult:
-            return FlextResult(True, data, None)
-
-        @staticmethod
-        def fail(error: str) -> FlextResult:
-            return FlextResult(False, None, error)
-    class FlextEntityFactory:  # type: ignore[no-redef]
-        pass
-    class FlextErrorHandlingDecorators:  # type: ignore[no-redef]
-        @staticmethod
-        def safe_call():
-            def _inner(func):
-                return func
-            return _inner
-    class FlextPerformanceDecorators:  # type: ignore[no-redef]
-        @staticmethod
-        def time_execution(func):
-            return func
-    class FlextValidationDecorators:  # type: ignore[no-redef]
-        @staticmethod
-        def validate_arguments(func):
-            return func
+from flext_core import (
+    FlextEntity,
+    FlextEntityFactory,
+    FlextErrorHandlingDecorators,
+    FlextPerformanceDecorators,
+    FlextResult,
+    FlextValidationDecorators,
+)
 
 from flext_cli.config import CLIConfig
 from flext_cli.domain.entities import CommandType
@@ -274,7 +239,10 @@ class CLIEntityFactory:
         )
 
     def create_plugin(
-        self, name: str, version: str = "1.0.0", **kwargs: object,
+        self,
+        name: str,
+        version: str = "1.0.0",
+        **kwargs: object,
     ) -> object:
         """Create CLI plugin using legacy interface.
 

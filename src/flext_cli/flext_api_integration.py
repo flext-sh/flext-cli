@@ -19,66 +19,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-from typing import Never, Self
+from typing import Self
 
-# Primary integration: Use flext-api for HTTP operations
-try:
-    from flext_api import (
-        FlextApiClient,
-        create_flext_api,
-    )
-
-    FLEXT_API_AVAILABLE = True
-except Exception:  # pragma: no cover - allow tests to run without flext-api
-    FlextApiClient = object  # type: ignore[assignment]
-
-    def create_flext_api() -> Never:  # type: ignore[no-redef]
-        msg = "flext_api not available"
-        raise RuntimeError(msg)
-
-    FLEXT_API_AVAILABLE = False
-# Lazy import bridge for flext_core to avoid early import issues in tests
-try:  # pragma: no cover
-    from flext_core import FlextResult, get_logger  # type: ignore
-except Exception:  # pragma: no cover
-    def get_logger(_name: str):  # type: ignore
-        class _L:
-            def info(self, *args, **kwargs) -> None:
-                return None
-
-            def warning(self, *args, **kwargs) -> None:
-                return None
-
-            def error(self, *args, **kwargs) -> None:
-                return None
-
-            def exception(self, *args, **kwargs) -> None:
-                return None
-        return _L()
-
-    class FlextResult:  # type: ignore[no-redef]
-        def __class_getitem__(cls, _item):
-            return cls
-
-        def __init__(self, success: bool, data: object | None = None, error: str | None = None) -> None:
-            self.success = success
-            self.is_success = success
-            self.is_failure = not success
-            self.data = data
-            self.error = error
-
-        @staticmethod
-        def ok(data: object | None) -> FlextResult:
-            return FlextResult(True, data, None)
-
-        @staticmethod
-        def fail(error: str) -> FlextResult:
-            return FlextResult(False, None, error)
-
-        def unwrap(self) -> object:
-            if not self.success:
-                raise RuntimeError(self.error or "unwrap failed")
-            return self.data
+from flext_api import (
+    FlextApiClient,
+    create_flext_api,
+)
+from flext_core import FlextResult, get_logger
 
 from flext_cli.config import get_config as get_cli_config
 
@@ -118,11 +65,7 @@ class FlextCLIApiClient:
         self._api_client: FlextApiClient | None = None
 
         # Initialize flext-api client if available
-        if FLEXT_API_AVAILABLE:
-            self._init_flext_api_client()
-        else:
-            self._api_client = None
-            logger.warning("Using fallback mode - flext-api not available")
+        self._init_flext_api_client()
 
     def _get_default_base_url(self) -> str:
         """Get default base URL from CLI configuration."""
@@ -173,7 +116,7 @@ class FlextCLIApiClient:
 
     def is_available(self) -> bool:
         """Check if flext-api integration is available and working."""
-        return FLEXT_API_AVAILABLE and self._api_client is not None
+        return self._api_client is not None
 
     def get_client(self) -> FlextApiClient | None:
         """Get the underlying flext-api client for advanced operations."""
@@ -464,7 +407,6 @@ def get_default_cli_client() -> FlextCLIApiClient:
 
 # Export the integration API
 __all__ = [
-    "FLEXT_API_AVAILABLE",
     "FlextCLIApiClient",
     "create_cli_api_client",
     "get_default_cli_client",
