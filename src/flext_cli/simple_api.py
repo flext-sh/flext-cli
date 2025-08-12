@@ -143,7 +143,11 @@ def create_production_cli_config(**kwargs: object) -> CLIConfig:
     return config
 
 
-# Compatibility wrapper to satisfy tests that call get_cli_settings(reload=True)
-def get_cli_settings(*, reload: bool = False) -> CLISettings:  # type: ignore[override]
-    # 'reload' has no effect for settings; return a fresh instance
+def get_cli_settings_compat(*, reload: bool = False) -> CLISettings:
+    """Compatibility wrapper: tests may call get_cli_settings(reload=True).
+
+    This thin wrapper mirrors the upstream but keeps the original symbol
+    from flext_cli.config as the canonical implementation.
+    """
+    _ = reload
     return CLISettings()

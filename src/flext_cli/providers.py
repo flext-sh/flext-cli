@@ -27,6 +27,7 @@ class FlextCliArgsProvider:
     """CLI arguments configuration provider (highest precedence)."""
 
     def __init__(self, args: dict[str, object]) -> None:
+        """Initialize provider with CLI args dict."""
         self.args = args
 
     def get_config(self, key: str, default: object = None) -> FlextResult[object]:
@@ -47,6 +48,7 @@ class FlextConstantsProvider:
     """Constants configuration provider (lowest precedence)."""
 
     def __init__(self, constants: dict[str, object]) -> None:
+        """Initialize provider with constants dict."""
         self.constants = constants
 
     def get_config(self, key: str, default: object = None) -> FlextResult[object]:

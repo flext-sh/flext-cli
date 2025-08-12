@@ -74,6 +74,7 @@ class FlextCliFormatterProtocol(Protocol):
     def format(
         self,
         data: object,
+        *,
         format_type: str = "table",
         **options: object,
     ) -> FlextResult[str]:
@@ -81,7 +82,7 @@ class FlextCliFormatterProtocol(Protocol):
         ...
 
     @abstractmethod
-    def format_error(self, error: str | Exception, verbose: bool = False) -> str:
+    def format_error(self, error: str | Exception, *, verbose: bool = False) -> str:
         """Format error message."""
         ...
 
@@ -112,6 +113,7 @@ class FlextCliValidatorProtocol(Protocol):
     def validate_path(
         self,
         path: str | Path,
+        *,
         must_exist: bool = False,
         must_be_file: bool = False,
         must_be_dir: bool = False,
@@ -130,6 +132,7 @@ class FlextCliServiceProtocol(Protocol):
     @abstractmethod
     def initialize_console(
         self,
+        *,
         width: int | None = None,
         theme: str | None = None,
     ) -> FlextResult[Console]:
@@ -139,6 +142,7 @@ class FlextCliServiceProtocol(Protocol):
     @abstractmethod
     def load_configuration(
         self,
+        *,
         profile: str = "default",
         config_file: Path | None = None,
     ) -> FlextResult[dict[str, object]]:
@@ -187,6 +191,7 @@ class FlextCliInteractiveProtocol(Protocol):
     def prompt(
         self,
         message: str,
+        *,
         default: str | None = None,
         password: bool = False,
     ) -> FlextResult[str]:
@@ -194,7 +199,7 @@ class FlextCliInteractiveProtocol(Protocol):
         ...
 
     @abstractmethod
-    def confirm(self, message: str, default: bool = False) -> FlextResult[bool]:
+    def confirm(self, message: str, *, default: bool = False) -> FlextResult[bool]:
         """Ask for confirmation."""
         ...
 
