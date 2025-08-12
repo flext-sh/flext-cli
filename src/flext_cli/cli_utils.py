@@ -130,6 +130,34 @@ def _record_failure(
     results["errors"] = errors_list
 
 
+def _process_single_file(
+    path: Path,
+    processor: Callable[[Path], FlextResult[object]],
+    results: dict[str, object],
+    *,
+    fail_fast: bool,
+) -> tuple[bool, str | None]:
+    """Process a single file and update results.
+
+    Returns a tuple (should_stop, stop_message) when fail_fast is enabled and a
+    failure occurs; otherwise (False, None).
+    """
+    try:
+        result = processor(path)
+        if result.is_success:
+            _record_success(results, path)
+            return False, None
+        _record_failure(results, path, result.error or "Unknown error")
+        if fail_fast:
+            return True, f"Processing failed for {path}: {result.error}"
+        return False, None
+    except Exception as e:  # noqa: BLE001
+        _record_failure(results, path, str(e))
+        if fail_fast:
+            return True, f"Processing failed for {path}: {e}"
+        return False, None
+
+
 def cli_quick_setup(
     project_name: str,
     *,
@@ -248,26 +276,13 @@ def cli_batch_process_files(
             task_id = progress.add_task("Processing files...", total=len(paths))
 
         for path in paths:
-            try:
-                result = processor(path)
-                if result.is_success:
-                    _record_success(results, path)
-                else:
-                    _record_failure(results, path, result.error or "Unknown error")
-
-                    if fail_fast:
-                        return FlextResult.fail(
-                            f"Processing failed for {path}: {result.error}",
-                        )
-
-                if progress and task_id is not None:
-                    progress.update(task_id, advance=1)
-
-            except Exception as e:
-                _record_failure(results, path, str(e))
-
-                if fail_fast:
-                    return FlextResult.fail(f"Processing failed for {path}: {e}")
+            should_stop, stop_message = _process_single_file(
+                path, processor, results, fail_fast=fail_fast,
+            )
+            if progress and task_id is not None:
+                progress.update(task_id, advance=1)
+            if should_stop:
+                return FlextResult.fail(stop_message or "Processing failed")
 
         # Show summary
         if show_progress:
@@ -401,25 +416,31 @@ def cli_save_data_file(
             path.parent.mkdir(parents=True, exist_ok=True)
 
         # Determine format
+        detected: OutputFormat
         if format_type is None:
             suffix = path.suffix.lower()
-            if suffix == ".json":
-                format_type = OutputFormat.JSON
-            elif suffix in {".yaml", ".yml"}:
-                format_type = OutputFormat.YAML
-            elif suffix == ".csv":
-                format_type = OutputFormat.CSV
-            else:
-                format_type = OutputFormat.TEXT
-        elif isinstance(format_type, str):
-            format_type = OutputFormat(format_type.lower())
+            detected = (
+                OutputFormat.JSON
+                if suffix == ".json"
+                else OutputFormat.YAML
+                if suffix in {".yaml", ".yml"}
+                else OutputFormat.CSV
+                if suffix == ".csv"
+                else OutputFormat.TEXT
+            )
+        else:
+            detected = (
+                OutputFormat(format_type.lower())
+                if isinstance(format_type, str)
+                else format_type
+            )
 
         # Save based on format
-        if format_type == OutputFormat.JSON:
+        if detected == OutputFormat.JSON:
             return _save_json_file(data, path)
-        if format_type == OutputFormat.YAML:
+        if detected == OutputFormat.YAML:
             return _save_yaml_file(data, path)
-        if format_type == OutputFormat.CSV:
+        if detected == OutputFormat.CSV:
             return _save_csv_file(data, path)
         # TEXT
         return _save_text_file(data, path)
