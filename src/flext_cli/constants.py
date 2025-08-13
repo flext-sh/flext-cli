@@ -197,6 +197,12 @@ class FlextCliConstants:
         INFO_COLOR = "blue"
         DEBUG_COLOR = "magenta"
 
+    class Examples:
+        """Constants for examples and demos."""
+
+        # Mock API failure rate (for examples only)
+        MOCK_API_FAILURE_RATE = 0.3  # 30% chance of failure for demo purposes
+
 
 class FlextConfigSemanticConstants:
     """Configuration semantic constants.

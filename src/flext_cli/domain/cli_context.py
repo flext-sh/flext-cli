@@ -54,31 +54,46 @@ class CLIExecutionContext(CLIContext):
 # Factory functions
 def create_cli_context(**kwargs: object) -> CLIContext:
     """Create a CLI context with optional parameters."""
-    # Allow only known keys to keep typing strictness
-    allowed_keys = {
-        "config",
-        "environment",
-        "session_id",
-        "user_id",
-        "debug",
-        "verbose",
-    }
-    filtered: dict[str, object] = {k: v for k, v in kwargs.items() if k in allowed_keys}
-    return CLIContext(**filtered)
+    # Extract and cast specific fields with correct types
+    config = kwargs.get("config", {})
+    environment = kwargs.get("environment", {})
+    session_id = kwargs.get("session_id")
+    user_id = kwargs.get("user_id")
+    debug = kwargs.get("debug", False)
+    verbose = kwargs.get("verbose", False)
+
+    return CLIContext(
+        config=config if isinstance(config, dict) else {},
+        environment=environment if isinstance(environment, dict) else {},
+        session_id=str(session_id) if session_id is not None else None,
+        user_id=str(user_id) if user_id is not None else None,
+        debug=bool(debug),
+        verbose=bool(verbose),
+    )
 
 
 def create_execution_context(command_name: str, **kwargs: object) -> CLIExecutionContext:
     """Create an execution context for a specific command."""
-    allowed_keys = {
-        "config",
-        "environment",
-        "session_id",
-        "user_id",
-        "debug",
-        "verbose",
-        "command_args",
-        "execution_id",
-        "start_time",
-    }
-    filtered: dict[str, object] = {k: v for k, v in kwargs.items() if k in allowed_keys}
-    return CLIExecutionContext(command_name=command_name, **filtered)
+    # Extract and cast specific fields with correct types
+    config = kwargs.get("config", {})
+    environment = kwargs.get("environment", {})
+    session_id = kwargs.get("session_id")
+    user_id = kwargs.get("user_id")
+    debug = kwargs.get("debug", False)
+    verbose = kwargs.get("verbose", False)
+    command_args = kwargs.get("command_args", {})
+    execution_id = kwargs.get("execution_id")
+    start_time = kwargs.get("start_time")
+
+    return CLIExecutionContext(
+        command_name=command_name,
+        config=config if isinstance(config, dict) else {},
+        environment=environment if isinstance(environment, dict) else {},
+        session_id=str(session_id) if session_id is not None else None,
+        user_id=str(user_id) if user_id is not None else None,
+        debug=bool(debug),
+        verbose=bool(verbose),
+        command_args=command_args if isinstance(command_args, dict) else {},
+        execution_id=str(execution_id) if execution_id is not None else None,
+        start_time=float(start_time) if start_time is not None and (isinstance(start_time, (int, float, str))) else None,
+    )
