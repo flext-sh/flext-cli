@@ -260,7 +260,9 @@ class TestMeasureTime:
 
             @measure_time()
             def function_with_args(
-                arg1: str, arg2: int, kwarg1: str = "default",
+                arg1: str,
+                arg2: int,
+                kwarg1: str = "default",
             ) -> str:
                 return f"{arg1}-{arg2}-{kwarg1}"
 
@@ -453,7 +455,8 @@ class TestWithSpinner:
                 msg: str = f"Expected {'calculation done'}, got {result}"
                 raise AssertionError(msg)
             mock_status.assert_called_once_with(
-                "Calculating results...", spinner="dots",
+                "Calculating results...",
+                spinner="dots",
             )
 
     def test_with_spinner_exception_handling(self) -> None:

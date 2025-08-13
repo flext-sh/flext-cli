@@ -785,7 +785,9 @@ class TestIntegration:
         """Test session recording multiple commands."""
         # CLISession needs both id (entity_id) and session_id
         session = FlextCliSession(
-            id="test-session-135", session_id="test-session-135", user_id="test-user",
+            id="test-session-135",
+            session_id="test-session-135",
+            user_id="test-user",
         )
 
         commands = ["init", "run", "deploy", "monitor", "cleanup"]

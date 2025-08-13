@@ -360,7 +360,9 @@ class TestLibraryPerformance:
         start_time = time.time()
         for i in range(1000):
             flext_cli.CLICommand(
-                id=f"test_cmd_{i:04d}", name="test", command_line="test",
+                id=f"test_cmd_{i:04d}",
+                name="test",
+                command_line="test",
             )
         creation_time = time.time() - start_time
 
