@@ -19,8 +19,9 @@ from typing import Any
 from unittest.mock import patch
 
 import pytest
-from flext_cli.core.helpers import FlextCliDataProcessor
 from flext_core import FlextResult
+
+from flext_cli.core.helpers import FlextCliDataProcessor
 
 
 class TestFlextCliDataProcessorAdvanced:

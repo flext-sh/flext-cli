@@ -14,6 +14,7 @@ from pathlib import Path
 
 import yaml
 from click.testing import CliRunner
+
 from flext_cli.cli import cli
 from flext_cli.config import CLISettings
 from flext_cli.domain.entities import CLICommand, CLISession, CommandStatus, CommandType

@@ -18,6 +18,9 @@ from unittest.mock import MagicMock, patch
 import click
 import yaml
 from click.testing import CliRunner
+from flext_core.constants import FlextConstants
+from rich.table import Table
+
 from flext_cli.commands.config import (
     _find_config_value,
     _get_all_config,
@@ -25,8 +28,6 @@ from flext_cli.commands.config import (
     _print_config_value,
     config,
 )
-from flext_core.constants import FlextConstants
-from rich.table import Table
 
 # Constants
 EXPECTED_DATA_COUNT = 3

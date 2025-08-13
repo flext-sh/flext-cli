@@ -11,9 +11,10 @@ import io
 from unittest.mock import patch
 
 import pytest
+from rich.console import Console
+
 from flext_cli.config import CLIConfig, CLISettings
 from flext_cli.domain.cli_context import CLIContext
-from rich.console import Console
 
 
 class TestCLIContext:

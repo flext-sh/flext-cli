@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 
 import yaml
+
 from flext_cli.utils.output import (
     format_json,
     format_pipeline,
@@ -59,8 +60,9 @@ class TestFormatPipeline:
         """Test basic pipeline formatting."""
         from io import StringIO
 
-        from flext_cli.client import Pipeline, PipelineConfig
         from rich.console import Console
+
+        from flext_cli.client import Pipeline, PipelineConfig
 
         pipeline_config = PipelineConfig(
             name="test-pipeline", tap="tap-csv", target="target-csv",
@@ -90,8 +92,9 @@ class TestFormatPipeline:
         """Test pipeline formatting with complete pipeline object."""
         from io import StringIO
 
-        from flext_cli.client import Pipeline, PipelineConfig
         from rich.console import Console
+
+        from flext_cli.client import Pipeline, PipelineConfig
 
         pipeline_config = PipelineConfig(
             name="data-pipeline", tap="tap-postgres", target="target-snowflake",
@@ -126,8 +129,9 @@ class TestFormatPipeline:
         """Test pipeline formatting with minimal pipeline object."""
         from io import StringIO
 
-        from flext_cli.client import Pipeline, PipelineConfig
         from rich.console import Console
+
+        from flext_cli.client import Pipeline, PipelineConfig
 
         empty_config = PipelineConfig(
             name="empty-pipeline", tap="tap-none", target="target-none",
@@ -158,8 +162,9 @@ class TestFormatPipeline:
         """Test pipeline formatting with minimal required fields."""
         from io import StringIO
 
-        from flext_cli.client import Pipeline, PipelineConfig
         from rich.console import Console
+
+        from flext_cli.client import Pipeline, PipelineConfig
 
         # Create proper pipeline config
         pipeline_config = PipelineConfig(
@@ -499,8 +504,9 @@ class TestUtilsOutputIntegration:
         """Test pipeline formatting with realistic data."""
         from io import StringIO
 
-        from flext_cli.client import Pipeline, PipelineConfig
         from rich.console import Console
+
+        from flext_cli.client import Pipeline, PipelineConfig
 
         # Create proper pipeline config with all fields
         config = PipelineConfig(
@@ -677,8 +683,9 @@ class TestOutputErrorHandling:
         """Test pipeline formatting with edge case data."""
         from io import StringIO
 
-        from flext_cli.client import Pipeline, PipelineConfig
         from rich.console import Console
+
+        from flext_cli.client import Pipeline, PipelineConfig
 
         # Create pipeline config for edge case
         config = PipelineConfig(

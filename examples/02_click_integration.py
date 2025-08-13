@@ -25,8 +25,9 @@ import time
 from typing import TYPE_CHECKING
 
 import click
-import flext_cli
 from rich.console import Console
+
+import flext_cli
 
 if TYPE_CHECKING:
     from pathlib import Path

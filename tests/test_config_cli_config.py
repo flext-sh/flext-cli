@@ -17,6 +17,8 @@ from typing import Literal
 from unittest.mock import patch
 
 import pytest
+from flext_core.constants import FlextConstants
+
 from flext_cli.config import (
     CLIAPIConfig,
     CLIAuthConfig,
@@ -28,7 +30,6 @@ from flext_cli.config import (
     get_cli_config,
     get_cli_settings,
 )
-from flext_core.constants import FlextConstants
 
 # Constants
 _API = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"

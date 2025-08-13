@@ -10,9 +10,10 @@ from __future__ import annotations
 import tempfile
 from unittest.mock import patch
 
-from flext_cli.core.helpers import CLIHelper
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
+
+from flext_cli.core.helpers import CLIHelper
 
 # Constants
 EXPECTED_BULK_SIZE = 2
@@ -80,7 +81,7 @@ class TestCLIHelper:
                 f"Expected True, got {helper.validate_url('https://example.com')}",
             )
         assert helper.validate_url(
-            f"http://{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.DEFAULT_HOST}:{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.FLEXCORE_PORT}"
+            f"http://{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.DEFAULT_HOST}:{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.FLEXCORE_PORT}",
         ) is True
         if not (helper.validate_url("ftp://files.example.com")):
             raise AssertionError(

@@ -17,6 +17,9 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+from flext_core import FlextResult
+from rich.console import Console
+
 from flext_cli.core.mixins import (
     FlextCliConfigMixin,
     FlextCliInteractiveMixin,
@@ -28,8 +31,6 @@ from flext_cli.core.mixins import (
     flext_cli_handle_exceptions,
     flext_cli_require_confirmation,
 )
-from flext_core import FlextResult
-from rich.console import Console
 
 
 class TestFlextCliValidationMixin:

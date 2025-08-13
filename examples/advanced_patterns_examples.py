@@ -12,11 +12,12 @@ from __future__ import annotations
 
 import traceback
 
+from flext_core import ServiceResult as FlextResult
+
 import flext_cli
 from flext_cli import (
     flext_cli_batch_export,
 )
-from flext_core import ServiceResult as FlextResult
 
 
 # Simple stubs for advanced pattern demonstration

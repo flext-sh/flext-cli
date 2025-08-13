@@ -644,14 +644,15 @@ def demonstrate_advanced_functionality() -> bool | None:
         import json
         import tempfile
 
+        from flext_core import FlextResult
+
         from flext_cli import FlextCliEntity
         from flext_cli.core.helpers import FlextCliHelper
         from flext_cli.mixins import FlextCliCompleteMixin
-        from flext_core import FlextResult
 
         # Create a test class using all advanced patterns
         class DemoAdvancedCLI(FlextCliEntity, FlextCliCompleteMixin):
-            def __init__(self, **kwargs) -> None:
+            def __init__(self, **kwargs: object) -> None:
                 super().__init__(**kwargs)
 
             def demo_complete_functionality(self) -> FlextResult[FlextCliDataDict]:

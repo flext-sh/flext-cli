@@ -11,8 +11,9 @@ from typing import Self, cast
 from urllib.parse import urljoin
 
 import httpx
-from flext_cli.config.cli_config import get_cli_config
 from pydantic import BaseModel, Field
+
+from flext_cli.config.cli_config import get_cli_config
 
 
 class APIBaseModel(BaseModel):

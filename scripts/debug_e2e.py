@@ -11,6 +11,7 @@ from __future__ import annotations
 import traceback
 
 from click.testing import CliRunner
+
 from flext_cli.cli import cli
 
 

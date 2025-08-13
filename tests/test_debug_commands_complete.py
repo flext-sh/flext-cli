@@ -24,13 +24,14 @@ if TYPE_CHECKING:
 import click
 import pytest
 from click.testing import CliRunner
+from flext_core.constants import FlextConstants
+
 from flext_cli.commands.debug import (
     SENSITIVE_VALUE_PREVIEW_LENGTH,
     connectivity,
     debug_cmd,
     performance,
 )
-from flext_core.constants import FlextConstants
 
 # Type definitions for patch decorators
 F = TypeVar("F", bound="Callable[..., None]")

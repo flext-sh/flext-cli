@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import tempfile
 
+from flext_core import ServiceResult as FlextResult
+
 from flext_cli import (
     # Use only actually available exports
     flext_cli_aggregate_data,
@@ -24,7 +26,6 @@ from flext_cli import (
     retry,
     # flext_cli_pipeline not available - remove
 )
-from flext_core import ServiceResult as FlextResult
 
 # Removed non-existent imports:
 # - FlextCliDataExporter, FlextCliFormatter don't exist

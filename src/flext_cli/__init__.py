@@ -86,7 +86,7 @@ from flext_cli.cmd_config import (
 )
 
 import warnings
-from typing import Generic, TypeVar, TYPE_CHECKING
+from typing import Any, Generic, TypeVar, TYPE_CHECKING
 
 if TYPE_CHECKING:  # type hints only
     from collections.abc import Callable
@@ -96,6 +96,9 @@ from flext_core import FlextResult
 
 # Version information
 from flext_cli.__version__ import __version__
+
+# Normalized version info tuple
+__version_info__ = tuple(int(x) for x in __version__.split(".") if x.isdigit())
 
 # =============================================================================
 # REFACTORED IMPORTS - Using consolidated PEP8 files with flext-core integration
@@ -330,25 +333,13 @@ from flext_cli.cli_auth import (
     status_command,
 )
 
-from flext_cli.legacy import (
-    # Legacy factories (deprecated)
-    LegacyFlextFactory,
-    CLIEntityFactory,
-    # Legacy decorators (deprecated)
-    legacy_validate_result,
-    legacy_handle_errors,
-    legacy_performance_monitor,
-    # Legacy mixins (deprecated)
-    LegacyValidationMixin,
-    LegacyInteractiveMixin,
-    LegacyServiceMixin,
-    # Legacy configuration (deprecated)
-    create_legacy_config,
-)
+# Legacy compatibility removed: use modern interfaces from flext_cli.* modules
 
 # =============================================================================
 # Back-compat shims for tests importing flext_cli.commands.*
 # =============================================================================
+
+import contextlib
 
 
 def __getattr__(name: str) -> object:  # pragma: no cover - compatibility layer
@@ -363,16 +354,15 @@ def __getattr__(name: str) -> object:  # pragma: no cover - compatibility layer
             debug_mod.FLEXT_API_AVAILABLE = _debug.FLEXT_API_AVAILABLE  # type: ignore[attr-defined]
             if hasattr(_debug, "SENSITIVE_VALUE_PREVIEW_LENGTH"):
                 value = _debug.SENSITIVE_VALUE_PREVIEW_LENGTH
-                try:
+                with contextlib.suppress(Exception):
                     debug_mod.SENSITIVE_VALUE_PREVIEW_LENGTH = value  # type: ignore[attr-defined]
-                except Exception:
-                    pass
             debug_mod.get_default_cli_client = _debug.get_default_cli_client  # type: ignore[attr-defined]
             debug_mod.get_config = _debug.get_config  # type: ignore[attr-defined]
             debug_mod._validate_dependencies = _debug._validate_dependencies  # type: ignore[attr-defined]
         except Exception as e:
             warnings.warn(
-                f"flext_cli.commands.debug shim export failed: {e}", stacklevel=2,
+                f"flext_cli.commands.debug shim export failed: {e}",
+                stacklevel=2,
             )
         config_mod = _types.ModuleType("flext_cli.commands.config")
         config_mod.config = _config  # type: ignore[attr-defined]
@@ -384,7 +374,8 @@ def __getattr__(name: str) -> object:  # pragma: no cover - compatibility layer
             config_mod._print_config_table = _print_config_table  # type: ignore[attr-defined]
         except Exception as e:
             warnings.warn(
-                f"flext_cli.commands.config shim export failed: {e}", stacklevel=2,
+                f"flext_cli.commands.config shim export failed: {e}",
+                stacklevel=2,
             )
         auth_mod = _types.ModuleType("flext_cli.commands.auth")
         auth_mod.auth = _auth  # type: ignore[attr-defined]
@@ -395,7 +386,8 @@ def __getattr__(name: str) -> object:  # pragma: no cover - compatibility layer
             auth_mod.status = status  # type: ignore[attr-defined]
         except Exception as e:
             warnings.warn(
-                f"flext_cli.commands.auth shim export failed: {e}", stacklevel=2,
+                f"flext_cli.commands.auth shim export failed: {e}",
+                stacklevel=2,
             )
         # expose submodules on package for attribute traversal during resolve_name
         pkg.debug = debug_mod  # type: ignore[attr-defined]
@@ -415,15 +407,16 @@ def __getattr__(name: str) -> object:  # pragma: no cover - compatibility layer
 # REFACTORED PUBLIC API - Clean flext-core Integration
 # =============================================================================
 
-__all__ = [
+__all__: list[str] = [
     "annotations",
     "login",
     "logout",
     "status",
+    "__version__",
+    "__version_info__",
     "Any",
     "Generic",
     "TypeVar",
-    "__version__",
     "CLIConfig",
     "CLISettings",
     "get_config",
@@ -523,15 +516,6 @@ __all__ = [
     "login_command",
     "logout_command",
     "status_command",
-    "LegacyFlextFactory",
-    "CLIEntityFactory",
-    "legacy_validate_result",
-    "legacy_handle_errors",
-    "legacy_performance_monitor",
-    "LegacyValidationMixin",
-    "LegacyInteractiveMixin",
-    "LegacyServiceMixin",
-    "create_legacy_config",
     "CLIContextParams",
     "CLIExecutionContext",
     "CLICommandService",

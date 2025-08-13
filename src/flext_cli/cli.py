@@ -56,45 +56,18 @@ from __future__ import annotations
 
 import sys
 from contextlib import suppress
-from typing import TYPE_CHECKING
 
 import click
-
-# Import bridge for flext_core utilities/version
-try:  # pragma: no cover
-    from flext_core import (
-        FlextUtilities,
-        __version__ as core_version,
-    )
-except Exception:  # pragma: no cover
-
-    class FlextUtilities:  # type: ignore[no-redef]
-        """Minimal fallback for flext-core CLI utilities.
-
-        Used only when `flext_core` is unavailable during tests.
-        """
-
-        @staticmethod
-        def handle_cli_main_errors(
-            entrypoint: Callable[[], None], *, debug_mode: bool = False,
-        ) -> None:
-            """Invoke the CLI entrypoint with optional debug flag.
-
-            The fallback performs a direct call without extra handling.
-            """
-            _ = debug_mode  # retained for signature compatibility
-            entrypoint()
-
-    core_version = ""
+from flext_core import (
+    FlextUtilities,
+    __version__ as core_version,
+)
 from rich.console import Console
 
 from flext_cli.__version__ import __version__
 from flext_cli.cmd import auth, config, debug
 from flext_cli.config import get_config
 from flext_cli.models import FlextCliContext as CLIContext
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 
 @click.group(

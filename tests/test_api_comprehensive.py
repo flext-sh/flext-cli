@@ -12,6 +12,8 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
+from flext_core.result import FlextResult
+
 from flext_cli.api import (
     flext_cli_batch_export,
     flext_cli_export,
@@ -20,7 +22,6 @@ from flext_cli.api import (
     flext_cli_unwrap_or_default,
     flext_cli_unwrap_or_none,
 )
-from flext_core.result import FlextResult
 
 
 class TestFlextCliFormat:

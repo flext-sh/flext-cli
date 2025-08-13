@@ -13,10 +13,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import click
 from click.testing import CliRunner
-from flext_cli.client import FlextApiClient
-from flext_cli.commands.auth import auth
 from flext_core import FlextResult
 from rich.console import Console
+
+from flext_cli.client import FlextApiClient
+from flext_cli.commands.auth import auth
 
 
 class TestAuthCommands:

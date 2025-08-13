@@ -1,45 +1,7 @@
-"""Types facade exposing public, stable names.
+"""Type definitions for flext-cli."""
 
-This consolidates and standardizes public exports expected by dependents/tests,
-while delegating implementation to modern modules.
-"""
+from typing import Protocol, TypeVar
 
-from __future__ import annotations
-
-# These aliases are provided by flext_cli.__init__ compatibility layer
-from flext_cli import CLIContext, CLIExecutionContext
-from flext_cli.cli_types import (  # noqa: F401
-    CommandStatus,
-    CommandType,
-    FlextCliRenderResult,
-    FlextCliTableResult,
-    OutputFormat,
-    PathType,  # re-export for convenience
-    PluginStatus,
-    PositiveIntType,  # re-export for convenience
-    SessionStatus,
-    URLType,  # re-export for convenience
-)
-from flext_cli.config import CLIConfig as FlextCliConfig
-from flext_cli.domain.entities import (
-    CLICommand,
-    CLICommand as FlextCliCommand,
-    CLIPlugin,
-    CLISession,
-)
-
-# Legacy type aliases from legacy module to satisfy tests
-from flext_cli.legacy import (
-    FlextCliCommandType,
-    TCliArgs,
-    TCliConfig,
-    TCliData,
-    TCliFormat,
-    TCliHandler,
-    TCliPath,
-)
-
-# Legacy enums expected by tests under these names
 from flext_cli.models import (
     FlextCliCommandStatus,
     FlextCliContext,
@@ -50,39 +12,37 @@ from flext_cli.models import (
     FlextCliSessionState,
 )
 
+TCliPath = str
+TCliFormat = str
+
+_TResult = TypeVar("_TResult")
+
+
+class TCliHandler(Protocol[_TResult]):  # type: ignore[misc]
+    """Protocol for CLI command handlers."""
+
+    def __call__(self, *args: object, **kwargs: object) -> _TResult: ...
+
+
+TCliConfig = dict[str, object]
+TCliArgs = dict[str, object]
+
+# Legacy enums expected by tests under these names
+
 __all__ = [
-    "CLICommand",
-    "CLIContext",
-    "CLIExecutionContext",
-    "CLIPlugin",
-    "CLISession",
-    # Enums and statuses
-    "CommandStatus",
-    "CommandType",
-    "FlextCliCommand",
+    # Models imported from flext_cli.models
     "FlextCliCommandStatus",
-    # Legacy type aliases
-    "FlextCliCommandType",
-    # Primary public API
-    "FlextCliConfig",
     "FlextCliContext",
     "FlextCliOutputFormat",
     "FlextCliPlugin",
     "FlextCliPluginState",
     "FlextCliSession",
     "FlextCliSessionState",
-    # Formatting types
-    "OutputFormat",
-    "PathType",
-    "PluginStatus",
-    "PositiveIntType",
-    "SessionStatus",
+    # Local type definitions
     "TCliArgs",
     "TCliConfig",
-    "TCliData",
     "TCliFormat",
     "TCliHandler",
     "TCliPath",
-    # Click param types
-    "URLType",
+    "_TResult",
 ]

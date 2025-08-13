@@ -22,6 +22,9 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
+from flext_core import FlextResult
+from rich.console import Console
+
 from flext_cli.core.helpers import FlextCliDataProcessor, FlextCliFileManager
 from flext_cli.core.mixins import (
     FlextCliAdvancedMixin,
@@ -29,8 +32,6 @@ from flext_cli.core.mixins import (
     flext_cli_with_progress,
     flext_cli_zero_config,
 )
-from flext_core import FlextResult
-from rich.console import Console
 
 
 class TestFlextCliAdvancedMixin:

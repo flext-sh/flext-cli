@@ -14,6 +14,9 @@ from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
 import yaml
+from rich.console import Console
+from rich.table import Table
+
 from flext_cli.utils.output import (
     format_json,
     format_pipeline,
@@ -26,8 +29,6 @@ from flext_cli.utils.output import (
     print_warning,
     setup_console,
 )
-from rich.console import Console
-from rich.table import Table
 
 # Constants
 EXPECTED_BULK_SIZE = 2

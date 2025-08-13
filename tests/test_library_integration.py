@@ -13,9 +13,10 @@ import time
 from pathlib import Path
 
 import click
-import flext_cli
 from flext_core.constants import FlextConstants
 from flext_core.result import FlextResult
+
+import flext_cli
 
 
 class TestLibraryImports:

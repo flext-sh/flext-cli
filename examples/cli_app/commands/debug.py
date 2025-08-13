@@ -14,10 +14,11 @@ import sys
 from typing import TYPE_CHECKING
 
 import click
+from rich.table import Table
+
 from flext_cli.client import FlextApiClient
 from flext_cli.utils.config import get_config
 from flext_cli.utils.output import show_flext_cli_paths
-from rich.table import Table
 
 # Constants
 SENSITIVE_VALUE_PREVIEW_LENGTH = 4

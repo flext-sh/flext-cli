@@ -14,6 +14,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import click
 import pytest
 from click.testing import CliRunner
+
 from flext_cli.commands.auth import auth, login, logout, status
 
 

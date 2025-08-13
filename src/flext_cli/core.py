@@ -65,100 +65,17 @@ from __future__ import annotations
 import csv
 import io
 import json
-import uuid
 from contextlib import suppress
-from datetime import UTC, datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import yaml
-
-# Import bridge for flext_core utilities during tests
-try:  # pragma: no cover
-    from flext_core import (  # type: ignore[attr-defined, import-not-found]
-        FlextResult,
-        FlextUtilities,
-        get_logger,
-        safe_call,
-    )
-except Exception:  # pragma: no cover
-
-    class FlextResult:  # type: ignore[no-redef]
-        """Minimal fallback for FlextResult used only in tests."""
-
-        def __class_getitem__(
-            cls, _item: object,
-        ) -> type[FlextResult]:  # allow FlextResult[Type] syntax
-            return cls
-
-        def __init__(
-            self,
-            *,
-            success: bool,
-            data: object | None = None,
-            error: str | None = None,
-        ) -> None:
-            self.success = success
-            self.is_success = success
-            self.is_failure = not success
-            self.data = data
-            self.error = error
-
-        @staticmethod
-        def ok(data: object | None) -> FlextResult:
-            return FlextResult(success=True, data=data, error=None)
-
-        @staticmethod
-        def fail(error: str) -> FlextResult:
-            return FlextResult(success=False, data=None, error=error)
-
-        def unwrap(self) -> object:
-            if not self.success:
-                raise RuntimeError(self.error or "unwrap failed")
-            return self.data
-
-    class FlextUtilities:  # type: ignore[no-redef]
-        """Minimal fallback utilities for tests when flext_core is missing."""
-
-        @staticmethod
-        def generate_iso_timestamp() -> str:
-            """Generate current timestamp in ISO 8601 format."""
-            return datetime.now(UTC).isoformat()
-
-        @staticmethod
-        def generate_entity_id() -> str:
-            """Generate a new random entity identifier (UUID4 hex)."""
-            return uuid.uuid4().hex
-
-    # Explicitly bind into globals for unittest.mock.patch resolution
-    globals()["FlextUtilities"] = FlextUtilities
-
-    def get_logger(_name: str) -> object:
-        class _L:
-            def info(self, *_args: object, **_kwargs: object) -> None:
-                return None
-
-            def warning(self, *_args: object, **_kwargs: object) -> None:
-                return None
-
-            def error(self, *_args: object, **_kwargs: object) -> None:
-                return None
-
-            def exception(self, *_args: object, **_kwargs: object) -> None:
-                return None
-
-        return _L()
-
-    from collections.abc import Callable
-
-    def safe_call(func: Callable[[], object]) -> FlextResult[object]:
-        """Execute a callable and wrap result in FlextResult (fallback)."""
-        try:
-            return FlextResult.ok(func())
-        except Exception as e:  # noqa: BLE001
-            return FlextResult.fail(str(e))
-
-
-from typing import TYPE_CHECKING
+from flext_core import (
+    FlextResult,
+    FlextUtilities,
+    get_logger,
+    safe_call,
+)
 
 from flext_cli.cli_config import CLIConfig as FlextCliConfig
 from flext_cli.cli_types import (
