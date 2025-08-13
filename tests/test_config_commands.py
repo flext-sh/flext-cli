@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -260,105 +259,89 @@ class TestConfigCommands:
 
     def test_edit_command_with_existing_config(self) -> None:
         """Test edit command with existing config file."""
+        # Mock config file exists; no external editor is invoked in implementation
         with (
-            patch("subprocess.run") as mock_subprocess,
-            patch.dict(os.environ, {"EDITOR": "nano"}),
+            patch.object(Path, "exists", return_value=True),
+            patch.object(Path, "mkdir"),
         ):
-            mock_subprocess.return_value = MagicMock()
+            result = self.runner.invoke(
+                config,
+                ["edit"],
+                obj={"cli_context": self.mock_cli_context},
+            )
 
-            # Mock config file exists
-            with (
-                patch.object(Path, "exists", return_value=True),
-                patch.object(Path, "mkdir"),
-            ):
-                result = self.runner.invoke(
-                    config,
-                    ["edit"],
-                    obj={"cli_context": self.mock_cli_context},
-                )
-
-                if result.exit_code not in {0, 1, 2}:
-                    raise AssertionError(f"Expected {result.exit_code} in {[0, 1, 2]}")
+            if result.exit_code not in {0, 1, 2}:
+                raise AssertionError(f"Expected {result.exit_code} in {[0, 1, 2]}")
 
     def test_edit_command_default_editor(self) -> None:
         """Test edit command with default editor (vim)."""
         with (
-            patch("subprocess.run") as mock_subprocess,
-            patch.dict(os.environ, {}, clear=True),  # No EDITOR env var
+            patch.dict(os.environ, {}, clear=True),
+            patch.object(Path, "exists", return_value=False),
+            patch.object(Path, "mkdir"),
         ):
-            mock_subprocess.return_value = MagicMock()
-
-            with (
-                patch.object(Path, "exists", return_value=False),
-                patch.object(Path, "mkdir"),
-            ):
+            # Mock file opening for writing
+            mock_file = MagicMock()
+            with patch.object(Path, "open", return_value=mock_file):
                 result = self.runner.invoke(
                     config,
                     ["edit"],
                     obj={"cli_context": self.mock_cli_context},
                 )
 
-                # Should complete successfully
+                # Should complete successfully (file created and message printed)
                 if result.exit_code not in {0, 1, 2}:
                     raise AssertionError(f"Expected {result.exit_code} in {[0, 1, 2]}")
 
     def test_edit_command_create_default_config(self) -> None:
         """Test edit command creates default config when none exists."""
-        with patch("subprocess.run") as mock_subprocess:
-            mock_subprocess.return_value = MagicMock()
+        # Mock config file doesn't exist
+        with (
+            patch.object(Path, "exists", return_value=False),
+            patch.object(Path, "mkdir"),
+        ):
+            # Mock file opening for writing
+            mock_file = MagicMock()
+            with patch.object(Path, "open", return_value=mock_file):
+                result = self.runner.invoke(
+                    config,
+                    ["edit"],
+                    obj={"cli_context": self.mock_cli_context},
+                )
 
-            # Mock config file doesn't exist
-            with (
-                patch.object(Path, "exists", return_value=False),
-                patch.object(Path, "mkdir"),
-            ):
-                # Mock file opening for writing
-                mock_file = MagicMock()
-                with patch.object(Path, "open", return_value=mock_file):
-                    result = self.runner.invoke(
-                        config,
-                        ["edit"],
-                        obj={"cli_context": self.mock_cli_context},
+                if result.exit_code not in {0, 1, 2}:
+                    raise AssertionError(
+                        f"Expected {result.exit_code} in {[0, 1, 2]}",
                     )
 
-                    if result.exit_code not in {0, 1, 2}:
-                        raise AssertionError(
-                            f"Expected {result.exit_code} in {[0, 1, 2]}",
-                        )
-
-    def test_edit_command_subprocess_error(self) -> None:
-        """Test edit command with subprocess error."""
-        with patch("subprocess.run") as mock_subprocess:
-            mock_subprocess.side_effect = subprocess.CalledProcessError(1, "vim")
-
-            with (
-                patch.object(Path, "exists", return_value=True),
-                patch.object(Path, "mkdir"),
-            ):
-                result = self.runner.invoke(
-                    config,
-                    ["edit"],
-                    obj={"cli_context": self.mock_cli_context},
-                )
-
-                if result.exit_code != 1:
-                    raise AssertionError(f"Expected {1}, got {result.exit_code}")
-
-    def test_edit_command_file_error(self) -> None:
-        """Test edit command with file error."""
-        with patch("subprocess.run") as mock_subprocess:
-            mock_subprocess.return_value = MagicMock()
-
-            # Mock Path.mkdir to raise OSError
-            with patch.object(Path, "mkdir", side_effect=OSError("Permission denied")):
-                result = self.runner.invoke(
-                    config,
-                    ["edit"],
-                    obj={"cli_context": self.mock_cli_context},
-                )
+    def test_edit_command_file_open_error(self) -> None:
+        """Test edit command with file operation error."""
+        with (
+            patch.object(Path, "exists", return_value=True),
+            patch.object(Path, "mkdir"),
+            patch.object(Path, "open", side_effect=OSError("Permission denied")),
+        ):
+            result = self.runner.invoke(
+                config,
+                ["edit"],
+                obj={"cli_context": self.mock_cli_context},
+            )
 
             if result.exit_code != 1:
                 raise AssertionError(f"Expected {1}, got {result.exit_code}")
+
+    def test_edit_command_dir_mkdir_error(self) -> None:
+        """Test edit command when directory creation fails."""
+        # Mock Path.mkdir to raise OSError
+        with patch.object(Path, "mkdir", side_effect=OSError("Permission denied")):
+            result = self.runner.invoke(
+                config,
+                ["edit"],
+                obj={"cli_context": self.mock_cli_context},
+            )
+
+        if result.exit_code != 1:
+            raise AssertionError(f"Expected {1}, got {result.exit_code}")
 
 
 class TestConfigHelperFunctions:
@@ -479,7 +462,6 @@ class TestConfigIntegration:
         # All imports should work - check they are the expected types
         assert json is not None
         assert os is not None
-        assert subprocess is not None
         assert Path is not None
         assert click is not None
         assert yaml is not None
@@ -539,11 +521,13 @@ class TestConfigIntegration:
         editor = os.environ.get("EDITOR", "vim")
         assert editor  # Should return either set editor or vim default
 
-    def test_subprocess_operations(self) -> None:
-        """Test subprocess operations used in edit command."""
-        # Test that subprocess.run exists and can be called
-        assert hasattr(subprocess, "run")
-        assert hasattr(subprocess, "CalledProcessError")
+    def test_cli_commands_available(self) -> None:
+        """Ensure CLI group exposes expected commands."""
+        assert "get" in config.commands
+        assert "set-value" in config.commands
+        assert "validate" in config.commands
+        assert "path" in config.commands
+        assert "edit" in config.commands
 
     def test_click_context_handling(self) -> None:
         """Test Click context handling patterns."""
