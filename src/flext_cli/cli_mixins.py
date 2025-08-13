@@ -211,7 +211,9 @@ class CLIOutputMixin(FlextSerializableMixin):
             return FlextResult.fail("Output formatting failed: " + str(e))
 
     def _format_as_table(
-        self, data: OutputData, **_options: object,
+        self,
+        data: OutputData,
+        **_options: object,
     ) -> FlextResult[str]:
         """Format data as table using Rich."""
         # Basic table formatting - can be enhanced

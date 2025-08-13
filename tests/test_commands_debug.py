@@ -530,7 +530,7 @@ class TestEnvCommand:
     @patch.dict(
         os.environ,
         {
-            "FLX_API_URL": f"http://{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.DEFAULT_HOST}:{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.FLEXT_API_PORT}",
+            "FLX_API_URL": f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}",
             "FLX_TOKEN": "secret123456",
             "FLX_DEBUG": "true",
             "OTHER_VAR": "not_flext",

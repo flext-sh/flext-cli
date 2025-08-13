@@ -283,7 +283,9 @@ class TestFlextCliResultMixin:
         # Success case
         success_result = FlextResult.ok("success_data")
         data = obj.flext_cli_handle_result(
-            success_result, success_action=success_action, error_action=error_action,
+            success_result,
+            success_action=success_action,
+            error_action=error_action,
         )
         assert data == "success_data"
         assert success_called
@@ -296,7 +298,9 @@ class TestFlextCliResultMixin:
         # Failure case
         failure_result = FlextResult.fail("error_message")
         data = obj.flext_cli_handle_result(
-            failure_result, success_action=success_action, error_action=error_action,
+            failure_result,
+            success_action=success_action,
+            error_action=error_action,
         )
         assert data is None
         assert not success_called
@@ -376,7 +380,9 @@ class TestFlextCliAdvancedMixin:
 
         with patch.object(obj, "flext_cli_confirm_operation", return_value=True):
             result = obj.flext_cli_execute_with_full_validation(
-                inputs, obj.do_work, operation_name="test operation",
+                inputs,
+                obj.do_work,
+                operation_name="test operation",
             )
             assert result.success
 
@@ -384,7 +390,9 @@ class TestFlextCliAdvancedMixin:
         invalid_inputs = {"email": ("invalid-email", "email")}
 
         result = obj.flext_cli_execute_with_full_validation(
-            invalid_inputs, obj.do_work, operation_name="test operation",
+            invalid_inputs,
+            obj.do_work,
+            operation_name="test operation",
         )
         assert not result.success
 
@@ -407,7 +415,9 @@ class TestFlextCliAdvancedMixin:
         workflow_steps = [("Step 1", step1), ("Step 2", step2)]
 
         result = obj.flext_cli_process_data_workflow(
-            "initial", workflow_steps, show_progress=False,
+            "initial",
+            workflow_steps,
+            show_progress=False,
         )
         assert result.success
         assert result.data == "initial -> step1 -> step2"
@@ -438,7 +448,8 @@ class TestFlextCliAdvancedMixin:
             ]
 
             result = obj.flext_cli_handle_file_operations(
-                file_operations, require_confirmation=False,
+                file_operations,
+                require_confirmation=False,
             )
             assert result.success
 
@@ -603,7 +614,8 @@ class TestMixinIntegration:
 
                 # Confirm operation
                 if not self.flext_cli_confirm_operation(
-                    "Execute command", default=True,
+                    "Execute command",
+                    default=True,
                 ):
                     return FlextResult.ok("Operation cancelled")
 
@@ -683,7 +695,9 @@ class TestMixinIntegration:
                 ]
 
                 return self.flext_cli_process_data_workflow(
-                    data, workflow_steps, show_progress=False,
+                    data,
+                    workflow_steps,
+                    show_progress=False,
                 )
 
         cmd = WorkflowCommand()

@@ -40,14 +40,15 @@ T = TypeVar("T")
 # =============================================================================
 
 
-def cli_enhanced(
+def cli_enhanced[**P, T](
+    func: Callable[P, T] | None = None,
     *,
     validate_inputs: bool = True,
     handle_keyboard_interrupt: bool = True,
     measure_time: bool = False,
     log_execution: bool = True,
     show_spinner: bool = False,
-) -> Callable[[Callable[P, T]], Callable[P, T]]:
+) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
     """Enhanced CLI decorator combining multiple CLI-specific behaviors.
 
     This decorator consolidates common CLI patterns into a single,
@@ -55,6 +56,7 @@ def cli_enhanced(
     decorators where possible.
 
     Args:
+        func: Optional function for bare decorator usage (@cli_enhanced)
         validate_inputs: Enable input validation
         handle_keyboard_interrupt: Handle Ctrl+C gracefully
         measure_time: Measure and log execution time
@@ -91,6 +93,9 @@ def cli_enhanced(
 
         return enhanced_func
 
+    # Support both @cli_enhanced and @cli_enhanced(...)
+    if func is not None:
+        return decorator(func)
     return decorator
 
 
@@ -155,7 +160,9 @@ def cli_measure_time[**P, T](func: Callable[P, T]) -> Callable[P, T]:
             duration = end_time - start_time
 
             logger.info(
-                "Command '%s' completed in %.3f seconds", func.__name__, duration,
+                "Command '%s' completed in %.3f seconds",
+                func.__name__,
+                duration,
             )
             return result
 

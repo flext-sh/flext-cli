@@ -42,10 +42,6 @@ from flext_cli import (
 
 def example_1_zero_boilerplate_setup() -> None:
     """Example 1: Zero-boilerplate CLI setup with intelligent defaults."""
-    print("=" * 60)
-    print("EXAMPLE 1: Zero-Boilerplate CLI Setup")
-    print("=" * 60)
-
     # Single function call sets up entire CLI environment
     config = {
         "profile": "development",
@@ -56,24 +52,11 @@ def example_1_zero_boilerplate_setup() -> None:
 
     setup_result = flext_cli_quick_setup(config)
     if setup_result.success:
-        cli_context = setup_result.data
-        print("✅ CLI setup successful!")
-        print(f"   Profile: {cli_context['config']['profile']}")
-        print(f"   Debug: {cli_context['config']['debug']}")
-        print(f"   Session ID: {cli_context['session_id']}")
-        print(f"   Initialized: {cli_context['initialized']}")
-    else:
-        print(f"❌ Setup failed: {setup_result.error}")
-
-    print()
+        pass
 
 
 def example_2_batch_validation() -> None:
     """Example 2: Batch validation with FlextResult integration."""
-    print("=" * 60)
-    print("EXAMPLE 2: Batch Validation with FlextResult")
-    print("=" * 60)
-
     # Validate multiple inputs in single function call
     validations = {
         "user_email": ("john.doe@company.com", "email"),
@@ -84,52 +67,32 @@ def example_2_batch_validation() -> None:
     result = flext_cli_validate_all(validations)
 
     if result.success:
-        print("✅ All validations successful!")
-        for key, validated_value in result.data.items():
-            print(f"   {key}: {validated_value}")
-    else:
-        print(f"❌ Validation failed: {result.error}")
-
-    print()
+        for _key, _validated_value in result.data.items():
+            pass
 
 
 def example_3_helper_integration() -> None:
     """Example 3: FlextCliHelper with modern FlextResult patterns."""
-    print("=" * 60)
-    print("EXAMPLE 3: FlextCliHelper with FlextResult Integration")
-    print("=" * 60)
-
     helper = FlextCliHelper()
 
     # Modern email validation with detailed error reporting
     email_result = helper.flext_cli_validate_email("user@example.com")
     if email_result.success:
-        print(f"✅ Valid email: {email_result.data}")
-    else:
-        print(f"❌ Email validation failed: {email_result.error}")
+        pass
 
     # URL validation with protocol checking
     url_result = helper.flext_cli_validate_url("https://secure.api.flext.sh")
     if url_result.success:
-        print(f"✅ Valid URL: {url_result.data}")
-    else:
-        print(f"❌ URL validation failed: {url_result.error}")
+        pass
 
     # Filename sanitization for safe filesystem usage
     filename_result = helper.flext_cli_sanitize_filename("report<>file?.pdf")
     if filename_result.success:
-        print(f"✅ Sanitized filename: {filename_result.data}")
-    else:
-        print(f"❌ Filename sanitization failed: {filename_result.error}")
-
-    print()
+        pass
 
 
 def example_4_mixin_class_usage() -> None:
     """Example 4: Using FlextCli mixins for boilerplate reduction."""
-    print("=" * 60)
-    print("EXAMPLE 4: FlextCli Mixins for Boilerplate Reduction")
-    print("=" * 60)
 
     class MyCliCommand(FlextCliMixin):
         """Example CLI command using FlextCli mixins."""
@@ -171,11 +134,7 @@ def example_4_mixin_class_usage() -> None:
     result = command.execute("user@example.com", str(Path.cwd() / "temp"))
 
     if result.success:
-        print(f"✅ Command result: {result.data}")
-    else:
-        print(f"❌ Command failed: {result.error}")
-
-    print()
+        pass
 
 
 @flext_cli_auto_validate(email="email", url="url")
@@ -193,32 +152,18 @@ def example_5_decorators(email: str, url: str) -> FlextResult[str]:
 
 def example_5_decorator_usage() -> None:
     """Example 5: Using FlextCli decorators."""
-    print("=" * 60)
-    print("EXAMPLE 5: FlextCli Decorators for Automatic Functionality")
-    print("=" * 60)
-
-    print("Calling function with decorators (requires confirmation)...")
-
     # Note: In real usage, user would be prompted for confirmation
     # For demo, we'll show what the decorated function would do
     try:
         result = example_5_decorators("user@example.com", "https://api.flext.sh")
         if result.success:
-            print(f"✅ Decorated function result: {result.data}")
-        else:
-            print(f"❌ Decorated function failed: {result.error}")
-    except Exception as e:
-        print(f"❌ Exception in decorated function: {e}")
-
-    print()
+            pass
+    except Exception:
+        pass
 
 
 def example_6_file_operations() -> None:
     """Example 6: File operations with automatic format detection."""
-    print("=" * 60)
-    print("EXAMPLE 6: File Operations with Auto-Format Detection")
-    print("=" * 60)
-
     # Sample data to save
     sample_data = {
         "project": "flext-cli-demo",
@@ -235,35 +180,23 @@ def example_6_file_operations() -> None:
     json_file = temp_dir / "config.json"
     json_result = flext_cli_save_file(sample_data, json_file)
     if json_result.success:
-        print(f"✅ Saved JSON config: {json_file}")
-    else:
-        print(f"❌ JSON save failed: {json_result.error}")
+        pass
 
     # YAML format
     yaml_file = temp_dir / "config.yml"
     yaml_result = flext_cli_save_file(sample_data, yaml_file)
     if yaml_result.success:
-        print(f"✅ Saved YAML config: {yaml_file}")
-    else:
-        print(f"❌ YAML save failed: {yaml_result.error}")
+        pass
 
     # Load back and verify
     if json_result.success:
         load_result = flext_cli_load_file(json_file)
         if load_result.success:
-            print(f"✅ Loaded JSON data: {load_result.data['project']}")
-        else:
-            print(f"❌ JSON load failed: {load_result.error}")
-
-    print()
+            pass
 
 
 def example_7_output_formatting() -> None:
     """Example 7: Output formatting with multiple formats."""
-    print("=" * 60)
-    print("EXAMPLE 7: Output Formatting with Multiple Formats")
-    print("=" * 60)
-
     # Sample data for formatting
     data = [
         {"name": "Alice Johnson", "role": "Developer", "projects": 5},
@@ -274,35 +207,24 @@ def example_7_output_formatting() -> None:
 
     # Create a nice table
     table = flext_cli_create_table(data, title="Team Members")
-    print("Rich Table Output:")
     from rich.console import Console
 
     console = Console()
     console.print(table)
-    print()
 
     # Output in JSON format
-    print("JSON Format Output:")
     json_result = flext_cli_output_data(data, "json")
     if not json_result.success:
-        print(f"❌ JSON output failed: {json_result.error}")
-
-    print()
+        pass
 
     # Output in CSV format
-    print("CSV Format Output:")
     csv_result = flext_cli_output_data(data, "csv")
     if not csv_result.success:
-        print(f"❌ CSV output failed: {csv_result.error}")
-
-    print()
+        pass
 
 
 def example_8_batch_operations() -> None:
     """Example 8: Batch operations with progress tracking."""
-    print("=" * 60)
-    print("EXAMPLE 8: Batch Operations with Progress Tracking")
-    print("=" * 60)
 
     # Define batch operations
     def validate_config() -> FlextResult[str]:
@@ -336,28 +258,19 @@ def example_8_batch_operations() -> None:
     ]
 
     batch_result = flext_cli_batch_execute(
-        operations, stop_on_error=True, progress_description="Processing pipeline",
+        operations,
+        stop_on_error=True,
+        progress_description="Processing pipeline",
     )
 
     if batch_result.success:
-        print("✅ All batch operations completed!")
-        for operation_name, result_info in batch_result.data.items():
+        for result_info in batch_result.data.values():
             if result_info["success"]:
-                print(f"   ✅ {operation_name}: {result_info['data']}")
-            else:
-                print(f"   ❌ {operation_name}: {result_info['error']}")
-    else:
-        print(f"❌ Batch execution failed: {batch_result.error}")
-
-    print()
+                pass
 
 
 def example_9_auto_config_loading() -> None:
     """Example 9: Automatic configuration loading with hierarchy."""
-    print("=" * 60)
-    print("EXAMPLE 9: Automatic Configuration Loading")
-    print("=" * 60)
-
     # Create sample config files
     temp_dir = Path.cwd() / "temp" / "flext_cli_examples"
     temp_dir.mkdir(parents=True, exist_ok=True)
@@ -373,34 +286,19 @@ def example_9_auto_config_loading() -> None:
     # Save config file
     save_result = flext_cli_save_file(sample_config, config_file)
     if save_result.success:
-        print(f"✅ Created demo config: {config_file}")
+        pass
     else:
-        print(f"❌ Config creation failed: {save_result.error}")
         return
 
     # Auto-load configuration
     config_result = flext_cli_auto_config("demo", [str(config_file)])
 
     if config_result.success:
-        loaded_config = config_result.data
-        print("✅ Configuration loaded successfully!")
-        print(f"   Profile: {loaded_config['profile']}")
-        print(f"   API URL: {loaded_config['api_url']}")
-        print(f"   Timeout: {loaded_config['timeout']}")
-        print(f"   Config Source: {loaded_config['config_source']}")
-        print(f"   Loaded At: {loaded_config['loaded_at']}")
-    else:
-        print(f"❌ Config loading failed: {config_result.error}")
-
-    print()
+        pass
 
 
 def main() -> None:
     """Run all examples."""
-    print("FLEXT CLI Library - Basic Usage Examples")
-    print("=" * 80)
-    print()
-
     # Run all examples
     example_1_zero_boilerplate_setup()
     example_2_batch_validation()
@@ -411,19 +309,6 @@ def main() -> None:
     example_7_output_formatting()
     example_8_batch_operations()
     example_9_auto_config_loading()
-
-    print("=" * 80)
-    print("All examples completed! 🎉")
-    print()
-    print("Key Benefits Demonstrated:")
-    print("  ✅ 85%+ boilerplate reduction")
-    print("  ✅ FlextResult railway-oriented programming")
-    print("  ✅ Type-safe validation with detailed errors")
-    print("  ✅ Rich console integration with zero config")
-    print("  ✅ Automatic format detection for files")
-    print("  ✅ Progress tracking and batch operations")
-    print("  ✅ Configuration management with hierarchy")
-    print("  ✅ Decorator-based functionality injection")
 
 
 if __name__ == "__main__":

@@ -2,8 +2,11 @@
 
 from typing import Protocol, TypeVar
 
+from flext_cli.cli_config import CLIConfig as FlextCliConfig
 from flext_cli.models import (
+    FlextCliCommand,
     FlextCliCommandStatus,
+    FlextCliCommandType,
     FlextCliContext,
     FlextCliOutputFormat,
     FlextCliPlugin,
@@ -14,6 +17,7 @@ from flext_cli.models import (
 
 TCliPath = str
 TCliFormat = str
+TCliData = dict[str, object] | list[object] | str | int | float | bool | None
 
 _TResult = TypeVar("_TResult")
 
@@ -30,17 +34,21 @@ TCliArgs = dict[str, object]
 # Legacy enums expected by tests under these names
 
 __all__ = [
-    # Models imported from flext_cli.models
+    # Models imported from flext_cli.models (sorted)
+    "FlextCliCommand",
     "FlextCliCommandStatus",
+    "FlextCliCommandType",
+    "FlextCliConfig",
     "FlextCliContext",
     "FlextCliOutputFormat",
     "FlextCliPlugin",
     "FlextCliPluginState",
     "FlextCliSession",
     "FlextCliSessionState",
-    # Local type definitions
+    # Local type definitions (sorted)
     "TCliArgs",
     "TCliConfig",
+    "TCliData",
     "TCliFormat",
     "TCliHandler",
     "TCliPath",

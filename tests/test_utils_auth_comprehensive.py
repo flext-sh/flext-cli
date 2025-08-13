@@ -204,7 +204,8 @@ class TestSaveRefreshToken:
         mock_path.parent.mkdir.side_effect = PermissionError("Access denied")
 
         with patch(
-            "flext_cli.utils.auth.get_refresh_token_path", return_value=mock_path,
+            "flext_cli.utils.auth.get_refresh_token_path",
+            return_value=mock_path,
         ):
             result = save_refresh_token("refresh-token")
 
@@ -221,7 +222,8 @@ class TestSaveRefreshToken:
         mock_path.write_text.side_effect = OSError("Write failed")
 
         with patch(
-            "flext_cli.utils.auth.get_refresh_token_path", return_value=mock_path,
+            "flext_cli.utils.auth.get_refresh_token_path",
+            return_value=mock_path,
         ):
             result = save_refresh_token("refresh-token")
 
@@ -503,7 +505,8 @@ class TestShouldAutoRefresh:
         with (
             patch("flext_cli.utils.auth.get_config", return_value=mock_config),
             patch(
-                "flext_cli.utils.auth.get_refresh_token", return_value="refresh-token",
+                "flext_cli.utils.auth.get_refresh_token",
+                return_value="refresh-token",
             ),
         ):
             result = should_auto_refresh()
@@ -531,7 +534,8 @@ class TestShouldAutoRefresh:
         with (
             patch("flext_cli.utils.auth.get_config", return_value=mock_config),
             patch(
-                "flext_cli.utils.auth.get_refresh_token", return_value="refresh-token",
+                "flext_cli.utils.auth.get_refresh_token",
+                return_value="refresh-token",
             ),
         ):
             result = should_auto_refresh()
@@ -625,7 +629,11 @@ class TestAuthIntegration:
         mock_path = MagicMock()
         mock_path.exists.return_value = True
         mock_path.read_text.side_effect = UnicodeDecodeError(
-            "utf-8", b"", 0, 1, "invalid",
+            "utf-8",
+            b"",
+            0,
+            1,
+            "invalid",
         )
 
         with patch("flext_cli.utils.auth.get_token_path", return_value=mock_path):

@@ -34,7 +34,9 @@ class FlextCliRichGUI:
     """Simple stub for Rich GUI functionality."""
 
     def create_metrics_dashboard(
-        self, _metrics: dict[str, object], _title: str,
+        self,
+        _metrics: dict[str, object],
+        _title: str,
     ) -> FlextResult[str]:
         """Create a metrics dashboard."""
         return FlextResult.ok("Dashboard created successfully")
@@ -44,7 +46,10 @@ class FlextCliFormatter:
     """Simple stub for CLI formatting functionality."""
 
     def format_export_preview(
-        self, _data: list[dict[str, object]], export_format: str, _sample_size: int,
+        self,
+        _data: list[dict[str, object]],
+        export_format: str,
+        _sample_size: int,
     ) -> FlextResult[str]:
         """Format export preview."""
         return FlextResult.ok(f"Preview for {export_format} format")
@@ -60,7 +65,8 @@ class FlextCliFormatter:
         return FlextResult.ok("Comparison table formatted")
 
     def format_with_data_export_integration(
-        self, _data: list[dict[str, object]],
+        self,
+        _data: list[dict[str, object]],
     ) -> FlextResult[dict[str, object]]:
         """Format with data export integration."""
         return FlextResult.ok({"export_metadata": {"format": "processed"}})
@@ -87,7 +93,8 @@ class FlextCliBuilder:
 
 
 def flext_cli_export_data(
-    _data: list[dict[str, object]], _path: str,
+    _data: list[dict[str, object]],
+    _path: str,
 ) -> FlextResult[None]:
     """Simple stub for data export."""
     return FlextResult.ok(None)

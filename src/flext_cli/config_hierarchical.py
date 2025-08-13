@@ -11,7 +11,8 @@ from flext_core import FlextResult
 
 
 def create_default_hierarchy(
-    *, config_path: str | None = None,
+    *,
+    config_path: str | None = None,
 ) -> FlextResult[dict[str, object]]:
     """Create a minimal configuration hierarchy for tests.
 

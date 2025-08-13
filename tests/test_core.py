@@ -110,7 +110,9 @@ class TestFlextCliService:
 
         # Mock FlextCliConfig in the correct module namespace
         with patch.object(
-            core_module, "FlextCliConfig", side_effect=Exception("Config error"),
+            core_module,
+            "FlextCliConfig",
+            side_effect=Exception("Config error"),
         ):
             result = service.configure({"test": "data"})
             assert not result.success
@@ -125,7 +127,10 @@ class TestFlextCliService:
         data = {"name": "test", "value": 42}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False, suffix=".json",
+            encoding="utf-8",
+            mode="w",
+            delete=False,
+            suffix=".json",
         ) as tmp:
             temp_path = tmp.name
 
@@ -148,7 +153,10 @@ class TestFlextCliService:
         data = {"name": "test", "items": ["a", "b", "c"]}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False, suffix=".yaml",
+            encoding="utf-8",
+            mode="w",
+            delete=False,
+            suffix=".yaml",
         ) as tmp:
             temp_path = tmp.name
 
@@ -185,7 +193,9 @@ class TestFlextCliService:
         data = {"test": "data"}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False,
+            encoding="utf-8",
+            mode="w",
+            delete=False,
         ) as tmp:
             temp_path = tmp.name
 
@@ -206,7 +216,9 @@ class TestFlextCliService:
 
         # Use invalid path to trigger exception
         result = service.flext_cli_export(
-            data, "/invalid/path/that/does/not/exist.json", "json",
+            data,
+            "/invalid/path/that/does/not/exist.json",
+            "json",
         )
         assert not result.success
         if "Export failed:" not in result.error:
@@ -524,7 +536,9 @@ class TestFlextCliService:
 
         # Mock FlextCliCommand in the correct module namespace
         with patch.object(
-            core_module, "FlextCliCommand", side_effect=Exception("Command error"),
+            core_module,
+            "FlextCliCommand",
+            side_effect=Exception("Command error"),
         ):
             result = service.flext_cli_create_command("test-cmd", "echo hello")
             assert not result.success
@@ -576,7 +590,9 @@ class TestFlextCliService:
 
         # Mock FlextCliSession in the correct module namespace
         with patch.object(
-            core_module, "FlextCliSession", side_effect=Exception("Session error"),
+            core_module,
+            "FlextCliSession",
+            side_effect=Exception("Session error"),
         ):
             result = service.flext_cli_create_session()
             assert not result.success
@@ -625,7 +641,9 @@ class TestFlextCliService:
         """Test registering plugin."""
         service = FlextCliService()
         plugin = FlextCliPlugin(
-            name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0",
+            name="test-plugin",
+            entry_point="test_plugin.main",
+            plugin_version="0.9.0",
         )
 
         result = service.flext_cli_register_plugin("test-plugin", plugin)
@@ -643,10 +661,14 @@ class TestFlextCliService:
         """Test registering duplicate plugin."""
         service = FlextCliService()
         plugin1 = FlextCliPlugin(
-            name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0",
+            name="test-plugin",
+            entry_point="test_plugin.main",
+            plugin_version="0.9.0",
         )
         plugin2 = FlextCliPlugin(
-            name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0",
+            name="test-plugin",
+            entry_point="test_plugin.main",
+            plugin_version="0.9.0",
         )
 
         # Register first plugin
@@ -912,7 +934,9 @@ class TestIntegration:
 
         # 6. Register plugin
         plugin = FlextCliPlugin(
-            name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0",
+            name="test-plugin",
+            entry_point="test_plugin.main",
+            plugin_version="0.9.0",
         )
         plugin_result = service.flext_cli_register_plugin("test-plugin", plugin)
         assert plugin_result.success
@@ -932,7 +956,10 @@ class TestIntegration:
         assert format_result.success
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False, suffix=".json",
+            encoding="utf-8",
+            mode="w",
+            delete=False,
+            suffix=".json",
         ) as tmp:
             temp_path = tmp.name
 
@@ -990,7 +1017,9 @@ class TestIntegration:
             return x
 
         plugin = FlextCliPlugin(
-            name="test", entry_point="test.main", plugin_version="0.9.0",
+            name="test",
+            entry_point="test.main",
+            plugin_version="0.9.0",
         )
 
         service.flext_cli_register_handler("test", handler)

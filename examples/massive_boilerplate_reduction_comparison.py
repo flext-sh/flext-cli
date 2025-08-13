@@ -71,7 +71,7 @@ def example_before_vs_after() -> None:
     # Format and print data - using available functions
     format_result = flext_cli.flext_cli_format(data)
     if format_result.success:
-        print(format_result.unwrap())
+        pass
 
     # Analyze and save - using available aggregation
     analysis_result = flext_cli.flext_cli_aggregate_data(

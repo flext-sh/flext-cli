@@ -80,9 +80,12 @@ class TestCLIHelper:
             raise AssertionError(
                 f"Expected True, got {helper.validate_url('https://example.com')}",
             )
-        assert helper.validate_url(
-            f"http://{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.DEFAULT_HOST}:{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.FLEXCORE_PORT}",
-        ) is True
+        assert (
+            helper.validate_url(
+                f"http://{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.DEFAULT_HOST}:{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.FLEXCORE_PORT}",
+            )
+            is True
+        )
         if not (helper.validate_url("ftp://files.example.com")):
             raise AssertionError(
                 f"Expected True, got {helper.validate_url('ftp://files.example.com')}",

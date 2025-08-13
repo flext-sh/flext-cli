@@ -49,7 +49,9 @@ def print_info(console: Console, message: str) -> None:
 
 
 def format_plugin_list(
-    console: Console, plugins: list[dict[str, object]], fmt: str,
+    console: Console,
+    plugins: list[dict[str, object]],
+    fmt: str,
 ) -> None:
     """Render plugins list as table or json.
 

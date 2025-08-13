@@ -45,10 +45,10 @@ class FlextCliHelper:
         self.console = console or Console(quiet=quiet)
         self.quiet = quiet
 
-    def flext_cli_confirm(self, message: str) -> FlextResult[bool]:
+    def flext_cli_confirm(self, message: str, *, default: bool = False) -> FlextResult[bool]:
         """Ask for yes/no confirmation safely."""
         try:
-            confirmed = Confirm.ask(message, default=False)
+            confirmed = Confirm.ask(message, default=default)
             return FlextResult.ok(bool(confirmed))
         except KeyboardInterrupt as e:
             return FlextResult.fail(f"User interrupted confirmation: {e}")
@@ -161,14 +161,16 @@ class FlextCliHelper:
         """Sanitize a filename for cross-platform compatibility."""
         value = name.strip()
         if value == "":
-            return FlextResult.ok("untitled")
+            return FlextResult.fail("Filename cannot be empty")
         # Replace illegal characters
         illegal = '<>:"/\\|?*'
         sanitized = "".join("_" if ch in illegal else ch for ch in value)
-        # Trim leading/trailing dots and spaces
-        sanitized = sanitized.strip(" .")
+        # Trim trailing spaces; preserve leading dots by replacing them with underscore
+        sanitized = sanitized.rstrip(" ")
+        while sanitized.startswith("."):
+            sanitized = "_" + sanitized[1:]
         if sanitized == "":
-            return FlextResult.ok("untitled")
+            return FlextResult.fail("Filename cannot be empty")
         # Enforce maximum length (common 255 limit)
         if len(sanitized) > MAX_FILENAME_LENGTH:
             base, ext = ([*sanitized.rsplit(".", 1), ""])[:2]
@@ -279,16 +281,16 @@ class FlextCliHelper:
                 )
                 try:
                     stdout_b, stderr_b = await asyncio.wait_for(
-                        proc.communicate(), timeout=timeout
+                        proc.communicate(),
+                        timeout=timeout,
                     )
                 except TimeoutError as exc:
                     with contextlib.suppress(ProcessLookupError):
                         proc.kill()
                     await proc.wait()
                     # Raise plain TimeoutError with message for consistency
-                    raise TimeoutError(
-                        f"Command timed out after {float(timeout or 0.0)}s"
-                    ) from exc
+                    message = f"Command timed out after {float(timeout or 0.0)}s"
+                    raise TimeoutError(message) from exc
                 return {
                     "success": (proc.returncode or 0) == 0,
                     "return_code": int(proc.returncode or 0),
@@ -335,16 +337,16 @@ class FlextCliHelper:
         except Exception as e:
             return FlextResult.fail(str(e))
 
-    def flext_cli_with_progress(
-        self,
-        items: list[object],
-    ) -> list[object]:
-        """Return items while optionally showing a status message."""
-        # Keep behavior simple for tests; just return the items
+    def flext_cli_with_progress(self, items: list[object], message: str) -> list[object]:
+        """Return items while printing a simple status message."""
+        if not self.quiet:
+            self.console.print(message)
         return list(items)
 
-    def create_progress(self) -> Progress:
+    def create_progress(self, message: str | None = None) -> Progress:
         """Create a progress bar."""
+        if message and not self.quiet:
+            self.console.print(message)
         return Progress(console=self.console)
 
 
