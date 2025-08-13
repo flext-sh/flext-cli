@@ -51,8 +51,8 @@ except Exception:  # pragma: no cover
             return FlextResult()
 
 
-from pydantic import Field, field_validator
 from flext_api.constants import FlextApiConstants as _ApiC
+from pydantic import Field, field_validator
 
 from flext_cli.cli_types import ConfigDict, OutputFormat
 

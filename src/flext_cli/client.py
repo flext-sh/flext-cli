@@ -79,7 +79,16 @@ class FlextApiClient:
 
         """
         config = get_cli_config()
-        self.base_url = base_url or config.api.url or "http://localhost:8000"
+        if base_url:
+            self.base_url = base_url
+        elif config.api.url:
+            self.base_url = config.api.url
+        else:
+            try:
+                from flext_core.constants import FlextConstants
+                self.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
+            except Exception:
+                self.base_url = "http://localhost:8000"
         self.token = token
         self.timeout = timeout
         self.verify_ssl = verify_ssl
