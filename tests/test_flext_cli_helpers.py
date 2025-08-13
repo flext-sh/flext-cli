@@ -1,4 +1,5 @@
 from flext_core.constants import FlextConstants as _C
+
 _CORE = f"http://{_C.Platform.DEFAULT_HOST}:{_C.Platform.FLEXCORE_PORT}"
 """Tests for FlextCliHelper and Core Helper Functions.
 
