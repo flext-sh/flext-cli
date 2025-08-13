@@ -154,7 +154,9 @@ def cli_measure_time[**P, T](func: Callable[P, T]) -> Callable[P, T]:
             end_time = time.time()
             duration = end_time - start_time
 
-            logger.info("Command '%s' completed in %.3f seconds", func.__name__, duration)
+            logger.info(
+                "Command '%s' completed in %.3f seconds", func.__name__, duration,
+            )
             return result
 
         except Exception:

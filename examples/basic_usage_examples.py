@@ -141,7 +141,7 @@ def example_4_mixin_class_usage() -> None:
             """Execute command with automatic validation and progress."""
             # Automatic input validation via mixin
             validation_result = self.flext_cli_validate_inputs(
-                {"email": (email, "email"), "config": (config_path, "path")}
+                {"email": (email, "email"), "config": (config_path, "path")},
             )
 
             if not validation_result.success:
@@ -335,7 +335,7 @@ def example_8_batch_operations() -> None:
     ]
 
     batch_result = flext_cli_batch_execute(
-        operations, stop_on_error=True, progress_description="Processing pipeline"
+        operations, stop_on_error=True, progress_description="Processing pipeline",
     )
 
     if batch_result.success:

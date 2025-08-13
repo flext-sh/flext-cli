@@ -32,33 +32,43 @@ class TestFlextCliDataProcessorAdvanced:
 
     def test_flext_cli_aggregate_data_success_all_sources(self) -> None:
         """Test successful data aggregation from all sources."""
+
         def fetch_users() -> FlextResult[list[dict[str, Any]]]:
-            return FlextResult.ok([
-                {"id": 1, "name": "Alice", "type": "user"},
-                {"id": 2, "name": "Bob", "type": "user"}
-            ])
+            return FlextResult.ok(
+                [
+                    {"id": 1, "name": "Alice", "type": "user"},
+                    {"id": 2, "name": "Bob", "type": "user"},
+                ],
+            )
 
         def fetch_orders() -> FlextResult[list[dict[str, Any]]]:
-            return FlextResult.ok([
-                {"id": 101, "user_id": 1, "amount": 99.99},
-                {"id": 102, "user_id": 2, "amount": 149.99}
-            ])
+            return FlextResult.ok(
+                [
+                    {"id": 101, "user_id": 1, "amount": 99.99},
+                    {"id": 102, "user_id": 2, "amount": 149.99},
+                ],
+            )
 
         def fetch_products() -> FlextResult[list[dict[str, Any]]]:
-            return FlextResult.ok([
-                {"id": 201, "name": "Widget", "price": 29.99},
-                {"id": 202, "name": "Gadget", "price": 49.99}
-            ])
+            return FlextResult.ok(
+                [
+                    {"id": 201, "name": "Widget", "price": 29.99},
+                    {"id": 202, "name": "Gadget", "price": 49.99},
+                ],
+            )
 
         data_sources = {
             "users": fetch_users,
             "orders": fetch_orders,
-            "products": fetch_products
+            "products": fetch_products,
         }
 
         # Mock the method that doesn't exist yet
-        def mock_aggregate_data(sources: dict[str, Callable[[], FlextResult[Any]]], *,
-                               fail_fast: bool = True) -> FlextResult[dict[str, Any]]:
+        def mock_aggregate_data(
+            sources: dict[str, Callable[[], FlextResult[Any]]],
+            *,
+            fail_fast: bool = True,
+        ) -> FlextResult[dict[str, Any]]:
             """Mock implementation of flext_cli_aggregate_data."""
             aggregated_data: dict[str, Any] = {}
             errors: list[str] = []
@@ -71,11 +81,15 @@ class TestFlextCliDataProcessorAdvanced:
                     else:
                         errors.append(f"{source_name}: {result.error}")
                         if fail_fast:
-                            return FlextResult.fail(f"Source {source_name} failed: {result.error}")
+                            return FlextResult.fail(
+                                f"Source {source_name} failed: {result.error}",
+                            )
                 except Exception as e:
                     errors.append(f"{source_name}: {e!s}")
                     if fail_fast:
-                        return FlextResult.fail(f"Source {source_name} exception: {e!s}")
+                        return FlextResult.fail(
+                            f"Source {source_name} exception: {e!s}",
+                        )
 
             if errors and not aggregated_data:
                 return FlextResult.fail(f"All sources failed: {'; '.join(errors)}")
@@ -86,8 +100,15 @@ class TestFlextCliDataProcessorAdvanced:
             return FlextResult.ok(aggregated_data)
 
         # Patch the method temporarily
-        with patch.object(self.processor, "flext_cli_aggregate_data", side_effect=mock_aggregate_data):
-            result = self.processor.flext_cli_aggregate_data(data_sources, fail_fast=False)
+        with patch.object(
+            self.processor,
+            "flext_cli_aggregate_data",
+            side_effect=mock_aggregate_data,
+        ):
+            result = self.processor.flext_cli_aggregate_data(
+                data_sources,
+                fail_fast=False,
+            )
 
         assert result.success
         assert "users" in result.data
@@ -99,6 +120,7 @@ class TestFlextCliDataProcessorAdvanced:
 
     def test_flext_cli_aggregate_data_partial_failure_continue(self) -> None:
         """Test data aggregation with partial failures and continue processing."""
+
         def fetch_users() -> FlextResult[list[dict[str, Any]]]:
             return FlextResult.ok([{"id": 1, "name": "Alice"}])
 
@@ -111,12 +133,15 @@ class TestFlextCliDataProcessorAdvanced:
         data_sources = {
             "users": fetch_users,
             "orders": fetch_orders,
-            "products": fetch_products
+            "products": fetch_products,
         }
 
         # Mock the method
-        def mock_aggregate_data(sources: dict[str, Callable[[], FlextResult[Any]]], *,
-                               fail_fast: bool = True) -> FlextResult[dict[str, Any]]:
+        def mock_aggregate_data(
+            sources: dict[str, Callable[[], FlextResult[Any]]],
+            *,
+            fail_fast: bool = True,
+        ) -> FlextResult[dict[str, Any]]:
             """Mock implementation of flext_cli_aggregate_data."""
             aggregated_data: dict[str, Any] = {}
             errors: list[str] = []
@@ -129,11 +154,15 @@ class TestFlextCliDataProcessorAdvanced:
                     else:
                         errors.append(f"{source_name}: {result.error}")
                         if fail_fast:
-                            return FlextResult.fail(f"Source {source_name} failed: {result.error}")
+                            return FlextResult.fail(
+                                f"Source {source_name} failed: {result.error}",
+                            )
                 except Exception as e:
                     errors.append(f"{source_name}: {e!s}")
                     if fail_fast:
-                        return FlextResult.fail(f"Source {source_name} exception: {e!s}")
+                        return FlextResult.fail(
+                            f"Source {source_name} exception: {e!s}",
+                        )
 
             if errors and not aggregated_data:
                 return FlextResult.fail(f"All sources failed: {'; '.join(errors)}")
@@ -143,8 +172,15 @@ class TestFlextCliDataProcessorAdvanced:
 
             return FlextResult.ok(aggregated_data)
 
-        with patch.object(self.processor, "flext_cli_aggregate_data", side_effect=mock_aggregate_data):
-            result = self.processor.flext_cli_aggregate_data(data_sources, fail_fast=False)
+        with patch.object(
+            self.processor,
+            "flext_cli_aggregate_data",
+            side_effect=mock_aggregate_data,
+        ):
+            result = self.processor.flext_cli_aggregate_data(
+                data_sources,
+                fail_fast=False,
+            )
 
         assert result.success
         assert "users" in result.data
@@ -155,6 +191,7 @@ class TestFlextCliDataProcessorAdvanced:
 
     def test_flext_cli_aggregate_data_fail_fast_mode(self) -> None:
         """Test data aggregation with fail_fast=True."""
+
         def fetch_users() -> FlextResult[list[dict[str, Any]]]:
             return FlextResult.ok([{"id": 1, "name": "Alice"}])
 
@@ -167,12 +204,15 @@ class TestFlextCliDataProcessorAdvanced:
         data_sources = {
             "users": fetch_users,
             "orders": fetch_orders,
-            "products": fetch_products
+            "products": fetch_products,
         }
 
         # Mock implementation with fail_fast behavior
-        def mock_aggregate_data(sources: dict[str, Callable[[], FlextResult[Any]]], *,
-                               fail_fast: bool = True) -> FlextResult[dict[str, Any]]:
+        def mock_aggregate_data(
+            sources: dict[str, Callable[[], FlextResult[Any]]],
+            *,
+            fail_fast: bool = True,
+        ) -> FlextResult[dict[str, Any]]:
             """Mock implementation of flext_cli_aggregate_data."""
             aggregated_data: dict[str, Any] = {}
             errors: list[str] = []
@@ -185,11 +225,15 @@ class TestFlextCliDataProcessorAdvanced:
                     else:
                         errors.append(f"{source_name}: {result.error}")
                         if fail_fast:
-                            return FlextResult.fail(f"Source {source_name} failed: {result.error}")
+                            return FlextResult.fail(
+                                f"Source {source_name} failed: {result.error}",
+                            )
                 except Exception as e:
                     errors.append(f"{source_name}: {e!s}")
                     if fail_fast:
-                        return FlextResult.fail(f"Source {source_name} exception: {e!s}")
+                        return FlextResult.fail(
+                            f"Source {source_name} exception: {e!s}",
+                        )
 
             if errors and not aggregated_data:
                 return FlextResult.fail(f"All sources failed: {'; '.join(errors)}")
@@ -199,8 +243,15 @@ class TestFlextCliDataProcessorAdvanced:
 
             return FlextResult.ok(aggregated_data)
 
-        with patch.object(self.processor, "flext_cli_aggregate_data", side_effect=mock_aggregate_data):
-            result = self.processor.flext_cli_aggregate_data(data_sources, fail_fast=True)
+        with patch.object(
+            self.processor,
+            "flext_cli_aggregate_data",
+            side_effect=mock_aggregate_data,
+        ):
+            result = self.processor.flext_cli_aggregate_data(
+                data_sources,
+                fail_fast=True,
+            )
 
         assert not result.success
         assert "Source orders failed: Orders service unavailable" in result.error
@@ -211,37 +262,35 @@ class TestFlextCliDataProcessorAdvanced:
 
         def normalize_data(data: dict[str, Any]) -> FlextResult[dict[str, Any]]:
             # Add metadata
-            return FlextResult.ok({
-                **data,
-                "normalized": True,
-                "item_count": len(data["items"])
-            })
+            return FlextResult.ok(
+                {**data, "normalized": True, "item_count": len(data["items"])},
+            )
 
         def double_items(data: dict[str, Any]) -> FlextResult[dict[str, Any]]:
             # Double all items
             doubled_items = [item * 2 for item in data["items"]]
-            return FlextResult.ok({
-                **data,
-                "items": doubled_items,
-                "doubled": True
-            })
+            return FlextResult.ok({**data, "items": doubled_items, "doubled": True})
 
         def add_summary(data: dict[str, Any]) -> FlextResult[dict[str, Any]]:
             # Add summary statistics
-            return FlextResult.ok({
-                **data,
-                "summary": {
-                    "total": sum(data["items"]),
-                    "count": len(data["items"]),
-                    "average": sum(data["items"]) / len(data["items"])
-                }
-            })
+            return FlextResult.ok(
+                {
+                    **data,
+                    "summary": {
+                        "total": sum(data["items"]),
+                        "count": len(data["items"]),
+                        "average": sum(data["items"]) / len(data["items"]),
+                    },
+                },
+            )
 
         transformers = [normalize_data, double_items, add_summary]
 
         # Mock the method
-        def mock_transform_pipeline(data: Any,
-                                  transformers: list[Callable[[Any], FlextResult[Any]]]) -> FlextResult[Any]:
+        def mock_transform_pipeline(
+            data: Any,
+            transformers: list[Callable[[Any], FlextResult[Any]]],
+        ) -> FlextResult[Any]:
             """Mock implementation of flext_cli_transform_data_pipeline."""
             current_data = data
 
@@ -249,15 +298,24 @@ class TestFlextCliDataProcessorAdvanced:
                 try:
                     result = transformer(current_data)
                     if not result.success:
-                        return FlextResult.fail(f"Transformer {i} failed: {result.error}")
+                        return FlextResult.fail(
+                            f"Transformer {i} failed: {result.error}",
+                        )
                     current_data = result.data
                 except Exception as e:
                     return FlextResult.fail(f"Transformer {i} exception: {e!s}")
 
             return FlextResult.ok(current_data)
 
-        with patch.object(self.processor, "flext_cli_transform_data_pipeline", side_effect=mock_transform_pipeline):
-            result = self.processor.flext_cli_transform_data_pipeline(initial_data, transformers)
+        with patch.object(
+            self.processor,
+            "flext_cli_transform_data_pipeline",
+            side_effect=mock_transform_pipeline,
+        ):
+            result = self.processor.flext_cli_transform_data_pipeline(
+                initial_data,
+                transformers,
+            )
 
         assert result.success
         assert result.data["normalized"] is True
@@ -283,8 +341,10 @@ class TestFlextCliDataProcessorAdvanced:
         transformers = [working_transformer, failing_transformer, should_not_execute]
 
         # Mock the method
-        def mock_transform_pipeline(data: Any,
-                                  transformers: list[Callable[[Any], FlextResult[Any]]]) -> FlextResult[Any]:
+        def mock_transform_pipeline(
+            data: Any,
+            transformers: list[Callable[[Any], FlextResult[Any]]],
+        ) -> FlextResult[Any]:
             """Mock implementation of flext_cli_transform_data_pipeline."""
             current_data = data
 
@@ -292,15 +352,24 @@ class TestFlextCliDataProcessorAdvanced:
                 try:
                     result = transformer(current_data)
                     if not result.success:
-                        return FlextResult.fail(f"Transformer {i} failed: {result.error}")
+                        return FlextResult.fail(
+                            f"Transformer {i} failed: {result.error}",
+                        )
                     current_data = result.data
                 except Exception as e:
                     return FlextResult.fail(f"Transformer {i} exception: {e!s}")
 
             return FlextResult.ok(current_data)
 
-        with patch.object(self.processor, "flext_cli_transform_data_pipeline", side_effect=mock_transform_pipeline):
-            result = self.processor.flext_cli_transform_data_pipeline(initial_data, transformers)
+        with patch.object(
+            self.processor,
+            "flext_cli_transform_data_pipeline",
+            side_effect=mock_transform_pipeline,
+        ):
+            result = self.processor.flext_cli_transform_data_pipeline(
+                initial_data,
+                transformers,
+            )
 
         assert not result.success
         assert "Transformer 1 failed: Transformation logic error" in result.error
@@ -319,8 +388,10 @@ class TestFlextCliDataProcessorAdvanced:
         transformers = [working_transformer, exception_transformer]
 
         # Mock the method
-        def mock_transform_pipeline(data: Any,
-                                  transformers: list[Callable[[Any], FlextResult[Any]]]) -> FlextResult[Any]:
+        def mock_transform_pipeline(
+            data: Any,
+            transformers: list[Callable[[Any], FlextResult[Any]]],
+        ) -> FlextResult[Any]:
             """Mock implementation of flext_cli_transform_data_pipeline."""
             current_data = data
 
@@ -328,15 +399,24 @@ class TestFlextCliDataProcessorAdvanced:
                 try:
                     result = transformer(current_data)
                     if not result.success:
-                        return FlextResult.fail(f"Transformer {i} failed: {result.error}")
+                        return FlextResult.fail(
+                            f"Transformer {i} failed: {result.error}",
+                        )
                     current_data = result.data
                 except Exception as e:
                     return FlextResult.fail(f"Transformer {i} exception: {e!s}")
 
             return FlextResult.ok(current_data)
 
-        with patch.object(self.processor, "flext_cli_transform_data_pipeline", side_effect=mock_transform_pipeline):
-            result = self.processor.flext_cli_transform_data_pipeline(initial_data, transformers)
+        with patch.object(
+            self.processor,
+            "flext_cli_transform_data_pipeline",
+            side_effect=mock_transform_pipeline,
+        ):
+            result = self.processor.flext_cli_transform_data_pipeline(
+                initial_data,
+                transformers,
+            )
 
         assert not result.success
         assert "Transformer 1 exception: Unexpected transformer error" in result.error
@@ -354,27 +434,46 @@ class TestComplexDataProcessingWorkflows:
 
         # Step 1: Data extraction (aggregation)
         def extract_users() -> FlextResult[list[dict[str, Any]]]:
-            return FlextResult.ok([
-                {"id": 1, "name": "Alice", "email": "alice@example.com", "active": True},
-                {"id": 2, "name": "Bob", "email": "bob@example.com", "active": False},
-                {"id": 3, "name": "Charlie", "email": "charlie@example.com", "active": True}
-            ])
+            return FlextResult.ok(
+                [
+                    {
+                        "id": 1,
+                        "name": "Alice",
+                        "email": "alice@example.com",
+                        "active": True,
+                    },
+                    {
+                        "id": 2,
+                        "name": "Bob",
+                        "email": "bob@example.com",
+                        "active": False,
+                    },
+                    {
+                        "id": 3,
+                        "name": "Charlie",
+                        "email": "charlie@example.com",
+                        "active": True,
+                    },
+                ],
+            )
 
         def extract_user_metrics() -> FlextResult[list[dict[str, Any]]]:
-            return FlextResult.ok([
-                {"user_id": 1, "login_count": 15, "last_login": "2024-01-15"},
-                {"user_id": 2, "login_count": 3, "last_login": "2024-01-10"},
-                {"user_id": 3, "login_count": 22, "last_login": "2024-01-16"}
-            ])
+            return FlextResult.ok(
+                [
+                    {"user_id": 1, "login_count": 15, "last_login": "2024-01-15"},
+                    {"user_id": 2, "login_count": 3, "last_login": "2024-01-10"},
+                    {"user_id": 3, "login_count": 22, "last_login": "2024-01-16"},
+                ],
+            )
 
-        extraction_sources = {
-            "users": extract_users,
-            "metrics": extract_user_metrics
-        }
+        extraction_sources = {"users": extract_users, "metrics": extract_user_metrics}
 
         # Mock aggregation
-        def mock_aggregate(sources: dict[str, Callable[[], FlextResult[Any]]], *,
-                          fail_fast: bool = True) -> FlextResult[dict[str, Any]]:
+        def mock_aggregate(
+            sources: dict[str, Callable[[], FlextResult[Any]]],
+            *,
+            fail_fast: bool = True,
+        ) -> FlextResult[dict[str, Any]]:
             result_data = {}
             for name, func in sources.items():
                 data_result = func()
@@ -396,7 +495,7 @@ class TestComplexDataProcessingWorkflows:
                 merged_user = {
                     **user,
                     "login_count": user_metrics.get("login_count", 0),
-                    "last_login": user_metrics.get("last_login", None)
+                    "last_login": user_metrics.get("last_login", None),
                 }
                 merged_users.append(merged_user)
 
@@ -407,7 +506,9 @@ class TestComplexDataProcessingWorkflows:
             active_users = [user for user in data["merged_users"] if user["active"]]
             return FlextResult.ok({"active_users": active_users})
 
-        def calculate_engagement_score(data: dict[str, Any]) -> FlextResult[dict[str, Any]]:
+        def calculate_engagement_score(
+            data: dict[str, Any],
+        ) -> FlextResult[dict[str, Any]]:
             """Calculate engagement scores."""
             scored_users = []
             for user in data["active_users"]:
@@ -421,12 +522,14 @@ class TestComplexDataProcessingWorkflows:
         transformation_pipeline = [
             merge_user_data,
             filter_active_users,
-            calculate_engagement_score
+            calculate_engagement_score,
         ]
 
         # Mock transformation pipeline
-        def mock_transform(data: Any,
-                         transformers: list[Callable[[Any], FlextResult[Any]]]) -> FlextResult[Any]:
+        def mock_transform(
+            data: Any,
+            transformers: list[Callable[[Any], FlextResult[Any]]],
+        ) -> FlextResult[Any]:
             current = data
             for transformer in transformers:
                 result = transformer(current)
@@ -436,16 +539,28 @@ class TestComplexDataProcessingWorkflows:
             return FlextResult.ok(current)
 
         # Execute the complete pipeline
-        with patch.object(self.processor, "flext_cli_aggregate_data", side_effect=mock_aggregate), \
-             patch.object(self.processor, "flext_cli_transform_data_pipeline", side_effect=mock_transform):
-
+        with (
+            patch.object(
+                self.processor,
+                "flext_cli_aggregate_data",
+                side_effect=mock_aggregate,
+            ),
+            patch.object(
+                self.processor,
+                "flext_cli_transform_data_pipeline",
+                side_effect=mock_transform,
+            ),
+        ):
             # Step 1: Extract data
-            extraction_result = self.processor.flext_cli_aggregate_data(extraction_sources)
+            extraction_result = self.processor.flext_cli_aggregate_data(
+                extraction_sources,
+            )
             assert extraction_result.success
 
             # Step 2: Transform data
             transformation_result = self.processor.flext_cli_transform_data_pipeline(
-                extraction_result.data, transformation_pipeline
+                extraction_result.data,
+                transformation_pipeline,
             )
             assert transformation_result.success
 
@@ -481,7 +596,7 @@ class TestComplexDataProcessingWorkflows:
         def mock_aggregate_fail_fast(
             sources: dict[str, Callable[[], FlextResult[Any]]],
             *,
-            fail_fast: bool = True
+            fail_fast: bool = True,
         ) -> FlextResult[dict[str, Any]]:
             for name, func in sources.items():
                 result = func()
@@ -489,7 +604,11 @@ class TestComplexDataProcessingWorkflows:
                     return FlextResult.fail(f"Source {name} failed: {result.error}")
             return FlextResult.ok({"working": ["data1", "data2"]})
 
-        with patch.object(self.processor, "flext_cli_aggregate_data", side_effect=mock_aggregate_fail_fast):
+        with patch.object(
+            self.processor,
+            "flext_cli_aggregate_data",
+            side_effect=mock_aggregate_fail_fast,
+        ):
             result = self.processor.flext_cli_aggregate_data(sources, fail_fast=True)
 
         assert not result.success
@@ -517,11 +636,15 @@ class TestComplexDataProcessingWorkflows:
 
         # Test validation and transformation
         result = self.processor.flext_cli_validate_and_transform(
-            input_data, validators, transformers
+            input_data,
+            validators,
+            transformers,
         )
 
         assert result.success
-        assert result.data["user_email"] == "user@example.com"  # Validated and lowercased
+        assert (
+            result.data["user_email"] == "user@example.com"
+        )  # Validated and lowercased
         assert result.data["api_url"] == "https://api.flext.sh/v1"  # Validated
         assert result.data["batch_size"] == 25  # Converted to int
         assert result.data["active_only"] is True  # Converted to boolean

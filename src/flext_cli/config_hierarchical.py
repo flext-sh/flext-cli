@@ -10,7 +10,9 @@ from __future__ import annotations
 from flext_core import FlextResult
 
 
-def create_default_hierarchy(*, config_path: str | None = None) -> FlextResult[dict[str, object]]:
+def create_default_hierarchy(
+    *, config_path: str | None = None,
+) -> FlextResult[dict[str, object]]:
     """Create a minimal configuration hierarchy for tests.
 
     The optional ``config_path`` is unused in this shim but kept for API

@@ -33,17 +33,17 @@ class TestPositiveIntType:
         # Test various positive integers
         if param_type.convert(1, None, None) != 1:
             raise AssertionError(
-                f"Expected {1}, got {param_type.convert(1, None, None)}"
+                f"Expected {1}, got {param_type.convert(1, None, None)}",
             )
         assert param_type.convert(42, None, None) == 42
         if param_type.convert(1000, None, None) != 1000:
             raise AssertionError(
-                f"Expected {1000}, got {param_type.convert(1000, None, None)}"
+                f"Expected {1000}, got {param_type.convert(1000, None, None)}",
             )
         assert param_type.convert("5", None, None) == 5
         if param_type.convert("999", None, None) != 999:
             raise AssertionError(
-                f"Expected {999}, got {param_type.convert('999', None, None)}"
+                f"Expected {999}, got {param_type.convert('999', None, None)}",
             )
 
     def test_invalid_values(self) -> None:
@@ -91,7 +91,7 @@ class TestURLType:
             "http://example.com",
             "https://www.example.com",
             "https://api.example.com/v1",
-            "http://localhost:8000",
+            f"http://{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.DEFAULT_HOST}:{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.FLEXT_API_PORT}",
             "https://subdomain.example.com/path?query=value",
             "ftp://files.example.com",
         ]
@@ -99,7 +99,7 @@ class TestURLType:
         for url in valid_urls:
             if url_type.convert(url, None, None) != url:
                 raise AssertionError(
-                    f"Expected {url}, got {url_type.convert(url, None, None)}"
+                    f"Expected {url}, got {url_type.convert(url, None, None)}",
                 )
 
     def test_invalid_urls(self) -> None:

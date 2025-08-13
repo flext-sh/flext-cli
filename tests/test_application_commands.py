@@ -52,7 +52,7 @@ class TestExecuteCommandCommand:
         assert cmd.command_line == "echo hello"
         if cmd.command_type != CommandType.SYSTEM:
             raise AssertionError(
-                f"Expected {CommandType.SYSTEM}, got {cmd.command_type}"
+                f"Expected {CommandType.SYSTEM}, got {cmd.command_type}",
             )
         assert cmd.timeout_seconds is None
 
@@ -78,7 +78,7 @@ class TestExecuteCommandCommand:
         assert cmd.command_line == "python script.py"
         if cmd.command_type != CommandType.PIPELINE:
             raise AssertionError(
-                f"Expected {CommandType.PIPELINE}, got {cmd.command_type}"
+                f"Expected {CommandType.PIPELINE}, got {cmd.command_type}",
             )
         assert cmd.timeout_seconds == 30.0
 
@@ -248,7 +248,7 @@ class TestUpdateConfigCommand:
         assert cmd.name == "updated_config"
         if cmd.description != "Updated description":
             raise AssertionError(
-                f"Expected {'Updated description'}, got {cmd.description}"
+                f"Expected {'Updated description'}, got {cmd.description}",
             )
         assert cmd.config_data == {"updated": "data"}
         if cmd.version != "1.1.0":
@@ -341,7 +341,7 @@ class TestStartSessionCommand:
         assert isinstance(cmd.user_id, UUID)
         if cmd.working_directory != "/home/user":
             raise AssertionError(
-                f"Expected {'/home/user'}, got {cmd.working_directory}"
+                f"Expected {'/home/user'}, got {cmd.working_directory}",
             )
         assert cmd.environment == {"PATH": "/usr/bin", "HOME": "/home/user"}
 
@@ -427,7 +427,7 @@ class TestInstallPluginCommand:
         assert cmd.version == "0.9.0"
         if cmd.entry_point != "test_plugin.main":
             raise AssertionError(
-                f"Expected {'test_plugin.main'}, got {cmd.entry_point}"
+                f"Expected {'test_plugin.main'}, got {cmd.entry_point}",
             )
         assert cmd.commands == ["cmd1", "cmd2"]
         if cmd.dependencies != ["dep1", "dep2"]:
@@ -539,7 +539,7 @@ class TestListCommandsCommand:
 
         if cmd.command_type != CommandType.PIPELINE:
             raise AssertionError(
-                f"Expected {CommandType.PIPELINE}, got {cmd.command_type}"
+                f"Expected {CommandType.PIPELINE}, got {cmd.command_type}",
             )
         assert cmd.user_id == user_id
         if cmd.session_id != "session_456":
@@ -901,7 +901,7 @@ class TestCommandTypeCompatibility:
                             'auth',
                             'monitoring',
                         ]
-                    }"
+                    }",
                 )
 
     def test_command_type_usage_in_list_commands(self) -> None:

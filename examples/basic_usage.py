@@ -102,7 +102,7 @@ def example_data_formatting() -> None:
     # 1. Format as JSON (pretty-printed)
     format_result = flext_cli_format(SAMPLE_USERS[:2])
     json_output = str(
-        format_result.unwrap() if format_result.success else "Format failed"
+        format_result.unwrap() if format_result.success else "Format failed",
     )
     print("JSON format:")
     preview = (
@@ -115,7 +115,7 @@ def example_data_formatting() -> None:
     # 2. Format as table for console display
     table_result = flext_cli_table(SALES_DATA, "Sales Data", "grid")
     table_output = str(
-        table_result.unwrap() if table_result.success else "Table failed"
+        table_result.unwrap() if table_result.success else "Table failed",
     )
     print("\nTable format:")
     print(table_output)
@@ -123,7 +123,7 @@ def example_data_formatting() -> None:
     # 3. Format single record as table
     single_result = flext_cli_table([SAMPLE_USERS[0]], "User Data", "grid")
     single_table = str(
-        single_result.unwrap() if single_result.success else "Table failed"
+        single_result.unwrap() if single_result.success else "Table failed",
     )
     print("\nSingle record table:")
     print(single_table)
@@ -192,7 +192,7 @@ def example_error_handling() -> None:
     except (ValueError, TypeError):
         success = False
     print(
-        f"✓ Invalid data handling: {'Handled' if not success else 'Unexpected success'}"
+        f"✓ Invalid data handling: {'Handled' if not success else 'Unexpected success'}",
     )
 
     # 2. Export with unsupported format
@@ -218,13 +218,13 @@ def example_error_handling() -> None:
     try:
         format_result = flext_cli_format(SAMPLE_USERS)
         result = str(
-            format_result.unwrap() if format_result.success else "Error: Format failed"
+            format_result.unwrap() if format_result.success else "Error: Format failed",
         )
     except (ValueError, TypeError):
         result = "Error: Format failed"
     print(
         f"✓ Format error handling: "
-        f"{'Handled' if result.startswith('Error:') else 'Unexpected success'}"
+        f"{'Handled' if result.startswith('Error:') else 'Unexpected success'}",
     )
 
     # 4. Export with invalid data structure
@@ -250,7 +250,7 @@ def example_error_handling() -> None:
         success = False
     print(
         f"✓ Command error handling: "
-        f"{'Handled' if not success else 'Unexpected success'}"
+        f"{'Handled' if not success else 'Unexpected success'}",
     )
 
 
@@ -288,10 +288,10 @@ def example_real_world_scenarios() -> None:
 
     print("Survey Analysis:")
     avg_satisfaction = sum(r["satisfaction"] for r in survey_responses) / len(
-        survey_responses
+        survey_responses,
     )
     recommend_rate = sum(1 for r in survey_responses if r["recommend"]) / len(
-        survey_responses
+        survey_responses,
     )
 
     print(f"  Average satisfaction: {avg_satisfaction:.1f}/5")
@@ -300,7 +300,7 @@ def example_real_world_scenarios() -> None:
     # Format results for reporting
     table_result = flext_cli_table(survey_responses, "Survey Responses", "grid")
     summary_table = str(
-        table_result.unwrap() if table_result.success else "Table failed"
+        table_result.unwrap() if table_result.success else "Table failed",
     )
     print("\nSurvey responses table:")
     print(summary_table)
@@ -375,7 +375,7 @@ def example_real_world_scenarios() -> None:
         print("\nSlow endpoints:")
         table_result = flext_cli_table(slow_endpoints, "Slow Endpoints", "grid")
         slow_table = str(
-            table_result.unwrap() if table_result.success else "Table failed"
+            table_result.unwrap() if table_result.success else "Table failed",
         )
         print(slow_table)
 

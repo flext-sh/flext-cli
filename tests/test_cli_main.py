@@ -160,7 +160,7 @@ class TestCliIntegration:
     def test_cli_with_global_options_and_subcommand(self) -> None:
         """Test CLI with global options combined with subcommand."""
         result = self.runner.invoke(
-            cli, ["--debug", "--profile", "test", "auth", "--help"]
+            cli, ["--debug", "--profile", "test", "auth", "--help"],
         )
         assert result.exit_code == 0
         # Should show debug info and auth help
@@ -224,7 +224,7 @@ class TestCliConfiguration:
     @patch("flext_cli.cli.CLIContext")
     @patch("flext_cli.cli.get_config")
     def test_cli_config_loading(
-        self, mock_get_config: MagicMock, mock_cli_context: MagicMock
+        self, mock_get_config: MagicMock, mock_cli_context: MagicMock,
     ) -> None:
         """Test CLI loads configuration correctly."""
         # Setup mock config

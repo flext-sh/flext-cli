@@ -24,10 +24,10 @@ from flext_cli.core.helpers import (
     flext_cli_batch_validate,
     flext_cli_create_helper,
 )
-from flext_core.constants import FlextConstants as _C
+from flext_core.constants import FlextConstants
 from rich.console import Console
 
-_CORE = f"http://{_C.Platform.DEFAULT_HOST}:{_C.Platform.FLEXCORE_PORT}"
+_CORE = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXCORE_PORT}"
 
 
 class TestFlextCliHelper:
@@ -61,7 +61,8 @@ class TestFlextCliHelper:
     def test_flext_cli_confirm_failure(self) -> None:
         """Test confirmation failure handling."""
         with patch(
-            "rich.prompt.Confirm.ask", side_effect=KeyboardInterrupt("User cancelled")
+            "rich.prompt.Confirm.ask",
+            side_effect=KeyboardInterrupt("User cancelled"),
         ):
             result = self.helper.flext_cli_confirm("Test confirmation?")
 
@@ -80,7 +81,8 @@ class TestFlextCliHelper:
         """Test prompt with default value."""
         with patch("rich.prompt.Prompt.ask", return_value="default_value"):
             result = self.helper.flext_cli_prompt(
-                "Enter value:", default="default_value"
+                "Enter value:",
+                default="default_value",
             )
 
         assert result.success
@@ -156,7 +158,9 @@ class TestFlextCliHelper:
         test_file.write_text("content")
 
         result = self.helper.flext_cli_validate_path(
-            str(test_file), must_exist=True, must_be_file=True
+            str(test_file),
+            must_exist=True,
+            must_be_file=True,
         )
 
         assert result.success
@@ -168,7 +172,9 @@ class TestFlextCliHelper:
         test_dir.mkdir()
 
         result = self.helper.flext_cli_validate_path(
-            str(test_dir), must_exist=True, must_be_dir=True
+            str(test_dir),
+            must_exist=True,
+            must_be_dir=True,
         )
 
         assert result.success

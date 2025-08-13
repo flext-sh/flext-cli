@@ -157,7 +157,7 @@ class TestFlextCoreDomainEntityIntegration:
     def test_cli_plugin_domain_entity_lifecycle(self) -> None:
         """Test CLIPlugin domain entity lifecycle."""
         plugin = CLIPlugin(
-            name="test-plugin", entry_point="test.main", commands=["test", "validate"]
+            name="test-plugin", entry_point="test.main", commands=["test", "validate"],
         )
 
         # Domain entity properties (what flext-core FlextEntity actually provides)
@@ -278,7 +278,7 @@ class TestFlextCoreDependencyInjectionIntegration:
     def test_cli_execution_context_integration(self) -> None:
         """Test CLI execution context integration."""
         execution_context = CLIExecutionContext(
-            command_name="test", user_id="user123", session_id="session123"
+            command_name="test", user_id="user123", session_id="session123",
         )
 
         # Execution context should track command execution
@@ -340,7 +340,7 @@ class TestFlextCoreErrorHandlingIntegration:
 
         # Test command failure
         complete_result = command.complete_execution(
-            exit_code=1, stderr="Command failed"
+            exit_code=1, stderr="Command failed",
         )
         assert complete_result.success
         command = complete_result.unwrap()
@@ -481,11 +481,11 @@ class TestFlextCorePatternCompliance:
         """Test CLI follows DDD principles."""
         # Entities should have identity
         command1 = CLICommand(
-            name="test1", command_line="echo hello", command_type=CommandType.SYSTEM
+            name="test1", command_line="echo hello", command_type=CommandType.SYSTEM,
         )
 
         command2 = CLICommand(
-            name="test2", command_line="echo hello", command_type=CommandType.SYSTEM
+            name="test2", command_line="echo hello", command_type=CommandType.SYSTEM,
         )
 
         # Entities should have unique identities

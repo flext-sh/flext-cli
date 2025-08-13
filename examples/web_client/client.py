@@ -84,6 +84,7 @@ class FlextApiClient:
         else:
             try:
                 from flext_core.constants import FlextConstants
+
                 self.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
             except Exception:
                 self.base_url = "http://localhost:8000"
@@ -346,7 +347,7 @@ class FlextApiClient:
 
         """
         params: dict[str, str | int | float | bool | None] = {
-            "installed_only": installed_only
+            "installed_only": installed_only,
         }
         if plugin_type:
             params["type"] = plugin_type

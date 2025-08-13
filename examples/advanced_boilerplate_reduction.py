@@ -19,6 +19,7 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from flext_cli import (
     FlextCliAdvancedMixin,
@@ -30,12 +31,15 @@ from flext_cli import (
 )
 from flext_core import FlextResult
 
+if TYPE_CHECKING:
+    from rich.console import Console
+
 
 # Example 1: Zero-Configuration CLI Command (95% boilerplate reduction)
 class UserManager:
     """Traditional CLI command with full boilerplate (BEFORE)."""
 
-    def delete_user_traditional(self, email: str, confirm: bool = False) -> bool:
+    def delete_user_traditional(self, email: str, *, confirm: bool = False) -> bool:
         """Traditional approach with manual boilerplate - 45 lines of code."""
         import re
 
@@ -47,37 +51,43 @@ class UserManager:
         # Manual email validation
         if not email or not email.strip():
             console.print("[red]✗[/red] Email cannot be empty")
-        elif not re.match(
-            r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email.strip().lower()
+            return result
+
+        if not re.match(
+            r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+            email.strip().lower(),
         ):
             console.print(f"[red]✗[/red] Invalid email format: {email}")
-        else:
-            console.print("[green]✓[/green] Email validated successfully")
-            email = email.strip().lower()
+            return result
 
-            # Manual confirmation
-            if confirm or self._get_user_confirmation(console):
-                # Manual progress indication
-                console.print("[blue]→[/blue] Executing delete user data...")
+        console.print("[green]✓[/green] Email validated successfully")
+        email = email.strip().lower()
 
-                # Manual error handling
-                try:
-                    # Simulate user deletion
-                    time.sleep(1)  # Simulate work
-                    if email == "admin@company.com":
-                        console.print(
-                            "[red]✗[/red] Delete user data failed: Cannot delete admin user"
-                        )
-                    else:
-                        console.print(
-                            "[green]✓[/green] Delete user data completed successfully"
-                        )
-                        result = True
+        # Manual confirmation
+        if not (confirm or self._get_user_confirmation(console)):
+            return result
 
-                except Exception as e:
-                    console.print(
-                        f"[red]✗[/red] Delete user data raised exception: {e}"
-                    )
+        # Manual progress indication
+        console.print("[blue]→[/blue] Executing delete user data...")
+
+        # Manual error handling
+        try:
+            # Simulate user deletion
+            time.sleep(1)  # Simulate work
+            if email == "admin@company.com":
+                console.print(
+                    "[red]✗[/red] Delete user data failed: Cannot delete admin user",
+                )
+            else:
+                console.print(
+                    "[green]✓[/green] Delete user data completed successfully",
+                )
+                result = True
+
+        except Exception as e:
+            console.print(
+                f"[red]✗[/red] Delete user data raised exception: {e}",
+            )
 
         return result
 
@@ -87,7 +97,8 @@ class UserManager:
             from rich.prompt import Confirm
 
             confirmed = Confirm.ask(
-                "[bold red]Confirm: delete user data?[/bold red]", default=False
+                "[bold red]Confirm: delete user data?[/bold red]",
+                default=False,
             )
             if not confirmed:
                 console.print("[yellow]Operation cancelled by user[/yellow]")
@@ -102,7 +113,9 @@ class ZeroConfigUserManager:
     """Zero-configuration CLI command (AFTER) - 95% boilerplate eliminated."""
 
     @flext_cli_zero_config(
-        "delete user data", dangerous=True, validate_inputs={"email": "email"}
+        "delete user data",
+        dangerous=True,
+        validate_inputs={"email": "email"},
     )
     def delete_user(self, email: str) -> FlextResult[str]:
         """Zero-configuration approach - 3 lines of actual business logic."""
@@ -124,16 +137,17 @@ class TraditionalDataProcessor:
         from rich.progress import track
 
         console = Console()
+        result = {}
 
         # Manual file validation
         file_path = Path(data_file)
         if not file_path.exists():
             console.print(f"[red]✗[/red] File does not exist: {file_path}")
-            return {}
+            return result
 
         if not file_path.is_file():
             console.print(f"[red]✗[/red] Path is not a file: {file_path}")
-            return {}
+            return result
 
         console.print("[green]✓[/green] File validated successfully")
 
@@ -142,14 +156,15 @@ class TraditionalDataProcessor:
 
         try:
             confirmed = Confirm.ask(
-                "[bold yellow]Confirm: process user data?[/bold yellow]", default=False
+                "[bold yellow]Confirm: process user data?[/bold yellow]",
+                default=False,
             )
             if not confirmed:
                 console.print("[yellow]Operation cancelled by user[/yellow]")
-                return {}
+                return result
         except (KeyboardInterrupt, EOFError):
             console.print("[red]✗[/red] User interrupted confirmation")
-            return {}
+            return result
 
         # Manual progress indication
         console.print("[blue]→[/blue] Executing process user data...")
@@ -157,7 +172,7 @@ class TraditionalDataProcessor:
         try:
             # Step 1: Load data
             console.print("[blue]i[/blue] Processing step: load")
-            with open(file_path, encoding="utf-8") as f:
+            with Path(file_path).open(encoding="utf-8") as f:
                 raw_data = json.load(f)
             console.print("[green]✓[/green] Step 'load' completed")
 
@@ -165,9 +180,9 @@ class TraditionalDataProcessor:
             console.print("[blue]i[/blue] Processing step: validate")
             if not isinstance(raw_data, list):
                 console.print(
-                    "[red]✗[/red] Step 'validate' failed: Data must be a list"
+                    "[red]✗[/red] Step 'validate' failed: Data must be a list",
                 )
-                return {}
+                return result
             console.print("[green]✓[/green] Step 'validate' completed")
 
             # Step 3: Clean data
@@ -188,11 +203,12 @@ class TraditionalDataProcessor:
             console.print("[green]✓[/green] Step 'transform' completed")
 
             console.print("[green]✓[/green] Process user data completed successfully")
-            return {"processed": len(transformed_data), "data": transformed_data}
+            result = {"processed": len(transformed_data), "data": transformed_data}
 
         except Exception as e:
             console.print(f"[red]✗[/red] Process user data raised exception: {e}")
-            return {}
+
+        return result
 
 
 class ZeroConfigDataProcessor(FlextCliAdvancedMixin):
@@ -211,7 +227,7 @@ class ZeroConfigDataProcessor(FlextCliAdvancedMixin):
     def _process_data_workflow(self, data_file: str) -> FlextResult[dict]:
         """Business logic only - all infrastructure handled automatically."""
         workflow_steps = [
-            ("load", lambda data: self._load_data(data_file)),
+            ("load", lambda _: self._load_data(data_file)),
             ("validate", self._validate_data),
             ("clean", self._clean_data),
             ("transform", self._transform_data),
@@ -221,7 +237,7 @@ class ZeroConfigDataProcessor(FlextCliAdvancedMixin):
 
     def _load_data(self, file_path: str) -> FlextResult[list]:
         """Load data from file."""
-        with open(file_path, encoding="utf-8") as f:
+        with Path(file_path).open(encoding="utf-8") as f:
             data = json.load(f)
         return FlextResult.ok(data)
 
@@ -247,7 +263,7 @@ class ZeroConfigDataProcessor(FlextCliAdvancedMixin):
             transformed_item = {"id": len(transformed_data) + 1, **item}
             transformed_data.append(transformed_item)
         return FlextResult.ok(
-            {"processed": len(transformed_data), "data": transformed_data}
+            {"processed": len(transformed_data), "data": transformed_data},
         )
 
 
@@ -265,7 +281,7 @@ class FileOperationsManager(FlextCliAdvancedMixin):
                     ("backup", file_path, self._backup_file),
                     ("process", file_path, self._process_file),
                     ("cleanup", f"{file_path}.bak", self._cleanup_file),
-                ]
+                ],
             )
 
         return self.flext_cli_handle_file_operations(file_operations)
@@ -316,11 +332,13 @@ class ApiClient:
             [
                 {"id": 1, "name": "Alice", "email": "alice@example.com"},
                 {"id": 2, "name": "Bob", "email": "bob@example.com"},
-            ]
+            ],
         )
 
     @flext_cli_zero_config(
-        "delete user", dangerous=True, validate_inputs={"user_id": "int"}
+        "delete user",
+        dangerous=True,
+        validate_inputs={"user_id": "int"},
     )
     def delete_user(self, user_id: int) -> FlextResult[str]:
         """Delete user with full validation and confirmation."""
@@ -358,7 +376,8 @@ class AdvancedDataPipeline:
         transformers = [self._normalize_data, self._enrich_data, self._generate_reports]
 
         return self.processor.flext_cli_transform_data_pipeline(
-            aggregation_result.data, transformers
+            aggregation_result.data,
+            transformers,
         )
 
     def _fetch_users(self) -> FlextResult[list]:
@@ -368,7 +387,7 @@ class AdvancedDataPipeline:
             [
                 {"id": 1, "name": "Alice", "type": "user"},
                 {"id": 2, "name": "Bob", "type": "user"},
-            ]
+            ],
         )
 
     def _fetch_orders(self) -> FlextResult[list]:
@@ -378,7 +397,7 @@ class AdvancedDataPipeline:
             [
                 {"id": 101, "user_id": 1, "amount": 99.99},
                 {"id": 102, "user_id": 2, "amount": 149.99},
-            ]
+            ],
         )
 
     def _fetch_products(self) -> FlextResult[list]:
@@ -388,7 +407,7 @@ class AdvancedDataPipeline:
             [
                 {"id": 201, "name": "Widget", "price": 29.99},
                 {"id": 202, "name": "Gadget", "price": 49.99},
-            ]
+            ],
         )
 
     def _normalize_data(self, data: dict) -> FlextResult[dict]:
@@ -434,13 +453,13 @@ def demonstrate_boilerplate_reduction() -> None:
     helper = FlextCliHelper()
 
     helper.console.print(
-        "\n[bold blue]FlextCli Boilerplate Reduction Demonstration[/bold blue]"
+        "\n[bold blue]FlextCli Boilerplate Reduction Demonstration[/bold blue]",
     )
     helper.console.print("=" * 60)
 
     # Example 1: Zero-config user management
     helper.console.print(
-        "\n[bold green]Example 1: Zero-Configuration User Management[/bold green]"
+        "\n[bold green]Example 1: Zero-Configuration User Management[/bold green]",
     )
     helper.console.print("[dim]Traditional approach: 45 lines of boilerplate[/dim]")
     helper.console.print("[dim]FlextCli approach: 3 lines of business logic[/dim]")
@@ -448,19 +467,19 @@ def demonstrate_boilerplate_reduction() -> None:
 
     # Example 2: Data processing
     helper.console.print(
-        "\n[bold green]Example 2: Data Processing Pipeline[/bold green]"
+        "\n[bold green]Example 2: Data Processing Pipeline[/bold green]",
     )
     helper.console.print(
-        "[dim]Traditional approach: 60+ lines of manual handling[/dim]"
+        "[dim]Traditional approach: 60+ lines of manual handling[/dim]",
     )
     helper.console.print(
-        "[dim]FlextCli approach: 15 lines focused on business logic[/dim]"
+        "[dim]FlextCli approach: 15 lines focused on business logic[/dim]",
     )
     helper.console.print("[bold yellow]Boilerplate reduction: 90%[/bold yellow]")
 
     # Example 3: File operations
     helper.console.print(
-        "\n[bold green]Example 3: File Operations with Validation[/bold green]"
+        "\n[bold green]Example 3: File Operations with Validation[/bold green]",
     )
     helper.console.print("[dim]Traditional approach: 50+ lines per operation[/dim]")
     helper.console.print("[dim]FlextCli approach: 5 lines per operation[/dim]")
@@ -468,10 +487,10 @@ def demonstrate_boilerplate_reduction() -> None:
 
     # Example 4: API client
     helper.console.print(
-        "\n[bold green]Example 4: API Client with Retry Logic[/bold green]"
+        "\n[bold green]Example 4: API Client with Retry Logic[/bold green]",
     )
     helper.console.print(
-        "[dim]Traditional approach: 40+ lines of retry/error handling[/dim]"
+        "[dim]Traditional approach: 40+ lines of retry/error handling[/dim]",
     )
     helper.console.print("[dim]FlextCli approach: 3 lines with decorators[/dim]")
     helper.console.print("[bold yellow]Boilerplate reduction: 92%[/bold yellow]")
@@ -480,18 +499,18 @@ def demonstrate_boilerplate_reduction() -> None:
     helper.console.print("\n[bold green]Example 5: Advanced Data Pipeline[/bold green]")
     helper.console.print("[dim]Traditional approach: 100+ lines of orchestration[/dim]")
     helper.console.print(
-        "[dim]FlextCli approach: 12 lines of pipeline definition[/dim]"
+        "[dim]FlextCli approach: 12 lines of pipeline definition[/dim]",
     )
     helper.console.print("[bold yellow]Boilerplate reduction: 88%[/bold yellow]")
 
     helper.console.print(
-        "\n[bold cyan]Overall Average Boilerplate Reduction: 90%[/bold cyan]"
+        "\n[bold cyan]Overall Average Boilerplate Reduction: 90%[/bold cyan]",
     )
     helper.console.print(
-        "[dim]FlextCli eliminates validation, confirmation, error handling,"
+        "[dim]FlextCli eliminates validation, confirmation, error handling,",
     )
     helper.console.print(
-        "progress indication, console styling, and retry logic boilerplate.[/dim]"
+        "progress indication, console styling, and retry logic boilerplate.[/dim]",
     )
 
 

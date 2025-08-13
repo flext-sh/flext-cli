@@ -64,7 +64,7 @@ class TestFlextCliExport:
     def test_flext_cli_export_success(self) -> None:
         """Test successful data export."""
         with patch.object(
-            flext_cli._api, "flext_cli_export", return_value=True
+            flext_cli._api, "flext_cli_export", return_value=True,
         ) as mock_export:
             data = {"key": "value"}
             with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
@@ -80,7 +80,7 @@ class TestFlextCliExport:
     def test_flext_cli_export_failure(self) -> None:
         """Test failed data export."""
         with patch.object(
-            flext_cli._api, "flext_cli_export", return_value=False
+            flext_cli._api, "flext_cli_export", return_value=False,
         ) as mock_export:
             data = {"key": "value"}
             path = "/invalid/path.json"
@@ -95,7 +95,7 @@ class TestFlextCliExport:
         """Test export with default format."""
         with (
             patch.object(
-                flext_cli._api, "flext_cli_export", return_value=True
+                flext_cli._api, "flext_cli_export", return_value=True,
             ) as mock_export,
             tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp_file,
         ):
@@ -115,10 +115,10 @@ class TestFlextCliExport:
         for fmt in formats:
             with (
                 patch.object(
-                    flext_cli._api, "flext_cli_export", return_value=True
+                    flext_cli._api, "flext_cli_export", return_value=True,
                 ) as mock_export,
                 tempfile.NamedTemporaryFile(
-                    suffix=f".{fmt}", delete=False
+                    suffix=f".{fmt}", delete=False,
                 ) as temp_file,
             ):
                 data = {"format": fmt}
@@ -134,7 +134,7 @@ class TestFlextCliExport:
         """Test export with complex data structures."""
         with (
             patch.object(
-                flext_cli._api, "flext_cli_export", return_value=True
+                flext_cli._api, "flext_cli_export", return_value=True,
             ) as mock_export,
             tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp_file,
         ):
@@ -159,7 +159,7 @@ class TestFlextCliFormat:
     def test_flext_cli_format_success(self) -> None:
         """Test successful data formatting."""
         with patch.object(
-            flext_cli._api, "flext_cli_format", return_value='{"key": "value"}'
+            flext_cli._api, "flext_cli_format", return_value='{"key": "value"}',
         ) as mock_format:
             data = {"key": "value"}
             format_type = "json"
@@ -173,7 +173,7 @@ class TestFlextCliFormat:
     def test_flext_cli_format_default_format(self) -> None:
         """Test formatting with default format."""
         with patch.object(
-            flext_cli._api, "flext_cli_format", return_value='{"test": "data"}'
+            flext_cli._api, "flext_cli_format", return_value='{"test": "data"}',
         ) as mock_format:
             data = {"test": "data"}
 
@@ -196,7 +196,7 @@ class TestFlextCliFormat:
 
         for fmt, expected in zip(formats, expected_outputs, strict=False):
             with patch.object(
-                flext_cli._api, "flext_cli_format", return_value=expected
+                flext_cli._api, "flext_cli_format", return_value=expected,
             ) as mock_format:
                 data = {"key": "value"}
 
@@ -209,7 +209,7 @@ class TestFlextCliFormat:
     def test_flext_cli_format_empty_data(self) -> None:
         """Test formatting empty data."""
         with patch.object(
-            flext_cli._api, "flext_cli_format", return_value="{}"
+            flext_cli._api, "flext_cli_format", return_value="{}",
         ) as mock_format:
             data: dict[str, object] = {}
 
@@ -222,7 +222,7 @@ class TestFlextCliFormat:
     def test_flext_cli_format_list_data(self) -> None:
         """Test formatting list data."""
         with patch.object(
-            flext_cli._api, "flext_cli_format", return_value="[1, 2, 3]"
+            flext_cli._api, "flext_cli_format", return_value="[1, 2, 3]",
         ) as mock_format:
             data = [1, 2, 3]
 
@@ -239,7 +239,7 @@ class TestFlextCliConfigure:
     def test_flext_cli_configure_success(self) -> None:
         """Test successful configuration."""
         with patch.object(
-            flext_cli._api, "flext_cli_configure", return_value=True
+            flext_cli._api, "flext_cli_configure", return_value=True,
         ) as mock_configure:
             config = {"setting": "value", "debug": True}
 
@@ -252,7 +252,7 @@ class TestFlextCliConfigure:
     def test_flext_cli_configure_failure(self) -> None:
         """Test failed configuration."""
         with patch.object(
-            flext_cli._api, "flext_cli_configure", return_value=False
+            flext_cli._api, "flext_cli_configure", return_value=False,
         ) as mock_configure:
             config = {"invalid": "config"}
 
@@ -265,7 +265,7 @@ class TestFlextCliConfigure:
     def test_flext_cli_configure_empty_config(self) -> None:
         """Test configuration with empty config."""
         with patch.object(
-            flext_cli._api, "flext_cli_configure", return_value=True
+            flext_cli._api, "flext_cli_configure", return_value=True,
         ) as mock_configure:
             config = {}
 
@@ -278,7 +278,7 @@ class TestFlextCliConfigure:
     def test_flext_cli_configure_complex_config(self) -> None:
         """Test configuration with complex configuration."""
         with patch.object(
-            flext_cli._api, "flext_cli_configure", return_value=True
+            flext_cli._api, "flext_cli_configure", return_value=True,
         ) as mock_configure:
             config = {
                 "database": {"url": "sqlite:///test.db", "pool_size": 10},
@@ -301,7 +301,7 @@ class TestFlextCliHealth:
         expected_health = {"status": "healthy", "version": "0.9.0", "uptime": 3600}
 
         with patch.object(
-            flext_cli._api, "flext_cli_health", return_value=expected_health
+            flext_cli._api, "flext_cli_health", return_value=expected_health,
         ) as mock_health:
             result = flext_cli.flext_cli_health()
 
@@ -317,7 +317,7 @@ class TestFlextCliHealth:
         }
 
         with patch.object(
-            flext_cli._api, "flext_cli_health", return_value=expected_health
+            flext_cli._api, "flext_cli_health", return_value=expected_health,
         ) as mock_health:
             result = flext_cli.flext_cli_health()
 
@@ -339,7 +339,7 @@ class TestFlextCliHealth:
         }
 
         with patch.object(
-            flext_cli._api, "flext_cli_health", return_value=expected_health
+            flext_cli._api, "flext_cli_health", return_value=expected_health,
         ) as mock_health:
             result = flext_cli.flext_cli_health()
 
@@ -362,16 +362,16 @@ class TestFlextCliCreateContext:
 
         # Test that it properly handles API response and creates context
         with patch.object(
-            flext_cli._api, "flext_cli_create_context", return_value=expected_context
+            flext_cli._api, "flext_cli_create_context", return_value=expected_context,
         ) as mock_create:
             result = flext_cli.flext_cli_create_context(config)
 
             # Should return a FlextCliContext instance (via fallback since mock isn't FlextCliContext)
             if not hasattr(
-                result, "session_id"
+                result, "session_id",
             ):  # FlextCliContext has session_id attribute
                 raise AssertionError(
-                    f"Expected FlextCliContext instance, got {type(result)}"
+                    f"Expected FlextCliContext instance, got {type(result)}",
                 )
             mock_create.assert_called_once_with(config)
 
@@ -381,16 +381,16 @@ class TestFlextCliCreateContext:
 
         # Test that it properly handles API response and creates context
         with patch.object(
-            flext_cli._api, "flext_cli_create_context", return_value=expected_context
+            flext_cli._api, "flext_cli_create_context", return_value=expected_context,
         ) as mock_create:
             result = flext_cli.flext_cli_create_context()
 
             # Should return a FlextCliContext instance (via fallback since mock isn't FlextCliContext)
             if not hasattr(
-                result, "session_id"
+                result, "session_id",
             ):  # FlextCliContext has session_id attribute
                 raise AssertionError(
-                    f"Expected FlextCliContext instance, got {type(result)}"
+                    f"Expected FlextCliContext instance, got {type(result)}",
                 )
             mock_create.assert_called_once_with(None)
 
@@ -400,16 +400,16 @@ class TestFlextCliCreateContext:
 
         # Test that it properly handles API response and creates context
         with patch.object(
-            flext_cli._api, "flext_cli_create_context", return_value=expected_context
+            flext_cli._api, "flext_cli_create_context", return_value=expected_context,
         ) as mock_create:
             result = flext_cli.flext_cli_create_context(None)
 
             # Should return a FlextCliContext instance (via fallback since mock isn't FlextCliContext)
             if not hasattr(
-                result, "session_id"
+                result, "session_id",
             ):  # FlextCliContext has session_id attribute
                 raise AssertionError(
-                    f"Expected FlextCliContext instance, got {type(result)}"
+                    f"Expected FlextCliContext instance, got {type(result)}",
                 )
             mock_create.assert_called_once_with(None)
 
@@ -426,10 +426,10 @@ class TestFlextCliCreateContext:
 
                 # Should always return a FlextCliContext instance (via fallback)
                 if not hasattr(
-                    result, "session_id"
+                    result, "session_id",
                 ):  # FlextCliContext has session_id attribute
                     raise AssertionError(
-                        f"Expected FlextCliContext instance, got {type(result)}"
+                        f"Expected FlextCliContext instance, got {type(result)}",
                     )
 
 
@@ -443,7 +443,7 @@ class TestFlextCliCreateCommand:
         mock_result.success = True
 
         with patch.object(
-            flext_cli._api, "flext_cli_create_command", return_value=mock_result
+            flext_cli._api, "flext_cli_create_command", return_value=mock_result,
         ) as mock_create:
             name = "test_command"
             command_line = "echo hello"
@@ -461,7 +461,7 @@ class TestFlextCliCreateCommand:
         mock_result.success = True
 
         with patch.object(
-            flext_cli._api, "flext_cli_create_command", return_value=mock_result
+            flext_cli._api, "flext_cli_create_command", return_value=mock_result,
         ) as mock_create:
             name = "complex_command"
             command_line = "python script.py"
@@ -476,7 +476,7 @@ class TestFlextCliCreateCommand:
     def test_flext_cli_create_command_failure(self) -> None:
         """Test failed command creation."""
         with patch.object(
-            flext_cli._api, "flext_cli_create_command", return_value=False
+            flext_cli._api, "flext_cli_create_command", return_value=False,
         ) as mock_create:
             name = "invalid_command"
             command_line = ""
@@ -494,7 +494,7 @@ class TestFlextCliCreateCommand:
         mock_result.success = True
 
         with patch.object(
-            flext_cli._api, "flext_cli_create_command", return_value=mock_result
+            flext_cli._api, "flext_cli_create_command", return_value=mock_result,
         ) as mock_create:
             name = "test_cmd"
             command_line = "test"
@@ -510,7 +510,7 @@ class TestFlextCliCreateCommand:
 
                 for options in test_cases:
                     result = flext_cli.flext_cli_create_command(
-                        name, command_line, **options
+                        name, command_line, **options,
                     )
                     if not (result):
                         raise AssertionError(f"Expected True, got {result}")
@@ -595,7 +595,7 @@ class TestFlextCliCreateSession:
             mock_result.success = True
 
             with patch.object(
-                flext_cli._api, "flext_cli_create_session", return_value=mock_result
+                flext_cli._api, "flext_cli_create_session", return_value=mock_result,
             ) as mock_create:
                 result = flext_cli.flext_cli_create_session("test_user")
 
@@ -618,7 +618,7 @@ class TestFlextCliRegisterHandler:
         mock_result.success = True
 
         with patch.object(
-            flext_cli._api, "flext_cli_register_handler", return_value=mock_result
+            flext_cli._api, "flext_cli_register_handler", return_value=mock_result,
         ) as mock_register:
             name = "test_handler"
 
@@ -631,7 +631,7 @@ class TestFlextCliRegisterHandler:
     def test_flext_cli_register_handler_failure(self) -> None:
         """Test failed handler registration."""
         with patch.object(
-            flext_cli._api, "flext_cli_register_handler", return_value=False
+            flext_cli._api, "flext_cli_register_handler", return_value=False,
         ) as mock_register:
             name = "invalid_handler"
             handler = None
@@ -709,7 +709,7 @@ class TestFlextCliRegisterPlugin:
         mock_result.success = True
 
         with patch.object(
-            flext_cli._api, "flext_cli_register_plugin", return_value=mock_result
+            flext_cli._api, "flext_cli_register_plugin", return_value=mock_result,
         ) as mock_register:
             name = "test_plugin"
 
@@ -724,7 +724,7 @@ class TestFlextCliRegisterPlugin:
         plugin = MagicMock()
 
         with patch.object(
-            flext_cli._api, "flext_cli_register_plugin", return_value=False
+            flext_cli._api, "flext_cli_register_plugin", return_value=False,
         ) as mock_register:
             name = "invalid_plugin"
 
@@ -761,7 +761,7 @@ class TestFlextCliRegisterPlugin:
     def test_flext_cli_register_plugin_none_plugin(self) -> None:
         """Test registering None as plugin."""
         with patch.object(
-            flext_cli._api, "flext_cli_register_plugin", return_value=False
+            flext_cli._api, "flext_cli_register_plugin", return_value=False,
         ) as mock_register:
             name = "none_plugin"
             plugin = None
@@ -786,7 +786,7 @@ class TestFlextCliExecuteHandler:
         mock_result.success = True
 
         with patch.object(
-            flext_cli._api, "flext_cli_execute_handler", return_value=mock_result
+            flext_cli._api, "flext_cli_execute_handler", return_value=mock_result,
         ) as mock_execute:
             name = "test_handler"
 
@@ -806,7 +806,7 @@ class TestFlextCliExecuteHandler:
         mock_result.success = True
 
         with patch.object(
-            flext_cli._api, "flext_cli_execute_handler", return_value=mock_result
+            flext_cli._api, "flext_cli_execute_handler", return_value=mock_result,
         ) as mock_execute:
             name = "args_handler"
             args = ("arg1", "arg2")
@@ -827,7 +827,7 @@ class TestFlextCliExecuteHandler:
         mock_result.success = True
 
         with patch.object(
-            flext_cli._api, "flext_cli_execute_handler", return_value=mock_result
+            flext_cli._api, "flext_cli_execute_handler", return_value=mock_result,
         ) as mock_execute:
             name = "kwargs_handler"
             kwargs = {"key1": "value1", "key2": "value2"}
@@ -848,7 +848,7 @@ class TestFlextCliExecuteHandler:
         mock_result.success = True
 
         with patch.object(
-            flext_cli._api, "flext_cli_execute_handler", return_value=mock_result
+            flext_cli._api, "flext_cli_execute_handler", return_value=mock_result,
         ) as mock_execute:
             name = "mixed_handler"
             args = ("pos1", "pos2")
@@ -873,7 +873,7 @@ class TestFlextCliExecuteHandler:
         mock_result.success = True
 
         with patch.object(
-            flext_cli._api, "flext_cli_execute_handler", return_value=mock_result
+            flext_cli._api, "flext_cli_execute_handler", return_value=mock_result,
         ) as mock_execute:
             name = "error_handler"
 
@@ -903,7 +903,7 @@ class TestFlextCliExecuteHandler:
             mock_result.success = True
 
             with patch.object(
-                flext_cli._api, "flext_cli_execute_handler", return_value=mock_result
+                flext_cli._api, "flext_cli_execute_handler", return_value=mock_result,
             ) as mock_execute:
                 name = "type_test_handler"
 
@@ -1055,7 +1055,7 @@ class TestFlextCliGetCommands:
         }
 
         with patch.object(
-            flext_cli._api, "flext_cli_get_commands", return_value=expected_commands
+            flext_cli._api, "flext_cli_get_commands", return_value=expected_commands,
         ) as mock_get:
             result = flext_cli.flext_cli_get_commands()
 
@@ -1069,7 +1069,7 @@ class TestFlextCliGetCommands:
         expected_commands = {}
 
         with patch.object(
-            flext_cli._api, "flext_cli_get_commands", return_value=expected_commands
+            flext_cli._api, "flext_cli_get_commands", return_value=expected_commands,
         ) as mock_get:
             result = flext_cli.flext_cli_get_commands()
 
@@ -1100,7 +1100,7 @@ class TestFlextCliGetCommands:
         }
 
         with patch.object(
-            flext_cli._api, "flext_cli_get_commands", return_value=expected_commands
+            flext_cli._api, "flext_cli_get_commands", return_value=expected_commands,
         ) as mock_get:
             result = flext_cli.flext_cli_get_commands()
 
@@ -1111,7 +1111,7 @@ class TestFlextCliGetCommands:
             assert "backup" in result
             if result["deploy"]["success_count"] != 10:
                 raise AssertionError(
-                    f"Expected {10}, got {result['deploy']['success_count']}"
+                    f"Expected {10}, got {result['deploy']['success_count']}",
                 )
             mock_get.assert_called_once()
 
@@ -1127,7 +1127,7 @@ class TestFlextCliGetSessions:
         }
 
         with patch.object(
-            flext_cli._api, "flext_cli_get_sessions", return_value=expected_sessions
+            flext_cli._api, "flext_cli_get_sessions", return_value=expected_sessions,
         ) as mock_get:
             result = flext_cli.flext_cli_get_sessions()
 
@@ -1141,7 +1141,7 @@ class TestFlextCliGetSessions:
         expected_sessions = {}
 
         with patch.object(
-            flext_cli._api, "flext_cli_get_sessions", return_value=expected_sessions
+            flext_cli._api, "flext_cli_get_sessions", return_value=expected_sessions,
         ) as mock_get:
             result = flext_cli.flext_cli_get_sessions()
 
@@ -1174,7 +1174,7 @@ class TestFlextCliGetSessions:
         }
 
         with patch.object(
-            flext_cli._api, "flext_cli_get_sessions", return_value=expected_sessions
+            flext_cli._api, "flext_cli_get_sessions", return_value=expected_sessions,
         ) as mock_get:
             result = flext_cli.flext_cli_get_sessions()
 
@@ -1182,11 +1182,11 @@ class TestFlextCliGetSessions:
                 raise AssertionError(f"Expected {expected_sessions}, got {result}")
             if not (result["sess_123"]["active"]):
                 raise AssertionError(
-                    f"Expected True, got {result['sess_123']['active']}"
+                    f"Expected True, got {result['sess_123']['active']}",
                 )
             if result["sess_789"]["active"]:
                 raise AssertionError(
-                    f"Expected False, got {result['sess_789']['active']}"
+                    f"Expected False, got {result['sess_789']['active']}",
                 )
             assert result["sess_123"]["commands_executed"] == 25
             mock_get.assert_called_once()
@@ -1207,7 +1207,7 @@ class TestFlextCliGetPlugins:
         }
 
         with patch.object(
-            flext_cli._api, "flext_cli_get_plugins", return_value=expected_plugins
+            flext_cli._api, "flext_cli_get_plugins", return_value=expected_plugins,
         ) as mock_get:
             result = flext_cli.flext_cli_get_plugins()
 
@@ -1221,7 +1221,7 @@ class TestFlextCliGetPlugins:
         expected_plugins = {}
 
         with patch.object(
-            flext_cli._api, "flext_cli_get_plugins", return_value=expected_plugins
+            flext_cli._api, "flext_cli_get_plugins", return_value=expected_plugins,
         ) as mock_get:
             result = flext_cli.flext_cli_get_plugins()
 
@@ -1254,7 +1254,7 @@ class TestFlextCliGetPlugins:
         }
 
         with patch.object(
-            flext_cli._api, "flext_cli_get_plugins", return_value=expected_plugins
+            flext_cli._api, "flext_cli_get_plugins", return_value=expected_plugins,
         ) as mock_get:
             result = flext_cli.flext_cli_get_plugins()
 
@@ -1262,11 +1262,11 @@ class TestFlextCliGetPlugins:
                 raise AssertionError(f"Expected {expected_plugins}, got {result}")
             if not (result["database_plugin"]["enabled"]):
                 raise AssertionError(
-                    f"Expected True, got {result['database_plugin']['enabled']}"
+                    f"Expected True, got {result['database_plugin']['enabled']}",
                 )
             if result["notification_plugin"]["enabled"]:
                 raise AssertionError(
-                    f"Expected False, got {result['notification_plugin']['enabled']}"
+                    f"Expected False, got {result['notification_plugin']['enabled']}",
                 )
             assert len(result["database_plugin"]["dependencies"]) == EXPECTED_BULK_SIZE
             mock_get.assert_called_once()
@@ -1287,7 +1287,7 @@ class TestFlextCliGetHandlers:
         }
 
         with patch.object(
-            flext_cli._api, "flext_cli_get_handlers", return_value=expected_handlers
+            flext_cli._api, "flext_cli_get_handlers", return_value=expected_handlers,
         ) as mock_get:
             result = flext_cli.flext_cli_get_handlers()
 
@@ -1301,7 +1301,7 @@ class TestFlextCliGetHandlers:
         expected_handlers = {}
 
         with patch.object(
-            flext_cli._api, "flext_cli_get_handlers", return_value=expected_handlers
+            flext_cli._api, "flext_cli_get_handlers", return_value=expected_handlers,
         ) as mock_get:
             result = flext_cli.flext_cli_get_handlers()
 
@@ -1343,7 +1343,7 @@ class TestFlextCliGetHandlers:
         }
 
         with patch.object(
-            flext_cli._api, "flext_cli_get_handlers", return_value=expected_handlers
+            flext_cli._api, "flext_cli_get_handlers", return_value=expected_handlers,
         ) as mock_get:
             result = flext_cli.flext_cli_get_handlers()
 
@@ -1351,11 +1351,11 @@ class TestFlextCliGetHandlers:
                 raise AssertionError(f"Expected {expected_handlers}, got {result}")
             if not (result["request_handler"]["active"]):
                 raise AssertionError(
-                    f"Expected True, got {result['request_handler']['active']}"
+                    f"Expected True, got {result['request_handler']['active']}",
                 )
             if result["deprecated_handler"]["active"]:
                 raise AssertionError(
-                    f"Expected False, got {result['deprecated_handler']['active']}"
+                    f"Expected False, got {result['deprecated_handler']['active']}",
                 )
             assert result["request_handler"]["execution_count"] == 1500
             if len(result) != EXPECTED_DATA_COUNT:
@@ -1429,7 +1429,7 @@ class TestFlextCliModuleIntegration:
         # All functions should delegate to the _api instance
 
         with patch.object(
-            flext_cli._api, "flext_cli_health", return_value={"status": "ok"}
+            flext_cli._api, "flext_cli_health", return_value={"status": "ok"},
         ) as mock_health:
             result = flext_cli.flext_cli_health()
 
@@ -1457,5 +1457,5 @@ class TestFlextCliModuleIntegration:
             # Verify docstring contains Args and Returns sections for better documentation
             if "Args:" not in func.__doc__ and "Returns:" not in func.__doc__:
                 raise AssertionError(
-                    f"Function {func.__name__} missing Args/Returns documentation"
+                    f"Function {func.__name__} missing Args/Returns documentation",
                 )

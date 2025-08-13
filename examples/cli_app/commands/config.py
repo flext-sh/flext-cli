@@ -70,11 +70,11 @@ class ConfigDisplayManager:
 
         if format_type == "json":
             self.cli_context.console.print(
-                json.dumps(config_data, indent=2, default=str)
+                json.dumps(config_data, indent=2, default=str),
             )
         elif format_type == "yaml":
             self.cli_context.console.print(
-                yaml.dump(config_data, default_flow_style=False)
+                yaml.dump(config_data, default_flow_style=False),
             )
         else:
             self._display_as_table(config_data)

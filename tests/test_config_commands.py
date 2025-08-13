@@ -25,6 +25,7 @@ from flext_cli.commands.config import (
     _print_config_value,
     config,
 )
+from flext_core.constants import FlextConstants
 from rich.table import Table
 
 # Constants
@@ -52,7 +53,7 @@ class TestConfigCommands:
         self.mock_cli_context.config.model_dump.return_value = {
             "debug": False,
             "profile": "default",
-            "api_url": "http://localhost:8000",
+            "api_url": f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}",
         }
         self.mock_cli_context.settings.model_dump.return_value = {
             "timeout": 30,
@@ -321,7 +322,7 @@ class TestConfigCommands:
 
                     if result.exit_code not in {0, 1, 2}:
                         raise AssertionError(
-                            f"Expected {result.exit_code} in {[0, 1, 2]}"
+                            f"Expected {result.exit_code} in {[0, 1, 2]}",
                         )
 
     def test_edit_command_subprocess_error(self) -> None:
@@ -381,7 +382,8 @@ class TestConfigHelperFunctions:
         """Test finding configuration value in settings object."""
         # Mock value not in config but in settings
         delattr(self.mock_cli_context.config, "timeout") if hasattr(
-            self.mock_cli_context.config, "timeout"
+            self.mock_cli_context.config,
+            "timeout",
         ) else None
         self.mock_cli_context.settings.timeout = 30
 
@@ -514,7 +516,7 @@ class TestConfigIntegration:
 
         if table.title != "FLEXT Configuration v0.7.0":
             raise AssertionError(
-                f"Expected {'FLEXT Configuration v0.7.0'}, got {table.title}"
+                f"Expected {'FLEXT Configuration v0.7.0'}, got {table.title}",
             )
 
     def test_path_operations(self) -> None:
@@ -526,7 +528,7 @@ class TestConfigIntegration:
 
         if str(config_file) != "/home/user/.flext/config.yaml":
             raise AssertionError(
-                f"Expected {'/home/user/.flext/config.yaml'}, got {config_file!s}"
+                f"Expected {'/home/user/.flext/config.yaml'}, got {config_file!s}",
             )
         assert str(cache_dir) == "/home/user/.flext/cache"
 

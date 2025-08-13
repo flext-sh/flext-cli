@@ -366,7 +366,7 @@ class AlgarDiagnosticStrategy:
         click.echo("-" * 10)
         if self.missing_vars:
             click.echo(
-                f"❌ {len(self.missing_vars)} required environment variables missing"
+                f"❌ {len(self.missing_vars)} required environment variables missing",
             )
             click.echo("Please check your .env configuration")
             ctx.exit(1)

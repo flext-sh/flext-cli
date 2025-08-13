@@ -19,7 +19,9 @@ class CLIContext:
     debug: bool = False
     verbose: bool = False
 
-    def get_config_value(self, key: str, default: object | None = None) -> object | None:
+    def get_config_value(
+        self, key: str, default: object | None = None,
+    ) -> object | None:
         """Get configuration value with fallback."""
         return self.config.get(key, default)
 
@@ -72,7 +74,9 @@ def create_cli_context(**kwargs: object) -> CLIContext:
     )
 
 
-def create_execution_context(command_name: str, **kwargs: object) -> CLIExecutionContext:
+def create_execution_context(
+    command_name: str, **kwargs: object,
+) -> CLIExecutionContext:
     """Create an execution context for a specific command."""
     # Extract and cast specific fields with correct types
     config = kwargs.get("config", {})
@@ -95,5 +99,7 @@ def create_execution_context(command_name: str, **kwargs: object) -> CLIExecutio
         verbose=bool(verbose),
         command_args=command_args if isinstance(command_args, dict) else {},
         execution_id=str(execution_id) if execution_id is not None else None,
-        start_time=float(start_time) if start_time is not None and (isinstance(start_time, (int, float, str))) else None,
+        start_time=float(start_time)
+        if start_time is not None and (isinstance(start_time, (int, float, str)))
+        else None,
     )

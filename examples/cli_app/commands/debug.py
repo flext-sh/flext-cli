@@ -111,7 +111,7 @@ class ValidationStrategy:
         py_version = sys.version_info
         if py_version >= (3, 10):
             self.console.print(
-                f"[green]✅ Python version: {sys.version.split()[0]}[/green]"
+                f"[green]✅ Python version: {sys.version.split()[0]}[/green]",
             )
         else:
             self.issues.append(
@@ -124,7 +124,7 @@ class ValidationStrategy:
         config_path = config.config_dir / "config.yaml"
         if config_path.exists():
             self.console.print(
-                f"[green]✅ Configuration file exists: {config_path}[/green]"
+                f"[green]✅ Configuration file exists: {config_path}[/green]",
             )
         else:
             self.warnings.append(f"Configuration file not found at {config_path}")
@@ -159,7 +159,7 @@ class ValidationStrategy:
 
         if self.issues:
             self.console.print(
-                f"[red]❌ Found {len(self.issues)} critical issues:[/red]"
+                f"[red]❌ Found {len(self.issues)} critical issues:[/red]",
             )
             for issue in self.issues:
                 self.console.print(f"  - {issue}")
@@ -168,7 +168,7 @@ class ValidationStrategy:
 
         if self.warnings:
             self.console.print(
-                f"\n[yellow]⚠️  Found {len(self.warnings)} warnings:[/yellow]"
+                f"\n[yellow]⚠️  Found {len(self.warnings)} warnings:[/yellow]",
             )
             for warning in self.warnings:
                 self.console.print(f"  - {warning}")

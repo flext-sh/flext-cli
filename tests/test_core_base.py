@@ -67,7 +67,7 @@ class TestCLIContext:
     def test_context_validation_quiet_and_verbose(self) -> None:
         """Test CLI context validation with both quiet and verbose."""
         with pytest.raises(
-            ValueError, match="Cannot have both quiet and verbose modes enabled"
+            ValueError, match="Cannot have both quiet and verbose modes enabled",
         ):
             CLIContext.create_with_params(quiet=True, verbose=True)
 
@@ -158,7 +158,7 @@ class TestHandleServiceResult:
 
         if documented_function.__name__ != "documented_function":
             raise AssertionError(
-                f"Expected {'documented_function'}, got {documented_function.__name__}"
+                f"Expected {'documented_function'}, got {documented_function.__name__}",
             )
         assert documented_function.__doc__ == "A documented function."
 
@@ -183,7 +183,7 @@ class TestHandleServiceResult:
                     "data": [1, 2, 3],
                     "metadata": {"count": 3, "type": "list"},
                     "nested": {"deep": {"value": "found"}},
-                }
+                },
             )
 
         result = complex_data_function()
@@ -194,7 +194,7 @@ class TestHandleServiceResult:
         assert result["metadata"]["count"] == EXPECTED_DATA_COUNT
         if result["nested"]["deep"]["value"] != "found":
             raise AssertionError(
-                f"Expected {'found'}, got {result['nested']['deep']['value']}"
+                f"Expected {'found'}, got {result['nested']['deep']['value']}",
             )
 
     def test_async_function_compatibility(self) -> None:
@@ -232,7 +232,7 @@ class TestHandleServiceResult:
             result = await async_fail_function()
             assert result is None
             mock_console.print.assert_called_once_with(
-                "[red]Error: async error message[/red]"
+                "[red]Error: async error message[/red]",
             )
 
         # Run the async test
@@ -245,7 +245,7 @@ class TestHandleServiceResult:
             patch("flext_cli.core.base.get_logger") as mock_get_logger,
         ):
             self._test_async_exception_handling_impl(
-                mock_get_logger, mock_console_class
+                mock_get_logger, mock_console_class,
             )
 
     def _test_async_exception_handling_impl(
@@ -272,7 +272,7 @@ class TestHandleServiceResult:
                 await async_exception_function()
 
             mock_console.print.assert_called_once_with(
-                "[red]Error: async test exception[/red]"
+                "[red]Error: async test exception[/red]",
             )
             mock_logger.exception.assert_called_once_with(
                 "Unhandled exception in CLI command",

@@ -22,6 +22,7 @@ from flext_cli.domain import (
     CommandType,
 )
 from flext_core import FlextResult
+from flext_core.constants import FlextConstants
 from rich.console import Console
 
 if TYPE_CHECKING:
@@ -74,7 +75,7 @@ def temp_dir() -> Generator[Path]:
 def cli_config() -> CLIConfig:
     """Create a test CLI configuration."""
     return CLIConfig(
-        api_url="http://localhost:8000",
+        api_url=f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}",
         output_format="json",
         timeout=30,
         profile="test",
@@ -215,7 +216,7 @@ def mock_flext_api_client():
     responses without making real HTTP calls.
     """
     mock_client = MagicMock()
-    mock_client.base_url = "http://localhost:8000"
+    mock_client.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
 
     # Setup async methods to return FlextResult objects
     async def mock_test_connection_success():
@@ -226,7 +227,7 @@ def mock_flext_api_client():
 
     async def mock_get_system_status_success():
         return FlextResult.ok(
-            {"version": "1.0.0", "status": "healthy", "uptime": "24h"}
+            {"version": "1.0.0", "status": "healthy", "uptime": "24h"},
         )
 
     async def mock_get_system_status_failure():
@@ -237,17 +238,17 @@ def mock_flext_api_client():
             [
                 {
                     "name": "FlexCore",
-                    "url": "http://localhost:8080",
+                    "url": f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXCORE_PORT}",
                     "status": "healthy",
                     "response_time": 0.05,
                 },
                 {
                     "name": "FLEXT Service",
-                    "url": "http://localhost:8081",
+                    "url": f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXSERVICE_PORT}",
                     "status": "healthy",
                     "response_time": 0.03,
                 },
-            ]
+            ],
         )
 
     # Default to successful responses - tests can override as needed
@@ -280,7 +281,8 @@ def mock_flext_api_client_with_patches():
             side_effect=mock_create_flext_api,
         ),
         patch(
-            "flext_cli.flext_api_integration.FlextApiClient", return_value=MagicMock()
+            "flext_cli.flext_api_integration.FlextApiClient",
+            return_value=MagicMock(),
         ),
         patch(
             "flext_cli.flext_api_integration.get_default_cli_client",
@@ -312,7 +314,8 @@ def mock_failing_api_client():
             side_effect=mock_create_flext_api,
         ),
         patch(
-            "flext_cli.flext_api_integration.FlextApiClient", return_value=MagicMock()
+            "flext_cli.flext_api_integration.FlextApiClient",
+            return_value=MagicMock(),
         ),
         patch(
             "flext_cli.flext_api_integration.get_default_cli_client",
@@ -337,7 +340,10 @@ def mock_container():
     def mock_api_factory(**kwargs: object) -> object:
         """Mock API client factory that returns test-friendly clients."""
         mock_client = MagicMock()
-        mock_client.base_url = kwargs.get("base_url", "http://localhost:8000")
+        mock_client.base_url = kwargs.get(
+            "base_url",
+            f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}",
+        )
         mock_client.timeout = kwargs.get("timeout", 30.0)
         mock_client.token = kwargs.get("token")
 
@@ -367,7 +373,7 @@ def isolated_config():
 
     # Return fresh config instance for each test
     return CLIConfig(
-        api_url="http://localhost:8000",
+        api_url=f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}",
         timeout=30,
         debug=True,
         profile="test",

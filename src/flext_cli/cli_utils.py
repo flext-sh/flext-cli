@@ -121,7 +121,9 @@ def _record_success(results: dict[str, object], path: Path) -> None:
 
 
 def _record_failure(
-    results: dict[str, object], path: Path, error_msg: str,
+    results: dict[str, object],
+    path: Path,
+    error_msg: str,
 ) -> None:
     failed_count = cast("int", results["failed"])
     results["failed"] = failed_count + 1
@@ -277,7 +279,10 @@ def cli_batch_process_files(
 
         for path in paths:
             should_stop, stop_message = _process_single_file(
-                path, processor, results, fail_fast=fail_fast,
+                path,
+                processor,
+                results,
+                fail_fast=fail_fast,
             )
             if progress and task_id is not None:
                 progress.update(task_id, advance=1)  # type: ignore[arg-type]
@@ -306,7 +311,9 @@ def cli_batch_process_files(
 
 
 def cli_load_data_file(
-    file_path: Path | str, *, validate_format: bool = True,
+    file_path: Path | str,
+    *,
+    validate_format: bool = True,
 ) -> FlextResult[object]:
     """Load data from various file formats with automatic format detection.
 
@@ -465,7 +472,11 @@ def _save_yaml_file(data: object, path: Path) -> FlextResult[None]:
     try:
         with path.open("w", encoding="utf-8") as f:
             yaml.dump(
-                data, f, default_flow_style=False, sort_keys=False, allow_unicode=True,
+                data,
+                f,
+                default_flow_style=False,
+                sort_keys=False,
+                allow_unicode=True,
             )
         return FlextResult.ok(None)
     except (OSError, yaml.YAMLError) as e:
@@ -615,7 +626,10 @@ def cli_format_output(
                 cast("int", options["max_width"]) if options.get("max_width") else None
             )
             table_result = cli_create_table(
-                data, title=title, show_lines=show_lines, max_width=max_width,
+                data,
+                title=title,
+                show_lines=show_lines,
+                max_width=max_width,
             )
             if table_result.is_success:
                 output = io.StringIO()
@@ -737,7 +751,10 @@ def cli_confirm(message: str, *, default: bool = False) -> FlextResult[bool]:
 
 
 def cli_prompt(
-    message: str, *, default: str | None = None, hidden: bool = False,
+    message: str,
+    *,
+    default: str | None = None,
+    hidden: bool = False,
 ) -> FlextResult[str]:
     """Prompt user for input with optional default and hidden input.
 

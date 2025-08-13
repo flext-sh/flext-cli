@@ -249,7 +249,7 @@ def init(
                 click.echo("⚠️  Template support not yet implemented in project manager")
         else:
             click.echo(
-                f"❌ Failed to initialize project: {result.error_message}", err=True
+                f"❌ Failed to initialize project: {result.error_message}", err=True,
             )
             ctx.exit(1)
     except (RuntimeError, ValueError, TypeError) as e:

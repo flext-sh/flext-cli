@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Literal
 
 from flext_core.config import FlextSettings
+from flext_core.constants import FlextConstants
 from pydantic import BaseModel, Field
 
 # ----------------------------------------------------------------------------
@@ -45,10 +46,17 @@ class CLIOutputConfig(BaseModel):
     )
 
 
+def _default_api_url() -> str:
+    try:
+        return f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
+    except Exception:
+        return "http://localhost:8000"
+
+
 class CLIAPIConfig(BaseModel):
     """API connectivity configuration for FLEXT services."""
 
-    url: str = Field(default="http://localhost:8000")
+    url: str = Field(default_factory=_default_api_url)
     timeout: int = Field(default=30)
     connect_timeout: int = Field(default=10)
     read_timeout: int = Field(default=30)
@@ -329,6 +337,13 @@ class CLIConfig(BaseModel):
         return Path.home() / ".flext" / ".refresh_token"
 
 
+def _default_settings_api_url() -> str:
+    try:
+        return f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
+    except Exception:
+        return "http://localhost:8000"
+
+
 class CLISettings(FlextSettings):
     """Application-level settings for the CLI.
 
@@ -341,7 +356,7 @@ class CLISettings(FlextSettings):
         default="FLEXT CLI - Developer Command Line Interface",
     )
 
-    api_url: str = Field(default="http://localhost:8000")
+    api_url: str = Field(default_factory=_default_settings_api_url)
     timeout: int = Field(default=30)
     output_format: Literal["table", "json", "yaml", "csv", "plain"] = Field(
         default="table",

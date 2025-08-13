@@ -63,7 +63,7 @@ class TestFlextCliQuickSetup:
             "output_format": "json",
             "commands": ["auth", "config"],
             "api_timeout": 60,
-            "console_width": 120
+            "console_width": 120,
         }
 
         result = flext_cli_quick_setup(config)
@@ -79,10 +79,7 @@ class TestFlextCliQuickSetup:
 
     def test_quick_setup_default_overrides(self) -> None:
         """Test that user config overrides defaults."""
-        config = {
-            "debug": True,
-            "retry_count": 5
-        }
+        config = {"debug": True, "retry_count": 5}
 
         result = flext_cli_quick_setup(config)
 
@@ -94,11 +91,7 @@ class TestFlextCliQuickSetup:
 
     def test_quick_setup_console_configuration(self) -> None:
         """Test console configuration in quick setup."""
-        config = {
-            "console_width": 100,
-            "color_system": "256",
-            "debug": True
-        }
+        config = {"console_width": 100, "color_system": "256", "debug": True}
 
         result = flext_cli_quick_setup(config)
 
@@ -109,7 +102,10 @@ class TestFlextCliQuickSetup:
     def test_quick_setup_exception_handling(self) -> None:
         """Test quick setup exception handling."""
         # Mock Console to raise exception
-        with patch("flext_cli.core.utils.Console", side_effect=Exception("Console init failed")):
+        with patch(
+            "flext_cli.core.utils.Console",
+            side_effect=Exception("Console init failed"),
+        ):
             result = flext_cli_quick_setup({})
 
             assert not result.success
@@ -158,7 +154,10 @@ class TestFlextCliAutoConfig:
 
         env_overrides = {"debug": True, "api_url": "https://override.api.flext.sh"}
 
-        with patch("flext_cli.core.utils._load_env_overrides", return_value=env_overrides):
+        with patch(
+            "flext_cli.core.utils._load_env_overrides",
+            return_value=env_overrides,
+        ):
             result = flext_cli_auto_config("default", [str(config_file)])
 
         assert result.success
@@ -264,13 +263,13 @@ class TestFlextCliRequireAll:
         mock_helper.flext_cli_confirm.side_effect = [
             FlextResult.ok(True),
             FlextResult.ok(True),
-            FlextResult.ok(True)
+            FlextResult.ok(True),
         ]
 
         confirmations = [
             ("Delete data?", False),
             ("Are you sure?", False),
-            ("This cannot be undone", False)
+            ("This cannot be undone", False),
         ]
 
         result = flext_cli_require_all(confirmations)
@@ -291,7 +290,7 @@ class TestFlextCliRequireAll:
         confirmations = [
             ("Delete data?", False),
             ("Are you sure?", False),
-            ("This should not be asked", False)
+            ("This should not be asked", False),
         ]
 
         result = flext_cli_require_all(confirmations)
@@ -301,10 +300,15 @@ class TestFlextCliRequireAll:
         assert mock_helper.flext_cli_confirm.call_count == 2  # Stopped after denial
 
     @patch("flext_cli.core.helpers.FlextCliHelper")
-    def test_require_all_confirmation_failure(self, mock_helper_class: MagicMock) -> None:
+    def test_require_all_confirmation_failure(
+        self,
+        mock_helper_class: MagicMock,
+    ) -> None:
         """Test multiple confirmations with confirmation failure."""
         mock_helper = mock_helper_class.return_value
-        mock_helper.flext_cli_confirm.return_value = FlextResult.fail("Confirmation failed")
+        mock_helper.flext_cli_confirm.return_value = FlextResult.fail(
+            "Confirmation failed",
+        )
 
         confirmations = [("Test?", True)]
 
@@ -346,10 +350,7 @@ class TestFlextCliOutputData:
 
     def test_output_table_format(self) -> None:
         """Test table output format."""
-        data = [
-            {"name": "Alice", "age": 30},
-            {"name": "Bob", "age": 25}
-        ]
+        data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
 
         result = flext_cli_output_data(data, "table", console=self.console_mock)
 
@@ -361,10 +362,7 @@ class TestFlextCliOutputData:
 
     def test_output_csv_format(self) -> None:
         """Test CSV output format."""
-        data = [
-            {"name": "Alice", "age": 30},
-            {"name": "Bob", "age": 25}
-        ]
+        data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
 
         result = flext_cli_output_data(data, "csv", console=self.console_mock)
 
@@ -388,7 +386,11 @@ class TestFlextCliOutputData:
         """Test fallback output format."""
         data = {"test": "data"}
 
-        result = flext_cli_output_data(data, "unknown_format", console=self.console_mock)
+        result = flext_cli_output_data(
+            data,
+            "unknown_format",
+            console=self.console_mock,
+        )
 
         assert result.success
         self.console_mock.print.assert_called_once_with(data)
@@ -397,7 +399,12 @@ class TestFlextCliOutputData:
         """Test output with format-specific options."""
         data = {"test": "data"}
 
-        result = flext_cli_output_data(data, "json", console=self.console_mock, indent=4)
+        result = flext_cli_output_data(
+            data,
+            "json",
+            console=self.console_mock,
+            indent=4,
+        )
 
         assert result.success
         self.console_mock.print.assert_called_once()
@@ -408,10 +415,7 @@ class TestFlextCliCreateTable:
 
     def test_create_table_basic(self) -> None:
         """Test basic table creation."""
-        data = [
-            {"name": "Alice", "age": 30},
-            {"name": "Bob", "age": 25}
-        ]
+        data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
 
         table = flext_cli_create_table(data, title="Users")
 
@@ -422,7 +426,7 @@ class TestFlextCliCreateTable:
         """Test table creation with custom columns."""
         data = [
             {"name": "Alice", "age": 30, "email": "alice@example.com"},
-            {"name": "Bob", "age": 25, "email": "bob@example.com"}
+            {"name": "Bob", "age": 25, "email": "bob@example.com"},
         ]
 
         table = flext_cli_create_table(data, columns=["name", "email"])
@@ -590,6 +594,7 @@ class TestFlextCliBatchExecute:
     @patch("flext_cli.core.utils.track")
     def test_batch_execute_with_exception(self, mock_track: MagicMock) -> None:
         """Test batch execution with raised exception."""
+
         def failing_operation() -> FlextResult[str]:
             msg = "Something went wrong"
             raise ValueError(msg)
@@ -645,7 +650,7 @@ class TestPrivateHelperFunctions:
         test_env = {
             "FLEXT_PROFILE": "test_profile",
             "FLEXT_DEBUG": "true",
-            "FLEXT_TIMEOUT": "45"
+            "FLEXT_TIMEOUT": "45",
         }
 
         with patch.dict(os.environ, test_env):

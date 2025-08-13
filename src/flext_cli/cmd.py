@@ -1,4 +1,5 @@
 """Top-level short-name commands aggregator."""
+
 from __future__ import annotations
 
 from flext_cli.cli_auth import auth

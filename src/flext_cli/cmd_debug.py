@@ -3,6 +3,7 @@
 This module provides the same debug command group previously in
 `commands/debug.py`, exposed as `debug_cmd`.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -90,7 +91,9 @@ def connectivity(ctx: click.Context) -> None:
                     console.print(f"  Status: {status.get('status', 'Unknown')}")
                     console.print(f"  Uptime: {status.get('uptime', 'Unknown')}")
                 else:
-                    console.print(f"[yellow]⚠ Could not get system status: {status_result.error}[/yellow]")
+                    console.print(
+                        f"[yellow]⚠ Could not get system status: {status_result.error}[/yellow]",
+                    )
             except Exception as e:  # noqa: BLE001
                 console.print(f"[yellow]⚠ Could not get system status: {e}[/yellow]")
         except Exception as e:  # noqa: BLE001
@@ -122,9 +125,9 @@ def performance(ctx: click.Context) -> None:
     except Exception:  # pragma: no cover
         debug_mod = None
     try:
-        provider = (
-            debug_mod.get_default_cli_client if debug_mod else None
-        ) or getattr(debug_cmd, "get_default_cli_client", get_default_cli_client)
+        provider = (debug_mod.get_default_cli_client if debug_mod else None) or getattr(
+            debug_cmd, "get_default_cli_client", get_default_cli_client,
+        )
         client = provider() if callable(provider) else None
         if client is None:
             console.print("[red]❌ Failed to get client provider[/red]")
@@ -139,12 +142,18 @@ def performance(ctx: click.Context) -> None:
             # Preferred sync metrics hook
             metrics = client.get_performance_metrics()
         except Exception:
+
             async def _fetch() -> dict[str, object] | None:
                 try:
                     status_result = await client.get_system_status()
-                    return status_result.unwrap() if getattr(status_result, "success", False) else None
+                    return (
+                        status_result.unwrap()
+                        if getattr(status_result, "success", False)
+                        else None
+                    )
                 except Exception:  # noqa: BLE001
                     return None
+
             try:
                 metrics = asyncio.run(_fetch())
             except Exception:
@@ -189,6 +198,7 @@ def validate(ctx: click.Context) -> None:
         ctx.exit(1)
     # Allow tests to patch dependency validation function
     from contextlib import suppress  # noqa: PLC0415
+
     with suppress(NameError):
         getattr(debug_cmd, "_validate_dependencies", _validate_dependencies)(console)
     # Environment info

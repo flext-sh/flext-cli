@@ -22,6 +22,7 @@ from flext_cli.core.decorators import (
     validate_config,
     with_spinner,
 )
+from flext_core.constants import FlextConstants
 
 # Constants
 EXPECTED_BULK_SIZE = 2
@@ -259,7 +260,7 @@ class TestMeasureTime:
 
             @measure_time()
             def function_with_args(
-                arg1: str, arg2: int, kwarg1: str = "default"
+                arg1: str, arg2: int, kwarg1: str = "default",
             ) -> str:
                 return f"{arg1}-{arg2}-{kwarg1}"
 
@@ -353,7 +354,7 @@ class TestValidateConfig:
 
         # Create mock config object with required attributes
         class MockConfig:
-            api_url = "http://localhost:8000"
+            api_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
             timeout = 30
 
         @validate_config(["api_url", "timeout"])
@@ -370,7 +371,7 @@ class TestValidateConfig:
         with patch("rich.console.Console.print") as mock_print:
             # Create mock config object missing required attributes
             class MockConfig:
-                api_url = "http://localhost:8000"
+                api_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
                 # missing timeout
 
             @validate_config(["api_url", "timeout"])
@@ -452,7 +453,7 @@ class TestWithSpinner:
                 msg: str = f"Expected {'calculation done'}, got {result}"
                 raise AssertionError(msg)
             mock_status.assert_called_once_with(
-                "Calculating results...", spinner="dots"
+                "Calculating results...", spinner="dots",
             )
 
     def test_with_spinner_exception_handling(self) -> None:

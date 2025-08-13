@@ -1,6 +1,3 @@
-from flext_core.constants import FlextConstants as _C
-
-_API = f"http://{_C.Platform.DEFAULT_HOST}:{_C.Platform.FLEXT_API_PORT}"
 """Comprehensive tests for types.py module.
 
 Tests all type definitions and entities in types.py for 100% coverage.
@@ -31,9 +28,11 @@ from flext_cli.types import (
     TCliHandler,
     TCliPath,
 )
+from flext_core.constants import FlextConstants
 from rich.console import Console
 
 # Constants
+_API = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
 DEFAULT_TTL = 600
 EXPECTED_BULK_SIZE = 2
 EXPECTED_DATA_COUNT = 3
@@ -60,17 +59,17 @@ class TestEnums:
         """Test FlextCliCommandStatus enum values."""
         if FlextCliCommandStatus.PENDING.value != "pending":
             raise AssertionError(
-                f"Expected {'pending'}, got {FlextCliCommandStatus.PENDING.value}"
+                f"Expected {'pending'}, got {FlextCliCommandStatus.PENDING.value}",
             )
         assert FlextCliCommandStatus.RUNNING.value == "running"
         if FlextCliCommandStatus.COMPLETED.value != "completed":
             raise AssertionError(
-                f"Expected {'completed'}, got {FlextCliCommandStatus.COMPLETED.value}"
+                f"Expected {'completed'}, got {FlextCliCommandStatus.COMPLETED.value}",
             )
         assert FlextCliCommandStatus.FAILED.value == "failed"
         if FlextCliCommandStatus.CANCELLED.value != "cancelled":
             raise AssertionError(
-                f"Expected {'cancelled'}, got {FlextCliCommandStatus.CANCELLED.value}"
+                f"Expected {'cancelled'}, got {FlextCliCommandStatus.CANCELLED.value}",
             )
 
         # Test all values exist
@@ -82,22 +81,22 @@ class TestEnums:
         """Test FlextCliCommandType enum values."""
         if FlextCliCommandType.SYSTEM.value != "system":
             raise AssertionError(
-                f"Expected {'system'}, got {FlextCliCommandType.SYSTEM.value}"
+                f"Expected {'system'}, got {FlextCliCommandType.SYSTEM.value}",
             )
         assert FlextCliCommandType.PIPELINE.value == "pipeline"
         if FlextCliCommandType.PLUGIN.value != "plugin":
             raise AssertionError(
-                f"Expected {'plugin'}, got {FlextCliCommandType.PLUGIN.value}"
+                f"Expected {'plugin'}, got {FlextCliCommandType.PLUGIN.value}",
             )
         assert FlextCliCommandType.DATA.value == "data"
         if FlextCliCommandType.CONFIG.value != "config":
             raise AssertionError(
-                f"Expected {'config'}, got {FlextCliCommandType.CONFIG.value}"
+                f"Expected {'config'}, got {FlextCliCommandType.CONFIG.value}",
             )
         assert FlextCliCommandType.AUTH.value == "auth"
         if FlextCliCommandType.MONITORING.value != "monitoring":
             raise AssertionError(
-                f"Expected {'monitoring'}, got {FlextCliCommandType.MONITORING.value}"
+                f"Expected {'monitoring'}, got {FlextCliCommandType.MONITORING.value}",
             )
 
         # Test all values exist
@@ -115,7 +114,7 @@ class TestEnums:
         assert FlextCliOutputFormat.TABLE == "table"
         if FlextCliOutputFormat.PLAIN != "plain":
             raise AssertionError(
-                f"Expected {'plain'}, got {FlextCliOutputFormat.PLAIN}"
+                f"Expected {'plain'}, got {FlextCliOutputFormat.PLAIN}",
             )
 
         # Test all values exist
@@ -140,7 +139,7 @@ class TestFlextCliCommand:
         assert command.command_line == "echo hello"
         if command.command_status != FlextCliCommandStatus.PENDING:
             raise AssertionError(
-                f"Expected {FlextCliCommandStatus.PENDING}, got {command.command_status}"
+                f"Expected {FlextCliCommandStatus.PENDING}, got {command.command_status}",
             )
         assert command.command_type == FlextCliCommandType.SYSTEM
         assert command.exit_code is None
@@ -175,11 +174,11 @@ class TestFlextCliCommand:
         # Should start successfully from PENDING
         if not (command.flext_cli_start_execution()):
             raise AssertionError(
-                f"Expected True, got {command.flext_cli_start_execution()}"
+                f"Expected True, got {command.flext_cli_start_execution()}",
             )
         if command.command_status != FlextCliCommandStatus.RUNNING:
             raise AssertionError(
-                f"Expected {FlextCliCommandStatus.RUNNING}, got {command.command_status}"
+                f"Expected {FlextCliCommandStatus.RUNNING}, got {command.command_status}",
             )
         if not (command.flext_cli_is_running):
             raise AssertionError(f"Expected True, got {command.flext_cli_is_running}")
@@ -187,7 +186,7 @@ class TestFlextCliCommand:
         # Should fail if already running
         if command.flext_cli_start_execution():
             raise AssertionError(
-                f"Expected False, got {command.flext_cli_start_execution()}"
+                f"Expected False, got {command.flext_cli_start_execution()}",
             )
 
     def test_complete_execution_success(self) -> None:
@@ -210,7 +209,7 @@ class TestFlextCliCommand:
             raise AssertionError(f"Expected True, got {result}")
         if command.command_status != FlextCliCommandStatus.COMPLETED:
             raise AssertionError(
-                f"Expected {FlextCliCommandStatus.COMPLETED}, got {command.command_status}"
+                f"Expected {FlextCliCommandStatus.COMPLETED}, got {command.command_status}",
             )
         assert command.exit_code == 0
         if command.output != "hello world":
@@ -238,7 +237,7 @@ class TestFlextCliCommand:
             raise AssertionError(f"Expected True, got {result}")
         if command.command_status != FlextCliCommandStatus.FAILED:
             raise AssertionError(
-                f"Expected {FlextCliCommandStatus.FAILED}, got {command.command_status}"
+                f"Expected {FlextCliCommandStatus.FAILED}, got {command.command_status}",
             )
         assert command.exit_code == 1
         if command.output != "error output":
@@ -257,7 +256,7 @@ class TestFlextCliCommand:
         # Should fail if not running
         if command.flext_cli_complete_execution():
             raise AssertionError(
-                f"Expected False, got {command.flext_cli_complete_execution()}"
+                f"Expected False, got {command.flext_cli_complete_execution()}",
             )
 
     def test_is_running_property(self) -> None:
@@ -321,7 +320,7 @@ class TestFlextCliCommand:
         )
         if not (command.validate_domain_rules()):
             raise AssertionError(
-                f"Expected True, got {command.validate_domain_rules()}"
+                f"Expected True, got {command.validate_domain_rules()}",
             )
 
         # Invalid command - empty name
@@ -332,7 +331,7 @@ class TestFlextCliCommand:
         )
         if command_invalid.validate_domain_rules():
             raise AssertionError(
-                f"Expected False, got {command_invalid.validate_domain_rules()}"
+                f"Expected False, got {command_invalid.validate_domain_rules()}",
             )
 
         # Invalid command - empty command_line
@@ -343,7 +342,7 @@ class TestFlextCliCommand:
         )
         if command_invalid2.validate_domain_rules():
             raise AssertionError(
-                f"Expected False, got {command_invalid2.validate_domain_rules()}"
+                f"Expected False, got {command_invalid2.validate_domain_rules()}",
             )
 
 
@@ -456,7 +455,7 @@ class TestFlextCliConfig:
         config_with_data = FlextCliConfig(debug=True)
         if not (config_with_data.validate_domain_rules()):
             raise AssertionError(
-                f"Expected True, got {config_with_data.validate_domain_rules()}"
+                f"Expected True, got {config_with_data.validate_domain_rules()}",
             )
 
 
@@ -600,14 +599,14 @@ class TestFlextCliPlugin:
         assert plugin.entry_point == "advanced_plugin.main"
         if plugin.description != "Advanced test plugin":
             raise AssertionError(
-                f"Expected {'Advanced test plugin'}, got {plugin.description}"
+                f"Expected {'Advanced test plugin'}, got {plugin.description}",
             )
         if plugin.enabled:
             raise AssertionError(f"Expected False, got {plugin.enabled}")
         assert plugin.dependencies == ["dep1", "dep2"]
         if plugin.commands != ["cmd1", "cmd2", "cmd3"]:
             raise AssertionError(
-                f"Expected {['cmd1', 'cmd2', 'cmd3']}, got {plugin.commands}"
+                f"Expected {['cmd1', 'cmd2', 'cmd3']}, got {plugin.commands}",
             )
 
     def test_validate_domain_rules(self) -> None:
@@ -632,7 +631,7 @@ class TestFlextCliPlugin:
         validation_result_copy = plugin_copy.validate_business_rules()
         if not validation_result_copy.success:
             raise AssertionError(
-                f"Expected success for copied plugin, got {validation_result_copy.error}"
+                f"Expected success for copied plugin, got {validation_result_copy.error}",
             )
 
 
@@ -667,11 +666,11 @@ class TestFlextCliSession:
 
         if not (session.flext_cli_record_command("test-command")):
             raise AssertionError(
-                f"Expected True, got {session.flext_cli_record_command('test-command')}"
+                f"Expected True, got {session.flext_cli_record_command('test-command')}",
             )
         if "test-command" not in session.commands_executed:
             raise AssertionError(
-                f"Expected {'test-command'} in {session.commands_executed}"
+                f"Expected {'test-command'} in {session.commands_executed}",
             )
         if len(session.commands_executed) != 1:
             raise AssertionError(f"Expected {1}, got {len(session.commands_executed)}")
@@ -679,7 +678,7 @@ class TestFlextCliSession:
         # Record another command
         if not (session.flext_cli_record_command("another-command")):
             raise AssertionError(
-                f"Expected True, got {session.flext_cli_record_command('another-command')}"
+                f"Expected True, got {session.flext_cli_record_command('another-command')}",
             )
         if len(session.commands_executed) != EXPECTED_BULK_SIZE:
             raise AssertionError(f"Expected {2}, got {len(session.commands_executed)}")
@@ -712,7 +711,7 @@ class TestFlextCliSession:
         # Numeric string is valid
         if not (session.flext_cli_record_command("123")):
             raise AssertionError(
-                f"Expected True, got {session.flext_cli_record_command('123')}"
+                f"Expected True, got {session.flext_cli_record_command('123')}",
             )
 
     def test_validate_domain_rules(self) -> None:
@@ -722,7 +721,7 @@ class TestFlextCliSession:
         # Should be valid (checks for entity_id existence)
         if not (session.validate_domain_rules()):
             raise AssertionError(
-                f"Expected True, got {session.validate_domain_rules()}"
+                f"Expected True, got {session.validate_domain_rules()}",
             )
         assert bool(session.id) is True
 
@@ -742,7 +741,7 @@ class TestIntegration:
         # Initial state
         if command.command_status != FlextCliCommandStatus.PENDING:
             raise AssertionError(
-                f"Expected {FlextCliCommandStatus.PENDING}, got {command.command_status}"
+                f"Expected {FlextCliCommandStatus.PENDING}, got {command.command_status}",
             )
         assert not command.flext_cli_is_running
         assert not command.flext_cli_successful
@@ -751,7 +750,7 @@ class TestIntegration:
         assert command.flext_cli_start_execution()
         if command.command_status != FlextCliCommandStatus.RUNNING:
             raise AssertionError(
-                f"Expected {FlextCliCommandStatus.RUNNING}, got {command.command_status}"
+                f"Expected {FlextCliCommandStatus.RUNNING}, got {command.command_status}",
             )
         assert command.flext_cli_is_running
         assert not command.flext_cli_successful
@@ -760,7 +759,7 @@ class TestIntegration:
         assert command.flext_cli_complete_execution(exit_code=0, stdout="success")
         if command.command_status != FlextCliCommandStatus.COMPLETED:
             raise AssertionError(
-                f"Expected {FlextCliCommandStatus.COMPLETED}, got {command.command_status}"
+                f"Expected {FlextCliCommandStatus.COMPLETED}, got {command.command_status}",
             )
         assert not command.flext_cli_is_running
         assert command.flext_cli_successful
@@ -779,14 +778,14 @@ class TestIntegration:
             format_context = FlextCliContext(config=test_config, console=console)
             if format_context.config.output_format != format_type.value:
                 raise AssertionError(
-                    f"Expected {format_type.value}, got {format_context.config.output_format}"
+                    f"Expected {format_type.value}, got {format_context.config.output_format}",
                 )
 
     def test_session_with_multiple_commands(self) -> None:
         """Test session recording multiple commands."""
         # CLISession needs both id (entity_id) and session_id
         session = FlextCliSession(
-            id="test-session-135", session_id="test-session-135", user_id="test-user"
+            id="test-session-135", session_id="test-session-135", user_id="test-user",
         )
 
         commands = ["init", "run", "deploy", "monitor", "cleanup"]
@@ -796,7 +795,7 @@ class TestIntegration:
 
         if session.commands_executed != commands:
             raise AssertionError(
-                f"Expected {commands}, got {session.commands_executed}"
+                f"Expected {commands}, got {session.commands_executed}",
             )
         assert len(session.commands_executed) == 5
 
@@ -818,6 +817,6 @@ class TestIntegration:
         assert context.config.trace == config.trace
         if context.config.output_format != config.output_format:
             raise AssertionError(
-                f"Expected {config.output_format}, got {context.config.output_format}"
+                f"Expected {config.output_format}, got {context.config.output_format}",
             )
         assert context.config.profile == config.profile

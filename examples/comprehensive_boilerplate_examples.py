@@ -367,7 +367,7 @@ print("Complete CLI application with 93.3% less boilerplate")
 print("\nREDUCTION: 93.3% (120 lines → 8 lines)")
 print("✓ Automatic: Config loading, logging, argument parsing, progress tracking")
 print(
-    "✓ Built-in: File validation, confirmation dialogs, table display, error handling"
+    "✓ Built-in: File validation, confirmation dialogs, table display, error handling",
 )
 print("✓ Zero exceptions: Railway-oriented programming throughout")
 print("✓ Complete mixins: All CLI capabilities in one inheritance")
@@ -605,7 +605,7 @@ overall_reduction = ((total_before - total_after) / total_before) * 100
 print("\nAdvanced Example Breakdown:")
 for name, before, after, reduction in examples:
     print(
-        f"  {name:.<40} {before:>3} → {after:>2} lines ({reduction:>5.1f}% reduction)"
+        f"  {name:.<40} {before:>3} → {after:>2} lines ({reduction:>5.1f}% reduction)",
     )
 
 print("\nOVERALL ADVANCED RESULTS:")
@@ -614,10 +614,10 @@ print(f"  Total lines AFTER:  {total_after}")
 print(f"  TOTAL REDUCTION:    {overall_reduction:.1f}%")
 
 print(
-    f"\n🚀 FlextCli Advanced Patterns achieve {overall_reduction:.1f}% boilerplate reduction!"
+    f"\n🚀 FlextCli Advanced Patterns achieve {overall_reduction:.1f}% boilerplate reduction!",
 )
 print(
-    f"   That's {total_before - total_after} fewer lines of complex infrastructure code!"
+    f"   That's {total_before - total_after} fewer lines of complex infrastructure code!",
 )
 
 print("\n✅ Advanced Capabilities Demonstrated:")
@@ -666,7 +666,7 @@ def demonstrate_advanced_functionality() -> bool | None:
                 helper = FlextCliHelper()
 
                 with tempfile.NamedTemporaryFile(
-                    encoding="utf-8", mode="w", suffix=".json", delete=False
+                    encoding="utf-8", mode="w", suffix=".json", delete=False,
                 ) as f:
                     temp_path = f.name
                     json.dump(demo_data, f)

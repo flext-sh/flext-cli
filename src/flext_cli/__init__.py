@@ -87,6 +87,7 @@ from flext_cli.cmd_config import (
 
 import warnings
 from typing import Generic, TypeVar, TYPE_CHECKING
+
 if TYPE_CHECKING:  # type hints only
     from collections.abc import Callable
 
@@ -232,7 +233,9 @@ with_spinner = cli_file_operation
 
 
 # Legacy helper/decorator shims expected by tests
-def handle_service_result(func: Callable[[object], object]) -> Callable[[object], object]:  # pragma: no cover - simple passthrough
+def handle_service_result(
+    func: Callable[[object], object],
+) -> Callable[[object], object]:  # pragma: no cover - simple passthrough
     """Unwrap FlextResult and return the data.
 
     If the wrapped function returns a FlextResult, return its .unwrap();
@@ -359,12 +362,18 @@ def __getattr__(name: str) -> object:  # pragma: no cover - compatibility layer
         try:
             debug_mod.FLEXT_API_AVAILABLE = _debug.FLEXT_API_AVAILABLE  # type: ignore[attr-defined]
             if hasattr(_debug, "SENSITIVE_VALUE_PREVIEW_LENGTH"):
-                debug_mod.SENSITIVE_VALUE_PREVIEW_LENGTH = _debug.SENSITIVE_VALUE_PREVIEW_LENGTH  # type: ignore[attr-defined]
+                value = _debug.SENSITIVE_VALUE_PREVIEW_LENGTH
+                try:
+                    debug_mod.SENSITIVE_VALUE_PREVIEW_LENGTH = value  # type: ignore[attr-defined]
+                except Exception:
+                    pass
             debug_mod.get_default_cli_client = _debug.get_default_cli_client  # type: ignore[attr-defined]
             debug_mod.get_config = _debug.get_config  # type: ignore[attr-defined]
             debug_mod._validate_dependencies = _debug._validate_dependencies  # type: ignore[attr-defined]
         except Exception as e:
-            warnings.warn(f"flext_cli.commands.debug shim export failed: {e}", stacklevel=2)
+            warnings.warn(
+                f"flext_cli.commands.debug shim export failed: {e}", stacklevel=2,
+            )
         config_mod = _types.ModuleType("flext_cli.commands.config")
         config_mod.config = _config  # type: ignore[attr-defined]
         # expose internal helpers used by tests
@@ -374,7 +383,9 @@ def __getattr__(name: str) -> object:  # pragma: no cover - compatibility layer
             config_mod._print_config_value = _print_config_value  # type: ignore[attr-defined]
             config_mod._print_config_table = _print_config_table  # type: ignore[attr-defined]
         except Exception as e:
-            warnings.warn(f"flext_cli.commands.config shim export failed: {e}", stacklevel=2)
+            warnings.warn(
+                f"flext_cli.commands.config shim export failed: {e}", stacklevel=2,
+            )
         auth_mod = _types.ModuleType("flext_cli.commands.auth")
         auth_mod.auth = _auth  # type: ignore[attr-defined]
         # expose command callbacks for tests
@@ -383,7 +394,9 @@ def __getattr__(name: str) -> object:  # pragma: no cover - compatibility layer
             auth_mod.logout = logout  # type: ignore[attr-defined]
             auth_mod.status = status  # type: ignore[attr-defined]
         except Exception as e:
-            warnings.warn(f"flext_cli.commands.auth shim export failed: {e}", stacklevel=2)
+            warnings.warn(
+                f"flext_cli.commands.auth shim export failed: {e}", stacklevel=2,
+            )
         # expose submodules on package for attribute traversal during resolve_name
         pkg.debug = debug_mod  # type: ignore[attr-defined]
         pkg.config = config_mod  # type: ignore[attr-defined]

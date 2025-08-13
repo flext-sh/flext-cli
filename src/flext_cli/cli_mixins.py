@@ -125,7 +125,11 @@ class CLILoggingMixin(FlextLoggableMixin):
     """
 
     def log_command_execution(
-        self, command: str, *, success: bool, duration: float,
+        self,
+        command: str,
+        *,
+        success: bool,
+        duration: float,
     ) -> FlextResult[None]:
         """Log CLI command execution with structured data."""
         logger = get_logger(self.__class__.__name__)
@@ -152,7 +156,9 @@ class CLILoggingMixin(FlextLoggableMixin):
         return FlextResult.ok(None)
 
     def log_cli_error(
-        self, error_message: str, context: Mapping[str, object] | None = None,
+        self,
+        error_message: str,
+        context: Mapping[str, object] | None = None,
     ) -> FlextResult[None]:
         """Log CLI-specific errors with context."""
         logger = get_logger(self.__class__.__name__)
@@ -204,7 +210,9 @@ class CLIOutputMixin(FlextSerializableMixin):
         except Exception as e:
             return FlextResult.fail("Output formatting failed: " + str(e))
 
-    def _format_as_table(self, data: OutputData, **_options: object) -> FlextResult[str]:
+    def _format_as_table(
+        self, data: OutputData, **_options: object,
+    ) -> FlextResult[str]:
         """Format data as table using Rich."""
         # Basic table formatting - can be enhanced
         if isinstance(data, list):
@@ -281,7 +289,10 @@ class CLIInteractiveMixin:
             return FlextResult.fail(f"Input error: {e}")
 
     def confirm_action(
-        self, message: str, *, default: bool = False,
+        self,
+        message: str,
+        *,
+        default: bool = False,
     ) -> FlextResult[bool]:
         """Ask user for confirmation."""
         try:

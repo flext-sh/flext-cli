@@ -9,23 +9,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import importlib.util
 import json
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-# Import directly from core.py, not core/ directory
-
-core_py_path = Path(__file__).parent.parent / "src" / "flext_cli" / "core.py"
-spec = importlib.util.spec_from_file_location("flext_cli_core_module", core_py_path)
-if spec and spec.loader:
-    core_py_module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(core_py_module)
-    FlextCliService = core_py_module.FlextCliService
-    FlextService = core_py_module.FlextService
-else:
-    raise ImportError(f"Could not load core.py from {core_py_path}")
+from flext_cli.core import FlextCliService, FlextService
+from flext_core.constants import FlextConstants
 
 
 # Mock the flext_cli.types imports needed for testing
@@ -38,7 +28,10 @@ class MockFlextCliConfig:
         self.trace = data.get("trace", False)
         self.format_type = data.get("output_format", data.get("format_type", "table"))
         self.profile = data.get("profile", "default")
-        self.api_url = data.get("api_url", "http://localhost:8000")
+        if "api_url" in data:
+            self.api_url = data["api_url"]  # type: ignore[assignment]
+        else:
+            self.api_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
 
 
 class MockFlextCliCommand:
@@ -62,7 +55,9 @@ class MockFlextCliSession:
     """Simple session stub with legacy-compatible attributes."""
 
     def __init__(
-        self, entity_id: str | None = None, user_id: str | None = None
+        self,
+        entity_id: str | None = None,
+        user_id: str | None = None,
     ) -> None:
         self.id = entity_id or f"session_{'_'.join(str(hash(self)).split())}"
         self.user_id = user_id
@@ -108,7 +103,7 @@ class TestFlextCliService:
         assert isinstance(service._commands, dict)
         if service._formats != {"json", "yaml", "csv", "table", "plain"}:
             raise AssertionError(
-                f'Expected {{"json", "yaml", "csv", "table", "plain"}}, got {service._formats}'
+                f'Expected {{"json", "yaml", "csv", "table", "plain"}}, got {service._formats}',
             )
 
     def test_configure_with_dict(self) -> None:
@@ -164,7 +159,10 @@ class TestFlextCliService:
         data = {"name": "test", "value": 42}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False, suffix=".json"
+            encoding="utf-8",
+            mode="w",
+            delete=False,
+            suffix=".json",
         ) as tmp:
             temp_path = tmp.name
 
@@ -199,7 +197,9 @@ class TestFlextCliService:
         data = {"test": "data"}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False
+            encoding="utf-8",
+            mode="w",
+            delete=False,
         ) as tmp:
             temp_path = tmp.name
 
@@ -208,7 +208,7 @@ class TestFlextCliService:
             assert not result.success
             if "Unsupported format:" not in result.error:
                 raise AssertionError(
-                    f"Expected {'Unsupported format:'} in {result.error}"
+                    f"Expected {'Unsupported format:'} in {result.error}",
                 )
         finally:
             Path(temp_path).unlink(missing_ok=True)
@@ -319,7 +319,7 @@ class TestFlextCliService:
 
         if health_data["service"] != "FlextCliService":
             raise AssertionError(
-                f"Expected {'FlextCliService'}, got {health_data['service']}"
+                f"Expected {'FlextCliService'}, got {health_data['service']}",
             )
         assert health_data["status"] == "healthy"
         if health_data["configured"]:
@@ -361,7 +361,7 @@ class TestFlextCliService:
         assert not result.success
         if "Unsupported format: invalid" not in result.error:
             raise AssertionError(
-                f"Expected {'Unsupported format: invalid'} in {result.error}"
+                f"Expected {'Unsupported format: invalid'} in {result.error}",
             )
 
     def test_flext_cli_create_command(self) -> None:
@@ -373,7 +373,7 @@ class TestFlextCliService:
         created_message = result.unwrap()
         if "Command 'test-cmd' created" not in created_message:
             raise AssertionError(
-                f"Expected {"Command 'test-cmd' created"} in {created_message}"
+                f"Expected {"Command 'test-cmd' created"} in {created_message}",
             )
 
     def test_flext_cli_create_session(self) -> None:
@@ -608,13 +608,15 @@ class TestFlextCliService:
         service = FlextCliService()
 
         # Mock FlextUtilities.generate_iso_timestamp to raise exception
-        with patch("flext_cli.core.FlextUtilities.generate_iso_timestamp") as mock_timestamp:
+        with patch(
+            "flext_cli.core.FlextUtilities.generate_iso_timestamp",
+        ) as mock_timestamp:
             mock_timestamp.side_effect = RuntimeError("Utilities error")
             result = service.flext_cli_health()
             assert not result.success
             if "Health check failed:" not in result.error:
                 raise AssertionError(
-                    f"Expected {'Health check failed:'} in {result.error}"
+                    f"Expected {'Health check failed:'} in {result.error}",
                 )
 
     def test_export_exception_handling(self) -> None:
@@ -634,7 +636,9 @@ class TestFlextCliService:
 
         # Mock FlextCliCommand to raise exception
         with patch.object(
-            core_py_module, "FlextCliCommand", side_effect=Exception("Command error")
+            flext_cli.core.FlextCliCommand,
+            "FlextCliCommand",
+            side_effect=Exception("Command error"),
         ):
             result = service.flext_cli_create_command("test", "echo")
             assert not result.success
@@ -645,7 +649,9 @@ class TestFlextCliService:
 
         # Mock FlextCliSession to raise exception
         with patch.object(
-            core_py_module, "FlextCliSession", side_effect=Exception("Session error")
+            flext_cli.core,
+            "FlextCliSession",
+            side_effect=Exception("Session error"),
         ):
             result = service.flext_cli_create_session()
             assert not result.success
