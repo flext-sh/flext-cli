@@ -76,7 +76,6 @@ class FlextCLIApiClient:
 
         # Default to FLEXT Service using core platform constants
         try:
-            from flext_core.constants import FlextConstants
             host = FlextConstants.Platform.DEFAULT_HOST
             port = FlextConstants.Platform.FLEXT_SERVICE_PORT
             return f"http://{host}:{port}"
