@@ -29,6 +29,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from flext_core import FlextResult
 
 from flext_cli.config import CLIConfig, CLISettings, get_cli_settings
@@ -95,7 +97,7 @@ def create_development_cli_config(**kwargs: object) -> CLIConfig:
     if hasattr(CLIConfig, "create_with_hierarchy"):
         hierarchy_result = CLIConfig.create_with_hierarchy(**development_defaults)
         if hierarchy_result.success:
-            return hierarchy_result.unwrap()
+            return cast("CLIConfig", hierarchy_result.unwrap())
 
     # Fallback to direct creation
     config = CLIConfig(

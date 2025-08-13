@@ -502,7 +502,6 @@ class FlextCliCommand(FlextEntity):
             FlextCliCommandStatus.COMPLETED,
             FlextCliCommandStatus.FAILED,
             FlextCliCommandStatus.CANCELLED,
-            FlextCliCommandStatus.TIMEOUT,
         }
 
     @property

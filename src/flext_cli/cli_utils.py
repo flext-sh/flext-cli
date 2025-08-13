@@ -280,7 +280,7 @@ def cli_batch_process_files(
                 path, processor, results, fail_fast=fail_fast,
             )
             if progress and task_id is not None:
-                progress.update(task_id, advance=1)
+                progress.update(task_id, advance=1)  # type: ignore[arg-type]
             if should_stop:
                 msg = stop_message or "Processing failed"
                 return FlextResult.fail(msg)
@@ -427,7 +427,7 @@ def cli_save_data_file(
                 if suffix in {".yaml", ".yml"}
                 else OutputFormat.CSV
                 if suffix == ".csv"
-                else OutputFormat.TEXT
+                else OutputFormat.PLAIN
             )
         else:
             detected = (

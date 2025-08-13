@@ -48,14 +48,15 @@ status = _cli_status
 whoami = _cli_whoami
 
 # Wrap logout callback to ensure clear_auth_tokens (patchable here) is invoked first
-_original_logout_callback = _cli_logout.callback
+_original_logout_callback = getattr(_cli_logout, "callback", None)
 
 
 @click.pass_context
 def _logout_shim(ctx: click.Context) -> None:  # pragma: no cover - thin wrapper
     with contextlib.suppress(Exception):
         clear_auth_tokens()
-    _original_logout_callback(ctx)
+    if callable(_original_logout_callback):
+        _original_logout_callback(ctx)
 
 
 _cli_logout.callback = _logout_shim

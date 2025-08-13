@@ -65,7 +65,7 @@ try:  # pragma: no cover
     from flext_core import (
         FlextUtilities,
         __version__ as core_version,
-    )  # type: ignore[attr-defined, import-not-found]
+    )
 except Exception:  # pragma: no cover
     class FlextUtilities:  # type: ignore[no-redef]
         """Minimal fallback for flext-core CLI utilities.

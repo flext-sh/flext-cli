@@ -237,7 +237,7 @@ class FlextCliFormatterService(FlextCliService):
 
         """
 
-    def execute(self) -> FlextResult[str]:
+    def execute(self) -> FlextResult[object]:
         """Execute the service operation.
 
         Implements abstract method from FlextDomainService.
@@ -412,7 +412,7 @@ class FlextCliInteractiveService(FlextCliService):
 
         """
 
-    def execute(self) -> FlextResult[str]:
+    def execute(self) -> FlextResult[object]:
         """Execute the service operation.
 
         Implements abstract method from FlextDomainService.
@@ -466,7 +466,7 @@ class FlextCliServiceFactory:
         _service_name: str,
         _container: FlextContainer | None = None,
         **_config: object,
-    ) -> FlextResult[FlextCliCommandService[object]]:
+    ) -> FlextResult[FlextCliCommandService]:
         """Create a command service instance.
 
         Args:
@@ -518,7 +518,7 @@ class FlextCliServiceFactory:
         _service_name: str,
         _container: FlextContainer | None = None,
         **_config: object,
-    ) -> FlextResult[FlextCliValidatorService[object]]:
+    ) -> FlextResult[FlextCliValidatorService]:
         """Create a validator service instance.
 
         Args:

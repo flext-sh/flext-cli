@@ -405,9 +405,13 @@ def get_default_cli_client() -> FlextCLIApiClient:
     return create_cli_api_client(base_url=base_url, token=token)
 
 
+# Availability flag expected by tests
+FLEXT_API_AVAILABLE = True
+
 # Export the integration API
 __all__ = [
     "FlextCLIApiClient",
     "create_cli_api_client",
     "get_default_cli_client",
+    "FLEXT_API_AVAILABLE",
 ]

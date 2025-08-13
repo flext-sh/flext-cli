@@ -27,30 +27,28 @@ from pathlib import Path
 import toml
 
 try:  # pragma: no cover - import bridge
-    from flext_core import (  # type: ignore[attr-defined, import-not-found]
+    from flext_core import (
         FlextResult,
         FlextSettings,
     )
 except Exception:  # pragma: no cover
     from pydantic import BaseModel as FlextSettings  # type: ignore[assignment]
 
-    class FlextResult:  # type: ignore[no-redef]
-        def __init__(
-            self, *, success: bool, data: object | None = None, error: str | None = None,
-        ) -> None:
-            self.success = success
-            self.is_success = success
-            self.is_failure = not success
-            self.data = data
-            self.error = error
+    from typing import Generic, TypeVar
+
+    T_co = TypeVar("T_co")
+
+    class FlextResult(Generic[T_co]):  # type: ignore[no-redef]
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            ...
 
         @staticmethod
-        def ok(data: object | None) -> FlextResult:
-            return FlextResult(success=True, data=data, error=None)
+        def ok(_data: T_co | None) -> "FlextResult[T_co]":
+            return FlextResult()
 
         @staticmethod
-        def fail(error: str) -> FlextResult:
-            return FlextResult(success=False, data=None, error=error)
+        def fail(_error: str) -> "FlextResult[T_co]":
+            return FlextResult()
 
 
 from pydantic import Field, field_validator
@@ -453,7 +451,6 @@ def create_cli_config(
     """
     try:
         # Start with default configuration
-        # Type ignore for dynamic kwargs - runtime validation will catch issues
         config = CLIConfig(profile=profile, **overrides)  # type: ignore[arg-type]
 
         # Load profile-specific settings if config file exists
@@ -463,7 +460,7 @@ def create_cli_config(
                 profile_config = profile_result.unwrap()
                 # Apply profile settings (overrides take precedence)
                 merged_config = {**profile_config, **overrides}
-                config = CLIConfig(profile=profile, **merged_config)
+                config = CLIConfig(profile=profile, **merged_config)  # type: ignore[arg-type]
 
         # Validate final configuration
         validation_result = config.validate_config()

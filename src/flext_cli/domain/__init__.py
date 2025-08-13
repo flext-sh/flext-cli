@@ -20,13 +20,8 @@ from flext_cli.cli_config import CLIConfig
 from flext_cli.domain.entities import CommandType
 
 # Provide a PluginStatus that includes legacy INACTIVE alias mapping to UNLOADED
-try:
-    # Create a runtime alias object with extra attribute for compatibility
-    PluginStatus = _PluginState  # type: ignore[assignment]
-    # Attach INACTIVE as alias to UNLOADED on the enum class dynamically
-    PluginStatus.INACTIVE = PluginStatus.UNLOADED  # type: ignore[attr-defined]
-except Exception:  # pragma: no cover - fallback
-    PluginStatus = _PluginState  # type: ignore[assignment]
+# Direct alias; INACTIVE alias removed for typing strictness compatibility
+PluginStatus = _PluginState
 
 
 __all__ = [
