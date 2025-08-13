@@ -40,54 +40,61 @@ class UserManager:
         import re
 
         from rich.console import Console
-        from rich.prompt import Confirm
 
         console = Console()
+        result = False
 
         # Manual email validation
         if not email or not email.strip():
             console.print("[red]✗[/red] Email cannot be empty")
-            return False
-
-        email = email.strip().lower()
-        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-        if not re.match(pattern, email):
+        elif not re.match(
+            r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email.strip().lower()
+        ):
             console.print(f"[red]✗[/red] Invalid email format: {email}")
-            return False
+        else:
+            console.print("[green]✓[/green] Email validated successfully")
+            email = email.strip().lower()
 
-        console.print("[green]✓[/green] Email validated successfully")
+            # Manual confirmation
+            if confirm or self._get_user_confirmation(console):
+                # Manual progress indication
+                console.print("[blue]→[/blue] Executing delete user data...")
 
-        # Manual confirmation
-        if not confirm:
-            try:
-                confirmed = Confirm.ask(
-                    "[bold red]Confirm: delete user data?[/bold red]", default=False
-                )
-                if not confirmed:
-                    console.print("[yellow]Operation cancelled by user[/yellow]")
-                    return False
-            except (KeyboardInterrupt, EOFError):
-                console.print("[red]✗[/red] User interrupted confirmation")
-                return False
+                # Manual error handling
+                try:
+                    # Simulate user deletion
+                    time.sleep(1)  # Simulate work
+                    if email == "admin@company.com":
+                        console.print(
+                            "[red]✗[/red] Delete user data failed: Cannot delete admin user"
+                        )
+                    else:
+                        console.print(
+                            "[green]✓[/green] Delete user data completed successfully"
+                        )
+                        result = True
 
-        # Manual progress indication
-        console.print("[blue]→[/blue] Executing delete user data...")
+                except Exception as e:
+                    console.print(
+                        f"[red]✗[/red] Delete user data raised exception: {e}"
+                    )
 
-        # Manual error handling
+        return result
+
+    def _get_user_confirmation(self, console: Console) -> bool:
+        """Get user confirmation for dangerous operation."""
         try:
-            # Simulate user deletion
-            time.sleep(1)  # Simulate work
-            if email == "admin@company.com":
-                console.print(
-                    "[red]✗[/red] Delete user data failed: Cannot delete admin user"
-                )
+            from rich.prompt import Confirm
+
+            confirmed = Confirm.ask(
+                "[bold red]Confirm: delete user data?[/bold red]", default=False
+            )
+            if not confirmed:
+                console.print("[yellow]Operation cancelled by user[/yellow]")
                 return False
-
-            console.print("[green]✓[/green] Delete user data completed successfully")
             return True
-
-        except Exception as e:
-            console.print(f"[red]✗[/red] Delete user data raised exception: {e}")
+        except (KeyboardInterrupt, EOFError):
+            console.print("[red]✗[/red] User interrupted confirmation")
             return False
 
 
