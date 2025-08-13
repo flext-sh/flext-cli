@@ -47,9 +47,7 @@ class TestDebugCommands:
         # Mock client
         mock_client = AsyncMock()
 
-        mock_client.base_url = (
-            f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
-        )
+        mock_client.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
         mock_client.test_connection.return_value = MagicMock(success=True, data=True)
         mock_client.get_system_status.return_value = MagicMock(
             success=True,
