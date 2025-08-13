@@ -265,8 +265,8 @@ def demonstrate_practical_usage() -> None:
     )
     console.print("   command.start_execution()")
     console.print("   ")
-    console.print("   # Execute actual command")
-    console.print("   result = subprocess.run(command.command_line, ...)")
+    console.print("   # Execute actual command (prefer asyncio or safe wrappers)")
+    console.print("   # result = await run_command_async(command.command_line)")
     console.print("   ")
     console.print("   # Complete execution")
     console.print(

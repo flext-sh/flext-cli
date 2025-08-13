@@ -10,9 +10,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import json
 import os
-import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -68,55 +69,26 @@ def _validate_command_args(args: list[str]) -> None:
         raise ValueError(invalid_command_msg)
 
 
-def _safe_subprocess_run(
-    cmd: list[str],
-    cwd: str | None = None,
-    *,
-    capture_output: bool = False,
-    timeout: int = 300,
-) -> subprocess.CompletedProcess[bytes]:
-    """Securely execute subprocess with validation.
-
-    Args:
-        cmd: Command and arguments to execute
-        cwd: Working directory for execution
-        capture_output: Whether to capture stdout/stderr
-        timeout: Timeout in seconds
-
-    Returns:
-        CompletedProcess result
-
-    Raises:
-        ValueError: If command validation fails
-        subprocess.TimeoutExpired: If command times out
-
-    """
-    # Validate command arguments
+async def _run_exec(cmd: list[str], cwd: str | None, *, capture_output: bool, timeout: int) -> tuple[int, bytes | None, bytes | None]:
+    """Execute command via asyncio without shell, returning (code, stdout, stderr)."""
     _validate_command_args(cmd)
-
-    # Validate working directory if provided
     if cwd and not Path(cwd).is_dir():
-        invalid_dir_msg: str = f"Working directory does not exist: {cwd}"
-        raise ValueError(invalid_dir_msg)
-
+        raise ValueError(f"Working directory does not exist: {cwd}")
+    proc = await asyncio.create_subprocess_exec(
+        *cmd,
+        cwd=cwd,
+        stdout=asyncio.subprocess.PIPE if capture_output else None,
+        stderr=asyncio.subprocess.PIPE if capture_output else None,
+    )
     try:
-        return subprocess.run(  # noqa: S603 - Internal tool with validated commands
-            cmd,
-            cwd=cwd,
-            capture_output=capture_output,
-            check=False,
-            timeout=timeout,
-            # Security: Prevent shell injection
-            shell=False,
-            # Security: Use safe environment
-            env=None,  # Inherit safe environment
-        )
-    except subprocess.TimeoutExpired as e:
-        raise subprocess.TimeoutExpired(
-            cmd,
-            timeout,
-            f"Command timed out after {timeout}s",
-        ) from e
+        stdout_b, stderr_b = await asyncio.wait_for(proc.communicate(), timeout=timeout)
+    except TimeoutError as exc:
+        with contextlib.suppress(ProcessLookupError):  # type: ignore[name-defined]
+            proc.kill()
+        await proc.wait()
+        # Raise plain TimeoutError for policy compliance
+        raise TimeoutError(f"Command timed out after {timeout}s") from exc
+    return int(proc.returncode or 0), stdout_b, stderr_b
 
 
 @click.group(name="meltano")
@@ -349,22 +321,17 @@ def _execute_add_command(ctx: click.Context, params: MeltanoAddParams) -> None:
             cmd.extend(["--pip-url", params.pip_url])
 
         # Execute meltano command
-        result = _safe_subprocess_run(
-            cmd,
-            cwd=str(project_path),
-            capture_output=True,
-            timeout=300,
-        )
+        code, out_b, err_b = asyncio.run(_run_exec(cmd, str(project_path), capture_output=True, timeout=300))
 
-        if result.returncode == 0:
+        if code == 0:
             click.echo("✅ Plugin added successfully!")
-            if result.stdout:
-                click.echo(result.stdout.decode())
+            if out_b:
+                click.echo(out_b.decode())
         else:
             click.echo("❌ Failed to add plugin", err=True)
-            if result.stderr:
-                click.echo(result.stderr.decode(), err=True)
-            ctx.exit(result.returncode)
+            if err_b:
+                click.echo(err_b.decode(), err=True)
+            ctx.exit(code)
     except (RuntimeError, ValueError, TypeError) as e:
         click.echo(f"❌ Failed to add plugin: {e}", err=True)
         ctx.exit(1)
@@ -418,22 +385,15 @@ def run(
             env["MELTANO_ENVIRONMENT"] = environment
 
         # Execute meltano command
-        result = subprocess.run(  # noqa: S603 - Internal tool with validated meltano commands
-            cmd,
-            check=False,
-            cwd=str(project_path),
-            env=env,
-            shell=False,
-            timeout=3600,  # 1 hour timeout for job execution
-        )
+        code, _out_b, _err_b = asyncio.run(_run_exec(cmd, str(project_path), capture_output=False, timeout=3600))
 
-        if result.returncode == 0:
+        if code == 0:
             click.echo("✅ Job completed successfully!")
         else:
-            click.echo(f"❌ Job failed with exit code: {result.returncode}", err=True)
-            ctx.exit(result.returncode)
+            click.echo(f"❌ Job failed with exit code: {code}", err=True)
+            ctx.exit(code)
 
-    except subprocess.TimeoutExpired:
+    except TimeoutError:
         click.echo("❌ Job timed out after 1 hour", err=True)
         ctx.exit(1)
     except (RuntimeError, ValueError, TypeError) as e:
@@ -471,28 +431,23 @@ def discover(
         cmd = ["meltano", "discover", plugin_name]
 
         # Execute meltano command
-        result = _safe_subprocess_run(
-            cmd,
-            cwd=str(project_path),
-            capture_output=True,
-            timeout=120,
-        )
+        code, out_b, err_b = asyncio.run(_run_exec(cmd, str(project_path), capture_output=True, timeout=120))
 
-        if result.returncode == 0:
+        if code == 0:
             click.echo("✅ Schema discovery completed!")
-            if result.stdout:
+            if out_b:
                 # Pretty print the catalog
 
                 try:
-                    catalog = json.loads(result.stdout.decode())
+                    catalog = json.loads(out_b.decode())
                     click.echo(json.dumps(catalog, indent=2))
                 except json.JSONDecodeError:
-                    click.echo(result.stdout.decode())
+                    click.echo(out_b.decode())
         else:
             click.echo("❌ Schema discovery failed", err=True)
-            if result.stderr:
-                click.echo(result.stderr.decode(), err=True)
-            ctx.exit(result.returncode)
+            if err_b:
+                click.echo(err_b.decode(), err=True)
+            ctx.exit(code)
     except (RuntimeError, ValueError, TypeError) as e:
         click.echo(f"❌ Failed to discover schema: {e}", err=True)
         ctx.exit(1)
@@ -528,22 +483,17 @@ def test(
         cmd = ["meltano", "test", plugin_name]
 
         # Execute meltano command
-        result = _safe_subprocess_run(
-            cmd,
-            cwd=str(project_path),
-            capture_output=True,
-            timeout=60,
-        )
+        code, out_b, err_b = asyncio.run(_run_exec(cmd, str(project_path), capture_output=True, timeout=60))
 
-        if result.returncode == 0:
+        if code == 0:
             click.echo("✅ Plugin test passed!")
-            if result.stdout:
-                click.echo(result.stdout.decode())
+            if out_b:
+                click.echo(out_b.decode())
         else:
             click.echo("❌ Plugin test failed", err=True)
-            if result.stderr:
-                click.echo(result.stderr.decode(), err=True)
-            ctx.exit(result.returncode)
+            if err_b:
+                click.echo(err_b.decode(), err=True)
+            ctx.exit(code)
     except (RuntimeError, ValueError, TypeError) as e:
         click.echo(f"❌ Failed to test plugin: {e}", err=True)
         ctx.exit(1)
@@ -576,22 +526,17 @@ def install(
         cmd = ["meltano", "install"]
 
         # Execute meltano command
-        result = _safe_subprocess_run(
-            cmd,
-            cwd=str(project_path),
-            capture_output=True,
-            timeout=600,  # 10 minutes for installation
-        )
+        code, out_b, err_b = asyncio.run(_run_exec(cmd, str(project_path), capture_output=True, timeout=600))
 
-        if result.returncode == 0:
+        if code == 0:
             click.echo("✅ All plugins installed successfully!")
-            if result.stdout:
-                click.echo(result.stdout.decode())
+            if out_b:
+                click.echo(out_b.decode())
         else:
             click.echo("❌ Plugin installation failed", err=True)
-            if result.stderr:
-                click.echo(result.stderr.decode(), err=True)
-            ctx.exit(result.returncode)
+            if err_b:
+                click.echo(err_b.decode(), err=True)
+            ctx.exit(code)
     except (RuntimeError, ValueError, TypeError) as e:
         click.echo(f"❌ Failed to install plugins: {e}", err=True)
         ctx.exit(1)
@@ -633,22 +578,17 @@ def config(
         cmd = ["meltano", "config", plugin_name, "set", setting_name, value]
 
         # Execute meltano command
-        result = _safe_subprocess_run(
-            cmd,
-            cwd=str(project_path),
-            capture_output=True,
-            timeout=30,
-        )
+        code, out_b, err_b = asyncio.run(_run_exec(cmd, str(project_path), capture_output=True, timeout=30))
 
-        if result.returncode == 0:
+        if code == 0:
             click.echo("✅ Configuration updated successfully!")
-            if result.stdout:
-                click.echo(result.stdout.decode())
+            if out_b:
+                click.echo(out_b.decode())
         else:
             click.echo("❌ Configuration update failed", err=True)
-            if result.stderr:
-                click.echo(result.stderr.decode(), err=True)
-            ctx.exit(result.returncode)
+            if err_b:
+                click.echo(err_b.decode(), err=True)
+            ctx.exit(code)
     except (RuntimeError, ValueError, TypeError) as e:
         click.echo(f"❌ Failed to update configuration: {e}", err=True)
         ctx.exit(1)

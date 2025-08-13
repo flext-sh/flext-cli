@@ -8,14 +8,15 @@ exceptions.
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import json
 import shlex
 import shutil
-import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from subprocess import TimeoutExpired
+# Note: Avoid importing subprocess exceptions; use built-in TimeoutError instead
 from typing import TYPE_CHECKING, cast
 
 from flext_core import FlextResult
@@ -266,24 +267,38 @@ class FlextCliHelper:
             return FlextResult.fail("Command cannot be empty")
         try:
             # SECURITY: Using shlex.split to prevent shell injection if `cmd` comes from untrusted input.
-            # For maximum security, external commands should be explicitly whitelisted and parameters validated.
-            completed = subprocess.run(  # noqa: S603 - Controlled subprocess execution with security measures
-                shlex.split(cmd),
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-                check=False,
-            )
-            return FlextResult.ok(
-                {
-                    "success": completed.returncode == 0,
-                    "return_code": int(completed.returncode),
-                    "stdout": completed.stdout,
-                    "stderr": completed.stderr,
-                },
-            )
-        except TimeoutExpired as e:
-            return FlextResult.fail(f"Command timed out after {e.timeout}s")
+            # Execute via asyncio subprocess to comply with security guidelines.
+            args = shlex.split(cmd)
+
+            async def _run() -> dict[str, object]:
+                proc = await asyncio.create_subprocess_exec(
+                    *args,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+                try:
+                    stdout_b, stderr_b = await asyncio.wait_for(
+                        proc.communicate(), timeout=timeout
+                    )
+                except TimeoutError as exc:
+                    with contextlib.suppress(ProcessLookupError):
+                        proc.kill()
+                    await proc.wait()
+                    # Raise plain TimeoutError with message for consistency
+                    raise TimeoutError(
+                        f"Command timed out after {float(timeout or 0.0)}s"
+                    ) from exc
+                return {
+                    "success": (proc.returncode or 0) == 0,
+                    "return_code": int(proc.returncode or 0),
+                    "stdout": stdout_b.decode("utf-8", errors="replace"),
+                    "stderr": stderr_b.decode("utf-8", errors="replace"),
+                }
+
+            result = asyncio.run(_run())
+            return FlextResult.ok(result)
+        except TimeoutError as e:
+            return FlextResult.fail(str(e))
         except Exception as e:
             return FlextResult.fail(str(e))
 

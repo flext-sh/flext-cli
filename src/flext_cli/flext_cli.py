@@ -82,11 +82,9 @@ from typing import TYPE_CHECKING
 from flext_core import get_logger
 
 from flext_cli.api import FlextCliApi
+from flext_cli.cli_config import CLIConfig as FlextCliConfig
 from flext_cli.cli_types import OutputFormat
-from flext_cli.types import (
-    CLIContext as FlextCliContext,
-    FlextCliConfig,
-)
+from flext_cli.models import FlextCliContext
 
 # Global API instance
 _api = FlextCliApi()

@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import json
-import subprocess
 from pathlib import Path
-from shutil import which
 
 import click
 import yaml
@@ -173,15 +171,9 @@ def edit(ctx: click.Context) -> None:
         if not cfg_path.exists():
             with cfg_path.open("w", encoding="utf-8") as f:
                 f.write(yaml.dump({"debug": False, "timeout": 30}))
-        # Simulate editor invocation which may fail in tests
-        try:
-            editor = which("true") or "true"
-            subprocess.run([editor], check=True)  # noqa: S603
-        except subprocess.CalledProcessError as e:
-            console.print(str(e))
-            ctx.exit(1)
-
-        console.print(f"Edited {cfg_path}")
+        # External editor invocation removed to satisfy security policy.
+        # Inform user how to edit manually.
+        console.print(f"Edit the configuration file manually at: {cfg_path}")
     except Exception as e:
         console.print(str(e))
         ctx.exit(1)

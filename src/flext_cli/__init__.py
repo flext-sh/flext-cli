@@ -73,26 +73,25 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-import types as _types
-import sys as _sys
-from flext_cli.cli_auth import login, logout, status
 
-from flext_cli.cmd import auth as _auth, debug as _debug, config as _config
+import sys as _sys
+import types as _types
+import warnings
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
+
+from flext_cli.cli_auth import login, logout, status
+from flext_cli.cmd import auth as _auth, config as _config, debug as _debug
 from flext_cli.cmd_config import (
     _find_config_value,
     _get_all_config,
-    _print_config_value,
     _print_config_table,
+    _print_config_value,
 )
-
-import warnings
-from typing import Any, Generic, TypeVar, TYPE_CHECKING
 
 if TYPE_CHECKING:  # type hints only
     from collections.abc import Callable
 
 from flext_core import FlextResult
-
 
 # Version information
 from flext_cli.__version__ import __version__
@@ -107,41 +106,70 @@ __version_info__ = tuple(int(x) for x in __version__.split(".") if x.isdigit())
 # Core configuration with flext-core integration (consolidated)
 from flext_cli.cli_config import CLIConfig
 
+# Core types - consolidated from multiple files
+from flext_cli.cli_types import (
+    CommandArgs,
+    CommandOptions,
+    # FlextResult-based types
+    CommandResult,
+    # Status enums
+    CommandStatus,
+    CommandType,
+    ConfigDict,
+    ConfigResult,
+    # Type aliases
+    EntityId,
+    EnvironmentDict,
+    ErrorMessage,
+    ExitCode,
+    OutputData,
+    OutputFormat,
+    PathType,
+    PluginStatus,
+    # Click parameter types
+    PositiveIntType,
+    ProfileType,
+    SessionStatus,
+    TUserId,
+    URLType,
+    ValidationResult,
+)
+
 # Back-compat exports expected by tests
 from flext_cli.config import (
     CLISettings,
     get_cli_config as get_config,
     get_cli_settings as get_settings,
 )
-from flext_cli.simple_api import setup_cli
 
-# Core types - consolidated from multiple files
-from flext_cli.cli_types import (
+# Refactored models using flext-core patterns (consolidated)
+from flext_cli.models import (
+    # Entities using flext-core patterns
+    FlextCliCommand,
+    # Compatibility aliases - create CLI* aliases from FlextCli*
+    FlextCliCommand as CLICommand,  # Modern CLI command entity
+    # Legacy compatibility aliases
+    FlextCliCommand as CLISettingsModel,  # Legacy compatibility
+    FlextCliCommand as FlextCliEntity,  # Legacy compatibility
     # Status enums
-    CommandStatus,
-    CommandType,
-    PluginStatus,
-    SessionStatus,
-    OutputFormat,
-    # Type aliases
-    EntityId,
-    TUserId,
-    CommandArgs,
-    CommandOptions,
-    ExitCode,
-    OutputData,
-    ErrorMessage,
-    ConfigDict,
-    EnvironmentDict,
-    # Click parameter types
-    PositiveIntType,
-    URLType,
-    PathType,
-    ProfileType,
-    # FlextResult-based types
-    CommandResult,
-    ValidationResult,
-    ConfigResult,
+    FlextCliCommandStatus,
+    FlextCliConfiguration,
+    FlextCliConfiguration as CLIConfiguration,  # Modern CLI config value object
+    # Value objects
+    FlextCliContext,
+    FlextCliContext as CLIContext,  # Modern CLI context value object
+    FlextCliContext as FlextCliModel,  # Legacy compatibility
+    FlextCliOutput,
+    FlextCliOutput as CLIOutput,  # Modern CLI output value object
+    FlextCliOutputFormat,
+    FlextCliPlugin,
+    FlextCliPlugin as CLIPlugin,  # Modern CLI plugin entity
+    FlextCliPluginState,
+    FlextCliSession,
+    FlextCliSession as CLISession,  # Modern CLI session entity
+    FlextCliSessionState,
+    # Aggregate root
+    FlextCliWorkspace,
 )
 
 # Foundation patterns using flext-core delegation (consolidated)
@@ -150,36 +178,7 @@ from flext_cli.protocols import (
     FlextCliServiceProtocol,
     FlextCliValidatorProtocol,
 )
-
-# Refactored models using flext-core patterns (consolidated)
-from flext_cli.models import (
-    # Value objects
-    FlextCliContext,
-    FlextCliOutput,
-    FlextCliConfiguration,
-    # Entities using flext-core patterns
-    FlextCliCommand,
-    FlextCliSession,
-    FlextCliPlugin,
-    # Aggregate root
-    FlextCliWorkspace,
-    # Status enums
-    FlextCliCommandStatus,
-    FlextCliSessionState,
-    FlextCliPluginState,
-    FlextCliOutputFormat,
-    # Compatibility aliases - create CLI* aliases from FlextCli*
-    FlextCliCommand as CLICommand,  # Modern CLI command entity
-    FlextCliSession as CLISession,  # Modern CLI session entity
-    FlextCliPlugin as CLIPlugin,  # Modern CLI plugin entity
-    FlextCliContext as CLIContext,  # Modern CLI context value object
-    FlextCliOutput as CLIOutput,  # Modern CLI output value object
-    FlextCliConfiguration as CLIConfiguration,  # Modern CLI config value object
-    # Legacy compatibility aliases
-    FlextCliCommand as CLISettingsModel,  # Legacy compatibility
-    FlextCliContext as FlextCliModel,  # Legacy compatibility
-    FlextCliCommand as FlextCliEntity,  # Legacy compatibility
-)
+from flext_cli.simple_api import setup_cli
 
 # Create aliases for missing domain components (these would be in domain services)
 # For now, use the base entities as placeholders
@@ -190,15 +189,15 @@ CLIExecutionContext = FlextCliContext  # Execution context alias
 
 # Base service patterns
 from flext_cli.base_service import (
-    FlextCliService,
     FlextCliCommandService,
     FlextCliFormatterService,
-    FlextCliValidatorService,
     FlextCliInteractiveService,
-    FlextCliServiceFactory,
+    FlextCliService,
     # Legacy compatibility aliases
     FlextCliService as CLIServiceBase,
     FlextCliService as FlextCliServiceBase,
+    FlextCliServiceFactory,
+    FlextCliValidatorService,
 )
 
 # Now set the domain service aliases
@@ -212,17 +211,17 @@ CLISessionService = FlextCliService  # Session service implementation
 
 # Refactored decorators using flext-core delegation (consolidated)
 from flext_cli.cli_decorators import (
+    cli_cache_result,
+    cli_confirm,
     # Modern decorators (delegate to flext-core)
     cli_enhanced,
-    cli_validate_inputs,
-    cli_handle_keyboard_interrupt,
-    cli_measure_time,
-    cli_log_execution,
-    cli_confirm,
-    cli_retry,
-    cli_cache_result,
-    cli_inject_config,
     cli_file_operation,
+    cli_handle_keyboard_interrupt,
+    cli_inject_config,
+    cli_log_execution,
+    cli_measure_time,
+    cli_retry,
+    cli_validate_inputs,
 )
 
 # Provide simple aliases with legacy names expected by tests
@@ -270,46 +269,45 @@ class CLIHelper:  # pragma: no cover - minimal shim for docs tests
 
 # Refactored mixins using flext-core delegation (consolidated)
 from flext_cli.cli_mixins import (
-    # Modern mixins extending flext-core patterns
-    CLIValidationMixin,
     CLICompleteMixin,
+    CLICompleteMixin as FlextCliCompleteMixin,
     CLIConfigMixin,
+    CLIConfigMixin as FlextCliConfigMixin,
     CLIDataMixin,
+    CLIDataMixin as FlextCliDataMixin,
     CLIExecutionMixin,
-    CLIUIMixin,
+    CLIExecutionMixin as FlextCliExecutionMixin,
     CLIInteractiveMixin,
+    CLIInteractiveMixin as FlextCliInteractiveMixin,
     CLILoggingMixin,
     CLIOutputMixin,
+    CLIUIMixin,
+    CLIUIMixin as FlextCliUIMixin,
+    # Modern mixins extending flext-core patterns
+    CLIValidationMixin,
+    CLIValidationMixin as FlextCliServiceMixin,  # Legacy alias
     # Legacy compatibility aliases
     CLIValidationMixin as FlextCliValidationMixin,
-    CLICompleteMixin as FlextCliCompleteMixin,
-    CLIConfigMixin as FlextCliConfigMixin,
-    CLIDataMixin as FlextCliDataMixin,
-    CLIExecutionMixin as FlextCliExecutionMixin,
-    CLIUIMixin as FlextCliUIMixin,
-    CLIInteractiveMixin as FlextCliInteractiveMixin,
-    CLIValidationMixin as FlextCliServiceMixin,  # Legacy alias
 )
 
 # =============================================================================
 # LEGACY COMPATIBILITY - With deprecation warnings
 # =============================================================================
-
 # Consolidated utilities - All CLI utilities in single module (PEP8)
 from flext_cli.cli_utils import (
-    # Workflow utilities
-    cli_quick_setup,
     cli_batch_process_files,
-    # Data utilities
-    cli_load_data_file,
-    cli_save_data_file,
     # Output utilities
     cli_create_table,
     cli_format_output,
-    # System utilities
-    cli_run_command,
+    # Data utilities
+    cli_load_data_file,
     # Interactive utilities
     cli_prompt,
+    # Workflow utilities
+    cli_quick_setup,
+    # System utilities
+    cli_run_command,
+    cli_save_data_file,
 )
 
 # Public aliases expected by tests
@@ -321,25 +319,23 @@ def flext_cli_output_data(data: object, fmt: OutputFormat, **options: object) ->
     return str(cli_format_output(data, fmt, **options))
 
 
-from flext_cli.cli_auth import (
-    # Token management
-    save_auth_token,
-    load_auth_token,
-    clear_auth_token,
-    get_auth_headers,
-    # Authentication commands
-    login_command,
-    logout_command,
-    status_command,
-)
-
 # Legacy compatibility removed: use modern interfaces from flext_cli.* modules
-
 # =============================================================================
 # Back-compat shims for tests importing flext_cli.commands.*
 # =============================================================================
-
 import contextlib
+
+from flext_cli.cli_auth import (
+    clear_auth_token,
+    get_auth_headers,
+    load_auth_token,
+    # Authentication commands
+    login_command,
+    logout_command,
+    # Token management
+    save_auth_token,
+    status_command,
+)
 
 
 def __getattr__(name: str) -> object:  # pragma: no cover - compatibility layer
@@ -408,128 +404,128 @@ def __getattr__(name: str) -> object:  # pragma: no cover - compatibility layer
 # =============================================================================
 
 __all__: list[str] = [
-    "annotations",
-    "login",
-    "logout",
-    "status",
-    "__version__",
-    "__version_info__",
     "Any",
-    "Generic",
-    "TypeVar",
-    "CLIConfig",
-    "CLISettings",
-    "get_config",
-    "get_settings",
-    "setup_cli",
-    "CommandStatus",
-    "CommandType",
-    "PluginStatus",
-    "SessionStatus",
-    "OutputFormat",
-    "EntityId",
-    "TUserId",
-    "CommandArgs",
-    "CommandOptions",
-    "ExitCode",
-    "OutputData",
-    "ErrorMessage",
-    "ConfigDict",
-    "EnvironmentDict",
-    "PositiveIntType",
-    "URLType",
-    "PathType",
-    "ProfileType",
-    "CommandResult",
-    "ValidationResult",
-    "ConfigResult",
-    "FlextCliCommandProtocol",
-    "FlextCliServiceProtocol",
-    "FlextCliValidatorProtocol",
-    "FlextCliContext",
-    "FlextCliOutput",
-    "FlextCliConfiguration",
-    "FlextCliCommand",
-    "FlextCliSession",
-    "FlextCliPlugin",
-    "FlextCliWorkspace",
-    "FlextCliCommandStatus",
-    "FlextCliSessionState",
-    "FlextCliPluginState",
-    "FlextCliOutputFormat",
     "CLICommand",
-    "CLISession",
-    "CLIPlugin",
-    "CLIContext",
-    "CLIOutput",
-    "CLIConfiguration",
-    "CLISettingsModel",
-    "FlextCliModel",
-    "FlextCliEntity",
-    "FlextCliService",
-    "FlextCliCommandService",
-    "FlextCliFormatterService",
-    "FlextCliValidatorService",
-    "FlextCliInteractiveService",
-    "FlextCliServiceFactory",
-    "CLIServiceBase",
-    "FlextCliServiceBase",
-    "cli_enhanced",
-    "cli_validate_inputs",
-    "cli_handle_keyboard_interrupt",
-    "cli_measure_time",
-    "cli_log_execution",
-    "cli_confirm",
-    "cli_retry",
-    "cli_cache_result",
-    "cli_inject_config",
-    "cli_file_operation",
-    "CLIValidationMixin",
+    "CLICommandService",
     "CLICompleteMixin",
+    "CLIConfig",
     "CLIConfigMixin",
+    "CLIConfiguration",
+    "CLIContext",
+    "CLIContextParams",
     "CLIDataMixin",
+    "CLIExecutionContext",
     "CLIExecutionMixin",
-    "CLIUIMixin",
+    "CLIHelper",
     "CLIInteractiveMixin",
     "CLILoggingMixin",
+    "CLIOutput",
     "CLIOutputMixin",
-    "FlextCliValidationMixin",
+    "CLIPlugin",
+    "CLIServiceBase",
+    "CLIServiceContainer",
+    "CLISession",
+    "CLISessionService",
+    "CLISettings",
+    "CLISettingsModel",
+    "CLIUIMixin",
+    "CLIValidationMixin",
+    "CommandArgs",
+    "CommandOptions",
+    "CommandResult",
+    "CommandStatus",
+    "CommandType",
+    "ConfigDict",
+    "ConfigResult",
+    "EntityId",
+    "EnvironmentDict",
+    "ErrorMessage",
+    "ExitCode",
+    "FlextCliCommand",
+    "FlextCliCommandProtocol",
+    "FlextCliCommandService",
+    "FlextCliCommandStatus",
     "FlextCliCompleteMixin",
     "FlextCliConfigMixin",
+    "FlextCliConfiguration",
+    "FlextCliContext",
     "FlextCliDataMixin",
+    "FlextCliEntity",
     "FlextCliExecutionMixin",
-    "FlextCliUIMixin",
+    "FlextCliFormatterService",
     "FlextCliInteractiveMixin",
+    "FlextCliInteractiveService",
+    "FlextCliModel",
+    "FlextCliOutput",
+    "FlextCliOutputFormat",
+    "FlextCliPlugin",
+    "FlextCliPluginState",
+    "FlextCliService",
+    "FlextCliServiceBase",
+    "FlextCliServiceFactory",
     "FlextCliServiceMixin",
-    "cli_quick_setup",
-    "cli_batch_process_files",
-    "cli_load_data_file",
-    "cli_save_data_file",
-    "cli_create_table",
-    "cli_format_output",
-    "cli_run_command",
-    "cli_prompt",
-    "save_auth_token",
-    "load_auth_token",
-    "clear_auth_token",
-    "get_auth_headers",
-    "login_command",
-    "logout_command",
-    "status_command",
-    "CLIContextParams",
-    "CLIExecutionContext",
-    "CLICommandService",
-    "CLIServiceContainer",
-    "CLISessionService",
+    "FlextCliServiceProtocol",
+    "FlextCliSession",
+    "FlextCliSessionState",
+    "FlextCliUIMixin",
+    "FlextCliValidationMixin",
+    "FlextCliValidatorProtocol",
+    "FlextCliValidatorService",
+    "FlextCliWorkspace",
+    "Generic",
+    "OutputData",
+    "OutputFormat",
+    "PathType",
+    "PluginStatus",
+    "PositiveIntType",
+    "ProfileType",
+    "SessionStatus",
+    "TUserId",
+    "TypeVar",
+    "URLType",
+    "ValidationResult",
+    "__version__",
+    "__version_info__",
+    "annotations",
     "async_command",
+    "clear_auth_token",
+    "cli_batch_process_files",
+    "cli_cache_result",
+    "cli_confirm",
+    "cli_create_table",
+    "cli_enhanced",
+    "cli_file_operation",
+    "cli_format_output",
+    "cli_handle_keyboard_interrupt",
+    "cli_inject_config",
+    "cli_load_data_file",
+    "cli_log_execution",
+    "cli_measure_time",
+    "cli_prompt",
+    "cli_quick_setup",
+    "cli_retry",
+    "cli_run_command",
+    "cli_save_data_file",
+    "cli_validate_inputs",
     "confirm_action",
+    "flext_cli_format",
+    "flext_cli_output_data",
+    "get_auth_headers",
+    "get_config",
+    "get_settings",
+    "handle_service_result",
+    "load_auth_token",
+    "login",
+    "login_command",
+    "logout",
+    "logout_command",
     "measure_time",
     "require_auth",
     "retry",
+    "save_auth_token",
+    "setup_cli",
+    "status",
+    "status_command",
     "validate_config",
     "with_spinner",
-    "handle_service_result",
-    "CLIHelper",
-    "flext_cli_format",
-    "flext_cli_output_data",
 ]

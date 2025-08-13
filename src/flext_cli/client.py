@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import importlib
 from typing import Self, cast
 from urllib.parse import urljoin
 
@@ -15,6 +16,21 @@ from flext_core import get_logger
 from pydantic import BaseModel, Field
 
 from flext_cli.config import get_config as get_cli_config
+
+
+def _compute_default_base_url() -> str | None:
+    """Return default base URL from flext_core constants if available."""
+    try:
+        mod = importlib.import_module("flext_core.constants")
+        constants = getattr(mod, "FlextConstants", None)
+        platform = getattr(constants, "Platform", None) if constants is not None else None
+        host = getattr(platform, "DEFAULT_HOST", None) if platform is not None else None
+        port = getattr(platform, "FLEXT_API_PORT", None) if platform is not None else None
+        if host and port:
+            return f"http://{host}:{port}"
+        return None
+    except Exception:
+        return None
 
 
 class APIBaseModel(BaseModel):
@@ -84,12 +100,8 @@ class FlextApiClient:
         elif config.api.url:
             self.base_url = config.api.url
         else:
-            try:
-                from flext_core.constants import FlextConstants
-
-                self.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
-            except Exception:
-                self.base_url = "http://localhost:8000"
+            computed = _compute_default_base_url()
+            self.base_url = computed or "http://localhost:8000"
         self.token = token
         self.timeout = timeout
         self.verify_ssl = verify_ssl

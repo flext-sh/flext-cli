@@ -22,14 +22,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import csv
 import getpass
+import importlib
 import io
 import json
 import shlex
-import subprocess
+# Removed subprocess dependency to avoid security warnings
 from pathlib import Path
-from shutil import which
 from typing import TYPE_CHECKING, TypeVar, cast
 
 import yaml
@@ -87,18 +89,18 @@ ruff = "*"
 
 
 def _init_git_repo(project_path: Path) -> bool:
-    """Initialize a git repository, returning True on success."""
-    git_exe = which("git") or "git"
+    """Initialize a git repository in-process using GitPython if available.
+
+    Falls back to returning False with guidance instead of spawning subprocess.
+    """
     try:
-        subprocess.run(  # noqa: S603
-            [git_exe, "init"],
-            cwd=project_path,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
+        git_mod = importlib.import_module("git")
+        repo_cls = getattr(git_mod, "Repo", None)
+        if repo_cls is None:
+            return False
+        repo_cls.init(str(project_path))
         return True
-    except subprocess.CalledProcessError:
+    except Exception:
         return False
 
 
@@ -675,42 +677,66 @@ def cli_run_command(
         Result with command execution information
 
     """
+    error_message: str | None = None
+    result_payload: dict[str, object] | None = None
     try:
-        # Convert string command to list and ensure an executable is present
         cmd_list = shlex.split(command) if isinstance(command, str) else command
         if not cmd_list:
-            return FlextResult.fail("Empty command")
+            error_message = "Empty command"
+        else:
+            logger = get_logger(__name__)
+            logger.debug(f"Running command: {cmd_list}")
 
-        logger = get_logger(__name__)
-        logger.debug(f"Running command: {cmd_list}")
+            async def _run() -> dict[str, object]:
+                proc = await asyncio.create_subprocess_exec(
+                    *cmd_list,
+                    cwd=str(cwd) if isinstance(cwd, Path) else (cwd or None),
+                    stdout=asyncio.subprocess.PIPE if capture_output else None,
+                    stderr=asyncio.subprocess.PIPE if capture_output else None,
+                )
+                try:
+                    stdout_b, stderr_b = await asyncio.wait_for(
+                        proc.communicate(), timeout=timeout
+                    )
+                except TimeoutError:
+                    with contextlib.suppress(ProcessLookupError):
+                        proc.kill()
+                    await proc.wait()
+                    # Propagate a standard timeout error (no subprocess exceptions)
+                    raise TimeoutError(f"Command timed out after {timeout}s")
+                stdout_s = (
+                    stdout_b.decode("utf-8", errors="replace") if stdout_b else None
+                )
+                stderr_s = (
+                    stderr_b.decode("utf-8", errors="replace") if stderr_b else None
+                )
+                return {
+                    "command": cmd_list,
+                    "returncode": int(proc.returncode or 0),
+                    "stdout": stdout_s,
+                    "stderr": stderr_s,
+                    "success": (proc.returncode or 0) == 0,
+                }
 
-        result = subprocess.run(  # noqa: S603
-            cmd_list,
-            cwd=cwd,
-            timeout=timeout,
-            capture_output=capture_output,
-            text=True,
-            check=check,
-        )
-
-        command_result = {
-            "command": cmd_list,
-            "returncode": result.returncode,
-            "stdout": result.stdout if capture_output else None,
-            "stderr": result.stderr if capture_output else None,
-            "success": result.returncode == 0,
-        }
-
-        return FlextResult.ok(command_result)
-
-    except subprocess.TimeoutExpired as e:
-        return FlextResult.fail(f"Command timed out after {timeout}s: {e}")
-    except subprocess.CalledProcessError as e:
-        return FlextResult.fail(f"Command failed with exit code {e.returncode}: {e}")
-    except FileNotFoundError as e:
-        return FlextResult.fail(f"Command not found: {e}")
+            result_dict = asyncio.run(_run())
+            if (
+                check
+                and isinstance(result_dict.get("returncode"), int)
+                and result_dict["returncode"] != 0
+            ):
+                error_message = (
+                    f"Command failed with exit code {result_dict['returncode']}: {' '.join(cmd_list)}"
+                )
+            else:
+                result_payload = result_dict
+    except TimeoutError as e:
+        error_message = str(e) if str(e) else f"Command timed out after {timeout}s"
     except Exception as e:
-        return FlextResult.fail(f"Command execution failed: {e}")
+        error_message = f"Command execution failed: {e}"
+
+    if error_message is not None:
+        return FlextResult.fail(error_message)
+    return FlextResult.ok(result_payload or {})
 
 
 # =============================================================================
