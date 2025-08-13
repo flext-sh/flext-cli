@@ -55,7 +55,12 @@ class CLICommandService:
     def __init__(self) -> None:
         self.commands: dict[str, object] = {}
 
-    def register_command(self, name: str, handler: Callable[[CLIExecutionContext], object] | Callable[[CLIExecutionContext], FlextResult[object]]) -> None:
+    def register_command(
+        self,
+        name: str,
+        handler: Callable[[CLIExecutionContext], object]
+        | Callable[[CLIExecutionContext], FlextResult[object]],
+    ) -> None:
         """Register a command handler."""
         self.commands[name] = handler
 
@@ -94,6 +99,7 @@ class CLISessionService:
     def create_session(self, user_id: str | None = None) -> FlextResult[str]:
         """Create a new CLI session."""
         import uuid
+
         session_id = str(uuid.uuid4())
 
         self.sessions[session_id] = {

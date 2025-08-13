@@ -13,6 +13,7 @@ from typing import Self
 from unittest.mock import MagicMock
 
 from flext_core import FlextResult
+from flext_core.constants import FlextConstants
 
 
 class MockFlextApiClient:
@@ -25,7 +26,10 @@ class MockFlextApiClient:
         timeout: float = 30.0,
     ) -> None:
         """Initialize mock API client."""
-        self.base_url = base_url or "http://localhost:8000"
+        if base_url:
+            self.base_url = base_url
+        else:
+            self.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
         self.token = token
         self.timeout = timeout
         self._available = True
@@ -43,7 +47,10 @@ class MockFlextApiClient:
         return self
 
     async def __aexit__(
-        self, exc_type: object, exc_val: object, exc_tb: object
+        self,
+        exc_type: object,
+        exc_val: object,
+        exc_tb: object,
     ) -> None:
         """Async context manager exit."""
 
@@ -54,7 +61,7 @@ class MockFlextApiClient:
     async def get_system_status(self) -> FlextResult[dict[str, object]]:
         """Mock system status - returns healthy status."""
         return FlextResult.ok(
-            {"version": "1.0.0", "status": "healthy", "uptime": "24h"}
+            {"version": "1.0.0", "status": "healthy", "uptime": "24h"},
         )
 
     async def list_services(self) -> FlextResult[list[dict[str, object]]]:
@@ -63,21 +70,23 @@ class MockFlextApiClient:
             [
                 {
                     "name": "FlexCore",
-                    "url": "http://localhost:8080",
+                    "url": f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXCORE_PORT}",
                     "status": "healthy",
                     "response_time": 0.05,
                 },
                 {
                     "name": "FLEXT Service",
-                    "url": "http://localhost:8081",
+                    "url": f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXSERVICE_PORT}",
                     "status": "healthy",
                     "response_time": 0.03,
                 },
-            ]
+            ],
         )
 
     async def login(
-        self, username: str, password: str
+        self,
+        username: str,
+        password: str,
     ) -> FlextResult[dict[str, object]]:
         """Mock login - always succeeds with valid token."""
         return FlextResult.ok(
@@ -85,7 +94,7 @@ class MockFlextApiClient:
                 "access_token": "mock-token-12345",
                 "token_type": "bearer",
                 "expires_in": 3600,
-            }
+            },
         )
 
     async def logout(self) -> FlextResult[None]:
@@ -95,7 +104,7 @@ class MockFlextApiClient:
     async def get_current_user(self) -> FlextResult[dict[str, object]]:
         """Mock user info."""
         return FlextResult.ok(
-            {"id": "user123", "username": "testuser", "email": "test@example.com"}
+            {"id": "user123", "username": "testuser", "email": "test@example.com"},
         )
 
     async def close(self) -> None:
@@ -139,9 +148,12 @@ def mock_create_flext_api() -> object:
         """Mock client creation."""
         return FlextResult.ok(
             MockFlextApiClient(
-                base_url=config.get("base_url", "http://localhost:8000"),
+                base_url=config.get(
+                    "base_url",
+                    f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}",
+                ),
                 timeout=config.get("timeout", 30.0),
-            )
+            ),
         )
 
     mock_api.flext_api_create_client = mock_create_client

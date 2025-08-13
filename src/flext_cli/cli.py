@@ -67,6 +67,7 @@ try:  # pragma: no cover
         __version__ as core_version,
     )
 except Exception:  # pragma: no cover
+
     class FlextUtilities:  # type: ignore[no-redef]
         """Minimal fallback for flext-core CLI utilities.
 
@@ -74,7 +75,9 @@ except Exception:  # pragma: no cover
         """
 
         @staticmethod
-        def handle_cli_main_errors(entrypoint: Callable[[], None], *, debug_mode: bool = False) -> None:
+        def handle_cli_main_errors(
+            entrypoint: Callable[[], None], *, debug_mode: bool = False,
+        ) -> None:
             """Invoke the CLI entrypoint with optional debug flag.
 
             The fallback performs a direct call without extra handling.

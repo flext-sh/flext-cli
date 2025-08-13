@@ -110,7 +110,8 @@ class TestCLICommandEntityIntegration:
         command = start_result.data
 
         complete_result = command.complete_execution(
-            exit_code=result.exit_code, stderr="Command not found"
+            exit_code=result.exit_code,
+            stderr="Command not found",
         )
         assert complete_result.success, (
             f"Complete execution failed: {complete_result.error}"
@@ -163,7 +164,8 @@ class TestCLICommandEntityIntegration:
             command = start_result.unwrap()
 
             complete_result = command.complete_execution(
-                exit_code=0, stdout=result.output
+                exit_code=0,
+                stdout=result.output,
             )
             assert complete_result.success
             command = complete_result.unwrap()
@@ -555,7 +557,9 @@ class TestCLIContextIntegration:
     def test_execution_context_with_entities(self) -> None:
         """Test CLIExecutionContext with command entities."""
         execution_context = CLIExecutionContext(
-            command_name="config-show", user_id="test-user", session_id="test-session"
+            command_name="config-show",
+            user_id="test-user",
+            session_id="test-session",
         )
 
         # Create related entities
@@ -592,7 +596,9 @@ class TestCLIContextIntegration:
             config.debug = False
 
             context = CLIContext(
-                config=config, settings=CLISettings(), console=Console()
+                config=config,
+                settings=CLISettings(),
+                console=Console(),
             )
 
             test_file = Path(tmpdir) / "test_config.yaml"
@@ -667,7 +673,8 @@ class TestIntegrationErrorHandling:
         command = start_result.unwrap()
 
         complete_result = command.complete_execution(
-            exit_code=result.exit_code, stderr=result.output
+            exit_code=result.exit_code,
+            stderr=result.output,
         )
         assert complete_result.success
         command = complete_result.unwrap()
@@ -739,7 +746,8 @@ class TestRealWorldIntegrationScenarios:
             command = start_result.unwrap()
 
             complete_result = command.complete_execution(
-                exit_code=expected_exit_code, stdout=result.output
+                exit_code=expected_exit_code,
+                stdout=result.output,
             )
             assert complete_result.success
             command = complete_result.unwrap()
@@ -795,7 +803,8 @@ class TestRealWorldIntegrationScenarios:
             command = start_result.unwrap()
 
             complete_result = command.complete_execution(
-                exit_code=expected_exit_code, stdout=result.output
+                exit_code=expected_exit_code,
+                stdout=result.output,
             )
             assert complete_result.success
             command = complete_result.unwrap()
@@ -843,7 +852,8 @@ class TestRealWorldIntegrationScenarios:
             command = start_result.unwrap()
 
             complete_result = command.complete_execution(
-                exit_code=expected_exit_code, stdout=result.output
+                exit_code=expected_exit_code,
+                stdout=result.output,
             )
             assert complete_result.success
             command = complete_result.unwrap()

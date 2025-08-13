@@ -30,6 +30,7 @@ def _generate_session_id() -> str:
 def _get_version() -> str:
     try:
         from flext_cli.__version__ import __version__
+
         return __version__
     except Exception:  # noqa: BLE001
         return "unknown"
@@ -89,7 +90,8 @@ def flext_cli_quick_setup(config: dict[str, object]) -> FlextResult[dict[str, ob
 
 
 def flext_cli_auto_config(
-    profile: str, config_files: list[str],
+    profile: str,
+    config_files: list[str],
 ) -> FlextResult[dict[str, object]]:
     """Load and merge CLI configuration automatically from profile and files."""
     env = _load_env_overrides()
@@ -117,11 +119,19 @@ def flext_cli_validate_all(
 
     def _email(v: object) -> FlextResult[str]:
         s = str(v)
-        return FlextResult.ok(s) if ("@" in s and "." in s) else FlextResult.fail("Invalid email")
+        return (
+            FlextResult.ok(s)
+            if ("@" in s and "." in s)
+            else FlextResult.fail("Invalid email")
+        )
 
     def _url(v: object) -> FlextResult[str]:
         s = str(v)
-        return FlextResult.ok(s) if s.startswith(("http://", "https://")) else FlextResult.fail("Invalid URL")
+        return (
+            FlextResult.ok(s)
+            if s.startswith(("http://", "https://"))
+            else FlextResult.fail("Invalid URL")
+        )
 
     def _path(v: object) -> FlextResult[Path]:
         return FlextResult.ok(Path(str(v)))
@@ -132,7 +142,11 @@ def flext_cli_validate_all(
 
     def _dir(v: object) -> FlextResult[Path]:
         p = Path(str(v))
-        return FlextResult.ok(p) if (p.exists() and p.is_dir()) else FlextResult.fail("Directory not found")
+        return (
+            FlextResult.ok(p)
+            if (p.exists() and p.is_dir())
+            else FlextResult.fail("Directory not found")
+        )
 
     def _filename(v: object) -> FlextResult[str]:
         return FlextResult.ok(str(v).replace("<", "_").replace(">", "_"))
@@ -185,7 +199,10 @@ def flext_cli_require_all(confirmations: list[tuple[str, bool]]) -> FlextResult[
 
 
 def flext_cli_output_data(
-    data: object, format_type: str, *, console: Console,
+    data: object,
+    format_type: str,
+    *,
+    console: Console,
 ) -> FlextResult[bool]:
     """Render data to console in the specified format."""
     try:
@@ -220,7 +237,10 @@ def flext_cli_output_data(
 
 
 def flext_cli_create_table(
-    data: object, *, title: str | None = None, columns: list[str] | None = None,
+    data: object,
+    *,
+    title: str | None = None,
+    columns: list[str] | None = None,
 ) -> Table:
     """Create a Rich table from data with optional title and columns."""
     table = Table(title=title)
@@ -250,7 +270,9 @@ def flext_cli_create_table(
 
 
 def flext_cli_load_file(
-    file_path: str | Path, *, format_type: str | None = None,
+    file_path: str | Path,
+    *,
+    format_type: str | None = None,
 ) -> FlextResult[object]:
     """Load a file and parse its content according to the format."""
     p = Path(file_path)

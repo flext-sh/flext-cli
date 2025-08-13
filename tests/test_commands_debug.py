@@ -26,6 +26,7 @@ from flext_cli.commands.debug import (
     trace,
     validate,
 )
+from flext_core.constants import FlextConstants
 from rich.console import Console
 from rich.table import Table
 
@@ -78,7 +79,9 @@ class TestConnectivityCommand:
             patch("asyncio.run") as mock_asyncio_run,
         ):
             self._test_connectivity_success_impl(
-                mock_asyncio_run, mock_get_client, mock_context
+                mock_asyncio_run,
+                mock_get_client,
+                mock_context,
             )
 
     def _test_connectivity_success_impl(
@@ -94,14 +97,14 @@ class TestConnectivityCommand:
         from flext_core import FlextResult
 
         mock_client = AsyncMock()
-        mock_client.base_url = "http://localhost:8000"
+        mock_client.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
         mock_client.test_connection.return_value = FlextResult.ok(True)
         mock_client.get_system_status.return_value = FlextResult.ok(
             {
                 "version": "0.9.0",
                 "status": "healthy",
                 "uptime": "5 days",
-            }
+            },
         )
         mock_get_client.return_value = mock_client
 
@@ -131,19 +134,20 @@ class TestConnectivityCommand:
     def test_connectivity_connection_failed(self) -> None:
         """Test connectivity check with connection failure."""
         with patch(
-            "flext_cli.commands.debug.get_default_cli_client"
+            "flext_cli.commands.debug.get_default_cli_client",
         ) as mock_get_client:
             self._test_connectivity_connection_failed_impl(mock_get_client)
 
     def _test_connectivity_connection_failed_impl(
-        self, mock_get_client: MagicMock
+        self,
+        mock_get_client: MagicMock,
     ) -> None:
         """Test connectivity check with connection failure implementation."""
         from flext_core import FlextResult
 
         # Mock async client with failed connection
         mock_client = AsyncMock()
-        mock_client.base_url = "http://localhost:8000"
+        mock_client.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
         mock_client.test_connection.return_value = FlextResult.fail("Connection failed")
         mock_get_client.return_value = mock_client
 
@@ -167,7 +171,9 @@ class TestConnectivityCommand:
             patch("asyncio.run") as mock_asyncio_run,
         ):
             self._test_connectivity_status_exception_impl(
-                mock_asyncio_run, mock_get_client, mock_context
+                mock_asyncio_run,
+                mock_get_client,
+                mock_context,
             )
 
     def _test_connectivity_status_exception_impl(
@@ -183,7 +189,7 @@ class TestConnectivityCommand:
 
         # Mock client
         mock_client = AsyncMock()
-        mock_client.base_url = "http://localhost:8000"
+        mock_client.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
         mock_client.test_connection.return_value = FlextResult.ok(True)
         mock_client.get_system_status.side_effect = Exception("Status error")
         mock_get_client.return_value = mock_client
@@ -212,7 +218,9 @@ class TestConnectivityCommand:
             patch("asyncio.run") as mock_asyncio_run,
         ):
             self._test_connectivity_general_exception_impl(
-                mock_asyncio_run, mock_get_client, mock_context
+                mock_asyncio_run,
+                mock_get_client,
+                mock_context,
             )
 
     def _test_connectivity_general_exception_impl(
@@ -253,7 +261,9 @@ class TestPerformanceCommand:
             patch("flext_cli.commands.debug.Table") as mock_table_class,
         ):
             self._test_performance_success_simplified(
-                mock_table_class, mock_get_client, mock_context
+                mock_table_class,
+                mock_get_client,
+                mock_context,
             )
 
     def _test_performance_success_simplified(
@@ -274,7 +284,7 @@ class TestPerformanceCommand:
                 "cpu_usage": "25%",
                 "memory_usage": "60%",
                 "disk_usage": "40%",
-            }
+            },
         )
         mock_get_client.return_value = mock_client
 
@@ -302,7 +312,7 @@ class TestPerformanceCommand:
     def test_performance_exception(self) -> None:
         """Test performance command with exception."""
         with patch(
-            "flext_cli.commands.debug.get_default_cli_client"
+            "flext_cli.commands.debug.get_default_cli_client",
         ) as mock_get_client:
             # Setup mock to raise exception
             mock_client = AsyncMock()
@@ -501,7 +511,9 @@ class TestTraceCommand:
         # Use CliRunner to test the command with proper console mock
         runner = CliRunner()
         result = runner.invoke(
-            trace, ["test", "command", "args"], obj={"console": MagicMock()}
+            trace,
+            ["test", "command", "args"],
+            obj={"console": MagicMock()},
         )
 
         # Command should succeed
@@ -516,7 +528,7 @@ class TestEnvCommand:
     @patch.dict(
         os.environ,
         {
-            "FLX_API_URL": "http://localhost:8000",
+            "FLX_API_URL": f"http://{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.DEFAULT_HOST}:{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.FLEXT_API_PORT}",
             "FLX_TOKEN": "secret123456",
             "FLX_DEBUG": "true",
             "OTHER_VAR": "not_flext",
@@ -566,7 +578,7 @@ class TestEnvCommand:
         assert result.exit_code == 0
         # Should call console.print with no variables message
         mock_console.print.assert_called_with(
-            "[yellow]No FLEXT environment variables found[/yellow]"
+            "[yellow]No FLEXT environment variables found[/yellow]",
         )
 
     @patch("flext_cli.commands.debug.Table")
@@ -723,14 +735,14 @@ class TestDebugIntegration:
         registered_commands = debug_cmd.commands
         if len(registered_commands) < 6:
             raise AssertionError(
-                f"Expected {len(registered_commands)} >= {6}, Missing commands in debug group"
+                f"Expected {len(registered_commands)} >= {6}, Missing commands in debug group",
             )
 
     def test_debug_group_help(self) -> None:
         """Test debug group help text."""
         if debug_cmd.help != "Debug commands for FLEXT CLI.":
             raise AssertionError(
-                f"Expected {'Debug commands for FLEXT CLI.'}, got {debug_cmd.help}"
+                f"Expected {'Debug commands for FLEXT CLI.'}, got {debug_cmd.help}",
             )
         assert debug_cmd.name == "debug"
 

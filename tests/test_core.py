@@ -53,7 +53,7 @@ class TestFlextCliService:
         assert isinstance(service._commands, dict)
         if service._formats != {"json", "yaml", "csv", "table", "plain"}:
             raise AssertionError(
-                f'Expected {{"json", "yaml", "csv", "table", "plain"}}, got {service._formats}'
+                f'Expected {{"json", "yaml", "csv", "table", "plain"}}, got {service._formats}',
             )
         assert len(service._handlers) == 0
         if len(service._plugins) != 0:
@@ -78,7 +78,7 @@ class TestFlextCliService:
             raise AssertionError(f"Expected True, got {service._config.debug}")
         if service._config.format_type != "json":
             raise AssertionError(
-                f"Expected {'json'}, got {service._config.format_type}"
+                f"Expected {'json'}, got {service._config.format_type}",
             )
         assert service._config.profile == "test"
 
@@ -110,13 +110,13 @@ class TestFlextCliService:
 
         # Mock FlextCliConfig in the correct module namespace
         with patch.object(
-            core_module, "FlextCliConfig", side_effect=Exception("Config error")
+            core_module, "FlextCliConfig", side_effect=Exception("Config error"),
         ):
             result = service.configure({"test": "data"})
             assert not result.success
             if "Configuration failed:" not in result.error:
                 raise AssertionError(
-                    f"Expected {'Configuration failed:'} in {result.error}"
+                    f"Expected {'Configuration failed:'} in {result.error}",
                 )
 
     def test_flext_cli_export_json(self) -> None:
@@ -125,7 +125,7 @@ class TestFlextCliService:
         data = {"name": "test", "value": 42}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False, suffix=".json"
+            encoding="utf-8", mode="w", delete=False, suffix=".json",
         ) as tmp:
             temp_path = tmp.name
 
@@ -148,7 +148,7 @@ class TestFlextCliService:
         data = {"name": "test", "items": ["a", "b", "c"]}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False, suffix=".yaml"
+            encoding="utf-8", mode="w", delete=False, suffix=".yaml",
         ) as tmp:
             temp_path = tmp.name
 
@@ -185,7 +185,7 @@ class TestFlextCliService:
         data = {"test": "data"}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False
+            encoding="utf-8", mode="w", delete=False,
         ) as tmp:
             temp_path = tmp.name
 
@@ -194,7 +194,7 @@ class TestFlextCliService:
             assert not result.success
             if "Unsupported format:" not in result.error:
                 raise AssertionError(
-                    f"Expected {'Unsupported format:'} in {result.error}"
+                    f"Expected {'Unsupported format:'} in {result.error}",
                 )
         finally:
             Path(temp_path).unlink(missing_ok=True)
@@ -206,7 +206,7 @@ class TestFlextCliService:
 
         # Use invalid path to trigger exception
         result = service.flext_cli_export(
-            data, "/invalid/path/that/does/not/exist.json", "json"
+            data, "/invalid/path/that/does/not/exist.json", "json",
         )
         assert not result.success
         if "Export failed:" not in result.error:
@@ -413,7 +413,7 @@ class TestFlextCliService:
 
         if health_data["service"] != "FlextCliService":
             raise AssertionError(
-                f"Expected {'FlextCliService'}, got {health_data['service']}"
+                f"Expected {'FlextCliService'}, got {health_data['service']}",
             )
         assert health_data["status"] == "healthy"
         if health_data["configured"]:
@@ -427,7 +427,7 @@ class TestFlextCliService:
         assert isinstance(health_data["supported_formats"], list)
         if "json" not in health_data["supported_formats"]:
             raise AssertionError(
-                f"Expected {'json'} in {health_data['supported_formats']}"
+                f"Expected {'json'} in {health_data['supported_formats']}",
             )
         assert "config" not in health_data
 
@@ -447,13 +447,13 @@ class TestFlextCliService:
             raise AssertionError(f"Expected {'config'} in {health_data}")
         if health_data["config"]["format"] != "json":
             raise AssertionError(
-                f"Expected {'json'}, got {health_data['config']['format']}"
+                f"Expected {'json'}, got {health_data['config']['format']}",
             )
         if not (health_data["config"]["debug"]):
             raise AssertionError(f"Expected True, got {health_data['config']['debug']}")
         if health_data["config"]["profile"] != "test":
             raise AssertionError(
-                f"Expected {'test'}, got {health_data['config']['profile']}"
+                f"Expected {'test'}, got {health_data['config']['profile']}",
             )
 
     def test_flext_cli_health_exception_handling(self) -> None:
@@ -469,7 +469,7 @@ class TestFlextCliService:
             assert not result.success
             if "Health check failed:" not in result.error:
                 raise AssertionError(
-                    f"Expected {'Health check failed:'} in {result.error}"
+                    f"Expected {'Health check failed:'} in {result.error}",
                 )
 
     def test_flext_cli_validate_format_valid(self) -> None:
@@ -490,7 +490,7 @@ class TestFlextCliService:
         assert not result.success
         if "Unsupported format: invalid" not in result.error:
             raise AssertionError(
-                f"Expected {'Unsupported format: invalid'} in {result.error}"
+                f"Expected {'Unsupported format: invalid'} in {result.error}",
             )
         assert "Supported:" in result.error
 
@@ -503,7 +503,7 @@ class TestFlextCliService:
         created_message = result.unwrap()
         if "Command 'test-cmd' created" not in created_message:
             raise AssertionError(
-                f"Expected {"Command 'test-cmd' created"} in {created_message}"
+                f"Expected {"Command 'test-cmd' created"} in {created_message}",
             )
 
         # Verify command was stored
@@ -514,7 +514,7 @@ class TestFlextCliService:
             raise AssertionError(f"Expected {'test-cmd'} in {commands}")
         if commands["test-cmd"].name != "test-cmd":
             raise AssertionError(
-                f"Expected {'test-cmd'}, got {commands['test-cmd'].name}"
+                f"Expected {'test-cmd'}, got {commands['test-cmd'].name}",
             )
         assert commands["test-cmd"].command_line == "echo hello"
 
@@ -524,7 +524,7 @@ class TestFlextCliService:
 
         # Mock FlextCliCommand in the correct module namespace
         with patch.object(
-            core_module, "FlextCliCommand", side_effect=Exception("Command error")
+            core_module, "FlextCliCommand", side_effect=Exception("Command error"),
         ):
             result = service.flext_cli_create_command("test-cmd", "echo hello")
             assert not result.success
@@ -576,7 +576,7 @@ class TestFlextCliService:
 
         # Mock FlextCliSession in the correct module namespace
         with patch.object(
-            core_module, "FlextCliSession", side_effect=Exception("Session error")
+            core_module, "FlextCliSession", side_effect=Exception("Session error"),
         ):
             result = service.flext_cli_create_session()
             assert not result.success
@@ -625,7 +625,7 @@ class TestFlextCliService:
         """Test registering plugin."""
         service = FlextCliService()
         plugin = FlextCliPlugin(
-            name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0"
+            name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0",
         )
 
         result = service.flext_cli_register_plugin("test-plugin", plugin)
@@ -643,10 +643,10 @@ class TestFlextCliService:
         """Test registering duplicate plugin."""
         service = FlextCliService()
         plugin1 = FlextCliPlugin(
-            name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0"
+            name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0",
         )
         plugin2 = FlextCliPlugin(
-            name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0"
+            name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0",
         )
 
         # Register first plugin
@@ -817,13 +817,18 @@ class TestFlextCliService:
 
         # Register some plugins
         import uuid
+
         plugin1 = FlextCliPlugin(
             id=str(uuid.uuid4()),
-            name="plugin1", entry_point="plugin1.main", plugin_version="0.9.0"
+            name="plugin1",
+            entry_point="plugin1.main",
+            plugin_version="0.9.0",
         )
         plugin2 = FlextCliPlugin(
             id=str(uuid.uuid4()),
-            name="plugin2", entry_point="plugin2.main", plugin_version="0.9.0"
+            name="plugin2",
+            entry_point="plugin2.main",
+            plugin_version="0.9.0",
         )
         service.flext_cli_register_plugin("plugin1", plugin1)
         service.flext_cli_register_plugin("plugin2", plugin2)
@@ -907,7 +912,7 @@ class TestIntegration:
 
         # 6. Register plugin
         plugin = FlextCliPlugin(
-            name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0"
+            name="test-plugin", entry_point="test_plugin.main", plugin_version="0.9.0",
         )
         plugin_result = service.flext_cli_register_plugin("test-plugin", plugin)
         assert plugin_result.success
@@ -918,7 +923,7 @@ class TestIntegration:
         processed = execute_result.unwrap()
         if processed["processed"]["input"] != "data":
             raise AssertionError(
-                f"Expected {'data'}, got {processed['processed']['input']}"
+                f"Expected {'data'}, got {processed['processed']['input']}",
             )
 
         # 8. Format and export data
@@ -927,7 +932,7 @@ class TestIntegration:
         assert format_result.success
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False, suffix=".json"
+            encoding="utf-8", mode="w", delete=False, suffix=".json",
         ) as tmp:
             temp_path = tmp.name
 
@@ -985,7 +990,7 @@ class TestIntegration:
             return x
 
         plugin = FlextCliPlugin(
-            name="test", entry_point="test.main", plugin_version="0.9.0"
+            name="test", entry_point="test.main", plugin_version="0.9.0",
         )
 
         service.flext_cli_register_handler("test", handler)

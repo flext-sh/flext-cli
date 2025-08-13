@@ -163,14 +163,14 @@ class FlextCliDemoRunner:
 
         # Register the handler
         register_result = self.api.flext_cli_register_handler(
-            "calculator", calculator_handler
+            "calculator", calculator_handler,
         )
         if register_result.success:
             print("   ✅ Registered calculator handler")
 
             # Execute the handler
             exec_result = self.api.flext_cli_execute_handler(
-                "calculator", "multiply", 15.5, 4.2
+                "calculator", "multiply", 15.5, 4.2,
             )
 
             if exec_result.success:
@@ -203,7 +203,7 @@ class FlextCliDemoRunner:
 
             # Render with custom context
             context_result = self.api.flext_cli_render_with_context(
-                sample_data, {"format": "json", "title": "User Data"}
+                sample_data, {"format": "json", "title": "User Data"},
             )
             if context_result.success:
                 rendered = context_result.unwrap()
@@ -265,7 +265,7 @@ class FlextCliDemoRunner:
             print("      Registered handlers:")
             for name, info in handlers.items():
                 print(
-                    f"        - {name}: {info['type']} (callable: {info['callable']})"
+                    f"        - {name}: {info['type']} (callable: {info['callable']})",
                 )
 
     def run_complete_demo(self) -> bool:
@@ -291,7 +291,7 @@ class FlextCliDemoRunner:
             print("\n✨ Example completed successfully!")
             print(
                 "All functionality is working with real implementations, "
-                "no placeholders!"
+                "no placeholders!",
             )
         else:
             print("\n⚠️  Some demo steps failed. Check the output above.")

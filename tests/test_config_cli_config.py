@@ -13,6 +13,7 @@ import contextlib
 import os
 import tempfile
 from pathlib import Path
+from typing import Literal
 from unittest.mock import patch
 
 import pytest
@@ -27,8 +28,10 @@ from flext_cli.config import (
     get_cli_config,
     get_cli_settings,
 )
+from flext_core.constants import FlextConstants
 
 # Constants
+_API = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
 EXPECTED_BULK_SIZE = 2
 EXPECTED_DATA_COUNT = 3
 
@@ -71,8 +74,6 @@ class TestCLIOutputConfig:
 
     def test_format_literal_validation(self) -> None:
         """Test format field accepts valid literal values."""
-        from typing import Literal
-
         valid_formats: list[Literal["table", "json", "yaml", "csv", "plain"]] = [
             "table",
             "json",
@@ -122,9 +123,9 @@ class TestCLIAPIConfig:
         """Test default configuration values."""
         config = CLIAPIConfig()
 
-        if config.url != "http://localhost:8000":
+        if config.url != _API:
             raise AssertionError(
-                f"Expected {'http://localhost:8000'}, got {config.url}"
+                f"Expected {_API}, got {config.url}",
             )
         assert config.timeout == 30
         if config.retries != EXPECTED_DATA_COUNT:
@@ -143,7 +144,7 @@ class TestCLIAPIConfig:
 
         if config.url != "https://api.example.com:8443":
             raise AssertionError(
-                f"Expected {'https://api.example.com:8443'}, got {config.url}"
+                f"Expected {'https://api.example.com:8443'}, got {config.url}",
             )
         assert config.timeout == 60
         if config.retries != 5:
@@ -154,8 +155,8 @@ class TestCLIAPIConfig:
     def test_base_url_property(self) -> None:
         """Test base_url property removes trailing slash."""
         test_cases = [
-            ("http://localhost:8000", "http://localhost:8000"),
-            ("http://localhost:8000/", "http://localhost:8000"),
+            (_API, _API),
+            (f"{_API}/", _API),
             ("https://api.example.com/", "https://api.example.com"),
             ("https://api.example.com///", "https://api.example.com"),
             ("http://localhost", "http://localhost"),
@@ -165,7 +166,7 @@ class TestCLIAPIConfig:
             config = CLIAPIConfig(url=input_url)
             if config.base_url != expected_output:
                 raise AssertionError(
-                    f"Expected {expected_output}, got {config.base_url}"
+                    f"Expected {expected_output}, got {config.base_url}",
                 )
 
     def test_numeric_field_types(self) -> None:
@@ -199,7 +200,7 @@ class TestCLIAuthConfig:
 
         if config.token_file != expected_token_path:
             raise AssertionError(
-                f"Expected {expected_token_path}, got {config.token_file}"
+                f"Expected {expected_token_path}, got {config.token_file}",
             )
         assert config.refresh_token_file == expected_refresh_path
         if not (config.auto_refresh):
@@ -220,7 +221,7 @@ class TestCLIAuthConfig:
 
             if config.token_file != custom_token:
                 raise AssertionError(
-                    f"Expected {custom_token}, got {config.token_file}"
+                    f"Expected {custom_token}, got {config.token_file}",
                 )
             assert config.refresh_token_file == custom_refresh
             if config.auto_refresh:
@@ -256,7 +257,7 @@ class TestCLIDirectoryConfig:
 
         if config.config_dir != expected_config_dir:
             raise AssertionError(
-                f"Expected {expected_config_dir}, got {config.config_dir}"
+                f"Expected {expected_config_dir}, got {config.config_dir}",
             )
         assert config.cache_dir == expected_cache_dir
         if config.log_dir != expected_log_dir:
@@ -391,9 +392,9 @@ class TestCLIConfig:
             raise AssertionError(f"Expected False, got {config.output.no_color}")
 
         # Test API config
-        if config.api.url != "http://localhost:8000":
+        if config.api.url != _API:
             raise AssertionError(
-                f"Expected {'http://localhost:8000'}, got {config.api.url}"
+                f"Expected {_API}, got {config.api.url}",
             )
         assert config.api.timeout == 30
 
@@ -404,7 +405,7 @@ class TestCLIConfig:
         # Test directories config
         if config.directories.config_dir != Path.home() / ".flext":
             raise AssertionError(
-                f"Expected {Path.home() / '.flext'}, got {config.directories.config_dir}"
+                f"Expected {Path.home() / '.flext'}, got {config.directories.config_dir}",
             )
 
     def test_ensure_setup(self) -> None:
@@ -440,12 +441,12 @@ class TestCLIConfig:
         # Test deep access to nested configurations
         if config.output.format != "table":
             raise AssertionError(f"Expected {'table'}, got {config.output.format}")
-        assert config.api.base_url == "http://localhost:8000"
+        assert config.api.base_url == _API
         if not (config.auth.auto_refresh):
             raise AssertionError(f"Expected True, got {config.auth.auto_refresh}")
         if config.directories.config_dir.name != ".flext":
             raise AssertionError(
-                f"Expected {'.flext'}, got {config.directories.config_dir.name}"
+                f"Expected {'.flext'}, got {config.directories.config_dir.name}",
             )
 
 
@@ -459,9 +460,9 @@ class TestCLISettings:
         if settings.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {settings.project_name}")
         assert settings.project_version == "0.9.0"
-        if settings.api_url != "http://localhost:8000":
+        if settings.api_url != _API:
             raise AssertionError(
-                f"Expected {'http://localhost:8000'}, got {settings.api_url}"
+                f"Expected {_API}, got {settings.api_url}",
             )
         assert settings.timeout == 30
         if settings.output_format != "table":
@@ -482,12 +483,12 @@ class TestCLISettings:
 
         if settings.project_name != "custom-cli":
             raise AssertionError(
-                f"Expected {'custom-cli'}, got {settings.project_name}"
+                f"Expected {'custom-cli'}, got {settings.project_name}",
             )
         assert settings.project_version == "0.9.0"
         if settings.api_url != "https://custom.api.com":
             raise AssertionError(
-                f"Expected {'https://custom.api.com'}, got {settings.api_url}"
+                f"Expected {'https://custom.api.com'}, got {settings.api_url}",
             )
         assert settings.timeout == 60
         if settings.output_format != "json":
@@ -511,12 +512,12 @@ class TestCLISettings:
 
             if settings.project_name != "env-cli":
                 raise AssertionError(
-                    f"Expected {'env-cli'}, got {settings.project_name}"
+                    f"Expected {'env-cli'}, got {settings.project_name}",
                 )
             assert settings.project_version == "0.9.0"
             if settings.api_url != "https://env.api.com":
                 raise AssertionError(
-                    f"Expected {'https://env.api.com'}, got {settings.api_url}"
+                    f"Expected {'https://env.api.com'}, got {settings.api_url}",
                 )
             assert settings.timeout == 45
             if settings.output_format != "yaml":
@@ -545,12 +546,12 @@ class TestCLISettings:
         # Test that model config is set correctly (model_config is a dict in pydantic-settings)
         if settings.model_config["env_prefix"] != "FLEXT_CLI_":
             raise AssertionError(
-                f"Expected {'FLEXT_CLI_'}, got {settings.model_config['env_prefix']}"
+                f"Expected {'FLEXT_CLI_'}, got {settings.model_config['env_prefix']}",
             )
         assert settings.model_config["env_file"] == ".env"
         if settings.model_config["case_sensitive"]:
             raise AssertionError(
-                f"Expected False, got {settings.model_config['case_sensitive']}"
+                f"Expected False, got {settings.model_config['case_sensitive']}",
             )
         assert settings.model_config["extra"] == "ignore"
 
@@ -628,9 +629,9 @@ class TestConfigurationFunctions:
         if settings.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {settings.project_name}")
         assert settings.project_version == "0.9.0"
-        if settings.api_url != "http://localhost:8000":
+        if settings.api_url != _API:
             raise AssertionError(
-                f"Expected {'http://localhost:8000'}, got {settings.api_url}"
+                f"Expected {_API}, got {settings.api_url}",
             )
         assert settings.timeout == 30
         if settings.output_format != "table":
@@ -667,7 +668,7 @@ class TestConfigurationIntegration:
             # Verify complete setup
             if config.profile != "integration_test":
                 raise AssertionError(
-                    f"Expected {'integration_test'}, got {config.profile}"
+                    f"Expected {'integration_test'}, got {config.profile}",
                 )
             if not (config.debug):
                 raise AssertionError(f"Expected True, got {config.debug}")
@@ -707,7 +708,7 @@ class TestConfigurationIntegration:
         assert config.output.quiet is True
         if config.api.url != "https://modified.api.com":
             raise AssertionError(
-                f"Expected {'https://modified.api.com'}, got {config.api.url}"
+                f"Expected {'https://modified.api.com'}, got {config.api.url}",
             )
         assert config.api.timeout == 45
 

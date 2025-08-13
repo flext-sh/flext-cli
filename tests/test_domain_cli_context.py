@@ -204,7 +204,7 @@ class TestCLIContext:
             cli_context.print_success("Test success message")
 
             mock_print.assert_called_once_with(
-                "[green][SUCCESS][/green] Test success message"
+                "[green][SUCCESS][/green] Test success message",
             )
 
     def test_print_warning(self, cli_context: CLIContext) -> None:
@@ -214,7 +214,7 @@ class TestCLIContext:
             cli_context.print_warning("Test warning message")
 
             mock_print.assert_called_once_with(
-                "[yellow][WARNING][/yellow] Test warning message"
+                "[yellow][WARNING][/yellow] Test warning message",
             )
 
     def test_print_error(self, cli_context: CLIContext) -> None:
@@ -232,7 +232,7 @@ class TestCLIContext:
             cli_context.print_verbose("Test verbose message")
 
             mock_print.assert_called_once_with(
-                "[dim][VERBOSE][/dim] Test verbose message"
+                "[dim][VERBOSE][/dim] Test verbose message",
             )
 
     def test_print_verbose_when_verbose_disabled(
@@ -256,7 +256,7 @@ class TestCLIContext:
             mock_print.assert_not_called()
 
     def test_all_print_methods_with_different_messages(
-        self, cli_context: CLIContext
+        self, cli_context: CLIContext,
     ) -> None:
         """Test all print methods with different message content."""
         # Mock the console print method
@@ -345,5 +345,5 @@ class TestCLIContext:
         assert isinstance(context.console, Console)
         if not (context.model_config["arbitrary_types_allowed"]):
             raise AssertionError(
-                f"Expected True, got {context.model_config['arbitrary_types_allowed']}"
+                f"Expected True, got {context.model_config['arbitrary_types_allowed']}",
             )

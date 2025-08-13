@@ -14,6 +14,7 @@ from pathlib import Path
 
 import click
 import flext_cli
+from flext_core.constants import FlextConstants
 from flext_core.result import FlextResult
 
 
@@ -108,9 +109,10 @@ class TestLibraryImports:
     def test_configuration_classes_instantiable(self) -> None:
         """Test that configuration classes can be instantiated."""
         config = flext_cli.CLIConfig()
-        if config.api_url != "http://localhost:8000":
+        expected_api = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
+        if config.api_url != expected_api:
             raise AssertionError(
-                f"Expected {'http://localhost:8000'}, got {config.api_url}"
+                f"Expected {expected_api}, got {config.api_url}",
             )
 
         settings = flext_cli.CLISettings()
@@ -122,38 +124,38 @@ class TestLibraryImports:
         # CommandStatus
         if flext_cli.CommandStatus.PENDING != "pending":
             raise AssertionError(
-                f"Expected {'pending'}, got {flext_cli.CommandStatus.PENDING}"
+                f"Expected {'pending'}, got {flext_cli.CommandStatus.PENDING}",
             )
         assert flext_cli.CommandStatus.RUNNING == "running"
         if flext_cli.CommandStatus.COMPLETED != "completed":
             raise AssertionError(
-                f"Expected {'completed'}, got {flext_cli.CommandStatus.COMPLETED}"
+                f"Expected {'completed'}, got {flext_cli.CommandStatus.COMPLETED}",
             )
         assert flext_cli.CommandStatus.FAILED == "failed"
         if flext_cli.CommandStatus.CANCELLED != "cancelled":
             raise AssertionError(
-                f"Expected {'cancelled'}, got {flext_cli.CommandStatus.CANCELLED}"
+                f"Expected {'cancelled'}, got {flext_cli.CommandStatus.CANCELLED}",
             )
 
         # CommandType
         if flext_cli.CommandType.SYSTEM != "system":
             raise AssertionError(
-                f"Expected {'system'}, got {flext_cli.CommandType.SYSTEM}"
+                f"Expected {'system'}, got {flext_cli.CommandType.SYSTEM}",
             )
         assert flext_cli.CommandType.PIPELINE == "pipeline"
         if flext_cli.CommandType.PLUGIN != "plugin":
             raise AssertionError(
-                f"Expected {'plugin'}, got {flext_cli.CommandType.PLUGIN}"
+                f"Expected {'plugin'}, got {flext_cli.CommandType.PLUGIN}",
             )
         assert flext_cli.CommandType.DATA == "data"
         if flext_cli.CommandType.CONFIG != "config":
             raise AssertionError(
-                f"Expected {'config'}, got {flext_cli.CommandType.CONFIG}"
+                f"Expected {'config'}, got {flext_cli.CommandType.CONFIG}",
             )
         assert flext_cli.CommandType.AUTH == "auth"
         if flext_cli.CommandType.MONITORING != "monitoring":
             raise AssertionError(
-                f"Expected {'monitoring'}, got {flext_cli.CommandType.MONITORING}"
+                f"Expected {'monitoring'}, got {flext_cli.CommandType.MONITORING}",
             )
 
     def test_click_types_accessible(self) -> None:
@@ -162,7 +164,7 @@ class TestLibraryImports:
         assert hasattr(flext_cli.PositiveInt, "name")
         if flext_cli.PositiveInt.name != "positive_int":
             raise AssertionError(
-                f"Expected {'positive_int'}, got {flext_cli.PositiveInt.name}"
+                f"Expected {'positive_int'}, got {flext_cli.PositiveInt.name}",
             )
 
         # URL
@@ -176,13 +178,13 @@ class TestLibraryImports:
         assert flext_cli.ExistingFile.file_okay is True
         if flext_cli.ExistingFile.dir_okay:
             raise AssertionError(
-                f"Expected False, got {flext_cli.ExistingFile.dir_okay}"
+                f"Expected False, got {flext_cli.ExistingFile.dir_okay}",
             )
         if not (flext_cli.ExistingDir.exists):
             raise AssertionError(f"Expected True, got {flext_cli.ExistingDir.exists}")
         if flext_cli.ExistingDir.file_okay:
             raise AssertionError(
-                f"Expected False, got {flext_cli.ExistingDir.file_okay}"
+                f"Expected False, got {flext_cli.ExistingDir.file_okay}",
             )
         if not (flext_cli.ExistingDir.dir_okay):
             raise AssertionError(f"Expected True, got {flext_cli.ExistingDir.dir_okay}")
@@ -283,7 +285,7 @@ class TestLibraryCompatibility:
         config_with_path = flext_cli.CLIConfig(config_dir=custom_path)
         if config_with_path.config_dir != custom_path:
             raise AssertionError(
-                f"Expected {custom_path}, got {config_with_path.config_dir}"
+                f"Expected {custom_path}, got {config_with_path.config_dir}",
             )
 
 
@@ -295,7 +297,7 @@ class TestLibraryDocumentation:
         assert flext_cli.__doc__ is not None
         if "FLEXT CLI Library" not in flext_cli.__doc__:
             raise AssertionError(
-                f"Expected {'FLEXT CLI Library'} in {flext_cli.__doc__}"
+                f"Expected {'FLEXT CLI Library'} in {flext_cli.__doc__}",
             )
         assert "Command Line Interface Development Toolkit" in flext_cli.__doc__
 
@@ -358,7 +360,7 @@ class TestLibraryPerformance:
         start_time = time.time()
         for i in range(1000):
             flext_cli.CLICommand(
-                id=f"test_cmd_{i:04d}", name="test", command_line="test"
+                id=f"test_cmd_{i:04d}", name="test", command_line="test",
             )
         creation_time = time.time() - start_time
 

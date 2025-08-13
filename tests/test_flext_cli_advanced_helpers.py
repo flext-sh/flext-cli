@@ -91,7 +91,7 @@ class TestFlextCliHelper:
         valid_emails = [
             "user@example.com",
             "test.email@domain.co.uk",
-            "user+tag@example.org"
+            "user+tag@example.org",
         ]
 
         for email in valid_emails:
@@ -120,7 +120,7 @@ class TestFlextCliHelper:
         # Valid URLs
         valid_urls = [
             "https://example.com",
-            "http://localhost:8000",
+            f"http://{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.DEFAULT_HOST}:{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.FLEXT_API_PORT}",
             "ftp://files.example.com/path",
         ]
 
@@ -153,20 +153,25 @@ class TestFlextCliHelper:
 
             # Valid existing file
             result = helper.flext_cli_validate_path(
-                str(test_file), must_exist=True, must_be_file=True
+                str(test_file),
+                must_exist=True,
+                must_be_file=True,
             )
             assert result.success
             assert result.data == test_file
 
             # Valid existing directory
             result = helper.flext_cli_validate_path(
-                str(temp_path), must_exist=True, must_be_dir=True
+                str(temp_path),
+                must_exist=True,
+                must_be_dir=True,
             )
             assert result.success
 
             # Non-existent path with must_exist=True should fail
             result = helper.flext_cli_validate_path(
-                str(temp_path / "nonexistent"), must_exist=True
+                str(temp_path / "nonexistent"),
+                must_exist=True,
             )
             assert not result.success
 
@@ -249,7 +254,12 @@ class TestFlextCliHelper:
         """Test JSON file loading functionality."""
         helper = FlextCliHelper()
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".json", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8",
+            mode="w",
+            suffix=".json",
+            delete=False,
+        ) as f:
             test_data = {"key": "value", "number": 42}
             json.dump(test_data, f)
             temp_path = f.name
@@ -337,7 +347,9 @@ class TestFlextCliDataProcessor:
 
         # Process workflow
         result = processor.flext_cli_process_workflow(
-            "initial", steps, show_progress=False
+            "initial",
+            steps,
+            show_progress=False,
         )
         assert result.success
         assert result.data == "initial -> step1 -> step2"
@@ -353,7 +365,9 @@ class TestFlextCliDataProcessor:
         ]
 
         result = processor.flext_cli_process_workflow(
-            "initial", steps_with_failure, show_progress=False
+            "initial",
+            steps_with_failure,
+            show_progress=False,
         )
         assert not result.success
         assert "Step failed" in result.error
@@ -366,22 +380,22 @@ class TestFlextCliDataProcessor:
         data = {
             "email": "user@example.com",
             "url": "https://example.com",
-            "name": "John Doe"
+            "name": "John Doe",
         }
 
         validators = {
             "email": "email",
             "url": "url",
-            "name": "none"  # No validation
+            "name": "none",  # No validation
         }
 
-        transformers = {
-            "name": lambda x: x.upper()
-        }
+        transformers = {"name": lambda x: x.upper()}
 
         # Process validation and transformation
         result = processor.flext_cli_validate_and_transform(
-            data, validators, transformers
+            data,
+            validators,
+            transformers,
         )
         assert result.success
         assert result.data["email"] == "user@example.com"
@@ -428,7 +442,9 @@ class TestFlextCliFileManager:
 
             # Process file
             result = manager.flext_cli_backup_and_process(
-                str(test_file), processor, require_confirmation=False
+                str(test_file),
+                processor,
+                require_confirmation=False,
             )
             assert result.success
 
@@ -457,7 +473,9 @@ class TestFlextCliFileManager:
             # Test backup functionality
             new_content = "updated content"
             result = manager.flext_cli_safe_write(
-                new_content, str(test_file), backup=True
+                new_content,
+                str(test_file),
+                backup=True,
             )
             assert result.success
             assert test_file.read_text() == new_content
@@ -573,7 +591,7 @@ class TestErrorConditions:
         result = manager.flext_cli_backup_and_process(
             "/nonexistent/file.txt",
             FlextResult.ok,
-            require_confirmation=False
+            require_confirmation=False,
         )
         assert not result.success
 
@@ -588,7 +606,9 @@ class TestErrorConditions:
         steps = [("Exception Step", exception_step)]
 
         result = processor.flext_cli_process_workflow(
-            "data", steps, show_progress=False
+            "data",
+            steps,
+            show_progress=False,
         )
         assert not result.success
         assert "Simulated error" in result.error
@@ -633,7 +653,7 @@ class TestIntegrationScenarios:
             workflow_result = processor.flext_cli_process_workflow(
                 load_result.data,
                 [("Validate Users", validate_users)],
-                show_progress=False
+                show_progress=False,
             )
             assert workflow_result.success
 
@@ -657,7 +677,9 @@ class TestIntegrationScenarios:
         ]
 
         result = processor.flext_cli_process_workflow(
-            "initial", steps, show_progress=False
+            "initial",
+            steps,
+            show_progress=False,
         )
 
         # Should fail and provide detailed error message

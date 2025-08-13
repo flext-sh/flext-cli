@@ -51,7 +51,7 @@ class TestSetupCli:
                 or "Failed to setup CLI: Test error" not in result.error
             ):
                 raise AssertionError(
-                    f"Expected {'Failed to setup CLI: Test error'} in {result.error}"
+                    f"Expected {'Failed to setup CLI: Test error'} in {result.error}",
                 )
 
 
@@ -105,7 +105,7 @@ class TestCreateDevelopmentCliConfig:
         assert config.log_level == "WARNING"
         if config.config_path != "/test/config/path":
             raise AssertionError(
-                f"Expected {'/test/config/path'}, got {config.config_path}"
+                f"Expected {'/test/config/path'}, got {config.config_path}",
             )
         # Default fields should still be present
         if config.project_name != "flext-cli":
@@ -197,7 +197,7 @@ class TestGetCliSettings:
         assert settings1.log_level == settings2.log_level
         if settings1.project_name != settings2.project_name:
             raise AssertionError(
-                f"Expected {settings2.project_name}, got {settings1.project_name}"
+                f"Expected {settings2.project_name}, got {settings1.project_name}",
             )
 
 
@@ -215,7 +215,7 @@ class TestSimpleApiExports:
 
         if set(__all__) != set(expected_exports):
             raise AssertionError(
-                f"Expected {set(expected_exports)}, got {set(__all__)}"
+                f"Expected {set(expected_exports)}, got {set(__all__)}",
             )
 
     def test_functions_can_be_imported(self) -> None:

@@ -21,7 +21,7 @@ class TestFlextApiClient:
     def test_client_initialization_with_args(self) -> None:
         """Test client initialization with arguments."""
         client = FlextApiClient(
-            base_url="http://test.com", token="test-token", timeout=60.0
+            base_url="http://test.com", token="test-token", timeout=60.0,
         )
         assert isinstance(client, FlextApiClient)
 
@@ -55,7 +55,7 @@ class TestPipeline:
     def test_pipeline_initialization_without_args(self) -> None:
         """Test pipeline initialization without arguments."""
         config = PipelineConfig(
-            name="default-config", tap="default-tap", target="default-target"
+            name="default-config", tap="default-tap", target="default-target",
         )
         pipeline = Pipeline(
             id="default-id",
@@ -73,7 +73,7 @@ class TestPipeline:
     def test_pipeline_initialization_with_args(self) -> None:
         """Test pipeline initialization with arguments."""
         config = PipelineConfig(
-            name="test-config", tap="test-tap", target="test-target"
+            name="test-config", tap="test-tap", target="test-target",
         )
         pipeline = Pipeline(
             id="test-id",
@@ -91,7 +91,7 @@ class TestPipeline:
     def test_pipeline_initialization_with_mixed_args(self) -> None:
         """Test pipeline initialization with mixed arguments."""
         config = PipelineConfig(
-            name="mixed-config", tap="test-tap", target="test-target"
+            name="mixed-config", tap="test-tap", target="test-target",
         )
         pipeline = Pipeline(
             id="mixed-id",
@@ -166,7 +166,7 @@ class TestPipeline:
             created_at="2025-01-01T12:00:00Z",
             updated_at="2025-01-01T12:00:00Z",
             config=PipelineConfig(
-                name="stub-pipeline", tap="tap-csv", target="target-jsonl"
+                name="stub-pipeline", tap="tap-csv", target="target-jsonl",
             ),
         )
 
@@ -237,7 +237,7 @@ class TestClientModule:
 
         # Create proper Pipeline with required fields
         config = PipelineConfig(
-            name="test-pipeline", tap="test-tap", target="test-target"
+            name="test-pipeline", tap="test-tap", target="test-target",
         )
         pipeline = Pipeline(
             id="test-id",
@@ -285,7 +285,7 @@ class TestPipelineList:
         )
 
         pipeline_list = PipelineList(
-            pipelines=[pipeline], total=1, page=2, page_size=10
+            pipelines=[pipeline], total=1, page=2, page_size=10,
         )
         assert isinstance(pipeline_list, PipelineList)
 
@@ -309,7 +309,7 @@ class TestPipelineList:
         )
 
         pipeline_list = PipelineList(
-            pipelines=[pipeline], total=1, page=2, page_size=10
+            pipelines=[pipeline], total=1, page=2, page_size=10,
         )
         assert isinstance(pipeline_list, PipelineList)
 

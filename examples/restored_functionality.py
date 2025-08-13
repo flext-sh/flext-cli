@@ -91,14 +91,14 @@ def _demo_flext_cli_service() -> None:
     # Command creation and tracking (RESTORED)
     api = FlextCliApi()
     cmd_result = api.flext_cli_create_command(
-        "test_cmd", "echo 'Hello World'", command_type="SYSTEM"
+        "test_cmd", "echo 'Hello World'", command_type="SYSTEM",
     )
     cmd_success = cmd_result.success
     print(f"✅ Command creation: {cmd_success}")
 
     # Plugin system (RESTORED)
     plugin_result = api.flext_cli_register_plugin(
-        "test_plugin", {"name": "TestPlugin", "version": "1.0"}
+        "test_plugin", {"name": "TestPlugin", "version": "1.0"},
     )
     plugin_success = plugin_result.success
     print(f"✅ Plugin registration: {plugin_success}")
@@ -139,7 +139,7 @@ def _demo_session_management() -> None:
 
     cli_api.flext_cli_register_handler("demo", demo_command)
     result = cli_api.flext_cli_execute_handler(
-        "demo", "Hello from restored functionality!"
+        "demo", "Hello from restored functionality!",
     )
     result = result.unwrap() if result.success else "Failed"
     print(f"✅ Command execution: {result}")
@@ -153,7 +153,7 @@ def _demo_plugin_management() -> None:
     print(f"✅ Health check: {health_data.get('status')}")
     print(
         f"   Framework features: "
-        f"{len(health_data.get('framework', {}).get('features', []))}"
+        f"{len(health_data.get('framework', {}).get('features', []))}",
     )
     print(f"   Capabilities: {len(health_data.get('capabilities', {}))}")
 

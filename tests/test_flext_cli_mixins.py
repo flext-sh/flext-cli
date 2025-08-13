@@ -121,7 +121,9 @@ class TestFlextCliValidationMixin:
         with patch.object(self.test_instance, "_helper") as mock_helper:
             mock_helper.flext_cli_confirm.return_value = FlextResult.ok(True)
 
-            result = self.test_instance.flext_cli_require_confirmation("delete data", dangerous=True)
+            result = self.test_instance.flext_cli_require_confirmation(
+                "delete data", dangerous=True,
+            )
 
             assert result.success
             # Verify dangerous styling was applied
@@ -213,7 +215,9 @@ class TestFlextCliInteractiveMixin:
         assert "Error message" in args[0]
 
     @patch("flext_cli.core.helpers.FlextCliHelper")
-    def test_flext_cli_confirm_operation_success(self, mock_helper_class: MagicMock) -> None:
+    def test_flext_cli_confirm_operation_success(
+        self, mock_helper_class: MagicMock,
+    ) -> None:
         """Test successful operation confirmation."""
         mock_helper = mock_helper_class.return_value
         mock_helper.flext_cli_confirm.return_value = FlextResult.ok(True)
@@ -223,7 +227,9 @@ class TestFlextCliInteractiveMixin:
         assert result is True
 
     @patch("flext_cli.core.helpers.FlextCliHelper")
-    def test_flext_cli_confirm_operation_denied(self, mock_helper_class: MagicMock) -> None:
+    def test_flext_cli_confirm_operation_denied(
+        self, mock_helper_class: MagicMock,
+    ) -> None:
         """Test denied operation confirmation."""
         mock_helper = mock_helper_class.return_value
         mock_helper.flext_cli_confirm.return_value = FlextResult.ok(False)
@@ -233,10 +239,14 @@ class TestFlextCliInteractiveMixin:
         assert result is False
 
     @patch("flext_cli.core.helpers.FlextCliHelper")
-    def test_flext_cli_confirm_operation_error(self, mock_helper_class: MagicMock) -> None:
+    def test_flext_cli_confirm_operation_error(
+        self, mock_helper_class: MagicMock,
+    ) -> None:
         """Test operation confirmation with error."""
         mock_helper = mock_helper_class.return_value
-        mock_helper.flext_cli_confirm.return_value = FlextResult.fail("Confirmation failed")
+        mock_helper.flext_cli_confirm.return_value = FlextResult.fail(
+            "Confirmation failed",
+        )
 
         result = self.test_instance.flext_cli_confirm_operation("test operation")
 
@@ -266,10 +276,14 @@ class TestFlextCliProgressMixin:
         test_items = [1, 2, 3, 4, 5]
         mock_track.return_value = test_items
 
-        result = self.test_instance.flext_cli_track_progress(test_items, "Processing items")
+        result = self.test_instance.flext_cli_track_progress(
+            test_items, "Processing items",
+        )
 
         assert result == test_items
-        mock_track.assert_called_once_with(test_items, description="Processing items", console=self.console_mock)
+        mock_track.assert_called_once_with(
+            test_items, description="Processing items", console=self.console_mock,
+        )
 
     def test_flext_cli_with_progress(self) -> None:
         """Test progress context manager creation."""
@@ -277,6 +291,7 @@ class TestFlextCliProgressMixin:
 
         # Should return a Progress object
         from rich.progress import Progress
+
         assert isinstance(progress, Progress)
 
 
@@ -321,6 +336,7 @@ class TestFlextCliResultMixin:
 
     def test_flext_cli_chain_results_exception(self) -> None:
         """Test result chaining with exception."""
+
         def failing_operation() -> FlextResult[str]:
             msg = "Operation exception"
             raise ValueError(msg)
@@ -342,8 +358,7 @@ class TestFlextCliResultMixin:
         result = FlextResult.ok("success_data")
 
         data = self.test_instance.flext_cli_handle_result(
-            result,
-            success_action=success_action
+            result, success_action=success_action,
         )
 
         assert data == "success_data"
@@ -355,8 +370,7 @@ class TestFlextCliResultMixin:
         result = FlextResult.fail("error_message")
 
         data = self.test_instance.flext_cli_handle_result(
-            result,
-            error_action=error_action
+            result, error_action=error_action,
         )
 
         assert data is None
@@ -388,7 +402,9 @@ class TestFlextCliConfigMixin:
         self.test_instance = self.TestClass()
 
     @patch("flext_cli.config_hierarchical.create_default_hierarchy")
-    def test_flext_cli_load_config_success(self, mock_create_hierarchy: MagicMock) -> None:
+    def test_flext_cli_load_config_success(
+        self, mock_create_hierarchy: MagicMock,
+    ) -> None:
         """Test successful config loading."""
         mock_config = {"profile": "test", "debug": True}
         mock_create_hierarchy.return_value = FlextResult.ok(mock_config)
@@ -400,7 +416,9 @@ class TestFlextCliConfigMixin:
         assert self.test_instance.config == mock_config
 
     @patch("flext_cli.config_hierarchical.create_default_hierarchy")
-    def test_flext_cli_load_config_with_path(self, mock_create_hierarchy: MagicMock) -> None:
+    def test_flext_cli_load_config_with_path(
+        self, mock_create_hierarchy: MagicMock,
+    ) -> None:
         """Test config loading with specific path."""
         config_path = "/path/to/config.yml"
         mock_config = {"profile": "custom"}
@@ -412,7 +430,9 @@ class TestFlextCliConfigMixin:
         mock_create_hierarchy.assert_called_once_with(config_path=config_path)
 
     @patch("flext_cli.config_hierarchical.create_default_hierarchy")
-    def test_flext_cli_load_config_failure(self, mock_create_hierarchy: MagicMock) -> None:
+    def test_flext_cli_load_config_failure(
+        self, mock_create_hierarchy: MagicMock,
+    ) -> None:
         """Test config loading failure."""
         mock_create_hierarchy.return_value = FlextResult.fail("Config not found")
 
@@ -450,6 +470,7 @@ class TestFlextCliDecorators:
 
     def test_flext_cli_auto_validate_success(self) -> None:
         """Test auto validation decorator with valid inputs."""
+
         @flext_cli_auto_validate(email="email", url="url")
         def test_function(email: str, url: str) -> FlextResult[str]:
             return FlextResult.ok(f"Processing {email} and {url}")
@@ -462,6 +483,7 @@ class TestFlextCliDecorators:
 
     def test_flext_cli_auto_validate_failure(self) -> None:
         """Test auto validation decorator with invalid inputs."""
+
         @flext_cli_auto_validate(email="email")
         def test_function(email: str) -> FlextResult[str]:
             return FlextResult.ok("Success")
@@ -473,6 +495,7 @@ class TestFlextCliDecorators:
 
     def test_flext_cli_handle_exceptions_success(self) -> None:
         """Test exception handling decorator with successful execution."""
+
         @flext_cli_handle_exceptions("Test operation failed")
         def test_function() -> FlextResult[str]:
             return FlextResult.ok("Success")
@@ -484,6 +507,7 @@ class TestFlextCliDecorators:
 
     def test_flext_cli_handle_exceptions_with_exception(self) -> None:
         """Test exception handling decorator with raised exception."""
+
         @flext_cli_handle_exceptions("Test operation failed")
         def test_function() -> FlextResult[str]:
             msg = "Something went wrong"
@@ -497,6 +521,7 @@ class TestFlextCliDecorators:
 
     def test_flext_cli_handle_exceptions_non_flextresult(self) -> None:
         """Test exception handling decorator with non-FlextResult return."""
+
         @flext_cli_handle_exceptions("Test operation failed")
         def test_function() -> str:
             return "Plain string result"
@@ -507,7 +532,9 @@ class TestFlextCliDecorators:
         assert result.data == "Plain string result"
 
     @patch("flext_cli.core.helpers.FlextCliHelper")
-    def test_flext_cli_require_confirmation_confirmed(self, mock_helper_class: MagicMock) -> None:
+    def test_flext_cli_require_confirmation_confirmed(
+        self, mock_helper_class: MagicMock,
+    ) -> None:
         """Test confirmation decorator with user confirmation."""
         mock_helper = mock_helper_class.return_value
         mock_helper.flext_cli_confirm.return_value = FlextResult.ok(True)
@@ -522,7 +549,9 @@ class TestFlextCliDecorators:
         assert result.data == "Data deleted"
 
     @patch("flext_cli.core.helpers.FlextCliHelper")
-    def test_flext_cli_require_confirmation_denied(self, mock_helper_class: MagicMock) -> None:
+    def test_flext_cli_require_confirmation_denied(
+        self, mock_helper_class: MagicMock,
+    ) -> None:
         """Test confirmation decorator with user denial."""
         mock_helper = mock_helper_class.return_value
         mock_helper.flext_cli_confirm.return_value = FlextResult.ok(False)

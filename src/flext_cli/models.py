@@ -568,7 +568,9 @@ class FlextCliCommand(FlextEntity):
             # tests sometimes call without args, treat as no-op failure
             return False
         result = self.complete_execution(
-            exit_code=exit_code, stdout=stdout, stderr=stderr,
+            exit_code=exit_code,
+            stdout=stdout,
+            stderr=stderr,
         )
         if result.is_success:
             updated = result.unwrap()
@@ -836,7 +838,9 @@ class FlextCliSession(FlextEntity):
                 new_obj = updated.unwrap()
                 object.__setattr__(self, "command_history", new_obj.command_history)
                 object.__setattr__(
-                    self, "current_command_id", new_obj.current_command_id,
+                    self,
+                    "current_command_id",
+                    new_obj.current_command_id,
                 )
                 object.__setattr__(self, "last_activity_at", new_obj.last_activity_at)
                 return True

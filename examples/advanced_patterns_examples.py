@@ -24,7 +24,7 @@ class FlextCliDataExporter:
     """Stub for data export functionality."""
 
     def instant(
-        self, _data: list[dict[str, object]], _format_type: str
+        self, _data: list[dict[str, object]], _format_type: str,
     ) -> FlextResult[None]:
         """Export data instantly."""
         return FlextResult.ok(None)
@@ -34,7 +34,7 @@ class FlextCliDataTransformer:
     """Stub for data transformation functionality."""
 
     def transform(
-        self, data: list[dict[str, object]]
+        self, data: list[dict[str, object]],
     ) -> FlextResult[list[dict[str, object]]]:
         """Transform data."""
         return FlextResult.ok(data)

@@ -27,7 +27,8 @@ R = TypeVar("R")  # For return type of decorated function
 FlextDecoratedFunction = Callable[P, R | FlextResult[R]]
 FlextCliFunction = Callable[P, FlextResult[str]]
 FlextCliDecorator = Callable[
-    [FlextDecoratedFunction[P, R]], Callable[P, FlextResult[str]],
+    [FlextDecoratedFunction[P, R]],
+    Callable[P, FlextResult[str]],
 ]
 
 # Exported alias for internal use and in tests
@@ -488,13 +489,17 @@ def flext_cli_auto_validate(**rules: str) -> FlextCliDecorator[P, R]:
                     str(v) if v is not None else "",
                 ).map(str),
                 "file": lambda v: helper.flext_cli_validate_path(
-                    str(v) if v is not None else "", must_exist=True, must_be_file=True,
+                    str(v) if v is not None else "",
+                    must_exist=True,
+                    must_be_file=True,
                 ).map(str),
                 "path": lambda v: helper.flext_cli_validate_path(
                     str(v) if v is not None else "",
                 ).map(str),
                 "dir": lambda v: helper.flext_cli_validate_path(
-                    str(v) if v is not None else "", must_exist=True, must_be_dir=True,
+                    str(v) if v is not None else "",
+                    must_exist=True,
+                    must_be_dir=True,
                 ).map(str),
             }
 

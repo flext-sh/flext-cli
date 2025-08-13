@@ -31,17 +31,17 @@ class TestCLICommand:
         """Test CLI command creation."""
         if sample_command.name != "test-command":
             raise AssertionError(
-                f"Expected {'test-command'}, got {sample_command.name}"
+                f"Expected {'test-command'}, got {sample_command.name}",
             )
         assert sample_command.description == "A test command"
         if sample_command.command_type != CommandType.SYSTEM:
             raise AssertionError(
-                f"Expected {CommandType.SYSTEM}, got {sample_command.command_type}"
+                f"Expected {CommandType.SYSTEM}, got {sample_command.command_type}",
             )
         assert sample_command.command_line == "echo hello"
         if sample_command.command_status != CommandStatus.PENDING:
             raise AssertionError(
-                f"Expected {CommandStatus.PENDING}, got {sample_command.command_status}"
+                f"Expected {CommandStatus.PENDING}, got {sample_command.command_status}",
             )
 
     def test_command_execution_lifecycle(self, sample_command: CLICommand) -> None:
@@ -58,7 +58,7 @@ class TestCLICommand:
         assert running_command is not None
         if running_command.command_status != CommandStatus.RUNNING:
             raise AssertionError(
-                f"Expected {CommandStatus.RUNNING}, got {running_command.command_status}"
+                f"Expected {CommandStatus.RUNNING}, got {running_command.command_status}",
             )
         assert running_command.started_at is not None
         assert not running_command.is_completed
@@ -76,7 +76,7 @@ class TestCLICommand:
         assert completed_command is not None
         if completed_command.command_status != CommandStatus.COMPLETED:
             raise AssertionError(
-                f"Expected {CommandStatus.COMPLETED}, got {completed_command.command_status}"
+                f"Expected {CommandStatus.COMPLETED}, got {completed_command.command_status}",
             )
         assert completed_command.exit_code == 0
         if completed_command.stdout != "hello":
@@ -106,12 +106,12 @@ class TestCLICommand:
 
         if failed_command.command_status != CommandStatus.FAILED:
             raise AssertionError(
-                f"Expected {CommandStatus.FAILED}, got {failed_command.command_status}"
+                f"Expected {CommandStatus.FAILED}, got {failed_command.command_status}",
             )
         assert failed_command.exit_code == 1
         if failed_command.stderr != "Error occurred":
             raise AssertionError(
-                f"Expected {'Error occurred'}, got {failed_command.stderr}"
+                f"Expected {'Error occurred'}, got {failed_command.stderr}",
             )
         assert failed_command.is_completed
         assert not failed_command.successful
@@ -133,7 +133,7 @@ class TestCLICommand:
 
         if cancelled_command.command_status != CommandStatus.CANCELLED:
             raise AssertionError(
-                f"Expected {CommandStatus.CANCELLED}, got {cancelled_command.command_status}"
+                f"Expected {CommandStatus.CANCELLED}, got {cancelled_command.command_status}",
             )
         assert cancelled_command.is_completed
         assert not cancelled_command.successful
@@ -211,7 +211,7 @@ class TestCLICommand:
 
             if completed_command.duration_seconds != 5.0:
                 raise AssertionError(
-                    f"Expected {5.0}, got {completed_command.duration_seconds}"
+                    f"Expected {5.0}, got {completed_command.duration_seconds}",
                 )
 
 
@@ -227,7 +227,7 @@ class TestCLIPlugin:
         )  # Using correct plugin_version field
         if sample_plugin.entry_point != "test_plugin.main":
             raise AssertionError(
-                f"Expected {'test_plugin.main'}, got {sample_plugin.entry_point}"
+                f"Expected {'test_plugin.main'}, got {sample_plugin.entry_point}",
             )
         if not (sample_plugin.enabled):
             raise AssertionError(f"Expected True, got {sample_plugin.enabled}")
@@ -293,18 +293,18 @@ class TestCLISession:
         """Test session creation."""
         if sample_session.session_id != "test-session-123":
             raise AssertionError(
-                f"Expected {'test-session-123'}, got {sample_session.session_id}"
+                f"Expected {'test-session-123'}, got {sample_session.session_id}",
             )
         assert sample_session.working_directory == tempfile.gettempdir()
         if sample_session.environment["TEST"] != "true":
             raise AssertionError(
-                f"Expected {'true'}, got {sample_session.environment['TEST']}"
+                f"Expected {'true'}, got {sample_session.environment['TEST']}",
             )
         if not (sample_session.active):
             raise AssertionError(f"Expected True, got {sample_session.active}")
         if len(sample_session.commands_executed) != 0:
             raise AssertionError(
-                f"Expected {0}, got {len(sample_session.commands_executed)}"
+                f"Expected {0}, got {len(sample_session.commands_executed)}",
             )
 
     def test_session_command_tracking(self, sample_session: CLISession) -> None:
@@ -319,7 +319,7 @@ class TestCLISession:
         session_with_cmd1 = result1.unwrap()
         if len(session_with_cmd1.commands_executed) != 1:
             raise AssertionError(
-                f"Expected {1}, got {len(session_with_cmd1.commands_executed)}"
+                f"Expected {1}, got {len(session_with_cmd1.commands_executed)}",
             )
         assert session_with_cmd1.current_command == command_id_1
 
@@ -328,7 +328,7 @@ class TestCLISession:
         session_with_cmd2 = result2.unwrap()
         if len(session_with_cmd2.commands_executed) != EXPECTED_BULK_SIZE:
             raise AssertionError(
-                f"Expected {2}, got {len(session_with_cmd2.commands_executed)}"
+                f"Expected {2}, got {len(session_with_cmd2.commands_executed)}",
             )
         assert session_with_cmd2.current_command == command_id_2
 
@@ -361,7 +361,7 @@ class TestCLISession:
 
             if updated_session.last_activity != activity_time:
                 raise AssertionError(
-                    f"Expected {activity_time}, got {updated_session.last_activity}"
+                    f"Expected {activity_time}, got {updated_session.last_activity}",
                 )
 
 

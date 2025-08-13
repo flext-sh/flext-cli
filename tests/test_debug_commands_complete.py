@@ -30,6 +30,7 @@ from flext_cli.commands.debug import (
     debug_cmd,
     performance,
 )
+from flext_core.constants import FlextConstants
 
 # Type definitions for patch decorators
 F = TypeVar("F", bound="Callable[..., None]")
@@ -39,11 +40,13 @@ class TestDebugConnectivity:
     """Test connectivity command missing coverage."""
 
     def test_connectivity_success_with_status(
-        self, mock_flext_api_client_with_patches: object
+        self, mock_flext_api_client_with_patches: object,
     ) -> None:
         """Test connectivity success with system status."""
         # Use the existing mock client with proper setup
-        mock_flext_api_client_with_patches.base_url = "http://localhost:8000"
+        mock_flext_api_client_with_patches.base_url = (
+            f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
+        )
 
         mock_console = MagicMock()
         runner = CliRunner()
@@ -54,10 +57,10 @@ class TestDebugConnectivity:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         # Check for the actual messages that the command produces
         mock_console.print.assert_any_call(
-            "[yellow]Testing API connectivity using flext-api...[/yellow]"
+            "[yellow]Testing API connectivity using flext-api...[/yellow]",
         )
         mock_console.print.assert_any_call(
-            "[green]✅ Connected to API at http://localhost:8000[/green]"
+            f"[green]✅ Connected to API at http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}[/green]",
         )
         mock_console.print.assert_any_call("\nSystem Status:")
         mock_console.print.assert_any_call("  Version: 1.0.0")
@@ -65,7 +68,7 @@ class TestDebugConnectivity:
         mock_console.print.assert_any_call("  Uptime: 24h")
 
     def test_connectivity_success_status_unknown(
-        self, mock_flext_api_client_with_patches: object
+        self, mock_flext_api_client_with_patches: object,
     ) -> None:
         """Test connectivity success with unknown status fields."""
         from flext_core import FlextResult
@@ -73,7 +76,7 @@ class TestDebugConnectivity:
         # Configure the mock to return status with missing fields (but still a valid dict)
         async def mock_get_system_status_partial() -> FlextResult[dict[str, object]]:
             return FlextResult.ok(
-                {"incomplete": "status"}
+                {"incomplete": "status"},
             )  # Dict with missing expected fields
 
         mock_flext_api_client_with_patches.get_system_status = (
@@ -95,7 +98,7 @@ class TestDebugConnectivity:
         mock_console.print.assert_any_call("  Uptime: Unknown")
 
     def _test_connectivity_success_status_unknown_impl(
-        self, mock_client_class: MagicMock
+        self, mock_client_class: MagicMock,
     ) -> None:
         """Test connectivity success with unknown status fields."""
         # Setup mocks
@@ -117,14 +120,14 @@ class TestDebugConnectivity:
         mock_console.print.assert_any_call("  Uptime: Unknown")
 
     def test_connectivity_success_status_error(
-        self, mock_flext_api_client_with_patches: object
+        self, mock_flext_api_client_with_patches: object,
     ) -> None:
         """Test connectivity success but status fetch fails."""
         with patch("flext_cli.client.FlextApiClient") as mock_client_class:
             self._test_connectivity_success_status_error_impl(mock_client_class)
 
     def _test_connectivity_success_status_error_impl(
-        self, mock_client_class: MagicMock
+        self, mock_client_class: MagicMock,
     ) -> None:
         """Test connectivity success but status fetch fails."""
         # Setup mocks
@@ -142,11 +145,11 @@ class TestDebugConnectivity:
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         mock_console.print.assert_any_call(
-            "[yellow]⚠️  Could not get system status: Status error[/yellow]"
+            "[yellow]⚠️  Could not get system status: Status error[/yellow]",
         )
 
     def test_connectivity_failed_connection(
-        self, mock_flext_api_client_with_patches
+        self, mock_flext_api_client_with_patches,
     ) -> None:
         """Test connectivity when connection fails using SOLID fixture patterns."""
         # Configure the existing mock to simulate connection failure
@@ -170,18 +173,18 @@ class TestDebugConnectivity:
         if result.exit_code != 1:
             raise AssertionError(f"Expected {1}, got {result.exit_code}")
         mock_console.print.assert_any_call(
-            "[red]❌ Failed to connect to API: Connection failed[/red]"
+            "[red]❌ Failed to connect to API: Connection failed[/red]",
         )
 
     def test_connectivity_connection_error(
-        self, mock_failing_api_client: object
+        self, mock_failing_api_client: object,
     ) -> None:
         """Test connectivity with connection error."""
         with patch("flext_cli.client.FlextApiClient") as mock_client_class:
             self._test_connectivity_connection_error_impl(mock_client_class)
 
     def _test_connectivity_connection_error_impl(
-        self, mock_client_class: MagicMock
+        self, mock_client_class: MagicMock,
     ) -> None:
         """Test connectivity with connection error."""
         # Test already uses mock_failing_api_client fixture which provides failing client
@@ -197,7 +200,7 @@ class TestDebugConnectivity:
 
         # Our MockFailingApiClient returns "Connection failed" as error message
         mock_console.print.assert_any_call(
-            "[red]❌ Failed to connect to API: Connection failed[/red]"
+            "[red]❌ Failed to connect to API: Connection failed[/red]",
         )
 
     def test_connectivity_os_error(self, mock_failing_api_client: object) -> None:
@@ -220,7 +223,7 @@ class TestDebugConnectivity:
         if result.exit_code != 1:
             raise AssertionError(f"Expected {1}, got {result.exit_code}")
         mock_console.print.assert_any_call(
-            "[red]❌ Connection test failed: Network unreachable[/red]"
+            "[red]❌ Connection test failed: Network unreachable[/red]",
         )
 
 
@@ -292,7 +295,7 @@ class TestDebugCommandCoverage:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         if "Debug commands for FLEXT CLI" not in result.output:
             raise AssertionError(
-                f"Expected {'Debug commands for FLEXT CLI'} in {result.output}"
+                f"Expected {'Debug commands for FLEXT CLI'} in {result.output}",
             )
 
     def test_connectivity_help(self) -> None:
@@ -303,7 +306,7 @@ class TestDebugCommandCoverage:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         if "Test API connectivity" not in result.output:
             raise AssertionError(
-                f"Expected {'Test API connectivity'} in {result.output}"
+                f"Expected {'Test API connectivity'} in {result.output}",
             )
 
     def test_performance_help(self) -> None:
@@ -314,7 +317,7 @@ class TestDebugCommandCoverage:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         if "Check system performance metrics" not in result.output:
             raise AssertionError(
-                f"Expected {'Check system performance metrics'} in {result.output}"
+                f"Expected {'Check system performance metrics'} in {result.output}",
             )
 
 
@@ -348,7 +351,7 @@ class TestDebugIntegrationScenarios:
             self._test_multiple_debug_commands_sequence_impl(mock_client_class)
 
     def _test_multiple_debug_commands_sequence_impl(
-        self, mock_client_class: MagicMock
+        self, mock_client_class: MagicMock,
     ) -> None:
         """Test running multiple debug commands in sequence."""
         # Setup mocks for successful operations

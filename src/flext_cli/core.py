@@ -85,11 +85,17 @@ except Exception:  # pragma: no cover
     class FlextResult:  # type: ignore[no-redef]
         """Minimal fallback for FlextResult used only in tests."""
 
-        def __class_getitem__(cls, _item: object) -> type[FlextResult]:  # allow FlextResult[Type] syntax
+        def __class_getitem__(
+            cls, _item: object,
+        ) -> type[FlextResult]:  # allow FlextResult[Type] syntax
             return cls
 
         def __init__(
-            self, *, success: bool, data: object | None = None, error: str | None = None,
+            self,
+            *,
+            success: bool,
+            data: object | None = None,
+            error: str | None = None,
         ) -> None:
             self.success = success
             self.is_success = success
@@ -477,7 +483,9 @@ class FlextCliService(FlextService):
         return safe_call(create_command)
 
     def flext_cli_create_session(
-        self, user_id: str | None = None, **_kwargs: object,
+        self,
+        user_id: str | None = None,
+        **_kwargs: object,
     ) -> FlextResult[str]:
         """Create session using auto-generated ID - restored from backup."""
 

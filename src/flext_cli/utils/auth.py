@@ -31,7 +31,8 @@ def should_auto_refresh() -> bool:
     # Otherwise look into nested auth config
     auth_cfg = getattr(cfg, "auth", None)
     return bool(
-        bool(getattr(auth_cfg, "auto_refresh", False)) and (get_refresh_token() is not None),
+        bool(getattr(auth_cfg, "auto_refresh", False))
+        and (get_refresh_token() is not None),
     )
 
 

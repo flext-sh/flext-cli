@@ -25,33 +25,12 @@ import os
 from pathlib import Path
 
 import toml
-
-try:  # pragma: no cover - import bridge
-    from flext_core import (
-        FlextResult,
-        FlextSettings,
-    )
-except Exception:  # pragma: no cover
-    from typing import TypeVar
-
-    from pydantic import BaseModel as FlextSettings  # type: ignore[assignment]
-
-    T = TypeVar("T")
-
-    class FlextResult[T]:  # type: ignore[no-redef]
-        def __init__(self, *args: object, **kwargs: object) -> None:
-            ...
-
-        @staticmethod
-        def ok(_data: T | None) -> FlextResult[T]:
-            return FlextResult()
-
-        @staticmethod
-        def fail(_error: str) -> FlextResult[T]:
-            return FlextResult()
-
-
 from flext_api.constants import FlextApiConstants as _ApiC
+from flext_core import (
+    FlextResult,
+    FlextSettings,
+)
+from flext_core.constants import FlextConstants
 from pydantic import Field, field_validator
 
 from flext_cli.cli_types import ConfigDict, OutputFormat
@@ -59,6 +38,15 @@ from flext_cli.cli_types import ConfigDict, OutputFormat
 # =============================================================================
 # CORE CLI CONFIGURATION - Extending flext-core settings
 # =============================================================================
+
+
+def _default_api_url() -> str:
+    try:
+        host = getattr(FlextConstants.Platform, "DEFAULT_HOST", "localhost")
+        port = getattr(FlextConstants.Platform, "FLEXT_API_PORT", 8081)
+        return f"http://{host}:{port}"
+    except Exception:
+        return "http://localhost:8000"
 
 
 class CLIConfig(FlextSettings):
@@ -114,7 +102,7 @@ class CLIConfig(FlextSettings):
 
     # API settings
     api_url: str = Field(
-        default="http://localhost:8000",
+        default_factory=_default_api_url,
         description="FLEXT Service API URL",
     )
 

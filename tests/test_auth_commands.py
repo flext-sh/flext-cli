@@ -59,7 +59,7 @@ class TestAuthCommands:
             {
                 "token": "token_testuser_abc123",
                 "user": {"name": "Test User", "username": "testuser"},
-            }
+            },
         )
         mock_client.login.return_value = mock_login_result
         mock_client_class.return_value.__aenter__.return_value = mock_client
@@ -230,7 +230,7 @@ class TestAuthCommands:
                 "username": "testuser",
                 "email": "test@example.com",
                 "role": "user",
-            }
+            },
         )
         mock_client_class.return_value.__aenter__.return_value = mock_client
 
@@ -312,7 +312,7 @@ class TestAuthCommands:
                 "email": "test@example.com",
                 "role": "user",
                 "id": "123",
-            }
+            },
         )
         mock_client_class.return_value.__aenter__.return_value = mock_client
 
@@ -366,7 +366,7 @@ class TestAuthCommands:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         if "Manage authentication commands" not in result.output:
             raise AssertionError(
-                f"Expected {'Manage authentication commands'} in {result.output}"
+                f"Expected {'Manage authentication commands'} in {result.output}",
             )
 
     def test_login_with_options(self) -> None:
@@ -471,7 +471,7 @@ class TestAuthFunctionality:
             raise AssertionError(f"Expected {'token'} in {success_response}")
         if success_response["token"] != "token_testuser":
             raise AssertionError(
-                f"Expected {'token_testuser'}, got {success_response['token']}"
+                f"Expected {'token_testuser'}, got {success_response['token']}",
             )
         assert success_response["user"]["name"] == "testuser"
 
@@ -716,7 +716,7 @@ class TestAuthIntegration:
         registered_commands = auth.commands
         if len(registered_commands) < 3:
             raise AssertionError(
-                f"Expected {len(registered_commands)} >= {3}, Missing commands in auth group"
+                f"Expected {len(registered_commands)} >= {3}, Missing commands in auth group",
             )
 
     def test_auth_group_structure_complete(self) -> None:
@@ -739,7 +739,7 @@ class TestAuthIntegration:
         result = runner.invoke(auth, ["--help"])
         if "Manage authentication commands" not in result.output:
             raise AssertionError(
-                f"Expected {'Manage authentication commands'} in {result.output}"
+                f"Expected {'Manage authentication commands'} in {result.output}",
             )
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
@@ -825,7 +825,7 @@ class TestAuthIntegration:
             expected_data = {"token": "test"}
             if not (result.success and result.data == expected_data):
                 raise AssertionError(
-                    f"Expected success with data {expected_data}, got {result}"
+                    f"Expected success with data {expected_data}, got {result}",
                 )
 
         # Execute async test

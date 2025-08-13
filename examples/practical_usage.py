@@ -79,7 +79,7 @@ def example_2_web_service_cli() -> None:
         return FlextResult.ok(deployment_info)
 
     def check_health(
-        endpoint: str = "http://localhost:8080/health",
+        endpoint: str = f"http://{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.DEFAULT_HOST}:{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.FLEXCORE_PORT}/health",
     ) -> FlextResult[dict[str, str]]:
         """Check service health."""
         return FlextResult.ok(
@@ -120,28 +120,28 @@ def example_3_database_management() -> None:
     min_username_length = 2
 
     def validate_db_params(
-        host: str, port: str, database: str, username: str
+        host: str, port: str, database: str, username: str,
     ) -> FlextResult[None]:
         """Validate database connection parameters."""
         if not host or len(host) < min_host_length:
             return FlextResult.fail(
-                f"Host must be at least {min_host_length} characters"
+                f"Host must be at least {min_host_length} characters",
             )
         try:
             port_num = int(port)
             if not (MIN_PRIVILEGED_PORT <= port_num <= MAX_PORT_NUMBER):
                 return FlextResult.fail(
-                    f"Port must be between {MIN_PRIVILEGED_PORT} and {MAX_PORT_NUMBER}"
+                    f"Port must be between {MIN_PRIVILEGED_PORT} and {MAX_PORT_NUMBER}",
                 )
         except ValueError:
             return FlextResult.fail("Port must be a valid number")
         if len(database) < MIN_DATABASE_NAME_LENGTH:
             return FlextResult.fail(
-                f"Database name must be at least {MIN_DATABASE_NAME_LENGTH} characters"
+                f"Database name must be at least {MIN_DATABASE_NAME_LENGTH} characters",
             )
         if not username or len(username) < min_username_length:
             return FlextResult.fail(
-                f"Username must be at least {min_username_length} characters"
+                f"Username must be at least {min_username_length} characters",
             )
         return FlextResult.ok(None)
 
@@ -215,7 +215,7 @@ def example_4_advanced_features() -> None:
     )
 
     def validate_advanced_inputs(
-        email: str, token: str, ipv6_addr: str
+        email: str, token: str, ipv6_addr: str,
     ) -> FlextResult[None]:
         """Validate advanced input parameters."""
         # Constants for validation
@@ -289,7 +289,7 @@ def example_4_advanced_features() -> None:
         # Use different formatting based on request
         if format_type == "table":
             table_result = flext_cli_table(
-                report_data.get("services", []), "System Report", "grid"
+                report_data.get("services", []), "System Report", "grid",
             )
             result = str(table_result.unwrap() if table_result.success else "No data")
         elif format_type == "json":

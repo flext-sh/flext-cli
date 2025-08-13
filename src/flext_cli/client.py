@@ -86,6 +86,7 @@ class FlextApiClient:
         else:
             try:
                 from flext_core.constants import FlextConstants
+
                 self.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
             except Exception:
                 self.base_url = "http://localhost:8000"

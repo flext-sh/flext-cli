@@ -50,7 +50,7 @@ class TestCLIConfig:
 
         if config.api_url != "https://custom.api.com":
             raise AssertionError(
-                f"Expected {'https://custom.api.com'}, got {config.api_url}"
+                f"Expected {'https://custom.api.com'}, got {config.api_url}",
             )
         assert config.timeout == 60
         if config.max_retries != 5:
@@ -90,7 +90,7 @@ class TestCLIConfig:
         expected_file = Path.home() / ".flext" / ".refresh_token"
         if config.refresh_token_file != expected_file:
             raise AssertionError(
-                f"Expected {expected_file}, got {config.refresh_token_file}"
+                f"Expected {expected_file}, got {config.refresh_token_file}",
             )
 
     def test_config_validation_api_url(self) -> None:
@@ -98,7 +98,7 @@ class TestCLIConfig:
         # Valid URLs should work
         valid_urls = [
             "https://api.flext.com",
-            "http://localhost:8080",
+            f"http://{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.DEFAULT_HOST}:{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.FLEXCORE_PORT}",
             "https://custom.domain.com/api/v1",
         ]
 
@@ -157,7 +157,7 @@ class TestCLIConfig:
             config_dict["output"]["format"] != "table"
         ):  # Note: defaults to table regardless of input
             raise AssertionError(
-                f"Expected {'table'}, got {config_dict['output']['format']}"
+                f"Expected {'table'}, got {config_dict['output']['format']}",
             )
 
     def test_config_from_dict(self) -> None:
@@ -174,7 +174,7 @@ class TestCLIConfig:
 
         if config.api_url != "https://from-dict.com":
             raise AssertionError(
-                f"Expected {'https://from-dict.com'}, got {config.api_url}"
+                f"Expected {'https://from-dict.com'}, got {config.api_url}",
             )
         assert config.timeout == 120
         if config.max_retries != 7:
@@ -193,7 +193,7 @@ class TestCLIConfig:
             # Either reads from env or uses default - both are valid
             if config.api_url not in {"https://env.test.com", "https://api.flext.com"}:
                 raise AssertionError(
-                    f"Expected {config.api_url} in {['https://env.test.com', 'https://api.flext.com']}"
+                    f"Expected {config.api_url} in {['https://env.test.com', 'https://api.flext.com']}",
                 )
 
     def test_config_path_creation(self) -> None:
@@ -218,7 +218,7 @@ class TestCLIConfig:
 
         # Should not be able to modify attributes directly (frozen model)
         with pytest.raises(
-            (AttributeError, ValueError), match="cannot assign to field"
+            (AttributeError, ValueError), match="cannot assign to field",
         ):
             config.api_url = "https://new.url.com"
 
@@ -315,7 +315,7 @@ class TestCLIConfig:
             # Paths should be under user home by default
             if config.config_dir.parts[0] != Path.home().parts[0]:
                 raise AssertionError(
-                    f"Expected {Path.home().parts[0]}, got {config.config_dir.parts[0]}"
+                    f"Expected {Path.home().parts[0]}, got {config.config_dir.parts[0]}",
                 )
 
 
@@ -374,13 +374,13 @@ class TestCLIConfigIntegration:
         # Cache dir should be under config dir
         if config.cache_dir.parent != config.config_dir:
             raise AssertionError(
-                f"Expected {config.config_dir}, got {config.cache_dir.parent}"
+                f"Expected {config.config_dir}, got {config.cache_dir.parent}",
             )
 
         # Token files should be under config dir
         if config.token_file.parent != config.config_dir:
             raise AssertionError(
-                f"Expected {config.config_dir}, got {config.token_file.parent}"
+                f"Expected {config.config_dir}, got {config.token_file.parent}",
             )
         assert config.refresh_token_file.parent == config.config_dir
 

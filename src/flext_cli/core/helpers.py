@@ -342,7 +342,8 @@ class FlextCliDataProcessor:
         """Initialize the data processor."""
         self.helper = helper or FlextCliHelper()
         self._validators: dict[
-            str, Callable[[str, dict[str, object]], FlextResult[dict[str, object]]],
+            str,
+            Callable[[str, dict[str, object]], FlextResult[dict[str, object]]],
         ] = {
             "email": self._validate_email_field,
             "url": self._validate_url_field,
@@ -353,7 +354,9 @@ class FlextCliDataProcessor:
         }
 
     def _validate_email_field(
-        self, key: str, output: dict[str, object],
+        self,
+        key: str,
+        output: dict[str, object],
     ) -> FlextResult[dict[str, object]]:
         value = output.get(key, "")
         if not isinstance(value, str) or "@" not in value:
@@ -361,7 +364,9 @@ class FlextCliDataProcessor:
         return FlextResult.ok(output)
 
     def _validate_url_field(
-        self, key: str, output: dict[str, object],
+        self,
+        key: str,
+        output: dict[str, object],
     ) -> FlextResult[dict[str, object]]:
         value = output.get(key, "")
         if not (isinstance(value, str) and (value.startswith(("http://", "https://")))):
@@ -369,7 +374,9 @@ class FlextCliDataProcessor:
         return FlextResult.ok(output)
 
     def _validate_file_field(
-        self, key: str, output: dict[str, object],
+        self,
+        key: str,
+        output: dict[str, object],
     ) -> FlextResult[dict[str, object]]:
         value = output.get(key, "")
         if not Path(str(value)).exists():
@@ -377,14 +384,18 @@ class FlextCliDataProcessor:
         return FlextResult.ok(output)
 
     def _transform_path_field(
-        self, key: str, output: dict[str, object],
+        self,
+        key: str,
+        output: dict[str, object],
     ) -> FlextResult[dict[str, object]]:
         value = output.get(key, "")
         output[key] = Path(str(value))
         return FlextResult.ok(output)
 
     def _validate_dir_field(
-        self, key: str, output: dict[str, object],
+        self,
+        key: str,
+        output: dict[str, object],
     ) -> FlextResult[dict[str, object]]:
         value = output.get(key, "")
         p = Path(str(value))
@@ -394,7 +405,9 @@ class FlextCliDataProcessor:
         return FlextResult.ok(output)
 
     def _sanitize_filename_field(
-        self, key: str, output: dict[str, object],
+        self,
+        key: str,
+        output: dict[str, object],
     ) -> FlextResult[dict[str, object]]:
         value = output.get(key, "")
         sanit = self.helper.flext_cli_sanitize_filename(str(value))

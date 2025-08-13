@@ -45,6 +45,7 @@ class TestFlextCliValidationMixin:
 
     def test_mixin_initialization(self):
         """Test mixin initialization."""
+
         class TestClass(FlextCliValidationMixin):
             pass
 
@@ -54,6 +55,7 @@ class TestFlextCliValidationMixin:
 
     def test_flext_cli_validate_inputs(self):
         """Test input validation method."""
+
         class TestClass(FlextCliValidationMixin):
             def __init__(self):
                 super().__init__()
@@ -90,6 +92,7 @@ class TestFlextCliValidationMixin:
     @patch("flext_cli.core.helpers.FlextCliHelper.flext_cli_confirm")
     def test_flext_cli_require_confirmation(self, mock_confirm):
         """Test confirmation requirement method."""
+
         class TestClass(FlextCliValidationMixin):
             def __init__(self):
                 super().__init__()
@@ -118,6 +121,7 @@ class TestFlextCliInteractiveMixin:
 
     def test_mixin_initialization(self):
         """Test mixin initialization."""
+
         class TestClass(FlextCliInteractiveMixin):
             pass
 
@@ -127,6 +131,7 @@ class TestFlextCliInteractiveMixin:
 
     def test_print_methods(self):
         """Test various print methods."""
+
         class TestClass(FlextCliInteractiveMixin):
             pass
 
@@ -140,6 +145,7 @@ class TestFlextCliInteractiveMixin:
 
     def test_flext_cli_print_result(self):
         """Test result printing method."""
+
         class TestClass(FlextCliInteractiveMixin):
             pass
 
@@ -156,6 +162,7 @@ class TestFlextCliInteractiveMixin:
     @patch("flext_cli.core.helpers.FlextCliHelper.flext_cli_confirm")
     def test_flext_cli_confirm_operation(self, mock_confirm):
         """Test operation confirmation method."""
+
         class TestClass(FlextCliInteractiveMixin):
             pass
 
@@ -177,6 +184,7 @@ class TestFlextCliProgressMixin:
 
     def test_mixin_initialization(self):
         """Test mixin initialization."""
+
         class TestClass(FlextCliProgressMixin):
             pass
 
@@ -185,6 +193,7 @@ class TestFlextCliProgressMixin:
 
     def test_flext_cli_track_progress(self):
         """Test progress tracking method."""
+
         class TestClass(FlextCliProgressMixin):
             pass
 
@@ -198,6 +207,7 @@ class TestFlextCliProgressMixin:
 
     def test_flext_cli_with_progress(self):
         """Test progress context manager method."""
+
         class TestClass(FlextCliProgressMixin):
             pass
 
@@ -207,6 +217,7 @@ class TestFlextCliProgressMixin:
         assert progress is not None
         # Should be a Rich Progress instance
         from rich.progress import Progress
+
         assert isinstance(progress, Progress)
 
 
@@ -215,6 +226,7 @@ class TestFlextCliResultMixin:
 
     def test_flext_cli_chain_results(self):
         """Test result chaining method."""
+
         class TestClass(FlextCliResultMixin):
             pass
 
@@ -248,6 +260,7 @@ class TestFlextCliResultMixin:
 
     def test_flext_cli_handle_result(self):
         """Test result handling method."""
+
         class TestClass(FlextCliResultMixin):
             pass
 
@@ -269,9 +282,7 @@ class TestFlextCliResultMixin:
         # Success case
         success_result = FlextResult.ok("success_data")
         data = obj.flext_cli_handle_result(
-            success_result,
-            success_action=success_action,
-            error_action=error_action
+            success_result, success_action=success_action, error_action=error_action,
         )
         assert data == "success_data"
         assert success_called
@@ -284,9 +295,7 @@ class TestFlextCliResultMixin:
         # Failure case
         failure_result = FlextResult.fail("error_message")
         data = obj.flext_cli_handle_result(
-            failure_result,
-            success_action=success_action,
-            error_action=error_action
+            failure_result, success_action=success_action, error_action=error_action,
         )
         assert data is None
         assert not success_called
@@ -298,6 +307,7 @@ class TestFlextCliConfigMixin:
 
     def test_mixin_initialization(self):
         """Test mixin initialization."""
+
         class TestClass(FlextCliConfigMixin):
             pass
 
@@ -307,6 +317,7 @@ class TestFlextCliConfigMixin:
     @patch("flext_cli.config_hierarchical.create_default_hierarchy")
     def test_flext_cli_load_config(self, mock_create_hierarchy):
         """Test config loading method."""
+
         class TestClass(FlextCliConfigMixin):
             def __init__(self):
                 super().__init__()
@@ -333,6 +344,7 @@ class TestFlextCliAdvancedMixin:
 
     def test_advanced_mixin_inheritance(self):
         """Test that advanced mixin includes all other mixins."""
+
         class TestClass(FlextCliAdvancedMixin):
             def __init__(self):
                 super().__init__()
@@ -348,6 +360,7 @@ class TestFlextCliAdvancedMixin:
 
     def test_flext_cli_execute_with_full_validation(self):
         """Test complete validation and execution method."""
+
         class TestClass(FlextCliAdvancedMixin):
             def __init__(self):
                 super().__init__()
@@ -358,32 +371,25 @@ class TestFlextCliAdvancedMixin:
         obj = TestClass()
 
         # Test with valid inputs
-        inputs = {
-            "email": ("user@example.com", "email")
-        }
+        inputs = {"email": ("user@example.com", "email")}
 
         with patch.object(obj, "flext_cli_confirm_operation", return_value=True):
             result = obj.flext_cli_execute_with_full_validation(
-                inputs,
-                obj.do_work,
-                operation_name="test operation"
+                inputs, obj.do_work, operation_name="test operation",
             )
             assert result.success
 
         # Test with invalid inputs
-        invalid_inputs = {
-            "email": ("invalid-email", "email")
-        }
+        invalid_inputs = {"email": ("invalid-email", "email")}
 
         result = obj.flext_cli_execute_with_full_validation(
-            invalid_inputs,
-            obj.do_work,
-            operation_name="test operation"
+            invalid_inputs, obj.do_work, operation_name="test operation",
         )
         assert not result.success
 
     def test_flext_cli_process_data_workflow(self):
         """Test data workflow processing method."""
+
         class TestClass(FlextCliAdvancedMixin):
             def __init__(self):
                 super().__init__()
@@ -397,19 +403,17 @@ class TestFlextCliAdvancedMixin:
         def step2(data):
             return FlextResult.ok(data + " -> step2")
 
-        workflow_steps = [
-            ("Step 1", step1),
-            ("Step 2", step2)
-        ]
+        workflow_steps = [("Step 1", step1), ("Step 2", step2)]
 
         result = obj.flext_cli_process_data_workflow(
-            "initial", workflow_steps, show_progress=False
+            "initial", workflow_steps, show_progress=False,
         )
         assert result.success
         assert result.data == "initial -> step1 -> step2"
 
     def test_flext_cli_handle_file_operations(self):
         """Test file operations handling method."""
+
         class TestClass(FlextCliAdvancedMixin):
             def __init__(self):
                 super().__init__()
@@ -429,11 +433,11 @@ class TestFlextCliAdvancedMixin:
 
             file_operations = [
                 ("read", str(test_file1), read_file),
-                ("read", str(test_file2), read_file)
+                ("read", str(test_file2), read_file),
             ]
 
             result = obj.flext_cli_handle_file_operations(
-                file_operations, require_confirmation=False
+                file_operations, require_confirmation=False,
             )
             assert result.success
 
@@ -443,6 +447,7 @@ class TestAdvancedDecorators:
 
     def test_flext_cli_auto_validate_decorator(self):
         """Test auto-validation decorator."""
+
         @flext_cli_auto_validate(email="email")
         def test_function(email: str):
             return FlextResult.ok(f"Email: {email}")
@@ -457,6 +462,7 @@ class TestAdvancedDecorators:
 
     def test_flext_cli_handle_exceptions_decorator(self):
         """Test exception handling decorator."""
+
         @flext_cli_handle_exceptions("Test operation failed")
         def test_function():
             msg = "Test exception"
@@ -479,6 +485,7 @@ class TestAdvancedDecorators:
     @patch("flext_cli.core.helpers.FlextCliHelper.flext_cli_confirm")
     def test_flext_cli_require_confirmation_decorator(self, mock_confirm):
         """Test confirmation requirement decorator."""
+
         @flext_cli_require_confirmation("Test operation")
         def test_function():
             return FlextResult.ok("Function executed")
@@ -526,6 +533,7 @@ class TestAdvancedDecorators:
 
     def test_flext_cli_with_progress_decorator(self):
         """Test progress decorator."""
+
         @flext_cli_with_progress("Processing data")
         def test_function():
             return FlextResult.ok("Processed")
@@ -536,6 +544,7 @@ class TestAdvancedDecorators:
 
     def test_flext_cli_zero_config_decorator(self):
         """Test zero-configuration decorator."""
+
         class TestClass:
             def __init__(self):
                 self.console = Console()
@@ -558,6 +567,7 @@ class TestMixinAliases:
 
     def test_flext_cli_basic_mixin(self):
         """Test FlextCliBasicMixin combination."""
+
         class TestClass(FlextCliBasicMixin):
             def __init__(self):
                 super().__init__()
@@ -576,6 +586,7 @@ class TestMixinIntegration:
 
     def test_complete_cli_class(self):
         """Test complete CLI class using all mixins."""
+
         class CompleteCliCommand(FlextCliAdvancedMixin):
             def __init__(self):
                 super().__init__()
@@ -583,17 +594,16 @@ class TestMixinIntegration:
             def execute(self, email: str, file_path: str) -> FlextResult[str]:
                 """Execute command with full validation and confirmation."""
                 # Validate inputs
-                inputs = {
-                    "email": (email, "email"),
-                    "file": (file_path, "file")
-                }
+                inputs = {"email": (email, "email"), "file": (file_path, "file")}
 
                 validation_result = self.flext_cli_validate_inputs(inputs)
                 if not validation_result.success:
                     return validation_result
 
                 # Confirm operation
-                if not self.flext_cli_confirm_operation("Execute command", default=True):
+                if not self.flext_cli_confirm_operation(
+                    "Execute command", default=True,
+                ):
                     return FlextResult.ok("Operation cancelled")
 
                 # Process with progress
@@ -623,6 +633,7 @@ class TestMixinIntegration:
 
     def test_error_handling_integration(self):
         """Test error handling across multiple mixins."""
+
         class ErrorTestCommand(FlextCliAdvancedMixin):
             def __init__(self):
                 super().__init__()
@@ -634,7 +645,9 @@ class TestMixinIntegration:
                 validation_result = self.flext_cli_validate_inputs(inputs)
 
                 if not validation_result.success:
-                    self.flext_cli_print_error(f"Validation failed: {validation_result.error}")
+                    self.flext_cli_print_error(
+                        f"Validation failed: {validation_result.error}",
+                    )
                     return validation_result
 
                 return FlextResult.ok("Should not reach here")
@@ -645,12 +658,14 @@ class TestMixinIntegration:
 
     def test_workflow_integration(self):
         """Test workflow processing integration."""
+
         class WorkflowCommand(FlextCliAdvancedMixin):
             def __init__(self):
                 super().__init__()
 
             def process_data(self, data: str) -> FlextResult[str]:
                 """Process data through multiple steps."""
+
                 def step1(d):
                     return FlextResult.ok(d.upper())
 
@@ -663,11 +678,11 @@ class TestMixinIntegration:
                 workflow_steps = [
                     ("Uppercase", step1),
                     ("Add Prefix", step2),
-                    ("Add Suffix", step3)
+                    ("Add Suffix", step3),
                 ]
 
                 return self.flext_cli_process_data_workflow(
-                    data, workflow_steps, show_progress=False
+                    data, workflow_steps, show_progress=False,
                 )
 
         cmd = WorkflowCommand()

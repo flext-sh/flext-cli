@@ -190,7 +190,9 @@ class URLType(click.ParamType):
         # Basic URL validation
         if not value.startswith(("http://", "https://", "ftp://")):
             self.fail(
-                f"URL must start with http://, https://, or ftp://, got '{value}'", param, ctx,
+                f"URL must start with http://, https://, or ftp://, got '{value}'",
+                param,
+                ctx,
             )
 
         # Require scheme and non-empty netloc (basic check)
@@ -208,7 +210,11 @@ class PathType(click.ParamType):
     name = "path"
 
     def __init__(
-        self, *, exists: bool = False, dir_okay: bool = True, file_okay: bool = True,
+        self,
+        *,
+        exists: bool = False,
+        dir_okay: bool = True,
+        file_okay: bool = True,
     ) -> None:
         """Initialize path type with validation options."""
         self.exists = exists
@@ -228,7 +234,9 @@ class PathType(click.ParamType):
             path = Path(value)
         else:
             self.fail(
-                f"Path must be string or Path, got {type(value).__name__}", param, ctx,
+                f"Path must be string or Path, got {type(value).__name__}",
+                param,
+                ctx,
             )
 
         if self.exists and not path.exists():
@@ -262,7 +270,9 @@ class ProfileType(click.ParamType):
         """Convert and validate profile name."""
         if not isinstance(value, str):
             self.fail(
-                f"Profile must be a string, got {type(value).__name__}", param, ctx,
+                f"Profile must be a string, got {type(value).__name__}",
+                param,
+                ctx,
             )
 
         # Validate profile name format
@@ -321,7 +331,12 @@ type FlextCliLogLevel = Literal["debug", "info", "warning", "error", "critical"]
 type FlextCliValidationType = Literal["email", "url", "path", "file", "uuid", "port"]
 type FlextCliStatusType = Literal["success", "error", "warning", "info", "pending"]
 type FlextCliOperationType = Literal[
-    "create", "read", "update", "delete", "process", "validate",
+    "create",
+    "read",
+    "update",
+    "delete",
+    "process",
+    "validate",
 ]
 
 # Collection Types
@@ -395,7 +410,9 @@ class FlextCliFileHandler(Protocol):
         ...
 
     def save_file(
-        self, data: FlextCliDataDict, path: FlextCliFilePath,
+        self,
+        data: FlextCliDataDict,
+        path: FlextCliFilePath,
     ) -> FlextCliResult[None]:
         """Save data to file."""
         ...
@@ -421,13 +438,18 @@ class FlextCliUIRenderer(Protocol):
         ...
 
     def show_progress[T](
-        self, items: list[T], operation_name: str,
+        self,
+        items: list[T],
+        operation_name: str,
     ) -> FlextCliResult[list[T]]:
         """Show progress for operation."""
         ...
 
     def confirm_action(
-        self, message: str, *, default: bool = False,
+        self,
+        message: str,
+        *,
+        default: bool = False,
     ) -> FlextCliResult[bool]:
         """Get user confirmation."""
         ...
@@ -437,7 +459,10 @@ class FlextCliConfigProvider(Protocol):
     """Protocol for configuration management - standardizes config access."""
 
     def get_value(
-        self, key: str, *, default: str | int | bool | None = None,
+        self,
+        key: str,
+        *,
+        default: str | int | bool | None = None,
     ) -> str | int | bool | None:
         """Get configuration value."""
         ...

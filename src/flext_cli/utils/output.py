@@ -45,7 +45,9 @@ def print_info(console: Console, message: str) -> None:
     console.print(f"[bold blue]i[/bold blue] {message}")
 
 
-def format_plugin_list(console: Console, plugins: list[dict[str, object]], fmt: str) -> None:
+def format_plugin_list(
+    console: Console, plugins: list[dict[str, object]], fmt: str,
+) -> None:
     """Render plugins list as table or json.
 
     Delegates formatting to cli_utils where possible to avoid duplication.
@@ -162,6 +164,7 @@ def format_json(data: object) -> str:
     """Return JSON-formatted string from data."""
     """Return pretty JSON string for arbitrary data."""
     import json as _json
+
     return _json.dumps(data, indent=2, default=str)
 
 

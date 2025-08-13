@@ -2,6 +2,7 @@
 
 Exposes `config` click group matching previous commands/config.py behavior.
 """
+
 from __future__ import annotations
 
 import json
@@ -39,20 +40,28 @@ def _print_config_value(cli_context: object, key: str, value: object) -> None:
 def _get_all_config(cli_context: object) -> None:
     console: Console = getattr(cli_context, "console", Console())
     cfg_dict: dict[str, object] = getattr(
-        getattr(cli_context, "config", object()), "model_dump", dict,
+        getattr(cli_context, "config", object()),
+        "model_dump",
+        dict,
     )()
     stg_dict: dict[str, object] = getattr(
-        getattr(cli_context, "settings", object()), "model_dump", dict,
+        getattr(cli_context, "settings", object()),
+        "model_dump",
+        dict,
     )()
     fmt = getattr(getattr(cli_context, "config", object()), "output_format", "table")
     if fmt == "json":
         console.print(
-            json.dumps({"config": cfg_dict, "settings": stg_dict}, indent=2, default=str),
+            json.dumps(
+                {"config": cfg_dict, "settings": stg_dict}, indent=2, default=str,
+            ),
         )
         return
     if fmt == "yaml":
         console.print(
-            yaml.dump({"config": cfg_dict, "settings": stg_dict}, default_flow_style=False),
+            yaml.dump(
+                {"config": cfg_dict, "settings": stg_dict}, default_flow_style=False,
+            ),
         )
         return
     table = Table(title="FLEXT Configuration v0.7.0")

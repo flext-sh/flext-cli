@@ -358,7 +358,7 @@ examples = [
     ("Basic CLI Command", 35, 5, 85.7),
     ("Configuration Management", 42, 4, 90.5),
     ("File Operations with Validation", 38, 3, 92.1),
-    ("User Interaction with Progress", 45, 6, 86.7)
+    ("User Interaction with Progress", 45, 6, 86.7),
 ]
 
 total_before = sum(before for _, before, _, _ in examples)
@@ -367,15 +367,21 @@ overall_reduction = ((total_before - total_after) / total_before) * 100
 
 print("\nExample Breakdown:")
 for name, before, after, reduction in examples:
-    print(f"  {name:.<35} {before:>3} → {after:>2} lines ({reduction:>5.1f}% reduction)")
+    print(
+        f"  {name:.<35} {before:>3} → {after:>2} lines ({reduction:>5.1f}% reduction)",
+    )
 
 print("\nOVERALL RESULTS:")
 print(f"  Total lines BEFORE: {total_before}")
 print(f"  Total lines AFTER:  {total_after}")
 print(f"  TOTAL REDUCTION:    {overall_reduction:.1f}%")
 
-print(f"\n🎉 FlextCli Foundation Library achieves {overall_reduction:.1f}% boilerplate reduction!")
-print(f"   That's {total_before - total_after} fewer lines of error-prone boilerplate code!")
+print(
+    f"\n🎉 FlextCli Foundation Library achieves {overall_reduction:.1f}% boilerplate reduction!",
+)
+print(
+    f"   That's {total_before - total_after} fewer lines of error-prone boilerplate code!",
+)
 
 print("\n✅ Key Benefits Demonstrated:")
 print("  • Railway-oriented programming with FlextResult")
@@ -415,11 +421,15 @@ def demonstrate_working_examples() -> bool | None:
 
         # Example 2: Configuration
         from flext_cli import create_flext_cli_config
+
         config = create_flext_cli_config(debug=True, profile="demo")
-        print(f"2. Config Creation: ✓ Profile='{config.data.profile}', Debug={config.data.debug}")
+        print(
+            f"2. Config Creation: ✓ Profile='{config.data.profile}', Debug={config.data.debug}",
+        )
 
         # Example 3: Validation
         from flext_cli import flext_cli_validate_email
+
         email_result = flext_cli_validate_email("demo@example.com")
         print(f"3. Email Validation: ✓ Valid email = {email_result.data}")
 
@@ -429,7 +439,9 @@ def demonstrate_working_examples() -> bool | None:
 
         from flext_cli import flext_cli_load_json, flext_cli_save_data
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".json", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".json", delete=False,
+        ) as f:
             demo_data = {"name": "FlextCli Demo", "version": "1.0", "working": True}
             temp_path = f.name
 
