@@ -80,7 +80,7 @@ def _print_config_table(cli_context: object, config_data: dict[str, object]) -> 
 
 @click.group()
 def config() -> None:
-    """Configuration commands for viewing and editing CLI settings."""
+    """Manage configuration: view and edit CLI settings."""
 
 
 @config.command()

@@ -255,7 +255,10 @@ def auth() -> None:
 
 
 async def _async_login_impl(
-    ctx: click.Context, console: Console, username: str, password: str,
+    ctx: click.Context,
+    console: Console,
+    username: str,
+    password: str,
 ) -> None:
     """Async login workflow extracted to reduce function complexity."""
     try:
@@ -305,7 +308,11 @@ async def _async_login_impl(
 @auth.command()
 @click.option("--username", "-u", prompt=True, help="Username for authentication")
 @click.option(
-    "--password", "-p", prompt=True, hide_input=True, help="Password for authentication",
+    "--password",
+    "-p",
+    prompt=True,
+    hide_input=True,
+    help="Password for authentication",
 )
 @click.pass_context
 def login(ctx: click.Context, username: str, password: str) -> None:

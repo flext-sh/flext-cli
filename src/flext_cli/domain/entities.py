@@ -114,7 +114,7 @@ class CLIEntityFactory:
             # CLISession requires a non-empty user_id; map session_id to user_id for tests
             if not session_id:
                 msg = "String should have at least 1 character"
-                raise ValueError(msg)
+                return FlextResult.fail(msg)
             entity = CLISession(id=session_id, user_id=session_id)
             return FlextResult.ok(entity)
         except Exception as e:  # noqa: BLE001

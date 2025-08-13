@@ -165,7 +165,7 @@ def setup_flext_cli_ecosystem(
     config: FlextCliConfig | None = None,
     **config_overrides: object,
 ) -> FlextResult[dict[str, object]]:
-    """Setup CLI for ecosystem project following modern patterns.
+    """Set up CLI for ecosystem project following modern patterns.
 
     This function provides a unified setup pattern for all ecosystem projects,
     eliminating project-specific CLI boilerplate while maintaining flexibility.

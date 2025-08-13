@@ -267,7 +267,7 @@ class FlextCliHelper:
         try:
             # SECURITY: Using shlex.split to prevent shell injection if `cmd` comes from untrusted input.
             # For maximum security, external commands should be explicitly whitelisted and parameters validated.
-            completed = subprocess.run(
+            completed = subprocess.run(  # noqa: S603 - Controlled subprocess execution with security measures
                 shlex.split(cmd),
                 capture_output=True,
                 text=True,

@@ -48,6 +48,11 @@ from rich.console import Console
 
 from flext_cli.config import CLIConfig as FlextCliConfig
 
+# Constants for business-rule thresholds
+MAX_TIMEOUT_SECONDS: int = 60 * 60 * 24  # 86400 (24 hours)
+MIN_EXIT_CODE: int = 0
+MAX_EXIT_CODE: int = 255
+
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -201,7 +206,7 @@ class FlextCliContext(FlextValueObject):
         # Environment variables are already validated by type annotations (dict[str, str])
 
         # Timeout must be reasonable
-        if self.timeout_seconds > 86400:  # 24 hours
+        if self.timeout_seconds > MAX_TIMEOUT_SECONDS:
             return FlextResult.fail("Timeout cannot exceed 24 hours")
 
         return FlextResult.ok(None)
@@ -281,7 +286,9 @@ class FlextCliOutput(FlextValueObject):
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI output business rules."""
         # Exit code range validation
-        if self.exit_code is not None and (self.exit_code < 0 or self.exit_code > 255):
+        if self.exit_code is not None and (
+            self.exit_code < MIN_EXIT_CODE or self.exit_code > MAX_EXIT_CODE
+        ):
             return FlextResult.fail("Exit code must be between 0 and 255")
 
         # Execution time validation
@@ -621,6 +628,7 @@ class FlextCliCommand(FlextEntity):
         stderr: str = "",
     ) -> FlextResult[FlextCliCommand]:
         """Complete command execution with output capture."""
+        _ = stderr  # Mark as used for linting purposes
         if self.status != FlextCliCommandStatus.RUNNING:
             return FlextResult.fail("Can only complete running commands")
 
@@ -766,7 +774,7 @@ class FlextCliSession(FlextEntity):
 
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI session business rules."""
-        # user_id may be empty for some legacy tests – treat as acceptable
+        # user_id may be empty for some legacy tests - treat as acceptable
 
         # Validate timestamps
         if self.ended_at and self.ended_at < self.started_at:

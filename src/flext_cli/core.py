@@ -65,14 +65,16 @@ from __future__ import annotations
 import csv
 import io
 import json
-from datetime import UTC
+import uuid
+from contextlib import suppress
+from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
 
 # Import bridge for flext_core utilities during tests
 try:  # pragma: no cover
-    from flext_core import (  # type: ignore
+    from flext_core import (  # type: ignore[attr-defined, import-not-found]
         FlextResult,
         FlextUtilities,
         get_logger,
@@ -81,11 +83,13 @@ try:  # pragma: no cover
 except Exception:  # pragma: no cover
 
     class FlextResult:  # type: ignore[no-redef]
-        def __class_getitem__(cls, _item):  # allow FlextResult[Type] syntax
+        """Minimal fallback for FlextResult used only in tests."""
+
+        def __class_getitem__(cls, _item: object) -> type[FlextResult]:  # allow FlextResult[Type] syntax
             return cls
 
         def __init__(
-            self, success: bool, data: object | None = None, error: str | None = None,
+            self, *, success: bool, data: object | None = None, error: str | None = None,
         ) -> None:
             self.success = success
             self.is_success = success
@@ -95,11 +99,11 @@ except Exception:  # pragma: no cover
 
         @staticmethod
         def ok(data: object | None) -> FlextResult:
-            return FlextResult(True, data, None)
+            return FlextResult(success=True, data=data, error=None)
 
         @staticmethod
         def fail(error: str) -> FlextResult:
-            return FlextResult(False, None, error)
+            return FlextResult(success=False, data=None, error=error)
 
         def unwrap(self) -> object:
             if not self.success:
@@ -107,38 +111,41 @@ except Exception:  # pragma: no cover
             return self.data
 
     class FlextUtilities:  # type: ignore[no-redef]
+        """Minimal fallback utilities for tests when flext_core is missing."""
+
         @staticmethod
         def generate_iso_timestamp() -> str:
-            from datetime import datetime
-
+            """Generate current timestamp in ISO 8601 format."""
             return datetime.now(UTC).isoformat()
 
         @staticmethod
         def generate_entity_id() -> str:
-            import uuid
-
+            """Generate a new random entity identifier (UUID4 hex)."""
             return uuid.uuid4().hex
 
     # Explicitly bind into globals for unittest.mock.patch resolution
     globals()["FlextUtilities"] = FlextUtilities
 
-    def get_logger(_name: str):  # type: ignore
+    def get_logger(_name: str) -> object:
         class _L:
-            def info(self, *args, **kwargs) -> None:
+            def info(self, *_args: object, **_kwargs: object) -> None:
                 return None
 
-            def warning(self, *args, **kwargs) -> None:
+            def warning(self, *_args: object, **_kwargs: object) -> None:
                 return None
 
-            def error(self, *args, **kwargs) -> None:
+            def error(self, *_args: object, **_kwargs: object) -> None:
                 return None
 
-            def exception(self, *args, **kwargs) -> None:
+            def exception(self, *_args: object, **_kwargs: object) -> None:
                 return None
 
         return _L()
 
-    def safe_call(func):  # type: ignore
+    from collections.abc import Callable
+
+    def safe_call(func: Callable[[], object]) -> FlextResult[object]:
+        """Execute a callable and wrap result in FlextResult (fallback)."""
         try:
             return FlextResult.ok(func())
         except Exception as e:  # noqa: BLE001
@@ -174,12 +181,15 @@ class FlextService:  # Lightweight stub to satisfy tests
     """Minimal concrete base to satisfy legacy tests expecting instantiation."""
 
     def start(self) -> FlextResult[None]:
+        """Start the CLI core service."""
         return FlextResult.ok(None)
 
     def stop(self) -> FlextResult[None]:
+        """Stop the CLI core service."""
         return FlextResult.ok(None)
 
     def health_check(self) -> FlextResult[str]:
+        """Return health status string."""
         return FlextResult.ok("healthy")
 
 
@@ -543,12 +553,10 @@ class FlextCliService(FlextService):
 
         # If caller didn't specify and config is set to JSON, honor JSON
         if not context_options and hasattr(config, "output_format"):
-            try:
+            with suppress(Exception):
                 cfg_fmt = config.output_format
                 cfg_key = cfg_fmt.value if hasattr(cfg_fmt, "value") else str(cfg_fmt)
                 output_format = OutputFormat(cfg_key)
-            except Exception:
-                pass
 
         # Convert data to OutputData type (str | dict | list)
         output_data = data if isinstance(data, (str, dict, list)) else str(data)

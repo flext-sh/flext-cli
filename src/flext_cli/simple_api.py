@@ -91,11 +91,13 @@ def create_development_cli_config(**kwargs: object) -> CLIConfig:
         **kwargs,  # Apply overrides
     }
 
-    hierarchy_result = CLIConfig.create_with_hierarchy(**development_defaults)
-    if hierarchy_result.success:
-        return hierarchy_result.unwrap()
+    # Try to use create_with_hierarchy if available
+    if hasattr(CLIConfig, "create_with_hierarchy"):
+        hierarchy_result = CLIConfig.create_with_hierarchy(**development_defaults)
+        if hierarchy_result.success:
+            return hierarchy_result.unwrap()
 
-    # Fallback to direct creation for backward compatibility
+    # Fallback to direct creation
     config = CLIConfig(
         debug=True,
         profile="development",
