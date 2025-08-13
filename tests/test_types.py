@@ -1,3 +1,5 @@
+from flext_core.constants import FlextConstants as _C
+_API = f"http://{_C.Platform.DEFAULT_HOST}:{_C.Platform.FLEXT_API_PORT}"
 """Comprehensive tests for types.py module.
 
 Tests all type definitions and entities in types.py for 100% coverage.
@@ -356,7 +358,7 @@ class TestFlextCliConfig:
         assert config.trace is False
         if config.log_level != "INFO":
             raise AssertionError(f"Expected {'INFO'}, got {config.log_level}")
-        assert config.api_url == "http://localhost:8000"
+        assert config.api_url == _API
         if config.api_timeout != 30:
             raise AssertionError(f"Expected {30}, got {config.api_timeout}")
         assert config.format_type == "table"

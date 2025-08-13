@@ -6,7 +6,6 @@ CLI commands to interact with the underlying platform.
 
 from __future__ import annotations
 
-from flext_cli.typings import FlextTypes
 from typing import TYPE_CHECKING, Protocol
 
 from flext_core import FlextResult
