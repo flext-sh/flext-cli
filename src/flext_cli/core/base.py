@@ -192,7 +192,7 @@ def _print_error(message: str) -> None:
     console.print(f"[red]Error: {message}[/red]")
 
 
-def handle_service_result[**P](func: "Callable[P, object]") -> "Callable[P, object]":
+def handle_service_result[**P](func: Callable[P, object]) -> Callable[P, object]:
     """Unwrap a FlextResult or print errors, preserving passthrough.
 
     Args:

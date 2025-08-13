@@ -90,7 +90,7 @@ def _init_git_repo(project_path: Path) -> bool:
     """Initialize a git repository, returning True on success."""
     git_exe = which("git") or "git"
     try:
-        subprocess.run(  # noqa: S603, S607
+        subprocess.run(  # noqa: S603
             [git_exe, "init"],
             cwd=project_path,
             check=True,

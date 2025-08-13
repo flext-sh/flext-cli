@@ -32,22 +32,22 @@ try:  # pragma: no cover - import bridge
         FlextSettings,
     )
 except Exception:  # pragma: no cover
+    from typing import TypeVar
+
     from pydantic import BaseModel as FlextSettings  # type: ignore[assignment]
 
-    from typing import Generic, TypeVar
+    T = TypeVar("T")
 
-    T_co = TypeVar("T_co")
-
-    class FlextResult(Generic[T_co]):  # type: ignore[no-redef]
+    class FlextResult[T]:  # type: ignore[no-redef]
         def __init__(self, *args: object, **kwargs: object) -> None:
             ...
 
         @staticmethod
-        def ok(_data: T_co | None) -> "FlextResult[T_co]":
+        def ok(_data: T_co | None) -> FlextResult[T_co]:
             return FlextResult()
 
         @staticmethod
-        def fail(_error: str) -> "FlextResult[T_co]":
+        def fail(_error: str) -> FlextResult[T_co]:
             return FlextResult()
 
 

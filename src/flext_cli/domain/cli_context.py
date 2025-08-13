@@ -5,45 +5,43 @@ Provides basic types and helpers to carry state across command execution.
 
 from __future__ import annotations
 
-from typing import Dict, Optional
 from dataclasses import dataclass, field
-from flext_core import FlextResult
 
 
 @dataclass
 class CLIContext:
     """CLI execution context carrying state across commands."""
-    
-    config: Dict[str, object] = field(default_factory=dict)
-    environment: Dict[str, str] = field(default_factory=dict)
-    session_id: Optional[str] = None
-    user_id: Optional[str] = None
+
+    config: dict[str, object] = field(default_factory=dict)
+    environment: dict[str, str] = field(default_factory=dict)
+    session_id: str | None = None
+    user_id: str | None = None
     debug: bool = False
     verbose: bool = False
-    
+
     def get_config_value(self, key: str, default: object | None = None) -> object | None:
         """Get configuration value with fallback."""
         return self.config.get(key, default)
-    
+
     def set_config_value(self, key: str, value: object) -> None:
         """Set configuration value."""
         self.config[key] = value
-    
+
     def has_config(self, key: str) -> bool:
         """Check if configuration key exists."""
         return key in self.config
 
 
-@dataclass 
+@dataclass
 class CLIExecutionContext(CLIContext):
     """Extended context for command execution."""
-    
-    command_name: Optional[str] = None
-    command_args: Dict[str, object] = field(default_factory=dict)
-    execution_id: Optional[str] = None
-    start_time: Optional[float] = None
-    
-    def get_execution_info(self) -> Dict[str, object]:
+
+    command_name: str | None = None
+    command_args: dict[str, object] = field(default_factory=dict)
+    execution_id: str | None = None
+    start_time: float | None = None
+
+    def get_execution_info(self) -> dict[str, object]:
         """Get execution information."""
         return {
             "command_name": self.command_name,
@@ -65,8 +63,8 @@ def create_cli_context(**kwargs: object) -> CLIContext:
         "debug",
         "verbose",
     }
-    filtered = {k: v for k, v in kwargs.items() if k in allowed_keys}
-    return CLIContext(**filtered)  # type: ignore[arg-type]
+    filtered: dict[str, object] = {k: v for k, v in kwargs.items() if k in allowed_keys}
+    return CLIContext(**filtered)
 
 
 def create_execution_context(command_name: str, **kwargs: object) -> CLIExecutionContext:
@@ -82,5 +80,5 @@ def create_execution_context(command_name: str, **kwargs: object) -> CLIExecutio
         "execution_id",
         "start_time",
     }
-    filtered = {k: v for k, v in kwargs.items() if k in allowed_keys}
-    return CLIExecutionContext(command_name=command_name, **filtered)  # type: ignore[arg-type]
+    filtered: dict[str, object] = {k: v for k, v in kwargs.items() if k in allowed_keys}
+    return CLIExecutionContext(command_name=command_name, **filtered)

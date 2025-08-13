@@ -1,10 +1,10 @@
 # flext-cli - FLEXT Command Interface
 
-**Type**: Application | **Status**: Development (30% functional) | **Dependencies**: flext-core
+**Type**: Application | **Status**: Active Development (~30% functional) | **Dependencies**: flext-core
 
 **Unified command-line interface for the FLEXT distributed data integration ecosystem**. Provides centralized management, orchestration, and monitoring for all 32+ FLEXT projects including FlexCore services, data pipelines, Singer taps/targets, DBT transformations, and project-specific integrations.
 
-> **⚠️ Current Status**: 30% functional - Core foundations implemented with comprehensive documentation standardization complete. Major functionality in development. See [10-sprint roadmap](docs/TODO.md) for completion timeline.
+> ⚠️ Current Status: Core foundations implemented; major functionality under development. See roadmap for completion timeline.
 
 ## 📋 **Recent Major Achievements**
 
@@ -72,7 +72,7 @@ FLEXT CLI serves as the central command hub for:
 
 ## Current Features (30% Complete)
 
-### ✅ **Implemented & Working**
+### ✅ Implemented & Working
 
 - **🎨 Rich Terminal UI**: Beautiful output with tables, progress bars, panels (Rich library)
 - **🏗️ Clean Architecture**: Domain-driven design with flext-core foundation
@@ -83,7 +83,7 @@ FLEXT CLI serves as the central command hub for:
 - **🎯 Type Safety**: Complete MyPy strict mode coverage (zero errors)
 - **🧪 Quality Gates**: 90% test coverage with comprehensive validation
 
-### ⚠️ **Partially Implemented**
+### ⚠️ Partially Implemented
 
 - **🏗️ flext-core Integration (60%)**: Good foundations, missing enterprise patterns
   - ✅ FlextResult (railway-oriented programming)
@@ -94,7 +94,7 @@ FLEXT CLI serves as the central command hub for:
   - ❌ CQRS (command/query separation)
   - ❌ Domain Events (event-driven architecture)
 
-### ❌ **Missing Critical Features**
+### ❌ Missing Critical Features
 
 #### **Pipeline Management** (Priority 1)
 

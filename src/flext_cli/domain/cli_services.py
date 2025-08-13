@@ -6,15 +6,19 @@ CLI commands to interact with the underlying platform.
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Protocol, Callable
+from typing import TYPE_CHECKING, Protocol
+
 from flext_core import FlextResult
-from flext_cli.domain.cli_context import CLIContext, CLIExecutionContext
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from flext_cli.domain.cli_context import CLIContext, CLIExecutionContext
 
 
 class CLIServiceProtocol(Protocol):
     """Protocol for CLI services."""
-    
+
     def execute(self, context: CLIContext, **kwargs: object) -> FlextResult[object]:
         """Execute service operation."""
         ...
@@ -22,10 +26,10 @@ class CLIServiceProtocol(Protocol):
 
 class CLICommandServiceProtocol(Protocol):
     """Protocol for CLI command services."""
-    
+
     def execute_command(
-        self, 
-        command_name: str, 
+        self,
+        command_name: str,
         context: CLIExecutionContext,
         **kwargs: object,
     ) -> FlextResult[object]:
@@ -35,36 +39,36 @@ class CLICommandServiceProtocol(Protocol):
 
 class CLISessionServiceProtocol(Protocol):
     """Protocol for CLI session services."""
-    
-    def create_session(self, user_id: Optional[str] = None) -> FlextResult[str]:
+
+    def create_session(self, user_id: str | None = None) -> FlextResult[str]:
         """Create a new CLI session."""
         ...
-    
-    def get_session(self, session_id: str) -> FlextResult[Dict[str, object]]:
+
+    def get_session(self, session_id: str) -> FlextResult[dict[str, object]]:
         """Get session information."""
         ...
 
 
 class CLICommandService:
     """Basic CLI command service implementation."""
-    
+
     def __init__(self) -> None:
-        self.commands: Dict[str, object] = {}
-    
-    def register_command(self, name: str, handler: "Callable[[CLIExecutionContext], object]") -> None:
+        self.commands: dict[str, object] = {}
+
+    def register_command(self, name: str, handler: Callable[[CLIExecutionContext], object] | Callable[[CLIExecutionContext], FlextResult[object]]) -> None:
         """Register a command handler."""
         self.commands[name] = handler
-    
+
     def execute_command(
-        self, 
-        command_name: str, 
+        self,
+        command_name: str,
         context: CLIExecutionContext,
         **kwargs: object,
     ) -> FlextResult[object]:
         """Execute a CLI command."""
         if command_name not in self.commands:
             return FlextResult.fail(f"Command '{command_name}' not found")
-        
+
         try:
             handler = self.commands[command_name]
             # Runtime callable guard
@@ -72,47 +76,47 @@ class CLICommandService:
                 result = handler(context, **kwargs)
             else:
                 return FlextResult.fail("Handler is not callable")
-            return FlextResult.ok(result)
+            return result if isinstance(result, FlextResult) else FlextResult.ok(result)
         except Exception as e:
             return FlextResult.fail(f"Command execution failed: {e}")
-    
-    def list_commands(self) -> List[str]:
+
+    def list_commands(self) -> list[str]:
         """List available commands."""
         return list(self.commands.keys())
 
 
 class CLISessionService:
     """Basic CLI session service implementation."""
-    
+
     def __init__(self) -> None:
-        self.sessions: Dict[str, Dict[str, object]] = {}
-    
-    def create_session(self, user_id: Optional[str] = None) -> FlextResult[str]:
+        self.sessions: dict[str, dict[str, object]] = {}
+
+    def create_session(self, user_id: str | None = None) -> FlextResult[str]:
         """Create a new CLI session."""
         import uuid
         session_id = str(uuid.uuid4())
-        
+
         self.sessions[session_id] = {
             "id": session_id,
             "user_id": user_id,
             "created_at": None,  # Would use actual timestamp
             "active": True,
         }
-        
+
         return FlextResult.ok(session_id)
-    
-    def get_session(self, session_id: str) -> FlextResult[Dict[str, object]]:
+
+    def get_session(self, session_id: str) -> FlextResult[dict[str, object]]:
         """Get session information."""
         if session_id not in self.sessions:
             return FlextResult.fail(f"Session '{session_id}' not found")
-        
+
         return FlextResult.ok(self.sessions[session_id])
-    
+
     def end_session(self, session_id: str) -> FlextResult[None]:
         """End a CLI session."""
         if session_id not in self.sessions:
             return FlextResult.fail(f"Session '{session_id}' not found")
-        
+
         self.sessions[session_id]["active"] = False
         return FlextResult.ok(None)
 
@@ -122,6 +126,6 @@ default_command_service = CLICommandService()
 default_session_service = CLISessionService()
 
 
-# Aliases for backward compatibility 
+# Aliases for backward compatibility
 FlextCliCommandService = CLICommandService
 FlextCliSessionService = CLISessionService
