@@ -291,7 +291,8 @@ class ApiClient:
         import random
 
         # Simulate flaky API
-        if random.random() < 0.3:  # 30% chance of failure
+        from flext_cli.constants import FlextCliConstants
+        if random.random() < FlextCliConstants.Examples.MOCK_API_FAILURE_RATE:
             return FlextResult.fail("Network timeout")
 
         # Simulate API response

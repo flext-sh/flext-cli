@@ -43,11 +43,11 @@ except Exception:  # pragma: no cover
             ...
 
         @staticmethod
-        def ok(_data: T_co | None) -> FlextResult[T_co]:
+        def ok(_data: T | None) -> FlextResult[T]:
             return FlextResult()
 
         @staticmethod
-        def fail(_error: str) -> FlextResult[T_co]:
+        def fail(_error: str) -> FlextResult[T]:
             return FlextResult()
 
 

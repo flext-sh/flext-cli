@@ -26,6 +26,7 @@ from flext_api import (
     create_flext_api,
 )
 from flext_core import FlextResult, get_logger
+from flext_core.constants import FlextConstants
 
 from flext_cli.config import get_config as get_cli_config
 
@@ -73,8 +74,14 @@ class FlextCLIApiClient:
         if hasattr(self.config, "api") and hasattr(self.config.api, "url"):
             return self.config.api.url
 
-        # Default to FLEXT Service (port 8081) - main data platform
-        return "http://localhost:8081"
+        # Default to FLEXT Service using core platform constants
+        try:
+            from flext_core.constants import FlextConstants
+            host = FlextConstants.Platform.DEFAULT_HOST
+            port = FlextConstants.Platform.FLEXT_SERVICE_PORT
+            return f"http://{host}:{port}"
+        except Exception:
+            return "http://localhost:8081"
 
     def _init_flext_api_client(self) -> None:
         """Initialize flext-api client with proper configuration."""
@@ -206,7 +213,7 @@ class FlextCLIApiClient:
             # FlexCore service check
             flexcore_result = await self._check_service(
                 "FlexCore",
-                "http://localhost:8080",
+                f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXCORE_PORT}",
             )
             if flexcore_result.success and flexcore_result.data:
                 services.append(flexcore_result.data)
@@ -214,7 +221,7 @@ class FlextCLIApiClient:
             # FLEXT Service check
             flext_result = await self._check_service(
                 "FLEXT Service",
-                "http://localhost:8081",
+                f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_SERVICE_PORT}",
             )
             if flext_result.success and flext_result.data:
                 services.append(flext_result.data)
