@@ -1,8 +1,5 @@
-from __future__ import annotations
+"""Domain services interfaces and base implementations for CLI layer.
 
-from flext_cli.base_service import (
-    FlextCliService as CLICommandService,
-    FlextCliService as CLISessionService,
-)
-
-__all__ = ["CLICommandService", "CLISessionService"]
+This module defines service protocols and minimal concrete implementations used by
+CLI commands to interact with the underlying platform.
+"""

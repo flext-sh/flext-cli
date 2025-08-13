@@ -60,7 +60,7 @@ def connectivity(ctx: click.Context) -> None:
     try:
         debug_mod = importlib.import_module("flext_cli.commands.debug")
     except Exception:  # pragma: no cover
-        debug_mod = None  # type: ignore[assignment]
+        debug_mod = None
 
     async def _run() -> None:
         try:
@@ -68,18 +68,21 @@ def connectivity(ctx: click.Context) -> None:
             provider = (
                 debug_mod.get_default_cli_client if debug_mod else None
             ) or getattr(debug_cmd, "get_default_cli_client", get_default_cli_client)
-            client = provider()
+            client = provider() if callable(provider) else None
+            if client is None:
+                console.print("[red]❌ Failed to get client provider[/red]")
+                ctx.exit(1)
             console.print("[yellow]Testing API connectivity[/yellow]")
             # FlextResult expected in tests
-            test_result = await client.test_connection()  # type: ignore[attr-defined]
+            test_result = await client.test_connection()
             if getattr(test_result, "is_failure", False):
                 console.print(
                     f"[red]❌ Failed to connect to API: {test_result.error}[/red]",
                 )
                 ctx.exit(1)
-            console.print(f"[green]✅ Connected to API at {client.base_url}[/green]")  # type: ignore[attr-defined]
+            console.print(f"[green]✅ Connected to API at {client.base_url}[/green]")
             try:
-                status_result = await client.get_system_status()  # type: ignore[attr-defined]
+                status_result = await client.get_system_status()
                 if getattr(status_result, "success", False):
                     status = status_result.unwrap()
                     console.print("\nSystem Status:")
@@ -117,12 +120,15 @@ def performance(ctx: click.Context) -> None:
     try:
         debug_mod = importlib.import_module("flext_cli.commands.debug")
     except Exception:  # pragma: no cover
-        debug_mod = None  # type: ignore[assignment]
+        debug_mod = None
     try:
         provider = (
             debug_mod.get_default_cli_client if debug_mod else None
         ) or getattr(debug_cmd, "get_default_cli_client", get_default_cli_client)
-        client = provider()
+        client = provider() if callable(provider) else None
+        if client is None:
+            console.print("[red]❌ Failed to get client provider[/red]")
+            ctx.exit(1)
         table_ctor = (debug_mod.Table if debug_mod else None) or Table
         table = table_ctor(title="System Performance Metrics")
         table.add_column("Metric", style="cyan")
@@ -131,11 +137,11 @@ def performance(ctx: click.Context) -> None:
         metrics: dict[str, object] | None = None
         try:
             # Preferred sync metrics hook
-            metrics = client.get_performance_metrics()  # type: ignore[attr-defined]
+            metrics = client.get_performance_metrics()
         except Exception:
             async def _fetch() -> dict[str, object] | None:
                 try:
-                    status_result = await client.get_system_status()  # type: ignore[attr-defined]
+                    status_result = await client.get_system_status()
                     return status_result.unwrap() if getattr(status_result, "success", False) else None
                 except Exception:  # noqa: BLE001
                     return None
@@ -253,7 +259,7 @@ def paths(ctx: click.Context) -> None:
 @debug_cmd.command(help="Run basic health checks")
 @click.pass_context
 def check(ctx: click.Context) -> None:
-    """Basic health check that always succeeds (E2E recovery test helper)."""
+    """Run basic health check that always succeeds (E2E recovery test helper)."""
     console: Console = ctx.obj.get("console", Console())
     console.print("[green]System OK[/green]")
 

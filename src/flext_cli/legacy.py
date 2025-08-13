@@ -276,7 +276,7 @@ class CLIEntityFactory:
 
 # Legacy decorator shims
 def legacy_validate_result(func: object) -> object:
-    """Deprecated result validation decorator.
+    """Validate result (deprecated decorator).
 
     DEPRECATED: Use @FlextDecorators.validate_result from flext-core instead.
     """
@@ -290,7 +290,7 @@ def legacy_validate_result(func: object) -> object:
 
 
 def legacy_handle_errors(func: object) -> object:
-    """Deprecated error handling decorator.
+    """Handle errors (deprecated decorator).
 
     DEPRECATED: Use @FlextErrorHandlingDecorators.handle_errors from flext-core.
     """
@@ -304,7 +304,7 @@ def legacy_handle_errors(func: object) -> object:
 
 
 def legacy_performance_monitor(func: object) -> object:
-    """Deprecated performance monitoring decorator.
+    """Monitor performance (deprecated decorator).
 
     DEPRECATED: Use @FlextPerformanceDecorators.monitor from flext-core.
     """
@@ -403,6 +403,8 @@ TCliArgs = dict[str, object]
 
 
 class FlextCliCommandType(StrEnum):
+    """Legacy command type enumeration kept for backward compatibility."""
+
     SYSTEM = "system"
     PIPELINE = "pipeline"
     PLUGIN = "plugin"

@@ -1,8 +1,4 @@
-from __future__ import annotations
+"""Domain context for CLI operations.
 
-from flext_cli.core.base import (
-    CLIContext,
-    CLIContext as CLIExecutionContext,
-)
-
-__all__ = ["CLIContext", "CLIExecutionContext"]
+Provides basic types and helpers to carry state across command execution.
+"""

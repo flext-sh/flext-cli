@@ -30,6 +30,8 @@ else:
 
 # Mock the flext_cli.types imports needed for testing
 class MockFlextCliConfig:
+    """Lightweight config stub for tests."""
+
     def __init__(self, data: dict[str, object] | None = None) -> None:
         data = data or {}
         self.debug = data.get("debug", False)
@@ -40,6 +42,8 @@ class MockFlextCliConfig:
 
 
 class MockFlextCliCommand:
+    """Simple command stub with minimal fields used in tests."""
+
     def __init__(
         self,
         entity_id: str | None = None,
@@ -55,6 +59,8 @@ class MockFlextCliCommand:
 
 
 class MockFlextCliSession:
+    """Simple session stub with legacy-compatible attributes."""
+
     def __init__(
         self, entity_id: str | None = None, user_id: str | None = None
     ) -> None:
@@ -64,12 +70,16 @@ class MockFlextCliSession:
 
 
 class MockFlextCliPlugin:
+    """Simple plugin stub for registration tests."""
+
     def __init__(self, name: str, version: str) -> None:
         self.name = name
         self.version = version
 
 
 class MockFlextCliContext:
+    """Simple context stub exposing `config` and `output_format`."""
+
     def __init__(self, config: MockFlextCliConfig | None, **overrides: object) -> None:
         self.config = config or MockFlextCliConfig()
         self.output_format = overrides.get("output_format", self.config.format_type)

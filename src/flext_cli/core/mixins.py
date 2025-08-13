@@ -119,7 +119,7 @@ class FlextCliValidationMixin:
         if res.is_failure:
             return res
         return (
-            FlextResult.ok(True)
+            FlextResult.ok(True)  # noqa: FBT003
             if res.unwrap()
             else FlextResult.fail("Operation cancelled by user")
         )

@@ -117,6 +117,7 @@ class CLIConfig(BaseModel):
 
     @property
     def max_retries(self) -> int:
+        """Legacy alias for API retry count."""
         return self.api.retries
 
     @property
@@ -125,10 +126,12 @@ class CLIConfig(BaseModel):
 
     @property
     def quiet(self) -> bool:
+        """Whether CLI is in quiet mode (legacy alias)."""
         return self.output.quiet
 
     @property
     def verbose(self) -> bool:
+        """Whether CLI is in verbose mode (legacy alias)."""
         return self.output.verbose
 
     @property
@@ -138,6 +141,7 @@ class CLIConfig(BaseModel):
 
     @property
     def no_color(self) -> bool:
+        """Return True when color output is disabled."""
         return self.output.no_color
 
     @property
@@ -149,19 +153,23 @@ class CLIConfig(BaseModel):
         return self.directories.cache_dir
 
     @property
-    def log_dir(self) -> Path:  # noqa: D102
+    def log_dir(self) -> Path:
+        """Path to log directory (legacy alias)."""
         return self.directories.log_dir
 
     @property
     def api_timeout(self) -> int:
+        """Legacy alias for API timeout in seconds."""
         return self.api.timeout
 
     @property
     def connect_timeout(self) -> int:
+        """Legacy alias for API connect timeout."""
         return self.api.connect_timeout
 
     @property
     def read_timeout(self) -> int:
+        """Legacy alias for API read timeout."""
         return self.api.read_timeout
 
     # Additional simple fields used by tests
@@ -178,17 +186,30 @@ class CLIConfig(BaseModel):
     # Legacy flat attribute expected by tests
     @property
     def log_level(self) -> str:
+        """Legacy flat attribute for log level (fixed INFO for tests)."""
         return "INFO"
 
     # Accept flat keyword arguments for backward-compatibility and map into nested models
-    def __init__(self, **data: object) -> None:  # noqa: PLR0912, PLR0915
-        # Back-compat mapping
-        mapped = dict(data)
-        # Map directory fields
+    def __init__(self, **data: object) -> None:
+        """Back-compat constructor mapping flat kwargs into nested models."""
+        mapped = self._map_back_compat_fields(dict(data))
+        super().__init__(**mapped)
+
+    @staticmethod
+    def _map_back_compat_fields(mapped: dict[str, object]) -> dict[str, object]:
+        """Map flat legacy fields into nested config structures."""
+        mapped = CLIConfig._map_directory_fields(mapped)
+        mapped = CLIConfig._map_auth_fields(mapped)
+        mapped = CLIConfig._map_output_fields(mapped)
+        return CLIConfig._map_api_fields(mapped)
+
+    @staticmethod
+    def _map_directory_fields(mapped: dict[str, object]) -> dict[str, object]:
+        """Fold flat directory keys into ``directories`` config."""
         dir_overrides: dict[str, object] = {}
         for key in ("config_dir", "cache_dir", "log_dir", "data_dir"):
             if key in mapped:
-                dir_overrides[key] = mapped.pop(key)  # remove flat
+                dir_overrides[key] = mapped.pop(key)
         if dir_overrides:
             existing = mapped.get("directories")
             if isinstance(existing, CLIDirectoryConfig):
@@ -198,8 +219,11 @@ class CLIConfig(BaseModel):
             else:
                 directories = CLIDirectoryConfig(**dir_overrides)  # type: ignore[arg-type]
             mapped["directories"] = directories
+        return mapped
 
-        # Map auth fields
+    @staticmethod
+    def _map_auth_fields(mapped: dict[str, object]) -> dict[str, object]:
+        """Fold flat auth keys into ``auth`` config."""
         auth_overrides: dict[str, object] = {}
         for key in ("token_file", "refresh_token_file", "auto_refresh"):
             if key in mapped:
@@ -213,12 +237,14 @@ class CLIConfig(BaseModel):
             else:
                 auth_cfg = CLIAuthConfig(**auth_overrides)  # type: ignore[arg-type]
             mapped["auth"] = auth_cfg
+        return mapped
 
-        # Map flat output fields
+    @staticmethod
+    def _map_output_fields(mapped: dict[str, object]) -> dict[str, object]:
+        """Fold flat output keys into ``output`` config, renaming where needed."""
         output_overrides: dict[str, object] = {}
         for key in ("output_format", "no_color", "quiet", "verbose", "pager"):
             if key in mapped:
-                # rename output_format -> format
                 target = "format" if key == "output_format" else key
                 output_overrides[target] = mapped.pop(key)
         if output_overrides:
@@ -230,22 +256,26 @@ class CLIConfig(BaseModel):
             else:
                 out_cfg = CLIOutputConfig(**output_overrides)  # type: ignore[arg-type]
             mapped["output"] = out_cfg
+        return mapped
 
-        # Map flat API fields
-        api_overrides: dict[str, object] = {}
-        for key in (
-            "api_url",
-            "timeout",
-            "retries",
-            "verify_ssl",
-            "connect_timeout",
-            "read_timeout",
-        ):
-            if key in mapped:
-                target = "url" if key == "api_url" else key
-                api_overrides[target] = mapped.pop(key)
+    @staticmethod
+    def _map_api_fields(mapped: dict[str, object]) -> dict[str, object]:
+        """Fold flat API keys into ``api`` config using a field map."""
+        existing_api = mapped.get("api")
+        api_field_map = {
+            "api_url": "url",
+            "timeout": "timeout",
+            "retries": "retries",
+            "verify_ssl": "verify_ssl",
+            "connect_timeout": "connect_timeout",
+            "read_timeout": "read_timeout",
+        }
+        api_overrides = {
+            (api_field_map[k]): mapped.pop(k)
+            for k in list(mapped.keys())
+            if k in api_field_map
+        }
         if api_overrides:
-            existing_api = mapped.get("api")
             if isinstance(existing_api, CLIAPIConfig):
                 api_cfg = existing_api.model_copy(update=api_overrides)
             elif isinstance(existing_api, dict):
@@ -253,11 +283,11 @@ class CLIConfig(BaseModel):
             else:
                 api_cfg = CLIAPIConfig(**api_overrides)  # type: ignore[arg-type]
             mapped["api"] = api_cfg
-
-        super().__init__(**mapped)
+        return mapped
 
     # Simple configure/update API used by tests
     def configure(self, settings: object) -> bool:
+        """Apply simple settings updates from a plain dict, return success."""
         if not isinstance(settings, dict):
             return False
         try:
@@ -274,27 +304,28 @@ class CLIConfig(BaseModel):
             return False
 
     def validate_domain_rules(self) -> bool:
+        """Validate simple invariants expected by tests."""
         # For tests, ensure basic invariants only
         if self.api.timeout <= 0:
             return False
         return not self.command_timeout <= 0
 
     # Legacy flat properties expected by tests
-    @property
-    def max_retries(self) -> int:
-        return self.api.retries
+    # max_retries already defined above at line 118
 
     @property
     def auto_refresh(self) -> bool:
+        """Legacy alias for auth auto-refresh flag."""
         return self.auth.auto_refresh
 
     @property
     def token_file(self) -> Path:
-        # tests expect hidden files under ~/.flext
+        """Legacy alias: path to token file (tests expect hidden file)."""
         return Path.home() / ".flext" / ".token"
 
     @property
     def refresh_token_file(self) -> Path:
+        """Legacy alias: path to refresh token file."""
         return Path.home() / ".flext" / ".refresh_token"
 
 

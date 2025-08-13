@@ -1,4 +1,5 @@
 """Comprehensive tests for commands.auth module.
+
 Tests for authentication commands to achieve near 100% coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.

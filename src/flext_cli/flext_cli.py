@@ -88,23 +88,18 @@ from flext_cli.types import (
     FlextCliConfig,
 )
 
-if TYPE_CHECKING:
-    from typing import (
-        Any as TCliData,  # type: ignore
-        Any as TCliPath,  # type: ignore
-    )
-
-    from flext_cli.cli_types import OutputFormat as TCliFormat  # type: ignore
-    from flext_cli.models import FlextCliPlugin  # type: ignore
-
 # Global API instance
 _api = FlextCliApi()
 
 
+if TYPE_CHECKING:
+    from pathlib import Path
+
+
 def flext_cli_export(
-    data: TCliData,
-    path: TCliPath,
-    format_type: TCliFormat = OutputFormat.JSON,
+    data: object,
+    path: str | Path,
+    format_type: OutputFormat = OutputFormat.JSON,
 ) -> bool:
     """Export data to file in specified format.
 
@@ -121,8 +116,8 @@ def flext_cli_export(
 
 
 def flext_cli_format(
-    data: TCliData,
-    format_type: TCliFormat = OutputFormat.JSON,
+    data: object,
+    format_type: OutputFormat = OutputFormat.JSON,
 ) -> str:
     """Format data for display.
 
@@ -237,7 +232,7 @@ def flext_cli_register_handler(name: str, handler: object) -> bool:
     return result.success if hasattr(result, "success") else False
 
 
-def flext_cli_register_plugin(name: str, plugin: FlextCliPlugin) -> bool:
+def flext_cli_register_plugin(name: str, plugin: object) -> bool:
     """Register plugin using unified method.
 
     Args:

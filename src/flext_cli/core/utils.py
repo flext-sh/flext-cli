@@ -9,14 +9,17 @@ from __future__ import annotations
 
 import json
 import os
-from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import yaml
 from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def _generate_session_id() -> str:
@@ -88,6 +91,7 @@ def flext_cli_quick_setup(config: dict[str, object]) -> FlextResult[dict[str, ob
 def flext_cli_auto_config(
     profile: str, config_files: list[str],
 ) -> FlextResult[dict[str, object]]:
+    """Load and merge CLI configuration automatically from profile and files."""
     env = _load_env_overrides()
     loaded: dict[str, object] = {"profile": profile}
     for file in config_files:
@@ -108,34 +112,56 @@ def flext_cli_auto_config(
 def flext_cli_validate_all(
     validations: dict[str, tuple[object, str]],
 ) -> FlextResult[dict[str, object]]:
+    """Validate multiple values and return aggregated results."""
     output: dict[str, object] = {}
+
+    def _email(v: object) -> FlextResult[str]:
+        s = str(v)
+        return FlextResult.ok(s) if ("@" in s and "." in s) else FlextResult.fail("Invalid email")
+
+    def _url(v: object) -> FlextResult[str]:
+        s = str(v)
+        return FlextResult.ok(s) if s.startswith(("http://", "https://")) else FlextResult.fail("Invalid URL")
+
+    def _path(v: object) -> FlextResult[Path]:
+        return FlextResult.ok(Path(str(v)))
+
+    def _file(v: object) -> FlextResult[Path]:
+        p = Path(str(v))
+        return FlextResult.ok(p) if p.exists() else FlextResult.fail("File not found")
+
+    def _dir(v: object) -> FlextResult[Path]:
+        p = Path(str(v))
+        return FlextResult.ok(p) if (p.exists() and p.is_dir()) else FlextResult.fail("Directory not found")
+
+    def _filename(v: object) -> FlextResult[str]:
+        return FlextResult.ok(str(v).replace("<", "_").replace(">", "_"))
+
+    def _int(v: object) -> FlextResult[int]:
+        try:
+            return FlextResult.ok(int(v))
+        except Exception:
+            return FlextResult.fail("Invalid integer")
+
+    validators = {
+        "email": _email,
+        "url": _url,
+        "path": _path,
+        "file": _file,
+        "dir": _dir,
+        "filename": _filename,
+        "int": _int,
+    }
+
     for key, (value, vtype) in validations.items():
-        if vtype == "email":
-            if not isinstance(value, str) or "@" not in value:
-                return FlextResult.fail(f"Validation failed for {key}")
-            output[key] = value
-        elif vtype == "url":
-            if not (
-                isinstance(value, str) and (value.startswith(("http://", "https://")))
-            ):
-                return FlextResult.fail(f"Validation failed for {key}")
-            output[key] = value
-        elif vtype == "path":
-            output[key] = Path(str(value))
-        elif vtype in {"file", "dir"}:
-            p = Path(str(value))
-            if not p.exists():
-                return FlextResult.fail(f"Validation failed for {key}")
-            output[key] = p
-        elif vtype == "filename":
-            output[key] = str(value).replace("<", "_").replace(">", "_")
-        elif vtype == "int":
-            if isinstance(value, (int, str, float)):
-                output[key] = int(value)
-            else:
-                return FlextResult.fail(f"Cannot convert {key} to int")
-        else:
+        validate = validators.get(vtype)
+        if validate is None:
             return FlextResult.fail("Unknown validation type")
+        res = validate(value)
+        if res.is_failure:
+            return FlextResult.fail(f"Validation failed for {key}")
+        output[key] = res.unwrap()
+
     return FlextResult.ok(output)
 
 
@@ -155,6 +181,7 @@ def flext_cli_require_all(confirmations: list[tuple[str, bool]]) -> FlextResult[
 def flext_cli_output_data(
     data: object, format_type: str, *, console: Console,
 ) -> FlextResult[bool]:
+    """Render data to console in the specified format."""
     try:
         if format_type == "json":
             console.print(json.dumps(data, indent=2, default=str))
@@ -189,6 +216,7 @@ def flext_cli_output_data(
 def flext_cli_create_table(
     data: object, *, title: str | None = None, columns: list[str] | None = None,
 ) -> Table:
+    """Create a Rich table from data with optional title and columns."""
     table = Table(title=title)
     if isinstance(data, list):
         if not data:
@@ -218,6 +246,7 @@ def flext_cli_create_table(
 def flext_cli_load_file(
     file_path: str | Path, *, format_type: str | None = None,
 ) -> FlextResult[object]:
+    """Load a file and parse its content according to the format."""
     p = Path(file_path)
     if not p.exists():
         return FlextResult.fail("File not found")
@@ -275,4 +304,5 @@ def flext_cli_batch_execute(  # noqa: D103
 def track(
     items: list[tuple[str, Callable[[], FlextResult[object]]]],
 ) -> list[tuple[str, Callable[[], FlextResult[object]]]]:
+    """Track execution of a list of named callables returning FlextResult."""
     return items

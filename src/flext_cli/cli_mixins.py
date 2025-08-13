@@ -359,12 +359,12 @@ class CLICompleteMixin(
     """
 
     def mixin_setup(self) -> None:
-        """Setup all mixin components."""
+        """Set up all mixin components."""
         # Call parent mixin setup (returns None)
         super().mixin_setup()
 
     def setup_cli_complete(self) -> FlextResult[None]:
-        """Setup all mixin components with FlextResult return."""
+        """Set up all mixin components with FlextResult return."""
         try:
             # Initialize all parent mixins
             self.mixin_setup()
@@ -377,7 +377,7 @@ class CLIDataMixin(CLIValidationMixin, CLIOutputMixin):
     """Data-focused CLI mixin for validation and output formatting."""
 
     def mixin_setup(self) -> None:
-        """Setup data mixin components."""
+        """Set up data mixin components."""
         # Call parent mixin setup (returns None)
         super().mixin_setup()
 
@@ -386,7 +386,7 @@ class CLIExecutionMixin(CLILoggingMixin, CLIInteractiveMixin):
     """Execution-focused CLI mixin for logging and interaction."""
 
     def mixin_setup(self) -> None:
-        """Setup execution mixin components."""
+        """Set up execution mixin components."""
         # Call parent mixin setup (returns None)
         super().mixin_setup()
 
@@ -395,7 +395,7 @@ class CLIUIMixin(CLIOutputMixin, CLIInteractiveMixin):
     """UI-focused CLI mixin for output and interaction."""
 
     def mixin_setup(self) -> None:
-        """Setup UI mixin components."""
+        """Set up UI mixin components."""
         # Call parent mixin setup (returns None)
         super().mixin_setup()
 

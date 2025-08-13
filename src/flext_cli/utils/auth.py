@@ -22,6 +22,8 @@ __all__ = [
 
 
 def should_auto_refresh() -> bool:
+    """Return True if token auto-refresh should be performed."""
+    """Return whether refresh tokens should be auto-refreshed based on config."""
     cfg = get_config()
     # If explicit auto_refresh exists at root, honor it first
     if hasattr(cfg, "auto_refresh"):
@@ -130,5 +132,5 @@ def clear_auth_tokens() -> FlextResult[None]:
 
 
 def is_authenticated() -> bool:
-    """Authenticated if token file is present (even if empty)."""
+    """Return True if token file is present (even if empty)."""
     return get_auth_token() is not None
