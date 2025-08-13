@@ -8,14 +8,7 @@ from __future__ import annotations
 
 import asyncio
 from functools import wraps
-from typing import (
-    TYPE_CHECKING,
-    NotRequired,
-    ParamSpec,
-    TypedDict,
-    TypeVar,
-    overload,
-)
+from typing import TYPE_CHECKING, NotRequired, ParamSpec, TypedDict, TypeVar
 
 from flext_core import FlextResult, get_logger
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -199,19 +192,7 @@ def _print_error(message: str) -> None:
     console.print(f"[red]Error: {message}[/red]")
 
 
-@overload
-def handle_service_result[**P, T](
-    func: Callable[P, FlextResult[T]],
-) -> Callable[P, T | None]: ...
-
-
-@overload
-def handle_service_result[**P, T](func: Callable[P, T]) -> Callable[P, T]: ...
-
-
-def handle_service_result[**P, T](
-    func: Callable[P, FlextResult[T]] | Callable[P, T],
-) -> Callable[P, T | None] | Callable[P, T]:  # Revert to Any and suppress for now
+def handle_service_result[**P](func: "Callable[P, object]") -> "Callable[P, object]":
     """Unwrap a FlextResult or print errors, preserving passthrough.
 
     Args:
@@ -221,30 +202,11 @@ def handle_service_result[**P, T](
     logger = get_logger("flext_cli.handle_service_result")
 
     if asyncio.iscoroutinefunction(func):
-
-        @wraps(func)
-        async def async_wrapper(
-            *args: P.args, **kwargs: P.kwargs,
-        ) -> T | None:  # Revert to Any and suppress for now
-            try:
-                result = await func(*args, **kwargs)
-                if isinstance(result, FlextResult):
-                    if result.is_failure:
-                        _print_error(result.error or "Unknown error")
-                        return None
-                    return result.unwrap()
-                return result
-            except Exception as exc:
-                _print_error(str(exc))
-                logger.exception("Unhandled exception in CLI command")
-                raise
-
-        return async_wrapper
+        # Return original to preserve async signature under strict typing
+        return func
 
     @wraps(func)
-    def sync_wrapper(
-        *args: P.args, **kwargs: P.kwargs,
-    ) -> T | None:  # Revert to Any and suppress for now
+    def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> object:
         try:
             result = func(*args, **kwargs)
             if isinstance(result, FlextResult):

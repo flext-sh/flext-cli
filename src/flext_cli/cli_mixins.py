@@ -178,13 +178,12 @@ class CLIOutputMixin(FlextSerializableMixin):
         **_options: object,
     ) -> FlextResult[str]:
         """Format data for CLI output in specified format."""
-        # Validate format first using the single authoritative validator
-        validation_result = CLIValidationMixin.validate_output_format(
-            self, format_type.value,
-        )
-        if validation_result.is_failure:
-            error_msg = validation_result.error or "Validation failed"
-            return FlextResult.fail(error_msg)
+        # Validate format without relying on mixin inheritance assumptions
+        valid_formats = [fmt.value for fmt in OutputFormat]
+        if format_type.value not in valid_formats:
+            return FlextResult.fail(
+                f"Invalid output format '{format_type.value}'. Valid formats: {', '.join(valid_formats)}",
+            )
 
         try:
             result: FlextResult[str]

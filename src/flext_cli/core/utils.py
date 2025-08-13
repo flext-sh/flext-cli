@@ -138,10 +138,16 @@ def flext_cli_validate_all(
         return FlextResult.ok(str(v).replace("<", "_").replace(">", "_"))
 
     def _int(v: object) -> FlextResult[int]:
-        try:
-            return FlextResult.ok(int(v))
-        except Exception:
+        if isinstance(v, bool):
             return FlextResult.fail("Invalid integer")
+        if isinstance(v, int):
+            return FlextResult.ok(v)
+        if isinstance(v, str):
+            try:
+                return FlextResult.ok(int(v))
+            except ValueError:
+                return FlextResult.fail("Invalid integer")
+        return FlextResult.fail("Invalid integer")
 
     validators = {
         "email": _email,
@@ -158,9 +164,9 @@ def flext_cli_validate_all(
         if validate is None:
             return FlextResult.fail("Unknown validation type")
         res = validate(value)
-        if res.is_failure:
+        if isinstance(res, FlextResult) and res.is_failure:
             return FlextResult.fail(f"Validation failed for {key}")
-        output[key] = res.unwrap()
+        output[key] = res.unwrap() if isinstance(res, FlextResult) else res
 
     return FlextResult.ok(output)
 

@@ -86,7 +86,7 @@ from flext_cli.cmd_config import (
 )
 
 import warnings
-from typing import Any, Generic, TypeVar, TYPE_CHECKING
+from typing import Generic, TypeVar, TYPE_CHECKING
 if TYPE_CHECKING:  # type hints only
     from collections.abc import Callable
 
@@ -232,7 +232,7 @@ with_spinner = cli_file_operation
 
 
 # Legacy helper/decorator shims expected by tests
-def handle_service_result(func: Callable[..., object]) -> Callable[..., object]:  # pragma: no cover - simple passthrough
+def handle_service_result(func: "Callable[[object], object]") -> "Callable[[object], object]":  # pragma: no cover - simple passthrough
     """Unwrap FlextResult and return the data.
 
     If the wrapped function returns a FlextResult, return its .unwrap();
@@ -310,7 +310,7 @@ from flext_cli.cli_utils import (
 flext_cli_format = cli_format_output
 
 
-def flext_cli_output_data(data: object, fmt: object, **options: object) -> str:
+def flext_cli_output_data(data: object, fmt: OutputFormat, **options: object) -> str:
     """Format data with options passthrough (indent, etc.)."""
     return str(cli_format_output(data, fmt, **options))
 
@@ -351,16 +351,15 @@ from flext_cli.legacy import (
 def __getattr__(name: str) -> object:  # pragma: no cover - compatibility layer
     if name == "commands":
         pkg = _types.ModuleType("flext_cli.commands")
-        pkg.__path__ = []  # type: ignore[attr-defined]
+        pkg.__path__ = []
         debug_mod = _types.ModuleType("flext_cli.commands.debug")
         # Expose group and patch points expected by tests
         debug_mod.debug_cmd = _debug  # type: ignore[attr-defined]
         # mirror attributes from group to module for patching
         try:
             debug_mod.FLEXT_API_AVAILABLE = _debug.FLEXT_API_AVAILABLE  # type: ignore[attr-defined]
-            debug_mod.SENSITIVE_VALUE_PREVIEW_LENGTH = (
-                _debug.SENSITIVE_VALUE_PREVIEW_LENGTH
-            )  # type: ignore[attr-defined]
+            if hasattr(_debug, "SENSITIVE_VALUE_PREVIEW_LENGTH"):
+                debug_mod.SENSITIVE_VALUE_PREVIEW_LENGTH = _debug.SENSITIVE_VALUE_PREVIEW_LENGTH  # type: ignore[attr-defined]
             debug_mod.get_default_cli_client = _debug.get_default_cli_client  # type: ignore[attr-defined]
             debug_mod.get_config = _debug.get_config  # type: ignore[attr-defined]
             debug_mod._validate_dependencies = _debug._validate_dependencies  # type: ignore[attr-defined]
@@ -386,9 +385,9 @@ def __getattr__(name: str) -> object:  # pragma: no cover - compatibility layer
         except Exception as e:
             warnings.warn(f"flext_cli.commands.auth shim export failed: {e}", stacklevel=2)
         # expose submodules on package for attribute traversal during resolve_name
-        pkg.debug = debug_mod
-        pkg.config = config_mod
-        pkg.auth = auth_mod
+        pkg.debug = debug_mod  # type: ignore[attr-defined]
+        pkg.config = config_mod  # type: ignore[attr-defined]
+        pkg.auth = auth_mod  # type: ignore[attr-defined]
 
         _sys.modules["flext_cli.commands"] = pkg
         _sys.modules["flext_cli.commands.debug"] = debug_mod

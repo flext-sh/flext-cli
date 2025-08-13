@@ -3,3 +3,125 @@
 This module defines service protocols and minimal concrete implementations used by
 CLI commands to interact with the underlying platform.
 """
+
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from typing import Dict, List, Optional, Protocol, Callable
+from flext_core import FlextResult
+from flext_cli.domain.cli_context import CLIContext, CLIExecutionContext
+
+
+class CLIServiceProtocol(Protocol):
+    """Protocol for CLI services."""
+    
+    def execute(self, context: CLIContext, **kwargs: object) -> FlextResult[object]:
+        """Execute service operation."""
+        ...
+
+
+class CLICommandServiceProtocol(Protocol):
+    """Protocol for CLI command services."""
+    
+    def execute_command(
+        self, 
+        command_name: str, 
+        context: CLIExecutionContext,
+        **kwargs: object,
+    ) -> FlextResult[object]:
+        """Execute a CLI command."""
+        ...
+
+
+class CLISessionServiceProtocol(Protocol):
+    """Protocol for CLI session services."""
+    
+    def create_session(self, user_id: Optional[str] = None) -> FlextResult[str]:
+        """Create a new CLI session."""
+        ...
+    
+    def get_session(self, session_id: str) -> FlextResult[Dict[str, object]]:
+        """Get session information."""
+        ...
+
+
+class CLICommandService:
+    """Basic CLI command service implementation."""
+    
+    def __init__(self) -> None:
+        self.commands: Dict[str, object] = {}
+    
+    def register_command(self, name: str, handler: "Callable[[CLIExecutionContext], object]") -> None:
+        """Register a command handler."""
+        self.commands[name] = handler
+    
+    def execute_command(
+        self, 
+        command_name: str, 
+        context: CLIExecutionContext,
+        **kwargs: object,
+    ) -> FlextResult[object]:
+        """Execute a CLI command."""
+        if command_name not in self.commands:
+            return FlextResult.fail(f"Command '{command_name}' not found")
+        
+        try:
+            handler = self.commands[command_name]
+            # Runtime callable guard
+            if callable(handler):
+                result = handler(context, **kwargs)
+            else:
+                return FlextResult.fail("Handler is not callable")
+            return FlextResult.ok(result)
+        except Exception as e:
+            return FlextResult.fail(f"Command execution failed: {e}")
+    
+    def list_commands(self) -> List[str]:
+        """List available commands."""
+        return list(self.commands.keys())
+
+
+class CLISessionService:
+    """Basic CLI session service implementation."""
+    
+    def __init__(self) -> None:
+        self.sessions: Dict[str, Dict[str, object]] = {}
+    
+    def create_session(self, user_id: Optional[str] = None) -> FlextResult[str]:
+        """Create a new CLI session."""
+        import uuid
+        session_id = str(uuid.uuid4())
+        
+        self.sessions[session_id] = {
+            "id": session_id,
+            "user_id": user_id,
+            "created_at": None,  # Would use actual timestamp
+            "active": True,
+        }
+        
+        return FlextResult.ok(session_id)
+    
+    def get_session(self, session_id: str) -> FlextResult[Dict[str, object]]:
+        """Get session information."""
+        if session_id not in self.sessions:
+            return FlextResult.fail(f"Session '{session_id}' not found")
+        
+        return FlextResult.ok(self.sessions[session_id])
+    
+    def end_session(self, session_id: str) -> FlextResult[None]:
+        """End a CLI session."""
+        if session_id not in self.sessions:
+            return FlextResult.fail(f"Session '{session_id}' not found")
+        
+        self.sessions[session_id]["active"] = False
+        return FlextResult.ok(None)
+
+
+# Create default service instances
+default_command_service = CLICommandService()
+default_session_service = CLISessionService()
+
+
+# Aliases for backward compatibility 
+FlextCliCommandService = CLICommandService
+FlextCliSessionService = CLISessionService

@@ -6,6 +6,8 @@ while delegating implementation to modern modules.
 
 from __future__ import annotations
 
+# These aliases are provided by flext_cli.__init__ compatibility layer
+from flext_cli import CLIContext, CLIExecutionContext
 from flext_cli.cli_types import (  # noqa: F401
     CommandStatus,
     CommandType,
@@ -19,10 +21,6 @@ from flext_cli.cli_types import (  # noqa: F401
     URLType,  # re-export for convenience
 )
 from flext_cli.config import CLIConfig as FlextCliConfig
-from flext_cli.domain.cli_context import (
-    CLIContext,
-    CLIExecutionContext,
-)
 from flext_cli.domain.entities import (
     CLICommand,
     CLICommand as FlextCliCommand,

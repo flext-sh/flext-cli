@@ -275,7 +275,7 @@ class CLIEntityFactory:
 
 
 # Legacy decorator shims
-def legacy_validate_result(func: object) -> object:
+def legacy_validate_result(func: "Callable[[object], object]") -> "Callable[[object], object]":
     """Validate result (deprecated decorator).
 
     DEPRECATED: Use @FlextDecorators.validate_result from flext-core instead.
@@ -286,10 +286,11 @@ def legacy_validate_result(func: object) -> object:
     )
 
     # Use static method for validation
-    return FlextValidationDecorators.validate_arguments(func)
+    decorated = FlextValidationDecorators.validate_arguments(func)
+    return decorated
 
 
-def legacy_handle_errors(func: object) -> object:
+def legacy_handle_errors(func: "Callable[[object], object]") -> "Callable[[object], object]":
     """Handle errors (deprecated decorator).
 
     DEPRECATED: Use @FlextErrorHandlingDecorators.handle_errors from flext-core.
@@ -300,10 +301,11 @@ def legacy_handle_errors(func: object) -> object:
     )
 
     # Use static method that returns a decorator, then apply it
-    return FlextErrorHandlingDecorators.safe_call()(func)
+    decorated = FlextErrorHandlingDecorators.safe_call()(func)
+    return decorated
 
 
-def legacy_performance_monitor(func: object) -> object:
+def legacy_performance_monitor(func: "Callable[[object], object]") -> "Callable[[object], object]":
     """Monitor performance (deprecated decorator).
 
     DEPRECATED: Use @FlextPerformanceDecorators.monitor from flext-core.
@@ -378,7 +380,7 @@ def create_legacy_config(**kwargs: object) -> object:
     # CLIConfig has specific field requirements, only pass known valid fields
     try:
         # Dynamic instantiation in legacy code - type checking not possible
-        return CLIConfig(**kwargs)  # type: ignore[arg-type]
+        return CLIConfig(**kwargs)
     except (TypeError, ValueError):
         # Create default config and update with known valid fields
         config = CLIConfig()
@@ -397,7 +399,7 @@ def create_legacy_config(**kwargs: object) -> object:
 TCliData = object
 TCliPath = str
 TCliFormat = str
-TCliHandler = Callable[[object], object]  # type: ignore[explicit-any]
+TCliHandler = Callable[[object], object]
 TCliConfig = dict[str, object]
 TCliArgs = dict[str, object]
 

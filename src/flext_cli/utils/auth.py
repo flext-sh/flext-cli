@@ -31,7 +31,7 @@ def should_auto_refresh() -> bool:
     # Otherwise look into nested auth config
     auth_cfg = getattr(cfg, "auth", None)
     return bool(
-        getattr(auth_cfg, "auto_refresh", False) and (get_refresh_token() is not None),
+        bool(getattr(auth_cfg, "auto_refresh", False)) and (get_refresh_token() is not None),
     )
 
 
@@ -42,8 +42,9 @@ def get_token_path() -> Path:
     if isinstance(direct, Path):
         return direct
     auth_cfg = getattr(cfg, "auth", None)
-    if auth_cfg is not None and isinstance(getattr(auth_cfg, "token_file", None), Path):
-        return auth_cfg.token_file
+    token_path = getattr(auth_cfg, "token_file", None) if auth_cfg is not None else None
+    if isinstance(token_path, Path):
+        return token_path
     return Path.home() / ".flext" / "auth" / "token"
 
 
@@ -54,10 +55,11 @@ def get_refresh_token_path() -> Path:
     if isinstance(direct, Path):
         return direct
     auth_cfg = getattr(cfg, "auth", None)
-    if auth_cfg is not None and isinstance(
-        getattr(auth_cfg, "refresh_token_file", None), Path,
-    ):
-        return auth_cfg.refresh_token_file
+    refresh_path = (
+        getattr(auth_cfg, "refresh_token_file", None) if auth_cfg is not None else None
+    )
+    if isinstance(refresh_path, Path):
+        return refresh_path
     return Path.home() / ".flext" / "auth" / "refresh_token"
 
 
