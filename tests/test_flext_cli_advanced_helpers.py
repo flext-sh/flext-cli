@@ -220,17 +220,17 @@ class TestFlextCliHelper:
         result = helper.flext_cli_create_table([])
         assert not result.success
 
-    @patch("subprocess.run")
-    def test_flext_cli_execute_command(self, mock_run):
+    @patch("flext_cli.core.helpers.asyncio.wait_for")
+    @patch("flext_cli.core.helpers.asyncio.create_subprocess_exec")
+    def test_flext_cli_execute_command(self, mock_create, mock_wait_for):
         """Test command execution functionality."""
         helper = FlextCliHelper()
 
-        # Successful command
-        mock_result = Mock()
-        mock_result.returncode = 0
-        mock_result.stdout = "command output"
-        mock_result.stderr = ""
-        mock_run.return_value = mock_result
+        # Prepare fake process
+        proc = Mock()
+        proc.returncode = 0
+        mock_create.return_value = proc
+        mock_wait_for.return_value = (b"command output", b"")
 
         result = helper.flext_cli_execute_command("echo 'test'")
         assert result.success
@@ -238,9 +238,8 @@ class TestFlextCliHelper:
         assert result.data["stdout"] == "command output"
 
         # Failed command
-        mock_result.returncode = 1
-        mock_result.stderr = "command error"
-        mock_run.return_value = mock_result
+        proc.returncode = 1
+        mock_wait_for.return_value = (b"", b"command error")
 
         result = helper.flext_cli_execute_command("false")
         assert result.success  # FlextResult is success, but command failed
@@ -570,15 +569,18 @@ class TestErrorConditions:
         result = helper.flext_cli_validate_path(None)
         assert not result.success
 
-    @patch("subprocess.run")
-    def test_command_execution_timeout(self, mock_run):
+    @patch("flext_cli.core.helpers.asyncio.wait_for")
+    @patch("flext_cli.core.helpers.asyncio.create_subprocess_exec")
+    def test_command_execution_timeout(self, mock_create, mock_wait_for):
         """Test command execution timeout handling."""
-        from subprocess import TimeoutExpired
-
         helper = FlextCliHelper()
 
-        # Mock timeout exception
-        mock_run.side_effect = TimeoutExpired("test command", 1)
+        # Mock process and make wait_for raise TimeoutError
+        proc = Mock()
+        proc.kill = Mock()
+        proc.wait = Mock()
+        mock_create.return_value = proc
+        mock_wait_for.side_effect = TimeoutError()
 
         result = helper.flext_cli_execute_command("sleep 10", timeout=1)
         assert not result.success

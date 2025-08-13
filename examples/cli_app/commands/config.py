@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-import subprocess
+# No subprocess usage in examples; avoid external process management
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -259,8 +259,8 @@ def edit(ctx: click.Context, _profile: str | None) -> None:
         cli_context.print_info(f"Edit this file with your editor: {config_file}")
         cli_context.print_success("Configuration file is ready for editing")
 
-    except subprocess.CalledProcessError:
-        cli_context.print_error("Editor exited with error")
+    except Exception as e:
+        cli_context.print_error(f"Editor handling error: {e}")
         ctx.exit(1)
     except (RuntimeError, ValueError, TypeError) as e:
         cli_context.print_error(f"Failed to edit configuration: {e}")

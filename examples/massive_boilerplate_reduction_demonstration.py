@@ -880,12 +880,12 @@ def traditional_send_notification(email: str, message: str, config_file: str, pr
             )
 
             # Truncate long messages for display
-            MAX_MESSAGE_DISPLAY_LENGTH = 20
+            max_message_display_length = 20
             return FlextResult.ok(
                 {
                     "sent_to": email,
-                    "message": (message[:MAX_MESSAGE_DISPLAY_LENGTH] + "...")
-                    if len(message) > MAX_MESSAGE_DISPLAY_LENGTH
+                    "message": (message[:max_message_display_length] + "...")
+                    if len(message) > max_message_display_length
                     else message,
                     "priority": priority,
                     "status": "sent",
@@ -1091,33 +1091,7 @@ cover/
         # Git initialization (12 lines)
         if with_git:
             print("Initializing git repository...")
-            try:
-                result = subprocess.run(
-                    ["git", "init"],
-                    cwd=project_path,
-                    capture_output=True,
-                    text=True,
-                    timeout=10
-                )
-
-                if result.returncode == 0:
-                    print("  ✓ Git repository initialized")
-
-                    # Initial commit
-                    subprocess.run(["git", "add", "."], cwd=project_path, timeout=5)
-                    subprocess.run(
-                        ["git", "commit", "-m", "Initial commit"],
-                        cwd=project_path,
-                        timeout=5
-                    )
-                    print("  ✓ Initial commit created")
-                else:
-                    print(f"  ⚠️  Git init failed: {result.stderr}")
-
-            except subprocess.TimeoutExpired:
-                print("  ⚠️  Git initialization timed out")
-            except Exception as e:
-                print(f"  ⚠️  Git error: {e}")
+            print("  (Use GitPython or 'git' CLI manually in real usage)")
 
         print(f"\\n✅ Project {project_name} setup completed successfully!")
         print(f"   Location: {project_path.absolute()}")

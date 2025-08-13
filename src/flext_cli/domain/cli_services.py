@@ -6,6 +6,7 @@ CLI commands to interact with the underlying platform.
 
 from __future__ import annotations
 
+import uuid
 from typing import TYPE_CHECKING, Protocol
 
 from flext_core import FlextResult
@@ -98,8 +99,6 @@ class CLISessionService:
 
     def create_session(self, user_id: str | None = None) -> FlextResult[str]:
         """Create a new CLI session."""
-        import uuid
-
         session_id = str(uuid.uuid4())
 
         self.sessions[session_id] = {

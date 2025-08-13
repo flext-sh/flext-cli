@@ -7,16 +7,26 @@ data validation, file operations, and output formatting.
 
 from __future__ import annotations
 
+import csv
+import io
 import json
 import os
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+# Optional import of package version to avoid local imports in functions
+try:  # pragma: no cover - version may be unavailable in some environments
+    from flext_cli.__version__ import __version__ as _cli_version
+except Exception:  # pragma: no cover - fallback value
+    _cli_version = "unknown"
+
 import yaml
 from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table
+
+from .helpers import FlextCliHelper
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -28,12 +38,7 @@ def _generate_session_id() -> str:
 
 
 def _get_version() -> str:
-    try:
-        from flext_cli.__version__ import __version__
-
-        return __version__
-    except Exception:  # noqa: BLE001
-        return "unknown"
+    return _cli_version
 
 
 def _current_timestamp() -> str:
@@ -186,8 +191,6 @@ def flext_cli_validate_all(
 
 
 def flext_cli_require_all(confirmations: list[tuple[str, bool]]) -> FlextResult[bool]:  # noqa: D103
-    from .helpers import FlextCliHelper
-
     helper = FlextCliHelper()
     for message, _default in confirmations:
         res = helper.flext_cli_confirm(message)
@@ -214,9 +217,6 @@ def flext_cli_output_data(
             table = flext_cli_create_table(data)
             console.print(table)
         elif format_type == "csv":
-            import csv
-            import io
-
             output = io.StringIO()
             if isinstance(data, list) and data and isinstance(data[0], dict):
                 writer = csv.DictWriter(output, fieldnames=list(data[0].keys()))

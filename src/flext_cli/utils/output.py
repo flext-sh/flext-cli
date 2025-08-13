@@ -5,6 +5,9 @@ Delegates to `flext_cli.cli_utils` equivalents.
 
 from __future__ import annotations
 
+import json as _json
+
+import yaml as _yaml
 from rich.console import Console
 from rich.table import Table
 
@@ -57,8 +60,6 @@ def format_plugin_list(
         return
 
     if fmt.lower() == "json":
-        import json as _json
-
         console.print(_json.dumps(plugins, indent=2))
         return
 
@@ -163,16 +164,12 @@ def format_pipeline(console: Console, pipeline: object) -> None:
 def format_json(data: object) -> str:
     """Return JSON-formatted string from data."""
     """Return pretty JSON string for arbitrary data."""
-    import json as _json
-
     return _json.dumps(data, indent=2, default=str)
 
 
 def format_yaml(data: object) -> str:
     """Return YAML-formatted string from data."""
     """Return nicely formatted YAML string for arbitrary data."""
-    import yaml as _yaml
-
     if data is None:
         return "null"
     dumped = _yaml.dump(data, default_flow_style=False)
