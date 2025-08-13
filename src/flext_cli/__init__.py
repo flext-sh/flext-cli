@@ -232,7 +232,7 @@ with_spinner = cli_file_operation
 
 
 # Legacy helper/decorator shims expected by tests
-def handle_service_result(func: "Callable[[object], object]") -> "Callable[[object], object]":  # pragma: no cover - simple passthrough
+def handle_service_result(func: Callable[[object], object]) -> Callable[[object], object]:  # pragma: no cover - simple passthrough
     """Unwrap FlextResult and return the data.
 
     If the wrapped function returns a FlextResult, return its .unwrap();

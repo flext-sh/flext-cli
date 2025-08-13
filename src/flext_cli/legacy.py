@@ -275,7 +275,7 @@ class CLIEntityFactory:
 
 
 # Legacy decorator shims
-def legacy_validate_result(func: "Callable[[object], object]") -> "Callable[[object], object]":
+def legacy_validate_result(func: Callable[[object], object]) -> Callable[[object], object]:
     """Validate result (deprecated decorator).
 
     DEPRECATED: Use @FlextDecorators.validate_result from flext-core instead.
@@ -286,11 +286,10 @@ def legacy_validate_result(func: "Callable[[object], object]") -> "Callable[[obj
     )
 
     # Use static method for validation
-    decorated = FlextValidationDecorators.validate_arguments(func)
-    return decorated
+    return FlextValidationDecorators.validate_arguments(func)
 
 
-def legacy_handle_errors(func: "Callable[[object], object]") -> "Callable[[object], object]":
+def legacy_handle_errors(func: Callable[[object], object]) -> Callable[[object], object]:
     """Handle errors (deprecated decorator).
 
     DEPRECATED: Use @FlextErrorHandlingDecorators.handle_errors from flext-core.
@@ -301,11 +300,10 @@ def legacy_handle_errors(func: "Callable[[object], object]") -> "Callable[[objec
     )
 
     # Use static method that returns a decorator, then apply it
-    decorated = FlextErrorHandlingDecorators.safe_call()(func)
-    return decorated
+    return FlextErrorHandlingDecorators.safe_call()(func)
 
 
-def legacy_performance_monitor(func: "Callable[[object], object]") -> "Callable[[object], object]":
+def legacy_performance_monitor(func: Callable[[object], object]) -> Callable[[object], object]:
     """Monitor performance (deprecated decorator).
 
     DEPRECATED: Use @FlextPerformanceDecorators.monitor from flext-core.

@@ -410,8 +410,8 @@ FLEXT_API_AVAILABLE = True
 
 # Export the integration API
 __all__ = [
+    "FLEXT_API_AVAILABLE",
     "FlextCLIApiClient",
     "create_cli_api_client",
     "get_default_cli_client",
-    "FLEXT_API_AVAILABLE",
 ]

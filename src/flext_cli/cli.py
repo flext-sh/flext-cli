@@ -91,7 +91,7 @@ from flext_cli.config import get_config
 from flext_cli.models import FlextCliContext as CLIContext
 
 if TYPE_CHECKING:
-    from collections.abc import Callable  # noqa: TC003
+    from collections.abc import Callable
 
 
 @click.group(
