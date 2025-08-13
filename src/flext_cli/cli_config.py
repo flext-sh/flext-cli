@@ -52,6 +52,7 @@ except Exception:  # pragma: no cover
 
 
 from pydantic import Field, field_validator
+from flext_api.constants import FlextApiConstants as _ApiC
 
 from flext_cli.cli_types import ConfigDict, OutputFormat
 
@@ -327,8 +328,8 @@ class CLIConfig(FlextSettings):
         """Get API request headers."""
         headers = {
             "User-Agent": f"{self.project_name}/1.0.0",
-            "Accept": "application/json",
-            "Content-Type": "application/json",
+            "Accept": _ApiC.ContentTypes.JSON,
+            "Content-Type": _ApiC.ContentTypes.JSON,
         }
 
         if self.api_token:
