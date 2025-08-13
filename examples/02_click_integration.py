@@ -243,12 +243,15 @@ async def async_task(ctx: click.Context, delay: float) -> str:
 def unreliable(ctx: click.Context, max_attempts: int) -> str:
     """Demonstrate retry decorator with potentially failing operation."""
     console = Console()
+    # Use context to optionally adjust behavior (e.g., lower failure in debug)
+    cli_context = ctx.obj.get("cli_context") if isinstance(ctx.obj, dict) else None
+    is_debug = bool(getattr(cli_context, "debug", False))
     console.print("[bold blue]Unreliable Operation with Retry[/bold blue]")
     console.print(f"Maximum retry attempts configured: {max_attempts}")
 
-    # Simulate random failure
-    failure_probability = 0.7  # 70% chance of failure
-    if random.random() < failure_probability:
+    # Simulate random failure (less likely in debug to speed up demos)
+    failure_probability = 0.5 if is_debug else 0.7
+    if random.random() < failure_probability:  # noqa: S311
         msg = "Simulated random failure"
         raise click.ClickException(msg)
 

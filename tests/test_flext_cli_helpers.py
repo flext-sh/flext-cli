@@ -1,3 +1,5 @@
+from flext_core.constants import FlextConstants as _C
+_CORE = f"http://{_C.Platform.DEFAULT_HOST}:{_C.Platform.FLEXCORE_PORT}"
 """Tests for FlextCliHelper and Core Helper Functions.
 
 This module provides comprehensive tests for the FlextCliHelper class and
@@ -124,10 +126,10 @@ class TestFlextCliHelper:
 
     def test_flext_cli_validate_url_valid_http(self) -> None:
         """Test valid HTTP URL validation."""
-        result = self.helper.flext_cli_validate_url("http://localhost:8080")
+        result = self.helper.flext_cli_validate_url(_CORE)
 
         assert result.success
-        assert result.data == "http://localhost:8080"
+        assert result.data == _CORE
 
     def test_flext_cli_validate_url_without_scheme(self) -> None:
         """Test URL without scheme."""

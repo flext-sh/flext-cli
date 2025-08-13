@@ -1,3 +1,8 @@
+from flext_core.constants import FlextConstants as _C
+
+_API = f"http://{_C.Platform.DEFAULT_HOST}:{_C.Platform.FLEXT_API_PORT}"
+_CORE = f"http://{_C.Platform.DEFAULT_HOST}:{_C.Platform.FLEXCORE_PORT}"
+_SVC = f"http://{_C.Platform.DEFAULT_HOST}:{_C.Platform.FLEXT_SERVICE_PORT}"
 """Tests for utils configuration in FLEXT CLI Library.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -26,9 +31,9 @@ class TestCLIConfig:
         """Test CLI config creation with default values."""
         config = CLIConfig()
 
-        if config.api_url != "http://localhost:8000":
+        if config.api_url != _API:
             raise AssertionError(
-                f"Expected {'http://localhost:8000'}, got {config.api_url}"
+                f"Expected {_API}, got {config.api_url}"
             )
         assert config.output_format == "table"
         if config.timeout != 30:
@@ -43,9 +48,9 @@ class TestCLIConfig:
 
     def test_config_creation_with_custom_values(self, cli_config: CLIConfig) -> None:
         """Test CLI config creation with custom values."""
-        if cli_config.api_url != "http://localhost:8000":
+        if cli_config.api_url != _API:
             raise AssertionError(
-                f"Expected {'http://localhost:8000'}, got {cli_config.api_url}"
+                f"Expected {_API}, got {cli_config.api_url}"
             )
         assert cli_config.output_format == "json"
         if cli_config.timeout != 30:
@@ -219,9 +224,9 @@ class TestConfigurationFunctions:
         config = get_config()
 
         assert isinstance(config, CLIConfig)
-        if config.api_url != "http://localhost:8000":
+        if config.api_url != _API:
             raise AssertionError(
-                f"Expected {'http://localhost:8000'}, got {config.api_url}"
+                f"Expected {_API}, got {config.api_url}"
             )
         assert config.output_format == "table"
         if config.profile != "default":
