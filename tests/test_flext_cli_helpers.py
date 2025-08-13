@@ -1,6 +1,3 @@
-from flext_core.constants import FlextConstants as _C
-
-_CORE = f"http://{_C.Platform.DEFAULT_HOST}:{_C.Platform.FLEXCORE_PORT}"
 """Tests for FlextCliHelper and Core Helper Functions.
 
 This module provides comprehensive tests for the FlextCliHelper class and
@@ -27,7 +24,10 @@ from flext_cli.core.helpers import (
     flext_cli_batch_validate,
     flext_cli_create_helper,
 )
+from flext_core.constants import FlextConstants as _C
 from rich.console import Console
+
+_CORE = f"http://{_C.Platform.DEFAULT_HOST}:{_C.Platform.FLEXCORE_PORT}"
 
 
 class TestFlextCliHelper:
@@ -60,7 +60,9 @@ class TestFlextCliHelper:
 
     def test_flext_cli_confirm_failure(self) -> None:
         """Test confirmation failure handling."""
-        with patch("rich.prompt.Confirm.ask", side_effect=KeyboardInterrupt("User cancelled")):
+        with patch(
+            "rich.prompt.Confirm.ask", side_effect=KeyboardInterrupt("User cancelled")
+        ):
             result = self.helper.flext_cli_confirm("Test confirmation?")
 
         assert not result.success
@@ -77,7 +79,9 @@ class TestFlextCliHelper:
     def test_flext_cli_prompt_with_default(self) -> None:
         """Test prompt with default value."""
         with patch("rich.prompt.Prompt.ask", return_value="default_value"):
-            result = self.helper.flext_cli_prompt("Enter value:", default="default_value")
+            result = self.helper.flext_cli_prompt(
+                "Enter value:", default="default_value"
+            )
 
         assert result.success
         assert result.data == "default_value"
@@ -151,7 +155,9 @@ class TestFlextCliHelper:
         test_file = tmp_path / "test.txt"
         test_file.write_text("content")
 
-        result = self.helper.flext_cli_validate_path(str(test_file), must_exist=True, must_be_file=True)
+        result = self.helper.flext_cli_validate_path(
+            str(test_file), must_exist=True, must_be_file=True
+        )
 
         assert result.success
         assert result.data == test_file
@@ -161,7 +167,9 @@ class TestFlextCliHelper:
         test_dir = tmp_path / "test_dir"
         test_dir.mkdir()
 
-        result = self.helper.flext_cli_validate_path(str(test_dir), must_exist=True, must_be_dir=True)
+        result = self.helper.flext_cli_validate_path(
+            str(test_dir), must_exist=True, must_be_dir=True
+        )
 
         assert result.success
         assert result.data == test_dir
@@ -236,10 +244,7 @@ class TestFlextCliHelper:
 
     def test_flext_cli_create_table_success(self) -> None:
         """Test successful table creation."""
-        data = [
-            {"name": "Alice", "age": 30},
-            {"name": "Bob", "age": 25}
-        ]
+        data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
 
         result = self.helper.flext_cli_create_table(data, title="Users")
 
