@@ -202,8 +202,24 @@ def handle_service_result[**P](func: Callable[P, object]) -> Callable[P, object]
     logger = get_logger("flext_cli.handle_service_result")
 
     if asyncio.iscoroutinefunction(func):
-        # Return original to preserve async signature under strict typing
-        return func
+        logger_async = get_logger("flext_cli.handle_service_result.async")
+
+        async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> object:
+            try:
+                result = await func(*args, **kwargs)
+                if isinstance(result, FlextResult):
+                    if result.is_failure:
+                        _print_error(result.error or "Unknown error")
+                        return None
+                    return result.unwrap()
+                return result
+            except Exception as exc:
+                _print_error(str(exc))
+                # Keep message consistent with sync wrapper if tests expect that
+                logger_async.exception("Unhandled exception in CLI command")
+                raise
+
+        return async_wrapper
 
     @wraps(func)
     def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> object:

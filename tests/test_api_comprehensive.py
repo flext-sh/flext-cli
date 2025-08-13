@@ -156,7 +156,10 @@ class TestFlextCliExport:
     def test_flext_cli_export_json(self) -> None:
         """Test export in JSON format."""
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False, suffix=".json",
+            encoding="utf-8",
+            mode="w",
+            delete=False,
+            suffix=".json",
         ) as f:
             temp_path = f.name
 
@@ -169,7 +172,10 @@ class TestFlextCliExport:
     def test_flext_cli_export_yaml(self) -> None:
         """Test export in YAML format."""
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False, suffix=".yaml",
+            encoding="utf-8",
+            mode="w",
+            delete=False,
+            suffix=".yaml",
         ) as f:
             temp_path = f.name
 
@@ -182,7 +188,10 @@ class TestFlextCliExport:
     def test_flext_cli_export_csv(self) -> None:
         """Test export in CSV format."""
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False, suffix=".csv",
+            encoding="utf-8",
+            mode="w",
+            delete=False,
+            suffix=".csv",
         ) as f:
             temp_path = f.name
 
@@ -205,7 +214,10 @@ class TestFlextCliExport:
     def test_flext_cli_export_empty_data(self) -> None:
         """Test export with empty data."""
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False, suffix=".json",
+            encoding="utf-8",
+            mode="w",
+            delete=False,
+            suffix=".json",
         ) as f:
             temp_path = f.name
 
@@ -317,7 +329,10 @@ class TestApiIntegration:
 
         # Export data
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False, suffix=".json",
+            encoding="utf-8",
+            mode="w",
+            delete=False,
+            suffix=".json",
         ) as f:
             temp_path = f.name
 
@@ -435,7 +450,9 @@ class TestApiErrorHandling:
             # Test with invalid output directory (read-only)
             try:
                 result = flext_cli_batch_export(
-                    {"test": "data"}, "/nonexistent/dir", "json",
+                    {"test": "data"},
+                    "/nonexistent/dir",
+                    "json",
                 )
                 assert isinstance(result, FlextResult)
             except PermissionError:

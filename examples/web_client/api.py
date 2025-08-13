@@ -92,7 +92,9 @@ class FlextCliApi:
         return result.unwrap() if result.success else f"Error: {result.error}"
 
     def flext_cli_register_handler(
-        self, name: str, handler: Callable[..., Any],
+        self,
+        name: str,
+        handler: Callable[..., Any],
     ) -> bool:
         """Register handler using unified method."""
         result = self._service.flext_cli_register_handler(name, handler)

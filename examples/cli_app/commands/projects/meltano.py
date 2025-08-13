@@ -69,11 +69,18 @@ def _validate_command_args(args: list[str]) -> None:
         raise ValueError(invalid_command_msg)
 
 
-async def _run_exec(cmd: list[str], cwd: str | None, *, capture_output: bool, timeout: int) -> tuple[int, bytes | None, bytes | None]:
+async def _run_exec(
+    cmd: list[str],
+    cwd: str | None,
+    *,
+    capture_output: bool,
+    timeout: int,
+) -> tuple[int, bytes | None, bytes | None]:
     """Execute command via asyncio without shell, returning (code, stdout, stderr)."""
     _validate_command_args(cmd)
     if cwd and not Path(cwd).is_dir():
-        raise ValueError(f"Working directory does not exist: {cwd}")
+        msg = f"Working directory does not exist: {cwd}"
+        raise ValueError(msg)
     proc = await asyncio.create_subprocess_exec(
         *cmd,
         cwd=cwd,
@@ -87,7 +94,8 @@ async def _run_exec(cmd: list[str], cwd: str | None, *, capture_output: bool, ti
             proc.kill()
         await proc.wait()
         # Raise plain TimeoutError for policy compliance
-        raise TimeoutError(f"Command timed out after {timeout}s") from exc
+        msg = f"Command timed out after {timeout}s"
+        raise TimeoutError(msg) from exc
     return int(proc.returncode or 0), stdout_b, stderr_b
 
 
@@ -221,7 +229,8 @@ def init(
                 click.echo("⚠️  Template support not yet implemented in project manager")
         else:
             click.echo(
-                f"❌ Failed to initialize project: {result.error_message}", err=True,
+                f"❌ Failed to initialize project: {result.error_message}",
+                err=True,
             )
             ctx.exit(1)
     except (RuntimeError, ValueError, TypeError) as e:
@@ -321,7 +330,9 @@ def _execute_add_command(ctx: click.Context, params: MeltanoAddParams) -> None:
             cmd.extend(["--pip-url", params.pip_url])
 
         # Execute meltano command
-        code, out_b, err_b = asyncio.run(_run_exec(cmd, str(project_path), capture_output=True, timeout=300))
+        code, out_b, err_b = asyncio.run(
+            _run_exec(cmd, str(project_path), capture_output=True, timeout=300),
+        )
 
         if code == 0:
             click.echo("✅ Plugin added successfully!")
@@ -385,7 +396,9 @@ def run(
             env["MELTANO_ENVIRONMENT"] = environment
 
         # Execute meltano command
-        code, _out_b, _err_b = asyncio.run(_run_exec(cmd, str(project_path), capture_output=False, timeout=3600))
+        code, _out_b, _err_b = asyncio.run(
+            _run_exec(cmd, str(project_path), capture_output=False, timeout=3600),
+        )
 
         if code == 0:
             click.echo("✅ Job completed successfully!")
@@ -431,7 +444,9 @@ def discover(
         cmd = ["meltano", "discover", plugin_name]
 
         # Execute meltano command
-        code, out_b, err_b = asyncio.run(_run_exec(cmd, str(project_path), capture_output=True, timeout=120))
+        code, out_b, err_b = asyncio.run(
+            _run_exec(cmd, str(project_path), capture_output=True, timeout=120),
+        )
 
         if code == 0:
             click.echo("✅ Schema discovery completed!")
@@ -483,7 +498,9 @@ def test(
         cmd = ["meltano", "test", plugin_name]
 
         # Execute meltano command
-        code, out_b, err_b = asyncio.run(_run_exec(cmd, str(project_path), capture_output=True, timeout=60))
+        code, out_b, err_b = asyncio.run(
+            _run_exec(cmd, str(project_path), capture_output=True, timeout=60),
+        )
 
         if code == 0:
             click.echo("✅ Plugin test passed!")
@@ -526,7 +543,9 @@ def install(
         cmd = ["meltano", "install"]
 
         # Execute meltano command
-        code, out_b, err_b = asyncio.run(_run_exec(cmd, str(project_path), capture_output=True, timeout=600))
+        code, out_b, err_b = asyncio.run(
+            _run_exec(cmd, str(project_path), capture_output=True, timeout=600),
+        )
 
         if code == 0:
             click.echo("✅ All plugins installed successfully!")
@@ -578,7 +597,9 @@ def config(
         cmd = ["meltano", "config", plugin_name, "set", setting_name, value]
 
         # Execute meltano command
-        code, out_b, err_b = asyncio.run(_run_exec(cmd, str(project_path), capture_output=True, timeout=30))
+        code, out_b, err_b = asyncio.run(
+            _run_exec(cmd, str(project_path), capture_output=True, timeout=30),
+        )
 
         if code == 0:
             click.echo("✅ Configuration updated successfully!")

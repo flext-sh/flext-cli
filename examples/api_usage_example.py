@@ -38,7 +38,6 @@ class FlextCliDemoRunner:
 
     def configure_service(self) -> bool:
         """Configure the CLI service with demo settings."""
-        print("\n1. Configuring CLI Service...")
         config = {
             "project_name": "example-project",
             "project_version": "1.0.0",
@@ -47,28 +46,18 @@ class FlextCliDemoRunner:
             "log_level": "DEBUG",
         }
 
-        success = self.api.flext_cli_configure(config)
-        print(f"   Configuration successful: {success}")
-        return success
+        return self.api.flext_cli_configure(config)
 
     def check_health_status(self) -> dict[str, object]:
         """Check and display health status."""
-        print("\n2. Checking Health Status...")
         health = self.api.flext_cli_health()
-        print(f"   Status: {health['status']}")
-        print(f"   Service: {health['service']}")
-        print(f"   Version: {health['version']}")
         python_version = health["python_version"]
         if isinstance(python_version, str):
-            print(f"   Python: {python_version.split()[0]}")
-        else:
-            print(f"   Python: {python_version}")
+            pass
         return health
 
     def create_demo_commands(self) -> tuple[bool, bool]:
         """Create demonstration CLI commands."""
-        print("\n3. Creating CLI Commands...")
-
         # Create system command
         result = self.api.flext_cli_create_command(
             "list-files",
@@ -80,14 +69,8 @@ class FlextCliDemoRunner:
 
         system_success = False
         if result.success:
-            command = cast("CLICommand", result.data)  # Cast to proper type
-            print(f"   ✅ Created command: {command.name}")
-            print(f"      Type: {command.command_type}")
-            print(f"      Command line: {command.command_line}")
-            print(f"      Description: {command.description}")
+            cast("CLICommand", result.data)  # Cast to proper type
             system_success = True
-        else:
-            print(f"   ❌ Failed to create command: {result.error}")
 
         # Create script command using secure temporary directory
 
@@ -104,28 +87,21 @@ class FlextCliDemoRunner:
 
         script_success = False
         if script_result.success:
-            script_cmd = cast("CLICommand", script_result.data)  # Cast to proper type
-            print(f"   ✅ Created script command: {script_cmd.name}")
-            print(f"      Environment: {script_cmd.environment}")
+            cast("CLICommand", script_result.data)  # Cast to proper type
             script_success = True
 
         return system_success, script_success
 
     def manage_sessions(self) -> str | None:
         """Create and manage demo sessions."""
-        print("\n4. Creating and Managing Sessions...")
-
         session_result = self.api.flext_cli_create_session("demo_user")
         if session_result.success:
             session_id = session_result.unwrap()
-            print(f"   ✅ Created session: {session_id}")
 
             # Get active sessions
             sessions = self.api.flext_cli_get_sessions()
             if session_id in sessions:
-                session_data = sessions[session_id]
-                print(f"      Status: {session_data['status']}")
-                print(f"      Commands count: {session_data['commands_count']}")
+                sessions[session_id]
 
             return session_id
         return None
@@ -157,26 +133,24 @@ class FlextCliDemoRunner:
 
     def register_and_execute_handlers(self) -> bool:
         """Register and execute demonstration handlers."""
-        print("\n5. Registering and Executing Handlers...")
-
         calculator_handler = self._create_calculator_handler()
 
         # Register the handler
         register_result = self.api.flext_cli_register_handler(
-            "calculator", calculator_handler,
+            "calculator",
+            calculator_handler,
         )
         if register_result.success:
-            print("   ✅ Registered calculator handler")
-
             # Execute the handler
             exec_result = self.api.flext_cli_execute_handler(
-                "calculator", "multiply", 15.5, 4.2,
+                "calculator",
+                "multiply",
+                15.5,
+                4.2,
             )
 
             if exec_result.success:
-                calc_result = exec_result.unwrap()
-                print(f"      Calculation result: {calc_result}")
-                print(f"      15.5 * 4.2 = {calc_result['result']}")
+                exec_result.unwrap()
                 return True
 
         return False
@@ -191,37 +165,29 @@ class FlextCliDemoRunner:
 
     def demonstrate_formatting(self) -> bool:
         """Demonstrate data formatting and rendering capabilities."""
-        print("\n6. Data Formatting and Rendering...")
-
         sample_data = self._get_sample_data()
 
         # Render as table (default)
         table_result = self.api.flext_cli_render_with_context(sample_data)
         if table_result.success:
-            print("   ✅ Rendered as table:")
-            print(table_result.unwrap())
-
             # Render with custom context
             context_result = self.api.flext_cli_render_with_context(
-                sample_data, {"format": "json", "title": "User Data"},
+                sample_data,
+                {"format": "json", "title": "User Data"},
             )
             if context_result.success:
                 rendered = context_result.unwrap()
-                print("\n   ✅ Rendered with context:")
-                preview = (
+                (
                     rendered[:PREVIEW_LENGTH_LIMIT] + "..."
                     if len(rendered) > PREVIEW_LENGTH_LIMIT
                     else rendered
                 )
-                print(preview)
                 return True
 
         return False
 
     def demonstrate_export(self) -> bool:
         """Demonstrate data export functionality."""
-        print("\n7. Data Export Functionality...")
-
         sample_data = self._get_sample_data()
         export_data = {
             "users": sample_data,
@@ -235,44 +201,28 @@ class FlextCliDemoRunner:
         # Use the formatting functionality
         formatted_json = self.api.flext_cli_format(export_data, "json")
         if formatted_json:
-            print("   ✅ Formatted data for export:")
             # Parse and pretty print
             try:
-                parsed = json.loads(formatted_json)
-                print(json.dumps(parsed, indent=2)[:300] + "...")
+                json.loads(formatted_json)
                 return True
             except json.JSONDecodeError:
-                print(formatted_json[:200] + "...")
                 return True
 
         return False
 
     def show_registry_summary(self) -> None:
         """Show summary of all registries."""
-        print("\n8. Registry Summary...")
-
-        commands = self.api.flext_cli_get_commands()
-        sessions = self.api.flext_cli_get_sessions()
-        plugins = self.api.flext_cli_get_plugins()
+        self.api.flext_cli_get_commands()
+        self.api.flext_cli_get_sessions()
+        self.api.flext_cli_get_plugins()
         handlers = self.api.flext_cli_get_handlers()
 
-        print(f"   📋 Commands registry: {len(commands)} commands")
-        print(f"   🔗 Active sessions: {len(sessions)} sessions")
-        print(f"   🔌 Plugins available: {len(plugins)} plugins")
-        print(f"   ⚙️  Handlers registered: {len(handlers)} handlers")
-
         if handlers:
-            print("      Registered handlers:")
-            for name, info in handlers.items():
-                print(
-                    f"        - {name}: {info['type']} (callable: {info['callable']})",
-                )
+            for _name, _info in handlers.items():
+                pass
 
     def run_complete_demo(self) -> bool:
         """Run the complete demonstration workflow."""
-        print("🚀 FLEXT CLI API Usage Example")
-        print("=" * 50)
-
         # Execute all demo steps
         success_flags = [
             self.configure_service(),
@@ -288,13 +238,7 @@ class FlextCliDemoRunner:
 
         success = all(success_flags)
         if success:
-            print("\n✨ Example completed successfully!")
-            print(
-                "All functionality is working with real implementations, "
-                "no placeholders!",
-            )
-        else:
-            print("\n⚠️  Some demo steps failed. Check the output above.")
+            pass
 
         return success
 

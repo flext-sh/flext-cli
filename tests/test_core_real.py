@@ -31,7 +31,9 @@ def create_test_plugin(
     from flext_cli.domain.entities import CLIEntityFactory
 
     result = CLIEntityFactory.create_plugin(
-        name=name, entry_point=entry_point, plugin_version=version,
+        name=name,
+        entry_point=entry_point,
+        plugin_version=version,
     )
     assert result.success, f"Failed to create plugin: {result.error}"
     return result.unwrap()
@@ -127,7 +129,8 @@ class TestFlextCliService:
 
         # Mock FlextCliConfig to raise exception
         with patch(
-            "flext_cli.core.FlextCliConfig", side_effect=Exception("Config error"),
+            "flext_cli.core.FlextCliConfig",
+            side_effect=Exception("Config error"),
         ):
             result = service.configure({"test": "data"})
             assert not result.success
@@ -142,7 +145,10 @@ class TestFlextCliService:
         data = {"name": "test", "value": 42}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False, suffix=".json",
+            encoding="utf-8",
+            mode="w",
+            delete=False,
+            suffix=".json",
         ) as tmp:
             temp_path = tmp.name
 
@@ -165,7 +171,10 @@ class TestFlextCliService:
         data = {"name": "test", "items": ["a", "b", "c"]}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False, suffix=".yaml",
+            encoding="utf-8",
+            mode="w",
+            delete=False,
+            suffix=".yaml",
         ) as tmp:
             temp_path = tmp.name
 
@@ -202,7 +211,9 @@ class TestFlextCliService:
         data = {"test": "data"}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False,
+            encoding="utf-8",
+            mode="w",
+            delete=False,
         ) as tmp:
             temp_path = tmp.name
 
@@ -223,7 +234,9 @@ class TestFlextCliService:
 
         # Use invalid path to trigger exception
         result = service.flext_cli_export(
-            data, "/invalid/path/that/does/not/exist.json", "json",
+            data,
+            "/invalid/path/that/does/not/exist.json",
+            "json",
         )
         assert not result.success
         if "Export failed:" not in result.error:
@@ -541,7 +554,8 @@ class TestFlextCliService:
 
         # Debug: Check that patch is working by showing the successful case first
         result_success = service.flext_cli_create_command(
-            "test-cmd-success", "echo hello",
+            "test-cmd-success",
+            "echo hello",
         )
         assert result_success.success, (
             f"Control test should succeed: {result_success.error}"
@@ -549,7 +563,8 @@ class TestFlextCliService:
 
         # Mock FlextCliCommand to raise exception in the core module where it's imported
         with patch(
-            "flext_cli.core.FlextCliCommand", side_effect=Exception("Command error"),
+            "flext_cli.core.FlextCliCommand",
+            side_effect=Exception("Command error"),
         ):
             result = service.flext_cli_create_command("test-cmd", "echo hello")
             assert not result.success, f"Expected failure but got success: {result}"
@@ -601,7 +616,9 @@ class TestFlextCliService:
 
         # Mock FlextCliSession in the correct module namespace
         with patch.object(
-            core_module, "FlextCliSession", side_effect=Exception("Session error"),
+            core_module,
+            "FlextCliSession",
+            side_effect=Exception("Session error"),
         ):
             result = service.flext_cli_create_session()
             assert not result.success
@@ -994,7 +1011,10 @@ class TestIntegration:
         assert format_result.success
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", delete=False, suffix=".json",
+            encoding="utf-8",
+            mode="w",
+            delete=False,
+            suffix=".json",
         ) as tmp:
             temp_path = tmp.name
 

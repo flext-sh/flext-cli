@@ -12,15 +12,19 @@ FLEXT CLI is a Python 3.13 foundation library for command-line interfaces built 
 
 This library has **3 main functions**:
 
-### 1. **CLI Foundation Base** 
+### 1. **CLI Foundation Base**
+
 Foundation library for any standalone CLI implementation or flext-service CLI integration:
+
 - Clean Architecture patterns following `flext/docs/patterns`
 - FlextModel/FlextEntity/FlextResult standard patterns
 - Rich terminal UI components with consistent theming
 - Command execution lifecycle with proper error handling
 
 ### 2. **flext-core Integration Bridge**
+
 Deep integration bridge that connects CLI usage with flext-core basic configuration:
+
 - FlextCLIConfigHierarchical for configuration management
 - FlextBaseSettings with automatic environment loading
 - FlextEntity patterns for CLI domain entities (CLICommand, CLISession, CLIPlugin)
@@ -28,7 +32,9 @@ Deep integration bridge that connects CLI usage with flext-core basic configurat
 - Standard FlextFactory patterns for entity creation
 
 ### 3. **Ecosystem Library Base**
+
 Generic foundation patterns for ANY ecosystem project to implement in their own codebase:
+
 - Unified CLI utilities and patterns (`src/flext_cli/simple_api.py`, `src/flext_cli/api.py`)
 - Standardized data formatting and export (JSON, YAML, CSV, Rich tables)
 - Generic command patterns (`FlextCliGenericCommand`) that projects extend
@@ -46,7 +52,7 @@ Generic foundation patterns for ANY ecosystem project to implement in their own 
 ```
 src/flext_cli/
 ├── domain/                 # CLI domain entities (CLICommand, CLISession, CLIPlugin)
-├── application/           # CLI command handlers  
+├── application/           # CLI command handlers
 ├── infrastructure/        # HTTP clients, dependency injection
 ├── commands/              # Reference CLI implementations (auth, config, debug)
 ├── core/                  # Base patterns, decorators, formatters
@@ -57,6 +63,7 @@ src/flext_cli/
 ```
 
 **Foundation Patterns:**
+
 - **FlextResult**: Railway-oriented programming for CLI error handling
 - **FlextEntity Integration**: CLI domain entities with flext-core patterns
 - **FlextService Implementation**: Service interfaces for ecosystem integration
@@ -88,7 +95,7 @@ make clean          # Clean build artifacts
 
 ```bash
 make test                              # Full test suite with coverage
-make test-unit                         # Unit tests only  
+make test-unit                         # Unit tests only
 make test-integration                  # Integration tests only
 pytest tests/test_auth_commands.py -v  # Test specific module
 make coverage-html                     # Generate HTML coverage report
@@ -149,7 +156,7 @@ def cli(ctx, profile, output, debug):
 ### Implementation Process
 
 1. Create command module in `src/flext_cli/commands/[name].py`
-2. Follow patterns from existing `auth.py`, `config.py`, `debug.py`  
+2. Follow patterns from existing `auth.py`, `config.py`, `debug.py`
 3. Use HTTP client (`src/flext_cli/client.py`) to communicate with FLEXT services
 4. Register command in `src/flext_cli/cli.py` around line 100
 5. Add tests in `tests/test_[name].py` using CliRunner
@@ -177,7 +184,7 @@ def list(ctx: click.Context, output: str) -> None:
     """List all pipelines from FLEXT Service."""
     console: Console = ctx.obj["console"]
     client = FlextClient()
-    
+
     # Call actual FLEXT service - this CLI doesn't contain pipeline logic
     result = client.get_pipelines()
     if result.success:
@@ -214,7 +221,7 @@ def test_command_lifecycle():
 
 ```bash
 export FLX_PROFILE=development    # Configuration profile
-export FLX_DEBUG=true            # Enable debug mode  
+export FLX_DEBUG=true            # Enable debug mode
 export FLEXT_CLI_LOG_LEVEL=debug # Logging level
 ```
 
@@ -232,6 +239,7 @@ poetry run flext version             # Basic version information
 ## Ecosystem Integration Analysis
 
 ### flext-core Integration (Foundation Layer)
+
 This library is **deeply integrated** with flext-core as the foundation:
 
 ```python
@@ -242,7 +250,7 @@ from flext_core import FlextResult, FlextEntity, FlextBaseSettings
 class CLICommand(FlextEntity):
     def validate_domain_rules(self) -> FlextResult[None]:
         # Validation with railway-oriented programming
-        
+
 # Configuration management
 class CLIConfig(FlextBaseSettings):
     # Automatic environment variable loading
@@ -251,16 +259,19 @@ class CLIConfig(FlextBaseSettings):
 ### Library Dependencies & Integration
 
 **Core Foundation:**
+
 - **flext-core**: FlextEntity, FlextResult, FlextBaseSettings, FlextService patterns
 - **flext-observability**: Monitoring integration
 - **flext-api**: Service communication patterns
 
 **Ecosystem Projects Using This Library:**
+
 - **flext-meltano**: Uses CLI patterns for Meltano orchestration
-- **algar-oud-mig**: ALGAR project CLI integration  
+- **algar-oud-mig**: ALGAR project CLI integration
 - **gruponos-meltano-native**: GrupoNos project CLI
 
 **CLI Framework:**
+
 - **Click 8.2+**: Command structure framework
 - **Rich 14.0+**: Terminal UI components
 - **httpx**: HTTP client patterns for service communication
@@ -268,6 +279,7 @@ class CLIConfig(FlextBaseSettings):
 ### Library Usage Patterns
 
 **For Standalone CLIs:**
+
 ```python
 from flext_cli import setup_cli, CLIConfig
 from flext_cli.api import FlextCliApi
@@ -278,6 +290,7 @@ result = setup_cli(config)
 ```
 
 **For Service Integration:**
+
 ```python
 from flext_cli.core import FlextCliService
 from flext_cli.simple_api import create_cli_context
@@ -290,26 +303,30 @@ context = create_cli_context()
 ## Implementation Status & Critical Gaps
 
 ### ✅ Implemented
+
 - Clean Architecture with Domain/Application/Infrastructure layers
-- flext-core FlextResult and FlextEntity patterns  
+- flext-core FlextResult and FlextEntity patterns
 - 3 functional command groups: auth, config, debug
 - Quality gates: MyPy strict mode, Ruff linting, 90% test coverage
 
-### 🚨 Critical Gaps  
+### 🚨 Critical Gaps
+
 - **Limited Commands**: Only 3/10+ planned commands implemented
 - **Service Integration Missing**: HTTP client exists (`src/flext_cli/client.py`) but unused by commands
-- **Interactive Mode**: Placeholder only ("coming soon" message)  
+- **Interactive Mode**: Placeholder only ("coming soon" message)
 - **Profile System Incomplete**: `--profile` option exists but loading not implemented
 - **Enterprise Patterns Missing**: CQRS, Domain Events, Repository Pattern (mocks only)
 
 ## Key File Locations
 
 ### Core Entry Points
+
 - `src/flext_cli/cli.py:70` - Main CLI group definition with global options
 - `src/flext_cli/commands/` - Only auth.py, config.py, debug.py implemented
 - `pyproject.toml:103` - Entry point: `flext = "flext_cli.cli:main"`
 
-### Domain Layer (CLI Architecture)  
+### Domain Layer (CLI Architecture)
+
 - `src/flext_cli/domain/entities.py` - CLICommand, CLISession, CLIPlugin entities
 - `src/flext_cli/core/base.py:93` - handle_service_result decorator for FlextResult
 - `src/flext_cli/client.py` - HTTP client for FLEXT services (currently unused)
@@ -321,12 +338,14 @@ context = create_cli_context()
 **⚠️ Remember:** This is a **foundation library** providing CLI patterns for the FLEXT ecosystem, not just a standalone CLI.
 
 ### Before Making Changes
-1. Run `make validate` (MANDATORY quality gate) 
+
+1. Run `make validate` (MANDATORY quality gate)
 2. Check library APIs: `src/flext_cli/api.py`, `src/flext_cli/simple_api.py`
 3. Study foundation patterns in `src/flext_cli/core/`, `src/flext_cli/domain/`
 4. **Consider impact**: Changes affect all projects using this library (flext-meltano, algar-oud-mig, gruponos-meltano-native)
 
 ### Adding Foundation Patterns
+
 1. Add reusable patterns in `src/flext_cli/core/` following Clean Architecture
 2. Extend API functions in `src/flext_cli/api.py` for programmatic use
 3. Update `src/flext_cli/simple_api.py` for zero-boilerplate usage
@@ -334,13 +353,16 @@ context = create_cli_context()
 5. Run `make validate` before committing
 
 ### Adding Reference Commands
+
 1. Create reference implementations in `src/flext_cli/commands/[name].py`
 2. These serve as **examples** for other projects, not production commands
 3. Focus on demonstrating foundation patterns and flext-core integration
 4. Document usage patterns for ecosystem projects
 
 ### Library Integration Guide
+
 **For projects using flext-cli as dependency:**
+
 1. Import foundation patterns: `from flext_cli.api import FlextCliApi`
 2. Use zero-boilerplate setup: `from flext_cli import setup_cli`
 3. Extend CLI entities: `from flext_cli.domain.entities import CLICommand`

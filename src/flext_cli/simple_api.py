@@ -155,3 +155,8 @@ def get_cli_settings_compat(*, reload: bool = False) -> CLISettings:
     """
     _ = reload
     return CLISettings()
+
+
+# Back-compat: expose a get_cli_settings that accepts reload kwarg
+def get_cli_settings(*, reload: bool = False) -> CLISettings:  # type: ignore[override]
+    return get_cli_settings_compat(reload=reload)

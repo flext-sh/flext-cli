@@ -28,7 +28,9 @@ try:
         gruponos_config,
         "GrupoNOSConfig",
         getattr(
-            gruponos_config, "Config", getattr(gruponos_config, "GruponosConfig", None),
+            gruponos_config,
+            "Config",
+            getattr(gruponos_config, "GruponosConfig", None),
         ),
     )
 

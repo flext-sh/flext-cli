@@ -555,13 +555,14 @@ class TestConfigIntegration:
 
     def _test_called_process_error(self) -> None:
         """Test CalledProcessError separately (needs different constructor)."""
+        import subprocess as _subprocess  # Local import to avoid global dependency
 
         def _raise_process_error() -> None:
-            raise subprocess.CalledProcessError(1, "test_cmd", "Test error")
+            raise _subprocess.CalledProcessError(1, "test_cmd", "Test error")
 
         try:
             _raise_process_error()
-        except subprocess.CalledProcessError as e:
+        except _subprocess.CalledProcessError as e:
             if "test_cmd" not in str(e):
                 raise AssertionError(f"Expected {'test_cmd'} in {e!s}") from e
 

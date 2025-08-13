@@ -257,7 +257,8 @@ class TestCLIContext:
             mock_print.assert_not_called()
 
     def test_all_print_methods_with_different_messages(
-        self, cli_context: CLIContext,
+        self,
+        cli_context: CLIContext,
     ) -> None:
         """Test all print methods with different message content."""
         # Mock the console print method

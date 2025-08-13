@@ -31,24 +31,27 @@ Documentation:       ██████░░░░░░░░░░░░░�
 ## 🔴 Priority 1: Critical Infrastructure (Sprint 1-2)
 
 ### Task 1.1: FlexCore Service Integration
+
 **File**: `src/flext_cli/services/flexcore_client.py` (NEW)
+
 ```python
 # Implementation required:
 class FlexCoreClient:
     def __init__(self, base_url: str = "http://localhost:8080"):
         self.base_url = base_url
         self.session = httpx.AsyncClient()
-        
+
     async def get_plugins(self) -> FlextResult[list[dict]]:
         # Implement API call to /api/v1/flexcore/plugins
         pass
-        
+
     async def execute_plugin(self, plugin_name: str, command: dict) -> FlextResult[dict]:
         # Implement API call to /api/v1/flexcore/plugins/{plugin_name}/execute
         pass
 ```
 
 **Acceptance Criteria**:
+
 - [ ] Connect to FlexCore on port 8080
 - [ ] List available plugins
 - [ ] Execute plugin commands
@@ -57,24 +60,27 @@ class FlexCoreClient:
 - [ ] Add circuit breaker pattern
 
 ### Task 1.2: FLEXT Service Integration
+
 **File**: `src/flext_cli/services/flext_service_client.py` (NEW)
+
 ```python
 # Implementation required:
 class FlextServiceClient:
     def __init__(self, base_url: str = "http://localhost:8081"):
         self.base_url = base_url
         self.session = httpx.AsyncClient()
-        
+
     async def get_pipelines(self) -> FlextResult[list[dict]]:
         # Implement API call to /api/v1/pipelines
         pass
-        
+
     async def start_pipeline(self, pipeline_id: str) -> FlextResult[dict]:
         # Implement API call to start pipeline
         pass
 ```
 
 **Acceptance Criteria**:
+
 - [ ] Connect to FLEXT Service on port 8081
 - [ ] Manage data pipelines
 - [ ] Monitor service health
@@ -82,7 +88,9 @@ class FlextServiceClient:
 - [ ] Handle authentication tokens
 
 ### Task 1.3: Pipeline Command Group
+
 **File**: `src/flext_cli/commands/pipeline.py` (NEW)
+
 ```python
 @click.group()
 def pipeline():
@@ -108,6 +116,7 @@ def start(ctx: click.Context, name: str) -> FlextResult[None]:
 ```
 
 **Commands to Implement**:
+
 - [ ] `flext pipeline list` - List all pipelines
 - [ ] `flext pipeline start <name>` - Start pipeline
 - [ ] `flext pipeline stop <name>` - Stop pipeline
@@ -118,7 +127,9 @@ def start(ctx: click.Context, name: str) -> FlextResult[None]:
 - [ ] `flext pipeline validate <config>` - Validate pipeline config
 
 ### Task 1.4: Service Command Group
+
 **File**: `src/flext_cli/commands/service.py` (NEW)
+
 ```python
 @click.group()
 def service():
@@ -135,6 +146,7 @@ def health(ctx: click.Context) -> FlextResult[None]:
 ```
 
 **Commands to Implement**:
+
 - [ ] `flext service health` - Health check all services
 - [ ] `flext service status` - Overall ecosystem status
 - [ ] `flext service start <service>` - Start specific service
@@ -149,9 +161,11 @@ def health(ctx: click.Context) -> FlextResult[None]:
 ## 🟡 Priority 2: Data Platform Integration (Sprint 3-4)
 
 ### Task 2.1: Data Command Group
+
 **File**: `src/flext_cli/commands/data.py` (NEW)
 
 **Commands to Implement**:
+
 - [ ] `flext data taps list` - List available Singer taps
 - [ ] `flext data taps config <tap>` - Configure tap
 - [ ] `flext data taps test <tap>` - Test tap connection
@@ -163,9 +177,11 @@ def health(ctx: click.Context) -> FlextResult[None]:
 - [ ] `flext data dbt docs <project>` - Generate DBT docs
 
 ### Task 2.2: Plugin Command Group
+
 **File**: `src/flext_cli/commands/plugin.py` (NEW)
 
 **Commands to Implement**:
+
 - [ ] `flext plugin list` - List installed plugins
 - [ ] `flext plugin search <query>` - Search available plugins
 - [ ] `flext plugin install <name>` - Install plugin
@@ -176,9 +192,11 @@ def health(ctx: click.Context) -> FlextResult[None]:
 - [ ] `flext plugin info <name>` - Plugin information
 
 ### Task 2.3: Meltano Integration
+
 **File**: `src/flext_cli/commands/meltano.py` (NEW)
 
 **Commands to Implement**:
+
 - [ ] `flext meltano init <project>` - Initialize Meltano project
 - [ ] `flext meltano add <type> <name>` - Add extractor/loader
 - [ ] `flext meltano run <tap> <target>` - Run pipeline
@@ -191,12 +209,14 @@ def health(ctx: click.Context) -> FlextResult[None]:
 ## 🔵 Priority 3: Enterprise Patterns (Sprint 5-6)
 
 ### Task 3.1: Migrate to FlextContainer
+
 **File**: `src/flext_cli/infrastructure/container.py`
+
 ```python
 # CURRENT: SimpleDIContainer
 class SimpleDIContainer:
     # Basic implementation
-    
+
 # REQUIRED: FlextContainer from flext-core
 from flext_core import FlextContainer
 
@@ -208,6 +228,7 @@ class CLIDependencyContainer(FlextContainer):
 ```
 
 **Migration Steps**:
+
 - [ ] Import FlextContainer from flext-core
 - [ ] Create CLIDependencyContainer extending FlextContainer
 - [ ] Register all services and repositories
@@ -216,6 +237,7 @@ class CLIDependencyContainer(FlextContainer):
 - [ ] Update all command groups to use DI
 
 ### Task 3.2: Implement CQRS Pattern
+
 **File**: `src/flext_cli/application/commands/` (NEW DIRECTORY)
 **File**: `src/flext_cli/application/queries/` (NEW DIRECTORY)
 
@@ -223,7 +245,7 @@ class CLIDependencyContainer(FlextContainer):
 # Command example
 class CreatePipelineCommand(FlextCommand):
     pipeline_config: dict
-    
+
 class CreatePipelineHandler(FlextCommandHandler):
     def handle(self, command: CreatePipelineCommand) -> FlextResult[str]:
         # Implementation
@@ -232,7 +254,7 @@ class CreatePipelineHandler(FlextCommandHandler):
 # Query example
 class GetPipelineStatusQuery(FlextQuery):
     pipeline_id: str
-    
+
 class GetPipelineStatusHandler(FlextQueryHandler):
     def handle(self, query: GetPipelineStatusQuery) -> FlextResult[dict]:
         # Implementation
@@ -240,6 +262,7 @@ class GetPipelineStatusHandler(FlextQueryHandler):
 ```
 
 **Implementation Requirements**:
+
 - [ ] Create command base classes
 - [ ] Create query base classes
 - [ ] Implement command bus
@@ -248,13 +271,14 @@ class GetPipelineStatusHandler(FlextQueryHandler):
 - [ ] Implement middleware pipeline
 
 ### Task 3.3: Domain Events Implementation
+
 **File**: `src/flext_cli/domain/events/` (NEW DIRECTORY)
 
 ```python
 class PipelineStartedEvent(FlextDomainEvent):
     pipeline_id: str
     started_at: datetime
-    
+
 class PipelineEventHandler:
     def handle_pipeline_started(self, event: PipelineStartedEvent):
         # Update UI, send notifications, etc.
@@ -262,6 +286,7 @@ class PipelineEventHandler:
 ```
 
 **Event Types to Implement**:
+
 - [ ] Pipeline lifecycle events
 - [ ] Service status events
 - [ ] Plugin installation events
@@ -269,6 +294,7 @@ class PipelineEventHandler:
 - [ ] Configuration change events
 
 ### Task 3.4: Repository Pattern
+
 **File**: `src/flext_cli/infrastructure/repositories/` (NEW DIRECTORY)
 
 ```python
@@ -276,13 +302,14 @@ class PipelineRepository(FlextRepository):
     def find_by_id(self, pipeline_id: str) -> FlextResult[Pipeline]:
         # Implementation with caching
         pass
-        
+
     def save(self, pipeline: Pipeline) -> FlextResult[None]:
         # Implementation with validation
         pass
 ```
 
 **Repositories to Implement**:
+
 - [ ] PipelineRepository
 - [ ] ServiceRepository
 - [ ] PluginRepository
@@ -294,9 +321,11 @@ class PipelineRepository(FlextRepository):
 ## 🟢 Priority 4: Project Integration (Sprint 7-8)
 
 ### Task 4.1: ALGAR Project Commands
+
 **File**: `src/flext_cli/commands/projects/algar.py` (NEW)
 
 **Commands to Implement**:
+
 - [ ] `flext algar migration status` - Migration status
 - [ ] `flext algar migration start` - Start migration
 - [ ] `flext algar migration validate` - Validate migration
@@ -305,9 +334,11 @@ class PipelineRepository(FlextRepository):
 - [ ] `flext algar report generate` - Generate reports
 
 ### Task 4.2: GrupoNos Project Commands
+
 **File**: `src/flext_cli/commands/projects/gruponos.py` (NEW)
 
 **Commands to Implement**:
+
 - [ ] `flext gruponos pipeline deploy` - Deploy pipeline
 - [ ] `flext gruponos pipeline status` - Pipeline status
 - [ ] `flext gruponos data validate` - Validate data
@@ -319,6 +350,7 @@ class PipelineRepository(FlextRepository):
 ## 🔵 Priority 5: Advanced Features (Sprint 9-10)
 
 ### Task 5.1: Interactive Mode (REPL)
+
 **File**: `src/flext_cli/interactive/repl.py` (NEW)
 
 ```python
@@ -327,7 +359,7 @@ class FlextCliREPL:
         self.session = InteractiveSession()
         self.completer = TabCompleter()
         self.history = CommandHistory()
-        
+
     def run(self):
         while True:
             command = self.get_command()  # With tab completion
@@ -336,6 +368,7 @@ class FlextCliREPL:
 ```
 
 **Features to Implement**:
+
 - [ ] Command prompt with context
 - [ ] Tab completion for commands and arguments
 - [ ] Command history with search
@@ -344,6 +377,7 @@ class FlextCliREPL:
 - [ ] Session state management
 
 ### Task 5.2: Profile System
+
 **File**: `src/flext_cli/profiles/manager.py` (NEW)
 
 ```python
@@ -351,13 +385,14 @@ class ProfileManager:
     def load_profile(self, name: str) -> FlextResult[Profile]:
         # Load from ~/.flx/profiles/{name}.yaml
         pass
-        
+
     def create_profile(self, name: str, config: dict) -> FlextResult[None]:
         # Create new profile
         pass
 ```
 
 **Profile Features**:
+
 - [ ] Multiple environment support (dev/staging/prod)
 - [ ] Credential management with encryption
 - [ ] Configuration inheritance
@@ -365,9 +400,11 @@ class ProfileManager:
 - [ ] Export/import profiles
 
 ### Task 5.3: Monitoring Dashboard
+
 **File**: `src/flext_cli/commands/monitor.py` (NEW)
 
 **Commands to Implement**:
+
 - [ ] `flext monitor dashboard` - Real-time dashboard
 - [ ] `flext monitor metrics <service>` - Service metrics
 - [ ] `flext monitor alerts list` - Active alerts
@@ -380,6 +417,7 @@ class ProfileManager:
 ## 🧪 Testing Requirements
 
 ### Unit Tests (Per Module)
+
 - [ ] Test all command groups with CliRunner
 - [ ] Test service clients with mocked responses
 - [ ] Test domain entities and value objects
@@ -387,6 +425,7 @@ class ProfileManager:
 - [ ] Test decorators and mixins
 
 ### Integration Tests
+
 - [ ] Test end-to-end command execution
 - [ ] Test service integration with Docker containers
 - [ ] Test pipeline creation and execution
@@ -394,6 +433,7 @@ class ProfileManager:
 - [ ] Test profile switching
 
 ### Performance Tests
+
 - [ ] Command response time < 1s
 - [ ] Bulk operations handling
 - [ ] Memory usage profiling
@@ -404,6 +444,7 @@ class ProfileManager:
 ## 📝 Documentation Requirements
 
 ### User Documentation
+
 - [ ] Installation guide
 - [ ] Quick start tutorial
 - [ ] Command reference (all commands)
@@ -411,6 +452,7 @@ class ProfileManager:
 - [ ] Troubleshooting guide
 
 ### Developer Documentation
+
 - [ ] Architecture overview
 - [ ] Plugin development guide
 - [ ] API reference
@@ -418,6 +460,7 @@ class ProfileManager:
 - [ ] Testing guide
 
 ### Examples
+
 - [ ] Common workflows
 - [ ] Pipeline configurations
 - [ ] Plugin examples
@@ -428,6 +471,7 @@ class ProfileManager:
 ## 📦 Deliverables Checklist
 
 ### Sprint 1-2 Deliverables
+
 - [ ] FlexCore client implementation
 - [ ] FLEXT Service client implementation
 - [ ] Pipeline command group (8 commands)
@@ -436,6 +480,7 @@ class ProfileManager:
 - [ ] Updated README with new commands
 
 ### Sprint 3-4 Deliverables
+
 - [ ] Data command group (9 commands)
 - [ ] Plugin command group (8 commands)
 - [ ] Meltano integration (6 commands)
@@ -443,6 +488,7 @@ class ProfileManager:
 - [ ] DBT integration
 
 ### Sprint 5-6 Deliverables
+
 - [ ] FlextContainer migration
 - [ ] CQRS implementation
 - [ ] Domain Events system
@@ -450,6 +496,7 @@ class ProfileManager:
 - [ ] Enterprise patterns documentation
 
 ### Sprint 7-8 Deliverables
+
 - [ ] ALGAR project commands (6 commands)
 - [ ] GrupoNos project commands (5 commands)
 - [ ] Project-specific configurations
@@ -457,6 +504,7 @@ class ProfileManager:
 - [ ] Compliance reporting
 
 ### Sprint 9-10 Deliverables
+
 - [ ] Interactive REPL mode
 - [ ] Profile system
 - [ ] Monitoring dashboard
@@ -468,6 +516,7 @@ class ProfileManager:
 ## 📈 Success Metrics
 
 ### Functional Metrics
+
 - [ ] All 12 command groups implemented
 - [ ] 100+ total commands available
 - [ ] All 32+ FLEXT projects supported
@@ -475,6 +524,7 @@ class ProfileManager:
 - [ ] Plugin system operational
 
 ### Quality Metrics
+
 - [ ] 95%+ test coverage
 - [ ] Zero critical bugs
 - [ ] < 1s response time for commands
@@ -482,6 +532,7 @@ class ProfileManager:
 - [ ] Zero lint violations
 
 ### Documentation Metrics
+
 - [ ] 100% command documentation
 - [ ] All examples working
 - [ ] Complete API reference
@@ -492,6 +543,7 @@ class ProfileManager:
 ## 🚀 Getting Started
 
 ### For Developers
+
 1. Review gap analysis: `docs/GAP_ANALYSIS.md`
 2. Set up development environment: `make dev-setup`
 3. Start with Priority 1 tasks
@@ -499,6 +551,7 @@ class ProfileManager:
 5. Validate before commits: `make validate`
 
 ### For Project Managers
+
 1. Track progress in GitHub Projects
 2. Review sprint deliverables
 3. Monitor success metrics
@@ -514,4 +567,4 @@ class ProfileManager:
 
 ---
 
-*This document is a living roadmap. Update task status as work progresses.*
+_This document is a living roadmap. Update task status as work progresses._

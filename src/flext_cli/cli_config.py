@@ -74,6 +74,12 @@ class CLIConfig(FlextSettings):
         description="Enable debug mode",
     )
 
+    # Legacy compatibility flag expected by tests
+    trace: bool = Field(
+        default=False,
+        description="Enable trace mode (legacy flag for tests)",
+    )
+
     verbose: bool = Field(
         default=False,
         description="Enable verbose output",
@@ -112,6 +118,10 @@ class CLIConfig(FlextSettings):
         le=300,
         description="API request timeout in seconds",
     )
+
+    # Legacy connection/read timeout fields used by tests
+    connect_timeout: int = Field(default=10, ge=1, description="Connect timeout (s)")
+    read_timeout: int = Field(default=30, ge=1, description="Read timeout (s)")
 
     api_token: str | None = Field(
         default=None,
@@ -300,6 +310,14 @@ class CLIConfig(FlextSettings):
             return "WARNING"
         return self.log_level
 
+    # ---------------------------------------------------------------------
+    # Legacy compatibility properties expected by tests
+    # ---------------------------------------------------------------------
+
+    @property
+    def format_type(self) -> str:  # pragma: no cover - trivial mapping
+        return self.output_format.value
+
     def should_use_color(self) -> bool:
         """Determine if colored output should be used."""
         if self.force_color:
@@ -417,6 +435,35 @@ class CLIConfig(FlextSettings):
                     config_dict[field] = "***"
 
         return config_dict
+
+    # ------------------------------------------------------------------
+    # Legacy helper methods expected by tests
+    # ------------------------------------------------------------------
+
+    def configure(self, settings: object) -> bool:
+        """Apply simple settings updates from a plain dict, return success.
+
+        This mirrors the legacy `configure` API used in tests, updating a subset
+        of fields and returning True/False based on success.
+        """
+        if not isinstance(settings, dict):
+            return False
+        try:
+            if "debug" in settings:
+                self.debug = bool(settings["debug"])
+            if "api_timeout" in settings:
+                self.api_timeout = int(settings["api_timeout"])
+            if "output_format" in settings:
+                # Accept raw string and convert via validator
+                self.output_format = settings["output_format"]
+            return True
+        except Exception:
+            return False
+
+    def validate_domain_rules(self) -> bool:
+        """Legacy boolean validation wrapper over validate_config()."""
+        result = self.validate_config()
+        return result.is_success
 
 
 # =============================================================================

@@ -219,7 +219,8 @@ class TestCLIConfig:
 
         # Should not be able to modify attributes directly (frozen model)
         with pytest.raises(
-            (AttributeError, ValueError), match="cannot assign to field",
+            (AttributeError, ValueError),
+            match="cannot assign to field",
         ):
             config.api_url = "https://new.url.com"
 

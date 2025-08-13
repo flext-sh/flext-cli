@@ -35,6 +35,7 @@ import json
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING, ClassVar
+from pathlib import Path
 
 from flext_core import (
     FlextAggregateRoot,
@@ -53,8 +54,8 @@ MAX_TIMEOUT_SECONDS: int = 60 * 60 * 24  # 86400 (24 hours)
 MIN_EXIT_CODE: int = 0
 MAX_EXIT_CODE: int = 255
 
-if TYPE_CHECKING:
-    from pathlib import Path
+# Ensure Path is available to Pydantic during model build to avoid
+# "class-not-fully-defined" errors reported by tests
 
 
 # Local import to avoid circular during module import
@@ -66,9 +67,6 @@ class FlextCliCommandType(StrEnum):
     CONFIG = "config"
     AUTH = "auth"
     MONITORING = "monitoring"
-    CLI = "cli"
-    SCRIPT = "script"
-    SQL = "sql"
 
 
 # =============================================================================
@@ -565,7 +563,6 @@ class FlextCliCommand(FlextEntity):
     ) -> bool:
         """Legacy boolean wrapper around complete_execution()."""
         if exit_code is None:
-            # tests sometimes call without args, treat as no-op failure
             return False
         result = self.complete_execution(
             exit_code=exit_code,
@@ -576,6 +573,7 @@ class FlextCliCommand(FlextEntity):
             updated = result.unwrap()
             object.__setattr__(self, "status", updated.status)
             object.__setattr__(self, "output", updated.output)
+            object.__setattr__(self, "exit_code", updated.exit_code)
             object.__setattr__(self, "completed_at", updated.completed_at)
             return True
         return False
@@ -615,8 +613,12 @@ class FlextCliCommand(FlextEntity):
 
     # Legacy status helpers
     @property
-    def is_completed(self) -> bool:  # pragma: no cover - simple alias
-        return self.status == FlextCliCommandStatus.COMPLETED
+    def is_completed(self) -> bool:  # pragma: no cover - include failed/cancelled
+        return self.status in {
+            FlextCliCommandStatus.COMPLETED,
+            FlextCliCommandStatus.FAILED,
+            FlextCliCommandStatus.CANCELLED,
+        }
 
     @property
     def finished_at(self) -> datetime | None:  # pragma: no cover - simple alias
@@ -631,7 +633,7 @@ class FlextCliCommand(FlextEntity):
         """Complete command execution with output capture."""
         _ = stderr  # Mark as used for linting purposes
         if self.status != FlextCliCommandStatus.RUNNING:
-            return FlextResult.fail("Can only complete running commands")
+            return FlextResult.fail("Cannot complete command that hasn't been started")
 
         now = datetime.now(UTC)
         # Determine final status based on exit code
@@ -698,6 +700,15 @@ class FlextCliCommand(FlextEntity):
 
         return FlextResult.ok(result)
 
+    # Legacy simple properties used by tests
+    @property
+    def successful(self) -> bool:  # pragma: no cover - trivial alias
+        return self.flext_cli_successful
+
+    @property
+    def is_running(self) -> bool:  # pragma: no cover - trivial alias
+        return self.flext_cli_is_running
+
 
 class FlextCliSession(FlextEntity):
     """CLI session tracking entity.
@@ -760,6 +771,14 @@ class FlextCliSession(FlextEntity):
     def is_active(self) -> bool:
         """Check if session is active."""
         return self.state == FlextCliSessionState.ACTIVE
+
+    # Legacy compatibility properties
+    @property
+    def session_status(self) -> SessionStatus:  # pragma: no cover - trivial alias
+        state_value = (
+            self.state.value if hasattr(self.state, "value") else str(self.state)
+        )
+        return SessionStatus(state_value)
 
     @property
     def commands_executed_count(self) -> int:
@@ -942,6 +961,10 @@ class FlextCliSession(FlextEntity):
             return FlextResult.fail(f"Failed to add domain event: {event_result.error}")
 
         return FlextResult.ok(result)
+
+    # Legacy boolean end_session API expected by tests
+    def end_session(self) -> FlextResult[FlextCliSession]:
+        return self.terminate_session()
 
 
 class FlextCliPlugin(FlextEntity):

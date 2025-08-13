@@ -62,12 +62,15 @@ class TestFlextCliAdvancedMixin:
 
         # Mock confirmation to return success
         with patch.object(
-            self.test_instance, "flext_cli_require_confirmation",
+            self.test_instance,
+            "flext_cli_require_confirmation",
         ) as mock_confirm:
             mock_confirm.return_value = FlextResult.ok(True)
 
             result = self.test_instance.flext_cli_execute_with_full_validation(
-                inputs, mock_operation, operation_name="test operation",
+                inputs,
+                mock_operation,
+                operation_name="test operation",
             )
 
         assert result.success
@@ -89,7 +92,9 @@ class TestFlextCliAdvancedMixin:
             return FlextResult.ok("Should not execute")
 
         result = self.test_instance.flext_cli_execute_with_full_validation(
-            inputs, mock_operation, operation_name="test operation",
+            inputs,
+            mock_operation,
+            operation_name="test operation",
         )
 
         assert not result.success
@@ -101,7 +106,8 @@ class TestFlextCliAdvancedMixin:
 
         # Mock confirmation to return success
         with patch.object(
-            self.test_instance, "flext_cli_require_confirmation",
+            self.test_instance,
+            "flext_cli_require_confirmation",
         ) as mock_confirm:
             mock_confirm.return_value = FlextResult.ok(True)
 
@@ -109,7 +115,10 @@ class TestFlextCliAdvancedMixin:
                 return FlextResult.ok("Dangerous operation completed")
 
             result = self.test_instance.flext_cli_execute_with_full_validation(
-                inputs, mock_operation, operation_name="delete all data", dangerous=True,
+                inputs,
+                mock_operation,
+                operation_name="delete all data",
+                dangerous=True,
             )
 
         assert result.success
@@ -125,7 +134,8 @@ class TestFlextCliAdvancedMixin:
         ]
 
         result = self.test_instance.flext_cli_process_data_workflow(
-            "raw_data", workflow_steps,
+            "raw_data",
+            workflow_steps,
         )
 
         assert result.success
@@ -148,7 +158,8 @@ class TestFlextCliAdvancedMixin:
         ]
 
         result = self.test_instance.flext_cli_process_data_workflow(
-            "raw_data", workflow_steps,
+            "raw_data",
+            workflow_steps,
         )
 
         assert not result.success
@@ -167,7 +178,8 @@ class TestFlextCliAdvancedMixin:
         ]
 
         result = self.test_instance.flext_cli_process_data_workflow(
-            "raw_data", workflow_steps,
+            "raw_data",
+            workflow_steps,
         )
 
         assert not result.success
@@ -199,7 +211,8 @@ class TestFlextCliAdvancedMixin:
 
         # Mock confirmation
         with patch.object(
-            self.test_instance, "flext_cli_require_confirmation",
+            self.test_instance,
+            "flext_cli_require_confirmation",
         ) as mock_confirm:
             mock_confirm.return_value = FlextResult.ok(True)
 
@@ -213,7 +226,8 @@ class TestFlextCliAdvancedMixin:
         assert f"process_{test_file1}" in result.data
 
     def test_flext_cli_handle_file_operations_validation_failure(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """Test file operations with file validation failure."""
         nonexistent_file = tmp_path / "nonexistent.txt"
@@ -451,7 +465,9 @@ class TestFlextCliDataProcessor:
         ]
 
         result = self.processor.flext_cli_process_workflow(
-            data, workflow_steps, show_progress=False,
+            data,
+            workflow_steps,
+            show_progress=False,
         )
 
         assert result.success
@@ -479,7 +495,9 @@ class TestFlextCliDataProcessor:
         }
 
         result = self.processor.flext_cli_validate_and_transform(
-            data, validators, transformers,
+            data,
+            validators,
+            transformers,
         )
 
         assert result.success
@@ -526,12 +544,15 @@ class TestFlextCliFileManager:
 
         # Mock confirmation
         with patch.object(
-            self.file_manager.helper, "flext_cli_confirm",
+            self.file_manager.helper,
+            "flext_cli_confirm",
         ) as mock_confirm:
             mock_confirm.return_value = FlextResult.ok(True)
 
             result = self.file_manager.flext_cli_backup_and_process(
-                str(test_file), process_content, require_confirmation=True,
+                str(test_file),
+                process_content,
+                require_confirmation=True,
             )
 
         assert result.success
@@ -547,7 +568,8 @@ class TestFlextCliFileManager:
         assert test_file.read_text() == "ORIGINAL CONTENT"
 
     def test_flext_cli_backup_and_process_processor_failure(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """Test backup and process with processor failure and recovery."""
         test_file = tmp_path / "test.txt"
@@ -559,12 +581,15 @@ class TestFlextCliFileManager:
 
         # Mock confirmation
         with patch.object(
-            self.file_manager.helper, "flext_cli_confirm",
+            self.file_manager.helper,
+            "flext_cli_confirm",
         ) as mock_confirm:
             mock_confirm.return_value = FlextResult.ok(True)
 
             result = self.file_manager.flext_cli_backup_and_process(
-                str(test_file), failing_processor, require_confirmation=True,
+                str(test_file),
+                failing_processor,
+                require_confirmation=True,
             )
 
         assert not result.success
@@ -582,7 +607,9 @@ class TestFlextCliFileManager:
         test_file.write_text(original_content)
 
         result = self.file_manager.flext_cli_safe_write(
-            new_content, str(test_file), backup=True,
+            new_content,
+            str(test_file),
+            backup=True,
         )
 
         assert result.success
@@ -602,7 +629,9 @@ class TestFlextCliFileManager:
         content = "nested file content"
 
         result = self.file_manager.flext_cli_safe_write(
-            content, str(nested_file), create_dirs=True,
+            content,
+            str(nested_file),
+            create_dirs=True,
         )
 
         assert result.success
@@ -619,7 +648,9 @@ class TestAdvancedIntegrationPatterns:
         @flext_cli_auto_retry(max_attempts=2, delay=0.1)
         @flext_cli_with_progress("Processing critical data...")
         @flext_cli_zero_config(
-            "critical operation", dangerous=True, validate_inputs={"email": "email"},
+            "critical operation",
+            dangerous=True,
+            validate_inputs={"email": "email"},
         )
         def critical_operation(email: str) -> FlextResult[str]:
             return FlextResult.ok(f"Critical operation completed for {email}")
@@ -639,10 +670,13 @@ class TestAdvancedIntegrationPatterns:
 
         class AdvancedProcessor(FlextCliAdvancedMixin):
             @flext_cli_zero_config(
-                "process user batch", validate_inputs={"count": "int"},
+                "process user batch",
+                validate_inputs={"count": "int"},
             )
             def process_user_batch(
-                self, users: list[str], count: int,
+                self,
+                users: list[str],
+                count: int,
             ) -> FlextResult[dict]:
                 workflow_steps = [
                     (
@@ -654,7 +688,8 @@ class TestAdvancedIntegrationPatterns:
                 ]
 
                 return self.flext_cli_process_data_workflow(
-                    {"users": users}, workflow_steps,
+                    {"users": users},
+                    workflow_steps,
                 )
 
             def _validate_users(self, users: list[str]) -> FlextResult[dict[str, Any]]:
@@ -663,13 +698,16 @@ class TestAdvancedIntegrationPatterns:
                 return FlextResult.ok({"users": users, "validated": True})
 
             def _process_batch(
-                self, data: dict[str, Any], count: int,
+                self,
+                data: dict[str, Any],
+                count: int,
             ) -> FlextResult[dict[str, Any]]:
                 processed = data["users"][:count]  # Limit by count
                 return FlextResult.ok({**data, "processed": processed})
 
             def _generate_report(
-                self, data: dict[str, Any],
+                self,
+                data: dict[str, Any],
             ) -> FlextResult[dict[str, Any]]:
                 report = {
                     "total_users": len(data["users"]),
@@ -686,7 +724,8 @@ class TestAdvancedIntegrationPatterns:
             mock_helper.flext_cli_confirm.return_value = FlextResult.ok(True)
 
             result = processor.process_user_batch(
-                ["user1@example.com", "user2@example.com", "user3@example.com"], count=2,
+                ["user1@example.com", "user2@example.com", "user3@example.com"],
+                count=2,
             )
 
         assert result.success

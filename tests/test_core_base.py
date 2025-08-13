@@ -68,7 +68,8 @@ class TestCLIContext:
     def test_context_validation_quiet_and_verbose(self) -> None:
         """Test CLI context validation with both quiet and verbose."""
         with pytest.raises(
-            ValueError, match="Cannot have both quiet and verbose modes enabled",
+            ValueError,
+            match="Cannot have both quiet and verbose modes enabled",
         ):
             CLIContext.create_with_params(quiet=True, verbose=True)
 
@@ -246,7 +247,8 @@ class TestHandleServiceResult:
             patch("flext_cli.core.base.get_logger") as mock_get_logger,
         ):
             self._test_async_exception_handling_impl(
-                mock_get_logger, mock_console_class,
+                mock_get_logger,
+                mock_console_class,
             )
 
     def _test_async_exception_handling_impl(

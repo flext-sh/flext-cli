@@ -51,14 +51,17 @@ def _get_all_config(cli_context: object) -> None:
     if fmt == "json":
         console.print(
             json.dumps(
-                {"config": cfg_dict, "settings": stg_dict}, indent=2, default=str,
+                {"config": cfg_dict, "settings": stg_dict},
+                indent=2,
+                default=str,
             ),
         )
         return
     if fmt == "yaml":
         console.print(
             yaml.dump(
-                {"config": cfg_dict, "settings": stg_dict}, default_flow_style=False,
+                {"config": cfg_dict, "settings": stg_dict},
+                default_flow_style=False,
             ),
         )
         return

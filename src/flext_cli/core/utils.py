@@ -206,11 +206,12 @@ def flext_cli_output_data(
     format_type: str,
     *,
     console: Console,
+    indent: int | None = None,
 ) -> FlextResult[bool]:
     """Render data to console in the specified format."""
     try:
         if format_type == "json":
-            console.print(json.dumps(data, indent=2, default=str))
+            console.print(json.dumps(data, indent=indent or 2, default=str))
         elif format_type == "yaml":
             console.print(yaml.dump(data, default_flow_style=False))
         elif format_type == "table":

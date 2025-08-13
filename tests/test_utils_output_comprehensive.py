@@ -65,7 +65,9 @@ class TestFormatPipeline:
         from flext_cli.client import Pipeline, PipelineConfig
 
         pipeline_config = PipelineConfig(
-            name="test-pipeline", tap="tap-csv", target="target-csv",
+            name="test-pipeline",
+            tap="tap-csv",
+            target="target-csv",
         )
         pipeline = Pipeline(
             id="pipeline-123",
@@ -97,7 +99,9 @@ class TestFormatPipeline:
         from flext_cli.client import Pipeline, PipelineConfig
 
         pipeline_config = PipelineConfig(
-            name="data-pipeline", tap="tap-postgres", target="target-snowflake",
+            name="data-pipeline",
+            tap="tap-postgres",
+            target="target-snowflake",
         )
         pipeline = Pipeline(
             id="pipeline-456",
@@ -134,7 +138,9 @@ class TestFormatPipeline:
         from flext_cli.client import Pipeline, PipelineConfig
 
         empty_config = PipelineConfig(
-            name="empty-pipeline", tap="tap-none", target="target-none",
+            name="empty-pipeline",
+            tap="tap-none",
+            target="target-none",
         )
         pipeline = Pipeline(
             id="pipeline-empty",
@@ -168,7 +174,9 @@ class TestFormatPipeline:
 
         # Create proper pipeline config
         pipeline_config = PipelineConfig(
-            name="incomplete-pipeline", tap="tap-csv", target="target-csv",
+            name="incomplete-pipeline",
+            tap="tap-csv",
+            target="target-csv",
         )
 
         # Create pipeline with all required fields
@@ -689,7 +697,9 @@ class TestOutputErrorHandling:
 
         # Create pipeline config for edge case
         config = PipelineConfig(
-            name="malformed-pipeline", tap="tap-unknown", target="target-unknown",
+            name="malformed-pipeline",
+            tap="tap-unknown",
+            target="target-unknown",
         )
 
         # Create pipeline with potentially problematic data

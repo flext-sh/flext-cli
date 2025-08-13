@@ -23,9 +23,13 @@ def _compute_default_base_url() -> str | None:
     try:
         mod = importlib.import_module("flext_core.constants")
         constants = getattr(mod, "FlextConstants", None)
-        platform = getattr(constants, "Platform", None) if constants is not None else None
+        platform = (
+            getattr(constants, "Platform", None) if constants is not None else None
+        )
         host = getattr(platform, "DEFAULT_HOST", None) if platform is not None else None
-        port = getattr(platform, "FLEXT_API_PORT", None) if platform is not None else None
+        port = (
+            getattr(platform, "FLEXT_API_PORT", None) if platform is not None else None
+        )
         if host and port:
             return f"http://{host}:{port}"
         return None

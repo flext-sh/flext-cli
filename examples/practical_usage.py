@@ -121,7 +121,10 @@ def example_3_database_management() -> None:
     min_username_length = 2
 
     def validate_db_params(
-        host: str, port: str, database: str, username: str,
+        host: str,
+        port: str,
+        database: str,
+        username: str,
     ) -> FlextResult[None]:
         """Validate database connection parameters."""
         if not host or len(host) < min_host_length:
@@ -216,7 +219,9 @@ def example_4_advanced_features() -> None:
     )
 
     def validate_advanced_inputs(
-        email: str, token: str, ipv6_addr: str,
+        email: str,
+        token: str,
+        ipv6_addr: str,
     ) -> FlextResult[None]:
         """Validate advanced input parameters."""
         # Constants for validation
@@ -290,7 +295,9 @@ def example_4_advanced_features() -> None:
         # Use different formatting based on request
         if format_type == "table":
             table_result = flext_cli_table(
-                report_data.get("services", []), "System Report", "grid",
+                report_data.get("services", []),
+                "System Report",
+                "grid",
             )
             result = str(table_result.unwrap() if table_result.success else "No data")
         elif format_type == "json":

@@ -697,14 +697,16 @@ def cli_run_command(
                 )
                 try:
                     stdout_b, stderr_b = await asyncio.wait_for(
-                        proc.communicate(), timeout=timeout
+                        proc.communicate(),
+                        timeout=timeout,
                     )
                 except TimeoutError:
                     with contextlib.suppress(ProcessLookupError):
                         proc.kill()
                     await proc.wait()
                     # Propagate a standard timeout error (no subprocess exceptions)
-                    raise TimeoutError(f"Command timed out after {timeout}s")
+                    message = f"Command timed out after {timeout}s"
+                    raise TimeoutError(message) from None
                 stdout_s = (
                     stdout_b.decode("utf-8", errors="replace") if stdout_b else None
                 )
@@ -725,13 +727,11 @@ def cli_run_command(
                 and isinstance(result_dict.get("returncode"), int)
                 and result_dict["returncode"] != 0
             ):
-                error_message = (
-                    f"Command failed with exit code {result_dict['returncode']}: {' '.join(cmd_list)}"
-                )
+                error_message = f"Command failed with exit code {result_dict['returncode']}: {' '.join(cmd_list)}"
             else:
                 result_payload = result_dict
     except TimeoutError as e:
-        error_message = str(e) if str(e) else f"Command timed out after {timeout}s"
+        error_message = str(e) or f"Command timed out after {timeout}s"
     except Exception as e:
         error_message = f"Command execution failed: {e}"
 

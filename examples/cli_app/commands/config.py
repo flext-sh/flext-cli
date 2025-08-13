@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
+
 # No subprocess usage in examples; avoid external process management
 from pathlib import Path
 from typing import TYPE_CHECKING
