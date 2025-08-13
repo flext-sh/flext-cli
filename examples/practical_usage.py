@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import re
 
+from flext_core import ServiceResult as FlextResult
+
 from flext_cli import (
     CLIConfig,  # available CLI config
     CLISettings,  # available CLI settings
@@ -21,7 +23,6 @@ from flext_cli import (
     format_output,  # available formatter function
     setup_cli,  # available CLI setup function
 )
-from flext_core import ServiceResult as FlextResult
 
 # Constants
 MAX_PORT_NUMBER = 65535

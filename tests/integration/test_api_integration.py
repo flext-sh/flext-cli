@@ -9,9 +9,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core.result import FlextResult
+
 from flext_cli.api import FlextCliApi
 from flext_cli.domain.entities import CLICommand, CommandType
-from flext_core.result import FlextResult
 
 
 class TestFlextCliApiIntegration:

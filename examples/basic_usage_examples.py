@@ -20,6 +20,8 @@ SPDX-License-Identifier: MIT
 
 from pathlib import Path
 
+from flext_core import FlextResult
+
 # Import FlextCli library - everything from root namespace
 from flext_cli import (
     FlextCliHelper,
@@ -36,7 +38,6 @@ from flext_cli import (
     flext_cli_save_file,
     flext_cli_validate_all,
 )
-from flext_core import FlextResult
 
 
 def example_1_zero_boilerplate_setup() -> None:

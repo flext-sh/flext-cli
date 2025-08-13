@@ -11,9 +11,10 @@ import asyncio
 from unittest.mock import Mock, patch
 
 import pytest
-from flext_cli.core.base import CLIContext, handle_service_result
 from flext_core.result import FlextResult
 from pydantic import ValidationError
+
+from flext_cli.core.base import CLIContext, handle_service_result
 
 # Constants
 EXPECTED_DATA_COUNT = 3

@@ -11,6 +11,7 @@ import asyncio
 from typing import TYPE_CHECKING
 
 import click
+
 from flext_cli.client import FlextApiClient
 from flext_cli.utils.auth import clear_auth_tokens, get_auth_token, save_auth_token
 

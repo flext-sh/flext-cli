@@ -11,6 +11,7 @@ from pathlib import Path
 
 import click
 import pytest
+
 from flext_cli.core.types import (
     URL,
     ClickPath,

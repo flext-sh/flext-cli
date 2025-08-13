@@ -16,6 +16,7 @@ from unittest.mock import patch
 
 import pytest
 from click.testing import CliRunner
+
 from flext_cli.cli import cli
 from flext_cli.domain.cli_context import CLIContext, CLIExecutionContext
 from flext_cli.domain.cli_services import CLICommandService, CLISessionService
@@ -292,8 +293,9 @@ class TestCLISessionEntityIntegration:
 
     def test_session_context_integration(self) -> None:
         """Test session integrates with CLI context."""
-        from flext_cli.config import CLISettings, get_config
         from rich.console import Console
+
+        from flext_cli.config import CLISettings, get_config
 
         session = CLISession(id=str(uuid.uuid4()), session_id="test-context")
 
@@ -526,8 +528,9 @@ class TestCLIContextIntegration:
 
     def test_cli_context_with_commands(self) -> None:
         """Test CLIContext integrates with command execution."""
-        from flext_cli.config import CLISettings, get_config
         from rich.console import Console
+
+        from flext_cli.config import CLISettings, get_config
 
         # Create proper CLI context (SOLID: Dependency Injection)
         config = get_config()
@@ -585,8 +588,9 @@ class TestCLIContextIntegration:
 
     def test_context_with_file_operations(self) -> None:
         """Test context with file-based operations."""
-        from flext_cli.config import CLISettings, get_config
         from rich.console import Console
+
+        from flext_cli.config import CLISettings, get_config
 
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create proper CLI context (SOLID: Dependency Injection)

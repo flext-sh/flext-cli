@@ -12,6 +12,9 @@ from __future__ import annotations
 import time
 from datetime import datetime
 
+from flext_core.constants import FlextConstants
+from rich.console import Console
+
 from flext_cli.types import (
     FlextCliCommand,
     FlextCliCommandStatus,
@@ -28,8 +31,6 @@ from flext_cli.types import (
     TCliHandler,
     TCliPath,
 )
-from flext_core.constants import FlextConstants
-from rich.console import Console
 
 # Constants
 _API = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"

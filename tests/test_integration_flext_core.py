@@ -14,6 +14,8 @@ from datetime import datetime
 from unittest.mock import patch
 
 import pytest
+from flext_core import FlextResult
+
 from flext_cli.config import CLISettings, get_config, get_settings
 from flext_cli.core.base import CLIContext
 from flext_cli.domain.cli_context import CLIExecutionContext
@@ -29,7 +31,6 @@ from flext_cli.domain.entities import (
     SessionStatus,
 )
 from flext_cli.simple_api import setup_cli
-from flext_core import FlextResult
 
 
 class TestFlextCoreFlextResultIntegration:

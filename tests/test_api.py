@@ -10,6 +10,9 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
+from flext_core.result import FlextResult
+from rich.table import Table
+
 from flext_cli.api import (
     flext_cli_aggregate_data,
     flext_cli_batch_export,
@@ -20,8 +23,6 @@ from flext_cli.api import (
     flext_cli_unwrap_or_default,
     flext_cli_unwrap_or_none,
 )
-from flext_core.result import FlextResult
-from rich.table import Table
 
 # Constants
 EXPECTED_BULK_SIZE = 2

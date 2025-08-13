@@ -13,6 +13,8 @@ from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
 import pytest
+from flext_core.constants import FlextConstants
+
 from flext_cli.core.decorators import (
     async_command,
     confirm_action,
@@ -22,7 +24,6 @@ from flext_cli.core.decorators import (
     validate_config,
     with_spinner,
 )
-from flext_core.constants import FlextConstants
 
 # Constants
 EXPECTED_BULK_SIZE = 2

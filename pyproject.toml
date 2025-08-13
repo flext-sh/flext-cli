@@ -36,12 +36,8 @@ dependencies = [
     "structlog>=25.4.0",
     "tabulate>=0.9.0",
 
-    "client-a-oud-mig @ file:///home/marlonsc/flext/client-a-oud-mig",
-    "flext-api @ file:///home/marlonsc/flext/flext-api",
-    "flext-core @ file:///home/marlonsc/flext/flext-core",
-    "flext-meltano @ file:///home/marlonsc/flext/flext-meltano", 
-    "flext-observability @ file:///home/marlonsc/flext/flext-observability",
-    "client-b-meltano-native @ file:///home/marlonsc/flext/client-b-meltano-native",
+    # Local workspace packages are defined under [tool.poetry.dependencies.*]
+    "toml (>=0.10.2,<0.11.0)",
 ]
 keywords = [
     "async",
@@ -107,6 +103,31 @@ flext = "flext_cli.cli:main"
 [tool.poetry]
 packages = [{ include = "flext_cli", from = "src" }]
 
+# Local workspace dependencies (path-based)
+[tool.poetry.dependencies.client-a-oud-mig]
+path = "../client-a-oud-mig"
+develop = true
+
+[tool.poetry.dependencies.flext-api]
+path = "../flext-api"
+develop = true
+
+[tool.poetry.dependencies.flext-core]
+path = "../flext-core"
+develop = true
+
+[tool.poetry.dependencies.flext-meltano]
+path = "../flext-meltano"
+develop = true
+
+[tool.poetry.dependencies.flext-observability]
+path = "../flext-observability"
+develop = true
+
+[tool.poetry.dependencies.client-b-meltano-native]
+path = "../client-b-meltano-native"
+develop = true
+
 [tool.poetry.group.dev.dependencies]
 aiohttp = ">=3.12.14"
 docker = ">=7.1.0"
@@ -114,6 +135,7 @@ ldap3 = ">=2.9.1"
 numpy = ">=2.3.2"
 psycopg2 = ">=2.9.10"
 redis = ">=5.0.0"
+pytest = "^8.4.1"
 
 [tool.bandit]
 extend = "../.bandit-shared.toml"
@@ -235,7 +257,7 @@ warn_required_dynamic_aliases = true
 warn_untyped_fields = true
 
 [tool.pytest.ini_options]
-minversion = "6.0"
+minversion = "8.0"
 addopts = "-ra -q --strict-markers --strict-config"
 testpaths = ["tests"]
 markers = [
@@ -246,7 +268,7 @@ markers = [
 
 [tool.ruff]
 extend = "../.ruff-shared.toml"
-lint.isort.known-first-party = ["flext-cli"]
+lint.isort.known-first-party = ["flext_cli"]
 
 [tool.vulture]
 extend = "../.vulture-shared.toml"

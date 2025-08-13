@@ -94,9 +94,10 @@ import json
 from typing import TYPE_CHECKING
 
 import click
+from rich.progress import Progress, SpinnerColumn, TextColumn
+
 from flext_cli.client import FlextApiClient
 from flext_cli.utils.output import format_plugin_list
-from rich.progress import Progress, SpinnerColumn, TextColumn
 
 if TYPE_CHECKING:
     from rich.console import Console

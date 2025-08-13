@@ -6,9 +6,7 @@ Exposes `config` click group matching previous commands/config.py behavior.
 from __future__ import annotations
 
 import json
-import subprocess
 from pathlib import Path
-from shutil import which
 
 import click
 import yaml
@@ -167,22 +165,11 @@ def edit(ctx: click.Context) -> None:
     if not cfg:
         ctx.exit(1)
     cfg_path = getattr(cfg, "config_file", Path.home() / ".flext" / "config.yaml")
-    try:
-        # Use classmethod style so tests can patch Path.mkdir
-        Path.mkdir(cfg_path.parent, parents=True, exist_ok=True)
-        if not cfg_path.exists():
-            with cfg_path.open("w", encoding="utf-8") as f:
-                f.write(yaml.dump({"debug": False, "timeout": 30}))
-        # Simulated editor invocation (safe, fixed command)
-        editor = which("true") or "true"
-        try:
-            # Fixed executable without user input; no untrusted args
-            subprocess.run([editor], check=True)  # noqa: S603
-        except subprocess.CalledProcessError as e:  # pragma: no cover - simulated
-            console.print(str(e))
-            ctx.exit(1)
+    # Use classmethod style so tests can patch Path.mkdir
+    Path.mkdir(cfg_path.parent, parents=True, exist_ok=True)
+    if not cfg_path.exists():
+        with cfg_path.open("w", encoding="utf-8") as f:
+            f.write(yaml.dump({"debug": False, "timeout": 30}))
 
-        console.print(f"Edited {cfg_path}")
-    except Exception as e:  # noqa: BLE001
-        console.print(str(e))
-        ctx.exit(1)
+    # Em ambiente controlado de exemplo, evite abrir editor; informe caminho
+    console.print(f"Config file ready at: {cfg_path}")

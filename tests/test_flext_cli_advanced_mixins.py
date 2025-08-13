@@ -20,6 +20,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from flext_core import FlextResult
+from rich.console import Console
+
 from flext_cli.core.mixins import (
     FlextCliAdvancedMixin,
     FlextCliBasicMixin,
@@ -36,8 +39,6 @@ from flext_cli.core.mixins import (
     flext_cli_with_progress,
     flext_cli_zero_config,
 )
-from flext_core import FlextResult
-from rich.console import Console
 
 
 class TestFlextCliValidationMixin:

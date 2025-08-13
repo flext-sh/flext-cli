@@ -68,6 +68,9 @@ from __future__ import annotations
 import sys
 
 import click
+from flext_core import FlextUtilities, get_flext_container
+from rich.console import Console
+
 from flext_cli.__version__ import __version__
 from flext_cli.commands import (  # pipeline and plugin don't exist yet
     auth,
@@ -77,8 +80,6 @@ from flext_cli.commands import (  # pipeline and plugin don't exist yet
 from flext_cli.commands.projects import client-a, client-b, meltano
 from flext_cli.domain import CLIServiceContainer
 from flext_cli.utils.config import CLISettings, get_config
-from flext_core import FlextUtilities, get_flext_container
-from rich.console import Console
 
 
 @click.group(

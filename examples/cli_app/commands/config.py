@@ -8,16 +8,15 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-import os
-import shlex
 import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import click
 import yaml
-from flext_cli.utils.config import parse_config_value, set_config_attribute
 from rich.table import Table
+
+from flext_cli.utils.config import parse_config_value, set_config_attribute
 
 if TYPE_CHECKING:
     from flext_cli.domain.cli_context import CLIContext
@@ -238,7 +237,7 @@ def edit(ctx: click.Context, _profile: str | None) -> None:
 
     config_dir = cli_context.config.config_dir
     config_file = config_dir / "config.yaml"
-    editor = os.environ.get("EDITOR", "vim")
+    # Note: In example context we do not launch editors
 
     try:
         # Ensure config directory exists
@@ -256,12 +255,9 @@ def edit(ctx: click.Context, _profile: str | None) -> None:
 
             cli_context.print_info(f"Created default configuration at {config_file}")
 
-        # Use shell=False and validate editor for security
-        editor_cmd = shlex.split(editor)
-        # S603: Safe subprocess call - using shell=False and validated input
-        subprocess.run([*editor_cmd, str(config_file)], check=True)  # noqa: S603 - Safe subprocess call with validated editor
-        cli_context.print_success("Configuration updated")
-        cli_context.print_info("Restart CLI to apply changes")
+        # For security compliance in examples, do not spawn editors.
+        cli_context.print_info(f"Edit this file with your editor: {config_file}")
+        cli_context.print_success("Configuration file is ready for editing")
 
     except subprocess.CalledProcessError:
         cli_context.print_error("Editor exited with error")

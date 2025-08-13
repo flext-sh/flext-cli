@@ -17,6 +17,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import click
 import pytest
 from click.testing import CliRunner
+from flext_core.constants import FlextConstants
+from rich.console import Console
+from rich.table import Table
+
 from flext_cli.commands.debug import (
     connectivity,
     debug_cmd,
@@ -26,9 +30,6 @@ from flext_cli.commands.debug import (
     trace,
     validate,
 )
-from flext_core.constants import FlextConstants
-from rich.console import Console
-from rich.table import Table
 
 # Constants
 EXPECTED_DATA_COUNT = 3
@@ -110,6 +111,7 @@ class TestConnectivityCommand:
 
         # Import and call command using Click runner
         from click.testing import CliRunner
+
         from flext_cli.commands.debug import connectivity
 
         runner = CliRunner()

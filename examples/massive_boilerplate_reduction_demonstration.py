@@ -21,6 +21,8 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from flext_core import FlextResult
+
 from flext_cli.core.mixins import FlextCliAdvancedMixin, flext_cli_zero_config
 from flext_cli.core.utils import (
     flext_cli_batch_execute,
@@ -28,7 +30,6 @@ from flext_cli.core.utils import (
     flext_cli_quick_setup,
     flext_cli_save_file,
 )
-from flext_core import FlextResult
 
 
 def demonstrate_example_1_user_registration() -> None:
@@ -159,7 +160,10 @@ def traditional_register_user(email: str, name: str, config_file: str):
 
     class UserRegistration(FlextCliAdvancedMixin):
         def register_user(
-            self, email: str, name: str, config_file: str,
+            self,
+            email: str,
+            name: str,
+            config_file: str,
         ) -> FlextResult[dict[str, object]]:
             """Register user with complete validation, confirmation, and file handling."""
             inputs = {"email": (email, "email"), "config_file": (config_file, "file")}
@@ -178,7 +182,10 @@ def traditional_register_user(email: str, name: str, config_file: str):
 
     # Create temporary config file for demo
     with tempfile.NamedTemporaryFile(
-        encoding="utf-8", mode="w", suffix=".json", delete=False,
+        encoding="utf-8",
+        mode="w",
+        suffix=".json",
+        delete=False,
     ) as f:
         json.dump({"app": "flext-demo", "version": "1.0"}, f)
         temp_config = f.name
@@ -186,7 +193,9 @@ def traditional_register_user(email: str, name: str, config_file: str):
     try:
         # Single method call handles everything
         result = registration.register_user(
-            "demo@example.com", "Demo User", temp_config,
+            "demo@example.com",
+            "Demo User",
+            temp_config,
         )
         print(f"\n✅ RESULT: {result.success}")
         if result.success:
@@ -374,7 +383,9 @@ def traditional_process_data_pipeline(input_file: str, output_file: str):
 
     class DataProcessor(FlextCliAdvancedMixin):
         def process_complete_pipeline(
-            self, input_file: str, output_file: str,
+            self,
+            input_file: str,
+            output_file: str,
         ) -> FlextResult[dict[str, Any]]:
             """Complete data processing pipeline with automatic workflow handling."""
             # Define processing workflow - replaces 100+ lines of manual steps
@@ -388,7 +399,9 @@ def traditional_process_data_pipeline(input_file: str, output_file: str):
 
             # Execute complete pipeline - single call replaces entire manual implementation
             return self.flext_cli_process_data_workflow(
-                {}, workflow_steps, show_progress=True,
+                {},
+                workflow_steps,
+                show_progress=True,
             )
 
         def _load_data(self, input_file: str) -> FlextResult[object]:
@@ -415,13 +428,19 @@ def traditional_process_data_pipeline(input_file: str, output_file: str):
 
     # Create temporary input file for demo
     with tempfile.NamedTemporaryFile(
-        encoding="utf-8", mode="w", suffix=".json", delete=False,
+        encoding="utf-8",
+        mode="w",
+        suffix=".json",
+        delete=False,
     ) as f:
         json.dump({"users": [{"name": "John", "email": "john@example.com"}]}, f)
         temp_input = f.name
 
     with tempfile.NamedTemporaryFile(
-        encoding="utf-8", mode="w", suffix=".json", delete=False,
+        encoding="utf-8",
+        mode="w",
+        suffix=".json",
+        delete=False,
     ) as f:
         temp_output = f.name
 
@@ -664,7 +683,9 @@ def traditional_batch_file_operations(files: list[str]):
         ]
 
         return flext_cli_batch_execute(
-            operations, stop_on_first_error=False, show_progress=True,
+            operations,
+            stop_on_first_error=False,
+            show_progress=True,
         )
 
     # Usage demonstration (5 lines total)
@@ -837,7 +858,11 @@ def traditional_send_notification(email: str, message: str, config_file: str, pr
             validate_inputs={"email": "email", "config_file": "file"},
         )
         def send_notification(
-            self, email: str, message: str, config_file: str, priority: str = "normal",
+            self,
+            email: str,
+            message: str,
+            config_file: str,
+            priority: str = "normal",
         ) -> FlextResult[dict[str, Any]]:
             """Send notification with automatic validation, confirmation, and error handling."""
             # Load and minimally validate config to ensure it's actually used
@@ -854,10 +879,14 @@ def traditional_send_notification(email: str, message: str, config_file: str, pr
                 else "unknown"
             )
 
+            # Truncate long messages for display
+            MAX_MESSAGE_DISPLAY_LENGTH = 20
             return FlextResult.ok(
                 {
                     "sent_to": email,
-                    "message": (message[:20] + "...") if len(message) > 20 else message,
+                    "message": (message[:MAX_MESSAGE_DISPLAY_LENGTH] + "...")
+                    if len(message) > MAX_MESSAGE_DISPLAY_LENGTH
+                    else message,
                     "priority": priority,
                     "status": "sent",
                     "smtp_server": smtp_server,
@@ -869,10 +898,14 @@ def traditional_send_notification(email: str, message: str, config_file: str, pr
 
     # Create temporary config for demo
     with tempfile.NamedTemporaryFile(
-        encoding="utf-8", mode="w", suffix=".json", delete=False,
+        encoding="utf-8",
+        mode="w",
+        suffix=".json",
+        delete=False,
     ) as f:
         json.dump(
-            {"smtp_server": "smtp.example.com", "smtp_port": 587, "username": "demo"}, f,
+            {"smtp_server": "smtp.example.com", "smtp_port": 587, "username": "demo"},
+            f,
         )
         temp_config = f.name
 
@@ -1105,11 +1138,16 @@ cover/
     print("\n--- AFTER: FlextCli Implementation (2 lines) ---")
 
     def setup_project(
-        project_name: str, *, with_git: bool = True,
+        project_name: str,
+        *,
+        with_git: bool = True,
     ) -> FlextResult[dict[str, Any]]:
         """Complete project setup with directories, config files, and git initialization."""
         return flext_cli_quick_setup(
-            project_name, create_dirs=True, create_config=True, init_git=with_git,
+            project_name,
+            create_dirs=True,
+            create_config=True,
+            init_git=with_git,
         )
 
     # Usage demonstration (2 lines total)

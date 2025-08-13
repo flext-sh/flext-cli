@@ -22,6 +22,8 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
+from flext_core import FlextResult
+
 from flext_cli.core.helpers import (
     FlextCliDataProcessor,
     FlextCliFileManager,
@@ -31,7 +33,6 @@ from flext_cli.core.helpers import (
     flext_cli_create_file_manager,
     flext_cli_create_helper,
 )
-from flext_core import FlextResult
 
 
 class TestFlextCliHelper:

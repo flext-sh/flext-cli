@@ -13,6 +13,10 @@ from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import pytest
+from flext_core import FlextResult
+from flext_core.constants import FlextConstants
+from rich.console import Console
+
 from flext_cli.config import CLIConfig
 from flext_cli.domain import (
     CLICommand,
@@ -21,9 +25,6 @@ from flext_cli.domain import (
     CLISession,
     CommandType,
 )
-from flext_core import FlextResult
-from flext_core.constants import FlextConstants
-from rich.console import Console
 
 if TYPE_CHECKING:
     from collections.abc import Generator

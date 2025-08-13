@@ -22,9 +22,10 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-import flext_cli
 from rich.console import Console
 from rich.table import Table
+
+import flext_cli
 
 
 def demonstrate_cli_commands() -> None:

@@ -1,0 +1,20 @@
+
+Data Analysis
+=============
+Total Records: 2
+Columns: 2
+
+Column Details:
+--------------------------------------------------
+id:
+  Non-null: 2
+  Null: 0
+  Types: int
+  Min: 1
+  Max: 2
+  Mean: 1.50
+
+name:
+  Non-null: 2
+  Null: 0
+  Types: str

@@ -21,6 +21,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
+from flext_core import FlextResult
+from rich.console import Console
+from rich.table import Table
+
 from flext_cli.core.utils import (
     flext_cli_auto_config,
     flext_cli_batch_execute,
@@ -32,9 +36,6 @@ from flext_cli.core.utils import (
     flext_cli_save_file,
     flext_cli_validate_all,
 )
-from flext_core import FlextResult
-from rich.console import Console
-from rich.table import Table
 
 
 class TestFlextCliQuickSetup:

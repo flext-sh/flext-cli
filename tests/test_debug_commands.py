@@ -18,9 +18,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import click
 from click.testing import CliRunner
-from flext_cli.commands.debug import debug_cmd
 from flext_core.constants import FlextConstants
 from rich.table import Table
+
+from flext_cli.commands.debug import debug_cmd
 
 
 class TestDebugCommands:
@@ -177,11 +178,11 @@ class TestDebugCommands:
 
     def test_env_command_with_vars(self) -> None:
         """Test env command with FLEXT variables."""
-        _api = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
+        api = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
         with patch.dict(
             os.environ,
             {
-                "FLX_API_URL": _api,
+                "FLX_API_URL": api,
                 "FLX_TOKEN": "secret123456",
                 "FLX_DEBUG": "true",
                 "OTHER_VAR": "not_flext",

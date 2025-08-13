@@ -19,9 +19,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import flext_cli
 from flext_core.result import FlextResult
 from rich.console import Console
+
+import flext_cli
 
 
 def demonstrate_configuration() -> None:

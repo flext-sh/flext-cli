@@ -21,6 +21,8 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from flext_core import FlextResult
+
 from flext_cli import (
     FlextCliAdvancedMixin,
     FlextCliDataProcessor,
@@ -29,7 +31,6 @@ from flext_cli import (
     flext_cli_with_progress,
     flext_cli_zero_config,
 )
-from flext_core import FlextResult
 
 if TYPE_CHECKING:
     from rich.console import Console

@@ -405,14 +405,15 @@ def demonstrate_working_examples() -> bool | None:
         # Example 1: Basic command
         import uuid
 
-        from flext_cli import FlextCliEntity
         from flext_core import FlextResult
+
+        from flext_cli import FlextCliEntity
 
         class DemoCommand(FlextCliEntity):
             name: str = "demo"
             description: str = "Live demonstration command"
 
-            def execute(self):
+            def execute(self) -> object:
                 return FlextResult.ok(f"✓ Command '{self.name}' executed successfully!")
 
         cmd = DemoCommand(name="demo", id=str(uuid.uuid4()))
@@ -440,7 +441,10 @@ def demonstrate_working_examples() -> bool | None:
         from flext_cli import flext_cli_load_json, flext_cli_save_data
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", suffix=".json", delete=False,
+            encoding="utf-8",
+            mode="w",
+            suffix=".json",
+            delete=False,
         ) as f:
             demo_data = {"name": "FlextCli Demo", "version": "1.0", "working": True}
             temp_path = f.name

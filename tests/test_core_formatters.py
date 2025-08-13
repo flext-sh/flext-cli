@@ -10,6 +10,8 @@ from __future__ import annotations
 import io
 
 import pytest
+from rich.console import Console
+
 from flext_cli.core.formatters import (
     CSVFormatter,
     FormatterFactory,
@@ -19,7 +21,6 @@ from flext_cli.core.formatters import (
     YAMLFormatter,
     format_output,
 )
-from rich.console import Console
 
 
 class TestTableFormatter:

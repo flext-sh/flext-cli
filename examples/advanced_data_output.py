@@ -13,12 +13,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from flext_core import ServiceResult as FlextResult
+from rich.console import Console
+
 from flext_cli.api import (
     FlextCliApi,
     flext_cli_export,
 )
-from flext_core import ServiceResult as FlextResult
-from rich.console import Console
 
 try:
     from tabulate import tabulate
