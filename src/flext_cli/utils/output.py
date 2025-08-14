@@ -175,7 +175,9 @@ def format_yaml(data: object) -> str:
     if data is None:
         return "null"
     dumped = _yaml.dump(data, default_flow_style=False)
-    return dumped.replace("\n...\n", "\n").strip()
+    # Ensure we have a string - yaml.dump returns str
+    dumped_str = str(dumped)
+    return dumped_str.replace("\n...\n", "\n").strip()
 
 
 __all__ = [

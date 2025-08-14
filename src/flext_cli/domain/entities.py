@@ -6,7 +6,9 @@ provides small factory helpers to create valid instances for testing.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from enum import StrEnum
+import datetime as _datetime  # exposed for tests to patch
 
 from flext_core import FlextResult
 

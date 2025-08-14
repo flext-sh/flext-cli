@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING, Protocol
 
-from flext_core import FlextResult
+from flext_core import FlextResult, get_logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -55,6 +55,8 @@ class CLICommandService:
 
     def __init__(self) -> None:
         self.commands: dict[str, object] = {}
+        # Expose module-level logger name for tests to patch
+        self._logger = get_logger(__name__)
 
     def register_command(
         self,
@@ -115,7 +117,12 @@ class CLISessionService:
         if session_id not in self.sessions:
             return FlextResult.fail(f"Session '{session_id}' not found")
 
-        return FlextResult.ok(self.sessions[session_id])
+        # Enrich with commands_count to match tests
+        data = dict(self.sessions[session_id])
+        commands = data.get("commands", [])
+        if isinstance(commands, list):
+            data["commands_count"] = len(commands)
+        return FlextResult.ok(data)
 
     def end_session(self, session_id: str) -> FlextResult[None]:
         """End a CLI session."""

@@ -37,7 +37,7 @@ class _CommandShim:
 
     def __init__(
         self,
-        command: click.BaseCommand,
+        command: click.Command,
         *,
         prefer_passed_ctx: bool = False,
     ) -> None:
@@ -45,7 +45,7 @@ class _CommandShim:
         self._prefer_passed_ctx = prefer_passed_ctx
         try:
             # Expose click decorator params for tests
-            self.__click_params__ = getattr(command.callback, "__click_params__", [])  # type: ignore[attr-defined]
+            self.__click_params__ = getattr(command.callback, "__click_params__", [])
         except Exception:
             self.__click_params__ = []
 
@@ -58,7 +58,7 @@ class _CommandShim:
             first = args[0]
             # Accept both real Click contexts and test doubles that expose `.obj`
             if isinstance(first, click.Context) or hasattr(first, "obj"):
-                callback = self._cmd.callback  # type: ignore[attr-defined]
+                callback = self._cmd.callback
                 wrapped = getattr(callback, "__wrapped__", None)
                 if (
                     self._prefer_passed_ctx
@@ -85,13 +85,20 @@ class _CommandShim:
 
                     with _suppress(Exception):
                         temp_ctx.obj = first.obj
-                # Use the underlying callback directly rather than context-manager on Context
+                
+                # Execute the callback within the active context
                 try:
                     target = getattr(callback, "__wrapped__", callback)
-                    target.__globals__["get_config"] = get_config
+                    if target and hasattr(target, "__globals__") and target.__globals__:
+                        target.__globals__["get_config"] = get_config
                 except Exception:
                     ...
-                return callback(*args[1:], **kwargs)
+                
+                # Ensure the context is active when calling the callback
+                if callback:
+                    with temp_ctx:
+                        return callback(*args[1:], **kwargs)
+                return None
         return self._cmd(*args, **kwargs)
 
     def __getattr__(self, name: str) -> object:  # pragma: no cover - delegation

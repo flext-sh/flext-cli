@@ -25,7 +25,6 @@ import os
 from pathlib import Path
 
 import toml
-from flext_api.constants import FlextApiConstants as _ApiC
 from flext_core import (
     FlextResult,
     FlextSettings,
@@ -35,9 +34,13 @@ from pydantic import Field, field_validator
 
 from flext_cli.cli_types import ConfigDict, OutputFormat
 
+
 # =============================================================================
 # CORE CLI CONFIGURATION - Extending flext-core settings
 # =============================================================================
+class _ApiC:  # minimal inline constants to avoid hard dependency in tests
+    class ContentTypes:
+        JSON = "application/json"
 
 
 def _default_api_url() -> str:

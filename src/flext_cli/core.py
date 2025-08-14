@@ -392,6 +392,7 @@ class FlextCliService(FlextService):
             entity_id = FlextUtilities.generate_entity_id()
             command = FlextCliCommand(
                 id=entity_id,
+                name=name,
                 command_line=command_line,
             )
             self._commands[name] = command

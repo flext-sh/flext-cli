@@ -41,6 +41,8 @@ class FlextCliValidationMixin:
     def __init__(self) -> None:
         """Initialize the mixin."""
         self._flext_cli_helper = FlextCliHelper()
+        # Legacy alias used in tests
+        self._helper = self._flext_cli_helper
         self._input_validators: dict[str, Callable[[str, object], FlextResult[str]]] = {
             "email": self._validate_email_input,
             "url": self._validate_url_input,
@@ -116,14 +118,13 @@ class FlextCliValidationMixin:
     ) -> FlextResult[bool]:
         """Request user confirmation, with additional emphasis for dangerous actions."""
         prompt = f"[bold red]{message}[/bold red]" if dangerous else message
-        res = self._flext_cli_helper.flext_cli_confirm(prompt)
+        res = self._helper.flext_cli_confirm(prompt)
         if res.is_failure:
             return res
-        return (
-            FlextResult.ok(True)  # noqa: FBT003
-            if res.unwrap()
-            else FlextResult.fail("Operation cancelled by user")
-        )
+        confirmed = res.unwrap()
+        if not confirmed:
+            return FlextResult.fail("Operation cancelled by user")
+        return FlextResult.ok(True)  # noqa: FBT003
 
 
 class FlextCliInteractiveMixin:
@@ -198,9 +199,23 @@ class FlextCliProgressMixin:
         """Iterate over items while displaying a simple progress indicator."""
         return list(track(items, description=description, console=self.console))
 
-    def flext_cli_with_progress(self) -> Progress:
-        """Create a Rich progress manager configured for the current console."""
-        return Progress(console=self.console)
+    def flext_cli_with_progress(self, total: int | None = None, message: str | None = None) -> Progress:
+        """Create a Rich progress manager configured for the current console.
+
+        Args:
+            total: Unused; kept for signature compatibility in tests.
+            message: Optional message to print before showing progress.
+
+        """
+        if message:
+            self.console.print(message)
+        # Some tests inject a Console mock missing get_time; create Progress with default Console
+        try:
+            return Progress(console=self.console)
+        except Exception:
+            from rich.console import Console as _Console  # noqa: PLC0415
+
+            return Progress(console=_Console())
 
 
 class FlextCliResultMixin:
@@ -349,9 +364,14 @@ class FlextCliAdvancedMixin(
     def flext_cli_handle_file_operations(
         self,
         operations: list[tuple[str, str, Callable[[str], FlextResult[str]]]],
-    ) -> FlextResult[list[dict[str, str]]]:
-        """Execute operations on files, ensuring existence and safe I/O."""
-        results: list[dict[str, str]] = []
+        *,
+        require_confirmation: bool | None = None,
+    ) -> FlextResult[list[str]]:
+        """Execute operations on files, ensuring existence and safe I/O.
+
+        Returns a list of operation summaries like "<op>_<file>" to match tests.
+        """
+        results: list[str] = []
         for op_name, path, func in operations:
             p = Path(path)
             if not p.exists():
@@ -362,7 +382,7 @@ class FlextCliAdvancedMixin(
                 if res.is_failure:
                     return FlextResult.fail(f"Operation {op_name} failed: {res.error}")
                 p.write_text(res.unwrap(), encoding="utf-8")
-                results.append({"operation": op_name, "file": path})
+                results.append(f"{op_name}_{path}")
             except Exception as e:
                 return FlextResult.fail(str(e))
         return FlextResult.ok(results)

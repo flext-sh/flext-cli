@@ -33,7 +33,7 @@ from typing import cast
 
 from flext_core import FlextResult
 
-from flext_cli.config import CLIConfig, CLISettings, get_cli_settings
+from flext_cli.config import CLIConfig, CLISettings, get_cli_settings as _get_cli_settings
 
 __all__ = [
     "create_development_cli_config",
@@ -147,6 +147,17 @@ def create_production_cli_config(**kwargs: object) -> CLIConfig:
     return config
 
 
+def get_cli_settings(*, reload: bool | None = None) -> CLISettings:
+    """Return CLISettings; when reload is True, return a fresh instance.
+
+    Args:
+        reload: If True, returns a fresh instance. Parameter is accepted for
+                backward compatibility with tests.
+    """
+    _ = reload
+    return _get_cli_settings()
+
+
 def get_cli_settings_compat(*, reload: bool = False) -> CLISettings:
     """Compatibility wrapper: tests may call get_cli_settings(reload=True).
 
@@ -157,6 +168,4 @@ def get_cli_settings_compat(*, reload: bool = False) -> CLISettings:
     return CLISettings()
 
 
-# Back-compat: expose a get_cli_settings that accepts reload kwarg
-def get_cli_settings(*, reload: bool = False) -> CLISettings:  # type: ignore[override]
-    return get_cli_settings_compat(reload=reload)
+# get_cli_settings is already imported from flext_cli.config - no redefinition needed

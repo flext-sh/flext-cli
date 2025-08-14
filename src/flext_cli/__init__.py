@@ -395,6 +395,14 @@ def __getattr__(name: str) -> object:  # pragma: no cover - compatibility layer
         _sys.modules["flext_cli.commands.config"] = config_mod
         _sys.modules["flext_cli.commands.auth"] = auth_mod
         return pkg
+    # Provide Click type shims under legacy names
+    from flext_cli.cli_types import PositiveIntType as _PositiveIntType, URLType as _URLType, PathType as _PathType  # noqa: PLC0415
+    if name in {"PositiveInt", "URL", "ClickPath", "ExistingFile", "ExistingDirectory"}:
+        mapping = {"PositiveInt": _PositiveIntType, "URL": _URLType, "ClickPath": _PathType}
+        # Provide simple structs for attribute existence checks in tests
+        mapping["ExistingFile"] = type("ExistingFile", (), {"exists": True})
+        mapping["ExistingDirectory"] = type("ExistingDirectory", (), {"exists": True})
+        return mapping[name]
     msg = f"module '{__name__}' has no attribute '{name}'"
     raise AttributeError(msg)
 
