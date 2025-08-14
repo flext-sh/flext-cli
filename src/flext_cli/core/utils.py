@@ -15,11 +15,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-# Optional import of package version to avoid local imports in functions
-try:  # pragma: no cover - version may be unavailable in some environments
-    from flext_cli.__version__ import __version__ as _cli_version
-except Exception:  # pragma: no cover - fallback value
-    _cli_version = "unknown"
+# Strict import of package version; no fallback
+from flext_cli.__version__ import __version__ as _cli_version
 
 import yaml
 from flext_core import FlextResult
@@ -154,7 +151,9 @@ def flext_cli_validate_all(
         )
 
     def _filename(v: object) -> FlextResult[str]:
-        return FlextResult.ok(str(v).replace("<", "_").replace(">", "_"))
+        name = str(v)
+        sanitized = name.replace("<", "_").replace(">", "_")
+        return FlextResult.ok(sanitized)
 
     def _int(v: object) -> FlextResult[int]:
         if isinstance(v, bool):
@@ -185,7 +184,12 @@ def flext_cli_validate_all(
         res = validate(value)
         if isinstance(res, FlextResult) and res.is_failure:
             return FlextResult.fail(f"Validation failed for {key}")
-        output[key] = res.unwrap() if isinstance(res, FlextResult) else res
+        # For path/file/dir, return Path objects per tests
+        unwrapped = res.unwrap() if isinstance(res, FlextResult) else res
+        if vtype in {"path", "file", "dir"}:
+            output[key] = Path(str(unwrapped))
+        else:
+            output[key] = unwrapped
 
     return FlextResult.ok(output)
 

@@ -215,11 +215,8 @@ def validate(ctx: click.Context) -> None:
         getattr(debug_cmd, "_validate_dependencies", _validate_dependencies)(console)
 
     # Minimal required packages check (tests patch builtins.__import__)
-    try:
-        __import__("click")
-        __import__("rich")
-    except ImportError:
-        ctx.exit(1)
+    __import__("click")
+    __import__("rich")
     # Environment info
     # Access via top-level imported platform module so tests can patch platform.*
     _ = _platform.system(), _platform.release(), _platform.machine()

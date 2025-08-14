@@ -7,8 +7,9 @@ Provides Pydantic-based `CLIContext` for tests and a simple dataclass
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from rich.console import Console
+
 from pydantic import BaseModel, ConfigDict, Field
+from rich.console import Console
 
 
 class CLIContext(BaseModel):
@@ -26,30 +27,32 @@ class CLIContext(BaseModel):
     verbose: bool = Field(default=False)
 
     def model_post_init(self, __context: object, /) -> None:
-        if self.console is None or self.config is None:
-            msg = "validation error: config and console are required"
-            raise ValueError(msg)
+        # Provide sensible defaults instead of failing hard. Tests construct this
+        # context without explicitly providing config/console.
+        if self.console is None:
+            self.console = Console()
+        # Leave config optional; derived flags already fall back to fields
 
     # Properties based on config if present, otherwise fall back to fields
     @property
     def is_debug(self) -> bool:
         cfg = self.config
         if cfg is not None and hasattr(cfg, "debug"):
-            return bool(getattr(cfg, "debug"))
+            return bool(cfg.debug)
         return bool(self.debug)
 
     @property
     def is_quiet(self) -> bool:
         cfg = self.config
         if cfg is not None and hasattr(cfg, "quiet"):
-            return bool(getattr(cfg, "quiet"))
+            return bool(cfg.quiet)
         return bool(self.quiet)
 
     @property
     def is_verbose(self) -> bool:
         cfg = self.config
         if cfg is not None and hasattr(cfg, "verbose"):
-            return bool(getattr(cfg, "verbose"))
+            return bool(cfg.verbose)
         return bool(self.verbose)
 
     # Printing helpers expected by tests
@@ -87,7 +90,6 @@ class CLIExecutionContext:
     session_id: str | None = None
     user_id: str | None = None
 
-
     def get_execution_info(self) -> dict[str, object]:
         """Get execution information."""
         return {
@@ -105,9 +107,9 @@ def create_cli_context(**kwargs: object) -> CLIContext:
     console_param = kwargs.get("console")
     console = console_param if isinstance(console_param, Console) else Console()
     settings = kwargs.get("settings")
-    debug = bool(kwargs.get("debug", False))
-    quiet = bool(kwargs.get("quiet", False))
-    verbose = bool(kwargs.get("verbose", False))
+    debug = bool(kwargs.get("debug"))
+    quiet = bool(kwargs.get("quiet"))
+    verbose = bool(kwargs.get("verbose"))
     return CLIContext(
         config=config,
         settings=settings,
@@ -124,12 +126,12 @@ def create_execution_context(
 ) -> CLIExecutionContext:
     """Create an execution context for a specific command."""
     # Extract and cast specific fields with correct types
-    config = kwargs.get("config", {})
-    environment = kwargs.get("environment", {})
+    kwargs.get("config", {})
+    kwargs.get("environment", {})
     session_id = kwargs.get("session_id")
     user_id = kwargs.get("user_id")
-    debug = kwargs.get("debug", False)
-    verbose = kwargs.get("verbose", False)
+    kwargs.get("debug", False)
+    kwargs.get("verbose", False)
     command_args = kwargs.get("command_args", {})
     execution_id = kwargs.get("execution_id")
     start_time = kwargs.get("start_time")

@@ -120,6 +120,11 @@ def flext_cli_format(data: object, format_type: str = "table") -> FlextResult[st
 
     """
     try:
+        # Validate format type first
+        valid_formats = {"json", "yaml", "table", "csv", "plain"}
+        if format_type not in valid_formats:
+            return FlextResult.fail(f"Format error: Invalid format '{format_type}'. Valid formats: {', '.join(sorted(valid_formats))}")
+
         # Simple formatting without FormatterFactory
         if format_type == "json":
             formatted = json.dumps(data, indent=2, default=str)
@@ -136,7 +141,11 @@ def flext_cli_format(data: object, format_type: str = "table") -> FlextResult[st
                 formatted = output_buffer.getvalue()
             else:
                 return FlextResult.fail(table_result.error or "Table creation failed")
+        elif format_type in {"csv", "plain"}:
+            # Handle csv and plain formats
+            formatted = str(data)
         else:
+            # This should never be reached due to validation above
             formatted = str(data)
 
         return FlextResult.ok(formatted)

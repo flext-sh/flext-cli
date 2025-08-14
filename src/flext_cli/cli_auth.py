@@ -305,7 +305,7 @@ async def _async_login_impl(
         ctx.exit(1)
 
 
-@auth.command()
+@auth.command(help="Login to FLEXT")
 @click.option("--username", "-u", prompt=True, help="Username for authentication")
 @click.option(
     "--password",
@@ -399,7 +399,7 @@ async def _async_logout_impl(_ctx: click.Context, console: Console) -> None:
         _clear_tokens_bridge()
 
 
-@auth.command()
+@auth.command(help="Logout from FLEXT")
 @click.pass_context
 def logout(ctx: click.Context) -> None:
     """Logout from FLEXT services and clear authentication tokens.
@@ -418,7 +418,7 @@ def logout(ctx: click.Context) -> None:
         _clear_tokens_bridge()
 
 
-@auth.command()
+@auth.command(help="Check authentication status")
 @click.pass_context
 def status(ctx: click.Context) -> None:
     """Check current authentication status and token validity.
@@ -479,7 +479,7 @@ def status(ctx: click.Context) -> None:
     asyncio.run(_async_status())
 
 
-@auth.command()
+@auth.command(help="Show current authenticated user")
 @click.pass_context
 def whoami(ctx: click.Context) -> None:
     """Show current authenticated user information.

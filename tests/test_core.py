@@ -538,7 +538,7 @@ class TestFlextCliService:
         with patch.object(
             core_module,
             "FlextCliCommand",
-            side_effect=Exception("Command error"),
+            side_effect=RuntimeError("Command error"),
         ):
             result = service.flext_cli_create_command("test-cmd", "echo hello")
             assert not result.success
@@ -592,7 +592,7 @@ class TestFlextCliService:
         with patch.object(
             core_module,
             "FlextCliSession",
-            side_effect=Exception("Session error"),
+            side_effect=RuntimeError("Session error"),
         ):
             result = service.flext_cli_create_session()
             assert not result.success
@@ -711,7 +711,7 @@ class TestFlextCliService:
         service = FlextCliService()
 
         def handler() -> int:
-            return 1 / 0  # Division by zero
+            raise RuntimeError("Handler error")
 
         # Register handler
         service.flext_cli_register_handler("error", handler)
@@ -719,8 +719,8 @@ class TestFlextCliService:
         # Execute handler
         result = service.flext_cli_execute_handler("error")
         assert not result.success
-        if "division by zero" not in result.error:
-            raise AssertionError(f"Expected {'division by zero'} in {result.error}")
+        if "Handler error" not in result.error:
+            raise AssertionError(f"Expected {'Handler error'} in {result.error}")
 
     def test_flext_cli_render_with_context_default(self) -> None:
         """Test rendering with default context."""

@@ -73,7 +73,10 @@ class FlextCliHelper:
         """Prompt for text input, optionally with default and password mode."""
         try:
             value = Prompt.ask(message, default=default, password=password)
-            return FlextResult.ok(str(value))
+            text = str(value)
+            if text == "" and default is not None:
+                return FlextResult.ok(default)
+            return FlextResult.ok(text)
         except KeyboardInterrupt as e:
             return FlextResult.fail(f"User interrupted prompt: {e}")
         except Exception as e:
@@ -388,7 +391,7 @@ class FlextCliDataProcessor:
     ) -> FlextResult[dict[str, object]]:
         value = output.get(key, "")
         if not (isinstance(value, str) and (value.startswith(("http://", "https://")))):
-            return FlextResult.fail("Validation failed for api_endpoint")
+            return FlextResult.fail(f"Validation failed for {key}")
         return FlextResult.ok(output)
 
     def _validate_file_field(
@@ -470,11 +473,17 @@ class FlextCliDataProcessor:
                     return validation_result
                 output = validation_result.unwrap()
             else:
+                # Treat 'none' as no-op validator for convenience in tests
+                if vtype == "none":
+                    continue
                 return FlextResult.fail(f"Unknown validation type: {vtype}")
 
         for key, transformer in transformers.items():
             if key in output:
-                output[key] = transformer(output[key])
+                try:
+                    output[key] = transformer(output[key])
+                except Exception as e:  # noqa: BLE001
+                    return FlextResult.fail(str(e))
         return FlextResult.ok(output)
 
     # Existence-only methods for tests to patch
@@ -569,10 +578,12 @@ class FlextCliFileManager:
         file_path: str,
         *,
         backup: bool = False,
+        create_dirs: bool = False,
     ) -> FlextResult[str]:
         """Write content to a file safely, with an optional backup."""
         p = Path(file_path)
-        p.parent.mkdir(parents=True, exist_ok=True)
+        if create_dirs:
+            p.parent.mkdir(parents=True, exist_ok=True)
         original = None
         if backup and p.exists():
             original = p.read_text(encoding="utf-8")

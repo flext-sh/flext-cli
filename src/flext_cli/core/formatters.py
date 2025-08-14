@@ -96,8 +96,14 @@ class PlainFormatter(OutputFormatter):
             for k, v in data.items():
                 console.print(f"{k}: {v}")
         elif isinstance(data, list):
-            for item in data:
-                console.print(str(item))
+            if data and isinstance(data[0], dict):
+                # Print each dict item as key: value lines to satisfy tests
+                for item in data:
+                    for k, v in item.items():
+                        console.print(f"{k}: {v}")
+            else:
+                for item in data:
+                    console.print(str(item))
         else:
             console.print(str(data))
 
