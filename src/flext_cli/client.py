@@ -1,9 +1,4 @@
-"""FLEXT API Client - HTTP/gRPC client for FLEXT platform communication.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
-"""
+"""FLEXT API Client."""
 
 from __future__ import annotations
 

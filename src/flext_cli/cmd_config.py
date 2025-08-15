@@ -1,7 +1,4 @@
-"""Config commands consolidated at top-level (no subpackages).
-
-Exposes `config` click group matching previous commands/config.py behavior.
-"""
+"""Config commands."""
 
 from __future__ import annotations
 

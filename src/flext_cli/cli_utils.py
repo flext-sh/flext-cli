@@ -1,24 +1,4 @@
-"""FLEXT CLI Utilities - Complete utility system consolidating all CLI utilities.
-
-This module consolidates all CLI utility functionality from multiple scattered files
-into a single, well-organized module following PEP8 naming conventions.
-
-Consolidated from:
-    - core/utils.py (workflow and automation utilities)
-    - utils/output.py (output formatting utilities)
-    - core/helpers.py (helper functions)
-    - Various utility definitions across modules
-
-Design Principles:
-    - PEP8 naming: cli_utils.py (not utils.py for clarity)
-    - Single source of truth for all CLI utilities
-    - Zero-boilerplate approach with intelligent automation
-    - Type safety with comprehensive annotations
-    - Rich console integration for beautiful output
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""FLEXT CLI Utilities."""
 
 from __future__ import annotations
 
@@ -814,16 +794,6 @@ def cli_prompt(
         return FlextResult.fail(f"Input error: {e}")
 
 
-# Legacy aliases for backward compatibility
-flext_cli_quick_setup = cli_quick_setup
-flext_cli_batch_process_files = cli_batch_process_files
-flext_cli_load_data_file = cli_load_data_file
-flext_cli_save_data_file = cli_save_data_file
-flext_cli_create_table = cli_create_table
-flext_cli_format_output = cli_format_output
-flext_cli_run_command = cli_run_command
-flext_cli_confirm = cli_confirm
-flext_cli_prompt = cli_prompt
 
 
 # =============================================================================
@@ -837,22 +807,9 @@ __all__ = [
     # Output utilities
     "cli_create_table",
     "cli_format_output",
-    # Data utilities
     "cli_load_data_file",
     "cli_prompt",
-    # Workflow utilities
     "cli_quick_setup",
-    # System utilities
     "cli_run_command",
     "cli_save_data_file",
-    "flext_cli_batch_process_files",
-    "flext_cli_confirm",
-    "flext_cli_create_table",
-    "flext_cli_format_output",
-    "flext_cli_load_data_file",
-    "flext_cli_prompt",
-    # Legacy aliases
-    "flext_cli_quick_setup",
-    "flext_cli_run_command",
-    "flext_cli_save_data_file",
 ]

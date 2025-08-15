@@ -19,8 +19,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import FlextResult
-
-from flext_cli.constants import FlextConfigSemanticConstants
+from flext_core.constants import FlextConstants
 
 
 class FlextCliArgsProvider:
@@ -37,7 +36,7 @@ class FlextCliArgsProvider:
 
     def get_priority(self) -> int:
         """Get provider priority."""
-        return FlextConfigSemanticConstants.Hierarchy.CLI_ARGS
+        return FlextConstants.Configuration.CLI_PRIORITY
 
     def get_all(self) -> dict[str, object]:
         """Get all CLI arguments."""
@@ -58,7 +57,7 @@ class FlextConstantsProvider:
 
     def get_priority(self) -> int:
         """Get provider priority."""
-        return FlextConfigSemanticConstants.Hierarchy.CONSTANTS
+        return FlextConstants.Configuration.CONSTANTS_PRIORITY
 
     def get_all(self) -> dict[str, object]:
         """Get all constants."""

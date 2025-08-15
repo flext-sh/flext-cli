@@ -1,4 +1,4 @@
-"""Top-level short-name commands aggregator."""
+"""Command aggregator."""
 
 from __future__ import annotations
 

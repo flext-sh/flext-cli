@@ -1,4 +1,4 @@
-"""Auth utilities re-export to match legacy imports in tests."""
+"""Auth utilities."""
 
 from __future__ import annotations
 

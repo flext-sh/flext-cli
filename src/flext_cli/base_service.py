@@ -1,11 +1,4 @@
-"""Base service classes extending flext-core service patterns.
-
-Provides CLI-specific service implementations that extend flext-core's
-service patterns with specialized functionality for command-line interfaces.
-
-All services use FlextResult for error handling and FlextContainer for
-dependency injection, following the established flext-core patterns.
-"""
+"""Base CLI service classes."""
 
 from __future__ import annotations
 

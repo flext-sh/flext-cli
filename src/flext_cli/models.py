@@ -1,33 +1,4 @@
-"""CLI-Specific Domain Models extending FLEXT-Core patterns.
-
-This module provides CLI-specific domain models that extend flext-core's foundational
-patterns without duplication. All models delegate to flext-core for base functionality
-while adding CLI-specific business logic and validation.
-
-Architecture:
-    - FlextEntity: Identity-based entities with lifecycle management
-    - FlextValueObject: Immutable value objects with attribute-based equality
-    - FlextAggregateRoot: DDD aggregate roots with transactional boundaries
-    - FlextResult: Railway-oriented programming for error handling
-
-CLI Models:
-    - FlextCliCommand: Command execution entity with lifecycle management
-    - FlextCliSession: CLI session tracking with command history
-    - FlextCliContext: Execution context value object
-    - FlextCliOutput: Command output value object
-    - FlextCliPlugin: Plugin management entity
-    - FlextCliConfiguration: Configuration value object
-
-Design Principles:
-    - NO DUPLICATION: All base functionality delegated to flext-core
-    - EXTENSION ONLY: CLI-specific behavior and validation
-    - CLEAN IMPORTS: Only from flext_core root module
-    - TYPE SAFETY: Comprehensive type hints with Python 3.13 features
-    - RAILWAY PATTERN: FlextResult for all business operations
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""CLI Domain Models."""
 
 from __future__ import annotations
 
@@ -35,7 +6,7 @@ import json
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from flext_core import (
     FlextAggregateRoot,
@@ -50,9 +21,6 @@ from rich.console import Console
 
 # import flext_cli.domain.entities as de  # Removed to avoid circular import
 from flext_cli.config import CLIConfig as FlextCliConfig
-
-if TYPE_CHECKING:
-    pass
 
 
 def _now_utc() -> datetime:

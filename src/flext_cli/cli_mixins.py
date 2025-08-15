@@ -1,23 +1,4 @@
-"""FLEXT CLI Mixins - Complete mixin system consolidating all CLI mixins.
-
-This module consolidates all CLI-related mixins from multiple scattered files
-into a single, well-organized module following PEP8 naming conventions.
-
-Consolidated from:
-    - mixins.py (root level)
-    - core/mixins.py (boilerplate reduction patterns)
-    - Various mixin definitions across modules
-
-Design Principles:
-    - PEP8 naming: cli_mixins.py (not mixins.py for clarity)
-    - Single source of truth for all CLI mixins
-    - Extends flext-core mixins where appropriate
-    - Eliminates duplication through proper delegation
-    - Type safety with comprehensive annotations
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""FLEXT CLI Mixins."""
 
 from __future__ import annotations
 
@@ -412,13 +393,6 @@ class CLIUIMixin(CLIOutputMixin, CLIInteractiveMixin):
         super().mixin_setup()
 
 
-# Legacy aliases for backward compatibility
-FlextCliValidationMixin = CLIValidationMixin
-FlextCliCompleteMixin = CLICompleteMixin
-FlextCliConfigMixin = CLIConfigMixin
-FlextCliDataMixin = CLIDataMixin
-FlextCliExecutionMixin = CLIExecutionMixin
-FlextCliUIMixin = CLIUIMixin
 
 
 # =============================================================================
@@ -426,7 +400,6 @@ FlextCliUIMixin = CLIUIMixin
 # =============================================================================
 
 __all__ = [
-    # Composite mixins
     "CLICompleteMixin",
     "CLIConfigMixin",
     "CLIDataMixin",
@@ -435,13 +408,5 @@ __all__ = [
     "CLILoggingMixin",
     "CLIOutputMixin",
     "CLIUIMixin",
-    # Core mixins
     "CLIValidationMixin",
-    "FlextCliCompleteMixin",
-    "FlextCliConfigMixin",
-    "FlextCliDataMixin",
-    "FlextCliExecutionMixin",
-    "FlextCliUIMixin",
-    # Legacy aliases
-    "FlextCliValidationMixin",
 ]

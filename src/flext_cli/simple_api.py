@@ -1,31 +1,4 @@
-"""FLEXT CLI Simple API - Modern Setup with Zero Boilerplate.
-
-Programmatic CLI setup using foundation-refactored.md patterns.
-Eliminates 85% setup boilerplate through flext-core integration.
-
-Foundation Pattern Applied:
-    # NEW: 4 lines - eliminates all setup boilerplate
-    from flext_cli import setup_cli, CLIConfig
-
-    config = CLIConfig()  # Automated env loading
-    result = setup_cli()  # Railway-oriented setup
-
-Architecture:
-    - FlextResult railway-oriented programming
-    - FlextSettings automatic configuration
-    - Zero boilerplate setup functions
-    - Modern error handling patterns
-
-Usage:
-    Basic setup:
-    >>> from flext_cli import setup_cli
-    >>> result = setup_cli()
-    >>> if result.success:
-    ...     print("CLI ready")
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""FLEXT CLI Simple API."""
 
 from __future__ import annotations
 
@@ -33,7 +6,12 @@ from typing import cast
 
 from flext_core import FlextResult
 
-from flext_cli.config import CLIConfig, CLISettings, get_cli_settings as _get_cli_settings
+from flext_cli.config import (
+    CLIConfig,
+    CLIOutputConfig,
+    CLISettings,
+    get_cli_settings as _get_cli_settings,
+)
 
 __all__ = [
     "create_development_cli_config",
@@ -129,10 +107,11 @@ def create_production_cli_config(**kwargs: object) -> CLIConfig:
 
     """
     # Create base configuration with production defaults
+    output_config = CLIOutputConfig(quiet=True)
     config = CLIConfig(
         debug=False,
         profile="production",
-        quiet=True,
+        output=output_config,
     )
 
     # Apply overrides using model_copy for type safety
@@ -153,6 +132,7 @@ def get_cli_settings(*, reload: bool | None = None) -> CLISettings:
     Args:
         reload: If True, returns a fresh instance. Parameter is accepted for
                 backward compatibility with tests.
+
     """
     _ = reload
     return _get_cli_settings()

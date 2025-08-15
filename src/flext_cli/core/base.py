@@ -1,8 +1,4 @@
-"""Core base compatibility for legacy tests.
-
-Provides `CLIContext` value object and `handle_service_result` decorator
-expected by legacy tests, delegating to flext-core patterns where possible.
-"""
+"""Core base compatibility."""
 
 from __future__ import annotations
 

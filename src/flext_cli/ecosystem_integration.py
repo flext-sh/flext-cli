@@ -47,8 +47,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import warnings
-from typing import ClassVar, cast
+from typing import ClassVar
 
 from flext_core import FlextResult
 
@@ -293,57 +292,11 @@ def {legacy_setup_function}_modern(**config_overrides):
 """
 
 
-# Legacy compatibility facades with warnings
-def setup_ecosystem_cli(
-    *args: object,
-    **kwargs: object,
-) -> FlextResult[dict[str, object]]:  # Changed return type to object
-    """Legacy facade for setup_flext_cli_ecosystem (deprecated).
-
-    ⚠️ DEPRECATED: Use setup_flext_cli_ecosystem following FLEXT architecture patterns.
-    """
-    warnings.warn(
-        "setup_ecosystem_cli is deprecated. Use setup_flext_cli_ecosystem following FLEXT architecture patterns.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    project_name: str = ""
-    current_config: FlextCliConfig | None = None
-    extra_kwargs: dict[str, object] = {}
-
-    # Iterate through args to extract project_name, config, and other kwargs
-    # This is a heuristic and might need adjustment based on how legacy functions were called.
-    for i, arg in enumerate(args):
-        if i == 0 and isinstance(arg, str):
-            project_name = arg
-        elif isinstance(arg, FlextCliConfig):
-            current_config = arg
-        elif isinstance(arg, dict):
-            extra_kwargs.update(arg)
-        # else: ignore other types in args if not directly relevant to setup_flext_cli_ecosystem
-
-    # Merge any remaining kwargs from the original call
-    final_kwargs = {**kwargs, **extra_kwargs}
-
-    # If project_name wasn't found in args, try to get it from kwargs
-    if not project_name and "project_name" in final_kwargs:
-        project_name = cast("str", final_kwargs.pop("project_name"))
-
-    return setup_flext_cli_ecosystem(
-        project_name=project_name,
-        config=current_config,
-        **final_kwargs,
-    )
 
 
 __all__ = [
-    "FlextCliConfigFactory",  # Generic config factory for any project
-    # Modern ecosystem patterns (FlextCli* naming following FLEXT architecture)
-    "FlextCliGenericCommand",  # Generic command pattern for any project
-    # Migration helpers
-    "migrate_to_modern_patterns",  # Code generation for legacy migration
-    # Legacy compatibility facade (deprecated)
-    "setup_ecosystem_cli",  # Facade for setup_flext_cli_ecosystem (deprecated)
-    "setup_flext_cli_ecosystem",  # Generic setup for any ecosystem project
+    "FlextCliConfigFactory",
+    "FlextCliGenericCommand",
+    "migrate_to_modern_patterns",
+    "setup_flext_cli_ecosystem",
 ]

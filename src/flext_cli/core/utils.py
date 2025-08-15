@@ -15,13 +15,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-# Strict import of package version; no fallback
-from flext_cli.__version__ import __version__ as _cli_version
-
 import yaml
 from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table
+
+# Strict import of package version; no fallback
+from flext_cli.__version__ import __version__ as _cli_version
 
 from .helpers import FlextCliHelper
 

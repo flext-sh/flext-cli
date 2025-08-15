@@ -1,23 +1,4 @@
-"""FLEXT CLI Decorators - Complete decorator system consolidating all CLI decorators.
-
-This module consolidates all CLI-related decorators from multiple scattered files
-into a single, well-organized module following PEP8 naming conventions.
-
-Consolidated from:
-    - decorators.py (root level)
-    - core/decorators.py (cross-cutting concerns)
-    - Various decorator definitions across modules
-
-Design Principles:
-    - PEP8 naming: cli_decorators.py (not decorators.py for clarity)
-    - Single source of truth for all CLI decorators
-    - Delegates to flext-core decorators where appropriate
-    - Eliminates duplication through proper delegation
-    - Type safety with comprehensive annotations
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""FLEXT CLI Decorators."""
 
 from __future__ import annotations
 

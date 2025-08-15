@@ -1,7 +1,4 @@
-"""Output utilities shim for backward compatibility.
-
-Delegates to `flext_cli.cli_utils` equivalents.
-"""
+"""Output utilities."""
 
 from __future__ import annotations
 
