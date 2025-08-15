@@ -1,7 +1,4 @@
-"""CLI command subpackage.
-
-Re-exports common command modules for convenient imports in tests/examples.
-"""
+"""CLI command subpackage."""
 
 from __future__ import annotations
 

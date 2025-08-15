@@ -1,45 +1,4 @@
-"""FLEXT CLI Version Information - Package Metadata and Version Management.
-
-This module provides centralized version information and metadata for FLEXT CLI,
-including version numbers, release information, and package details. Used for
-version management, compatibility checking, and release tracking.
-
-Version Management:
-    - Semantic versioning (MAJOR.MINOR.PATCH)
-    - Version tuple for programmatic comparison
-    - Development status and release metadata
-    - Copyright and licensing information
-
-Current Release Status:
-    ✅ Version 0.9.0 - Development release with core functionality
-    ✅ 30% implementation complete (auth, config, debug commands)
-    📋 70% planned for Sprints 1-10 (docs/TODO.md roadmap)
-
-Version Information:
-    - __version__: String version for display and packaging
-    - __version_info__: Tuple for programmatic version comparison
-    - Release metadata: Author, email, license, description
-
-Usage Examples:
-    Version checking:
-    >>> from flext_cli import __version__
-    >>> print(f"FLEXT CLI v{__version__}")
-
-    Programmatic comparison:
-    >>> from flext_cli.__version__ import __version_info__
-    >>> if __version_info__ >= (0, 9, 0):
-    ...     # Use new features
-
-Integration:
-    - Used by setup.py/pyproject.toml for package metadata
-    - Imported by main package for version display
-    - Used by CLI commands for version reporting
-    - Referenced in documentation and release notes
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
-"""
+"""FLEXT CLI Version Information."""
 
 from __future__ import annotations
 

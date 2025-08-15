@@ -1,7 +1,4 @@
-"""Application commands compatibility for tests.
-
-Provides dataclass-like command DTOs expected by tests.
-"""
+"""Application commands for tests."""
 
 from __future__ import annotations
 

@@ -711,7 +711,8 @@ class TestFlextCliService:
         service = FlextCliService()
 
         def handler() -> int:
-            raise RuntimeError("Handler error")
+            error_msg = "Handler error"
+            raise RuntimeError(error_msg)
 
         # Register handler
         service.flext_cli_register_handler("error", handler)

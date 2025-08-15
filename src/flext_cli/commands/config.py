@@ -6,9 +6,11 @@ import json
 from pathlib import Path
 
 import click
-import yaml
+import yaml  # type: ignore[import-untyped]
 from rich.console import Console
 from rich.table import Table
+
+from flext_cli.constants import FlextCliConstants
 
 
 def _find_config_value(cli_context: object, key: str) -> object:
@@ -62,26 +64,26 @@ def _get_all_config(cli_context: object) -> None:
             ),
         )
         return
-    table = Table(title="FLEXT Configuration v0.7.0")
+    table = Table(title=FlextCliConstants.CliMessages.LABEL_CONFIGURATION)
     table.add_column("Key", style="cyan")
     table.add_column("Value", style="white")
     table.add_column("Source", style="dim")
     for k, v in cfg_dict.items():
-        table.add_row(k, str(v), "config")
+        table.add_row(k, str(v), FlextCliConstants.CliMessages.LABEL_CONFIG)
     for k, v in stg_dict.items():
         table.add_row(k, str(v), "settings")
     console.print(table)
 
 
 def _print_config_table(cli_context: object, config_data: dict[str, object]) -> None:
-    """Compatibility helper: print given config dict as table."""
+    """Helper: print given config dict as table."""
     console: Console = getattr(cli_context, "console", Console())
-    table = Table(title="FLEXT Configuration v0.7.0")
+    table = Table(title=FlextCliConstants.CliMessages.LABEL_CONFIGURATION)
     table.add_column("Key", style="cyan")
     table.add_column("Value", style="white")
     table.add_column("Source", style="dim")
     for k, v in config_data.items():
-        table.add_row(str(k), str(v), "config")
+        table.add_row(str(k), str(v), FlextCliConstants.CliMessages.LABEL_CONFIG)
     console.print(table)
 
 
@@ -95,7 +97,7 @@ def config() -> None:
 def show(ctx: click.Context) -> None:
     """Show the current configuration."""
     console: Console = ctx.obj.get("console", Console())
-    console.print("config shown")
+    console.print(FlextCliConstants.CliMessages.STATUS_DISPLAY_CONFIG)
 
 
 @config.command(name="get")
@@ -126,7 +128,7 @@ def set_value(ctx: click.Context, key: str, value: str) -> None:
     if cfg is not None:
         setattr(cfg, key, value)
     console: Console = ctx.obj.get("console", Console())
-    console.print(f"Set {key} = {value}")
+    console.print(f"{FlextCliConstants.CliMessages.LABEL_SET} {key} = {value}")
 
 
 @config.command()
@@ -138,7 +140,7 @@ def validate(ctx: click.Context) -> None:
     if not cli_context or getattr(cli_context, "config", None) is None:
         ctx.exit(1)
     # Pretend to validate current profile and log level; always succeed
-    console.print("Validation OK")
+    console.print(FlextCliConstants.CliMessages.STATUS_DISPLAY_VALIDATION_OK)
 
 
 @config.command()
@@ -150,9 +152,9 @@ def path(ctx: click.Context) -> None:
     if not cli_context:
         ctx.exit(1)
     if hasattr(cli_context, "print_info"):
-        cli_context.print_info("Paths shown")
+        cli_context.print_info(FlextCliConstants.CliMessages.STATUS_DISPLAY_PATHS)
     else:
-        console.print("Paths shown")
+        console.print(FlextCliConstants.CliMessages.STATUS_DISPLAY_PATHS)
 
 
 @config.command()
@@ -166,14 +168,14 @@ def edit(ctx: click.Context) -> None:
         ctx.exit(1)
     cfg_path = getattr(cfg, "config_file", Path.home() / ".flext" / "config.yaml")
     try:
-        # Use classmethod style so tests can patch Path.mkdir
-        Path.mkdir(cfg_path.parent, parents=True, exist_ok=True)
+        # Create parent directory if needed
+        cfg_path.parent.mkdir(parents=True, exist_ok=True)
         if not cfg_path.exists():
             with cfg_path.open("w", encoding="utf-8") as f:
                 f.write(yaml.dump({"debug": False, "timeout": 30}))
         # External editor invocation removed to satisfy security policy.
         # Inform user how to edit manually.
-        console.print(f"Edit the configuration file manually at: {cfg_path}")
+        console.print(f"{FlextCliConstants.CliMessages.INFO_CONFIG_EDIT_MANUAL}: {cfg_path}")
     except Exception as e:
         console.print(str(e))
         ctx.exit(1)

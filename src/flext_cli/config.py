@@ -53,15 +53,21 @@ class CLIAPIConfig(BaseModel):
         return self.url.rstrip("/")
 
 
+def _get_default_token_file() -> Path:
+    """Get default token file path using consistent base directory."""
+    return Path.home() / ".flext" / "auth" / "token"
+
+
+def _get_default_refresh_token_file() -> Path:
+    """Get default refresh token file path using consistent base directory."""
+    return Path.home() / ".flext" / "auth" / "refresh_token"
+
+
 class CLIAuthConfig(BaseModel):
     """Authentication token storage configuration."""
 
-    token_file: Path = Field(
-        default_factory=lambda: Path.home() / ".flext" / "auth" / "token",
-    )
-    refresh_token_file: Path = Field(
-        default_factory=lambda: Path.home() / ".flext" / "auth" / "refresh_token",
-    )
+    token_file: Path = Field(default_factory=_get_default_token_file)
+    refresh_token_file: Path = Field(default_factory=_get_default_refresh_token_file)
     auto_refresh: bool = Field(default=True)
 
 
@@ -111,9 +117,7 @@ class CLIConfig(BaseModel):
 
     def validate_domain_rules(self) -> bool:
         """Validate simple invariants expected by tests."""
-        if self.api.timeout <= 0:
-            return False
-        return not self.command_timeout <= 0
+        return not (self.api.timeout <= 0 or self.command_timeout <= 0)
 
 
 def _default_settings_api_url() -> str:

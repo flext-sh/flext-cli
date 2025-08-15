@@ -1,64 +1,4 @@
-"""FLEXT CLI Core Service - Primary Service Implementation with flext-core Integration.
-
-This module provides the core service implementation for FLEXT CLI operations,
-implementing FlextService interfaces with composition-based architecture and
-comprehensive functionality. Serves as the primary service class integrating
-all CLI operations with flext-core patterns.
-
-Service Architecture:
-    - FlextService interface implementation with Clean Architecture patterns
-    - FlextConfigurable interface for configuration management
-    - Composition-based design with centralized functionality
-    - flext-core integration (utilities, logging, result handling)
-    - Railway-oriented programming with FlextResult error handling
-
-Core Features:
-    - Data formatting in multiple formats (JSON, YAML, CSV, table, plain)
-    - File export capabilities with directory creation
-    - Command, session, plugin, and handler management
-    - Health monitoring and service status reporting
-    - Context-based rendering and data transformation
-
-Service Capabilities:
-    Data Operations:
-        - flext_cli_format: Multi-format data formatting
-        - flext_cli_export: File export with directory management
-        - flext_cli_render_with_context: Context-based rendering
-
-    Management Operations:
-        - flext_cli_create_command/session: Entity creation with ID generation
-        - flext_cli_register_handler/plugin: Service registration
-        - flext_cli_execute_handler: Safe handler execution
-
-    System Operations:
-        - flext_cli_health: Comprehensive health and status reporting
-        - configure: Service configuration with validation
-
-Usage Examples:
-    Service initialization:
-    >>> service = FlextCliService()
-    >>> config = FlextCliConfig({"debug": True})
-    >>> result = service.configure(config)
-
-    Data formatting:
-    >>> result = service.flext_cli_format(data, "json")
-    >>> if result.success:
-    ...     formatted = result.unwrap()
-
-    Command management:
-    >>> result = service.flext_cli_create_command("test", "echo hello")
-    >>> commands = service.flext_cli_get_commands().unwrap()
-
-Integration:
-    - Used by CLI commands for data operations and management
-    - Provides centralized service functionality
-    - Integrates with flext-core utilities and patterns
-    - Supports Clean Architecture service layer patterns
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
-"""
+"""FLEXT CLI Core Service."""
 
 from __future__ import annotations
 
@@ -101,7 +41,7 @@ __all__: list[str] = [
 
 
 class FlextService:  # Lightweight stub to satisfy tests
-    """Minimal concrete base to satisfy legacy tests expecting instantiation."""
+    """Minimal concrete base to satisfy tests expecting instantiation."""
 
     def start(self) -> FlextResult[None]:
         """Start the CLI core service."""
@@ -135,12 +75,15 @@ class FlextCliService(FlextService):
 
     def configure(
         self,
-        config: FlextCliConfig | dict[str, object],
+        config: FlextCliConfig | dict[str, object] | object,
     ) -> FlextResult[None]:
         """Configure service with FlextCliConfig."""
         try:
-            if isinstance(config, dict):
-                # Handle backward compatibility: format_type -> output_format
+            if isinstance(config, FlextCliConfig):
+                # config is FlextCliConfig due to type annotation
+                self._config = config
+            elif isinstance(config, dict):
+                # Handle format_type -> output_format mapping
                 cleaned_config = dict(config)
                 if (
                     "format_type" in cleaned_config
@@ -156,14 +99,28 @@ class FlextCliService(FlextService):
                     return FlextResult.fail(
                         f"Configuration failed: Unknown config keys: {unknown}",
                     )
-                # Type ignore for dynamic kwargs - Pydantic will validate at runtime
-                self._config = FlextCliConfig(**cleaned_config)  # type: ignore[arg-type]
-            elif isinstance(config, FlextCliConfig):
-                # config is FlextCliConfig due to type annotation
-                self._config = config
+                # Use Pydantic validation instead of type: ignore
+                try:
+                    self._config = FlextCliConfig.model_validate(cleaned_config)
+                except Exception as validation_error:
+                    return FlextResult.fail(
+                        f"Configuration validation failed: {validation_error}",
+                    )
             elif hasattr(config, "output_format") and hasattr(config, "profile"):
-                # Accept compatible config objects (e.g., flext_cli.config.CLIConfig)
-                self._config = config  # type: ignore[assignment]
+                # Accept compatible config objects with proper validation
+                try:
+                    # Convert compatible config object to dict first, then validate
+                    config_dict = {
+                        "output_format": getattr(config, "output_format", "table"),
+                        "profile": getattr(config, "profile", "default"),
+                        "debug": getattr(config, "debug", False),
+                        "api_url": getattr(config, "api_url", "http://localhost:8000"),
+                    }
+                    self._config = FlextCliConfig.model_validate(config_dict)
+                except Exception as validation_error:
+                    return FlextResult.fail(
+                        f"Compatible config validation failed: {validation_error}",
+                    )
             else:
                 return FlextResult.fail(
                     f"Invalid config type: {type(config).__name__}",
@@ -295,8 +252,13 @@ class FlextCliService(FlextService):
             if not isinstance(data, (list, tuple)):
                 data_list = [data] if isinstance(data, dict) else [{"value": str(data)}]
             else:
-                # Convert tuple/list to list
-                data_list = list(data)
+                # Convert tuple/list to list with proper type handling - ensure dicts
+                data_list = []
+                for item in data:
+                    if isinstance(item, dict):
+                        data_list.append(item)
+                    else:
+                        data_list.append({"value": str(item)})
 
             if not data_list:
                 return ""
@@ -330,33 +292,36 @@ class FlextCliService(FlextService):
                 lines = [f"{k!s:<{max_key_len}} | {v!s}" for k, v in data.items()]
                 return "\\n".join(lines)
             if isinstance(data, (list, tuple)) and data and isinstance(data[0], dict):
-                # Table with headers
-                headers = list(data[0].keys())
-                col_widths = [
-                    max(
-                        len(str(header)),
-                        *(len(str(row.get(header, ""))) for row in data),
-                    )
-                    for header in headers
-                ]
+                # Table with headers - ensure we're working with dict objects
+                dict_data = [item for item in data if isinstance(item, dict)]
+                if dict_data:
+                    headers = list(dict_data[0].keys())
+                    col_widths = [
+                        max(
+                            len(str(header)),
+                            *(len(str(row.get(header, ""))) for row in dict_data),
+                        )
+                        for header in headers
+                    ]
 
-                # Header row
-                header_row = " | ".join(
-                    f"{header:<{width}}"
-                    for header, width in zip(headers, col_widths, strict=False)
-                )
-                separator = "-+-".join("-" * width for width in col_widths)
-
-                # Data rows
-                data_rows = []
-                for row in data:
-                    row_str = " | ".join(
-                        f"{row.get(header, '')!s:<{width}}"
+                    # Header row
+                    header_row = " | ".join(
+                        f"{header:<{width}}"
                         for header, width in zip(headers, col_widths, strict=False)
                     )
-                    data_rows.append(row_str)
+                    separator = "-+-".join("-" * width for width in col_widths)
 
-                return "\\n".join([header_row, separator, *data_rows])
+                    # Data rows
+                    data_rows = []
+                    for row in dict_data:
+                        row_str = " | ".join(
+                            f"{row.get(header, '')!s:<{width}}"
+                            for header, width in zip(headers, col_widths, strict=False)
+                        )
+                        data_rows.append(row_str)
+
+                    return "\\n".join([header_row, separator, *data_rows])
+                # No valid dict objects found, fall through to simple list handling
             # Simple list
             return "\\n".join(
                 str(item)
@@ -503,6 +468,6 @@ class FlextCliService(FlextService):
 
     def flext_cli_get_handlers(self) -> FlextResult[dict[str, object]]:
         """Get all handlers - restored from backup."""
-        # Convert handlers to dict[str, object] for return type compatibility
+        # Convert handlers to dict[str, object] for return type compliance
         handlers_as_objects: dict[str, object] = dict(self._handlers)
         return FlextResult.ok(handlers_as_objects)

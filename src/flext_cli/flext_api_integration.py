@@ -1,30 +1,20 @@
-"""FLEXT-API Integration Module - Proper integration with flext-api library.
-
-This module provides the correct integration between flext-cli and flext-api,
-eliminating code duplication and ensuring consistent HTTP client patterns
-across the FLEXT ecosystem.
-
-Integration Features:
-    - Uses flext-api's FlextApiClient with plugin support
-    - Leverages flext-core patterns (FlextResult, error handling)
-    - Provides CLI-specific convenience methods
-    - Maintains configuration consistency with CLI settings
-    - Supports both FlexCore (port 8080) and FLEXT Service (port 8081)
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
-"""
+"""FLEXT-API Integration Module."""
 
 from __future__ import annotations
 
 import json
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
-from flext_api import (
-    FlextApiClient,
-    create_flext_api,
-)
+if TYPE_CHECKING:
+    from flext_api import FlextApiClient  # type: ignore[import-not-found]
+    create_flext_api: object | None = None
+else:
+    try:
+        from flext_api import FlextApiClient, create_flext_api
+    except ImportError:
+        # flext-api not available - create stubs for type safety
+        FlextApiClient = None  # type: ignore[misc, assignment]
+        create_flext_api = None  # type: ignore[misc, assignment]
 from flext_core import FlextResult, get_logger
 from flext_core.constants import FlextConstants
 
@@ -62,8 +52,8 @@ class FlextCLIApiClient:
         self.token = token
         self.timeout = timeout
 
-        # Type annotation for MyPy
-        self._api_client: FlextApiClient | None = None
+        # Type annotation for MyPy - handles case where FlextApiClient is not available
+        self._api_client: object | None = None
 
         # Initialize flext-api client if available
         self._init_flext_api_client()
@@ -86,7 +76,12 @@ class FlextCLIApiClient:
         """Initialize flext-api client with proper configuration."""
         try:
             # Create flext-api instance with CLI-specific configuration
-            self._flext_api = create_flext_api()
+            if create_flext_api is not None:
+                self._flext_api = create_flext_api()  # type: ignore[operator]
+            else:
+                logger.warning("flext-api not available - API client disabled")
+                self._api_client = None
+                return
 
             # Create HTTP client with flext-api patterns
             client_config = {
@@ -124,7 +119,7 @@ class FlextCLIApiClient:
         """Check if flext-api integration is available and working."""
         return self._api_client is not None
 
-    def get_client(self) -> FlextApiClient | None:
+    def get_client(self) -> object | None:
         """Get the underlying flext-api client for advanced operations."""
         return self._api_client
 
@@ -157,7 +152,7 @@ class FlextCLIApiClient:
                 return FlextResult.fail("API client not initialized")
 
             # Get response from API client - handle FlextResult
-            response_result = await self._api_client.get("/health")
+            response_result = await self._api_client.get("/health")  # type: ignore[attr-defined]
             if not response_result.success or response_result.data is None:
                 return FlextResult.fail(f"Connection failed: {response_result.error}")
 
@@ -182,7 +177,7 @@ class FlextCLIApiClient:
                 return FlextResult.fail("API client not initialized")
 
             # Get response from API client - handle FlextResult
-            response_result = await self._api_client.get("/api/v1/system/status")
+            response_result = await self._api_client.get("/api/v1/system/status")  # type: ignore[attr-defined]
             if not response_result.success or response_result.data is None:
                 return FlextResult.fail(
                     f"Status request failed: {response_result.error}",
@@ -297,7 +292,7 @@ class FlextCLIApiClient:
                     "password": password,
                 },
             )
-            response_result = await self._api_client.post(
+            response_result = await self._api_client.post(  # type: ignore[attr-defined]
                 "/auth/login",
                 data=login_data,
             )
@@ -325,7 +320,7 @@ class FlextCLIApiClient:
                 return FlextResult.fail("API client not initialized")
 
             # Post to logout endpoint
-            response_result = await self._api_client.post("/auth/logout")
+            response_result = await self._api_client.post("/auth/logout")  # type: ignore[attr-defined]
             if not response_result.success or response_result.data is None:
                 return FlextResult.fail(f"Logout failed: {response_result.error}")
 
@@ -349,7 +344,7 @@ class FlextCLIApiClient:
                 return FlextResult.fail("API client not initialized")
 
             # Get current user from API
-            response_result = await self._api_client.get("/auth/me")
+            response_result = await self._api_client.get("/auth/me")  # type: ignore[attr-defined]
             if not response_result.success or response_result.data is None:
                 return FlextResult.fail(f"Get user failed: {response_result.error}")
 

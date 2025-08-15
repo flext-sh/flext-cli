@@ -1,9 +1,4 @@
-"""Core utils compatibility for legacy tests.
-
-This module contains utility functions that provide backward compatibility
-for legacy tests and CLI operations. Functions handle configuration loading,
-data validation, file operations, and output formatting.
-"""
+"""Core utils."""
 
 from __future__ import annotations
 
@@ -15,7 +10,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table

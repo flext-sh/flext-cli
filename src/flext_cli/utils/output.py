@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json as _json
 
-import yaml as _yaml
+import yaml as _yaml  # type: ignore[import-untyped]
 from rich.console import Console
 from rich.table import Table
 
@@ -12,10 +12,7 @@ from rich.table import Table
 
 
 def setup_console(*, no_color: bool = False, quiet: bool = False) -> Console:
-    """Create a Rich Console honoring simple flags.
-
-    Back-compat API used by tests.
-    """
+    """Create a Rich Console honoring simple flags."""
     return Console(color_system=None if no_color else "auto", quiet=quiet)
 
 

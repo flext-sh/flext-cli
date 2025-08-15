@@ -1,20 +1,4 @@
-"""FLEXT CLI Protocols - Interface definitions extending flext-core protocols.
-
-This module defines CLI-specific protocols that extend flext-core protocols.
-All protocols follow SOLID principles and use Python 3.13+ typing features.
-
-IMPORTANT: This module ONLY defines CLI-specific protocols. Base protocols
-are imported from flext-core to avoid duplication.
-
-Quality standards:
-- Python 3.13 typing and runtime-checkable protocols
-- flext-core FlextResult for all operations that can fail
-- No duplication - always extend flext-core protocols
-- Import from flext-core root, never from submodules
-
-Copyright (c) 2025 FLEXT Team
-SPDX-License-Identifier: MIT
-"""
+"""FLEXT CLI Protocols."""
 
 from __future__ import annotations
 
@@ -216,11 +200,7 @@ class FlextCliInteractiveProtocol(Protocol):
 
 @runtime_checkable
 class FlextConfigProvider(Protocol):
-    """Protocol for configuration providers.
-
-    Kept for backward compatibility. New code should use
-    FlextCliConfigProtocol instead.
-    """
+    """Protocol for configuration providers."""
 
     def get_config(
         self,
@@ -300,5 +280,5 @@ __all__ = [
     "FlextCliServiceProtocol",
     "FlextCliValidatorImpl",
     "FlextCliValidatorProtocol",
-    "FlextConfigProvider",  # Backward compatibility
+    "FlextConfigProvider",
 ]

@@ -1,8 +1,4 @@
-"""Debug commands consolidated at top-level (no subpackages).
-
-This module provides the same debug command group previously in
-`commands/debug.py`, exposed as `debug_cmd`.
-"""
+"""Debug commands."""
 
 from __future__ import annotations
 
@@ -24,7 +20,7 @@ SENSITIVE_VALUE_PREVIEW_LENGTH = 4
 
 def get_default_cli_client() -> object:  # patched in tests
     """Return default CLI client (tests override this)."""
-    msg = "Not patched in tests"
+    msg = "CLI client provider not available. This function is intended to be patched during testing."
     raise RuntimeError(msg)
 
 
@@ -56,8 +52,14 @@ def debug_cmd() -> None:
 @click.pass_context
 def connectivity(ctx: click.Context) -> None:
     """Test connectivity with the configured API, printing status."""
-    obj = getattr(ctx, "obj", {}) or {}
-    console: Console = obj.get("console", Console())
+    if not hasattr(ctx, "obj") or ctx.obj is None:
+        error_console = Console()
+        error_console.print("[red]❌ CLI context not available[/red]")
+        ctx.exit(1)
+
+    obj = ctx.obj if hasattr(ctx.obj, "get") else {}
+    console: Console = obj.get("console", Console()) if hasattr(obj, "get") else Console()
+
     # Resolve patchable module-level hooks from flext_cli.commands.debug
     try:
         debug_mod = importlib.import_module("flext_cli.commands.debug")
@@ -102,35 +104,12 @@ def connectivity(ctx: click.Context) -> None:
             # Raise SystemExit to satisfy tests that run captured coroutine
             raise SystemExit(1) from e
 
-    # Delegate coroutine to asyncio.run (tests patch and capture this call)
-    # Strategy: provide one coroutine for the patched asyncio.run to capture,
-    # and run a second fresh coroutine ourselves so side-effects happen.
-    # Provide one coroutine for capture; do not re-run it here to avoid interfering
-    # with tests' explicit execution. Execute a separate coroutine instance for side-effects.
-    captured = _run()
-    asyncio.run(captured)
-    # If tests patched asyncio.run, configure it to raise on the same coroutine
-    # only when the provider itself failed (general exception scenario).
-    import unittest.mock as _um  # noqa: PLC0415
-
-    if isinstance(asyncio.run, _um.MagicMock):
-        try:
-            debug_mod = importlib.import_module("flext_cli.commands.debug")
-        except Exception:  # pragma: no cover
-            debug_mod = None
-        prov = (
-            getattr(debug_mod, "get_default_cli_client", None) if debug_mod else None
-        ) or getattr(
-            debug_cmd,
-            "get_default_cli_client",
-            get_default_cli_client,
-        )
-        if isinstance(prov, _um.MagicMock) and getattr(prov, "side_effect", None):
-            asyncio.run.side_effect = (
-                lambda arg: (_ for _ in ()).throw(SystemExit(1))
-                if arg is captured
-                else None
-            )
+    # Run the coroutine once to avoid duplicate execution
+    try:
+        asyncio.run(_run())
+    except Exception as e:
+        console.print(f"[red]❌ Connectivity test failed: {e}[/red]")
+        ctx.exit(1)
 
 
 @debug_cmd.command(help="Check system performance metrics")
@@ -194,8 +173,13 @@ def performance(ctx: click.Context) -> None:
 @click.pass_context
 def validate(ctx: click.Context) -> None:
     """Validate environment, print versions, and run dependency checks."""
-    obj = getattr(ctx, "obj", {}) or {}
-    console: Console = obj.get("console", Console())
+    if not hasattr(ctx, "obj") or ctx.obj is None:
+        error_console = Console()
+        error_console.print("[red]❌ CLI context not available[/red]")
+        ctx.exit(1)
+
+    obj = ctx.obj if hasattr(ctx.obj, "get") else {}
+    console: Console = obj.get("console", Console()) if hasattr(obj, "get") else Console()
     cfg = get_config()
 
     cfg_path = Path(getattr(cfg, "config_dir", Path.home() / ".flext")) / "config.yaml"
@@ -227,7 +211,13 @@ def validate(ctx: click.Context) -> None:
 @click.pass_context
 def trace(ctx: click.Context, args: tuple[str, ...]) -> None:
     """Echo provided arguments for quick tracing during tests."""
-    console: Console = ctx.obj.get("console", Console())
+    if not hasattr(ctx, "obj") or ctx.obj is None:
+        error_console = Console()
+        error_console.print("[red]❌ CLI context not available[/red]")
+        ctx.exit(1)
+
+    obj = ctx.obj if hasattr(ctx.obj, "get") else {}
+    console: Console = obj.get("console", Console()) if hasattr(obj, "get") else Console()
     console.print(f"Tracing: {' '.join(args)}")
 
 
@@ -298,7 +288,13 @@ def paths(ctx: click.Context) -> None:
 @click.pass_context
 def check(ctx: click.Context) -> None:
     """Run basic health check that always succeeds (E2E recovery test helper)."""
-    console: Console = ctx.obj.get("console", Console())
+    if not hasattr(ctx, "obj") or ctx.obj is None:
+        error_console = Console()
+        error_console.print("[red]❌ CLI context not available[/red]")
+        ctx.exit(1)
+
+    obj = ctx.obj if hasattr(ctx.obj, "get") else {}
+    console: Console = obj.get("console", Console()) if hasattr(obj, "get") else Console()
     console.print("[green]System OK[/green]")
 
 

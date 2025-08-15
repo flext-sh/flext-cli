@@ -1,22 +1,14 @@
-"""Core types facade."""
+"""Core types."""
 
 from __future__ import annotations
 
 import click as _click
 
-from flext_cli.cli_types import PositiveIntType, URLType
-
-# Legacy convenience aliases/instances expected by tests
-URL = URLType()
+from flext_cli.cli_types import PositiveIntType
 
 
 class ClickPath(_click.Path):
-    """Enhanced Click Path with convenience options.
-
-    Back-compat wrapper so tests can import `ClickPath` and instantiate
-    with flags like exists, file_okay, dir_okay, readable, writable,
-    allow_dash, resolve_path, path_type.
-    """
+    """Enhanced Click Path with convenience options."""
 
     def __init__(
         self,

@@ -12,7 +12,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table

@@ -1,8 +1,4 @@
-"""Core mixins and decorators for the CLI.
-
-Provides small and composable building blocks for CLI classes based on
-``FlextResult`` and ``flext_cli.core.helpers`` utilities.
-"""
+"""Core mixins and decorators for the CLI."""
 
 from __future__ import annotations
 
@@ -31,8 +27,6 @@ FlextCliDecorator = Callable[
     Callable[P, FlextResult[str]],
 ]
 
-# Exported alias for internal use and in tests
-track = rich_track
 
 
 class FlextCliValidationMixin:
@@ -41,8 +35,6 @@ class FlextCliValidationMixin:
     def __init__(self) -> None:
         """Initialize the mixin."""
         self._flext_cli_helper = FlextCliHelper()
-        # Legacy alias used in tests
-        self._helper = self._flext_cli_helper
         self._input_validators: dict[str, Callable[[str, object], FlextResult[str]]] = {
             "email": self._validate_email_input,
             "url": self._validate_url_input,
@@ -118,7 +110,7 @@ class FlextCliValidationMixin:
     ) -> FlextResult[bool]:
         """Request user confirmation, with additional emphasis for dangerous actions."""
         prompt = f"[bold red]{message}[/bold red]" if dangerous else message
-        res = self._helper.flext_cli_confirm(prompt)
+        res = self._flext_cli_helper.flext_cli_confirm(prompt)
         if res.is_failure:
             return res
         confirmed = res.unwrap()
@@ -197,7 +189,7 @@ class FlextCliProgressMixin:
         description: str,
     ) -> list[object]:
         """Iterate over items while displaying a simple progress indicator."""
-        return list(track(items, description=description, console=self.console))
+        return list(rich_track(items, description=description, console=self.console))
 
     def flext_cli_with_progress(self, message: str | None = None) -> Progress:
         """Create a Rich progress manager configured for the current console.
@@ -483,9 +475,6 @@ def flext_cli_with_progress(message: str) -> FlextCliDecorator[P, R]:
     return decorator
 
 
-# Reexports úteis em testes
-FlextCliMixin = FlextCliAdvancedMixin
-FlextCliBasicMixin = FlextCliProgressMixin  # conjunto mínimo usado em testes
 
 
 def flext_cli_auto_validate(**rules: str) -> FlextCliDecorator[P, R]:

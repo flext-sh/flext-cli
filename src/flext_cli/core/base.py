@@ -1,4 +1,4 @@
-"""Core base compatibility."""
+"""Core base patterns and decorators."""
 
 from __future__ import annotations
 

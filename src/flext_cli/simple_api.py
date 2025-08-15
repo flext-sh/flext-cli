@@ -130,22 +130,13 @@ def get_cli_settings(*, reload: bool | None = None) -> CLISettings:
     """Return CLISettings; when reload is True, return a fresh instance.
 
     Args:
-        reload: If True, returns a fresh instance. Parameter is accepted for
-                backward compatibility with tests.
+        reload: If True, returns a fresh instance.
 
     """
     _ = reload
     return _get_cli_settings()
 
 
-def get_cli_settings_compat(*, reload: bool = False) -> CLISettings:
-    """Compatibility wrapper: tests may call get_cli_settings(reload=True).
-
-    This thin wrapper mirrors the upstream but keeps the original symbol
-    from flext_cli.config as the canonical implementation.
-    """
-    _ = reload
-    return CLISettings()
 
 
 # get_cli_settings is already imported from flext_cli.config - no redefinition needed

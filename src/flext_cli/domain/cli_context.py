@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass, field
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -54,33 +55,38 @@ class CLIContext(BaseModel):
     # Printing helpers expected by tests
     def print_success(self, message: str) -> None:
         if self.console is None:
-            print(f"[SUCCESS] {message}")
+            sys.stdout.write(f"[SUCCESS] {message}\n")
+            sys.stdout.flush()
         else:
             self.console.print(f"[green][SUCCESS][/green] {message}")
 
     def print_error(self, message: str) -> None:
         if self.console is None:
-            print(f"[ERROR] {message}")
+            sys.stderr.write(f"[ERROR] {message}\n")
+            sys.stderr.flush()
         else:
             self.console.print(f"[red][ERROR][/red] {message}")
 
     def print_warning(self, message: str) -> None:
         if self.console is None:
-            print(f"[WARNING] {message}")
+            sys.stderr.write(f"[WARNING] {message}\n")
+            sys.stderr.flush()
         else:
             self.console.print(f"[yellow][WARNING][/yellow] {message}")
 
     def print_info(self, message: str) -> None:
         if not self.is_quiet:
             if self.console is None:
-                print(f"[INFO] {message}")
+                sys.stdout.write(f"[INFO] {message}\n")
+                sys.stdout.flush()
             else:
                 self.console.print(f"[blue][INFO][/blue] {message}")
 
     def print_verbose(self, message: str) -> None:
         if self.is_verbose:
             if self.console is None:
-                print(f"[VERBOSE] {message}")
+                sys.stdout.write(f"[VERBOSE] {message}\n")
+                sys.stdout.flush()
             else:
                 self.console.print(f"[dim][VERBOSE][/dim] {message}")
 
