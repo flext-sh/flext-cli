@@ -1,8 +1,4 @@
-"""Centralized typings facade for flext-cli.
-
-- Extends flext-core types
-- Add CLI-specific type aliases and Protocols here
-"""
+"""Centralized typings for flext-cli."""
 
 from __future__ import annotations
 

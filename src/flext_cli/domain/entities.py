@@ -6,6 +6,7 @@ from enum import StrEnum
 
 from flext_core import FlextResult
 
+from flext_cli.constants import FlextCliConstants
 from flext_cli.models import (
     CommandStatus,
     FlextCliCommand as CLICommand,
@@ -59,7 +60,7 @@ class CLIEntityFactory:
             entity = CLICommand(id=name, command_line=command_line)
             return FlextResult.ok(entity)
         except Exception as e:  # noqa: BLE001
-            return FlextResult.fail(str(e))
+            return FlextResult.fail(f"{FlextCliConstants.CliErrors.COMMAND_EXECUTION_FAILED}: {e!s}")
 
     @staticmethod
     def create_plugin(
@@ -93,7 +94,7 @@ class CLIEntityFactory:
             entity = CLIPlugin(**kwargs)  # type: ignore[arg-type]
             return FlextResult.ok(entity)
         except Exception as e:  # noqa: BLE001
-            return FlextResult.fail(str(e))
+            return FlextResult.fail(f"{FlextCliConstants.CliErrors.PLUGIN_ENTRY_POINT_EMPTY}: {e!s}")
 
     @staticmethod
     def create_session(*, session_id: str) -> FlextResult[CLISession]:
@@ -109,12 +110,11 @@ class CLIEntityFactory:
         try:
             # CLISession requires a non-empty user_id; map session_id to user_id for tests
             if not session_id:
-                msg = "String should have at least 1 character"
-                return FlextResult.fail(msg)
+                return FlextResult.fail(FlextCliConstants.CliErrors.SESSION_VALIDATION_FAILED)
             entity = CLISession(id=session_id, user_id=session_id)
             return FlextResult.ok(entity)
         except Exception as e:  # noqa: BLE001
-            return FlextResult.fail(str(e))
+            return FlextResult.fail(f"{FlextCliConstants.CliErrors.SESSION_VALIDATION_FAILED}: {e!s}")
 
 
 __all__ = [

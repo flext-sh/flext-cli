@@ -1,28 +1,4 @@
-"""FLEXT CLI Foundation - Modern Foundation Patterns for CLI Library.
-
-This module implements the modern foundation patterns following docs/patterns/foundation-refactored.md
-for CLI library usage. It provides zero-boilerplate CLI patterns with 85% code reduction.
-
-Foundation Functions (3 Main Functions):
-    1. CLI Foundation Base - Base for any standalone CLI or flext-service CLI integration
-    2. flext-core Integration Bridge - CLI integration with flext-core configuration
-    3. Ecosystem Library Base - Generic patterns for ANY ecosystem project
-
-Modern Patterns Applied:
-    - FlextEntity with automatic CLI features (zero configuration)
-    - FlextResult railway-oriented programming (eliminates try/catch boilerplate)
-    - FlextCLIConfigHierarchical for configuration management
-    - FlextCliProvider for command-line argument processing
-
-Boilerplate Reduction:
-    - 85% less CLI boilerplate code required
-    - 90% fewer exception handlers needed
-    - Zero configuration for common CLI patterns
-    - Automatic: argument parsing, validation, error handling
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""FLEXT CLI Foundation."""
 
 from __future__ import annotations
 

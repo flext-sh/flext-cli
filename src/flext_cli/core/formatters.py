@@ -7,7 +7,7 @@ import io
 import json
 from typing import TYPE_CHECKING, ClassVar
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 from rich.table import Table
 
 if TYPE_CHECKING:

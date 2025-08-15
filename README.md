@@ -1,10 +1,8 @@
-# flext-cli - FLEXT Command Interface
+# flext-cli — Interface de Linha de Comando do FLEXT
 
-**Type**: Application | **Status**: Active Development (~30% functional) | **Dependencies**: flext-core
+**Tipo**: Aplicação | **Status**: Desenvolvimento ativo (~30% funcional) | **Dependências**: flext-core, click, rich, httpx
 
-**Unified command-line interface for the FLEXT distributed data integration ecosystem**. Provides centralized management, orchestration, and monitoring for all 32+ FLEXT projects including FlexCore services, data pipelines, Singer taps/targets, DBT transformations, and project-specific integrations.
-
-> ⚠️ Current Status: Core foundations implemented; major functionality under development. See roadmap for completion timeline.
+CLI unificada para o ecossistema distribuído FLEXT. Hoje expõe grupos `auth`, `config` e `debug` funcionais; demais grupos estão planejados.
 
 ## 📋 **Recent Major Achievements**
 
@@ -15,7 +13,7 @@
 - ✅ **Status indicators** - 251 status indicators (✅/⚠️/❌/🎯) across all files providing clear implementation status
 - ✅ **Documentation modernization** - Complete English translation and modernization of all docs/ directory
 
-## Mission & Vision
+## Missão & Visão
 
 ### 🎯 **Mission**
 
@@ -70,9 +68,9 @@ FLEXT CLI serves as the central command hub for:
 - **algar-oud-mig**: ALGAR Oracle Unified Directory migration
 - **gruponos-meltano-native**: GrupoNos-specific Meltano implementation
 
-## Current Features (30% Complete)
+## Recursos atuais (~30%)
 
-### ✅ Implemented & Working
+### ✅ Implementado & funcionando
 
 - **🎨 Rich Terminal UI**: Beautiful output with tables, progress bars, panels (Rich library)
 - **🏗️ Clean Architecture**: Domain-driven design with flext-core foundation
@@ -83,7 +81,7 @@ FLEXT CLI serves as the central command hub for:
 - **🎯 Type Safety**: MyPy strict mode enabled; ongoing work to reach zero errors
 - **🧪 Quality Gates**: Coverage improving toward 90%; validation pipeline enabled
 
-### ⚠️ Partially Implemented
+### ⚠️ Parcialmente implementado
 
 - **🏗️ flext-core Integration (60%)**: Good foundations, missing enterprise patterns
   - ✅ FlextResult (railway-oriented programming)
@@ -94,7 +92,7 @@ FLEXT CLI serves as the central command hub for:
   - ❌ CQRS (command/query separation)
   - ❌ Domain Events (event-driven architecture)
 
-### ❌ Missing Critical Features
+### ❌ Funcionalidades críticas ausentes
 
 #### **Pipeline Management** (Priority 1)
 
@@ -152,7 +150,7 @@ flext monitor alerts list            # Active alerts and warnings
 flext logs search <query>            # Distributed log search
 ```
 
-## Architecture & Design
+## Arquitetura
 
 ### 🏗️ **Target Architecture (Enterprise-Grade)**
 
@@ -196,7 +194,7 @@ FLEXT CLI follows Clean Architecture principles with full flext-core integration
 └────────┘  └─────────┘  └─────────┘  └──────────┘  └──────────┘
 ```
 
-### 📁 **Current Implementation Status**
+### 📁 Estrutura real (condizente com `src/`)
 
 ```
 src/flext_cli/
@@ -234,7 +232,7 @@ src/flext_cli/
 5. **Observability**: Comprehensive logging, metrics, and monitoring
 6. **Developer Experience**: Rich UI, tab completion, interactive mode
 
-## Installation
+## Instalação
 
 ```bash
 # Install dependencies with Poetry
@@ -248,7 +246,7 @@ make install-cli
 poetry run flext --version
 ```
 
-## Development Commands
+## Comandos de desenvolvimento
 
 ### Quality Standards
 
@@ -280,7 +278,7 @@ make test-cli                # Test CLI commands
 make cli-smoke-test          # Run smoke tests
 ```
 
-## Quick Start
+## Guia rápido
 
 ```bash
 # List available commands
@@ -398,7 +396,7 @@ flext
 
 **Implementation Status**: 3 out of 10+ expected command groups
 
-## Configuration
+## Configuração
 
 ### Global CLI Options
 
@@ -437,7 +435,7 @@ export FLX_DEBUG=true
 - User config: `~/.flx/config.yaml` (future implementation)
 - Environment variables override file settings
 
-## Testing
+## Testes
 
 ### flext-core Integration Testing
 
@@ -497,7 +495,7 @@ pytest tests/test_commands.py -v
 pytest tests/test_integration.py -v
 ```
 
-## Dependencies
+## Dependências
 
 ### Core Dependencies (flext-core Ecosystem)
 
@@ -525,7 +523,7 @@ pytest tests/test_integration.py -v
 
 **Integration Status**: Good foundations but missing enterprise-grade flext-core patterns
 
-## Development Workflow
+## Fluxo de desenvolvimento
 
 ### Adding New Commands
 
@@ -574,7 +572,7 @@ cli.add_command(new_feature.new_feature)
 
 **Key Improvements**: Uses FlextResult, structured logging, proper error handling
 
-## Quality Standards
+## Padrões de qualidade
 
 ### Quality Targets
 
@@ -591,7 +589,7 @@ cli.add_command(new_feature.new_feature)
 - **Domain-Driven Design**: Rich domain entities
 - **Type Safety**: Complete type coverage with MyPy
 
-## Troubleshooting
+## Solução de problemas
 
 ### Common Issues
 
@@ -787,7 +785,7 @@ ls -la src/flext_cli/
 - **Reliability**: Consistent behavior across all environments
 - **Extensibility**: Easy plugin development and integration
 
-## Contributing
+## Contribuição
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -796,11 +794,11 @@ ls -la src/flext_cli/
 5. Push to the branch (`git push origin feature/amazing-feature`)
 6. Open a Pull Request
 
-## License
+## Licença
 
 MIT License - see [LICENSE](LICENSE) for details.
 
-## Documentation
+## Documentação
 
 ### Architecture & Development
 

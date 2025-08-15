@@ -454,10 +454,10 @@ def cli_file_operation(
 
 
 # =============================================================================
-# LEGACY COMPATIBILITY DECORATORS
+# COMPATIBILITY DECORATORS
 # =============================================================================
 
-# Legacy aliases for backward compatibility
+# Decorator aliases
 flext_cli_enhanced = cli_enhanced
 flext_cli_validate_inputs = cli_validate_inputs
 flext_cli_handle_keyboard_interrupt = cli_handle_keyboard_interrupt
@@ -489,7 +489,7 @@ __all__ = [
     "cli_validate_inputs",
     "flext_cli_cache_result",
     "flext_cli_confirm",
-    # Legacy aliases
+    # Decorator aliases
     "flext_cli_enhanced",
     "flext_cli_file_operation",
     "flext_cli_handle_keyboard_interrupt",

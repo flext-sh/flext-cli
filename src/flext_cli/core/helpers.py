@@ -49,7 +49,6 @@ class FlextCliHelper:
         except Exception as e:
             return FlextResult.fail(f"Confirmation failed: {e}")
 
-    # Back-compat simple bool-returning API used by some tests
     def confirm(self, message: str, *, default: bool = False) -> bool:
         """Ask for confirmation and return a boolean."""
         try:
@@ -624,5 +623,3 @@ def flext_cli_batch_validate(
     return processor.flext_cli_validate_and_transform(data, validators, {})
 
 
-# Backward-compatibility alias used in some tests
-CLIHelper = FlextCliHelper

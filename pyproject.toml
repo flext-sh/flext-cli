@@ -278,6 +278,7 @@ extend = "../.ruff-shared.toml"
 lint.isort.known-first-party = ["flext_cli"]
 
 [tool.ruff.lint.per-file-ignores]
+"src/flext_cli/constants.py" = ["S105"]  # Allow hardcoded passwords in string constants
 "tests/**" = [
     "INP001",
     "PLR0915",

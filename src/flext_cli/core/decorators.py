@@ -1,4 +1,4 @@
-"""Core decorators compatibility for legacy tests."""
+"""Core decorators."""
 
 from __future__ import annotations
 

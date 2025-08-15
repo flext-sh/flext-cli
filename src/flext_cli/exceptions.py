@@ -1,11 +1,4 @@
-"""CLI Exception Hierarchy - Enterprise Error Handling.
-
-CLI-specific exception hierarchy built on FLEXT ecosystem error handling patterns
-with specialized exceptions for commands, arguments, formatting, output, and context operations.
-
-Copyright (c) 2025 FLEXT Contributors
-SPDX-License-Identifier: MIT
-"""
+"""CLI Exception Hierarchy."""
 
 from __future__ import annotations
 

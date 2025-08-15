@@ -1,23 +1,4 @@
-"""FLEXT CLI Types - Complete type system consolidating all CLI types.
-
-This module consolidates all CLI-related types from multiple scattered files
-into a single, well-organized module following PEP8 naming conventions.
-
-Consolidated from:
-    - types.py (root level)
-    - core/types.py (Click parameter types)
-    - Various type definitions across modules
-
-Design Principles:
-    - PEP8 naming: cli_types.py (not types.py for clarity)
-    - Single source of truth for all CLI types
-    - Extends flext-core types where appropriate
-    - Type safety with Python 3.13+ features
-    - Zero duplication
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""FLEXT CLI Types."""
 
 from __future__ import annotations
 
@@ -299,7 +280,7 @@ U = TypeVar("U")
 K = TypeVar("K")
 V = TypeVar("V")
 
-# Enhanced FlextResult alias with common patterns
+# FlextResult aliases with common patterns
 type FlextCliResult[T] = FlextResult[T]
 type FlextCliOperationResult[T] = FlextResult[T]
 type FlextCliValidationResult = FlextResult[bool]
@@ -373,7 +354,7 @@ type FlextCliCommand[T] = Callable[[], FlextCliResult[T]]
 type FlextCliCommandRegistry[T] = dict[str, FlextCliCommand[T]]
 type FlextCliCommandPipeline[T] = list[FlextCliCommand[T]]
 
-# Legacy CLI-specific result types using FlextResult (for backward compatibility)
+# CLI-specific result types using FlextResult
 type CommandResult = FlextResult[OutputData]
 type ValidationResult = FlextResult[bool]
 type ConfigResult = FlextResult[ConfigDict]
@@ -483,7 +464,7 @@ class FlextCliConfigProvider(Protocol):
 __all__ = [
     "CommandArgs",
     "CommandOptions",
-    # Legacy result types (for backward compatibility)
+    # Result types
     "CommandResult",
     "CommandStatus",
     # Basic enumerations
@@ -494,7 +475,7 @@ __all__ = [
     "ConfigurationResult",
     "ContextParams",
     "DurationSeconds",
-    # Basic type aliases
+    # Type aliases
     "EntityId",
     "EntryPoint",
     "EnvironmentDict",

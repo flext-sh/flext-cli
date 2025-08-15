@@ -1,9 +1,4 @@
-"""Simple configuration hierarchy facade for tests.
-
-This provides a minimal `create_default_hierarchy` function returning a
-`FlextResult[dict[str, object]]`, used by mixins and tests. In the real
-system this would merge files, env vars and defaults.
-"""
+"""Configuration hierarchy."""
 
 from __future__ import annotations
 
@@ -17,7 +12,7 @@ def create_default_hierarchy(
     """Create a minimal configuration hierarchy for tests.
 
     The optional ``config_path`` is unused in this shim but kept for API
-    compatibility with the real implementation.
+    compatibility with the actual implementation.
     """
     try:
         _ = config_path  # unused by design in this facade
@@ -28,5 +23,12 @@ def create_default_hierarchy(
             "output_format": "table",
         }
         return FlextResult.ok(config)
-    except Exception as e:  # noqa: BLE001
-        return FlextResult.fail(str(e))
+    except (OSError, PermissionError) as e:
+        # Handle file system access errors if config_path is used in future
+        return FlextResult.fail(f"Configuration file access error: {e}")
+    except (ValueError, TypeError) as e:
+        # Handle data validation or type conversion errors
+        return FlextResult.fail(f"Configuration data error: {e}")
+    except Exception as e:
+        # Fallback for truly unexpected errors
+        return FlextResult.fail(f"Unexpected configuration error: {e}")

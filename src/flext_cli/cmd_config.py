@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 import click
-import yaml
+import yaml  # type: ignore[import-untyped]
 from rich.console import Console
 from rich.table import Table
 
@@ -74,7 +74,7 @@ def _get_all_config(cli_context: object) -> None:
 
 
 def _print_config_table(cli_context: object, config_data: dict[str, object]) -> None:
-    """Compatibility helper: print given config dict as table."""
+    """Helper: print given config dict as table."""
     console: Console = getattr(cli_context, "console", Console())
     table = Table(title="FLEXT Configuration v0.7.0")
     table.add_column("Key", style="cyan")
@@ -165,8 +165,8 @@ def edit(ctx: click.Context) -> None:
     if not cfg:
         ctx.exit(1)
     cfg_path = getattr(cfg, "config_file", Path.home() / ".flext" / "config.yaml")
-    # Use classmethod style so tests can patch Path.mkdir
-    Path.mkdir(cfg_path.parent, parents=True, exist_ok=True)
+    # Create parent directory if it doesn't exist (tests can patch this instance method)
+    cfg_path.parent.mkdir(parents=True, exist_ok=True)
     if not cfg_path.exists():
         with cfg_path.open("w", encoding="utf-8") as f:
             f.write(yaml.dump({"debug": False, "timeout": 30}))

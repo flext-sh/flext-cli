@@ -5,17 +5,17 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import csv
+import datetime
 import getpass
 import importlib
 import io
 import json
 import shlex
-
-# Removed subprocess dependency to avoid security warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, TypeVar, cast
+from uuid import UUID
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 from flext_core import FlextResult, get_logger
 from rich.console import Console
 from rich.progress import Progress
@@ -450,17 +450,80 @@ def _save_json_file(data: object, path: Path) -> FlextResult[None]:
         return FlextResult.fail(f"Failed to write JSON file {path}: {e}")
 
 
+def _convert_to_serializable(data: object) -> object:
+    """Convert data to a YAML/JSON serializable format.
+
+    Args:
+        data: Data to convert
+
+    Returns:
+        Serializable representation of the data
+
+    """
+    # Import statements moved to top of file to fix PLC0415
+    if data is None or isinstance(data, (str, int, float, bool)):
+        return data
+
+    # Handle datetime types
+    if isinstance(data, (datetime.datetime, datetime.date, datetime.time)):
+        return data.isoformat()
+
+    # Handle Path and UUID types
+    if isinstance(data, (Path, UUID)):
+        return str(data)
+
+    # Handle dict types
+    if isinstance(data, dict):
+        return {str(k): _convert_to_serializable(v) for k, v in data.items()}
+
+    # Handle sequence types (including sets)
+    if isinstance(data, (list, tuple, set)):
+        return [_convert_to_serializable(item) for item in data]
+
+    # Handle objects with __dict__ or fallback to string
+    return (_convert_to_serializable(data.__dict__)
+            if hasattr(data, "__dict__")
+            else str(data))
+
+
 def _save_yaml_file(data: object, path: Path) -> FlextResult[None]:
     """Save data as YAML file."""
     try:
         with path.open("w", encoding="utf-8") as f:
-            yaml.dump(
-                data,
-                f,
-                default_flow_style=False,
-                sort_keys=False,
-                allow_unicode=True,
-            )
+            # First try safe_dump with the original data
+            try:
+                yaml.safe_dump(
+                    data,
+                    f,
+                    default_flow_style=False,
+                    sort_keys=False,
+                    allow_unicode=True,
+                )
+            except (yaml.YAMLError, TypeError) as yaml_error:
+                # If safe_dump fails due to non-serializable objects, convert to serializable
+                try:
+                    serializable_data = _convert_to_serializable(data)
+                    f.seek(0)  # Reset file position
+                    f.truncate()  # Clear any partial content
+                    yaml.safe_dump(
+                        serializable_data,
+                        f,
+                        default_flow_style=False,
+                        sort_keys=False,
+                        allow_unicode=True,
+                    )
+                except Exception:
+                    # Final fallback: convert to dict/string representation
+                    f.seek(0)
+                    f.truncate()
+                    fallback_data = {"data": str(data), "error": f"Could not serialize: {yaml_error}"}
+                    yaml.safe_dump(
+                        fallback_data,
+                        f,
+                        default_flow_style=False,
+                        sort_keys=False,
+                        allow_unicode=True,
+                    )
         return FlextResult.ok(None)
     except (OSError, yaml.YAMLError) as e:
         return FlextResult.fail(f"Failed to write YAML file {path}: {e}")

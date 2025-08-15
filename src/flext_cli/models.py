@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from enum import StrEnum
-from pathlib import Path
+from pathlib import Path  # noqa: TC003 - Used at runtime in Pydantic validators
 from typing import ClassVar
 
 from flext_core import (
@@ -21,6 +21,7 @@ from rich.console import Console
 
 # import flext_cli.domain.entities as de  # Removed to avoid circular import
 from flext_cli.config import CLIConfig as FlextCliConfig
+from flext_cli.constants import FlextCliConstants
 
 
 def _now_utc() -> datetime:
@@ -66,7 +67,7 @@ class FlextCliCommandStatus(StrEnum):
     CANCELLED = "cancelled"
 
 
-# Backward-compatibility alias names expected by api layer/tests
+# Compatibility alias names expected by api layer/tests
 CommandStatus = FlextCliCommandStatus
 
 
@@ -96,7 +97,7 @@ class FlextCliPluginState(StrEnum):
 
 
 class PluginStatus(StrEnum):
-    """Legacy plugin status enumeration with INACTIVE alias."""
+    """Plugin status enumeration with INACTIVE alias."""
 
     INACTIVE = "inactive"
     UNLOADED = "unloaded"
@@ -244,7 +245,7 @@ class FlextCliContext(FlextValueObject):
 
         # Timeout must be reasonable
         if self.timeout_seconds > MAX_TIMEOUT_SECONDS:
-            return FlextResult.fail("Timeout cannot exceed 24 hours")
+            return FlextResult.fail(FlextCliConstants.CliErrors.TIME_TIMEOUT_EXCEEDED)
 
         return FlextResult.ok(None)
 
@@ -315,11 +316,11 @@ class FlextCliOutput(FlextValueObject):
         if self.exit_code is not None and (
             self.exit_code < MIN_EXIT_CODE or self.exit_code > MAX_EXIT_CODE
         ):
-            return FlextResult.fail("Exit code must be between 0 and 255")
+            return FlextResult.fail(FlextCliConstants.CliErrors.EXIT_CODE_INVALID)
 
         # Execution time validation
         if self.execution_time_seconds is not None and self.execution_time_seconds < 0:
-            return FlextResult.fail("Execution time cannot be negative")
+            return FlextResult.fail(FlextCliConstants.CliErrors.TIME_NEGATIVE)
 
         return FlextResult.ok(None)
 
@@ -556,7 +557,7 @@ class FlextCliCommand(FlextEntity):
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI command business rules."""
         if not self.command_line.strip():
-            return FlextResult.fail("Command line cannot be empty")
+            return FlextResult.fail(FlextCliConstants.CliErrors.COMMAND_LINE_EMPTY)
 
         # Validate timestamps are in correct order
         if (
@@ -564,11 +565,11 @@ class FlextCliCommand(FlextEntity):
             and self.completed_at
             and self.completed_at < self.started_at
         ):
-            return FlextResult.fail("Completion time cannot be before start time")
+            return FlextResult.fail(FlextCliConstants.CliErrors.TIME_COMPLETION_BEFORE_START)
 
         # Validate status transitions
         if self.command_status == FlextCliCommandStatus.RUNNING and not self.started_at:
-            return FlextResult.fail("Running command must have started_at timestamp")
+            return FlextResult.fail(FlextCliConstants.CliErrors.STATE_RUNNING_MUST_HAVE_START)
 
         if self.is_terminal_state and not self.completed_at:
             return FlextResult.fail(
@@ -741,7 +742,7 @@ class FlextCliCommand(FlextEntity):
     def cancel_execution(self) -> FlextResult[FlextCliCommand]:
         """Cancel running command execution."""
         if self.command_status != FlextCliCommandStatus.RUNNING:
-            return FlextResult.fail("Can only cancel running commands")
+            return FlextResult.fail(FlextCliConstants.CliErrors.STATE_ONLY_CANCEL_RUNNING)
 
         now = _now_utc()
         updated_command = self.copy_with(
@@ -770,22 +771,24 @@ class FlextCliCommand(FlextEntity):
     def command_status(self) -> CommandStatus:
         """Backward-compat alias property expected by some tests."""
         # First check the actual status field for explicit status
-        if self.status == FlextCliCommandStatus.CANCELLED:
-            return CommandStatus("cancelled")
-        if self.status == FlextCliCommandStatus.FAILED:
-            return CommandStatus("failed")
-        if self.status == FlextCliCommandStatus.COMPLETED:
-            return CommandStatus("completed")
-        if self.status == FlextCliCommandStatus.RUNNING:
-            return CommandStatus("running")
+        status_mapping = {
+            FlextCliCommandStatus.CANCELLED: "cancelled",
+            FlextCliCommandStatus.FAILED: "failed",
+            FlextCliCommandStatus.COMPLETED: "completed",
+            FlextCliCommandStatus.RUNNING: "running",
+        }
+
+        if self.status in status_mapping:
+            return CommandStatus(status_mapping[self.status])
 
         # Fallback to deriving from timestamps/exit_code for legacy compatibility
         if self.completed_at is not None:
-            return CommandStatus(
-                "completed" if (self.exit_code or 0) == 0 else "failed"
-            )
+            status_value = "completed" if (self.exit_code or 0) == 0 else "failed"
+            return CommandStatus(status_value)
+
         if self.started_at is not None:
             return CommandStatus("running")
+
         return CommandStatus("pending")
 
     @property
@@ -900,24 +903,24 @@ class FlextCliSession(FlextEntity):
 
         # Validate timestamps
         if self.ended_at and self.ended_at < self.started_at:
-            return FlextResult.fail("End time cannot be before start time")
+            return FlextResult.fail(FlextCliConstants.CliErrors.TIME_END_BEFORE_START)
 
         if self.last_activity_at < self.started_at:
-            return FlextResult.fail("Last activity cannot be before start time")
+            return FlextResult.fail(FlextCliConstants.CliErrors.TIME_ACTIVITY_BEFORE_START)
 
         # Current command must be in history if set
         if (
             self.current_command_id
             and self.current_command_id not in self.command_history
         ):
-            return FlextResult.fail("Current command must be in command history")
+            return FlextResult.fail(FlextCliConstants.CliErrors.STATE_COMMAND_NOT_IN_HISTORY)
 
         return FlextResult.ok(None)
 
     def add_command(self, command_id: FlextEntityId) -> FlextResult[FlextCliSession]:
         """Add command to session history."""
         if not self.is_active:
-            return FlextResult.fail("Cannot add commands to inactive session")
+            return FlextResult.fail(FlextCliConstants.CliErrors.SESSION_INACTIVE)
 
         now = _now_utc()
         new_history = [*self.command_history, command_id]
@@ -981,7 +984,7 @@ class FlextCliSession(FlextEntity):
     def suspend_session(self) -> FlextResult[FlextCliSession]:
         """Suspend the session."""
         if not self.is_active:
-            return FlextResult.fail("Can only suspend active sessions")
+            return FlextResult.fail(FlextCliConstants.CliErrors.STATE_ONLY_SUSPEND_ACTIVE)
 
         now = _now_utc()
         updated_session = self.copy_with(
@@ -1010,7 +1013,7 @@ class FlextCliSession(FlextEntity):
     def resume_session(self) -> FlextResult[FlextCliSession]:
         """Resume suspended session."""
         if self.state != FlextCliSessionState.SUSPENDED:
-            return FlextResult.fail("Can only resume suspended sessions")
+            return FlextResult.fail(FlextCliConstants.CliErrors.STATE_ONLY_RESUME_SUSPENDED)
 
         now = _now_utc()
         updated_session = self.copy_with(
@@ -1038,7 +1041,7 @@ class FlextCliSession(FlextEntity):
     def terminate_session(self) -> FlextResult[FlextCliSession]:
         """Terminate the session."""
         if self.state == FlextCliSessionState.TERMINATED:
-            return FlextResult.fail("Session is already terminated")
+            return FlextResult.fail(FlextCliConstants.CliErrors.SESSION_ALREADY_TERMINATED)
 
         now = _now_utc()
         updated_session = self.copy_with(
@@ -1238,10 +1241,10 @@ class FlextCliPlugin(FlextEntity):
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI plugin business rules."""
         if not self.name.strip():
-            return FlextResult.fail("Plugin name cannot be empty")
+            return FlextResult.fail(FlextCliConstants.CliErrors.PLUGIN_NAME_EMPTY)
 
         if not self.entry_point.strip():
-            return FlextResult.fail("Entry point cannot be empty")
+            return FlextResult.fail(FlextCliConstants.CliErrors.PLUGIN_ENTRY_POINT_EMPTY)
 
         # Validate plugin directory exists if specified
         if self.plugin_directory and not self.plugin_directory.exists():
@@ -1251,7 +1254,7 @@ class FlextCliPlugin(FlextEntity):
 
         # Validate state transitions
         if self.state == FlextCliPluginState.ACTIVE and not self.loaded_at:
-            return FlextResult.fail("Active plugin must have loaded_at timestamp")
+            return FlextResult.fail(FlextCliConstants.CliErrors.PLUGIN_MUST_BE_ACTIVE)
 
         return FlextResult.ok(None)
 
@@ -1367,7 +1370,7 @@ class FlextCliPlugin(FlextEntity):
     def unload_plugin(self) -> FlextResult[FlextCliPlugin]:
         """Unload the plugin."""
         if self.state == FlextCliPluginState.UNLOADED:
-            return FlextResult.fail("Plugin is already unloaded")
+            return FlextResult.fail(FlextCliConstants.CliErrors.PLUGIN_UNLOADED)
 
         # Deactivate first if active
         if self.state == FlextCliPluginState.ACTIVE:
@@ -1447,7 +1450,7 @@ class FlextCliWorkspace(FlextAggregateRoot):
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI workspace business rules."""
         if not self.name.strip():
-            return FlextResult.fail("Workspace name cannot be empty")
+            return FlextResult.fail(FlextCliConstants.CliErrors.WORKSPACE_NAME_EMPTY)
 
         return FlextResult.ok(None)
 
@@ -1458,7 +1461,7 @@ class FlextCliWorkspace(FlextAggregateRoot):
             return FlextResult.fail(validation_result.error or "Validation failed")
 
         if session_id in self.session_ids:
-            return FlextResult.fail("Session already exists in workspace")
+            return FlextResult.fail(FlextCliConstants.CliErrors.SESSION_ALREADY_EXISTS)
 
         new_session_ids = [*self.session_ids, session_id]
         updated_workspace = self.copy_with(session_ids=new_session_ids)
@@ -1487,7 +1490,7 @@ class FlextCliWorkspace(FlextAggregateRoot):
     ) -> FlextResult[FlextCliWorkspace]:
         """Remove session from workspace."""
         if session_id not in self.session_ids:
-            return FlextResult.fail("Session not found in workspace")
+            return FlextResult.fail(FlextCliConstants.CliErrors.SESSION_NOT_FOUND)
 
         new_session_ids = [sid for sid in self.session_ids if sid != session_id]
         updated_workspace = self.copy_with(session_ids=new_session_ids)
@@ -1516,7 +1519,7 @@ class FlextCliWorkspace(FlextAggregateRoot):
     ) -> FlextResult[FlextCliWorkspace]:
         """Install plugin in workspace."""
         if plugin_id in self.plugin_ids:
-            return FlextResult.fail("Plugin already installed in workspace")
+            return FlextResult.fail(FlextCliConstants.CliErrors.PLUGIN_ALREADY_INSTALLED)
 
         new_plugin_ids = [*self.plugin_ids, plugin_id]
         updated_workspace = self.copy_with(plugin_ids=new_plugin_ids)

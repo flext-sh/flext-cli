@@ -1,20 +1,4 @@
-"""FLEXT CLI Configuration Providers - Provider implementations for hierarchical config.
-
-This module implements configuration providers that integrate with the hierarchical
-configuration system following docs/patterns/config-cli.md patterns.
-
-Provider Types:
-    - FlextCliArgsProvider: CLI arguments (highest precedence)
-    - FlextConstantsProvider: Default constants (lowest precedence)
-
-Integration:
-    - Used by flext_cli.config_hierarchical.FlextCLIConfigHierarchical
-    - Supports the 5-level configuration hierarchy
-    - Type-safe with FlextResult patterns
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""FLEXT CLI Configuration Providers."""
 
 from __future__ import annotations
 

@@ -1,30 +1,11 @@
-"""FLEXT CLI Configuration - Complete configuration system consolidating all CLI configs.
-
-This module consolidates all CLI-related configuration from multiple scattered files
-into a single, well-organized module following PEP8 naming conventions.
-
-Consolidated from:
-    - config.py (root level)
-    - config_hierarchical.py (hierarchical configuration)
-    - Various configuration definitions across modules
-
-Design Principles:
-    - PEP8 naming: cli_config.py (not config.py for clarity)
-    - Single source of truth for all CLI configuration
-    - Extends flext-core configuration where appropriate
-    - Environment variable loading with validation
-    - Type safety with comprehensive annotations
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""FLEXT CLI Configuration."""
 
 from __future__ import annotations
 
 import os
 from pathlib import Path
 
-import toml
+import toml  # type: ignore[import-untyped]
 from flext_core import (
     FlextResult,
     FlextSettings,
@@ -77,10 +58,9 @@ class CLIConfig(FlextSettings):
         description="Enable debug mode",
     )
 
-    # Legacy compatibility flag expected by tests
     trace: bool = Field(
         default=False,
-        description="Enable trace mode (legacy flag for tests)",
+        description="Enable trace mode",
     )
 
     verbose: bool = Field(
@@ -122,7 +102,7 @@ class CLIConfig(FlextSettings):
         description="API request timeout in seconds",
     )
 
-    # Legacy connection/read timeout fields used by tests
+    # Connection timeout fields
     connect_timeout: int = Field(default=10, ge=1, description="Connect timeout (s)")
     read_timeout: int = Field(default=30, ge=1, description="Read timeout (s)")
 
@@ -314,7 +294,7 @@ class CLIConfig(FlextSettings):
         return self.log_level
 
     # ---------------------------------------------------------------------
-    # Legacy compatibility properties expected by tests
+    # Convenience properties
     # ---------------------------------------------------------------------
 
     @property
@@ -440,14 +420,13 @@ class CLIConfig(FlextSettings):
         return config_dict
 
     # ------------------------------------------------------------------
-    # Legacy helper methods expected by tests
+    # Helper methods
     # ------------------------------------------------------------------
 
     def configure(self, settings: object) -> bool:
         """Apply simple settings updates from a plain dict, return success.
 
-        This mirrors the legacy `configure` API used in tests, updating a subset
-        of fields and returning True/False based on success.
+        Updates a subset of fields and returns True/False based on success.
         """
         if not isinstance(settings, dict):
             return False
@@ -464,7 +443,7 @@ class CLIConfig(FlextSettings):
             return False
 
     def validate_domain_rules(self) -> bool:
-        """Legacy boolean validation wrapper over validate_config()."""
+        """Boolean validation wrapper over validate_config()."""
         result = self.validate_config()
         return result.is_success
 
@@ -472,6 +451,8 @@ class CLIConfig(FlextSettings):
 # =============================================================================
 # CONFIGURATION FACTORY FUNCTIONS
 # =============================================================================
+
+
 
 
 def create_cli_config(
@@ -534,10 +515,10 @@ def create_cli_config_from_file(file_path: Path) -> FlextResult[CLIConfig]:
     return CLIConfig.load_from_file(file_path)
 
 
-# Legacy aliases for backward compatibility
+# Configuration aliases
 FlextCliConfig = CLIConfig
 create_flext_cli_config = create_cli_config
-FlextCliConfigHierarchical = CLIConfig  # Old hierarchical config class
+FlextCliConfigHierarchical = CLIConfig
 
 
 # =============================================================================
@@ -547,7 +528,7 @@ FlextCliConfigHierarchical = CLIConfig  # Old hierarchical config class
 __all__ = [
     # Core configuration
     "CLIConfig",
-    # Legacy aliases
+    # Configuration aliases
     "FlextCliConfig",
     "FlextCliConfigHierarchical",
     # Factory functions
@@ -555,15 +536,28 @@ __all__ = [
     "create_cli_config_from_env",
     "create_cli_config_from_file",
     "create_flext_cli_config",
-    # Compatibility helper used by simple_api
+    # Helper functions
     "get_cli_settings",
 ]
 
 
 def get_cli_settings() -> CLIConfig:
-    """Compatibility helper to satisfy imports in simple_api/tests.
+    """Compatibility helper for imports in simple_api/tests - returns default CLIConfig.
 
-    Returns a default CLIConfig instance; tests generally patch this function
-    or do not rely on its concrete behavior.
+    This function returns a default CLIConfig instance with all fields set to their
+    default values (profile='default', output_format=TABLE, debug=False, etc.).
+
+    Important: This is a compatibility helper used primarily for imports in simple_api
+    and test scenarios. Production code should not rely on its concrete behavior but
+    should inject or construct a CLIConfig explicitly with proper configuration.
+
+    Tests typically patch or monkeypatch this function to provide controlled configurations.
+
+    Thread safety: This function is thread-safe as it creates a new instance each time.
+    No side effects or global state modifications occur.
+
+    Returns:
+        A new CLIConfig instance with default values
+
     """
     return CLIConfig()

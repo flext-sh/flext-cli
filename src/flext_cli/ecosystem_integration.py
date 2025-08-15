@@ -1,49 +1,4 @@
-"""FLEXT CLI Ecosystem Integration - Generic patterns for ecosystem projects.
-
-This module provides generic CLI patterns that ANY ecosystem project can use,
-following docs/patterns/foundation-refactored.md. This library is project-agnostic
-and provides the foundation patterns that specific projects implement in their own codebases.
-
-Generic Integration Patterns:
-    1. CLI Foundation Base - Base for standalone CLI or flext-service integration
-    2. flext-core Integration Bridge - Deep flext-core configuration integration
-    3. Ecosystem Library Base - Generic patterns that projects extend
-
-Project Implementation Guide:
-    Each ecosystem project should implement these patterns in their own codebase:
-
-    # In flext-meltano project:
-    from flext_cli import FlextCliGenericCommand, FlextCliConfigFactory
-
-    class MeltanoCommand(FlextCliGenericCommand):
-        pipeline: str
-        environment: str = "dev"
-
-        def execute(self) -> FlextResult[Any]:
-            # Meltano-specific implementation
-            return FlextResult.ok({"pipeline": self.pipeline})
-
-    # In algar-oud-mig project:
-    from flext_cli import FlextCliGenericCommand
-
-    class AlgarMigrationCommand(FlextCliGenericCommand):
-        source_ldap: str
-        target_oud: str
-
-        def execute(self) -> FlextResult[Any]:
-            # ALGAR-specific implementation
-            return FlextResult.ok({"migration": f"{self.source_ldap} -> {self.target_oud}"})
-
-Modern Benefits:
-    - 85% boilerplate reduction compared to custom CLI implementations
-    - Railway-oriented programming eliminating exception handling
-    - Hierarchical configuration following config-cli.md patterns
-    - Zero-configuration entity management
-    - Project-agnostic patterns that any project can extend
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""FLEXT CLI Ecosystem Integration."""
 
 from __future__ import annotations
 
@@ -234,14 +189,14 @@ def setup_flext_cli_ecosystem(
 
 
 # Migration helpers for existing ecosystem projects
-def migrate_to_modern_patterns(legacy_setup_function: str, project_name: str) -> str:
-    """Generate migration code from legacy patterns to modern foundation patterns.
+def migrate_to_modern_patterns(old_setup_function: str, project_name: str) -> str:
+    """Generate migration code from old patterns to modern foundation patterns.
 
-    This function helps ecosystem projects migrate from legacy CLI patterns to
+    This function helps ecosystem projects migrate from old CLI patterns to
     modern foundation patterns following docs/patterns/foundation-refactored.md.
 
     Args:
-        legacy_setup_function: Name of existing setup function
+        old_setup_function: Name of existing setup function
         project_name: Project name for specific migration
 
     Returns:
@@ -249,10 +204,10 @@ def migrate_to_modern_patterns(legacy_setup_function: str, project_name: str) ->
 
     """
     return f"""\
-# MIGRATION: {project_name} - Legacy to Modern FlextCli Patterns
+# MIGRATION: {project_name} - Old to Modern FlextCli Patterns
 #
-# OLD (Legacy Pattern): 30+ lines of boilerplate
-# def {legacy_setup_function}():
+# OLD (Previous Pattern): 30+ lines of boilerplate
+# def {old_setup_function}():
 #     try:
 #         config = load_config()
 #         validate_config(config)
@@ -265,12 +220,12 @@ def migrate_to_modern_patterns(legacy_setup_function: str, project_name: str) ->
 # NEW (Modern FlextCli Pattern): 3 lines - 90% reduction!
 from flext_cli import setup_flext_cli_ecosystem
 
-def {legacy_setup_function}_modern(**config_overrides):
+def {old_setup_function}_modern(**config_overrides):
     "Modern setup with railway-oriented programming following FlextCli patterns."
     return setup_flext_cli_ecosystem("{project_name}", **config_overrides)
 
 # Usage in {project_name} project:
-# result = {legacy_setup_function}_modern(debug=True, environment="prod")
+# result = {old_setup_function}_modern(debug=True, environment="prod")
 # if result.success:
 #     print("Setup completed successfully!")
 #     context = result.data
