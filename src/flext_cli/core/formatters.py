@@ -1,4 +1,4 @@
-"""Core formatters compatibility for tests."""
+"""Core formatters."""
 
 from __future__ import annotations
 

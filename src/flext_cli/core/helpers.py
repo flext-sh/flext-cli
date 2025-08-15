@@ -1,10 +1,4 @@
-"""Core helpers and utilities for the CLI.
-
-This module provides the `FlextCliHelper` utility class and related helper
-functions used across mixins and tests. It focuses on safe I/O, validation,
-and small UX helpers that return ``FlextResult`` values instead of raising
-exceptions.
-"""
+"""Core helpers and utilities."""
 
 from __future__ import annotations
 

@@ -1,23 +1,4 @@
-"""FLEXT CLI Authentication - Complete authentication system consolidating utilities and commands.
-
-This module consolidates all CLI authentication functionality from multiple scattered files
-into a single, well-organized module following PEP8 naming conventions.
-
-Consolidated from:
-    - utils/auth.py (authentication utilities)
-    - commands/auth.py (authentication CLI commands)
-    - Various authentication definitions across modules
-
-Design Principles:
-    - PEP8 naming: cli_auth.py (not auth.py for clarity)
-    - Single source of truth for all CLI authentication
-    - Secure token management with restricted permissions
-    - Rich terminal UI with comprehensive error handling
-    - Type safety with comprehensive annotations
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""FLEXT CLI Authentication."""
 
 from __future__ import annotations
 
@@ -535,18 +516,8 @@ def whoami(ctx: click.Context) -> None:
 
 
 # =============================================================================
-# LEGACY COMPATIBILITY - Backward compatibility aliases
+# AUTHENTICATION HEADERS
 # =============================================================================
-
-# Legacy aliases for utilities (from utils/auth.py)
-get_token_file_path = get_token_path
-get_refresh_token_file_path = get_refresh_token_path
-clear_tokens = clear_auth_tokens
-is_user_authenticated = is_authenticated
-
-# Compatibility aliases for __init__.py imports
-load_auth_token = get_auth_token
-clear_auth_token = clear_auth_tokens
 
 
 def get_auth_headers() -> dict[str, str]:

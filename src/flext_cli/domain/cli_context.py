@@ -1,8 +1,4 @@
-"""Domain context for CLI operations.
-
-Provides Pydantic-based `CLIContext` for tests and a simple dataclass
-`CLIExecutionContext` for execution metadata.
-"""
+"""CLI domain context."""
 
 from __future__ import annotations
 
@@ -57,26 +53,36 @@ class CLIContext(BaseModel):
 
     # Printing helpers expected by tests
     def print_success(self, message: str) -> None:
-        assert self.console is not None
-        self.console.print(f"[green][SUCCESS][/green] {message}")
+        if self.console is None:
+            print(f"[SUCCESS] {message}")
+        else:
+            self.console.print(f"[green][SUCCESS][/green] {message}")
 
     def print_error(self, message: str) -> None:
-        assert self.console is not None
-        self.console.print(f"[red][ERROR][/red] {message}")
+        if self.console is None:
+            print(f"[ERROR] {message}")
+        else:
+            self.console.print(f"[red][ERROR][/red] {message}")
 
     def print_warning(self, message: str) -> None:
-        assert self.console is not None
-        self.console.print(f"[yellow][WARNING][/yellow] {message}")
+        if self.console is None:
+            print(f"[WARNING] {message}")
+        else:
+            self.console.print(f"[yellow][WARNING][/yellow] {message}")
 
     def print_info(self, message: str) -> None:
-        assert self.console is not None
         if not self.is_quiet:
-            self.console.print(f"[blue][INFO][/blue] {message}")
+            if self.console is None:
+                print(f"[INFO] {message}")
+            else:
+                self.console.print(f"[blue][INFO][/blue] {message}")
 
     def print_verbose(self, message: str) -> None:
-        assert self.console is not None
         if self.is_verbose:
-            self.console.print(f"[dim][VERBOSE][/dim] {message}")
+            if self.console is None:
+                print(f"[VERBOSE] {message}")
+            else:
+                self.console.print(f"[dim][VERBOSE][/dim] {message}")
 
 
 @dataclass

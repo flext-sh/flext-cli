@@ -1,8 +1,4 @@
-"""Auth commands shim que expõe símbolos patcháveis para testes.
-
-- Reexporta comandos do ``cli_auth``.
-- Garante que `clear_auth_tokens` exposta aqui possa ser observada pelos testes.
-"""
+"""Auth commands."""
 
 from __future__ import annotations
 

@@ -1,7 +1,4 @@
-"""Debug commands shim for tests.
-
-Exposes a module matching legacy path and re-exports from `cmd_debug`.
-"""
+"""Debug commands."""
 
 from __future__ import annotations
 
@@ -85,7 +82,7 @@ class _CommandShim:
 
                     with _suppress(Exception):
                         temp_ctx.obj = first.obj
-                
+
                 # Execute the callback within the active context
                 try:
                     target = getattr(callback, "__wrapped__", callback)
@@ -93,7 +90,7 @@ class _CommandShim:
                         target.__globals__["get_config"] = get_config
                 except Exception:
                     ...
-                
+
                 # Ensure the context is active when calling the callback
                 if callback:
                     with temp_ctx:

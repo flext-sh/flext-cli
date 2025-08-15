@@ -14,7 +14,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import warnings
 from typing import ClassVar, Final
 
 from flext_core import FlextConstants
@@ -71,29 +70,6 @@ MAX_ENTITY_NAME_LENGTH: int = FlextConstants.Platform.MAX_NAME_LENGTH
 MAX_ERROR_MESSAGE_LENGTH: int = FlextConstants.Limits.MAX_STRING_LENGTH
 
 
-class _CLIConstants:
-    """CLI constants namespace for backward compatibility.
-
-    DEPRECATED: Use FlextCliConstants or FlextConstants directly.
-    """
-
-    MAX_ENTITY_NAME_LENGTH: int = MAX_ENTITY_NAME_LENGTH
-    MAX_ERROR_MESSAGE_LENGTH: int = MAX_ERROR_MESSAGE_LENGTH
-    DEFAULT_TIMEOUT: int = DEFAULT_TIMEOUT
-
-    def __getattribute__(self, name: str) -> object:
-        """Warn on access to deprecated constants."""
-        if not name.startswith("_"):
-            warnings.warn(
-                f"CLI_CONSTANTS.{name} is deprecated. Use FlextCliConstants.{name} or FlextConstants instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-        return super().__getattribute__(name)
-
-
-# Export constants for backward compatibility
-CLI_CONSTANTS = _CLIConstants()
 
 
 class FlextCliConstants:
@@ -204,66 +180,3 @@ class FlextCliConstants:
         MOCK_API_FAILURE_RATE = 0.3  # 30% chance of failure for demo purposes
 
 
-class FlextConfigSemanticConstants:
-    """Configuration semantic constants.
-
-    DEPRECATED: Use FlextConstants.Configuration or FlextCliConstants.Configuration instead.
-    This class is kept for backward compatibility only.
-    """
-
-    def __init__(self) -> None:
-        """Warn on instantiation."""
-        warnings.warn(
-            "FlextConfigSemanticConstants is deprecated. Use FlextConstants.Configuration instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-    class Hierarchy:
-        """Configuration precedence priorities."""
-
-        CLI_ARGS = FlextConstants.Configuration.CLI_PRIORITY
-        ENV_VARS = FlextConstants.Configuration.ENV_PRIORITY
-        ENV_FILES = FlextConstants.Configuration.DOTENV_PRIORITY
-        CONFIG_FILES = FlextConstants.Configuration.CONFIG_FILE_PRIORITY
-        CONSTANTS = FlextConstants.Configuration.CONSTANTS_PRIORITY
-
-    class Sources:
-        """Configuration source identifiers."""
-
-        CLI = "cli_args"
-        ENVIRONMENT = "environment"
-        ENV_FILE = "env_file"
-        CONFIG = "config_file"
-        DEFAULT = "constants"
-
-    class Files:
-        """Standard configuration file patterns."""
-
-        DOTENV_FILES = FlextConstants.Configuration.DOTENV_FILES
-        CONFIG_FILES = FlextConstants.Configuration.CONFIG_FILES
-
-    class Types:
-        """Configuration value types."""
-
-        STRING = "string"
-        INTEGER = "integer"
-        BOOLEAN = "boolean"
-        LIST = "list"
-        DICT = "dict"
-        PATH = "path"
-
-    class Formats:
-        """Supported configuration file formats."""
-
-        JSON = "json"
-        YAML = "yaml"
-        TOML = "toml"
-        ENV = "env"
-
-    class Validation:
-        """Configuration validation constants."""
-
-        REQUIRED = "required"
-        OPTIONAL = "optional"
-        DEFAULT_PROVIDED = "default_provided"

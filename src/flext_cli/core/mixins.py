@@ -199,11 +199,10 @@ class FlextCliProgressMixin:
         """Iterate over items while displaying a simple progress indicator."""
         return list(track(items, description=description, console=self.console))
 
-    def flext_cli_with_progress(self, total: int | None = None, message: str | None = None) -> Progress:
+    def flext_cli_with_progress(self, message: str | None = None) -> Progress:
         """Create a Rich progress manager configured for the current console.
 
         Args:
-            total: Unused; kept for signature compatibility in tests.
             message: Optional message to print before showing progress.
 
         """
@@ -364,8 +363,6 @@ class FlextCliAdvancedMixin(
     def flext_cli_handle_file_operations(
         self,
         operations: list[tuple[str, str, Callable[[str], FlextResult[str]]]],
-        *,
-        require_confirmation: bool | None = None,
     ) -> FlextResult[list[str]]:
         """Execute operations on files, ensuring existence and safe I/O.
 

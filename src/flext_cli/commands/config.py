@@ -1,4 +1,4 @@
-"""Config commands shim for tests."""
+"""Config commands."""
 
 from __future__ import annotations
 

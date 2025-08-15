@@ -26,8 +26,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import warnings
-
 from flext_core import (
     FlextEntity,
     FlextResult,
@@ -222,32 +220,15 @@ def setup_cli(config: FlextCliConfig | None = None) -> FlextResult[dict[str, obj
         return FlextResult.fail(f"CLI setup failed: {e}")
 
 
-# Legacy compatibility layer with warnings
-def legacy_setup_cli(
-    *_args: object,
-    **_kwargs: object,
-) -> dict[str, object]:
-    """Legacy CLI setup function (deprecated)."""
-    warnings.warn(
-        "legacy_setup_cli is deprecated. Use setup_cli() for modern FlextResult patterns.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    result = setup_cli()
-    return {"success": result.success, "error": result.error}
 
 
-# Modern API exports (primary interface)
 __all__ = [
-    # Foundation patterns (primary API)
     "FlextCliConfig",
     "FlextCliEntity",
     "create_cli_config",
-    "legacy_setup_cli",
     "setup_cli",
 ]
 
-# Modern aliases for primary API (correct naming)
+# Convenient aliases
 create_flext_cli_config = create_cli_config
 setup_flext_cli = setup_cli

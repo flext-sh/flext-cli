@@ -1,8 +1,4 @@
-"""Core types facade kept for backward compatibility.
-
-Exports are provided by `flext_cli.cli_types`. This module exists to satisfy
-imports like `from flext_cli.core.types import URL` in legacy code/tests.
-"""
+"""Core types facade."""
 
 from __future__ import annotations
 
