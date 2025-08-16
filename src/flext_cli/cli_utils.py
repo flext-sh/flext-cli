@@ -481,9 +481,11 @@ def _convert_to_serializable(data: object) -> object:
         return [_convert_to_serializable(item) for item in data]
 
     # Handle objects with __dict__ or fallback to string
-    return (_convert_to_serializable(data.__dict__)
-            if hasattr(data, "__dict__")
-            else str(data))
+    return (
+        _convert_to_serializable(data.__dict__)
+        if hasattr(data, "__dict__")
+        else str(data)
+    )
 
 
 def _save_yaml_file(data: object, path: Path) -> FlextResult[None]:
@@ -516,7 +518,10 @@ def _save_yaml_file(data: object, path: Path) -> FlextResult[None]:
                     # Final fallback: convert to dict/string representation
                     f.seek(0)
                     f.truncate()
-                    fallback_data = {"data": str(data), "error": f"Could not serialize: {yaml_error}"}
+                    fallback_data = {
+                        "data": str(data),
+                        "error": f"Could not serialize: {yaml_error}",
+                    }
                     yaml.safe_dump(
                         fallback_data,
                         f,

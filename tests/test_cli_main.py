@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -199,8 +200,6 @@ class TestCliErrorHandling:
 
     def test_cli_environment_variable_integration(self) -> None:
         """Test CLI respects environment variables."""
-        import os
-
         # Test with environment variable
         with patch.dict(os.environ, {"FLX_DEBUG": "true"}):
             result = self.runner.invoke(cli, [])

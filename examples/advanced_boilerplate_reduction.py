@@ -16,6 +16,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import datetime
 import json
 import random
 import re
@@ -24,12 +25,11 @@ import time
 from pathlib import Path
 
 from flext_core import FlextResult
-from rich.console import Console
-from rich.progress import track
-from rich.prompt import Confirm
+from rich import Confirm, Console, track
 
 from flext_cli import (
     FlextCliAdvancedMixin,
+    FlextCliConstants,
     FlextCliDataProcessor,
     FlextCliHelper,
     flext_cli_auto_retry,
@@ -308,8 +308,6 @@ class ApiClient:
     def get_users(self) -> FlextResult[list]:
         """Get users from API with automatic retry and progress indication."""
         # Simulate flaky API
-        from flext_cli.constants import FlextCliConstants
-
         if random.random() < FlextCliConstants.Examples.MOCK_API_FAILURE_RATE:  # noqa: S311
             return FlextResult.fail("Network timeout")
 
@@ -409,8 +407,6 @@ class AdvancedDataPipeline:
 
     def _enrich_data(self, data: dict) -> FlextResult[dict]:
         """Enrich data with additional fields."""
-        import datetime
-
         enriched = {**data}
         enriched["processed_at"] = datetime.datetime.now(datetime.UTC).isoformat()
         enriched["total_records"] = sum(

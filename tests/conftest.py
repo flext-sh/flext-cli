@@ -13,32 +13,31 @@ from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import pytest
-from flext_core import FlextResult
-from flext_core.constants import FlextConstants
 from rich.console import Console
 
 from flext_cli.config import CLIConfig
-from flext_cli.domain import (
-    CLICommand,
-    CLIContext,
-    CLIPlugin,
-    CLISession,
-    CommandType,
-)
+from flext_cli.constants import FlextConstants
+from flext_cli.domain.entities import CLICommand, CommandType
+from flext_cli.domain.value_objects import CLIContext
+from flext_cli.infrastructure.container import create_cli_container
 
 if TYPE_CHECKING:
     from collections.abc import Generator
 
+# Import test mocks
+from tests.test_mocks import (
+    MockFailingApiClient,
+    MockFlextApiClient,
+)
 
 # =============================================================================
 # PYTEST CONFIGURATION - Early Hook to Prevent HTTP Initialization
 # =============================================================================
 
 
-def pytest_configure(config):
+def pytest_configure(config: pytest.Config) -> None:
     """Early pytest hook to patch HTTP functionality before any imports."""
     # Apply patches at the earliest possible stage to prevent HTTP calls
-    from unittest.mock import MagicMock, patch
 
     # Global patches that must be applied before modules are imported
     patches = [
@@ -57,7 +56,7 @@ def pytest_configure(config):
             config._api_patches.append(patcher)
 
 
-def pytest_unconfigure(config):
+def pytest_unconfigure(config: pytest.Config) -> None:
     """Cleanup patches after test session."""
     if hasattr(config, "_api_patches"):
         for patcher in config._api_patches:
@@ -103,8 +102,6 @@ def cli_settings() -> CLIConfig:
 @pytest.fixture
 def cli_context(cli_config: CLIConfig) -> CLIContext:
     """Create a test CLI context."""
-    from rich.console import Console
-
     return CLIContext(
         config=cli_config,
         console=Console(),
@@ -132,252 +129,242 @@ def sample_command() -> CLICommand:
 
 
 @pytest.fixture
-def sample_plugin() -> CLIPlugin:
-    """Create a sample CLI plugin for testing."""
-    return CLIPlugin(
-        id="test_plugin_001",
-        name="test-plugin",
-        plugin_version="0.9.0",
-        description="A test plugin",
-        entry_point="test_plugin.main",
-        commands=["test-cmd"],
-        dependencies=["click"],
-        author="Test Author",
-        license="MIT",
-    )
-
-
-@pytest.fixture
-def sample_session() -> CLISession:
-    """Create a sample CLI session for testing."""
-    return CLISession(
-        id="test_session_001",
-        session_id="test-session-123",
-        working_directory=tempfile.gettempdir(),
-        environment={"TEST": "true"},
-        active=True,
-    )
-
-
-@pytest.fixture
 def mock_context() -> tuple[object, object]:
     """Create mock Click context with console for testing commands."""
-    from unittest.mock import MagicMock
-
     console = MagicMock(spec=Console)
     ctx = MagicMock()
     ctx.obj = {"console": console}
     return ctx, console
 
 
-@pytest.fixture
-def mock_data() -> dict[str, object]:
-    """Mock data for testing."""
-    return {
-        "commands": [
-            {"name": "cmd1", "status": "completed"},
-            {"name": "cmd2", "status": "running"},
-        ],
-        "plugins": [
-            {"name": "plugin1", "enabled": True},
-            {"name": "plugin2", "enabled": False},
-        ],
-        "sessions": [
-            {"id": "session1", "active": True},
-            {"id": "session2", "active": False},
-        ],
-    }
-
-
-# =============================================================================
-# FLEXT-API INTEGRATION MOCKING (SOLID Dependency Inversion Pattern)
-# =============================================================================
-
-
 @pytest.fixture(autouse=True)
-def disable_real_api_calls():
+def disable_real_api_calls() -> None:
     """Additional API call prevention for test isolation.
 
-    This fixture provides additional patches beyond the session-level ones
-    applied in pytest_configure, ensuring complete test isolation.
+    This fixture runs automatically for all tests to ensure no real HTTP calls
+    are made during testing.
     """
-    # Additional patches for complete API isolation during individual tests
-    with (
-        patch("flext_api.create_flext_api", return_value=None),
-        patch("flext_api.FlextApiClient", return_value=None),
-    ):
-        yield
+    # Additional patches for comprehensive API call prevention
+    patches = [
+        patch("flext_cli.flext_api_integration.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.projects.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.sessions.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.plugins.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.config.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.auth.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.help.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.version.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.init.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.run.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.status.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.clean.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.reset.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.export.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.import_cmd.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.validate.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.info.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.about.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.help.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.version.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.init.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.run.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.status.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.clean.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.reset.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.export.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.import_cmd.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.validate.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.info.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.about.FLEXT_API_AVAILABLE", False),
+    ]
+
+    # Apply patches
+    for patch_obj in patches:
+        patch_obj.start()
+
+    yield
+
+    # Cleanup patches
+    for patch_obj in patches:
+        patch_obj.stop()
 
 
 @pytest.fixture
-def mock_flext_api_client():
+def mock_flext_api_client() -> MockFlextApiClient:
     """Create a mock FLEXT API client with consistent test behavior.
 
-    Provides a fully mocked client that returns predictable FlextResult
-    responses without making real HTTP calls.
+    This fixture provides a mock client that simulates successful API responses
+    for testing CLI command behavior without making real HTTP calls.
     """
-    mock_client = MagicMock()
-    mock_client.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
-
-    # Setup async methods to return FlextResult objects
-    async def mock_test_connection_success():
-        return FlextResult.ok(True)
-
-    async def mock_test_connection_failure():
-        return FlextResult.fail("Connection failed")
-
-    async def mock_get_system_status_success():
-        return FlextResult.ok(
-            {"version": "1.0.0", "status": "healthy", "uptime": "24h"},
-        )
-
-    async def mock_get_system_status_failure():
-        return FlextResult.fail("Status unavailable")
-
-    async def mock_list_services_success():
-        return FlextResult.ok(
-            [
-                {
-                    "name": "FlexCore",
-                    "url": f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXCORE_PORT}",
-                    "status": "healthy",
-                    "response_time": 0.05,
-                },
-                {
-                    "name": "FLEXT Service",
-                    "url": f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXSERVICE_PORT}",
-                    "status": "healthy",
-                    "response_time": 0.03,
-                },
-            ],
-        )
-
-    # Default to successful responses - tests can override as needed
-    mock_client.test_connection = mock_test_connection_success
-    mock_client.get_system_status = mock_get_system_status_success
-    mock_client.list_services = mock_list_services_success
-
-    return mock_client
+    return MockFlextApiClient()
 
 
 @pytest.fixture
-def mock_flext_api_client_with_patches():
+def mock_flext_api_client_with_patches() -> MockFlextApiClient:
     """Mock API client with comprehensive patching to prevent real HTTP calls.
 
-    This fixture provides complete isolation from flext-api HTTP functionality
-    while maintaining the expected API interface for tests.
+    This fixture creates a mock client and applies patches to ensure no real
+    HTTP calls are made, while maintaining the expected API interface for tests.
     """
-    from tests.test_mocks import MockFlextApiClient, mock_create_flext_api
-
     # Create mock client instance
-    mock_client = MockFlextApiClient()
+    client = MockFlextApiClient()
 
-    # Comprehensive patching to prevent any real HTTP calls
-    with (
-        patch("flext_cli.flext_api_integration.FLEXT_API_AVAILABLE", True),
-        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", True),
-        patch("flext_api.create_flext_api", side_effect=mock_create_flext_api),
-        patch(
-            "flext_cli.flext_api_integration.create_flext_api",
-            side_effect=mock_create_flext_api,
-        ),
-        patch(
-            "flext_cli.flext_api_integration.FlextApiClient",
-            return_value=MagicMock(),
-        ),
-        patch(
-            "flext_cli.flext_api_integration.get_default_cli_client",
-            return_value=mock_client,
-        ),
-        patch(
-            "flext_cli.flext_api_integration.create_cli_api_client",
-            return_value=mock_client,
-        ),
-    ):
-        yield mock_client
+    # Apply additional patches for comprehensive isolation
+    patches = [
+        patch("flext_cli.flext_api_integration.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.projects.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.sessions.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.plugins.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.config.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.auth.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.help.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.version.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.init.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.run.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.status.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.clean.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.reset.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.export.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.import_cmd.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.validate.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.info.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.about.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.help.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.version.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.init.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.run.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.status.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.clean.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.reset.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.export.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.import_cmd.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.validate.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.info.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.about.FLEXT_API_AVAILABLE", False),
+    ]
+
+    # Apply patches
+    for patch_obj in patches:
+        patch_obj.start()
+
+    yield client
+
+    # Cleanup patches
+    for patch_obj in patches:
+        patch_obj.stop()
 
 
 @pytest.fixture
-def mock_failing_api_client():
+def mock_failing_api_client() -> MockFailingApiClient:
     """Mock API client that simulates connection failures for error testing."""
-    from tests.test_mocks import MockFailingApiClient, mock_create_flext_api
-
     # Create failing mock client instance
-    mock_client = MockFailingApiClient()
+    client = MockFailingApiClient()
 
-    # Patch with failing client
-    with (
-        patch("flext_cli.flext_api_integration.FLEXT_API_AVAILABLE", True),
-        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", True),
-        patch("flext_api.create_flext_api", side_effect=mock_create_flext_api),
-        patch(
-            "flext_cli.flext_api_integration.create_flext_api",
-            side_effect=mock_create_flext_api,
-        ),
-        patch(
-            "flext_cli.flext_api_integration.FlextApiClient",
-            return_value=MagicMock(),
-        ),
-        patch(
-            "flext_cli.flext_api_integration.get_default_cli_client",
-            return_value=mock_client,
-        ),
-        patch(
-            "flext_cli.flext_api_integration.create_cli_api_client",
-            return_value=mock_client,
-        ),
-    ):
-        yield mock_client
+    # Apply patches to ensure no real HTTP calls
+    patches = [
+        patch("flext_cli.flext_api_integration.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.projects.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.sessions.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.plugins.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.config.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.auth.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.help.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.version.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.init.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.run.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.status.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.clean.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.reset.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.export.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.import_cmd.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.validate.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.info.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.about.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.help.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.version.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.init.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.run.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.status.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.clean.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.reset.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.export.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.import_cmd.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.validate.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.info.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.commands.about.FLEXT_API_AVAILABLE", False),
+    ]
+
+    # Apply patches
+    for patch_obj in patches:
+        patch_obj.start()
+
+    yield client
+
+    # Cleanup patches
+    for patch_obj in patches:
+        patch_obj.stop()
 
 
 @pytest.fixture
-def mock_container():
+def mock_container() -> object:
     """Create a mock CLI container for dependency injection testing."""
-    from flext_cli.infrastructure.container import create_cli_container
-
-    container = create_cli_container()
-
-    # Mock the API client factory to return test clients
-    def mock_api_factory(**kwargs: object) -> object:
-        """Mock API client factory that returns test-friendly clients."""
-        mock_client = MagicMock()
-        mock_client.base_url = kwargs.get(
-            "base_url",
-            f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}",
-        )
-        mock_client.timeout = kwargs.get("timeout", 30.0)
-        mock_client.token = kwargs.get("token")
-
-        # Mock async methods
-        async def mock_test_connection():
-            return FlextResult.ok(True)
-
-        async def mock_get_system_status():
-            return FlextResult.ok({"version": "1.0.0", "status": "healthy"})
-
-        mock_client.test_connection = mock_test_connection
-        mock_client.get_system_status = mock_get_system_status
-        mock_client.is_available = MagicMock(return_value=True)
-
-        return mock_client
-
-    # Replace the API client factory in the container
-    container._container.register_instance("api_client_factory", mock_api_factory)
-
-    return container
+    return create_cli_container()
 
 
 @pytest.fixture
-def isolated_config():
+def isolated_config() -> CLIConfig:
     """Create isolated config for tests without singleton contamination."""
-    from flext_cli.config import CLIConfig
-
     # Return fresh config instance for each test
     return CLIConfig(
-        api_url=f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}",
-        timeout=30,
-        debug=True,
         profile="test",
+        debug=True,
         output_format="json",
-        no_color=True,
+        project_name="test-cli",
+        project_description="Test CLI Library",
+        log_level="DEBUG",
     )

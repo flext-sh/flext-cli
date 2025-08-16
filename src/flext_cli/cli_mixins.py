@@ -4,9 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
 from flext_core import (
     FlextComparableMixin,
     FlextLoggableMixin,
@@ -19,6 +16,9 @@ from rich.console import Console
 from rich.progress import Progress, TaskID
 
 from flext_cli.cli_types import ConfigDict, OutputData, OutputFormat
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 # =============================================================================
 # CORE CLI MIXINS - Extending flext-core patterns

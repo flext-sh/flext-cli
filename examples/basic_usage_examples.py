@@ -22,6 +22,7 @@ import time
 from pathlib import Path
 
 from flext_core import FlextResult
+from rich.console import Console
 
 from flext_cli import (
     FlextCliHelper,
@@ -153,11 +154,8 @@ def example_5_decorator_usage() -> None:
     """Example 5: Using FlextCli decorators."""
     # Note: In real usage, user would be prompted for confirmation
     # For demo, we'll show what the decorated function would do
-    try:
-        result = example_5_decorators("user@example.com", "https://api.flext.sh")
-        if result.success:
-            pass
-    except Exception:
+    result = example_5_decorators("user@example.com", "https://api.flext.sh")
+    if result.success:
         pass
 
 
@@ -206,8 +204,6 @@ def example_7_output_formatting() -> None:
 
     # Create a nice table
     table = flext_cli_create_table(data, title="Team Members")
-    from rich.console import Console
-
     console = Console()
     console.print(table)
 
@@ -232,15 +228,11 @@ def example_8_batch_operations() -> None:
 
     def load_data() -> FlextResult[str]:
         """Simulate data loading."""
-        import time
-
         time.sleep(0.2)  # Simulate work
         return FlextResult.ok("Data loaded successfully")
 
     def process_data() -> FlextResult[str]:
         """Simulate data processing."""
-        import time
-
         time.sleep(0.3)  # Simulate work
         return FlextResult.ok("Data processed")
 

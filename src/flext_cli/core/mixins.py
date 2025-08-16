@@ -212,10 +212,13 @@ class FlextCliProgressMixin:
             *args: Accepts either (message,) or (total, message) for compatibility.
 
         """
-        message: str | None = None
+        # Extract message from args if provided
+        message = None
+        min_args_for_message = 2
+
         if len(args) == 1 and isinstance(args[0], str):
             message = args[0]
-        elif len(args) >= 2 and isinstance(args[1], str):
+        elif len(args) >= min_args_for_message and isinstance(args[1], str):
             message = args[1]
         if message:
             self.console.print(message)
@@ -395,11 +398,11 @@ class FlextCliAdvancedMixin(
         return FlextResult.ok(current)
 
     # File operations helper used by tests
-    def flext_cli_handle_file_operations(
+    def flext_cli_execute_file_operations(
         self,
         operations: list[tuple[str, str, Callable[[str], FlextResult[str]]]],
         *,
-        require_confirmation: bool | None = None,
+        require_confirmation: bool | None = None,  # noqa: ARG002
     ) -> FlextResult[list[str]]:
         """Execute operations on files, ensuring existence and safe I/O.
 
@@ -425,7 +428,7 @@ class FlextCliAdvancedMixin(
 
 
 # Rebind alias after advanced mixin is available
-FlextCliMixin = FlextCliAdvancedMixin
+# FlextCliMixin = FlextCliAdvancedMixin  # Removed to avoid redefinition
 
 
 def flext_cli_zero_config(

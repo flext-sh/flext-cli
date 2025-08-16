@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from flext_core import FlextResult
-from flext_core.constants import FlextConstants
+from flext_core import FlextConstants, FlextResult
 
 
 class FlextCliArgsProvider:

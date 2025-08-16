@@ -11,6 +11,7 @@ from typing import Self, cast
 from urllib.parse import urljoin
 
 import httpx
+from flext_core.constants import FlextConstants
 from pydantic import BaseModel, Field
 
 from flext_cli.config.cli_config import get_cli_config
@@ -84,8 +85,6 @@ class FlextApiClient:
             self.base_url = config.api.url
         else:
             try:
-                from flext_core.constants import FlextConstants
-
                 self.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
             except Exception:
                 self.base_url = "http://localhost:8000"

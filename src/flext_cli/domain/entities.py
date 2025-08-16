@@ -51,6 +51,7 @@ class CLIEntityFactory:
         Args:
             name: Identifier to assign to the command (mapped to `id`).
             command_line: Shell command line to execute.
+            command_type: Optional command type to assign to the command.
 
         Returns:
             FlextResult with the created `CLICommand` or a failure message.
@@ -69,7 +70,9 @@ class CLIEntityFactory:
                 ...
             return FlextResult.ok(entity)
         except Exception as e:  # noqa: BLE001
-            return FlextResult.fail(f"{FlextCliConstants.CliErrors.COMMAND_EXECUTION_FAILED}: {e!s}")
+            return FlextResult.fail(
+                f"{FlextCliConstants.CliErrors.COMMAND_EXECUTION_FAILED}: {e!s}"
+            )
 
     @staticmethod
     def create_plugin(
@@ -103,7 +106,9 @@ class CLIEntityFactory:
             entity = CLIPlugin(**kwargs)  # type: ignore[arg-type]
             return FlextResult.ok(entity)
         except Exception as e:  # noqa: BLE001
-            return FlextResult.fail(f"{FlextCliConstants.CliErrors.PLUGIN_ENTRY_POINT_EMPTY}: {e!s}")
+            return FlextResult.fail(
+                f"{FlextCliConstants.CliErrors.PLUGIN_ENTRY_POINT_EMPTY}: {e!s}"
+            )
 
     @staticmethod
     def create_session(*, session_id: str) -> FlextResult[CLISession]:
@@ -119,11 +124,15 @@ class CLIEntityFactory:
         try:
             # CLISession requires a non-empty user_id; map session_id to user_id for tests
             if not session_id:
-                return FlextResult.fail(FlextCliConstants.CliErrors.SESSION_VALIDATION_FAILED)
+                return FlextResult.fail(
+                    FlextCliConstants.CliErrors.SESSION_VALIDATION_FAILED
+                )
             entity = CLISession(id=session_id, user_id=session_id)
             return FlextResult.ok(entity)
         except Exception as e:  # noqa: BLE001
-            return FlextResult.fail(f"{FlextCliConstants.CliErrors.SESSION_VALIDATION_FAILED}: {e!s}")
+            return FlextResult.fail(
+                f"{FlextCliConstants.CliErrors.SESSION_VALIDATION_FAILED}: {e!s}"
+            )
 
 
 __all__ = [

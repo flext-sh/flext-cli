@@ -326,15 +326,11 @@ def example_real_world_scenarios() -> None:
 
 def main() -> None:
     """Run all examples."""
-    try:
-        example_basic_export()
-        example_data_formatting()
-        example_api_class_usage()
-        example_error_handling()
-        example_real_world_scenarios()
-
-    except (RuntimeError, ValueError, TypeError):
-        raise
+    example_basic_export()
+    example_data_formatting()
+    example_api_class_usage()
+    example_error_handling()
+    example_real_world_scenarios()
 
 
 if __name__ == "__main__":

@@ -5,8 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
-from flext_core.config import FlextSettings
-from flext_core.constants import FlextConstants
+from flext_core import FlextConstants, FlextSettings
 from pydantic import BaseModel, Field, PrivateAttr, model_validator
 from pydantic_settings import SettingsConfigDict
 
@@ -130,48 +129,74 @@ class CLIConfig(BaseModel):
         """
         if not isinstance(data, dict):
             return data
-        data = dict(data)
-        api_map: dict[str, object] = dict(data.get("api") or {})
-        out_map: dict[str, object] = dict(data.get("output") or {})
-        dir_map: dict[str, object] = dict(data.get("directories") or {})
-        auth_map: dict[str, object] = dict(data.get("auth") or {})
 
-        if "api_url" in data:
-            api_map["url"] = data.pop("api_url")
-        if "timeout" in data:
-            api_map["timeout"] = data.pop("timeout")
-        if "max_retries" in data:
-            api_map["retries"] = data.pop("max_retries")
-        if "connect_timeout" in data:
-            api_map["connect_timeout"] = data.pop("connect_timeout")
-        if "read_timeout" in data:
-            api_map["read_timeout"] = data.pop("read_timeout")
-        if "verify_ssl" in data:
-            api_map["verify_ssl"] = data.pop("verify_ssl")
+        data = dict(data)
+        cls._process_api_mappings(data)
+        cls._process_output_mappings(data)
+        cls._process_directory_mappings(data)
+        cls._process_auth_mappings(data)
+
+        return data
+
+    @classmethod
+    def _process_api_mappings(cls, data: dict[str, object]) -> None:
+        """Process API-related flat key mappings."""
+        api_map: dict[str, object] = dict(data.get("api") or {})
+
+        api_keys = {
+            "api_url": "url",
+            "timeout": "timeout",
+            "max_retries": "retries",
+            "connect_timeout": "connect_timeout",
+            "read_timeout": "read_timeout",
+            "verify_ssl": "verify_ssl",
+        }
+
+        for flat_key, nested_key in api_keys.items():
+            if flat_key in data:
+                api_map[nested_key] = data.pop(flat_key)
+
+        if api_map:
+            data["api"] = api_map
+
+    @classmethod
+    def _process_output_mappings(cls, data: dict[str, object]) -> None:
+        """Process output-related flat key mappings."""
+        out_map: dict[str, object] = dict(data.get("output") or {})
 
         if "output_format" in data:
             out_map["format"] = data.pop("output_format")
+
         for k in ("no_color", "quiet", "verbose"):
             if k in data:
                 out_map[k] = data.pop(k)
+
+        if out_map:
+            data["output"] = out_map
+
+    @classmethod
+    def _process_directory_mappings(cls, data: dict[str, object]) -> None:
+        """Process directory-related flat key mappings."""
+        dir_map: dict[str, object] = dict(data.get("directories") or {})
 
         for k in ("config_dir", "cache_dir", "log_dir", "data_dir"):
             if k in data:
                 dir_map[k] = data.pop(k)
 
+        if dir_map:
+            data["directories"] = dir_map
+
+    @classmethod
+    def _process_auth_mappings(cls, data: dict[str, object]) -> None:
+        """Process authentication-related flat key mappings."""
+        auth_map: dict[str, object] = dict(data.get("auth") or {})
+
         for k in ("token_file", "refresh_token_file", "auto_refresh"):
             if k in data:
                 auth_map[k] = data.pop(k)
 
-        if api_map:
-            data["api"] = api_map
-        if out_map:
-            data["output"] = out_map
-        if dir_map:
-            data["directories"] = dir_map
         if auth_map:
             data["auth"] = auth_map
-        return data
 
     def ensure_setup(self) -> None:
         """Ensure on-disk directories for config/cache/logs and auth exist."""
@@ -179,7 +204,7 @@ class CLIConfig(BaseModel):
         self.auth.token_file.parent.mkdir(parents=True, exist_ok=True)
         self.auth.refresh_token_file.parent.mkdir(parents=True, exist_ok=True)
 
-    def model_post_init(self, __context: object) -> None:
+    def model_post_init(self, __context: object, /) -> None:
         """Capture any extra (flat) fields for read-only properties."""
         # Collect extras from __pydantic_extra__ if present
         extras = getattr(self, "__pydantic_extra__", None)
@@ -258,11 +283,6 @@ class CLIConfig(BaseModel):
         return self.auth.auto_refresh
 
     @property
-    def project_name(self) -> str:
-        # Top-level field already captures override
-        return self.__dict__.get("project_name", "flext-cli")  # type: ignore[no-any-return]
-
-    @property
     def project_version(self) -> str:
         return "0.9.0"
 
@@ -273,12 +293,15 @@ class CLIConfig(BaseModel):
         return str(val) if isinstance(val, (str, Path)) else None
 
     def __repr__(self) -> str:  # pragma: no cover - string form
+        """Return string representation of CLIConfig."""
         return f"CLIConfig(api_url='{self.api_url}', timeout={self.timeout}, profile='{self.profile}')"
 
     def __str__(self) -> str:  # pragma: no cover - string form
+        """Return string representation of CLIConfig."""
         return self.__repr__()
 
     def __hash__(self) -> int:  # pragma: no cover - hashing stability for tests
+        """Return hash value for CLIConfig."""
         key = (
             self.profile,
             self.api_url,
@@ -290,7 +313,10 @@ class CLIConfig(BaseModel):
         return hash(key)
 
     # Enforce immutability with explicit error message expected by tests
-    def __setattr__(self, name: str, value: object) -> None:  # pragma: no cover - runtime guard
+    def __setattr__(
+        self, name: str, value: object
+    ) -> None:  # pragma: no cover - runtime guard
+        """Enforce immutability after initialization."""
         if name.startswith("_") or not getattr(self, "_initialized", False):
             return super().__setattr__(name, value)
         msg = "cannot assign to field"
@@ -335,7 +361,9 @@ class CLISettings(FlextSettings):
     )
 
     @classmethod
-    def model_validate(cls, obj: object, *args: object, **kwargs: object) -> CLISettings:  # type: ignore[override]
+    def model_validate(
+        cls, obj: object, *args: object, **kwargs: object
+    ) -> CLISettings:  # type: ignore[override]
         """Hook to keep compatibility with test fixtures passing plain dicts."""
         return super().model_validate(obj, *args, **kwargs)  # type: ignore[return-value]
 

@@ -85,9 +85,15 @@ def cli(
 
     # Debug information
     if debug:
-        console.print(f"[dim]{FlextCliConstants.CliMessages.LABEL_PROFILE}: {profile}[/dim]")
-        console.print(f"[dim]{FlextCliConstants.CliMessages.LABEL_OUTPUT_FORMAT}: {output}[/dim]")
-        console.print(f"[dim]{FlextCliConstants.CliMessages.LABEL_DEBUG_MODE}: {debug}[/dim]")
+        console.print(
+            f"[dim]{FlextCliConstants.CliMessages.LABEL_PROFILE}: {profile}[/dim]"
+        )
+        console.print(
+            f"[dim]{FlextCliConstants.CliMessages.LABEL_OUTPUT_FORMAT}: {output}[/dim]"
+        )
+        console.print(
+            f"[dim]{FlextCliConstants.CliMessages.LABEL_DEBUG_MODE}: {debug}[/dim]"
+        )
 
     # Show help if no command:
     if ctx.invoked_subcommand is None:
@@ -123,7 +129,9 @@ _register_commands()
 def interactive(ctx: click.Context) -> None:
     """Start interactive mode with REPL interface."""
     console = ctx.obj["console"]
-    console.print(f"[yellow]{FlextCliConstants.CliMessages.INTERACTIVE_COMING}[/yellow]")
+    console.print(
+        f"[yellow]{FlextCliConstants.CliMessages.INTERACTIVE_COMING}[/yellow]"
+    )
     console.print(FlextCliConstants.CliMessages.INTERACTIVE_PLANNED)
     console.print(f"   {FlextCliConstants.CliMessages.INTERACTIVE_FEATURE_REPL}")
     console.print(f"   {FlextCliConstants.CliMessages.INTERACTIVE_FEATURE_COMPLETION}")
@@ -141,13 +149,19 @@ def version(ctx: click.Context) -> None:
 
     # Basic version information
     console.print(f"{FlextCliConstants.CliMessages.VERSION_CLI} {__version__}")
-    console.print(f"{FlextCliConstants.CliMessages.VERSION_PYTHON} {sys.version.split()[0]} ({sys.platform})")
+    console.print(
+        f"{FlextCliConstants.CliMessages.VERSION_PYTHON} {sys.version.split()[0]} ({sys.platform})"
+    )
 
     # Issue #1: Add flext-core version detection (Sprint 1)
     if core_version:
-        console.print(f"{FlextCliConstants.CliMessages.VERSION_FLEXT_CORE} {core_version}")
+        console.print(
+            f"{FlextCliConstants.CliMessages.VERSION_FLEXT_CORE} {core_version}"
+        )
     else:
-        console.print(f"[dim]{FlextCliConstants.CliMessages.DEBUG_FLEXT_CORE_NOT_DETECTED}[/dim]")
+        console.print(
+            f"[dim]{FlextCliConstants.CliMessages.DEBUG_FLEXT_CORE_NOT_DETECTED}[/dim]"
+        )
 
     # Debug mode information
     if ctx.obj.get("debug"):
@@ -159,14 +173,22 @@ def version(ctx: click.Context) -> None:
         config_display = (
             config.model_dump() if hasattr(config, "model_dump") else str(config)
         )
-        console.print(f"[dim]{FlextCliConstants.CliMessages.DEBUG_CONFIGURATION}: {config_display}[/dim]")
+        console.print(
+            f"[dim]{FlextCliConstants.CliMessages.DEBUG_CONFIGURATION}: {config_display}[/dim]"
+        )
 
         # System information
-        console.print(f"[dim]{FlextCliConstants.CliMessages.DEBUG_PYTHON_EXECUTABLE}: {sys.executable}[/dim]")
-        console.print(f"[dim]{FlextCliConstants.CliMessages.DEBUG_PLATFORM}: {sys.platform}[/dim]")
+        console.print(
+            f"[dim]{FlextCliConstants.CliMessages.DEBUG_PYTHON_EXECUTABLE}: {sys.executable}[/dim]"
+        )
+        console.print(
+            f"[dim]{FlextCliConstants.CliMessages.DEBUG_PLATFORM}: {sys.platform}[/dim]"
+        )
 
         # Issue #2: Add ecosystem service connectivity check (Sprint 1)
-        console.print(f"[dim]{FlextCliConstants.CliMessages.DEBUG_SERVICE_CONNECTIVITY}[/dim]")
+        console.print(
+            f"[dim]{FlextCliConstants.CliMessages.DEBUG_SERVICE_CONNECTIVITY}[/dim]"
+        )
 
 
 def main() -> None:

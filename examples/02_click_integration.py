@@ -25,7 +25,7 @@ import time
 from typing import TYPE_CHECKING
 
 import click
-from rich import Console
+from rich.console import Console
 
 import flext_cli
 

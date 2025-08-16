@@ -61,6 +61,7 @@ def cli_enhanced[**P, T](
         Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]: Description.
 
     """
+
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         """Decorator function.
 
@@ -115,6 +116,7 @@ def cli_validate_inputs[**P, T](func: Callable[P, T]) -> Callable[P, T]:
         Callable[P, T]: Description.
 
     """
+
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         """Wrapper function.
@@ -160,6 +162,7 @@ def cli_handle_keyboard_interrupt[**P, T](func: Callable[P, T]) -> Callable[P, T
         Callable[P, T]: Description.
 
     """
+
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         """Wrapper function.
@@ -192,6 +195,7 @@ def cli_measure_time[**P, T](func: Callable[P, T]) -> Callable[P, T]:
         Callable[P, T]: Description.
 
     """
+
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         """Wrapper function.
@@ -243,6 +247,7 @@ def cli_log_execution[**P, T](func: Callable[P, T]) -> Callable[P, T]:
         Callable[P, T]: Description.
 
     """
+
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         """Wrapper function.
@@ -300,6 +305,7 @@ def cli_confirm(
         Callable[[Callable[P, T]], Callable[P, T]]: Description.
 
     """
+
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         """Decorator function.
 
@@ -310,6 +316,7 @@ def cli_confirm(
             Callable[P, T]: Description.
 
         """
+
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             """Wrapper function.
@@ -379,6 +386,7 @@ def cli_retry(
         Callable[[Callable[P, T]], Callable[P, T]]: Description.
 
     """
+
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         """Decorator function.
 
@@ -389,6 +397,7 @@ def cli_retry(
             Callable[P, T]: Description.
 
         """
+
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             """Wrapper function.
@@ -473,6 +482,7 @@ def cli_spinner(
         Callable[[Callable[P, T]], Callable[P, T]]: Description.
 
     """
+
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         """Decorator function.
 
@@ -483,6 +493,7 @@ def cli_spinner(
             Callable[P, T]: Description.
 
         """
+
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             """Wrapper function.
@@ -529,6 +540,7 @@ def cli_cache_result(
         Callable[[Callable[P, T]], Callable[P, T]]: Description.
 
     """
+
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         """Decorator function.
 
@@ -601,6 +613,7 @@ def cli_inject_config(config_key: str) -> Callable[[Callable[P, T]], Callable[P,
         Callable[[Callable[P, T]], Callable[P, T]]: Description.
 
     """
+
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         """Decorator function.
 
@@ -611,6 +624,7 @@ def cli_inject_config(config_key: str) -> Callable[[Callable[P, T]], Callable[P,
             Callable[P, T]: Description.
 
         """
+
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             """Wrapper function.
@@ -662,6 +676,7 @@ def cli_file_operation(
         Callable[[Callable[P, T]], Callable[P, T]]: Description.
 
     """
+
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         """Decorator function.
 
@@ -672,6 +687,7 @@ def cli_file_operation(
             Callable[P, T]: Description.
 
         """
+
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             """Wrapper function.
