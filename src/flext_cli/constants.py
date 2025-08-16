@@ -90,13 +90,13 @@ class FlextCliConstants:
         USER_INTERRUPTED: Final[str] = "User interrupted"
 
         # Authentication errors
-        AUTH_TOKEN_SAVE_FAILED: Final[str] = "Failed to save auth token"
-        AUTH_TOKEN_CLEAR_FAILED: Final[str] = "Failed to clear auth tokens"
-        AUTH_REFRESH_TOKEN_SAVE_FAILED: Final[str] = "Failed to save refresh token"
+        AUTH_TOKEN_SAVE_FAILED: Final[str] = "Failed to save auth token"  # noqa: S105
+        AUTH_TOKEN_CLEAR_FAILED: Final[str] = "Failed to clear auth tokens"  # noqa: S105
+        AUTH_REFRESH_TOKEN_SAVE_FAILED: Final[str] = "Failed to save refresh token"  # noqa: S105
         AUTH_NOT_AUTHENTICATED: Final[str] = "Not authenticated"
         AUTH_LOGIN_FAILED: Final[str] = "Login failed"
         AUTH_LOGOUT_FAILED: Final[str] = "Logout failed"
-        AUTH_PASSWORD_EMPTY: Final[str] = "Password cannot be empty"
+        AUTH_PASSWORD_EMPTY: Final[str] = "Password cannot be empty"  # noqa: S105
         AUTH_INVALID_RESPONSE: Final[str] = "Login failed: Invalid response"
         AUTH_NETWORK_ERROR: Final[str] = "Network error during login"
         AUTH_CHECK_FAILED: Final[str] = "Authentication check failed"
@@ -123,8 +123,12 @@ class FlextCliConstants:
         PLUGIN_ENTRY_POINT_EMPTY: Final[str] = "Entry point cannot be empty"
         PLUGIN_ALREADY_REGISTERED: Final[str] = "Plugin already registered"
         PLUGIN_ALREADY_INSTALLED: Final[str] = "Plugin already installed in workspace"
-        PLUGIN_WRONG_STATE: Final[str] = "Cannot perform plugin operation in current state"
-        PLUGIN_MUST_BE_ACTIVE: Final[str] = "Active plugin must have loaded_at timestamp"
+        PLUGIN_WRONG_STATE: Final[str] = (
+            "Cannot perform plugin operation in current state"
+        )
+        PLUGIN_MUST_BE_ACTIVE: Final[str] = (
+            "Active plugin must have loaded_at timestamp"
+        )
         PLUGIN_UNLOADED: Final[str] = "Plugin is already unloaded"
 
         # Configuration errors
@@ -134,7 +138,9 @@ class FlextCliConstants:
         CONFIG_LOAD_FAILED: Final[str] = "Failed to load configuration"
         CONFIG_SAVE_FAILED: Final[str] = "Failed to save configuration"
         CONFIG_CREATION_FAILED: Final[str] = "Failed to create CLI configuration"
-        CONFIG_ENV_FAILED: Final[str] = "Failed to create configuration from environment"
+        CONFIG_ENV_FAILED: Final[str] = (
+            "Failed to create configuration from environment"
+        )
 
         # Validation errors
         VALIDATION_FAILED: Final[str] = "Validation failed"
@@ -217,8 +223,12 @@ class FlextCliConstants:
         # Time validation errors
         TIME_NEGATIVE: Final[str] = "Time cannot be negative"
         TIME_END_BEFORE_START: Final[str] = "End time cannot be before start time"
-        TIME_COMPLETION_BEFORE_START: Final[str] = "Completion time cannot be before start time"
-        TIME_ACTIVITY_BEFORE_START: Final[str] = "Last activity cannot be before start time"
+        TIME_COMPLETION_BEFORE_START: Final[str] = (
+            "Completion time cannot be before start time"
+        )
+        TIME_ACTIVITY_BEFORE_START: Final[str] = (
+            "Last activity cannot be before start time"
+        )
         TIME_TIMEOUT_EXCEEDED: Final[str] = "Timeout cannot exceed 24 hours"
 
         # Exit code validation
@@ -226,8 +236,12 @@ class FlextCliConstants:
 
         # State validation
         STATE_INVALID: Final[str] = "Invalid state"
-        STATE_RUNNING_MUST_HAVE_START: Final[str] = "Running command must have started_at timestamp"
-        STATE_COMMAND_NOT_IN_HISTORY: Final[str] = "Current command must be in command history"
+        STATE_RUNNING_MUST_HAVE_START: Final[str] = (
+            "Running command must have started_at timestamp"
+        )
+        STATE_COMMAND_NOT_IN_HISTORY: Final[str] = (
+            "Current command must be in command history"
+        )
         STATE_ONLY_CANCEL_RUNNING: Final[str] = "Can only cancel running commands"
         STATE_ONLY_SUSPEND_ACTIVE: Final[str] = "Can only suspend active sessions"
         STATE_ONLY_RESUME_SUSPENDED: Final[str] = "Can only resume suspended sessions"
@@ -292,7 +306,9 @@ class FlextCliConstants:
         INFO_ANSWER_YN: Final[str] = "Please answer 'y' or 'n'"
         INFO_CONFIG_EDIT_MANUAL: Final[str] = "Edit the configuration file manually at"
         INFO_COMING_SOON: Final[str] = "Interactive mode coming soon!"
-        INFO_USE_HELP: Final[str] = "Use 'flext --help' for currently available commands."
+        INFO_USE_HELP: Final[str] = (
+            "Use 'flext --help' for currently available commands."
+        )
 
         # Warning messages
         WARNING_NO_PLUGINS: Final[str] = "No plugins found"
@@ -301,7 +317,9 @@ class FlextCliConstants:
         WARNING_FILES_FAILED: Final[str] = "files failed"
         WARNING_NO_FLEXT_ENV: Final[str] = "No FLEXT environment variables found"
         WARNING_STATUS_FAILED: Final[str] = "Could not get system status"
-        WARNING_TOKEN_CLEAR_FAILED: Final[str] = "Logged out, but failed to clear tokens"
+        WARNING_TOKEN_CLEAR_FAILED: Final[str] = (
+            "Logged out, but failed to clear tokens"  # noqa: S105
+        )
         WARNING_LOGOUT_LOCAL: Final[str] = "Error during logout, logged out locally"
 
         # Confirmation prompts

@@ -74,7 +74,7 @@ async def _run_exec(
     cwd: str | None,
     *,
     capture_output: bool,
-    timeout: int,
+    timeout_seconds: int,
 ) -> tuple[int, bytes | None, bytes | None]:
     """Execute command via asyncio without shell, returning (code, stdout, stderr)."""
     _validate_command_args(cmd)
@@ -88,13 +88,14 @@ async def _run_exec(
         stderr=asyncio.subprocess.PIPE if capture_output else None,
     )
     try:
-        stdout_b, stderr_b = await asyncio.wait_for(proc.communicate(), timeout=timeout)
+        async with asyncio.timeout(timeout_seconds):
+            stdout_b, stderr_b = await proc.communicate()
     except TimeoutError as exc:
         with contextlib.suppress(ProcessLookupError):  # type: ignore[name-defined]
             proc.kill()
         await proc.wait()
         # Raise plain TimeoutError for policy compliance
-        msg = f"Command timed out after {timeout}s"
+        msg = f"Command timed out after {timeout_seconds}s"
         raise TimeoutError(msg) from exc
     return int(proc.returncode or 0), stdout_b, stderr_b
 
@@ -331,7 +332,7 @@ def _execute_add_command(ctx: click.Context, params: MeltanoAddParams) -> None:
 
         # Execute meltano command
         code, out_b, err_b = asyncio.run(
-            _run_exec(cmd, str(project_path), capture_output=True, timeout=300),
+            _run_exec(cmd, str(project_path), capture_output=True, timeout_seconds=300),
         )
 
         if code == 0:
@@ -397,7 +398,9 @@ def run(
 
         # Execute meltano command
         code, _out_b, _err_b = asyncio.run(
-            _run_exec(cmd, str(project_path), capture_output=False, timeout=3600),
+            _run_exec(
+                cmd, str(project_path), capture_output=False, timeout_seconds=3600
+            ),
         )
 
         if code == 0:
@@ -445,7 +448,7 @@ def discover(
 
         # Execute meltano command
         code, out_b, err_b = asyncio.run(
-            _run_exec(cmd, str(project_path), capture_output=True, timeout=120),
+            _run_exec(cmd, str(project_path), capture_output=True, timeout_seconds=120),
         )
 
         if code == 0:
@@ -499,7 +502,7 @@ def test(
 
         # Execute meltano command
         code, out_b, err_b = asyncio.run(
-            _run_exec(cmd, str(project_path), capture_output=True, timeout=60),
+            _run_exec(cmd, str(project_path), capture_output=True, timeout_seconds=60),
         )
 
         if code == 0:
@@ -544,7 +547,7 @@ def install(
 
         # Execute meltano command
         code, out_b, err_b = asyncio.run(
-            _run_exec(cmd, str(project_path), capture_output=True, timeout=600),
+            _run_exec(cmd, str(project_path), capture_output=True, timeout_seconds=600),
         )
 
         if code == 0:
@@ -598,7 +601,7 @@ def config(
 
         # Execute meltano command
         code, out_b, err_b = asyncio.run(
-            _run_exec(cmd, str(project_path), capture_output=True, timeout=30),
+            _run_exec(cmd, str(project_path), capture_output=True, timeout_seconds=30),
         )
 
         if code == 0:

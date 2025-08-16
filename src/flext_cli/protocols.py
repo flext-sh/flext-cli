@@ -5,12 +5,12 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
+import click
+from flext_core import FlextResult
+from rich.console import Console
+
 if TYPE_CHECKING:
     from pathlib import Path
-
-    import click
-    from flext_core import FlextResult
-    from rich.console import Console
 
 
 @runtime_checkable

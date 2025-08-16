@@ -13,7 +13,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table
@@ -54,7 +54,9 @@ def flext_cli_format(data: object, format_type: str = "table") -> FlextResult[st
         # Validate format type first
         valid_formats = {"json", "yaml", "table", "csv", "plain"}
         if format_type not in valid_formats:
-            return FlextResult.fail(f"Format error: Invalid format '{format_type}'. Valid formats: {', '.join(sorted(valid_formats))}")
+            return FlextResult.fail(
+                f"Format error: Invalid format '{format_type}'. Valid formats: {', '.join(sorted(valid_formats))}"
+            )
 
         # Simple formatting without FormatterFactory
         if format_type == "json":
@@ -492,7 +494,16 @@ class FlextCliApi:
             # Determine command type from options without raising on unknown
             # The domain entity does not store command_type, so ignore value safely
             cmd_type = options.get("command_type")
-            if cmd_type not in {None, "system", "pipeline", "plugin", "data", "config", "auth", "monitoring"}:
+            if cmd_type not in {
+                None,
+                "system",
+                "pipeline",
+                "plugin",
+                "data",
+                "config",
+                "auth",
+                "monitoring",
+            }:
                 return FlextResult.fail(f"Invalid command type: {cmd_type}")
 
             # Extract and validate parameters with proper types

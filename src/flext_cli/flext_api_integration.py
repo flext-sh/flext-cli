@@ -3,23 +3,10 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Self
+from typing import Self
 
-if TYPE_CHECKING:
-    from flext_api import FlextApiClient  # type: ignore[import-not-found]
-    create_flext_api: object | None
-else:
-    try:
-        from flext_api import (  # type: ignore[import-not-found]
-            FlextApiClient,
-            create_flext_api,
-        )
-    except ImportError:
-        # flext-api not available - create stubs for runtime
-        FlextApiClient = None  # type: ignore[assignment]
-        create_flext_api = None  # type: ignore[assignment]
-from flext_core import FlextResult, get_logger
-from flext_core.constants import FlextConstants
+from flext_api import create_flext_api
+from flext_core import FlextConstants, FlextResult, get_logger
 
 from flext_cli.config import get_config as get_cli_config
 

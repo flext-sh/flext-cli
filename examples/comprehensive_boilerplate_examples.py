@@ -17,13 +17,20 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import json
 import pathlib
+import tempfile
 import uuid
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from flext_cli.advanced_types import FlextCliDataDict
 
+from flext_core import FlextResult
+
+from flext_cli import FlextCliEntity
+from flext_cli.core.helpers import FlextCliHelper
+from flext_cli.mixins import FlextCliCompleteMixin
 
 # Example 1: Advanced Data Processing with Validation
 
@@ -53,16 +60,6 @@ for _name, _before, _after, _reduction in examples:
 def demonstrate_advanced_functionality() -> bool | None:
     """Demonstrate that all advanced FlextCli patterns actually work."""
     try:
-        # Import our advanced modules
-        import json
-        import tempfile
-
-        from flext_core import FlextResult
-
-        from flext_cli import FlextCliEntity
-        from flext_cli.core.helpers import FlextCliHelper
-        from flext_cli.mixins import FlextCliCompleteMixin
-
         # Create a test class using all advanced patterns
         class DemoAdvancedCLI(FlextCliEntity, FlextCliCompleteMixin):
             def __init__(self, **kwargs: object) -> None:

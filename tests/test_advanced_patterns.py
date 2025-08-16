@@ -40,7 +40,7 @@ class TestFlextCliAdvancedMixin:
     class TestAdvancedClass(FlextCliAdvancedMixin):
         """Test class using FlextCliAdvancedMixin."""
 
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__()
 
     def setup_method(self) -> None:
@@ -153,8 +153,8 @@ class TestFlextCliAdvancedMixin:
         """Test data processing workflow with step failure."""
         workflow_steps = [
             ("validate", lambda data: FlextResult.ok(f"validated_{data}")),
-            ("fail_step", lambda data: FlextResult.fail("Processing step failed")),
-            ("transform", lambda data: FlextResult.ok("should_not_execute")),
+            ("fail_step", lambda _data: FlextResult.fail("Processing step failed")),
+            ("transform", lambda _data: FlextResult.ok("should_not_execute")),
         ]
 
         result = self.test_instance.flext_cli_process_data_workflow(
@@ -168,7 +168,7 @@ class TestFlextCliAdvancedMixin:
     def test_flext_cli_process_data_workflow_step_exception(self) -> None:
         """Test data processing workflow with step exception."""
 
-        def failing_step(data: Any) -> FlextResult[str]:
+        def failing_step(_data: object) -> FlextResult[str]:
             msg = "Step raised exception"
             raise ValueError(msg)
 
@@ -232,7 +232,7 @@ class TestFlextCliAdvancedMixin:
         """Test file operations with file validation failure."""
         nonexistent_file = tmp_path / "nonexistent.txt"
 
-        def mock_operation(file_path: str) -> FlextResult[str]:
+        def mock_operation(_file_path: str) -> FlextResult[str]:
             return FlextResult.ok("Should not execute")
 
         file_operations = [
@@ -284,7 +284,7 @@ class TestZeroConfigurationDecorators:
         """Test zero-config decorator with validation failure."""
 
         @flext_cli_zero_config("process user", validate_inputs={"email": "email"})
-        def test_function(email: str) -> FlextResult[str]:
+        def test_function(email: str) -> FlextResult[str]:  # noqa: ARG001
             return FlextResult.ok("Should not execute")
 
         result = test_function(email="invalid-email")
@@ -576,7 +576,7 @@ class TestFlextCliFileManager:
         original_content = "original content"
         test_file.write_text(original_content)
 
-        def failing_processor(content: str) -> FlextResult[str]:
+        def failing_processor(_content: str) -> FlextResult[str]:
             return FlextResult.fail("Processing failed")
 
         # Mock confirmation

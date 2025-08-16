@@ -22,7 +22,8 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-from rich import Console, Table
+from rich.console import Console
+from rich.table import Table
 
 import flext_cli
 

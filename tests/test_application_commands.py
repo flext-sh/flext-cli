@@ -730,26 +730,6 @@ class TestCommandImports:
     def test_all_imports_work(self) -> None:
         """Test that all command classes can be imported."""
         # Test that all classes are importable
-        from flext_cli.application.commands import (
-            CancelCommandCommand,
-            CreateConfigCommand,
-            DeleteConfigCommand,
-            DisablePluginCommand,
-            EnablePluginCommand,
-            EndSessionCommand,
-            ExecuteCommandCommand,
-            GetCommandHistoryCommand,
-            GetCommandStatusCommand,
-            GetSessionInfoCommand,
-            InstallPluginCommand,
-            ListCommandsCommand,
-            ListConfigsCommand,
-            ListPluginsCommand,
-            StartSessionCommand,
-            UninstallPluginCommand,
-            UpdateConfigCommand,
-            ValidateConfigCommand,
-        )
 
         # All classes should be available
         assert ExecuteCommandCommand

@@ -15,6 +15,20 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import tempfile
+import uuid
+from pathlib import Path
+
+from flext_core import FlextResult
+
+from flext_cli import (
+    FlextCliEntity,
+    create_flext_cli_config,
+    flext_cli_load_json,
+    flext_cli_save_data,
+    flext_cli_validate_email,
+)
+
 # Example 1: Basic CLI Command Implementation
 
 
@@ -48,12 +62,6 @@ def demonstrate_working_examples() -> bool | None:
     """Actually run the FlextCli examples to prove they work."""
     try:
         # Example 1: Basic command
-        import uuid
-
-        from flext_core import FlextResult
-
-        from flext_cli import FlextCliEntity
-
         class DemoCommand(FlextCliEntity):
             name: str = "demo"
             description: str = "Live demonstration command"
@@ -65,21 +73,12 @@ def demonstrate_working_examples() -> bool | None:
         cmd.execute()
 
         # Example 2: Configuration
-        from flext_cli import create_flext_cli_config
-
         create_flext_cli_config(debug=True, profile="demo")
 
         # Example 3: Validation
-        from flext_cli import flext_cli_validate_email
-
         flext_cli_validate_email("demo@example.com")
 
         # Example 4: File operations (using in-memory data)
-        import tempfile
-        from pathlib import Path
-
-        from flext_cli import flext_cli_load_json, flext_cli_save_data
-
         with tempfile.NamedTemporaryFile(
             encoding="utf-8",
             mode="w",

@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 import click
-import yaml  # type: ignore[import-untyped]
+import yaml
 from rich.console import Console
 from rich.table import Table
 
@@ -109,12 +109,10 @@ def show(ctx: click.Context) -> None:
             "debug": getattr(cfg, "debug", False),
         }
         if fmt == "json":
-            import json as _json
-            console.print(_json.dumps(data, indent=2))
+            console.print(json.dumps(data, indent=2))
             return
         if fmt == "yaml":
-            import yaml as _yaml  # type: ignore[import-untyped]
-            console.print(_yaml.dump(data, default_flow_style=False))
+            console.print(yaml.dump(data, default_flow_style=False))
             return
     # fallback simples
     console.print(FlextCliConstants.CliMessages.STATUS_DISPLAY_CONFIG)
@@ -195,7 +193,9 @@ def edit(ctx: click.Context) -> None:
                 f.write(yaml.dump({"debug": False, "timeout": 30}))
         # External editor invocation removed to satisfy security policy.
         # Inform user how to edit manually.
-        console.print(f"{FlextCliConstants.CliMessages.INFO_CONFIG_EDIT_MANUAL}: {cfg_path}")
+        console.print(
+            f"{FlextCliConstants.CliMessages.INFO_CONFIG_EDIT_MANUAL}: {cfg_path}"
+        )
     except Exception as e:
         console.print(str(e))
         ctx.exit(1)

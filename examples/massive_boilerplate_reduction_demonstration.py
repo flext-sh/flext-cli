@@ -17,6 +17,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
+import shutil
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -314,8 +315,6 @@ def demonstrate_example_5_project_setup() -> None:
         len([k for k in result.data if not k.startswith("_")])
 
         # Cleanup demo project
-        import shutil
-
         demo_path = Path(result.data.get("project_path", ""))
         if demo_path.exists():
             shutil.rmtree(demo_path)

@@ -17,6 +17,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import click
 import pytest
 from click.testing import CliRunner
+from flext_core import FlextResult
 from flext_core.constants import FlextConstants
 from rich.console import Console
 from rich.table import Table
@@ -95,8 +96,6 @@ class TestConnectivityCommand:
         _ctx, console = mock_context
 
         # Mock client with FlextResult patterns
-        from flext_core import FlextResult
-
         mock_client = AsyncMock()
         mock_client.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
         mock_client.test_connection.return_value = FlextResult.ok(True)
@@ -110,10 +109,6 @@ class TestConnectivityCommand:
         mock_get_client.return_value = mock_client
 
         # Import and call command using Click runner
-        from click.testing import CliRunner
-
-        from flext_cli.commands.debug import connectivity
-
         runner = CliRunner()
         result = runner.invoke(connectivity, obj={"console": console})
 
@@ -144,10 +139,6 @@ class TestConnectivityCommand:
         self,
         mock_get_client: MagicMock,
     ) -> None:
-        """Test connectivity check with connection failure implementation."""
-        from flext_core import FlextResult
-
-        # Mock async client with failed connection
         mock_client = AsyncMock()
         mock_client.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
         mock_client.test_connection.return_value = FlextResult.fail("Connection failed")

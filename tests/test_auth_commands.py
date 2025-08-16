@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import click
@@ -17,7 +18,12 @@ from flext_core import FlextResult
 from rich.console import Console
 
 from flext_cli.client import FlextApiClient
-from flext_cli.commands.auth import auth
+from flext_cli.commands.auth import auth, login, logout, status, whoami
+from flext_cli.utils.auth import (
+    clear_auth_tokens,
+    get_auth_token,
+    save_auth_token,
+)
 
 
 class TestAuthCommands:
@@ -415,8 +421,6 @@ class TestAuthFunctionality:
         """Test async implementation with asyncio wrapper pattern."""
         # Auth commands use asyncio.run() wrapper pattern
         # This validates the async refactoring worked correctly
-        from flext_cli.commands.auth import login, logout, status, whoami
-
         # Commands should be regular functions but contain async inner functions
         assert callable(login)
         assert callable(logout)
@@ -787,13 +791,6 @@ class TestAuthIntegration:
     def test_auth_utils_integration(self) -> None:
         """Test integration with auth utils."""
         # Test that auth utility functions are importable
-        from flext_cli.utils.auth import (
-            clear_auth_tokens,
-            get_auth_token,
-            save_auth_token,
-        )
-
-        # Functions should exist
         assert callable(clear_auth_tokens)
         assert callable(get_auth_token)
         assert callable(save_auth_token)
@@ -830,8 +827,6 @@ class TestAuthIntegration:
                 )
 
         # Execute async test
-        import asyncio
-
         if hasattr(asyncio, "_get_running_loop") and asyncio._get_running_loop():
             # Already in async context
             result = mock_client.login.return_value

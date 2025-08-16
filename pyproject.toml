@@ -277,27 +277,5 @@ markers = [
 extend = "../.ruff-shared.toml"
 lint.isort.known-first-party = ["flext_cli"]
 
-[tool.ruff.lint.per-file-ignores]
-"src/flext_cli/constants.py" = ["S105"]  # Allow hardcoded passwords in string constants
-"tests/**" = [
-    "INP001",
-    "PLR0915",
-    "ANN",
-    "ARG",
-    "EM102",
-    "FBT003",
-    "PLR2004",
-    "PLC0415",
-    "S101",
-    "S103",
-    "S104",
-    "S105",
-    "S106",
-    "S107",
-    "S112",
-    "TRY003",
-]
-"src/flext_cli/__init__.py" = ["E402", "F401", "I001", "RUF022"]
-
 [tool.vulture]
 extend = "../.vulture-shared.toml"

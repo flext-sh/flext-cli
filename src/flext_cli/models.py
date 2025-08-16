@@ -19,7 +19,6 @@ from flext_core import (
 from pydantic import ConfigDict, Field, field_validator
 from rich.console import Console
 
-# import flext_cli.domain.entities as de  # Removed to avoid circular import
 from flext_cli.config import CLIConfig as FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 
@@ -140,7 +139,8 @@ class FlextCliContext(FlextValueObject):
     # Minimal fields used by tests
     # Accept any object to avoid strict model_type validation issues in tests
     config: object = Field(
-        default_factory=FlextCliConfig, description="CLI configuration instance",
+        default_factory=FlextCliConfig,
+        description="CLI configuration instance",
     )
     console: Console = Field(
         default_factory=Console,
@@ -212,19 +212,22 @@ class FlextCliContext(FlextValueObject):
 
     # Printing helpers expected by some tests
     def print_success(
-        self, message: str,
+        self,
+        message: str,
     ) -> None:  # pragma: no cover - simple passthrough
         if isinstance(self.console, Console):
             self.console.print(f"[green][SUCCESS][/green] {message}")
 
     def print_error(
-        self, message: str,
+        self,
+        message: str,
     ) -> None:  # pragma: no cover - simple passthrough
         if isinstance(self.console, Console):
             self.console.print(f"[red][ERROR][/red] {message}")
 
     def print_warning(
-        self, message: str,
+        self,
+        message: str,
     ) -> None:  # pragma: no cover - simple passthrough
         if isinstance(self.console, Console):
             self.console.print(f"[yellow][WARNING][/yellow] {message}")
@@ -234,7 +237,8 @@ class FlextCliContext(FlextValueObject):
             self.console.print(f"[blue][INFO][/blue] {message}")
 
     def print_debug(
-        self, message: str,
+        self,
+        message: str,
     ) -> None:  # pragma: no cover - simple passthrough
         if self.is_debug and isinstance(self.console, Console):
             self.console.print(f"[dim][DEBUG][/dim] {message}")
@@ -478,7 +482,9 @@ class FlextCliCommand(FlextEntity):
     # Allow unknown/convenience fields and id auto-generation
     model_config = ConfigDict(extra="allow")
     # Override id to allow default generation for testing convenience
-    id: FlextEntityId = Field(default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex))
+    id: FlextEntityId = Field(
+        default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex)
+    )
     name: str | None = Field(default=None, description="Optional command name")
     description: str | None = Field(default=None, description="Optional description")
     command_line: str = Field(
@@ -495,7 +501,8 @@ class FlextCliCommand(FlextEntity):
     )
     # Avoid heavy nested model construction on simple instantiation
     context: FlextCliContext | None = Field(
-        default=None, description="Execution context",
+        default=None,
+        description="Execution context",
     )
     # Testing convenience fields expected by tests
     options: dict[str, object] = Field(default_factory=dict)
@@ -565,11 +572,15 @@ class FlextCliCommand(FlextEntity):
             and self.completed_at
             and self.completed_at < self.started_at
         ):
-            return FlextResult.fail(FlextCliConstants.CliErrors.TIME_COMPLETION_BEFORE_START)
+            return FlextResult.fail(
+                FlextCliConstants.CliErrors.TIME_COMPLETION_BEFORE_START
+            )
 
         # Validate status transitions
         if self.command_status == FlextCliCommandStatus.RUNNING and not self.started_at:
-            return FlextResult.fail(FlextCliConstants.CliErrors.STATE_RUNNING_MUST_HAVE_START)
+            return FlextResult.fail(
+                FlextCliConstants.CliErrors.STATE_RUNNING_MUST_HAVE_START
+            )
 
         if self.is_terminal_state and not self.completed_at:
             return FlextResult.fail(
@@ -670,7 +681,9 @@ class FlextCliCommand(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+                return FlextResult.fail(
+                    updated_with_event.error or "Failed to append event"
+                )
             result = updated_with_event.unwrap()
         except Exception as e:
             return FlextResult.fail(f"Failed to add domain event: {e}")
@@ -740,7 +753,9 @@ class FlextCliCommand(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+                return FlextResult.fail(
+                    updated_with_event.error or "Failed to append event"
+                )
             result = updated_with_event.unwrap()
         except Exception as e:
             return FlextResult.fail(f"Failed to add domain event: {e}")
@@ -750,7 +765,9 @@ class FlextCliCommand(FlextEntity):
     def cancel_execution(self) -> FlextResult[FlextCliCommand]:
         """Cancel running command execution."""
         if self.command_status != FlextCliCommandStatus.RUNNING:
-            return FlextResult.fail(FlextCliConstants.CliErrors.STATE_ONLY_CANCEL_RUNNING)
+            return FlextResult.fail(
+                FlextCliConstants.CliErrors.STATE_ONLY_CANCEL_RUNNING
+            )
 
         now = _now_utc()
         updated_command = self.copy_with(
@@ -772,7 +789,9 @@ class FlextCliCommand(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+                return FlextResult.fail(
+                    updated_with_event.error or "Failed to append event"
+                )
             result = updated_with_event.unwrap()
         except Exception as e:
             return FlextResult.fail(f"Failed to add domain event: {e}")
@@ -835,7 +854,9 @@ class FlextCliSession(FlextEntity):
     # Allow unknown convenience fields and provide default id
     model_config = ConfigDict(extra="allow")
     # Provide default id for testing convenience that omit it
-    id: FlextEntityId = Field(default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex))
+    id: FlextEntityId = Field(
+        default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex)
+    )
     user_id: str | None = Field(
         default=None,
         description="User identifier for this session",
@@ -853,7 +874,9 @@ class FlextCliSession(FlextEntity):
         description="Session configuration",
     )
     # Testing convenience-friendly fields
-    session_id: str = Field(default="", description="Testing convenience session identifier")
+    session_id: str = Field(
+        default="", description="Testing convenience session identifier"
+    )
     command_history: list[FlextEntityId] = Field(
         default_factory=list,
         description="History of command IDs executed in this session",
@@ -895,7 +918,11 @@ class FlextCliSession(FlextEntity):
     # Testing convenience alias expected by tests
     @property
     def current_command(self) -> str | None:  # pragma: no cover - alias
-        return str(self.current_command_id) if self.current_command_id is not None else None
+        return (
+            str(self.current_command_id)
+            if self.current_command_id is not None
+            else None
+        )
 
     @property
     def commands_executed_count(self) -> int:
@@ -918,14 +945,18 @@ class FlextCliSession(FlextEntity):
             return FlextResult.fail(FlextCliConstants.CliErrors.TIME_END_BEFORE_START)
 
         if self.last_activity_at < self.started_at:
-            return FlextResult.fail(FlextCliConstants.CliErrors.TIME_ACTIVITY_BEFORE_START)
+            return FlextResult.fail(
+                FlextCliConstants.CliErrors.TIME_ACTIVITY_BEFORE_START
+            )
 
         # Current command must be in history if set
         if (
             self.current_command_id
             and self.current_command_id not in self.command_history
         ):
-            return FlextResult.fail(FlextCliConstants.CliErrors.STATE_COMMAND_NOT_IN_HISTORY)
+            return FlextResult.fail(
+                FlextCliConstants.CliErrors.STATE_COMMAND_NOT_IN_HISTORY
+            )
 
         return FlextResult.ok(None)
 
@@ -958,7 +989,9 @@ class FlextCliSession(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+                return FlextResult.fail(
+                    updated_with_event.error or "Failed to append event"
+                )
             result = updated_with_event.unwrap()
         except Exception as e:
             return FlextResult.fail(f"Failed to add domain event: {e}")
@@ -1000,7 +1033,9 @@ class FlextCliSession(FlextEntity):
     def suspend_session(self) -> FlextResult[FlextCliSession]:
         """Suspend the session."""
         if not self.is_active:
-            return FlextResult.fail(FlextCliConstants.CliErrors.STATE_ONLY_SUSPEND_ACTIVE)
+            return FlextResult.fail(
+                FlextCliConstants.CliErrors.STATE_ONLY_SUSPEND_ACTIVE
+            )
 
         now = _now_utc()
         updated_session = self.copy_with(
@@ -1023,7 +1058,9 @@ class FlextCliSession(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+                return FlextResult.fail(
+                    updated_with_event.error or "Failed to append event"
+                )
             result = updated_with_event.unwrap()
         except Exception as e:
             return FlextResult.fail(f"Failed to add domain event: {e}")
@@ -1033,7 +1070,9 @@ class FlextCliSession(FlextEntity):
     def resume_session(self) -> FlextResult[FlextCliSession]:
         """Resume suspended session."""
         if self.state != FlextCliSessionState.SUSPENDED:
-            return FlextResult.fail(FlextCliConstants.CliErrors.STATE_ONLY_RESUME_SUSPENDED)
+            return FlextResult.fail(
+                FlextCliConstants.CliErrors.STATE_ONLY_RESUME_SUSPENDED
+            )
 
         now = _now_utc()
         updated_session = self.copy_with(
@@ -1055,7 +1094,9 @@ class FlextCliSession(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+                return FlextResult.fail(
+                    updated_with_event.error or "Failed to append event"
+                )
             result = updated_with_event.unwrap()
         except Exception as e:
             return FlextResult.fail(f"Failed to add domain event: {e}")
@@ -1065,7 +1106,9 @@ class FlextCliSession(FlextEntity):
     def terminate_session(self) -> FlextResult[FlextCliSession]:
         """Terminate the session."""
         if self.state == FlextCliSessionState.TERMINATED:
-            return FlextResult.fail(FlextCliConstants.CliErrors.SESSION_ALREADY_TERMINATED)
+            return FlextResult.fail(
+                FlextCliConstants.CliErrors.SESSION_ALREADY_TERMINATED
+            )
 
         now = _now_utc()
         updated_session = self.copy_with(
@@ -1091,7 +1134,9 @@ class FlextCliSession(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+                return FlextResult.fail(
+                    updated_with_event.error or "Failed to append event"
+                )
             result = updated_with_event.unwrap()
         except Exception as e:
             return FlextResult.fail(f"Failed to add domain event: {e}")
@@ -1127,7 +1172,9 @@ class FlextCliPlugin(FlextEntity):
     # Allow unknown convenience fields and provide default id
     model_config = ConfigDict(extra="allow")
     # Provide default id for testing convenience that omit it
-    id: FlextEntityId = Field(default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex))
+    id: FlextEntityId = Field(
+        default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex)
+    )
     name: str = Field(
         ...,
         min_length=1,
@@ -1272,7 +1319,9 @@ class FlextCliPlugin(FlextEntity):
             return FlextResult.fail(FlextCliConstants.CliErrors.PLUGIN_NAME_EMPTY)
 
         if not self.entry_point.strip():
-            return FlextResult.fail(FlextCliConstants.CliErrors.PLUGIN_ENTRY_POINT_EMPTY)
+            return FlextResult.fail(
+                FlextCliConstants.CliErrors.PLUGIN_ENTRY_POINT_EMPTY
+            )
 
         # Validate plugin directory exists if specified
         if self.plugin_directory and not self.plugin_directory.exists():
@@ -1320,7 +1369,9 @@ class FlextCliPlugin(FlextEntity):
                 )
                 updated_with_event = result.copy_with(domain_events=new_events)
                 if updated_with_event.is_failure:
-                    return FlextResult.fail(updated_with_event.error or "Failed to append event")
+                    return FlextResult.fail(
+                        updated_with_event.error or "Failed to append event"
+                    )
                 result = updated_with_event.unwrap()
             except Exception as e:
                 return FlextResult.fail(f"Failed to add domain event: {e}")
@@ -1367,7 +1418,9 @@ class FlextCliPlugin(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+                return FlextResult.fail(
+                    updated_with_event.error or "Failed to append event"
+                )
             result = updated_with_event.unwrap()
         except Exception as e:
             return FlextResult.fail(f"Failed to add domain event: {e}")
@@ -1397,7 +1450,9 @@ class FlextCliPlugin(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+                return FlextResult.fail(
+                    updated_with_event.error or "Failed to append event"
+                )
             result = updated_with_event.unwrap()
         except Exception as e:
             return FlextResult.fail(f"Failed to add domain event: {e}")
@@ -1437,7 +1492,9 @@ class FlextCliPlugin(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+                return FlextResult.fail(
+                    updated_with_event.error or "Failed to append event"
+                )
             result = updated_with_event.unwrap()
         except Exception as e:
             return FlextResult.fail(f"Failed to add domain event: {e}")
@@ -1560,7 +1617,9 @@ class FlextCliWorkspace(FlextAggregateRoot):
     ) -> FlextResult[FlextCliWorkspace]:
         """Install plugin in workspace."""
         if plugin_id in self.plugin_ids:
-            return FlextResult.fail(FlextCliConstants.CliErrors.PLUGIN_ALREADY_INSTALLED)
+            return FlextResult.fail(
+                FlextCliConstants.CliErrors.PLUGIN_ALREADY_INSTALLED
+            )
 
         new_plugin_ids = [*self.plugin_ids, plugin_id]
         updated_workspace = self.copy_with(plugin_ids=new_plugin_ids)

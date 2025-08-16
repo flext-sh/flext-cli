@@ -5,18 +5,14 @@ from __future__ import annotations
 import asyncio
 import contextlib
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import click
 from flext_core import FlextResult
 from rich.console import Console
 
-from flext_cli.config import get_config as _get_config
+from flext_cli.config import CLIConfig, get_config as _get_config
 from flext_cli.constants import FlextCliConstants
 from flext_cli.flext_api_integration import FlextCLIApiClient as FlextApiClient
-
-if TYPE_CHECKING:
-    from flext_cli.config import CLIConfig
 
 # =============================================================================
 # AUTHENTICATION UTILITIES - Token management and security operations
@@ -117,7 +113,9 @@ def save_auth_token(token: str) -> FlextResult[None]:
 
         return FlextResult.ok(None)
     except (OSError, PermissionError, ValueError) as e:
-        return FlextResult.fail(f"{FlextCliConstants.CliErrors.AUTH_TOKEN_SAVE_FAILED}: {e}")
+        return FlextResult.fail(
+            f"{FlextCliConstants.CliErrors.AUTH_TOKEN_SAVE_FAILED}: {e}"
+        )
 
 
 def save_refresh_token(refresh_token: str) -> FlextResult[None]:
@@ -140,7 +138,9 @@ def save_refresh_token(refresh_token: str) -> FlextResult[None]:
 
         return FlextResult.ok(None)
     except (OSError, PermissionError, ValueError) as e:
-        return FlextResult.fail(f"{FlextCliConstants.CliErrors.AUTH_REFRESH_TOKEN_SAVE_FAILED}: {e}")
+        return FlextResult.fail(
+            f"{FlextCliConstants.CliErrors.AUTH_REFRESH_TOKEN_SAVE_FAILED}: {e}"
+        )
 
 
 def get_auth_token() -> str | None:
@@ -198,7 +198,9 @@ def clear_auth_tokens() -> FlextResult[None]:
 
         return FlextResult.ok(None)
     except (OSError, PermissionError) as e:
-        return FlextResult.fail(f"{FlextCliConstants.CliErrors.AUTH_TOKEN_CLEAR_FAILED}: {e}")
+        return FlextResult.fail(
+            f"{FlextCliConstants.CliErrors.AUTH_TOKEN_CLEAR_FAILED}: {e}"
+        )
 
 
 def is_authenticated() -> bool:
@@ -245,16 +247,22 @@ async def _async_login_impl(
     """Async login workflow extracted to reduce function complexity."""
     try:
         async with FlextApiClient() as client:
-            console.print(f"[yellow]{FlextCliConstants.CliMessages.PROCESS_LOGGING_IN} {username}...[/yellow]")
+            console.print(
+                f"[yellow]{FlextCliConstants.CliMessages.PROCESS_LOGGING_IN} {username}...[/yellow]"
+            )
 
             if not password or len(password) < 1:
-                console.print(f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_PASSWORD_EMPTY}[/red]")
+                console.print(
+                    f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_PASSWORD_EMPTY}[/red]"
+                )
                 ctx.exit(1)
 
             login_result = await client.login(username, password)
 
             if login_result.is_failure:
-                console.print(f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_LOGIN_FAILED}: {login_result.error}[/red]")
+                console.print(
+                    f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_LOGIN_FAILED}: {login_result.error}[/red]"
+                )
                 ctx.exit(1)
 
             response = login_result.data
@@ -263,7 +271,9 @@ async def _async_login_impl(
                 if isinstance(token_value, str):
                     save_result = save_auth_token(token_value)
                     if save_result.is_success:
-                        console.print(f"[green]{FlextCliConstants.CliOutput.SUCCESS_CHECKMARK} {FlextCliConstants.CliMessages.SUCCESS_LOGIN}[/green]")
+                        console.print(
+                            f"[green]{FlextCliConstants.CliOutput.SUCCESS_CHECKMARK} {FlextCliConstants.CliMessages.SUCCESS_LOGIN}[/green]"
+                        )
                     else:
                         console.print(
                             f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_TOKEN_SAVE_FAILED}: {save_result.error}[/red]",
@@ -277,13 +287,19 @@ async def _async_login_impl(
                             f"Welcome, {user_data.get('name', username)}!",
                         )
             else:
-                console.print(f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_INVALID_RESPONSE}[/red]")
+                console.print(
+                    f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_INVALID_RESPONSE}[/red]"
+                )
                 ctx.exit(1)
     except (ConnectionError, TimeoutError, ValueError, KeyError) as e:
-        console.print(f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_LOGIN_FAILED}: {e}[/red]")
+        console.print(
+            f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_LOGIN_FAILED}: {e}[/red]"
+        )
         ctx.exit(1)
     except OSError as e:
-        console.print(f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_NETWORK_ERROR}: {e}[/red]")
+        console.print(
+            f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_NETWORK_ERROR}: {e}[/red]"
+        )
         ctx.exit(1)
 
 
@@ -326,7 +342,9 @@ async def _async_logout_impl(_ctx: click.Context, console: Console) -> None:
 
         token = _get_auth_token_bridge()
         if not token:
-            console.print(f"[yellow]{FlextCliConstants.CliMessages.STATUS_NOT_LOGGED_IN}[/yellow]")
+            console.print(
+                f"[yellow]{FlextCliConstants.CliMessages.STATUS_NOT_LOGGED_IN}[/yellow]"
+            )
             return
         # Proactively clear tokens; tests expect token cleanup even on early failures
         _clear_tokens_bridge()
@@ -339,15 +357,21 @@ async def _async_logout_impl(_ctx: click.Context, console: Console) -> None:
             raise
 
         async with client_manager as client:
-            console.print(f"[yellow]{FlextCliConstants.CliMessages.PROCESS_LOGGING_OUT}[/yellow]")
+            console.print(
+                f"[yellow]{FlextCliConstants.CliMessages.PROCESS_LOGGING_OUT}[/yellow]"
+            )
             logout_result = await client.logout()
 
             if logout_result.is_failure:
-                console.print(f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_LOGOUT_FAILED}: {logout_result.error}[/red]")
+                console.print(
+                    f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_LOGOUT_FAILED}: {logout_result.error}[/red]"
+                )
 
             clear_result = FlextResult.ok(None)  # already cleared proactively
             if clear_result.is_success:
-                console.print(f"[green]{FlextCliConstants.CliOutput.SUCCESS_CHECKMARK} {FlextCliConstants.CliMessages.SUCCESS_LOGOUT}[/green]")
+                console.print(
+                    f"[green]{FlextCliConstants.CliOutput.SUCCESS_CHECKMARK} {FlextCliConstants.CliMessages.SUCCESS_LOGOUT}[/green]"
+                )
             else:
                 console.print(
                     f"[yellow]{FlextCliConstants.CliOutput.WARNING_TRIANGLE} {FlextCliConstants.CliMessages.WARNING_TOKEN_CLEAR_FAILED}: {clear_result.error}[/yellow]",
@@ -355,7 +379,9 @@ async def _async_logout_impl(_ctx: click.Context, console: Console) -> None:
     except KeyError:
         clear_result = _clear_tokens_bridge()
         if clear_result.is_success:
-            console.print(f"[green]{FlextCliConstants.CliOutput.SUCCESS_CHECKMARK} {FlextCliConstants.CliMessages.SUCCESS_LOGOUT}[/green]")
+            console.print(
+                f"[green]{FlextCliConstants.CliOutput.SUCCESS_CHECKMARK} {FlextCliConstants.CliMessages.SUCCESS_LOGOUT}[/green]"
+            )
         else:
             console.print(
                 f"[yellow]{FlextCliConstants.CliOutput.WARNING_TRIANGLE} {FlextCliConstants.CliMessages.WARNING_TOKEN_CLEAR_FAILED}: {clear_result.error}[/yellow]",
@@ -421,20 +447,32 @@ def status(ctx: click.Context) -> None:
         try:
             token = _get_auth_token_bridge()
             if not token:
-                console.print(f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliMessages.STATUS_NOT_AUTHENTICATED}[/red]")
+                console.print(
+                    f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliMessages.STATUS_NOT_AUTHENTICATED}[/red]"
+                )
                 console.print(FlextCliConstants.CliMessages.INFO_RUN_LOGIN)
                 ctx.exit(1)
 
             async with FlextApiClient() as client:
-                console.print(f"[yellow]{FlextCliConstants.CliMessages.PROCESS_CHECKING_AUTH}[/yellow]")
+                console.print(
+                    f"[yellow]{FlextCliConstants.CliMessages.PROCESS_CHECKING_AUTH}[/yellow]"
+                )
                 user_result = await client.get_current_user()
 
                 if user_result.success and user_result.data:
                     user = user_result.data
-                    console.print(f"[green]{FlextCliConstants.CliOutput.SUCCESS_CHECKMARK} {FlextCliConstants.CliMessages.STATUS_AUTHENTICATED}[/green]")
-                    console.print(f"{FlextCliConstants.CliMessages.LABEL_USER}: {user.get('username', FlextCliConstants.CliMessages.UNKNOWN)}")
-                    console.print(f"{FlextCliConstants.CliMessages.LABEL_EMAIL}: {user.get('email', FlextCliConstants.CliMessages.UNKNOWN)}")
-                    console.print(f"{FlextCliConstants.CliMessages.LABEL_ROLE}: {user.get('role', FlextCliConstants.CliMessages.UNKNOWN)}")
+                    console.print(
+                        f"[green]{FlextCliConstants.CliOutput.SUCCESS_CHECKMARK} {FlextCliConstants.CliMessages.STATUS_AUTHENTICATED}[/green]"
+                    )
+                    console.print(
+                        f"{FlextCliConstants.CliMessages.LABEL_USER}: {user.get('username', FlextCliConstants.CliMessages.UNKNOWN)}"
+                    )
+                    console.print(
+                        f"{FlextCliConstants.CliMessages.LABEL_EMAIL}: {user.get('email', FlextCliConstants.CliMessages.UNKNOWN)}"
+                    )
+                    console.print(
+                        f"{FlextCliConstants.CliMessages.LABEL_ROLE}: {user.get('role', FlextCliConstants.CliMessages.UNKNOWN)}"
+                    )
                 else:
                     error_msg = user_result.error or "Unknown error"
                     console.print(

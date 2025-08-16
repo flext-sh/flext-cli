@@ -1,148 +1,76 @@
-"""CLI Exception Hierarchy."""
+"""CLI Exception Hierarchy - Modern Pydantic v2 Patterns."""
 
 from __future__ import annotations
+
+from enum import Enum
+from typing import Any
 
 from flext_core import FlextError
 
 
-# Base CLI exception hierarchy following flext-core patterns
-class FlextCliError(FlextError):
-    """Base exception for CLI operations."""
+class FlextCliErrorCodes(Enum):
+    """Error codes for CLI domain operations."""
+    
+    CLI_ERROR = "CLI_ERROR"
+    CLI_VALIDATION_ERROR = "CLI_VALIDATION_ERROR"
+    CLI_CONFIGURATION_ERROR = "CLI_CONFIGURATION_ERROR"
+    CLI_CONNECTION_ERROR = "CLI_CONNECTION_ERROR"
+    CLI_PROCESSING_ERROR = "CLI_PROCESSING_ERROR"
+    CLI_AUTHENTICATION_ERROR = "CLI_AUTHENTICATION_ERROR"
+    CLI_TIMEOUT_ERROR = "CLI_TIMEOUT_ERROR"
+    CLI_COMMAND_ERROR = "CLI_COMMAND_ERROR"
+    CLI_ARGUMENT_ERROR = "CLI_ARGUMENT_ERROR"
+    CLI_FORMAT_ERROR = "CLI_FORMAT_ERROR"
+    CLI_OUTPUT_ERROR = "CLI_OUTPUT_ERROR"
+    CLI_CONTEXT_ERROR = "CLI_CONTEXT_ERROR"
 
-    def __init__(
-        self,
-        message: str = "CLI error",
-        error_code: str | None = "CLI_ERROR",
-        context: dict[str, object] | None = None,
-    ) -> None:
-        """Initialize CLI error with context."""
-        super().__init__(
-            message=message,
-            error_code=error_code,
-            context=context,
-        )
+
+# Base CLI exception hierarchy following flext-core FlextError pattern
+class FlextCliError(FlextError):
+    """Base exception for all CLI domain errors."""
 
 
 class FlextCliValidationError(FlextCliError):
     """CLI validation errors."""
 
-    def __init__(
-        self,
-        message: str = "CLI validation error",
-        error_code: str | None = "CLI_VALIDATION_ERROR",
-        context: dict[str, object] | None = None,
-    ) -> None:
-        """Initialize CLI validation error."""
-        super().__init__(
-            message=message,
-            error_code=error_code,
-            context=context,
-        )
-
 
 class FlextCliConfigurationError(FlextCliError):
     """CLI configuration errors."""
-
-    def __init__(
-        self,
-        message: str = "CLI configuration error",
-        error_code: str | None = "CLI_CONFIGURATION_ERROR",
-        context: dict[str, object] | None = None,
-    ) -> None:
-        """Initialize CLI configuration error."""
-        super().__init__(
-            message=message,
-            error_code=error_code,
-            context=context,
-        )
 
 
 class FlextCliConnectionError(FlextCliError):
     """CLI connection errors."""
 
-    def __init__(
-        self,
-        message: str = "CLI connection error",
-        error_code: str | None = "CLI_CONNECTION_ERROR",
-        context: dict[str, object] | None = None,
-    ) -> None:
-        """Initialize CLI connection error."""
-        super().__init__(
-            message=message,
-            error_code=error_code,
-            context=context,
-        )
-
 
 class FlextCliProcessingError(FlextCliError):
     """CLI processing errors."""
-
-    def __init__(
-        self,
-        message: str = "CLI processing error",
-        error_code: str | None = "CLI_PROCESSING_ERROR",
-        context: dict[str, object] | None = None,
-    ) -> None:
-        """Initialize CLI processing error."""
-        super().__init__(
-            message=message,
-            error_code=error_code,
-            context=context,
-        )
 
 
 class FlextCliAuthenticationError(FlextCliError):
     """CLI authentication errors."""
 
-    def __init__(
-        self,
-        message: str = "CLI authentication error",
-        error_code: str | None = "CLI_AUTHENTICATION_ERROR",
-        context: dict[str, object] | None = None,
-    ) -> None:
-        """Initialize CLI authentication error."""
-        super().__init__(
-            message=message,
-            error_code=error_code,
-            context=context,
-        )
-
 
 class FlextCliTimeoutError(FlextCliError):
     """CLI timeout errors."""
 
-    def __init__(
-        self,
-        message: str = "CLI timeout error",
-        error_code: str | None = "CLI_TIMEOUT_ERROR",
-        context: dict[str, object] | None = None,
-    ) -> None:
-        """Initialize CLI timeout error."""
-        super().__init__(
-            message=message,
-            error_code=error_code,
-            context=context,
-        )
-
 
 # Domain-specific exceptions for CLI business logic
-# =============================================================================
-# REFACTORING: Template Method Pattern - eliminates massive duplication
-# =============================================================================
+# Using modern FlextErrorMixin pattern with context support
 
 
 class FlextCliCommandError(FlextCliError):
-    """CLI service command errors using DRY foundation."""
+    """CLI command execution errors with command context."""
 
     def __init__(
-        self,
-        message: str = "CLI command error",
+        self, 
+        message: str, 
+        *, 
         command: str | None = None,
         exit_code: int | None = None,
-        error_code: str | None = "CLI_COMMAND_ERROR",
-        context: dict[str, object] | None = None,
+        code: FlextCliErrorCodes | None = FlextCliErrorCodes.CLI_COMMAND_ERROR,
+        context: dict[str, Any] | None = None,
     ) -> None:
-        """Initialize CLI command error with context."""
+        """Initialize with CLI command context."""
         context_dict = context or {}
         if command is not None:
             context_dict["command"] = command
@@ -150,24 +78,25 @@ class FlextCliCommandError(FlextCliError):
             context_dict["exit_code"] = exit_code
 
         super().__init__(
-            message=f"CLI command: {message}",
-            error_code=error_code,
-            context=context_dict,
+            message, 
+            code=code, 
+            context=context_dict
         )
 
 
 class FlextCliArgumentError(FlextCliError):
-    """CLI service argument errors using DRY foundation."""
+    """CLI argument validation errors with argument context."""
 
     def __init__(
-        self,
-        message: str = "CLI argument error",
+        self, 
+        message: str, 
+        *, 
         argument_name: str | None = None,
         argument_value: str | None = None,
-        error_code: str | None = "CLI_ARGUMENT_ERROR",
-        context: dict[str, object] | None = None,
+        code: FlextCliErrorCodes | None = FlextCliErrorCodes.CLI_ARGUMENT_ERROR,
+        context: dict[str, Any] | None = None,
     ) -> None:
-        """Initialize CLI argument error with context."""
+        """Initialize with CLI argument context."""
         context_dict = context or {}
         if argument_name is not None:
             context_dict["argument_name"] = argument_name
@@ -175,24 +104,25 @@ class FlextCliArgumentError(FlextCliError):
             context_dict["argument_value"] = argument_value
 
         super().__init__(
-            message=f"CLI argument: {message}",
-            error_code=error_code,
-            context=context_dict,
+            message, 
+            code=code, 
+            context=context_dict
         )
 
 
 class FlextCliFormatError(FlextCliError):
-    """CLI service formatting errors using DRY foundation."""
+    """CLI formatting errors with format context."""
 
     def __init__(
-        self,
-        message: str = "CLI format error",
+        self, 
+        message: str, 
+        *, 
         format_type: str | None = None,
         data_type: str | None = None,
-        error_code: str | None = "CLI_FORMAT_ERROR",
-        context: dict[str, object] | None = None,
+        code: FlextCliErrorCodes | None = FlextCliErrorCodes.CLI_FORMAT_ERROR,
+        context: dict[str, Any] | None = None,
     ) -> None:
-        """Initialize CLI format error with context."""
+        """Initialize with CLI format context."""
         context_dict = context or {}
         if format_type is not None:
             context_dict["format_type"] = format_type
@@ -200,24 +130,25 @@ class FlextCliFormatError(FlextCliError):
             context_dict["data_type"] = data_type
 
         super().__init__(
-            message=f"CLI format: {message}",
-            error_code=error_code,
-            context=context_dict,
+            message, 
+            code=code, 
+            context=context_dict
         )
 
 
 class FlextCliOutputError(FlextCliError):
-    """CLI service output errors using DRY foundation."""
+    """CLI output errors with output context."""
 
     def __init__(
-        self,
-        message: str = "CLI output error",
+        self, 
+        message: str, 
+        *, 
         output_format: str | None = None,
         output_path: str | None = None,
-        error_code: str | None = "CLI_OUTPUT_ERROR",
-        context: dict[str, object] | None = None,
+        code: FlextCliErrorCodes | None = FlextCliErrorCodes.CLI_OUTPUT_ERROR,
+        context: dict[str, Any] | None = None,
     ) -> None:
-        """Initialize CLI output error with context."""
+        """Initialize with CLI output context."""
         context_dict = context or {}
         if output_format is not None:
             context_dict["output_format"] = output_format
@@ -225,24 +156,25 @@ class FlextCliOutputError(FlextCliError):
             context_dict["output_path"] = output_path
 
         super().__init__(
-            message=f"CLI output: {message}",
-            error_code=error_code,
-            context=context_dict,
+            message, 
+            code=code, 
+            context=context_dict
         )
 
 
 class FlextCliContextError(FlextCliError):
-    """CLI service context errors using DRY foundation."""
+    """CLI context errors with context state information."""
 
     def __init__(
-        self,
-        message: str = "CLI context error",
+        self, 
+        message: str, 
+        *, 
         context_name: str | None = None,
         context_state: str | None = None,
-        error_code: str | None = "CLI_CONTEXT_ERROR",
-        context: dict[str, object] | None = None,
+        code: FlextCliErrorCodes | None = FlextCliErrorCodes.CLI_CONTEXT_ERROR,
+        context: dict[str, Any] | None = None,
     ) -> None:
-        """Initialize CLI context error with context."""
+        """Initialize with CLI context state."""
         context_dict = context or {}
         if context_name is not None:
             context_dict["context_name"] = context_name
@@ -250,23 +182,29 @@ class FlextCliContextError(FlextCliError):
             context_dict["context_state"] = context_state
 
         super().__init__(
-            message=f"CLI context: {message}",
-            error_code=error_code,
-            context=context_dict,
+            message, 
+            code=code, 
+            context=context_dict
         )
 
 
 __all__: list[str] = [
-    "FlextCliArgumentError",
-    "FlextCliAuthenticationError",
-    "FlextCliCommandError",
+    # Error codes enum
+    "FlextCliErrorCodes",
+    
+    # Base exceptions
+    "FlextCliError",
+    "FlextCliValidationError",
     "FlextCliConfigurationError",
     "FlextCliConnectionError",
-    "FlextCliContextError",
-    "FlextCliError",
+    "FlextCliProcessingError",
+    "FlextCliAuthenticationError",
+    "FlextCliTimeoutError",
+    
+    # Domain-specific exceptions with context
+    "FlextCliCommandError",
+    "FlextCliArgumentError",
     "FlextCliFormatError",
     "FlextCliOutputError",
-    "FlextCliProcessingError",
-    "FlextCliTimeoutError",
-    "FlextCliValidationError",
+    "FlextCliContextError",
 ]
