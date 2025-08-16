@@ -7,7 +7,7 @@ from functools import wraps
 from typing import TYPE_CHECKING, NotRequired, ParamSpec, TypedDict, TypeVar
 
 from flext_core import FlextResult, get_logger
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field
 from rich.console import Console
 
 if TYPE_CHECKING:
@@ -121,18 +121,9 @@ class CLIContext(BaseModel):
         # Prevent mutation after initialization to mimic value object immutability
         if getattr(self, "__frozen__", False):
             # Use the local InitErrorDetails TypedDict
-            details: list[InitErrorDetails] = [
-                {
-                    "type": "frozen_instance",
-                    "loc": (name,),
-                    "msg": f"Cannot modify immutable CLIContext field '{name}'",
-                    "input": value,
-                },
-            ]
-            error_model_name = "CLIContext"
-            # mypy ignores: The InitErrorDetails TypedDict structure is intentionally adjusted for this Pydantic version.
-            # ruff ignores: This is a known incompatibility with Pydantic's internal error type.
-            raise ValidationError.from_exception_data(error_model_name, details)  # type: ignore[arg-type]
+            # Raise a standard ValueError to avoid relying on Pydantic's private error structures
+            msg = f"Cannot modify immutable CLIContext field '{name}'"
+            raise ValueError(msg)
         super().__setattr__(name, value)
 
     @classmethod

@@ -4,7 +4,15 @@ from __future__ import annotations
 
 import click as _click
 
-from flext_cli.cli_types import PositiveIntType
+from flext_cli.cli_types import PositiveIntType, URLType as _URLType
+
+
+class URLType(_URLType):
+    """Explicit URLType re-export for tests importing from core.types."""
+
+
+# Convenience instance expected by tests and Click integration
+URL = URLType()
 
 
 class ClickPath(_click.Path):
@@ -40,5 +48,5 @@ ExistingFile = ClickPath(exists=True, file_okay=True, dir_okay=False)
 ExistingDir = ClickPath(exists=True, file_okay=False, dir_okay=True)
 NewFile = ClickPath(exists=False, file_okay=True, dir_okay=False)
 
-# PositiveInt instance expected by tests
+# PositiveInt instance expected by tests (ensure single definition)
 PositiveInt = PositiveIntType()

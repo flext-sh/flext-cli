@@ -98,9 +98,17 @@ def flext_cli_auto_config(
         if p.exists():
             file_res = _load_config_file(p)
             if file_res.success:
-                loaded.update(file_res.unwrap())
+                # File values have lower precedence than explicit profile argument
+                file_loaded = file_res.unwrap()
+                for k, v in file_loaded.items():
+                    if k == "profile":
+                        continue
+                    loaded[k] = v
                 loaded["config_source"] = str(p)
                 break
+    # Always include config_source key for test expectations
+    if "config_source" not in loaded:
+        loaded["config_source"] = None
     loaded.update(env)
     if env:
         loaded["env_overrides"] = env

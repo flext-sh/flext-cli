@@ -58,8 +58,6 @@ MAX_ENTITY_NAME_LENGTH: int = FlextConstants.Platform.MAX_NAME_LENGTH
 MAX_ERROR_MESSAGE_LENGTH: int = FlextConstants.Limits.MAX_STRING_LENGTH
 
 
-
-
 class FlextCliConstants:
     """CLI-specific constants that extend FlextConstants.
 
@@ -503,5 +501,3 @@ class FlextCliConstants:
 
         # Mock API failure rate (for examples only)
         MOCK_API_FAILURE_RATE = 0.3  # 30% chance of failure for demo purposes
-
-

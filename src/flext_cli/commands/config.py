@@ -97,6 +97,26 @@ def config() -> None:
 def show(ctx: click.Context) -> None:
     """Show the current configuration."""
     console: Console = ctx.obj.get("console", Console())
+    # Se houver contexto com config, honrar o formato
+    cli_context = ctx.obj.get("cli_context")
+    cfg = getattr(cli_context, "config", None) if cli_context else None
+    if cfg is not None:
+        fmt = getattr(cfg, "output_format", "table")
+        data = {
+            "api_url": getattr(cfg, "api_url", ""),
+            "timeout": getattr(cfg, "timeout", 0),
+            "profile": getattr(cfg, "profile", "default"),
+            "debug": getattr(cfg, "debug", False),
+        }
+        if fmt == "json":
+            import json as _json
+            console.print(_json.dumps(data, indent=2))
+            return
+        if fmt == "yaml":
+            import yaml as _yaml  # type: ignore[import-untyped]
+            console.print(_yaml.dump(data, default_flow_style=False))
+            return
+    # fallback simples
     console.print(FlextCliConstants.CliMessages.STATUS_DISPLAY_CONFIG)
 
 

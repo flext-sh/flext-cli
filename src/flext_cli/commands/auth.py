@@ -49,6 +49,12 @@ _original_logout_callback = getattr(_cli_logout, "callback", None)
 
 @click.pass_context
 def _logout_shim(ctx: click.Context) -> None:  # pragma: no cover - thin wrapper
+    """Logout shim function.
+
+    Args:
+        ctx (click.Context): Description.
+
+    """
     with contextlib.suppress(Exception):
         clear_auth_tokens()
     if callable(_original_logout_callback):

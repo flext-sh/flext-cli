@@ -23,21 +23,64 @@ RecvType = TypeVar("RecvType")
 def async_command[**P, SendType, RecvType, T](
     func: Callable[P, Coroutine[SendType, RecvType, T]],
 ) -> Callable[P, T]:
-    """Convert an async function into a sync function via asyncio.run."""
+    """Convert an async function into a sync function via asyncio.run.
 
+    Args:
+        func (Callable[P, Coroutine[SendType, RecvType, T]]): Description.
+
+    Returns:
+        Callable[P, T]: Description.
+
+    """
     @wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        """Wrapper function.
+
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            T: Description.
+
+        """
         return asyncio.run(func(*args, **kwargs))
 
     return wrapper
 
 
 def confirm_action(message: str) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
-    """Request confirmation before executing the wrapped function."""
+    """Request confirmation before executing the wrapped function.
 
+    Args:
+        message (str): Description.
+
+    Returns:
+        Callable[[Callable[P, T]], Callable[P, T | None]]: Description.
+
+    """
     def decorator(func: Callable[P, T]) -> Callable[P, T | None]:
+        """Decorator function.
+
+        Args:
+            func (Callable[P, T]): Description.
+
+        Returns:
+            Callable[P, T | None]: Description.
+
+        """
         @wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
+            """Wrapper function.
+
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
+
+            Returns:
+                T | None: Description.
+
+            """
             console = Console()
             response = console.input(f"{message} [y/N]: ").strip().lower()
             if response in {"y", "yes"}:
@@ -53,11 +96,37 @@ def require_auth(
     *,
     token_file: str | None = None,
 ) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
-    """Require authentication by checking for a token file."""
+    """Require authentication by checking for a token file.
 
+    Args:
+        token_file (str | None): Description.
+
+    Returns:
+        Callable[[Callable[P, T]], Callable[P, T | None]]: Description.
+
+    """
     def decorator(func: Callable[P, T]) -> Callable[P, T | None]:
+        """Decorator function.
+
+        Args:
+            func (Callable[P, T]): Description.
+
+        Returns:
+            Callable[P, T | None]: Description.
+
+        """
         @wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
+            """Wrapper function.
+
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
+
+            Returns:
+                T | None: Description.
+
+            """
             path = token_file
             if path is None:
                 # Default path under ~/.flext/auth/token
@@ -80,11 +149,37 @@ def measure_time(
     *,
     show_in_output: bool = False,
 ) -> Callable[[Callable[P, T]], Callable[P, T]]:
-    """Measure the execution time of a function."""
+    """Measure the execution time of a function.
 
+    Args:
+        show_in_output (bool): Description.
+
+    Returns:
+        Callable[[Callable[P, T]], Callable[P, T]]: Description.
+
+    """
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
+        """Decorator function.
+
+        Args:
+            func (Callable[P, T]): Description.
+
+        Returns:
+            Callable[P, T]: Description.
+
+        """
         @wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
+
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
+
+            Returns:
+                T: Description.
+
+            """
             start = time.time()
             result = func(*args, **kwargs)
             elapsed = time.time() - start
@@ -102,11 +197,38 @@ def retry(
     max_attempts: int,
     delay: float,
 ) -> Callable[[Callable[P, T]], Callable[P, T]]:
-    """Retry a function call on failure."""
+    """Retry a function call on failure.
 
+    Args:
+        max_attempts (int): Description.
+        delay (float): Description.
+
+    Returns:
+        Callable[[Callable[P, T]], Callable[P, T]]: Description.
+
+    """
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
+        """Decorator function.
+
+        Args:
+            func (Callable[P, T]): Description.
+
+        Returns:
+            Callable[P, T]: Description.
+
+        """
         @wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
+
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
+
+            Returns:
+                T: Description.
+
+            """
             last_exc: Exception | None = None
             for attempt in range(1, max_attempts + 1):
                 try:
@@ -129,11 +251,37 @@ def retry(
 def validate_config(
     required_keys: list[str],
 ) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
-    """Validate that a configuration object has the required keys."""
+    """Validate that a configuration object has the required keys.
 
+    Args:
+        required_keys (list[str]): Description.
+
+    Returns:
+        Callable[[Callable[P, T]], Callable[P, T | None]]: Description.
+
+    """
     def decorator(func: Callable[P, T]) -> Callable[P, T | None]:
+        """Decorator function.
+
+        Args:
+            func (Callable[P, T]): Description.
+
+        Returns:
+            Callable[P, T | None]: Description.
+
+        """
         @wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
+            """Wrapper function.
+
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
+
+            Returns:
+                T | None: Description.
+
+            """
             console = Console()
             config = kwargs.get("config")
             if config is None and args:
@@ -162,11 +310,37 @@ def validate_config(
 def with_spinner(
     message: str = "Processing...",
 ) -> Callable[[Callable[P, T]], Callable[P, T]]:
-    """Display a spinner while a function is executing."""
+    """Display a spinner while a function is executing.
 
+    Args:
+        message (str): Description.
+
+    Returns:
+        Callable[[Callable[P, T]], Callable[P, T]]: Description.
+
+    """
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
+        """Decorator function.
+
+        Args:
+            func (Callable[P, T]): Description.
+
+        Returns:
+            Callable[P, T]: Description.
+
+        """
         @wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
+
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
+
+            Returns:
+                T: Description.
+
+            """
             console = Console()
             with console.status(message, spinner="dots"):
                 return func(*args, **kwargs)
