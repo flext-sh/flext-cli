@@ -32,24 +32,45 @@ def cli_enhanced[**P, T](
 ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
     """Enhanced CLI decorator combining multiple CLI-specific behaviors.
 
-    This decorator consolidates common CLI patterns into a single,
-    configurable decorator that delegates to appropriate flext-core
-    decorators where possible.
+        This decorator consolidates common CLI patterns into a single,
+        configurable decorator that delegates to appropriate flext-core
+        decorators where possible.
 
     Args:
-        func: Optional function for bare decorator usage (@cli_enhanced)
-        validate_inputs: Enable input validation
-        handle_keyboard_interrupt: Handle Ctrl+C gracefully
-        measure_time: Measure and log execution time
-        log_execution: Log command execution
-        show_spinner: Show spinner during execution
+            func: Optional function for bare decorator usage (@cli_enhanced)
+            validate_inputs: Enable input validation
+            handle_keyboard_interrupt: Handle Ctrl+C gracefully
+            measure_time: Measure and log execution time
+            log_execution: Log command execution
+            show_spinner: Show spinner during execution
 
     Returns:
-        Decorated function with CLI enhancements
+            Decorated function with CLI enhancements
+
+
+
+    Args:
+        func (Callable[P, T] | None): Description.
+        validate_inputs (bool): Description.
+        handle_keyboard_interrupt (bool): Description.
+        measure_time (bool): Description.
+        log_execution (bool): Description.
+        show_spinner (bool): Description.
+
+    Returns:
+        Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]: Description.
 
     """
-
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
+        """Decorator function.
+
+        Args:
+            func (Callable[P, T]): Description.
+
+        Returns:
+            Callable[P, T]: Description.
+
+        """
         enhanced_func = func
 
         # Apply flext-core error handling if available
@@ -83,12 +104,29 @@ def cli_enhanced[**P, T](
 def cli_validate_inputs[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     """Validate CLI command inputs before execution.
 
-    Delegates to flext-core validation where possible and adds
-    CLI-specific input validation.
-    """
+        Delegates to flext-core validation where possible and adds
+        CLI-specific input validation.
 
+
+    Args:
+        func (Callable[P, T]): Description.
+
+    Returns:
+        Callable[P, T]: Description.
+
+    """
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        """Wrapper function.
+
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            T: Description.
+
+        """
         logger = get_logger(func.__name__)
 
         # Basic input validation (linear, minimal branching)
@@ -113,10 +151,27 @@ def cli_validate_inputs[**P, T](func: Callable[P, T]) -> Callable[P, T]:
 
 
 def cli_handle_keyboard_interrupt[**P, T](func: Callable[P, T]) -> Callable[P, T]:
-    """Handle keyboard interrupt (Ctrl+C) gracefully in CLI commands."""
+    """Handle keyboard interrupt (Ctrl+C) gracefully in CLI commands.
 
+    Args:
+        func (Callable[P, T]): Description.
+
+    Returns:
+        Callable[P, T]: Description.
+
+    """
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        """Wrapper function.
+
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            T: Description.
+
+        """
         try:
             return func(*args, **kwargs)
         except KeyboardInterrupt as err:
@@ -128,10 +183,27 @@ def cli_handle_keyboard_interrupt[**P, T](func: Callable[P, T]) -> Callable[P, T
 
 
 def cli_measure_time[**P, T](func: Callable[P, T]) -> Callable[P, T]:
-    """Measure and log CLI command execution time."""
+    """Measure and log CLI command execution time.
 
+    Args:
+        func (Callable[P, T]): Description.
+
+    Returns:
+        Callable[P, T]: Description.
+
+    """
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        """Wrapper function.
+
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            T: Description.
+
+        """
         logger = get_logger(func.__name__)
         start_time = time.time()
 
@@ -162,10 +234,27 @@ def cli_measure_time[**P, T](func: Callable[P, T]) -> Callable[P, T]:
 
 
 def cli_log_execution[**P, T](func: Callable[P, T]) -> Callable[P, T]:
-    """Log CLI command execution with structured logging."""
+    """Log CLI command execution with structured logging.
 
+    Args:
+        func (Callable[P, T]): Description.
+
+    Returns:
+        Callable[P, T]: Description.
+
+    """
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        """Wrapper function.
+
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            T: Description.
+
+        """
         logger = get_logger(func.__name__)
 
         # Log command start
@@ -195,17 +284,44 @@ def cli_confirm(
     """Require user confirmation before executing CLI command.
 
     Args:
-        message: Confirmation message to display
-        default: Default response if user just presses Enter
+            message: Confirmation message to display
+            default: Default response if user just presses Enter
 
     Returns:
-        Decorator that requires confirmation before execution
+            Decorator that requires confirmation before execution
+
+
+
+    Args:
+        message (str): Description.
+        default (bool): Description.
+
+    Returns:
+        Callable[[Callable[P, T]], Callable[P, T]]: Description.
 
     """
-
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
+        """Decorator function.
+
+        Args:
+            func (Callable[P, T]): Description.
+
+        Returns:
+            Callable[P, T]: Description.
+
+        """
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
+
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
+
+            Returns:
+                T: Description.
+
+            """
             console = Console()
 
             # Show confirmation prompt
@@ -247,17 +363,44 @@ def cli_retry(
     """Retry CLI command on failure with exponential backoff.
 
     Args:
-        max_attempts: Maximum number of retry attempts
-        delay: Initial delay between retries in seconds
+            max_attempts: Maximum number of retry attempts
+            delay: Initial delay between retries in seconds
 
     Returns:
-        Decorator that retries failed commands
+            Decorator that retries failed commands
+
+
+
+    Args:
+        max_attempts (int): Description.
+        delay (float): Description.
+
+    Returns:
+        Callable[[Callable[P, T]], Callable[P, T]]: Description.
 
     """
-
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
+        """Decorator function.
+
+        Args:
+            func (Callable[P, T]): Description.
+
+        Returns:
+            Callable[P, T]: Description.
+
+        """
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
+
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
+
+            Returns:
+                T: Description.
+
+            """
             logger = get_logger(func.__name__)
             console = Console()
 
@@ -316,16 +459,42 @@ def cli_spinner(
     """Show spinner during CLI command execution.
 
     Args:
-        message: Message to display with spinner
+            message: Message to display with spinner
 
     Returns:
-        Decorator that shows spinner during execution
+            Decorator that shows spinner during execution
+
+
+
+    Args:
+        message (str): Description.
+
+    Returns:
+        Callable[[Callable[P, T]], Callable[P, T]]: Description.
 
     """
-
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
+        """Decorator function.
+
+        Args:
+            func (Callable[P, T]): Description.
+
+        Returns:
+            Callable[P, T]: Description.
+
+        """
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
+
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
+
+            Returns:
+                T: Description.
+
+            """
             console = Console()
 
             with console.status(message, spinner="dots"):
@@ -344,19 +513,46 @@ def cli_cache_result(
     """Cache CLI command results to avoid repeated execution.
 
     Args:
-        cache_key: Custom cache key (defaults to function name + args hash)
-        ttl: Time to live in seconds
+            cache_key: Custom cache key (defaults to function name + args hash)
+            ttl: Time to live in seconds
 
     Returns:
-        Decorator that caches command results
+            Decorator that caches command results
+
+
+
+    Args:
+        cache_key (str | None): Description.
+        ttl (int): Description.
+
+    Returns:
+        Callable[[Callable[P, T]], Callable[P, T]]: Description.
 
     """
-
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
+        """Decorator function.
+
+        Args:
+            func (Callable[P, T]): Description.
+
+        Returns:
+            Callable[P, T]: Description.
+
+        """
         cache: dict[str, tuple[T, float]] = {}
 
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
+
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
+
+            Returns:
+                T: Description.
+
+            """
             # Generate cache key
             if cache_key:
                 key = cache_key
@@ -391,16 +587,42 @@ def cli_inject_config(config_key: str) -> Callable[[Callable[P, T]], Callable[P,
     """Inject configuration into CLI command.
 
     Args:
-        config_key: Configuration key to inject
+            config_key: Configuration key to inject
 
     Returns:
-        Decorator that injects configuration
+            Decorator that injects configuration
+
+
+
+    Args:
+        config_key (str): Description.
+
+    Returns:
+        Callable[[Callable[P, T]], Callable[P, T]]: Description.
 
     """
-
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
+        """Decorator function.
+
+        Args:
+            func (Callable[P, T]): Description.
+
+        Returns:
+            Callable[P, T]: Description.
+
+        """
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
+
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
+
+            Returns:
+                T: Description.
+
+            """
             # This would integrate with the actual configuration system
             # For now, it's a placeholder implementation
             logger = get_logger(func.__name__)
@@ -426,16 +648,42 @@ def cli_file_operation(
     """Handle file operations with optional backup.
 
     Args:
-        backup: Whether to create backups before file operations
+            backup: Whether to create backups before file operations
 
     Returns:
-        Decorator that handles file operations safely
+            Decorator that handles file operations safely
+
+
+
+    Args:
+        backup (bool): Description.
+
+    Returns:
+        Callable[[Callable[P, T]], Callable[P, T]]: Description.
 
     """
-
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
+        """Decorator function.
+
+        Args:
+            func (Callable[P, T]): Description.
+
+        Returns:
+            Callable[P, T]: Description.
+
+        """
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
+
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
+
+            Returns:
+                T: Description.
+
+            """
             logger = get_logger(func.__name__)
 
             if backup:

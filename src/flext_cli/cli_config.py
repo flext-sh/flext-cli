@@ -7,11 +7,11 @@ from pathlib import Path
 
 import toml  # type: ignore[import-untyped]
 from flext_core import (
+    FlextModel,
     FlextResult,
-    FlextSettings,
 )
 from flext_core.constants import FlextConstants
-from pydantic import Field, field_validator
+from pydantic import ConfigDict as PydanticConfigDict, Field, field_validator
 
 from flext_cli.cli_types import ConfigDict, OutputFormat
 
@@ -33,7 +33,7 @@ def _default_api_url() -> str:
         return "http://localhost:8000"
 
 
-class CLIConfig(FlextSettings):
+class CLIConfig(FlextModel):
     """Complete CLI configuration extending flext-core settings.
 
     Consolidates all CLI configuration needs into a single, comprehensive
@@ -198,18 +198,12 @@ class CLIConfig(FlextSettings):
         description="Project description",
     )
 
-    custom_settings: ConfigDict = Field(
+    custom_settings: dict[str, object] = Field(
         default_factory=dict,
         description="Custom settings dictionary",
     )
 
-    class Config:
-        """Pydantic configuration."""
-
-        env_prefix = "FLX_"
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = PydanticConfigDict()
 
     @field_validator("log_level")
     @classmethod
@@ -299,7 +293,10 @@ class CLIConfig(FlextSettings):
 
     @property
     def format_type(self) -> str:  # pragma: no cover - trivial mapping
-        return self.output_format.value
+        try:
+            return self.output_format.value  # when enum
+        except AttributeError:
+            return str(self.output_format)
 
     def should_use_color(self) -> bool:
         """Determine if colored output should be used."""
@@ -442,17 +439,14 @@ class CLIConfig(FlextSettings):
         except Exception:
             return False
 
-    def validate_domain_rules(self) -> bool:
-        """Boolean validation wrapper over validate_config()."""
-        result = self.validate_config()
-        return result.is_success
+    def validate_business_rules(self) -> FlextResult[None]:
+        """Validation wrapper returning FlextResult for consistency."""
+        return self.validate_config()
 
 
 # =============================================================================
 # CONFIGURATION FACTORY FUNCTIONS
 # =============================================================================
-
-
 
 
 def create_cli_config(

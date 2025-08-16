@@ -15,7 +15,8 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from flext_cli.types import FlextCliConfig, FlextCliPlugin
+from flext_cli.cli_config import CLIConfig
+from flext_cli.models import FlextCliPlugin
 
 # Constants
 EXPECTED_BULK_SIZE = 2
@@ -85,7 +86,7 @@ class TestFlextCliService:
     def test_configure_with_flext_cli_config(self) -> None:
         """Test configuring service with FlextCliConfig object."""
         service = FlextCliService()
-        config = FlextCliConfig(debug=False, output_format="yaml")
+        config = CLIConfig(debug=False, output_format="yaml")
 
         result = service.configure(config)
         assert result.success
@@ -446,7 +447,7 @@ class TestFlextCliService:
     def test_flext_cli_health_with_config(self) -> None:
         """Test health check with configuration."""
         service = FlextCliService()
-        config = FlextCliConfig(debug=True, output_format="json", profile="test")
+        config = CLIConfig(debug=True, output_format="json", profile="test")
         service.configure(config)
 
         result = service.flext_cli_health()
@@ -726,7 +727,7 @@ class TestFlextCliService:
     def test_flext_cli_render_with_context_default(self) -> None:
         """Test rendering with default context."""
         service = FlextCliService()
-        config = FlextCliConfig(output_format="json")
+        config = CLIConfig(output_format="json")
         service.configure(config)
 
         data = {"name": "test", "value": 42}
@@ -742,7 +743,7 @@ class TestFlextCliService:
     def test_flext_cli_render_with_context_override(self) -> None:
         """Test rendering with context override."""
         service = FlextCliService()
-        config = FlextCliConfig(output_format="json")
+        config = CLIConfig(output_format="json")
         service.configure(config)
 
         data = {"name": "test", "value": 42}

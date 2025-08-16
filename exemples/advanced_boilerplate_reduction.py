@@ -17,11 +17,16 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
+import random
+import re
+import shutil
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from flext_core import FlextResult
+from rich.console import Console
+from rich.progress import track
+from rich.prompt import Confirm
 
 from flext_cli import (
     FlextCliAdvancedMixin,
@@ -32,9 +37,6 @@ from flext_cli import (
     flext_cli_zero_config,
 )
 
-if TYPE_CHECKING:
-    from rich.console import Console
-
 
 # Example 1: Zero-Configuration CLI Command (95% boilerplate reduction)
 class UserManager:
@@ -42,10 +44,6 @@ class UserManager:
 
     def delete_user_traditional(self, email: str, *, confirm: bool = False) -> bool:
         """Traditional approach with manual boilerplate - 45 lines of code."""
-        import re
-
-        from rich.console import Console
-
         console = Console()
         result = False
 
@@ -95,8 +93,6 @@ class UserManager:
     def _get_user_confirmation(self, console: Console) -> bool:
         """Get user confirmation for dangerous operation."""
         try:
-            from rich.prompt import Confirm
-
             confirmed = Confirm.ask(
                 "[bold red]Confirm: delete user data?[/bold red]",
                 default=False,
@@ -132,11 +128,6 @@ class TraditionalDataProcessor:
 
     def process_user_data_traditional(self, data_file: str) -> dict:
         """Traditional approach - 60+ lines with manual validation, progress, error handling."""
-        import json
-
-        from rich.console import Console
-        from rich.progress import track
-
         console = Console()
         result = {}
 
@@ -153,8 +144,6 @@ class TraditionalDataProcessor:
         console.print("[green]✓[/green] File validated successfully")
 
         # Manual confirmation
-        from rich.prompt import Confirm
-
         try:
             confirmed = Confirm.ask(
                 "[bold yellow]Confirm: process user data?[/bold yellow]",
@@ -290,7 +279,6 @@ class FileOperationsManager(FlextCliAdvancedMixin):
     def _backup_file(self, file_path: str) -> FlextResult[str]:
         """Backup a file."""
         backup_path = f"{file_path}.bak"
-        import shutil
 
         shutil.copy2(file_path, backup_path)
         return FlextResult.ok(f"Backed up to {backup_path}")
@@ -319,8 +307,6 @@ class ApiClient:
     @flext_cli_with_progress("Fetching user data...")
     def get_users(self) -> FlextResult[list]:
         """Get users from API with automatic retry and progress indication."""
-        import random
-
         # Simulate flaky API
         from flext_cli.constants import FlextCliConstants
 

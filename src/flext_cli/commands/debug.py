@@ -93,8 +93,8 @@ class _CommandShim:
 
                 # Ensure the context is active when calling the callback
                 if callback:
-                    with temp_ctx:
-                        return callback(*args[1:], **kwargs)
+                    # Avoid `with temp_ctx:` since click.Context is not a context manager
+                    return callback(*args[1:], **kwargs)
                 return None
         return self._cmd(*args, **kwargs)
 

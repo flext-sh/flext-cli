@@ -71,6 +71,9 @@ from flext_cli.models import (
     FlextCliWorkspace,
 )
 
+# CLI Context and Execution
+from flext_cli.domain.cli_context import CLIExecutionContext
+
 # Service protocols
 from flext_cli.protocols import (
     FlextCliCommandProtocol,
@@ -102,6 +105,27 @@ from flext_cli.cli_decorators import (
     cli_retry,
     cli_validate_inputs,
 )
+from flext_cli.core.base import handle_service_result
+from flext_cli.core.helpers import FlextCliHelper as CLIHelper
+from flext_cli.core.types import PositiveInt as PositiveInt, URL as URL
+from flext_cli.core.types import (
+    ClickPath as ClickPath,
+    ExistingDir as ExistingDir,
+    ExistingFile as ExistingFile,
+    NewFile as NewFile,
+)
+from flext_cli.core.decorators import (
+    async_command,
+    confirm_action,
+    measure_time as core_measure_time,
+    validate_config,
+    require_auth,
+    retry as core_retry,
+    validate_config as core_validate_config,
+    with_spinner,
+)
+from flext_cli.core.decorators import measure_time as measure_time
+from flext_cli.core.decorators import retry as retry
 
 # CLI mixins
 from flext_cli.cli_mixins import (
@@ -138,8 +162,6 @@ from flext_cli.cli_auth import (
     save_auth_token,
     status_command,
 )
-
-
 
 
 __all__: list[str] = [
@@ -222,6 +244,22 @@ __all__: list[str] = [
     "cli_run_command",
     "cli_save_data_file",
     "cli_validate_inputs",
+    # Additional top-level compatibility exports
+    "handle_service_result",
+    "CLIHelper",
+    "PositiveInt",
+    "URL",
+    "ClickPath",
+    "ExistingFile",
+    "ExistingDir",
+    "NewFile",
+    "async_command",
+    "confirm_action",
+    "core_measure_time",
+    "require_auth",
+    "core_retry",
+    "core_validate_config",
+    "with_spinner",
     "get_auth_headers",
     "get_config",
     "get_settings",

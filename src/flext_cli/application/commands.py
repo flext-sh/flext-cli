@@ -22,12 +22,12 @@ class ExecuteCommandCommand:
     command_line: str
     command_type: CommandType = CommandType.SYSTEM
     timeout_seconds: float | None = None
-    arguments: dict[str, AnyPrimitive] = field(default_factory=dict)
+    arguments: dict[str, AnyPrimitive] | None = None
     options: dict[str, AnyPrimitive] = field(default_factory=dict)
     user_id: UUID | None = None
     session_id: str | None = None
     working_directory: str | None = None
-    environment: dict[str, str] = field(default_factory=dict)
+    environment: dict[str, str] | None = None
 
 
 @dataclass
@@ -44,7 +44,7 @@ class CreateConfigCommand:
 
     name: str | None = None
     description: str | None = None
-    config_data: dict[str, AnyPrimitive] = field(default_factory=dict)
+    config_data: dict[str, AnyPrimitive] | None = None
     config_type: str | None = None
     version: str = "0.9.0"
     user_id: UUID | None = None
@@ -86,7 +86,7 @@ class StartSessionCommand:
     session_id: str | None = None
     user_id: UUID | None = None
     working_directory: str | None = None
-    environment: dict[str, str] = field(default_factory=dict)
+    environment: dict[str, str] | None = None
 
 
 @dataclass
@@ -104,8 +104,8 @@ class InstallPluginCommand:
     name: str | None = None
     version: str | None = None
     entry_point: str | None = None
-    commands: list[str] = field(default_factory=list)
-    dependencies: list[str] = field(default_factory=list)
+    commands: list[str] | None = None
+    dependencies: list[str] | None = None
     author: str | None = None
     license: str | None = None
     repository_url: str | None = None

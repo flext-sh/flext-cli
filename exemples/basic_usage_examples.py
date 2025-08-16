@@ -18,11 +18,11 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
+import time
 from pathlib import Path
 
 from flext_core import FlextResult
 
-# Import FlextCli library - everything from root namespace
 from flext_cli import (
     FlextCliHelper,
     FlextCliMixin,
@@ -122,7 +122,6 @@ def example_4_mixin_class_usage() -> None:
             items = ["step1", "step2", "step3", "step4"]
             for _item in self.flext_cli_track_progress(items, "Processing steps"):
                 # Simulate work
-                import time
 
                 time.sleep(0.1)
 

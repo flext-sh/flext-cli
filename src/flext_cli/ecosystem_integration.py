@@ -247,8 +247,6 @@ def {old_setup_function}_modern(**config_overrides):
 """
 
 
-
-
 __all__ = [
     "FlextCliConfigFactory",
     "FlextCliGenericCommand",

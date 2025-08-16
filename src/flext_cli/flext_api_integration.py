@@ -7,14 +7,17 @@ from typing import TYPE_CHECKING, Self
 
 if TYPE_CHECKING:
     from flext_api import FlextApiClient  # type: ignore[import-not-found]
-    create_flext_api: object | None = None
+    create_flext_api: object | None
 else:
     try:
-        from flext_api import FlextApiClient, create_flext_api
+        from flext_api import (  # type: ignore[import-not-found]
+            FlextApiClient,
+            create_flext_api,
+        )
     except ImportError:
-        # flext-api not available - create stubs for type safety
-        FlextApiClient = None  # type: ignore[misc, assignment]
-        create_flext_api = None  # type: ignore[misc, assignment]
+        # flext-api not available - create stubs for runtime
+        FlextApiClient = None  # type: ignore[assignment]
+        create_flext_api = None  # type: ignore[assignment]
 from flext_core import FlextResult, get_logger
 from flext_core.constants import FlextConstants
 

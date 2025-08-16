@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from flext_core import (
     FlextEntity,
+    FlextModel,
     FlextResult,
-    FlextSettings,
 )
+from pydantic import ConfigDict as PydanticConfigDict
 
 from flext_cli.config_hierarchical import create_default_hierarchy
 
@@ -49,7 +50,7 @@ class FlextCliEntity(FlextEntity):
         return self.model_copy(update={"args": args})
 
 
-class FlextCliConfig(FlextSettings):
+class FlextCliConfig(FlextModel):
     """Modern CLI configuration following foundation-refactored.md patterns.
 
     Features:
@@ -75,11 +76,7 @@ class FlextCliConfig(FlextSettings):
     debug: bool = False
     quiet: bool = False
 
-    class Config:
-        """Pydantic model configuration."""
-
-        env_prefix = "FLEXT_CLI_"
-        case_sensitive = False
+    model_config = PydanticConfigDict()
 
 
 def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
@@ -194,8 +191,6 @@ def setup_cli(config: FlextCliConfig | None = None) -> FlextResult[dict[str, obj
 
     except Exception as e:
         return FlextResult.fail(f"CLI setup failed: {e}")
-
-
 
 
 __all__ = [

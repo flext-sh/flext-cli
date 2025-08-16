@@ -140,14 +140,14 @@ class FlextCliContext(FlextValueObject):
     # Minimal fields used by tests
     # Accept any object to avoid strict model_type validation issues in tests
     config: object = Field(
-        default_factory=FlextCliConfig, description="CLI configuration instance"
+        default_factory=FlextCliConfig, description="CLI configuration instance",
     )
     console: Console = Field(
         default_factory=Console,
         description="Rich console for output",
     )
 
-    # Additional context data (kept for forward-compatibility)
+    # Additional context data (kept for forward-convenience)
     working_directory: Path | None = Field(
         default=None,
         description="Working directory for command execution",
@@ -212,19 +212,19 @@ class FlextCliContext(FlextValueObject):
 
     # Printing helpers expected by some tests
     def print_success(
-        self, message: str
+        self, message: str,
     ) -> None:  # pragma: no cover - simple passthrough
         if isinstance(self.console, Console):
             self.console.print(f"[green][SUCCESS][/green] {message}")
 
     def print_error(
-        self, message: str
+        self, message: str,
     ) -> None:  # pragma: no cover - simple passthrough
         if isinstance(self.console, Console):
             self.console.print(f"[red][ERROR][/red] {message}")
 
     def print_warning(
-        self, message: str
+        self, message: str,
     ) -> None:  # pragma: no cover - simple passthrough
         if isinstance(self.console, Console):
             self.console.print(f"[yellow][WARNING][/yellow] {message}")
@@ -234,7 +234,7 @@ class FlextCliContext(FlextValueObject):
             self.console.print(f"[blue][INFO][/blue] {message}")
 
     def print_debug(
-        self, message: str
+        self, message: str,
     ) -> None:  # pragma: no cover - simple passthrough
         if self.is_debug and isinstance(self.console, Console):
             self.console.print(f"[dim][DEBUG][/dim] {message}")
@@ -475,10 +475,10 @@ class FlextCliCommand(FlextEntity):
         - Completed commands cannot change state
     """
 
-    # Allow unknown/legacy fields and id auto-generation
+    # Allow unknown/convenience fields and id auto-generation
     model_config = ConfigDict(extra="allow")
-    # Override id to allow default generation for legacy tests
-    id: str = Field(default_factory=lambda: __import__("uuid").uuid4().hex)
+    # Override id to allow default generation for testing convenience
+    id: FlextEntityId = Field(default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex))
     name: str | None = Field(default=None, description="Optional command name")
     description: str | None = Field(default=None, description="Optional description")
     command_line: str = Field(
@@ -486,7 +486,7 @@ class FlextCliCommand(FlextEntity):
         min_length=1,
         description="Command line string to execute",
     )
-    # Accept both list and dict (legacy tests sometimes pass dict)
+    # Accept both list and dict (testing convenience - tests sometimes pass dict)
     arguments: list[str] | dict[str, object] = Field(default_factory=dict)
     status: FlextCliCommandStatus = Field(
         default=FlextCliCommandStatus.PENDING,
@@ -495,13 +495,13 @@ class FlextCliCommand(FlextEntity):
     )
     # Avoid heavy nested model construction on simple instantiation
     context: FlextCliContext | None = Field(
-        default=None, description="Execution context"
+        default=None, description="Execution context",
     )
-    # Back-compat fields expected by tests
+    # Testing convenience fields expected by tests
     options: dict[str, object] = Field(default_factory=dict)
     command_type: FlextCliCommandType = Field(
         default=FlextCliCommandType.SYSTEM,
-        description="Legacy command type",
+        description="Convenience command type",
     )
     output: str = Field(default="", description="Captured stdout")
     stderr: str = Field(default="", description="Captured stderr")
@@ -549,7 +549,7 @@ class FlextCliCommand(FlextEntity):
             return delta.total_seconds()
         return None
 
-    # Legacy alias expected by some tests
+    # Testing convenience alias expected by some tests
     @property
     def duration_seconds(self) -> float | None:  # pragma: no cover - alias
         return self.execution_duration
@@ -578,7 +578,7 @@ class FlextCliCommand(FlextEntity):
 
         return FlextResult.ok(None)
 
-    # Back-compat helpers expected by tests
+    # Testing convenience helpers expected by tests
     @property
     def flext_cli_is_running(self) -> bool:  # pragma: no cover - simple alias
         return self.command_status == FlextCliCommandStatus.RUNNING
@@ -589,7 +589,7 @@ class FlextCliCommand(FlextEntity):
             self.exit_code == 0
         )
 
-    # Legacy simple properties used by tests
+    # Testing convenience simple properties used by tests
     @property
     def successful(self) -> bool:  # pragma: no cover - trivial alias
         return self.flext_cli_successful
@@ -599,7 +599,7 @@ class FlextCliCommand(FlextEntity):
         return self.flext_cli_is_running
 
     def flext_cli_start_execution(self) -> bool:
-        """Legacy boolean API: start once, then return False if already running."""
+        """Testing convenience boolean API: start once, then return False if already running."""
         try:
             if self.started_at is not None:
                 return False
@@ -615,7 +615,7 @@ class FlextCliCommand(FlextEntity):
         stdout: str = "",
         stderr: str = "",
     ) -> bool:
-        """Legacy boolean wrapper around complete_execution()."""
+        """Testing convenience boolean wrapper around complete_execution()."""
         if exit_code is None:
             exit_code = 0
         result = self.complete_execution(
@@ -636,7 +636,7 @@ class FlextCliCommand(FlextEntity):
         """Start command execution with validation."""
         if self.command_status != FlextCliCommandStatus.PENDING:
             return FlextResult.fail(
-                f"Cannot start command in {self.command_status} status"
+                f"Cannot start command in {self.command_status} status",
             )
 
         # Validate context before starting (best-effort, don't block tests)
@@ -644,7 +644,7 @@ class FlextCliCommand(FlextEntity):
             if self.context:
                 context_validation = self.context.validate_business_rules()
                 if context_validation.is_failure:
-                    # Continue with start to satisfy legacy behavior
+                    # Continue with start to satisfy testing convenience behavior
                     ...
         except Exception:
             ...
@@ -658,22 +658,26 @@ class FlextCliCommand(FlextEntity):
 
         result = updated_command.unwrap()
 
-        # Add domain event
-        event_result = result.add_domain_event(
-            "CommandStarted",
-            {
-                "command_id": result.id,
-                "command_line": result.command_line,
-                "started_at": now.isoformat(),
-            },
-        )
-
-        if event_result.is_failure:
-            return FlextResult.fail(f"Failed to add domain event: {event_result.error}")
+        # Add domain event using FlextEventList and copy_with
+        try:
+            new_events = result.domain_events.add_event(
+                "CommandStarted",
+                {
+                    "command_id": str(result.id),
+                    "command_line": result.command_line,
+                    "started_at": now.isoformat(),
+                },
+            )
+            updated_with_event = result.copy_with(domain_events=new_events)
+            if updated_with_event.is_failure:
+                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+            result = updated_with_event.unwrap()
+        except Exception as e:
+            return FlextResult.fail(f"Failed to add domain event: {e}")
 
         return FlextResult.ok(result)
 
-    # Legacy status helpers
+    # Testing convenience status helpers
 
     @property
     def is_completed(self) -> bool:  # include failed/cancelled
@@ -695,7 +699,7 @@ class FlextCliCommand(FlextEntity):
     ) -> FlextResult[FlextCliCommand]:
         """Complete command execution with output capture.
 
-        Be tolerant of legacy flows where `start_execution` may have not been
+        Be tolerant of testing convenience flows where `start_execution` may have not been
         called first; if status is not RUNNING, treat completion as valid and
         compute duration from existing or current timestamps.
         """
@@ -720,22 +724,26 @@ class FlextCliCommand(FlextEntity):
 
         result = updated_command.unwrap()
 
-        # Add domain event
-        event_result = result.add_domain_event(
-            "CommandCompleted",
-            {
-                "command_id": result.id,
-                "exit_code": exit_code,
-                "status": final_status.value,
-                "execution_time": None
-                if not self.started_at
-                else (now - self.started_at).total_seconds(),
-                "completed_at": now.isoformat(),
-            },
-        )
-
-        if event_result.is_failure:
-            return FlextResult.fail(f"Failed to add domain event: {event_result.error}")
+        # Add domain event using FlextEventList and copy_with
+        try:
+            new_events = result.domain_events.add_event(
+                "CommandCompleted",
+                {
+                    "command_id": str(result.id),
+                    "exit_code": exit_code,
+                    "status": final_status.value,
+                    "execution_time": None
+                    if not self.started_at
+                    else (now - self.started_at).total_seconds(),
+                    "completed_at": now.isoformat(),
+                },
+            )
+            updated_with_event = result.copy_with(domain_events=new_events)
+            if updated_with_event.is_failure:
+                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+            result = updated_with_event.unwrap()
+        except Exception as e:
+            return FlextResult.fail(f"Failed to add domain event: {e}")
 
         return FlextResult.ok(result)
 
@@ -753,23 +761,27 @@ class FlextCliCommand(FlextEntity):
 
         result = updated_command.unwrap()
 
-        # Add domain event
-        event_result = result.add_domain_event(
-            "CommandCancelled",
-            {
-                "command_id": result.id,
-                "cancelled_at": now.isoformat(),
-            },
-        )
-
-        if event_result.is_failure:
-            return FlextResult.fail(f"Failed to add domain event: {event_result.error}")
+        # Add domain event using FlextEventList and copy_with
+        try:
+            new_events = result.domain_events.add_event(
+                "CommandCancelled",
+                {
+                    "command_id": str(result.id),
+                    "cancelled_at": now.isoformat(),
+                },
+            )
+            updated_with_event = result.copy_with(domain_events=new_events)
+            if updated_with_event.is_failure:
+                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+            result = updated_with_event.unwrap()
+        except Exception as e:
+            return FlextResult.fail(f"Failed to add domain event: {e}")
 
         return FlextResult.ok(result)
 
     @property
     def command_status(self) -> CommandStatus:
-        """Backward-compat alias property expected by some tests."""
+        """Testing convenience alias property expected by some tests."""
         # First check the actual status field for explicit status
         status_mapping = {
             FlextCliCommandStatus.CANCELLED: "cancelled",
@@ -781,7 +793,7 @@ class FlextCliCommand(FlextEntity):
         if self.status in status_mapping:
             return CommandStatus(status_mapping[self.status])
 
-        # Fallback to deriving from timestamps/exit_code for legacy compatibility
+        # Fallback to deriving from timestamps/exit_code for testing convenience compatibility
         if self.completed_at is not None:
             status_value = "completed" if (self.exit_code or 0) == 0 else "failed"
             return CommandStatus(status_value)
@@ -793,7 +805,7 @@ class FlextCliCommand(FlextEntity):
 
     @property
     def stdout(self) -> str:
-        """Backward-compat alias for output field expected by tests."""
+        """Testing convenience alias for output field expected by tests."""
         return self.output
 
 
@@ -820,10 +832,10 @@ class FlextCliSession(FlextEntity):
         - Session termination clears active state
     """
 
-    # Allow unknown legacy fields and provide default id
+    # Allow unknown convenience fields and provide default id
     model_config = ConfigDict(extra="allow")
-    # Provide default id for legacy tests that omit it
-    id: str = Field(default_factory=lambda: __import__("uuid").uuid4().hex)
+    # Provide default id for testing convenience that omit it
+    id: FlextEntityId = Field(default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex))
     user_id: str | None = Field(
         default=None,
         description="User identifier for this session",
@@ -840,8 +852,8 @@ class FlextCliSession(FlextEntity):
         default_factory=FlextCliConfiguration,
         description="Session configuration",
     )
-    # Legacy-friendly fields
-    session_id: str = Field(default="", description="Legacy session identifier")
+    # Testing convenience-friendly fields
+    session_id: str = Field(default="", description="Testing convenience session identifier")
     command_history: list[FlextEntityId] = Field(
         default_factory=list,
         description="History of command IDs executed in this session",
@@ -872,7 +884,7 @@ class FlextCliSession(FlextEntity):
         """Check if session is active."""
         return self.state == FlextCliSessionState.ACTIVE
 
-    # Legacy compatibility properties
+    # Testing convenience compatibility properties
     @property
     def session_status(self) -> SessionStatus:  # pragma: no cover - trivial alias
         state_value = (
@@ -880,10 +892,10 @@ class FlextCliSession(FlextEntity):
         )
         return SessionStatus(state_value)
 
-    # Legacy alias expected by tests
+    # Testing convenience alias expected by tests
     @property
     def current_command(self) -> str | None:  # pragma: no cover - alias
-        return self.current_command_id
+        return str(self.current_command_id) if self.current_command_id is not None else None
 
     @property
     def commands_executed_count(self) -> int:
@@ -899,7 +911,7 @@ class FlextCliSession(FlextEntity):
 
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI session business rules."""
-        # user_id may be empty for some legacy tests - treat as acceptable
+        # user_id may be empty for some testing convenience - treat as acceptable
 
         # Validate timestamps
         if self.ended_at and self.ended_at < self.started_at:
@@ -933,30 +945,34 @@ class FlextCliSession(FlextEntity):
 
         result = updated_session.unwrap()
 
-        # Add domain event
-        event_result = result.add_domain_event(
-            "CommandAddedToSession",
-            {
-                "session_id": result.id,
-                "command_id": command_id,
-                "command_count": len(new_history),
-                "added_at": now.isoformat(),
-            },
-        )
-
-        if event_result.is_failure:
-            return FlextResult.fail(f"Failed to add domain event: {event_result.error}")
+        # Add domain event using FlextEventList and copy_with
+        try:
+            new_events = result.domain_events.add_event(
+                "CommandAddedToSession",
+                {
+                    "session_id": str(result.id),
+                    "command_id": str(command_id),
+                    "command_count": len(new_history),
+                    "added_at": now.isoformat(),
+                },
+            )
+            updated_with_event = result.copy_with(domain_events=new_events)
+            if updated_with_event.is_failure:
+                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+            result = updated_with_event.unwrap()
+        except Exception as e:
+            return FlextResult.fail(f"Failed to add domain event: {e}")
 
         return FlextResult.ok(result)
 
-    # Back-compat: tests expect a simple append API and an exposed list `commands_executed`
+    # Testing convenience: tests expect a simple append API and an exposed list `commands_executed`
     @property
     def commands_executed(self) -> list[str]:  # pragma: no cover - simple alias
         return [str(cid) for cid in self.command_history]
 
     def flext_cli_record_command(self, command_name: str) -> bool:
         try:
-            updated = self.add_command(command_id=command_name)
+            updated = self.add_command(command_id=FlextEntityId(command_name))
             if updated.is_success:
                 # assign back
                 new_obj = updated.unwrap()
@@ -972,7 +988,7 @@ class FlextCliSession(FlextEntity):
         except Exception:
             return False
 
-    # Legacy property names expected by tests
+    # Testing convenience property names expected by tests
     @property
     def last_activity(self) -> datetime:  # pragma: no cover - trivial
         return self.last_activity_at
@@ -996,17 +1012,21 @@ class FlextCliSession(FlextEntity):
 
         result = updated_session.unwrap()
 
-        # Add domain event
-        event_result = result.add_domain_event(
-            "SessionSuspended",
-            {
-                "session_id": result.id,
-                "suspended_at": now.isoformat(),
-            },
-        )
-
-        if event_result.is_failure:
-            return FlextResult.fail(f"Failed to add domain event: {event_result.error}")
+        # Add domain event using FlextEventList and copy_with
+        try:
+            new_events = result.domain_events.add_event(
+                "SessionSuspended",
+                {
+                    "session_id": str(result.id),
+                    "suspended_at": now.isoformat(),
+                },
+            )
+            updated_with_event = result.copy_with(domain_events=new_events)
+            if updated_with_event.is_failure:
+                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+            result = updated_with_event.unwrap()
+        except Exception as e:
+            return FlextResult.fail(f"Failed to add domain event: {e}")
 
         return FlextResult.ok(result)
 
@@ -1024,17 +1044,21 @@ class FlextCliSession(FlextEntity):
 
         result = updated_session.unwrap()
 
-        # Add domain event
-        event_result = result.add_domain_event(
-            "SessionResumed",
-            {
-                "session_id": result.id,
-                "resumed_at": now.isoformat(),
-            },
-        )
-
-        if event_result.is_failure:
-            return FlextResult.fail(f"Failed to add domain event: {event_result.error}")
+        # Add domain event using FlextEventList and copy_with
+        try:
+            new_events = result.domain_events.add_event(
+                "SessionResumed",
+                {
+                    "session_id": str(result.id),
+                    "resumed_at": now.isoformat(),
+                },
+            )
+            updated_with_event = result.copy_with(domain_events=new_events)
+            if updated_with_event.is_failure:
+                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+            result = updated_with_event.unwrap()
+        except Exception as e:
+            return FlextResult.fail(f"Failed to add domain event: {e}")
 
         return FlextResult.ok(result)
 
@@ -1054,23 +1078,27 @@ class FlextCliSession(FlextEntity):
 
         result = updated_session.unwrap()
 
-        # Add domain event
-        event_result = result.add_domain_event(
-            "SessionTerminated",
-            {
-                "session_id": result.id,
-                "commands_executed": len(self.command_history),
-                "duration_seconds": self.session_duration,
-                "terminated_at": now.isoformat(),
-            },
-        )
-
-        if event_result.is_failure:
-            return FlextResult.fail(f"Failed to add domain event: {event_result.error}")
+        # Add domain event using FlextEventList and copy_with
+        try:
+            new_events = result.domain_events.add_event(
+                "SessionTerminated",
+                {
+                    "session_id": str(result.id),
+                    "commands_executed": len(self.command_history),
+                    "duration_seconds": self.session_duration,
+                    "terminated_at": now.isoformat(),
+                },
+            )
+            updated_with_event = result.copy_with(domain_events=new_events)
+            if updated_with_event.is_failure:
+                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+            result = updated_with_event.unwrap()
+        except Exception as e:
+            return FlextResult.fail(f"Failed to add domain event: {e}")
 
         return FlextResult.ok(result)
 
-    # Legacy boolean end_session API expected by tests
+    # Testing convenience boolean end_session API expected by tests
     def end_session(self) -> FlextResult[FlextCliSession]:
         return self.terminate_session()
 
@@ -1096,10 +1124,10 @@ class FlextCliPlugin(FlextEntity):
         - Plugin must be loaded before activation
     """
 
-    # Allow unknown legacy fields and provide default id
+    # Allow unknown convenience fields and provide default id
     model_config = ConfigDict(extra="allow")
-    # Provide default id for legacy tests that omit it
-    id: str = Field(default_factory=lambda: __import__("uuid").uuid4().hex)
+    # Provide default id for testing convenience that omit it
+    id: FlextEntityId = Field(default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex))
     name: str = Field(
         ...,
         min_length=1,
@@ -1157,7 +1185,7 @@ class FlextCliPlugin(FlextEntity):
         description="Last error message if plugin failed",
     )
 
-    # Backward compatibility flag expected by some tests
+    # Testing convenience flag expected by some tests
     @property
     def is_loaded(self) -> bool:
         """Check if plugin is loaded."""
@@ -1171,11 +1199,11 @@ class FlextCliPlugin(FlextEntity):
         """Check if plugin is active."""
         return self.state == FlextCliPluginState.ACTIVE
 
-    # Backward compatibility properties expected by tests
+    # Testing convenience properties expected by tests
     @property
     def plugin_status(self) -> PluginStatus:
-        """Expose legacy-style plugin_status mapped from state."""
-        # Map UNLOADED/DISABLED to legacy INACTIVE value expected by tests
+        """Expose testing convenience-style plugin_status mapped from state."""
+        # Map UNLOADED/DISABLED to testing convenience INACTIVE value expected by tests
         state = (
             self.state.value if hasattr(self.state, "value") else str(self.state)
         ).lower()
@@ -1184,14 +1212,14 @@ class FlextCliPlugin(FlextEntity):
         return PluginStatus(state)
 
     def activate(self) -> FlextResult[FlextCliPlugin]:
-        """Legacy alias for activate_plugin."""
+        """Testing convenience alias for activate_plugin."""
         return self.activate_plugin()
 
     def deactivate(self) -> FlextResult[FlextCliPlugin]:
-        """Legacy alias for deactivate_plugin."""
+        """Testing convenience alias for deactivate_plugin."""
         return self.deactivate_plugin()
 
-    # Legacy convenience properties/methods expected by some tests
+    # Testing convenience properties/methods expected by some tests
     @property
     def installed(self) -> bool:  # pragma: no cover - trivial alias
         return self.is_loaded or self.is_active
@@ -1280,21 +1308,22 @@ class FlextCliPlugin(FlextEntity):
 
             result = loaded_plugin.unwrap()
 
-            # Add domain event
-            event_result = result.add_domain_event(
-                "PluginLoaded",
-                {
-                    "plugin_id": result.id,
-                    "plugin_name": result.name,
-                    "loaded_at": now.isoformat(),
-                },
-            )
-
-            if event_result.is_failure:
-                return FlextResult.fail(
-                    f"Failed to add domain event: {event_result.error}",
+            # Add domain event using FlextEventList and copy_with
+            try:
+                new_events = result.domain_events.add_event(
+                    "PluginLoaded",
+                    {
+                        "plugin_id": str(result.id),
+                        "plugin_name": result.name,
+                        "loaded_at": now.isoformat(),
+                    },
                 )
-
+                updated_with_event = result.copy_with(domain_events=new_events)
+                if updated_with_event.is_failure:
+                    return FlextResult.fail(updated_with_event.error or "Failed to append event")
+                result = updated_with_event.unwrap()
+            except Exception as e:
+                return FlextResult.fail(f"Failed to add domain event: {e}")
             return FlextResult.ok(result)
 
         except Exception as e:
@@ -1325,19 +1354,23 @@ class FlextCliPlugin(FlextEntity):
         updated_plugin = current.copy_with(state=FlextCliPluginState.ACTIVE)
         result = updated_plugin.unwrap()
 
-        # Add domain event
-        event_result = result.add_domain_event(
-            "PluginActivated",
-            {
-                "plugin_id": result.id,
-                "plugin_name": result.name,
-                "commands": result.commands,
-                "activated_at": datetime.now(UTC).isoformat(),
-            },
-        )
-
-        if event_result.is_failure:
-            return FlextResult.fail(f"Failed to add domain event: {event_result.error}")
+        # Add domain event using FlextEventList and copy_with
+        try:
+            new_events = result.domain_events.add_event(
+                "PluginActivated",
+                {
+                    "plugin_id": str(result.id),
+                    "plugin_name": result.name,
+                    "commands": result.commands,
+                    "activated_at": datetime.now(UTC).isoformat(),
+                },
+            )
+            updated_with_event = result.copy_with(domain_events=new_events)
+            if updated_with_event.is_failure:
+                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+            result = updated_with_event.unwrap()
+        except Exception as e:
+            return FlextResult.fail(f"Failed to add domain event: {e}")
 
         return FlextResult.ok(result)
 
@@ -1352,18 +1385,22 @@ class FlextCliPlugin(FlextEntity):
         )
         result = updated_plugin.unwrap()
 
-        # Add domain event
-        event_result = result.add_domain_event(
-            "PluginDeactivated",
-            {
-                "plugin_id": result.id,
-                "plugin_name": result.name,
-                "deactivated_at": datetime.now(UTC).isoformat(),
-            },
-        )
-
-        if event_result.is_failure:
-            return FlextResult.fail(f"Failed to add domain event: {event_result.error}")
+        # Add domain event using FlextEventList and copy_with
+        try:
+            new_events = result.domain_events.add_event(
+                "PluginDeactivated",
+                {
+                    "plugin_id": str(result.id),
+                    "plugin_name": result.name,
+                    "deactivated_at": datetime.now(UTC).isoformat(),
+                },
+            )
+            updated_with_event = result.copy_with(domain_events=new_events)
+            if updated_with_event.is_failure:
+                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+            result = updated_with_event.unwrap()
+        except Exception as e:
+            return FlextResult.fail(f"Failed to add domain event: {e}")
 
         return FlextResult.ok(result)
 
@@ -1388,18 +1425,22 @@ class FlextCliPlugin(FlextEntity):
 
         result = updated_plugin.unwrap()
 
-        # Add domain event
-        event_result = result.add_domain_event(
-            "PluginUnloaded",
-            {
-                "plugin_id": result.id,
-                "plugin_name": result.name,
-                "unloaded_at": datetime.now(UTC).isoformat(),
-            },
-        )
-
-        if event_result.is_failure:
-            return FlextResult.fail(f"Failed to add domain event: {event_result.error}")
+        # Add domain event using FlextEventList and copy_with
+        try:
+            new_events = result.domain_events.add_event(
+                "PluginUnloaded",
+                {
+                    "plugin_id": str(result.id),
+                    "plugin_name": result.name,
+                    "unloaded_at": datetime.now(UTC).isoformat(),
+                },
+            )
+            updated_with_event = result.copy_with(domain_events=new_events)
+            if updated_with_event.is_failure:
+                return FlextResult.fail(updated_with_event.error or "Failed to append event")
+            result = updated_with_event.unwrap()
+        except Exception as e:
+            return FlextResult.fail(f"Failed to add domain event: {e}")
 
         return FlextResult.ok(result)
 

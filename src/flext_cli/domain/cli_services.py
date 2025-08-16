@@ -132,5 +132,3 @@ class CLISessionService:
 # Create default service instances
 default_command_service = CLICommandService()
 default_session_service = CLISessionService()
-
-

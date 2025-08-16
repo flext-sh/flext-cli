@@ -137,6 +137,4 @@ def get_cli_settings(*, reload: bool | None = None) -> CLISettings:
     return _get_cli_settings()
 
 
-
-
 # get_cli_settings is already imported from flext_cli.config - no redefinition needed

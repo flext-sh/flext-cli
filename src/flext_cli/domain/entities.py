@@ -44,6 +44,7 @@ class CLIEntityFactory:
         *,
         name: str,
         command_line: str,
+        command_type: CommandType | None = None,
     ) -> FlextResult[CLICommand]:
         """Create a `CLICommand` instance for tests.
 
@@ -56,8 +57,16 @@ class CLIEntityFactory:
 
         """
         try:
-            # CLICommand does not accept name/command_type fields in the new model
+            # CLICommand does not accept name/command_type fields directly in the new model
             entity = CLICommand(id=name, command_line=command_line)
+            # best-effort: tentar atribuir campos adicionais se existirem
+            try:
+                if command_type is not None and hasattr(entity, "command_type"):
+                    entity.command_type = command_type.value
+                if hasattr(entity, "name"):
+                    entity.name = name
+            except Exception:
+                ...
             return FlextResult.ok(entity)
         except Exception as e:  # noqa: BLE001
             return FlextResult.fail(f"{FlextCliConstants.CliErrors.COMMAND_EXECUTION_FAILED}: {e!s}")
