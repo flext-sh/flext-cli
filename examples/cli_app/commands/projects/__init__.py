@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-# Import project modules when they are available
 import contextlib
 
 with contextlib.suppress(ImportError):

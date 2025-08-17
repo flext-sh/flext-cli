@@ -15,58 +15,38 @@ import contextlib
 import json
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import click
 import yaml
+from flext_meltano import FlextMeltanoConfig, create_flext_meltano_bridge
 from flext_meltano.execution import flext_meltano_run_command
-
-if TYPE_CHECKING:
-    from flext_meltano import FlextMeltanoConfig
-    from flext_meltano.base import FlextMeltanoBaseService
-    from flext_meltano.core import FlextMeltanoOrchestrationService
-
-try:
-    from flext_meltano import FlextMeltanoConfig, create_flext_meltano_bridge
-    from flext_meltano.base import FlextMeltanoBaseService
-    from flext_meltano.core import FlextMeltanoOrchestrationService
-
-    FLEXT_MELTANO_AVAILABLE = True
-except ImportError as e:
-    # Graceful handling when flext-meltano is not available
-    click.echo(f"Warning: FLEXT Meltano not available: {e}", err=True)
-    FlextMeltanoConfig = type(None)
-    create_flext_meltano_bridge = type(None)
-    FlextMeltanoOrchestrationService = type(None)
-    FlextMeltanoBaseService = type(None)
-    FLEXT_MELTANO_AVAILABLE = False
 
 
 def _validate_command_args(args: list[str]) -> None:
     """Validate command arguments for security.
 
     Args:
-        args: Command arguments to validate
+      args: Command arguments to validate
 
     Raises:
-        ValueError: If arguments contain unsafe characters
+      ValueError: If arguments contain unsafe characters
 
     """
     if not args:
-        no_args_msg = "No command arguments provided"
-        raise ValueError(no_args_msg)
+      no_args_msg = "No command arguments provided"
+      raise ValueError(no_args_msg)
 
     # Check for command injection patterns
     unsafe_chars = [";", "&", "|", "`", "$", "$(", ")", ">", "<", "*", "?"]
     for arg in args:
-        if any(char in str(arg) for char in unsafe_chars):
-            unsafe_char_msg: str = f"Unsafe character detected in argument: {arg}"
-            raise ValueError(unsafe_char_msg)
+      if any(char in str(arg) for char in unsafe_chars):
+          unsafe_char_msg: str = f"Unsafe character detected in argument: {arg}"
+          raise ValueError(unsafe_char_msg)
 
     # Validate first argument is the expected meltano command
     if args[0] != "meltano":
-        invalid_command_msg: str = f"Expected 'meltano' command, got: {args[0]}"
-        raise ValueError(invalid_command_msg)
+      invalid_command_msg: str = f"Expected 'meltano' command, got: {args[0]}"
+      raise ValueError(invalid_command_msg)
 
 
 async def _run_exec(
@@ -79,24 +59,24 @@ async def _run_exec(
     """Execute command via asyncio without shell, returning (code, stdout, stderr)."""
     _validate_command_args(cmd)
     if cwd and not Path(cwd).is_dir():
-        msg = f"Working directory does not exist: {cwd}"
-        raise ValueError(msg)
+      msg = f"Working directory does not exist: {cwd}"
+      raise ValueError(msg)
     proc = await asyncio.create_subprocess_exec(
-        *cmd,
-        cwd=cwd,
-        stdout=asyncio.subprocess.PIPE if capture_output else None,
-        stderr=asyncio.subprocess.PIPE if capture_output else None,
+      *cmd,
+      cwd=cwd,
+      stdout=asyncio.subprocess.PIPE if capture_output else None,
+      stderr=asyncio.subprocess.PIPE if capture_output else None,
     )
     try:
-        async with asyncio.timeout(timeout_seconds):
-            stdout_b, stderr_b = await proc.communicate()
+      async with asyncio.timeout(timeout_seconds):
+          stdout_b, stderr_b = await proc.communicate()
     except TimeoutError as exc:
-        with contextlib.suppress(ProcessLookupError):  # type: ignore[name-defined]
-            proc.kill()
-        await proc.wait()
-        # Raise plain TimeoutError for policy compliance
-        msg = f"Command timed out after {timeout_seconds}s"
-        raise TimeoutError(msg) from exc
+      with contextlib.suppress(ProcessLookupError):  # type: ignore[name-defined]
+          proc.kill()
+      await proc.wait()
+      # Raise plain TimeoutError for policy compliance
+      msg = f"Command timed out after {timeout_seconds}s"
+      raise TimeoutError(msg) from exc
     return int(proc.returncode or 0), stdout_b, stderr_b
 
 
@@ -105,13 +85,6 @@ async def _run_exec(
 @click.pass_context
 def meltano(ctx: click.Context) -> None:
     """FLEXT Meltano - Enterprise ETL/ELT Pipeline Engine."""
-    if not FLEXT_MELTANO_AVAILABLE:
-        click.echo(
-            "Error: FLEXT Meltano package not available. Please install flext-meltano.",
-            err=True,
-        )
-        ctx.exit(1)
-
     ctx.ensure_object(dict)
 
 
@@ -135,39 +108,39 @@ def projects(
     """Discover and manage Meltano projects in the specified directory.
 
     Args:
-        ctx: Click context
-        output_format: Output format for results
-        quiet: Suppress output
-        project_root: Root directory to search
+      ctx: Click context
+      output_format: Output format for results
+      quiet: Suppress output
+      project_root: Root directory to search
 
     """
     try:
-        project_root_path = Path(project_root)
+      project_root_path = Path(project_root)
 
-        if not quiet:
-            click.echo("FLEXT Meltano Projects")
-            click.echo("=" * 25)
+      if not quiet:
+          click.echo("FLEXT Meltano Projects")
+          click.echo("=" * 25)
 
-        # Find meltano.yml files to identify projects
-        projects_list = []
-        for meltano_yml in project_root_path.rglob("meltano.yml"):
-            project_path = meltano_yml.parent
-            project_name = project_path.name
-            projects_list.append({"name": project_name, "path": str(project_path)})
+      # Find meltano.yml files to identify projects
+      projects_list = []
+      for meltano_yml in project_root_path.rglob("meltano.yml"):
+          project_path = meltano_yml.parent
+          project_name = project_path.name
+          projects_list.append({"name": project_name, "path": str(project_path)})
 
-        if output_format == "table":
-            for project in projects_list:
-                click.echo(f"• {project['name']} ({project['path']})")
-        elif output_format == "json":
-            click.echo(json.dumps(projects_list, indent=2))
-        elif output_format == "yaml":
-            click.echo(yaml.dump(projects_list, default_flow_style=False))
+      if output_format == "table":
+          for project in projects_list:
+              click.echo(f"• {project['name']} ({project['path']})")
+      elif output_format == "json":
+          click.echo(json.dumps(projects_list, indent=2))
+      elif output_format == "yaml":
+          click.echo(yaml.dump(projects_list, default_flow_style=False))
 
-        if not quiet and not projects_list:
-            click.echo("No Meltano projects found.")
+      if not quiet and not projects_list:
+          click.echo("No Meltano projects found.")
     except (RuntimeError, ValueError, TypeError) as e:
-        click.echo(f"❌ Failed to list projects: {e}", err=True)
-        ctx.exit(1)
+      click.echo(f"❌ Failed to list projects: {e}", err=True)
+      ctx.exit(1)
 
 
 @meltano.command()
@@ -184,85 +157,78 @@ def init(
     """Initialize a new Meltano project.
 
     Args:
-        ctx: Click context
-        project_name: Name of the project to create
-        directory: Optional parent directory
-        template: Optional project template
+      ctx: Click context
+      project_name: Name of the project to create
+      directory: Optional parent directory
+      template: Optional project template
 
     """
     try:
-        # Determine parent directory
-        parent_dir = Path(directory) if directory else Path.cwd()
+      # Determine parent directory
+      parent_dir = Path(directory) if directory else Path.cwd()
 
-        # Initialize project manager with parent directory
-        if not FLEXT_MELTANO_AVAILABLE or FlextMeltanoBaseService is None:
-            click.echo(
-                "❌ FLEXT Meltano not available. Please install flext-meltano.",
-                err=True,
-            )
-            ctx.exit(1)
+      # Initialize project manager with parent directory
+      # Create configuration and bridge
+      config = FlextMeltanoConfig(project_root=str(parent_dir))
+      create_flext_meltano_bridge(config)
 
-        # Create configuration and bridge
-        config = FlextMeltanoConfig(project_root=str(parent_dir))
-        create_flext_meltano_bridge(config)
+      click.echo(f"🚀 Initializing Meltano project: {project_name}")
+      click.echo(f"📁 Parent directory: {parent_dir}")
+      click.echo(f"📁 Project will be created at: {parent_dir / project_name}")
 
-        click.echo(f"🚀 Initializing Meltano project: {project_name}")
-        click.echo(f"📁 Parent directory: {parent_dir}")
-        click.echo(f"📁 Project will be created at: {parent_dir / project_name}")
+      if template:
+          click.echo(f"📋 Template: {template}")
 
-        if template:
-            click.echo(f"📋 Template: {template}")
+      # Create the project directory - meltano init will be handled via subprocess
+      project_path = parent_dir / project_name
+      project_path.mkdir(parents=True, exist_ok=True)
 
-        # Create the project directory - meltano init will be handled via subprocess
-        project_path = parent_dir / project_name
-        project_path.mkdir(parents=True, exist_ok=True)
+      # Use meltano CLI to initialize project
+      result = flext_meltano_run_command(["init", project_name], cwd=str(parent_dir))
 
-        # Use meltano CLI to initialize project
-        result = flext_meltano_run_command(["init", project_name], cwd=str(parent_dir))
+      if result.success:
+          project_path = parent_dir / project_name
+          click.echo("✅ Meltano project initialized successfully!")
+          click.echo(f"📍 Project path: {project_path}")
+          click.echo(f"📄 Configuration: {project_path}/meltano.yml")
 
-        if result.success:
-            project_path = parent_dir / project_name
-            click.echo("✅ Meltano project initialized successfully!")
-            click.echo(f"📍 Project path: {project_path}")
-            click.echo(f"📄 Configuration: {project_path}/meltano.yml")
-
-            if template:
-                click.echo("⚠️  Template support not yet implemented in project manager")
-        else:
-            click.echo(
-                f"❌ Failed to initialize project: {result.error_message}",
-                err=True,
-            )
-            ctx.exit(1)
+          if template:
+              click.echo("⚠️  Template support not yet implemented in project manager")
+      else:
+          click.echo(
+              f"❌ Failed to initialize project: {result.error_message}",
+              err=True,
+          )
+          ctx.exit(1)
     except (RuntimeError, ValueError, TypeError) as e:
-        click.echo(f"❌ Failed to initialize project: {e}", err=True)
-        ctx.exit(1)
+      click.echo(f"❌ Failed to initialize project: {e}", err=True)
+      ctx.exit(1)
 
 
 class MeltanoAddParams:
     """Parameter Object pattern for Meltano add command - SOLID SRP."""
 
     def __init__(
-        self,
-        *,
-        plugin_type: str,
-        plugin_name: str,
-        variant: str | None = None,
-        pip_url: str | None = None,
-        project_dir: str | None = None,
+      self,
+      *,
+      plugin_type: str,
+      plugin_name: str,
+      variant: str | None = None,
+      pip_url: str | None = None,
+      project_dir: str | None = None,
     ) -> None:
-        self.plugin_type = plugin_type
-        self.plugin_name = plugin_name
-        self.variant = variant
-        self.pip_url = pip_url
-        self.project_dir = project_dir
+      self.plugin_type = plugin_type
+      self.plugin_name = plugin_name
+      self.variant = variant
+      self.pip_url = pip_url
+      self.project_dir = project_dir
 
 
 @meltano.command()
 @click.argument(
     "plugin_type",
     type=click.Choice(
-        ["extractor", "loader", "transformer", "orchestrator", "utility"],
+      ["extractor", "loader", "transformer", "orchestrator", "utility"],
     ),
 )
 @click.argument("plugin_name")
@@ -284,11 +250,11 @@ def add(
     """Add a plugin to the Meltano project.
 
     Args:
-        ctx: Click context
-        plugin_type: Type of plugin to add
-        plugin_name: Name of the plugin
-        project_dir: Meltano project directory (optional)
-        **options: Plugin options (variant, pip_url)
+      ctx: Click context
+      plugin_type: Type of plugin to add
+      plugin_name: Name of the plugin
+      project_dir: Meltano project directory (optional)
+      **options: Plugin options (variant, pip_url)
 
     """
     # Extract options with defaults
@@ -297,11 +263,11 @@ def add(
 
     # Apply Parameter Object pattern to reduce arguments (SOLID SRP)
     params = MeltanoAddParams(
-        plugin_type=plugin_type,
-        plugin_name=plugin_name,
-        variant=variant,
-        pip_url=pip_url,
-        project_dir=project_dir,
+      plugin_type=plugin_type,
+      plugin_name=plugin_name,
+      variant=variant,
+      pip_url=pip_url,
+      project_dir=project_dir,
     )
     _execute_add_command(ctx, params)
 
@@ -310,43 +276,43 @@ def _execute_add_command(ctx: click.Context, params: MeltanoAddParams) -> None:
     """Execute add command with Parameter Object - SOLID SRP.
 
     Args:
-        ctx: Click context
-        params: Parameter object containing all command options
+      ctx: Click context
+      params: Parameter object containing all command options
 
     """
     try:
-        project_path = Path(params.project_dir) if params.project_dir else Path.cwd()
+      project_path = Path(params.project_dir) if params.project_dir else Path.cwd()
 
-        click.echo(f"📦 Adding {params.plugin_type}: {params.plugin_name}")
-        if params.variant:
-            click.echo(f"🔧 Variant: {params.variant}")
-        if params.pip_url:
-            click.echo(f"🔗 Pip URL: {params.pip_url}")
+      click.echo(f"📦 Adding {params.plugin_type}: {params.plugin_name}")
+      if params.variant:
+          click.echo(f"🔧 Variant: {params.variant}")
+      if params.pip_url:
+          click.echo(f"🔗 Pip URL: {params.pip_url}")
 
-        # Build meltano add command
-        cmd = ["meltano", "add", params.plugin_type, params.plugin_name]
-        if params.variant:
-            cmd.extend(["--variant", params.variant])
-        if params.pip_url:
-            cmd.extend(["--pip-url", params.pip_url])
+      # Build meltano add command
+      cmd = ["meltano", "add", params.plugin_type, params.plugin_name]
+      if params.variant:
+          cmd.extend(["--variant", params.variant])
+      if params.pip_url:
+          cmd.extend(["--pip-url", params.pip_url])
 
-        # Execute meltano command
-        code, out_b, err_b = asyncio.run(
-            _run_exec(cmd, str(project_path), capture_output=True, timeout_seconds=300),
-        )
+      # Execute meltano command
+      code, out_b, err_b = asyncio.run(
+          _run_exec(cmd, str(project_path), capture_output=True, timeout_seconds=300),
+      )
 
-        if code == 0:
-            click.echo("✅ Plugin added successfully!")
-            if out_b:
-                click.echo(out_b.decode())
-        else:
-            click.echo("❌ Failed to add plugin", err=True)
-            if err_b:
-                click.echo(err_b.decode(), err=True)
-            ctx.exit(code)
+      if code == 0:
+          click.echo("✅ Plugin added successfully!")
+          if out_b:
+              click.echo(out_b.decode())
+      else:
+          click.echo("❌ Failed to add plugin", err=True)
+          if err_b:
+              click.echo(err_b.decode(), err=True)
+          ctx.exit(code)
     except (RuntimeError, ValueError, TypeError) as e:
-        click.echo(f"❌ Failed to add plugin: {e}", err=True)
-        ctx.exit(1)
+      click.echo(f"❌ Failed to add plugin: {e}", err=True)
+      ctx.exit(1)
 
 
 @meltano.command()
@@ -370,51 +336,54 @@ def run(
     """Run a Meltano job.
 
     Args:
-        ctx: Click context
-        job_name: Name of the job to run
-        project_dir: Optional project directory
-        environment: Optional environment name
-        full_refresh: Whether to run full refresh
+      ctx: Click context
+      job_name: Name of the job to run
+      project_dir: Optional project directory
+      environment: Optional environment name
+      full_refresh: Whether to run full refresh
 
     """
     try:
-        project_path = Path(project_dir) if project_dir else Path.cwd()
+      project_path = Path(project_dir) if project_dir else Path.cwd()
 
-        click.echo(f"🏃 Running Meltano job: {job_name}")
-        if environment:
-            click.echo(f"🌍 Environment: {environment}")
-        if full_refresh:
-            click.echo("🔄 Full refresh mode")
+      click.echo(f"🏃 Running Meltano job: {job_name}")
+      if environment:
+          click.echo(f"🌍 Environment: {environment}")
+      if full_refresh:
+          click.echo("🔄 Full refresh mode")
 
-        # Build meltano run command
-        cmd = ["meltano", "run", job_name]
-        if full_refresh:
-            cmd.append("--full-refresh")
+      # Build meltano run command
+      cmd = ["meltano", "run", job_name]
+      if full_refresh:
+          cmd.append("--full-refresh")
 
-        # Set environment if specified
-        env = os.environ.copy()
-        if environment:
-            env["MELTANO_ENVIRONMENT"] = environment
+      # Set environment if specified
+      env = os.environ.copy()
+      if environment:
+          env["MELTANO_ENVIRONMENT"] = environment
 
-        # Execute meltano command
-        code, _out_b, _err_b = asyncio.run(
-            _run_exec(
-                cmd, str(project_path), capture_output=False, timeout_seconds=3600
-            ),
-        )
+      # Execute meltano command
+      code, _out_b, _err_b = asyncio.run(
+          _run_exec(
+              cmd,
+              str(project_path),
+              capture_output=False,
+              timeout_seconds=3600,
+          ),
+      )
 
-        if code == 0:
-            click.echo("✅ Job completed successfully!")
-        else:
-            click.echo(f"❌ Job failed with exit code: {code}", err=True)
-            ctx.exit(code)
+      if code == 0:
+          click.echo("✅ Job completed successfully!")
+      else:
+          click.echo(f"❌ Job failed with exit code: {code}", err=True)
+          ctx.exit(code)
 
     except TimeoutError:
-        click.echo("❌ Job timed out after 1 hour", err=True)
-        ctx.exit(1)
+      click.echo("❌ Job timed out after 1 hour", err=True)
+      ctx.exit(1)
     except (RuntimeError, ValueError, TypeError) as e:
-        click.echo(f"❌ Failed to run job: {e}", err=True)
-        ctx.exit(1)
+      click.echo(f"❌ Failed to run job: {e}", err=True)
+      ctx.exit(1)
 
 
 @meltano.command()
@@ -433,42 +402,42 @@ def discover(
     """Discover schema for a plugin.
 
     Args:
-        ctx: Click context
-        plugin_name: Name of the plugin to discover
-        project_dir: Optional project directory
+      ctx: Click context
+      plugin_name: Name of the plugin to discover
+      project_dir: Optional project directory
 
     """
     try:
-        project_path = Path(project_dir) if project_dir else Path.cwd()
+      project_path = Path(project_dir) if project_dir else Path.cwd()
 
-        click.echo(f"🔍 Discovering schema for: {plugin_name}")
+      click.echo(f"🔍 Discovering schema for: {plugin_name}")
 
-        # Build meltano discover command
-        cmd = ["meltano", "discover", plugin_name]
+      # Build meltano discover command
+      cmd = ["meltano", "discover", plugin_name]
 
-        # Execute meltano command
-        code, out_b, err_b = asyncio.run(
-            _run_exec(cmd, str(project_path), capture_output=True, timeout_seconds=120),
-        )
+      # Execute meltano command
+      code, out_b, err_b = asyncio.run(
+          _run_exec(cmd, str(project_path), capture_output=True, timeout_seconds=120),
+      )
 
-        if code == 0:
-            click.echo("✅ Schema discovery completed!")
-            if out_b:
-                # Pretty print the catalog
+      if code == 0:
+          click.echo("✅ Schema discovery completed!")
+          if out_b:
+              # Pretty print the catalog
 
-                try:
-                    catalog = json.loads(out_b.decode())
-                    click.echo(json.dumps(catalog, indent=2))
-                except json.JSONDecodeError:
-                    click.echo(out_b.decode())
-        else:
-            click.echo("❌ Schema discovery failed", err=True)
-            if err_b:
-                click.echo(err_b.decode(), err=True)
-            ctx.exit(code)
+              try:
+                  catalog = json.loads(out_b.decode())
+                  click.echo(json.dumps(catalog, indent=2))
+              except json.JSONDecodeError:
+                  click.echo(out_b.decode())
+      else:
+          click.echo("❌ Schema discovery failed", err=True)
+          if err_b:
+              click.echo(err_b.decode(), err=True)
+          ctx.exit(code)
     except (RuntimeError, ValueError, TypeError) as e:
-        click.echo(f"❌ Failed to discover schema: {e}", err=True)
-        ctx.exit(1)
+      click.echo(f"❌ Failed to discover schema: {e}", err=True)
+      ctx.exit(1)
 
 
 @meltano.command()
@@ -487,36 +456,36 @@ def test(
     """Test a plugin.
 
     Args:
-        ctx: Click context
-        plugin_name: Name of the plugin to test
-        project_dir: Optional project directory
+      ctx: Click context
+      plugin_name: Name of the plugin to test
+      project_dir: Optional project directory
 
     """
     try:
-        project_path = Path(project_dir) if project_dir else Path.cwd()
+      project_path = Path(project_dir) if project_dir else Path.cwd()
 
-        click.echo(f"🧪 Testing plugin: {plugin_name}")
+      click.echo(f"🧪 Testing plugin: {plugin_name}")
 
-        # Build meltano test command
-        cmd = ["meltano", "test", plugin_name]
+      # Build meltano test command
+      cmd = ["meltano", "test", plugin_name]
 
-        # Execute meltano command
-        code, out_b, err_b = asyncio.run(
-            _run_exec(cmd, str(project_path), capture_output=True, timeout_seconds=60),
-        )
+      # Execute meltano command
+      code, out_b, err_b = asyncio.run(
+          _run_exec(cmd, str(project_path), capture_output=True, timeout_seconds=60),
+      )
 
-        if code == 0:
-            click.echo("✅ Plugin test passed!")
-            if out_b:
-                click.echo(out_b.decode())
-        else:
-            click.echo("❌ Plugin test failed", err=True)
-            if err_b:
-                click.echo(err_b.decode(), err=True)
-            ctx.exit(code)
+      if code == 0:
+          click.echo("✅ Plugin test passed!")
+          if out_b:
+              click.echo(out_b.decode())
+      else:
+          click.echo("❌ Plugin test failed", err=True)
+          if err_b:
+              click.echo(err_b.decode(), err=True)
+          ctx.exit(code)
     except (RuntimeError, ValueError, TypeError) as e:
-        click.echo(f"❌ Failed to test plugin: {e}", err=True)
-        ctx.exit(1)
+      click.echo(f"❌ Failed to test plugin: {e}", err=True)
+      ctx.exit(1)
 
 
 @meltano.command()
@@ -533,35 +502,35 @@ def install(
     """Install all plugins for a Meltano project.
 
     Args:
-        ctx: Click context
-        project_dir: Optional project directory
+      ctx: Click context
+      project_dir: Optional project directory
 
     """
     try:
-        project_path = Path(project_dir) if project_dir else Path.cwd()
+      project_path = Path(project_dir) if project_dir else Path.cwd()
 
-        click.echo("📦 Installing all Meltano plugins...")
+      click.echo("📦 Installing all Meltano plugins...")
 
-        # Build meltano install command
-        cmd = ["meltano", "install"]
+      # Build meltano install command
+      cmd = ["meltano", "install"]
 
-        # Execute meltano command
-        code, out_b, err_b = asyncio.run(
-            _run_exec(cmd, str(project_path), capture_output=True, timeout_seconds=600),
-        )
+      # Execute meltano command
+      code, out_b, err_b = asyncio.run(
+          _run_exec(cmd, str(project_path), capture_output=True, timeout_seconds=600),
+      )
 
-        if code == 0:
-            click.echo("✅ All plugins installed successfully!")
-            if out_b:
-                click.echo(out_b.decode())
-        else:
-            click.echo("❌ Plugin installation failed", err=True)
-            if err_b:
-                click.echo(err_b.decode(), err=True)
-            ctx.exit(code)
+      if code == 0:
+          click.echo("✅ All plugins installed successfully!")
+          if out_b:
+              click.echo(out_b.decode())
+      else:
+          click.echo("❌ Plugin installation failed", err=True)
+          if err_b:
+              click.echo(err_b.decode(), err=True)
+          ctx.exit(code)
     except (RuntimeError, ValueError, TypeError) as e:
-        click.echo(f"❌ Failed to install plugins: {e}", err=True)
-        ctx.exit(1)
+      click.echo(f"❌ Failed to install plugins: {e}", err=True)
+      ctx.exit(1)
 
 
 @meltano.command()
@@ -584,38 +553,38 @@ def config(
     """Configure a plugin setting.
 
     Args:
-        ctx: Click context
-        plugin_name: Name of the plugin
-        setting_name: Name of the setting
-        value: Value to set
-        project_dir: Optional project directory
+      ctx: Click context
+      plugin_name: Name of the plugin
+      setting_name: Name of the setting
+      value: Value to set
+      project_dir: Optional project directory
 
     """
     try:
-        project_path = Path(project_dir) if project_dir else Path.cwd()
+      project_path = Path(project_dir) if project_dir else Path.cwd()
 
-        click.echo(f"⚙️  Configuring {plugin_name}.{setting_name} = {value}")
+      click.echo(f"⚙️  Configuring {plugin_name}.{setting_name} = {value}")
 
-        # Build meltano config command
-        cmd = ["meltano", "config", plugin_name, "set", setting_name, value]
+      # Build meltano config command
+      cmd = ["meltano", "config", plugin_name, "set", setting_name, value]
 
-        # Execute meltano command
-        code, out_b, err_b = asyncio.run(
-            _run_exec(cmd, str(project_path), capture_output=True, timeout_seconds=30),
-        )
+      # Execute meltano command
+      code, out_b, err_b = asyncio.run(
+          _run_exec(cmd, str(project_path), capture_output=True, timeout_seconds=30),
+      )
 
-        if code == 0:
-            click.echo("✅ Configuration updated successfully!")
-            if out_b:
-                click.echo(out_b.decode())
-        else:
-            click.echo("❌ Configuration update failed", err=True)
-            if err_b:
-                click.echo(err_b.decode(), err=True)
-            ctx.exit(code)
+      if code == 0:
+          click.echo("✅ Configuration updated successfully!")
+          if out_b:
+              click.echo(out_b.decode())
+      else:
+          click.echo("❌ Configuration update failed", err=True)
+          if err_b:
+              click.echo(err_b.decode(), err=True)
+          ctx.exit(code)
     except (RuntimeError, ValueError, TypeError) as e:
-        click.echo(f"❌ Failed to update configuration: {e}", err=True)
-        ctx.exit(1)
+      click.echo(f"❌ Failed to update configuration: {e}", err=True)
+      ctx.exit(1)
 
 
 # Legacy CLI entry point for backward compatibility

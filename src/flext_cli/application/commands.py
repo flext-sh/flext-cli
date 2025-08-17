@@ -1,12 +1,14 @@
-"""Application commands for tests."""
+"""Application commands for tests.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from uuid import UUID
+from uuid import UUID
 
 from flext_cli.domain.entities import CommandType
 

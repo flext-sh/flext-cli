@@ -1,6 +1,10 @@
 """Compatibility re-exports for tests expecting flext_cli.types.
 
 This module re-exports selected classes and types from the new locations.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations

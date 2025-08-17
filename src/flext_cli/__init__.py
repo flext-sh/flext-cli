@@ -1,13 +1,15 @@
-"""FLEXT CLI - CLI Foundation Library."""
+"""FLEXT CLI - CLI Foundation Library.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Callable
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-from flext_core import FlextResult
+from flext_core import FlextResult, get_flext_container
 
 # Version information
 from flext_cli.__version__ import __version__
@@ -17,6 +19,9 @@ __version_info__ = tuple(int(x) for x in __version__.split(".") if x.isdigit())
 
 # Core configuration
 from flext_cli.cli_config import CLIConfig
+from flext_cli.api import FlextCliApi
+from flext_cli.core.helpers import FlextCliDataProcessor
+from flext_cli.core.helpers import FlextCliFileManager
 
 # Core types
 from flext_cli.cli_types import (
@@ -46,6 +51,12 @@ from flext_cli.cli_types import (
 # Configuration utilities
 from flext_cli.config import (
     CLISettings,
+    CLIAPIConfig,
+    CLIAuthConfig,
+    CLIDirectoryConfig,
+    CLIOutputConfig,
+    _create_cli_config,
+    get_cli_config,
     get_cli_config as get_config,
     get_cli_settings as get_settings,
 )
@@ -73,6 +84,10 @@ from flext_cli.models import (
 
 # CLI Context and Execution
 from flext_cli.domain.cli_context import CLIExecutionContext
+from flext_cli.domain.cli_services import (
+    CLICommandService,
+    CLISessionService,
+)
 
 # Service protocols
 from flext_cli.protocols import (
@@ -163,14 +178,74 @@ from flext_cli.cli_auth import (
     status_command,
 )
 
+# Commands (Click groups/commands) reexports for root-level imports in tests/examples
+from flext_cli.commands.auth import (
+    auth as auth,
+    login as login,
+    logout as logout,
+    status as status,
+)
+from flext_cli.commands.debug import (
+    debug_cmd as debug_cmd,
+    connectivity as connectivity,
+    performance as performance,
+    validate as debug_validate,
+    trace as trace,
+    env as env,
+    paths as paths,
+)
+from flext_cli.commands.config import config as config
+
+# API functions
+from flext_cli.api import (
+    flext_cli_aggregate_data,
+    flext_cli_batch_export,
+    flext_cli_export,
+    flext_cli_format,
+    flext_cli_table,
+    flext_cli_transform_data,
+    flext_cli_unwrap_or_default,
+    flext_cli_unwrap_or_none,
+)
+
+# Client
+from flext_cli.client import FlextApiClient
+from flext_cli.client import Pipeline, PipelineConfig, PipelineList
+
+# Domain factory and constants
+from flext_cli.domain.entities import CLIEntityFactory
+from flext_cli.constants import FlextConstants as FlextConstants
+
+# Core formatters
+from flext_cli.core.formatters import OutputFormatter
+
+# CLI commands
+from flext_cli.cli import cli, main
+
+
+def create_cli_container() -> object:
+    """Create or get a FLEXT CLI service container.
+
+    Exposed for tests/examples to import from root package.
+    """
+    return get_flext_container()
+
 
 __all__: list[str] = [
     "CLICommand",
+    "FlextCliApi",
+    "FlextCliDataProcessor",
     "CLICompleteMixin",
     "CLIConfig",
     "CLIConfigMixin",
     "CLIConfiguration",
     "CLIContext",
+    "CLIAPIConfig",
+    "CLIAuthConfig",
+    "CLIDirectoryConfig",
+    "CLIOutputConfig",
+    "_create_cli_config",
+    "get_cli_config",
     "CLIDataMixin",
     "CLIExecutionMixin",
     "CLIInteractiveMixin",
@@ -182,8 +257,15 @@ __all__: list[str] = [
     "CLISettings",
     "CLIUIMixin",
     "CLIValidationMixin",
+    # domain services/context
+    "CLICommandService",
+    "CLISessionService",
+    "CLIExecutionContext",
     "CommandArgs",
+    "cli",
+    "main",
     "CommandOptions",
+    "CLIEntityFactory",
     "CommandResult",
     "CommandStatus",
     "CommandType",
@@ -213,6 +295,7 @@ __all__: list[str] = [
     "FlextCliValidatorProtocol",
     "FlextCliValidatorService",
     "FlextCliWorkspace",
+    "FlextApiClient",
     "OutputData",
     "OutputFormat",
     "PathType",
@@ -269,4 +352,15 @@ __all__: list[str] = [
     "save_auth_token",
     "setup_cli",
     "status_command",
+    # API functions
+    "flext_cli_aggregate_data",
+    "flext_cli_batch_export",
+    "flext_cli_export",
+    "flext_cli_format",
+    "flext_cli_table",
+    "flext_cli_transform_data",
+    "flext_cli_unwrap_or_default",
+    "flext_cli_unwrap_or_none",
+    # Root-level helpers for tests/examples
+    "create_cli_container",
 ]

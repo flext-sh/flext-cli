@@ -9,12 +9,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli.commands import (  # pipeline and plugin don't exist yet
+from flext_cli import (  # pipeline and plugin don't exist yet
     auth,
     config,
     debug,
 )
-from flext_cli.commands.projects import client-a, client-b, meltano
+from flext_cli import client-a, client-b, meltano
 
 __all__: list[str] = [
     "client-a",

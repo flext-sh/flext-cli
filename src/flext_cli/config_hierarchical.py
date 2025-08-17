@@ -1,4 +1,9 @@
-"""Configuration hierarchy."""
+"""Configuration hierarchy.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
 
 from __future__ import annotations
 
@@ -15,20 +20,20 @@ def create_default_hierarchy(
     compatibility with the actual implementation.
     """
     try:
-        _ = config_path  # unused by design in this facade
-        # Minimal defaults; could optionally load from `config_path`
-        config: dict[str, object] = {
-            "profile": "default",
-            "debug": False,
-            "output_format": "table",
-        }
-        return FlextResult.ok(config)
+      _ = config_path  # unused by design in this facade
+      # Minimal defaults; could optionally load from `config_path`
+      config: dict[str, object] = {
+          "profile": "default",
+          "debug": False,
+          "output_format": "table",
+      }
+      return FlextResult.ok(config)
     except (OSError, PermissionError) as e:
-        # Handle file system access errors if config_path is used in future
-        return FlextResult.fail(f"Configuration file access error: {e}")
+      # Handle file system access errors if config_path is used in future
+      return FlextResult.fail(f"Configuration file access error: {e}")
     except (ValueError, TypeError) as e:
-        # Handle data validation or type conversion errors
-        return FlextResult.fail(f"Configuration data error: {e}")
+      # Handle data validation or type conversion errors
+      return FlextResult.fail(f"Configuration data error: {e}")
     except Exception as e:
-        # Fallback for truly unexpected errors
-        return FlextResult.fail(f"Unexpected configuration error: {e}")
+      # Fallback for truly unexpected errors
+      return FlextResult.fail(f"Unexpected configuration error: {e}")
