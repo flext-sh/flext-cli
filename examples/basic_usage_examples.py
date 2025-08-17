@@ -42,31 +42,31 @@ def example_1_zero_boilerplate_setup() -> None:
     """Example 1: Zero-boilerplate CLI setup with intelligent defaults."""
     # Single function call sets up entire CLI environment
     config = {
-      "profile": "development",
-      "debug": True,
-      "output_format": "json",
-      "commands": ["auth", "config", "debug"],
+        "profile": "development",
+        "debug": True,
+        "output_format": "json",
+        "commands": ["auth", "config", "debug"],
     }
 
     setup_result = flext_cli_quick_setup(config)
     if setup_result.success:
-      pass
+        pass
 
 
 def example_2_batch_validation() -> None:
     """Example 2: Batch validation with FlextResult integration."""
     # Validate multiple inputs in single function call
     validations = {
-      "user_email": ("john.doe@company.com", "email"),
-      "api_endpoint": ("https://api.flext.sh/v1", "url"),
-      "project_name": ("my-project<>file?.txt", "filename"),
+        "user_email": ("john.doe@company.com", "email"),
+        "api_endpoint": ("https://api.flext.sh/v1", "url"),
+        "project_name": ("my-project<>file?.txt", "filename"),
     }
 
     result = flext_cli_validate_all(validations)
 
     if result.success:
-      for _key, _validated_value in result.data.items():
-          pass
+        for _key, _validated_value in result.data.items():
+            pass
 
 
 def example_3_helper_integration() -> None:
@@ -76,62 +76,62 @@ def example_3_helper_integration() -> None:
     # Modern email validation with detailed error reporting
     email_result = helper.flext_cli_validate_email("user@example.com")
     if email_result.success:
-      pass
+        pass
 
     # URL validation with protocol checking
     url_result = helper.flext_cli_validate_url("https://secure.api.flext.sh")
     if url_result.success:
-      pass
+        pass
 
     # Filename sanitization for safe filesystem usage
     filename_result = helper.flext_cli_sanitize_filename("report<>file?.pdf")
     if filename_result.success:
-      pass
+        pass
 
 
 def example_4_mixin_class_usage() -> None:
     """Example 4: Using FlextCli mixins for boilerplate reduction."""
 
     class MyCliCommand(FlextCliMixin):
-      """Example CLI command using FlextCli mixins."""
+        """Example CLI command using FlextCli mixins."""
 
-      def __init__(self, name: str) -> None:
-          super().__init__()
-          self.name = name
+        def __init__(self, name: str) -> None:
+            super().__init__()
+            self.name = name
 
-      def execute(self, email: str, config_path: str) -> FlextResult[str]:
-          """Execute command with automatic validation and progress."""
-          # Automatic input validation via mixin
-          validation_result = self.flext_cli_validate_inputs(
-              {"email": (email, "email"), "config": (config_path, "path")},
-          )
+        def execute(self, email: str, config_path: str) -> FlextResult[str]:
+            """Execute command with automatic validation and progress."""
+            # Automatic input validation via mixin
+            validation_result = self.flext_cli_validate_inputs(
+                {"email": (email, "email"), "config": (config_path, "path")},
+            )
 
-          if not validation_result.success:
-              return FlextResult.fail(f"Validation failed: {validation_result.error}")
+            if not validation_result.success:
+                return FlextResult.fail(f"Validation failed: {validation_result.error}")
 
-          validated_data = validation_result.data
+            validated_data = validation_result.data
 
-          # Rich console output via mixin
-          self.flext_cli_print_info(f"Executing {self.name} command...")
-          self.flext_cli_print_info(f"Email: {validated_data['email']}")
-          self.flext_cli_print_info(f"Config: {validated_data['config']}")
+            # Rich console output via mixin
+            self.flext_cli_print_info(f"Executing {self.name} command...")
+            self.flext_cli_print_info(f"Email: {validated_data['email']}")
+            self.flext_cli_print_info(f"Config: {validated_data['config']}")
 
-          # Simulate progress tracking
-          items = ["step1", "step2", "step3", "step4"]
-          for _item in self.flext_cli_track_progress(items, "Processing steps"):
-              # Simulate work
+            # Simulate progress tracking
+            items = ["step1", "step2", "step3", "step4"]
+            for _item in self.flext_cli_track_progress(items, "Processing steps"):
+                # Simulate work
 
-              time.sleep(0.1)
+                time.sleep(0.1)
 
-          self.flext_cli_print_success(f"Command {self.name} completed successfully!")
-          return FlextResult.ok(f"Command {self.name} executed with validated inputs")
+            self.flext_cli_print_success(f"Command {self.name} completed successfully!")
+            return FlextResult.ok(f"Command {self.name} executed with validated inputs")
 
     # Use the command
     command = MyCliCommand("data-sync")
     result = command.execute("user@example.com", str(Path.cwd() / "temp"))
 
     if result.success:
-      pass
+        pass
 
 
 @flext_cli_auto_validate(email="email", url="url")
@@ -153,17 +153,17 @@ def example_5_decorator_usage() -> None:
     # For demo, we'll show what the decorated function would do
     result = example_5_decorators("user@example.com", "https://api.flext.sh")
     if result.success:
-      pass
+        pass
 
 
 def example_6_file_operations() -> None:
     """Example 6: File operations with automatic format detection."""
     # Sample data to save
     sample_data = {
-      "project": "flext-cli-demo",
-      "version": "1.0.0",
-      "features": ["validation", "mixins", "decorators"],
-      "config": {"debug": True, "output_format": "json"},
+        "project": "flext-cli-demo",
+        "version": "1.0.0",
+        "features": ["validation", "mixins", "decorators"],
+        "config": {"debug": True, "output_format": "json"},
     }
 
     # Save in different formats (format auto-detected from extension)
@@ -174,29 +174,29 @@ def example_6_file_operations() -> None:
     json_file = temp_dir / "config.json"
     json_result = flext_cli_save_file(sample_data, json_file)
     if json_result.success:
-      pass
+        pass
 
     # YAML format
     yaml_file = temp_dir / "config.yml"
     yaml_result = flext_cli_save_file(sample_data, yaml_file)
     if yaml_result.success:
-      pass
+        pass
 
     # Load back and verify
     if json_result.success:
-      load_result = flext_cli_load_file(json_file)
-      if load_result.success:
-          pass
+        load_result = flext_cli_load_file(json_file)
+        if load_result.success:
+            pass
 
 
 def example_7_output_formatting() -> None:
     """Example 7: Output formatting with multiple formats."""
     # Sample data for formatting
     data = [
-      {"name": "Alice Johnson", "role": "Developer", "projects": 5},
-      {"name": "Bob Smith", "role": "Designer", "projects": 3},
-      {"name": "Carol Brown", "role": "Manager", "projects": 8},
-      {"name": "David Wilson", "role": "DevOps", "projects": 4},
+        {"name": "Alice Johnson", "role": "Developer", "projects": 5},
+        {"name": "Bob Smith", "role": "Designer", "projects": 3},
+        {"name": "Carol Brown", "role": "Manager", "projects": 8},
+        {"name": "David Wilson", "role": "DevOps", "projects": 4},
     ]
 
     # Create a nice table
@@ -207,12 +207,12 @@ def example_7_output_formatting() -> None:
     # Output in JSON format
     json_result = flext_cli_output_data(data, "json")
     if not json_result.success:
-      pass
+        pass
 
     # Output in CSV format
     csv_result = flext_cli_output_data(data, "csv")
     if not csv_result.success:
-      pass
+        pass
 
 
 def example_8_batch_operations() -> None:
@@ -220,41 +220,41 @@ def example_8_batch_operations() -> None:
 
     # Define batch operations
     def validate_config() -> FlextResult[str]:
-      """Simulate config validation."""
-      return FlextResult.ok("Configuration validated")
+        """Simulate config validation."""
+        return FlextResult.ok("Configuration validated")
 
     def load_data() -> FlextResult[str]:
-      """Simulate data loading."""
-      time.sleep(0.2)  # Simulate work
-      return FlextResult.ok("Data loaded successfully")
+        """Simulate data loading."""
+        time.sleep(0.2)  # Simulate work
+        return FlextResult.ok("Data loaded successfully")
 
     def process_data() -> FlextResult[str]:
-      """Simulate data processing."""
-      time.sleep(0.3)  # Simulate work
-      return FlextResult.ok("Data processed")
+        """Simulate data processing."""
+        time.sleep(0.3)  # Simulate work
+        return FlextResult.ok("Data processed")
 
     def save_results() -> FlextResult[str]:
-      """Simulate saving results."""
-      return FlextResult.ok("Results saved")
+        """Simulate saving results."""
+        return FlextResult.ok("Results saved")
 
     # Batch execute with progress
     operations = [
-      ("validate_config", validate_config),
-      ("load_data", load_data),
-      ("process_data", process_data),
-      ("save_results", save_results),
+        ("validate_config", validate_config),
+        ("load_data", load_data),
+        ("process_data", process_data),
+        ("save_results", save_results),
     ]
 
     batch_result = flext_cli_batch_execute(
-      operations,
-      stop_on_error=True,
-      progress_description="Processing pipeline",
+        operations,
+        stop_on_error=True,
+        progress_description="Processing pipeline",
     )
 
     if batch_result.success:
-      for result_info in batch_result.data.values():
-          if result_info["success"]:
-              pass
+        for result_info in batch_result.data.values():
+            if result_info["success"]:
+                pass
 
 
 def example_9_auto_config_loading() -> None:
@@ -265,24 +265,24 @@ def example_9_auto_config_loading() -> None:
 
     config_file = temp_dir / "flext-demo.yml"
     sample_config = {
-      "api_url": "https://demo.api.flext.sh",
-      "timeout": 30,
-      "retry_count": 3,
-      "features": {"auth": True, "caching": True, "debug": False},
+        "api_url": "https://demo.api.flext.sh",
+        "timeout": 30,
+        "retry_count": 3,
+        "features": {"auth": True, "caching": True, "debug": False},
     }
 
     # Save config file
     save_result = flext_cli_save_file(sample_config, config_file)
     if save_result.success:
-      pass
+        pass
     else:
-      return
+        return
 
     # Auto-load configuration
     config_result = flext_cli_auto_config("demo", [str(config_file)])
 
     if config_result.success:
-      pass
+        pass
 
 
 def main() -> None:

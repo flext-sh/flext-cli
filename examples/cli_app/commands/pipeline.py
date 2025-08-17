@@ -33,10 +33,10 @@ def list_pipelines(
     """List pipelines."""
     console: Console = ctx.obj.get("console")
     if console:
-      console.print(f"Listing pipelines (page {page}, size {page_size})")
-      if status:
-          console.print(f"Filtered by status: {status}")
-      console.print("[yellow]Pipeline listing not yet implemented[/yellow]")
+        console.print(f"Listing pipelines (page {page}, size {page_size})")
+        if status:
+            console.print(f"Filtered by status: {status}")
+        console.print("[yellow]Pipeline listing not yet implemented[/yellow]")
 
 
 @pipeline.command()
@@ -46,8 +46,8 @@ def show(ctx: click.Context, name: str) -> None:
     """Show pipeline details."""
     console: Console = ctx.obj.get("console")
     if console:
-      console.print(f"Pipeline details for: {name}")
-      console.print("[yellow]Pipeline details not yet implemented[/yellow]")
+        console.print(f"Pipeline details for: {name}")
+        console.print("[yellow]Pipeline details not yet implemented[/yellow]")
 
 
 @pipeline.command()
@@ -57,8 +57,8 @@ def run(ctx: click.Context, name: str) -> None:
     """Run a pipeline."""
     console: Console = ctx.obj.get("console")
     if console:
-      console.print(f"Running pipeline: {name}")
-      console.print("[yellow]Pipeline execution not yet implemented[/yellow]")
+        console.print(f"Running pipeline: {name}")
+        console.print("[yellow]Pipeline execution not yet implemented[/yellow]")
 
 
 @pipeline.command()
@@ -68,5 +68,5 @@ def stop(ctx: click.Context, name: str) -> None:
     """Stop a pipeline."""
     console: Console = ctx.obj.get("console")
     if console:
-      console.print(f"Stopping pipeline: {name}")
-      console.print("[yellow]Pipeline stopping not yet implemented[/yellow]")
+        console.print(f"Stopping pipeline: {name}")
+        console.print("[yellow]Pipeline stopping not yet implemented[/yellow]")

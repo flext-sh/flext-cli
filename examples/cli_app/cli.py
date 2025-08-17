@@ -85,8 +85,8 @@ def cli(
     # Create service container with dependency injection
     container = get_flext_container()
     service_container = CLIServiceContainer(
-      name="flext-cli",
-      version=__version__,
+        name="flext-cli",
+        version=__version__,
     )
 
     # Register services in DI container
@@ -103,13 +103,13 @@ def cli(
 
     # Debug information
     if debug:
-      console.print(f"[dim]Profile: {profile}[/dim]")
-      console.print(f"[dim]Output format: {output}[/dim]")
-      console.print(f"[dim]Debug mode: {debug}[/dim]")
+        console.print(f"[dim]Profile: {profile}[/dim]")
+        console.print(f"[dim]Output format: {output}[/dim]")
+        console.print(f"[dim]Debug mode: {debug}[/dim]")
 
     # Show help if no command:
     if ctx.invoked_subcommand is None:
-      click.echo(ctx.get_help())
+        click.echo(ctx.get_help())
 
 
 # Register command groups
@@ -146,7 +146,7 @@ def version(ctx: click.Context) -> None:
     console.print(f"FLEXT CLI version {settings.project_version}")
     console.print(f"Python {sys.version}")
     if ctx.obj.get("debug"):
-      console.print(f"[dim]Configuration: {config.model_dump()}[/dim]")
+        console.print(f"[dim]Configuration: {config.model_dump()}[/dim]")
 
 
 def main() -> None:

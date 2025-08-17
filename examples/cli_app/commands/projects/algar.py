@@ -23,26 +23,22 @@ import traceback
 from pathlib import Path
 
 import click
+from algar_oud_mig import (
+    AlgarMigration,
+    LDIFEntry,
+    MigrateLDIFCommand,
+    MigrateLDIFHandler,
+    MigrationConfig,
+    MigrationPhase,
+    MigrationService,
+)
 from flext_core import get_logger
 from flext_core.result import FlextResult
 
 # Constants
 SENSITIVE_VALUE_SUFFIX_LENGTH = 4
+ALGAR_AVAILABLE = True
 
-# Import ALGAR modules - preserving original imports
-try:
-    from algar_oud_mig.application.commands import MigrateLDIFCommand
-    from algar_oud_mig.application.handlers import MigrateLDIFHandler
-    from algar_oud_mig.application.services import MigrationService
-    from algar_oud_mig.domain.models import LDIFEntry, MigrationConfig
-    from algar_oud_mig.domain.value_objects import MigrationPhase
-    from algar_oud_mig.migration import AlgarMigration
-
-    ALGAR_AVAILABLE = True
-except ImportError as e:
-    # Graceful handling when algar-oud-mig is not available
-    click.echo(f"Warning: ALGAR OUD Migration not available: {e}", err=True)
-    ALGAR_AVAILABLE = False
 
 # Define fallback values when imports fail
 if not ALGAR_AVAILABLE:

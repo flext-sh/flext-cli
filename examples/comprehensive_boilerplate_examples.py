@@ -60,55 +60,55 @@ for _name, _before, _after, _reduction in examples:
 def demonstrate_advanced_functionality() -> bool | None:
     """Demonstrate that all advanced FlextCli patterns actually work."""
     try:
-      # Create a test class using all advanced patterns
-      class DemoAdvancedCLI(FlextCliEntity, FlextCliCompleteMixin):
-          def __init__(self, **kwargs: object) -> None:
-              super().__init__(**kwargs)
+        # Create a test class using all advanced patterns
+        class DemoAdvancedCLI(FlextCliEntity, FlextCliCompleteMixin):
+            def __init__(self, **kwargs: object) -> None:
+                super().__init__(**kwargs)
 
-          def demo_complete_functionality(self) -> FlextResult[FlextCliDataDict]:
-              # Demonstrate basic functionality without mixins for now
-              demo_data = {
-                  "name": "FlextCli Demo",
-                  "version": "2.0",
-                  "advanced": True,
-              }
+            def demo_complete_functionality(self) -> FlextResult[FlextCliDataDict]:
+                # Demonstrate basic functionality without mixins for now
+                demo_data = {
+                    "name": "FlextCli Demo",
+                    "version": "2.0",
+                    "advanced": True,
+                }
 
-              # Use basic helper for demonstration
-              helper = FlextCliHelper()
+                # Use basic helper for demonstration
+                helper = FlextCliHelper()
 
-              with tempfile.NamedTemporaryFile(
-                  encoding="utf-8",
-                  mode="w",
-                  suffix=".json",
-                  delete=False,
-              ) as f:
-                  temp_path = f.name
-                  json.dump(demo_data, f)
+                with tempfile.NamedTemporaryFile(
+                    encoding="utf-8",
+                    mode="w",
+                    suffix=".json",
+                    delete=False,
+                ) as f:
+                    temp_path = f.name
+                    json.dump(demo_data, f)
 
-              # Load and validate
-              load_result = helper.flext_cli_load_file(temp_path)
-              if not load_result.success:
-                  return load_result
+                # Load and validate
+                load_result = helper.flext_cli_load_file(temp_path)
+                if not load_result.success:
+                    return load_result
 
-              # Clean up
+                # Clean up
 
-              pathlib.Path(temp_path).unlink()
+                pathlib.Path(temp_path).unlink()
 
-              return FlextResult.ok(load_result.data)
+                return FlextResult.ok(load_result.data)
 
-      # Test the advanced functionality
-      demo_cli = DemoAdvancedCLI(name="advanced-demo", id=str(uuid.uuid4()))
-      result = demo_cli.demo_complete_functionality()
+        # Test the advanced functionality
+        demo_cli = DemoAdvancedCLI(name="advanced-demo", id=str(uuid.uuid4()))
+        result = demo_cli.demo_complete_functionality()
 
-      if result.success:
-          pass
-      else:
-          return False
+        if result.success:
+            pass
+        else:
+            return False
 
-      return True
+        return True
 
     except Exception:
-      return False
+        return False
 
 
 if __name__ == "__main__":

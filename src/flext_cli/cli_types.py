@@ -133,29 +133,29 @@ class PositiveIntType(click.ParamType):
     name = "positive_int"
 
     def convert(
-      self,
-      value: object,
-      param: click.Parameter | None,
-      ctx: click.Context | None,
+        self,
+        value: object,
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> int:
-      """Convert and validate positive integer."""
-      if isinstance(value, int):
-          if value > 0:
-              return value
-          self.fail(f"Value must be positive, got {value}", param, ctx)
+        """Convert and validate positive integer."""
+        if isinstance(value, int):
+            if value > 0:
+                return value
+            self.fail(f"Value must be positive, got {value}", param, ctx)
 
-      if isinstance(value, str):
-          try:
-              int_val = int(value)
-              if int_val > 0:
-                  return int_val
-              self.fail(f"Value must be positive, got {int_val}", param, ctx)
-          except ValueError:
-              self.fail(f"'{value}' is not a valid integer", param, ctx)
+        if isinstance(value, str):
+            try:
+                int_val = int(value)
+                if int_val > 0:
+                    return int_val
+                self.fail(f"Value must be positive, got {int_val}", param, ctx)
+            except ValueError:
+                self.fail(f"'{value}' is not a valid integer", param, ctx)
 
-      # Fall back to explicit raise to satisfy linters
-      msg = f"'{value}' is not a valid positive integer"
-      raise click.BadParameter(msg)
+        # Fall back to explicit raise to satisfy linters
+        msg = f"'{value}' is not a valid positive integer"
+        raise click.BadParameter(msg)
 
 
 class URLType(click.ParamType):
@@ -164,30 +164,30 @@ class URLType(click.ParamType):
     name = "url"
 
     def convert(
-      self,
-      value: object,
-      param: click.Parameter | None,
-      ctx: click.Context | None,
+        self,
+        value: object,
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> str:
-      """Convert and validate URL."""
-      if not isinstance(value, str):
-          self.fail(f"URL must be a string, got {type(value).__name__}", param, ctx)
+        """Convert and validate URL."""
+        if not isinstance(value, str):
+            self.fail(f"URL must be a string, got {type(value).__name__}", param, ctx)
 
-      # Basic URL validation
-      if not value.startswith(("http://", "https://", "ftp://")):
-          self.fail(
-              f"URL must start with http://, https://, or ftp://, got '{value}'",
-              param,
-              ctx,
-          )
+        # Basic URL validation
+        if not value.startswith(("http://", "https://", "ftp://")):
+            self.fail(
+                f"URL must start with http://, https://, or ftp://, got '{value}'",
+                param,
+                ctx,
+            )
 
-      # Require scheme and non-empty netloc (basic check)
-      parts = value.split("://", 1)
-      required_parts = 2
-      if len(parts) != required_parts or parts[1].strip() == "":
-          self.fail(f"Invalid URL format: '{value}'", param, ctx)
+        # Require scheme and non-empty netloc (basic check)
+        parts = value.split("://", 1)
+        required_parts = 2
+        if len(parts) != required_parts or parts[1].strip() == "":
+            self.fail(f"Invalid URL format: '{value}'", param, ctx)
 
-      return value
+        return value
 
 
 class PathType(click.ParamType):
@@ -196,50 +196,50 @@ class PathType(click.ParamType):
     name = "path"
 
     def __init__(
-      self,
-      *,
-      exists: bool = False,
-      dir_okay: bool = True,
-      file_okay: bool = True,
+        self,
+        *,
+        exists: bool = False,
+        dir_okay: bool = True,
+        file_okay: bool = True,
     ) -> None:
-      """Initialize path type with validation options."""
-      self.exists = exists
-      self.dir_okay = dir_okay
-      self.file_okay = file_okay
+        """Initialize path type with validation options."""
+        self.exists = exists
+        self.dir_okay = dir_okay
+        self.file_okay = file_okay
 
     def convert(
-      self,
-      value: object,
-      param: click.Parameter | None,
-      ctx: click.Context | None,
+        self,
+        value: object,
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> Path:
-      """Convert and validate path."""
-      if isinstance(value, Path):
-          path = value
-      elif isinstance(value, str):
-          path = Path(value)
-      else:
-          self.fail(
-              f"Path must be string or Path, got {type(value).__name__}",
-              param,
-              ctx,
-          )
+        """Convert and validate path."""
+        if isinstance(value, Path):
+            path = value
+        elif isinstance(value, str):
+            path = Path(value)
+        else:
+            self.fail(
+                f"Path must be string or Path, got {type(value).__name__}",
+                param,
+                ctx,
+            )
 
-      if self.exists and not path.exists():
-          self.fail(f"Path does not exist: '{path}'", param, ctx)
+        if self.exists and not path.exists():
+            self.fail(f"Path does not exist: '{path}'", param, ctx)
 
-      if self.exists:
-          if path.is_file() and not self.file_okay:
-              self.fail(f"Path is a file but files not allowed: '{path}'", param, ctx)
+        if self.exists:
+            if path.is_file() and not self.file_okay:
+                self.fail(f"Path is a file but files not allowed: '{path}'", param, ctx)
 
-          if path.is_dir() and not self.dir_okay:
-              self.fail(
-                  f"Path is a directory but directories not allowed: '{path}'",
-                  param,
-                  ctx,
-              )
+            if path.is_dir() and not self.dir_okay:
+                self.fail(
+                    f"Path is a directory but directories not allowed: '{path}'",
+                    param,
+                    ctx,
+                )
 
-      return path
+        return path
 
 
 class ProfileType(click.ParamType):
@@ -248,31 +248,31 @@ class ProfileType(click.ParamType):
     name = "profile"
 
     def convert(
-      self,
-      value: object,
-      param: click.Parameter | None,
-      ctx: click.Context | None,
+        self,
+        value: object,
+        param: click.Parameter | None,
+        ctx: click.Context | None,
     ) -> str:
-      """Convert and validate profile name."""
-      if not isinstance(value, str):
-          self.fail(
-              f"Profile must be a string, got {type(value).__name__}",
-              param,
-              ctx,
-          )
+        """Convert and validate profile name."""
+        if not isinstance(value, str):
+            self.fail(
+                f"Profile must be a string, got {type(value).__name__}",
+                param,
+                ctx,
+            )
 
-      # Validate profile name format
-      if not value.replace("_", "a").replace("-", "a").isalnum():
-          self.fail(
-              f"Profile name must contain only alphanumeric, underscore, and dash characters, got '{value}'",
-              param,
-              ctx,
-          )
+        # Validate profile name format
+        if not value.replace("_", "a").replace("-", "a").isalnum():
+            self.fail(
+                f"Profile name must contain only alphanumeric, underscore, and dash characters, got '{value}'",
+                param,
+                ctx,
+            )
 
-      if len(value.strip()) == 0:
-          self.fail("Profile name cannot be empty", param, ctx)
+        if len(value.strip()) == 0:
+            self.fail("Profile name cannot be empty", param, ctx)
 
-      return value.strip()
+        return value.strip()
 
 
 # =============================================================================
@@ -380,86 +380,86 @@ class FlextCliDataProcessor(Protocol):
     """Protocol for data processing operations - enables dependency injection."""
 
     def process(self, data: FlextCliDataDict) -> FlextCliDataResult:
-      """Process data and return result."""
-      ...
+        """Process data and return result."""
+        ...
 
     def validate(self, data: FlextCliDataDict) -> FlextCliValidationResult:
-      """Validate data structure."""
-      ...
+        """Validate data structure."""
+        ...
 
 
 class FlextCliFileHandler(Protocol):
     """Protocol for file operations - standardizes file handling interface."""
 
     def load_file(self, path: FlextCliFilePath) -> FlextCliDataResult:
-      """Load file and return parsed data."""
-      ...
+        """Load file and return parsed data."""
+        ...
 
     def save_file(
-      self,
-      data: FlextCliDataDict,
-      path: FlextCliFilePath,
+        self,
+        data: FlextCliDataDict,
+        path: FlextCliFilePath,
     ) -> FlextCliResult[None]:
-      """Save data to file."""
-      ...
+        """Save data to file."""
+        ...
 
 
 class FlextCliSimpleValidatorProtocol(Protocol):
     """Protocol for simple validation operations - standardizes basic validation interface."""
 
     def validate(self, value: object) -> FlextCliValidationResult:
-      """Validate value and return result."""
-      ...
+        """Validate value and return result."""
+        ...
 
     def get_error_message(self) -> str:
-      """Get human-readable error message."""
-      ...
+        """Get human-readable error message."""
+        ...
 
 
 class FlextCliUIRenderer(Protocol):
     """Protocol for UI rendering - standardizes user interface operations."""
 
     def render_table(self, data: FlextCliDataList, title: str) -> FlextCliTableResult:
-      """Render data as table."""
-      ...
+        """Render data as table."""
+        ...
 
     def show_progress[T](
-      self,
-      items: list[T],
-      operation_name: str,
+        self,
+        items: list[T],
+        operation_name: str,
     ) -> FlextCliResult[list[T]]:
-      """Show progress for operation."""
-      ...
+        """Show progress for operation."""
+        ...
 
     def confirm_action(
-      self,
-      message: str,
-      *,
-      default: bool = False,
+        self,
+        message: str,
+        *,
+        default: bool = False,
     ) -> FlextCliResult[bool]:
-      """Get user confirmation."""
-      ...
+        """Get user confirmation."""
+        ...
 
 
 class FlextCliConfigProvider(Protocol):
     """Protocol for configuration management - standardizes config access."""
 
     def get_value(
-      self,
-      key: str,
-      *,
-      default: str | int | bool | None = None,
+        self,
+        key: str,
+        *,
+        default: str | int | bool | None = None,
     ) -> str | int | bool | None:
-      """Get configuration value."""
-      ...
+        """Get configuration value."""
+        ...
 
     def set_value(self, key: str, *, value: str | int | bool) -> None:
-      """Set configuration value."""
-      ...
+        """Set configuration value."""
+        ...
 
     def load_from_file(self, path: FlextCliFilePath) -> FlextCliResult[None]:
-      """Load configuration from file."""
-      ...
+        """Load configuration from file."""
+        ...
 
 
 # =============================================================================

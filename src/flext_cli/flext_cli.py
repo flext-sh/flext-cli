@@ -94,16 +94,16 @@ def flext_cli_create_context(
     result = _api.flext_cli_create_context(config)
     # Cast to expected type since API returns object
     try:
-      if isinstance(result, FlextCliContext):
-          return result
+        if isinstance(result, FlextCliContext):
+            return result
     except TypeError as e:
-      # Handle cases where isinstance fails due to import issues
-      logger = get_logger(__name__)
-      logger.warning(f"Type checking failed for FlextCliContext: {e}")
+        # Handle cases where isinstance fails due to import issues
+        logger = get_logger(__name__)
+        logger.warning(f"Type checking failed for FlextCliContext: {e}")
     # Create fallback context if cast fails
     cli_config = FlextCliConfig()
     if config:
-      cli_config = cli_config.model_copy(update=config)
+        cli_config = cli_config.model_copy(update=config)
     # Create CLI context without invalid parameters - just use defaults
     return FlextCliContext()
 

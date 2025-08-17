@@ -42,17 +42,17 @@ def setup_cli(config: CLIConfig | CLISettings | None = None) -> FlextResult[bool
 
     """
     try:
-      if config is None:
-          config = CLIConfig()
+        if config is None:
+            config = CLIConfig()
 
-      # Ensure directories exist (only for CLIConfig)
-      if isinstance(config, CLIConfig):
-          config.ensure_setup()
+        # Ensure directories exist (only for CLIConfig)
+        if isinstance(config, CLIConfig):
+            config.ensure_setup()
 
-      return FlextResult.ok(data=True)
+        return FlextResult.ok(data=True)
 
     except (AttributeError, ValueError, RuntimeError) as e:
-      return FlextResult.fail(f"Failed to setup CLI: {e}")
+        return FlextResult.fail(f"Failed to setup CLI: {e}")
 
 
 def create_development_cli_config(**kwargs: object) -> CLIConfig:
@@ -70,33 +70,33 @@ def create_development_cli_config(**kwargs: object) -> CLIConfig:
     """
     # Use hierarchical config with development defaults
     development_defaults = {
-      "debug": True,
-      "profile": "development",
-      "log_level": "DEBUG",
-      **kwargs,  # Apply overrides
+        "debug": True,
+        "profile": "development",
+        "log_level": "DEBUG",
+        **kwargs,  # Apply overrides
     }
 
     # Try to use create_with_hierarchy if available
     if hasattr(CLIConfig, "create_with_hierarchy"):
-      hierarchy_result = CLIConfig.create_with_hierarchy(**development_defaults)
-      if hierarchy_result.success:
-          return cast("CLIConfig", hierarchy_result.unwrap())
+        hierarchy_result = CLIConfig.create_with_hierarchy(**development_defaults)
+        if hierarchy_result.success:
+            return cast("CLIConfig", hierarchy_result.unwrap())
 
     # Fallback to direct creation
     config = CLIConfig(
-      debug=True,
-      profile="development",
-      log_level="DEBUG",
+        debug=True,
+        profile="development",
+        log_level="DEBUG",
     )
 
     # Apply overrides using model_copy for type safety
     if kwargs:
-      try:
-          config = config.model_copy(update=kwargs)
-      except Exception as e:
-          # Convert Pydantic validation errors to ValueError for test compatibility
-          validation_error_msg = f"validation error: {e}"
-          raise ValueError(validation_error_msg) from e
+        try:
+            config = config.model_copy(update=kwargs)
+        except Exception as e:
+            # Convert Pydantic validation errors to ValueError for test compatibility
+            validation_error_msg = f"validation error: {e}"
+            raise ValueError(validation_error_msg) from e
 
     return config
 
@@ -114,19 +114,19 @@ def create_production_cli_config(**kwargs: object) -> CLIConfig:
     # Create base configuration with production defaults
     output_config = CLIOutputConfig(quiet=True)
     config = CLIConfig(
-      debug=False,
-      profile="production",
-      output=output_config,
+        debug=False,
+        profile="production",
+        output=output_config,
     )
 
     # Apply overrides using model_copy for type safety
     if kwargs:
-      try:
-          config = config.model_copy(update=kwargs)
-      except Exception as e:
-          # Convert Pydantic validation errors to ValueError for test compatibility
-          validation_error_msg = f"validation error: {e}"
-          raise ValueError(validation_error_msg) from e
+        try:
+            config = config.model_copy(update=kwargs)
+        except Exception as e:
+            # Convert Pydantic validation errors to ValueError for test compatibility
+            validation_error_msg = f"validation error: {e}"
+            raise ValueError(validation_error_msg) from e
 
     return config
 

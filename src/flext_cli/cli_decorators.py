@@ -66,42 +66,42 @@ def cli_enhanced[**P, T](
     """
 
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
-      """Decorator function.
+        """Decorator function.
 
-      Args:
-          func (Callable[P, T]): Description.
+        Args:
+            func (Callable[P, T]): Description.
 
-      Returns:
-          Callable[P, T]: Description.
+        Returns:
+            Callable[P, T]: Description.
 
-      """
-      enhanced_func = func
+        """
+        enhanced_func = func
 
-      # Apply flext-core error handling if available
-      if handle_keyboard_interrupt:
-          enhanced_func = FlextErrorHandlingDecorators.safe_call()(enhanced_func)  # type: ignore[assignment]
+        # Apply flext-core error handling if available
+        if handle_keyboard_interrupt:
+            enhanced_func = FlextErrorHandlingDecorators.safe_call()(enhanced_func)  # type: ignore[assignment]
 
-      # Apply CLI-specific decorators
-      if validate_inputs:
-          enhanced_func = cli_validate_inputs(enhanced_func)
+        # Apply CLI-specific decorators
+        if validate_inputs:
+            enhanced_func = cli_validate_inputs(enhanced_func)
 
-      if handle_keyboard_interrupt:
-          enhanced_func = cli_handle_keyboard_interrupt(enhanced_func)
+        if handle_keyboard_interrupt:
+            enhanced_func = cli_handle_keyboard_interrupt(enhanced_func)
 
-      if measure_time:
-          enhanced_func = cli_measure_time(enhanced_func)
+        if measure_time:
+            enhanced_func = cli_measure_time(enhanced_func)
 
-      if log_execution:
-          enhanced_func = cli_log_execution(enhanced_func)
+        if log_execution:
+            enhanced_func = cli_log_execution(enhanced_func)
 
-      if show_spinner:
-          enhanced_func = cli_spinner()(enhanced_func)
+        if show_spinner:
+            enhanced_func = cli_spinner()(enhanced_func)
 
-      return enhanced_func
+        return enhanced_func
 
     # Support both @cli_enhanced and @cli_enhanced(...)
     if func is not None:
-      return decorator(func)
+        return decorator(func)
     return decorator
 
 
@@ -122,35 +122,35 @@ def cli_validate_inputs[**P, T](func: Callable[P, T]) -> Callable[P, T]:
 
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-      """Wrapper function.
+        """Wrapper function.
 
-      Args:
-          *args: Variable length argument list.
-          **kwargs: Arbitrary keyword arguments.
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
 
-      Returns:
-          T: Description.
+        Returns:
+            T: Description.
 
-      """
-      logger = get_logger(func.__name__)
+        """
+        logger = get_logger(func.__name__)
 
-      # Basic input validation (linear, minimal branching)
-      for arg in args:
-          if isinstance(arg, str) and arg.strip() == "":
-              logger.error("Input validation failed for %s", func.__name__)
-              msg = "Empty string argument not allowed"
-              raise ValueError(msg)
+        # Basic input validation (linear, minimal branching)
+        for arg in args:
+            if isinstance(arg, str) and arg.strip() == "":
+                logger.error("Input validation failed for %s", func.__name__)
+                msg = "Empty string argument not allowed"
+                raise ValueError(msg)
 
-      for key, value in kwargs.items():
-          if (
-              isinstance(value, str)
-              and key.endswith("_required")
-              and value.strip() == ""
-          ):
-              logger.error("Input validation failed for %s", func.__name__)
-              raise ValueError("Required argument '" + key + "' cannot be empty")
+        for key, value in kwargs.items():
+            if (
+                isinstance(value, str)
+                and key.endswith("_required")
+                and value.strip() == ""
+            ):
+                logger.error("Input validation failed for %s", func.__name__)
+                raise ValueError("Required argument '" + key + "' cannot be empty")
 
-      return func(*args, **kwargs)
+        return func(*args, **kwargs)
 
     return wrapper
 
@@ -168,22 +168,22 @@ def cli_handle_keyboard_interrupt[**P, T](func: Callable[P, T]) -> Callable[P, T
 
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-      """Wrapper function.
+        """Wrapper function.
 
-      Args:
-          *args: Variable length argument list.
-          **kwargs: Arbitrary keyword arguments.
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
 
-      Returns:
-          T: Description.
+        Returns:
+            T: Description.
 
-      """
-      try:
-          return func(*args, **kwargs)
-      except KeyboardInterrupt as err:
-          console = Console()
-          console.print("\n[yellow]Operation cancelled by user[/yellow]")
-          raise SystemExit(1) from err
+        """
+        try:
+            return func(*args, **kwargs)
+        except KeyboardInterrupt as err:
+            console = Console()
+            console.print("\n[yellow]Operation cancelled by user[/yellow]")
+            raise SystemExit(1) from err
 
     return wrapper
 
@@ -201,41 +201,41 @@ def cli_measure_time[**P, T](func: Callable[P, T]) -> Callable[P, T]:
 
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-      """Wrapper function.
+        """Wrapper function.
 
-      Args:
-          *args: Variable length argument list.
-          **kwargs: Arbitrary keyword arguments.
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
 
-      Returns:
-          T: Description.
+        Returns:
+            T: Description.
 
-      """
-      logger = get_logger(func.__name__)
-      start_time = time.time()
+        """
+        logger = get_logger(func.__name__)
+        start_time = time.time()
 
-      try:
-          result = func(*args, **kwargs)
-          end_time = time.time()
-          duration = end_time - start_time
+        try:
+            result = func(*args, **kwargs)
+            end_time = time.time()
+            duration = end_time - start_time
 
-          logger.info(
-              "Command '%s' completed in %.3f seconds",
-              func.__name__,
-              duration,
-          )
-          return result
+            logger.info(
+                "Command '%s' completed in %.3f seconds",
+                func.__name__,
+                duration,
+            )
+            return result
 
-      except Exception:
-          end_time = time.time()
-          duration = end_time - start_time
+        except Exception:
+            end_time = time.time()
+            duration = end_time - start_time
 
-          logger.exception(
-              "Command '%s' failed after %.3f seconds",
-              func.__name__,
-              duration,
-          )
-          raise
+            logger.exception(
+                "Command '%s' failed after %.3f seconds",
+                func.__name__,
+                duration,
+            )
+            raise
 
     return wrapper
 
@@ -253,33 +253,33 @@ def cli_log_execution[**P, T](func: Callable[P, T]) -> Callable[P, T]:
 
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-      """Wrapper function.
+        """Wrapper function.
 
-      Args:
-          *args: Variable length argument list.
-          **kwargs: Arbitrary keyword arguments.
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
 
-      Returns:
-          T: Description.
+        Returns:
+            T: Description.
 
-      """
-      logger = get_logger(func.__name__)
+        """
+        logger = get_logger(func.__name__)
 
-      # Log command start
-      logger.info("Starting CLI command: %s", func.__name__)
+        # Log command start
+        logger.info("Starting CLI command: %s", func.__name__)
 
-      try:
-          result = func(*args, **kwargs)
+        try:
+            result = func(*args, **kwargs)
 
-          # Log successful completion
-          logger.info("CLI command completed successfully: %s", func.__name__)
+            # Log successful completion
+            logger.info("CLI command completed successfully: %s", func.__name__)
 
-          return result
+            return result
 
-      except Exception:
-          # Log failure
-          logger.exception("CLI command failed: %s", func.__name__)
-          raise
+        except Exception:
+            # Log failure
+            logger.exception("CLI command failed: %s", func.__name__)
+            raise
 
     return wrapper
 
@@ -310,57 +310,57 @@ def cli_confirm(
     """
 
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
-      """Decorator function.
+        """Decorator function.
 
-      Args:
-          func (Callable[P, T]): Description.
+        Args:
+            func (Callable[P, T]): Description.
 
-      Returns:
-          Callable[P, T]: Description.
+        Returns:
+            Callable[P, T]: Description.
 
-      """
+        """
 
-      @functools.wraps(func)
-      def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-          """Wrapper function.
+        @functools.wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
 
-          Args:
-              *args: Variable length argument list.
-              **kwargs: Arbitrary keyword arguments.
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
 
-          Returns:
-              T: Description.
+            Returns:
+                T: Description.
 
-          """
-          console = Console()
+            """
+            console = Console()
 
-          # Show confirmation prompt
-          default_text = "Y/n" if default else "y/N"
-          prompt = f"{message} ({default_text}): "
+            # Show confirmation prompt
+            default_text = "Y/n" if default else "y/N"
+            prompt = f"{message} ({default_text}): "
 
-          try:
-              response = input(prompt).strip().lower()
+            try:
+                response = input(prompt).strip().lower()
 
-              if not response:
-                  confirmed = default
-              elif response in {"y", "yes", "true", "1"}:
-                  confirmed = True
-              elif response in {"n", "no", "false", "0"}:
-                  confirmed = False
-              else:
-                  console.print("[red]Please answer 'y' or 'n'[/red]")
-                  raise SystemExit(1)
+                if not response:
+                    confirmed = default
+                elif response in {"y", "yes", "true", "1"}:
+                    confirmed = True
+                elif response in {"n", "no", "false", "0"}:
+                    confirmed = False
+                else:
+                    console.print("[red]Please answer 'y' or 'n'[/red]")
+                    raise SystemExit(1)
 
-              if confirmed:
-                  return func(*args, **kwargs)
-              console.print("[yellow]Operation cancelled by user[/yellow]")
-              raise SystemExit(1)
+                if confirmed:
+                    return func(*args, **kwargs)
+                console.print("[yellow]Operation cancelled by user[/yellow]")
+                raise SystemExit(1)
 
-          except (EOFError, KeyboardInterrupt) as err:
-              console.print("\n[yellow]Operation cancelled by user[/yellow]")
-              raise SystemExit(1) from err
+            except (EOFError, KeyboardInterrupt) as err:
+                console.print("\n[yellow]Operation cancelled by user[/yellow]")
+                raise SystemExit(1) from err
 
-      return wrapper
+        return wrapper
 
     return decorator
 
@@ -391,75 +391,75 @@ def cli_retry(
     """
 
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
-      """Decorator function.
+        """Decorator function.
 
-      Args:
-          func (Callable[P, T]): Description.
+        Args:
+            func (Callable[P, T]): Description.
 
-      Returns:
-          Callable[P, T]: Description.
+        Returns:
+            Callable[P, T]: Description.
 
-      """
+        """
 
-      @functools.wraps(func)
-      def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-          """Wrapper function.
+        @functools.wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
 
-          Args:
-              *args: Variable length argument list.
-              **kwargs: Arbitrary keyword arguments.
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
 
-          Returns:
-              T: Description.
+            Returns:
+                T: Description.
 
-          """
-          logger = get_logger(func.__name__)
-          console = Console()
+            """
+            logger = get_logger(func.__name__)
+            console = Console()
 
-          last_exception = None
+            last_exception = None
 
-          for attempt in range(max_attempts):
-              try:
-                  return func(*args, **kwargs)
+            for attempt in range(max_attempts):
+                try:
+                    return func(*args, **kwargs)
 
-              except KeyboardInterrupt:
-                  # Don't retry on user cancellation
-                  raise
+                except KeyboardInterrupt:
+                    # Don't retry on user cancellation
+                    raise
 
-              except Exception as e:
-                  last_exception = e
+                except Exception as e:
+                    last_exception = e
 
-                  if attempt < max_attempts - 1:
-                      retry_delay = delay * (2**attempt)  # Exponential backoff
+                    if attempt < max_attempts - 1:
+                        retry_delay = delay * (2**attempt)  # Exponential backoff
 
-                      logger.warning(
-                          "Attempt %d failed for %s: %s. Retrying in %.1f seconds...",
-                          attempt + 1,
-                          func.__name__,
-                          e,
-                          retry_delay,
-                      )
+                        logger.warning(
+                            "Attempt %d failed for %s: %s. Retrying in %.1f seconds...",
+                            attempt + 1,
+                            func.__name__,
+                            e,
+                            retry_delay,
+                        )
 
-                      console.print(
-                          f"[yellow]Attempt {attempt + 1} failed. "
-                          f"Retrying in {retry_delay:.1f} seconds...[/yellow]",
-                      )
+                        console.print(
+                            f"[yellow]Attempt {attempt + 1} failed. "
+                            f"Retrying in {retry_delay:.1f} seconds...[/yellow]",
+                        )
 
-                      time.sleep(retry_delay)
-                  else:
-                      logger.exception(
-                          "All %d attempts failed for %s",
-                          max_attempts,
-                          func.__name__,
-                      )
+                        time.sleep(retry_delay)
+                    else:
+                        logger.exception(
+                            "All %d attempts failed for %s",
+                            max_attempts,
+                            func.__name__,
+                        )
 
-          # If we get here, all attempts failed
-          if last_exception:
-              raise last_exception
-          msg = f"All {max_attempts} attempts failed"
-          raise RuntimeError(msg)
+            # If we get here, all attempts failed
+            if last_exception:
+                raise last_exception
+            msg = f"All {max_attempts} attempts failed"
+            raise RuntimeError(msg)
 
-      return wrapper
+        return wrapper
 
     return decorator
 
@@ -487,34 +487,34 @@ def cli_spinner(
     """
 
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
-      """Decorator function.
+        """Decorator function.
 
-      Args:
-          func (Callable[P, T]): Description.
+        Args:
+            func (Callable[P, T]): Description.
 
-      Returns:
-          Callable[P, T]: Description.
+        Returns:
+            Callable[P, T]: Description.
 
-      """
+        """
 
-      @functools.wraps(func)
-      def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-          """Wrapper function.
+        @functools.wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
 
-          Args:
-              *args: Variable length argument list.
-              **kwargs: Arbitrary keyword arguments.
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
 
-          Returns:
-              T: Description.
+            Returns:
+                T: Description.
 
-          """
-          console = Console()
+            """
+            console = Console()
 
-          with console.status(message, spinner="dots"):
-              return func(*args, **kwargs)
+            with console.status(message, spinner="dots"):
+                return func(*args, **kwargs)
 
-      return wrapper
+        return wrapper
 
     return decorator
 
@@ -545,55 +545,55 @@ def cli_cache_result(
     """
 
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
-      """Decorator function.
+        """Decorator function.
 
-      Args:
-          func (Callable[P, T]): Description.
+        Args:
+            func (Callable[P, T]): Description.
 
-      Returns:
-          Callable[P, T]: Description.
+        Returns:
+            Callable[P, T]: Description.
 
-      """
-      cache: dict[str, tuple[T, float]] = {}
+        """
+        cache: dict[str, tuple[T, float]] = {}
 
-      @functools.wraps(func)
-      def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-          """Wrapper function.
+        @functools.wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
 
-          Args:
-              *args: Variable length argument list.
-              **kwargs: Arbitrary keyword arguments.
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
 
-          Returns:
-              T: Description.
+            Returns:
+                T: Description.
 
-          """
-          # Generate cache key
-          if cache_key:
-              key = cache_key
-          else:
-              # Create key from function name and arguments
-              arg_str = str(args) + str(sorted(kwargs.items()))
-              key = f"{func.__name__}_{hashlib.sha256(arg_str.encode(), usedforsecurity=False).hexdigest()[:8]}"
+            """
+            # Generate cache key
+            if cache_key:
+                key = cache_key
+            else:
+                # Create key from function name and arguments
+                arg_str = str(args) + str(sorted(kwargs.items()))
+                key = f"{func.__name__}_{hashlib.sha256(arg_str.encode(), usedforsecurity=False).hexdigest()[:8]}"
 
-          # Check cache
-          current_time = time.time()
-          if key in cache:
-              result, timestamp = cache[key]
-              if current_time - timestamp < ttl:
-                  logger = get_logger(func.__name__)
-                  logger.debug(f"Using cached result for {func.__name__}")
-                  return result
-              # Expired, remove from cache
-              del cache[key]
+            # Check cache
+            current_time = time.time()
+            if key in cache:
+                result, timestamp = cache[key]
+                if current_time - timestamp < ttl:
+                    logger = get_logger(func.__name__)
+                    logger.debug(f"Using cached result for {func.__name__}")
+                    return result
+                # Expired, remove from cache
+                del cache[key]
 
-          # Execute function and cache result
-          result = func(*args, **kwargs)
-          cache[key] = (result, current_time)
+            # Execute function and cache result
+            result = func(*args, **kwargs)
+            cache[key] = (result, current_time)
 
-          return result
+            return result
 
-      return wrapper
+        return wrapper
 
     return decorator
 
@@ -618,42 +618,42 @@ def cli_inject_config(config_key: str) -> Callable[[Callable[P, T]], Callable[P,
     """
 
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
-      """Decorator function.
+        """Decorator function.
 
-      Args:
-          func (Callable[P, T]): Description.
+        Args:
+            func (Callable[P, T]): Description.
 
-      Returns:
-          Callable[P, T]: Description.
+        Returns:
+            Callable[P, T]: Description.
 
-      """
+        """
 
-      @functools.wraps(func)
-      def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-          """Wrapper function.
+        @functools.wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
 
-          Args:
-              *args: Variable length argument list.
-              **kwargs: Arbitrary keyword arguments.
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
 
-          Returns:
-              T: Description.
+            Returns:
+                T: Description.
 
-          """
-          # This would integrate with the actual configuration system
-          # For now, it's a placeholder implementation
-          logger = get_logger(func.__name__)
-          logger.debug("Injecting configuration key: %s", config_key)
+            """
+            # This would integrate with the actual configuration system
+            # For now, it's a placeholder implementation
+            logger = get_logger(func.__name__)
+            logger.debug("Injecting configuration key: %s", config_key)
 
-          # Add config to kwargs if not already present
-          if "config" not in kwargs:
-              # This would load actual configuration
-              kwargs = dict(kwargs)  # type: ignore[assignment]
-              kwargs["config"] = {config_key: "default_value"}
+            # Add config to kwargs if not already present
+            if "config" not in kwargs:
+                # This would load actual configuration
+                kwargs = dict(kwargs)  # type: ignore[assignment]
+                kwargs["config"] = {config_key: "default_value"}
 
-          return func(*args, **kwargs)
+            return func(*args, **kwargs)
 
-      return wrapper
+        return wrapper
 
     return decorator
 
@@ -681,41 +681,41 @@ def cli_file_operation(
     """
 
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
-      """Decorator function.
+        """Decorator function.
 
-      Args:
-          func (Callable[P, T]): Description.
+        Args:
+            func (Callable[P, T]): Description.
 
-      Returns:
-          Callable[P, T]: Description.
+        Returns:
+            Callable[P, T]: Description.
 
-      """
+        """
 
-      @functools.wraps(func)
-      def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-          """Wrapper function.
+        @functools.wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
 
-          Args:
-              *args: Variable length argument list.
-              **kwargs: Arbitrary keyword arguments.
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
 
-          Returns:
-              T: Description.
+            Returns:
+                T: Description.
 
-          """
-          logger = get_logger(func.__name__)
+            """
+            logger = get_logger(func.__name__)
 
-          if backup:
-              logger.debug(f"File operation with backup enabled: {func.__name__}")
-              # Backup logic would go here
+            if backup:
+                logger.debug(f"File operation with backup enabled: {func.__name__}")
+                # Backup logic would go here
 
-          try:
-              return func(*args, **kwargs)
-          except OSError:
-              logger.exception("File operation failed in %s", func.__name__)
-              raise
+            try:
+                return func(*args, **kwargs)
+            except OSError:
+                logger.exception("File operation failed in %s", func.__name__)
+                raise
 
-      return wrapper
+        return wrapper
 
     return decorator
 

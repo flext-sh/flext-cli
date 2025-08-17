@@ -40,9 +40,9 @@ from flext_cli.simple_api import create_cli_context, setup_cli
 def _deprecation_warning(old_name: str, new_name: str) -> None:
     """Issue a deprecation warning for legacy imports."""
     warnings.warn(
-      f"{old_name} is deprecated, use {new_name} instead",
-      DeprecationWarning,
-      stacklevel=3,
+        f"{old_name} is deprecated, use {new_name} instead",
+        DeprecationWarning,
+        stacklevel=3,
     )
 
 
@@ -51,8 +51,8 @@ def cli_service(*args: object, **kwargs: object) -> object:
     """Legacy alias for FlextCliService."""
     _deprecation_warning("CliService", "FlextCliService")
     if FlextCliService is None:
-      msg = "FlextCliService not available"
-      raise ImportError(msg)
+        msg = "FlextCliService not available"
+        raise ImportError(msg)
     return FlextCliService(*args, **kwargs)
 
 
@@ -60,8 +60,8 @@ def cli_api(*args: object, **kwargs: object) -> object:
     """Legacy alias for FlextCliApi."""
     _deprecation_warning("CliAPI", "FlextCliApi")
     if FlextCliApi is None:
-      msg = "FlextCliApi not available"
-      raise ImportError(msg)
+        msg = "FlextCliApi not available"
+        raise ImportError(msg)
     return FlextCliApi(*args, **kwargs)
 
 
@@ -69,8 +69,8 @@ def cliservice(*args: object, **kwargs: object) -> object:
     """Legacy alias for FlextCliService (capitalized variant)."""
     _deprecation_warning("CLIService", "FlextCliService")
     if FlextCliService is None:
-      msg = "FlextCliService not available"
-      raise ImportError(msg)
+        msg = "FlextCliService not available"
+        raise ImportError(msg)
     return FlextCliService(*args, **kwargs)
 
 
@@ -78,8 +78,8 @@ def setup_flext_cli(*args: object, **kwargs: object) -> object:
     """Legacy alias for setup_cli."""
     _deprecation_warning("setup_flext_cli", "setup_cli")
     if setup_cli is None:
-      msg = "setup_cli not available"
-      raise ImportError(msg)
+        msg = "setup_cli not available"
+        raise ImportError(msg)
     return setup_cli(*args, **kwargs)
 
 
@@ -87,8 +87,8 @@ def create_context(*args: object, **kwargs: object) -> object:
     """Legacy alias for create_cli_context."""
     _deprecation_warning("create_context", "create_cli_context")
     if create_cli_context is None:
-      msg = "create_cli_context not available"
-      raise ImportError(msg)
+        msg = "create_cli_context not available"
+        raise ImportError(msg)
     return create_cli_context(*args, **kwargs)
 
 
@@ -106,7 +106,8 @@ def cli_validation_error(*args: object, **kwargs: object) -> FlextCliValidationE
 
 
 def cli_configuration_error(
-    *args: object, **kwargs: object,
+    *args: object,
+    **kwargs: object,
 ) -> FlextCliConfigurationError:
     """Legacy alias for FlextCliConfigurationError."""
     _deprecation_warning("CliConfigurationError", "FlextCliConfigurationError")
@@ -126,7 +127,8 @@ def cli_processing_error(*args: object, **kwargs: object) -> FlextCliProcessingE
 
 
 def cli_authentication_error(
-    *args: object, **kwargs: object,
+    *args: object,
+    **kwargs: object,
 ) -> FlextCliAuthenticationError:
     """Legacy alias for FlextCliAuthenticationError."""
     _deprecation_warning("CliAuthenticationError", "FlextCliAuthenticationError")
@@ -181,8 +183,8 @@ def init_cli(*args: object, **kwargs: object) -> object:
     """Legacy alias for setup_cli."""
     _deprecation_warning("init_cli", "setup_cli")
     if setup_cli is None:
-      msg = "setup_cli not available"
-      raise ImportError(msg)
+        msg = "setup_cli not available"
+        raise ImportError(msg)
     return setup_cli(*args, **kwargs)
 
 
@@ -190,8 +192,8 @@ def configure_cli(*args: object, **kwargs: object) -> object:
     """Legacy alias for setup_cli."""
     _deprecation_warning("configure_cli", "setup_cli")
     if setup_cli is None:
-      msg = "setup_cli not available"
-      raise ImportError(msg)
+        msg = "setup_cli not available"
+        raise ImportError(msg)
     return setup_cli(*args, **kwargs)
 
 

@@ -41,18 +41,18 @@ def _demo_basic_functionality() -> None:
     """Demonstrate basic CLI functionality."""
     # Test data
     sample_data = [
-      {"name": "Alice", "age": 30, "city": "São Paulo"},
-      {"name": "Bob", "age": 25, "city": "Rio de Janeiro"},
+        {"name": "Alice", "age": 30, "city": "São Paulo"},
+        {"name": "Bob", "age": 25, "city": "Rio de Janeiro"},
     ]
 
     # Export functionality
     with tempfile.TemporaryDirectory() as temp_dir:
-      temp_file = Path(temp_dir) / "test_export.json"
-      flext_cli_export(sample_data, str(temp_file), "json")
+        temp_file = Path(temp_dir) / "test_export.json"
+        flext_cli_export(sample_data, str(temp_file), "json")
 
-      # Verify file was created
-      if temp_file.exists():
-          pass
+        # Verify file was created
+        if temp_file.exists():
+            pass
 
     # Format functionality
     formatted_result = flext_cli_format(sample_data, "table")
@@ -66,22 +66,22 @@ def _demo_flext_cli_service() -> None:
     """Demo FLEXT CLI service functionality - SOLID SRP."""
     # Test data for functions
     sample_data = [
-      {"name": "Alice", "age": 30, "city": "São Paulo"},
-      {"name": "Bob", "age": 25, "city": "Rio de Janeiro"},
+        {"name": "Alice", "age": 30, "city": "São Paulo"},
+        {"name": "Bob", "age": 25, "city": "Rio de Janeiro"},
     ]
 
     # Command creation and tracking (RESTORED)
     api = FlextCliApi()
     api.flext_cli_create_command(
-      "test_cmd",
-      "echo 'Hello World'",
-      command_type="SYSTEM",
+        "test_cmd",
+        "echo 'Hello World'",
+        command_type="SYSTEM",
     )
 
     # Plugin system (RESTORED)
     api.flext_cli_register_plugin(
-      "test_plugin",
-      {"name": "TestPlugin", "version": "1.0"},
+        "test_plugin",
+        {"name": "TestPlugin", "version": "1.0"},
     )
 
     # Rich context rendering (RESTORED)
@@ -108,12 +108,12 @@ def _demo_session_management() -> None:
 
     # Register and execute commands
     def demo_command(message: str) -> str:
-      return f"Demo executed: {message}"
+        return f"Demo executed: {message}"
 
     cli_api.flext_cli_register_handler("demo", demo_command)
     result = cli_api.flext_cli_execute_handler(
-      "demo",
-      "Hello from restored functionality!",
+        "demo",
+        "Hello from restored functionality!",
     )
     result = result.unwrap() if result.success else "Failed"
 

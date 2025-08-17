@@ -29,27 +29,27 @@ def login(ctx: click.Context, username: str, password: str) -> None:
     console: Console = ctx.obj["console"]
 
     async def _login() -> None:
-      try:
-          async with FlextApiClient() as client:
-              console.print(f"[yellow]Logging in as {username}...[/yellow]")
-              response = await client.login(username, password)
+        try:
+            async with FlextApiClient() as client:
+                console.print(f"[yellow]Logging in as {username}...[/yellow]")
+                response = await client.login(username, password)
 
-              if "token" in response:
-                  save_auth_token(response["token"])
-                  console.print("[green]✅ Login successful![/green]")
+                if "token" in response:
+                    save_auth_token(response["token"])
+                    console.print("[green]✅ Login successful![/green]")
 
-                  if "user" in response:
-                      user = response["user"]
-                      if isinstance(user, dict):
-                          name = user.get("name", username)
-                      else:
-                          name = username
-                      console.print(f"Welcome, {name}!")
-              else:
-                  console.print("[red]❌ Login failed: Invalid response[/red]")
-      except (RuntimeError, ValueError, TypeError) as e:
-          console.print(f"[red]❌ Login failed: {e}[/red]")
-          ctx.exit(1)
+                    if "user" in response:
+                        user = response["user"]
+                        if isinstance(user, dict):
+                            name = user.get("name", username)
+                        else:
+                            name = username
+                        console.print(f"Welcome, {name}!")
+                else:
+                    console.print("[red]❌ Login failed: Invalid response[/red]")
+        except (RuntimeError, ValueError, TypeError) as e:
+            console.print(f"[red]❌ Login failed: {e}[/red]")
+            ctx.exit(1)
 
     asyncio.run(_login())
 
@@ -61,21 +61,21 @@ def logout(ctx: click.Context) -> None:
     console: Console = ctx.obj["console"]
 
     async def _logout() -> None:
-      try:
-          token = get_auth_token()
-          if not token:
-              console.print("[yellow]Not logged in[/yellow]")
-              return
+        try:
+            token = get_auth_token()
+            if not token:
+                console.print("[yellow]Not logged in[/yellow]")
+                return
 
-          async with FlextApiClient() as client:
-              console.print("[yellow]Logging out...[/yellow]")
-              await client.logout()
-              clear_auth_tokens()
-              console.print("[green]✅ Logged out successfully[/green]")
-      except (RuntimeError, ValueError, TypeError) as e:
-          # Clear token even if API call fails:
-          clear_auth_tokens()
-          console.print(f"[yellow]⚠️  Logged out locally ({e})[/yellow]")
+            async with FlextApiClient() as client:
+                console.print("[yellow]Logging out...[/yellow]")
+                await client.logout()
+                clear_auth_tokens()
+                console.print("[green]✅ Logged out successfully[/green]")
+        except (RuntimeError, ValueError, TypeError) as e:
+            # Clear token even if API call fails:
+            clear_auth_tokens()
+            console.print(f"[yellow]⚠️  Logged out locally ({e})[/yellow]")
 
     asyncio.run(_logout())
 
@@ -87,24 +87,24 @@ def status(ctx: click.Context) -> None:
     console: Console = ctx.obj["console"]
 
     async def _status() -> None:
-      try:
-          token = get_auth_token()
-          if not token:
-              console.print("[red]❌ Not authenticated[/red]")
-              console.print("Run 'flext auth login' to authenticate")
-              ctx.exit(1)
+        try:
+            token = get_auth_token()
+            if not token:
+                console.print("[red]❌ Not authenticated[/red]")
+                console.print("Run 'flext auth login' to authenticate")
+                ctx.exit(1)
 
-          async with FlextApiClient() as client:
-              console.print("[yellow]Checking authentication...[/yellow]")
-              user = await client.get_current_user()
+            async with FlextApiClient() as client:
+                console.print("[yellow]Checking authentication...[/yellow]")
+                user = await client.get_current_user()
 
-              console.print("[green]✅ Authenticated[/green]")
-              console.print(f"User: {user.get('username', 'Unknown')}")
-              console.print(f"Email: {user.get('email', 'Unknown')}")
-              console.print(f"Role: {user.get('role', 'Unknown')}")
-      except (RuntimeError, ValueError, TypeError) as e:
-          console.print(f"[red]❌ Authentication check failed: {e}[/red]")
-          console.print("Run 'flext auth login' to re-authenticate")
-          ctx.exit(1)
+                console.print("[green]✅ Authenticated[/green]")
+                console.print(f"User: {user.get('username', 'Unknown')}")
+                console.print(f"Email: {user.get('email', 'Unknown')}")
+                console.print(f"Role: {user.get('role', 'Unknown')}")
+        except (RuntimeError, ValueError, TypeError) as e:
+            console.print(f"[red]❌ Authentication check failed: {e}[/red]")
+            console.print("Run 'flext auth login' to re-authenticate")
+            ctx.exit(1)
 
     asyncio.run(_status())

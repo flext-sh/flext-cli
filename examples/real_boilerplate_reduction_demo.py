@@ -46,23 +46,23 @@ def traditional_approach() -> None:
 
     # Export operation using available functions
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp_file:
-      export_result = flext_cli_export(sample_data, tmp_file.name)
-      if export_result.success:
-          pass
+        export_result = flext_cli_export(sample_data, tmp_file.name)
+        if export_result.success:
+            pass
 
     # Format operation using available functions
     format_result = flext_cli_format(sample_data)
     if format_result.success and isinstance(format_result.unwrap(), str):
-      pass
+        pass
 
     # Table creation using available functions
     table_result = flext_cli_table(
-      sample_data,
-      "Employee Table",
-      "grid",
+        sample_data,
+        "Employee Table",
+        "grid",
     )
     if table_result.success:
-      pass
+        pass
 
 
 def modern_unified_approach() -> None:
@@ -73,7 +73,7 @@ def modern_unified_approach() -> None:
 
     # All operations in 3 lines with automatic FlextResult handling
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp_file:
-      flext_cli_export(sample_data, tmp_file.name)
+        flext_cli_export(sample_data, tmp_file.name)
     flext_cli_format(sample_data)
     flext_cli_table(sample_data, "Employee Table", "grid")
 
@@ -84,21 +84,21 @@ def enhanced_collections_demo() -> None:
     """Demonstrate enhanced collections with FlextResult integration."""
     # Transform data - filter, sort, limit
     transform_result = flext_cli_transform_data(
-      sample_data,
-      filter_func=lambda emp: emp["salary"] > HIGH_SALARY_THRESHOLD,
-      sort_key="salary",
+        sample_data,
+        filter_func=lambda emp: emp["salary"] > HIGH_SALARY_THRESHOLD,
+        sort_key="salary",
     )
     if transform_result.success:
-      pass
+        pass
 
     # Aggregate data - group by role with salary sum
     aggregate_result = flext_cli_aggregate_data(
-      sample_data,
-      group_by="role",
-      sum_fields=["salary"],
+        sample_data,
+        group_by="role",
+        sum_fields=["salary"],
     )
     if aggregate_result.success:
-      pass
+        pass
 
 
 def advanced_decorators_demo() -> None:
@@ -107,68 +107,68 @@ def advanced_decorators_demo() -> None:
     @measure_time
     @retry(max_attempts=3)
     def calculate_average_salary(data: list[dict[str, int]]) -> FlextResult[float]:
-      """Calculate average salary with timing and retry capabilities."""
-      if not data:
-          return FlextResult.fail("Data cannot be empty")
+        """Calculate average salary with timing and retry capabilities."""
+        if not data:
+            return FlextResult.fail("Data cannot be empty")
 
-      try:
-          total = sum(emp["salary"] for emp in data)
-          average = total / len(data)
-          return FlextResult.ok(average)
-      except (KeyError, TypeError, ZeroDivisionError) as e:
-          return FlextResult.fail(f"Salary calculation failed: {e}")
+        try:
+            total = sum(emp["salary"] for emp in data)
+            average = total / len(data)
+            return FlextResult.ok(average)
+        except (KeyError, TypeError, ZeroDivisionError) as e:
+            return FlextResult.fail(f"Salary calculation failed: {e}")
 
     def format_salary_range(data: list[dict[str, int]]) -> FlextResult[str]:
-      """Get salary range with error handling."""
-      if not data:
-          return FlextResult.fail("Data cannot be empty")
+        """Get salary range with error handling."""
+        if not data:
+            return FlextResult.fail("Data cannot be empty")
 
-      try:
-          salaries = [emp["salary"] for emp in data]
-          range_str = f"${min(salaries):,} - ${max(salaries):,}"
-          return FlextResult.ok(range_str)
-      except (KeyError, TypeError) as e:
-          return FlextResult.fail(f"Range calculation failed: {e}")
+        try:
+            salaries = [emp["salary"] for emp in data]
+            range_str = f"${min(salaries):,} - ${max(salaries):,}"
+            return FlextResult.ok(range_str)
+        except (KeyError, TypeError) as e:
+            return FlextResult.fail(f"Range calculation failed: {e}")
 
     # These functions now use available decorators and FlextResult patterns
     avg_result = calculate_average_salary(sample_data)
     range_result = format_salary_range(sample_data)
 
     if avg_result.success and range_result.success:
-      pass  # Results available via .unwrap()
+        pass  # Results available via .unwrap()
 
 
 def pipeline_operations_demo() -> None:
     """Demonstrate pipeline operations using available functions."""
     # Complete data pipeline using batch export and aggregation
     with tempfile.TemporaryDirectory() as tmp_dir:
-      # Export in multiple formats
-      export_result = flext_cli_batch_export(
-          {"employees": sample_data},
-          base_path=tmp_dir + "/pipeline_employees",
-          formats=["json", "csv"],
-      )
+        # Export in multiple formats
+        export_result = flext_cli_batch_export(
+            {"employees": sample_data},
+            base_path=tmp_dir + "/pipeline_employees",
+            formats=["json", "csv"],
+        )
 
-      # Perform analysis using transform and aggregate
-      analysis_result = flext_cli_aggregate_data(
-          sample_data,
-          group_by="role",
-          sum_fields=["salary"],
-      )
+        # Perform analysis using transform and aggregate
+        analysis_result = flext_cli_aggregate_data(
+            sample_data,
+            group_by="role",
+            sum_fields=["salary"],
+        )
 
-      # Create summary table
-      table_result = flext_cli_table(
-          sample_data,
-          "Employee Summary",
-          "grid",
-      )
+        # Create summary table
+        table_result = flext_cli_table(
+            sample_data,
+            "Employee Summary",
+            "grid",
+        )
 
     if (
-      (export_result.success if hasattr(export_result, "success") else True)
-      and (analysis_result.success if hasattr(analysis_result, "success") else True)
-      and (table_result.success if hasattr(table_result, "success") else True)
+        (export_result.success if hasattr(export_result, "success") else True)
+        and (analysis_result.success if hasattr(analysis_result, "success") else True)
+        and (table_result.success if hasattr(table_result, "success") else True)
     ):
-      pass  # Pipeline completed successfully
+        pass  # Pipeline completed successfully
 
 
 def main() -> None:

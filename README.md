@@ -1,8 +1,8 @@
-# flext-cli — Interface de Linha de Comando do FLEXT
+# flext-cli — FLEXT Command Line Interface
 
-**Tipo**: Aplicação | **Status**: Desenvolvimento ativo (~30% funcional) | **Dependências**: flext-core, click, rich, httpx
+**Type**: Application | **Status**: Active development (~30% functional) | **Dependencies**: flext-core, click, rich, httpx
 
-CLI unificada para o ecossistema distribuído FLEXT. Hoje expõe grupos `auth`, `config` e `debug` funcionais; demais grupos estão planejados.
+Unified CLI for the distributed FLEXT ecosystem. Currently exposes functional `auth`, `config` and `debug` groups; other groups are planned.
 
 ## 📋 **Recent Major Achievements**
 
@@ -13,7 +13,7 @@ CLI unificada para o ecossistema distribuído FLEXT. Hoje expõe grupos `auth`, 
 - ✅ **Status indicators** - 251 status indicators (✅/⚠️/❌/🎯) across all files providing clear implementation status
 - ✅ **Documentation modernization** - Complete English translation and modernization of all docs/ directory
 
-## Missão & Visão
+## Mission & Vision
 
 ### 🎯 **Mission**
 
@@ -92,7 +92,7 @@ FLEXT CLI serves as the central command hub for:
   - ❌ CQRS (command/query separation)
   - ❌ Domain Events (event-driven architecture)
 
-### ❌ Funcionalidades críticas ausentes
+### ❌ Missing Critical Features
 
 #### **Pipeline Management** (Priority 1)
 
@@ -232,7 +232,7 @@ src/flext_cli/
 5. **Observability**: Comprehensive logging, metrics, and monitoring
 6. **Developer Experience**: Rich UI, tab completion, interactive mode
 
-## Instalação
+## Installation
 
 ```bash
 # Install dependencies with Poetry
@@ -396,7 +396,7 @@ flext
 
 **Implementation Status**: 3 out of 10+ expected command groups
 
-## Configuração
+## Configuration
 
 ### Global CLI Options
 
@@ -523,7 +523,7 @@ pytest tests/test_integration.py -v
 
 **Integration Status**: Good foundations but missing enterprise-grade flext-core patterns
 
-## Fluxo de desenvolvimento
+## Development Workflow
 
 ### Adding New Commands
 
@@ -785,7 +785,7 @@ ls -la src/flext_cli/
 - **Reliability**: Consistent behavior across all environments
 - **Extensibility**: Easy plugin development and integration
 
-## Contribuição
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)

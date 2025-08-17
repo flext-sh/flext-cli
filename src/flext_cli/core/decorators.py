@@ -37,17 +37,17 @@ def async_command[**P, SendType, RecvType, T](
 
     @wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-      """Wrapper function.
+        """Wrapper function.
 
-      Args:
-          *args: Variable length argument list.
-          **kwargs: Arbitrary keyword arguments.
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
 
-      Returns:
-          T: Description.
+        Returns:
+            T: Description.
 
-      """
-      return asyncio.run(func(*args, **kwargs))
+        """
+        return asyncio.run(func(*args, **kwargs))
 
     return wrapper
 
@@ -64,35 +64,35 @@ def confirm_action(message: str) -> Callable[[Callable[P, T]], Callable[P, T | N
     """
 
     def decorator(func: Callable[P, T]) -> Callable[P, T | None]:
-      """Decorator function.
+        """Decorator function.
 
-      Args:
-          func (Callable[P, T]): Description.
+        Args:
+            func (Callable[P, T]): Description.
 
-      Returns:
-          Callable[P, T | None]: Description.
+        Returns:
+            Callable[P, T | None]: Description.
 
-      """
+        """
 
-      @wraps(func)
-      def wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
-          """Wrapper function.
+        @wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
+            """Wrapper function.
 
-          Args:
-              *args: Variable length argument list.
-              **kwargs: Arbitrary keyword arguments.
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
 
-          Returns:
-              T | None: Description.
+            Returns:
+                T | None: Description.
 
-          """
-          console = Console()
-          response = console.input(f"{message} [y/N]: ").strip().lower()
-          if response in {"y", "yes"}:
-              return func(*args, **kwargs)
-          return None
+            """
+            console = Console()
+            response = console.input(f"{message} [y/N]: ").strip().lower()
+            if response in {"y", "yes"}:
+                return func(*args, **kwargs)
+            return None
 
-      return wrapper
+        return wrapper
 
     return decorator
 
@@ -112,42 +112,42 @@ def require_auth(
     """
 
     def decorator(func: Callable[P, T]) -> Callable[P, T | None]:
-      """Decorator function.
+        """Decorator function.
 
-      Args:
-          func (Callable[P, T]): Description.
+        Args:
+            func (Callable[P, T]): Description.
 
-      Returns:
-          Callable[P, T | None]: Description.
+        Returns:
+            Callable[P, T | None]: Description.
 
-      """
+        """
 
-      @wraps(func)
-      def wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
-          """Wrapper function.
+        @wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
+            """Wrapper function.
 
-          Args:
-              *args: Variable length argument list.
-              **kwargs: Arbitrary keyword arguments.
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
 
-          Returns:
-              T | None: Description.
+            Returns:
+                T | None: Description.
 
-          """
-          path = token_file
-          if path is None:
-              # Default path under ~/.flext/auth/token
-              path = str(Path.home() / ".flext" / "auth" / "token")
+            """
+            path = token_file
+            if path is None:
+                # Default path under ~/.flext/auth/token
+                path = str(Path.home() / ".flext" / "auth" / "token")
 
-          p = Path(path)
-          if not p.exists():
-              return None
-          content = p.read_text(encoding="utf-8").strip()
-          if not content:
-              return None
-          return func(*args, **kwargs)
+            p = Path(path)
+            if not p.exists():
+                return None
+            content = p.read_text(encoding="utf-8").strip()
+            if not content:
+                return None
+            return func(*args, **kwargs)
 
-      return wrapper
+        return wrapper
 
     return decorator
 
@@ -167,36 +167,36 @@ def measure_time(
     """
 
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
-      """Decorator function.
+        """Decorator function.
 
-      Args:
-          func (Callable[P, T]): Description.
+        Args:
+            func (Callable[P, T]): Description.
 
-      Returns:
-          Callable[P, T]: Description.
+        Returns:
+            Callable[P, T]: Description.
 
-      """
+        """
 
-      @wraps(func)
-      def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-          """Wrapper function.
+        @wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
 
-          Args:
-              *args: Variable length argument list.
-              **kwargs: Arbitrary keyword arguments.
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
 
-          Returns:
-              T: Description.
+            Returns:
+                T: Description.
 
-          """
-          start = time.time()
-          result = func(*args, **kwargs)
-          elapsed = time.time() - start
-          if show_in_output:
-              Console().print(f"⏱  Execution time: {elapsed:.2f}s", style="dim")
-          return result
+            """
+            start = time.time()
+            result = func(*args, **kwargs)
+            elapsed = time.time() - start
+            if show_in_output:
+                Console().print(f"⏱  Execution time: {elapsed:.2f}s", style="dim")
+            return result
 
-      return wrapper
+        return wrapper
 
     return decorator
 
@@ -218,43 +218,43 @@ def retry(
     """
 
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
-      """Decorator function.
+        """Decorator function.
 
-      Args:
-          func (Callable[P, T]): Description.
+        Args:
+            func (Callable[P, T]): Description.
 
-      Returns:
-          Callable[P, T]: Description.
+        Returns:
+            Callable[P, T]: Description.
 
-      """
+        """
 
-      @wraps(func)
-      def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-          """Wrapper function.
+        @wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
 
-          Args:
-              *args: Variable length argument list.
-              **kwargs: Arbitrary keyword arguments.
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
 
-          Returns:
-              T: Description.
+            Returns:
+                T: Description.
 
-          """
-          last_exc: Exception | None = None
-          for attempt in range(1, max_attempts + 1):
-              try:
-                  return func(*args, **kwargs)
-              except Exception as exc:
-                  last_exc = exc
-                  if attempt < max_attempts:
-                      time.sleep(delay)
-          if last_exc is not None:
-              raise last_exc
-          # This line is unreachable, but mypy needs it
-          msg = "Retry failed unexpectedly"
-          raise RuntimeError(msg)
+            """
+            last_exc: Exception | None = None
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as exc:
+                    last_exc = exc
+                    if attempt < max_attempts:
+                        time.sleep(delay)
+            if last_exc is not None:
+                raise last_exc
+            # This line is unreachable, but mypy needs it
+            msg = "Retry failed unexpectedly"
+            raise RuntimeError(msg)
 
-      return wrapper
+        return wrapper
 
     return decorator
 
@@ -273,49 +273,49 @@ def validate_config(
     """
 
     def decorator(func: Callable[P, T]) -> Callable[P, T | None]:
-      """Decorator function.
+        """Decorator function.
 
-      Args:
-          func (Callable[P, T]): Description.
+        Args:
+            func (Callable[P, T]): Description.
 
-      Returns:
-          Callable[P, T | None]: Description.
+        Returns:
+            Callable[P, T | None]: Description.
 
-      """
+        """
 
-      @wraps(func)
-      def wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
-          """Wrapper function.
+        @wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
+            """Wrapper function.
 
-          Args:
-              *args: Variable length argument list.
-              **kwargs: Arbitrary keyword arguments.
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
 
-          Returns:
-              T | None: Description.
+            Returns:
+                T | None: Description.
 
-          """
-          console = Console()
-          config = kwargs.get("config")
-          if config is None and args:
-              # fallback: try first positional
-              config = args[0]
-          if config is None:
-              console.print(
-                  "Configuration not available for validation.",
-                  style="red",
-              )
-              return None
-          missing = [key for key in required_keys if not hasattr(config, key)]
-          if missing:
-              console.print(
-                  f"Missing required configuration: {missing[0]}",
-                  style="red",
-              )
-              return None
-          return func(*args, **kwargs)
+            """
+            console = Console()
+            config = kwargs.get("config")
+            if config is None and args:
+                # fallback: try first positional
+                config = args[0]
+            if config is None:
+                console.print(
+                    "Configuration not available for validation.",
+                    style="red",
+                )
+                return None
+            missing = [key for key in required_keys if not hasattr(config, key)]
+            if missing:
+                console.print(
+                    f"Missing required configuration: {missing[0]}",
+                    style="red",
+                )
+                return None
+            return func(*args, **kwargs)
 
-      return wrapper
+        return wrapper
 
     return decorator
 
@@ -334,32 +334,32 @@ def with_spinner(
     """
 
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
-      """Decorator function.
+        """Decorator function.
 
-      Args:
-          func (Callable[P, T]): Description.
+        Args:
+            func (Callable[P, T]): Description.
 
-      Returns:
-          Callable[P, T]: Description.
+        Returns:
+            Callable[P, T]: Description.
 
-      """
+        """
 
-      @wraps(func)
-      def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-          """Wrapper function.
+        @wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function.
 
-          Args:
-              *args: Variable length argument list.
-              **kwargs: Arbitrary keyword arguments.
+            Args:
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
 
-          Returns:
-              T: Description.
+            Returns:
+                T: Description.
 
-          """
-          console = Console()
-          with console.status(message, spinner="dots"):
-              return func(*args, **kwargs)
+            """
+            console = Console()
+            with console.status(message, spinner="dots"):
+                return func(*args, **kwargs)
 
-      return wrapper
+        return wrapper
 
     return decorator

@@ -62,43 +62,43 @@ for _name, _before, _after, _reduction in examples:
 def demonstrate_working_examples() -> bool | None:
     """Actually run the FlextCli examples to prove they work."""
     try:
-      # Example 1: Basic command
-      class DemoCommand(FlextCliEntity):
-          name: str = "demo"
-          description: str = "Live demonstration command"
+        # Example 1: Basic command
+        class DemoCommand(FlextCliEntity):
+            name: str = "demo"
+            description: str = "Live demonstration command"
 
-          def execute(self) -> object:
-              return FlextResult.ok(f"✓ Command '{self.name}' executed successfully!")
+            def execute(self) -> object:
+                return FlextResult.ok(f"✓ Command '{self.name}' executed successfully!")
 
-      cmd = DemoCommand(name="demo", id=str(uuid.uuid4()))
-      cmd.execute()
+        cmd = DemoCommand(name="demo", id=str(uuid.uuid4()))
+        cmd.execute()
 
-      # Example 2: Configuration
-      create_flext_cli_config(debug=True, profile="demo")
+        # Example 2: Configuration
+        create_flext_cli_config(debug=True, profile="demo")
 
-      # Example 3: Validation
-      flext_cli_validate_email("demo@example.com")
+        # Example 3: Validation
+        flext_cli_validate_email("demo@example.com")
 
-      # Example 4: File operations (using in-memory data)
-      with tempfile.NamedTemporaryFile(
-          encoding="utf-8",
-          mode="w",
-          suffix=".json",
-          delete=False,
-      ) as f:
-          demo_data = {"name": "FlextCli Demo", "version": "1.0", "working": True}
-          temp_path = f.name
+        # Example 4: File operations (using in-memory data)
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8",
+            mode="w",
+            suffix=".json",
+            delete=False,
+        ) as f:
+            demo_data = {"name": "FlextCli Demo", "version": "1.0", "working": True}
+            temp_path = f.name
 
-      flext_cli_save_data(demo_data, temp_path)
-      flext_cli_load_json(temp_path)
+        flext_cli_save_data(demo_data, temp_path)
+        flext_cli_load_json(temp_path)
 
-      # Cleanup
-      Path(temp_path).unlink()
+        # Cleanup
+        Path(temp_path).unlink()
 
-      return True
+        return True
 
     except Exception:
-      return False
+        return False
 
 
 if __name__ == "__main__":

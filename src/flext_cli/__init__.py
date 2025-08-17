@@ -7,9 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
-
-from flext_core import FlextResult, get_flext_container
+from flext_core import get_flext_container
 
 # Version information
 from flext_cli.__version__ import __version__
@@ -21,7 +19,9 @@ __version_info__ = tuple(int(x) for x in __version__.split(".") if x.isdigit())
 from flext_cli.cli_config import CLIConfig
 from flext_cli.api import FlextCliApi
 from flext_cli.core.helpers import FlextCliDataProcessor
-from flext_cli.core.helpers import FlextCliFileManager
+
+# Core formatters
+from flext_cli.core.formatters import PlainFormatter, OutputFormatter, FormatterFactory
 
 # Core types
 from flext_cli.cli_types import (
@@ -55,7 +55,6 @@ from flext_cli.config import (
     CLIAuthConfig,
     CLIDirectoryConfig,
     CLIOutputConfig,
-    _create_cli_config,
     get_cli_config,
     get_cli_config as get_config,
     get_cli_settings as get_settings,
@@ -133,10 +132,8 @@ from flext_cli.core.decorators import (
     async_command,
     confirm_action,
     measure_time as core_measure_time,
-    validate_config,
     require_auth,
     retry as core_retry,
-    validate_config as core_validate_config,
     with_spinner,
 )
 from flext_cli.core.decorators import measure_time as measure_time
@@ -189,7 +186,6 @@ from flext_cli.commands.debug import (
     debug_cmd as debug_cmd,
     connectivity as connectivity,
     performance as performance,
-    validate as debug_validate,
     trace as trace,
     env as env,
     paths as paths,
@@ -210,14 +206,12 @@ from flext_cli.api import (
 
 # Client
 from flext_cli.client import FlextApiClient
-from flext_cli.client import Pipeline, PipelineConfig, PipelineList
 
 # Domain factory and constants
 from flext_cli.domain.entities import CLIEntityFactory
 from flext_cli.constants import FlextConstants as FlextConstants
 
 # Core formatters
-from flext_cli.core.formatters import OutputFormatter
 
 # CLI commands
 from flext_cli.cli import cli, main
@@ -244,17 +238,15 @@ __all__: list[str] = [
     "CLIAuthConfig",
     "CLIDirectoryConfig",
     "CLIOutputConfig",
-    "_create_cli_config",
     "get_cli_config",
+    "get_cli_settings",
+    "CLICompleteMixin",
+    "CLIConfigMixin",
     "CLIDataMixin",
     "CLIExecutionMixin",
     "CLIInteractiveMixin",
     "CLILoggingMixin",
-    "CLIOutput",
     "CLIOutputMixin",
-    "CLIPlugin",
-    "CLISession",
-    "CLISettings",
     "CLIUIMixin",
     "CLIValidationMixin",
     # domain services/context
@@ -306,6 +298,9 @@ __all__: list[str] = [
     "TUserId",
     "URLType",
     "ValidationResult",
+    "PlainFormatter",
+    "OutputFormatter",
+    "FormatterFactory",
     "__version__",
     "__version_info__",
     "clear_auth_tokens",
@@ -341,7 +336,6 @@ __all__: list[str] = [
     "core_measure_time",
     "require_auth",
     "core_retry",
-    "core_validate_config",
     "with_spinner",
     "get_auth_headers",
     "get_config",
