@@ -57,10 +57,10 @@ def cli(
     """FLEXT CLI Example Application."""
     # Create CLI context with FLEXT CLI library
     cli_context = flext_cli.CLIContext(
-      profile="example",
-      output_format=output_format,
-      debug=debug,
-      verbose=verbose,
+        profile="example",
+        output_format=output_format,
+        debug=debug,
+        verbose=verbose,
     )
 
     # Store context for commands
@@ -100,7 +100,7 @@ def process(ctx: click.Context, count: int, url: str) -> str:
     # Use FLEXT CLI helper for validation
     helper = flext_cli.CLIHelper()
     if not helper.validate_url(url):
-      return f"❌ Invalid URL: {url}"
+        return f"❌ Invalid URL: {url}"
 
     # Simulate processing
     [f"Processed item {i + 1}" for i in range(count)]
@@ -135,17 +135,17 @@ def transform(
     console.print(f"Input file: {input_file}")
     console.print(f"Output directory: {output_dir}")
     if new_file:
-      console.print(f"New file: {new_file}")
+        console.print(f"New file: {new_file}")
 
     # Use FLEXT CLI helper utilities
     helper = flext_cli.CLIHelper()
 
     # Validate paths
     if not helper.validate_path(str(input_file), must_exist=True):
-      return f"❌ Input file does not exist: {input_file}"
+        return f"❌ Input file does not exist: {input_file}"
 
     if not helper.validate_path(str(output_dir), must_exist=True):
-      return f"❌ Output directory does not exist: {output_dir}"
+        return f"❌ Output directory does not exist: {output_dir}"
 
     # Get file size for display
     file_size = input_file.stat().st_size
@@ -185,18 +185,18 @@ def validate(ctx: click.Context, email: str, phone: str | None) -> None:
 
     # Validate email
     if helper.validate_email(email):
-      helper.print_success(f"Valid email: {email}")
+        helper.print_success(f"Valid email: {email}")
     else:
-      helper.print_error(f"Invalid email: {email}")
+        helper.print_error(f"Invalid email: {email}")
 
     # Validate phone if provided
     if phone:
-      # Simple phone validation (could be enhanced)
-      min_phone_length = 10
-      if len(phone.replace("-", "").replace(" ", "")) >= min_phone_length:
-          helper.print_success(f"Phone number looks valid: {phone}")
-      else:
-          helper.print_warning(f"Phone number may be invalid: {phone}")
+        # Simple phone validation (could be enhanced)
+        min_phone_length = 10
+        if len(phone.replace("-", "").replace(" ", "")) >= min_phone_length:
+            helper.print_success(f"Phone number looks valid: {phone}")
+        else:
+            helper.print_warning(f"Phone number may be invalid: {phone}")
 
     helper.print_info("Validation completed")
 
@@ -250,8 +250,8 @@ def unreliable(ctx: click.Context, max_attempts: int) -> str:
     # Simulate random failure (less likely in debug to speed up demos)
     failure_probability = 0.5 if is_debug else 0.7
     if random.random() < failure_probability:  # noqa: S311
-      msg = "Simulated random failure"
-      raise click.ClickException(msg)
+        msg = "Simulated random failure"
+        raise click.ClickException(msg)
 
     console.print("[green]✅ Operation succeeded![/green]")
     return "Operation completed successfully"
@@ -283,11 +283,11 @@ def info(ctx: click.Context) -> None:
     # Show CLI context
     cli_context = ctx.obj.get("cli_context")
     if cli_context:
-      console.print("\n[bold blue]CLI Context:[/bold blue]")
-      console.print(f"  Profile: {cli_context.profile}")
-      console.print(f"  Output Format: {cli_context.output_format}")
-      console.print(f"  Debug: {cli_context.debug}")
-      console.print(f"  Verbose: {cli_context.verbose}")
+        console.print("\n[bold blue]CLI Context:[/bold blue]")
+        console.print(f"  Profile: {cli_context.profile}")
+        console.print(f"  Output Format: {cli_context.output_format}")
+        console.print(f"  Debug: {cli_context.debug}")
+        console.print(f"  Verbose: {cli_context.verbose}")
 
 
 def main() -> None:

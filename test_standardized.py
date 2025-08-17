@@ -35,17 +35,17 @@ try:
     class_counts = {}
 
     for module in modules:
-      if Path(module).exists():
-          with Path(module).open(encoding="utf-8") as f:
-              content = f.read()
-              function_counts[module] = content.count("def ")
-              class_counts[module] = content.count("class ")
+        if Path(module).exists():
+            with Path(module).open(encoding="utf-8") as f:
+                content = f.read()
+                function_counts[module] = content.count("def ")
+                class_counts[module] = content.count("class ")
 
     for _module in function_counts:
-      pass
+        pass
 
     for _module in class_counts:
-      pass
+        pass
 
     total_functions = sum(function_counts.values())
     total_classes = sum(class_counts.values())

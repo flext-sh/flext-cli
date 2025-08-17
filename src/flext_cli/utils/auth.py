@@ -32,12 +32,12 @@ def should_auto_refresh() -> bool:
     cfg = get_config()
     # If explicit auto_refresh exists at root, honor it first
     if hasattr(cfg, "auto_refresh"):
-      return bool(cfg.auto_refresh and (get_refresh_token() is not None))
+        return bool(cfg.auto_refresh and (get_refresh_token() is not None))
     # Otherwise look into nested auth config
     auth_cfg = getattr(cfg, "auth", None)
     return bool(
-      bool(getattr(auth_cfg, "auto_refresh", False))
-      and (get_refresh_token() is not None),
+        bool(getattr(auth_cfg, "auto_refresh", False))
+        and (get_refresh_token() is not None),
     )
 
 
@@ -46,11 +46,11 @@ def get_token_path() -> Path:
     cfg = get_config()
     direct = getattr(cfg, "token_file", None)
     if isinstance(direct, Path):
-      return direct
+        return direct
     auth_cfg = getattr(cfg, "auth", None)
     token_path = getattr(auth_cfg, "token_file", None) if auth_cfg is not None else None
     if isinstance(token_path, Path):
-      return token_path
+        return token_path
     return Path.home() / ".flext" / "auth" / "token"
 
 
@@ -59,13 +59,13 @@ def get_refresh_token_path() -> Path:
     cfg = get_config()
     direct = getattr(cfg, "refresh_token_file", None)
     if isinstance(direct, Path):
-      return direct
+        return direct
     auth_cfg = getattr(cfg, "auth", None)
     refresh_path = (
-      getattr(auth_cfg, "refresh_token_file", None) if auth_cfg is not None else None
+        getattr(auth_cfg, "refresh_token_file", None) if auth_cfg is not None else None
     )
     if isinstance(refresh_path, Path):
-      return refresh_path
+        return refresh_path
     return Path.home() / ".flext" / "auth" / "refresh_token"
 
 
@@ -76,67 +76,67 @@ def save_auth_token(token: str) -> FlextResult[None]:
     Returns failure on filesystem or permission errors.
     """
     try:
-      token_path = get_token_path()
-      token_path.parent.mkdir(parents=True, exist_ok=True)
-      token_path.write_text(token, encoding="utf-8")
-      try:
-          token_path.chmod(0o600)
-      except Exception as e:  # chmod may fail on some platforms
-          return FlextResult.fail(f"Failed to save auth token: {e}")
-      return FlextResult.ok(None)
+        token_path = get_token_path()
+        token_path.parent.mkdir(parents=True, exist_ok=True)
+        token_path.write_text(token, encoding="utf-8")
+        try:
+            token_path.chmod(0o600)
+        except Exception as e:  # chmod may fail on some platforms
+            return FlextResult.fail(f"Failed to save auth token: {e}")
+        return FlextResult.ok(None)
     except (OSError, PermissionError, ValueError) as e:
-      return FlextResult.fail(f"Failed to save auth token: {e}")
+        return FlextResult.fail(f"Failed to save auth token: {e}")
 
 
 def save_refresh_token(refresh_token: str) -> FlextResult[None]:
     """Save refresh token to disk with secure permissions."""
     try:
-      path = get_refresh_token_path()
-      path.parent.mkdir(parents=True, exist_ok=True)
-      path.write_text(refresh_token, encoding="utf-8")
-      try:
-          path.chmod(0o600)
-      except Exception as e:
-          return FlextResult.fail(f"Failed to save refresh token: {e}")
-      return FlextResult.ok(None)
+        path = get_refresh_token_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(refresh_token, encoding="utf-8")
+        try:
+            path.chmod(0o600)
+        except Exception as e:
+            return FlextResult.fail(f"Failed to save refresh token: {e}")
+        return FlextResult.ok(None)
     except (OSError, PermissionError, ValueError) as e:
-      return FlextResult.fail(f"Failed to save refresh token: {e}")
+        return FlextResult.fail(f"Failed to save refresh token: {e}")
 
 
 def get_auth_token() -> str | None:
     """Load auth token contents if file exists; returns None if missing."""
     path = get_token_path()
     if not path.exists():
-      return None
+        return None
     try:
-      return path.read_text(encoding="utf-8").strip()
+        return path.read_text(encoding="utf-8").strip()
     except (OSError, UnicodeDecodeError):
-      return None
+        return None
 
 
 def get_refresh_token() -> str | None:
     """Load refresh token contents if file exists; returns None if missing."""
     path = get_refresh_token_path()
     if not path.exists():
-      return None
+        return None
     try:
-      return path.read_text(encoding="utf-8").strip()
+        return path.read_text(encoding="utf-8").strip()
     except (OSError, UnicodeDecodeError):
-      return None
+        return None
 
 
 def clear_auth_tokens() -> FlextResult[None]:
     """Delete both token files if present; report errors when unlink fails."""
     try:
-      token_path = get_token_path()
-      refresh_path = get_refresh_token_path()
-      if token_path.exists():
-          token_path.unlink()
-      if refresh_path.exists():
-          refresh_path.unlink()
-      return FlextResult.ok(None)
+        token_path = get_token_path()
+        refresh_path = get_refresh_token_path()
+        if token_path.exists():
+            token_path.unlink()
+        if refresh_path.exists():
+            refresh_path.unlink()
+        return FlextResult.ok(None)
     except (OSError, PermissionError) as e:
-      return FlextResult.fail(f"Failed to clear auth tokens: {e}")
+        return FlextResult.fail(f"Failed to clear auth tokens: {e}")
 
 
 def is_authenticated() -> bool:

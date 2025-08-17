@@ -41,27 +41,27 @@ def list_plugins(ctx: click.Context, plugin_type: str | None, **kwargs: bool) ->
     installed = kwargs.get("installed", False)
 
     async def _list() -> None:
-      try:
-          async with FlextApiClient() as client:
-              with Progress(
-                  SpinnerColumn(),
-                  TextColumn("[progress.description]{task.description}"),
-                  console=console,
-                  transient=True,
-              ) as progress:
-                  progress.add_task("Loading plugins...")
-                  plugins = await client.list_plugins(
-                      plugin_type,
-                      installed_only=installed,
-                  )
+        try:
+            async with FlextApiClient() as client:
+                with Progress(
+                    SpinnerColumn(),
+                    TextColumn("[progress.description]{task.description}"),
+                    console=console,
+                    transient=True,
+                ) as progress:
+                    progress.add_task("Loading plugins...")
+                    plugins = await client.list_plugins(
+                        plugin_type,
+                        installed_only=installed,
+                    )
 
-              if output_format == "json":
-                  console.print(json.dumps(plugins, indent=2))
-              else:
-                  format_plugin_list(console, plugins, output_format)
-      except (RuntimeError, ValueError, TypeError) as e:
-          console.print(f"[red]❌ Failed to list plugins: {e}[/red]")
-          ctx.exit(1)
+                if output_format == "json":
+                    console.print(json.dumps(plugins, indent=2))
+                else:
+                    format_plugin_list(console, plugins, output_format)
+        except (RuntimeError, ValueError, TypeError) as e:
+            console.print(f"[red]❌ Failed to list plugins: {e}[/red]")
+            ctx.exit(1)
 
     asyncio.run(_list())
 
@@ -75,34 +75,34 @@ def show(ctx: click.Context, plugin_id: str) -> None:
     output_format = ctx.obj["output"]
 
     async def _show() -> None:
-      try:
-          async with FlextApiClient() as client:
-              plugin = await client.get_plugin(plugin_id)
+        try:
+            async with FlextApiClient() as client:
+                plugin = await client.get_plugin(plugin_id)
 
-              if output_format == "json":
-                  console.print(json.dumps(plugin, indent=2))
-              else:
-                  # Display plugin details
-                  console.print(f"\n[bold cyan]{plugin['name']}[/bold cyan]")
-                  console.print(f"ID: {plugin['id']}")
-                  console.print(f"Type: {plugin['type']}")
-                  console.print(f"Version: {plugin.get('version', 'Unknown')}")
-                  console.print(f"Status: {plugin.get('status', 'Unknown')}")
+                if output_format == "json":
+                    console.print(json.dumps(plugin, indent=2))
+                else:
+                    # Display plugin details
+                    console.print(f"\n[bold cyan]{plugin['name']}[/bold cyan]")
+                    console.print(f"ID: {plugin['id']}")
+                    console.print(f"Type: {plugin['type']}")
+                    console.print(f"Version: {plugin.get('version', 'Unknown')}")
+                    console.print(f"Status: {plugin.get('status', 'Unknown')}")
 
-                  if "description" in plugin:
-                      console.print(f"\nDescription:\n{plugin['description']}")
+                    if "description" in plugin:
+                        console.print(f"\nDescription:\n{plugin['description']}")
 
-                  if "settings" in plugin:
-                      console.print("\nSettings:")
-                      settings = plugin["settings"]
-                      if isinstance(settings, dict):
-                          for key, value in settings.items():
-                              console.print(f"  {key}: {value}")
-                      else:
-                          console.print(f"  {settings}")
-      except (RuntimeError, ValueError, TypeError) as e:
-          console.print(f"[red]❌ Failed to get plugin details: {e}[/red]")
-          ctx.exit(1)
+                    if "settings" in plugin:
+                        console.print("\nSettings:")
+                        settings = plugin["settings"]
+                        if isinstance(settings, dict):
+                            for key, value in settings.items():
+                                console.print(f"  {key}: {value}")
+                        else:
+                            console.print(f"  {settings}")
+        except (RuntimeError, ValueError, TypeError) as e:
+            console.print(f"[red]❌ Failed to get plugin details: {e}[/red]")
+            ctx.exit(1)
 
     asyncio.run(_show())
 
@@ -116,26 +116,26 @@ def install(ctx: click.Context, plugin_id: str, version: str | None) -> None:
     console: Console = ctx.obj["console"]
 
     async def _install() -> None:
-      try:
-          async with FlextApiClient() as client:
-              with Progress(
-                  SpinnerColumn(),
-                  TextColumn("[progress.description]{task.description}"),
-                  console=console,
-                  transient=True,
-              ) as progress:
-                  progress.add_task(f"Installing {plugin_id}...")
-                  result = await client.install_plugin(plugin_id, version)
+        try:
+            async with FlextApiClient() as client:
+                with Progress(
+                    SpinnerColumn(),
+                    TextColumn("[progress.description]{task.description}"),
+                    console=console,
+                    transient=True,
+                ) as progress:
+                    progress.add_task(f"Installing {plugin_id}...")
+                    result = await client.install_plugin(plugin_id, version)
 
-              console.print(
-                  f"[green]✅ Plugin '{plugin_id}' installed successfully![/green]",
-              )
+                console.print(
+                    f"[green]✅ Plugin '{plugin_id}' installed successfully![/green]",
+                )
 
-              if "version" in result:
-                  console.print(f"Version: {result['version']}")
-      except (RuntimeError, ValueError, TypeError) as e:
-          console.print(f"[red]❌ Failed to install plugin: {e}[/red]")
-          ctx.exit(1)
+                if "version" in result:
+                    console.print(f"Version: {result['version']}")
+        except (RuntimeError, ValueError, TypeError) as e:
+            console.print(f"[red]❌ Failed to install plugin: {e}[/red]")
+            ctx.exit(1)
 
     asyncio.run(_install())
 
@@ -149,29 +149,29 @@ def update(ctx: click.Context, plugin_id: str, version: str | None) -> None:
     console: Console = ctx.obj["console"]
 
     async def _update() -> None:
-      try:
-          async with FlextApiClient() as client:
-              with Progress(
-                  SpinnerColumn(),
-                  TextColumn("[progress.description]{task.description}"),
-                  console=console,
-                  transient=True,
-              ) as progress:
-                  progress.add_task(f"Updating {plugin_id}...")
-                  result = await client.update_plugin(plugin_id, version)
+        try:
+            async with FlextApiClient() as client:
+                with Progress(
+                    SpinnerColumn(),
+                    TextColumn("[progress.description]{task.description}"),
+                    console=console,
+                    transient=True,
+                ) as progress:
+                    progress.add_task(f"Updating {plugin_id}...")
+                    result = await client.update_plugin(plugin_id, version)
 
-              console.print(
-                  f"[green]✅ Plugin '{plugin_id}' updated successfully![/green]",
-              )
+                console.print(
+                    f"[green]✅ Plugin '{plugin_id}' updated successfully![/green]",
+                )
 
-              if "old_version" in result and "new_version" in result:
-                  old_ver = result["old_version"]
-                  new_ver = result["new_version"]
-                  version_msg: str = f"Updated from {old_ver} to {new_ver}"
-                  console.print(version_msg)
-      except (RuntimeError, ValueError, TypeError) as e:
-          console.print(f"[red]❌ Failed to update plugin: {e}[/red]")
-          ctx.exit(1)
+                if "old_version" in result and "new_version" in result:
+                    old_ver = result["old_version"]
+                    new_ver = result["new_version"]
+                    version_msg: str = f"Updated from {old_ver} to {new_ver}"
+                    console.print(version_msg)
+        except (RuntimeError, ValueError, TypeError) as e:
+            console.print(f"[red]❌ Failed to update plugin: {e}[/red]")
+            ctx.exit(1)
 
     asyncio.run(_update())
 
@@ -186,34 +186,34 @@ def remove(ctx: click.Context, plugin_id: str, **kwargs: bool) -> None:
     force = kwargs.get("force", False)
 
     async def _remove() -> None:
-      try:
-          async with FlextApiClient() as client:
-              # Get plugin details first
-              plugin = await client.get_plugin(plugin_id)
+        try:
+            async with FlextApiClient() as client:
+                # Get plugin details first
+                plugin = await client.get_plugin(plugin_id)
 
-              if not force:
-                  confirm = click.confirm(
-                      f"Are you sure you want to remove plugin '{plugin['name']}'?",
-                  )
-                  if not confirm:
-                      console.print("[yellow]Removal cancelled[/yellow]")
-                      return
+                if not force:
+                    confirm = click.confirm(
+                        f"Are you sure you want to remove plugin '{plugin['name']}'?",
+                    )
+                    if not confirm:
+                        console.print("[yellow]Removal cancelled[/yellow]")
+                        return
 
-              with Progress(
-                  SpinnerColumn(),
-                  TextColumn("[progress.description]{task.description}"),
-                  console=console,
-                  transient=True,
-              ) as progress:
-                  progress.add_task(f"Removing {plugin_id}...")
-                  await client.uninstall_plugin(plugin_id)
+                with Progress(
+                    SpinnerColumn(),
+                    TextColumn("[progress.description]{task.description}"),
+                    console=console,
+                    transient=True,
+                ) as progress:
+                    progress.add_task(f"Removing {plugin_id}...")
+                    await client.uninstall_plugin(plugin_id)
 
-              console.print(
-                  f"[green]✅ Plugin '{plugin['name']}' removed successfully[/green]",
-              )
-      except (RuntimeError, ValueError, TypeError) as e:
-          console.print(f"[red]❌ Failed to remove plugin: {e}[/red]")
-          ctx.exit(1)
+                console.print(
+                    f"[green]✅ Plugin '{plugin['name']}' removed successfully[/green]",
+                )
+        except (RuntimeError, ValueError, TypeError) as e:
+            console.print(f"[red]❌ Failed to remove plugin: {e}[/red]")
+            ctx.exit(1)
 
     asyncio.run(_remove())
 
@@ -252,7 +252,7 @@ def create(
     console.print("[yellow]Plugin creation not yet implemented[/yellow]")
     console.print(f"Would create {plugin_type} plugin: {name}")
     if template:
-      console.print(f"Using template: {template}")
+        console.print(f"Using template: {template}")
 
 
 @plugin.command()
@@ -265,6 +265,6 @@ def test(ctx: click.Context, **kwargs: bool) -> None:
 
     console.print("[yellow]Plugin testing not yet implemented[/yellow]")
     if watch:
-      console.print("[blue]Watch mode would be enabled[/blue]")
+        console.print("[blue]Watch mode would be enabled[/blue]")
     if watch:
-      console.print("Would enable hot reload...")
+        console.print("Would enable hot reload...")

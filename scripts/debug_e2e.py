@@ -19,22 +19,22 @@ def main() -> None:
     """Debug E2E test runner for CLI operations."""
     runner = CliRunner()
     operations = [
-      ["config", "show"],
-      ["config", "validate"],
-      ["auth", "status"],
-      ["debug", "check"],
+        ["config", "show"],
+        ["config", "validate"],
+        ["auth", "status"],
+        ["debug", "check"],
     ]
 
     for operation in operations:
-      result = runner.invoke(cli, ["--output", "json", *operation])
-      if result.exit_code != 0:
-          if result.exception:
-              traceback.print_exception(
-                  type(result.exception),
-                  result.exception,
-                  result.exception.__traceback__,
-              )
-          break
+        result = runner.invoke(cli, ["--output", "json", *operation])
+        if result.exit_code != 0:
+            if result.exception:
+                traceback.print_exception(
+                    type(result.exception),
+                    result.exception,
+                    result.exception.__traceback__,
+                )
+            break
 
 
 if __name__ == "__main__":

@@ -47,12 +47,12 @@ class FlextCliEntity(FlextEntity):
     description: str = ""
 
     def execute(self) -> FlextResult[object]:
-      """Execute CLI command with automatic error handling."""
-      return FlextResult.ok(f"CLI command '{self.name}' executed successfully")
+        """Execute CLI command with automatic error handling."""
+        return FlextResult.ok(f"CLI command '{self.name}' executed successfully")
 
     def with_args(self, args: dict[str, object]) -> FlextCliEntity:
-      """Update CLI entity with parsed arguments (immutable)."""
-      return self.model_copy(update={"args": args})
+        """Update CLI entity with parsed arguments (immutable)."""
+        return self.model_copy(update={"args": args})
 
 
 class FlextCliConfig(FlextModel):
@@ -106,53 +106,53 @@ def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
 
     """
     try:
-      # Create hierarchical configuration following docs/patterns/config-cli.md
-      hierarchy_result = create_default_hierarchy(
-          config_path=None,  # Use defaults
-      )
+        # Create hierarchical configuration following docs/patterns/config-cli.md
+        hierarchy_result = create_default_hierarchy(
+            config_path=None,  # Use defaults
+        )
 
-      if not hierarchy_result.success:
-          return FlextResult.fail(
-              f"Hierarchy creation failed: {hierarchy_result.error}",
-          )
+        if not hierarchy_result.success:
+            return FlextResult.fail(
+                f"Hierarchy creation failed: {hierarchy_result.error}",
+            )
 
-      # Ensure hierarchy.data is not None before proceeding
-      if hierarchy_result.data is None:
-          return FlextResult.fail("Hierarchy data is None after creation")
+        # Ensure hierarchy.data is not None before proceeding
+        if hierarchy_result.data is None:
+            return FlextResult.fail("Hierarchy data is None after creation")
 
-      hierarchy = hierarchy_result.data
+        hierarchy = hierarchy_result.data
 
-      # Collect all configuration values
-      all_configs = hierarchy.copy()  # hierarchy is dict[str, Any]
+        # Collect all configuration values
+        all_configs = hierarchy.copy()  # hierarchy is dict[str, Any]
 
-      # Add CLI overrides (highest precedence)
-      all_configs.update(overrides)
+        # Add CLI overrides (highest precedence)
+        all_configs.update(overrides)
 
-      # Explicitly map known keys to expected types for FlextCliConfig
-      # This addresses the 'incompatible type' errors during model_validate
-      final_config_data: dict[str, object] = {
-          "profile": str(all_configs.get("profile", "default")),
-          "output_format": str(all_configs.get("output_format", "table")),
-          "debug": bool(all_configs.get("debug", False)),
-          "quiet": bool(all_configs.get("quiet", False)),
-          # Add other known fields if they exist in FlextCliConfig
-          # For example: "log_level": str(all_configs.get("log_level", "INFO")),
-      }
+        # Explicitly map known keys to expected types for FlextCliConfig
+        # This addresses the 'incompatible type' errors during model_validate
+        final_config_data: dict[str, object] = {
+            "profile": str(all_configs.get("profile", "default")),
+            "output_format": str(all_configs.get("output_format", "table")),
+            "debug": bool(all_configs.get("debug", False)),
+            "quiet": bool(all_configs.get("quiet", False)),
+            # Add other known fields if they exist in FlextCliConfig
+            # For example: "log_level": str(all_configs.get("log_level", "INFO")),
+        }
 
-      # Add any other overrides that might not be in the default hierarchy
-      for key, value in overrides.items():
-          if key not in final_config_data and isinstance(
-              value,
-              (str, bool, int, float, type(None)),
-          ):  # Avoid overwriting explicitly mapped fields
-              final_config_data[key] = value
+        # Add any other overrides that might not be in the default hierarchy
+        for key, value in overrides.items():
+            if key not in final_config_data and isinstance(
+                value,
+                (str, bool, int, float, type(None)),
+            ):  # Avoid overwriting explicitly mapped fields
+                final_config_data[key] = value
 
-      # Create configuration with merged values and explicit type mapping
-      config = FlextCliConfig.model_validate(final_config_data)
-      return FlextResult.ok(config)
+        # Create configuration with merged values and explicit type mapping
+        config = FlextCliConfig.model_validate(final_config_data)
+        return FlextResult.ok(config)
 
     except Exception as e:
-      return FlextResult.fail(f"Configuration creation failed: {e}")
+        return FlextResult.fail(f"Configuration creation failed: {e}")
 
 
 def setup_cli(config: FlextCliConfig | None = None) -> FlextResult[dict[str, object]]:
@@ -179,23 +179,23 @@ def setup_cli(config: FlextCliConfig | None = None) -> FlextResult[dict[str, obj
 
     """
     try:
-      if config is None:
-          config_result = create_cli_config()
-          if not config_result.success:
-              return FlextResult.fail(
-                  f"Config creation failed: {config_result.error}",
-              )
-          config = config_result.data
+        if config is None:
+            config_result = create_cli_config()
+            if not config_result.success:
+                return FlextResult.fail(
+                    f"Config creation failed: {config_result.error}",
+                )
+            config = config_result.data
 
-      if config is None:
-          return FlextResult.fail("CLI configuration is None after creation attempt")
+        if config is None:
+            return FlextResult.fail("CLI configuration is None after creation attempt")
 
-      # CLI setup logic here - initialize CLI systems, logging, etc.
-      # Implementation complete per requirements
-      return FlextResult.ok({"debug_mode": config.debug})
+        # CLI setup logic here - initialize CLI systems, logging, etc.
+        # Implementation complete per requirements
+        return FlextResult.ok({"debug_mode": config.debug})
 
     except Exception as e:
-      return FlextResult.fail(f"CLI setup failed: {e}")
+        return FlextResult.fail(f"CLI setup failed: {e}")
 
 
 __all__ = [

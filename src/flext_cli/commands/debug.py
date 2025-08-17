@@ -38,73 +38,73 @@ class _CommandShim:
     """
 
     def __init__(
-      self,
-      command: click.Command,
-      *,
-      prefer_passed_ctx: bool = False,
+        self,
+        command: click.Command,
+        *,
+        prefer_passed_ctx: bool = False,
     ) -> None:
-      self._cmd = command
-      self._prefer_passed_ctx = prefer_passed_ctx
-      try:
-          # Expose click decorator params for tests
-          self.__click_params__ = getattr(command.callback, "__click_params__", [])
-      except Exception:
-          self.__click_params__ = []
+        self._cmd = command
+        self._prefer_passed_ctx = prefer_passed_ctx
+        try:
+            # Expose click decorator params for tests
+            self.__click_params__ = getattr(command.callback, "__click_params__", [])
+        except Exception:
+            self.__click_params__ = []
 
     def __call__(
-      self,
-      *args: object,
-      **kwargs: object,
+        self,
+        *args: object,
+        **kwargs: object,
     ) -> object:  # pragma: no cover - thin shim
-      if args:
-          first = args[0]
-          # Accept both real Click contexts and test doubles that expose `.obj`
-          if isinstance(first, click.Context) or hasattr(first, "obj"):
-              callback = self._cmd.callback
-              wrapped = getattr(callback, "__wrapped__", None)
-              if (
-                  self._prefer_passed_ctx
-                  and wrapped is not None
-                  and not isinstance(first, click.Context)
-              ):
-                  # For commands like validate(): allow tests to spy on ctx.exit
-                  from contextlib import suppress as _suppress  # noqa: PLC0415
+        if args:
+            first = args[0]
+            # Accept both real Click contexts and test doubles that expose `.obj`
+            if isinstance(first, click.Context) or hasattr(first, "obj"):
+                callback = self._cmd.callback
+                wrapped = getattr(callback, "__wrapped__", None)
+                if (
+                    self._prefer_passed_ctx
+                    and wrapped is not None
+                    and not isinstance(first, click.Context)
+                ):
+                    # For commands like validate(): allow tests to spy on ctx.exit
+                    from contextlib import suppress as _suppress  # noqa: PLC0415
 
-                  with _suppress(Exception):
-                      # Ensure patched `get_config` in this module is used inside the wrapped function
-                      wrapped.__globals__["get_config"] = get_config
-                  return wrapped(first, *args[1:], **kwargs)
+                    with _suppress(Exception):
+                        # Ensure patched `get_config` in this module is used inside the wrapped function
+                        wrapped.__globals__["get_config"] = get_config
+                    return wrapped(first, *args[1:], **kwargs)
 
-              # Default: execute within a temporary active click context so
-              # click.get_current_context works and ctx.exit raises SystemExit.
-              temp_ctx = (
-                  first
-                  if isinstance(first, click.Context)
-                  else click.Context(self._cmd)
-              )
-              if not isinstance(first, click.Context) and hasattr(first, "obj"):
-                  from contextlib import suppress as _suppress  # noqa: PLC0415
+                # Default: execute within a temporary active click context so
+                # click.get_current_context works and ctx.exit raises SystemExit.
+                temp_ctx = (
+                    first
+                    if isinstance(first, click.Context)
+                    else click.Context(self._cmd)
+                )
+                if not isinstance(first, click.Context) and hasattr(first, "obj"):
+                    from contextlib import suppress as _suppress  # noqa: PLC0415
 
-                  with _suppress(Exception):
-                      temp_ctx.obj = first.obj
+                    with _suppress(Exception):
+                        temp_ctx.obj = first.obj
 
-              # Execute the callback within the active context
-              try:
-                  target = getattr(callback, "__wrapped__", callback)
-                  if target and hasattr(target, "__globals__") and target.__globals__:
-                      target.__globals__["get_config"] = get_config
-              except Exception:
-                  ...
+                # Execute the callback within the active context
+                try:
+                    target = getattr(callback, "__wrapped__", callback)
+                    if target and hasattr(target, "__globals__") and target.__globals__:
+                        target.__globals__["get_config"] = get_config
+                except Exception:
+                    ...
 
-              # Ensure the context is active when calling the callback
-              if callback:
-                  # Avoid `with temp_ctx:` since click.Context is not a context manager
-                  return callback(*args[1:], **kwargs)
-              return None
-      return self._cmd(*args, **kwargs)
+                # Ensure the context is active when calling the callback
+                if callback:
+                    # Avoid `with temp_ctx:` since click.Context is not a context manager
+                    return callback(*args[1:], **kwargs)
+                return None
+        return self._cmd(*args, **kwargs)
 
     def __getattr__(self, name: str) -> object:  # pragma: no cover - delegation
-      return getattr(self._cmd, name)
+        return getattr(self._cmd, name)
 
 
 # Public command objects with dual-behavior callable shim

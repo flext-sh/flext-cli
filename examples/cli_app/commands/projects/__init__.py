@@ -9,9 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import contextlib
-
-with contextlib.suppress(ImportError):
-    from . import client-a, client-b, meltano
+from . import client-a, client-b, meltano
 
 __all__: list[str] = ["client-a", "client-b", "meltano"]
