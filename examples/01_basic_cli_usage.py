@@ -20,7 +20,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import FlextResult
-from rich.console import Console
+from rich import Console
 
 import flext_cli
 
@@ -97,10 +97,10 @@ def demonstrate_debug_context() -> None:
     """Demonstrate debug context."""
     console = Console()
     debug_context = flext_cli.CLIContext(
-        profile="development",
-        output_format="json",
-        debug=True,
-        verbose=True,
+      profile="development",
+      output_format="json",
+      debug=True,
+      verbose=True,
     )
     console.print(f"   Debug profile: {debug_context.profile}")
     console.print(f"   Debug format: {debug_context.output_format}")
@@ -132,7 +132,7 @@ def main() -> None:
 
     # Path types
     console.print(
-        f"   ExistingFile allows existing files: {flext_cli.ExistingFile.exists}",
+      f"   ExistingFile allows existing files: {flext_cli.ExistingFile.exists}",
     )
     console.print(f"   NewFile allows new files: {not flext_cli.NewFile.exists}")
     console.print()
@@ -141,9 +141,9 @@ def main() -> None:
     console.print("[bold blue]6. CLI Setup[/bold blue]")
     setup_result = flext_cli.setup_cli()
     if setup_result.success:
-        console.print("   ✅ CLI setup completed successfully")
+      console.print("   ✅ CLI setup completed successfully")
     else:
-        console.print(f"   ❌ CLI setup failed: {setup_result.error}")
+      console.print(f"   ❌ CLI setup failed: {setup_result.error}")
     console.print()
 
     # 7. Service Result Handling Pattern
@@ -151,13 +151,13 @@ def main() -> None:
 
     @flext_cli.handle_service_result
     def example_service_operation() -> str:
-        """Return a simple result from a service operation."""
-        return "Operation completed successfully"
+      """Return a simple result from a service operation."""
+      return "Operation completed successfully"
 
     @flext_cli.handle_service_result
     def example_service_with_result() -> str:
-        """Return a FlextResult from a service operation."""
-        return FlextResult.ok("Service result data")
+      """Return a FlextResult from a service operation."""
+      return FlextResult.ok("Service result data")
 
     # Test the decorators
     result1 = example_service_operation()

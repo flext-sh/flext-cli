@@ -1,4 +1,9 @@
-"""Auth commands."""
+"""Auth commands.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
 
 from __future__ import annotations
 
@@ -52,13 +57,13 @@ def _logout_shim(ctx: click.Context) -> None:  # pragma: no cover - thin wrapper
     """Logout shim function.
 
     Args:
-        ctx (click.Context): Description.
+      ctx (click.Context): Description.
 
     """
     with contextlib.suppress(Exception):
-        clear_auth_tokens()
+      clear_auth_tokens()
     if callable(_original_logout_callback):
-        _original_logout_callback(ctx)
+      _original_logout_callback(ctx)
 
 
 _cli_logout.callback = _logout_shim

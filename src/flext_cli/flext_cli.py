@@ -1,8 +1,13 @@
-"""FLEXT CLI Public Interface."""
+"""FLEXT CLI Public Interface.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 from flext_core import get_logger
 
@@ -15,10 +20,6 @@ from flext_cli.models import FlextCliContext
 _api = FlextCliApi()
 
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
-
 def flext_cli_export(
     data: object,
     path: str | Path,
@@ -27,12 +28,12 @@ def flext_cli_export(
     """Export data to file in specified format.
 
     Args:
-        data: Data to export
-        path: File path to write to
-        format_type: Output format (json, yaml, csv, table, plain)
+      data: Data to export
+      path: File path to write to
+      format_type: Output format (json, yaml, csv, table, plain)
 
     Returns:
-        True if export successful, False otherwise
+      True if export successful, False otherwise
 
     """
     return _api.flext_cli_export(data, path, format_type)
@@ -45,11 +46,11 @@ def flext_cli_format(
     """Format data for display.
 
     Args:
-        data: Data to format
-        format_type: Output format (json, yaml, csv, table, plain)
+      data: Data to format
+      format_type: Output format (json, yaml, csv, table, plain)
 
     Returns:
-        Formatted string representation
+      Formatted string representation
 
     """
     return _api.flext_cli_format(data, format_type)
@@ -59,10 +60,10 @@ def flext_cli_configure(config: dict[str, object]) -> bool:
     """Configure CLI service.
 
     Args:
-        config: Configuration dictionary
+      config: Configuration dictionary
 
     Returns:
-        True if configuration successful, False otherwise
+      True if configuration successful, False otherwise
 
     """
     return _api.flext_cli_configure(config)
@@ -72,7 +73,7 @@ def flext_cli_health() -> dict[str, object]:
     """Get service health status.
 
     Returns:
-        Health status dictionary
+      Health status dictionary
 
     """
     return _api.flext_cli_health()
@@ -84,25 +85,25 @@ def flext_cli_create_context(
     """Create CLI execution context.
 
     Args:
-        config: Optional configuration dictionary
+      config: Optional configuration dictionary
 
     Returns:
-        CLI context object
+      CLI context object
 
     """
     result = _api.flext_cli_create_context(config)
     # Cast to expected type since API returns object
     try:
-        if isinstance(result, FlextCliContext):
-            return result
+      if isinstance(result, FlextCliContext):
+          return result
     except TypeError as e:
-        # Handle cases where isinstance fails due to import issues
-        logger = get_logger(__name__)
-        logger.warning(f"Type checking failed for FlextCliContext: {e}")
+      # Handle cases where isinstance fails due to import issues
+      logger = get_logger(__name__)
+      logger.warning(f"Type checking failed for FlextCliContext: {e}")
     # Create fallback context if cast fails
     cli_config = FlextCliConfig()
     if config:
-        cli_config = cli_config.model_copy(update=config)
+      cli_config = cli_config.model_copy(update=config)
     # Create CLI context without invalid parameters - just use defaults
     return FlextCliContext()
 
@@ -114,12 +115,12 @@ def flext_cli_create_command(name: str, command_line: str, **options: object) ->
     """Create command using shared API.
 
     Args:
-        name: Command name
-        command_line: Command line string
-        **options: Additional command options
+      name: Command name
+      command_line: Command line string
+      **options: Additional command options
 
     Returns:
-        True if command created successfully, False otherwise
+      True if command created successfully, False otherwise
 
     """
     result = _api.flext_cli_create_command(name, command_line, **options)
@@ -130,10 +131,10 @@ def flext_cli_create_session(user_id: str | None = None) -> str:
     """Create session with auto-generated ID.
 
     Args:
-        user_id: Optional user ID
+      user_id: Optional user ID
 
     Returns:
-        Session creation result message
+      Session creation result message
 
     """
     result = _api.flext_cli_create_session(user_id)
@@ -144,11 +145,11 @@ def flext_cli_register_handler(name: str, handler: object) -> bool:
     """Register handler using unified method.
 
     Args:
-        name: Handler name
-        handler: Handler function or callable
+      name: Handler name
+      handler: Handler function or callable
 
     Returns:
-        True if handler registered successfully, False otherwise
+      True if handler registered successfully, False otherwise
 
     """
     result = _api.flext_cli_register_handler(name, handler)
@@ -159,11 +160,11 @@ def flext_cli_register_plugin(name: str, plugin: object) -> bool:
     """Register plugin using unified method.
 
     Args:
-        name: Plugin name
-        plugin: Plugin instance
+      name: Plugin name
+      plugin: Plugin instance
 
     Returns:
-        True if plugin registered successfully, False otherwise
+      True if plugin registered successfully, False otherwise
 
     """
     result = _api.flext_cli_register_plugin(name, plugin)
@@ -174,12 +175,12 @@ def flext_cli_execute_handler(name: str, *args: object, **kwargs: object) -> obj
     """Execute handler using shared API.
 
     Args:
-        name: Handler name
-        *args: Positional arguments
-        **kwargs: Keyword arguments
+      name: Handler name
+      *args: Positional arguments
+      **kwargs: Keyword arguments
 
     Returns:
-        Handler execution result or error dict
+      Handler execution result or error dict
 
     """
     result = _api.flext_cli_execute_handler(name, *args, **kwargs)
@@ -193,11 +194,11 @@ def flext_cli_render_with_context(
     """Render with context.
 
     Args:
-        data: Data to render
-        context: Optional context dictionary
+      data: Data to render
+      context: Optional context dictionary
 
     Returns:
-        Formatted string representation
+      Formatted string representation
 
     """
     result = _api.flext_cli_render_with_context(data, context)
@@ -208,7 +209,7 @@ def flext_cli_get_commands() -> dict[str, object]:
     """Get all commands.
 
     Returns:
-        Dictionary of all registered commands
+      Dictionary of all registered commands
 
     """
     return _api.flext_cli_get_commands()
@@ -218,7 +219,7 @@ def flext_cli_get_sessions() -> dict[str, object]:
     """Get all sessions.
 
     Returns:
-        Dictionary of all active sessions
+      Dictionary of all active sessions
 
     """
     return _api.flext_cli_get_sessions()
@@ -228,7 +229,7 @@ def flext_cli_get_plugins() -> dict[str, object]:
     """Get all plugins.
 
     Returns:
-        Dictionary of all registered plugins
+      Dictionary of all registered plugins
 
     """
     return _api.flext_cli_get_plugins()
@@ -238,7 +239,7 @@ def flext_cli_get_handlers() -> dict[str, object]:
     """Get all handlers.
 
     Returns:
-        Dictionary of all registered handlers
+      Dictionary of all registered handlers
 
     """
     return _api.flext_cli_get_handlers()

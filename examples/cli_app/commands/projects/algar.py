@@ -5,86 +5,7 @@ comprehensive Oracle Unified Directory (OUD) migration capabilities. Integrates
 complete functionality from the algar-oud-mig project while maintaining all
 original features and enterprise-grade migration workflows.
 
-Architecture:
-    - Complete integration of algar-oud-mig functionality
-    - Enterprise-grade LDIF processing and validation
-    - OUD-specific schema conversion and optimization
-    - ACL migration with permission preservation
-    - Batch processing with progress monitoring
-    - Comprehensive error handling and recovery
-
-Command Groups:
-    algar migration         Execute OUD migration workflows
-    algar validate          Validate LDIF files and migration readiness
-    algar schema            Schema conversion and management
-    algar acl               Access Control List migration
-    algar status            Migration status and progress monitoring
-    algar config            ALGAR project configuration management
-
-Current Implementation Status:
-    ✅ COMPLETE IMPLEMENTATION - Production Ready
-    - Full algar-oud-mig integration preserved
-    - All original CLI commands maintained
-    - Enterprise migration workflows functional
-    - Comprehensive error handling and logging
-
-ALGAR Project Background:
-    The ALGAR project provides enterprise-grade Oracle Unified Directory
-    migration tools for large-scale LDAP directory migrations. This integration
-    maintains 100% compatibility with existing ALGAR workflows while providing
-    unified CLI access through FLEXT.
-
-Migration Capabilities:
-    - LDIF file processing and validation with schema conversion
-    - OUD-specific optimizations and performance tuning
-    - ACL migration with complex permission mapping
-    - Batch processing for large directory datasets
-    - Migration progress monitoring and reporting
-    - Rollback and recovery mechanisms
-
-Usage Examples:
-    Migration operations:
-    >>> flext projects algar migration start --config migration.yaml
-    >>> flext projects algar migration status --detailed
-    >>> flext projects algar migration rollback --confirm
-
-    Validation and testing:
-    >>> flext projects algar validate --input data.ldif --strict
-    >>> flext projects algar schema convert --input schema.ldif
-    >>> flext projects algar acl migrate --source src.ldif --target oud.ldif
-
-    Configuration and management:
-    >>> flext projects algar config show --environment production
-    >>> flext projects algar status --all-migrations
-    >>> flext projects algar logs --tail 100
-
-Integration Points:
-    - algar-oud-mig: Complete project integration with preserved functionality
-    - LDIF Processing: Enterprise-grade LDIF validation and conversion
-    - OUD Integration: Direct Oracle Unified Directory integration
-    - Migration Workflows: Complex multi-stage migration orchestration
-    - Monitoring Systems: Integration with FLEXT observability stack
-
-Sprint 9 Integration:
-    ALGAR integration is planned for Sprint 9 as part of project-specific
-    command implementation. Provides template for other project integrations
-    while maintaining existing enterprise workflows.
-
-Enterprise Features:
-    - Production-grade migration workflows with validation
-    - Comprehensive error handling and recovery mechanisms
-    - Progress monitoring with detailed reporting
-    - Rollback capabilities for failed migrations
-    - Integration with enterprise monitoring and alerting
-
-TODO (Sprint 9 Enhancement):
-    - Enhanced integration with FLEXT monitoring
-    - Unified configuration management with FLEXT profiles
-    - Integration with FLEXT pipeline orchestration
-    - Enhanced Rich UI for migration progress display
-    - Integration with FLEXT plugin system
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2025 Flext. All rights reserved.
 SPDX-License-Identifier: MIT
 
 """
@@ -100,13 +21,10 @@ import sys
 import time
 import traceback
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import click
 from flext_core import get_logger
-
-if TYPE_CHECKING:
-    from flext_core.result import FlextResult
+from flext_core.result import FlextResult
 
 # Constants
 SENSITIVE_VALUE_SUFFIX_LENGTH = 4
@@ -129,6 +47,7 @@ except ImportError as e:
 # Define fallback values when imports fail
 if not ALGAR_AVAILABLE:
     MigrateLDIFCommand = type(None)
+
     MigrateLDIFHandler = type(None)
     MigrationService = type(None)
     LDIFEntry = type(None)
@@ -147,10 +66,10 @@ def _ensure_base_dn() -> str:
     """Ensure ALGAR_OUD_BASE_DN is set in environment.
 
     Returns:
-        Base DN from environment variable
+      Base DN from environment variable
 
     Raises:
-        ValueError: If ALGAR_OUD_BASE_DN is not set
+      ValueError: If ALGAR_OUD_BASE_DN is not set
 
     """
     base_dn = os.environ.get("ALGAR_OUD_BASE_DN")
@@ -169,9 +88,9 @@ def setup_logging(
     """Set up logging configuration for the service.
 
     Args:
-        _service_name: Service name for logging (unused)
-        log_level: Log level (INFO, DEBUG, etc.)
-        json_logs: Whether to use JSON format
+      _service_name: Service name for logging (unused)
+      log_level: Log level (INFO, DEBUG, etc.)
+      json_logs: Whether to use JSON format
 
     """
     # json_logs parameter is kept for API compatibility but not used
@@ -196,14 +115,6 @@ def algar(ctx: click.Context, **kwargs: bool) -> None:
     This command provides comprehensive Oracle Internet Directory (OID) to
     Oracle Unified Directory (OUD) migration capabilities for ALGAR.
     """
-    if not ALGAR_AVAILABLE:
-        click.echo(
-            "Error: ALGAR OUD Migration package not available. Please install "
-            "algar-oud-mig.",
-            err=True,
-        )
-        ctx.exit(1)
-
     debug = kwargs.get("debug", False)
     dry_run = kwargs.get("dry_run", False)
 

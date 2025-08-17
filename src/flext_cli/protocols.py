@@ -1,16 +1,12 @@
-"""FLEXT CLI Protocols."""
-
-from __future__ import annotations
+"""CLI protocols module."""
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from pathlib import Path
+from typing import Protocol, runtime_checkable
 
 import click
 from flext_core import FlextResult
 from rich.console import Console
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 @runtime_checkable
@@ -27,24 +23,20 @@ class FlextCliCommandProtocol(Protocol):
         **kwargs: object,
     ) -> FlextResult[object]:
         """Execute the CLI command."""
-        ...
 
     @abstractmethod
     def validate_args(self, **kwargs: object) -> FlextResult[dict[str, object]]:
         """Validate command arguments."""
-        ...
 
     @property
     @abstractmethod
     def name(self) -> str:
         """Command name."""
-        ...
 
     @property
     @abstractmethod
     def description(self) -> str:
         """Command description."""
-        ...
 
 
 @runtime_checkable
@@ -63,18 +55,15 @@ class FlextCliFormatterProtocol(Protocol):
         **options: object,
     ) -> FlextResult[str]:
         """Format data for display."""
-        ...
 
     @abstractmethod
     def format_error(self, error: str | Exception, *, verbose: bool = False) -> str:
         """Format error message."""
-        ...
 
     @property
     @abstractmethod
     def supported_formats(self) -> list[str]:
         """List of supported formats."""
-        ...
 
 
 @runtime_checkable
@@ -91,7 +80,6 @@ class FlextCliValidatorProtocol(Protocol):
         available_commands: list[str],
     ) -> FlextResult[str]:
         """Validate a CLI command."""
-        ...
 
     @abstractmethod
     def validate_path(
@@ -103,7 +91,6 @@ class FlextCliValidatorProtocol(Protocol):
         must_be_dir: bool = False,
     ) -> FlextResult[Path]:
         """Validate a file system path."""
-        ...
 
 
 @runtime_checkable
@@ -121,7 +108,6 @@ class FlextCliServiceProtocol(Protocol):
         theme: str | None = None,
     ) -> FlextResult[Console]:
         """Initialize Rich console."""
-        ...
 
     @abstractmethod
     def load_configuration(
@@ -131,7 +117,6 @@ class FlextCliServiceProtocol(Protocol):
         config_file: Path | None = None,
     ) -> FlextResult[dict[str, object]]:
         """Load CLI configuration."""
-        ...
 
 
 @runtime_checkable
@@ -144,24 +129,20 @@ class FlextCliPluginProtocol(Protocol):
     @abstractmethod
     def register_commands(self, cli: click.Group) -> FlextResult[None]:
         """Register plugin commands."""
-        ...
 
     @abstractmethod
     def initialize(self, context: dict[str, object]) -> FlextResult[None]:
         """Initialize plugin."""
-        ...
 
     @property
     @abstractmethod
     def name(self) -> str:
         """Plugin name."""
-        ...
 
     @property
     @abstractmethod
     def version(self) -> str:
         """Plugin version."""
-        ...
 
 
 @runtime_checkable
@@ -180,12 +161,10 @@ class FlextCliInteractiveProtocol(Protocol):
         password: bool = False,
     ) -> FlextResult[str]:
         """Prompt user for input."""
-        ...
 
     @abstractmethod
     def confirm(self, message: str, *, default: bool = False) -> FlextResult[bool]:
         """Ask for confirmation."""
-        ...
 
     @abstractmethod
     def select(
@@ -195,7 +174,6 @@ class FlextCliInteractiveProtocol(Protocol):
         default: str | None = None,
     ) -> FlextResult[str]:
         """Select from choices."""
-        ...
 
 
 @runtime_checkable
@@ -208,15 +186,12 @@ class FlextConfigProvider(Protocol):
         default: object | None = None,
     ) -> FlextResult[object]:
         """Get configuration value by key."""
-        ...
 
     def get_priority(self) -> int:
         """Return provider priority."""
-        ...
 
     def get_all(self) -> dict[str, object]:
         """Return all configuration values."""
-        ...
 
 
 @runtime_checkable
@@ -229,28 +204,23 @@ class FlextCliConfigProtocol(Protocol):
     @abstractmethod
     def get(self, key: str, default: object = None) -> FlextResult[object]:
         """Get configuration value."""
-        ...
 
     @abstractmethod
     def set(self, key: str, value: object) -> FlextResult[None]:
         """Set configuration value."""
-        ...
 
     @abstractmethod
     def load_from_file(self, path: Path) -> FlextResult[None]:
         """Load configuration from file."""
-        ...
 
     @abstractmethod
     def save_to_file(self, path: Path) -> FlextResult[None]:
         """Save configuration to file."""
-        ...
 
     @property
     @abstractmethod
     def providers(self) -> list[FlextConfigProvider]:
         """List of configuration providers."""
-        ...
 
 
 # Type aliases for implementations

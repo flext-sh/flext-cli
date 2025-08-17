@@ -10,21 +10,25 @@ Test Categories:
     - FlextCliFileManager: Advanced file operations
     - Factory functions: Helper instantiation
     - Batch operations: Multi-operation workflows
-    - Edge cases and error conditions
+    - Edge cases and error conditions.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
+
+from __future__ import annotations
 
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from typing import Never
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from flext_core import FlextResult
 
-from flext_cli.core.helpers import (
+from flext_cli import (
     FlextCliDataProcessor,
     FlextCliFileManager,
     FlextCliHelper,
@@ -38,654 +42,664 @@ from flext_cli.core.helpers import (
 class TestFlextCliHelper:
     """Test suite for FlextCliHelper core functionality."""
 
-    def test_helper_initialization(self):
-        """Test helper initialization with default and custom options."""
-        # Default initialization
-        helper = FlextCliHelper()
-        assert helper.console is not None
-        assert helper.quiet is False
+    def test_helper_initialization(self) -> None:
+      """Test helper initialization with default and custom options."""
+      # Default initialization
+      helper = FlextCliHelper()
+      assert helper.console is not None
+      assert helper.quiet is False
 
-        # Custom initialization
-        helper_quiet = FlextCliHelper(quiet=True)
-        assert helper_quiet.quiet is True
+      # Custom initialization
+      helper_quiet = FlextCliHelper(quiet=True)
+      assert helper_quiet.quiet is True
 
-    def test_flext_cli_confirm(self):
-        """Test confirmation functionality."""
-        helper = FlextCliHelper(quiet=True)
+    def test_flext_cli_confirm(self) -> None:
+      """Test confirmation functionality."""
+      helper = FlextCliHelper(quiet=True)
 
-        # Quiet mode returns default
-        result = helper.flext_cli_confirm("Test confirmation", default=True)
-        assert result.success
-        assert result.data is True
+      # Quiet mode returns default
+      result = helper.flext_cli_confirm("Test confirmation", default=True)
+      assert result.success
+      assert result.data is True
 
-        result = helper.flext_cli_confirm("Test confirmation", default=False)
-        assert result.success
-        assert result.data is False
+      result = helper.flext_cli_confirm("Test confirmation", default=False)
+      assert result.success
+      assert result.data is False
 
     @patch("rich.prompt.Prompt.ask")
-    def test_flext_cli_prompt(self, mock_ask):
-        """Test prompt functionality."""
-        helper = FlextCliHelper()
+    def test_flext_cli_prompt(self, mock_ask: MagicMock) -> None:
+      """Test prompt functionality."""
+      helper = FlextCliHelper()
 
-        # Normal prompt
-        mock_ask.return_value = "test input"
-        result = helper.flext_cli_prompt("Enter value:")
-        assert result.success
-        assert result.data == "test input"
+      # Normal prompt
+      mock_ask.return_value = "test input"
+      result = helper.flext_cli_prompt("Enter value:")
+      assert result.success
+      assert result.data == "test input"
 
-        # Prompt with default
-        mock_ask.return_value = ""
-        result = helper.flext_cli_prompt("Enter value:", default="default_value")
-        assert result.success
-        assert result.data == "default_value"
+      # Prompt with default
+      mock_ask.return_value = ""
+      result = helper.flext_cli_prompt("Enter value:", default="default_value")
+      assert result.success
+      assert result.data == "default_value"
 
-        # Empty prompt without default should fail
-        mock_ask.return_value = ""
-        result = helper.flext_cli_prompt("Enter value:")
-        assert not result.success
+      # Empty prompt without default should fail
+      mock_ask.return_value = ""
+      result = helper.flext_cli_prompt("Enter value:")
+      assert not result.success
 
-    def test_flext_cli_validate_email(self):
-        """Test email validation functionality."""
-        helper = FlextCliHelper()
+    def test_flext_cli_validate_email(self) -> None:
+      """Test email validation functionality."""
+      helper = FlextCliHelper()
 
-        # Valid emails
-        valid_emails = [
-            "user@example.com",
-            "test.email@domain.co.uk",
-            "user+tag@example.org",
-        ]
+      # Valid emails
+      valid_emails = [
+          "user@example.com",
+          "test.email@domain.co.uk",
+          "user+tag@example.org",
+      ]
 
-        for email in valid_emails:
-            result = helper.flext_cli_validate_email(email)
-            assert result.success, f"Email {email} should be valid"
-            assert result.data == email
+      for email in valid_emails:
+          result = helper.flext_cli_validate_email(email)
+          assert result.success, f"Email {email} should be valid"
+          assert result.data == email
 
-        # Invalid emails
-        invalid_emails = [
-            "",
-            "   ",
-            "invalid-email",
-            "@domain.com",
-            "user@",
-            "user@domain",
-        ]
+      # Invalid emails
+      invalid_emails = [
+          "",
+          "   ",
+          "invalid-email",
+          "@domain.com",
+          "user@",
+          "user@domain",
+      ]
 
-        for email in invalid_emails:
-            result = helper.flext_cli_validate_email(email)
-            assert not result.success, f"Email {email} should be invalid"
+      for email in invalid_emails:
+          result = helper.flext_cli_validate_email(email)
+          assert not result.success, f"Email {email} should be invalid"
 
-    def test_flext_cli_validate_url(self):
-        """Test URL validation functionality."""
-        helper = FlextCliHelper()
+    def test_flext_cli_validate_url(self) -> None:
+      """Test URL validation functionality."""
+      helper = FlextCliHelper()
 
-        # Valid URLs
-        valid_urls = [
-            "https://example.com",
-            f"http://{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.DEFAULT_HOST}:{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.FLEXT_API_PORT}",
-            "ftp://files.example.com/path",
-        ]
+      # Valid URLs
+      valid_urls = [
+          "https://example.com",
+          f"http://{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.DEFAULT_HOST}:{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.FLEXT_API_PORT}",
+          "ftp://files.example.com/path",
+      ]
 
-        for url in valid_urls:
-            result = helper.flext_cli_validate_url(url)
-            assert result.success, f"URL {url} should be valid"
-            assert result.data == url
+      for url in valid_urls:
+          result = helper.flext_cli_validate_url(url)
+          assert result.success, f"URL {url} should be valid"
+          assert result.data == url
 
-        # Invalid URLs
-        invalid_urls = [
-            "",
-            "   ",
-            "not-a-url",
-            "://missing-scheme",
-            "http://",
-        ]
+      # Invalid URLs
+      invalid_urls = [
+          "",
+          "   ",
+          "not-a-url",
+          "://missing-scheme",
+          "http://",
+      ]
 
-        for url in invalid_urls:
-            result = helper.flext_cli_validate_url(url)
-            assert not result.success, f"URL {url} should be invalid"
+      for url in invalid_urls:
+          result = helper.flext_cli_validate_url(url)
+          assert not result.success, f"URL {url} should be invalid"
 
-    def test_flext_cli_validate_path(self):
-        """Test path validation functionality."""
-        helper = FlextCliHelper()
+    def test_flext_cli_validate_path(self) -> None:
+      """Test path validation functionality."""
+      helper = FlextCliHelper()
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
-            test_file = temp_path / "test.txt"
-            test_file.write_text("test content")
+      with tempfile.TemporaryDirectory() as temp_dir:
+          temp_path = Path(temp_dir)
+          test_file = temp_path / "test.txt"
+          test_file.write_text("test content")
 
-            # Valid existing file
-            result = helper.flext_cli_validate_path(
-                str(test_file),
-                must_exist=True,
-                must_be_file=True,
-            )
-            assert result.success
-            assert result.data == test_file
+          # Valid existing file
+          result = helper.flext_cli_validate_path(
+              str(test_file),
+              must_exist=True,
+              must_be_file=True,
+          )
+          assert result.success
+          assert result.data == test_file
 
-            # Valid existing directory
-            result = helper.flext_cli_validate_path(
-                str(temp_path),
-                must_exist=True,
-                must_be_dir=True,
-            )
-            assert result.success
+          # Valid existing directory
+          result = helper.flext_cli_validate_path(
+              str(temp_path),
+              must_exist=True,
+              must_be_dir=True,
+          )
+          assert result.success
 
-            # Non-existent path with must_exist=True should fail
-            result = helper.flext_cli_validate_path(
-                str(temp_path / "nonexistent"),
-                must_exist=True,
-            )
-            assert not result.success
+          # Non-existent path with must_exist=True should fail
+          result = helper.flext_cli_validate_path(
+              str(temp_path / "nonexistent"),
+              must_exist=True,
+          )
+          assert not result.success
 
-            # Empty path should fail
-            result = helper.flext_cli_validate_path("")
-            assert not result.success
+          # Empty path should fail
+          result = helper.flext_cli_validate_path("")
+          assert not result.success
 
-    def test_flext_cli_sanitize_filename(self):
-        """Test filename sanitization functionality."""
-        helper = FlextCliHelper()
+    def test_flext_cli_sanitize_filename(self) -> None:
+      """Test filename sanitization functionality."""
+      helper = FlextCliHelper()
 
-        # Test normal filename
-        result = helper.flext_cli_sanitize_filename("normal_file.txt")
-        assert result.success
-        assert result.data == "normal_file.txt"
+      # Test normal filename
+      result = helper.flext_cli_sanitize_filename("normal_file.txt")
+      assert result.success
+      assert result.data == "normal_file.txt"
 
-        # Test filename with invalid characters
-        result = helper.flext_cli_sanitize_filename('file<>:"/\\|?*.txt')
-        assert result.success
-        assert '<>:"/\\|?*' not in result.data
+      # Test filename with invalid characters
+      result = helper.flext_cli_sanitize_filename('file<>:"/\\|?*.txt')
+      assert result.success
+      assert '<>:"/\\|?*' not in result.data
 
-        # Test filename starting with dot
-        result = helper.flext_cli_sanitize_filename(".hidden")
-        assert result.success
-        assert not result.data.startswith(".")
+      # Test filename starting with dot
+      result = helper.flext_cli_sanitize_filename(".hidden")
+      assert result.success
+      assert not result.data.startswith(".")
 
-        # Test empty filename
-        result = helper.flext_cli_sanitize_filename("")
-        assert not result.success
+      # Test empty filename
+      result = helper.flext_cli_sanitize_filename("")
+      assert not result.success
 
-    def test_flext_cli_create_table(self):
-        """Test table creation functionality."""
-        helper = FlextCliHelper()
+    def test_flext_cli_create_table(self) -> None:
+      """Test table creation functionality."""
+      helper = FlextCliHelper()
 
-        # Valid table data
-        data = [
-            {"name": "John", "age": 30, "city": "New York"},
-            {"name": "Jane", "age": 25, "city": "London"},
-        ]
+      # Valid table data
+      data = [
+          {"name": "John", "age": 30, "city": "New York"},
+          {"name": "Jane", "age": 25, "city": "London"},
+      ]
 
-        result = helper.flext_cli_create_table(data, title="Users")
-        assert result.success
+      result = helper.flext_cli_create_table(data, title="Users")
+      assert result.success
 
-        # Empty data should fail
-        result = helper.flext_cli_create_table([])
-        assert not result.success
+      # Empty data should fail
+      result = helper.flext_cli_create_table([])
+      assert not result.success
 
     @patch("flext_cli.core.helpers.asyncio.wait_for")
     @patch("flext_cli.core.helpers.asyncio.create_subprocess_exec")
-    def test_flext_cli_execute_command(self, mock_create, mock_wait_for):
-        """Test command execution functionality."""
-        helper = FlextCliHelper()
+    def test_flext_cli_execute_command(
+      self,
+      mock_create: MagicMock,
+      mock_wait_for: MagicMock,
+    ) -> None:
+      """Test command execution functionality."""
+      helper = FlextCliHelper()
 
-        # Prepare fake process
-        proc = Mock()
-        proc.returncode = 0
-        mock_create.return_value = proc
-        mock_wait_for.return_value = (b"command output", b"")
+      # Prepare fake process
+      proc = Mock()
+      proc.returncode = 0
+      mock_create.return_value = proc
+      mock_wait_for.return_value = (b"command output", b"")
 
-        result = helper.flext_cli_execute_command("echo 'test'")
-        assert result.success
-        assert result.data["success"] is True
-        assert result.data["stdout"] == "command output"
+      result = helper.flext_cli_execute_command("echo 'test'")
+      assert result.success
+      assert result.data["success"] is True
+      assert result.data["stdout"] == "command output"
 
-        # Failed command
-        proc.returncode = 1
-        mock_wait_for.return_value = (b"", b"command error")
+      # Failed command
+      proc.returncode = 1
+      mock_wait_for.return_value = (b"", b"command error")
 
-        result = helper.flext_cli_execute_command("false")
-        assert result.success  # FlextResult is success, but command failed
-        assert result.data["success"] is False
-        assert result.data["stderr"] == "command error"
+      result = helper.flext_cli_execute_command("false")
+      assert result.success  # FlextResult is success, but command failed
+      assert result.data["success"] is False
+      assert result.data["stderr"] == "command error"
 
-        # Empty command should fail
-        result = helper.flext_cli_execute_command("")
-        assert not result.success
+      # Empty command should fail
+      result = helper.flext_cli_execute_command("")
+      assert not result.success
 
-    def test_flext_cli_load_json_file(self):
-        """Test JSON file loading functionality."""
-        helper = FlextCliHelper()
+    def test_flext_cli_load_json_file(self) -> None:
+      """Test JSON file loading functionality."""
+      helper = FlextCliHelper()
 
-        with tempfile.NamedTemporaryFile(
-            encoding="utf-8",
-            mode="w",
-            suffix=".json",
-            delete=False,
-        ) as f:
-            test_data = {"key": "value", "number": 42}
-            json.dump(test_data, f)
-            temp_path = f.name
+      with tempfile.NamedTemporaryFile(
+          encoding="utf-8",
+          mode="w",
+          suffix=".json",
+          delete=False,
+      ) as f:
+          test_data = {"key": "value", "number": 42}
+          json.dump(test_data, f)
+          temp_path = f.name
 
-        try:
-            # Load valid JSON
-            result = helper.flext_cli_load_json_file(temp_path)
-            assert result.success
-            assert result.data == test_data
+      try:
+          # Load valid JSON
+          result = helper.flext_cli_load_json_file(temp_path)
+          assert result.success
+          assert result.data == test_data
 
-            # Load non-existent file
-            result = helper.flext_cli_load_json_file("nonexistent.json")
-            assert not result.success
+          # Load non-existent file
+          result = helper.flext_cli_load_json_file("nonexistent.json")
+          assert not result.success
 
-        finally:
-            Path(temp_path).unlink(missing_ok=True)
+      finally:
+          Path(temp_path).unlink(missing_ok=True)
 
-    def test_flext_cli_save_json_file(self):
-        """Test JSON file saving functionality."""
-        helper = FlextCliHelper()
+    def test_flext_cli_save_json_file(self) -> None:
+      """Test JSON file saving functionality."""
+      helper = FlextCliHelper()
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_file = Path(temp_dir) / "test.json"
-            test_data = {"key": "value", "array": [1, 2, 3]}
+      with tempfile.TemporaryDirectory() as temp_dir:
+          temp_file = Path(temp_dir) / "test.json"
+          test_data = {"key": "value", "array": [1, 2, 3]}
 
-            # Save JSON data
-            result = helper.flext_cli_save_json_file(test_data, str(temp_file))
-            assert result.success
+          # Save JSON data
+          result = helper.flext_cli_save_json_file(test_data, str(temp_file))
+          assert result.success
 
-            # Verify saved data
-            assert temp_file.exists()
-            with temp_file.open() as f:
-                loaded_data = json.load(f)
-            assert loaded_data == test_data
+          # Verify saved data
+          assert temp_file.exists()
+          with temp_file.open() as f:
+              loaded_data = json.load(f)
+          assert loaded_data == test_data
 
-    def test_flext_cli_with_progress(self):
-        """Test progress tracking functionality."""
-        helper = FlextCliHelper()
+    def test_flext_cli_with_progress(self) -> None:
+      """Test progress tracking functionality."""
+      helper = FlextCliHelper()
 
-        items = ["item1", "item2", "item3"]
-        result = helper.flext_cli_with_progress(items, "Processing items")
+      items = ["item1", "item2", "item3"]
+      result = helper.flext_cli_with_progress(items, "Processing items")
 
-        # Should return the same items
-        assert result == items
+      # Should return the same items
+      assert result == items
 
-    def test_flext_cli_print_status(self):
-        """Test status printing functionality."""
-        helper = FlextCliHelper()
+    def test_flext_cli_print_status(self) -> None:
+      """Test status printing functionality."""
+      helper = FlextCliHelper()
 
-        # Test different status types
-        statuses = ["info", "success", "warning", "error"]
-        for status in statuses:
-            # Should not raise exceptions
-            helper.flext_cli_print_status(f"Test {status} message", status=status)
+      # Test different status types
+      statuses = ["info", "success", "warning", "error"]
+      for status in statuses:
+          # Should not raise exceptions
+          helper.flext_cli_print_status(f"Test {status} message", status=status)
 
 
 class TestFlextCliDataProcessor:
     """Test suite for FlextCliDataProcessor workflows."""
 
-    def test_processor_initialization(self):
-        """Test data processor initialization."""
-        processor = FlextCliDataProcessor()
-        assert processor.helper is not None
+    def test_processor_initialization(self) -> None:
+      """Test data processor initialization."""
+      processor = FlextCliDataProcessor()
+      assert processor.helper is not None
 
-        # Custom helper
-        custom_helper = FlextCliHelper(quiet=True)
-        processor = FlextCliDataProcessor(helper=custom_helper)
-        assert processor.helper is custom_helper
+      # Custom helper
+      custom_helper = FlextCliHelper(quiet=True)
+      processor = FlextCliDataProcessor(helper=custom_helper)
+      assert processor.helper is custom_helper
 
-    def test_flext_cli_process_workflow(self):
-        """Test workflow processing functionality."""
-        processor = FlextCliDataProcessor(helper=FlextCliHelper(quiet=True))
+    def test_flext_cli_process_workflow(self) -> None:
+      """Test workflow processing functionality."""
+      processor = FlextCliDataProcessor(helper=FlextCliHelper(quiet=True))
 
-        # Define workflow steps
-        def step1(data):
-            return FlextResult.ok(data + " -> step1")
+      # Define workflow steps
+      def step1(data: str) -> FlextResult[str]:
+          return FlextResult.ok(data + " -> step1")
 
-        def step2(data):
-            return FlextResult.ok(data + " -> step2")
+      def step2(data: str) -> FlextResult[str]:
+          return FlextResult.ok(data + " -> step2")
 
-        steps = [
-            ("Step 1", step1),
-            ("Step 2", step2),
-        ]
+      steps = [
+          ("Step 1", step1),
+          ("Step 2", step2),
+      ]
 
-        # Process workflow
-        result = processor.flext_cli_process_workflow(
-            "initial",
-            steps,
-            show_progress=False,
-        )
-        assert result.success
-        assert result.data == "initial -> step1 -> step2"
+      # Process workflow
+      result = processor.flext_cli_process_workflow(
+          "initial",
+          steps,
+          show_progress=False,
+      )
+      assert result.success
+      assert result.data == "initial -> step1 -> step2"
 
-        # Test failing step
-        def failing_step(data):
-            return FlextResult.fail("Step failed")
+      # Test failing step
+      def failing_step(data: str) -> FlextResult[str]:  # noqa: ARG001
+          return FlextResult.fail("Step failed")
 
-        steps_with_failure = [
-            ("Step 1", step1),
-            ("Failing Step", failing_step),
-            ("Step 2", step2),  # Should not execute
-        ]
+      steps_with_failure = [
+          ("Step 1", step1),
+          ("Failing Step", failing_step),
+          ("Step 2", step2),  # Should not execute
+      ]
 
-        result = processor.flext_cli_process_workflow(
-            "initial",
-            steps_with_failure,
-            show_progress=False,
-        )
-        assert not result.success
-        assert "Step failed" in result.error
+      result = processor.flext_cli_process_workflow(
+          "initial",
+          steps_with_failure,
+          show_progress=False,
+      )
+      assert not result.success
+      assert "Step failed" in result.error
 
-    def test_flext_cli_validate_and_transform(self):
-        """Test validation and transformation functionality."""
-        processor = FlextCliDataProcessor(helper=FlextCliHelper(quiet=True))
+    def test_flext_cli_validate_and_transform(self) -> None:
+      """Test validation and transformation functionality."""
+      processor = FlextCliDataProcessor(helper=FlextCliHelper(quiet=True))
 
-        # Test data
-        data = {
-            "email": "user@example.com",
-            "url": "https://example.com",
-            "name": "John Doe",
-        }
+      # Test data
+      data = {
+          "email": "user@example.com",
+          "url": "https://example.com",
+          "name": "John Doe",
+      }
 
-        validators = {
-            "email": "email",
-            "url": "url",
-            "name": "none",  # No validation
-        }
+      validators = {
+          "email": "email",
+          "url": "url",
+          "name": "none",  # No validation
+      }
 
-        transformers = {"name": lambda x: x.upper()}
+      transformers = {"name": lambda x: x.upper()}
 
-        # Process validation and transformation
-        result = processor.flext_cli_validate_and_transform(
-            data,
-            validators,
-            transformers,
-        )
-        assert result.success
-        assert result.data["email"] == "user@example.com"
-        assert result.data["url"] == "https://example.com"
-        assert result.data["name"] == "JOHN DOE"
+      # Process validation and transformation
+      result = processor.flext_cli_validate_and_transform(
+          data,
+          validators,
+          transformers,
+      )
+      assert result.success
+      assert result.data["email"] == "user@example.com"
+      assert result.data["url"] == "https://example.com"
+      assert result.data["name"] == "JOHN DOE"
 
-        # Test validation failure
-        invalid_data = {"email": "invalid-email"}
-        validators = {"email": "email"}
+      # Test validation failure
+      invalid_data = {"email": "invalid-email"}
+      validators = {"email": "email"}
 
-        result = processor.flext_cli_validate_and_transform(invalid_data, validators)
-        assert not result.success
+      result = processor.flext_cli_validate_and_transform(invalid_data, validators)
+      assert not result.success
 
-        # Test missing required field
-        result = processor.flext_cli_validate_and_transform({}, {"required": "email"})
-        assert not result.success
+      # Test missing required field
+      result = processor.flext_cli_validate_and_transform({}, {"required": "email"})
+      assert not result.success
 
 
 class TestFlextCliFileManager:
     """Test suite for FlextCliFileManager advanced file operations."""
 
-    def test_file_manager_initialization(self):
-        """Test file manager initialization."""
-        manager = FlextCliFileManager()
-        assert manager.helper is not None
+    def test_file_manager_initialization(self) -> None:
+      """Test file manager initialization."""
+      manager = FlextCliFileManager()
+      assert manager.helper is not None
 
-        # Custom helper
-        custom_helper = FlextCliHelper(quiet=True)
-        manager = FlextCliFileManager(helper=custom_helper)
-        assert manager.helper is custom_helper
+      # Custom helper
+      custom_helper = FlextCliHelper(quiet=True)
+      manager = FlextCliFileManager(helper=custom_helper)
+      assert manager.helper is custom_helper
 
-    def test_flext_cli_backup_and_process(self):
-        """Test backup and process functionality."""
-        manager = FlextCliFileManager(helper=FlextCliHelper(quiet=True))
+    def test_flext_cli_backup_and_process(self) -> None:
+      """Test backup and process functionality."""
+      manager = FlextCliFileManager(helper=FlextCliHelper(quiet=True))
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # Create test file
-            test_file = Path(temp_dir) / "test.txt"
-            test_file.write_text("original content")
+      with tempfile.TemporaryDirectory() as temp_dir:
+          # Create test file
+          test_file = Path(temp_dir) / "test.txt"
+          test_file.write_text("original content")
 
-            # Define processor
-            def processor(content):
-                return FlextResult.ok(content.replace("original", "processed"))
+          # Define processor
+          def processor(content: str) -> FlextResult[str]:
+              return FlextResult.ok(content.replace("original", "processed"))
 
-            # Process file
-            result = manager.flext_cli_backup_and_process(
-                str(test_file),
-                processor,
-                require_confirmation=False,
-            )
-            assert result.success
+          # Process file
+          result = manager.flext_cli_backup_and_process(
+              str(test_file),
+              processor,
+              require_confirmation=False,
+          )
+          assert result.success
 
-            # Check that file was processed
-            assert test_file.read_text() == "processed content"
+          # Check that file was processed
+          assert test_file.read_text() == "processed content"
 
-            # Check that backup exists
-            backup_file = test_file.with_suffix(test_file.suffix + ".bak")
-            assert backup_file.exists()
-            assert backup_file.read_text() == "original content"
+          # Check that backup exists
+          backup_file = test_file.with_suffix(test_file.suffix + ".bak")
+          assert backup_file.exists()
+          assert backup_file.read_text() == "original content"
 
-    def test_flext_cli_safe_write(self):
-        """Test safe file writing functionality."""
-        manager = FlextCliFileManager(helper=FlextCliHelper(quiet=True))
+    def test_flext_cli_safe_write(self) -> None:
+      """Test safe file writing functionality."""
+      manager = FlextCliFileManager(helper=FlextCliHelper(quiet=True))
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            test_file = Path(temp_dir) / "subdirectory" / "test.txt"
-            content = "test content"
+      with tempfile.TemporaryDirectory() as temp_dir:
+          test_file = Path(temp_dir) / "subdirectory" / "test.txt"
+          content = "test content"
 
-            # Write file with directory creation
-            result = manager.flext_cli_safe_write(content, str(test_file))
-            assert result.success
-            assert test_file.exists()
-            assert test_file.read_text() == content
+          # Write file with directory creation
+          result = manager.flext_cli_safe_write(content, str(test_file))
+          assert result.success
+          assert test_file.exists()
+          assert test_file.read_text() == content
 
-            # Test backup functionality
-            new_content = "updated content"
-            result = manager.flext_cli_safe_write(
-                new_content,
-                str(test_file),
-                backup=True,
-            )
-            assert result.success
-            assert test_file.read_text() == new_content
+          # Test backup functionality
+          new_content = "updated content"
+          result = manager.flext_cli_safe_write(
+              new_content,
+              str(test_file),
+              backup=True,
+          )
+          assert result.success
+          assert test_file.read_text() == new_content
 
-            # Check backup was created
-            backup_file = test_file.with_suffix(test_file.suffix + ".bak")
-            assert backup_file.exists()
-            assert backup_file.read_text() == content
+          # Check backup was created
+          backup_file = test_file.with_suffix(test_file.suffix + ".bak")
+          assert backup_file.exists()
+          assert backup_file.read_text() == content
 
 
 class TestFactoryFunctions:
     """Test suite for factory functions."""
 
-    def test_flext_cli_create_helper(self):
-        """Test helper factory function."""
-        # Default helper
-        helper = flext_cli_create_helper()
-        assert isinstance(helper, FlextCliHelper)
-        assert not helper.quiet
+    def test_flext_cli_create_helper(self) -> None:
+      """Test helper factory function."""
+      # Default helper
+      helper = flext_cli_create_helper()
+      assert isinstance(helper, FlextCliHelper)
+      assert not helper.quiet
 
-        # Custom helper
-        helper = flext_cli_create_helper(quiet=True)
-        assert helper.quiet
+      # Custom helper
+      helper = flext_cli_create_helper(quiet=True)
+      assert helper.quiet
 
-    def test_flext_cli_create_data_processor(self):
-        """Test data processor factory function."""
-        # Default processor
-        processor = flext_cli_create_data_processor()
-        assert isinstance(processor, FlextCliDataProcessor)
-        assert isinstance(processor.helper, FlextCliHelper)
+    def test_flext_cli_create_data_processor(self) -> None:
+      """Test data processor factory function."""
+      # Default processor
+      processor = flext_cli_create_data_processor()
+      assert isinstance(processor, FlextCliDataProcessor)
+      assert isinstance(processor.helper, FlextCliHelper)
 
-        # Custom helper
-        custom_helper = FlextCliHelper(quiet=True)
-        processor = flext_cli_create_data_processor(helper=custom_helper)
-        assert processor.helper is custom_helper
+      # Custom helper
+      custom_helper = FlextCliHelper(quiet=True)
+      processor = flext_cli_create_data_processor(helper=custom_helper)
+      assert processor.helper is custom_helper
 
-    def test_flext_cli_create_file_manager(self):
-        """Test file manager factory function."""
-        # Default manager
-        manager = flext_cli_create_file_manager()
-        assert isinstance(manager, FlextCliFileManager)
-        assert isinstance(manager.helper, FlextCliHelper)
+    def test_flext_cli_create_file_manager(self) -> None:
+      """Test file manager factory function."""
+      # Default manager
+      manager = flext_cli_create_file_manager()
+      assert isinstance(manager, FlextCliFileManager)
+      assert isinstance(manager.helper, FlextCliHelper)
 
-        # Custom helper
-        custom_helper = FlextCliHelper(quiet=True)
-        manager = flext_cli_create_file_manager(helper=custom_helper)
-        assert manager.helper is custom_helper
+      # Custom helper
+      custom_helper = FlextCliHelper(quiet=True)
+      manager = flext_cli_create_file_manager(helper=custom_helper)
+      assert manager.helper is custom_helper
 
 
 class TestBatchOperations:
     """Test suite for batch operation utilities."""
 
-    def test_flext_cli_batch_validate(self):
-        """Test batch validation functionality."""
-        # Valid inputs
-        inputs = {
-            "email": ("user@example.com", "email"),
-            "url": ("https://example.com", "url"),
-        }
+    def test_flext_cli_batch_validate(self) -> None:
+      """Test batch validation functionality."""
+      # Valid inputs
+      inputs = {
+          "email": ("user@example.com", "email"),
+          "url": ("https://example.com", "url"),
+      }
 
-        result = flext_cli_batch_validate(inputs)
-        assert result.success
-        assert "email" in result.data
-        assert "url" in result.data
+      result = flext_cli_batch_validate(inputs)
+      assert result.success
+      assert "email" in result.data
+      assert "url" in result.data
 
-        # Invalid inputs
-        invalid_inputs = {
-            "email": ("invalid-email", "email"),
-        }
+      # Invalid inputs
+      invalid_inputs = {
+          "email": ("invalid-email", "email"),
+      }
 
-        result = flext_cli_batch_validate(invalid_inputs)
-        assert not result.success
+      result = flext_cli_batch_validate(invalid_inputs)
+      assert not result.success
 
 
 class TestErrorConditions:
     """Test suite for error conditions and edge cases."""
 
-    def test_helper_with_none_values(self):
-        """Test helper methods with None and invalid values."""
-        helper = FlextCliHelper()
+    def test_helper_with_none_values(self) -> None:
+      """Test helper methods with None and invalid values."""
+      helper = FlextCliHelper()
 
-        # None email
-        result = helper.flext_cli_validate_email(None)
-        assert not result.success
+      # None email
+      result = helper.flext_cli_validate_email(None)
+      assert not result.success
 
-        # None URL
-        result = helper.flext_cli_validate_url(None)
-        assert not result.success
+      # None URL
+      result = helper.flext_cli_validate_url(None)
+      assert not result.success
 
-        # None path
-        result = helper.flext_cli_validate_path(None)
-        assert not result.success
+      # None path
+      result = helper.flext_cli_validate_path(None)
+      assert not result.success
 
     @patch("flext_cli.core.helpers.asyncio.wait_for")
     @patch("flext_cli.core.helpers.asyncio.create_subprocess_exec")
-    def test_command_execution_timeout(self, mock_create, mock_wait_for):
-        """Test command execution timeout handling."""
-        helper = FlextCliHelper()
+    def test_command_execution_timeout(
+      self,
+      mock_create: MagicMock,
+      mock_wait_for: MagicMock,
+    ) -> None:
+      """Test command execution timeout handling."""
+      helper = FlextCliHelper()
 
-        # Mock process and make wait_for raise TimeoutError
-        proc = Mock()
-        proc.kill = Mock()
-        proc.wait = Mock()
-        mock_create.return_value = proc
-        mock_wait_for.side_effect = TimeoutError()
+      # Mock process and make wait_for raise TimeoutError
+      proc = Mock()
+      proc.kill = Mock()
+      proc.wait = Mock()
+      mock_create.return_value = proc
+      mock_wait_for.side_effect = TimeoutError()
 
-        result = helper.flext_cli_execute_command("sleep 10", timeout=1)
-        assert not result.success
-        assert "timed out" in result.error
+      result = helper.flext_cli_execute_command("sleep 10", timeout=1)
+      assert not result.success
+      assert "timed out" in result.error
 
-    def test_file_operations_with_permissions(self):
-        """Test file operations with permission issues."""
-        manager = FlextCliFileManager(helper=FlextCliHelper(quiet=True))
+    def test_file_operations_with_permissions(self) -> None:
+      """Test file operations with permission issues."""
+      manager = FlextCliFileManager(helper=FlextCliHelper(quiet=True))
 
-        # Try to process non-existent file
-        result = manager.flext_cli_backup_and_process(
-            "/nonexistent/file.txt",
-            FlextResult.ok,
-            require_confirmation=False,
-        )
-        assert not result.success
+      # Try to process non-existent file
+      result = manager.flext_cli_backup_and_process(
+          "/nonexistent/file.txt",
+          FlextResult.ok,
+          require_confirmation=False,
+      )
+      assert not result.success
 
-    def test_data_processor_with_exception(self):
-        """Test data processor with exception in steps."""
-        processor = FlextCliDataProcessor(helper=FlextCliHelper(quiet=True))
+    def test_data_processor_with_exception(self) -> None:
+      """Test data processor with exception in steps."""
+      processor = FlextCliDataProcessor(helper=FlextCliHelper(quiet=True))
 
-        def exception_step(data):
-            msg = "Simulated error"
-            raise ValueError(msg)
+      def exception_step(data: str) -> Never:  # noqa: ARG001
+          msg = "Simulated error"
+          raise ValueError(msg)
 
-        steps = [("Exception Step", exception_step)]
+      steps = [("Exception Step", exception_step)]
 
-        result = processor.flext_cli_process_workflow(
-            "data",
-            steps,
-            show_progress=False,
-        )
-        assert not result.success
-        assert "Simulated error" in result.error
+      result = processor.flext_cli_process_workflow(
+          "data",
+          steps,
+          show_progress=False,
+      )
+      assert not result.success
+      assert "Simulated error" in result.error
 
 
 @pytest.mark.integration
 class TestIntegrationScenarios:
     """Integration tests for real-world scenarios."""
 
-    def test_complete_workflow(self):
-        """Test complete workflow with all components."""
-        # Initialize components
-        helper = flext_cli_create_helper(quiet=True)
-        processor = flext_cli_create_data_processor(helper=helper)
-        flext_cli_create_file_manager(helper=helper)
+    def test_complete_workflow(self) -> None:
+      """Test complete workflow with all components."""
+      # Initialize components
+      helper = flext_cli_create_helper(quiet=True)
+      processor = flext_cli_create_data_processor(helper=helper)
+      flext_cli_create_file_manager(helper=helper)
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # Create test data
-            test_data = {"users": [{"name": "John", "email": "john@example.com"}]}
+      with tempfile.TemporaryDirectory() as temp_dir:
+          # Create test data
+          test_data = {"users": [{"name": "John", "email": "john@example.com"}]}
 
-            # Save data
-            data_file = Path(temp_dir) / "data.json"
-            save_result = helper.flext_cli_save_json_file(test_data, str(data_file))
-            assert save_result.success
+          # Save data
+          data_file = Path(temp_dir) / "data.json"
+          save_result = helper.flext_cli_save_json_file(test_data, str(data_file))
+          assert save_result.success
 
-            # Load and validate data
-            load_result = helper.flext_cli_load_json_file(str(data_file))
-            assert load_result.success
+          # Load and validate data
+          load_result = helper.flext_cli_load_json_file(str(data_file))
+          assert load_result.success
 
-            # Validate user emails
-            for user in load_result.data["users"]:
-                email_result = helper.flext_cli_validate_email(user["email"])
-                assert email_result.success
+          # Validate user emails
+          for user in load_result.data["users"]:
+              email_result = helper.flext_cli_validate_email(user["email"])
+              assert email_result.success
 
-            # Process through workflow
-            def validate_users(data):
-                for user in data["users"]:
-                    if "@" not in user["email"]:
-                        return FlextResult.fail(f"Invalid email: {user['email']}")
-                return FlextResult.ok(data)
+          # Process through workflow
+          def validate_users(
+              data: dict[str, list[dict[str, str]]],
+          ) -> FlextResult[dict[str, list[dict[str, str]]]]:
+              for user in data["users"]:
+                  if "@" not in user["email"]:
+                      return FlextResult.fail(f"Invalid email: {user['email']}")
+              return FlextResult.ok(data)
 
-            workflow_result = processor.flext_cli_process_workflow(
-                load_result.data,
-                [("Validate Users", validate_users)],
-                show_progress=False,
-            )
-            assert workflow_result.success
+          workflow_result = processor.flext_cli_process_workflow(
+              load_result.data,
+              [("Validate Users", validate_users)],
+              show_progress=False,
+          )
+          assert workflow_result.success
 
-    def test_error_recovery_workflow(self):
-        """Test workflow error recovery and reporting."""
-        processor = FlextCliDataProcessor(helper=FlextCliHelper(quiet=True))
+    def test_error_recovery_workflow(self) -> None:
+      """Test workflow error recovery and reporting."""
+      processor = FlextCliDataProcessor(helper=FlextCliHelper(quiet=True))
 
-        def step1(data):
-            return FlextResult.ok(data + " -> step1")
+      def step1(data: str) -> FlextResult[str]:
+          return FlextResult.ok(data + " -> step1")
 
-        def failing_step(data):
-            return FlextResult.fail("Step failed intentionally")
+      def failing_step(data: str) -> FlextResult[str]:  # noqa: ARG001
+          return FlextResult.fail("Step failed intentionally")
 
-        def step3(data):
-            return FlextResult.ok(data + " -> step3")
+      def step3(data: str) -> FlextResult[str]:
+          return FlextResult.ok(data + " -> step3")
 
-        steps = [
-            ("Step 1", step1),
-            ("Failing Step", failing_step),
-            ("Step 3", step3),
-        ]
+      steps = [
+          ("Step 1", step1),
+          ("Failing Step", failing_step),
+          ("Step 3", step3),
+      ]
 
-        result = processor.flext_cli_process_workflow(
-            "initial",
-            steps,
-            show_progress=False,
-        )
+      result = processor.flext_cli_process_workflow(
+          "initial",
+          steps,
+          show_progress=False,
+      )
 
-        # Should fail and provide detailed error message
-        assert not result.success
-        assert "Failing Step" in result.error
-        assert "Step failed intentionally" in result.error
+      # Should fail and provide detailed error message
+      assert not result.success
+      assert "Failing Step" in result.error
+      assert "Step failed intentionally" in result.error

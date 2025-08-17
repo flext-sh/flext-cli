@@ -26,13 +26,13 @@ class FlextCliGenericCommand(FlextCliEntity):
     - Automatic: error handling, validation, logging, metrics
 
     Example usage for ANY ecosystem project:
-        class MyProjectCommand(FlextCliGenericCommand):
-            my_field: str
-            config_data: dict[str, Any] = {}
+      class MyProjectCommand(FlextCliGenericCommand):
+          my_field: str
+          config_data: dict[str, Any] = {}
 
-            def execute(self) -> FlextResult[Any]:
-                # Project-specific implementation
-                return FlextResult.ok({"executed": self.name})
+          def execute(self) -> FlextResult[Any]:
+              # Project-specific implementation
+              return FlextResult.ok({"executed": self.name})
     """
 
     # Generic fields that any project can extend
@@ -40,16 +40,16 @@ class FlextCliGenericCommand(FlextCliEntity):
     environment: str = "default"
 
     def execute(self) -> FlextResult[object]:
-        """Execute generic command with automatic error handling."""
-        # Generic implementation - projects override this
-        return FlextResult.ok(
-            {
-                "command": self.name,
-                "environment": self.environment,
-                "config": self.config_data,
-                "status": "completed",
-            },
-        )
+      """Execute generic command with automatic error handling."""
+      # Generic implementation - projects override this
+      return FlextResult.ok(
+          {
+              "command": self.name,
+              "environment": self.environment,
+              "config": self.config_data,
+              "status": "completed",
+          },
+      )
 
 
 class FlextCliConfigFactory:
@@ -59,59 +59,59 @@ class FlextCliConfigFactory:
     following the hierarchical patterns while maintaining their specific requirements.
 
     Usage by ecosystem projects:
-        # In flext-meltano project:
-        config = FlextCliConfigFactory.create_project_config(
-            project_name="meltano",
-            environment="production",
-            debug=True,
-            # Project-specific fields
-            state_backend="systemdb",
-            project_root="."
-        )
+      # In flext-meltano project:
+      config = FlextCliConfigFactory.create_project_config(
+          project_name="meltano",
+          environment="production",
+          debug=True,
+          # Project-specific fields
+          state_backend="systemdb",
+          project_root="."
+      )
 
-        # In algar-oud-mig project:
-        config = FlextCliConfigFactory.create_project_config(
-            project_name="algar-migration",
-            migration_mode="incremental",
-            batch_size=1000,
-            ldap_timeout=30
-        )
+      # In algar-oud-mig project:
+      config = FlextCliConfigFactory.create_project_config(
+          project_name="algar-migration",
+          migration_mode="incremental",
+          batch_size=1000,
+          ldap_timeout=30
+      )
     """
 
     @staticmethod
     def create_project_config(
-        project_name: str,
-        **overrides: object,
+      project_name: str,
+      **overrides: object,
     ) -> FlextResult[FlextCliConfig]:
-        """Create project-specific CLI configuration.
+      """Create project-specific CLI configuration.
 
-        Args:
-            project_name: Name of the project (for logging/identification)
-            **overrides: Project-specific configuration overrides
+      Args:
+          project_name: Name of the project (for logging/identification)
+          **overrides: Project-specific configuration overrides
 
-        Returns:
-            FlextResult[FlextCliConfig]: Configuration with project-specific settings
+      Returns:
+          FlextResult[FlextCliConfig]: Configuration with project-specific settings
 
-        Example:
-            config = FlextCliConfigFactory.create_project_config(
-                project_name="my-project",
-                environment="production",
-                debug=True,
-                custom_field="value"
-            ).unwrap()
+      Example:
+          config = FlextCliConfigFactory.create_project_config(
+              project_name="my-project",
+              environment="production",
+              debug=True,
+              custom_field="value"
+          ).unwrap()
 
-        """
-        # Set generic defaults that any project can use
-        generic_defaults = {
-            "project_name": project_name,
-            "environment": "development",
-            "debug": False,
-        }
+      """
+      # Set generic defaults that any project can use
+      generic_defaults = {
+          "project_name": project_name,
+          "environment": "development",
+          "debug": False,
+      }
 
-        # Merge with project-specific overrides
-        final_config = {**generic_defaults, **overrides}
+      # Merge with project-specific overrides
+      final_config = {**generic_defaults, **overrides}
 
-        return create_flext_cli_config(**final_config)
+      return create_flext_cli_config(**final_config)
 
 
 def setup_flext_cli_ecosystem(
@@ -125,67 +125,67 @@ def setup_flext_cli_ecosystem(
     eliminating project-specific CLI boilerplate while maintaining flexibility.
 
     Args:
-        project_name: Name of the ecosystem project (e.g., "flext-meltano")
-        config: Optional pre-created configuration
-        **config_overrides: Configuration overrides for hierarchical system
+      project_name: Name of the ecosystem project (e.g., "flext-meltano")
+      config: Optional pre-created configuration
+      **config_overrides: Configuration overrides for hierarchical system
 
     Returns:
-        FlextResult[dict[str, object]]: Setup result with project context
+      FlextResult[dict[str, object]]: Setup result with project context
 
     Example:
-        # Generic usage for any ecosystem project
-        result = setup_flext_cli_ecosystem(
-            "my-project",
-            environment="production",
-            debug=True
-        )
+      # Generic usage for any ecosystem project
+      result = setup_flext_cli_ecosystem(
+          "my-project",
+          environment="production",
+          debug=True
+      )
 
-        # Any project can use this pattern
-        result = setup_flext_cli_ecosystem(
-            "another-project",
-            custom_setting="value",
-            batch_size=1000
-        )
+      # Any project can use this pattern
+      result = setup_flext_cli_ecosystem(
+          "another-project",
+          custom_setting="value",
+          batch_size=1000
+      )
 
     """
     try:
-        # Create configuration if not provided
-        if config is None:
-            # Use generic factory for all ecosystem projects
-            config_result = FlextCliConfigFactory.create_project_config(
-                project_name=project_name,
-                **config_overrides,
-            )
+      # Create configuration if not provided
+      if config is None:
+          # Use generic factory for all ecosystem projects
+          config_result = FlextCliConfigFactory.create_project_config(
+              project_name=project_name,
+              **config_overrides,
+          )
 
-            if not config_result.success:
-                return FlextResult.fail(
-                    f"Config creation failed: {config_result.error}",
-                )
+          if not config_result.success:
+              return FlextResult.fail(
+                  f"Config creation failed: {config_result.error}",
+              )
 
-            config = config_result.data
+          config = config_result.data
 
-        # Setup CLI with project-specific configuration
-        setup_result = setup_flext_cli(config)
-        if not setup_result.success:
-            return FlextResult.fail(f"CLI setup failed: {setup_result.error}")
+      # Setup CLI with project-specific configuration
+      setup_result = setup_flext_cli(config)
+      if not setup_result.success:
+          return FlextResult.fail(f"CLI setup failed: {setup_result.error}")
 
-        if config is None:
-            # This case should ideally not happen if config_result.success was true,
-            # but for mypy's sake and runtime safety, we'll keep it.
-            return FlextResult.fail(
-                "Configuration object is unexpectedly None after creation.",
-            )
+      if config is None:
+          # This case should ideally not happen if config_result.success was true,
+          # but for mypy's sake and runtime safety, we'll keep it.
+          return FlextResult.fail(
+              "Configuration object is unexpectedly None after creation.",
+          )
 
-        return FlextResult.ok(
-            {
-                "project": project_name,
-                "config": config.model_dump(),
-                "setup": True,
-            },
-        )
+      return FlextResult.ok(
+          {
+              "project": project_name,
+              "config": config.model_dump(),
+              "setup": True,
+          },
+      )
 
     except Exception as e:
-        return FlextResult.fail(f"Ecosystem CLI setup failed: {e}")
+      return FlextResult.fail(f"Ecosystem CLI setup failed: {e}")
 
 
 # Migration helpers for existing ecosystem projects
@@ -196,11 +196,11 @@ def migrate_to_modern_patterns(old_setup_function: str, project_name: str) -> st
     modern foundation patterns following docs/patterns/foundation-refactored.md.
 
     Args:
-        old_setup_function: Name of existing setup function
-        project_name: Project name for specific migration
+      old_setup_function: Name of existing setup function
+      project_name: Project name for specific migration
 
     Returns:
-        str: Migration code example
+      str: Migration code example
 
     """
     return f"""\

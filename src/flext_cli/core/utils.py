@@ -1,4 +1,9 @@
-"""Core utils."""
+"""Core utils.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
 
 from __future__ import annotations
 
@@ -6,22 +11,18 @@ import csv
 import io
 import json
 import os
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import yaml  # type: ignore[import-untyped]
 from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table
 
-# Strict import of package version; no fallback
 from flext_cli.__version__ import __version__ as _cli_version
 
 from .helpers import FlextCliHelper
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 
 def _generate_session_id() -> str:
@@ -40,50 +41,50 @@ def _current_timestamp() -> str:
 def _load_env_overrides() -> dict[str, object]:
     overrides: dict[str, object] = {}
     for key, val in os.environ.items():
-        if not key.startswith("FLEXT_"):
-            continue
-        norm = key.removeprefix("FLEXT_").lower()
-        if val.lower() in {"true", "false"}:
-            overrides[norm] = val.lower() == "true"
-        else:
-            try:
-                overrides[norm] = int(val)
-            except ValueError:
-                overrides[norm] = val
+      if not key.startswith("FLEXT_"):
+          continue
+      norm = key.removeprefix("FLEXT_").lower()
+      if val.lower() in {"true", "false"}:
+          overrides[norm] = val.lower() == "true"
+      else:
+          try:
+              overrides[norm] = int(val)
+          except ValueError:
+              overrides[norm] = val
     return overrides
 
 
 def _load_config_file(path: str | Path) -> FlextResult[dict[str, object]]:
     p = Path(path)
     if not p.exists():
-        return FlextResult.fail("Config file not found")
+      return FlextResult.fail("Config file not found")
     try:
-        if p.suffix.lower() in {".yml", ".yaml"}:
-            return FlextResult.ok(yaml.safe_load(p.read_text(encoding="utf-8")) or {})
-        if p.suffix.lower() == ".json":
-            return FlextResult.ok(json.loads(p.read_text(encoding="utf-8")))
-        return FlextResult.fail("Unsupported config format")
+      if p.suffix.lower() in {".yml", ".yaml"}:
+          return FlextResult.ok(yaml.safe_load(p.read_text(encoding="utf-8")) or {})
+      if p.suffix.lower() == ".json":
+          return FlextResult.ok(json.loads(p.read_text(encoding="utf-8")))
+      return FlextResult.fail("Unsupported config format")
     except Exception as e:  # noqa: BLE001
-        return FlextResult.fail(str(e))
+      return FlextResult.fail(str(e))
 
 
 def flext_cli_quick_setup(config: dict[str, object]) -> FlextResult[dict[str, object]]:  # noqa: D103
     try:
-        defaults = {"profile": "default", "debug": False}
-        merged = {**defaults, **config}
-        console_width = merged.get("console_width") or 80
-        console = Console(
-            width=int(console_width) if isinstance(console_width, (int, str)) else 80,
-        )
-        context = {
-            "config": merged,
-            "console": console,
-            "session_id": _generate_session_id(),
-            "initialized": True,
-        }
-        return FlextResult.ok(context)
+      defaults = {"profile": "default", "debug": False}
+      merged = {**defaults, **config}
+      console_width = merged.get("console_width") or 80
+      console = Console(
+          width=int(console_width) if isinstance(console_width, (int, str)) else 80,
+      )
+      context = {
+          "config": merged,
+          "console": console,
+          "session_id": _generate_session_id(),
+          "initialized": True,
+      }
+      return FlextResult.ok(context)
     except Exception as e:  # noqa: BLE001
-        return FlextResult.fail(f"CLI setup failed: {e}")
+      return FlextResult.fail(f"CLI setup failed: {e}")
 
 
 def flext_cli_auto_config(
@@ -94,24 +95,24 @@ def flext_cli_auto_config(
     env = _load_env_overrides()
     loaded: dict[str, object] = {"profile": profile}
     for file in config_files:
-        p = Path(file)
-        if p.exists():
-            file_res = _load_config_file(p)
-            if file_res.success:
-                # File values have lower precedence than explicit profile argument
-                file_loaded = file_res.unwrap()
-                for k, v in file_loaded.items():
-                    if k == "profile":
-                        continue
-                    loaded[k] = v
-                loaded["config_source"] = str(p)
-                break
+      p = Path(file)
+      if p.exists():
+          file_res = _load_config_file(p)
+          if file_res.success:
+              # File values have lower precedence than explicit profile argument
+              file_loaded = file_res.unwrap()
+              for k, v in file_loaded.items():
+                  if k == "profile":
+                      continue
+                  loaded[k] = v
+              loaded["config_source"] = str(p)
+              break
     # Always include config_source key for test expectations
     if "config_source" not in loaded:
-        loaded["config_source"] = None
+      loaded["config_source"] = None
     loaded.update(env)
     if env:
-        loaded["env_overrides"] = env
+      loaded["env_overrides"] = env
     loaded["loaded_at"] = _current_timestamp()
     return FlextResult.ok(loaded)
 
@@ -123,76 +124,76 @@ def flext_cli_validate_all(
     output: dict[str, object] = {}
 
     def _email(v: object) -> FlextResult[str]:
-        s = str(v)
-        return (
-            FlextResult.ok(s)
-            if ("@" in s and "." in s)
-            else FlextResult.fail("Invalid email")
-        )
+      s = str(v)
+      return (
+          FlextResult.ok(s)
+          if ("@" in s and "." in s)
+          else FlextResult.fail("Invalid email")
+      )
 
     def _url(v: object) -> FlextResult[str]:
-        s = str(v)
-        return (
-            FlextResult.ok(s)
-            if s.startswith(("http://", "https://"))
-            else FlextResult.fail("Invalid URL")
-        )
+      s = str(v)
+      return (
+          FlextResult.ok(s)
+          if s.startswith(("http://", "https://"))
+          else FlextResult.fail("Invalid URL")
+      )
 
     def _path(v: object) -> FlextResult[Path]:
-        return FlextResult.ok(Path(str(v)))
+      return FlextResult.ok(Path(str(v)))
 
     def _file(v: object) -> FlextResult[Path]:
-        p = Path(str(v))
-        return FlextResult.ok(p) if p.exists() else FlextResult.fail("File not found")
+      p = Path(str(v))
+      return FlextResult.ok(p) if p.exists() else FlextResult.fail("File not found")
 
     def _dir(v: object) -> FlextResult[Path]:
-        p = Path(str(v))
-        return (
-            FlextResult.ok(p)
-            if (p.exists() and p.is_dir())
-            else FlextResult.fail("Directory not found")
-        )
+      p = Path(str(v))
+      return (
+          FlextResult.ok(p)
+          if (p.exists() and p.is_dir())
+          else FlextResult.fail("Directory not found")
+      )
 
     def _filename(v: object) -> FlextResult[str]:
-        name = str(v)
-        sanitized = name.replace("<", "_").replace(">", "_")
-        return FlextResult.ok(sanitized)
+      name = str(v)
+      sanitized = name.replace("<", "_").replace(">", "_")
+      return FlextResult.ok(sanitized)
 
     def _int(v: object) -> FlextResult[int]:
-        if isinstance(v, bool):
-            return FlextResult.fail("Invalid integer")
-        if isinstance(v, int):
-            return FlextResult.ok(v)
-        if isinstance(v, str):
-            try:
-                return FlextResult.ok(int(v))
-            except ValueError:
-                return FlextResult.fail("Invalid integer")
-        return FlextResult.fail("Invalid integer")
+      if isinstance(v, bool):
+          return FlextResult.fail("Invalid integer")
+      if isinstance(v, int):
+          return FlextResult.ok(v)
+      if isinstance(v, str):
+          try:
+              return FlextResult.ok(int(v))
+          except ValueError:
+              return FlextResult.fail("Invalid integer")
+      return FlextResult.fail("Invalid integer")
 
     validators = {
-        "email": _email,
-        "url": _url,
-        "path": _path,
-        "file": _file,
-        "dir": _dir,
-        "filename": _filename,
-        "int": _int,
+      "email": _email,
+      "url": _url,
+      "path": _path,
+      "file": _file,
+      "dir": _dir,
+      "filename": _filename,
+      "int": _int,
     }
 
     for key, (value, vtype) in validations.items():
-        validate = validators.get(vtype)
-        if validate is None:
-            return FlextResult.fail("Unknown validation type")
-        res = validate(value)
-        if isinstance(res, FlextResult) and res.is_failure:
-            return FlextResult.fail(f"Validation failed for {key}")
-        # For path/file/dir, return Path objects per tests
-        unwrapped = res.unwrap() if isinstance(res, FlextResult) else res
-        if vtype in {"path", "file", "dir"}:
-            output[key] = Path(str(unwrapped))
-        else:
-            output[key] = unwrapped
+      validate = validators.get(vtype)
+      if validate is None:
+          return FlextResult.fail("Unknown validation type")
+      res = validate(value)
+      if isinstance(res, FlextResult) and res.is_failure:
+          return FlextResult.fail(f"Validation failed for {key}")
+      # For path/file/dir, return Path objects per tests
+      unwrapped = res.unwrap() if isinstance(res, FlextResult) else res
+      if vtype in {"path", "file", "dir"}:
+          output[key] = Path(str(unwrapped))
+      else:
+          output[key] = unwrapped
 
     return FlextResult.ok(output)
 
@@ -200,11 +201,11 @@ def flext_cli_validate_all(
 def flext_cli_require_all(confirmations: list[tuple[str, bool]]) -> FlextResult[bool]:  # noqa: D103
     helper = FlextCliHelper()
     for message, _default in confirmations:
-        res = helper.flext_cli_confirm(message)
-        if res.is_failure:
-            return res
-        if not res.unwrap():
-            return FlextResult.ok(False)  # noqa: FBT003
+      res = helper.flext_cli_confirm(message)
+      if res.is_failure:
+          return res
+      if not res.unwrap():
+          return FlextResult.ok(False)  # noqa: FBT003
     return FlextResult.ok(True)  # noqa: FBT003
 
 
@@ -217,31 +218,31 @@ def flext_cli_output_data(
 ) -> FlextResult[bool]:
     """Render data to console in the specified format."""
     try:
-        if format_type == "json":
-            console.print(json.dumps(data, indent=indent or 2, default=str))
-        elif format_type == "yaml":
-            console.print(yaml.dump(data, default_flow_style=False))
-        elif format_type == "table":
-            table = flext_cli_create_table(data)
-            console.print(table)
-        elif format_type == "csv":
-            output = io.StringIO()
-            if isinstance(data, list) and data and isinstance(data[0], dict):
-                writer = csv.DictWriter(output, fieldnames=list(data[0].keys()))
-                writer.writeheader()
-                writer.writerows(data)
-            console.print(output.getvalue())
-        elif format_type == "text":
-            if isinstance(data, list):
-                for item in data:
-                    console.print(str(item))
-            else:
-                console.print(str(data))
-        else:
-            console.print(data)
-        return FlextResult.ok(True)  # noqa: FBT003
+      if format_type == "json":
+          console.print(json.dumps(data, indent=indent or 2, default=str))
+      elif format_type == "yaml":
+          console.print(yaml.dump(data, default_flow_style=False))
+      elif format_type == "table":
+          table = flext_cli_create_table(data)
+          console.print(table)
+      elif format_type == "csv":
+          output = io.StringIO()
+          if isinstance(data, list) and data and isinstance(data[0], dict):
+              writer = csv.DictWriter(output, fieldnames=list(data[0].keys()))
+              writer.writeheader()
+              writer.writerows(data)
+          console.print(output.getvalue())
+      elif format_type == "text":
+          if isinstance(data, list):
+              for item in data:
+                  console.print(str(item))
+          else:
+              console.print(str(data))
+      else:
+          console.print(data)
+      return FlextResult.ok(True)  # noqa: FBT003
     except Exception as e:  # noqa: BLE001
-        return FlextResult.fail(str(e))
+      return FlextResult.fail(str(e))
 
 
 def flext_cli_create_table(
@@ -253,27 +254,27 @@ def flext_cli_create_table(
     """Create a Rich table from data with optional title and columns."""
     table = Table(title=title)
     if isinstance(data, list):
-        if not data:
-            table.add_column("No Data")
-            return table
-        if isinstance(data[0], dict):
-            headers = columns or list(data[0].keys())
-            for h in headers:
-                table.add_column(str(h))
-            for item in data:
-                table.add_row(*(str(item.get(h, "")) for h in headers))
-        else:
-            table.add_column("Value")
-            for item in data:
-                table.add_row(str(item))
+      if not data:
+          table.add_column("No Data")
+          return table
+      if isinstance(data[0], dict):
+          headers = columns or list(data[0].keys())
+          for h in headers:
+              table.add_column(str(h))
+          for item in data:
+              table.add_row(*(str(item.get(h, "")) for h in headers))
+      else:
+          table.add_column("Value")
+          for item in data:
+              table.add_row(str(item))
     elif isinstance(data, dict):
-        table.add_column("Key")
-        table.add_column("Value")
-        for k, v in data.items():
-            table.add_row(str(k), str(v))
+      table.add_column("Key")
+      table.add_column("Value")
+      for k, v in data.items():
+          table.add_row(str(k), str(v))
     else:
-        table.add_column("Value")
-        table.add_row(str(data))
+      table.add_column("Value")
+      table.add_row(str(data))
     return table
 
 
@@ -285,33 +286,33 @@ def flext_cli_load_file(
     """Load a file and parse its content according to the format."""
     p = Path(file_path)
     if not p.exists():
-        return FlextResult.fail("File not found")
+      return FlextResult.fail("File not found")
     try:
-        suffix = p.suffix.lower()
-        if format_type == "text" or suffix == ".txt":
-            return FlextResult.ok(p.read_text(encoding="utf-8"))
-        if suffix in {".yml", ".yaml"}:
-            return FlextResult.ok(yaml.safe_load(p.read_text(encoding="utf-8")))
-        if suffix == ".json":
-            return FlextResult.ok(json.loads(p.read_text(encoding="utf-8")))
-        return FlextResult.fail("Unsupported file format")
+      suffix = p.suffix.lower()
+      if format_type == "text" or suffix == ".txt":
+          return FlextResult.ok(p.read_text(encoding="utf-8"))
+      if suffix in {".yml", ".yaml"}:
+          return FlextResult.ok(yaml.safe_load(p.read_text(encoding="utf-8")))
+      if suffix == ".json":
+          return FlextResult.ok(json.loads(p.read_text(encoding="utf-8")))
+      return FlextResult.fail("Unsupported file format")
     except Exception as e:  # noqa: BLE001
-        return FlextResult.fail(str(e))
+      return FlextResult.fail(str(e))
 
 
 def flext_cli_save_file(data: object, file_path: str | Path) -> FlextResult[bool]:  # noqa: D103
     p = Path(file_path)
     p.parent.mkdir(parents=True, exist_ok=True)
     try:
-        if p.suffix.lower() in {".yml", ".yaml"}:
-            p.write_text(yaml.dump(data, default_flow_style=False), encoding="utf-8")
-        elif p.suffix.lower() == ".json":
-            p.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
-        else:
-            p.write_text(str(data), encoding="utf-8")
-        return FlextResult.ok(True)  # noqa: FBT003
+      if p.suffix.lower() in {".yml", ".yaml"}:
+          p.write_text(yaml.dump(data, default_flow_style=False), encoding="utf-8")
+      elif p.suffix.lower() == ".json":
+          p.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
+      else:
+          p.write_text(str(data), encoding="utf-8")
+      return FlextResult.ok(True)  # noqa: FBT003
     except Exception as e:  # noqa: BLE001
-        return FlextResult.fail(str(e))
+      return FlextResult.fail(str(e))
 
 
 def flext_cli_batch_execute(  # noqa: D103
@@ -321,19 +322,19 @@ def flext_cli_batch_execute(  # noqa: D103
 ) -> FlextResult[dict[str, dict[str, object]]]:
     results: dict[str, dict[str, object]] = {}
     for name, op in operations:
-        try:
-            res = op()
-            results[name] = {
-                "success": res.success,
-                "data": getattr(res, "data", None),
-                "error": res.error,
-            }
-            if res.is_failure and stop_on_error:
-                return FlextResult.fail(f"Operation {name} failed: {res.error}")
-        except Exception as e:  # noqa: BLE001
-            if stop_on_error:
-                return FlextResult.fail(f"Operation {name} raised exception: {e}")
-            results[name] = {"success": False, "error": str(e)}
+      try:
+          res = op()
+          results[name] = {
+              "success": res.success,
+              "data": getattr(res, "data", None),
+              "error": res.error,
+          }
+          if res.is_failure and stop_on_error:
+              return FlextResult.fail(f"Operation {name} failed: {res.error}")
+      except Exception as e:  # noqa: BLE001
+          if stop_on_error:
+              return FlextResult.fail(f"Operation {name} raised exception: {e}")
+          results[name] = {"success": False, "error": str(e)}
     return FlextResult.ok(results)
 
 

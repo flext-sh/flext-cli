@@ -9,12 +9,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli.commands import (  # pipeline and plugin don't exist yet
+from flext_cli import (  # pipeline and plugin don't exist yet
     auth,
     config,
     debug,
 )
-from flext_cli.commands.projects import algar, gruponos, meltano
+from flext_cli import algar, gruponos, meltano
 
 __all__: list[str] = [
     "algar",

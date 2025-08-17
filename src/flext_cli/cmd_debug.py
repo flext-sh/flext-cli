@@ -1,4 +1,9 @@
-"""Debug commands."""
+"""Debug commands.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
 
 from __future__ import annotations
 
@@ -7,6 +12,7 @@ import importlib
 import os
 import platform as _platform
 import sys
+from contextlib import suppress
 from pathlib import Path
 
 import click
@@ -30,13 +36,13 @@ def get_config() -> object:  # patched in tests
     """Return minimal config shape used by tests."""
     # Provide minimal attributes used by tests
     return type(
-        "Cfg",
-        (),
-        {
-            "api_url": "http://localhost:8000",
-            "timeout": 30,
-            "config_dir": Path.home() / ".flext",
-        },
+      "Cfg",
+      (),
+      {
+          "api_url": "http://localhost:8000",
+          "timeout": 30,
+          "config_dir": Path.home() / ".flext",
+      },
     )()
 
 
@@ -55,126 +61,130 @@ def debug_cmd() -> None:
 def connectivity(ctx: click.Context) -> None:
     """Test connectivity with the configured API, printing status."""
     if not hasattr(ctx, "obj") or ctx.obj is None:
-        error_console = Console()
-        error_console.print("[red]❌ CLI context not available[/red]")
-        ctx.exit(1)
+      error_console = Console()
+      error_console.print("[red]❌ CLI context not available[/red]")
+      ctx.exit(1)
 
     obj = ctx.obj if hasattr(ctx.obj, "get") else {}
     console: Console = (
-        obj.get("console", Console()) if hasattr(obj, "get") else Console()
+      obj.get("console", Console()) if hasattr(obj, "get") else Console()
     )
 
     # Resolve patchable module-level hooks from flext_cli.commands.debug
     try:
-        debug_mod = importlib.import_module("flext_cli.commands.debug")
+      debug_mod = importlib.import_module("flext_cli.commands.debug")
     except Exception:  # pragma: no cover
-        debug_mod = None
+      debug_mod = None
 
     async def _run() -> None:
-        try:
-            client = _get_client(debug_mod, console, ctx)
-            await _test_connection(client, console, ctx)
-            await _get_system_status(client, console)
-        except Exception as e:
-            console.print(f"[red]❌ Connection test failed: {e}[/red]")
-            # Raise SystemExit to satisfy tests that run captured coroutine
-            raise SystemExit(1) from e
+      try:
+          client = _get_client(debug_mod, console, ctx)
+          await _test_connection(client, console, ctx)
+          await _get_system_status(client, console)
+      except Exception as e:
+          console.print(f"[red]❌ Connection test failed: {e}[/red]")
+          # Raise SystemExit to satisfy tests that run captured coroutine
+          raise SystemExit(1) from e
 
     # Execute o coroutine de forma robusta (novo event loop) e, adicionalmente, exponha-o via asyncio.run
     loop = asyncio.new_event_loop()
     try:
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(_run())
+      asyncio.set_event_loop(loop)
+      loop.run_until_complete(_run())
     finally:
-        loop.close()
+      loop.close()
 
 
 def _get_client(
-    debug_mod: object | None, console: Console, ctx: click.Context
+    debug_mod: object | None,
+    console: Console,
+    ctx: click.Context,
 ) -> object:
     """Get client provider for testing."""
     provider = None
     if debug_mod and hasattr(debug_mod, "get_default_cli_client"):
-        provider = debug_mod.get_default_cli_client
+      provider = debug_mod.get_default_cli_client
     elif hasattr(debug_cmd, "get_default_cli_client"):
-        provider = debug_cmd.get_default_cli_client
+      provider = debug_cmd.get_default_cli_client
     else:
-        provider = get_default_cli_client
+      provider = get_default_cli_client
 
     client = None
     if callable(provider):
-        try:
-            client = provider()
-        except Exception:
-            client = None
+      try:
+          client = provider()
+      except Exception:
+          client = None
 
     # Fallback: usar classe FlextApiClient se disponível e patchada nos testes
     if client is None:
-        try:
-            client_class = getattr(debug_mod, "FlextApiClient", None)
-            if client_class is None:
-                client_class = FlextApiClient
-            client = client_class()
-        except Exception:
-            client = None
+      try:
+          client_class = getattr(debug_mod, "FlextApiClient", None)
+          if client_class is None:
+              client_class = FlextApiClient
+          client = client_class()
+      except Exception:
+          client = None
 
     if client is None:
-        console.print("[red]❌ Failed to get client provider[/red]")
-        ctx.exit(1)
+      console.print("[red]❌ Failed to get client provider[/red]")
+      ctx.exit(1)
 
     return client
 
 
 async def _test_connection(
-    client: object, console: Console, ctx: click.Context
+    client: object,
+    console: Console,
+    ctx: click.Context,
 ) -> None:
     """Test API connection."""
     console.print("[yellow]Testing API connectivity[/yellow]")
 
     # FlextResult expected in tests
     try:
-        test_result = await client.test_connection()  # type: ignore[call-arg]
+      test_result = await client.test_connection()  # type: ignore[call-arg]
     except TypeError:
-        # Método síncrono ou mock simples
-        test_result = client.test_connection()
+      # Método síncrono ou mock simples
+      test_result = client.test_connection()
 
     if hasattr(test_result, "is_failure"):
-        if test_result.is_failure:
-            console.print(
-                f"[red]❌ Failed to connect to API: {getattr(test_result, 'error', 'Unknown')}[/red]",
-            )
-            ctx.exit(1)
+      if test_result.is_failure:
+          console.print(
+              f"[red]❌ Failed to connect to API: {getattr(test_result, 'error', 'Unknown')}[/red]",
+          )
+          ctx.exit(1)
     elif test_result is False:
-        console.print(
-            "[red]❌ Failed to connect to API: Connection failed[/red]",
-        )
-        ctx.exit(1)
+      console.print(
+          "[red]❌ Failed to connect to API: Connection failed[/red]",
+      )
+      ctx.exit(1)
 
     console.print(
-        f"[green]✅ Connected to API at {getattr(client, 'base_url', '')}[/green]",
+      f"[green]✅ Connected to API at {getattr(client, 'base_url', '')}[/green]",
     )
 
 
 async def _get_system_status(client: object, console: Console) -> None:
     """Get and display system status."""
     try:
-        try:
-            status_result = await client.get_system_status()  # type: ignore[call-arg]
-        except TypeError:
-            status_result = client.get_system_status()
+      try:
+          status_result = await client.get_system_status()  # type: ignore[call-arg]
+      except TypeError:
+          status_result = client.get_system_status()
 
-        if hasattr(status_result, "success") and status_result.success:
-            status = status_result.unwrap()
-            console.print("\nSystem Status:")
-            console.print(f"  Version: {status.get('version', 'Unknown')}")
-            console.print(f"  Status: {status.get('status', 'Unknown')}")
-            console.print(f"  Uptime: {status.get('uptime', 'Unknown')}")
-        else:
-            console.print(
-                f"[yellow]⚠ Could not get system status: {getattr(status_result, 'error', 'Unknown')}[/yellow]",
-            )
+      if hasattr(status_result, "success") and status_result.success:
+          status = status_result.unwrap()
+          console.print("\nSystem Status:")
+          console.print(f"  Version: {status.get('version', 'Unknown')}")
+          console.print(f"  Status: {status.get('status', 'Unknown')}")
+          console.print(f"  Uptime: {status.get('uptime', 'Unknown')}")
+      else:
+          console.print(
+              f"[yellow]⚠ Could not get system status: {getattr(status_result, 'error', 'Unknown')}[/yellow]",
+          )
     except Exception as e:  # noqa: BLE001
-        console.print(f"[yellow]⚠ Could not get system status: {e}[/yellow]")
+      console.print(f"[yellow]⚠ Could not get system status: {e}[/yellow]")
 
 
 @debug_cmd.command(help="Check system performance metrics")
@@ -184,54 +194,54 @@ def performance(ctx: click.Context) -> None:
     obj = getattr(ctx, "obj", {}) or {}
     console: Console = obj.get("console", Console())
     try:
-        debug_mod = importlib.import_module("flext_cli.commands.debug")
+      debug_mod = importlib.import_module("flext_cli.commands.debug")
     except Exception:  # pragma: no cover
-        debug_mod = None
+      debug_mod = None
     try:
-        provider = (debug_mod.get_default_cli_client if debug_mod else None) or getattr(
-            debug_cmd,
-            "get_default_cli_client",
-            get_default_cli_client,
-        )
-        client = provider() if callable(provider) else None
-        if client is None:
-            console.print("[red]❌ Failed to get client provider[/red]")
-            ctx.exit(1)
-        table_ctor = (debug_mod.Table if debug_mod else None) or Table
-        table = table_ctor(title="System Performance Metrics")
-        table.add_column("Metric", style="cyan")
-        table.add_column("Value", style="white")
+      provider = (debug_mod.get_default_cli_client if debug_mod else None) or getattr(
+          debug_cmd,
+          "get_default_cli_client",
+          get_default_cli_client,
+      )
+      client = provider() if callable(provider) else None
+      if client is None:
+          console.print("[red]❌ Failed to get client provider[/red]")
+          ctx.exit(1)
+      table_ctor = (debug_mod.Table if debug_mod else None) or Table
+      table = table_ctor(title="System Performance Metrics")
+      table.add_column("Metric", style="cyan")
+      table.add_column("Value", style="white")
 
-        metrics: dict[str, object] | None = None
+      metrics: dict[str, object] | None = None
 
-        async def _fetch() -> dict[str, object] | None:
-            try:
-                status_result = await client.get_system_status()
-                return (
-                    status_result.unwrap()
-                    if getattr(status_result, "success", False)
-                    else None
-                )
-            except Exception:  # noqa: BLE001
-                return None
+      async def _fetch() -> dict[str, object] | None:
+          try:
+              status_result = await client.get_system_status()
+              return (
+                  status_result.unwrap()
+                  if getattr(status_result, "success", False)
+                  else None
+              )
+          except Exception:  # noqa: BLE001
+              return None
 
-        try:
-            metrics = asyncio.run(_fetch())
-        except Exception:
-            metrics = None
+      try:
+          metrics = asyncio.run(_fetch())
+      except Exception:
+          metrics = None
 
-        # Fill table even if partial/empty
-        if metrics is None:
-            # complete failure path
-            ctx.exit(1)
-        else:
-            for key in ("cpu_usage", "memory_usage", "disk_usage", "response_time"):
-                value = (metrics or {}).get(key, "Unknown")
-                table.add_row(key.replace("_", " ").title(), str(value))
-            console.print(table)
+      # Fill table even if partial/empty
+      if metrics is None:
+          # complete failure path
+          ctx.exit(1)
+      else:
+          for key in ("cpu_usage", "memory_usage", "disk_usage", "response_time"):
+              value = (metrics or {}).get(key, "Unknown")
+              table.add_row(key.replace("_", " ").title(), str(value))
+          console.print(table)
     except Exception:
-        # Graceful failure: exit with error per tests
-        ctx.exit(1)
+      # Graceful failure: exit with error per tests
+      ctx.exit(1)
 
 
 @debug_cmd.command(help="Validate environment and dependencies")
@@ -239,31 +249,29 @@ def performance(ctx: click.Context) -> None:
 def validate(ctx: click.Context) -> None:
     """Validate environment, print versions, and run dependency checks."""
     if not hasattr(ctx, "obj") or ctx.obj is None:
-        error_console = Console()
-        error_console.print("[red]❌ CLI context not available[/red]")
-        ctx.exit(1)
+      error_console = Console()
+      error_console.print("[red]❌ CLI context not available[/red]")
+      ctx.exit(1)
 
     obj = ctx.obj if hasattr(ctx.obj, "get") else {}
     console: Console = (
-        obj.get("console", Console()) if hasattr(obj, "get") else Console()
+      obj.get("console", Console()) if hasattr(obj, "get") else Console()
     )
     cfg = get_config()
 
     cfg_path = Path(getattr(cfg, "config_dir", Path.home() / ".flext")) / "config.yaml"
     if not Path(cfg_path).exists():
-        console.print(
-            "[yellow]Config file not found, continuing with defaults[/yellow]",
-        )
+      console.print(
+          "[yellow]Config file not found, continuing with defaults[/yellow]",
+      )
     # Python version check
     py_major, py_minor, *_ = sys.version_info
     if (py_major, py_minor) < (3, 10):
-        console.print("[red]Python 3.10+ required[/red]")
-        ctx.exit(1)
+      console.print("[red]Python 3.10+ required[/red]")
+      ctx.exit(1)
     # Allow tests to patch dependency validation function
-    from contextlib import suppress  # noqa: PLC0415
-
     with suppress(NameError):
-        getattr(debug_cmd, "_validate_dependencies", _validate_dependencies)(console)
+      getattr(debug_cmd, "_validate_dependencies", _validate_dependencies)(console)
 
     # Minimal required packages check (tests patch builtins.__import__)
     __import__("click")
@@ -279,13 +287,13 @@ def validate(ctx: click.Context) -> None:
 def trace(ctx: click.Context, args: tuple[str, ...]) -> None:
     """Echo provided arguments for quick tracing during tests."""
     if not hasattr(ctx, "obj") or ctx.obj is None:
-        error_console = Console()
-        error_console.print("[red]❌ CLI context not available[/red]")
-        ctx.exit(1)
+      error_console = Console()
+      error_console.print("[red]❌ CLI context not available[/red]")
+      ctx.exit(1)
 
     obj = ctx.obj if hasattr(ctx.obj, "get") else {}
     console: Console = (
-        obj.get("console", Console()) if hasattr(obj, "get") else Console()
+      obj.get("console", Console()) if hasattr(obj, "get") else Console()
     )
     console.print(f"Tracing: {' '.join(args)}")
 
@@ -298,26 +306,26 @@ def env(ctx: click.Context) -> None:
     console: Console = obj.get("console", Console())
     # Prefer module patched Table from flext_cli.commands.debug for tests
     try:
-        debug_mod = importlib.import_module("flext_cli.commands.debug")
+      debug_mod = importlib.import_module("flext_cli.commands.debug")
     except Exception:  # pragma: no cover
-        debug_mod = None
+      debug_mod = None
     table_ctor = (debug_mod.Table if debug_mod else None) or Table
     table = table_ctor(title="FLEXT Environment Variables")
     table.add_column("Variable", style="cyan")
     table.add_column("Value", style="white")
     count = 0
     for key, value in os.environ.items():
-        if not key.startswith("FLX_"):
-            continue
-        masked = value
-        if any(s in key for s in ("TOKEN", "KEY", "SECRET")):
-            prefix = value[:SENSITIVE_VALUE_PREVIEW_LENGTH]
-            masked = f"{prefix}****"
-        table.add_row(key, masked)
-        count += 1
+      if not key.startswith("FLX_"):
+          continue
+      masked = value
+      if any(s in key for s in ("TOKEN", "KEY", "SECRET")):
+          prefix = value[:SENSITIVE_VALUE_PREVIEW_LENGTH]
+          masked = f"{prefix}****"
+      table.add_row(key, masked)
+      count += 1
     if count == 0:
-        console.print("[yellow]No FLEXT environment variables found[/yellow]")
-        return
+      console.print("[yellow]No FLEXT environment variables found[/yellow]")
+      return
     console.print(table)
 
 
@@ -329,9 +337,9 @@ def paths(ctx: click.Context) -> None:
     console: Console = obj.get("console", Console())
     cfg = get_config()
     try:
-        debug_mod = importlib.import_module("flext_cli.commands.debug")
+      debug_mod = importlib.import_module("flext_cli.commands.debug")
     except Exception:  # pragma: no cover
-        debug_mod = None
+      debug_mod = None
     table_ctor = (debug_mod.Table if debug_mod else None) or Table
     table = table_ctor(title="FLEXT CLI Paths")
     table.add_column("Path Type", style="cyan")
@@ -341,15 +349,15 @@ def paths(ctx: click.Context) -> None:
     path_cls = (debug_mod.Path if debug_mod else None) or Path
     home = path_cls.home()
     path_items = {
-        "Home": home,
-        "Config": getattr(cfg, "config_dir", home / ".flext"),
-        "Cache": home / ".flext" / "cache",
-        "Logs": home / ".flext" / "logs",
-        "Data": home / ".flext" / "data",
+      "Home": home,
+      "Config": getattr(cfg, "config_dir", home / ".flext"),
+      "Cache": home / ".flext" / "cache",
+      "Logs": home / ".flext" / "logs",
+      "Data": home / ".flext" / "data",
     }
     for label, p in path_items.items():
-        exists = "✅" if Path(str(p)).exists() else "❌"
-        table.add_row(label, str(p), exists)
+      exists = "✅" if Path(str(p)).exists() else "❌"
+      table.add_row(label, str(p), exists)
     console.print(table)
 
 
@@ -358,13 +366,13 @@ def paths(ctx: click.Context) -> None:
 def check(ctx: click.Context) -> None:
     """Run basic health check that always succeeds (E2E recovery test helper)."""
     if not hasattr(ctx, "obj") or ctx.obj is None:
-        error_console = Console()
-        error_console.print("[red]❌ CLI context not available[/red]")
-        ctx.exit(1)
+      error_console = Console()
+      error_console.print("[red]❌ CLI context not available[/red]")
+      ctx.exit(1)
 
     obj = ctx.obj if hasattr(ctx.obj, "get") else {}
     console: Console = (
-        obj.get("console", Console()) if hasattr(obj, "get") else Console()
+      obj.get("console", Console()) if hasattr(obj, "get") else Console()
     )
     console.print("[green]System OK[/green]")
 

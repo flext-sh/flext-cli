@@ -4,61 +4,7 @@ This module demonstrates a complete CLI application using FLEXT CLI patterns wit
 Clean Architecture, Domain-Driven Design, and flext-core integration. Serves as
 a reference implementation for production-ready CLI applications.
 
-Architecture:
-    - Clean Architecture with proper layer separation
-    - Click-based command framework with Rich terminal UI
-    - flext-core integration with FlextResult patterns
-    - Domain-driven design with CLI entities and services
-    - Sprint-aligned command implementation roadmap
-
-Current Implementation Status:
-    ✅ Core Infrastructure: CLI setup, configuration, context management
-    ✅ Foundation Commands: auth, config, debug (fully functional)
-    🎯 Pipeline Commands: Planned for Sprint 1 implementation
-    🎯 Plugin Commands: Planned for Sprint 6 implementation
-    🎯 Project Commands: Planned for Sprint 9 implementation
-
-Command Structure:
-    flext [GLOBAL_OPTIONS] COMMAND [COMMAND_OPTIONS] [ARGS...]
-
-    Global Options:
-        --profile PROFILE    Configuration profile (dev/staging/prod)
-        --output FORMAT      Output format (table/json/yaml/csv/plain)
-        --debug             Enable debug mode with verbose output
-        --quiet             Suppress non-error output
-
-    Available Commands:
-        auth                Authentication and session management
-        config              Configuration management and profiles
-        debug               Diagnostic tools and health checks
-        pipeline            Data pipeline management (Sprint 1)
-        plugin              Plugin system management (Sprint 6)
-        projects            Project-specific integrations (Sprint 9)
-
-Usage Examples:
-    Basic usage:
-    >>> python cli.py --help
-    >>> python cli.py auth login --username admin
-    >>> python cli.py config show --format json
-    >>> python cli.py debug health --verbose
-
-    Advanced usage:
-    >>> python cli.py --profile production --output json pipeline list
-    >>> python cli.py --debug plugin install kubernetes-plugin
-    >>> python cli.py projects algar migration --type oud
-
-Integration:
-    - Uses main FLEXT CLI library patterns and components
-    - Demonstrates proper dependency injection with flext-core
-    - Shows Clean Architecture implementation in practice
-    - Provides template for production CLI applications
-
-TODO (Sprint Implementation):
-    Sprint 1: Implement pipeline management commands (CRITICAL)
-    Sprint 6: Add plugin system with discovery and lifecycle
-    Sprint 9: Complete project-specific command integration
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2025 Flext. All rights reserved.
 SPDX-License-Identifier: MIT
 
 """
@@ -71,15 +17,18 @@ import click
 from flext_core import FlextUtilities, get_flext_container
 from rich.console import Console
 
-from flext_cli.__version__ import __version__
-from flext_cli.commands import (  # pipeline and plugin don't exist yet
+from flext_cli import (  # pipeline and plugin don't exist yet
+    CLIServiceContainer,
+    CLISettings,
+    __version__,
+    algar,
     auth,
     config,
     debug,
+    get_config,
+    gruponos,
+    meltano,
 )
-from flext_cli.commands.projects import algar, gruponos, meltano
-from flext_cli.domain import CLIServiceContainer
-from flext_cli.utils.config import CLISettings, get_config
 
 
 @click.group(
@@ -136,8 +85,8 @@ def cli(
     # Create service container with dependency injection
     container = get_flext_container()
     service_container = CLIServiceContainer(
-        name="flext-cli",
-        version=__version__,
+      name="flext-cli",
+      version=__version__,
     )
 
     # Register services in DI container
@@ -154,13 +103,13 @@ def cli(
 
     # Debug information
     if debug:
-        console.print(f"[dim]Profile: {profile}[/dim]")
-        console.print(f"[dim]Output format: {output}[/dim]")
-        console.print(f"[dim]Debug mode: {debug}[/dim]")
+      console.print(f"[dim]Profile: {profile}[/dim]")
+      console.print(f"[dim]Output format: {output}[/dim]")
+      console.print(f"[dim]Debug mode: {debug}[/dim]")
 
     # Show help if no command:
     if ctx.invoked_subcommand is None:
-        click.echo(ctx.get_help())
+      click.echo(ctx.get_help())
 
 
 # Register command groups
@@ -197,7 +146,7 @@ def version(ctx: click.Context) -> None:
     console.print(f"FLEXT CLI version {settings.project_version}")
     console.print(f"Python {sys.version}")
     if ctx.obj.get("debug"):
-        console.print(f"[dim]Configuration: {config.model_dump()}[/dim]")
+      console.print(f"[dim]Configuration: {config.model_dump()}[/dim]")
 
 
 def main() -> None:
