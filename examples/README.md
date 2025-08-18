@@ -1,164 +1,128 @@
-# FLEXT CLI Examples - Practical Usage Demonstrations
+# FLEXT-CLI Examples - Comprehensive Learning Path
 
-**Directory**: `examples/`  
-**Architecture Layer**: Examples (All Layer Demonstrations)  
-**Status**: 75% implemented - Comprehensive examples covering core patterns  
-**Sprint Alignment**: Examples evolve with Sprints 1-10 implementation roadmap
+This directory contains a comprehensive set of examples demonstrating all flext-cli patterns and capabilities in a progressive learning structure.
 
-## 🎯 Examples Overview
+## 📚 Learning Path Overview
 
-This directory contains practical examples demonstrating FLEXT CLI usage across all architectural layers, showcasing enterprise-grade CLI development patterns with Clean Architecture, Domain-Driven Design, and flext-core integration.
+The examples are organized in a sequential learning path from foundational patterns to advanced integration techniques:
 
-### **Example Categories**
+1. **[01_foundation_patterns.py](01_foundation_patterns.py)** - Core flext-core integration patterns
+2. **[02_cli_commands_integration.py](02_cli_commands_integration.py)** - Click framework integration with decorators
+3. **[03_data_processing_and_output.py](03_data_processing_and_output.py)** - Data processing and output formatting
+4. **[04_authentication_and_authorization.py](04_authentication_and_authorization.py)** - Security patterns and token management
+5. **[05_advanced_service_integration.py](05_advanced_service_integration.py)** - Advanced patterns with async operations
+6. **[06_comprehensive_cli_application.py](06_comprehensive_cli_application.py)** - Complete real-world CLI application
 
-- **Foundation Examples**: Core library patterns and basic usage
-- **Architecture Examples**: Clean Architecture layer demonstrations
-- **Integration Examples**: Real-world CLI application patterns
-- **Advanced Examples**: Enterprise patterns and complex workflows
-- **Sprint Examples**: Implementation examples following the 10-sprint roadmap
+## 🏗️ Architecture Patterns Demonstrated
 
-### **Key Technologies Demonstrated**
+### Clean Architecture Integration
+- **Domain Layer**: CLI entities (CLICommand, CLISession, CLIPlugin) with business rules
+- **Application Layer**: Command handlers and service orchestration
+- **Infrastructure Layer**: External service integration, file I/O, API clients
 
-- **flext-core Foundation**: FlextResult, FlextEntity, FlextContainer patterns
-- **Clean Architecture**: Domain, Application, Infrastructure, Commands layer separation
-- **Click Integration**: Enhanced CLI framework with Rich terminal UI
-- **Domain-Driven Design**: CLI-specific entities, value objects, domain services
-- **CQRS Patterns**: Command Query Responsibility Segregation (Sprint 2-3)
-- **Enterprise Patterns**: Configuration, validation, error handling, monitoring
+### flext-core Foundation Patterns
+- **FlextResult[T]**: Railway-oriented programming for error handling
+- **FlextModel**: Pydantic-based domain models with validation
+- **FlextContainer**: Dependency injection container for service composition
+- **FlextFactory**: Entity creation patterns with validation
 
-## 📋 Example Catalog
+## 📖 Example Details
 
-### ✅ **Foundation Examples** (Implemented)
+### 01 - Foundation Patterns
+**File**: `01_foundation_patterns.py`
 
-#### **1. Basic CLI Usage** (`01_basic_cli_usage.py`)
+**Key Patterns**:
+- FlextResult railway-oriented programming
+- FlextModel with Pydantic validation
+- FlextContainer dependency injection
+- CLI domain entities with business rules
+- Entity lifecycle management
 
-**Architecture Layer**: All layers introduction  
-**Sprint Alignment**: Foundation for all sprints
+**What You'll Learn**:
+- How to use FlextResult for error handling
+- Creating domain entities with validation
+- Service composition with dependency injection
+- CLI-specific domain modeling
 
-**Purpose**: Introduction to FLEXT CLI core patterns and setup
+### 02 - CLI Commands Integration
+**File**: `02_cli_commands_integration.py`
 
-**Features Demonstrated**:
+**Key Patterns**:
+- Click framework integration with flext-cli decorators
+- Type-safe CLI options (URL, PositiveInt, ExistingFile)
+- CLI decorators (@cli_enhanced, @cli_measure_time, @cli_confirm)
+- Interactive prompts and user confirmation
+- Command lifecycle with validation and execution
 
-- Configuration management with `CLIConfig` and `CLISettings`
-- CLI context creation and execution management
-- Helper utilities for validation and formatting
-- FlextResult pattern integration throughout
-- Basic CLI setup and initialization patterns
+**What You'll Learn**:
+- Building type-safe CLI commands
+- Using flext-cli decorators for enhanced functionality
+- Interactive CLI patterns with Rich UI
+- Command parameter validation and transformation
 
-**Key Concepts**:
+### 03 - Data Processing and Output
+**File**: `03_data_processing_and_output.py`
 
-```python
-# Configuration management
-config = flext_cli.get_config()
-settings = flext_cli.get_settings()
+**Key Patterns**:
+- Data transformation and aggregation utilities
+- Multiple output formats (JSON, YAML, CSV, Rich tables)
+- Type-safe file operations (ExistingFile, NewFile, ExistingDir)
+- FormatterFactory pattern for consistent output
+- Batch processing workflows
 
-# Context creation
-context = flext_cli.CLIContext(profile="development")
+**What You'll Learn**:
+- Processing and transforming data in CLI applications
+- Creating beautiful terminal output with Rich
+- Type-safe file handling patterns
+- Implementing flexible output formatting
 
-# Helper utilities
-helper = flext_cli.CLIHelper()
-result = helper.validate_email("user@example.com")
+### 04 - Authentication and Authorization
+**File**: `04_authentication_and_authorization.py`
 
-# Service result handling
-@flext_cli.handle_service_result
-def operation() -> FlextResult[str]:
-    return FlextResult.ok("Success")
-```
+**Key Patterns**:
+- Token management (save, retrieve, validate)
+- Authorization headers and API authentication
+- Protected operations with @require_auth decorator
+- Role-based access control (RBAC)
+- Session management and token refresh
 
-**Run**: `python examples/01_basic_cli_usage.py`
+**What You'll Learn**:
+- Implementing secure authentication in CLI apps
+- Token-based authentication patterns
+- Role-based permission systems
+- Secure credential handling
 
-#### **2. Click Integration** (`02_click_integration.py`)
+### 05 - Advanced Service Integration
+**File**: `05_advanced_service_integration.py`
 
-**Architecture Layer**: Commands/Presentation layer  
-**Sprint Alignment**: Foundation + Sprint 6-7 advanced features
+**Key Patterns**:
+- FlextCliService with comprehensive mixins
+- Async command execution with @async_command
+- Circuit breaker pattern for service resilience
+- Service orchestration and coordination
+- Health monitoring and performance tracking
 
-**Purpose**: Complete Click-based CLI application with FLEXT CLI enhancements
+**What You'll Learn**:
+- Building resilient service integrations
+- Implementing async operations in CLI apps
+- Circuit breaker patterns for fault tolerance
+- Service health monitoring and orchestration
 
-**Features Demonstrated**:
+### 06 - Comprehensive CLI Application
+**File**: `06_comprehensive_cli_application.py`
 
-- Full Click command group with FLEXT CLI parameter types
-- Enhanced decorators (time measurement, confirmation, spinners)
-- Async command support with proper error handling
-- Retry mechanisms for unreliable operations
-- Path validation with custom Click types
-- Configuration-aware command execution
+**Key Patterns**:
+- Multi-command CLI with nested command groups
+- Plugin architecture for extensibility
+- Configuration management with profiles
+- Service integration with external APIs
+- Rich terminal UI with progress tracking
 
-**Key Concepts**:
-
-```python
-import click
-import flext_cli
-
-@click.group()
-def cli():
-    """FLEXT CLI Example Application."""
-    pass
-
-@cli.command()
-@click.option("--count", type=flext_cli.PositiveInt)
-@click.option("--url", type=flext_cli.URL)
-@flext_cli.measure_time(show_in_output=True)
-@flext_cli.with_spinner("Processing...")
-@flext_cli.retry(max_attempts=3, delay=1.0)
-def process(count: int, url: str):
-    """Process data with enhanced CLI features."""
-    pass
-```
-
-**Run**:
-
-```bash
-python examples/02_click_integration.py --help
-python examples/02_click_integration.py process --count 5 --url https://api.example.com
-```
-
-#### **3. Domain Entities** (`03_domain_entities.py`)
-
-**Architecture Layer**: Domain layer  
-**Sprint Alignment**: Foundation + Sprint 2-3 domain events
-
-**Purpose**: Demonstrate CLI domain modeling with FLEXT CLI entities
-
-**Features Demonstrated**:
-
-- CLI command lifecycle management with status tracking
-- CLI session tracking with command history
-- CLI plugin management with dependencies
-- Domain events for CLI operations (Sprint 2-3)
-- Business rule validation with FlextResult patterns
-- Domain-driven design patterns in CLI context
-
-**Key Concepts**:
-
-```python
-# Command lifecycle
-command = flext_cli.CLICommand(
-    name="deploy",
-    command_line="kubectl apply -f app.yaml",
-    command_type=flext_cli.CommandType.SYSTEM
-)
-
-# Start execution
-running_command = command.start_execution()
-assert running_command.command_status == CommandStatus.RUNNING
-
-# Complete execution
-completed = running_command.complete_execution(exit_code=0, stdout="Success")
-assert completed.successful
-
-# Session management
-session = flext_cli.CLISession(session_id="session-123")
-session.add_command(command.id)
-
-# Plugin management
-plugin = flext_cli.CLIPlugin(
-    name="k8s-plugin",
-    entry_point="k8s.main",
-    commands=["deploy", "scale"]
-)
-```
-
-**Run**: `python examples/03_domain_entities.py`
+**What You'll Learn**:
+- Building complete, production-ready CLI applications
+- Implementing plugin architectures
+- Advanced configuration management
+- Creating rich, interactive terminal experiences
 
 ### ✅ **Application Examples** (Implemented)
 

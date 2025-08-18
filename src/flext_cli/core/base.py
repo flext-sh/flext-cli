@@ -12,8 +12,8 @@ from collections.abc import Callable
 from functools import wraps
 from typing import NotRequired, ParamSpec, TypedDict, TypeVar
 
-from flext_core import FlextResult, get_logger
-from pydantic import BaseModel, ConfigDict, Field
+from flext_core import FlextModel, FlextResult, get_logger
+from pydantic import ConfigDict, Field
 from rich.console import Console
 
 P = ParamSpec("P")
@@ -29,7 +29,7 @@ class InitErrorDetails(TypedDict):
     input: object  # Revert to Any for now for flexibility with the linter
 
 
-class CLIContext(BaseModel):
+class CLIContext(FlextModel):
     """Simplified CLI context for tests."""
 
     profile: str = Field(default="default")

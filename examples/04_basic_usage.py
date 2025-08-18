@@ -14,7 +14,7 @@ from __future__ import annotations
 import contextlib
 import tempfile
 from pathlib import Path
-from typing import Any, Never
+from typing import Never
 
 from flext_cli import (
     CLIHelper,
@@ -110,13 +110,13 @@ def example_data_formatting() -> None:
     )
 
     # 2. Format as table for console display
-    table_result = flext_cli_table(SALES_DATA, "Sales Data", "grid")
+    table_result = flext_cli_table(SALES_DATA)
     str(
         table_result.unwrap() if table_result.success else "Table failed",
     )
 
     # 3. Format single record as table
-    single_result = flext_cli_table([SAMPLE_USERS[0]], "User Data", "grid")
+    single_result = flext_cli_table([SAMPLE_USERS[0]])
     str(
         single_result.unwrap() if single_result.success else "Table failed",
     )
@@ -130,15 +130,18 @@ def example_api_class_usage() -> None:
     # 1. Simulate health check
 
     # 2. Add custom commands
-    def calculate_total_revenue(sales_data: list[dict[str, Any]]) -> float:
+    def calculate_total_revenue(sales_data: list[dict[str, object]]) -> float:
         """Calculate total revenue from sales data."""
-        return sum(item["revenue"] for item in sales_data)
+        return sum(
+            float(item["revenue"]) if isinstance(item["revenue"], (int, float, str)) else 0.0
+            for item in sales_data
+        )
 
-    def user_count_by_role(users_data: list[dict[str, Any]]) -> dict[str, int]:
+    def user_count_by_role(users_data: list[dict[str, object]]) -> dict[str, int]:
         """Count users by role."""
-        role_counts = {}
+        role_counts: dict[str, int] = {}
         for user in users_data:
-            role = user["role"]
+            role = str(user["role"])
             role_counts[role] = role_counts.get(role, 0) + 1
         return role_counts
 
@@ -196,11 +199,11 @@ def example_error_handling() -> None:
     # 3. Format with error handling
     try:
         format_result = flext_cli_format(SAMPLE_USERS)
-        result = str(
+        _ = str(
             format_result.unwrap() if format_result.success else "Error: Format failed",
         )
     except (ValueError, TypeError):
-        result = "Error: Format failed"
+        _ = "Error: Format failed"
 
     # 4. Export with invalid data structure
     invalid_csv_data = ["string1", "string2"]  # Not list of dicts
@@ -251,15 +254,18 @@ def example_real_world_scenarios() -> None:
         },
     ]
 
-    sum(r["satisfaction"] for r in survey_responses) / len(
+    sum(
+        int(r["satisfaction"]) if isinstance(r["satisfaction"], (int, str)) else 0
+        for r in survey_responses
+    ) / len(
         survey_responses,
     )
-    sum(1 for r in survey_responses if r["recommend"]) / len(
+    sum(1 for r in survey_responses if bool(r["recommend"])) / len(
         survey_responses,
     )
 
     # Format results for reporting
-    table_result = flext_cli_table(survey_responses, "Survey Responses", "grid")
+    table_result = flext_cli_table(survey_responses)
     str(
         table_result.unwrap() if table_result.success else "Table failed",
     )
@@ -319,12 +325,16 @@ def example_real_world_scenarios() -> None:
 
     # Generate performance report
     slow_endpoints = [
-        r for r in api_responses if r["response_time"] > SLOW_RESPONSE_THRESHOLD_MS
+        r for r in api_responses
+        if isinstance(r["response_time"], (int, str)) and int(r["response_time"]) > SLOW_RESPONSE_THRESHOLD_MS
     ]
-    [r for r in api_responses if r["status_code"] >= HTTP_ERROR_STATUS_CODE]
+    [
+        r for r in api_responses
+        if isinstance(r["status_code"], (int, str)) and int(r["status_code"]) >= HTTP_ERROR_STATUS_CODE
+    ]
 
     if slow_endpoints:
-        table_result = flext_cli_table(slow_endpoints, "Slow Endpoints", "grid")
+        table_result = flext_cli_table(slow_endpoints)
         str(
             table_result.unwrap() if table_result.success else "Table failed",
         )

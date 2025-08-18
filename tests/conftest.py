@@ -19,10 +19,10 @@ from flext_cli import (
     CLICommand,
     CLIConfig,
     CLIExecutionContext as CLIContext,  # alias acceptable from root
-    CommandType,
     FlextConstants,
     create_cli_container,
 )
+from flext_cli.types import FlextCliCommandType, OutputFormat
 from tests.test_mocks import (
     MockFailingApiClient,
     MockFlextApiClient,
@@ -90,7 +90,7 @@ def cli_settings() -> CLIConfig:
     return CLIConfig(
         debug=True,
         profile="test",
-        output_format="json",
+        output_format=OutputFormat.JSON,
         project_name="test-cli",
         project_description="Test CLI Library",
         log_level="DEBUG",
@@ -100,10 +100,7 @@ def cli_settings() -> CLIConfig:
 @pytest.fixture
 def cli_context(cli_config: CLIConfig) -> CLIContext:
     """Create a test CLI context."""
-    return CLIContext(
-        config=cli_config,
-        console=Console(),
-    )
+    return CLIContext(config=cli_config)
 
 
 @pytest.fixture
@@ -119,7 +116,7 @@ def sample_command() -> CLICommand:
         id="test_cmd_001",
         name="test-command",
         description="A test command",
-        command_type=CommandType.SYSTEM,
+        command_type=FlextCliCommandType.SYSTEM,
         command_line="echo hello",
         arguments={"arg1": "value1"},
         options={"--verbose": True},
@@ -136,7 +133,7 @@ def mock_context() -> tuple[object, object]:
 
 
 @pytest.fixture(autouse=True)
-def disable_real_api_calls() -> None:
+def disable_real_api_calls() -> Generator[None]:
     """Additional API call prevention for test isolation.
 
     This fixture runs automatically for all tests to ensure no real HTTP calls
@@ -213,7 +210,7 @@ def mock_flext_api_client() -> MockFlextApiClient:
 
 
 @pytest.fixture
-def mock_flext_api_client_with_patches() -> MockFlextApiClient:
+def mock_flext_api_client_with_patches() -> Generator[MockFlextApiClient]:
     """Mock API client with comprehensive patching to prevent real HTTP calls.
 
     This fixture creates a mock client and applies patches to ensure no real
@@ -283,7 +280,7 @@ def mock_flext_api_client_with_patches() -> MockFlextApiClient:
 
 
 @pytest.fixture
-def mock_failing_api_client() -> MockFailingApiClient:
+def mock_failing_api_client() -> Generator[MockFailingApiClient]:
     """Mock API client that simulates connection failures for error testing."""
     # Create failing mock client instance
     client = MockFailingApiClient()
@@ -361,7 +358,7 @@ def isolated_config() -> CLIConfig:
     return CLIConfig(
         profile="test",
         debug=True,
-        output_format="json",
+        output_format=OutputFormat.JSON,
         project_name="test-cli",
         project_description="Test CLI Library",
         log_level="DEBUG",

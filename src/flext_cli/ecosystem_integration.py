@@ -172,7 +172,7 @@ def setup_flext_cli_ecosystem(
         if config is None:
             # This case should ideally not happen if config_result.success was true,
             # but for mypy's sake and runtime safety, we'll keep it.
-            return FlextResult.fail(
+            return FlextResult.fail(  # type: ignore[unreachable]
                 "Configuration object is unexpectedly None after creation.",
             )
 

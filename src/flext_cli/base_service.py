@@ -10,7 +10,13 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TypeVar
 
-from flext_core import FlextContainer, FlextDomainService, FlextResult, get_logger
+from flext_core import (
+    FlextContainer,
+    FlextDomainService,
+    FlextLogger,
+    FlextResult,
+    get_logger,
+)
 from pydantic import ConfigDict, Field
 
 # Type variables for generic services
@@ -60,13 +66,14 @@ class FlextCliService(FlextDomainService[object], ABC):
         super().__init__(**data)
 
         # Set up logger if enabled
+        self._logger: FlextLogger | None
         if self.enable_logging:
             self._logger = get_logger(f"flext_cli.{self.service_name}")
         else:
-            self._logger = None  # type: ignore[assignment]
+            self._logger = None
 
     @property
-    def logger(self) -> object:
+    def logger(self) -> FlextLogger | None:
         """Get logger instance."""
         return self._logger
 
@@ -81,7 +88,7 @@ class FlextCliService(FlextDomainService[object], ABC):
         Default implementation returns success.
         """
         if self.logger:
-            self.logger.info(f"Initializing CLI service: {self.service_name}")  # type: ignore[attr-defined]
+            self.logger.info(f"Initializing CLI service: {self.service_name}")
         return FlextResult.ok(None)
 
     def cleanup(self) -> FlextResult[None]:
@@ -91,7 +98,7 @@ class FlextCliService(FlextDomainService[object], ABC):
         Default implementation returns success.
         """
         if self.logger:
-            self.logger.info(f"Cleaning up CLI service: {self.service_name}")  # type: ignore[attr-defined]
+            self.logger.info(f"Cleaning up CLI service: {self.service_name}")
         return FlextResult.ok(None)
 
     def validate_config(self) -> FlextResult[None]:

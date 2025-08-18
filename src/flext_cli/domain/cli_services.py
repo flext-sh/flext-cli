@@ -2,20 +2,22 @@
 
 import uuid
 from collections.abc import Callable
+from typing import Protocol
 
 from flext_core import FlextResult, get_logger
 
 from flext_cli.domain.cli_context import CLIContext, CLIExecutionContext
 
 
-class CLIServiceProtocol:
+class CLIServiceProtocol(Protocol):
     """Protocol for CLI services."""
 
     def execute(self, context: CLIContext, **kwargs: object) -> FlextResult[object]:
         """Execute service operation."""
+        ...
 
 
-class CLICommandServiceProtocol:
+class CLICommandServiceProtocol(Protocol):
     """Protocol for CLI command services."""
 
     def execute_command(
@@ -25,16 +27,19 @@ class CLICommandServiceProtocol:
         **kwargs: object,
     ) -> FlextResult[object]:
         """Execute a CLI command."""
+        ...
 
 
-class CLISessionServiceProtocol:
+class CLISessionServiceProtocol(Protocol):
     """Protocol for CLI session services."""
 
     def create_session(self, user_id: str | None = None) -> FlextResult[str]:
         """Create a new CLI session."""
+        ...
 
     def get_session(self, session_id: str) -> FlextResult[dict[str, object]]:
         """Get session information."""
+        ...
 
 
 class CLICommandService:

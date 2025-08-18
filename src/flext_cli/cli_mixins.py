@@ -290,9 +290,11 @@ class CLIInteractiveMixin:
                 return FlextResult.ok(default)
 
             if response in {"y", "yes", "true", "1"}:
-                return FlextResult.ok(data=True)
+                confirmed = True
+                return FlextResult.ok(confirmed)
             if response in {"n", "no", "false", "0"}:
-                return FlextResult.ok(data=False)
+                confirmed = False
+                return FlextResult.ok(confirmed)
             return FlextResult.fail("Please answer 'y' or 'n'")
 
         except (EOFError, KeyboardInterrupt):

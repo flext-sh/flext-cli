@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-from typing import Self
+from typing import Any, Self
 
 from flext_api import create_flext_api
 from flext_core import FlextConstants, FlextResult, get_logger
@@ -48,7 +48,7 @@ class FlextCLIApiClient:
         self.timeout = timeout
 
         # Type annotation for MyPy - handles case where FlextApiClient is not available
-        self._api_client: object | None = None
+        self._api_client: Any | None = None  # type: ignore[explicit-any]
 
         # Initialize flext-api client if available
         self._init_flext_api_client()
@@ -72,9 +72,9 @@ class FlextCLIApiClient:
         try:
             # Create flext-api instance with CLI-specific configuration
             if create_flext_api is not None:
-                self._flext_api = create_flext_api()  # type: ignore[operator]
+                self._flext_api = create_flext_api()
             else:
-                logger.warning("flext-api not available - API client disabled")
+                logger.warning("flext-api not available - API client disabled")  # type: ignore[unreachable]
                 self._api_client = None
                 return
 
@@ -147,7 +147,7 @@ class FlextCLIApiClient:
                 return FlextResult.fail("API client not initialized")
 
             # Get response from API client - handle FlextResult
-            response_result = await self._api_client.get("/health")  # type: ignore[attr-defined]
+            response_result = await self._api_client.get("/health")
             if not response_result.success or response_result.data is None:
                 return FlextResult.fail(f"Connection failed: {response_result.error}")
 
@@ -155,7 +155,8 @@ class FlextCLIApiClient:
             status_code = getattr(response, "status_code", None)
             if status_code == HTTP_OK:
                 logger.info("Connection test successful", base_url=self.base_url)
-                return FlextResult.ok(data=True)
+                connection_success = True
+                return FlextResult.ok(connection_success)
             return FlextResult.fail(f"Health check failed: {status_code}")
 
         except Exception as e:
@@ -172,7 +173,7 @@ class FlextCLIApiClient:
                 return FlextResult.fail("API client not initialized")
 
             # Get response from API client - handle FlextResult
-            response_result = await self._api_client.get("/api/v1/system/status")  # type: ignore[attr-defined]
+            response_result = await self._api_client.get("/api/v1/system/status")
             if not response_result.success or response_result.data is None:
                 return FlextResult.fail(
                     f"Status request failed: {response_result.error}",
@@ -237,7 +238,7 @@ class FlextCLIApiClient:
 
             client = client_result.data
             if client is None:
-                return FlextResult.fail(f"{name} client is None")
+                return FlextResult.fail(f"{name} client is None")  # type: ignore[unreachable]
 
             # Get response from API client - handle FlextResult
             response_result = await client.get("/health")
@@ -287,7 +288,7 @@ class FlextCLIApiClient:
                     "password": password,
                 },
             )
-            response_result = await self._api_client.post(  # type: ignore[attr-defined]
+            response_result = await self._api_client.post(
                 "/auth/login",
                 data=login_data,
             )
@@ -315,7 +316,7 @@ class FlextCLIApiClient:
                 return FlextResult.fail("API client not initialized")
 
             # Post to logout endpoint
-            response_result = await self._api_client.post("/auth/logout")  # type: ignore[attr-defined]
+            response_result = await self._api_client.post("/auth/logout")
             if not response_result.success or response_result.data is None:
                 return FlextResult.fail(f"Logout failed: {response_result.error}")
 
@@ -339,7 +340,7 @@ class FlextCLIApiClient:
                 return FlextResult.fail("API client not initialized")
 
             # Get current user from API
-            response_result = await self._api_client.get("/auth/me")  # type: ignore[attr-defined]
+            response_result = await self._api_client.get("/auth/me")
             if not response_result.success or response_result.data is None:
                 return FlextResult.fail(f"Get user failed: {response_result.error}")
 

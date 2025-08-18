@@ -166,7 +166,7 @@ class TestClickPath:
 
         # Test with Path type (default)
         @click.command()
-        @click.argument("path", type=ClickPath(path_type=Path))
+        @click.argument("path", type=ClickPath(path_type=str))
         def cmd_with_path(path: Path) -> None:
             assert isinstance(path, Path)
 

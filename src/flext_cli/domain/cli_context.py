@@ -10,11 +10,12 @@ from __future__ import annotations
 import sys
 from dataclasses import dataclass, field
 
-from pydantic import BaseModel, ConfigDict, Field
+from flext_core import FlextModel
+from pydantic import ConfigDict, Field
 from rich.console import Console
 
 
-class CLIContext(BaseModel):
+class CLIContext(FlextModel):
     """CLI execution context carrying state across commands (Pydantic)."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)

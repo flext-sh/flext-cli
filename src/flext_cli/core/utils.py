@@ -15,14 +15,13 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table
 
 from flext_cli.__version__ import __version__ as _cli_version
-
-from .helpers import FlextCliHelper
+from flext_cli.core.helpers import FlextCliHelper
 
 
 def _generate_session_id() -> str:

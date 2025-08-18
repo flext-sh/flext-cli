@@ -11,6 +11,7 @@ from flext_cli.models import (
     CommandStatus,
     FlextCliCommand as CLICommand,
     FlextCliCommandStatus,
+    FlextCliCommandType,
     FlextCliConfiguration as CLIConfig,
     FlextCliOutput,
     FlextCliOutputFormat,
@@ -63,7 +64,8 @@ class CLIEntityFactory:
             # best-effort: tentar atribuir campos adicionais se existirem
             try:
                 if command_type is not None and hasattr(entity, "command_type"):
-                    entity.command_type = command_type.value
+                    # Convert local CommandType to FlextCliCommandType using value
+                    entity.command_type = FlextCliCommandType(command_type.value)
                 if hasattr(entity, "name"):
                     entity.name = name
             except Exception:
@@ -95,15 +97,13 @@ class CLIEntityFactory:
 
         """
         try:
-            kwargs: dict[str, object] = {
-                "id": name,
-                "name": name,
-                "entry_point": entry_point,
-                "commands": commands or [],
-            }
-            if plugin_version is not None:
-                kwargs["plugin_version"] = plugin_version
-            entity = CLIPlugin(**kwargs)  # type: ignore[arg-type]
+            # Use individual arguments instead of **kwargs to avoid type issues
+            entity = CLIPlugin(
+                name=name,
+                entry_point=entry_point,
+                commands=commands or [],
+                plugin_version=plugin_version or "0.1.0",
+            )
             return FlextResult.ok(entity)
         except Exception as e:  # noqa: BLE001
             return FlextResult.fail(

@@ -408,16 +408,17 @@ class CLIConfig(FlextModel):
                 f"Failed to load configuration from {file_path}: {e}",
             )
 
-    def to_dict(self, *, include_sensitive: bool = False) -> ConfigDict:
+    def to_dict(
+        self, *, by_alias: bool = False, exclude_none: bool = False
+    ) -> dict[str, object]:
         """Convert configuration to dictionary."""
-        config_dict = self.model_dump()
+        config_dict = self.model_dump(by_alias=by_alias, exclude_none=exclude_none)
 
-        if not include_sensitive:
-            # Remove sensitive fields
-            sensitive_fields = {"api_token"}
-            for field in sensitive_fields:
-                if field in config_dict:
-                    config_dict[field] = "***"
+        # Remove sensitive fields by default
+        sensitive_fields = {"api_token"}
+        for field in sensitive_fields:
+            if field in config_dict:
+                config_dict[field] = "***"
 
         return config_dict
 
@@ -470,7 +471,9 @@ def create_cli_config(
     """
     try:
         # Start with default configuration
-        config = CLIConfig(profile=profile, **overrides)  # type: ignore[arg-type]
+        # Use model_validate for proper construction
+        config_data = {"profile": profile, **overrides}
+        config = CLIConfig.model_validate(config_data)
 
         # Load profile-specific settings if config file exists
         if config.config_file and config.config_file.exists():
@@ -479,7 +482,9 @@ def create_cli_config(
                 profile_config = profile_result.unwrap()
                 # Apply profile settings (overrides take precedence)
                 merged_config = {**profile_config, **overrides}
-                config = CLIConfig(profile=profile, **merged_config)  # type: ignore[arg-type]
+                # Use model_validate for proper construction
+                config_data = {"profile": profile, **merged_config}
+                config = CLIConfig.model_validate(config_data)
 
         # Validate final configuration
         validation_result = config.validate_config()
