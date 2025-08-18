@@ -11,13 +11,9 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 from flext_core import FlextConstants
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 
 # Mock the flext_cli.types imports needed for testing
@@ -32,7 +28,7 @@ class MockFlextCliConfig:
         self.format_type = data.get("output_format", data.get("format_type", "table"))
         self.profile = data.get("profile", "default")
         if "api_url" in data:
-            self.api_url = data["api_url"]  # type: ignore[assignment]
+            self.api_url = data["api_url"]
         else:
             self.api_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
 
@@ -94,14 +90,14 @@ class MockFlextCliService:
     def __init__(self) -> None:
         """Initialize service with minimal fields."""
         self._config = None
-        self._handlers = {}
-        self._plugins = {}
-        self._commands = {}
-        self._sessions = {}
+        self._handlers: dict[str, object] = {}
+        self._plugins: dict[str, object] = {}
+        self._commands: dict[str, object] = {}
+        self._sessions: dict[str, object] = {}
 
     def flext_cli_export(
         self,
-        data: object,
+        data: object,  # noqa: ARG002
         path: str,
         format_type: str = "json",  # noqa: ARG002
     ) -> MagicMock:
@@ -122,7 +118,7 @@ class MockFlextCliService:
     def flext_cli_create_command(
         self,
         name: str,
-        command_line: str,
+        command_line: str,  # noqa: ARG002
         timeout: int = 30,  # noqa: ARG002
     ) -> MagicMock:
         return MagicMock(success=True, data=f"command_{name}")
@@ -130,7 +126,7 @@ class MockFlextCliService:
     def flext_cli_create_session(self, user: str = "test") -> MagicMock:
         return MagicMock(success=True, data=f"session_{user}")
 
-    def flext_cli_register_handler(self, name: str, handler: Callable) -> MagicMock:
+    def flext_cli_register_handler(self, name: str, handler: object) -> MagicMock:
         """Register handler with minimal fields."""
         self._handlers[name] = handler
         return MagicMock(success=True, data=name)
@@ -149,8 +145,11 @@ class MockFlextCliService:
         """Execute handler with minimal fields."""
         if name in self._handlers:
             try:
-                result = self._handlers[name](*args, **kwargs)
-                return MagicMock(success=True, data=result)
+                handler_func = self._handlers[name]
+                if callable(handler_func):
+                    result = handler_func(*args, **kwargs)
+                    return MagicMock(success=True, data=result)
+                return MagicMock(success=False, error="Handler is not callable")
             except Exception as e:
                 return MagicMock(success=False, error=str(e))
         return MagicMock(success=False, error="Handler not found")
@@ -227,7 +226,7 @@ class TestFlextCliService:
             temp_path = Path(tmp.name)
 
         try:
-            result = service.flext_cli_export(data, temp_path, "json")
+            result = service.flext_cli_export(data, str(temp_path), "json")
             assert result.success
             assert result.data == temp_path
         finally:
@@ -258,7 +257,7 @@ class TestFlextCliService:
             temp_path = Path(tmp.name)
 
         try:
-            result = service.flext_cli_export(data, temp_path, "invalid_format")
+            result = service.flext_cli_export(data, str(temp_path), "invalid_format")
             assert result.success  # Mock always returns success
         finally:
             if temp_path.exists():

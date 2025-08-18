@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 
 import click
-import yaml  # type: ignore[import-untyped]
+import yaml
 from rich.console import Console
 from rich.table import Table
 

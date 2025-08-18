@@ -76,7 +76,7 @@ class MockFlextApiClient:
                 },
                 {
                     "name": "FLEXT Service",
-                    "url": f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXSERVICE_PORT}",
+                    "url": f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_SERVICE_PORT}",
                     "status": "healthy",
                     "response_time": 0.03,
                 },
@@ -129,12 +129,26 @@ class MockFailingApiClient(MockFlextApiClient):
 
 def create_mock_api_client(**kwargs: object) -> MockFlextApiClient:
     """Factory function for creating mock API clients."""
-    return MockFlextApiClient(**kwargs)
+    base_url = kwargs.get("base_url")
+    token = kwargs.get("token")
+    timeout = kwargs.get("timeout", 30.0)
+    return MockFlextApiClient(
+        base_url=str(base_url) if base_url is not None else None,
+        token=str(token) if token is not None else None,
+        timeout=float(timeout) if isinstance(timeout, (int, float, str)) else 30.0,
+    )
 
 
 def create_failing_api_client(**kwargs: object) -> MockFailingApiClient:
     """Factory function for creating failing mock API clients."""
-    return MockFailingApiClient(**kwargs)
+    base_url = kwargs.get("base_url")
+    token = kwargs.get("token")
+    timeout = kwargs.get("timeout", 30.0)
+    return MockFailingApiClient(
+        base_url=str(base_url) if base_url is not None else None,
+        token=str(token) if token is not None else None,
+        timeout=float(timeout) if isinstance(timeout, (int, float, str)) else 30.0,
+    )
 
 
 # Mock flext-api integration
@@ -146,13 +160,17 @@ def mock_create_flext_api() -> object:
         config: dict[str, object],
     ) -> FlextResult[MockFlextApiClient]:
         """Mock client creation."""
+        base_url_obj = config.get(
+            "base_url",
+            f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}",
+        )
+        timeout_obj = config.get("timeout", 30.0)
         return FlextResult.ok(
             MockFlextApiClient(
-                base_url=config.get(
-                    "base_url",
-                    f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}",
-                ),
-                timeout=config.get("timeout", 30.0),
+                base_url=str(base_url_obj) if base_url_obj is not None else None,
+                timeout=float(timeout_obj)
+                if isinstance(timeout_obj, (int, float, str))
+                else 30.0,
             ),
         )
 

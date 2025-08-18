@@ -37,13 +37,11 @@ def setup_console(*, no_color: bool = False, quiet: bool = False) -> Console:
 
 
 def print_success(console: Console, message: str) -> None:
-    """Print a success message to the console."""
     """Print a success message with standard formatting."""
     console.print(f"[bold green]✓[/bold green] {message}")
 
 
 def print_error(console: Console, message: str, details: str | None = None) -> None:
-    """Print an error message to the console with optional details."""
     """Print an error message with optional details block."""
     console.print(f"[bold red]Error:[/bold red] {message}")
     if details:
@@ -51,13 +49,11 @@ def print_error(console: Console, message: str, details: str | None = None) -> N
 
 
 def print_warning(console: Console, message: str) -> None:
-    """Print a warning message to the console."""
     """Print a warning message."""
     console.print(f"[bold yellow]⚠[/bold yellow] {message}")
 
 
 def print_info(console: Console, message: str) -> None:
-    """Print an informational message to the console."""
     """Print an informational message."""
     console.print(f"[bold blue]i[/bold blue] {message}")
 
@@ -139,7 +135,6 @@ def format_pipeline_list(console: Console, pipeline_list: object) -> None:
 
 
 def format_pipeline(console: Console, pipeline: object) -> None:
-    """Format and print pipeline information using Rich tables."""
     """Render details of a single pipeline object."""
     name = str(getattr(pipeline, "name", ""))
     pid = str(getattr(pipeline, "id", ""))
@@ -178,13 +173,11 @@ def format_pipeline(console: Console, pipeline: object) -> None:
 
 
 def format_json(data: object) -> str:
-    """Return JSON-formatted string from data."""
     """Return pretty JSON string for arbitrary data."""
     return _json.dumps(data, indent=2, default=str)
 
 
 def format_yaml(data: object) -> str:
-    """Return YAML-formatted string from data."""
     """Return nicely formatted YAML string for arbitrary data."""
     if data is None:
         return "null"

@@ -49,7 +49,8 @@ def setup_cli(config: CLIConfig | CLISettings | None = None) -> FlextResult[bool
         if isinstance(config, CLIConfig):
             config.ensure_setup()
 
-        return FlextResult.ok(data=True)
+        setup_success = True
+        return FlextResult.ok(setup_success)
 
     except (AttributeError, ValueError, RuntimeError) as e:
         return FlextResult.fail(f"Failed to setup CLI: {e}")

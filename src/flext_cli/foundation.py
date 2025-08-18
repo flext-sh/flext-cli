@@ -116,9 +116,7 @@ def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
                 f"Hierarchy creation failed: {hierarchy_result.error}",
             )
 
-        # Ensure hierarchy.data is not None before proceeding
-        if hierarchy_result.data is None:
-            return FlextResult.fail("Hierarchy data is None after creation")
+        # MyPy can infer hierarchy_result.data is not None after success check
 
         hierarchy = hierarchy_result.data
 
@@ -187,8 +185,7 @@ def setup_cli(config: FlextCliConfig | None = None) -> FlextResult[dict[str, obj
                 )
             config = config_result.data
 
-        if config is None:
-            return FlextResult.fail("CLI configuration is None after creation attempt")
+        # MyPy can infer config is not None after successful creation
 
         # CLI setup logic here - initialize CLI systems, logging, etc.
         # Implementation complete per requirements

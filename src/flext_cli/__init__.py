@@ -50,7 +50,6 @@ from flext_cli.cli_types import (
 
 # Configuration utilities
 from flext_cli.config import (
-    CLISettings,
     CLIAPIConfig,
     CLIAuthConfig,
     CLIDirectoryConfig,
@@ -70,13 +69,10 @@ from flext_cli.models import (
     FlextCliContext,
     FlextCliContext as CLIContext,
     FlextCliOutput,
-    FlextCliOutput as CLIOutput,
     FlextCliOutputFormat,
     FlextCliPlugin,
-    FlextCliPlugin as CLIPlugin,
     FlextCliPluginState,
     FlextCliSession,
-    FlextCliSession as CLISession,
     FlextCliSessionState,
     FlextCliWorkspace,
 )
@@ -209,7 +205,7 @@ from flext_cli.client import FlextApiClient
 
 # Domain factory and constants
 from flext_cli.domain.entities import CLIEntityFactory
-from flext_cli.constants import FlextConstants as FlextConstants
+from flext_core import FlextConstants as FlextConstants
 
 # Core formatters
 
@@ -239,7 +235,7 @@ __all__: list[str] = [
     "CLIDirectoryConfig",
     "CLIOutputConfig",
     "get_cli_config",
-    "get_cli_settings",
+    "get_settings",
     "CLICompleteMixin",
     "CLIConfigMixin",
     "CLIDataMixin",

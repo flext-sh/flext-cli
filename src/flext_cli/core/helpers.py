@@ -15,7 +15,6 @@ import shutil
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import cast
 
 from flext_core import FlextResult
 from rich.console import Console
@@ -303,7 +302,7 @@ class FlextCliHelper:
                         proc.kill()
                     # Some tests patch with non-async mocks; call without await when needed
                     try:
-                        await proc.wait()  # type: ignore[func-returns-value]
+                        await proc.wait()
                     except TypeError:
                         with contextlib.suppress(Exception):
                             _ = proc.wait()  # best-effort fallback
@@ -555,7 +554,7 @@ class FlextCliDataProcessor:
                 res = transformer(current)
                 if not res.success:
                     return FlextResult.fail(f"Transformer {i} failed: {res.error}")
-                current = cast("dict[str, object]", res.data)
+                current = res.data
             except Exception as e:
                 return FlextResult.fail(f"Transformer {i} exception: {e}")
         return FlextResult.ok(current)

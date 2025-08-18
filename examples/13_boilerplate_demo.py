@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import tempfile
 
-from flext_core import ServiceResult as FlextResult
+from flext_core import FlextResult
 
 from flext_cli import (
     flext_cli_aggregate_data,

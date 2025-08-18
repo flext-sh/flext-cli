@@ -20,7 +20,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
-from flext_core import FlextResult
+from flext_core import FlextEntityId, FlextResult
 from rich.console import Console
 from rich.table import Table
 
@@ -199,7 +199,9 @@ def flext_cli_transform_data(
         return FlextResult.fail("Data must be a list")
 
     try:
-        result = data.copy()
+        # Ensure data is a list and copy it
+        data_list = data if isinstance(data, list) else []
+        result = data_list.copy()
 
         # Apply filter
         if filter_func:
@@ -280,7 +282,8 @@ def flext_cli_aggregate_data(
         groups: dict[str, dict[str, object]] = {}
         sum_fields = sum_fields or []
 
-        for item in data:
+        data_list = data if isinstance(data, list) else []
+        for item in data_list:
             if not isinstance(item, dict):
                 continue
 
@@ -531,7 +534,7 @@ class FlextCliApi:
 
             try:
                 command = CLICommand(
-                    id=command_id,
+                    id=FlextEntityId(command_id),
                     command_line=command_line,
                 )
                 # Set name if attribute exists on model (compatibility for tests)
@@ -622,7 +625,7 @@ class FlextCliApi:
             # Otherwise, try to create a CLIPlugin from the object using direct instantiation
             try:
                 cli_plugin = CLIPlugin(
-                    id=str(uuid.uuid4()),
+                    id=FlextEntityId(str(uuid.uuid4())),
                     name=name,
                     entry_point=str(plugin) if plugin else f"plugin_{name}",
                 )

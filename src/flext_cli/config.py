@@ -11,7 +11,7 @@ import json as _json
 from pathlib import Path
 from typing import ClassVar, Literal
 
-from flext_core import FlextBaseConfigModel, FlextConstants, FlextSettings
+from flext_core import FlextBaseConfigModel, FlextConstants, FlextResult, FlextSettings
 from pydantic import Field, model_validator
 from pydantic_settings import SettingsConfigDict
 
@@ -101,7 +101,7 @@ class CLIDirectoryConfig(FlextBaseConfigModel):
 class CLIConfig(FlextBaseConfigModel):
     """Top-level CLI configuration aggregate."""
 
-    model_config: ClassVar[dict[str, object]] = {"extra": "allow"}
+    model_config = SettingsConfigDict(extra="allow")
 
     profile: str = Field(default="default")
     debug: bool = Field(default=False)
@@ -147,7 +147,10 @@ class CLIConfig(FlextBaseConfigModel):
     @classmethod
     def _process_api_mappings(cls, data: dict[str, object]) -> None:
         """Process API-related flat key mappings."""
-        api_map: dict[str, object] = dict(data.get("api") or {})
+        api_data = data.get("api") or {}
+        api_map: dict[str, object] = (
+            dict(api_data) if isinstance(api_data, dict) else {}
+        )
 
         api_keys = {
             "api_url": "url",
@@ -168,7 +171,10 @@ class CLIConfig(FlextBaseConfigModel):
     @classmethod
     def _process_output_mappings(cls, data: dict[str, object]) -> None:
         """Process output-related flat key mappings."""
-        out_map: dict[str, object] = dict(data.get("output") or {})
+        output_data = data.get("output") or {}
+        out_map: dict[str, object] = (
+            dict(output_data) if isinstance(output_data, dict) else {}
+        )
 
         if "output_format" in data:
             out_map["format"] = data.pop("output_format")
@@ -183,7 +189,10 @@ class CLIConfig(FlextBaseConfigModel):
     @classmethod
     def _process_directory_mappings(cls, data: dict[str, object]) -> None:
         """Process directory-related flat key mappings."""
-        dir_map: dict[str, object] = dict(data.get("directories") or {})
+        directories_data = data.get("directories") or {}
+        dir_map: dict[str, object] = (
+            dict(directories_data) if isinstance(directories_data, dict) else {}
+        )
 
         for k in ("config_dir", "cache_dir", "log_dir", "data_dir"):
             if k in data:
@@ -195,7 +204,10 @@ class CLIConfig(FlextBaseConfigModel):
     @classmethod
     def _process_auth_mappings(cls, data: dict[str, object]) -> None:
         """Process authentication-related flat key mappings."""
-        auth_map: dict[str, object] = dict(data.get("auth") or {})
+        auth_data = data.get("auth") or {}
+        auth_map: dict[str, object] = (
+            dict(auth_data) if isinstance(auth_data, dict) else {}
+        )
 
         for k in ("token_file", "refresh_token_file", "auto_refresh"):
             if k in data:
@@ -215,13 +227,15 @@ class CLIConfig(FlextBaseConfigModel):
         # Collect extras from __pydantic_extra__ if present
         extras = getattr(self, "__pydantic_extra__", None)
         if isinstance(extras, dict):
-            self._flat_overrides = dict(extras)
+            type(self)._flat_overrides = dict(extras)
         # Mark instance as initialized for immutability guard
         object.__setattr__(self, "_initialized", True)
 
-    def validate_business_rules(self) -> bool:
+    def validate_business_rules(self) -> FlextResult[None]:
         """Validate simple invariants expected by tests."""
-        return not (self.api.timeout <= 0 or self.command_timeout <= 0)
+        if self.api.timeout <= 0 or self.command_timeout <= 0:
+            return FlextResult.fail("Invalid timeout values")
+        return FlextResult.ok(None)
 
     # ------------------------------------------------------------------
     # Flat compatibility properties expected by tests
@@ -231,7 +245,7 @@ class CLIConfig(FlextBaseConfigModel):
     def api_url(self) -> str:
         return self.api.base_url
 
-    @api_url.setter  # type: ignore[no-redef]
+    @api_url.setter
     def api_url(self, _value: object) -> None:  # pragma: no cover - immutability guard
         msg = "cannot assign to field 'api_url' on frozen CLIConfig"
         raise ValueError(msg)
@@ -372,11 +386,11 @@ class CLISettings(FlextSettings):
     def model_validate(
         cls,
         obj: object,
-        *args: object,
-        **kwargs: object,
-    ) -> CLISettings:  # type: ignore[override]
+        *_args: object,
+        **_kwargs: object,
+    ) -> CLISettings:
         """Hook to keep compatibility with test fixtures passing plain dicts."""
-        return super().model_validate(obj, *args, **kwargs)  # type: ignore[return-value]
+        return super().model_validate(obj)
 
 
 # ----------------------------------------------------------------------------

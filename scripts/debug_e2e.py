@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import traceback
 
-from click import CliRunner
+from click.testing import CliRunner
 
 from flext_cli import cli
 

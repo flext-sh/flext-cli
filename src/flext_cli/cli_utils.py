@@ -24,7 +24,7 @@ from uuid import UUID
 import yaml
 from flext_core import FlextResult, get_logger
 from rich.console import Console
-from rich.progress import Progress
+from rich.progress import Progress, TaskID
 from rich.table import Table
 
 from flext_cli.cli_types import OutputFormat
@@ -203,11 +203,13 @@ def cli_quick_setup(
         if init_git:
             console.print("[blue]Initializing git repository...[/blue]")
             if _init_git_repo(project_path):
-                results["git_init"] = True
+                git_success = True
+                results["git_init"] = git_success
                 console.print("[green]✓ Git repository initialized[/green]")
             else:
                 console.print("[yellow]⚠ Git init failed[/yellow]")
-                results["git_init"] = False
+                git_failure = False
+                results["git_init"] = git_failure
 
         results["project_path"] = str(project_path)
         console.print(f"[green]🎉 Project '{project_name}' setup complete![/green]")
@@ -254,7 +256,7 @@ def cli_batch_process_files(
     paths = [Path(p) for p in file_paths]
 
     progress: Progress | None = None
-    task_id: int | None = None
+    task_id: TaskID | None = None
 
     try:
         if show_progress:
@@ -270,7 +272,7 @@ def cli_batch_process_files(
                 fail_fast=fail_fast,
             )
             if progress and task_id is not None:
-                progress.update(task_id, advance=1)  # type: ignore[arg-type]
+                progress.update(task_id, advance=1)
             if should_stop:
                 msg = stop_message or "Processing failed"
                 return FlextResult.fail(msg)
@@ -674,14 +676,14 @@ def cli_format_output(
         elif format_type == OutputFormat.TABLE:
             # Extract title from options for cli_create_table
             title = str(options.get("title")) if options.get("title") else None
-            show_lines = bool(options.get("show_lines"))
+            show_lines_option = bool(options.get("show_lines"))
             max_width = (
                 cast("int", options["max_width"]) if options.get("max_width") else None
             )
             table_result = cli_create_table(
                 data,
                 title=title,
-                show_lines=show_lines,
+                show_lines=show_lines_option,
                 max_width=max_width,
             )
             if table_result.is_success:
@@ -813,12 +815,14 @@ def cli_confirm(message: str, *, default: bool = False) -> FlextResult[bool]:
         response = input(prompt).strip().lower()
 
         if not response:
-            return FlextResult.ok(data=default)
+            return FlextResult.ok(default)
 
         if response in {"y", "yes", "true", "1"}:
-            return FlextResult.ok(data=True)
+            confirmed = True
+            return FlextResult.ok(confirmed)
         if response in {"n", "no", "false", "0"}:
-            return FlextResult.ok(data=False)
+            confirmed = False
+            return FlextResult.ok(confirmed)
         return FlextResult.fail("Please answer 'y' or 'n'")
 
     except (EOFError, KeyboardInterrupt):

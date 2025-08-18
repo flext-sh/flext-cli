@@ -9,8 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import TypeVar
 from unittest.mock import MagicMock, patch
 
 import click
@@ -26,16 +24,13 @@ from flext_cli.commands.debug import (
     performance,
 )
 
-# Type definitions for patch decorators
-F = TypeVar("F", bound="Callable[..., None]")
-
 
 class TestDebugConnectivity:
     """Test connectivity command missing coverage."""
 
     def test_connectivity_success_with_status(
         self,
-        mock_flext_api_client_with_patches: object,
+        mock_flext_api_client_with_patches: MagicMock,
     ) -> None:
         """Test connectivity success with system status."""
         # Use the existing mock client with proper setup
@@ -44,7 +39,7 @@ class TestDebugConnectivity:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(connectivity, obj={"console": mock_console})
+        result = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
 
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
@@ -62,7 +57,7 @@ class TestDebugConnectivity:
 
     def test_connectivity_success_status_unknown(
         self,
-        mock_flext_api_client_with_patches: object,
+        mock_flext_api_client_with_patches: MagicMock,
     ) -> None:
         """Test connectivity success with unknown status fields."""
 
@@ -80,7 +75,7 @@ class TestDebugConnectivity:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(connectivity, obj={"console": mock_console})
+        result = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
 
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
@@ -105,7 +100,7 @@ class TestDebugConnectivity:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(connectivity, obj={"console": mock_console})
+        result = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
 
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
@@ -115,7 +110,7 @@ class TestDebugConnectivity:
 
     def test_connectivity_success_status_error(
         self,
-        mock_flext_api_client_with_patches: object,  # noqa: ARG002
+        mock_flext_api_client_with_patches: MagicMock,  # noqa: ARG002
     ) -> None:
         """Test connectivity success but status fetch fails."""
         with patch("flext_cli.client.FlextApiClient") as mock_client_class:
@@ -136,7 +131,7 @@ class TestDebugConnectivity:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(connectivity, obj={"console": mock_console})
+        result = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
 
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
@@ -146,7 +141,7 @@ class TestDebugConnectivity:
 
     def test_connectivity_failed_connection(
         self,
-        mock_flext_api_client_with_patches: object,
+        mock_flext_api_client_with_patches: MagicMock,
     ) -> None:
         """Test connectivity when connection fails using SOLID fixture patterns."""
 
@@ -164,7 +159,7 @@ class TestDebugConnectivity:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(connectivity, obj={"console": mock_console})
+        result = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
 
         if result.exit_code != 1:
             raise AssertionError(f"Expected {1}, got {result.exit_code}")
@@ -191,7 +186,7 @@ class TestDebugConnectivity:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(connectivity, obj={"console": mock_console})
+        result = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
 
         if result.exit_code != 1:
             raise AssertionError(f"Expected {1}, got {result.exit_code}")
@@ -216,7 +211,7 @@ class TestDebugConnectivity:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(connectivity, obj={"console": mock_console})
+        result = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
 
         if result.exit_code != 1:
             raise AssertionError(f"Expected {1}, got {result.exit_code}")
@@ -248,7 +243,7 @@ class TestDebugPerformance:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(performance, obj={"console": mock_console})
+        result = runner.invoke(performance, obj={"console": mock_console})  # type: ignore[arg-type]
 
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
@@ -268,7 +263,7 @@ class TestDebugPerformance:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(performance, obj={"console": mock_console})
+        result = runner.invoke(performance, obj={"console": mock_console})  # type: ignore[arg-type]
 
         # Should handle error gracefully (SOLID: KISS - simple error handling test)
         # Exit code can vary depending on exception timing
@@ -299,7 +294,7 @@ class TestDebugCommandCoverage:
     def test_connectivity_help(self) -> None:
         """Test connectivity command help."""
         runner = CliRunner()
-        result = runner.invoke(connectivity, ["--help"])
+        result = runner.invoke(connectivity, ["--help"])  # type: ignore[arg-type]
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         if "Test API connectivity" not in result.output:
@@ -310,7 +305,7 @@ class TestDebugCommandCoverage:
     def test_performance_help(self) -> None:
         """Test performance command help."""
         runner = CliRunner()
-        result = runner.invoke(performance, ["--help"])
+        result = runner.invoke(performance, ["--help"])  # type: ignore[arg-type]
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         if "Check system performance metrics" not in result.output:
@@ -369,12 +364,12 @@ class TestDebugIntegrationScenarios:
         runner = CliRunner()
 
         # Run connectivity test
-        result1 = runner.invoke(connectivity, obj={"console": mock_console})
+        result1 = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
         if result1.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result1.exit_code}")
 
         # Run performance test
-        result2 = runner.invoke(performance, obj={"console": mock_console})
+        result2 = runner.invoke(performance, obj={"console": mock_console})  # type: ignore[arg-type]
         if result2.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result2.exit_code}")
 
@@ -404,6 +399,6 @@ class TestDebugIntegrationScenarios:
         runner = CliRunner()
 
         # Test that errors are handled consistently across commands
-        result = runner.invoke(connectivity, obj={"console": mock_console})
+        result = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
         if result.exit_code != 1:  # Commands should exit with error code
             raise AssertionError(f"Expected {1}, got {result.exit_code}")

@@ -19,7 +19,6 @@ from rich.progress import Progress, track as rich_track
 
 from flext_cli import config_hierarchical
 from flext_cli.core.helpers import FlextCliHelper
-from flext_cli.core.utils import track
 
 # Helper types for static annotations
 P = ParamSpec("P")
@@ -199,16 +198,16 @@ class FlextCliProgressMixin:
     ) -> list[object]:
         """Iterate over items while displaying a simple progress indicator.
 
-        Uses a patchable `track` symbol for testing instead of Rich directly.
+        Uses Rich track function for progress display.
         """
         try:
-            # Delegate to patchable track for tests with same signature as Rich
-            return list(track(items, description=description, console=self.console))
-        except Exception:
-            # Fallback to Rich track if the injected track fails
+            # Use Rich track directly with proper signature
             return list(
                 rich_track(items, description=description, console=self.console),
             )
+        except Exception:
+            # Fallback to simple list if Rich track fails
+            return list(items)
 
     def flext_cli_with_progress(self, *args: object) -> Progress:
         """Create a Rich progress manager configured for the current console.
