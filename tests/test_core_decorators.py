@@ -214,10 +214,10 @@ class TestMeasureTime:
     def test_measure_time_with_output(self) -> None:
         """Test measure_time decorator with output enabled."""
         with (
-            patch("flext_cli.core.decorators.time.time") as mock_time,
+            patch("flext_cli.decorators.time.time") as mock_time,
             patch("rich.console.Console.print") as mock_print,
         ):
-            mock_time.side_effect = [1000.0, 1002.5]  # 2.5 seconds elapsed
+            mock_time.side_effect = [1000.0, 1002.5, 1003.0]  # 2.5 seconds elapsed + extra calls
 
             @measure_time(show_in_output=True)
             def timed_function() -> str:
@@ -232,10 +232,10 @@ class TestMeasureTime:
     def test_measure_time_without_output(self) -> None:
         """Test measure_time decorator with output disabled."""
         with (
-            patch("flext_cli.core.decorators.time.time") as mock_time,
+            patch("flext_cli.decorators.time.time") as mock_time,
             patch("rich.console.Console.print") as mock_print,
         ):
-            mock_time.side_effect = [1000.0, 1001.0]  # 1 second elapsed
+            mock_time.side_effect = [1000.0, 1001.0, 1002.0]  # 1 second elapsed + extra calls
 
             @measure_time(show_in_output=False)
             def timed_function() -> str:
@@ -249,8 +249,8 @@ class TestMeasureTime:
 
     def test_measure_time_preserves_function_signature(self) -> None:
         """Test that measure_time preserves function signature."""
-        with patch("flext_cli.core.decorators.time.time") as mock_time:
-            mock_time.side_effect = [1000.0, 1001.0]
+        with patch("flext_cli.decorators.time.time") as mock_time:
+            mock_time.side_effect = [1000.0, 1001.0, 1002.0]
 
             @measure_time()
             def function_with_args(
@@ -323,7 +323,7 @@ class TestRetry:
 
     def test_retry_delay_between_attempts(self) -> None:
         """Test retry delay between attempts."""
-        with patch("flext_cli.core.decorators.time.sleep") as mock_sleep:
+        with patch("flext_cli.decorators.time.sleep") as mock_sleep:
             call_count = 0
 
             @retry(max_attempts=3, delay=0.5)
@@ -475,10 +475,10 @@ class TestDecoratorCombinations:
         """Test combining multiple decorators."""
         with (
             patch("rich.console.Console.input") as mock_input,
-            patch("flext_cli.core.decorators.time.time") as mock_time,
+            patch("flext_cli.decorators.time.time") as mock_time,
         ):
             mock_input.return_value = "y"
-            mock_time.side_effect = [1000.0, 1001.0]
+            mock_time.side_effect = [1000.0, 1001.0, 1002.0]
 
             @confirm_action("Proceed?")
             @measure_time(show_in_output=False)

@@ -7,10 +7,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import asyncio
 import functools
 import hashlib
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
+from pathlib import Path
 from typing import ParamSpec, TypeVar
 
 from flext_core import FlextErrorHandlingDecorators, get_logger
@@ -83,19 +85,19 @@ def cli_enhanced[**P, T](
 
         # Apply CLI-specific decorators
         if validate_inputs:
-            enhanced_func = cli_validate_inputs(enhanced_func)  # type: ignore[assignment]
+            enhanced_func = cli_validate_inputs(enhanced_func)
 
         if handle_keyboard_interrupt:
-            enhanced_func = cli_handle_keyboard_interrupt(enhanced_func)  # type: ignore[assignment]
+            enhanced_func = cli_handle_keyboard_interrupt(enhanced_func)
 
         if measure_time:
-            enhanced_func = cli_measure_time(enhanced_func)  # type: ignore[assignment]
+            enhanced_func = cli_measure_time()(enhanced_func)  # type: ignore[assignment,arg-type]
 
         if log_execution:
-            enhanced_func = cli_log_execution(enhanced_func)  # type: ignore[assignment]
+            enhanced_func = cli_log_execution(enhanced_func)
 
         if show_spinner:
-            enhanced_func = cli_spinner()(enhanced_func)  # type: ignore[assignment]
+            enhanced_func = cli_spinner()(enhanced_func)
 
         return enhanced_func
 
@@ -188,56 +190,65 @@ def cli_handle_keyboard_interrupt[**P, T](func: Callable[P, T]) -> Callable[P, T
     return wrapper
 
 
-def cli_measure_time[**P, T](func: Callable[P, T]) -> Callable[P, T]:
+def cli_measure_time[**P, T](
+    func: Callable[P, T] | None = None,
+    *,
+    show_in_output: bool = True,
+) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
     """Measure and log CLI command execution time.
 
     Args:
-      func (Callable[P, T]): Description.
+        func: Function to decorate (for bare decorator usage)
+        show_in_output: Whether to print timing information to console
 
     Returns:
-      Callable[P, T]: Description.
+        Decorated function or decorator
 
     """
 
-    @functools.wraps(func)
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        """Wrapper function.
+    def decorator(f: Callable[P, T]) -> Callable[P, T]:
+        @functools.wraps(f)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Wrapper function."""
+            logger = get_logger(f.__name__)
+            start_time = time.time()
 
-        Args:
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
+            try:
+                result = f(*args, **kwargs)
+                end_time = time.time()
+                duration = end_time - start_time
 
-        Returns:
-            T: Description.
+                # Log to logger
+                logger.info(
+                    "Command '%s' completed in %.3f seconds",
+                    f.__name__,
+                    duration,
+                )
 
-        """
-        logger = get_logger(func.__name__)
-        start_time = time.time()
+                # Optionally print to console
+                if show_in_output:
+                    console = Console()
+                    console.print(f"⏱  Execution time: {duration:.2f}s", style="dim")
 
-        try:
-            result = func(*args, **kwargs)
-            end_time = time.time()
-            duration = end_time - start_time
+                return result
 
-            logger.info(
-                "Command '%s' completed in %.3f seconds",
-                func.__name__,
-                duration,
-            )
-            return result
+            except Exception:
+                end_time = time.time()
+                duration = end_time - start_time
 
-        except Exception:
-            end_time = time.time()
-            duration = end_time - start_time
+                logger.exception(
+                    "Command '%s' failed after %.3f seconds",
+                    f.__name__,
+                    duration,
+                )
+                raise
 
-            logger.exception(
-                "Command '%s' failed after %.3f seconds",
-                func.__name__,
-                duration,
-            )
-            raise
+        return wrapper
 
-    return wrapper
+    # Support both @cli_measure_time and @cli_measure_time(show_in_output=False)
+    if func is not None:
+        return decorator(func)
+    return decorator
 
 
 def cli_log_execution[**P, T](func: Callable[P, T]) -> Callable[P, T]:
@@ -339,7 +350,7 @@ def cli_confirm(
             prompt = f"{message} ({default_text}): "
 
             try:
-                response = input(prompt).strip().lower()
+                response = console.input(prompt).strip().lower()
 
                 if not response:
                     confirmed = default
@@ -442,7 +453,7 @@ def cli_retry(
 
                         console.print(
                             f"[yellow]Attempt {attempt + 1} failed. "
-                            f"Retrying in {retry_delay:.1f} seconds...[/yellow]"
+                            + f"Retrying in {retry_delay:.1f} seconds...[/yellow]"
                         )
 
                         time.sleep(retry_delay)
@@ -465,7 +476,6 @@ def cli_retry(
 
 
 def cli_spinner(
-    *,
     message: str = "Processing...",
 ) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Show spinner during CLI command execution.
@@ -721,6 +731,62 @@ def cli_file_operation(
 
 
 # =============================================================================
+# CONSOLIDATION FROM core/decorators.py - Adding unique functionality
+# =============================================================================
+
+def async_command[**P, SendType, RecvType, T](
+    func: Callable[P, Coroutine[SendType, RecvType, T]],
+) -> Callable[P, T]:
+    """Convert an async function into a sync function via asyncio.run."""
+    @functools.wraps(func)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        return asyncio.run(func(*args, **kwargs))
+    return wrapper
+
+def require_auth(
+    *,
+    token_file: str | None = None,
+) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
+    """Require authentication by checking for a token file."""
+    def decorator(func: Callable[P, T]) -> Callable[P, T | None]:
+        @functools.wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
+            path = token_file
+            if path is None:
+                path = str(Path.home() / ".flext" / "auth" / "token")
+            p = Path(path)
+            if not p.exists():
+                return None
+            content = p.read_text(encoding="utf-8").strip()
+            if not content:
+                return None
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+def validate_config(
+    required_keys: list[str],
+) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
+    """Validate that a configuration object has the required keys."""
+    def decorator(func: Callable[P, T]) -> Callable[P, T | None]:
+        @functools.wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
+            console = Console()
+            config = kwargs.get("config")
+            if config is None and args:
+                config = args[0]
+            if config is None:
+                console.print("Configuration not available for validation.", style="red")
+                return None
+            missing = [key for key in required_keys if not hasattr(config, key)]
+            if missing:
+                console.print(f"Missing required configuration: {missing[0]}", style="red")
+                return None
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+# =============================================================================
 # COMPATIBILITY DECORATORS
 # =============================================================================
 
@@ -742,9 +808,11 @@ flext_cli_file_operation = cli_file_operation
 # =============================================================================
 
 __all__ = [
+    # Consolidated decorators from core/decorators.py
+    "async_command",
+    # Modern CLI decorators
     "cli_cache_result",
     "cli_confirm",
-    # Modern CLI decorators
     "cli_enhanced",
     "cli_file_operation",
     "cli_handle_keyboard_interrupt",
@@ -754,9 +822,9 @@ __all__ = [
     "cli_retry",
     "cli_spinner",
     "cli_validate_inputs",
+    # Decorator aliases
     "flext_cli_cache_result",
     "flext_cli_confirm",
-    # Decorator aliases
     "flext_cli_enhanced",
     "flext_cli_file_operation",
     "flext_cli_handle_keyboard_interrupt",
@@ -765,4 +833,6 @@ __all__ = [
     "flext_cli_measure_time",
     "flext_cli_retry",
     "flext_cli_validate_inputs",
+    "require_auth",
+    "validate_config",
 ]

@@ -277,7 +277,7 @@ python = "^3.13"
 
 
 @project.command()
-@click.option("--directory", type=ExistingDir(), default=".", help="Project directory")
+@click.option("--directory", type=ExistingDir, default=".", help="Project directory")
 @click.pass_context
 @cli_enhanced
 def status(ctx: click.Context, directory: Path) -> None:
@@ -319,8 +319,8 @@ def service(ctx: click.Context) -> None:
 
 
 @service.command()
-@click.option("--url", type=URL(), required=True, help="Service URL")
-@click.option("--timeout", type=PositiveInt(), default=30, help="Timeout in seconds")
+@click.option("--url", type=URL, required=True, help="Service URL")
+@click.option("--timeout", type=PositiveInt, default=30, help="Timeout in seconds")
 @click.pass_context
 @cli_enhanced
 @cli_measure_time

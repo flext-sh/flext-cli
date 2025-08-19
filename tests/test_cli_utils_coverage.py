@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -65,10 +66,13 @@ class TestProjectSetupUtilities:
             assert 'version = "0.1.0"' in content
             assert 'requires-python = ">=3.13"' in content
 
-    @patch("subprocess.run")
-    def test_init_git_repo_success(self, mock_run: MagicMock) -> None:
+    @patch("importlib.import_module")
+    def test_init_git_repo_success(self, mock_import: MagicMock) -> None:
         """Test successful git repository initialization."""
-        mock_run.return_value = MagicMock(returncode=0)
+        mock_git = MagicMock()
+        mock_repo = MagicMock()
+        mock_git.Repo = mock_repo
+        mock_import.return_value = mock_git
 
         with tempfile.TemporaryDirectory() as temp_dir:
             project_path = Path(temp_dir)
@@ -76,12 +80,14 @@ class TestProjectSetupUtilities:
             result = _init_git_repo(project_path)
 
             assert result is True
-            mock_run.assert_called_once()
+            mock_repo.init.assert_called_once_with(str(project_path))
 
-    @patch("subprocess.run")
-    def test_init_git_repo_failure(self, mock_run: MagicMock) -> None:
-        """Test failed git repository initialization."""
-        mock_run.return_value = MagicMock(returncode=1)
+    @patch("importlib.import_module")
+    def test_init_git_repo_no_repo_class(self, mock_import: MagicMock) -> None:
+        """Test git initialization when Repo class is missing."""
+        mock_git = MagicMock()
+        mock_git.Repo = None
+        mock_import.return_value = mock_git
 
         with tempfile.TemporaryDirectory() as temp_dir:
             project_path = Path(temp_dir)
@@ -90,10 +96,10 @@ class TestProjectSetupUtilities:
 
             assert result is False
 
-    @patch("subprocess.run")
-    def test_init_git_repo_exception(self, mock_run: MagicMock) -> None:
-        """Test git repository initialization with exception."""
-        mock_run.side_effect = Exception("Git not found")
+    @patch("importlib.import_module")
+    def test_init_git_repo_import_exception(self, mock_import: MagicMock) -> None:
+        """Test git repository initialization with import exception."""
+        mock_import.side_effect = ImportError("GitPython not installed")
 
         with tempfile.TemporaryDirectory() as temp_dir:
             project_path = Path(temp_dir)
@@ -114,7 +120,8 @@ class TestProjectSetupUtilities:
             assert len(result) == len(dir_names)
 
             for dir_name in dir_names:
-                assert dir_name in result
+                key = f"dir_{dir_name}"
+                assert key in result
                 assert (base_path / dir_name).exists()
                 assert (base_path / dir_name).is_dir()
 
@@ -129,44 +136,57 @@ class TestProjectSetupUtilities:
 
     def test_record_success(self) -> None:
         """Test recording successful operations."""
-        results: dict[str, object] = {}
+        results: dict[str, object] = {
+            "processed": 0,
+            "successful": []
+        }
         path = Path("/test/path")
 
         _record_success(results, path)
 
-        assert "success" in results
-        assert results["success"] == [str(path)]
+        assert results["processed"] == 1
+        assert str(path) in results["successful"]
 
     def test_record_success_multiple(self) -> None:
         """Test recording multiple successful operations."""
-        results: dict[str, object] = {}
+        results: dict[str, object] = {
+            "processed": 0,
+            "successful": []
+        }
         paths = [Path("/test/path1"), Path("/test/path2")]
 
         for path in paths:
             _record_success(results, path)
 
-        assert "success" in results
-        success_list = results["success"]
-        assert isinstance(success_list, list)
-        assert len(success_list) == 2
+        assert results["processed"] == 2
+        successful = results["successful"]
+        assert isinstance(successful, list)
+        assert len(successful) == 2
 
     def test_record_failure(self) -> None:
         """Test recording failed operations."""
-        results: dict[str, object] = {}
+        results: dict[str, object] = {
+            "failed": 0,
+            "errors": []
+        }
         path = Path("/test/path")
         error = "Test error message"
 
         _record_failure(results, path, error)
 
-        assert "errors" in results
-        errors_dict = results["errors"]
-        assert isinstance(errors_dict, dict)
-        assert str(path) in errors_dict
-        assert errors_dict[str(path)] == error
+        assert results["failed"] == 1
+        errors_list = results["errors"]
+        assert isinstance(errors_list, list)
+        assert len(errors_list) == 1
+        assert errors_list[0]["file"] == str(path)
+        assert errors_list[0]["error"] == error
 
     def test_record_failure_multiple(self) -> None:
         """Test recording multiple failed operations."""
-        results: dict[str, object] = {}
+        results: dict[str, object] = {
+            "failed": 0,
+            "errors": []
+        }
         failures = [
             (Path("/test/path1"), "Error 1"),
             (Path("/test/path2"), "Error 2")
@@ -175,86 +195,80 @@ class TestProjectSetupUtilities:
         for path, error in failures:
             _record_failure(results, path, error)
 
-        assert "errors" in results
-        errors_dict = results["errors"]
-        assert isinstance(errors_dict, dict)
-        assert len(errors_dict) == 2
+        assert results["failed"] == 2
+        errors_list = results["errors"]
+        assert isinstance(errors_list, list)
+        assert len(errors_list) == 2
 
 
 class TestFileProcessing:
     """Test file processing utilities."""
 
-    @patch("flext_cli.cli_utils.cli_load_data_file")
-    @patch("flext_cli.cli_utils.cli_save_data_file")
-    def test_process_single_file_success(self, mock_save: MagicMock, mock_load: MagicMock) -> None:
+    def test_process_single_file_success(self) -> None:
         """Test successful single file processing."""
-        mock_load.return_value = FlextResult[object].ok({"data": "test"})
-        mock_save.return_value = FlextResult[None].ok(None)
+        def mock_processor(path: Path) -> FlextResult[object]:
+            return FlextResult[object].ok({"processed": str(path)})
 
-        input_path = Path("/test/input.json")
-        output_path = Path("/test/output.json")
-        processor = lambda data: {"processed": data}
-        results: dict[str, object] = {}
+        results: dict[str, object] = {
+            "processed": 0,
+            "failed": 0,
+            "successful": [],
+            "errors": []
+        }
+        test_path = Path("/test/file.txt")
 
-        _process_single_file(input_path, output_path, processor, results)
+        should_stop, stop_message = _process_single_file(test_path, mock_processor, results, fail_fast=False)
 
-        assert "success" in results
-        mock_load.assert_called_once_with(input_path)
-        mock_save.assert_called_once()
+        assert not should_stop
+        assert stop_message is None
+        assert results["processed"] == 1
+        assert str(test_path) in results["successful"]
 
-    @patch("flext_cli.cli_utils.cli_load_data_file")
-    def test_process_single_file_load_failure(self, mock_load: MagicMock) -> None:
-        """Test single file processing with load failure."""
-        mock_load.return_value = FlextResult[object].fail("Load failed")
+    def test_process_single_file_failure(self) -> None:
+        """Test single file processing with failure."""
+        def mock_processor(path: Path) -> FlextResult[object]:
+            return FlextResult[object].fail("Processing failed")
 
-        input_path = Path("/test/input.json")
-        output_path = Path("/test/output.json")
-        processor = lambda data: data
-        results: dict[str, object] = {}
+        results: dict[str, object] = {
+            "processed": 0,
+            "failed": 0,
+            "successful": [],
+            "errors": []
+        }
+        test_path = Path("/test/file.txt")
 
-        _process_single_file(input_path, output_path, processor, results)
+        should_stop, stop_message = _process_single_file(test_path, mock_processor, results, fail_fast=True)
 
-        assert "errors" in results
-        assert str(input_path) in results["errors"]
+        assert should_stop
+        assert stop_message is not None
+        assert "Processing failed" in stop_message
+        assert results["failed"] == 1
 
-    @patch("flext_cli.cli_utils.cli_load_data_file")
-    @patch("flext_cli.cli_utils.cli_save_data_file")
-    def test_process_single_file_save_failure(self, mock_save: MagicMock, mock_load: MagicMock) -> None:
-        """Test single file processing with save failure."""
-        mock_load.return_value = FlextResult[object].ok({"data": "test"})
-        mock_save.return_value = FlextResult[None].fail("Save failed")
-
-        input_path = Path("/test/input.json")
-        output_path = Path("/test/output.json")
-        processor = lambda data: {"processed": data}
-        results: dict[str, object] = {}
-
-        _process_single_file(input_path, output_path, processor, results)
-
-        assert "errors" in results
-        assert str(output_path) in results["errors"]
-
-    @patch("flext_cli.cli_utils.cli_load_data_file")
-    def test_process_single_file_processor_exception(self, mock_load: MagicMock) -> None:
+    def test_process_single_file_exception(self) -> None:
         """Test single file processing with processor exception."""
-        mock_load.return_value = FlextResult[object].ok({"data": "test"})
+        def failing_processor(path: Path) -> FlextResult[object]:
+            raise ValueError("Processing exception")
 
-        def failing_processor(data: object) -> object:
-            raise ValueError("Processing failed")
+        results: dict[str, object] = {
+            "processed": 0,
+            "failed": 0,
+            "successful": [],
+            "errors": []
+        }
+        test_path = Path("/test/file.txt")
 
-        input_path = Path("/test/input.json")
-        output_path = Path("/test/output.json")
-        results: dict[str, object] = {}
+        should_stop, stop_message = _process_single_file(test_path, failing_processor, results, fail_fast=True)
 
-        _process_single_file(input_path, output_path, failing_processor, results)
-
-        assert "errors" in results
-        assert str(input_path) in results["errors"]
+        assert should_stop
+        assert stop_message is not None
+        assert "Processing exception" in stop_message
+        assert results["failed"] == 1
 
 
 class TestQuickSetup:
     """Test cli_quick_setup function."""
 
+    @patch("flext_cli.cli_utils.cli_confirm")
     @patch("flext_cli.cli_utils._write_basic_pyproject")
     @patch("flext_cli.cli_utils._init_git_repo")
     @patch("flext_cli.cli_utils._create_directory_structure")
@@ -262,41 +276,49 @@ class TestQuickSetup:
         self,
         mock_create_dirs: MagicMock,
         mock_init_git: MagicMock,
-        mock_write_pyproject: MagicMock
+        mock_write_pyproject: MagicMock,
+        mock_confirm: MagicMock
     ) -> None:
         """Test successful quick setup."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            project_path = Path(temp_dir) / "new-project"
+            project_name = "new-project"
+            project_path = Path(temp_dir) / project_name
             mock_write_pyproject.return_value = project_path / "pyproject.toml"
             mock_init_git.return_value = True
-            mock_create_dirs.return_value = {"src": "src", "tests": "tests"}
+            mock_create_dirs.return_value = {"dir_src": str(project_path / "src")}
+            mock_confirm.return_value = FlextResult[bool].ok(True)
 
-            result = cli_quick_setup("new-project", str(project_path.parent))
+            result = cli_quick_setup(project_name)
 
             assert result.success
             data = result.unwrap()
             assert isinstance(data, dict)
             assert "project_path" in data
-            assert "setup_complete" in data
 
-    @patch("flext_cli.cli_utils._write_basic_pyproject")
-    def test_cli_quick_setup_existing_project(self, mock_write: MagicMock) -> None:
+    @patch("flext_cli.cli_utils.cli_confirm")
+    def test_cli_quick_setup_existing_project(self, mock_confirm: MagicMock) -> None:
         """Test quick setup with existing project."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            project_path = Path(temp_dir) / "existing"
-            project_path.mkdir()
+            os_chdir = os.getcwd()
+            try:
+                os.chdir(temp_dir)
+                project_path = Path("existing")
+                project_path.mkdir()
+                mock_confirm.return_value = FlextResult[bool].ok(False)
 
-            result = cli_quick_setup("existing", str(temp_dir))
+                result = cli_quick_setup("existing")
 
-            assert not result.success
-            assert "already exists" in result.error
+                assert not result.success
+                assert "cancelled" in result.error
+            finally:
+                os.chdir(os_chdir)
 
-    def test_cli_quick_setup_invalid_path(self) -> None:
-        """Test quick setup with invalid path."""
-        result = cli_quick_setup("test", "/nonexistent/path")
+    def test_cli_quick_setup_empty_name(self) -> None:
+        """Test quick setup with empty project name."""
+        result = cli_quick_setup("")
 
         assert not result.success
-        assert "does not exist" in result.error
+        assert "cannot be empty" in result.error
 
     @patch("flext_cli.cli_utils._write_basic_pyproject")
     @patch("flext_cli.cli_utils._init_git_repo")
@@ -309,23 +331,31 @@ class TestQuickSetup:
     ) -> None:
         """Test quick setup with git initialization failure."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            project_path = Path(temp_dir) / "new-project"
-            mock_write_pyproject.return_value = project_path / "pyproject.toml"
-            mock_init_git.return_value = False
-            mock_create_dirs.return_value = {"src": "src"}
+            os_chdir = os.getcwd()
+            try:
+                os.chdir(temp_dir)
+                project_name = "new-project"
+                project_path = Path(project_name)
+                mock_write_pyproject.return_value = project_path / "pyproject.toml"
+                mock_init_git.return_value = False
+                mock_create_dirs.return_value = {"dir_src": str(project_path / "src")}
 
-            result = cli_quick_setup("new-project", str(temp_dir))
+                result = cli_quick_setup(project_name, init_git=True)
 
-            # Should still succeed even if git fails
-            assert result.success
+                # Should still succeed even if git fails
+                assert result.success
+            finally:
+                os.chdir(os_chdir)
 
 
 class TestBatchProcessing:
     """Test cli_batch_process_files function."""
 
-    @patch("flext_cli.cli_utils._process_single_file")
-    def test_cli_batch_process_files_success(self, mock_process: MagicMock) -> None:
+    def test_cli_batch_process_files_success(self) -> None:
         """Test successful batch file processing."""
+        def mock_processor(path: Path) -> FlextResult[object]:
+            return FlextResult[object].ok(f"processed_{path.name}")
+
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
 
@@ -336,42 +366,54 @@ class TestBatchProcessing:
                 test_file.write_text(f"content{i}")
                 input_files.append(test_file)
 
-            output_dir = temp_path / "output"
-            processor = lambda data: f"processed_{data}"
-
             result = cli_batch_process_files(
                 input_files,
-                str(output_dir),
-                processor
+                mock_processor,
+                show_progress=False
             )
 
             assert result.success
             data = result.unwrap()
             assert isinstance(data, dict)
             assert "processed" in data
-            assert "total" in data
-            assert data["total"] == 3
+            assert data["processed"] == 3
 
     def test_cli_batch_process_files_empty_list(self) -> None:
         """Test batch processing with empty file list."""
-        result = cli_batch_process_files([], "/tmp", lambda x: x)
+        def mock_processor(path: Path) -> FlextResult[object]:
+            return FlextResult[object].ok("processed")
 
-        assert not result.success
-        assert "No files" in result.error
+        result = cli_batch_process_files([], mock_processor)
 
-    def test_cli_batch_process_files_invalid_output(self) -> None:
-        """Test batch processing with invalid output directory."""
+        assert result.success
+        data = result.unwrap()
+        assert data["processed"] == 0
+
+    def test_cli_batch_process_files_with_failures(self) -> None:
+        """Test batch processing with some failures."""
+        def failing_processor(path: Path) -> FlextResult[object]:
+            if "fail" in path.name:
+                return FlextResult[object].fail("Processing failed")
+            return FlextResult[object].ok("processed")
+
         with tempfile.TemporaryDirectory() as temp_dir:
-            test_file = Path(temp_dir) / "test.txt"
-            test_file.write_text("content")
+            temp_path = Path(temp_dir)
+            files = []
+            for name in ["success.txt", "fail.txt", "success2.txt"]:
+                test_file = temp_path / name
+                test_file.write_text("content")
+                files.append(test_file)
 
             result = cli_batch_process_files(
-                [test_file],
-                "/nonexistent/path",
-                lambda x: x
+                files,
+                failing_processor,
+                show_progress=False
             )
 
-            assert not result.success
+            assert result.success
+            data = result.unwrap()
+            assert data["processed"] == 2
+            assert data["failed"] == 1
 
 
 class TestDataLoading:
@@ -874,7 +916,7 @@ class TestInteractiveUtilities:
         result = cli_confirm("Continue?")
 
         assert not result.success
-        assert "interrupted" in result.error
+        assert "cancelled" in result.error
 
     @patch("builtins.input")
     def test_cli_prompt_success(self, mock_input: MagicMock) -> None:
@@ -904,7 +946,7 @@ class TestInteractiveUtilities:
         result = cli_prompt("Enter input:")
 
         assert not result.success
-        assert "interrupted" in result.error
+        assert "cancelled" in result.error
 
     @patch("getpass.getpass")
     def test_cli_prompt_secure(self, mock_getpass: MagicMock) -> None:

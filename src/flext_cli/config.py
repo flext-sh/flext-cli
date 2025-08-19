@@ -246,7 +246,7 @@ class CLIConfig(FlextBaseConfigModel):
         return self.api.base_url
 
     @api_url.setter
-    def api_url(self, _value: object) -> None:  # pragma: no cover - immutability guard
+    def api_url(self, _value: str) -> None:  # pragma: no cover - immutability guard
         msg = "cannot assign to field 'api_url' on frozen CLIConfig"
         raise ValueError(msg)
 

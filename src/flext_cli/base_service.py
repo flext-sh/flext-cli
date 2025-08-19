@@ -256,7 +256,7 @@ class FlextCliFormatterService(FlextCliService[str]):
         if format_type not in self.supported_formats:
             return FlextResult[None].fail(
                 f"Unsupported format: {format_type}. "
-                f"Supported formats: {', '.join(self.supported_formats)}",
+                + f"Supported formats: {', '.join(self.supported_formats)}",
             )
         return FlextResult[None].ok(None)
 

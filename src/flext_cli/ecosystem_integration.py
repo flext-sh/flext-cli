@@ -42,7 +42,7 @@ class FlextCliGenericCommand(FlextCliEntity):
     def execute(self) -> FlextResult[object]:
         """Execute generic command with automatic error handling."""
         # Generic implementation - projects override this
-        return FlextResult[None].ok(
+        return FlextResult[object].ok(
             {
                 "command": self.name,
                 "environment": self.environment,
@@ -158,7 +158,7 @@ def setup_flext_cli_ecosystem(
             )
 
             if not config_result.success:
-                return FlextResult[None].fail(
+                return FlextResult[dict[str, object]].fail(
                     f"Config creation failed: {config_result.error}",
                 )
 
@@ -167,16 +167,11 @@ def setup_flext_cli_ecosystem(
         # Setup CLI with project-specific configuration
         setup_result = setup_flext_cli(config)
         if not setup_result.success:
-            return FlextResult[None].fail(f"CLI setup failed: {setup_result.error}")
+            return FlextResult[dict[str, object]].fail(f"CLI setup failed: {setup_result.error}")
 
-        if config is None:
-            # This case should ideally not happen if config_result.success was true,
-            # but for mypy's sake and runtime safety, we'll keep it.
-            return FlextResult[None].fail(  # type: ignore[unreachable]
-                "Configuration object is unexpectedly None after creation.",
-            )
+        # config is guaranteed to be non-None at this point due to success check above
 
-        return FlextResult[None].ok(
+        return FlextResult[dict[str, object]].ok(
             {
                 "project": project_name,
                 "config": config.model_dump(),
@@ -185,7 +180,7 @@ def setup_flext_cli_ecosystem(
         )
 
     except Exception as e:
-        return FlextResult[None].fail(f"Ecosystem CLI setup failed: {e}")
+        return FlextResult[dict[str, object]].fail(f"Ecosystem CLI setup failed: {e}")
 
 
 # Migration helpers for existing ecosystem projects

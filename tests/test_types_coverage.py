@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from flext_cli import types
+from flext_cli import cli_types as types
 
 
 class TestTypeImports:

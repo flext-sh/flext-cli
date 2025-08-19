@@ -18,7 +18,7 @@ from rich.console import Console
 from rich.progress import Progress, track as rich_track
 
 from flext_cli import config_hierarchical
-from flext_cli.core.helpers import FlextCliHelper
+from flext_cli.helpers import FlextCliHelper
 
 # Helper types for static annotations
 P = ParamSpec("P")

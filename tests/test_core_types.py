@@ -92,7 +92,7 @@ class TestURLType:
             "http://example.com",
             "https://www.example.com",
             "https://api.example.com/v1",
-            f"http://{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.DEFAULT_HOST}:{__import__('flext_core.constants').flext_core.constants.FlextConstants.Platform.FLEXT_API_PORT}",
+            "http://localhost:8081",
             "https://subdomain.example.com/path?query=value",
             "ftp://files.example.com",
         ]

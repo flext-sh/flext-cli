@@ -113,16 +113,16 @@ def demonstrate_api_authentication() -> FlextResult[None]:
     return FlextResult[None].ok(None)
 
 
-@require_auth
+@require_auth()
 def demonstrate_protected_operation() -> FlextResult[str]:
     """Demonstrate a protected operation requiring authentication."""
     console = Console()
     console.print("\n[green]4. Protected Operations[/green]")
 
-    # This function is decorated with @require_auth
+    # This function is decorated with @require_auth()
     # It will only execute if valid authentication is present
 
-    console.print("✅ @require_auth decorator passed - user is authenticated")
+    console.print("✅ @require_auth() decorator passed - user is authenticated")
 
     # Simulate protected business operation
     operation_result = perform_protected_business_logic()
@@ -404,7 +404,7 @@ def main() -> None:
         "[yellow]Comprehensive demonstration of flext-cli authentication patterns:[/yellow]\n"
         "🔐 Token management and secure storage\n"
         "🛡️ Authorization headers and API authentication\n"
-        "🔒 Protected operations with @require_auth decorator\n"
+        "🔒 Protected operations with @require_auth() decorator\n"
         "👥 Role-based access control (RBAC)\n"
         "⏰ Session management and token refresh\n"
         "🔑 Secure configuration and credential handling\n"
@@ -444,7 +444,7 @@ def main() -> None:
             "[cyan]Security Features Demonstrated:[/cyan]\n"
             "🔐 Token-based authentication with save_auth_token()\n"
             "🛡️ Authorization headers via get_auth_headers()\n"
-            "🔒 Protected operations using @require_auth decorator\n"
+            "🔒 Protected operations using @require_auth() decorator\n"
             "👥 Role-based permissions and access control\n"
             "⏰ Session lifecycle management and validation\n"
             "🔑 Environment-based secure configuration\n"

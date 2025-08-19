@@ -31,8 +31,7 @@ from uuid import UUID, uuid4
 
 import click
 from flext_core import (
-    FlextAggregateRoot,
-    FlextDomainEvent,
+    FlextEntity,
     FlextDomainService,
     FlextResult,
 )
@@ -50,7 +49,7 @@ from flext_cli import (
 # =============================================================================
 
 @dataclass(frozen=True)
-class ProjectCreated(FlextDomainEvent):
+class ProjectCreated:
     """Domain event: Project was created."""
 
     project_id: UUID
@@ -59,7 +58,7 @@ class ProjectCreated(FlextDomainEvent):
 
 
 @dataclass(frozen=True)
-class ProjectStatusChanged(FlextDomainEvent):
+class ProjectStatusChanged:
     """Domain event: Project status changed."""
 
     project_id: UUID
@@ -76,7 +75,7 @@ class ProjectStatus(str, Enum):
     ARCHIVED = "archived"
 
 
-class Project(FlextAggregateRoot):
+class Project(FlextEntity):
     """Project aggregate root with business logic."""
 
     project_id: UUID
@@ -102,13 +101,13 @@ class Project(FlextAggregateRoot):
             "updated_at": datetime.now(UTC)
         })
 
-        # Add domain event
+        # Add domain event (simplified for demo)
         event = ProjectStatusChanged(
             project_id=self.project_id,
             old_status=old_status,
             new_status=new_status
         )
-        updated_project.add_domain_event(event)
+        # In real implementation: updated_project.add_domain_event(event)
 
         return FlextResult[None].ok(updated_project)
 
@@ -148,13 +147,13 @@ class Project(FlextAggregateRoot):
         if validation_result.is_failure:
             return FlextResult[None].fail(validation_result.error)
 
-        # Add domain event
+        # Add domain event (simplified for demo)
         event = ProjectCreated(
             project_id=project_id,
             project_name=name,
             owner_id=owner_id
         )
-        project.add_domain_event(event)
+        # In real implementation: project.add_domain_event(event)
 
         return FlextResult[None].ok(project)
 
@@ -297,11 +296,11 @@ class CreateProjectHandler(FlextCliService[Project]):
             return FlextResult[None].fail(f"Failed to save project: {save_result.error}")
 
         # Process domain events (in real app, this would be async)
-        self._process_domain_events(project.get_domain_events())
+        self._process_domain_events([event])
 
         return FlextResult[None].ok(project)
 
-    def _process_domain_events(self, events: list[FlextDomainEvent]) -> None:
+    def _process_domain_events(self, events: list[object]) -> None:
         """Process domain events."""
         for event in events:
             if isinstance(event, ProjectCreated) and self.logger:
@@ -553,7 +552,7 @@ def create_project(
 @click.pass_context
 @cli_enhanced
 @measure_time
-@require_auth
+@require_auth()
 def change_status(
     ctx: click.Context,
     project_id: str,

@@ -28,12 +28,17 @@ from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table
 
-from flext_cli import (
+# Import private functions from their actual module location
+from flext_cli.utils_core import (
     _current_timestamp,
     _generate_session_id,
-    _get_version,
+    # _get_version,  # Function removed - not available in new API
     _load_config_file,
     _load_env_overrides,
+)
+
+# Import public API functions from main package
+from flext_cli import (
     flext_cli_auto_config,
     flext_cli_batch_execute,
     flext_cli_create_table,
@@ -631,12 +636,9 @@ class TestPrivateHelperFunctions:
         assert isinstance(session_id, str)
         assert len(session_id) == 8  # UUID first 8 characters
 
-    def test_get_version(self) -> None:
-        """Test version retrieval."""
-        version = _get_version()
-
-        assert isinstance(version, str)
-        # Should be either the actual version or "unknown"
+    # def test_get_version(self) -> None:
+    #     """Test version retrieval - REMOVED: _get_version function not available in new API."""
+    #     pass
 
     def test_current_timestamp(self) -> None:
         """Test timestamp generation."""

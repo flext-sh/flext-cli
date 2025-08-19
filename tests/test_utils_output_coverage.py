@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 
 from rich.console import Console
 
-from flext_cli.utils.output import (
+from flext_cli.utils_output import (
     format_json,
     format_pipeline,
     format_pipeline_list,

@@ -69,26 +69,24 @@ def demonstrate_data_transformation() -> FlextResult[None]:
     # Transform data - filter only running services
     filter_result = flext_cli_transform_data(
         raw_data,
-        lambda data: [service for service in data if service["status"] == "running"]
+        filter_func=lambda service: service["status"] == "running"
     )
 
     if filter_result.success:
         running_services = filter_result.unwrap()
         console.print(f"✅ Filtered to {len(running_services)} running services")
 
-        # Transform data - add computed fields
-        enrich_result = flext_cli_transform_data(
-            running_services,
-            lambda data: [
-                {
-                    **service,
-                    "health_score": min(100, max(0, 100 - service["cpu"])),
-                    "memory_gb": round(service["memory"] / 1024, 1),
-                    "efficiency": round((100 - service["cpu"]) * service["memory"] / 1000, 2)
-                }
-                for service in data
-            ]
-        )
+        # Transform data - add computed fields (custom transformation)
+        enriched_services = []
+        for service in running_services:
+            enriched_service = {
+                **service,
+                "health_score": min(100, max(0, 100 - service["cpu"])),
+                "memory_gb": round(service["memory"] / 1024, 1),
+                "efficiency": round((100 - service["cpu"]) * service["memory"] / 1000, 2)
+            }
+            enriched_services.append(enriched_service)
+        enrich_result = FlextResult[list[dict[str, object]]].ok(enriched_services)
 
         if enrich_result.success:
             enriched_services = enrich_result.unwrap()
@@ -100,9 +98,11 @@ def demonstrate_data_transformation() -> FlextResult[None]:
                 console.print(f"   Sample: {sample['name']} - Health: {sample['health_score']}, "
                             f"Memory: {sample['memory_gb']}GB, Efficiency: {sample['efficiency']}")
 
-            return FlextResult[None].ok(enriched_services)
-
-    return FlextResult[None].fail("Data transformation failed")
+            return FlextResult[None].ok(None)  # Return None for successful completion
+        else:
+            return FlextResult[None].fail("Data enrichment failed")
+    else:
+        return FlextResult[None].fail(f"Data filtering failed: {filter_result.error}")
 
 
 def demonstrate_data_aggregation() -> FlextResult[None]:
@@ -124,27 +124,24 @@ def demonstrate_data_aggregation() -> FlextResult[None]:
     service_agg_result = flext_cli_aggregate_data(
         metrics_data,
         group_by="service",
-        aggregations={
-            "total_requests": lambda group: sum(item["requests"] for item in group),
-            "total_errors": lambda group: sum(item["errors"] for item in group),
-            "avg_requests": lambda group: round(sum(item["requests"] for item in group) / len(group), 1),
-            "error_rate": lambda group: round(
-                sum(item["errors"] for item in group) / sum(item["requests"] for item in group) * 100, 2
-            ) if sum(item["requests"] for item in group) > 0 else 0.0
-        }
+        sum_fields=["requests", "errors"],
+        count_field="count"
     )
 
     if service_agg_result.success:
         service_stats = service_agg_result.unwrap()
         console.print("✅ Service aggregation completed:")
 
-        for service, stats in service_stats.items():
-            console.print(f"   {service}: {stats['total_requests']} requests, "
-                        f"{stats['error_rate']}% error rate")
+        for stats in service_stats:
+            service = stats.get("service", "unknown")
+            total_requests = stats.get("requests", 0)  # sum_fields creates this
+            total_errors = stats.get("errors", 0)  # sum_fields creates this
+            error_rate = round((total_errors / total_requests * 100), 2) if total_requests > 0 else 0.0
+            console.print(f"   {service}: {total_requests} requests, {error_rate}% error rate")
 
-        return FlextResult[None].ok(service_stats)
-
-    return FlextResult[None].fail("Data aggregation failed")
+        return FlextResult[None].ok(None)
+    else:
+        return FlextResult[None].fail(f"Data aggregation failed: {service_agg_result.error}")
 
 
 @cli_enhanced
@@ -185,22 +182,19 @@ def demonstrate_output_formatting() -> FlextResult[None]:
     formatter_factory = FormatterFactory()
 
     # Get JSON formatter
-    json_formatter = formatter_factory.get_formatter("json")
-    json_format_result = json_formatter.format(sample_data)
-    if json_format_result.success:
-        console.print("✅ FormatterFactory JSON formatting successful")
+    json_formatter = formatter_factory.create("json")
+    json_formatter.format(sample_data, console)
+    console.print("✅ FormatterFactory JSON formatting successful")
 
     # Get plain text formatter
     plain_formatter = PlainFormatter()
-    plain_result = plain_formatter.format(sample_data)
-    if plain_result.success:
-        console.print("✅ Plain text formatting successful")
+    plain_formatter.format(sample_data, console)
+    console.print("✅ Plain text formatting successful")
 
     # 3. Rich table creation for services
     services_table_result = cli_create_table(
         data=sample_data["services"],
-        title="Application Services",
-        columns=["name", "port", "healthy"]
+        title="Application Services"
     )
 
     if services_table_result.success:

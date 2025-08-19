@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-from typing import Any, Self
+from typing import Any, Protocol, Self
 
 # from flext_api import create_flext_api  # Temporarily disabled due to dependency issue
 from flext_core import FlextConstants, FlextResult, get_logger
@@ -54,7 +54,7 @@ class FlextCLIApiClient:
         self.timeout = timeout
 
         # Type annotation for MyPy - handles case where FlextApiClient is not available
-        self._api_client: Any | None = None  # type: ignore[explicit-any]
+        self._api_client: object | None = None
         self._flext_api: object | None = None
 
         # Initialize flext-api client if available
@@ -137,16 +137,16 @@ class FlextCLIApiClient:
     async def get_system_status(self) -> FlextResult[dict[str, object]]:
         """Get system status using flext-api patterns."""
         if not self.is_available():
-            return FlextResult[bool].fail("flext-api client not available")
+            return FlextResult[dict[str, object]].fail("flext-api client not available")
 
         try:
             if self._api_client is None:
-                return FlextResult[bool].fail("API client not initialized")
+                return FlextResult[dict[str, object]].fail("API client not initialized")
 
             # Get response from API client - handle FlextResult
             response_result = await self._api_client.get("/api/v1/system/status")
             if not response_result.success or response_result.data is None:
-                return FlextResult[bool].fail(
+                return FlextResult[dict[str, object]].fail(
                     f"Status request failed: {response_result.error}",
                 )
 
@@ -156,16 +156,16 @@ class FlextCLIApiClient:
                 # Safe JSON access with getattr
                 json_data: dict[str, object] = getattr(response, "json", dict)()
                 return FlextResult[dict[str, object]].ok(json_data)
-            return FlextResult[bool].fail(f"Status request failed: {status_code}")
+            return FlextResult[dict[str, object]].fail(f"Status request failed: {status_code}")
 
         except Exception as e:
             logger.exception("Failed to get system status")
-            return FlextResult[bool].fail(f"System status failed: {e}")
+            return FlextResult[dict[str, object]].fail(f"System status failed: {e}")
 
     async def list_services(self) -> FlextResult[list[dict[str, object]]]:
         """List available FLEXT services."""
         if not self.is_available():
-            return FlextResult[bool].fail("flext-api client not available")
+            return FlextResult[list[dict[str, object]]].fail("flext-api client not available")
 
         try:
             # Try both FlexCore (8080) and FLEXT Service (8081)
@@ -187,11 +187,11 @@ class FlextCLIApiClient:
             if flext_result.success and flext_result.data:
                 services.append(flext_result.data)
 
-            return FlextResult[bool].ok(services)
+            return FlextResult[list[dict[str, object]]].ok(services)
 
         except Exception as e:
             logger.exception("Failed to list services")
-            return FlextResult[bool].fail(f"Service listing failed: {e}")
+            return FlextResult[list[dict[str, object]]].fail(f"Service listing failed: {e}")
 
     async def _check_service(
         self,
@@ -200,7 +200,7 @@ class FlextCLIApiClient:
     ) -> FlextResult[dict[str, object]]:
         """Check individual service status."""
         # Temporarily disabled due to dependency issue with flext-api
-        return FlextResult[bool].fail(f"{name} service check disabled - no API implementation")
+        return FlextResult[dict[str, object]].fail(f"{name} service check disabled - no API implementation")
 
     async def login(
         self,
@@ -209,11 +209,11 @@ class FlextCLIApiClient:
     ) -> FlextResult[dict[str, object]]:
         """Login with username and password."""
         if not self.is_available():
-            return FlextResult[bool].fail("flext-api client not available")
+            return FlextResult[dict[str, object]].fail("flext-api client not available")
 
         try:
             if self._api_client is None:
-                return FlextResult[bool].fail("API client not initialized")
+                return FlextResult[dict[str, object]].fail("API client not initialized")
 
             # Post credentials to login endpoint
             login_data = json.dumps(
@@ -227,18 +227,18 @@ class FlextCLIApiClient:
                 data=login_data,
             )
             if not response_result.success or response_result.data is None:
-                return FlextResult[bool].fail(f"Login failed: {response_result.error}")
+                return FlextResult[dict[str, object]].fail(f"Login failed: {response_result.error}")
 
             response = response_result.data
             status_code = getattr(response, "status_code", None)
             if status_code == HTTP_OK:
                 json_data: dict[str, object] = getattr(response, "json", dict)()
                 return FlextResult[dict[str, object]].ok(json_data)
-            return FlextResult[bool].fail(f"Login failed: {status_code}")
+            return FlextResult[dict[str, object]].fail(f"Login failed: {status_code}")
 
         except Exception as e:
             logger.exception("Login failed")
-            return FlextResult[bool].fail(f"Login failed: {e}")
+            return FlextResult[dict[str, object]].fail(f"Login failed: {e}")
 
     async def logout(self) -> FlextResult[bool]:
         """Logout from the API."""
@@ -257,7 +257,8 @@ class FlextCLIApiClient:
             response = response_result.data
             status_code = getattr(response, "status_code", None)
             if status_code == HTTP_OK:
-                return FlextResult[bool].ok(None)
+                logout_success = True
+                return FlextResult[bool].ok(logout_success)
             return FlextResult[bool].fail(f"Logout failed: {status_code}")
 
         except Exception as e:
@@ -267,16 +268,16 @@ class FlextCLIApiClient:
     async def get_current_user(self) -> FlextResult[dict[str, object]]:
         """Get current user information."""
         if not self.is_available():
-            return FlextResult[bool].fail("flext-api client not available")
+            return FlextResult[dict[str, object]].fail("flext-api client not available")
 
         try:
             if self._api_client is None:
-                return FlextResult[bool].fail("API client not initialized")
+                return FlextResult[dict[str, object]].fail("API client not initialized")
 
             # Get current user from API
             response_result = await self._api_client.get("/auth/me")
             if not response_result.success or response_result.data is None:
-                return FlextResult[bool].fail(f"Get user failed: {response_result.error}")
+                return FlextResult[dict[str, object]].fail(f"Get user failed: {response_result.error}")
 
             response = response_result.data
             status_code = getattr(response, "status_code", None)

@@ -75,30 +75,25 @@ class CircuitBreakerState(Enum):
     HALF_OPEN = "half_open"
 
 
-class AdvancedCliService(
-    FlextCliService,
-    CLIValidationMixin,
-    CLILoggingMixin,
-    CLIOutputMixin,
-    CLIConfigMixin,
-    CLIDataMixin,
-    CLIExecutionMixin,
-):
+class AdvancedCliService(FlextCliService):
     """Advanced CLI service demonstrating comprehensive service integration."""
 
     def __init__(self) -> None:
         """Initialize advanced CLI service with comprehensive components."""
-        super().__init__()
-        self.logger = get_logger(__name__)
-        self.console = Console()
-        self.config = get_cli_config()
-        self.container = create_cli_container()
-        self.api_client = FlextApiClient()
+        super().__init__(service_name="advanced_cli_service")
+        
+        # Use object.__setattr__ to set attributes on frozen model
+        object.__setattr__(self, '_service_health', {})
+        object.__setattr__(self, '_circuit_breakers', {})
+        object.__setattr__(self, '_performance_metrics', {})
 
-        # Service state tracking
-        self.service_health = {}
-        self.circuit_breakers = {}
-        self.performance_metrics = {}
+    def execute(self) -> FlextResult[object]:
+        """Execute advanced CLI service operations."""
+        return FlextResult[object].ok({
+            "service": "AdvancedCliService",
+            "status": "operational", 
+            "features": ["health_check", "circuit_breaker", "async_operations"]
+        })
 
     @cli_enhanced
     @cli_measure_time
@@ -106,18 +101,22 @@ class AdvancedCliService(
     def check_service_health(self, service_name: str) -> FlextResult[dict[str, Any]]:
         """Check health of a specific service with retry logic."""
         try:
-            self.logger.info(f"Checking health for service: {service_name}")
+            logger = getattr(self, 'logger', None)
+            if logger:
+                logger.info(f"Checking health for service: {service_name}")
 
             # Simulate health check call
             health_data = self._simulate_health_check(service_name)
 
-            # Store health status
-            self.service_health[service_name] = {
-                "status": health_data["status"],
-                "last_check": datetime.now(UTC),
-                "response_time": health_data.get("response_time_ms", 0),
-                "details": health_data.get("details", {})
-            }
+            # Store health status using private attribute
+            service_health = getattr(self, '_service_health', {})
+            if isinstance(service_health, dict):
+                service_health[service_name] = {
+                    "status": health_data["status"],
+                    "last_check": datetime.now(UTC),
+                    "response_time": health_data.get("response_time_ms", 0),
+                    "details": health_data.get("details", {})
+                }
 
             return FlextResult[None].ok(health_data)
 

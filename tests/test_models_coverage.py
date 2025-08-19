@@ -491,7 +491,7 @@ class TestFlextCliCommand:
 
         assert command.command_line == "echo hello"
         assert command.status == FlextCliCommandStatus.PENDING
-        assert isinstance(command.id, str)
+        assert str(command.id) == "test-cmd"  # id is FlextEntityId type
         assert command.name is None
         assert command.description is None
         assert isinstance(command.arguments, (list, dict))
@@ -594,12 +594,13 @@ class TestFlextCliCommand:
         assert result.success
 
     def test_command_validate_business_rules_empty_command_line(self) -> None:
-        """Test command business rules validation with empty command line."""
-        command = FlextCliCommand(id="test-cmd", command_line="   ")
-
-        result = command.validate_business_rules()
-
-        assert not result.success
+        """Test command business rules validation - Pydantic prevents empty command lines."""
+        # Pydantic validation prevents creating commands with empty/whitespace command_line
+        import pytest
+        from pydantic_core import ValidationError
+        
+        with pytest.raises(ValidationError):
+            FlextCliCommand(id="test-cmd", command_line="   ")
 
     def test_command_validate_business_rules_invalid_timestamps(self) -> None:
         """Test command business rules validation with invalid timestamps."""
@@ -826,7 +827,7 @@ class TestFlextCliSession:
         """Test creating session with minimal fields."""
         session = FlextCliSession(id="test-session")
 
-        assert isinstance(session.id, str)
+        assert str(session.id) == "test-session"  # id is FlextEntityId type
         assert session.user_id is None
         assert session.state == FlextCliSessionState.ACTIVE
         assert isinstance(session.context, FlextCliContext)
@@ -947,7 +948,7 @@ class TestFlextCliSession:
     def test_session_add_command(self) -> None:
         """Test session add_command method."""
         session = FlextCliSession(id="test-session")
-        command_id = FlextEntityId("new-command")
+        command_id = "new-command"
 
         result = session.add_command(command_id)
 
@@ -960,7 +961,7 @@ class TestFlextCliSession:
     def test_session_add_command_inactive_session(self) -> None:
         """Test session add_command with inactive session."""
         session = FlextCliSession(state=FlextCliSessionState.SUSPENDED)
-        command_id = FlextEntityId("new-command")
+        command_id = "new-command"
 
         result = session.add_command(command_id)
 
@@ -1053,7 +1054,7 @@ class TestFlextCliPlugin:
             entry_point="test_plugin:main"
         )
 
-        assert isinstance(plugin.id, str)
+        assert str(plugin.id) == "test-plugin"  # id is FlextEntityId type
         assert plugin.name == "test-plugin"
         assert plugin.entry_point == "test_plugin:main"
         assert plugin.state == FlextCliPluginState.UNLOADED
@@ -1196,20 +1197,20 @@ class TestFlextCliPlugin:
         assert result.success
 
     def test_plugin_validate_business_rules_empty_name(self) -> None:
-        """Test plugin business rules validation with empty name."""
-        plugin = FlextCliPlugin(id="test-plugin", name="   ", entry_point="test:main")
-
-        result = plugin.validate_business_rules()
-
-        assert not result.success
+        """Test plugin business rules validation - Pydantic prevents empty names."""
+        import pytest
+        from pydantic_core import ValidationError
+        
+        with pytest.raises(ValidationError):
+            FlextCliPlugin(id="test-plugin", name="   ", entry_point="test:main")
 
     def test_plugin_validate_business_rules_empty_entry_point(self) -> None:
-        """Test plugin business rules validation with empty entry point."""
-        plugin = FlextCliPlugin(id="test-plugin", name="test", entry_point="   ")
-
-        result = plugin.validate_business_rules()
-
-        assert not result.success
+        """Test plugin business rules validation - Pydantic prevents empty entry points."""
+        import pytest
+        from pydantic_core import ValidationError
+        
+        with pytest.raises(ValidationError):
+            FlextCliPlugin(id="test-plugin", name="test", entry_point="   ")
 
     def test_plugin_validate_business_rules_active_without_loaded_at(self) -> None:
         """Test plugin business rules validation for active plugin without loaded_at."""
@@ -1419,7 +1420,7 @@ class TestFlextCliWorkspace:
     def test_workspace_add_session(self) -> None:
         """Test workspace add_session method."""
         workspace = FlextCliWorkspace(id="test-workspace", name="test-workspace")
-        session_id = FlextEntityId("new-session")
+        session_id = "new-session"
 
         result = workspace.add_session(session_id)
 
@@ -1429,7 +1430,7 @@ class TestFlextCliWorkspace:
 
     def test_workspace_add_session_duplicate(self) -> None:
         """Test workspace add_session with duplicate session."""
-        session_id = FlextEntityId("existing-session")
+        session_id = "existing-session"
         workspace = FlextCliWorkspace(
             name="test-workspace",
             session_ids=[session_id]
@@ -1441,7 +1442,7 @@ class TestFlextCliWorkspace:
 
     def test_workspace_remove_session(self) -> None:
         """Test workspace remove_session method."""
-        session_id = FlextEntityId("existing-session")
+        session_id = "existing-session"
         workspace = FlextCliWorkspace(
             name="test-workspace",
             session_ids=[session_id, "other-session"]
@@ -1457,7 +1458,7 @@ class TestFlextCliWorkspace:
     def test_workspace_remove_session_not_found(self) -> None:
         """Test workspace remove_session with non-existent session."""
         workspace = FlextCliWorkspace(id="test-workspace", name="test-workspace")
-        session_id = FlextEntityId("nonexistent-session")
+        session_id = "nonexistent-session"
 
         result = workspace.remove_session(session_id)
 
@@ -1466,7 +1467,7 @@ class TestFlextCliWorkspace:
     def test_workspace_install_plugin(self) -> None:
         """Test workspace install_plugin method."""
         workspace = FlextCliWorkspace(id="test-workspace", name="test-workspace")
-        plugin_id = FlextEntityId("new-plugin")
+        plugin_id = "new-plugin"
 
         result = workspace.install_plugin(plugin_id)
 
@@ -1476,7 +1477,7 @@ class TestFlextCliWorkspace:
 
     def test_workspace_install_plugin_duplicate(self) -> None:
         """Test workspace install_plugin with duplicate plugin."""
-        plugin_id = FlextEntityId("existing-plugin")
+        plugin_id = "existing-plugin"
         workspace = FlextCliWorkspace(
             name="test-workspace",
             plugin_ids=[plugin_id]

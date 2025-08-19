@@ -20,8 +20,8 @@ from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table
 
-from flext_cli.__version__ import __version__ as _cli_version
-from flext_cli.core.helpers import FlextCliHelper
+# from flext_cli.__version__ import __version__ as _cli_version  # Unused import
+from flext_cli.helpers import FlextCliHelper
 
 
 def _generate_session_id() -> str:
@@ -29,8 +29,8 @@ def _generate_session_id() -> str:
     return f"{int(datetime.now(tz=UTC).timestamp()):08d}"[-8:]
 
 
-def _get_version() -> str:
-    return _cli_version
+# def _get_version() -> str:  # Unused function removed
+#     return _cli_version
 
 
 def _current_timestamp() -> str:
@@ -202,7 +202,7 @@ def flext_cli_require_all(confirmations: list[tuple[str, bool]]) -> FlextResult[
     for message, _default in confirmations:
         res = helper.flext_cli_confirm(message)
         if res.is_failure:
-            return res
+            return FlextResult[bool].fail(res.error or "Confirmation failed")
         if not res.unwrap():
             return FlextResult[bool].ok(False)  # noqa: FBT003
     return FlextResult[bool].ok(True)  # noqa: FBT003

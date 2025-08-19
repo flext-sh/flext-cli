@@ -20,13 +20,14 @@ from click.testing import CliRunner
 from flext_core.constants import FlextConstants
 from rich.table import Table
 
-from flext_cli import (
+from flext_cli import config
+from flext_cli.cmd_config import (
     _find_config_value,
     _get_all_config,
-    _print_config_table,
     _print_config_value,
-    config,
 )
+
+# _print_config_table is not used in this test file and is not available in new API structure
 
 # Constants
 EXPECTED_DATA_COUNT = 3
