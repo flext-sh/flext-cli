@@ -6,7 +6,7 @@ from typing import Protocol
 
 from flext_core import FlextResult, get_logger
 
-from flext_cli.domain.cli_context import CLIContext, CLIExecutionContext
+from flext_cli.context import CLIContext, CLIExecutionContext
 
 
 class CLIServiceProtocol(Protocol):
@@ -75,7 +75,7 @@ class CLICommandService:
                 result = handler(context, **kwargs)
             else:
                 return FlextResult[object].fail("Handler is not callable")
-            return result if isinstance(result, FlextResult) else FlextResult[None].ok(result)
+            return result if isinstance(result, FlextResult) else FlextResult[object].ok(result)
         except Exception as e:
             return FlextResult[object].fail(f"Command execution failed: {e}")
 

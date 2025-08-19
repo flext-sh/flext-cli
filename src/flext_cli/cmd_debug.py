@@ -158,10 +158,13 @@ async def _test_connection(
         except (AttributeError, TypeError):
             test_result = False
 
-    if hasattr(test_result, "is_failure") and hasattr(test_result, "error"):
-        if test_result.is_failure:  # type: ignore[union-attr]
+    if hasattr(test_result, "success") and hasattr(test_result, "error"):
+        # This is a FlextResult-like object
+        success_attr = getattr(test_result, "success", True)
+        if not success_attr:
+            error_attr = getattr(test_result, "error", "Unknown error")
             console.print(
-                f"[red]❌ Failed to connect to API: {test_result.error}[/red]",  # type: ignore[union-attr]
+                f"[red]❌ Failed to connect to API: {error_attr}[/red]",
             )
             ctx.exit(1)
     elif test_result is False:
@@ -407,10 +410,10 @@ def check(ctx: click.Context) -> None:
 
 # Expose patch points for tests - commented out to avoid mypy attr-defined errors
 # Tests can patch these at module level instead
-# debug_cmd.FLEXT_API_AVAILABLE = FLEXT_API_AVAILABLE  # type: ignore[attr-defined]
-# debug_cmd.SENSITIVE_VALUE_PREVIEW_LENGTH = SENSITIVE_VALUE_PREVIEW_LENGTH  # type: ignore[attr-defined]
-# debug_cmd.get_default_cli_client = get_default_cli_client  # type: ignore[attr-defined]
-# debug_cmd.get_config = get_config  # type: ignore[attr-defined]
+# debug_cmd.FLEXT_API_AVAILABLE = FLEXT_API_AVAILABLE
+# debug_cmd.SENSITIVE_VALUE_PREVIEW_LENGTH = SENSITIVE_VALUE_PREVIEW_LENGTH
+# debug_cmd.get_default_cli_client = get_default_cli_client
+# debug_cmd.get_config = get_config
 # debug_cmd._validate_dependencies = _validate_dependencies
 # debug_cmd.Table = Table
 # debug_cmd.Path = Path

@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import cast
 
 import yaml
-from flext_core import FlextResult
+from flext_core import FlextEntityId, FlextResult
 from rich.console import Console
 from rich.table import Table
 
@@ -558,7 +558,7 @@ class FlextCliApi:
 
             try:
                 command = CLICommand(
-                    id=command_id,
+                    id=FlextEntityId(command_id),
                     command_line=command_line,
                 )
                 # Set name if attribute exists on model (compatibility for tests)
@@ -656,7 +656,7 @@ class FlextCliApi:
             # Otherwise, try to create a CLIPlugin from the object using direct instantiation
             try:
                 cli_plugin = CLIPlugin(
-                    id=str(uuid.uuid4()),
+                    id=FlextEntityId(str(uuid.uuid4())),
                     name=name,
                     entry_point=str(plugin) if plugin else f"plugin_{name}",
                 )

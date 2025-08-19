@@ -27,7 +27,7 @@ from flext_cli import (
     CLIDirectoryConfig,
     CLIOutputConfig,
     CLISettings,
-    _create_cli_config,
+    # _create_cli_config,  # Removed - not exported anymore
     get_cli_config,
     get_cli_settings,
 )
@@ -592,8 +592,8 @@ class TestConfigurationFunctions:
         assert isinstance(config2, CLIConfig)
 
     def test_create_cli_config(self) -> None:
-        """Test _create_cli_config function."""
-        config = _create_cli_config()
+        """Test get_cli_config function (replacement for _create_cli_config)."""
+        config = get_cli_config()
 
         assert isinstance(config, CLIConfig)
         if config.profile != "default":
@@ -610,7 +610,7 @@ class TestConfigurationFunctions:
                 mock_config = mock_config_class.return_value
                 mock_config.ensure_setup = lambda: None
 
-                result = _create_cli_config()
+                result = get_cli_config(reload=True)
 
                 # Verify config was created with correct parameters
                 mock_config_class.assert_called_once_with(

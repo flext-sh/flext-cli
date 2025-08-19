@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from uuid import UUID
 
-from flext_cli.domain.entities import CommandType
+from flext_cli.entities import CommandType
 
 # Type alias for command arguments and options
 AnyPrimitive = str | int | float | bool | None

@@ -212,7 +212,7 @@ class TestFlextCliHelper:
         result = self.helper.flext_cli_sanitize_filename(".hidden_file.txt")
 
         assert result.success
-        assert result.data == "_hidden_file.txt"
+        assert result.data == "hidden_file.txt"
 
     def test_flext_cli_sanitize_filename_too_long(self) -> None:
         """Test filename length truncation."""

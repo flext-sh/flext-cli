@@ -11,7 +11,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from flext_cli.utils.auth import (
+from flext_cli.cli_auth import (
     clear_auth_tokens,
     get_auth_token,
     get_refresh_token,

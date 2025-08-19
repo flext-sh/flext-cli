@@ -19,10 +19,10 @@ __version_info__ = tuple(int(x) for x in __version__.split(".") if x.isdigit())
 from flext_cli.config import CLIConfig, CLIConfig as TCliConfig
 from flext_cli.cli_config import FlextCliConfig
 from flext_cli.api import FlextCliApi
-from flext_cli.core.helpers import FlextCliDataProcessor
+from flext_cli.helpers import FlextCliDataProcessor
 
 # Core formatters
-from flext_cli.core.formatters import (
+from flext_cli.formatters import (
     PlainFormatter,
     OutputFormatter,
     FormatterFactory,
@@ -73,7 +73,6 @@ from flext_cli.config import (
     get_cli_config as get_config,
     get_cli_settings as get_settings,
     get_cli_settings,
-    _create_cli_config,
 )
 
 # Domain models
@@ -99,8 +98,8 @@ from flext_cli.models import (
 )
 
 # CLI Context and Execution
-from flext_cli.domain.cli_context import CLIExecutionContext
-from flext_cli.domain.cli_services import (
+from flext_cli.context import CLIExecutionContext
+from flext_cli.services import (
     CLICommandService,
     CLISessionService,
 )
@@ -114,7 +113,6 @@ from flext_cli.protocols import (
 from flext_cli.simple_api import (
     create_development_cli_config,
     create_production_cli_config,
-    get_cli_settings,
     setup_cli,
 )
 
@@ -129,52 +127,46 @@ from flext_cli.base_service import (
 )
 
 # CLI decorators
-from flext_cli.cli_decorators import (
+from flext_cli.decorators import (
     cli_cache_result,
     cli_confirm,
+    cli_confirm as confirm_action,  # Alias for test compatibility
     cli_enhanced,
     cli_file_operation,
     cli_handle_keyboard_interrupt,
     cli_inject_config,
     cli_log_execution,
     cli_measure_time,
+    cli_measure_time as measure_time,  # Alias for test compatibility
     cli_retry,
+    cli_retry as retry,  # Alias for test compatibility
+    cli_spinner as with_spinner,  # Alias for test compatibility
     cli_validate_inputs,
 )
-from flext_cli.core.base import handle_service_result
-from flext_cli.core.helpers import FlextCliHelper as CLIHelper, FlextCliHelper, FlextCliFileManager, flext_cli_batch_validate, flext_cli_create_data_processor, flext_cli_create_helper, flext_cli_create_file_manager
-from flext_cli.core.utils import (
+from flext_cli.base_core import handle_service_result
+from flext_cli.helpers import FlextCliHelper as CLIHelper, FlextCliHelper, FlextCliFileManager, flext_cli_batch_validate, flext_cli_create_data_processor, flext_cli_create_helper, flext_cli_create_file_manager
+from flext_cli.utils_core import (
     flext_cli_auto_config,
     flext_cli_load_file,
     flext_cli_output_data,
     flext_cli_require_all,
     flext_cli_save_file,
     flext_cli_validate_all,
-    _current_timestamp,
-    _generate_session_id,
-    _get_version,
-    _load_config_file,
-    _load_env_overrides,
 )
-from flext_cli.core.types import PositiveInt as PositiveInt, URL as URL
-from flext_cli.core.types import (
+from flext_cli.cli_types import PositiveInt as PositiveInt, URL as URL
+from flext_cli.cli_types import (
     ClickPath as ClickPath,
     ExistingDir as ExistingDir,
     ExistingFile as ExistingFile,
     NewFile as NewFile,
 )
-from flext_cli.core.decorators import (
+from flext_cli.decorators import (
     async_command,
-    confirm_action,
-    measure_time as core_measure_time,
     require_auth,
-    retry as core_retry,
-    with_spinner,
     validate_config,
     validate_config as flext_cli_auto_validate,
 )
-from flext_cli.core.decorators import measure_time as measure_time
-from flext_cli.core.decorators import retry as retry, retry as flext_cli_auto_retry
+# All core decorators are now in flext_cli.decorators
 
 # CLI mixins
 from flext_cli.cli_mixins import (
@@ -191,7 +183,7 @@ from flext_cli.cli_mixins import (
     CLIValidationMixin,
     CLIValidationMixin as FlextCliValidationMixin,
 )
-from flext_cli.core.mixins import FlextCliAdvancedMixin, FlextCliBasicMixin, FlextCliMixin, FlextCliProgressMixin, FlextCliResultMixin, flext_cli_handle_exceptions, flext_cli_require_confirmation, flext_cli_with_progress, flext_cli_zero_config
+from flext_cli.mixins import FlextCliAdvancedMixin, FlextCliBasicMixin, FlextCliMixin, FlextCliProgressMixin, FlextCliResultMixin, flext_cli_handle_exceptions, flext_cli_require_confirmation, flext_cli_with_progress, flext_cli_zero_config
 
 # CLI utilities
 from flext_cli.cli_utils import (
@@ -226,14 +218,14 @@ from flext_cli.cli_auth import (
 )
 
 # Commands (Click groups/commands) reexports for root-level imports in tests/examples
-from flext_cli.commands.auth import (
+from flext_cli.cmd_auth import (
     auth as auth,
     login as login,
     logout as logout,
     status as status,
     whoami as whoami,
 )
-from flext_cli.commands.debug import (
+from flext_cli.cmd_debug_alt import (
     debug_cmd as debug_cmd,
     connectivity as connectivity,
     performance as performance,
@@ -242,16 +234,13 @@ from flext_cli.commands.debug import (
     paths as paths,
     validate as validate,
 )
-from flext_cli.commands.config import (
+from flext_cli.cmd_config_alt import (
     config as config,
-    _find_config_value,
-    _get_all_config,
-    print_config_table as _print_config_table,
-    _print_config_value,
+    # print_config_table as _print_config_table,  # Not used
 )
 
 # Application commands
-from flext_cli.application.commands import CancelCommandCommand, CreateConfigCommand, DeleteConfigCommand, DisablePluginCommand, EnablePluginCommand, EndSessionCommand, ExecuteCommandCommand, GetCommandHistoryCommand, GetCommandStatusCommand, GetSessionInfoCommand, InstallPluginCommand, ListCommandsCommand, ListConfigsCommand, ListPluginsCommand, StartSessionCommand, UninstallPluginCommand, UpdateConfigCommand, ValidateConfigCommand
+from flext_cli.application_commands import CancelCommandCommand, CreateConfigCommand, DeleteConfigCommand, DisablePluginCommand, EnablePluginCommand, EndSessionCommand, ExecuteCommandCommand, GetCommandHistoryCommand, GetCommandStatusCommand, GetSessionInfoCommand, InstallPluginCommand, ListCommandsCommand, ListConfigsCommand, ListPluginsCommand, StartSessionCommand, UninstallPluginCommand, UpdateConfigCommand, ValidateConfigCommand
 
 # API functions
 from flext_cli.api import (
@@ -270,7 +259,7 @@ from flext_cli.api import (
 from flext_cli.client import FlextApiClient
 
 # Domain factory and constants
-from flext_cli.domain.entities import CLIEntityFactory, CommandType
+from flext_cli.entities import CLIEntityFactory, CommandType
 from flext_core import FlextConstants as FlextConstants
 
 # Core formatters
@@ -398,9 +387,7 @@ __all__: list[str] = [
     "NewFile",
     "async_command",
     "confirm_action",
-    "core_measure_time",
     "require_auth",
-    "core_retry",
     "with_spinner",
     "get_auth_headers",
     "get_config",
@@ -441,6 +428,7 @@ __all__: list[str] = [
     # Measurement aliases
     "measure_time",
     "retry",
+    "with_spinner",
     # Missing imports for tests (added back)
     "validate_config",
     "CSVFormatter",
@@ -504,7 +492,7 @@ __all__: list[str] = [
     "UpdateConfigCommand",
     "ValidateConfigCommand",
     "flext_cli_require_all",
-    "flext_cli_auto_retry",
+    # "flext_cli_auto_retry",  # Not implemented yet, removing from __all__
     "flext_cli_auto_validate",
     "flext_cli_save_file",
     "flext_cli_validate_all",
@@ -512,17 +500,6 @@ __all__: list[str] = [
     "flext_cli_require_confirmation",
     "flext_cli_with_progress",
     "flext_cli_zero_config",
-    # Missing exports for tests
-    "_create_cli_config",
-    "_find_config_value",
-    "_get_all_config",
-    "_print_config_table",
-    "_print_config_value",
-    "_current_timestamp",
-    "_generate_session_id",
-    "_get_version",
-    "_load_config_file",
-    "_load_env_overrides",
     # Simple API exports
     "create_development_cli_config",
     "create_production_cli_config",

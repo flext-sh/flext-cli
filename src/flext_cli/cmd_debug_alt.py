@@ -82,11 +82,12 @@ class _CommandShim:
                     if isinstance(first, click.Context)
                     else click.Context(self._cmd)
                 )
-                if not isinstance(first, click.Context) and hasattr(first, "obj"):
+                if not isinstance(first, click.Context):
                     from contextlib import suppress as _suppress  # noqa: PLC0415
 
                     with _suppress(Exception):
-                        temp_ctx.obj = first.obj
+                        if hasattr(first, "obj"):
+                            temp_ctx.obj = getattr(first, "obj", None)
 
                 # Execute the callback within the active context
                 try:

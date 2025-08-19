@@ -65,14 +65,14 @@ class DemoCommandMixin:
 
 # Click integration with flext-cli patterns
 @click.group()
-@click.option("--config-file", type=ExistingFile(), help="Configuration file path")
+@click.option("--config-file", type=ExistingFile, help="Configuration file path")
 @click.option("--debug/--no-debug", default=False, help="Enable debug mode")
 @click.pass_context
 def demo_cli(ctx: click.Context, config_file: Path | None, *, debug: bool = False) -> None:
     """FLEXT-CLI Click Integration Demo."""
     # Setup CLI using flext-cli patterns
     setup_result = setup_cli()
-    if setup_result.failure:
+    if not setup_result.success:
         click.echo(f"Setup failed: {setup_result.error}", err=True)
         ctx.exit(1)
 
@@ -90,9 +90,9 @@ def demo_cli(ctx: click.Context, config_file: Path | None, *, debug: bool = Fals
 
 
 @demo_cli.command()
-@click.option("--url", type=URL(), required=True, help="Service URL to connect to")
-@click.option("--timeout", type=PositiveInt(), default=30, help="Connection timeout")
-@click.option("--retries", type=PositiveInt(), default=3, help="Number of retries")
+@click.option("--url", type=URL, required=True, help="Service URL to connect to")
+@click.option("--timeout", type=PositiveInt, default=30, help="Connection timeout")
+@click.option("--retries", type=PositiveInt, default=3, help="Number of retries")
 @click.pass_context
 @cli_enhanced  # flext-cli decorator for enhanced functionality
 @cli_measure_time  # flext-cli decorator for timing
@@ -103,7 +103,7 @@ def connect(ctx: click.Context, url: str, timeout: int, retries: int) -> None:
 
     # Create command entity using flext-cli patterns
     command_result = create_connection_command(url, timeout, retries)
-    if command_result.failure:
+    if not command_result.success:
         console.print(f"[red]Failed to create command: {command_result.error}[/red]")
         return
 
@@ -121,9 +121,9 @@ def connect(ctx: click.Context, url: str, timeout: int, retries: int) -> None:
 
 
 @demo_cli.command()
-@click.option("--input-file", type=ExistingFile(), required=True, help="Input file to process")
+@click.option("--input-file", type=ExistingFile, required=True, help="Input file to process")
 @click.option("--output-format", type=click.Choice(["json", "yaml", "csv"]), default="json")
-@click.option("--batch-size", type=PositiveInt(), default=100, help="Processing batch size")
+@click.option("--batch-size", type=PositiveInt, default=100, help="Processing batch size")
 @click.pass_context
 @cli_enhanced
 @cli_measure_time
@@ -188,7 +188,7 @@ def execute_connection_test(command: FlextCliCommand) -> FlextResult[str]:
 
         # Validate command before execution
         validation_result = command.validate_domain_rules()
-        if validation_result.failure:
+        if not validation_result.success:
             return FlextResult[None].fail(f"Command validation failed: {validation_result.error}")
 
         # Start command execution

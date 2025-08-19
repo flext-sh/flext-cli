@@ -491,8 +491,8 @@ class FlextCliCommand(FlextEntity):
     # Allow unknown/convenience fields and id auto-generation
     model_config = ConfigDict(extra="allow")
     # Override id to allow default generation for testing convenience
-    id: str = Field(
-        default_factory=lambda: __import__("uuid").uuid4().hex,
+    id: FlextEntityId = Field(
+        default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex),
     )
     name: str | None = Field(default=None, description="Optional command name")
     description: str | None = Field(default=None, description="Optional description")
@@ -542,7 +542,7 @@ class FlextCliCommand(FlextEntity):
             return v
         try:
             # Accept strings or other StrEnum types
-            raw = v.value if hasattr(v, "value") else str(v)  # type: ignore[attr-defined]
+            raw = getattr(v, "value", str(v))
             return FlextCliCommandType(str(raw))
         except Exception as e:
             msg = f"Invalid command_type: {v}"
@@ -864,8 +864,8 @@ class FlextCliSession(FlextEntity):
     # Allow unknown convenience fields and provide default id
     model_config = ConfigDict(extra="allow")
     # Provide default id for testing convenience that omit it
-    id: str = Field(
-        default_factory=lambda: __import__("uuid").uuid4().hex,
+    id: FlextEntityId = Field(
+        default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex),
     )
     user_id: str | None = Field(
         default=None,
@@ -1184,8 +1184,8 @@ class FlextCliPlugin(FlextEntity):
     # Allow unknown convenience fields and provide default id
     model_config = ConfigDict(extra="allow")
     # Provide default id for testing convenience that omit it
-    id: str = Field(
-        default_factory=lambda: __import__("uuid").uuid4().hex,
+    id: FlextEntityId = Field(
+        default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex),
     )
     name: str = Field(
         ...,
@@ -1294,7 +1294,7 @@ class FlextCliPlugin(FlextEntity):
         """Disable the plugin by setting enabled=False."""
         result = self.copy_with(enabled=False)
         if result.is_success:
-            return FlextResult[FlextCliPlugin].ok(result.unwrap())  # type: ignore[type-var]
+            return FlextResult[FlextCliPlugin].ok(result.unwrap())
         return FlextResult[FlextCliPlugin].fail(result.error or "Disable failed")
 
     def enable(
@@ -1303,7 +1303,7 @@ class FlextCliPlugin(FlextEntity):
         """Enable the plugin by setting enabled=True."""
         result = self.copy_with(enabled=True)
         if result.is_success:
-            return FlextResult[FlextCliPlugin].ok(result.unwrap())  # type: ignore[type-var]
+            return FlextResult[FlextCliPlugin].ok(result.unwrap())
         return FlextResult[FlextCliPlugin].fail(result.error or "Enable failed")
 
     def uninstall(
@@ -1317,7 +1317,7 @@ class FlextCliPlugin(FlextEntity):
             last_error=None,
         )
         if result.is_success:
-            return FlextResult[FlextCliPlugin].ok(result.unwrap())  # type: ignore[type-var]
+            return FlextResult[FlextCliPlugin].ok(result.unwrap())
         return FlextResult[FlextCliPlugin].fail(result.error or "Uninstall failed")
 
     @field_validator("entry_point")
@@ -1358,57 +1358,62 @@ class FlextCliPlugin(FlextEntity):
 
     def load_plugin(self) -> FlextResult[FlextCliPlugin]:
         """Load the plugin."""
+        # Validate preconditions
         if self.state != FlextCliPluginState.UNLOADED:
             return FlextResult[FlextCliPlugin].fail(f"Cannot load plugin in {self.state} state")
 
-        # Set loading state first
+        # Set loading state first - early return on failure
         loading_result = self.copy_with(state=FlextCliPluginState.LOADING)
         if loading_result.is_failure:
             return FlextResult[FlextCliPlugin].fail(loading_result.error or "Loading failed")
 
+        # Delegate core logic to helper method to reduce complexity
+        return self._execute_plugin_loading(loading_result.unwrap())
+
+    def _execute_plugin_loading(self, loading_plugin: FlextCliPlugin) -> FlextResult[FlextCliPlugin]:
+        """Execute the core plugin loading logic."""
         try:
-            # Plugin loading logic would go here
-            # For now, simulate successful loading
+            # Plugin loading logic - simulate successful loading
             now = datetime.now(UTC)
-            loaded_plugin = loading_result.unwrap().copy_with(
+            loaded_result = loading_plugin.copy_with(
                 state=FlextCliPluginState.LOADED,
                 loaded_at=now,
                 last_error=None,
             )
 
-            if loaded_plugin.is_failure:
-                return FlextResult[FlextCliPlugin].fail(loaded_plugin.error or "Plugin loading failed")
-            result = loaded_plugin.unwrap()
-
-            # Add domain event using FlextEventList and copy_with
-            try:
-                new_events = result.domain_events.add_event(
-                    "PluginLoaded",
-                    {
-                        "plugin_id": str(result.id),
-                        "plugin_name": result.name,
-                        "loaded_at": now.isoformat(),
-                    },
-                )
-                updated_with_event = result.copy_with(domain_events=new_events)
-                if updated_with_event.is_failure:
-                    return FlextResult[FlextCliPlugin].fail(
-                        updated_with_event.error or "Failed to append event",
-                    )
-                result = updated_with_event.unwrap()
-            except Exception as e:
-                return FlextResult[FlextCliPlugin].fail(f"Failed to add domain event: {e}")
-            return FlextResult[FlextCliPlugin].ok(result)
+            # Chain results using flatMap-like pattern
+            return loaded_result.flat_map(
+                lambda plugin: self._add_plugin_loaded_event(plugin, now)
+            )
 
         except Exception as e:
-            # Handle loading error
-            error_result = loading_result.unwrap().copy_with(
-                state=FlextCliPluginState.ERROR,
-                last_error=str(e),
+            # Handle loading error with error state
+            return self._handle_plugin_loading_error(loading_plugin, e)
+
+    def _add_plugin_loaded_event(self, plugin: FlextCliPlugin, loaded_at: datetime) -> FlextResult[FlextCliPlugin]:
+        """Add domain event for plugin loaded."""
+        try:
+            new_events = plugin.domain_events.add_event(
+                "PluginLoaded",
+                {
+                    "plugin_id": str(plugin.id),
+                    "plugin_name": plugin.name,
+                    "loaded_at": loaded_at.isoformat(),
+                },
             )
-            if error_result.is_success:
-                return FlextResult[FlextCliPlugin].ok(error_result.unwrap())  # type: ignore[type-var]
-            return FlextResult[FlextCliPlugin].fail(error_result.error or "Error handling failed")
+            return plugin.copy_with(domain_events=new_events)
+        except Exception as e:
+            return FlextResult[FlextCliPlugin].fail(f"Failed to add domain event: {e}")
+
+    def _handle_plugin_loading_error(self, loading_plugin: FlextCliPlugin, error: Exception) -> FlextResult[FlextCliPlugin]:
+        """Handle plugin loading error by setting error state."""
+        error_result = loading_plugin.copy_with(
+            state=FlextCliPluginState.ERROR,
+            last_error=str(error),
+        )
+        return error_result if error_result.is_success else FlextResult[FlextCliPlugin].fail(
+            error_result.error or "Error handling failed"
+        )
 
     def activate_plugin(self) -> FlextResult[FlextCliPlugin]:
         """Activate the plugin, allowing activation from UNLOADED or LOADED."""

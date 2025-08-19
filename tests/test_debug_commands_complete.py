@@ -17,7 +17,7 @@ from click import Context
 from click.testing import CliRunner
 from flext_core import FlextConstants, FlextResult
 
-from flext_cli.commands.debug import (
+from flext_cli.cmd_debug_alt import (
     SENSITIVE_VALUE_PREVIEW_LENGTH,
     connectivity,
     debug_cmd,

@@ -14,6 +14,7 @@ from typing import Literal, Protocol, TypeVar
 
 import click
 from flext_core import FlextEntityId, FlextResult
+from flext_core.typings import E, F, FlextTypes as CoreFlextTypes, P, R
 from rich.table import Table
 
 # =============================================================================
@@ -121,6 +122,50 @@ type SessionData = dict[str, object]
 type ContextParams = dict[str, object]
 type UserInput = str
 
+
+# =============================================================================
+# CONSOLIDATION FROM typings.py
+# =============================================================================
+
+class FlextTypes(CoreFlextTypes):
+    """CLI domain-specific types can extend here."""
+
+# =============================================================================
+# CONSOLIDATION FROM core/types.py - Click integration
+# =============================================================================
+
+class ClickPath(click.Path):
+    """Enhanced Click Path with convenience options."""
+
+    def __init__(
+        self,
+        *,
+        exists: bool | None = None,
+        file_okay: bool | None = None,
+        dir_okay: bool | None = None,
+        readable: bool | None = None,
+        writable: bool | None = None,
+        allow_dash: bool | None = None,
+        resolve_path: bool | None = None,
+        path_type: type[str] | None = None,
+    ) -> None:
+        super().__init__(
+            exists=bool(exists),
+            file_okay=True if file_okay is None else bool(file_okay),
+            dir_okay=True if dir_okay is None else bool(dir_okay),
+            readable=False if readable is None else bool(readable),
+            writable=False if writable is None else bool(writable),
+            allow_dash=False if allow_dash is None else bool(allow_dash),
+            resolve_path=False if resolve_path is None else bool(resolve_path),
+            path_type=path_type or str,
+        )
+
+# Convenience instances used directly by tests
+ExistingFile = ClickPath(exists=True, file_okay=True, dir_okay=False)
+ExistingDir = ClickPath(exists=True, file_okay=False, dir_okay=True)
+NewFile = ClickPath(exists=False, file_okay=True, dir_okay=False)
+
+# Forward declaration - instances will be created after class definitions
 
 # =============================================================================
 # CLICK PARAMETER TYPES - From core/types.py
@@ -274,6 +319,16 @@ class ProfileType(click.ParamType):
 
         return value.strip()
 
+
+# =============================================================================
+# INSTANCES - Created after class definitions
+# =============================================================================
+
+# PositiveInt instance expected by tests (ensure single definition)
+PositiveInt = PositiveIntType()
+
+# URL instance
+URL = URLType()
 
 # =============================================================================
 # ADVANCED TYPE DEFINITIONS - From advanced_types.py consolidation
@@ -475,6 +530,10 @@ class FlextCliConfigProvider(Protocol):
 # =============================================================================
 
 __all__ = [
+    "URL",
+    # Consolidated from typings.py and core/types.py
+    "ClickPath",
+    # Original cli_types exports
     "CommandArgs",
     "CommandOptions",
     "CommandResult",
@@ -486,11 +545,15 @@ __all__ = [
     "ConfigurationResult",
     "ContextParams",
     "DurationSeconds",
+    "E",
     "EntityId",
     "EntryPoint",
     "EnvironmentDict",
     "ErrorMessage",
+    "ExistingDir",
+    "ExistingFile",
     "ExitCode",
+    "F",
     "FileOperationResult",
     "FlextCliArguments",
     "FlextCliCommand",
@@ -543,18 +606,23 @@ __all__ = [
     "FlextCliValidationType",
     "FlextCliValidator",
     "FlextCliValidatorFactory",
+    "FlextTypes",
     "K",
     "NetworkResult",
+    "NewFile",
     "OutputData",
     "OutputFormat",
+    "P",
     "PathType",
     "PluginName",
     "PluginResult",
     "PluginStatus",
     "PluginVersion",
+    "PositiveInt",
     "PositiveIntType",
     "ProcessingResult",
     "ProfileType",
+    "R",
     "SessionData",
     "SessionId",
     "SessionResult",

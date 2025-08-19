@@ -16,6 +16,7 @@ from pathlib import Path
 
 import yaml
 from flext_core import (
+    FlextEntityId,
     FlextResult,
     FlextUtilities,
     get_logger,
@@ -194,7 +195,7 @@ class FlextCliService(FlextService):
             # Generate timestamp first to test utilities access
             timestamp = FlextUtilities.generate_iso_timestamp()
 
-            status = {
+            status: dict[str, object] = {
                 "service": "FlextCliService",
                 "status": "healthy",
                 "timestamp": timestamp,
@@ -216,12 +217,13 @@ class FlextCliService(FlextService):
             }
 
             if self._config:
-                status["config"] = {
+                config_data: dict[str, object] = {
                     "format": str(self._config.output_format),
                     "debug": bool(self._config.debug),
                     "profile": str(self._config.profile),
                     "api_url": str(self._config.api_url),
                 }
+                status["config"] = config_data
 
             return FlextResult[dict[str, object]].ok(status)
 
@@ -238,15 +240,19 @@ class FlextCliService(FlextService):
 
     def _format_json(self, data: OutputData) -> FlextResult[str]:
         """Format data as JSON."""
-        return safe_call(lambda: json.dumps(data, indent=2, default=str))
+        try:
+            result = json.dumps(data, indent=2, default=str)
+            return FlextResult[str].ok(result)
+        except Exception as e:
+            return FlextResult[str].fail(f"JSON formatting failed: {e}")
 
     def _format_yaml(self, data: OutputData) -> FlextResult[str]:
         """Format data as YAML."""
-
-        def format_yaml_data() -> str:
-            return yaml.dump(data, default_flow_style=False, indent=2)
-
-        return safe_call(format_yaml_data)
+        try:
+            result = yaml.dump(data, default_flow_style=False, indent=2)
+            return FlextResult[str].ok(result)
+        except Exception as e:
+            return FlextResult[str].fail(f"YAML formatting failed: {e}")
 
     def _format_csv(self, data: OutputData) -> FlextResult[str]:
         """Format data as CSV."""
@@ -283,7 +289,11 @@ class FlextCliService(FlextService):
 
             return output.getvalue()
 
-        return safe_call(format_csv_data)
+        try:
+            result = format_csv_data()
+            return FlextResult[str].ok(result)
+        except Exception as e:
+            return FlextResult[str].fail(f"CSV formatting failed: {e}")
 
     def _format_table(self, data: OutputData) -> FlextResult[str]:
         """Format data as ASCII table."""
@@ -331,11 +341,19 @@ class FlextCliService(FlextService):
                 for item in (data if isinstance(data, (list, tuple)) else [data])
             )
 
-        return safe_call(format_table_data)
+        try:
+            result = format_table_data()
+            return FlextResult[str].ok(result)
+        except Exception as e:
+            return FlextResult[str].fail(f"Table formatting failed: {e}")
 
     def _format_plain(self, data: OutputData) -> FlextResult[str]:
         """Format data as plain text."""
-        return safe_call(lambda: str(data))
+        try:
+            result = str(data)
+            return FlextResult[str].ok(result)
+        except Exception as e:
+            return FlextResult[str].fail(f"Plain formatting failed: {e}")
 
     # RESTORED FROM BACKUP - All additional functionality
 
@@ -359,14 +377,18 @@ class FlextCliService(FlextService):
         def create_command() -> str:
             entity_id = FlextUtilities.generate_entity_id()
             command = FlextCliCommand(
-                id=str(entity_id),  # Convert to string for validation
+                id=FlextEntityId(str(entity_id)),  # Convert to FlextEntityId
                 name=name,
                 command_line=command_line,
             )
             self._commands[name] = command
             return f"Command '{name}' created with ID {command.id}"
 
-        return safe_call(create_command)
+        try:
+            result = create_command()
+            return FlextResult[str].ok(result)
+        except Exception as e:
+            return FlextResult[str].fail(f"Command creation failed: {e}")
 
     def flext_cli_create_session(
         self,
@@ -379,13 +401,17 @@ class FlextCliService(FlextService):
             entity_id = FlextUtilities.generate_entity_id()
             effective_user_id = user_id or f"user_{entity_id}"
             session = FlextCliSession(
-                id=str(entity_id),  # Convert to string for validation
+                id=FlextEntityId(str(entity_id)),  # Convert to FlextEntityId
                 user_id=effective_user_id,
             )
-            self._sessions[session.id] = session
-            return f"Session '{session.id}' created"
+            self._sessions[str(session.id)] = session
+            return f"Session '{session.id!s}' created"
 
-        return safe_call(create_session)
+        try:
+            result = create_session()
+            return FlextResult[str].ok(result)
+        except Exception as e:
+            return FlextResult[str].fail(f"Session creation failed: {e}")
 
     def flext_cli_register_handler(
         self,
@@ -417,8 +443,12 @@ class FlextCliService(FlextService):
     ) -> FlextResult[object]:
         """Execute handler using flext-core safe_call - restored from backup."""
         if name not in self._handlers:
-            return FlextResult[None].fail(f"Handler '{name}' not found")
-        return safe_call(lambda: self._handlers[name](*args, **kwargs))
+            return FlextResult[object].fail(f"Handler '{name}' not found")
+        try:
+            result = self._handlers[name](*args, **kwargs)
+            return FlextResult[object].ok(result)
+        except Exception as e:
+            return FlextResult[object].fail(f"Handler execution failed: {e}")
 
     def flext_cli_render_with_context(
         self,
@@ -459,18 +489,18 @@ class FlextCliService(FlextService):
 
     def flext_cli_get_commands(self) -> FlextResult[dict[str, FlextCliCommand]]:
         """Get all commands - restored from backup."""
-        return FlextResult[None].ok(self._commands.copy())
+        return FlextResult[dict[str, FlextCliCommand]].ok(self._commands.copy())
 
     def flext_cli_get_sessions(self) -> FlextResult[dict[str, FlextCliSession]]:
         """Get all sessions - restored from backup."""
-        return FlextResult[None].ok(self._sessions.copy())
+        return FlextResult[dict[str, FlextCliSession]].ok(self._sessions.copy())
 
     def flext_cli_get_plugins(self) -> FlextResult[dict[str, FlextCliPlugin]]:
         """Get all plugins - restored from backup."""
-        return FlextResult[None].ok(self._plugins.copy())
+        return FlextResult[dict[str, FlextCliPlugin]].ok(self._plugins.copy())
 
     def flext_cli_get_handlers(self) -> FlextResult[dict[str, object]]:
         """Get all handlers - restored from backup."""
         # Convert handlers to dict[str, object] for return type compliance
         handlers_as_objects: dict[str, object] = dict(self._handlers)
-        return FlextResult[None].ok(handlers_as_objects)
+        return FlextResult[dict[str, object]].ok(handlers_as_objects)

@@ -28,7 +28,7 @@ from pathlib import Path
 from typing import Any
 
 import click
-from flext_core import FlextBaseSettings, FlextResult
+from flext_core import FlextSettings, FlextResult
 from rich.console import Console
 from rich.table import Table
 
@@ -47,7 +47,7 @@ from flext_cli import (
 # ECOSYSTEM CONFIGURATION - Multi-service configuration
 # =============================================================================
 
-class EcosystemSettings(FlextBaseSettings):
+class EcosystemSettings(FlextSettings):
     """Configuration for FLEXT ecosystem integration."""
 
     # FLEXT Service endpoints
@@ -326,7 +326,7 @@ def authenticate(ctx: click.Context, username: str, password: str) -> None:
 @click.pass_context
 @cli_enhanced
 @measure_time
-@require_auth
+@require_auth()
 def meltano(ctx: click.Context, operation: str, project: str) -> None:
     """Execute Meltano operations through flext-meltano integration."""
     console: Console = ctx.obj["console"]
@@ -358,7 +358,7 @@ def meltano(ctx: click.Context, operation: str, project: str) -> None:
 @click.pass_context
 @cli_enhanced
 @measure_time
-@require_auth
+@require_auth()
 def oracle_query(ctx: click.Context, query: str, schema: str, output_format: str) -> None:
     """Query Oracle database through flext-db-oracle integration."""
     console: Console = ctx.obj["console"]

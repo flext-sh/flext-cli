@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from flext_core import FlextResult
+from flext_core import FlextEntityId, FlextResult
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import (
@@ -60,7 +60,7 @@ class CLIEntityFactory:
         """
         try:
             # CLICommand does not accept name/command_type fields directly in the new model
-            entity = CLICommand(id=name, command_line=command_line)
+            entity = CLICommand(id=FlextEntityId(name), command_line=command_line)
             # best-effort: tentar atribuir campos adicionais se existirem
             try:
                 if command_type is not None and hasattr(entity, "command_type"):
@@ -127,7 +127,7 @@ class CLIEntityFactory:
                 return FlextResult[CLISession].fail(
                     FlextCliConstants.CliErrors.SESSION_VALIDATION_FAILED,
                 )
-            entity = CLISession(id=session_id, user_id=session_id)
+            entity = CLISession(id=FlextEntityId(session_id), user_id=session_id)
             return FlextResult[CLISession].ok(entity)
         except Exception as e:  # noqa: BLE001
             return FlextResult[CLISession].fail(

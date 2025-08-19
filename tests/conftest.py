@@ -40,7 +40,7 @@ def pytest_configure(config: pytest.Config) -> None:
     # Global patches that must be applied before modules are imported
     patches = [
         patch("flext_cli.flext_api_integration.FLEXT_API_AVAILABLE", False),
-        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
         patch("aiohttp.ClientSession", return_value=MagicMock()),
         patch("httpx.AsyncClient", return_value=MagicMock()),
     ]
@@ -142,7 +142,7 @@ def disable_real_api_calls() -> Generator[None]:
     # Additional patches for comprehensive API call prevention
     patches = [
         patch("flext_cli.flext_api_integration.FLEXT_API_AVAILABLE", False),
-        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
         # patch("flext_cli.commands.projects.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.sessions.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.plugins.FLEXT_API_AVAILABLE", False),  # Module does not exist
@@ -161,7 +161,7 @@ def disable_real_api_calls() -> Generator[None]:
         # patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
         # patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),  # Module does not exist
@@ -180,7 +180,7 @@ def disable_real_api_calls() -> Generator[None]:
         # patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
         # patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),  # Module does not exist
@@ -222,7 +222,7 @@ def mock_flext_api_client_with_patches() -> Generator[MockFlextApiClient]:
     # Apply additional patches for comprehensive isolation
     patches = [
         patch("flext_cli.flext_api_integration.FLEXT_API_AVAILABLE", False),
-        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
         # patch("flext_cli.commands.projects.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.sessions.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.plugins.FLEXT_API_AVAILABLE", False),  # Module does not exist
@@ -241,7 +241,7 @@ def mock_flext_api_client_with_patches() -> Generator[MockFlextApiClient]:
         # patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
         # patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),  # Module does not exist
@@ -260,7 +260,7 @@ def mock_flext_api_client_with_patches() -> Generator[MockFlextApiClient]:
         # patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
         # patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),  # Module does not exist
@@ -288,7 +288,7 @@ def mock_failing_api_client() -> Generator[MockFailingApiClient]:
     # Apply patches to ensure no real HTTP calls
     patches = [
         patch("flext_cli.flext_api_integration.FLEXT_API_AVAILABLE", False),
-        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
         # patch("flext_cli.commands.projects.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.sessions.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.plugins.FLEXT_API_AVAILABLE", False),  # Module does not exist
@@ -307,7 +307,7 @@ def mock_failing_api_client() -> Generator[MockFailingApiClient]:
         # patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
         # patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),  # Module does not exist
@@ -326,7 +326,7 @@ def mock_failing_api_client() -> Generator[MockFailingApiClient]:
         # patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        patch("flext_cli.commands.debug.FLEXT_API_AVAILABLE", False),
+        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
         # patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),  # Module does not exist
         # patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),  # Module does not exist
