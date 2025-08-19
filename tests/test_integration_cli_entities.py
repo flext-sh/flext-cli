@@ -303,10 +303,12 @@ class TestCLISessionEntityIntegration:
         session = CLISession(id=str(uuid.uuid4()), session_id="test-context")
 
         # Create CLI context with proper components (SOLID: Dependency Injection)
-        config = get_config()
-        config.profile = "test"
-        config.output_format = "json"
-        config.debug = True
+        base_config = get_config()
+        config = CLIConfig(
+            profile="test",
+            output_format="json",
+            debug=True,
+        )
 
         context = CLIContext(config=config, settings=CLISettings(), console=Console())
 
@@ -530,10 +532,11 @@ class TestCLIContextIntegration:
     def test_cli_context_with_commands(self) -> None:
         """Test CLIContext integrates with command execution."""
         # Create proper CLI context (SOLID: Dependency Injection)
-        config = get_config()
-        config.profile = "integration-test"
-        config.output_format = "json"
-        config.debug = True
+        config = CLIConfig(
+            profile="integration-test",
+            output_format="json",
+            debug=True,
+        )
 
         context = CLIContext(config=config, settings=CLISettings(), console=Console())
 
@@ -587,10 +590,11 @@ class TestCLIContextIntegration:
         """Test context with file-based operations."""
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create proper CLI context (SOLID: Dependency Injection)
-            config = get_config()
-            config.profile = "file-test"
-            config.output_format = "yaml"
-            config.debug = False
+            config = CLIConfig(
+                profile="file-test",
+                output_format="yaml",
+                debug=False,
+            )
 
             context = CLIContext(
                 config=config,

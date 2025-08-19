@@ -78,7 +78,7 @@ class TestFlextCoreFlextResultIntegration:
         # Test that FlextResult patterns handle errors properly
         with patch("flext_cli.simple_api.setup_cli") as mock_setup:
             # Mock a failure result
-            mock_result = FlextResult.fail("Test error")
+            mock_result = FlextResult[None].fail("Test error")
             mock_setup.return_value = mock_result
 
             result = mock_setup(CLISettings())

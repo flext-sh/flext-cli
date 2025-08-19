@@ -26,7 +26,7 @@ class InitErrorDetails(TypedDict):
     type: str
     loc: tuple[str, ...]
     msg: NotRequired[str]  # Explicitly make msg optional
-    input: object  # Revert to Any for now for flexibility with the linter
+    input: object  # Flexible type for error input data
 
 
 class CLIContext(FlextModel):
@@ -52,24 +52,24 @@ class CLIContext(FlextModel):
         """Check if debug mode is enabled."""
         cfg = self.config
         if cfg is not None and hasattr(cfg, "debug"):
-            return bool(cfg.debug)
-        return bool(self.debug)
+            return bool(getattr(cfg, "debug", False))
+        return bool(getattr(self, "debug", False))
 
     @property
     def is_quiet(self) -> bool:
         """Check if quiet mode is enabled."""
         cfg = self.config
         if cfg is not None and hasattr(cfg, "quiet"):
-            return bool(cfg.quiet)
-        return bool(self.quiet)
+            return bool(getattr(cfg, "quiet", False))
+        return bool(getattr(self, "quiet", False))
 
     @property
     def is_verbose(self) -> bool:
         """Check if verbose mode is enabled."""
         cfg = self.config
         if cfg is not None and hasattr(cfg, "verbose"):
-            return bool(cfg.verbose)
-        return bool(self.verbose)
+            return bool(getattr(cfg, "verbose", False))
+        return bool(getattr(self, "verbose", False))
 
     def model_post_init(self, __context: object, /) -> None:
         """Post-initialization validation."""

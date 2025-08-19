@@ -23,6 +23,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import tempfile
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -99,9 +100,9 @@ def demonstrate_data_transformation() -> FlextResult[None]:
                 console.print(f"   Sample: {sample['name']} - Health: {sample['health_score']}, "
                             f"Memory: {sample['memory_gb']}GB, Efficiency: {sample['efficiency']}")
 
-            return FlextResult.ok(enriched_services)
+            return FlextResult[None].ok(enriched_services)
 
-    return FlextResult.fail("Data transformation failed")
+    return FlextResult[None].fail("Data transformation failed")
 
 
 def demonstrate_data_aggregation() -> FlextResult[None]:
@@ -141,9 +142,9 @@ def demonstrate_data_aggregation() -> FlextResult[None]:
             console.print(f"   {service}: {stats['total_requests']} requests, "
                         f"{stats['error_rate']}% error rate")
 
-        return FlextResult.ok(service_stats)
+        return FlextResult[None].ok(service_stats)
 
-    return FlextResult.fail("Data aggregation failed")
+    return FlextResult[None].fail("Data aggregation failed")
 
 
 @cli_enhanced
@@ -207,7 +208,7 @@ def demonstrate_output_formatting() -> FlextResult[None]:
         table = services_table_result.unwrap()
         console.print(table)
 
-    return FlextResult.ok(None)
+    return FlextResult[None].ok(None)
 
 
 def demonstrate_file_operations() -> FlextResult[None]:
@@ -224,7 +225,7 @@ def demonstrate_file_operations() -> FlextResult[None]:
             "username": "REDACTED_LDAP_BIND_PASSWORD"
         },
         "api": {
-            "host": "0.0.0.0",
+            "host": "localhost",
             "port": 8080,
             "debug": False,
             "cors_enabled": True
@@ -238,7 +239,7 @@ def demonstrate_file_operations() -> FlextResult[None]:
 
     try:
         # 1. Save configuration to temporary file
-        with NamedTemporaryFile(mode="w", suffix=".json", delete=False) as temp_file:
+        with NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".json", delete=False) as temp_file:
             temp_path = Path(temp_file.name)
 
         save_result = cli_save_data_file(
@@ -281,9 +282,9 @@ def demonstrate_file_operations() -> FlextResult[None]:
         console.print("✅ Temporary file cleaned up")
 
     except Exception as e:
-        return FlextResult.fail(f"File operations failed: {e}")
+        return FlextResult[None].fail(f"File operations failed: {e}")
 
-    return FlextResult.ok(None)
+    return FlextResult[None].ok(None)
 
 
 def demonstrate_batch_processing() -> FlextResult[None]:
@@ -293,7 +294,6 @@ def demonstrate_batch_processing() -> FlextResult[None]:
 
     try:
         # Create temporary directory with sample files
-        import tempfile
 
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
@@ -321,12 +321,12 @@ def demonstrate_batch_processing() -> FlextResult[None]:
                 for result in results:
                     console.print(f"   {result}")
 
-                return FlextResult.ok(results)
+                return FlextResult[None].ok(results)
 
     except Exception as e:
-        return FlextResult.fail(f"Batch processing failed: {e}")
+        return FlextResult[None].fail(f"Batch processing failed: {e}")
 
-    return FlextResult.fail("Batch processing not completed")
+    return FlextResult[None].fail("Batch processing not completed")
 
 
 def demonstrate_data_export() -> FlextResult[None]:
@@ -390,7 +390,7 @@ def demonstrate_data_export() -> FlextResult[None]:
         if csv_lines:
             console.print(f"   Headers: {csv_lines[0]}")
 
-    return FlextResult.ok(None)
+    return FlextResult[None].ok(None)
 
 
 def main() -> None:

@@ -63,7 +63,7 @@ class TestDebugConnectivity:
 
         # Configure the mock to return status with missing fields (but still a valid dict)
         async def mock_get_system_status_partial() -> FlextResult[dict[str, object]]:
-            return FlextResult.ok(
+            return FlextResult[None].ok(
                 {"incomplete": "status"},
             )  # Dict with missing expected fields
 
@@ -148,7 +148,7 @@ class TestDebugConnectivity:
         # Configure the existing mock to simulate connection failure
         # Override the test_connection method to return failure
         async def mock_test_connection_failure() -> FlextResult[bool]:
-            return FlextResult.fail("Connection failed")
+            return FlextResult[None].fail("Connection failed")
 
         # Modify the mock that's already in use to return failure
         mock_flext_api_client_with_patches.test_connection = (

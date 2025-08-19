@@ -16,33 +16,47 @@ from flext_cli.__version__ import __version__
 __version_info__ = tuple(int(x) for x in __version__.split(".") if x.isdigit())
 
 # Core configuration
-from flext_cli.cli_config import CLIConfig
+from flext_cli.config import CLIConfig, CLIConfig as TCliConfig
+from flext_cli.cli_config import FlextCliConfig
 from flext_cli.api import FlextCliApi
 from flext_cli.core.helpers import FlextCliDataProcessor
 
 # Core formatters
-from flext_cli.core.formatters import PlainFormatter, OutputFormatter, FormatterFactory
+from flext_cli.core.formatters import (
+    PlainFormatter,
+    OutputFormatter,
+    FormatterFactory,
+    CSVFormatter,
+    JSONFormatter,
+    YAMLFormatter,
+    TableFormatter,
+)
 
 # Core types
 from flext_cli.cli_types import (
     CommandArgs,
+    CommandArgs as TCliArgs,
     CommandOptions,
     CommandResult,
     CommandStatus,
-    CommandType,
     ConfigDict,
     ConfigResult,
     EntityId,
     EnvironmentDict,
     ErrorMessage,
     ExitCode,
+    FlextCliDataType,
+    FlextCliDataType as TCliData,
+    FlextCliFileHandler,
+    FlextCliFileHandler as TCliHandler,
     OutputData,
     OutputFormat,
+    OutputFormat as TCliFormat,
     PathType,
+    PathType as TCliPath,
     PluginStatus,
     PositiveIntType,
     ProfileType,
-    SessionStatus,
     TUserId,
     URLType,
     ValidationResult,
@@ -54,9 +68,12 @@ from flext_cli.config import (
     CLIAuthConfig,
     CLIDirectoryConfig,
     CLIOutputConfig,
+    CLISettings,
     get_cli_config,
     get_cli_config as get_config,
     get_cli_settings as get_settings,
+    get_cli_settings,
+    _create_cli_config,
 )
 
 # Domain models
@@ -64,6 +81,7 @@ from flext_cli.models import (
     FlextCliCommand,
     FlextCliCommand as CLICommand,
     FlextCliCommandStatus,
+    FlextCliCommandType,
     FlextCliConfiguration,
     FlextCliConfiguration as CLIConfiguration,
     FlextCliContext,
@@ -71,10 +89,13 @@ from flext_cli.models import (
     FlextCliOutput,
     FlextCliOutputFormat,
     FlextCliPlugin,
+    FlextCliPlugin as CLIPlugin,
     FlextCliPluginState,
     FlextCliSession,
+    FlextCliSession as CLISession,
     FlextCliSessionState,
     FlextCliWorkspace,
+    SessionStatus,
 )
 
 # CLI Context and Execution
@@ -90,7 +111,12 @@ from flext_cli.protocols import (
     FlextCliServiceProtocol,
     FlextCliValidatorProtocol,
 )
-from flext_cli.simple_api import setup_cli
+from flext_cli.simple_api import (
+    create_development_cli_config,
+    create_production_cli_config,
+    get_cli_settings,
+    setup_cli,
+)
 
 # Base service patterns
 from flext_cli.base_service import (
@@ -116,7 +142,20 @@ from flext_cli.cli_decorators import (
     cli_validate_inputs,
 )
 from flext_cli.core.base import handle_service_result
-from flext_cli.core.helpers import FlextCliHelper as CLIHelper
+from flext_cli.core.helpers import FlextCliHelper as CLIHelper, FlextCliHelper, FlextCliFileManager, flext_cli_batch_validate, flext_cli_create_data_processor, flext_cli_create_helper, flext_cli_create_file_manager
+from flext_cli.core.utils import (
+    flext_cli_auto_config,
+    flext_cli_load_file,
+    flext_cli_output_data,
+    flext_cli_require_all,
+    flext_cli_save_file,
+    flext_cli_validate_all,
+    _current_timestamp,
+    _generate_session_id,
+    _get_version,
+    _load_config_file,
+    _load_env_overrides,
+)
 from flext_cli.core.types import PositiveInt as PositiveInt, URL as URL
 from flext_cli.core.types import (
     ClickPath as ClickPath,
@@ -131,31 +170,40 @@ from flext_cli.core.decorators import (
     require_auth,
     retry as core_retry,
     with_spinner,
+    validate_config,
+    validate_config as flext_cli_auto_validate,
 )
 from flext_cli.core.decorators import measure_time as measure_time
-from flext_cli.core.decorators import retry as retry
+from flext_cli.core.decorators import retry as retry, retry as flext_cli_auto_retry
 
 # CLI mixins
 from flext_cli.cli_mixins import (
     CLICompleteMixin,
     CLIConfigMixin,
+    CLIConfigMixin as FlextCliConfigMixin,
     CLIDataMixin,
     CLIExecutionMixin,
     CLIInteractiveMixin,
+    CLIInteractiveMixin as FlextCliInteractiveMixin,
     CLILoggingMixin,
     CLIOutputMixin,
     CLIUIMixin,
     CLIValidationMixin,
+    CLIValidationMixin as FlextCliValidationMixin,
 )
+from flext_cli.core.mixins import FlextCliAdvancedMixin, FlextCliBasicMixin, FlextCliMixin, FlextCliProgressMixin, FlextCliResultMixin, flext_cli_handle_exceptions, flext_cli_require_confirmation, flext_cli_with_progress, flext_cli_zero_config
 
 # CLI utilities
 from flext_cli.cli_utils import (
     cli_batch_process_files,
     cli_create_table,
+    cli_create_table as flext_cli_create_table,
     cli_format_output,
+    cli_format_output as format_output,
     cli_load_data_file,
     cli_prompt,
     cli_quick_setup,
+    cli_quick_setup as flext_cli_quick_setup,
     cli_run_command,
     cli_save_data_file,
 )
@@ -169,6 +217,12 @@ from flext_cli.cli_auth import (
     logout_command,
     save_auth_token,
     status_command,
+    get_refresh_token,
+    get_refresh_token_path,
+    get_token_path,
+    is_authenticated,
+    save_refresh_token,
+    should_auto_refresh,
 )
 
 # Commands (Click groups/commands) reexports for root-level imports in tests/examples
@@ -177,6 +231,7 @@ from flext_cli.commands.auth import (
     login as login,
     logout as logout,
     status as status,
+    whoami as whoami,
 )
 from flext_cli.commands.debug import (
     debug_cmd as debug_cmd,
@@ -185,13 +240,24 @@ from flext_cli.commands.debug import (
     trace as trace,
     env as env,
     paths as paths,
+    validate as validate,
 )
-from flext_cli.commands.config import config as config
+from flext_cli.commands.config import (
+    config as config,
+    _find_config_value,
+    _get_all_config,
+    print_config_table as _print_config_table,
+    _print_config_value,
+)
+
+# Application commands
+from flext_cli.application.commands import CancelCommandCommand, CreateConfigCommand, DeleteConfigCommand, DisablePluginCommand, EnablePluginCommand, EndSessionCommand, ExecuteCommandCommand, GetCommandHistoryCommand, GetCommandStatusCommand, GetSessionInfoCommand, InstallPluginCommand, ListCommandsCommand, ListConfigsCommand, ListPluginsCommand, StartSessionCommand, UninstallPluginCommand, UpdateConfigCommand, ValidateConfigCommand
 
 # API functions
 from flext_cli.api import (
     flext_cli_aggregate_data,
     flext_cli_batch_export,
+    flext_cli_batch_export as flext_cli_batch_execute,
     flext_cli_export,
     flext_cli_format,
     flext_cli_table,
@@ -204,7 +270,7 @@ from flext_cli.api import (
 from flext_cli.client import FlextApiClient
 
 # Domain factory and constants
-from flext_cli.domain.entities import CLIEntityFactory
+from flext_cli.domain.entities import CLIEntityFactory, CommandType
 from flext_core import FlextConstants as FlextConstants
 
 # Core formatters
@@ -234,6 +300,7 @@ __all__: list[str] = [
     "CLIAuthConfig",
     "CLIDirectoryConfig",
     "CLIOutputConfig",
+    "CLISettings",
     "get_cli_config",
     "get_settings",
     "CLICompleteMixin",
@@ -264,6 +331,7 @@ __all__: list[str] = [
     "ErrorMessage",
     "ExitCode",
     "FlextCliCommand",
+    "FlextCliDataType",
     "FlextCliCommandProtocol",
     "FlextCliCommandService",
     "FlextCliCommandStatus",
@@ -321,6 +389,7 @@ __all__: list[str] = [
     # Additional top-level compatibility exports
     "handle_service_result",
     "CLIHelper",
+    "FlextCliHelper",
     "PositiveInt",
     "URL",
     "ClickPath",
@@ -353,4 +422,109 @@ __all__: list[str] = [
     "flext_cli_unwrap_or_none",
     # Root-level helpers for tests/examples
     "create_cli_container",
+    # Auth commands
+    "auth",
+    "login",
+    "logout",
+    "status",
+    "whoami",
+    # Debug commands
+    "debug_cmd",
+    "connectivity",
+    "performance",
+    "trace",
+    "env",
+    "paths",
+    "validate",
+    # Config command
+    "config",
+    # Measurement aliases
+    "measure_time",
+    "retry",
+    # Missing imports for tests (added back)
+    "validate_config",
+    "CSVFormatter",
+    "JSONFormatter",
+    "YAMLFormatter",
+    "TableFormatter",
+    "CLIPlugin",
+    "FlextCliFileManager",
+    "FlextCliAdvancedMixin",
+    "FlextCliBasicMixin",
+    "get_cli_settings",
+    "get_refresh_token_path",
+    "CLISession",
+    "FlextCliCommandType",
+    "get_refresh_token",
+    "CancelCommandCommand",
+    "CreateConfigCommand",
+    "DeleteConfigCommand",
+    "FlextCliConfig",
+    "get_token_path",
+    "FlextCliConfigMixin",
+    "DisablePluginCommand",
+    "is_authenticated",
+    "FlextCliInteractiveMixin",
+    "format_output",
+    "flext_cli_batch_validate",
+    "TCliArgs",
+    "TCliConfig",
+    "save_refresh_token",
+    "EnablePluginCommand",
+    "FlextCliMixin",
+    "should_auto_refresh",
+    "TCliData",
+    "flext_cli_create_data_processor",
+    "flext_cli_create_helper",
+    "flext_cli_auto_config",
+    "TCliFormat",
+    "EndSessionCommand",
+    "flext_cli_create_file_manager",
+    "FlextCliProgressMixin",
+    "ExecuteCommandCommand",
+    "FlextCliResultMixin",
+    "TCliHandler",
+    "flext_cli_batch_execute",
+    "FlextCliFileHandler",
+    "TCliPath",
+    "flext_cli_create_table",
+    "GetCommandHistoryCommand",
+    "FlextCliValidationMixin",
+    "flext_cli_load_file",
+    "flext_cli_output_data",
+    "flext_cli_quick_setup",
+    "GetCommandStatusCommand",
+    "GetSessionInfoCommand",
+    "InstallPluginCommand",
+    "ListCommandsCommand",
+    "ListConfigsCommand",
+    "ListPluginsCommand",
+    "StartSessionCommand",
+    "UninstallPluginCommand",
+    "UpdateConfigCommand",
+    "ValidateConfigCommand",
+    "flext_cli_require_all",
+    "flext_cli_auto_retry",
+    "flext_cli_auto_validate",
+    "flext_cli_save_file",
+    "flext_cli_validate_all",
+    "flext_cli_handle_exceptions",
+    "flext_cli_require_confirmation",
+    "flext_cli_with_progress",
+    "flext_cli_zero_config",
+    # Missing exports for tests
+    "_create_cli_config",
+    "_find_config_value",
+    "_get_all_config",
+    "_print_config_table",
+    "_print_config_value",
+    "_current_timestamp",
+    "_generate_session_id",
+    "_get_version",
+    "_load_config_file",
+    "_load_env_overrides",
+    # Simple API exports
+    "create_development_cli_config",
+    "create_production_cli_config",
+    "get_cli_settings",
 ]

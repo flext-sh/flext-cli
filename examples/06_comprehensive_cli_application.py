@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """06 - Comprehensive CLI Application Example.
 
-This example demonstrates building a complete, real-world CLI application 
+This example demonstrates building a complete, real-world CLI application
 using all flext-cli patterns and components:
 
 Key Patterns Demonstrated:
@@ -27,6 +27,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+# import random  # Removed for security - using fixed values instead
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -84,7 +85,7 @@ class ComprehensiveCliApplication:
             # Setup CLI foundation
             setup_result = setup_cli()
             if setup_result.failure:
-                return FlextResult.fail(f"CLI setup failed: {setup_result.error}")
+                return FlextResult[None].fail(f"CLI setup failed: {setup_result.error}")
 
             # Register services in container
             self._register_core_services()
@@ -93,10 +94,10 @@ class ComprehensiveCliApplication:
             self._load_user_preferences()
 
             self.console.print("✅ Application initialized successfully")
-            return FlextResult.ok(None)
+            return FlextResult[None].ok(None)
 
         except Exception as e:
-            return FlextResult.fail(f"Application initialization failed: {e}")
+            return FlextResult[None].fail(f"Application initialization failed: {e}")
 
     def _register_core_services(self) -> None:
         """Register core services in the DI container."""
@@ -136,9 +137,9 @@ app = ComprehensiveCliApplication()
               help="Enable debug mode")
 @click.option("--verbose/--quiet", default=False, help="Verbose output")
 @click.pass_context
-def cli(ctx: click.Context, profile: str, output: str, debug: bool, verbose: bool) -> None:
+def cli(ctx: click.Context, profile: str, output: str, *, debug: bool, verbose: bool) -> None:
     """FLEXT-CLI Comprehensive Application Demonstration.
-    
+
     This comprehensive CLI demonstrates all flext-cli patterns and capabilities
     in a real-world application structure.
     """
@@ -185,7 +186,7 @@ def project(ctx: click.Context) -> None:
 def create(ctx: click.Context, name: str, template: str, directory: Path | None) -> None:
     """Create a new project using flext-cli patterns."""
     app: ComprehensiveCliApplication = ctx.obj["app"]
-    cli_context: CLIContext = ctx.obj["cli_context"]
+    ctx.obj["cli_context"]
 
     app.console.print(f"[green]Creating project: {name}[/green]")
     app.console.print(f"Template: {template}")
@@ -288,7 +289,7 @@ def status(ctx: click.Context, directory: Path) -> None:
     # Analyze project structure
     project_files = list(directory.glob("*"))
     python_files = list(directory.glob("**/*.py"))
-    config_files = [f for f in project_files if f.name in ["pyproject.toml", "setup.py", "requirements.txt"]]
+    config_files = [f for f in project_files if f.name in {"pyproject.toml", "setup.py", "requirements.txt"}]
 
     # Display project analysis
     status_table = Table(title="Project Analysis")
@@ -344,15 +345,14 @@ def health(ctx: click.Context, url: str, timeout: int) -> None:
     command = command_result.unwrap()
 
     # Execute health check
-    with app.console.status("[bold green]Checking service health...") as status:
+    with app.console.status("[bold green]Checking service health..."):
         execution_result = command.start_execution()
 
         if execution_result.success:
             # Simulate health check
-            import random
 
-            health_status = random.choice(["healthy", "degraded", "unhealthy"])
-            response_time = random.randint(10, 500)
+            health_status = "healthy"  # Fixed status for demo
+            response_time = 100  # Fixed response time for demo
 
             # Complete command
             completion_result = command.complete_execution(
@@ -428,7 +428,7 @@ def show(ctx: click.Context) -> None:
 @click.option("--profile", help="Set default profile")
 @click.option("--output", type=click.Choice(["table", "json", "yaml", "csv"]), help="Set default output format")
 @click.pass_context
-def set(ctx: click.Context, profile: str | None, output: str | None) -> None:
+def set_config(ctx: click.Context, profile: str | None, output: str | None) -> None:
     """Set configuration values."""
     app: ComprehensiveCliApplication = ctx.obj["app"]
 

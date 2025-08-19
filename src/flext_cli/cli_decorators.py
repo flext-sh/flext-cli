@@ -75,7 +75,7 @@ def cli_enhanced[**P, T](
             Callable[P, T]: Description.
 
         """
-        enhanced_func = func
+        enhanced_func: Callable[P, T] = func
 
         # Apply flext-core error handling if available
         if handle_keyboard_interrupt:
@@ -83,19 +83,19 @@ def cli_enhanced[**P, T](
 
         # Apply CLI-specific decorators
         if validate_inputs:
-            enhanced_func = cli_validate_inputs(enhanced_func)
+            enhanced_func = cli_validate_inputs(enhanced_func)  # type: ignore[assignment]
 
         if handle_keyboard_interrupt:
-            enhanced_func = cli_handle_keyboard_interrupt(enhanced_func)
+            enhanced_func = cli_handle_keyboard_interrupt(enhanced_func)  # type: ignore[assignment]
 
         if measure_time:
-            enhanced_func = cli_measure_time(enhanced_func)
+            enhanced_func = cli_measure_time(enhanced_func)  # type: ignore[assignment]
 
         if log_execution:
-            enhanced_func = cli_log_execution(enhanced_func)
+            enhanced_func = cli_log_execution(enhanced_func)  # type: ignore[assignment]
 
         if show_spinner:
-            enhanced_func = cli_spinner()(enhanced_func)
+            enhanced_func = cli_spinner()(enhanced_func)  # type: ignore[assignment]
 
         return enhanced_func
 
@@ -442,7 +442,7 @@ def cli_retry(
 
                         console.print(
                             f"[yellow]Attempt {attempt + 1} failed. "
-                            f"Retrying in {retry_delay:.1f} seconds...[/yellow]",
+                            f"Retrying in {retry_delay:.1f} seconds...[/yellow]"
                         )
 
                         time.sleep(retry_delay)

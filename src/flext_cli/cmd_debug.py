@@ -47,8 +47,9 @@ def get_config() -> object:  # patched in tests
 
 
 # Dependency validation hook (tests patch this symbol)
-def _validate_dependencies(_console: Console) -> None:  # pragma: no cover - shim
-    return None
+def validate_dependencies(_console: Console) -> None:  # pragma: no cover - shim
+    """Validate dependencies (shim function for testing)."""
+    return
 
 
 @click.group(help="Debug commands for FLEXT CLI.")
@@ -103,9 +104,9 @@ def _get_client(
     """Get client provider for testing."""
     provider = None
     if debug_mod and hasattr(debug_mod, "get_default_cli_client"):
-        provider = debug_mod.get_default_cli_client
+        provider = getattr(debug_mod, "get_default_cli_client", None)
     elif hasattr(debug_cmd, "get_default_cli_client"):
-        provider = debug_cmd.get_default_cli_client
+        provider = getattr(debug_cmd, "get_default_cli_client", None)
     else:
         provider = get_default_cli_client
 
@@ -157,10 +158,10 @@ async def _test_connection(
         except (AttributeError, TypeError):
             test_result = False
 
-    if hasattr(test_result, "is_failure"):
-        if test_result.is_failure:
+    if hasattr(test_result, "is_failure") and hasattr(test_result, "error"):
+        if test_result.is_failure:  # type: ignore[union-attr]
             console.print(
-                f"[red]❌ Failed to connect to API: {getattr(test_result, 'error', 'Unknown')}[/red]",
+                f"[red]❌ Failed to connect to API: {test_result.error}[/red]",  # type: ignore[union-attr]
             )
             ctx.exit(1)
     elif test_result is False:
@@ -298,7 +299,7 @@ def validate(ctx: click.Context) -> None:
         ctx.exit(1)
     # Allow tests to patch dependency validation function
     with suppress(NameError):
-        getattr(debug_cmd, "_validate_dependencies", _validate_dependencies)(console)
+        getattr(debug_cmd, "validate_dependencies", validate_dependencies)(console)
 
     # Minimal required packages check (tests patch builtins.__import__)
     __import__("click")
@@ -410,6 +411,6 @@ def check(ctx: click.Context) -> None:
 # debug_cmd.SENSITIVE_VALUE_PREVIEW_LENGTH = SENSITIVE_VALUE_PREVIEW_LENGTH  # type: ignore[attr-defined]
 # debug_cmd.get_default_cli_client = get_default_cli_client  # type: ignore[attr-defined]
 # debug_cmd.get_config = get_config  # type: ignore[attr-defined]
-# debug_cmd._validate_dependencies = _validate_dependencies  # type: ignore[attr-defined]
-# debug_cmd.Table = Table  # type: ignore[attr-defined]
-# debug_cmd.Path = Path  # type: ignore[attr-defined]
+# debug_cmd._validate_dependencies = _validate_dependencies
+# debug_cmd.Table = Table
+# debug_cmd.Path = Path

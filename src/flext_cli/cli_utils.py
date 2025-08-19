@@ -172,7 +172,7 @@ def cli_quick_setup(
     try:
         # Validate project name
         if not project_name or not project_name.strip():
-            return FlextResult.fail("Project name cannot be empty")
+            return FlextResult[dict[str, object]].fail("Project name cannot be empty")
 
         project_path = Path(project_name).resolve()
 
@@ -182,7 +182,7 @@ def cli_quick_setup(
                 default=False,
             )
             if not confirmation.success or not confirmation.data:
-                return FlextResult.fail("Setup cancelled")
+                return FlextResult[dict[str, object]].fail("Setup cancelled")
 
         # Create directory structure
         if create_dirs:
@@ -214,12 +214,12 @@ def cli_quick_setup(
         results["project_path"] = str(project_path)
         console.print(f"[green]🎉 Project '{project_name}' setup complete![/green]")
 
-        return FlextResult.ok(results)
+        return FlextResult[dict[str, object]].ok(results)
 
     except (OSError, PermissionError) as e:
-        return FlextResult.fail(f"Setup failed: {e}")
+        return FlextResult[dict[str, object]].fail(f"Setup failed: {e}")
     except Exception as e:
-        return FlextResult.fail(f"Unexpected error during setup: {e}")
+        return FlextResult[dict[str, object]].fail(f"Unexpected error during setup: {e}")
 
 
 def cli_batch_process_files(
@@ -250,7 +250,7 @@ def cli_batch_process_files(
     }
 
     if not file_paths:
-        return FlextResult.ok(results)
+        return FlextResult[dict[str, object]].ok(results)
 
     # Convert string paths to Path objects
     paths = [Path(p) for p in file_paths]
@@ -275,7 +275,7 @@ def cli_batch_process_files(
                 progress.update(task_id, advance=1)
             if should_stop:
                 msg = stop_message or "Processing failed"
-                return FlextResult.fail(msg)
+                return FlextResult[dict[str, object]].fail(msg)
 
         # Show summary
         if show_progress:
@@ -285,7 +285,7 @@ def cli_batch_process_files(
             if failed_count > 0:
                 console.print(f"[yellow]⚠ {failed_count} files failed[/yellow]")
 
-        return FlextResult.ok(results)
+        return FlextResult[dict[str, object]].ok(results)
 
     finally:
         if progress:
@@ -316,7 +316,7 @@ def cli_load_data_file(
         path = Path(file_path)
 
         if not path.exists():
-            return FlextResult.fail(f"File does not exist: {path}")
+            return FlextResult[object].fail(f"File does not exist: {path}")
 
         # Detect format from extension
         suffix = path.suffix.lower()
@@ -332,13 +332,13 @@ def cli_load_data_file(
             result = _load_text_file(path).map(lambda data: data)
         else:
             if validate_format:
-                return FlextResult.fail(f"Unsupported file format: {suffix}")
+                return FlextResult[object].fail(f"Unsupported file format: {suffix}")
             result = _load_text_file(path).map(lambda data: data)
 
         return result
 
     except Exception as e:
-        return FlextResult.fail(f"Failed to load data file: {e}")
+        return FlextResult[object].fail(f"Failed to load data file: {e}")
 
 
 def _load_json_file(path: Path) -> FlextResult[object]:
@@ -346,11 +346,11 @@ def _load_json_file(path: Path) -> FlextResult[object]:
     try:
         with path.open("r", encoding="utf-8") as f:
             data = json.load(f)
-        return FlextResult.ok(data)
+        return FlextResult[object].ok(data)
     except json.JSONDecodeError as e:
-        return FlextResult.fail(f"Invalid JSON in {path}: {e}")
+        return FlextResult[object].fail(f"Invalid JSON in {path}: {e}")
     except (OSError, UnicodeDecodeError) as e:
-        return FlextResult.fail(f"Failed to read JSON file {path}: {e}")
+        return FlextResult[object].fail(f"Failed to read JSON file {path}: {e}")
 
 
 def _load_yaml_file(path: Path) -> FlextResult[object]:
@@ -358,11 +358,11 @@ def _load_yaml_file(path: Path) -> FlextResult[object]:
     try:
         with path.open("r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
-        return FlextResult.ok(data)
+        return FlextResult[object].ok(data)
     except yaml.YAMLError as e:
-        return FlextResult.fail(f"Invalid YAML in {path}: {e}")
+        return FlextResult[object].fail(f"Invalid YAML in {path}: {e}")
     except (OSError, UnicodeDecodeError) as e:
-        return FlextResult.fail(f"Failed to read YAML file {path}: {e}")
+        return FlextResult[object].fail(f"Failed to read YAML file {path}: {e}")
 
 
 def _load_csv_file(path: Path) -> FlextResult[list[dict[str, str]]]:
@@ -371,18 +371,18 @@ def _load_csv_file(path: Path) -> FlextResult[list[dict[str, str]]]:
         with path.open("r", encoding="utf-8", newline="") as f:
             reader = csv.DictReader(f)
             data = list(reader)
-        return FlextResult.ok(data)
+        return FlextResult[list[dict[str, str]]].ok(data)
     except (OSError, UnicodeDecodeError) as e:
-        return FlextResult.fail(f"Failed to read CSV file {path}: {e}")
+        return FlextResult[list[dict[str, str]]].fail(f"Failed to read CSV file {path}: {e}")
 
 
 def _load_text_file(path: Path) -> FlextResult[str]:
     """Load text file with error handling."""
     try:
         content = path.read_text(encoding="utf-8")
-        return FlextResult.ok(content)
+        return FlextResult[str].ok(content)
     except (OSError, UnicodeDecodeError) as e:
-        return FlextResult.fail(f"Failed to read text file {path}: {e}")
+        return FlextResult[str].fail(f"Failed to read text file {path}: {e}")
 
 
 def cli_save_data_file(
@@ -441,7 +441,7 @@ def cli_save_data_file(
         return _save_text_file(data, path)
 
     except Exception as e:
-        return FlextResult.fail(f"Failed to save data file: {e}")
+        return FlextResult[None].fail(f"Failed to save data file: {e}")
 
 
 def _save_json_file(data: object, path: Path) -> FlextResult[None]:
@@ -449,9 +449,9 @@ def _save_json_file(data: object, path: Path) -> FlextResult[None]:
     try:
         with path.open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, default=str, ensure_ascii=False)
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
     except (OSError, TypeError) as e:
-        return FlextResult.fail(f"Failed to write JSON file {path}: {e}")
+        return FlextResult[None].fail(f"Failed to write JSON file {path}: {e}")
 
 
 def _convert_to_serializable(data: object) -> object:
@@ -533,28 +533,28 @@ def _save_yaml_file(data: object, path: Path) -> FlextResult[None]:
                         sort_keys=False,
                         allow_unicode=True,
                     )
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
     except (OSError, yaml.YAMLError) as e:
-        return FlextResult.fail(f"Failed to write YAML file {path}: {e}")
+        return FlextResult[None].fail(f"Failed to write YAML file {path}: {e}")
 
 
 def _save_csv_file(data: object, path: Path) -> FlextResult[None]:
     """Save data as CSV file."""
     try:
         if not isinstance(data, list) or not data:
-            return FlextResult.fail("CSV data must be a non-empty list")
+            return FlextResult[None].fail("CSV data must be a non-empty list")
 
         if not isinstance(data[0], dict):
-            return FlextResult.fail("CSV data must be a list of dictionaries")
+            return FlextResult[None].fail("CSV data must be a list of dictionaries")
 
         with path.open("w", encoding="utf-8", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=data[0].keys())
             writer.writeheader()
             writer.writerows(data)
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
     except (OSError, ValueError) as e:
-        return FlextResult.fail(f"Failed to write CSV file {path}: {e}")
+        return FlextResult[None].fail(f"Failed to write CSV file {path}: {e}")
 
 
 def _save_text_file(data: object, path: Path) -> FlextResult[None]:
@@ -562,9 +562,9 @@ def _save_text_file(data: object, path: Path) -> FlextResult[None]:
     try:
         content = str(data)
         path.write_text(content, encoding="utf-8")
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
     except (OSError, UnicodeEncodeError) as e:
-        return FlextResult.fail(f"Failed to write text file {path}: {e}")
+        return FlextResult[None].fail(f"Failed to write text file {path}: {e}")
 
 
 # =============================================================================
@@ -602,7 +602,7 @@ def cli_create_table(
 
         if isinstance(data, list):
             if not data:
-                return FlextResult.fail("Cannot create table from empty list")
+                return FlextResult[Table].fail("Cannot create table from empty list")
 
             if isinstance(data[0], dict):
                 # List of dictionaries - create columns from first item
@@ -632,10 +632,10 @@ def cli_create_table(
             table.add_column("Value")
             table.add_row(str(data))
 
-        return FlextResult.ok(table)
+        return FlextResult[Table].ok(table)
 
     except Exception as e:
-        return FlextResult.fail(f"Failed to create table: {e}")
+        return FlextResult[Table].fail(f"Failed to create table: {e}")
 
 
 def cli_format_output(
@@ -697,11 +697,11 @@ def cli_format_output(
             formatted = str(data)
 
         if error is not None:
-            return FlextResult.fail(error)
-        return FlextResult.ok(formatted or "")
+            return FlextResult[str].fail(error)
+        return FlextResult[str].ok(formatted or "")
 
     except Exception as e:
-        return FlextResult.fail(f"Failed to format output: {e}")
+        return FlextResult[str].fail(f"Failed to format output: {e}")
 
 
 # =============================================================================
@@ -788,8 +788,8 @@ def cli_run_command(
         error_message = f"Command execution failed: {e}"
 
     if error_message is not None:
-        return FlextResult.fail(error_message)
-    return FlextResult.ok(result_payload or {})
+        return FlextResult[dict[str, object]].fail(error_message)
+    return FlextResult[dict[str, object]].ok(result_payload or {})
 
 
 # =============================================================================
@@ -815,20 +815,20 @@ def cli_confirm(message: str, *, default: bool = False) -> FlextResult[bool]:
         response = input(prompt).strip().lower()
 
         if not response:
-            return FlextResult.ok(default)
+            return FlextResult[bool].ok(default)
 
         if response in {"y", "yes", "true", "1"}:
             confirmed = True
-            return FlextResult.ok(confirmed)
+            return FlextResult[bool].ok(confirmed)
         if response in {"n", "no", "false", "0"}:
             confirmed = False
-            return FlextResult.ok(confirmed)
-        return FlextResult.fail("Please answer 'y' or 'n'")
+            return FlextResult[bool].ok(confirmed)
+        return FlextResult[bool].fail("Please answer 'y' or 'n'")
 
     except (EOFError, KeyboardInterrupt):
-        return FlextResult.fail("Confirmation cancelled")
+        return FlextResult[bool].fail("Confirmation cancelled")
     except Exception as e:
-        return FlextResult.fail(f"Confirmation error: {e}")
+        return FlextResult[bool].fail(f"Confirmation error: {e}")
 
 
 def cli_prompt(
@@ -860,12 +860,12 @@ def cli_prompt(
         if not user_input and default:
             user_input = default
 
-        return FlextResult.ok(user_input)
+        return FlextResult[str].ok(user_input)
 
     except (EOFError, KeyboardInterrupt):
-        return FlextResult.fail("Input cancelled")
+        return FlextResult[str].fail("Input cancelled")
     except Exception as e:
-        return FlextResult.fail(f"Input error: {e}")
+        return FlextResult[str].fail(f"Input error: {e}")
 
 
 # =============================================================================

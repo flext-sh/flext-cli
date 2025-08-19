@@ -29,7 +29,7 @@ ValidationResultType = TypeVar("ValidationResultType")
 # =============================================================================
 
 
-class FlextCliService(FlextDomainService[object], ABC):
+class FlextCliService(FlextDomainService[T], ABC):
     """Base CLI service extending flext-core domain service patterns.
 
     Provides foundation for CLI-specific services with:
@@ -89,7 +89,7 @@ class FlextCliService(FlextDomainService[object], ABC):
         """
         if self.logger:
             self.logger.info(f"Initializing CLI service: {self.service_name}")
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     def cleanup(self) -> FlextResult[None]:
         """Cleanup the CLI service resources.
@@ -99,7 +99,7 @@ class FlextCliService(FlextDomainService[object], ABC):
         """
         if self.logger:
             self.logger.info(f"Cleaning up CLI service: {self.service_name}")
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     def validate_config(self) -> FlextResult[None]:
         """Validate CLI service configuration.
@@ -113,9 +113,9 @@ class FlextCliService(FlextDomainService[object], ABC):
 
         # CLI-specific validation
         if not self.service_name or not self.service_name.strip():
-            return FlextResult.fail("Service name cannot be empty")
+            return FlextResult[None].fail("Service name cannot be empty")
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
 
 # =============================================================================
@@ -123,7 +123,7 @@ class FlextCliService(FlextDomainService[object], ABC):
 # =============================================================================
 
 
-class FlextCliCommandService(FlextCliService):
+class FlextCliCommandService(FlextCliService[T]):
     """Service for CLI command execution and management.
 
     Extends FlextCliService to provide command execution capabilities
@@ -153,7 +153,7 @@ class FlextCliCommandService(FlextCliService):
         command: str,
         args: dict[str, object] | None = None,
         **kwargs: object,
-    ) -> FlextResult[CommandResultType]:
+    ) -> FlextResult[T]:
         """Execute a command with the given arguments.
 
         Args:
@@ -166,7 +166,7 @@ class FlextCliCommandService(FlextCliService):
 
         """
 
-    def execute(self) -> FlextResult[CommandResultType]:
+    def execute(self) -> FlextResult[T]:
         """Execute the service operation.
 
         Implements abstract method from FlextDomainService.
@@ -174,7 +174,8 @@ class FlextCliCommandService(FlextCliService):
         """
         # This is a generic implementation - subclasses should override
         # or implement execute_command directly
-        return FlextResult.fail("Command execution not implemented")
+        # Abstract method - should not be called directly
+        return FlextResult[T].fail("Command execution not implemented")
 
     def validate_command_args(
         self,
@@ -186,12 +187,12 @@ class FlextCliCommandService(FlextCliService):
         Override in subclasses to provide specific validation logic.
         """
         if not command or not command.strip():
-            return FlextResult.fail("Command name cannot be empty")
+            return FlextResult[None].fail("Command name cannot be empty")
 
         # Type system already ensures args is dict[str, object] | None
         # Additional validation can be added in subclasses
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
 
 # =============================================================================
@@ -199,7 +200,7 @@ class FlextCliCommandService(FlextCliService):
 # =============================================================================
 
 
-class FlextCliFormatterService(FlextCliService):
+class FlextCliFormatterService(FlextCliService[str]):
     """Service for CLI output formatting and presentation.
 
     Extends FlextCliService to provide output formatting capabilities
@@ -242,22 +243,22 @@ class FlextCliFormatterService(FlextCliService):
 
         """
 
-    def execute(self) -> FlextResult[object]:
+    def execute(self) -> FlextResult[str]:
         """Execute the service operation.
 
         Implements abstract method from FlextDomainService.
         Returns empty string as default - subclasses should override.
         """
-        return FlextResult.ok("")
+        return FlextResult[str].ok("")
 
     def validate_format(self, format_type: str) -> FlextResult[None]:
         """Validate output format type."""
         if format_type not in self.supported_formats:
-            return FlextResult.fail(
+            return FlextResult[None].fail(
                 f"Unsupported format: {format_type}. "
                 f"Supported formats: {', '.join(self.supported_formats)}",
             )
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
 
 # =============================================================================
@@ -265,7 +266,7 @@ class FlextCliFormatterService(FlextCliService):
 # =============================================================================
 
 
-class FlextCliValidatorService(FlextCliService):
+class FlextCliValidatorService(FlextCliService[bool]):
     """Service for CLI input validation and sanitization.
 
     Extends FlextCliService to provide input validation capabilities
@@ -295,7 +296,7 @@ class FlextCliValidatorService(FlextCliService):
         input_data: object,
         validation_type: str | None = None,
         **options: object,
-    ) -> FlextResult[ValidationResultType]:
+    ) -> FlextResult[bool]:
         """Validate input data.
 
         Args:
@@ -308,14 +309,15 @@ class FlextCliValidatorService(FlextCliService):
 
         """
 
-    def execute(self) -> FlextResult[ValidationResultType]:
+    def execute(self) -> FlextResult[bool]:
         """Execute the service operation.
 
         Implements abstract method from FlextDomainService.
-        Returns None as default - subclasses should override.
+        Returns False as default - subclasses should override.
         """
-        # Return None cast to ValidationResultType - subclasses should override
-        return FlextResult.ok(None)  # type: ignore[arg-type]
+        # Return False as default - subclasses should override
+        is_successful = False
+        return FlextResult[bool].ok(is_successful)
 
     def add_validation_rule(
         self,
@@ -333,7 +335,7 @@ class FlextCliValidatorService(FlextCliService):
 
         """
         if not rule_name or not rule_name.strip():
-            return FlextResult.fail("Rule name cannot be empty")
+            return FlextResult[None].fail("Rule name cannot be empty")
 
         # Create new rules dict (immutable pattern)
 
@@ -344,7 +346,7 @@ class FlextCliValidatorService(FlextCliService):
         if self.logger and hasattr(self.logger, "info"):
             self.logger.info(f"Added validation rule: {rule_name}")
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
 
 # =============================================================================
@@ -352,7 +354,7 @@ class FlextCliValidatorService(FlextCliService):
 # =============================================================================
 
 
-class FlextCliInteractiveService(FlextCliService):
+class FlextCliInteractiveService(FlextCliService[str]):
     """Service for CLI user interaction and prompts.
 
     Extends FlextCliService to provide interactive capabilities
@@ -417,13 +419,13 @@ class FlextCliInteractiveService(FlextCliService):
 
         """
 
-    def execute(self) -> FlextResult[object]:
+    def execute(self) -> FlextResult[str]:
         """Execute the service operation.
 
         Implements abstract method from FlextDomainService.
         Returns empty string as default - subclasses should override.
         """
-        return FlextResult.ok("")
+        return FlextResult[str].ok("")
 
     def display_message(
         self,
@@ -441,7 +443,7 @@ class FlextCliInteractiveService(FlextCliService):
 
         """
         if not message:
-            return FlextResult.fail("Message cannot be empty")
+            return FlextResult[None].fail("Message cannot be empty")
 
         # Log the message
         if self.logger and hasattr(self.logger, "info"):
@@ -455,7 +457,7 @@ class FlextCliInteractiveService(FlextCliService):
         # In actual implementation, this would handle colored output
         # and proper terminal formatting based on enable_colors setting
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
 
 # =============================================================================
@@ -471,7 +473,7 @@ class FlextCliServiceFactory:
         _service_name: str,
         _container: FlextContainer | None = None,
         **_config: object,
-    ) -> FlextResult[FlextCliCommandService]:
+    ) -> FlextResult[FlextCliCommandService[object]]:
         """Create a command service instance.
 
         Args:
@@ -486,11 +488,12 @@ class FlextCliServiceFactory:
         try:
             # This is a stub implementation - actual implementation would
             # create a concrete command service subclass
-            return FlextResult.fail(
+            # Note: Using correct return type for command service
+            return FlextResult[FlextCliCommandService[object]].fail(
                 "FlextCliCommandService is abstract - use concrete implementation",
             )
         except Exception as e:
-            return FlextResult.fail(f"Failed to create command service: {e}")
+            return FlextResult[FlextCliCommandService[object]].fail(f"Failed to create command service: {e}")
 
     @staticmethod
     def create_formatter_service(
@@ -512,11 +515,11 @@ class FlextCliServiceFactory:
         try:
             # This is a stub implementation - actual implementation would
             # create a concrete formatter service subclass
-            return FlextResult.fail(
+            return FlextResult[FlextCliFormatterService].fail(
                 "FlextCliFormatterService is abstract - use concrete implementation",
             )
         except Exception as e:
-            return FlextResult.fail(f"Failed to create formatter service: {e}")
+            return FlextResult[FlextCliFormatterService].fail(f"Failed to create formatter service: {e}")
 
     @staticmethod
     def create_validator_service(
@@ -538,11 +541,11 @@ class FlextCliServiceFactory:
         try:
             # This is a stub implementation - actual implementation would
             # create a concrete validator service subclass
-            return FlextResult.fail(
+            return FlextResult[FlextCliValidatorService].fail(
                 "FlextCliValidatorService is abstract - use concrete implementation",
             )
         except Exception as e:
-            return FlextResult.fail(f"Failed to create validator service: {e}")
+            return FlextResult[FlextCliValidatorService].fail(f"Failed to create validator service: {e}")
 
     @staticmethod
     def create_interactive_service(
@@ -564,11 +567,11 @@ class FlextCliServiceFactory:
         try:
             # This is a stub implementation - actual implementation would
             # create a concrete interactive service subclass
-            return FlextResult.fail(
+            return FlextResult[FlextCliInteractiveService].fail(
                 "FlextCliInteractiveService is abstract - use concrete implementation",
             )
         except Exception as e:
-            return FlextResult.fail(f"Failed to create interactive service: {e}")
+            return FlextResult[FlextCliInteractiveService].fail(f"Failed to create interactive service: {e}")
 
 
 # =============================================================================

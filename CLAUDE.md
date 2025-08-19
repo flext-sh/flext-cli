@@ -110,14 +110,14 @@ from flext_core import FlextResult
 
 def save_auth_token(token: str) -> FlextResult[None]:
     try:
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
     except (OSError, PermissionError, ValueError) as e:
-        return FlextResult.fail(f"Failed to save auth token: {e}")
+        return FlextResult[None].fail(f"Failed to save auth token: {e}")
 
 # Usage with decorator
 @handle_service_result  # from src/flext_cli/core/base.py:93
 def setup_cli(settings: CLISettings) -> FlextResult[bool]:
-    return FlextResult.ok(True)
+    return FlextResult[None].ok(True)
 ```
 
 ### Domain Entities (flext-core Integration)
@@ -126,8 +126,8 @@ def setup_cli(settings: CLISettings) -> FlextResult[bool]:
 class CLICommand(FlextEntity):
     def validate_domain_rules(self) -> FlextResult[None]:
         if not self.name or not self.name.strip():
-            return FlextResult.fail("Command name cannot be empty")
-        return FlextResult.ok(None)
+            return FlextResult[None].fail("Command name cannot be empty")
+        return FlextResult[None].ok(None)
 
     def start_execution(self) -> CLICommand:
         return self.model_copy(update={"command_status": CommandStatus.RUNNING})

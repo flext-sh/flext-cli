@@ -38,7 +38,7 @@ class FlextCliEntity(FlextEntity):
           args: list[str] = []
 
           def execute(self) -> FlextResult[object]:
-              return FlextResult.ok(f"Executed {self.name}")
+              return FlextResult[None].ok(f"Executed {self.name}")
 
     """
 
@@ -48,7 +48,7 @@ class FlextCliEntity(FlextEntity):
 
     def execute(self) -> FlextResult[object]:
         """Execute CLI command with automatic error handling."""
-        return FlextResult.ok(f"CLI command '{self.name}' executed successfully")
+        return FlextResult[object].ok(f"CLI command '{self.name}' executed successfully")
 
     def with_args(self, args: dict[str, object]) -> FlextCliEntity:
         """Update CLI entity with parsed arguments (immutable)."""
@@ -112,7 +112,7 @@ def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
         )
 
         if not hierarchy_result.success:
-            return FlextResult.fail(
+            return FlextResult[FlextCliConfig].fail(
                 f"Hierarchy creation failed: {hierarchy_result.error}",
             )
 
@@ -121,7 +121,7 @@ def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
         hierarchy = hierarchy_result.data
 
         # Collect all configuration values
-        all_configs = hierarchy.copy()  # hierarchy is dict[str, Any]
+        all_configs = hierarchy.copy()  # hierarchy is dict[str, object]
 
         # Add CLI overrides (highest precedence)
         all_configs.update(overrides)
@@ -147,10 +147,10 @@ def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
 
         # Create configuration with merged values and explicit type mapping
         config = FlextCliConfig.model_validate(final_config_data)
-        return FlextResult.ok(config)
+        return FlextResult[FlextCliConfig].ok(config)
 
     except Exception as e:
-        return FlextResult.fail(f"Configuration creation failed: {e}")
+        return FlextResult[FlextCliConfig].fail(f"Configuration creation failed: {e}")
 
 
 def setup_cli(config: FlextCliConfig | None = None) -> FlextResult[dict[str, object]]:
@@ -180,7 +180,7 @@ def setup_cli(config: FlextCliConfig | None = None) -> FlextResult[dict[str, obj
         if config is None:
             config_result = create_cli_config()
             if not config_result.success:
-                return FlextResult.fail(
+                return FlextResult[dict[str, object]].fail(
                     f"Config creation failed: {config_result.error}",
                 )
             config = config_result.data
@@ -189,10 +189,10 @@ def setup_cli(config: FlextCliConfig | None = None) -> FlextResult[dict[str, obj
 
         # CLI setup logic here - initialize CLI systems, logging, etc.
         # Implementation complete per requirements
-        return FlextResult.ok({"debug_mode": config.debug})
+        return FlextResult[dict[str, object]].ok({"debug_mode": config.debug})
 
     except Exception as e:
-        return FlextResult.fail(f"CLI setup failed: {e}")
+        return FlextResult[dict[str, object]].fail(f"CLI setup failed: {e}")
 
 
 __all__ = [

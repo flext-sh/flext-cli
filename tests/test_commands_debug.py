@@ -97,8 +97,8 @@ class TestConnectivityCommand:
         # Mock client with FlextResult patterns
         mock_client = AsyncMock()
         mock_client.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
-        mock_client.test_connection.return_value = FlextResult.ok(True)
-        mock_client.get_system_status.return_value = FlextResult.ok(
+        mock_client.test_connection.return_value = FlextResult[None].ok(True)
+        mock_client.get_system_status.return_value = FlextResult[None].ok(
             {
                 "version": "0.9.0",
                 "status": "healthy",
@@ -140,7 +140,7 @@ class TestConnectivityCommand:
     ) -> None:
         mock_client = AsyncMock()
         mock_client.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
-        mock_client.test_connection.return_value = FlextResult.fail("Connection failed")
+        mock_client.test_connection.return_value = FlextResult[None].fail("Connection failed")
         mock_get_client.return_value = mock_client
 
         # Use CliRunner to test command
@@ -180,7 +180,7 @@ class TestConnectivityCommand:
         # Mock client
         mock_client = AsyncMock()
         mock_client.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
-        mock_client.test_connection.return_value = FlextResult.ok(True)
+        mock_client.test_connection.return_value = FlextResult[None].ok(True)
         mock_client.get_system_status.side_effect = Exception("Status error")
         mock_get_client.return_value = mock_client
 
@@ -268,7 +268,7 @@ class TestPerformanceCommand:
         # Mock client with FlextResult response
 
         mock_client = AsyncMock()
-        mock_client.get_system_status.return_value = FlextResult.ok(
+        mock_client.get_system_status.return_value = FlextResult[None].ok(
             {
                 "cpu_usage": "25%",
                 "memory_usage": "60%",

@@ -8,25 +8,18 @@ This directory contains organized examples demonstrating flext-cli and flext-cor
 ## Example Organization:
 
 ### Core Patterns (01-05)
-- 01_basic_setup: Basic CLI setup and configuration
-- 02_domain_entities: FlextEntity patterns with CLI domain models
-- 03_result_patterns: FlextResult railway-oriented programming
-- 04_service_patterns: FlextService and dependency injection
-- 05_advanced_integration: Complete flext-core integration
+- 01_foundation_patterns: FlextResult, FlextModel, FlextContainer basics
+- 02_cli_commands_integration: Click framework + flext-cli decorators
+- 03_data_processing_and_output: Data transformation and Rich output
+- 04_authentication_and_authorization: Security patterns and token management
+- 05_advanced_service_integration: Service patterns with async operations
 
-### CLI Features (06-10)
-- 06_click_commands: Click integration patterns
-- 07_rich_output: Rich terminal UI demonstrations
-- 08_data_processing: Data transformation and export
-- 09_authentication: Auth patterns and token management
-- 10_configuration: Config management and environment loading
-
-### Real Applications (11-15)
-- 11_complete_app: Full CLI application example
-- 12_ecosystem_integration: Integration with flext-* projects
-- 13_enterprise_patterns: Clean Architecture, CQRS, DDD
-- 14_performance_optimization: Advanced patterns for performance
-- 15_production_ready: Production deployment patterns
+### Complete Applications (06-10)
+- 06_comprehensive_cli_application: Full real-world CLI application
+- 07_enterprise_patterns: Clean Architecture, CQRS, DDD patterns
+- 08_ecosystem_integration: Integration with flext-* projects
+- 09_performance_optimization: Advanced patterns for performance
+- 10_production_ready: Production deployment patterns
 
 All examples demonstrate proper flext-core usage without TYPE_CHECKING imports.
 """

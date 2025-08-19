@@ -41,22 +41,22 @@ class CLIContext(FlextModel):
     def is_debug(self) -> bool:
         cfg = self.config
         if cfg is not None and hasattr(cfg, "debug"):
-            return bool(cfg.debug)
-        return bool(self.debug)
+            return bool(getattr(cfg, "debug", False))
+        return bool(getattr(self, "debug", False))
 
     @property
     def is_quiet(self) -> bool:
         cfg = self.config
         if cfg is not None and hasattr(cfg, "quiet"):
-            return bool(cfg.quiet)
-        return bool(self.quiet)
+            return bool(getattr(cfg, "quiet", False))
+        return bool(getattr(self, "quiet", False))
 
     @property
     def is_verbose(self) -> bool:
         cfg = self.config
         if cfg is not None and hasattr(cfg, "verbose"):
-            return bool(cfg.verbose)
-        return bool(self.verbose)
+            return bool(getattr(cfg, "verbose", False))
+        return bool(getattr(self, "verbose", False))
 
     # Printing helpers expected by tests
     def print_success(self, message: str) -> None:

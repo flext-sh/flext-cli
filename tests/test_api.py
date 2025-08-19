@@ -352,7 +352,7 @@ class TestFlextCliUnwrapFunctions:
 
     def test_unwrap_or_default_success(self) -> None:
         """Test unwrap_or_default with successful result."""
-        result = FlextResult.ok("success_value")
+        result = FlextResult[None].ok("success_value")
         unwrapped = flext_cli_unwrap_or_default(result, "default")
         if unwrapped != "success_value":
             msg: str = f"Expected {'success_value'}, got {unwrapped}"
@@ -360,7 +360,7 @@ class TestFlextCliUnwrapFunctions:
 
     def test_unwrap_or_default_failure(self) -> None:
         """Test unwrap_or_default with failed result."""
-        result = FlextResult.fail("error message")
+        result = FlextResult[None].fail("error message")
         unwrapped = flext_cli_unwrap_or_default(result, "default")
         if unwrapped != "default":
             msg: str = f"Expected {'default'}, got {unwrapped}"
@@ -368,7 +368,7 @@ class TestFlextCliUnwrapFunctions:
 
     def test_unwrap_or_none_success(self) -> None:
         """Test unwrap_or_none with successful result."""
-        result = FlextResult.ok("success_value")
+        result = FlextResult[None].ok("success_value")
         unwrapped = flext_cli_unwrap_or_none(result)
         if unwrapped != "success_value":
             msg: str = f"Expected {'success_value'}, got {unwrapped}"
@@ -376,6 +376,6 @@ class TestFlextCliUnwrapFunctions:
 
     def test_unwrap_or_none_failure(self) -> None:
         """Test unwrap_or_none with failed result."""
-        result = FlextResult.fail("error message")
+        result = FlextResult[None].fail("error message")
         unwrapped = flext_cli_unwrap_or_none(result)
         assert unwrapped is None

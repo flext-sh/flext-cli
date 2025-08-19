@@ -82,7 +82,7 @@ class TestHandleServiceResult:
 
         @handle_service_result
         def success_function() -> FlextResult[str]:
-            return FlextResult.ok("success data")
+            return FlextResult[None].ok("success data")
 
         result = success_function()
         if result != "success data":
@@ -100,7 +100,7 @@ class TestHandleServiceResult:
 
         @handle_service_result
         def fail_function() -> FlextResult[str]:
-            return FlextResult.fail("error message")
+            return FlextResult[None].fail("error message")
 
         result = fail_function()
 
@@ -180,7 +180,7 @@ class TestHandleServiceResult:
 
         @handle_service_result
         def complex_data_function() -> FlextResult[dict[str, any]]:
-            return FlextResult.ok(
+            return FlextResult[None].ok(
                 {
                     "data": [1, 2, 3],
                     "metadata": {"count": 3, "type": "list"},
@@ -205,7 +205,7 @@ class TestHandleServiceResult:
         @handle_service_result
         async def async_function() -> FlextResult[str]:
             await asyncio.sleep(0.01)  # Small delay to test async
-            return FlextResult.ok("async result")
+            return FlextResult[None].ok("async result")
 
         async def test_runner() -> None:
             result = await async_function()
@@ -228,7 +228,7 @@ class TestHandleServiceResult:
         @handle_service_result
         async def async_fail_function() -> FlextResult[str]:
             await asyncio.sleep(0.01)
-            return FlextResult.fail("async error message")
+            return FlextResult[None].fail("async error message")
 
         async def test_runner() -> None:
             result = await async_fail_function()

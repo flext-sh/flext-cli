@@ -47,15 +47,15 @@ class FlextService:  # Lightweight stub to satisfy tests
 
     def start(self) -> FlextResult[None]:
         """Start the CLI core service."""
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     def stop(self) -> FlextResult[None]:
         """Stop the CLI core service."""
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     def health_check(self) -> FlextResult[str]:
         """Return health status string."""
-        return FlextResult.ok("healthy")
+        return FlextResult[str].ok("healthy")
 
 
 class FlextCliService(FlextService):
@@ -98,14 +98,14 @@ class FlextCliService(FlextService):
                 if unknown_keys:
                     # Match test expectation wording
                     unknown = ", ".join(sorted(unknown_keys))
-                    return FlextResult.fail(
+                    return FlextResult[None].fail(
                         f"Configuration failed: Unknown config keys: {unknown}",
                     )
                 # Use Pydantic validation instead of type: ignore
                 try:
                     self._config = FlextCliConfig.model_validate(cleaned_config)
                 except Exception as validation_error:
-                    return FlextResult.fail(
+                    return FlextResult[None].fail(
                         f"Configuration validation failed: {validation_error}",
                     )
             elif hasattr(config, "output_format") and hasattr(config, "profile"):
@@ -120,11 +120,11 @@ class FlextCliService(FlextService):
                     }
                     self._config = FlextCliConfig.model_validate(config_dict)
                 except Exception as validation_error:
-                    return FlextResult.fail(
+                    return FlextResult[None].fail(
                         f"Compatible config validation failed: {validation_error}",
                     )
             else:
-                return FlextResult.fail(
+                return FlextResult[None].fail(
                     f"Invalid config type: {type(config).__name__}",
                 )
 
@@ -132,9 +132,9 @@ class FlextCliService(FlextService):
                 "CLI service configured with format: %s",
                 self._config.output_format,
             )
-            return FlextResult.ok(None)
+            return FlextResult[None].ok(None)
         except (AttributeError, ValueError, TypeError, OSError, Exception) as e:
-            return FlextResult.fail(f"Configuration failed: {e}")
+            return FlextResult[None].fail(f"Configuration failed: {e}")
 
     def flext_cli_export(
         self,
@@ -147,7 +147,7 @@ class FlextCliService(FlextService):
             formatted_result = self.flext_cli_format(data, format_type)
             if not formatted_result.success:
                 error_msg = formatted_result.error or "Formatting failed"
-                return FlextResult.fail(error_msg)
+                return FlextResult[bool].fail(error_msg)
 
             formatted_data = formatted_result.unwrap()
             path_obj = Path(path)
@@ -160,11 +160,11 @@ class FlextCliService(FlextService):
 
             self.logger.info("Data exported to %s in %s format", path, format_type)
             export_success = True
-            return FlextResult.ok(export_success)
+            return FlextResult[bool].ok(export_success)
 
         except Exception as e:
             self.logger.exception("Export failed")
-            return FlextResult.fail(f"Export failed: {e}")
+            return FlextResult[bool].fail(f"Export failed: {e}")
 
     def flext_cli_format(
         self,
@@ -184,7 +184,7 @@ class FlextCliService(FlextService):
         key = format_type.value if hasattr(format_type, "value") else str(format_type)
         formatter = formatters.get(key)
         if not formatter:
-            return FlextResult.fail(f"Unsupported format: {format_type}")
+            return FlextResult[str].fail(f"Unsupported format: {format_type}")
 
         return formatter(data)
 
@@ -217,13 +217,13 @@ class FlextCliService(FlextService):
 
             if self._config:
                 status["config"] = {
-                    "format": self._config.output_format,
-                    "debug": self._config.debug,
-                    "profile": self._config.profile,
-                    "api_url": self._config.api_url,
+                    "format": str(self._config.output_format),
+                    "debug": bool(self._config.debug),
+                    "profile": str(self._config.profile),
+                    "api_url": str(self._config.api_url),
                 }
 
-            return FlextResult.ok(status)
+            return FlextResult[dict[str, object]].ok(status)
 
         except (
             AttributeError,
@@ -234,7 +234,7 @@ class FlextCliService(FlextService):
             RuntimeError,
             Exception,
         ) as e:
-            return FlextResult.fail(f"Health check failed: {e}")
+            return FlextResult[dict[str, object]].fail(f"Health check failed: {e}")
 
     def _format_json(self, data: OutputData) -> FlextResult[str]:
         """Format data as JSON."""
@@ -343,10 +343,10 @@ class FlextCliService(FlextService):
         """Validate format using flext-core validation."""
         if format_type not in self._formats:
             supported = ", ".join(sorted(self._formats))
-            return FlextResult.fail(
+            return FlextResult[str].fail(
                 f"Unsupported format: {format_type}. Supported: {supported}",
             )
-        return FlextResult.ok(format_type)
+        return FlextResult[str].ok(format_type)
 
     def flext_cli_create_command(
         self,
@@ -359,7 +359,7 @@ class FlextCliService(FlextService):
         def create_command() -> str:
             entity_id = FlextUtilities.generate_entity_id()
             command = FlextCliCommand(
-                id=entity_id,
+                id=str(entity_id),  # Convert to string for validation
                 name=name,
                 command_line=command_line,
             )
@@ -379,7 +379,7 @@ class FlextCliService(FlextService):
             entity_id = FlextUtilities.generate_entity_id()
             effective_user_id = user_id or f"user_{entity_id}"
             session = FlextCliSession(
-                id=entity_id,
+                id=str(entity_id),  # Convert to string for validation
                 user_id=effective_user_id,
             )
             self._sessions[session.id] = session
@@ -394,9 +394,9 @@ class FlextCliService(FlextService):
     ) -> FlextResult[None]:
         """Register handler using flext-core validation - restored from backup."""
         if name in self._handlers:
-            return FlextResult.fail(f"Handler '{name}' already registered")
+            return FlextResult[None].fail(f"Handler '{name}' already registered")
         self._handlers[name] = handler
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     def flext_cli_register_plugin(
         self,
@@ -405,9 +405,9 @@ class FlextCliService(FlextService):
     ) -> FlextResult[None]:
         """Register plugin using flext-core validation - restored from backup."""
         if name in self._plugins:
-            return FlextResult.fail(f"Plugin '{name}' already registered")
+            return FlextResult[None].fail(f"Plugin '{name}' already registered")
         self._plugins[name] = plugin
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     def flext_cli_execute_handler(
         self,
@@ -417,7 +417,7 @@ class FlextCliService(FlextService):
     ) -> FlextResult[object]:
         """Execute handler using flext-core safe_call - restored from backup."""
         if name not in self._handlers:
-            return FlextResult.fail(f"Handler '{name}' not found")
+            return FlextResult[None].fail(f"Handler '{name}' not found")
         return safe_call(lambda: self._handlers[name](*args, **kwargs))
 
     def flext_cli_render_with_context(
@@ -459,18 +459,18 @@ class FlextCliService(FlextService):
 
     def flext_cli_get_commands(self) -> FlextResult[dict[str, FlextCliCommand]]:
         """Get all commands - restored from backup."""
-        return FlextResult.ok(self._commands.copy())
+        return FlextResult[None].ok(self._commands.copy())
 
     def flext_cli_get_sessions(self) -> FlextResult[dict[str, FlextCliSession]]:
         """Get all sessions - restored from backup."""
-        return FlextResult.ok(self._sessions.copy())
+        return FlextResult[None].ok(self._sessions.copy())
 
     def flext_cli_get_plugins(self) -> FlextResult[dict[str, FlextCliPlugin]]:
         """Get all plugins - restored from backup."""
-        return FlextResult.ok(self._plugins.copy())
+        return FlextResult[None].ok(self._plugins.copy())
 
     def flext_cli_get_handlers(self) -> FlextResult[dict[str, object]]:
         """Get all handlers - restored from backup."""
         # Convert handlers to dict[str, object] for return type compliance
         handlers_as_objects: dict[str, object] = dict(self._handlers)
-        return FlextResult.ok(handlers_as_objects)
+        return FlextResult[None].ok(handlers_as_objects)

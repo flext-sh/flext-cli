@@ -720,7 +720,7 @@ class TestFlextCliRegisterHandler:
             with patch.object(
                 flext_cli._api,
                 "flext_cli_register_handler",
-                return_value=FlextResult.ok(None),
+                return_value=FlextResult[None].ok(None),
             ) as mock_register:
                 name = f"handler_{id(handler)}"
 
@@ -747,7 +747,7 @@ class TestFlextCliRegisterHandler:
         with patch.object(
             flext_cli._api,
             "flext_cli_register_handler",
-            return_value=FlextResult.ok(None),
+            return_value=FlextResult[None].ok(None),
         ) as mock_register:
             name = "class_handler"
 
@@ -810,7 +810,7 @@ class TestFlextCliRegisterPlugin:
         with patch.object(
             flext_cli._api,
             "flext_cli_register_plugin",
-            return_value=FlextResult.ok(None),
+            return_value=FlextResult[None].ok(None),
         ) as mock_register:
             name = "real_plugin"
 

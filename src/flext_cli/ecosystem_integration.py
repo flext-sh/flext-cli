@@ -28,11 +28,11 @@ class FlextCliGenericCommand(FlextCliEntity):
     Example usage for ANY ecosystem project:
       class MyProjectCommand(FlextCliGenericCommand):
           my_field: str
-          config_data: dict[str, Any] = {}
+          config_data: dict[str, object] = {}
 
-          def execute(self) -> FlextResult[Any]:
+          def execute(self) -> FlextResult[object]:
               # Project-specific implementation
-              return FlextResult.ok({"executed": self.name})
+              return FlextResult[None].ok({"executed": self.name})
     """
 
     # Generic fields that any project can extend
@@ -42,7 +42,7 @@ class FlextCliGenericCommand(FlextCliEntity):
     def execute(self) -> FlextResult[object]:
         """Execute generic command with automatic error handling."""
         # Generic implementation - projects override this
-        return FlextResult.ok(
+        return FlextResult[None].ok(
             {
                 "command": self.name,
                 "environment": self.environment,
@@ -158,7 +158,7 @@ def setup_flext_cli_ecosystem(
             )
 
             if not config_result.success:
-                return FlextResult.fail(
+                return FlextResult[None].fail(
                     f"Config creation failed: {config_result.error}",
                 )
 
@@ -167,16 +167,16 @@ def setup_flext_cli_ecosystem(
         # Setup CLI with project-specific configuration
         setup_result = setup_flext_cli(config)
         if not setup_result.success:
-            return FlextResult.fail(f"CLI setup failed: {setup_result.error}")
+            return FlextResult[None].fail(f"CLI setup failed: {setup_result.error}")
 
         if config is None:
             # This case should ideally not happen if config_result.success was true,
             # but for mypy's sake and runtime safety, we'll keep it.
-            return FlextResult.fail(  # type: ignore[unreachable]
+            return FlextResult[None].fail(  # type: ignore[unreachable]
                 "Configuration object is unexpectedly None after creation.",
             )
 
-        return FlextResult.ok(
+        return FlextResult[None].ok(
             {
                 "project": project_name,
                 "config": config.model_dump(),
@@ -185,7 +185,7 @@ def setup_flext_cli_ecosystem(
         )
 
     except Exception as e:
-        return FlextResult.fail(f"Ecosystem CLI setup failed: {e}")
+        return FlextResult[None].fail(f"Ecosystem CLI setup failed: {e}")
 
 
 # Migration helpers for existing ecosystem projects
@@ -239,7 +239,7 @@ def {old_setup_function}_modern(**config_overrides):
 #     project_specific_field: str
 #
 #     def execute(self) -> FlextResult[dict[str, object]]: # Changed from Any
-#         return FlextResult.ok({{
+#         return FlextResult[None].ok({{
 #             "project": "{project_name}",
 #             "field": self.project_specific_field,
 #             "executed": True

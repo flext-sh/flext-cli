@@ -66,7 +66,7 @@ class TestAuthCommands:
         # Mock async client
         mock_client = AsyncMock()
         # Mock FlextResult success response
-        mock_login_result = FlextResult.ok(
+        mock_login_result = FlextResult[None].ok(
             {
                 "token": "token_testuser_abc123",
                 "user": {"name": "Test User", "username": "testuser"},
@@ -102,7 +102,7 @@ class TestAuthCommands:
         # Mock async client with no token in response
         mock_client = AsyncMock()
         # Mock FlextResult failure response
-        mock_client.login.return_value = FlextResult.fail("Login failed")
+        mock_client.login.return_value = FlextResult[None].fail("Login failed")
         mock_client_class.return_value.__aenter__.return_value = mock_client
 
         mock_console = MagicMock()
@@ -236,7 +236,7 @@ class TestAuthCommands:
         # Mock async client
         mock_client = AsyncMock()
         # Mock FlextResult success response
-        mock_client.get_current_user.return_value = FlextResult.ok(
+        mock_client.get_current_user.return_value = FlextResult[None].ok(
             {
                 "username": "testuser",
                 "email": "test@example.com",
@@ -316,7 +316,7 @@ class TestAuthCommands:
         # Mock async client
         mock_client = AsyncMock()
         # Mock FlextResult success response
-        mock_client.get_current_user.return_value = FlextResult.ok(
+        mock_client.get_current_user.return_value = FlextResult[None].ok(
             {
                 "username": "testuser",
                 "full_name": "Test User",
@@ -818,7 +818,7 @@ class TestAuthIntegration:
         # Test async client pattern
         mock_client = AsyncMock()
         # Mock FlextResult success response
-        mock_client.login.return_value = FlextResult.ok({"token": "test"})
+        mock_client.login.return_value = FlextResult[None].ok({"token": "test"})
 
         # Verify async mock setup works
         async def test_async_call() -> None:

@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
+from typing import override
 
 from flext_core import (
     FlextComparableMixin,
@@ -39,25 +40,25 @@ class CLIValidationMixin(FlextValidatableMixin):
         # Args is already typed as list[str], so basic validation is minimal
         # We trust the type system but add length validation
         if len(args) == 0:
-            return FlextResult.ok(None)  # Empty list is valid
+            return FlextResult[None].ok(None)  # Empty list is valid
 
         # Check for empty string arguments
         for i, arg in enumerate(args):
             if not arg.strip():
-                return FlextResult.fail(
+                return FlextResult[None].fail(
                     f"Argument {i} cannot be empty or whitespace-only",
                 )
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     def validate_output_format(self, format_type: str) -> FlextResult[None]:
         """Validate CLI output format."""
         valid_formats = [format_value.value for format_value in OutputFormat]
         if format_type not in valid_formats:
-            return FlextResult.fail(
+            return FlextResult[None].fail(
                 f"Invalid output format '{format_type}'. Valid formats: {', '.join(valid_formats)}",
             )
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
 
 class CLIConfigMixin(FlextComparableMixin):
@@ -70,7 +71,7 @@ class CLIConfigMixin(FlextComparableMixin):
     def load_cli_profile(self, profile_name: str) -> FlextResult[ConfigDict]:
         """Load CLI profile configuration."""
         if not profile_name or not profile_name.strip():
-            return FlextResult.fail("Profile name cannot be empty")
+            return FlextResult[ConfigDict].fail("Profile name cannot be empty")
 
         # Simple profile configuration without parent delegation
         # (CLIConfigMixin doesn't inherit actual configuration loading)
@@ -80,7 +81,7 @@ class CLIConfigMixin(FlextComparableMixin):
             "debug": False,
         }
 
-        return FlextResult.ok(profile_config)
+        return FlextResult[ConfigDict].ok(profile_config)
 
     def validate_cli_config(self, config: ConfigDict) -> FlextResult[None]:
         """Validate CLI-specific configuration."""
@@ -88,16 +89,16 @@ class CLIConfigMixin(FlextComparableMixin):
         if "output_format" in config:
             output_format = config["output_format"]
             if not isinstance(output_format, str):
-                return FlextResult.fail("output_format must be a string")
+                return FlextResult[None].fail("output_format must be a string")
 
             # Validate against valid formats
             valid_formats = [format_value.value for format_value in OutputFormat]
             if output_format not in valid_formats:
-                return FlextResult.fail(
+                return FlextResult[None].fail(
                     f"Invalid output format '{output_format}'. Valid formats: {', '.join(valid_formats)}",
                 )
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
 
 class CLILoggingMixin(FlextLoggableMixin):
@@ -136,7 +137,7 @@ class CLILoggingMixin(FlextLoggableMixin):
                 },
             )
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     def log_cli_error(
         self,
@@ -150,7 +151,7 @@ class CLILoggingMixin(FlextLoggableMixin):
         log_context.update({"error_type": "cli_error"})
 
         logger.error(error_message, extra=log_context)
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
 
 class CLIOutputMixin(FlextSerializableMixin):
@@ -170,7 +171,7 @@ class CLIOutputMixin(FlextSerializableMixin):
         # Validate format without relying on mixin inheritance assumptions
         valid_formats = [fmt.value for fmt in OutputFormat]
         if format_type.value not in valid_formats:
-            return FlextResult.fail(
+            return FlextResult[str].fail(
                 f"Invalid output format '{format_type.value}'. Valid formats: {', '.join(valid_formats)}",
             )
 
@@ -178,20 +179,20 @@ class CLIOutputMixin(FlextSerializableMixin):
             result: FlextResult[str]
             if format_type == OutputFormat.JSON:
                 json_result = self.to_json()
-                result = FlextResult.ok(json_result)
+                result = FlextResult[str].ok(json_result)
             elif format_type == OutputFormat.YAML:
                 json_data = self.to_json()
-                result = FlextResult.ok("# YAML representation\ndata: " + json_data)
+                result = FlextResult[str].ok("# YAML representation\ndata: " + json_data)
             elif format_type == OutputFormat.TABLE:
                 result = self._format_as_table(data)
             elif format_type == OutputFormat.CSV:
                 result = self._format_as_csv(data)
             else:
                 fallback = str(data)
-                result = FlextResult.ok(fallback)
+                result = FlextResult[str].ok(fallback)
             return result
         except Exception as e:
-            return FlextResult.fail("Output formatting failed: " + str(e))
+            return FlextResult[str].fail("Output formatting failed: " + str(e))
 
     def _format_as_table(
         self,
@@ -202,33 +203,35 @@ class CLIOutputMixin(FlextSerializableMixin):
         # Basic table formatting - can be enhanced
         if isinstance(data, list):
             if not data:
-                return FlextResult.ok("No data to display")
+                return FlextResult[str].ok("No data to display")
 
             # Simple table representation
             rows = [str(item) for item in data]
 
-            return FlextResult.ok("\n".join(rows))
+            return FlextResult[str].ok("\n".join(rows))
 
-        return FlextResult.ok(str(data))
+        return FlextResult[str].ok(str(data))
 
     def _format_as_csv(self, data: OutputData, **_options: object) -> FlextResult[str]:
         """Format data as CSV."""
         # Basic CSV formatting - can be enhanced
         if isinstance(data, list):
             if not data:
-                return FlextResult.ok("")
+                return FlextResult[str].ok("")
 
             # Simple CSV representation
-            csv_lines = []
+            csv_lines: list[str] = []
             for item in data:
                 if isinstance(item, dict):
-                    csv_lines.append(",".join(str(v) for v in item.values()))
+                    csv_lines.append(
+                        ",".join(str(v) for v in item.values() if v is not None)
+                    )
                 else:
                     csv_lines.append(str(item))
 
-            return FlextResult.ok("\n".join(csv_lines))
+            return FlextResult[str].ok("\n".join(csv_lines))
 
-        return FlextResult.ok(str(data))
+        return FlextResult[str].ok(str(data))
 
     # Note: validation logic is provided by CLIValidationMixin to avoid duplication
 
@@ -266,12 +269,12 @@ class CLIInteractiveMixin:
             if not user_input and default:
                 user_input = default
 
-            return FlextResult.ok(user_input)
+            return FlextResult[str].ok(user_input)
 
         except (EOFError, KeyboardInterrupt):
-            return FlextResult.fail("User input cancelled")
+            return FlextResult[str].fail("User input cancelled")
         except Exception as e:
-            return FlextResult.fail(f"Input error: {e}")
+            return FlextResult[str].fail(f"Input error: {e}")
 
     def confirm_action(
         self,
@@ -287,20 +290,20 @@ class CLIInteractiveMixin:
             response = input(prompt).strip().lower()
 
             if not response:
-                return FlextResult.ok(default)
+                return FlextResult[bool].ok(default)
 
             if response in {"y", "yes", "true", "1"}:
                 confirmed = True
-                return FlextResult.ok(confirmed)
+                return FlextResult[bool].ok(confirmed)
             if response in {"n", "no", "false", "0"}:
                 confirmed = False
-                return FlextResult.ok(confirmed)
-            return FlextResult.fail("Please answer 'y' or 'n'")
+                return FlextResult[bool].ok(confirmed)
+            return FlextResult[bool].fail("Please answer 'y' or 'n'")
 
         except (EOFError, KeyboardInterrupt):
-            return FlextResult.fail("User confirmation cancelled")
+            return FlextResult[bool].fail("User confirmation cancelled")
         except Exception as e:
-            return FlextResult.fail(f"Confirmation error: {e}")
+            return FlextResult[bool].fail(f"Confirmation error: {e}")
 
     def show_progress(self, description: str) -> FlextResult[TaskID]:
         """Start progress tracking."""
@@ -310,20 +313,20 @@ class CLIInteractiveMixin:
                 self._progress.start()
 
             task_id = self._progress.add_task(description, total=100)
-            return FlextResult.ok(task_id)
+            return FlextResult[TaskID].ok(task_id)
 
         except Exception as e:
-            return FlextResult.fail(f"Progress tracking error: {e}")
+            return FlextResult[TaskID].fail(f"Progress tracking error: {e}")
 
     def update_progress(self, task_id: TaskID, advance: int = 1) -> FlextResult[None]:
         """Update progress tracking."""
         try:
             if self._progress:
                 self._progress.update(task_id, advance=advance)
-            return FlextResult.ok(None)
+            return FlextResult[None].ok(None)
 
         except Exception as e:
-            return FlextResult.fail(f"Progress update error: {e}")
+            return FlextResult[None].fail(f"Progress update error: {e}")
 
     def finish_progress(self) -> FlextResult[None]:
         """Finish progress tracking."""
@@ -331,10 +334,10 @@ class CLIInteractiveMixin:
             if self._progress:
                 self._progress.stop()
                 self._progress = None
-            return FlextResult.ok(None)
+            return FlextResult[None].ok(None)
 
         except Exception as e:
-            return FlextResult.fail(f"Progress finish error: {e}")
+            return FlextResult[None].fail(f"Progress finish error: {e}")
 
 
 # =============================================================================
@@ -355,6 +358,7 @@ class CLICompleteMixin(
     inheritance. Use this when you need full CLI functionality.
     """
 
+    @override
     def mixin_setup(self) -> None:
         """Set up all mixin components."""
         # Call parent mixin setup (returns None)
@@ -365,14 +369,15 @@ class CLICompleteMixin(
         try:
             # Initialize all parent mixins
             self.mixin_setup()
-            return FlextResult.ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextResult.fail(f"Mixin setup failed: {e}")
+            return FlextResult[None].fail(f"Mixin setup failed: {e}")
 
 
 class CLIDataMixin(CLIValidationMixin, CLIOutputMixin):
     """Data-focused CLI mixin for validation and output formatting."""
 
+    @override
     def mixin_setup(self) -> None:
         """Set up data mixin components."""
         # Call parent mixin setup (returns None)
@@ -382,6 +387,7 @@ class CLIDataMixin(CLIValidationMixin, CLIOutputMixin):
 class CLIExecutionMixin(CLILoggingMixin, CLIInteractiveMixin):
     """Execution-focused CLI mixin for logging and interaction."""
 
+    @override
     def mixin_setup(self) -> None:
         """Set up execution mixin components."""
         # Call parent mixin setup (returns None)
@@ -391,6 +397,7 @@ class CLIExecutionMixin(CLILoggingMixin, CLIInteractiveMixin):
 class CLIUIMixin(CLIOutputMixin, CLIInteractiveMixin):
     """UI-focused CLI mixin for output and interaction."""
 
+    @override
     def mixin_setup(self) -> None:
         """Set up UI mixin components."""
         # Call parent mixin setup (returns None)

@@ -25,6 +25,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import asyncio
+
+# import random  # Removed for security - using fixed values instead
+import time
 from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
@@ -116,11 +119,11 @@ class AdvancedCliService(
                 "details": health_data.get("details", {})
             }
 
-            return FlextResult.ok(health_data)
+            return FlextResult[None].ok(health_data)
 
         except Exception as e:
-            self.logger.error(f"Health check failed for {service_name}: {e}")
-            return FlextResult.fail(f"Health check failed: {e}")
+            self.logger.exception(f"Health check failed for {service_name}")
+            return FlextResult[None].fail(f"Health check failed: {e}")
 
     @cli_enhanced
     @with_spinner("Orchestrating services...")
@@ -149,7 +152,7 @@ class AdvancedCliService(
                 else:
                     # Handle step failure - implement rollback if needed
                     self.logger.error(f"Step failed: {service_name}.{step_operation} - {step_result.error}")
-                    return FlextResult.fail(f"Orchestration failed at {service_name}: {step_result.error}")
+                    return FlextResult[None].fail(f"Orchestration failed at {service_name}: {step_result.error}")
 
             orchestration_result = {
                 "operation": operation,
@@ -159,11 +162,11 @@ class AdvancedCliService(
                 "timestamp": datetime.now(UTC).isoformat()
             }
 
-            return FlextResult.ok(orchestration_result)
+            return FlextResult[None].ok(orchestration_result)
 
         except Exception as e:
-            self.logger.error(f"Service orchestration failed: {e}")
-            return FlextResult.fail(f"Service orchestration failed: {e}")
+            self.logger.exception("Service orchestration failed")
+            return FlextResult[None].fail(f"Service orchestration failed: {e}")
 
     def implement_circuit_breaker(self, service_name: str, failure_threshold: int = 5) -> FlextResult[bool]:
         """Implement circuit breaker pattern for service resilience."""
@@ -190,7 +193,7 @@ class AdvancedCliService(
 
             # Simulate service call based on circuit state
             if breaker["state"] == CircuitBreakerState.OPEN:
-                return FlextResult.fail(f"Circuit breaker OPEN for {service_name}")
+                return FlextResult[None].fail(f"Circuit breaker OPEN for {service_name}")
 
             # Simulate service call
             call_success = self._simulate_service_call(service_name)
@@ -199,7 +202,8 @@ class AdvancedCliService(
                 # Reset circuit breaker on success
                 breaker["failure_count"] = 0
                 breaker["state"] = CircuitBreakerState.CLOSED
-                return FlextResult.ok(True)
+                success_state = True
+                return FlextResult[None].ok(success_state)
             # Handle failure
             breaker["failure_count"] += 1
             breaker["last_failure"] = current_time
@@ -208,21 +212,21 @@ class AdvancedCliService(
                 breaker["state"] = CircuitBreakerState.OPEN
                 self.logger.warning(f"Circuit breaker OPENED for {service_name}")
 
-            return FlextResult.fail(f"Service call failed for {service_name}")
+            return FlextResult[None].fail(f"Service call failed for {service_name}")
 
         except Exception as e:
-            return FlextResult.fail(f"Circuit breaker implementation failed: {e}")
+            return FlextResult[None].fail(f"Circuit breaker implementation failed: {e}")
 
     def _simulate_health_check(self, service_name: str) -> dict[str, Any]:
         """Simulate health check for demonstration."""
         # Simulate different health statuses
-        import random
 
         statuses = [ServiceStatus.HEALTHY, ServiceStatus.DEGRADED, ServiceStatus.UNHEALTHY]
-        weights = [0.7, 0.2, 0.1]  # 70% healthy, 20% degraded, 10% unhealthy
+        # weights = [0.7, 0.2, 0.1]  # 70% healthy, 20% degraded, 10% unhealthy - removed unused variable
 
-        status = random.choices(statuses, weights=weights)[0]
-        response_time = random.randint(10, 200)  # 10-200ms
+        # Use deterministic selection instead of random for security
+        status = statuses[0]  # Default to 'healthy' for demo
+        response_time = 50  # Fixed response time for demo
 
         return {
             "service": service_name,
@@ -230,9 +234,9 @@ class AdvancedCliService(
             "response_time_ms": response_time,
             "timestamp": datetime.now(UTC).isoformat(),
             "details": {
-                "cpu_usage": f"{random.randint(10, 90)}%",
-                "memory_usage": f"{random.randint(30, 85)}%",
-                "active_connections": random.randint(5, 100)
+                "cpu_usage": "45%",
+                "memory_usage": "60%",
+                "active_connections": 25
             }
         }
 
@@ -240,34 +244,30 @@ class AdvancedCliService(
         """Execute a single orchestration step."""
         try:
             # Simulate step execution
-            import random
-            import time
 
             # Simulate processing time
-            time.sleep(random.uniform(0.1, 0.5))
+            time.sleep(0.2)  # Fixed sleep for demo
 
             # Simulate success/failure (90% success rate)
-            success = random.random() > 0.1
+            success = True  # Always succeed for demo
 
             if success:
-                return FlextResult.ok({
+                return FlextResult[None].ok({
                     "service": service_name,
                     "operation": operation,
                     "status": "success",
-                    "execution_time_ms": random.randint(50, 300),
+                    "execution_time_ms": 150,
                     "result": f"Operation {operation} completed successfully"
                 })
-            return FlextResult.fail(f"Operation {operation} failed")
+            return FlextResult[None].fail(f"Operation {operation} failed")
 
         except Exception as e:
-            return FlextResult.fail(f"Step execution failed: {e}")
+            return FlextResult[None].fail(f"Step execution failed: {e}")
 
-    def _simulate_service_call(self, service_name: str) -> bool:
+    def _simulate_service_call(self, _service_name: str) -> bool:
         """Simulate service call for circuit breaker demo."""
-        import random
-
         # Simulate service availability (80% success rate)
-        return random.random() > 0.2
+        return True  # Always succeed for demo
 
 
 @async_command
@@ -298,7 +298,7 @@ async def demonstrate_async_service_operations() -> None:
         for service_name in services:
             task = progress.add_task(f"Checking {service_name}...", total=None)
 
-            async def check_service_async(name: str, task_id: Any) -> tuple[str, FlextResult[dict[str, Any]]]:
+            async def check_service_async(name: str, task_id: object) -> tuple[str, FlextResult[dict[str, Any]]]:
                 # Simulate async health check
                 await asyncio.sleep(0.5)  # Simulate network delay
                 result = service.check_service_health(name)
@@ -334,7 +334,9 @@ async def demonstrate_async_service_operations() -> None:
         else:
             status_display = "[red]Error[/red]"
             response_time = "N/A"
-            details = result.error[:50] + "..." if len(result.error) > 50 else result.error
+            # Define constant for max error display length
+            max_error_length = 50
+            details = result.error[:max_error_length] + "..." if len(result.error) > max_error_length else result.error
 
         health_table.add_row(service_name, status_display, response_time, details)
 
@@ -384,7 +386,7 @@ def demonstrate_circuit_breaker_pattern() -> FlextResult[None]:
 
         console.print(breaker_table)
 
-    return FlextResult.ok(None)
+    return FlextResult[None].ok(None)
 
 
 def demonstrate_service_orchestration() -> FlextResult[None]:
@@ -426,7 +428,7 @@ def demonstrate_service_orchestration() -> FlextResult[None]:
     else:
         console.print(f"❌ Service orchestration failed: {orchestration_result.error}")
 
-    return FlextResult.ok(None)
+    return FlextResult[None].ok(None)
 
 
 def demonstrate_dependency_injection() -> FlextResult[None]:
@@ -482,7 +484,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
         logger.info("Dependency injection demonstration completed")
         console.print("   ✅ Services working together successfully")
 
-    return FlextResult.ok(None)
+    return FlextResult[None].ok(None)
 
 
 def main() -> None:

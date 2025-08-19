@@ -18,12 +18,14 @@ import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import cast
 
 import yaml
-from flext_core import FlextEntityId, FlextResult
+from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table
 
+from flext_cli.cli_types import FlextCliDataType
 from flext_cli.config import CLISettings as FlextCliSettings
 from flext_cli.models import (
     FlextCliCommand as CLICommand,
@@ -41,7 +43,7 @@ class FlextCliContext:
         self.console = console
 
 
-def flext_cli_format(data: object, format_type: str = "table") -> FlextResult[str]:
+def flext_cli_format(data: FlextCliDataType, format_type: str = "table") -> FlextResult[str]:
     """Format data using specified format type.
 
     Args:
@@ -56,7 +58,7 @@ def flext_cli_format(data: object, format_type: str = "table") -> FlextResult[st
         # Validate format type first
         valid_formats = {"json", "yaml", "table", "csv", "plain"}
         if format_type not in valid_formats:
-            return FlextResult.fail(
+            return FlextResult[str].fail(
                 f"Format error: Invalid format '{format_type}'. Valid formats: {', '.join(sorted(valid_formats))}",
             )
 
@@ -75,7 +77,9 @@ def flext_cli_format(data: object, format_type: str = "table") -> FlextResult[st
                 console.print(table_result.unwrap())
                 formatted = output_buffer.getvalue()
             else:
-                return FlextResult.fail(table_result.error or "Table creation failed")
+                return FlextResult[str].fail(
+                    table_result.error or "Table creation failed"
+                )
         elif format_type in {"csv", "plain"}:
             # Handle csv and plain formats
             formatted = str(data)
@@ -83,10 +87,10 @@ def flext_cli_format(data: object, format_type: str = "table") -> FlextResult[st
             # This should never be reached due to validation above
             formatted = str(data)
 
-        return FlextResult.ok(formatted)
+        return FlextResult[str].ok(formatted)
 
     except (AttributeError, ValueError, TypeError) as e:
-        return FlextResult.fail(f"Format error: {e}")
+        return FlextResult[str].fail(f"Format error: {e}")
 
 
 def _create_table_from_dict_list(data: list[dict[str, object]], table: Table) -> None:
@@ -146,7 +150,7 @@ def _create_table_from_single_value(data: object, table: Table) -> None:
     table.add_row(str(data))
 
 
-def flext_cli_table(data: object, title: str | None = None) -> FlextResult[Table]:
+def flext_cli_table(data: FlextCliDataType, title: str | None = None) -> FlextResult[Table]:
     """Create a Rich table from data.
 
     Args:
@@ -162,22 +166,26 @@ def flext_cli_table(data: object, title: str | None = None) -> FlextResult[Table
 
         if isinstance(data, list) and data:
             if isinstance(data[0], dict):
-                _create_table_from_dict_list(data, table)
+                # Cast to correct type for function call
+                dict_list = cast("list[dict[str, object]]", [item for item in data if isinstance(item, dict)])
+                _create_table_from_dict_list(dict_list, table)
             else:
-                _create_table_from_simple_list(data, table)
+                # Cast to list[object] for simple list
+                simple_list = cast("list[object]", list(data))
+                _create_table_from_simple_list(simple_list, table)
         elif isinstance(data, dict):
-            _create_table_from_dict(data, table)
+            _create_table_from_dict(cast("dict[str, object]", data), table)
         else:
             _create_table_from_single_value(data, table)
 
-        return FlextResult.ok(table)
+        return FlextResult[Table].ok(table)
 
     except (AttributeError, ValueError, TypeError) as e:
-        return FlextResult.fail(f"Table creation error: {e}")
+        return FlextResult[Table].fail(f"Table creation error: {e}")
 
 
 def flext_cli_transform_data(
-    data: object,
+    data: FlextCliDataType,
     filter_func: Callable[[dict[str, object]], bool] | None = None,
     sort_key: str | None = None,
     *,
@@ -196,7 +204,7 @@ def flext_cli_transform_data(
 
     """
     if not isinstance(data, list):
-        return FlextResult.fail("Data must be a list")
+        return FlextResult[list[dict[str, object]]].fail("Data must be a list")
 
     try:
         # Ensure data is a list and copy it
@@ -205,27 +213,34 @@ def flext_cli_transform_data(
 
         # Apply filter
         if filter_func:
-            result = [item for item in result if filter_func(item)]
+            result = [
+                item for item in result if isinstance(item, dict) and filter_func(cast("dict[str, object]", item))
+            ]
 
         # Apply sort
         if sort_key:
-            result.sort(key=lambda x: str(x.get(sort_key, "")), reverse=reverse)
+            result.sort(
+                key=lambda x: str(x.get(sort_key, "")) if isinstance(x, dict) else "",
+                reverse=reverse,
+            )
 
-        return FlextResult.ok(result)
+        # Convert to expected type for MyPy compatibility
+        typed_result: list[dict[str, object]] = result  # type: ignore[assignment]
+        return FlextResult[list[dict[str, object]]].ok(typed_result)
 
     except (TypeError, AttributeError, KeyError) as e:
-        return FlextResult.fail(f"Transform error: {e}")
+        return FlextResult[list[dict[str, object]]].fail(f"Transform error: {e}")
 
 
 def _initialize_group(
-    group_value: object,
     group_by: str,
+    value: object,
     count_field: str,
     sum_fields: list[str],
 ) -> dict[str, object]:
     """Initialize a new group for aggregation."""
     group = {
-        group_by: group_value,
+        group_by: value,
         count_field: 0,
     }
     # Initialize sum fields
@@ -234,7 +249,7 @@ def _initialize_group(
     return group
 
 
-def _update_group_counts(group: dict[str, object], count_field: str) -> None:
+def _update_group_counts(group: dict[str, str | int | float | bool | None], count_field: str) -> None:
     """Update count for a group."""
     count_value = group[count_field]
     if isinstance(count_value, int):
@@ -242,8 +257,8 @@ def _update_group_counts(group: dict[str, object], count_field: str) -> None:
 
 
 def _update_group_sums(
-    group: dict[str, object],
-    item: dict[str, object],
+    group: dict[str, str | int | float | bool | None],
+    item: dict[str, str | int | float | bool | None],
     sum_fields: list[str],
 ) -> None:
     """Update sum fields for a group."""
@@ -258,7 +273,7 @@ def _update_group_sums(
 
 
 def flext_cli_aggregate_data(
-    data: object,
+    data: FlextCliDataType,
     group_by: str,
     sum_fields: list[str] | None = None,
     count_field: str = "count",
@@ -276,7 +291,7 @@ def flext_cli_aggregate_data(
 
     """
     if not isinstance(data, list):
-        return FlextResult.fail("Data must be a list")
+        return FlextResult[list[dict[str, object]]].fail("Data must be a list")
 
     try:
         groups: dict[str, dict[str, object]] = {}
@@ -295,24 +310,27 @@ def flext_cli_aggregate_data(
 
             if group_key not in groups:
                 groups[group_key] = _initialize_group(
-                    group_value,
                     group_by,
+                    group_value,
                     count_field,
                     sum_fields,
                 )
 
-            _update_group_counts(groups[group_key], count_field)
-            _update_group_sums(groups[group_key], item, sum_fields)
+            # Type conversion for MyPy compatibility
+            group_data: dict[str, str | int | float | bool | None] = groups[group_key]  # type: ignore[assignment]
+            item_data: dict[str, str | int | float | bool | None] = item
+            _update_group_counts(group_data, count_field)
+            _update_group_sums(group_data, item_data, sum_fields)
 
         result = list(groups.values())
-        return FlextResult.ok(result)
+        return FlextResult[list[dict[str, object]]].ok(result)
 
     except (TypeError, AttributeError, KeyError) as e:
-        return FlextResult.fail(f"Aggregation error: {e}")
+        return FlextResult[list[dict[str, object]]].fail(f"Aggregation error: {e}")
 
 
 def flext_cli_export(
-    data: object,
+    data: FlextCliDataType,
     file_path: str | Path,
     format_type: str = "json",
 ) -> FlextResult[str]:
@@ -343,21 +361,27 @@ def flext_cli_export(
                 if isinstance(data, list) and data and isinstance(data[0], dict):
                     writer = csv.DictWriter(f, fieldnames=data[0].keys())
                     writer.writeheader()
-                    writer.writerows(data)
+                    # Type conversion for CSV compatibility
+                    csv_data: list[dict[str, str]] = [
+                        {k: str(v) for k, v in row.items()}
+                        for row in data
+                        if isinstance(row, dict)
+                    ]
+                    writer.writerows(csv_data)
                 else:
-                    return FlextResult.fail("CSV export requires list of dictionaries")
+                    return FlextResult[str].fail("CSV export requires list of dictionaries")
 
         else:
-            return FlextResult.fail(f"Unsupported export format: {format_type}")
+            return FlextResult[str].fail(f"Unsupported export format: {format_type}")
 
-        return FlextResult.ok(f"Data exported to {path}")
+        return FlextResult[str].ok(f"Data exported to {path}")
 
     except (OSError, ValueError, TypeError) as e:
-        return FlextResult.fail(f"Export error: {e}")
+        return FlextResult[str].fail(f"Export error: {e}")
 
 
 def flext_cli_batch_export(
-    datasets: dict[str, object],
+    datasets: dict[str, FlextCliDataType],
     output_dir: str | Path,
     format_type: str = "json",
 ) -> FlextResult[list[str]]:
@@ -383,14 +407,14 @@ def flext_cli_batch_export(
             result = flext_cli_export(data, file_path, format_type)
 
             if not result.success:
-                return FlextResult.fail(f"Failed to export {name}: {result.error}")
+                return FlextResult[list[str]].fail(f"Failed to export {name}: {result.error}")
 
             created_files.append(str(file_path))
 
-        return FlextResult.ok(created_files)
+        return FlextResult[list[str]].ok(created_files)
 
     except (OSError, ValueError, TypeError) as e:
-        return FlextResult.fail(f"Batch export error: {e}")
+        return FlextResult[list[str]].fail(f"Batch export error: {e}")
 
 
 def flext_cli_unwrap_or_default(result: FlextResult[object], default: object) -> object:
@@ -427,7 +451,7 @@ class FlextCliApi:
 
     def flext_cli_export(
         self,
-        data: object,
+        data: FlextCliDataType,
         path: str | pathlib.Path,
         format_type: str = "json",
     ) -> bool:
@@ -435,7 +459,7 @@ class FlextCliApi:
         result = flext_cli_export(data, path, format_type)
         return result.success
 
-    def flext_cli_format(self, data: object, format_type: str = "table") -> str:
+    def flext_cli_format(self, data: FlextCliDataType, format_type: str = "table") -> str:
         """Format data for display."""
         result = flext_cli_format(data, format_type)
         # Use FlextResult.unwrap_or method following flext/docs/patterns
@@ -509,7 +533,7 @@ class FlextCliApi:
                 "auth",
                 "monitoring",
             }:
-                return FlextResult.fail(f"Invalid command type: {cmd_type}")
+                return FlextResult[object].fail(f"Invalid command type: {cmd_type}")
 
             # Extract and validate parameters with proper types
             description = options.get("description")
@@ -534,26 +558,31 @@ class FlextCliApi:
 
             try:
                 command = CLICommand(
-                    id=FlextEntityId(command_id),
+                    id=command_id,
                     command_line=command_line,
                 )
                 # Set name if attribute exists on model (compatibility for tests)
                 with contextlib.suppress(Exception):
                     command.name = name
-                command_result = FlextResult.ok(command)
+                command_result = FlextResult[object].ok(command)
             except Exception as e:
-                command_result = FlextResult.fail(f"Failed to create command: {e}")
+                command_result = FlextResult[object].fail(
+                    f"Failed to create command: {e}"
+                )
 
             if command_result.is_failure:
-                return FlextResult.fail(
+                return FlextResult[object].fail(
                     command_result.error or "Failed to create command",
                 )
 
-            command = command_result.unwrap()
+            command_obj = command_result.unwrap()
+            if not isinstance(command_obj, CLICommand):
+                return FlextResult[object].fail("Invalid command type")
+            command = command_obj
         except (AttributeError, ValueError, TypeError) as e:
-            return FlextResult.fail(f"Failed to create command: {e}")
+            return FlextResult[object].fail(f"Failed to create command: {e}")
         else:
-            return FlextResult.ok(command)
+            return FlextResult[object].ok(command)
 
     def flext_cli_create_session(self, user_id: str | None = None) -> FlextResult[str]:
         """Create CLI session with real session tracking."""
@@ -578,9 +607,9 @@ class FlextCliApi:
 
             self._sessions[session_id] = session_data
         except (AttributeError, ValueError, TypeError, KeyError) as e:
-            return FlextResult.fail(f"Failed to create session: {e}")
+            return FlextResult[str].fail(f"Failed to create session: {e}")
         else:
-            return FlextResult.ok(session_id)
+            return FlextResult[str].ok(session_id)
 
     def flext_cli_register_handler(
         self,
@@ -595,16 +624,18 @@ class FlextCliApi:
 
             # Validate handler and register
             if not callable(handler):
-                return FlextResult.fail(f"Handler {name} is not callable")
+                return FlextResult[None].fail(f"Handler {name} is not callable")
 
             # Register the handler
             self._handlers[name] = handler
         except (AttributeError, ValueError, TypeError, KeyError) as e:
-            return FlextResult.fail(f"Failed to register handler {name}: {e}")
+            return FlextResult[None].fail(f"Failed to register handler {name}: {e}")
         else:
-            return FlextResult.ok(None)
+            return FlextResult[None].ok(None)
 
-    def flext_cli_register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
+    def flext_cli_register_plugin(
+        self, name: str, plugin: object
+    ) -> FlextResult[CLIPlugin | None]:
         """Register plugin with proper validation and storage."""
         try:
             # Initialize plugin registry if needed
@@ -615,35 +646,40 @@ class FlextCliApi:
             if isinstance(plugin, CLIPlugin):
                 validation_result = plugin.validate_business_rules()
                 if not validation_result.success:
-                    return FlextResult.fail(
+                    return FlextResult[CLIPlugin | None].fail(
                         f"Plugin validation failed: {validation_result.error}",
                     )
 
                 self._plugin_registry[name] = plugin
-                return FlextResult.ok(None)
+                return FlextResult[CLIPlugin | None].ok(None)
 
             # Otherwise, try to create a CLIPlugin from the object using direct instantiation
             try:
                 cli_plugin = CLIPlugin(
-                    id=FlextEntityId(str(uuid.uuid4())),
+                    id=str(uuid.uuid4()),
                     name=name,
                     entry_point=str(plugin) if plugin else f"plugin_{name}",
                 )
-                plugin_result = FlextResult.ok(cli_plugin)
+                plugin_result = FlextResult[CLIPlugin | None].ok(cli_plugin)
             except Exception as e:
-                plugin_result = FlextResult.fail(f"Failed to create plugin: {e}")
+                plugin_result = FlextResult[CLIPlugin | None].fail(
+                    f"Failed to create plugin: {e}"
+                )
 
             if plugin_result.is_failure:
-                return FlextResult.fail(
+                return FlextResult[CLIPlugin | None].fail(
                     f"Plugin creation failed: {plugin_result.error}",
                 )
 
             plugin_entity = plugin_result.unwrap()
-            self._plugin_registry[name] = plugin_entity
+            if plugin_entity is not None:
+                self._plugin_registry[name] = plugin_entity
         except (AttributeError, ValueError, TypeError, KeyError) as e:
-            return FlextResult.fail(f"Failed to register plugin {name}: {e}")
+            return FlextResult[CLIPlugin | None].fail(
+                f"Failed to register plugin {name}: {e}"
+            )
         else:
-            return FlextResult.ok(None)
+            return FlextResult[CLIPlugin | None].ok(None)
 
     def flext_cli_execute_handler(
         self,
@@ -655,11 +691,11 @@ class FlextCliApi:
         try:
             # Check if handlers registry exists
             if not hasattr(self, "_handlers"):
-                return FlextResult.fail("No handlers registry found")
+                return FlextResult[object].fail("No handlers registry found")
 
             # Check if handler exists
             if name not in self._handlers:
-                return FlextResult.fail(f"Handler '{name}' not found")
+                return FlextResult[object].fail(f"Handler '{name}' not found")
 
             handler = self._handlers[name]
 
@@ -668,22 +704,22 @@ class FlextCliApi:
             if callable(handler):
                 result = handler(*args, **kwargs)
             else:
-                return FlextResult.fail(f"Handler '{name}' is not callable")
+                return FlextResult[object].fail(f"Handler '{name}' is not callable")
         except (AttributeError, ValueError, TypeError, KeyError) as e:
-            return FlextResult.fail(f"Failed to execute handler '{name}': {e}")
+            return FlextResult[object].fail(f"Failed to execute handler '{name}': {e}")
         else:
-            return FlextResult.ok(result)
+            return FlextResult[object].ok(result)
 
     def flext_cli_render_with_context(
         self,
-        data: object,
+        data: FlextCliDataType,
         context: dict[str, object] | None = None,
     ) -> FlextResult[str]:
         """Render data with context using template substitution."""
         try:
             renderer = ContextRenderingStrategy(data, context)
         except (AttributeError, ValueError, TypeError) as e:
-            return FlextResult.fail(f"Failed to render with context: {e}")
+            return FlextResult[str].fail(f"Failed to render with context: {e}")
         else:
             return renderer.render()
 
@@ -722,9 +758,9 @@ class FlextCliApi:
 class ContextRenderingStrategy:
     """Strategy pattern for context-based rendering with SOLID principles."""
 
-    def __init__(self, data: object, context: dict[str, object] | None = None) -> None:
+    def __init__(self, data: FlextCliDataType, context: dict[str, object] | None = None) -> None:
         """Initialize rendering strategy."""
-        self.data = data
+        self.data: FlextCliDataType = data
         self.context = context or {}
 
     def render(self) -> FlextResult[str]:
@@ -745,21 +781,21 @@ class ContextRenderingStrategy:
         if isinstance(self.data, str):
             return self._render_string_template()
 
-        return FlextResult.fail("No template patterns found")
+        return FlextResult[str].fail("No template patterns found")
 
     def _render_dict_templates(self) -> FlextResult[str]:
         """Render templates in dictionary values."""
         if isinstance(self.data, dict):
             for value in self.data.values():
                 if self._is_template_string(value):
-                    return FlextResult.ok(self._substitute_template(str(value)))
-        return FlextResult.fail("No template patterns in dict")
+                    return FlextResult[str].ok(self._substitute_template(str(value)))
+        return FlextResult[str].fail("No template patterns in dict")
 
     def _render_string_template(self) -> FlextResult[str]:
         """Render string template directly."""
         if self._is_template_string(self.data):
-            return FlextResult.ok(self._substitute_template(str(self.data)))
-        return FlextResult.fail("Not a template string")
+            return FlextResult[str].ok(self._substitute_template(str(self.data)))
+        return FlextResult[str].fail("Not a template string")
 
     def _is_template_string(self, value: object) -> bool:
         """Check if value is a template string."""
@@ -784,7 +820,7 @@ class ContextRenderingStrategy:
         format_result = flext_cli_format(self.data, format_type)
         if format_result.success:
             rendered_output = format_result.unwrap()
-            return FlextResult.ok(self._apply_title_if_needed(rendered_output))
+            return FlextResult[str].ok(self._apply_title_if_needed(rendered_output))
         return format_result
 
     def _get_format_type(self) -> str:
@@ -845,26 +881,9 @@ class ContextRenderingStrategy:
 
     def flext_cli_get_plugins(self) -> dict[str, object]:
         """Get all registered plugins from the plugin registry."""
-        try:
-            # Return registered plugins if available
-            if hasattr(self, "_plugin_registry"):
-                return {
-                    name: {
-                        "name": plugin.name,
-                        "version": plugin.plugin_version,
-                        "status": "active" if plugin.enabled else "inactive",
-                        "commands": plugin.commands,
-                        "entry_point": plugin.entry_point,
-                        "dependencies": plugin.dependencies,
-                    }
-                    for name, plugin in self._plugin_registry.items()
-                }
-        except (ValueError, TypeError, KeyError, AttributeError):
-            # Return empty dict on error for consistency
-            return {}
-        else:
-            # No plugins registered yet
-            return {}
+        # This method is in ContextRenderingStrategy but should not access _plugin_registry
+        # Return empty dict as plugins are not handled by the rendering strategy
+        return {}
 
     def _convert_plugins_list_to_dict(self, plugins_list: object) -> dict[str, object]:
         """Convert plugins list to dictionary format.

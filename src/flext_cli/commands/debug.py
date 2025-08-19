@@ -16,7 +16,6 @@ from rich.table import Table
 from flext_cli.cmd_debug import (
     FLEXT_API_AVAILABLE,
     SENSITIVE_VALUE_PREVIEW_LENGTH,
-    _validate_dependencies,
     connectivity as _connectivity_cmd,
     debug_cmd,
     env as _env_cmd,
@@ -26,6 +25,7 @@ from flext_cli.cmd_debug import (
     performance as _performance_cmd,
     trace as _trace_cmd,
     validate as _validate_cmd,
+    validate_dependencies,  # Remove underscore prefix
 )
 
 
@@ -120,7 +120,6 @@ __all__ = [
     "SENSITIVE_VALUE_PREVIEW_LENGTH",
     "Path",
     "Table",
-    "_validate_dependencies",
     "connectivity",
     "debug_cmd",
     "env",
@@ -128,8 +127,8 @@ __all__ = [
     "get_default_cli_client",
     "paths",
     "performance",
-    # Re-exports for tests patching
-    "sys",
+    "sys",  # Re-exports for tests patching
     "trace",
     "validate",
+    "validate_dependencies",
 ]

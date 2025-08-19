@@ -13,6 +13,7 @@ import pytest
 from flext_core.constants import FlextConstants
 
 from flext_cli import CLIConfig, CLISettings, get_config, get_settings
+from flext_cli.config import CLIDirectoryConfig, CLIOutputConfig
 
 # Constants
 _API = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
@@ -31,8 +32,8 @@ class TestCLIConfig:
         if config.api_url != _API:
             raise AssertionError(f"Expected {_API}, got {config.api_url}")
         assert config.output_format == "table"
-        if config.timeout != 30:
-            raise AssertionError(f"Expected {30}, got {config.timeout}")
+        if config.command_timeout != 30:
+            raise AssertionError(f"Expected {30}, got {config.command_timeout}")
         assert config.profile == "default"
         if config.debug:
             raise AssertionError(f"Expected False, got {config.debug}")
@@ -46,8 +47,8 @@ class TestCLIConfig:
         if cli_config.api_url != _API:
             raise AssertionError(f"Expected {_API}, got {cli_config.api_url}")
         assert cli_config.output_format == "json"
-        if cli_config.timeout != 30:
-            raise AssertionError(f"Expected {30}, got {cli_config.timeout}")
+        if cli_config.command_timeout != 30:
+            raise AssertionError(f"Expected {30}, got {cli_config.command_timeout}")
         assert cli_config.profile == "test"
         if not (cli_config.debug):
             raise AssertionError(f"Expected True, got {cli_config.debug}")
@@ -63,13 +64,13 @@ class TestCLIConfig:
         expected_cache_dir = Path.home() / ".flext" / "cache"
         expected_log_dir = Path.home() / ".flext" / "logs"
 
-        if config.config_dir != expected_config_dir:
+        if config.directories.config_dir != expected_config_dir:
             raise AssertionError(
-                f"Expected {expected_config_dir}, got {config.config_dir}",
+                f"Expected {expected_config_dir}, got {config.directories.config_dir}",
             )
-        assert config.cache_dir == expected_cache_dir
-        if config.log_dir != expected_log_dir:
-            raise AssertionError(f"Expected {expected_log_dir}, got {config.log_dir}")
+        assert config.directories.cache_dir == expected_cache_dir
+        if config.directories.log_dir != expected_log_dir:
+            raise AssertionError(f"Expected {expected_log_dir}, got {config.directories.log_dir}")
 
     def test_config_custom_directories(self) -> None:
         """Test configuration with custom directories."""
@@ -78,30 +79,32 @@ class TestCLIConfig:
         custom_log_dir = Path("/custom/logs")
 
         config = CLIConfig(
-            config_dir=custom_config_dir,
-            cache_dir=custom_cache_dir,
-            log_dir=custom_log_dir,
+            directories=CLIDirectoryConfig(
+                config_dir=custom_config_dir,
+                cache_dir=custom_cache_dir,
+                log_dir=custom_log_dir,
+            )
         )
 
-        if config.config_dir != custom_config_dir:
+        if config.directories.config_dir != custom_config_dir:
             raise AssertionError(
-                f"Expected {custom_config_dir}, got {config.config_dir}",
+                f"Expected {custom_config_dir}, got {config.directories.config_dir}",
             )
-        assert config.cache_dir == custom_cache_dir
-        if config.log_dir != custom_log_dir:
-            raise AssertionError(f"Expected {custom_log_dir}, got {config.log_dir}")
+        assert config.directories.cache_dir == custom_cache_dir
+        if config.directories.log_dir != custom_log_dir:
+            raise AssertionError(f"Expected {custom_log_dir}, got {config.directories.log_dir}")
 
     def test_config_validation(self) -> None:
         """Test config field validation."""
         # Test valid timeout
-        config = CLIConfig(timeout=60)
-        if config.timeout != 60:
-            raise AssertionError(f"Expected {60}, got {config.timeout}")
+        config = CLIConfig(command_timeout=60)
+        if config.command_timeout != 60:
+            raise AssertionError(f"Expected {60}, got {config.command_timeout}")
 
         # Test valid output format
-        config = CLIConfig(output_format="json")
-        if config.output_format != "json":
-            raise AssertionError(f"Expected {'json'}, got {config.output_format}")
+        config = CLIConfig(output=CLIOutputConfig(format="json"))
+        if config.output.format != "json":
+            raise AssertionError(f"Expected {'json'}, got {config.output.format}")
 
     def test_config_field_constraints(self) -> None:
         """Test config field constraints."""

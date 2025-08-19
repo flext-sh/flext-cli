@@ -42,7 +42,7 @@ def _clear_tokens_bridge() -> FlextResult[None]:
     try:
         return clear_auth_tokens()
     except Exception as e:  # noqa: BLE001
-        return FlextResult.fail(str(e))
+        return FlextResult[None].fail(str(e))
 
 
 def _get_client_class() -> type[FlextApiClient]:
@@ -116,9 +116,9 @@ def save_auth_token(token: str) -> FlextResult[None]:
         token_path.write_text(token, encoding="utf-8")
         token_path.chmod(0o600)  # Read/write for owner only
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
     except (OSError, PermissionError, ValueError) as e:
-        return FlextResult.fail(
+        return FlextResult[None].fail(
             f"{FlextCliConstants.CliErrors.AUTH_TOKEN_SAVE_FAILED}: {e}",
         )
 
@@ -141,9 +141,9 @@ def save_refresh_token(refresh_token: str) -> FlextResult[None]:
         refresh_token_path.write_text(refresh_token, encoding="utf-8")
         refresh_token_path.chmod(0o600)  # Read/write for owner only
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
     except (OSError, PermissionError, ValueError) as e:
-        return FlextResult.fail(
+        return FlextResult[None].fail(
             f"{FlextCliConstants.CliErrors.AUTH_REFRESH_TOKEN_SAVE_FAILED}: {e}",
         )
 
@@ -201,9 +201,9 @@ def clear_auth_tokens() -> FlextResult[None]:
         if refresh_token_path.exists():
             refresh_token_path.unlink()
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
     except (OSError, PermissionError) as e:
-        return FlextResult.fail(
+        return FlextResult[None].fail(
             f"{FlextCliConstants.CliErrors.AUTH_TOKEN_CLEAR_FAILED}: {e}",
         )
 
@@ -372,7 +372,7 @@ async def _async_logout_impl(_ctx: click.Context, console: Console) -> None:
                     f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_LOGOUT_FAILED}: {logout_result.error}[/red]",
                 )
 
-            clear_result = FlextResult.ok(None)  # already cleared proactively
+            clear_result = FlextResult[None].ok(None)  # already cleared proactively
             if clear_result.is_success:
                 console.print(
                     f"[green]{FlextCliConstants.CliOutput.SUCCESS_CHECKMARK} {FlextCliConstants.CliMessages.SUCCESS_LOGOUT}[/green]",

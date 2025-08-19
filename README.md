@@ -560,10 +560,10 @@ def action(ctx: click.Context) -> FlextResult[None]:
         # Business logic here
         console.print("[green]Success![/green]")
         logger.info("New feature action completed successfully")
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
     except Exception as e:
         logger.error(f"New feature action failed: {e}")
-        return FlextResult.fail(f"Action failed: {e}")
+        return FlextResult[None].fail(f"Action failed: {e}")
 
 # Register in cli.py (add after line 102)
 from flext_cli.commands import new_feature

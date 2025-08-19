@@ -82,10 +82,10 @@ def save_auth_token(token: str) -> FlextResult[None]:
         try:
             token_path.chmod(0o600)
         except Exception as e:  # chmod may fail on some platforms
-            return FlextResult.fail(f"Failed to save auth token: {e}")
-        return FlextResult.ok(None)
+            return FlextResult[None].fail(f"Failed to save auth token: {e}")
+        return FlextResult[None].ok(None)
     except (OSError, PermissionError, ValueError) as e:
-        return FlextResult.fail(f"Failed to save auth token: {e}")
+        return FlextResult[None].fail(f"Failed to save auth token: {e}")
 
 
 def save_refresh_token(refresh_token: str) -> FlextResult[None]:
@@ -97,10 +97,10 @@ def save_refresh_token(refresh_token: str) -> FlextResult[None]:
         try:
             path.chmod(0o600)
         except Exception as e:
-            return FlextResult.fail(f"Failed to save refresh token: {e}")
-        return FlextResult.ok(None)
+            return FlextResult[None].fail(f"Failed to save refresh token: {e}")
+        return FlextResult[None].ok(None)
     except (OSError, PermissionError, ValueError) as e:
-        return FlextResult.fail(f"Failed to save refresh token: {e}")
+        return FlextResult[None].fail(f"Failed to save refresh token: {e}")
 
 
 def get_auth_token() -> str | None:
@@ -134,9 +134,9 @@ def clear_auth_tokens() -> FlextResult[None]:
             token_path.unlink()
         if refresh_path.exists():
             refresh_path.unlink()
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
     except (OSError, PermissionError) as e:
-        return FlextResult.fail(f"Failed to clear auth tokens: {e}")
+        return FlextResult[None].fail(f"Failed to clear auth tokens: {e}")
 
 
 def is_authenticated() -> bool:
