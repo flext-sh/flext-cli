@@ -7,6 +7,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+# Note: FlextCliService and FlextService are in the parent core.py file
+# They cannot be imported here due to circular import issues
+
 # Base patterns and context
 from flext_cli.core.base import CLIContext, handle_service_result
 

@@ -60,7 +60,7 @@ def demonstrate_basic_authentication() -> FlextResult[None]:
         console.print(f"   Token prefix: {demo_token[:20]}...")
     else:
         console.print(f"❌ Failed to save token: {save_result.error}")
-        return FlextResult.fail("Token save failed")
+        return FlextResult[None].fail("Token save failed")
 
     # 2. Retrieve authentication headers
     console.print("\n[green]2. Authorization Headers[/green]")
@@ -72,12 +72,13 @@ def demonstrate_basic_authentication() -> FlextResult[None]:
         console.print("   Headers structure:")
         for key, value in headers.items():
             # Mask sensitive values
-            display_value = value[:10] + "..." if len(str(value)) > 10 else value
+            max_display_length = 10
+            display_value = value[:max_display_length] + "..." if len(str(value)) > max_display_length else value
             console.print(f"     {key}: {display_value}")
     else:
         console.print(f"❌ Failed to get headers: {headers_result.error}")
 
-    return FlextResult.ok(None)
+    return FlextResult[None].ok(None)
 
 
 def demonstrate_api_authentication() -> FlextResult[None]:
@@ -107,9 +108,9 @@ def demonstrate_api_authentication() -> FlextResult[None]:
             console.print(f"❌ API request failed: {profile_result.error}")
 
     except Exception as e:
-        return FlextResult.fail(f"API authentication demo failed: {e}")
+        return FlextResult[None].fail(f"API authentication demo failed: {e}")
 
-    return FlextResult.ok(None)
+    return FlextResult[None].ok(None)
 
 
 @require_auth
@@ -129,9 +130,9 @@ def demonstrate_protected_operation() -> FlextResult[str]:
     if operation_result.success:
         result = operation_result.unwrap()
         console.print(f"✅ Protected operation completed: {result}")
-        return FlextResult.ok(result)
+        return FlextResult[None].ok(result)
     console.print(f"❌ Protected operation failed: {operation_result.error}")
-    return FlextResult.fail(operation_result.error)
+    return FlextResult[None].fail(operation_result.error)
 
 
 def demonstrate_role_based_access() -> FlextResult[None]:
@@ -184,7 +185,7 @@ def demonstrate_role_based_access() -> FlextResult[None]:
     else:
         console.print(f"❌ Permission denied: {check_result.error}")
 
-    return FlextResult.ok(None)
+    return FlextResult[None].ok(None)
 
 
 @cli_enhanced
@@ -226,7 +227,7 @@ def demonstrate_session_management() -> FlextResult[None]:
     else:
         console.print(f"❌ Session validation failed: {validity_result.error}")
 
-    return FlextResult.ok(None)
+    return FlextResult[None].ok(None)
 
 
 def demonstrate_secure_configuration() -> FlextResult[None]:
@@ -235,7 +236,7 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
     console.print("\n[green]7. Secure Configuration Management[/green]")
 
     # Get CLI configuration
-    config = get_cli_config()
+    get_cli_config()
     console.print("✅ CLI configuration loaded")
 
     # Demonstrate environment variable usage for sensitive data
@@ -269,10 +270,10 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
     console.print("   • Use secure storage for persistent tokens")
     console.print("   • Validate and sanitize all credential inputs")
 
-    return FlextResult.ok(None)
+    return FlextResult[None].ok(None)
 
 
-def simulate_authenticated_request(client: FlextApiClient, endpoint: str) -> FlextResult[dict[str, Any]]:
+def simulate_authenticated_request(_client: FlextApiClient, endpoint: str) -> FlextResult[dict[str, Any]]:
     """Simulate an authenticated API request."""
     try:
         # In a real implementation, this would make an actual HTTP request
@@ -302,10 +303,10 @@ def simulate_authenticated_request(client: FlextApiClient, endpoint: str) -> Fle
                 "timestamp": datetime.now(UTC).isoformat()
             }
 
-        return FlextResult.ok(response_data)
+        return FlextResult[None].ok(response_data)
 
     except Exception as e:
-        return FlextResult.fail(f"API request failed: {e}")
+        return FlextResult[None].fail(f"API request failed: {e}")
 
 
 def perform_protected_business_logic() -> FlextResult[str]:
@@ -322,10 +323,10 @@ def perform_protected_business_logic() -> FlextResult[str]:
         # For demo, just return a success message
         selected_operation = operations[0]  # Deploy operation
 
-        return FlextResult.ok(f"Successfully executed: {selected_operation}")
+        return FlextResult[None].ok(f"Successfully executed: {selected_operation}")
 
     except Exception as e:
-        return FlextResult.fail(f"Business operation failed: {e}")
+        return FlextResult[None].fail(f"Business operation failed: {e}")
 
 
 def check_permission(user_role: str, required_permission: str, roles_config: list[dict[str, Any]]) -> FlextResult[bool]:
@@ -339,15 +340,16 @@ def check_permission(user_role: str, required_permission: str, roles_config: lis
                 break
 
         if not role_config:
-            return FlextResult.fail(f"Role '{user_role}' not found")
+            return FlextResult[None].fail(f"Role '{user_role}' not found")
 
         # Check if role has required permission
         if required_permission in role_config["permissions"]:
-            return FlextResult.ok(True)
-        return FlextResult.fail(f"Role '{user_role}' lacks permission '{required_permission}'")
+            is_authorized = True
+            return FlextResult[None].ok(is_authorized)
+        return FlextResult[None].fail(f"Role '{user_role}' lacks permission '{required_permission}'")
 
     except Exception as e:
-        return FlextResult.fail(f"Permission check failed: {e}")
+        return FlextResult[None].fail(f"Permission check failed: {e}")
 
 
 def validate_session(session_data: dict[str, Any]) -> FlextResult[bool]:
@@ -357,20 +359,21 @@ def validate_session(session_data: dict[str, Any]) -> FlextResult[bool]:
         expires_at = session_data.get("expires_at")
 
         if not expires_at:
-            return FlextResult.fail("Session has no expiration time")
+            return FlextResult[None].fail("Session has no expiration time")
 
         if current_time > expires_at:
-            return FlextResult.fail("Session has expired")
+            return FlextResult[None].fail("Session has expired")
 
         # Check if session is too old (example: max 24 hours)
         created_at = session_data.get("created_at")
         if created_at and (current_time - created_at) > timedelta(days=1):
-            return FlextResult.fail("Session is too old")
+            return FlextResult[None].fail("Session is too old")
 
-        return FlextResult.ok(True)
+        is_valid = True
+        return FlextResult[None].ok(is_valid)
 
     except Exception as e:
-        return FlextResult.fail(f"Session validation error: {e}")
+        return FlextResult[None].fail(f"Session validation error: {e}")
 
 
 def refresh_session(session_data: dict[str, Any]) -> FlextResult[dict[str, Any]]:
@@ -386,10 +389,10 @@ def refresh_session(session_data: dict[str, Any]) -> FlextResult[dict[str, Any]]
             "refreshed_at": current_time
         })
 
-        return FlextResult.ok(refreshed_session)
+        return FlextResult[None].ok(refreshed_session)
 
     except Exception as e:
-        return FlextResult.fail(f"Session refresh failed: {e}")
+        return FlextResult[None].fail(f"Session refresh failed: {e}")
 
 
 def main() -> None:

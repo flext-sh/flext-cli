@@ -234,8 +234,8 @@ class CLIConfig(FlextBaseConfigModel):
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate simple invariants expected by tests."""
         if self.api.timeout <= 0 or self.command_timeout <= 0:
-            return FlextResult.fail("Invalid timeout values")
-        return FlextResult.ok(None)
+            return FlextResult[None].fail("Invalid timeout values")
+        return FlextResult[None].ok(None)
 
     # ------------------------------------------------------------------
     # Flat compatibility properties expected by tests

@@ -56,17 +56,17 @@ class MockFlextApiClient:
 
     async def test_connection(self) -> FlextResult[bool]:
         """Mock connection test - always succeeds."""
-        return FlextResult.ok(True)
+        return FlextResult[None].ok(True)
 
     async def get_system_status(self) -> FlextResult[dict[str, object]]:
         """Mock system status - returns healthy status."""
-        return FlextResult.ok(
+        return FlextResult[None].ok(
             {"version": "1.0.0", "status": "healthy", "uptime": "24h"},
         )
 
     async def list_services(self) -> FlextResult[list[dict[str, object]]]:
         """Mock service listing."""
-        return FlextResult.ok(
+        return FlextResult[None].ok(
             [
                 {
                     "name": "FlexCore",
@@ -89,7 +89,7 @@ class MockFlextApiClient:
         password: str,  # noqa: ARG002
     ) -> FlextResult[dict[str, object]]:
         """Mock login - always succeeds with valid token."""
-        return FlextResult.ok(
+        return FlextResult[None].ok(
             {
                 "access_token": "mock-token-12345",
                 "token_type": "bearer",
@@ -99,11 +99,11 @@ class MockFlextApiClient:
 
     async def logout(self) -> FlextResult[None]:
         """Mock logout - always succeeds."""
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     async def get_current_user(self) -> FlextResult[dict[str, object]]:
         """Mock user info."""
-        return FlextResult.ok(
+        return FlextResult[None].ok(
             {"id": "user123", "username": "testuser", "email": "test@example.com"},
         )
 
@@ -116,15 +116,15 @@ class MockFailingApiClient(MockFlextApiClient):
 
     async def test_connection(self) -> FlextResult[bool]:
         """Mock connection test - always fails."""
-        return FlextResult.fail("Connection failed")
+        return FlextResult[None].fail("Connection failed")
 
     async def get_system_status(self) -> FlextResult[dict[str, object]]:
         """Mock system status - fails."""
-        return FlextResult.fail("Status unavailable")
+        return FlextResult[None].fail("Status unavailable")
 
     async def list_services(self) -> FlextResult[list[dict[str, object]]]:
         """Mock service listing - fails."""
-        return FlextResult.fail("Service discovery failed")
+        return FlextResult[None].fail("Service discovery failed")
 
 
 def create_mock_api_client(**kwargs: object) -> MockFlextApiClient:
@@ -165,7 +165,7 @@ def mock_create_flext_api() -> object:
             f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}",
         )
         timeout_obj = config.get("timeout", 30.0)
-        return FlextResult.ok(
+        return FlextResult[None].ok(
             MockFlextApiClient(
                 base_url=str(base_url_obj) if base_url_obj is not None else None,
                 timeout=float(timeout_obj)

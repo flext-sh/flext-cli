@@ -80,7 +80,7 @@ def _get_all_config(cli_context: object) -> None:
     console.print(table)
 
 
-def _print_config_table(cli_context: object, config_data: dict[str, object]) -> None:
+def print_config_table(cli_context: object, config_data: dict[str, object]) -> None:
     """Helper: print given config dict as table."""
     console: Console = getattr(cli_context, "console", Console())
     table = Table(title=FlextCliConstants.CliMessages.LABEL_CONFIGURATION)

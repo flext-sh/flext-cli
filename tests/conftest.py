@@ -22,7 +22,7 @@ from flext_cli import (
     FlextConstants,
     create_cli_container,
 )
-from flext_cli.types import FlextCliCommandType, OutputFormat
+from flext_cli.cli_types import CommandType as FlextCliCommandType, OutputFormat
 from tests.test_mocks import (
     MockFailingApiClient,
     MockFlextApiClient,

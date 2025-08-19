@@ -218,7 +218,7 @@ class TestLibraryFunctionality:
 
         @flext_cli.handle_service_result
         def test_function() -> FlextResult[str]:
-            return FlextResult.ok("test result")
+            return FlextResult[None].ok("test result")
 
         result = test_function()
         if result != "test result":

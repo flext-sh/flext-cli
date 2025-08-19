@@ -268,7 +268,7 @@ class TestFlextCliUnwrapFunctions:
 
     def test_flext_cli_unwrap_or_default_success(self) -> None:
         """Test unwrap_or_default with successful result."""
-        success_result = FlextResult.ok("test_value")
+        success_result = FlextResult[None].ok("test_value")
         result = flext_cli_unwrap_or_default(success_result, "default_value")
         if result != "test_value":
             msg: str = f"Expected {'test_value'}, got {result}"
@@ -276,7 +276,7 @@ class TestFlextCliUnwrapFunctions:
 
     def test_flext_cli_unwrap_or_default_failure(self) -> None:
         """Test unwrap_or_default with failed result."""
-        failure_result = FlextResult.fail("error message")
+        failure_result = FlextResult[None].fail("error message")
         result = flext_cli_unwrap_or_default(failure_result, "default_value")
         if result != "default_value":
             msg: str = f"Expected {'default_value'}, got {result}"
@@ -288,7 +288,7 @@ class TestFlextCliUnwrapFunctions:
 
     def test_flext_cli_unwrap_or_none_success(self) -> None:
         """Test unwrap_or_none with successful result."""
-        success_result = FlextResult.ok("test_value")
+        success_result = FlextResult[None].ok("test_value")
         result = flext_cli_unwrap_or_none(success_result)
         if result != "test_value":
             msg: str = f"Expected {'test_value'}, got {result}"
@@ -296,19 +296,19 @@ class TestFlextCliUnwrapFunctions:
 
     def test_flext_cli_unwrap_or_none_failure(self) -> None:
         """Test unwrap_or_none with failed result."""
-        failure_result = FlextResult.fail("error message")
+        failure_result = FlextResult[None].fail("error message")
         result = flext_cli_unwrap_or_none(failure_result)
         assert result is None
 
     def test_flext_cli_unwrap_or_default_with_none(self) -> None:
         """Test unwrap_or_default with None default."""
-        failure_result = FlextResult.fail("error")
+        failure_result = FlextResult[None].fail("error")
         result = flext_cli_unwrap_or_default(failure_result, None)
         assert result is None
 
     def test_flext_cli_unwrap_or_default_with_complex_default(self) -> None:
         """Test unwrap_or_default with complex default value."""
-        failure_result = FlextResult.fail("error")
+        failure_result = FlextResult[None].fail("error")
         complex_default = {"key": "value", "list": [1, 2, 3]}
         result = flext_cli_unwrap_or_default(failure_result, complex_default)
         if result != complex_default:
@@ -373,8 +373,8 @@ class TestApiIntegration:
     def test_unwrap_workflow(self) -> None:
         """Test unwrap functions workflow."""
         # Create various results
-        success_result = FlextResult.ok("success_value")
-        failure_result = FlextResult.fail("error_message")
+        success_result = FlextResult[None].ok("success_value")
+        failure_result = FlextResult[None].fail("error_message")
 
         # Test unwrap_or_default
         success_unwrapped = flext_cli_unwrap_or_default(success_result, "default")

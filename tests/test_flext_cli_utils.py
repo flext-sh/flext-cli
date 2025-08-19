@@ -270,9 +270,9 @@ class TestFlextCliRequireAll:
         """Test successful multiple confirmations."""
         mock_helper = mock_helper_class.return_value
         mock_helper.flext_cli_confirm.side_effect = [
-            FlextResult.ok(True),
-            FlextResult.ok(True),
-            FlextResult.ok(True),
+            FlextResult[None].ok(True),
+            FlextResult[None].ok(True),
+            FlextResult[None].ok(True),
         ]
 
         confirmations = [
@@ -292,8 +292,8 @@ class TestFlextCliRequireAll:
         """Test multiple confirmations with user denial."""
         mock_helper = mock_helper_class.return_value
         mock_helper.flext_cli_confirm.side_effect = [
-            FlextResult.ok(True),
-            FlextResult.ok(False),  # User denies second confirmation
+            FlextResult[None].ok(True),
+            FlextResult[None].ok(False),  # User denies second confirmation
         ]
 
         confirmations = [
@@ -315,7 +315,7 @@ class TestFlextCliRequireAll:
     ) -> None:
         """Test multiple confirmations with confirmation failure."""
         mock_helper = mock_helper_class.return_value
-        mock_helper.flext_cli_confirm.return_value = FlextResult.fail(
+        mock_helper.flext_cli_confirm.return_value = FlextResult[None].fail(
             "Confirmation failed",
         )
 
@@ -551,9 +551,9 @@ class TestFlextCliBatchExecute:
     def test_batch_execute_success(self, mock_track: MagicMock) -> None:
         """Test successful batch execution."""
         operations = [
-            ("op1", lambda: FlextResult.ok("result1")),
-            ("op2", lambda: FlextResult.ok("result2")),
-            ("op3", lambda: FlextResult.ok("result3")),
+            ("op1", lambda: FlextResult[None].ok("result1")),
+            ("op2", lambda: FlextResult[None].ok("result2")),
+            ("op3", lambda: FlextResult[None].ok("result3")),
         ]
         mock_track.return_value = operations
 
@@ -570,9 +570,9 @@ class TestFlextCliBatchExecute:
     def test_batch_execute_with_failure_stop(self, mock_track: MagicMock) -> None:
         """Test batch execution with failure and stop_on_error=True."""
         operations = [
-            ("op1", lambda: FlextResult.ok("result1")),
-            ("op2", lambda: FlextResult.fail("operation failed")),
-            ("op3", lambda: FlextResult.ok("result3")),  # Should not execute
+            ("op1", lambda: FlextResult[None].ok("result1")),
+            ("op2", lambda: FlextResult[None].fail("operation failed")),
+            ("op3", lambda: FlextResult[None].ok("result3")),  # Should not execute
         ]
         mock_track.return_value = operations
 
@@ -585,9 +585,9 @@ class TestFlextCliBatchExecute:
     def test_batch_execute_with_failure_continue(self, mock_track: MagicMock) -> None:
         """Test batch execution with failure and stop_on_error=False."""
         operations = [
-            ("op1", lambda: FlextResult.ok("result1")),
-            ("op2", lambda: FlextResult.fail("operation failed")),
-            ("op3", lambda: FlextResult.ok("result3")),
+            ("op1", lambda: FlextResult[None].ok("result1")),
+            ("op2", lambda: FlextResult[None].fail("operation failed")),
+            ("op3", lambda: FlextResult[None].ok("result3")),
         ]
         mock_track.return_value = operations
 
@@ -609,7 +609,7 @@ class TestFlextCliBatchExecute:
             raise ValueError(msg)
 
         operations = [
-            ("op1", lambda: FlextResult.ok("result1")),
+            ("op1", lambda: FlextResult[None].ok("result1")),
             ("op2", failing_operation),
         ]
         mock_track.return_value = operations

@@ -67,17 +67,17 @@ class CLICommandService:
     ) -> FlextResult[object]:
         """Execute a CLI command."""
         if command_name not in self.commands:
-            return FlextResult.fail(f"Command '{command_name}' not found")
+            return FlextResult[object].fail(f"Command '{command_name}' not found")
         try:
             handler = self.commands[command_name]
             # Runtime callable guard
             if callable(handler):
                 result = handler(context, **kwargs)
             else:
-                return FlextResult.fail("Handler is not callable")
-            return result if isinstance(result, FlextResult) else FlextResult.ok(result)
+                return FlextResult[object].fail("Handler is not callable")
+            return result if isinstance(result, FlextResult) else FlextResult[None].ok(result)
         except Exception as e:
-            return FlextResult.fail(f"Command execution failed: {e}")
+            return FlextResult[object].fail(f"Command execution failed: {e}")
 
     def list_commands(self) -> list[str]:
         """List available commands."""
@@ -99,25 +99,25 @@ class CLISessionService:
             "created_at": None,  # Would use actual timestamp
             "active": True,
         }
-        return FlextResult.ok(session_id)
+        return FlextResult[str].ok(session_id)
 
     def get_session(self, session_id: str) -> FlextResult[dict[str, object]]:
         """Get session information."""
         if session_id not in self.sessions:
-            return FlextResult.fail(f"Session '{session_id}' not found")
+            return FlextResult[dict[str, object]].fail(f"Session '{session_id}' not found")
         # Enrich with commands_count to match tests
         data = dict(self.sessions[session_id])
         commands = data.get("commands", [])
         if isinstance(commands, list):
             data["commands_count"] = len(commands)
-        return FlextResult.ok(data)
+        return FlextResult[dict[str, object]].ok(data)
 
     def end_session(self, session_id: str) -> FlextResult[None]:
         """End a CLI session."""
         if session_id not in self.sessions:
-            return FlextResult.fail(f"Session '{session_id}' not found")
+            return FlextResult[None].fail(f"Session '{session_id}' not found")
         self.sessions[session_id]["active"] = False
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
 
 # Create default service instances

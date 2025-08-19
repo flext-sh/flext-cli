@@ -11,7 +11,7 @@ import json
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path  # noqa: TC003 - Used at runtime in Pydantic validators
-from typing import ClassVar
+from typing import ClassVar, override
 
 from flext_core import (
     FlextAggregateRoot,
@@ -54,6 +54,9 @@ class FlextCliCommandType(StrEnum):
     CONFIG = "config"
     AUTH = "auth"
     MONITORING = "monitoring"
+    CLI = "cli"
+    SCRIPT = "script"
+    SQL = "sql"
 
 
 # =============================================================================
@@ -220,43 +223,42 @@ class FlextCliContext(FlextValueObject):
         self,
         message: str,
     ) -> None:  # pragma: no cover - simple passthrough
-        if isinstance(self.console, Console):
-            self.console.print(f"[green][SUCCESS][/green] {message}")
+        self.console.print(f"[green][SUCCESS][/green] {message}")
 
     def print_error(
         self,
         message: str,
     ) -> None:  # pragma: no cover - simple passthrough
-        if isinstance(self.console, Console):
-            self.console.print(f"[red][ERROR][/red] {message}")
+        self.console.print(f"[red][ERROR][/red] {message}")
 
     def print_warning(
         self,
         message: str,
     ) -> None:  # pragma: no cover - simple passthrough
-        if isinstance(self.console, Console):
-            self.console.print(f"[yellow][WARNING][/yellow] {message}")
+        self.console.print(f"[yellow][WARNING][/yellow] {message}")
 
     def print_info(self, message: str) -> None:  # pragma: no cover - simple passthrough
-        if isinstance(self.console, Console) and not self.is_quiet:
+        if not self.is_quiet:
             self.console.print(f"[blue][INFO][/blue] {message}")
 
     def print_debug(
         self,
         message: str,
     ) -> None:  # pragma: no cover - simple passthrough
-        if self.is_debug and isinstance(self.console, Console):
+        if self.is_debug:
             self.console.print(f"[dim][DEBUG][/dim] {message}")
 
+    @override
+    @override
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI context business rules."""
         # Environment variables are already validated by type annotations (dict[str, str])
 
         # Timeout must be reasonable
         if self.timeout_seconds > MAX_TIMEOUT_SECONDS:
-            return FlextResult.fail(FlextCliConstants.CliErrors.TIME_TIMEOUT_EXCEEDED)
+            return FlextResult[None].fail(FlextCliConstants.CliErrors.TIME_TIMEOUT_EXCEEDED)
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
 
 FlextCliContext.model_rebuild()
@@ -319,19 +321,20 @@ class FlextCliOutput(FlextValueObject):
         """Check if command produced any output."""
         return bool(self.stdout.strip() or self.stderr.strip())
 
+    @override
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI output business rules."""
         # Exit code range validation
         if self.exit_code is not None and (
             self.exit_code < MIN_EXIT_CODE or self.exit_code > MAX_EXIT_CODE
         ):
-            return FlextResult.fail(FlextCliConstants.CliErrors.EXIT_CODE_INVALID)
+            return FlextResult[None].fail(FlextCliConstants.CliErrors.EXIT_CODE_INVALID)
 
         # Execution time validation
         if self.execution_time_seconds is not None and self.execution_time_seconds < 0:
-            return FlextResult.fail(FlextCliConstants.CliErrors.TIME_NEGATIVE)
+            return FlextResult[None].fail(FlextCliConstants.CliErrors.TIME_NEGATIVE)
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     def format_output(self) -> str:
         """Format output for display based on output format."""
@@ -434,27 +437,28 @@ class FlextCliConfiguration(FlextValueObject):
             raise ValueError(msg)
         return v
 
+    @override
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI configuration business rules."""
         # Validate paths if specified
         if self.config_file_path and not self.config_file_path.parent.exists():
-            return FlextResult.fail(
+            return FlextResult[None].fail(
                 f"Config file directory does not exist: {self.config_file_path.parent}",
             )
 
         if self.cache_directory and not self.cache_directory.parent.exists():
-            return FlextResult.fail(
+            return FlextResult[None].fail(
                 f"Cache directory parent does not exist: {self.cache_directory.parent}",
             )
 
         # Validate plugin directories exist
         for plugin_dir in self.plugin_directories:
             if not plugin_dir.exists():
-                return FlextResult.fail(
+                return FlextResult[None].fail(
                     f"Plugin directory does not exist: {plugin_dir}",
                 )
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     def is_feature_enabled(self, feature_name: str) -> bool:
         """Check if a feature is enabled."""
@@ -487,8 +491,8 @@ class FlextCliCommand(FlextEntity):
     # Allow unknown/convenience fields and id auto-generation
     model_config = ConfigDict(extra="allow")
     # Override id to allow default generation for testing convenience
-    id: FlextEntityId = Field(
-        default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex),
+    id: str = Field(
+        default_factory=lambda: __import__("uuid").uuid4().hex,
     )
     name: str | None = Field(default=None, description="Optional command name")
     description: str | None = Field(default=None, description="Optional description")
@@ -538,7 +542,7 @@ class FlextCliCommand(FlextEntity):
             return v
         try:
             # Accept strings or other StrEnum types
-            raw = v.value if hasattr(v, "value") else str(v)
+            raw = v.value if hasattr(v, "value") else str(v)  # type: ignore[attr-defined]
             return FlextCliCommandType(str(raw))
         except Exception as e:
             msg = f"Invalid command_type: {v}"
@@ -566,10 +570,11 @@ class FlextCliCommand(FlextEntity):
     def duration_seconds(self) -> float | None:  # pragma: no cover - alias
         return self.execution_duration
 
+    @override
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI command business rules."""
         if not self.command_line.strip():
-            return FlextResult.fail(FlextCliConstants.CliErrors.COMMAND_LINE_EMPTY)
+            return FlextResult[None].fail(FlextCliConstants.CliErrors.COMMAND_LINE_EMPTY)
 
         # Validate timestamps are in correct order
         if (
@@ -577,22 +582,22 @@ class FlextCliCommand(FlextEntity):
             and self.completed_at
             and self.completed_at < self.started_at
         ):
-            return FlextResult.fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.CliErrors.TIME_COMPLETION_BEFORE_START,
             )
 
         # Validate status transitions
         if self.command_status == FlextCliCommandStatus.RUNNING and not self.started_at:
-            return FlextResult.fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.CliErrors.STATE_RUNNING_MUST_HAVE_START,
             )
 
         if self.is_terminal_state and not self.completed_at:
-            return FlextResult.fail(
+            return FlextResult[None].fail(
                 "Terminal state commands must have completed_at timestamp",
             )
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     # Testing convenience helpers expected by tests
     @property
@@ -651,7 +656,7 @@ class FlextCliCommand(FlextEntity):
     def start_execution(self) -> FlextResult[FlextCliCommand]:
         """Start command execution with validation."""
         if self.command_status != FlextCliCommandStatus.PENDING:
-            return FlextResult.fail(
+            return FlextResult[FlextCliCommand].fail(
                 f"Cannot start command in {self.command_status} status",
             )
 
@@ -686,14 +691,14 @@ class FlextCliCommand(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(
+                return FlextResult[FlextCliCommand].fail(
                     updated_with_event.error or "Failed to append event",
                 )
             result = updated_with_event.unwrap()
         except Exception as e:
-            return FlextResult.fail(f"Failed to add domain event: {e}")
+            return FlextResult[FlextCliCommand].fail(f"Failed to add domain event: {e}")
 
-        return FlextResult.ok(result)
+        return FlextResult[FlextCliCommand].ok(result)
 
     # Testing convenience status helpers
 
@@ -733,8 +738,8 @@ class FlextCliCommand(FlextEntity):
 
         updated_command = self.copy_with(
             command_status=final_status,
-            output=stdout,
-            stderr=stderr,
+            output=stdout or "",
+            stderr=stderr or "",
             exit_code=exit_code,
             completed_at=now,
             process_id=None,  # Clear process ID
@@ -758,19 +763,19 @@ class FlextCliCommand(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(
+                return FlextResult[FlextCliCommand].fail(
                     updated_with_event.error or "Failed to append event",
                 )
             result = updated_with_event.unwrap()
         except Exception as e:
-            return FlextResult.fail(f"Failed to add domain event: {e}")
+            return FlextResult[FlextCliCommand].fail(f"Failed to add domain event: {e}")
 
-        return FlextResult.ok(result)
+        return FlextResult[FlextCliCommand].ok(result)
 
     def cancel_execution(self) -> FlextResult[FlextCliCommand]:
         """Cancel running command execution."""
         if self.command_status != FlextCliCommandStatus.RUNNING:
-            return FlextResult.fail(
+            return FlextResult[FlextCliCommand].fail(
                 FlextCliConstants.CliErrors.STATE_ONLY_CANCEL_RUNNING,
             )
 
@@ -794,14 +799,14 @@ class FlextCliCommand(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(
+                return FlextResult[FlextCliCommand].fail(
                     updated_with_event.error or "Failed to append event",
                 )
             result = updated_with_event.unwrap()
         except Exception as e:
-            return FlextResult.fail(f"Failed to add domain event: {e}")
+            return FlextResult[FlextCliCommand].fail(f"Failed to add domain event: {e}")
 
-        return FlextResult.ok(result)
+        return FlextResult[FlextCliCommand].ok(result)
 
     @property
     def command_status(self) -> CommandStatus:
@@ -859,8 +864,8 @@ class FlextCliSession(FlextEntity):
     # Allow unknown convenience fields and provide default id
     model_config = ConfigDict(extra="allow")
     # Provide default id for testing convenience that omit it
-    id: FlextEntityId = Field(
-        default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex),
+    id: str = Field(
+        default_factory=lambda: __import__("uuid").uuid4().hex,
     )
     user_id: str | None = Field(
         default=None,
@@ -942,16 +947,17 @@ class FlextCliSession(FlextEntity):
         delta = end_time - self.started_at
         return delta.total_seconds()
 
+    @override
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI session business rules."""
         # user_id may be empty for some testing convenience - treat as acceptable
 
         # Validate timestamps
         if self.ended_at and self.ended_at < self.started_at:
-            return FlextResult.fail(FlextCliConstants.CliErrors.TIME_END_BEFORE_START)
+            return FlextResult[None].fail(FlextCliConstants.CliErrors.TIME_END_BEFORE_START)
 
         if self.last_activity_at < self.started_at:
-            return FlextResult.fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.CliErrors.TIME_ACTIVITY_BEFORE_START,
             )
 
@@ -960,16 +966,16 @@ class FlextCliSession(FlextEntity):
             self.current_command_id
             and self.current_command_id not in self.command_history
         ):
-            return FlextResult.fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.CliErrors.STATE_COMMAND_NOT_IN_HISTORY,
             )
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     def add_command(self, command_id: FlextEntityId) -> FlextResult[FlextCliSession]:
         """Add command to session history."""
         if not self.is_active:
-            return FlextResult.fail(FlextCliConstants.CliErrors.SESSION_INACTIVE)
+            return FlextResult[FlextCliSession].fail(FlextCliConstants.CliErrors.SESSION_INACTIVE)
 
         now = _now_utc()
         new_history = [*self.command_history, command_id]
@@ -995,14 +1001,14 @@ class FlextCliSession(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(
+                return FlextResult[FlextCliSession].fail(
                     updated_with_event.error or "Failed to append event",
                 )
             result = updated_with_event.unwrap()
         except Exception as e:
-            return FlextResult.fail(f"Failed to add domain event: {e}")
+            return FlextResult[FlextCliSession].fail(f"Failed to add domain event: {e}")
 
-        return FlextResult.ok(result)
+        return FlextResult[FlextCliSession].ok(result)
 
     # Testing convenience: tests expect a simple append API and an exposed list `commands_executed`
     @property
@@ -1039,7 +1045,7 @@ class FlextCliSession(FlextEntity):
     def suspend_session(self) -> FlextResult[FlextCliSession]:
         """Suspend the session."""
         if not self.is_active:
-            return FlextResult.fail(
+            return FlextResult[FlextCliSession].fail(
                 FlextCliConstants.CliErrors.STATE_ONLY_SUSPEND_ACTIVE,
             )
 
@@ -1064,19 +1070,19 @@ class FlextCliSession(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(
+                return FlextResult[FlextCliSession].fail(
                     updated_with_event.error or "Failed to append event",
                 )
             result = updated_with_event.unwrap()
         except Exception as e:
-            return FlextResult.fail(f"Failed to add domain event: {e}")
+            return FlextResult[FlextCliSession].fail(f"Failed to add domain event: {e}")
 
-        return FlextResult.ok(result)
+        return FlextResult[FlextCliSession].ok(result)
 
     def resume_session(self) -> FlextResult[FlextCliSession]:
         """Resume suspended session."""
         if self.state != FlextCliSessionState.SUSPENDED:
-            return FlextResult.fail(
+            return FlextResult[FlextCliSession].fail(
                 FlextCliConstants.CliErrors.STATE_ONLY_RESUME_SUSPENDED,
             )
 
@@ -1100,19 +1106,19 @@ class FlextCliSession(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(
+                return FlextResult[FlextCliSession].fail(
                     updated_with_event.error or "Failed to append event",
                 )
             result = updated_with_event.unwrap()
         except Exception as e:
-            return FlextResult.fail(f"Failed to add domain event: {e}")
+            return FlextResult[FlextCliSession].fail(f"Failed to add domain event: {e}")
 
-        return FlextResult.ok(result)
+        return FlextResult[FlextCliSession].ok(result)
 
     def terminate_session(self) -> FlextResult[FlextCliSession]:
         """Terminate the session."""
         if self.state == FlextCliSessionState.TERMINATED:
-            return FlextResult.fail(
+            return FlextResult[FlextCliSession].fail(
                 FlextCliConstants.CliErrors.SESSION_ALREADY_TERMINATED,
             )
 
@@ -1140,14 +1146,14 @@ class FlextCliSession(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(
+                return FlextResult[FlextCliSession].fail(
                     updated_with_event.error or "Failed to append event",
                 )
             result = updated_with_event.unwrap()
         except Exception as e:
-            return FlextResult.fail(f"Failed to add domain event: {e}")
+            return FlextResult[FlextCliSession].fail(f"Failed to add domain event: {e}")
 
-        return FlextResult.ok(result)
+        return FlextResult[FlextCliSession].ok(result)
 
     # Testing convenience boolean end_session API expected by tests
     def end_session(self) -> FlextResult[FlextCliSession]:
@@ -1178,8 +1184,8 @@ class FlextCliPlugin(FlextEntity):
     # Allow unknown convenience fields and provide default id
     model_config = ConfigDict(extra="allow")
     # Provide default id for testing convenience that omit it
-    id: FlextEntityId = Field(
-        default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex),
+    id: str = Field(
+        default_factory=lambda: __import__("uuid").uuid4().hex,
     )
     name: str = Field(
         ...,
@@ -1286,24 +1292,33 @@ class FlextCliPlugin(FlextEntity):
         self,
     ) -> FlextResult[FlextCliPlugin]:  # pragma: no cover - simple wrapper
         """Disable the plugin by setting enabled=False."""
-        return self.copy_with(enabled=False)
+        result = self.copy_with(enabled=False)
+        if result.is_success:
+            return FlextResult[FlextCliPlugin].ok(result.unwrap())  # type: ignore[type-var]
+        return FlextResult[FlextCliPlugin].fail(result.error or "Disable failed")
 
     def enable(
         self,
     ) -> FlextResult[FlextCliPlugin]:  # pragma: no cover - simple wrapper
         """Enable the plugin by setting enabled=True."""
-        return self.copy_with(enabled=True)
+        result = self.copy_with(enabled=True)
+        if result.is_success:
+            return FlextResult[FlextCliPlugin].ok(result.unwrap())  # type: ignore[type-var]
+        return FlextResult[FlextCliPlugin].fail(result.error or "Enable failed")
 
     def uninstall(
         self,
     ) -> FlextResult[FlextCliPlugin]:  # pragma: no cover - simple wrapper
         """Uninstall the plugin by setting state to UNLOADED and enabled=False."""
-        return self.copy_with(
+        result = self.copy_with(
             state=FlextCliPluginState.UNLOADED,
             enabled=False,
             loaded_at=None,
             last_error=None,
         )
+        if result.is_success:
+            return FlextResult[FlextCliPlugin].ok(result.unwrap())  # type: ignore[type-var]
+        return FlextResult[FlextCliPlugin].fail(result.error or "Uninstall failed")
 
     @field_validator("entry_point")
     @classmethod
@@ -1322,34 +1337,34 @@ class FlextCliPlugin(FlextEntity):
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI plugin business rules."""
         if not self.name.strip():
-            return FlextResult.fail(FlextCliConstants.CliErrors.PLUGIN_NAME_EMPTY)
+            return FlextResult[None].fail(FlextCliConstants.CliErrors.PLUGIN_NAME_EMPTY)
 
         if not self.entry_point.strip():
-            return FlextResult.fail(
+            return FlextResult[None].fail(
                 FlextCliConstants.CliErrors.PLUGIN_ENTRY_POINT_EMPTY,
             )
 
         # Validate plugin directory exists if specified
         if self.plugin_directory and not self.plugin_directory.exists():
-            return FlextResult.fail(
+            return FlextResult[None].fail(
                 f"Plugin directory does not exist: {self.plugin_directory}",
             )
 
         # Validate state transitions
         if self.state == FlextCliPluginState.ACTIVE and not self.loaded_at:
-            return FlextResult.fail(FlextCliConstants.CliErrors.PLUGIN_MUST_BE_ACTIVE)
+            return FlextResult[None].fail(FlextCliConstants.CliErrors.PLUGIN_MUST_BE_ACTIVE)
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     def load_plugin(self) -> FlextResult[FlextCliPlugin]:
         """Load the plugin."""
         if self.state != FlextCliPluginState.UNLOADED:
-            return FlextResult.fail(f"Cannot load plugin in {self.state} state")
+            return FlextResult[FlextCliPlugin].fail(f"Cannot load plugin in {self.state} state")
 
         # Set loading state first
         loading_result = self.copy_with(state=FlextCliPluginState.LOADING)
         if loading_result.is_failure:
-            return loading_result
+            return FlextResult[FlextCliPlugin].fail(loading_result.error or "Loading failed")
 
         try:
             # Plugin loading logic would go here
@@ -1361,6 +1376,8 @@ class FlextCliPlugin(FlextEntity):
                 last_error=None,
             )
 
+            if loaded_plugin.is_failure:
+                return FlextResult[FlextCliPlugin].fail(loaded_plugin.error or "Plugin loading failed")
             result = loaded_plugin.unwrap()
 
             # Add domain event using FlextEventList and copy_with
@@ -1375,20 +1392,23 @@ class FlextCliPlugin(FlextEntity):
                 )
                 updated_with_event = result.copy_with(domain_events=new_events)
                 if updated_with_event.is_failure:
-                    return FlextResult.fail(
+                    return FlextResult[FlextCliPlugin].fail(
                         updated_with_event.error or "Failed to append event",
                     )
                 result = updated_with_event.unwrap()
             except Exception as e:
-                return FlextResult.fail(f"Failed to add domain event: {e}")
-            return FlextResult.ok(result)
+                return FlextResult[FlextCliPlugin].fail(f"Failed to add domain event: {e}")
+            return FlextResult[FlextCliPlugin].ok(result)
 
         except Exception as e:
             # Handle loading error
-            return loading_result.unwrap().copy_with(
+            error_result = loading_result.unwrap().copy_with(
                 state=FlextCliPluginState.ERROR,
                 last_error=str(e),
             )
+            if error_result.is_success:
+                return FlextResult[FlextCliPlugin].ok(error_result.unwrap())  # type: ignore[type-var]
+            return FlextResult[FlextCliPlugin].fail(error_result.error or "Error handling failed")
 
     def activate_plugin(self) -> FlextResult[FlextCliPlugin]:
         """Activate the plugin, allowing activation from UNLOADED or LOADED."""
@@ -1402,13 +1422,15 @@ class FlextCliPlugin(FlextEntity):
                 last_error=None,
             )
             if load_step.is_failure:
-                return load_step
+                return FlextResult[FlextCliPlugin].fail(load_step.error or "Load failed")
             current = load_step.unwrap()
 
         if current.state != FlextCliPluginState.LOADED:
-            return FlextResult.fail(f"Cannot activate plugin in {current.state} state")
+            return FlextResult[FlextCliPlugin].fail(f"Cannot activate plugin in {current.state} state")
 
         updated_plugin = current.copy_with(state=FlextCliPluginState.ACTIVE)
+        if updated_plugin.is_failure:
+            return FlextResult[FlextCliPlugin].fail(updated_plugin.error or "Activation failed")
         result = updated_plugin.unwrap()
 
         # Add domain event using FlextEventList and copy_with
@@ -1424,19 +1446,19 @@ class FlextCliPlugin(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(
+                return FlextResult[FlextCliPlugin].fail(
                     updated_with_event.error or "Failed to append event",
                 )
             result = updated_with_event.unwrap()
         except Exception as e:
-            return FlextResult.fail(f"Failed to add domain event: {e}")
+            return FlextResult[FlextCliPlugin].fail(f"Failed to add domain event: {e}")
 
-        return FlextResult.ok(result)
+        return FlextResult[FlextCliPlugin].ok(result)
 
     def deactivate_plugin(self) -> FlextResult[FlextCliPlugin]:
         """Deactivate the plugin to the INACTIVE (UNLOADED) state."""
         if self.state != FlextCliPluginState.ACTIVE:
-            return FlextResult.fail(f"Cannot deactivate plugin in {self.state} state")
+            return FlextResult[FlextCliPlugin].fail(f"Cannot deactivate plugin in {self.state} state")
 
         updated_plugin = self.copy_with(
             state=FlextCliPluginState.UNLOADED,
@@ -1456,19 +1478,19 @@ class FlextCliPlugin(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(
+                return FlextResult[FlextCliPlugin].fail(
                     updated_with_event.error or "Failed to append event",
                 )
             result = updated_with_event.unwrap()
         except Exception as e:
-            return FlextResult.fail(f"Failed to add domain event: {e}")
+            return FlextResult[FlextCliPlugin].fail(f"Failed to add domain event: {e}")
 
-        return FlextResult.ok(result)
+        return FlextResult[FlextCliPlugin].ok(result)
 
     def unload_plugin(self) -> FlextResult[FlextCliPlugin]:
         """Unload the plugin."""
         if self.state == FlextCliPluginState.UNLOADED:
-            return FlextResult.fail(FlextCliConstants.CliErrors.PLUGIN_UNLOADED)
+            return FlextResult[FlextCliPlugin].fail(FlextCliConstants.CliErrors.PLUGIN_UNLOADED)
 
         # Deactivate first if active
         if self.state == FlextCliPluginState.ACTIVE:
@@ -1498,14 +1520,14 @@ class FlextCliPlugin(FlextEntity):
             )
             updated_with_event = result.copy_with(domain_events=new_events)
             if updated_with_event.is_failure:
-                return FlextResult.fail(
+                return FlextResult[FlextCliPlugin].fail(
                     updated_with_event.error or "Failed to append event",
                 )
             result = updated_with_event.unwrap()
         except Exception as e:
-            return FlextResult.fail(f"Failed to add domain event: {e}")
+            return FlextResult[FlextCliPlugin].fail(f"Failed to add domain event: {e}")
 
-        return FlextResult.ok(result)
+        return FlextResult[FlextCliPlugin].ok(result)
 
 
 # =============================================================================
@@ -1551,21 +1573,22 @@ class FlextCliWorkspace(FlextAggregateRoot):
         description="Workspace-specific data storage",
     )
 
+    @override
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI workspace business rules."""
         if not self.name.strip():
-            return FlextResult.fail(FlextCliConstants.CliErrors.WORKSPACE_NAME_EMPTY)
+            return FlextResult[None].fail(FlextCliConstants.CliErrors.WORKSPACE_NAME_EMPTY)
 
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     def add_session(self, session_id: FlextEntityId) -> FlextResult[FlextCliWorkspace]:
         """Add session to workspace."""
         validation_result = self.validate_business_rules()
         if validation_result.is_failure:
-            return FlextResult.fail(validation_result.error or "Validation failed")
+            return FlextResult[FlextCliWorkspace].fail(validation_result.error or "Validation failed")
 
         if session_id in self.session_ids:
-            return FlextResult.fail(FlextCliConstants.CliErrors.SESSION_ALREADY_EXISTS)
+            return FlextResult[FlextCliWorkspace].fail(FlextCliConstants.CliErrors.SESSION_ALREADY_EXISTS)
 
         new_session_ids = [*self.session_ids, session_id]
         updated_workspace = self.copy_with(session_ids=new_session_ids)
@@ -1584,9 +1607,9 @@ class FlextCliWorkspace(FlextAggregateRoot):
         )
 
         if event_result.is_failure:
-            return FlextResult.fail(f"Failed to add domain event: {event_result.error}")
+            return FlextResult[FlextCliWorkspace].fail(f"Failed to add domain event: {event_result.error}")
 
-        return FlextResult.ok(result)
+        return FlextResult[FlextCliWorkspace].ok(result)
 
     def remove_session(
         self,
@@ -1594,7 +1617,7 @@ class FlextCliWorkspace(FlextAggregateRoot):
     ) -> FlextResult[FlextCliWorkspace]:
         """Remove session from workspace."""
         if session_id not in self.session_ids:
-            return FlextResult.fail(FlextCliConstants.CliErrors.SESSION_NOT_FOUND)
+            return FlextResult[FlextCliWorkspace].fail(FlextCliConstants.CliErrors.SESSION_NOT_FOUND)
 
         new_session_ids = [sid for sid in self.session_ids if sid != session_id]
         updated_workspace = self.copy_with(session_ids=new_session_ids)
@@ -1613,9 +1636,9 @@ class FlextCliWorkspace(FlextAggregateRoot):
         )
 
         if event_result.is_failure:
-            return FlextResult.fail(f"Failed to add domain event: {event_result.error}")
+            return FlextResult[FlextCliWorkspace].fail(f"Failed to add domain event: {event_result.error}")
 
-        return FlextResult.ok(result)
+        return FlextResult[FlextCliWorkspace].ok(result)
 
     def install_plugin(
         self,
@@ -1623,7 +1646,7 @@ class FlextCliWorkspace(FlextAggregateRoot):
     ) -> FlextResult[FlextCliWorkspace]:
         """Install plugin in workspace."""
         if plugin_id in self.plugin_ids:
-            return FlextResult.fail(
+            return FlextResult[FlextCliWorkspace].fail(
                 FlextCliConstants.CliErrors.PLUGIN_ALREADY_INSTALLED,
             )
 
@@ -1644,9 +1667,9 @@ class FlextCliWorkspace(FlextAggregateRoot):
         )
 
         if event_result.is_failure:
-            return FlextResult.fail(f"Failed to add domain event: {event_result.error}")
+            return FlextResult[FlextCliWorkspace].fail(f"Failed to add domain event: {event_result.error}")
 
-        return FlextResult.ok(result)
+        return FlextResult[FlextCliWorkspace].ok(result)
 
 
 FlextCliOutput.model_rebuild()

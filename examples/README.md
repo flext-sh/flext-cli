@@ -256,7 +256,7 @@ def command(count, url, input_file, output_dir, new_file):
 async def advanced_command():
     """Command with full decorator stack."""
     # Implementation using FlextResult patterns
-    return FlextResult.ok("Operation completed successfully")
+    return FlextResult[None].ok("Operation completed successfully")
 ```
 
 ### **Helper Utilities**

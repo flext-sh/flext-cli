@@ -48,13 +48,13 @@ class FlextCliHelper:
         try:
             # In quiet mode, never prompt; return default directly
             if self.quiet:
-                return FlextResult.ok(bool(default))
+                return FlextResult[bool].ok(bool(default))
             confirmed = Confirm.ask(message, default=default)
-            return FlextResult.ok(bool(confirmed))
+            return FlextResult[bool].ok(bool(confirmed))
         except KeyboardInterrupt as e:
-            return FlextResult.fail(f"User interrupted confirmation: {e}")
+            return FlextResult[bool].fail(f"User interrupted confirmation: {e}")
         except Exception as e:
-            return FlextResult.fail(f"Confirmation failed: {e}")
+            return FlextResult[bool].fail(f"Confirmation failed: {e}")
 
     def confirm(self, message: str, *, default: bool = False) -> bool:
         """Ask for confirmation and return a boolean."""
@@ -75,14 +75,14 @@ class FlextCliHelper:
             value = Prompt.ask(message, default=default, password=password)
             text = str(value)
             if text == "" and default is not None:
-                return FlextResult.ok(default)
+                return FlextResult[str].ok(default)
             if text == "":
-                return FlextResult.fail("Empty input")
-            return FlextResult.ok(text)
+                return FlextResult[str].fail("Empty input")
+            return FlextResult[str].ok(text)
         except KeyboardInterrupt as e:
-            return FlextResult.fail(f"User interrupted prompt: {e}")
+            return FlextResult[str].fail(f"User interrupted prompt: {e}")
         except Exception as e:
-            return FlextResult.fail(f"Prompt failed: {e}")
+            return FlextResult[str].fail(f"Prompt failed: {e}")
 
     def prompt(
         self,
@@ -100,16 +100,16 @@ class FlextCliHelper:
     def flext_cli_validate_email(self, email: str | None) -> FlextResult[str]:
         """Validate an email address."""
         if email is None:
-            return FlextResult.fail("Email cannot be empty")
+            return FlextResult[str].fail("Email cannot be empty")
         value = email.strip()
         if value == "":
-            return FlextResult.fail("Email cannot be empty")
+            return FlextResult[str].fail("Email cannot be empty")
         if "@" not in value or value.startswith("@") or value.endswith("@"):
-            return FlextResult.fail("Invalid email format")
+            return FlextResult[str].fail("Invalid email format")
         local, _, domain = value.partition("@")
         if local == "" or domain == "" or "." not in domain:
-            return FlextResult.fail("Invalid email format")
-        return FlextResult.ok(value)
+            return FlextResult[str].fail("Invalid email format")
+        return FlextResult[str].ok(value)
 
     def validate_email(self, email: object) -> bool:
         """Validate an email and return a boolean."""
@@ -120,14 +120,14 @@ class FlextCliHelper:
     def flext_cli_validate_url(self, url: str | None) -> FlextResult[str]:
         """Validate a URL."""
         if url is None:
-            return FlextResult.fail("Invalid URL format")
+            return FlextResult[str].fail("Invalid URL format")
         value = url.strip()
         if (
             value.startswith(("http://", "https://", "ftp://"))
             and len(value.split("://", 1)[-1]) > 0
         ):
-            return FlextResult.ok(value)
-        return FlextResult.fail("Invalid URL format")
+            return FlextResult[str].ok(value)
+        return FlextResult[str].fail("Invalid URL format")
 
     def validate_url(self, url: object) -> bool:
         """Validate a URL and return a boolean."""
@@ -145,18 +145,18 @@ class FlextCliHelper:
     ) -> FlextResult[Path]:
         """Validate a filesystem path."""
         if path is None:
-            return FlextResult.fail("Path cannot be empty")
+            return FlextResult[Path].fail("Path cannot be empty")
         value = path.strip()
         if value == "":
-            return FlextResult.fail("Path cannot be empty")
+            return FlextResult[Path].fail("Path cannot be empty")
         p = Path(value)
         if must_exist and not p.exists():
-            return FlextResult.fail("Path does not exist")
+            return FlextResult[Path].fail("Path does not exist")
         if must_be_file and p.exists() and not p.is_file():
-            return FlextResult.fail("Path must be a file")
+            return FlextResult[Path].fail("Path must be a file")
         if must_be_dir and p.exists() and not p.is_dir():
-            return FlextResult.fail("Path must be a directory")
-        return FlextResult.ok(p)
+            return FlextResult[Path].fail("Path must be a directory")
+        return FlextResult[Path].ok(p)
 
     def validate_path(self, path: object, *, must_exist: bool = True) -> bool:
         """Validate a path and return a boolean."""
@@ -172,7 +172,7 @@ class FlextCliHelper:
         """Sanitize a filename for cross-platform compatibility."""
         value = name.strip()
         if value == "":
-            return FlextResult.fail("Filename cannot be empty")
+            return FlextResult[str].fail("Filename cannot be empty")
         # Replace illegal characters
         illegal = '<>:"/\\|?*'
         sanitized = "".join("_" if ch in illegal else ch for ch in value)
@@ -183,13 +183,13 @@ class FlextCliHelper:
         while sanitized.endswith("."):
             sanitized = sanitized[:-1]
         if sanitized == "":
-            return FlextResult.fail("Filename cannot be empty")
+            return FlextResult[str].fail("Filename cannot be empty")
         # Enforce maximum length (common 255 limit)
         if len(sanitized) > MAX_FILENAME_LENGTH:
             base, ext = ([*sanitized.rsplit(".", 1), ""])[:2]
             keep = MAX_FILENAME_LENGTH - (len(ext) + (1 if ext else 0))
             sanitized = (base[:keep]) + ("." + ext if ext else "")
-        return FlextResult.ok(sanitized)
+        return FlextResult[str].ok(sanitized)
 
     def sanitize_filename(self, name: str) -> str:
         """Sanitize a filename."""
@@ -252,7 +252,7 @@ class FlextCliHelper:
     ) -> FlextResult[Table]:
         """Create a Rich table from a list of dicts or objects."""
         if not data:
-            return FlextResult.fail("No data provided for table")
+            return FlextResult[Table].fail("No data provided for table")
         table = Table(title=title)
         first = data[0]
         if isinstance(first, dict):
@@ -269,7 +269,7 @@ class FlextCliHelper:
             table.add_column("value")
             for item in data:
                 table.add_row(str(item))
-        return FlextResult.ok(table)
+        return FlextResult[Table].ok(table)
 
     def flext_cli_execute_command(
         self,
@@ -280,7 +280,7 @@ class FlextCliHelper:
         """Execute a shell command and capture output safely."""
         cmd = command.strip()
         if cmd == "":
-            return FlextResult.fail("Command cannot be empty")
+            return FlextResult[dict[str, object]].fail("Command cannot be empty")
         try:
             # SECURITY: Using shlex.split to prevent shell injection if `cmd` comes from untrusted input.
             # Execute via asyncio subprocess to comply with security guidelines.
@@ -317,11 +317,11 @@ class FlextCliHelper:
                 }
 
             result = asyncio.run(_run())
-            return FlextResult.ok(result)
+            return FlextResult[dict[str, object]].ok(result)
         except TimeoutError as e:
-            return FlextResult.fail(str(e))
+            return FlextResult[dict[str, object]].fail(str(e))
         except Exception as e:
-            return FlextResult.fail(str(e))
+            return FlextResult[dict[str, object]].fail(str(e))
 
     def flext_cli_load_json_file(
         self,
@@ -331,14 +331,14 @@ class FlextCliHelper:
         try:
             p = Path(file_path)
             if not p.exists():
-                return FlextResult.fail("File not found")
+                return FlextResult[dict[str, object]].fail("File not found")
             with p.open(encoding="utf-8") as f:
                 data = json.load(f)
             if not isinstance(data, dict):
-                return FlextResult.fail("JSON root must be an object")
-            return FlextResult.ok(data)
+                return FlextResult[dict[str, object]].fail("JSON root must be an object")
+            return FlextResult[dict[str, object]].ok(data)
         except Exception as e:
-            return FlextResult.fail(str(e))
+            return FlextResult[dict[str, object]].fail(str(e))
 
     def flext_cli_save_json_file(
         self,
@@ -351,9 +351,9 @@ class FlextCliHelper:
             p.parent.mkdir(parents=True, exist_ok=True)
             with p.open("w", encoding="utf-8") as f:
                 json.dump(data, f)
-            return FlextResult.ok(str(p))
+            return FlextResult[str].ok(str(p))
         except Exception as e:
-            return FlextResult.fail(str(e))
+            return FlextResult[str].fail(str(e))
 
     def flext_cli_with_progress(
         self,
@@ -400,8 +400,8 @@ class FlextCliDataProcessor:
     ) -> FlextResult[dict[str, object]]:
         value = output.get(key, "")
         if not isinstance(value, str) or "@" not in value:
-            return FlextResult.fail("Validation failed for email")
-        return FlextResult.ok(output)
+            return FlextResult[dict[str, object]].fail("Validation failed for email")
+        return FlextResult[dict[str, object]].ok(output)
 
     def _validate_url_field(
         self,
@@ -410,8 +410,8 @@ class FlextCliDataProcessor:
     ) -> FlextResult[dict[str, object]]:
         value = output.get(key, "")
         if not (isinstance(value, str) and (value.startswith(("http://", "https://")))):
-            return FlextResult.fail(f"Validation failed for {key}")
-        return FlextResult.ok(output)
+            return FlextResult[dict[str, object]].fail(f"Validation failed for {key}")
+        return FlextResult[dict[str, object]].ok(output)
 
     def _validate_file_field(
         self,
@@ -421,9 +421,9 @@ class FlextCliDataProcessor:
         value = output.get(key, "")
         p = Path(str(value))
         if not p.exists():
-            return FlextResult.fail("Validation failed for config_file")
+            return FlextResult[dict[str, object]].fail("Validation failed for config_file")
         output[key] = p
-        return FlextResult.ok(output)
+        return FlextResult[dict[str, object]].ok(output)
 
     def _transform_path_field(
         self,
@@ -432,7 +432,7 @@ class FlextCliDataProcessor:
     ) -> FlextResult[dict[str, object]]:
         value = output.get(key, "")
         output[key] = Path(str(value))
-        return FlextResult.ok(output)
+        return FlextResult[dict[str, object]].ok(output)
 
     def _validate_dir_field(
         self,
@@ -442,9 +442,9 @@ class FlextCliDataProcessor:
         value = output.get(key, "")
         p = Path(str(value))
         if not p.exists() or not p.is_dir():
-            return FlextResult.fail("Validation failed for data_dir")
+            return FlextResult[dict[str, object]].fail("Validation failed for data_dir")
         output[key] = p
-        return FlextResult.ok(output)
+        return FlextResult[dict[str, object]].ok(output)
 
     def _sanitize_filename_field(
         self,
@@ -454,9 +454,9 @@ class FlextCliDataProcessor:
         value = output.get(key, "")
         sanit = self.helper.flext_cli_sanitize_filename(str(value))
         if sanit.is_failure:
-            return FlextResult.fail(sanit.error or "Filename sanitization failed")
+            return FlextResult[dict[str, object]].fail(sanit.error or "Filename sanitization failed")
         output[key] = sanit.unwrap()
-        return FlextResult.ok(output)
+        return FlextResult[dict[str, object]].ok(output)
 
     def flext_cli_process_workflow(
         self,
@@ -475,11 +475,11 @@ class FlextCliDataProcessor:
             try:
                 result = step(current)
                 if result.is_failure:
-                    return FlextResult.fail(f"Step '{name}' failed: {result.error}")
+                    return FlextResult[dict[str, object]].fail(f"Step '{name}' failed: {result.error}")
                 current = result.unwrap()
             except Exception as e:
-                return FlextResult.fail(f"Step '{name}' raised exception: {e}")
-        return FlextResult.ok(current)
+                return FlextResult[dict[str, object]].fail(f"Step '{name}' raised exception: {e}")
+        return FlextResult[dict[str, object]].ok(current)
 
     def flext_cli_validate_and_transform(
         self,
@@ -501,20 +501,20 @@ class FlextCliDataProcessor:
                 # Treat 'none' as no-op validator for convenience in tests
                 if vtype == "none":
                     continue
-                return FlextResult.fail(f"Unknown validation type: {vtype}")
+                return FlextResult[dict[str, object]].fail(f"Unknown validation type: {vtype}")
 
         for key, transformer in transformers.items():
             if key in output:
                 try:
                     output[key] = transformer(output[key])
                 except Exception as e:  # noqa: BLE001
-                    return FlextResult.fail(str(e))
-        return FlextResult.ok(output)
+                    return FlextResult[dict[str, object]].fail(str(e))
+        return FlextResult[dict[str, object]].ok(output)
 
     # Existence-only methods for tests to patch
     def flext_cli_aggregate_data(
         self,
-        sources: dict[str, Callable[[], FlextResult[object]]],
+        sources: dict[str, Callable[[], FlextResult[str]]],
         *,
         fail_fast: bool = True,
     ) -> FlextResult[dict[str, object]]:
@@ -529,16 +529,16 @@ class FlextCliDataProcessor:
                 else:
                     errors.append(f"{name}: {res.error}")
                     if fail_fast:
-                        return FlextResult.fail(f"Source {name} failed: {res.error}")
+                        return FlextResult[dict[str, object]].fail(f"Source {name} failed: {res.error}")
             except Exception as e:
                 errors.append(f"{name}: {e}")
                 if fail_fast:
-                    return FlextResult.fail(f"Source {name} exception: {e}")
+                    return FlextResult[dict[str, object]].fail(f"Source {name} exception: {e}")
         if errors and not aggregated:
-            return FlextResult.fail("All sources failed: " + "; ".join(errors))
+            return FlextResult[dict[str, object]].fail("All sources failed: " + "; ".join(errors))
         if errors:
             aggregated["_errors"] = errors
-        return FlextResult.ok(aggregated)
+        return FlextResult[dict[str, object]].ok(aggregated)
 
     def flext_cli_transform_data_pipeline(
         self,
@@ -553,11 +553,11 @@ class FlextCliDataProcessor:
             try:
                 res = transformer(current)
                 if not res.success:
-                    return FlextResult.fail(f"Transformer {i} failed: {res.error}")
+                    return FlextResult[dict[str, object]].fail(f"Transformer {i} failed: {res.error}")
                 current = res.data
             except Exception as e:
-                return FlextResult.fail(f"Transformer {i} exception: {e}")
-        return FlextResult.ok(current)
+                return FlextResult[dict[str, object]].fail(f"Transformer {i} exception: {e}")
+        return FlextResult[dict[str, object]].ok(current)
 
 
 class FlextCliFileManager:
@@ -577,19 +577,19 @@ class FlextCliFileManager:
         """Back up a file and process its content."""
         p = Path(file_path)
         if not p.exists():
-            return FlextResult.fail("File not found")
+            return FlextResult[dict[str, object]].fail("File not found")
         if require_confirmation:
             conf = self.helper.flext_cli_confirm(f"Process {file_path}?")
             if conf.is_failure or not conf.unwrap():
-                return FlextResult.fail("User cancelled")
+                return FlextResult[dict[str, object]].fail("User cancelled")
         backup = p.with_suffix(p.suffix + ".bak")
         shutil.copyfile(p, backup)
         result = processor(p.read_text(encoding="utf-8"))
         if result.is_failure:
             shutil.copyfile(backup, p)
-            return FlextResult.fail(result.error or "Processing failed")
+            return FlextResult[dict[str, object]].fail(result.error or "Processing failed")
         p.write_text(result.unwrap(), encoding="utf-8")
-        return FlextResult.ok(
+        return FlextResult[dict[str, object]].ok(
             {
                 "status": "completed",
                 "original_file": str(p),
@@ -616,7 +616,7 @@ class FlextCliFileManager:
         if backup and original is not None:
             backup_path = p.with_suffix(p.suffix + ".bak")
             backup_path.write_text(original, encoding="utf-8")
-        return FlextResult.ok(str(p))
+        return FlextResult[str].ok(str(p))
 
 
 def flext_cli_create_helper(

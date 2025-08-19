@@ -13,7 +13,7 @@ from flext_core import get_logger
 
 from flext_cli.api import FlextCliApi
 from flext_cli.cli_config import CLIConfig as FlextCliConfig
-from flext_cli.cli_types import OutputFormat
+from flext_cli.cli_types import FlextCliDataType, OutputFormat
 from flext_cli.models import FlextCliContext
 
 # Global API instance
@@ -21,7 +21,7 @@ _api = FlextCliApi()
 
 
 def flext_cli_export(
-    data: object,
+    data: FlextCliDataType,
     path: str | Path,
     format_type: OutputFormat = OutputFormat.JSON,
 ) -> bool:
@@ -40,7 +40,7 @@ def flext_cli_export(
 
 
 def flext_cli_format(
-    data: object,
+    data: FlextCliDataType,
     format_type: OutputFormat = OutputFormat.JSON,
 ) -> str:
     """Format data for display.
@@ -188,7 +188,7 @@ def flext_cli_execute_handler(name: str, *args: object, **kwargs: object) -> obj
 
 
 def flext_cli_render_with_context(
-    data: object,
+    data: FlextCliDataType,
     context: dict[str, object] | None = None,
 ) -> str:
     """Render with context.

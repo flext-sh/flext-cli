@@ -343,10 +343,10 @@ class TestFlextCliDataProcessor:
 
         # Define workflow steps
         def step1(data: str) -> FlextResult[str]:
-            return FlextResult.ok(data + " -> step1")
+            return FlextResult[None].ok(data + " -> step1")
 
         def step2(data: str) -> FlextResult[str]:
-            return FlextResult.ok(data + " -> step2")
+            return FlextResult[None].ok(data + " -> step2")
 
         steps = [
             ("Step 1", step1),
@@ -364,7 +364,7 @@ class TestFlextCliDataProcessor:
 
         # Test failing step
         def failing_step(data: str) -> FlextResult[str]:  # noqa: ARG001
-            return FlextResult.fail("Step failed")
+            return FlextResult[None].fail("Step failed")
 
         steps_with_failure = [
             ("Step 1", step1),
@@ -446,7 +446,7 @@ class TestFlextCliFileManager:
 
             # Define processor
             def processor(content: str) -> FlextResult[str]:
-                return FlextResult.ok(content.replace("original", "processed"))
+                return FlextResult[None].ok(content.replace("original", "processed"))
 
             # Process file
             result = manager.flext_cli_backup_and_process(
@@ -605,7 +605,7 @@ class TestErrorConditions:
         # Try to process non-existent file
         result = manager.flext_cli_backup_and_process(
             "/nonexistent/file.txt",
-            FlextResult.ok,
+            lambda content: FlextResult[str].ok(content),
             require_confirmation=False,
         )
         assert not result.success
@@ -664,8 +664,8 @@ class TestIntegrationScenarios:
             ) -> FlextResult[dict[str, list[dict[str, str]]]]:
                 for user in data["users"]:
                     if "@" not in user["email"]:
-                        return FlextResult.fail(f"Invalid email: {user['email']}")
-                return FlextResult.ok(data)
+                        return FlextResult[None].fail(f"Invalid email: {user['email']}")
+                return FlextResult[None].ok(data)
 
             workflow_result = processor.flext_cli_process_workflow(
                 load_result.data,
@@ -679,13 +679,13 @@ class TestIntegrationScenarios:
         processor = FlextCliDataProcessor(helper=FlextCliHelper(quiet=True))
 
         def step1(data: str) -> FlextResult[str]:
-            return FlextResult.ok(data + " -> step1")
+            return FlextResult[None].ok(data + " -> step1")
 
         def failing_step(data: str) -> FlextResult[str]:  # noqa: ARG001
-            return FlextResult.fail("Step failed intentionally")
+            return FlextResult[None].fail("Step failed intentionally")
 
         def step3(data: str) -> FlextResult[str]:
-            return FlextResult.ok(data + " -> step3")
+            return FlextResult[None].ok(data + " -> step3")
 
         steps = [
             ("Step 1", step1),

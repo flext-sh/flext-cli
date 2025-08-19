@@ -7,13 +7,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
-
 from flext_core import FlextResult
 
 from flext_cli.config import (
-    CLIConfig,
-    CLIOutputConfig,
     CLISettings,
     get_cli_settings as _get_cli_settings,
 )
@@ -26,7 +22,7 @@ __all__ = [
 ]
 
 
-def setup_cli(config: CLIConfig | CLISettings | None = None) -> FlextResult[bool]:
+def setup_cli(config: CLISettings | None = None) -> FlextResult[bool]:
     """Set up CLI with modern zero-boilerplate approach using hierarchical configuration.
 
     This function integrates the 3 main functions of flext-cli:
@@ -43,20 +39,17 @@ def setup_cli(config: CLIConfig | CLISettings | None = None) -> FlextResult[bool
     """
     try:
         if config is None:
-            config = CLIConfig()
+            config = CLISettings()
 
-        # Ensure directories exist (only for CLIConfig)
-        if isinstance(config, CLIConfig):
-            config.ensure_setup()
-
+        # Configuration setup successful
         setup_success = True
-        return FlextResult.ok(setup_success)
+        return FlextResult[bool].ok(setup_success)
 
     except (AttributeError, ValueError, RuntimeError) as e:
-        return FlextResult.fail(f"Failed to setup CLI: {e}")
+        return FlextResult[bool].fail(f"Failed to setup CLI: {e}")
 
 
-def create_development_cli_config(**kwargs: object) -> CLIConfig:
+def create_development_cli_config(**kwargs: object) -> CLISettings:
     """Create development CLI configuration with hierarchical precedence.
 
     Uses flext/docs/patterns hierarchical configuration for ecosystem integration.
@@ -66,27 +59,12 @@ def create_development_cli_config(**kwargs: object) -> CLIConfig:
       **kwargs: Configuration overrides
 
     Returns:
-      CLIConfig: Development configuration with debug enabled
+      CLISettings: Development configuration with debug enabled
 
     """
-    # Use hierarchical config with development defaults
-    development_defaults = {
-        "debug": True,
-        "profile": "development",
-        "log_level": "DEBUG",
-        **kwargs,  # Apply overrides
-    }
-
-    # Try to use create_with_hierarchy if available
-    if hasattr(CLIConfig, "create_with_hierarchy"):
-        hierarchy_result = CLIConfig.create_with_hierarchy(**development_defaults)
-        if hierarchy_result.success:
-            return cast("CLIConfig", hierarchy_result.unwrap())
-
-    # Fallback to direct creation
-    config = CLIConfig(
+    # Create configuration with development defaults
+    config = CLISettings(
         debug=True,
-        profile="development",
         log_level="DEBUG",
     )
 
@@ -102,22 +80,20 @@ def create_development_cli_config(**kwargs: object) -> CLIConfig:
     return config
 
 
-def create_production_cli_config(**kwargs: object) -> CLIConfig:
+def create_production_cli_config(**kwargs: object) -> CLISettings:
     """Create production CLI configuration.
 
     Args:
       **kwargs: Configuration overrides
 
     Returns:
-      CLIConfig: Production configuration with optimized settings
+      CLISettings: Production configuration with optimized settings
 
     """
     # Create base configuration with production defaults
-    output_config = CLIOutputConfig(quiet=True)
-    config = CLIConfig(
+    config = CLISettings(
         debug=False,
-        profile="production",
-        output=output_config,
+        log_level="INFO",
     )
 
     # Apply overrides using model_copy for type safety

@@ -20,7 +20,7 @@ class FlextCliArgsProvider:
     def get_config(self, key: str, default: object = None) -> FlextResult[object]:
         """Get configuration from CLI arguments."""
         value = self.args.get(key, default)
-        return FlextResult.ok(value)
+        return FlextResult[object].ok(value)
 
     def get_priority(self) -> int:
         """Get provider priority."""
@@ -41,7 +41,7 @@ class FlextConstantsProvider:
     def get_config(self, key: str, default: object = None) -> FlextResult[object]:
         """Get configuration from constants."""
         value = self.constants.get(key, default)
-        return FlextResult.ok(value)
+        return FlextResult[object].ok(value)
 
     def get_priority(self) -> int:
         """Get provider priority."""

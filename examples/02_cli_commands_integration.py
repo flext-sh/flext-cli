@@ -174,10 +174,10 @@ def create_connection_command(url: str, timeout: int, retries: int) -> FlextResu
             working_directory=Path.cwd(),
         )
 
-        return FlextResult.ok(command)
+        return FlextResult[None].ok(command)
 
     except Exception as e:
-        return FlextResult.fail(f"Failed to create connection command: {e}")
+        return FlextResult[None].fail(f"Failed to create connection command: {e}")
 
 
 def execute_connection_test(command: FlextCliCommand) -> FlextResult[str]:
@@ -189,18 +189,18 @@ def execute_connection_test(command: FlextCliCommand) -> FlextResult[str]:
         # Validate command before execution
         validation_result = command.validate_domain_rules()
         if validation_result.failure:
-            return FlextResult.fail(f"Command validation failed: {validation_result.error}")
+            return FlextResult[None].fail(f"Command validation failed: {validation_result.error}")
 
         # Start command execution
         command.start_execution()
 
         # Simulate execution result
         if "localhost" in command.command_line:
-            return FlextResult.ok("Connection successful to localhost")
-        return FlextResult.ok("Connection test completed")
+            return FlextResult[None].ok("Connection successful to localhost")
+        return FlextResult[None].ok("Connection test completed")
 
     except Exception as e:
-        return FlextResult.fail(f"Connection test failed: {e}")
+        return FlextResult[None].fail(f"Connection test failed: {e}")
 
 
 def simulate_file_processing(file_path: Path, output_format: str, batch_size: int) -> FlextResult[str]:
@@ -208,7 +208,7 @@ def simulate_file_processing(file_path: Path, output_format: str, batch_size: in
     try:
         # Validate file exists
         if not file_path.exists():
-            return FlextResult.fail(f"File not found: {file_path}")
+            return FlextResult[None].fail(f"File not found: {file_path}")
 
         # Simulate processing
         time.sleep(0.5)
@@ -216,13 +216,13 @@ def simulate_file_processing(file_path: Path, output_format: str, batch_size: in
         lines_processed = 150  # Simulate
         batches = (lines_processed + batch_size - 1) // batch_size
 
-        return FlextResult.ok(
+        return FlextResult[None].ok(
             f"Processed {lines_processed} lines in {batches} batches. "
             f"Output format: {output_format}"
         )
 
     except Exception as e:
-        return FlextResult.fail(f"File processing failed: {e}")
+        return FlextResult[None].fail(f"File processing failed: {e}")
 
 
 def main() -> None:

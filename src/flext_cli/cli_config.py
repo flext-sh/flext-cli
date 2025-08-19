@@ -278,11 +278,11 @@ class CLIConfig(FlextModel):
                 error = "Command timeout must be positive"
 
             if error is not None:
-                return FlextResult.fail(error)
-            return FlextResult.ok(None)
+                return FlextResult[None].fail(error)
+            return FlextResult[None].ok(None)
 
         except Exception as e:
-            return FlextResult.fail(f"Configuration validation failed: {e}")
+            return FlextResult[None].fail(f"Configuration validation failed: {e}")
 
     def get_effective_log_level(self) -> str:
         """Get effective log level considering debug/quiet modes."""
@@ -331,25 +331,25 @@ class CLIConfig(FlextModel):
     def load_profile_config(self, profile_name: str) -> FlextResult[ConfigDict]:
         """Load configuration for specific profile."""
         if not self.config_file or not self.config_file.exists():
-            return FlextResult.ok({})
+            return FlextResult[ConfigDict].ok({})
 
         try:
             config_data = toml.load(self.config_file)
             profiles = config_data.get("profiles", {})
 
             if profile_name not in profiles:
-                return FlextResult.ok({})
+                return FlextResult[ConfigDict].ok({})
 
             profile_config = profiles[profile_name]
             if not isinstance(profile_config, dict):
-                return FlextResult.fail(
+                return FlextResult[ConfigDict].fail(
                     f"Invalid profile configuration for '{profile_name}'",
                 )
 
-            return FlextResult.ok(profile_config)
+            return FlextResult[ConfigDict].ok(profile_config)
 
         except Exception as e:
-            return FlextResult.fail(f"Failed to load profile '{profile_name}': {e}")
+            return FlextResult[ConfigDict].fail(f"Failed to load profile '{profile_name}': {e}")
 
     def save_config_file(self, file_path: Path | None = None) -> FlextResult[None]:
         """Save current configuration to file."""
@@ -369,17 +369,17 @@ class CLIConfig(FlextModel):
             with target_file.open("w") as f:
                 toml.dump(config_dict, f)
 
-            return FlextResult.ok(None)
+            return FlextResult[None].ok(None)
 
         except Exception as e:
-            return FlextResult.fail(f"Failed to save configuration: {e}")
+            return FlextResult[None].fail(f"Failed to save configuration: {e}")
 
     @classmethod
     def load_from_file(cls, file_path: Path) -> FlextResult[CLIConfig]:
         """Load configuration from file."""
         try:
             if not file_path.exists():
-                return FlextResult.fail(
+                return FlextResult[CLIConfig].fail(
                     f"Configuration file does not exist: {file_path}",
                 )
 
@@ -401,10 +401,10 @@ class CLIConfig(FlextModel):
                 **{k: v for k, v in config_data.items() if k in known_fields},
             )
 
-            return FlextResult.ok(config_instance)
+            return FlextResult[CLIConfig].ok(config_instance)
 
         except Exception as e:
-            return FlextResult.fail(
+            return FlextResult[CLIConfig].fail(
                 f"Failed to load configuration from {file_path}: {e}",
             )
 
@@ -490,12 +490,12 @@ def create_cli_config(
         validation_result = config.validate_config()
         if validation_result.is_failure:
             error_msg = validation_result.error or "Configuration validation failed"
-            return FlextResult.fail(error_msg)
+            return FlextResult[CLIConfig].fail(error_msg)
 
-        return FlextResult.ok(config)
+        return FlextResult[CLIConfig].ok(config)
 
     except Exception as e:
-        return FlextResult.fail(f"Failed to create CLI configuration: {e}")
+        return FlextResult[CLIConfig].fail(f"Failed to create CLI configuration: {e}")
 
 
 def create_cli_config_from_env() -> FlextResult[CLIConfig]:
@@ -506,12 +506,14 @@ def create_cli_config_from_env() -> FlextResult[CLIConfig]:
 
         if validation_result.is_failure:
             error_msg = validation_result.error or "Configuration validation failed"
-            return FlextResult.fail(error_msg)
+            return FlextResult[CLIConfig].fail(error_msg)
 
-        return FlextResult.ok(config)
+        return FlextResult[CLIConfig].ok(config)
 
     except Exception as e:
-        return FlextResult.fail(f"Failed to create configuration from environment: {e}")
+        return FlextResult[CLIConfig].fail(
+            f"Failed to create configuration from environment: {e}"
+        )
 
 
 def create_cli_config_from_file(file_path: Path) -> FlextResult[CLIConfig]:

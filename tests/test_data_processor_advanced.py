@@ -28,7 +28,7 @@ class TestFlextCliDataProcessorAdvanced:
         """Test successful data aggregation from all sources."""
 
         def fetch_users() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult.ok(
+            return FlextResult[None].ok(
                 [
                     {"id": 1, "name": "Alice", "type": "user"},
                     {"id": 2, "name": "Bob", "type": "user"},
@@ -36,7 +36,7 @@ class TestFlextCliDataProcessorAdvanced:
             )
 
         def fetch_orders() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult.ok(
+            return FlextResult[None].ok(
                 [
                     {"id": 101, "user_id": 1, "amount": 99.99},
                     {"id": 102, "user_id": 2, "amount": 149.99},
@@ -44,7 +44,7 @@ class TestFlextCliDataProcessorAdvanced:
             )
 
         def fetch_products() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult.ok(
+            return FlextResult[None].ok(
                 [
                     {"id": 201, "name": "Widget", "price": 29.99},
                     {"id": 202, "name": "Gadget", "price": 49.99},
@@ -75,23 +75,23 @@ class TestFlextCliDataProcessorAdvanced:
                     else:
                         errors.append(f"{source_name}: {result.error}")
                         if fail_fast:
-                            return FlextResult.fail(
+                            return FlextResult[None].fail(
                                 f"Source {source_name} failed: {result.error}",
                             )
                 except Exception as e:
                     errors.append(f"{source_name}: {e!s}")
                     if fail_fast:
-                        return FlextResult.fail(
+                        return FlextResult[None].fail(
                             f"Source {source_name} exception: {e!s}",
                         )
 
             if errors and not aggregated_data:
-                return FlextResult.fail(f"All sources failed: {'; '.join(errors)}")
+                return FlextResult[None].fail(f"All sources failed: {'; '.join(errors)}")
 
             if errors:
                 aggregated_data["_errors"] = errors
 
-            return FlextResult.ok(aggregated_data)
+            return FlextResult[None].ok(aggregated_data)
 
         # Patch the method temporarily
         with patch.object(
@@ -116,13 +116,13 @@ class TestFlextCliDataProcessorAdvanced:
         """Test data aggregation with partial failures and continue processing."""
 
         def fetch_users() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult.ok([{"id": 1, "name": "Alice"}])
+            return FlextResult[None].ok([{"id": 1, "name": "Alice"}])
 
         def fetch_orders() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult.fail("Orders service unavailable")
+            return FlextResult[None].fail("Orders service unavailable")
 
         def fetch_products() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult.ok([{"id": 201, "name": "Widget"}])
+            return FlextResult[None].ok([{"id": 201, "name": "Widget"}])
 
         data_sources = {
             "users": fetch_users,
@@ -148,23 +148,23 @@ class TestFlextCliDataProcessorAdvanced:
                     else:
                         errors.append(f"{source_name}: {result.error}")
                         if fail_fast:
-                            return FlextResult.fail(
+                            return FlextResult[None].fail(
                                 f"Source {source_name} failed: {result.error}",
                             )
                 except Exception as e:
                     errors.append(f"{source_name}: {e!s}")
                     if fail_fast:
-                        return FlextResult.fail(
+                        return FlextResult[None].fail(
                             f"Source {source_name} exception: {e!s}",
                         )
 
             if errors and not aggregated_data:
-                return FlextResult.fail(f"All sources failed: {'; '.join(errors)}")
+                return FlextResult[None].fail(f"All sources failed: {'; '.join(errors)}")
 
             if errors:
                 aggregated_data["_errors"] = errors
 
-            return FlextResult.ok(aggregated_data)
+            return FlextResult[None].ok(aggregated_data)
 
         with patch.object(
             self.processor,
@@ -187,13 +187,13 @@ class TestFlextCliDataProcessorAdvanced:
         """Test data aggregation with fail_fast=True."""
 
         def fetch_users() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult.ok([{"id": 1, "name": "Alice"}])
+            return FlextResult[None].ok([{"id": 1, "name": "Alice"}])
 
         def fetch_orders() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult.fail("Orders service unavailable")
+            return FlextResult[None].fail("Orders service unavailable")
 
         def fetch_products() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult.ok([{"id": 201, "name": "Widget"}])
+            return FlextResult[None].ok([{"id": 201, "name": "Widget"}])
 
         data_sources = {
             "users": fetch_users,
@@ -219,23 +219,23 @@ class TestFlextCliDataProcessorAdvanced:
                     else:
                         errors.append(f"{source_name}: {result.error}")
                         if fail_fast:
-                            return FlextResult.fail(
+                            return FlextResult[None].fail(
                                 f"Source {source_name} failed: {result.error}",
                             )
                 except Exception as e:
                     errors.append(f"{source_name}: {e!s}")
                     if fail_fast:
-                        return FlextResult.fail(
+                        return FlextResult[None].fail(
                             f"Source {source_name} exception: {e!s}",
                         )
 
             if errors and not aggregated_data:
-                return FlextResult.fail(f"All sources failed: {'; '.join(errors)}")
+                return FlextResult[None].fail(f"All sources failed: {'; '.join(errors)}")
 
             if errors:
                 aggregated_data["_errors"] = errors
 
-            return FlextResult.ok(aggregated_data)
+            return FlextResult[None].ok(aggregated_data)
 
         with patch.object(
             self.processor,
@@ -256,18 +256,18 @@ class TestFlextCliDataProcessorAdvanced:
 
         def normalize_data(data: dict[str, object]) -> FlextResult[dict[str, object]]:
             # Add metadata
-            return FlextResult.ok(
+            return FlextResult[None].ok(
                 {**data, "normalized": True, "item_count": len(data["items"])},
             )
 
         def double_items(data: dict[str, object]) -> FlextResult[dict[str, object]]:
             # Double all items
             doubled_items = [item * 2 for item in data["items"]]
-            return FlextResult.ok({**data, "items": doubled_items, "doubled": True})
+            return FlextResult[None].ok({**data, "items": doubled_items, "doubled": True})
 
         def add_summary(data: dict[str, object]) -> FlextResult[dict[str, object]]:
             # Add summary statistics
-            return FlextResult.ok(
+            return FlextResult[None].ok(
                 {
                     **data,
                     "summary": {
@@ -292,14 +292,14 @@ class TestFlextCliDataProcessorAdvanced:
                 try:
                     result = transformer(current_data)
                     if not result.success:
-                        return FlextResult.fail(
+                        return FlextResult[None].fail(
                             f"Transformer {i} failed: {result.error}",
                         )
                     current_data = result.data
                 except Exception as e:
-                    return FlextResult.fail(f"Transformer {i} exception: {e!s}")
+                    return FlextResult[None].fail(f"Transformer {i} exception: {e!s}")
 
-            return FlextResult.ok(current_data)
+            return FlextResult[None].ok(current_data)
 
         with patch.object(
             self.processor,
@@ -326,17 +326,17 @@ class TestFlextCliDataProcessorAdvanced:
         def working_transformer(
             data: dict[str, object],
         ) -> FlextResult[dict[str, object]]:
-            return FlextResult.ok({**data, "processed": True})
+            return FlextResult[None].ok({**data, "processed": True})
 
         def failing_transformer(
             data: dict[str, object],  # noqa: ARG001
         ) -> FlextResult[dict[str, object]]:
-            return FlextResult.fail("Transformation logic error")
+            return FlextResult[None].fail("Transformation logic error")
 
         def should_not_execute(
             data: dict[str, object],
         ) -> FlextResult[dict[str, object]]:
-            return FlextResult.ok({**data, "should_not_be_here": True})
+            return FlextResult[None].ok({**data, "should_not_be_here": True})
 
         transformers = [working_transformer, failing_transformer, should_not_execute]
 
@@ -352,14 +352,14 @@ class TestFlextCliDataProcessorAdvanced:
                 try:
                     result = transformer(current_data)
                     if not result.success:
-                        return FlextResult.fail(
+                        return FlextResult[None].fail(
                             f"Transformer {i} failed: {result.error}",
                         )
                     current_data = result.data
                 except Exception as e:
-                    return FlextResult.fail(f"Transformer {i} exception: {e!s}")
+                    return FlextResult[None].fail(f"Transformer {i} exception: {e!s}")
 
-            return FlextResult.ok(current_data)
+            return FlextResult[None].ok(current_data)
 
         with patch.object(
             self.processor,
@@ -381,7 +381,7 @@ class TestFlextCliDataProcessorAdvanced:
         def working_transformer(
             data: dict[str, object],
         ) -> FlextResult[dict[str, object]]:
-            return FlextResult.ok({**data, "processed": True})
+            return FlextResult[None].ok({**data, "processed": True})
 
         def exception_transformer(
             data: dict[str, object],  # noqa: ARG001
@@ -403,14 +403,14 @@ class TestFlextCliDataProcessorAdvanced:
                 try:
                     result = transformer(current_data)
                     if not result.success:
-                        return FlextResult.fail(
+                        return FlextResult[None].fail(
                             f"Transformer {i} failed: {result.error}",
                         )
                     current_data = result.data
                 except Exception as e:
-                    return FlextResult.fail(f"Transformer {i} exception: {e!s}")
+                    return FlextResult[None].fail(f"Transformer {i} exception: {e!s}")
 
-            return FlextResult.ok(current_data)
+            return FlextResult[None].ok(current_data)
 
         with patch.object(
             self.processor,
@@ -438,7 +438,7 @@ class TestComplexDataProcessingWorkflows:
 
         # Step 1: Data extraction (aggregation)
         def extract_users() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult.ok(
+            return FlextResult[None].ok(
                 [
                     {
                         "id": 1,
@@ -462,7 +462,7 @@ class TestComplexDataProcessingWorkflows:
             )
 
         def extract_user_metrics() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult.ok(
+            return FlextResult[None].ok(
                 [
                     {"user_id": 1, "login_count": 15, "last_login": "2024-01-15"},
                     {"user_id": 2, "login_count": 3, "last_login": "2024-01-10"},
@@ -485,7 +485,7 @@ class TestComplexDataProcessingWorkflows:
                     result_data[name] = data_result.data
                 else:
                     return data_result
-            return FlextResult.ok(result_data)
+            return FlextResult[None].ok(result_data)
 
         # Step 2: Data transformation
         def merge_user_data(data: dict[str, object]) -> FlextResult[dict[str, object]]:
@@ -503,14 +503,14 @@ class TestComplexDataProcessingWorkflows:
                 }
                 merged_users.append(merged_user)
 
-            return FlextResult.ok({"merged_users": merged_users})
+            return FlextResult[None].ok({"merged_users": merged_users})
 
         def filter_active_users(
             data: dict[str, object],
         ) -> FlextResult[dict[str, object]]:
             """Filter only active users."""
             active_users = [user for user in data["merged_users"] if user["active"]]
-            return FlextResult.ok({"active_users": active_users})
+            return FlextResult[None].ok({"active_users": active_users})
 
         def calculate_engagement_score(
             data: dict[str, object],
@@ -523,7 +523,7 @@ class TestComplexDataProcessingWorkflows:
                 scored_user = {**user, "engagement_score": engagement_score}
                 scored_users.append(scored_user)
 
-            return FlextResult.ok({"scored_users": scored_users})
+            return FlextResult[None].ok({"scored_users": scored_users})
 
         transformation_pipeline = [
             merge_user_data,
@@ -542,7 +542,7 @@ class TestComplexDataProcessingWorkflows:
                 if not result.success:
                     return result
                 current = result.data
-            return FlextResult.ok(current)
+            return FlextResult[None].ok(current)
 
         # Execute the complete pipeline
         with (
@@ -591,10 +591,10 @@ class TestComplexDataProcessingWorkflows:
 
         # Step 1: Aggregation with one failing source
         def working_source() -> FlextResult[list[str]]:
-            return FlextResult.ok(["data1", "data2"])
+            return FlextResult[None].ok(["data1", "data2"])
 
         def failing_source() -> FlextResult[list[str]]:
-            return FlextResult.fail("Source system unavailable")
+            return FlextResult[None].fail("Source system unavailable")
 
         sources = {"working": working_source, "failing": failing_source}
 
@@ -607,8 +607,8 @@ class TestComplexDataProcessingWorkflows:
             for name, func in sources.items():
                 result = func()
                 if not result.success and fail_fast:
-                    return FlextResult.fail(f"Source {name} failed: {result.error}")
-            return FlextResult.ok({"working": ["data1", "data2"]})
+                    return FlextResult[None].fail(f"Source {name} failed: {result.error}")
+            return FlextResult[None].ok({"working": ["data1", "data2"]})
 
         with patch.object(
             self.processor,

@@ -299,6 +299,14 @@ type FlextCliConfigDict = dict[str, str | int | float | bool | None]
 type FlextCliMetadataDict = dict[str, str | int | float | bool]
 type FlextCliErrorDict = dict[str, str]
 
+# Union type for all CLI data patterns
+type FlextCliDataType = (
+    FlextCliDataDict |
+    list[FlextCliDataDict] |
+    list[str | int | float | bool | None] |
+    str | int | float | bool | None
+)
+
 # File and Path Types
 type FlextCliPathLike = str | Path
 type FlextCliFilePath = str | Path
@@ -469,10 +477,8 @@ class FlextCliConfigProvider(Protocol):
 __all__ = [
     "CommandArgs",
     "CommandOptions",
-    # Result types
     "CommandResult",
     "CommandStatus",
-    # Basic enumerations
     "CommandType",
     "ConfigDict",
     "ConfigPath",
@@ -480,7 +486,6 @@ __all__ = [
     "ConfigurationResult",
     "ContextParams",
     "DurationSeconds",
-    # Type aliases
     "EntityId",
     "EntryPoint",
     "EnvironmentDict",
@@ -488,21 +493,17 @@ __all__ = [
     "ExitCode",
     "FileOperationResult",
     "FlextCliArguments",
-    # Command types
     "FlextCliCommand",
     "FlextCliCommandPipeline",
     "FlextCliCommandRegistry",
     "FlextCliConfigDict",
     "FlextCliConfigProvider",
-    # Data types
     "FlextCliDataDict",
-    # Collection types
     "FlextCliDataList",
-    # Protocol types
     "FlextCliDataProcessor",
     "FlextCliDataResult",
+    "FlextCliDataType",
     "FlextCliDirectoryPath",
-    # Factory types
     "FlextCliEntityFactory",
     "FlextCliEnvironment",
     "FlextCliErrorCallback",
@@ -511,35 +512,28 @@ __all__ = [
     "FlextCliFileHandler",
     "FlextCliFilePath",
     "FlextCliFileResult",
-    # Specialized result types
     "FlextCliLoadResult",
     "FlextCliLogLevel",
     "FlextCliMetadataDict",
-    # Operation types
     "FlextCliOperation",
     "FlextCliOperationList",
     "FlextCliOperationResult",
     "FlextCliOperationType",
     "FlextCliOptionalPath",
-    # Literal types
     "FlextCliOutputFormat",
-    # Path types
     "FlextCliPathLike",
     "FlextCliPathList",
     "FlextCliProcessResult",
     "FlextCliProcessor",
     "FlextCliProgressCallback",
     "FlextCliRenderResult",
-    # Advanced FlextResult types
     "FlextCliResult",
     "FlextCliSaveResult",
     "FlextCliServiceFactory",
-    # Configuration types
     "FlextCliSettings",
     "FlextCliSimpleValidatorProtocol",
     "FlextCliStatusType",
     "FlextCliStringList",
-    # Callback types
     "FlextCliSuccessCallback",
     "FlextCliTableResult",
     "FlextCliTransformer",
@@ -558,7 +552,6 @@ __all__ = [
     "PluginResult",
     "PluginStatus",
     "PluginVersion",
-    # Click parameter types
     "PositiveIntType",
     "ProcessingResult",
     "ProfileType",
@@ -566,7 +559,6 @@ __all__ = [
     "SessionId",
     "SessionResult",
     "SessionStatus",
-    # Type variables
     "T",
     "TUserId",
     "TimeoutSeconds",

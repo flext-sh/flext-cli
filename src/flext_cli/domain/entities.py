@@ -70,9 +70,9 @@ class CLIEntityFactory:
                     entity.name = name
             except Exception:
                 ...
-            return FlextResult.ok(entity)
+            return FlextResult[CLICommand].ok(entity)
         except Exception as e:  # noqa: BLE001
-            return FlextResult.fail(
+            return FlextResult[CLICommand].fail(
                 f"{FlextCliConstants.CliErrors.COMMAND_EXECUTION_FAILED}: {e!s}",
             )
 
@@ -104,9 +104,9 @@ class CLIEntityFactory:
                 commands=commands or [],
                 plugin_version=plugin_version or "0.1.0",
             )
-            return FlextResult.ok(entity)
+            return FlextResult[CLIPlugin].ok(entity)
         except Exception as e:  # noqa: BLE001
-            return FlextResult.fail(
+            return FlextResult[CLIPlugin].fail(
                 f"{FlextCliConstants.CliErrors.PLUGIN_ENTRY_POINT_EMPTY}: {e!s}",
             )
 
@@ -124,13 +124,13 @@ class CLIEntityFactory:
         try:
             # CLISession requires a non-empty user_id; map session_id to user_id for tests
             if not session_id:
-                return FlextResult.fail(
+                return FlextResult[CLISession].fail(
                     FlextCliConstants.CliErrors.SESSION_VALIDATION_FAILED,
                 )
             entity = CLISession(id=session_id, user_id=session_id)
-            return FlextResult.ok(entity)
+            return FlextResult[CLISession].ok(entity)
         except Exception as e:  # noqa: BLE001
-            return FlextResult.fail(
+            return FlextResult[CLISession].fail(
                 f"{FlextCliConstants.CliErrors.SESSION_VALIDATION_FAILED}: {e!s}",
             )
 

@@ -11,11 +11,13 @@ from unittest.mock import patch
 
 from flext_cli import (
     CLISettings,
+    setup_cli,
+)
+from flext_cli.simple_api import (
     __all__,
     create_development_cli_config,
     create_production_cli_config,
     get_cli_settings,
-    setup_cli,
 )
 
 

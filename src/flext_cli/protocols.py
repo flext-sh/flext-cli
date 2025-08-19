@@ -186,12 +186,15 @@ class FlextConfigProvider(Protocol):
         default: object | None = None,
     ) -> FlextResult[object]:
         """Get configuration value by key."""
+        ...
 
     def get_priority(self) -> int:
         """Return provider priority."""
+        ...
 
     def get_all(self) -> dict[str, object]:
         """Return all configuration values."""
+        ...
 
 
 @runtime_checkable
