@@ -46,7 +46,7 @@ class CreateConfigCommand:
 
     name: str | None = None
     description: str | None = None
-    config_data: dict[str, AnyPrimitive] | None = None
+    config_data: dict[str, AnyPrimitive] | None = field(default=None)
     config_type: str | None = None
     version: str = "0.9.0"
     user_id: UUID | None = None

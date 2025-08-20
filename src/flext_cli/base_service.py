@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TypeVar
+from typing import TypeVar, override
 
 from flext_core import (
     FlextContainer,
@@ -101,6 +101,7 @@ class FlextCliService(FlextDomainService[T], ABC):
             self.logger.info(f"Cleaning up CLI service: {self.service_name}")
         return FlextResult[None].ok(None)
 
+    @override
     def validate_config(self) -> FlextResult[None]:
         """Validate CLI service configuration.
 
@@ -166,6 +167,7 @@ class FlextCliCommandService(FlextCliService[T]):
 
         """
 
+    @override
     def execute(self) -> FlextResult[T]:
         """Execute the service operation.
 
@@ -243,6 +245,7 @@ class FlextCliFormatterService(FlextCliService[str]):
 
         """
 
+    @override
     def execute(self) -> FlextResult[str]:
         """Execute the service operation.
 
@@ -256,7 +259,7 @@ class FlextCliFormatterService(FlextCliService[str]):
         if format_type not in self.supported_formats:
             return FlextResult[None].fail(
                 f"Unsupported format: {format_type}. "
-                + f"Supported formats: {', '.join(self.supported_formats)}",
+                 f"Supported formats: {', '.join(self.supported_formats)}",
             )
         return FlextResult[None].ok(None)
 
@@ -309,6 +312,7 @@ class FlextCliValidatorService(FlextCliService[bool]):
 
         """
 
+    @override
     def execute(self) -> FlextResult[bool]:
         """Execute the service operation.
 
@@ -419,6 +423,7 @@ class FlextCliInteractiveService(FlextCliService[str]):
 
         """
 
+    @override
     def execute(self) -> FlextResult[str]:
         """Execute the service operation.
 

@@ -13,7 +13,7 @@ from flext_core import get_flext_container
 from flext_cli.__version__ import __version__
 
 # Normalized version info tuple
-__version_info__ = tuple(int(x) for x in __version__.split(".") if x.isdigit())
+__version_info__: tuple[int, ...] = tuple(int(x) for x in __version__.split(".") if x.isdigit())
 
 # Core configuration
 from flext_cli.config import CLIConfig, CLIConfig as TCliConfig

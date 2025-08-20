@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-from typing import Any, Protocol, Self
+from typing import Protocol, Self
 
 # from flext_api import create_flext_api  # Temporarily disabled due to dependency issue
 from flext_core import FlextConstants, FlextResult, get_logger
@@ -16,8 +16,24 @@ from flext_core import FlextConstants, FlextResult, get_logger
 from flext_cli.config import get_config as get_cli_config
 
 
+class FlextApiClientLike(Protocol):
+    """Protocol for FlextApiClient-like objects."""
+
+    def get(self, endpoint: str, **kwargs: object) -> object:
+        """HTTP GET request method."""
+        ...
+
+    def post(self, endpoint: str, **kwargs: object) -> object:
+        """HTTP POST request method."""
+        ...
+
+    def stop(self) -> None:
+        """Stop/cleanup method."""
+        ...
+
+
 # Temporary placeholder for missing function
-def create_flext_api() -> object | None:
+def create_flext_api() -> FlextApiClientLike | None:
     """Temporary placeholder for flext_api dependency."""
     return None
 
@@ -54,8 +70,8 @@ class FlextCLIApiClient:
         self.timeout = timeout
 
         # Type annotation for MyPy - handles case where FlextApiClient is not available
-        self._api_client: object | None = None
-        self._flext_api: object | None = None
+        self._api_client: FlextApiClientLike | None = None
+        self._flext_api: FlextApiClientLike | None = None
 
         # Initialize flext-api client if available
         self._init_flext_api_client()
@@ -118,7 +134,7 @@ class FlextCLIApiClient:
                 return FlextResult[bool].fail("API client not initialized")
 
             # Get response from API client - handle FlextResult
-            response_result = await self._api_client.get("/health")
+            response_result = await self._api_client.get("/health")  # type: ignore[misc]
             if not response_result.success or response_result.data is None:
                 return FlextResult[bool].fail(f"Connection failed: {response_result.error}")
 
@@ -144,7 +160,7 @@ class FlextCLIApiClient:
                 return FlextResult[dict[str, object]].fail("API client not initialized")
 
             # Get response from API client - handle FlextResult
-            response_result = await self._api_client.get("/api/v1/system/status")
+            response_result = await self._api_client.get("/api/v1/system/status")  # type: ignore[misc]
             if not response_result.success or response_result.data is None:
                 return FlextResult[dict[str, object]].fail(
                     f"Status request failed: {response_result.error}",
@@ -222,7 +238,7 @@ class FlextCLIApiClient:
                     "password": password,
                 },
             )
-            response_result = await self._api_client.post(
+            response_result = await self._api_client.post(  # type: ignore[misc]
                 "/auth/login",
                 data=login_data,
             )
@@ -250,7 +266,7 @@ class FlextCLIApiClient:
                 return FlextResult[bool].fail("API client not initialized")
 
             # Post to logout endpoint
-            response_result = await self._api_client.post("/auth/logout")
+            response_result = await self._api_client.post("/auth/logout")  # type: ignore[misc]
             if not response_result.success or response_result.data is None:
                 return FlextResult[bool].fail(f"Logout failed: {response_result.error}")
 
@@ -275,7 +291,7 @@ class FlextCLIApiClient:
                 return FlextResult[dict[str, object]].fail("API client not initialized")
 
             # Get current user from API
-            response_result = await self._api_client.get("/auth/me")
+            response_result = await self._api_client.get("/auth/me")  # type: ignore[misc]
             if not response_result.success or response_result.data is None:
                 return FlextResult[dict[str, object]].fail(f"Get user failed: {response_result.error}")
 
@@ -294,7 +310,7 @@ class FlextCLIApiClient:
         """Close the API client."""
         if self._api_client and hasattr(self._api_client, "stop"):
             try:
-                await self._api_client.stop()
+                self._api_client.stop()
                 logger.info("flext-api client closed")
             except (ConnectionError, OSError, RuntimeError, AttributeError) as e:
                 logger.warning("Error closing API client: %s", e)

@@ -223,9 +223,9 @@ class CLIOutputMixin(FlextSerializableMixin):
             csv_lines: list[str] = []
             for item in data:
                 if isinstance(item, dict):
-                    csv_lines.append(
-                        ",".join(str(v) for v in item.values() if v is not None)
-                    )
+                    typed_item: dict[str, object] = dict(item)
+                    values = [str(v) for v in typed_item.values() if v is not None]
+                    csv_lines.append(",".join(values))
                 else:
                     csv_lines.append(str(item))
 

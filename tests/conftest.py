@@ -1,4 +1,8 @@
-"""Pytest configuration and fixtures for FLEXT CLI Library tests.
+"""Pytest configuration and fixtures for FLEXT CLI Library - REAL FUNCTIONALITY TESTS.
+
+This conftest provides minimal fixtures for REAL testing without excessive mocking.
+Follows user requirement: "melhore bem os tests para executar codigo de verdade e validar
+a funcionalidade requerida, pare de ficar mockando tudo!"
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,7 +14,6 @@ from __future__ import annotations
 import tempfile
 from collections.abc import Generator
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 from rich.console import Console
@@ -18,60 +21,30 @@ from rich.console import Console
 from flext_cli import (
     CLICommand,
     CLIConfig,
-    CLIExecutionContext as CLIContext,  # alias acceptable from root
+    CLIExecutionContext as CLIContext,
     FlextConstants,
     create_cli_container,
 )
 from flext_cli.cli_types import CommandType as FlextCliCommandType, OutputFormat
-from tests.test_mocks import (
-    MockFailingApiClient,
-    MockFlextApiClient,
-)
 
 # =============================================================================
-# PYTEST CONFIGURATION - Early Hook to Prevent HTTP Initialization
+# PYTEST CONFIGURATION - REAL FUNCTIONALITY TESTING
 # =============================================================================
 
-
-def pytest_configure(config: pytest.Config) -> None:
-    """Early pytest hook to patch HTTP functionality before any imports."""
-    # Apply patches at the earliest possible stage to prevent HTTP calls
-
-    # Global patches that must be applied before modules are imported
-    patches = [
-        patch("flext_cli.flext_api_integration.FLEXT_API_AVAILABLE", False),
-        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
-        patch("aiohttp.ClientSession", return_value=MagicMock()),
-        patch("httpx.AsyncClient", return_value=MagicMock()),
-    ]
-
-    # Store patches in pytest namespace for cleanup
-    if not hasattr(config, "_api_patches"):
-        config._api_patches = []
-        for patch_obj in patches:
-            patcher = patch_obj
-            patcher.start()
-            config._api_patches.append(patcher)
-
-
-def pytest_unconfigure(config: pytest.Config) -> None:
-    """Cleanup patches after test session."""
-    if hasattr(config, "_api_patches"):
-        for patcher in config._api_patches:
-            patcher.stop()
-        config._api_patches.clear()
+# NO MOCKING - Tests should execute real code!
+# Only isolation: use temporary directories and test data
 
 
 @pytest.fixture
 def temp_dir() -> Generator[Path]:
-    """Create a temporary directory for tests."""
+    """Create a temporary directory for REAL file operations in tests."""
     with tempfile.TemporaryDirectory() as temp_dir:
         yield Path(temp_dir)
 
 
 @pytest.fixture
 def cli_config() -> CLIConfig:
-    """Create a test CLI configuration."""
+    """Create REAL CLI configuration for testing actual functionality."""
     return CLIConfig(
         api_url=f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}",
         output_format="json",
@@ -86,7 +59,7 @@ def cli_config() -> CLIConfig:
 
 @pytest.fixture
 def cli_settings() -> CLIConfig:
-    """Create test CLI settings."""
+    """Create REAL CLI settings for testing actual functionality."""
     return CLIConfig(
         debug=True,
         profile="test",
@@ -99,19 +72,19 @@ def cli_settings() -> CLIConfig:
 
 @pytest.fixture
 def cli_context(cli_config: CLIConfig) -> CLIContext:
-    """Create a test CLI context."""
+    """Create REAL CLI context for testing actual functionality."""
     return CLIContext(config=cli_config)
 
 
 @pytest.fixture
 def console() -> Console:
-    """Create a Rich console for testing."""
+    """Create REAL Rich console for testing actual output formatting."""
     return Console(width=80, height=24, force_terminal=False)
 
 
 @pytest.fixture
 def sample_command() -> CLICommand:
-    """Create a sample CLI command for testing."""
+    """Create REAL sample CLI command for testing actual execution."""
     return CLICommand(
         id="test_cmd_001",
         name="test-command",
@@ -124,236 +97,27 @@ def sample_command() -> CLICommand:
 
 
 @pytest.fixture
-def mock_context() -> tuple[object, object]:
-    """Create mock Click context with console for testing commands."""
-    console = MagicMock(spec=Console)
-    ctx = MagicMock()
+def real_click_context(console: Console) -> tuple[object, Console]:
+    """Create REAL Click context for testing actual CLI command execution.
+    
+    This provides real Click context without mocking for testing actual command behavior.
+    """
+    import click
+    
+    ctx = click.Context(click.Command("test"))
     ctx.obj = {"console": console}
     return ctx, console
 
 
-@pytest.fixture(autouse=True)
-def disable_real_api_calls() -> Generator[None]:
-    """Additional API call prevention for test isolation.
-
-    This fixture runs automatically for all tests to ensure no real HTTP calls
-    are made during testing.
-    """
-    # Additional patches for comprehensive API call prevention
-    patches = [
-        patch("flext_cli.flext_api_integration.FLEXT_API_AVAILABLE", False),
-        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
-        # patch("flext_cli.commands.projects.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.sessions.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.plugins.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.config.FLEXT_API_AVAILABLE", False),  # Attribute does not exist
-        # patch("flext_cli.commands.auth.FLEXT_API_AVAILABLE", False),  # Attribute does not exist
-        # patch("flext_cli.commands.help.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.version.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.init.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.run.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.status.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.clean.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.reset.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.export.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.import_cmd.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.validate.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
-        # patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.info.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.about.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.help.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.version.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.init.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.run.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.status.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.clean.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.reset.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.export.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.import_cmd.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.validate.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
-        # patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.info.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.about.FLEXT_API_AVAILABLE", False),  # Module does not exist
-    ]
-
-    # Apply patches
-    for patch_obj in patches:
-        patch_obj.start()
-
-    yield
-
-    # Cleanup patches
-    for patch_obj in patches:
-        patch_obj.stop()
-
-
 @pytest.fixture
-def mock_flext_api_client() -> MockFlextApiClient:
-    """Create a mock FLEXT API client with consistent test behavior.
-
-    This fixture provides a mock client that simulates successful API responses
-    for testing CLI command behavior without making real HTTP calls.
-    """
-    return MockFlextApiClient()
-
-
-@pytest.fixture
-def mock_flext_api_client_with_patches() -> Generator[MockFlextApiClient]:
-    """Mock API client with comprehensive patching to prevent real HTTP calls.
-
-    This fixture creates a mock client and applies patches to ensure no real
-    HTTP calls are made, while maintaining the expected API interface for tests.
-    """
-    # Create mock client instance
-    client = MockFlextApiClient()
-
-    # Apply additional patches for comprehensive isolation
-    patches = [
-        patch("flext_cli.flext_api_integration.FLEXT_API_AVAILABLE", False),
-        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
-        # patch("flext_cli.commands.projects.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.sessions.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.plugins.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.config.FLEXT_API_AVAILABLE", False),  # Attribute does not exist
-        # patch("flext_cli.commands.auth.FLEXT_API_AVAILABLE", False),  # Attribute does not exist
-        # patch("flext_cli.commands.help.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.version.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.init.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.run.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.status.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.clean.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.reset.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.export.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.import_cmd.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.validate.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
-        # patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.info.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.about.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.help.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.version.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.init.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.run.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.status.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.clean.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.reset.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.export.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.import_cmd.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.validate.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
-        # patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.info.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.about.FLEXT_API_AVAILABLE", False),  # Module does not exist
-    ]
-
-    # Apply patches
-    for patch_obj in patches:
-        patch_obj.start()
-
-    yield client
-
-    # Cleanup patches
-    for patch_obj in patches:
-        patch_obj.stop()
-
-
-@pytest.fixture
-def mock_failing_api_client() -> Generator[MockFailingApiClient]:
-    """Mock API client that simulates connection failures for error testing."""
-    # Create failing mock client instance
-    client = MockFailingApiClient()
-
-    # Apply patches to ensure no real HTTP calls
-    patches = [
-        patch("flext_cli.flext_api_integration.FLEXT_API_AVAILABLE", False),
-        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
-        # patch("flext_cli.commands.projects.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.sessions.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.plugins.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.config.FLEXT_API_AVAILABLE", False),  # Attribute does not exist
-        # patch("flext_cli.commands.auth.FLEXT_API_AVAILABLE", False),  # Attribute does not exist
-        # patch("flext_cli.commands.help.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.version.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.init.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.run.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.status.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.clean.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.reset.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.export.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.import_cmd.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.validate.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
-        # patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.info.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.about.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.help.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.version.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.init.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.run.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.status.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.clean.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.reset.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.export.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.import_cmd.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.validate.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.test.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.benchmark.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.profile.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        patch("flext_cli.cmd_debug.FLEXT_API_AVAILABLE", False),
-        # patch("flext_cli.commands.logs.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.metrics.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.health.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.info.FLEXT_API_AVAILABLE", False),  # Module does not exist
-        # patch("flext_cli.commands.about.FLEXT_API_AVAILABLE", False),  # Module does not exist
-    ]
-
-    # Apply patches
-    for patch_obj in patches:
-        patch_obj.start()
-
-    yield client
-
-    # Cleanup patches
-    for patch_obj in patches:
-        patch_obj.stop()
-
-
-@pytest.fixture
-def mock_container() -> object:
-    """Create a mock CLI container for dependency injection testing."""
+def cli_container() -> object:
+    """Create REAL CLI container for testing actual dependency injection."""
     return create_cli_container()
 
 
 @pytest.fixture
 def isolated_config() -> CLIConfig:
-    """Create isolated config for tests without singleton contamination."""
+    """Create REAL isolated config for testing without state contamination."""
     # Return fresh config instance for each test
     return CLIConfig(
         profile="test",
@@ -363,3 +127,51 @@ def isolated_config() -> CLIConfig:
         project_description="Test CLI Library",
         log_level="DEBUG",
     )
+
+
+@pytest.fixture
+def sample_data() -> dict[str, object]:
+    """Sample data for REAL testing of data processing functions."""
+    return {
+        "users": [
+            {"id": 1, "name": "Alice", "age": 30, "department": "Engineering"},
+            {"id": 2, "name": "Bob", "age": 25, "department": "Sales"},
+            {"id": 3, "name": "Carol", "age": 35, "department": "Engineering"},
+        ],
+        "config": {
+            "version": "1.0.0",
+            "debug": True,
+            "features": ["auth", "api", "cli"],
+        },
+    }
+
+
+# =============================================================================
+# REAL TEST DATA - No Mocks, Just Data
+# =============================================================================
+
+
+@pytest.fixture
+def test_config_dict() -> dict[str, object]:
+    """Real configuration dictionary for testing."""
+    return {
+        "project_name": "flext-cli-test",
+        "project_version": "0.9.0",
+        "debug": True,
+        "output_format": "json",
+        "log_level": "DEBUG",
+        "timeout": 30,
+        "profile": "test",
+    }
+
+
+@pytest.fixture
+def test_command_data() -> dict[str, object]:
+    """Real command data for testing."""
+    return {
+        "name": "test-command",
+        "command_line": "echo 'Hello, World!'",
+        "description": "Test command for real execution",
+        "timeout": 60,
+        "command_type": "system",
+    }

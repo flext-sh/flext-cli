@@ -87,7 +87,7 @@ class FlextCliService(FlextService):
                 self._config = config
             elif isinstance(config, dict):
                 # Handle format_type -> output_format mapping
-                cleaned_config = dict(config)
+                cleaned_config: dict[str, object] = dict(config)
                 if (
                     "format_type" in cleaned_config
                     and "output_format" not in cleaned_config
@@ -113,7 +113,7 @@ class FlextCliService(FlextService):
                 # Accept compatible config objects with proper validation
                 try:
                     # Convert compatible config object to dict first, then validate
-                    config_dict = {
+                    config_dict: dict[str, object] = {
                         "output_format": getattr(config, "output_format", "table"),
                         "profile": getattr(config, "profile", "default"),
                         "debug": getattr(config, "debug", False),
@@ -259,7 +259,7 @@ class FlextCliService(FlextService):
 
         def format_csv_data() -> str:
             if not isinstance(data, (list, tuple)):
-                data_list = [data] if isinstance(data, dict) else [{"value": str(data)}]
+                data_list: list[dict[str, object]] = [data] if isinstance(data, dict) else [{"value": str(data)}]
             else:
                 # Convert tuple/list to list with proper type handling - ensure dicts
                 data_list = []

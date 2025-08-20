@@ -18,7 +18,7 @@ import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import cast
+from typing import Protocol, cast
 
 import yaml
 from flext_core import FlextEntityId, FlextResult
@@ -31,6 +31,36 @@ from flext_cli.models import (
     FlextCliCommand as CLICommand,
     FlextCliPlugin as CLIPlugin,
 )
+
+
+# Plugin Protocol Definition
+class PluginLike(Protocol):
+    """Protocol for plugin-like objects."""
+
+    @property
+    def name(self) -> str:
+        """Plugin name."""
+        ...
+
+    @property
+    def id(self) -> str:
+        """Plugin ID."""
+        ...
+
+    @property
+    def version(self) -> str:
+        """Plugin version."""
+        ...
+
+    @property
+    def status(self) -> str:
+        """Plugin status."""
+        ...
+
+    @property
+    def plugin_type(self) -> str:
+        """Plugin type."""
+        ...
 
 
 # Simple context class since FlextCliContext doesn't exist
@@ -237,9 +267,9 @@ def _initialize_group(
     value: object,
     count_field: str,
     sum_fields: list[str],
-) -> dict[str, object]:
+) -> dict[str, object | int]:
     """Initialize a new group for aggregation."""
-    group = {
+    group: dict[str, object | int] = {
         group_by: value,
         count_field: 0,
     }
@@ -400,7 +430,7 @@ def flext_cli_batch_export(
         output_path = pathlib.Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
 
-        created_files = []
+        created_files: list[str] = []
 
         for name, data in datasets.items():
             file_path = output_path / f"{name}.{format_type}"
@@ -542,10 +572,7 @@ class FlextCliApi:
             working_dir = options.get("working_directory")
             working_dir if isinstance(working_dir, str) else None
 
-            env_vars = options.get("environment_vars", {})
-            environment = env_vars if isinstance(env_vars, dict) else {}
-            # Convert dict[str, object] to dict[str, str]
-            {k: str(v) for k, v in environment.items() if isinstance(k, str)}
+            # Environment variables support available via options.get("environment_vars")
 
             timeout_val = options.get("timeout_seconds", 30)
             timeout_val if isinstance(timeout_val, int) else 30
@@ -735,11 +762,24 @@ class FlextCliApi:
         summary: dict[str, object] = {}
         for sid, sdata in sessions.items():
             if isinstance(sdata, dict):
-                cmds = sdata.get("commands", [])
+                # Type the session data with specific structure
+                session_data: dict[str, object] = {}
+                for k, v in sdata.items():
+                    session_data[str(k)] = v
+
+                cmds_raw = session_data.get("commands", [])
+                cmds: list[dict[str, object]] = []
+                if isinstance(cmds_raw, list):
+                    for cmd in cmds_raw:
+                        if isinstance(cmd, dict):
+                            typed_cmd: dict[str, object] = {}
+                            for ck, cv in cmd.items():
+                                typed_cmd[str(ck)] = cv
+                            cmds.append(typed_cmd)
                 summary[sid] = {
-                    "id": sdata.get("id"),
-                    "status": sdata.get("status"),
-                    "created_at": sdata.get("created_at"),
+                    "id": session_data.get("id"),
+                    "status": session_data.get("status"),
+                    "created_at": session_data.get("created_at"),
                     "commands_count": len(cmds) if isinstance(cmds, list) else 0,
                 }
         return summary
@@ -865,7 +905,18 @@ class ContextRenderingStrategy:
                     and session_data.get("status") == "active"
                 ):
                     # Return safe summary without sensitive data
-                    commands = session_data.get("commands", [])
+                    typed_session_data: dict[str, object] = {}
+                    for sk, sv in session_data.items():
+                        typed_session_data[str(sk)] = sv
+                    commands_raw = typed_session_data.get("commands", [])
+                    commands: list[dict[str, object]] = []
+                    if isinstance(commands_raw, list):
+                        for cmd in commands_raw:
+                            if isinstance(cmd, dict):
+                                typed_cmd: dict[str, object] = {}
+                                for ck, cv in cmd.items():
+                                    typed_cmd[str(ck)] = cv
+                                commands.append(typed_cmd)
                     commands_count = len(commands) if isinstance(commands, list) else 0
                     active_sessions[session_id] = {
                         "id": session_data.get("id"),
@@ -901,15 +952,18 @@ class ContextRenderingStrategy:
             return plugins_dict
 
         for plugin in plugins_list:
+            # Type check and cast to PluginLike
             if not self._is_valid_plugin(plugin):
                 continue
 
-            plugins_dict[plugin.name] = {
-                "id": plugin.id,
-                "name": plugin.name,
-                "version": getattr(plugin, "version", "1.0.0"),
-                "status": getattr(plugin, "status", "unknown"),
-                "plugin_type": getattr(plugin, "plugin_type", "unknown"),
+            # Cast to PluginLike for proper typing
+            typed_plugin: PluginLike = cast("PluginLike", plugin)
+            plugins_dict[typed_plugin.name] = {
+                "id": typed_plugin.id,
+                "name": typed_plugin.name,
+                "version": typed_plugin.version,
+                "status": typed_plugin.status,
+                "plugin_type": typed_plugin.plugin_type,
             }
 
         return plugins_dict
@@ -921,10 +975,11 @@ class ContextRenderingStrategy:
             plugin: Plugin object to validate
 
         Returns:
-            True if plugin has required attributes
+            True if plugin has required attributes conforming to PluginLike protocol
 
         """
-        return hasattr(plugin, "name") and hasattr(plugin, "id")
+        required_attrs = ["name", "id", "version", "status", "plugin_type"]
+        return all(hasattr(plugin, attr) for attr in required_attrs)
 
     def flext_cli_get_handlers(self) -> dict[str, object]:
         """Get all registered handlers with real implementation."""
