@@ -10,7 +10,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from enum import StrEnum
 from pathlib import Path
-from typing import Literal, Protocol, TypeVar
+from typing import Literal, Protocol, TypeVar, override
 
 import click
 from flext_core import FlextEntityId, FlextResult
@@ -177,6 +177,7 @@ class PositiveIntType(click.ParamType):
 
     name = "positive_int"
 
+    @override
     def convert(
         self,
         value: object,
@@ -208,6 +209,7 @@ class URLType(click.ParamType):
 
     name = "url"
 
+    @override
     def convert(
         self,
         value: object,
@@ -252,6 +254,7 @@ class PathType(click.ParamType):
         self.dir_okay = dir_okay
         self.file_okay = file_okay
 
+    @override
     def convert(
         self,
         value: object,
@@ -292,6 +295,7 @@ class ProfileType(click.ParamType):
 
     name = "profile"
 
+    @override
     def convert(
         self,
         value: object,

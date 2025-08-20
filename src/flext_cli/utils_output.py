@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json as _json
+from typing import Protocol, cast
 
 import yaml as _yaml
 from rich.console import Console
@@ -16,16 +17,24 @@ from rich.table import Table
 from flext_cli import get_config
 
 
+class ConsoleProtocol(Protocol):
+    """Protocol for Rich Console typing."""
+
+    def print(self, *args: object, **kwargs: object) -> None: ...
+    def input(self, prompt: str = "") -> str: ...
+
+
 def show_flext_cli_paths(console: Console) -> None:
     """Exibe caminhos relevantes do FLEXT CLI em um único local.
 
     Mantido simples para uso em examples/tests importando do pacote raiz.
     """
     config = get_config()
-    console.print("[bold]FLEXT CLI Paths:[/bold]")
-    console.print(f"  Config dir: {config.config_dir}")
-    console.print(f"  Cache dir:  {config.cache_dir}")
-    console.print(f"  Log dir:    {config.log_dir}")
+    typed_console = cast("ConsoleProtocol", console)
+    typed_console.print("[bold]FLEXT CLI Paths:[/bold]")
+    typed_console.print(f"  Config dir: {config.config_dir}")
+    typed_console.print(f"  Cache dir:  {config.cache_dir}")
+    typed_console.print(f"  Log dir:    {config.log_dir}")
 
 
 # Lightweight façade over cli_utils. Keep logic centralized in cli_utils.
@@ -38,24 +47,28 @@ def setup_console(*, no_color: bool = False, quiet: bool = False) -> Console:
 
 def print_success(console: Console, message: str) -> None:
     """Print a success message with standard formatting."""
-    console.print(f"[bold green]✓[/bold green] {message}")
+    typed_console = cast("ConsoleProtocol", console)
+    typed_console.print(f"[bold green]✓[/bold green] {message}")
 
 
 def print_error(console: Console, message: str, details: str | None = None) -> None:
     """Print an error message with optional details block."""
-    console.print(f"[bold red]Error:[/bold red] {message}")
+    typed_console = cast("ConsoleProtocol", console)
+    typed_console.print(f"[bold red]Error:[/bold red] {message}")
     if details:
-        console.print("[dim]" + details + "[/dim]")
+        typed_console.print("[dim]" + details + "[/dim]")
 
 
 def print_warning(console: Console, message: str) -> None:
     """Print a warning message."""
-    console.print(f"[bold yellow]⚠[/bold yellow] {message}")
+    typed_console = cast("ConsoleProtocol", console)
+    typed_console.print(f"[bold yellow]⚠[/bold yellow] {message}")
 
 
 def print_info(console: Console, message: str) -> None:
     """Print an informational message."""
-    console.print(f"[bold blue]i[/bold blue] {message}")
+    typed_console = cast("ConsoleProtocol", console)
+    typed_console.print(f"[bold blue]i[/bold blue] {message}")
 
 
 def format_plugin_list(

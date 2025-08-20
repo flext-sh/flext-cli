@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import override
 
 import toml
 from flext_core import (
@@ -245,6 +246,7 @@ class CLIConfig(FlextModel):
             raise ValueError(msg)
         return v
 
+    @override
     def model_post_init(self, __context: object, /) -> None:
         """Post-initialization setup."""
         super().model_post_init(__context)
@@ -346,7 +348,11 @@ class CLIConfig(FlextModel):
                     f"Invalid profile configuration for '{profile_name}'",
                 )
 
-            return FlextResult[ConfigDict].ok(profile_config)
+            # Type the profile config as ConfigDict
+            typed_profile_config: ConfigDict = {}
+            for k, v in profile_config.items():
+                typed_profile_config[str(k)] = v
+            return FlextResult[ConfigDict].ok(typed_profile_config)
 
         except Exception as e:
             return FlextResult[ConfigDict].fail(f"Failed to load profile '{profile_name}': {e}")
@@ -408,6 +414,7 @@ class CLIConfig(FlextModel):
                 f"Failed to load configuration from {file_path}: {e}",
             )
 
+    @override
     def to_dict(
         self, *, by_alias: bool = False, exclude_none: bool = False
     ) -> dict[str, object]:
@@ -434,17 +441,30 @@ class CLIConfig(FlextModel):
         if not isinstance(settings, dict):
             return False
         try:
-            if "debug" in settings:
-                self.debug = bool(settings["debug"])
-            if "api_timeout" in settings:
-                self.api_timeout = int(settings["api_timeout"])
-            if "output_format" in settings:
+            # Type the settings as dict[str, object]
+            typed_settings: dict[str, object] = {}
+            for k, v in settings.items():
+                typed_settings[str(k)] = v
+
+            if "debug" in typed_settings:
+                debug_value = typed_settings["debug"]
+                self.debug = bool(debug_value)
+            if "api_timeout" in typed_settings:
+                timeout_value = typed_settings["api_timeout"]
+                # Safe type conversion with validation
+                if isinstance(timeout_value, (int, float, str)):
+                    self.api_timeout = int(timeout_value)
+                else:
+                    self.api_timeout = 30  # Default value
+            if "output_format" in typed_settings:
                 # Accept raw string and convert via validator
-                self.output_format = settings["output_format"]
+                format_value = typed_settings["output_format"]
+                self.output_format = format_value  # type: ignore[assignment]
             return True
         except Exception:
             return False
 
+    @override
     def validate_business_rules(self) -> FlextResult[None]:
         """Validation wrapper returning FlextResult for consistency."""
         return self.validate_config()
@@ -472,7 +492,8 @@ def create_cli_config(
     try:
         # Start with default configuration
         # Use model_validate for proper construction
-        config_data = {"profile": profile, **overrides}
+        config_data: dict[str, object] = {"profile": profile}
+        config_data.update(overrides)
         config = CLIConfig.model_validate(config_data)
 
         # Load profile-specific settings if config file exists
@@ -481,9 +502,11 @@ def create_cli_config(
             if profile_result.is_success:
                 profile_config = profile_result.unwrap()
                 # Apply profile settings (overrides take precedence)
-                merged_config = {**profile_config, **overrides}
+                merged_config: dict[str, object] = {**profile_config}
+                merged_config.update(overrides)
                 # Use model_validate for proper construction
-                config_data = {"profile": profile, **merged_config}
+                config_data = {"profile": profile}
+                config_data.update(merged_config)
                 config = CLIConfig.model_validate(config_data)
 
         # Validate final configuration

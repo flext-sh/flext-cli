@@ -453,7 +453,7 @@ def cli_retry(
 
                         console.print(
                             f"[yellow]Attempt {attempt + 1} failed. "
-                            + f"Retrying in {retry_delay:.1f} seconds...[/yellow]"
+                             f"Retrying in {retry_delay:.1f} seconds...[/yellow]"
                         )
 
                         time.sleep(retry_delay)

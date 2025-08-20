@@ -18,7 +18,7 @@ import json
 import shlex
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Literal, Protocol, TypeVar, cast
+from typing import Literal, Protocol, TypeVar, cast
 from uuid import UUID
 
 import yaml
@@ -37,10 +37,10 @@ FlextCliData = dict[str, object] | list[object] | str | float | int | None
 
 class ConsoleLike(Protocol):
     """Protocol for console-like objects that can print."""
-    
+
     def print(
         self,
-        *objects: Any,
+        *objects: object,
         sep: str = " ",
         end: str = "\n",
         style: Style | str | None = None,
@@ -502,13 +502,26 @@ def _convert_to_serializable(data: object) -> object:
     if isinstance(data, (Path, UUID)):
         return str(data)
 
-    # Handle dict types
+    # Handle dict types with explicit typing
     if isinstance(data, dict):
-        return {str(k): _convert_to_serializable(v) for k, v in data.items()}
+        result_dict: dict[str, object] = {}
+        # Type the dict items explicitly
+        typed_data: dict[object, object] = data
+        for k, v in typed_data.items():
+            key_str: str = str(k)
+            value_converted: object = _convert_to_serializable(v)
+            result_dict[key_str] = value_converted
+        return result_dict
 
     # Handle sequence types (including sets)
     if isinstance(data, (list, tuple, set)):
-        return [_convert_to_serializable(item) for item in data]
+        result_list: list[object] = []
+        # Type the sequence explicitly
+        typed_sequence: list[object] | tuple[object, ...] | set[object] = data
+        for item in typed_sequence:
+            converted_item: object = _convert_to_serializable(item)
+            result_list.append(converted_item)
+        return result_list
 
     # Handle objects with __dict__ or fallback to string
     return (
@@ -573,10 +586,19 @@ def _save_csv_file(data: object, path: Path) -> FlextResult[None]:
         if not isinstance(data[0], dict):
             return FlextResult[None].fail("CSV data must be a list of dictionaries")
 
+        # Type the data as list of dicts
+        typed_data: list[dict[str, object]] = [
+            dict(item) if isinstance(item, dict) else {} for item in data
+        ]
+
+        if not typed_data:
+            return FlextResult[None].fail("No valid dictionaries in data")
+
         with path.open("w", encoding="utf-8", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=data[0].keys())
+            fieldnames = list(typed_data[0].keys())
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
-            writer.writerows(data)
+            writer.writerows(typed_data)
 
         return FlextResult[None].ok(None)
     except (OSError, ValueError) as e:
@@ -632,13 +654,17 @@ def cli_create_table(
 
             if isinstance(data[0], dict):
                 # List of dictionaries - create columns from first item
-                headers = list(data[0].keys())
+                first_dict = dict(data[0])
+                headers: list[str] = list(first_dict.keys())
                 for header in headers:
-                    table.add_column(header.replace("_", " ").title())
+                    formatted_header = str(header).replace("_", " ").title()
+                    table.add_column(formatted_header)
 
                 for item in data:
-                    row_data = [str(item.get(h, "")) for h in headers]
-                    table.add_row(*row_data)
+                    if isinstance(item, dict):
+                        typed_item: dict[str, object] = dict(item)
+                        row_data = [str(typed_item.get(h, "")) for h in headers]
+                        table.add_row(*row_data)
             else:
                 # List of values - single column
                 table.add_column("Value")
@@ -650,8 +676,10 @@ def cli_create_table(
             table.add_column("Key", style="cyan")
             table.add_column("Value")
 
-            for key, value in data.items():
-                table.add_row(key.replace("_", " ").title(), str(value))
+            typed_dict: dict[str, object] = dict(data)
+            for key, value in typed_dict.items():
+                formatted_key = str(key).replace("_", " ").title()
+                table.add_row(formatted_key, str(value))
 
         else:
             # Single value - simple table
@@ -664,7 +692,18 @@ def cli_create_table(
         return FlextResult[Table].fail(f"Failed to create table: {e}")
 
 
-def cli_format_output(
+def _raise_for_unknown_format(format_type: str) -> None:
+    """Raise ValueError for unknown format - abstracted for TRY301."""
+    msg = f"Unknown formatter type: {format_type}"
+    raise ValueError(msg)
+
+
+def _raise_for_format_error(error: str) -> None:
+    """Raise ValueError for format error - abstracted for TRY301."""
+    raise ValueError(error)
+
+
+def cli_format_output(  # noqa: PLR0912,PLR0915
     data: object,
     format_type: OutputFormat | str = OutputFormat.TABLE,
     console: ConsoleLike | None = None,  # Backward compatibility with tests
@@ -675,6 +714,7 @@ def cli_format_output(
     Args:
       data: Data to format
       format_type: Output format
+      console: Optional console for backward compatibility
       **options: Additional formatting options
 
     Returns:
@@ -684,12 +724,12 @@ def cli_format_output(
     try:
         error: str | None = None
         formatted: str | None = None
-        
+
         # Convert string format types to OutputFormat for backward compatibility
         if isinstance(format_type, str):
             format_map = {
                 "json": OutputFormat.JSON,
-                "yaml": OutputFormat.YAML, 
+                "yaml": OutputFormat.YAML,
                 "csv": OutputFormat.CSV,
                 "table": OutputFormat.TABLE,
                 "plain": OutputFormat.PLAIN,
@@ -701,8 +741,8 @@ def cli_format_output(
                 error = f"Unknown formatter type: {format_type}"
                 if console is None:  # New API - return FlextResult
                     return FlextResult[str].fail(error)
-                else:  # Old API - raise ValueError for test compatibility
-                    raise ValueError(error)
+                # Old API - raise ValueError for test compatibility
+                _raise_for_unknown_format(format_type)
 
         if format_type == OutputFormat.JSON:
             formatted = json.dumps(data, indent=2, default=str, ensure_ascii=False)
@@ -748,15 +788,15 @@ def cli_format_output(
 
         if error is not None:
             if console is not None:  # Old API - raise ValueError for test compatibility
-                raise ValueError(error)
+                _raise_for_format_error(error)
             return FlextResult[str].fail(error)
-            
+
         result = formatted or ""
-        
-        # For backward compatibility: if console is provided, print to it (old API behavior)  
-        if console is not None and hasattr(console, 'print'):
+
+        # For backward compatibility: if console is provided, print to it (old API behavior)
+        if console is not None and hasattr(console, "print"):
             console.print(result)
-            
+
         return FlextResult[str].ok(result)
 
     except Exception as e:

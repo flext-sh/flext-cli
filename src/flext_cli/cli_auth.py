@@ -288,9 +288,12 @@ async def _async_login_impl(
                 if "user" in response:
                     user_data = response["user"]
                     if isinstance(user_data, dict):
-                        console.print(
-                            f"Welcome, {user_data.get('name', username)}!",
-                        )
+                        # Type the user data properly
+                        typed_user_data: dict[str, object] = {}
+                        for k, v in user_data.items():
+                            typed_user_data[str(k)] = v
+                        user_name = typed_user_data.get("name", username)
+                        console.print(f"Welcome, {user_name}!")
             else:
                 console.print(
                     f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_INVALID_RESPONSE}[/red]",
@@ -445,7 +448,7 @@ def status(ctx: click.Context) -> None:
       0: Authenticated and token valid
       1: Not authenticated or token invalid
     """
-    console: Console = ctx.obj["console"]
+    console: Console = ctx.obj.get("console", Console()) if ctx.obj else Console()
 
     async def _async_status() -> None:
         """Async status check implementation."""

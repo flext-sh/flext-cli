@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 from functools import wraps
-from typing import NotRequired, ParamSpec, TypedDict, TypeVar
+from typing import NotRequired, ParamSpec, TypedDict, TypeVar, override
 
 from flext_core import FlextModel, FlextResult, get_logger
 from pydantic import ConfigDict, Field
@@ -71,6 +71,7 @@ class CLIContext(FlextModel):
             return bool(getattr(cfg, "verbose", False))
         return bool(getattr(self, "verbose", False))
 
+    @override
     def model_post_init(self, __context: object, /) -> None:
         """Post-initialization validation."""
         # Ensure console exists even if not provided, and validate required fields
@@ -119,6 +120,7 @@ class CLIContext(FlextModel):
         if self.is_debug and self.console is not None:
             self.console.print(f"[dim][DEBUG][/dim] {message}")
 
+    @override
     def __setattr__(self, name: str, value: object) -> None:
         """Set attribute, preventing mutation after initialization."""
         # Prevent mutation after initialization to mimic value object immutability
@@ -194,15 +196,17 @@ def handle_service_result[**P](func: Callable[P, object]) -> Callable[P, object]
     if asyncio.iscoroutinefunction(func):
         logger_async = get_logger("flext_cli.handle_service_result.async")
 
-        async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> object:
+        async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> object | None:
             try:
                 result = await func(*args, **kwargs)
                 if isinstance(result, FlextResult):
                     if result.is_failure:
                         _print_error(result.error or "Unknown error")
                         return None
-                    return result.unwrap()
-                return result
+                    unwrapped_result: object = result.unwrap()
+                    return unwrapped_result
+                typed_result: object = result
+                return typed_result
             except Exception as exc:
                 _print_error(str(exc))
                 # Keep message consistent with sync wrapper if tests expect that
@@ -212,15 +216,17 @@ def handle_service_result[**P](func: Callable[P, object]) -> Callable[P, object]
         return async_wrapper
 
     @wraps(func)
-    def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> object:
+    def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> object | None:
         try:
             result = func(*args, **kwargs)
             if isinstance(result, FlextResult):
                 if result.is_failure:
                     _print_error(result.error or "Unknown error")
                     return None
-                return result.unwrap()
-            return result
+                unwrapped_result: object = result.unwrap()
+                return unwrapped_result
+            typed_sync_result: object = result
+            return typed_sync_result
         except Exception as exc:
             _print_error(str(exc))
             logger.exception("Unhandled exception in CLI command")

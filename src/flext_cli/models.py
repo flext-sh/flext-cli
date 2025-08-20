@@ -1164,9 +1164,11 @@ class FlextCliSession(FlextEntity):
 try:  # pragma: no cover
     FlextCliSession.model_rebuild()
 except Exception as exc:  # Do not silently swallow model rebuild errors
+    # Type the exception explicitly for PyRight
+    typed_exc: Exception = exc
     _logger.warning(
         "Pydantic model_rebuild failed for FlextCliSession",
-        error=str(exc),
+        error=str(typed_exc),
     )
 
 
