@@ -11,7 +11,7 @@ import asyncio
 from unittest.mock import Mock, patch
 
 import pytest
-from flext_core.result import FlextResult
+from flext_core import FlextResult
 from pydantic import ValidationError
 
 from flext_cli import CLIContext, handle_service_result

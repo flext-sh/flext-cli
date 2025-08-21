@@ -138,11 +138,7 @@ class TestFlextCliCommandError:
 
     def test_command_error_with_command(self) -> None:
         """Test command error with command context."""
-        error = FlextCliCommandError(
-            "Command failed",
-            command="echo test",
-            exit_code=1
-        )
+        error = FlextCliCommandError("Command failed", command="echo test", exit_code=1)
         assert "Command failed" in str(error)
         # Context should be available via the FlextError base class
         assert hasattr(error, "context") or hasattr(error, "_context")
@@ -153,7 +149,7 @@ class TestFlextCliCommandError:
             "Command failed",
             command="ls -la",
             exit_code=2,
-            context={"user": "test", "directory": "/tmp"}
+            context={"user": "test", "directory": "/tmp"},
         )
         assert "Command failed" in str(error)
 
@@ -170,9 +166,7 @@ class TestFlextCliArgumentError:
     def test_argument_error_with_context(self) -> None:
         """Test argument error with argument details."""
         error = FlextCliArgumentError(
-            "Invalid value",
-            argument_name="--output",
-            argument_value="invalid_format"
+            "Invalid value", argument_name="--output", argument_value="invalid_format"
         )
         assert "Invalid value" in str(error)
 
@@ -182,7 +176,7 @@ class TestFlextCliArgumentError:
             "Argument validation failed",
             argument_name="--count",
             argument_value="-5",
-            context={"min_value": 0, "max_value": 100}
+            context={"min_value": 0, "max_value": 100},
         )
         assert "Argument validation failed" in str(error)
 
@@ -199,9 +193,7 @@ class TestFlextCliFormatError:
     def test_format_error_with_context(self) -> None:
         """Test format error with format details."""
         error = FlextCliFormatError(
-            "Unsupported format",
-            format_type="xml",
-            data_type="dict"
+            "Unsupported format", format_type="xml", data_type="dict"
         )
         assert "Unsupported format" in str(error)
 
@@ -211,7 +203,7 @@ class TestFlextCliFormatError:
             "Format conversion failed",
             format_type="csv",
             data_type="nested_dict",
-            context={"supported_formats": ["json", "yaml", "table"]}
+            context={"supported_formats": ["json", "yaml", "table"]},
         )
         assert "Format conversion failed" in str(error)
 
@@ -230,7 +222,7 @@ class TestFlextCliOutputError:
         error = FlextCliOutputError(
             "Cannot write to file",
             output_format="json",
-            output_path="/readonly/file.json"
+            output_path="/readonly/file.json",
         )
         assert "Cannot write to file" in str(error)
 
@@ -240,7 +232,7 @@ class TestFlextCliOutputError:
             "Output processing failed",
             output_format="csv",
             output_path="/tmp/export.csv",
-            context={"permissions": "read-only", "disk_space": "0MB"}
+            context={"permissions": "read-only", "disk_space": "0MB"},
         )
         assert "Output processing failed" in str(error)
 
@@ -259,7 +251,7 @@ class TestFlextCliContextError:
         error = FlextCliContextError(
             "Invalid context state",
             context_name="session_context",
-            context_state="corrupted"
+            context_state="corrupted",
         )
         assert "Invalid context state" in str(error)
 
@@ -269,7 +261,7 @@ class TestFlextCliContextError:
             "Context initialization failed",
             context_name="cli_context",
             context_state="uninitialized",
-            context={"expected_fields": ["user", "session"], "missing": ["user"]}
+            context={"expected_fields": ["user", "session"], "missing": ["user"]},
         )
         assert "Context initialization failed" in str(error)
 
@@ -280,7 +272,8 @@ class TestExceptionRaising:
     def test_raise_and_catch_command_error(self) -> None:
         """Test raising and catching command errors."""
         with pytest.raises(FlextCliCommandError) as exc_info:
-            raise FlextCliCommandError("Test command failed", command="test_cmd")
+            msg = "Test command failed"
+            raise FlextCliCommandError(msg, command="test_cmd")
 
         assert "Test command failed" in str(exc_info.value)
         assert isinstance(exc_info.value, FlextCliError)
@@ -288,11 +281,13 @@ class TestExceptionRaising:
     def test_raise_and_catch_base_error(self) -> None:
         """Test raising and catching base CLI error."""
         with pytest.raises(FlextCliError) as exc_info:
-            raise FlextCliError("Base CLI error")
+            msg = "Base CLI error"
+            raise FlextCliError(msg)
 
         assert "Base CLI error" in str(exc_info.value)
 
     def test_catch_specific_with_base(self) -> None:
         """Test that specific errors can be caught as base CLI error."""
         with pytest.raises(FlextCliError):  # Should catch the specific error
-            raise FlextCliArgumentError("Specific error")
+            msg = "Specific error"
+            raise FlextCliArgumentError(msg)

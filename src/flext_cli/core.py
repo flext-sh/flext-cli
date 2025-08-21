@@ -145,12 +145,10 @@ class FlextCliService(FlextService):
     ) -> FlextResult[bool]:
         """Export data to file in specified format."""
         try:
-            formatted_result = self.flext_cli_format(data, format_type)
-            if not formatted_result.success:
-                error_msg = formatted_result.error or "Formatting failed"
-                return FlextResult[bool].fail(error_msg)
-
-            formatted_data = formatted_result.unwrap()
+            # Use unwrap_or() for cleaner code following user's example pattern
+            formatted_data = self.flext_cli_format(data, format_type).unwrap_or("")
+            if not formatted_data:
+                return FlextResult[bool].fail("Formatting failed: Empty result")
             path_obj = Path(path)
 
             # Ensure parent directory exists
@@ -259,7 +257,9 @@ class FlextCliService(FlextService):
 
         def format_csv_data() -> str:
             if not isinstance(data, (list, tuple)):
-                data_list: list[dict[str, object]] = [data] if isinstance(data, dict) else [{"value": str(data)}]
+                data_list: list[dict[str, object]] = (
+                    [data] if isinstance(data, dict) else [{"value": str(data)}]
+                )
             else:
                 # Convert tuple/list to list with proper type handling - ensure dicts
                 data_list = []

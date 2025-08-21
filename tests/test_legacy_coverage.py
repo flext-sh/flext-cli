@@ -69,7 +69,9 @@ class TestLegacyServiceAliases:
 
             # Should issue deprecation warning
             assert len(w) == 1
-            assert "CliService is deprecated, use FlextCliService instead" in str(w[0].message)
+            assert "CliService is deprecated, use FlextCliService instead" in str(
+                w[0].message
+            )
 
             # Should return a mock service instance
             assert result is not None
@@ -115,7 +117,9 @@ class TestLegacyServiceAliases:
 
             # Should issue deprecation warning
             assert len(w) == 1
-            assert "CLIService is deprecated, use FlextCliService instead" in str(w[0].message)
+            assert "CLIService is deprecated, use FlextCliService instead" in str(
+                w[0].message
+            )
 
             # Should return a mock service instance
             assert result is not None
@@ -136,7 +140,9 @@ class TestLegacySetupFunctions:
 
             # Should issue deprecation warning
             assert len(w) == 1
-            assert "setup_flext_cli is deprecated, use setup_cli instead" in str(w[0].message)
+            assert "setup_flext_cli is deprecated, use setup_cli instead" in str(
+                w[0].message
+            )
 
             # Should call setup_cli with no arguments (ignoring provided ones)
             mock_setup_cli.assert_called_once_with()
@@ -151,7 +157,9 @@ class TestLegacySetupFunctions:
             with pytest.raises(ImportError, match="setup_cli not available"):
                 legacy.setup_flext_cli()
 
-    @patch("flext_cli.legacy.setup_cli", side_effect=AttributeError("Attribute missing"))
+    @patch(
+        "flext_cli.legacy.setup_cli", side_effect=AttributeError("Attribute missing")
+    )
     def test_setup_flext_cli_attribute_error(self, mock_setup_cli: MagicMock) -> None:
         """Test setup_flext_cli when setup_cli raises AttributeError."""
         with warnings.catch_warnings(record=True):
@@ -169,12 +177,17 @@ class TestLegacySetupFunctions:
 
             # Should issue deprecation warning
             assert len(w) == 1
-            assert "create_context is deprecated, use create_cli_context instead" in str(w[0].message)
+            assert (
+                "create_context is deprecated, use create_cli_context instead"
+                in str(w[0].message)
+            )
 
             # Should return CLIConfig instance
             assert isinstance(result, CLIConfig)
 
-    @patch("flext_cli.legacy.CLIConfig", side_effect=Exception("Config creation failed"))
+    @patch(
+        "flext_cli.legacy.CLIConfig", side_effect=Exception("Config creation failed")
+    )
     def test_create_context_exception(self, mock_cli_config: MagicMock) -> None:
         """Test create_context when CLIConfig raises exception."""
         with warnings.catch_warnings(record=True):
@@ -220,7 +233,9 @@ class TestLegacySetupFunctions:
 
             # Should issue deprecation warning
             assert len(w) == 1
-            assert "configure_cli is deprecated, use setup_cli instead" in str(w[0].message)
+            assert "configure_cli is deprecated, use setup_cli instead" in str(
+                w[0].message
+            )
 
             assert result == {"configure": "success"}
 
@@ -246,7 +261,9 @@ class TestLegacyErrorFunctions:
 
             # Should issue deprecation warning
             assert len(w) == 1
-            assert "CliError is deprecated, use FlextCliError instead" in str(w[0].message)
+            assert "CliError is deprecated, use FlextCliError instead" in str(
+                w[0].message
+            )
 
             # Should return FlextCliError instance
             assert isinstance(result, FlextCliError)
@@ -270,7 +287,10 @@ class TestLegacyErrorFunctions:
             result = legacy.cli_validation_error("Validation failed")
 
             assert len(w) == 1
-            assert "CliValidationError is deprecated, use FlextCliValidationError instead" in str(w[0].message)
+            assert (
+                "CliValidationError is deprecated, use FlextCliValidationError instead"
+                in str(w[0].message)
+            )
             assert isinstance(result, FlextCliValidationError)
             assert "Validation failed" in str(result)
 
@@ -292,7 +312,10 @@ class TestLegacyErrorFunctions:
             result = legacy.cli_configuration_error("Config error")
 
             assert len(w) == 1
-            assert "CliConfigurationError is deprecated, use FlextCliConfigurationError instead" in str(w[0].message)
+            assert (
+                "CliConfigurationError is deprecated, use FlextCliConfigurationError instead"
+                in str(w[0].message)
+            )
             assert isinstance(result, FlextCliConfigurationError)
             assert "Config error" in str(result)
 
@@ -314,7 +337,10 @@ class TestLegacyErrorFunctions:
             result = legacy.cli_connection_error("Connection lost")
 
             assert len(w) == 1
-            assert "CliConnectionError is deprecated, use FlextCliConnectionError instead" in str(w[0].message)
+            assert (
+                "CliConnectionError is deprecated, use FlextCliConnectionError instead"
+                in str(w[0].message)
+            )
             assert isinstance(result, FlextCliConnectionError)
             assert "Connection lost" in str(result)
 
@@ -326,7 +352,10 @@ class TestLegacyErrorFunctions:
             result = legacy.cli_processing_error("Processing failed")
 
             assert len(w) == 1
-            assert "CliProcessingError is deprecated, use FlextCliProcessingError instead" in str(w[0].message)
+            assert (
+                "CliProcessingError is deprecated, use FlextCliProcessingError instead"
+                in str(w[0].message)
+            )
             assert isinstance(result, FlextCliProcessingError)
             assert "Processing failed" in str(result)
 
@@ -338,7 +367,10 @@ class TestLegacyErrorFunctions:
             result = legacy.cli_authentication_error("Auth failed")
 
             assert len(w) == 1
-            assert "CliAuthenticationError is deprecated, use FlextCliAuthenticationError instead" in str(w[0].message)
+            assert (
+                "CliAuthenticationError is deprecated, use FlextCliAuthenticationError instead"
+                in str(w[0].message)
+            )
             assert isinstance(result, FlextCliAuthenticationError)
             assert "Auth failed" in str(result)
 
@@ -350,7 +382,10 @@ class TestLegacyErrorFunctions:
             result = legacy.cli_timeout_error("Operation timed out")
 
             assert len(w) == 1
-            assert "CliTimeoutError is deprecated, use FlextCliTimeoutError instead" in str(w[0].message)
+            assert (
+                "CliTimeoutError is deprecated, use FlextCliTimeoutError instead"
+                in str(w[0].message)
+            )
             assert isinstance(result, FlextCliTimeoutError)
             assert "Operation timed out" in str(result)
 
@@ -362,7 +397,10 @@ class TestLegacyErrorFunctions:
             result = legacy.cli_command_error("Command failed")
 
             assert len(w) == 1
-            assert "CliCommandError is deprecated, use FlextCliCommandError instead" in str(w[0].message)
+            assert (
+                "CliCommandError is deprecated, use FlextCliCommandError instead"
+                in str(w[0].message)
+            )
             assert isinstance(result, FlextCliCommandError)
             assert "Command failed" in str(result)
 
@@ -374,7 +412,10 @@ class TestLegacyErrorFunctions:
             result = legacy.cli_argument_error("Invalid argument")
 
             assert len(w) == 1
-            assert "CliArgumentError is deprecated, use FlextCliArgumentError instead" in str(w[0].message)
+            assert (
+                "CliArgumentError is deprecated, use FlextCliArgumentError instead"
+                in str(w[0].message)
+            )
             assert isinstance(result, FlextCliArgumentError)
             assert "Invalid argument" in str(result)
 
@@ -386,7 +427,10 @@ class TestLegacyErrorFunctions:
             result = legacy.cli_format_error("Format invalid")
 
             assert len(w) == 1
-            assert "CliFormatError is deprecated, use FlextCliFormatError instead" in str(w[0].message)
+            assert (
+                "CliFormatError is deprecated, use FlextCliFormatError instead"
+                in str(w[0].message)
+            )
             assert isinstance(result, FlextCliFormatError)
             assert "Format invalid" in str(result)
 
@@ -398,7 +442,10 @@ class TestLegacyErrorFunctions:
             result = legacy.cli_output_error("Output failed")
 
             assert len(w) == 1
-            assert "CliOutputError is deprecated, use FlextCliOutputError instead" in str(w[0].message)
+            assert (
+                "CliOutputError is deprecated, use FlextCliOutputError instead"
+                in str(w[0].message)
+            )
             assert isinstance(result, FlextCliOutputError)
             assert "Output failed" in str(result)
 
@@ -410,7 +457,10 @@ class TestLegacyErrorFunctions:
             result = legacy.cli_context_error("Context invalid")
 
             assert len(w) == 1
-            assert "CliContextError is deprecated, use FlextCliContextError instead" in str(w[0].message)
+            assert (
+                "CliContextError is deprecated, use FlextCliContextError instead"
+                in str(w[0].message)
+            )
             assert isinstance(result, FlextCliContextError)
             assert "Context invalid" in str(result)
 
@@ -422,7 +472,9 @@ class TestLegacyErrorFunctions:
             result = legacy.command_line_error("Command line error")
 
             assert len(w) == 1
-            assert "CommandLineError is deprecated, use FlextCliError instead" in str(w[0].message)
+            assert "CommandLineError is deprecated, use FlextCliError instead" in str(
+                w[0].message
+            )
             assert isinstance(result, FlextCliError)
             assert "Command line error" in str(result)
 
@@ -463,7 +515,9 @@ class TestLegacyErrorEdgeCases:
                 warnings.simplefilter("always")
 
                 # Test with multiple args - should only use the first one
-                result = error_func("First arg", "Second arg", "Third arg", kwarg="value")
+                result = error_func(
+                    "First arg", "Second arg", "Third arg", kwarg="value"
+                )
 
                 # Should be an exception instance
                 assert isinstance(result, Exception)
@@ -505,7 +559,9 @@ class TestLegacyModuleAll:
     def test_all_exports_exist(self) -> None:
         """Test that all functions in __all__ actually exist."""
         for name in legacy.__all__:
-            assert hasattr(legacy, name), f"Function {name} declared in __all__ but not found in module"
+            assert hasattr(legacy, name), (
+                f"Function {name} declared in __all__ but not found in module"
+            )
 
     def test_all_exports_callable(self) -> None:
         """Test that all exported functions are callable."""
@@ -516,14 +572,29 @@ class TestLegacyModuleAll:
     def test_expected_exports(self) -> None:
         """Test that expected functions are in __all__."""
         expected_exports = {
-            "cli_api", "cli_service", "cliservice",
-            "setup_flext_cli", "create_context", "init_cli", "configure_cli",
-            "cli_error", "cli_validation_error", "cli_configuration_error",
-            "cli_connection_error", "cli_processing_error", "cli_authentication_error",
-            "cli_timeout_error", "cli_command_error", "cli_argument_error",
-            "cli_format_error", "cli_output_error", "cli_context_error",
-            "command_line_error"
+            "cli_api",
+            "cli_service",
+            "cliservice",
+            "setup_flext_cli",
+            "create_context",
+            "init_cli",
+            "configure_cli",
+            "cli_error",
+            "cli_validation_error",
+            "cli_configuration_error",
+            "cli_connection_error",
+            "cli_processing_error",
+            "cli_authentication_error",
+            "cli_timeout_error",
+            "cli_command_error",
+            "cli_argument_error",
+            "cli_format_error",
+            "cli_output_error",
+            "cli_context_error",
+            "command_line_error",
         }
 
         for export in expected_exports:
-            assert export in legacy.__all__, f"Expected export {export} not found in __all__"
+            assert export in legacy.__all__, (
+                f"Expected export {export} not found in __all__"
+            )

@@ -138,7 +138,7 @@ def flext_cli_create_session(user_id: str | None = None) -> str:
 
     """
     result = _api.flext_cli_create_session(user_id)
-    return result.unwrap() if hasattr(result, "unwrap") and result.success else ""
+    return result.unwrap_or("")
 
 
 def flext_cli_register_handler(name: str, handler: object) -> bool:
@@ -184,7 +184,7 @@ def flext_cli_execute_handler(name: str, *args: object, **kwargs: object) -> obj
 
     """
     result = _api.flext_cli_execute_handler(name, *args, **kwargs)
-    return result.unwrap() if hasattr(result, "unwrap") and result.success else {}
+    return result.unwrap_or({})
 
 
 def flext_cli_render_with_context(
@@ -202,7 +202,7 @@ def flext_cli_render_with_context(
 
     """
     result = _api.flext_cli_render_with_context(data, context)
-    return result.unwrap() if hasattr(result, "unwrap") and result.success else ""
+    return result.unwrap_or("")
 
 
 def flext_cli_get_commands() -> dict[str, object]:

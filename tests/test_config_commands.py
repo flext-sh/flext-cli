@@ -17,7 +17,7 @@ from unittest.mock import MagicMock, patch
 import click
 import yaml
 from click.testing import CliRunner
-from flext_core.constants import FlextConstants
+from flext_core import FlextConstants
 from rich.table import Table
 
 from flext_cli import config

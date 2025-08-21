@@ -99,11 +99,11 @@ def sample_command() -> CLICommand:
 @pytest.fixture
 def real_click_context(console: Console) -> tuple[object, Console]:
     """Create REAL Click context for testing actual CLI command execution.
-    
+
     This provides real Click context without mocking for testing actual command behavior.
     """
     import click
-    
+
     ctx = click.Context(click.Command("test"))
     ctx.obj = {"console": console}
     return ctx, console

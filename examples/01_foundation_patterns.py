@@ -97,14 +97,20 @@ def _container_demo(console: Console, config: CLIConfig) -> FlextResult[None]:
     for service_name in ["console", "config", "cli_api", "cli_helper"]:
         service_result = container.get(service_name)
         status = "✅ Retrieved" if service_result.success else "❌ Failed"
-        service_type = type(service_result.unwrap()).__name__ if service_result.success else "Error"
+        service_type = (
+            type(service_result.unwrap()).__name__
+            if service_result.success
+            else "Error"
+        )
         services_table.add_row(service_name, status, service_type)
 
     console.print(services_table)
     return FlextResult[None].ok(None)
 
 
-def _entities_demo(console: Console, config: CLIConfig) -> FlextResult[tuple[FlextCliCommand, FlextCliSession]]:
+def _entities_demo(
+    console: Console, config: CLIConfig
+) -> FlextResult[tuple[FlextCliCommand, FlextCliSession]]:
     """Demo CLI domain entities."""
     console.print("\\n[green]4. 🎯 CLI Domain Entities (Factory Pattern)[/green]")
 
@@ -112,7 +118,9 @@ def _entities_demo(console: Console, config: CLIConfig) -> FlextResult[tuple[Fle
 
     command_result = create_sample_command_with_factory(entity_factory)
     if not command_result.success:
-        return FlextResult[None].fail(f"Command creation failed: {command_result.error}")
+        return FlextResult[None].fail(
+            f"Command creation failed: {command_result.error}"
+        )
 
     command = command_result.unwrap()
     console.print(f"✅ CLI Command: [cyan]{command.name}[/cyan]")
@@ -123,11 +131,15 @@ def _entities_demo(console: Console, config: CLIConfig) -> FlextResult[tuple[Fle
     cli_config = config
     session_result = create_sample_session_with_factory(cli_config, entity_factory)
     if not session_result.success:
-        return FlextResult[None].fail(f"Session creation failed: {session_result.error}")
+        return FlextResult[None].fail(
+            f"Session creation failed: {session_result.error}"
+        )
 
     session = session_result.unwrap()
     console.print(f"✅ CLI Session: [cyan]{session.session_id}[/cyan]")
-    console.print(f"   State: [yellow]{getattr(session, 'session_status', 'active')}[/yellow]")
+    console.print(
+        f"   State: [yellow]{getattr(session, 'session_status', 'active')}[/yellow]"
+    )
     console.print(f"   Type: [dim]{type(session).__name__}[/dim]")
 
     return FlextResult[None].ok((command, session))
@@ -167,8 +179,16 @@ def _summary_demo(console: Console) -> None:
     summary_table.add_column("Benefit", style="yellow")
 
     patterns = [
-        ("FlextResult", "Railway-oriented programming", "Zero exception handling boilerplate"),
-        ("FlextModel", "Pydantic-based configuration", "Type-safe settings with validation"),
+        (
+            "FlextResult",
+            "Railway-oriented programming",
+            "Zero exception handling boilerplate",
+        ),
+        (
+            "FlextModel",
+            "Pydantic-based configuration",
+            "Type-safe settings with validation",
+        ),
         ("FlextContainer", "Dependency injection", "Service management & testing"),
         ("FlextEntity", "Domain entity factories", "Business rule validation"),
         ("Decorators", "Service result handling", "Automatic error management"),
@@ -186,12 +206,14 @@ def demonstrate_foundation_patterns() -> FlextResult[None]:
     console = Console()
 
     # Rich UI presentation
-    console.print(Panel(
-        "[bold blue]FLEXT-CLI Foundation Patterns Demo[/bold blue]\n\n"
-        "[cyan]Demonstrating extensive use of flext-core patterns in CLI development[/cyan]",
-        title="🚀 Foundation Library Demo",
-        border_style="blue"
-    ))
+    console.print(
+        Panel(
+            "[bold blue]FLEXT-CLI Foundation Patterns Demo[/bold blue]\n\n"
+            "[cyan]Demonstrating extensive use of flext-core patterns in CLI development[/cyan]",
+            title="🚀 Foundation Library Demo",
+            border_style="blue",
+        )
+    )
 
     # Execute demo sections
     setup_result = _setup_cli_demo(console)
@@ -221,7 +243,9 @@ def demonstrate_foundation_patterns() -> FlextResult[None]:
     return FlextResult[None].ok(None)
 
 
-def create_sample_command_with_factory(_factory: CLIEntityFactory) -> FlextResult[FlextCliCommand]:
+def create_sample_command_with_factory(
+    _factory: CLIEntityFactory,
+) -> FlextResult[FlextCliCommand]:
     """Create a sample CLI command using domain factory patterns."""
     try:
         # Use entity factory to create domain objects (demonstrates factory pattern)
@@ -240,7 +264,9 @@ def create_sample_command_with_factory(_factory: CLIEntityFactory) -> FlextResul
         except Exception as e:
             command_result = FlextResult[None].fail(f"Command creation failed: {e}")
         if not command_result.success:
-            return FlextResult[None].fail(f"Factory command creation failed: {command_result.error}")
+            return FlextResult[None].fail(
+                f"Factory command creation failed: {command_result.error}"
+            )
 
         return command_result
 
@@ -266,8 +292,7 @@ def create_sample_command() -> FlextResult[FlextCliCommand]:
 
 
 def create_sample_session_with_factory(
-    config: CLIConfig,
-    _factory: CLIEntityFactory
+    config: CLIConfig, _factory: CLIEntityFactory
 ) -> FlextResult[FlextCliSession]:
     """Create a sample CLI session using factory pattern with extensive configuration."""
     try:
@@ -282,16 +307,21 @@ def create_sample_session_with_factory(
                 "demo_type": "foundation_patterns",
                 "flext_core_version": "0.9.0",
                 "patterns_demonstrated": [
-                    "FlextResult", "FlextModel", "FlextContainer", "FlextEntity"
-                ]
-            }
+                    "FlextResult",
+                    "FlextModel",
+                    "FlextContainer",
+                    "FlextEntity",
+                ],
+            },
         }
 
         # Factory creates validated session entity
         # Factory creates validated session entity using simplified API
         try:
             # FlextEntityId already imported at top
-            session_id = f"foundation-demo-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}"
+            session_id = (
+                f"foundation-demo-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}"
+            )
             session_data: dict[str, object] = {
                 "session_id": session_id,
                 "user_id": "demo-user",
@@ -340,51 +370,63 @@ def main() -> None:
 
         if result.success:
             # Success panel with rich formatting
-            console.print(Panel(
-                (
-                    "[bold green]✅ Foundation patterns demonstration completed successfully![/bold green]\\n\\n"
-                    "[cyan]Key Achievements:[/cyan]\\n"
-                    "• FlextResult railway-oriented programming demonstrated\\n"
-                    "• FlextModel configuration system showcased\\n"
-                    "• FlextContainer dependency injection implemented\\n"
-                    "• Domain entities with factory patterns created\\n"
-                    "• Service decorators and error handling demonstrated\\n\\n"
-                    "[yellow]Code Reduction: 85% less boilerplate vs manual CLI setup[/yellow]"
-                ),
-                title="🎉 Demo Complete",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    (
+                        "[bold green]✅ Foundation patterns demonstration completed successfully![/bold green]\\n\\n"
+                        "[cyan]Key Achievements:[/cyan]\\n"
+                        "• FlextResult railway-oriented programming demonstrated\\n"
+                        "• FlextModel configuration system showcased\\n"
+                        "• FlextContainer dependency injection implemented\\n"
+                        "• Domain entities with factory patterns created\\n"
+                        "• Service decorators and error handling demonstrated\\n\\n"
+                        "[yellow]Code Reduction: 85% less boilerplate vs manual CLI setup[/yellow]"
+                    ),
+                    title="🎉 Demo Complete",
+                    border_style="green",
+                )
+            )
 
             # Additional insights
             console.print("\\n[dim]📚 Next Steps:[/dim]")
-            console.print("[dim]• Explore 02_cli_commands_integration.py for Click integration[/dim]")
-            console.print("[dim]• Check 03_data_processing_and_output.py for advanced data handling[/dim]")
-            console.print("[dim]• See 04_authentication_and_authorization.py for security patterns[/dim]")
+            console.print(
+                "[dim]• Explore 02_cli_commands_integration.py for Click integration[/dim]"
+            )
+            console.print(
+                "[dim]• Check 03_data_processing_and_output.py for advanced data handling[/dim]"
+            )
+            console.print(
+                "[dim]• See 04_authentication_and_authorization.py for security patterns[/dim]"
+            )
         else:
             # Error panel with helpful information
-            console.print(Panel(
-                (
-                    f"[bold red]❌ Demo failed: {result.error}[/bold red]\\n\\n"
-                    "[yellow]This failure demonstrates FlextResult error handling![/yellow]\\n"
-                    "The error was caught and wrapped in a FlextResult for clean handling."
-                ),
-                title="⚠️ Error Handling Demo",
-                border_style="red"
-            ))
+            console.print(
+                Panel(
+                    (
+                        f"[bold red]❌ Demo failed: {result.error}[/bold red]\\n\\n"
+                        "[yellow]This failure demonstrates FlextResult error handling![/yellow]\\n"
+                        "The error was caught and wrapped in a FlextResult for clean handling."
+                    ),
+                    title="⚠️ Error Handling Demo",
+                    border_style="red",
+                )
+            )
 
     except Exception as e:
         # Even exceptions demonstrate flext-core patterns
-        console.print(Panel(
-            (
-                f"[bold red]❌ Unexpected error: {e}[/bold red]\\n\\n"
-                "[cyan]Error Handling Pattern:[/cyan]\\n"
-                "Even this exception is handled using the same patterns demonstrated\\n"
-                "in the FlextResult system. In production, this would be wrapped\\n"
-                "in a FlextResult[None].fail() for consistent error handling."
-            ),
-            title="🐛 Exception Handling",
-            border_style="red"
-        ))
+        console.print(
+            Panel(
+                (
+                    f"[bold red]❌ Unexpected error: {e}[/bold red]\\n\\n"
+                    "[cyan]Error Handling Pattern:[/cyan]\\n"
+                    "Even this exception is handled using the same patterns demonstrated\\n"
+                    "in the FlextResult system. In production, this would be wrapped\\n"
+                    "in a FlextResult[None].fail() for consistent error handling."
+                ),
+                title="🐛 Exception Handling",
+                border_style="red",
+            )
+        )
 
 
 # 🚀 Example execution with additional pattern demonstrations
@@ -409,18 +451,20 @@ def demonstrate_advanced_patterns() -> None:
 
     chained_result = chain_operations()
     if chained_result.success:
-        console.print(f"✅ Chained operations result: [cyan]{chained_result.unwrap()}[/cyan]")
+        console.print(
+            f"✅ Chained operations result: [cyan]{chained_result.unwrap()}[/cyan]"
+        )
 
     # Demonstrate configuration validation
     console.print("\\n[cyan]Configuration Validation Example:[/cyan]")
     try:
         # Create settings with validation
         settings = CLISettings(
-            debug=True,
-            project_name="flext-cli-demo",
-            log_level="DEBUG"
+            debug=True, project_name="flext-cli-demo", log_level="DEBUG"
         )
-        console.print(f"✅ Validated settings: {settings.project_name} (debug: {settings.debug})")
+        console.print(
+            f"✅ Validated settings: {settings.project_name} (debug: {settings.debug})"
+        )
     except Exception as e:
         console.print(f"❌ Settings validation failed: {e}")
 

@@ -127,12 +127,15 @@ type UserInput = str
 # CONSOLIDATION FROM typings.py
 # =============================================================================
 
+
 class FlextTypes(CoreFlextTypes):
     """CLI domain-specific types can extend here."""
+
 
 # =============================================================================
 # CONSOLIDATION FROM core/types.py - Click integration
 # =============================================================================
+
 
 class ClickPath(click.Path):
     """Enhanced Click Path with convenience options."""
@@ -159,6 +162,7 @@ class ClickPath(click.Path):
             resolve_path=False if resolve_path is None else bool(resolve_path),
             path_type=path_type or str,
         )
+
 
 # Convenience instances used directly by tests
 ExistingFile = ClickPath(exists=True, file_okay=True, dir_okay=False)
@@ -360,10 +364,14 @@ type FlextCliErrorDict = dict[str, str]
 
 # Union type for all CLI data patterns
 type FlextCliDataType = (
-    FlextCliDataDict |
-    list[FlextCliDataDict] |
-    list[str | int | float | bool | None] |
-    str | int | float | bool | None
+    FlextCliDataDict
+    | list[FlextCliDataDict]
+    | list[str | int | float | bool | None]
+    | str
+    | int
+    | float
+    | bool
+    | None
 )
 
 # File and Path Types

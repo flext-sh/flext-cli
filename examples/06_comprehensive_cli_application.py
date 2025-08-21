@@ -76,11 +76,13 @@ class ComprehensiveCliApplication:
     def initialize_application(self) -> FlextResult[None]:
         """Initialize the CLI application with setup and validation."""
         try:
-            self.console.print(Panel(
-                "[bold cyan]FLEXT-CLI Comprehensive Application[/bold cyan]\n\n"
-                "[yellow]Initializing application with full flext-cli integration...[/yellow]",
-                expand=False
-            ))
+            self.console.print(
+                Panel(
+                    "[bold cyan]FLEXT-CLI Comprehensive Application[/bold cyan]\n\n"
+                    "[yellow]Initializing application with full flext-cli integration...[/yellow]",
+                    expand=False,
+                )
+            )
 
             # Setup CLI foundation
             setup_result = setup_cli()
@@ -119,7 +121,7 @@ class ComprehensiveCliApplication:
             "auto_confirm": False,
             "show_timestamps": True,
             "color_output": True,
-            "verbose_logging": False
+            "verbose_logging": False,
         }
 
 
@@ -129,15 +131,26 @@ app = ComprehensiveCliApplication()
 
 # Click CLI Definition with comprehensive structure
 @click.group()
-@click.option("--profile", default="default", envvar="FLEXT_PROFILE",
-              help="Configuration profile (default/dev/staging/prod)")
-@click.option("--output", type=click.Choice(["table", "json", "yaml", "csv"]),
-              default="table", help="Output format")
-@click.option("--debug/--no-debug", default=False, envvar="FLEXT_DEBUG",
-              help="Enable debug mode")
+@click.option(
+    "--profile",
+    default="default",
+    envvar="FLEXT_PROFILE",
+    help="Configuration profile (default/dev/staging/prod)",
+)
+@click.option(
+    "--output",
+    type=click.Choice(["table", "json", "yaml", "csv"]),
+    default="table",
+    help="Output format",
+)
+@click.option(
+    "--debug/--no-debug", default=False, envvar="FLEXT_DEBUG", help="Enable debug mode"
+)
 @click.option("--verbose/--quiet", default=False, help="Verbose output")
 @click.pass_context
-def cli(ctx: click.Context, profile: str, output: str, *, debug: bool, verbose: bool) -> None:
+def cli(
+    ctx: click.Context, profile: str, output: str, *, debug: bool, verbose: bool
+) -> None:
     """FLEXT-CLI Comprehensive Application Demonstration.
 
     This comprehensive CLI demonstrates all flext-cli patterns and capabilities
@@ -163,7 +176,7 @@ def cli(ctx: click.Context, profile: str, output: str, *, debug: bool, verbose: 
         output=OutputFormat(output.upper()),
         debug=debug,
         quiet=not verbose,
-        verbose=verbose
+        verbose=verbose,
     )
     ctx.obj["cli_context"] = cli_context
 
@@ -177,13 +190,19 @@ def project(ctx: click.Context) -> None:
 
 @project.command()
 @click.option("--name", required=True, help="Project name")
-@click.option("--template", type=click.Choice(["web", "api", "cli", "library"]),
-              default="api", help="Project template")
+@click.option(
+    "--template",
+    type=click.Choice(["web", "api", "cli", "library"]),
+    default="api",
+    help="Project template",
+)
 @click.option("--directory", type=click.Path(path_type=Path), help="Project directory")
 @click.pass_context
 @cli_enhanced
 @cli_measure_time
-def create(ctx: click.Context, name: str, template: str, directory: Path | None) -> None:
+def create(
+    ctx: click.Context, name: str, template: str, directory: Path | None
+) -> None:
     """Create a new project using flext-cli patterns."""
     app: ComprehensiveCliApplication = ctx.obj["app"]
     ctx.obj["cli_context"]
@@ -210,11 +229,13 @@ def create(ctx: click.Context, name: str, template: str, directory: Path | None)
         name=f"create-project-{name}",
         command_line=f"mkdir -p {directory} && echo 'Project {name} created'",
         description=f"Create {template} project: {name}",
-        arguments={"name": name, "template": template, "directory": str(directory)}
+        arguments={"name": name, "template": template, "directory": str(directory)},
     )
 
     if command_result.failure:
-        app.console.print(f"[red]Failed to create project command: {command_result.error}[/red]")
+        app.console.print(
+            f"[red]Failed to create project command: {command_result.error}[/red]"
+        )
         return
 
     command = command_result.unwrap()
@@ -241,7 +262,7 @@ description = "A {template} project"
 [tool.poetry.dependencies]
 python = "^3.13"
 """,
-                ".gitignore": "*.pyc\n__pycache__/\n.env\n.venv/\n"
+                ".gitignore": "*.pyc\n__pycache__/\n.env\n.venv/\n",
             }
 
             for filename, content in project_files.items():
@@ -250,13 +271,13 @@ python = "^3.13"
 
             # Complete command execution
             completion_result = command.complete_execution(
-                exit_code=0,
-                stdout=f"Project {name} created successfully",
-                stderr=""
+                exit_code=0, stdout=f"Project {name} created successfully", stderr=""
             )
 
             if completion_result.success:
-                app.console.print(f"✅ Project '{name}' created successfully in {directory}")
+                app.console.print(
+                    f"✅ Project '{name}' created successfully in {directory}"
+                )
 
                 # Display project summary
                 project_table = Table(title=f"Project: {name}")
@@ -267,13 +288,19 @@ python = "^3.13"
                 project_table.add_row("Template", template)
                 project_table.add_row("Directory", str(directory))
                 project_table.add_row("Files Created", str(len(project_files)))
-                project_table.add_row("Created At", datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"))
+                project_table.add_row(
+                    "Created At", datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+                )
 
                 app.console.print(project_table)
             else:
-                app.console.print(f"[red]Command completion failed: {completion_result.error}[/red]")
+                app.console.print(
+                    f"[red]Command completion failed: {completion_result.error}[/red]"
+                )
         else:
-            app.console.print(f"[red]Project creation failed: {execution_result.error}[/red]")
+            app.console.print(
+                f"[red]Project creation failed: {execution_result.error}[/red]"
+            )
 
 
 @project.command()
@@ -289,7 +316,11 @@ def status(ctx: click.Context, directory: Path) -> None:
     # Analyze project structure
     project_files = list(directory.glob("*"))
     python_files = list(directory.glob("**/*.py"))
-    config_files = [f for f in project_files if f.name in {"pyproject.toml", "setup.py", "requirements.txt"}]
+    config_files = [
+        f
+        for f in project_files
+        if f.name in {"pyproject.toml", "setup.py", "requirements.txt"}
+    ]
 
     # Display project analysis
     status_table = Table(title="Project Analysis")
@@ -300,7 +331,9 @@ def status(ctx: click.Context, directory: Path) -> None:
     status_table.add_row("Total Files", str(len(project_files)))
     status_table.add_row("Python Files", str(len(python_files)))
     status_table.add_row("Config Files", str(len(config_files)))
-    status_table.add_row("Analysis Time", datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"))
+    status_table.add_row(
+        "Analysis Time", datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+    )
 
     app.console.print(status_table)
 
@@ -335,11 +368,13 @@ def health(ctx: click.Context, url: str, timeout: int) -> None:
         name="health-check",
         command_line=f"curl -f --connect-timeout {timeout} {url}/health",
         description=f"Health check for {url}",
-        arguments={"url": url, "timeout": timeout}
+        arguments={"url": url, "timeout": timeout},
     )
 
     if command_result.failure:
-        app.console.print(f"[red]Failed to create health check command: {command_result.error}[/red]")
+        app.console.print(
+            f"[red]Failed to create health check command: {command_result.error}[/red]"
+        )
         return
 
     command = command_result.unwrap()
@@ -358,29 +393,39 @@ def health(ctx: click.Context, url: str, timeout: int) -> None:
             completion_result = command.complete_execution(
                 exit_code=0 if health_status == "healthy" else 1,
                 stdout=f"Service health: {health_status}",
-                stderr="" if health_status == "healthy" else "Service issues detected"
+                stderr="" if health_status == "healthy" else "Service issues detected",
             )
 
             if completion_result.success:
                 # Display health results
                 health_table = Table(title=f"Service Health: {url}")
                 health_table.add_column("Metric", style="cyan")
-                health_table.add_column("Value", style="green" if health_status == "healthy" else "red")
+                health_table.add_column(
+                    "Value", style="green" if health_status == "healthy" else "red"
+                )
 
                 health_table.add_row("URL", url)
                 health_table.add_row("Status", health_status.upper())
                 health_table.add_row("Response Time", f"{response_time}ms")
                 health_table.add_row("Timeout", f"{timeout}s")
-                health_table.add_row("Check Time", datetime.now(UTC).strftime("%H:%M:%S UTC"))
+                health_table.add_row(
+                    "Check Time", datetime.now(UTC).strftime("%H:%M:%S UTC")
+                )
 
                 app.console.print(health_table)
 
                 if health_status != "healthy":
-                    app.console.print("[yellow]⚠️ Service may require attention[/yellow]")
+                    app.console.print(
+                        "[yellow]⚠️ Service may require attention[/yellow]"
+                    )
             else:
-                app.console.print(f"[red]Health check completion failed: {completion_result.error}[/red]")
+                app.console.print(
+                    f"[red]Health check completion failed: {completion_result.error}[/red]"
+                )
         else:
-            app.console.print(f"[red]Health check execution failed: {execution_result.error}[/red]")
+            app.console.print(
+                f"[red]Health check execution failed: {execution_result.error}[/red]"
+            )
 
 
 # Configuration Management Commands Group
@@ -426,7 +471,11 @@ def show(ctx: click.Context) -> None:
 
 @config.command()
 @click.option("--profile", help="Set default profile")
-@click.option("--output", type=click.Choice(["table", "json", "yaml", "csv"]), help="Set default output format")
+@click.option(
+    "--output",
+    type=click.Choice(["table", "json", "yaml", "csv"]),
+    help="Set default output format",
+)
 @click.pass_context
 def set_config(ctx: click.Context, profile: str | None, output: str | None) -> None:
     """Set configuration values."""
@@ -468,11 +517,13 @@ def wizard(ctx: click.Context) -> None:
     """Interactive setup wizard."""
     app: ComprehensiveCliApplication = ctx.obj["app"]
 
-    app.console.print(Panel(
-        "[bold magenta]FLEXT-CLI Interactive Setup Wizard[/bold magenta]\n\n"
-        "[yellow]This wizard will guide you through CLI configuration...[/yellow]",
-        expand=False
-    ))
+    app.console.print(
+        Panel(
+            "[bold magenta]FLEXT-CLI Interactive Setup Wizard[/bold magenta]\n\n"
+            "[yellow]This wizard will guide you through CLI configuration...[/yellow]",
+            expand=False,
+        )
+    )
 
     try:
         # Collect user input
@@ -480,7 +531,7 @@ def wizard(ctx: click.Context) -> None:
         project_type = Prompt.ask(
             "Select project type",
             choices=["web", "api", "cli", "library"],
-            default="api"
+            default="api",
         )
         use_database = Confirm.ask("Include database support?", default=True)
         use_auth = Confirm.ask("Include authentication?", default=True)
@@ -507,7 +558,7 @@ def wizard(ctx: click.Context) -> None:
                 "project_type": project_type,
                 "database_support": use_database,
                 "authentication": use_auth,
-                "configured_at": datetime.now(UTC).isoformat()
+                "configured_at": datetime.now(UTC).isoformat(),
             }
 
             app.user_preferences.update(wizard_config)

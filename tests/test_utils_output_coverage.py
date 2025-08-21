@@ -169,8 +169,18 @@ class TestFormatPluginList:
     def test_format_plugin_list_json(self) -> None:
         """Test formatting plugins as JSON."""
         plugins = [
-            {"name": "test-plugin", "type": "extractor", "version": "1.0.0", "description": "Test plugin"},
-            {"name": "another-plugin", "type": "loader", "version": "2.0.0", "description": "Another plugin"}
+            {
+                "name": "test-plugin",
+                "type": "extractor",
+                "version": "1.0.0",
+                "description": "Test plugin",
+            },
+            {
+                "name": "another-plugin",
+                "type": "loader",
+                "version": "2.0.0",
+                "description": "Another plugin",
+            },
         ]
 
         output = StringIO()
@@ -188,8 +198,18 @@ class TestFormatPluginList:
     def test_format_plugin_list_table(self) -> None:
         """Test formatting plugins as table."""
         plugins = [
-            {"name": "test-plugin", "type": "extractor", "version": "1.0.0", "description": "Test plugin"},
-            {"name": "loader-plugin", "type": "loader", "version": "1.5.0", "description": "Loads data"}
+            {
+                "name": "test-plugin",
+                "type": "extractor",
+                "version": "1.0.0",
+                "description": "Test plugin",
+            },
+            {
+                "name": "loader-plugin",
+                "type": "loader",
+                "version": "1.5.0",
+                "description": "Loads data",
+            },
         ]
 
         output = StringIO()
@@ -208,7 +228,7 @@ class TestFormatPluginList:
         """Test formatting plugins with missing fields."""
         plugins = [
             {"name": "incomplete-plugin"},  # Missing other fields
-            {}  # Completely empty
+            {},  # Completely empty
         ]
 
         output = StringIO()
@@ -486,7 +506,7 @@ class TestFormatYaml:
             "database": {
                 "host": "localhost",
                 "port": 5432,
-                "settings": ["ssl=true", "timeout=30"]
+                "settings": ["ssl=true", "timeout=30"],
             }
         }
 

@@ -39,7 +39,7 @@ class TestDebugConnectivity:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
+        result = runner.invoke(connectivity, obj={"console": mock_console})
 
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
@@ -75,7 +75,7 @@ class TestDebugConnectivity:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
+        result = runner.invoke(connectivity, obj={"console": mock_console})
 
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
@@ -100,7 +100,7 @@ class TestDebugConnectivity:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
+        result = runner.invoke(connectivity, obj={"console": mock_console})
 
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
@@ -131,7 +131,7 @@ class TestDebugConnectivity:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
+        result = runner.invoke(connectivity, obj={"console": mock_console})
 
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
@@ -159,7 +159,7 @@ class TestDebugConnectivity:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
+        result = runner.invoke(connectivity, obj={"console": mock_console})
 
         if result.exit_code != 1:
             raise AssertionError(f"Expected {1}, got {result.exit_code}")
@@ -186,7 +186,7 @@ class TestDebugConnectivity:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
+        result = runner.invoke(connectivity, obj={"console": mock_console})
 
         if result.exit_code != 1:
             raise AssertionError(f"Expected {1}, got {result.exit_code}")
@@ -211,7 +211,7 @@ class TestDebugConnectivity:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
+        result = runner.invoke(connectivity, obj={"console": mock_console})
 
         if result.exit_code != 1:
             raise AssertionError(f"Expected {1}, got {result.exit_code}")
@@ -243,7 +243,7 @@ class TestDebugPerformance:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(performance, obj={"console": mock_console})  # type: ignore[arg-type]
+        result = runner.invoke(performance, obj={"console": mock_console})
 
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
@@ -263,7 +263,7 @@ class TestDebugPerformance:
         mock_console = MagicMock()
         runner = CliRunner()
 
-        result = runner.invoke(performance, obj={"console": mock_console})  # type: ignore[arg-type]
+        result = runner.invoke(performance, obj={"console": mock_console})
 
         # Should handle error gracefully (SOLID: KISS - simple error handling test)
         # Exit code can vary depending on exception timing
@@ -294,7 +294,7 @@ class TestDebugCommandCoverage:
     def test_connectivity_help(self) -> None:
         """Test connectivity command help."""
         runner = CliRunner()
-        result = runner.invoke(connectivity, ["--help"])  # type: ignore[arg-type]
+        result = runner.invoke(connectivity, ["--help"])
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         if "Test API connectivity" not in result.output:
@@ -305,7 +305,7 @@ class TestDebugCommandCoverage:
     def test_performance_help(self) -> None:
         """Test performance command help."""
         runner = CliRunner()
-        result = runner.invoke(performance, ["--help"])  # type: ignore[arg-type]
+        result = runner.invoke(performance, ["--help"])
         if result.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result.exit_code}")
         if "Check system performance metrics" not in result.output:
@@ -364,12 +364,12 @@ class TestDebugIntegrationScenarios:
         runner = CliRunner()
 
         # Run connectivity test
-        result1 = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
+        result1 = runner.invoke(connectivity, obj={"console": mock_console})
         if result1.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result1.exit_code}")
 
         # Run performance test
-        result2 = runner.invoke(performance, obj={"console": mock_console})  # type: ignore[arg-type]
+        result2 = runner.invoke(performance, obj={"console": mock_console})
         if result2.exit_code != 0:
             raise AssertionError(f"Expected {0}, got {result2.exit_code}")
 
@@ -399,6 +399,6 @@ class TestDebugIntegrationScenarios:
         runner = CliRunner()
 
         # Test that errors are handled consistently across commands
-        result = runner.invoke(connectivity, obj={"console": mock_console})  # type: ignore[arg-type]
+        result = runner.invoke(connectivity, obj={"console": mock_console})
         if result.exit_code != 1:  # Commands should exit with error code
             raise AssertionError(f"Expected {1}, got {result.exit_code}")

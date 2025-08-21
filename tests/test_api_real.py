@@ -1,7 +1,7 @@
 """REAL tests for API functionality - NO MOCKING!
 
 Tests API functions with ACTUAL execution and real data processing.
-Following user requirement: "melhore bem os tests para executar codigo de verdade 
+Following user requirement: "melhore bem os tests para executar codigo de verdade
 e validar a funcionalidade requerida, pare de ficar mockando tudo!"
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -16,12 +16,12 @@ import tempfile
 from pathlib import Path
 
 from flext_cli import (
+    FlextCliApi,
     flext_cli_aggregate_data,
     flext_cli_export,
     flext_cli_format,
     flext_cli_table,
     flext_cli_transform_data,
-    FlextCliApi,
 )
 
 
@@ -31,11 +31,11 @@ class TestFlextCliApiReal:
     def test_api_initialization_real(self) -> None:
         """Test REAL API initialization without mocking."""
         api = FlextCliApi()
-        
+
         # Should have real attributes (check what the API actually has)
-        assert hasattr(api, 'flext_cli_health'), "API should have health method"
-        assert hasattr(api, 'flext_cli_configure'), "API should have configure method"
-        
+        assert hasattr(api, "flext_cli_health"), "API should have health method"
+        assert hasattr(api, "flext_cli_configure"), "API should have configure method"
+
         # Should be able to call real methods
         assert callable(api.flext_cli_health), "Health method should be callable"
         assert callable(api.flext_cli_configure), "Configure method should be callable"
@@ -43,16 +43,16 @@ class TestFlextCliApiReal:
     def test_api_health_real_execution(self) -> None:
         """Test REAL API health check execution."""
         api = FlextCliApi()
-        
+
         # Call REAL health method
         health_data = api.flext_cli_health()
-        
+
         # Should return real health data
         assert isinstance(health_data, dict), "Health should return dict"
         assert "service" in health_data, "Health should contain service info"
         assert "status" in health_data, "Health should contain status"
         assert "timestamp" in health_data, "Health should contain timestamp"
-        
+
         # Should have expected values
         assert health_data["service"] == "flext-cli", "Service name should match"
         assert health_data["status"] == "healthy", "Status should be healthy"
@@ -60,7 +60,7 @@ class TestFlextCliApiReal:
     def test_api_configure_real_functionality(self) -> None:
         """Test REAL API configuration with actual config data."""
         api = FlextCliApi()
-        
+
         # Test REAL configuration with actual data
         config_data = {
             "project_name": "test-real-project",
@@ -68,16 +68,18 @@ class TestFlextCliApiReal:
             "output_format": "json",
             "timeout": 60,
         }
-        
+
         # Call REAL configure method
         result = api.flext_cli_configure(config_data)
-        
+
         # Should succeed
         assert result is True, "Configuration should succeed"
-        
+
         # Should have ACTUALLY configured the API
-        assert hasattr(api, '_config'), "API should have config after configure"
-        assert api._config.project_name == "test-real-project", "Config should be applied"
+        assert hasattr(api, "_config"), "API should have config after configure"
+        assert api._config.project_name == "test-real-project", (
+            "Config should be applied"
+        )
 
 
 class TestFlextCliFormattingReal:
@@ -93,17 +95,17 @@ class TestFlextCliFormattingReal:
             "total": 2,
             "metadata": {"version": "1.0", "timestamp": "2025-01-01"},
         }
-        
+
         # Call REAL formatting function
         result = flext_cli_format(test_data, "json")
-        
+
         # Should succeed
         assert result.success, f"JSON formatting should succeed: {result.error}"
-        
+
         # Should produce ACTUAL JSON
         formatted = result.unwrap()
         assert isinstance(formatted, str), "Result should be string"
-        
+
         # Should be VALID JSON that can be parsed back
         parsed = json.loads(formatted)
         assert parsed == test_data, "Parsed JSON should match original data"
@@ -115,16 +117,16 @@ class TestFlextCliFormattingReal:
             {"name": "Bob", "role": "Designer", "years": 3},
             {"name": "Carol", "role": "Manager", "years": 8},
         ]
-        
+
         # Call REAL table formatting function
         result = flext_cli_table(test_data, "Team Roster")
-        
+
         # Should succeed
         assert result.success, f"Table formatting should succeed: {result.error}"
-        
+
         # Should produce ACTUAL Rich table
         table = result.unwrap()
-        assert hasattr(table, 'title'), "Should be a Rich table with title"
+        assert hasattr(table, "title"), "Should be a Rich table with title"
         assert str(table.title) == "Team Roster", "Table title should match"
 
     def test_aggregate_data_real_processing(self) -> None:
@@ -136,22 +138,20 @@ class TestFlextCliFormattingReal:
             {"region": "South", "product": "B", "sales": 1200, "units": 60},
             {"region": "North", "product": "A", "sales": 500, "units": 25},
         ]
-        
+
         # Call REAL aggregation function
         result = flext_cli_aggregate_data(
-            sales_data, 
-            group_by="region", 
-            sum_fields=["sales", "units"]
+            sales_data, group_by="region", sum_fields=["sales", "units"]
         )
-        
+
         # Should succeed
         assert result.success, f"Aggregation should succeed: {result.error}"
-        
+
         # Should produce ACTUAL aggregated data
         aggregated = result.unwrap()
         assert isinstance(aggregated, list), "Result should be list"
         assert len(aggregated) == 2, "Should have 2 regions"
-        
+
         # Find North region data
         north_data = next(item for item in aggregated if item["region"] == "North")
         assert north_data["count"] == 3, "North should have 3 records"
@@ -167,20 +167,20 @@ class TestFlextCliFormattingReal:
             {"name": "David", "age": 28, "department": "Marketing", "salary": 60000},
             {"name": "Eve", "age": 32, "department": "Engineering", "salary": 80000},
         ]
-        
+
         # Test REAL filtering for engineers over 30
         result = flext_cli_transform_data(
             employee_data,
-            filter_func=lambda x: x["department"] == "Engineering" and x["age"] > 30
+            filter_func=lambda x: x["department"] == "Engineering" and x["age"] > 30,
         )
-        
+
         # Should succeed
         assert result.success, f"Transform should succeed: {result.error}"
-        
+
         # Should produce ACTUAL filtered data
         filtered = result.unwrap()
         assert len(filtered) == 2, "Should have 2 engineers over 30"
-        
+
         names = [person["name"] for person in filtered]
         # Alice is 30, so not > 30, only Carol (35) and Eve (32) should be included
         assert "Carol" in names, "Carol should be included"
@@ -198,24 +198,26 @@ class TestFlextCliFormattingReal:
             ],
             "summary": {"total": 3, "passed": 3, "failed": 0},
         }
-        
+
         with tempfile.TemporaryDirectory() as temp_dir:
             export_path = Path(temp_dir) / "test_results.json"
-            
+
             # Call REAL export function
             result = flext_cli_export(export_data, str(export_path), "json")
-            
+
             # Should succeed
             assert result.success, f"Export should succeed: {result.error}"
-            
+
             # Should have ACTUALLY created the file
             assert export_path.exists(), "Export file should exist"
-            
+
             # Should contain ACTUAL data
             file_content = export_path.read_text(encoding="utf-8")
             parsed_content = json.loads(file_content)
-            assert parsed_content == export_data, "File content should match original data"
-            
+            assert parsed_content == export_data, (
+                "File content should match original data"
+            )
+
             # Should have proper file size
             stat_info = export_path.stat()
             assert stat_info.st_size > 0, "File should not be empty"
@@ -228,56 +230,86 @@ class TestFlextCliRealWorldScenarios:
         """Test REAL complete data processing pipeline."""
         # Step 1: Raw data (simulating real API response)
         raw_data = [
-            {"timestamp": "2025-01-15T10:00:00Z", "user": "alice", "action": "login", "duration": 1.2},
-            {"timestamp": "2025-01-15T10:05:00Z", "user": "bob", "action": "view", "duration": 0.8},
-            {"timestamp": "2025-01-15T10:10:00Z", "user": "alice", "action": "edit", "duration": 5.4},
-            {"timestamp": "2025-01-15T10:15:00Z", "user": "carol", "action": "login", "duration": 0.9},
-            {"timestamp": "2025-01-15T10:20:00Z", "user": "bob", "action": "edit", "duration": 3.2},
-            {"timestamp": "2025-01-15T10:25:00Z", "user": "alice", "action": "save", "duration": 1.1},
+            {
+                "timestamp": "2025-01-15T10:00:00Z",
+                "user": "alice",
+                "action": "login",
+                "duration": 1.2,
+            },
+            {
+                "timestamp": "2025-01-15T10:05:00Z",
+                "user": "bob",
+                "action": "view",
+                "duration": 0.8,
+            },
+            {
+                "timestamp": "2025-01-15T10:10:00Z",
+                "user": "alice",
+                "action": "edit",
+                "duration": 5.4,
+            },
+            {
+                "timestamp": "2025-01-15T10:15:00Z",
+                "user": "carol",
+                "action": "login",
+                "duration": 0.9,
+            },
+            {
+                "timestamp": "2025-01-15T10:20:00Z",
+                "user": "bob",
+                "action": "edit",
+                "duration": 3.2,
+            },
+            {
+                "timestamp": "2025-01-15T10:25:00Z",
+                "user": "alice",
+                "action": "save",
+                "duration": 1.1,
+            },
         ]
-        
+
         # Step 2: Transform - filter recent actions (REAL processing)
         transform_result = flext_cli_transform_data(
             raw_data,
-            filter_func=lambda x: x["action"] in ["edit", "save"],
+            filter_func=lambda x: x["action"] in {"edit", "save"},
             sort_key="duration",
-            reverse=True  # Most time-consuming first
+            reverse=True,  # Most time-consuming first
         )
-        
+
         assert transform_result.success, "Transform should succeed"
         filtered_data = transform_result.unwrap()
         assert len(filtered_data) == 3, "Should have 3 edit/save actions"
-        
+
         # Should be sorted by duration (descending)
         durations = [item["duration"] for item in filtered_data]
         assert durations == [5.4, 3.2, 1.1], "Should be sorted by duration desc"
-        
+
         # Step 3: Aggregate by user (REAL aggregation)
         aggregate_result = flext_cli_aggregate_data(
-            filtered_data,
-            group_by="user",
-            sum_fields=["duration"]
+            filtered_data, group_by="user", sum_fields=["duration"]
         )
-        
+
         assert aggregate_result.success, "Aggregation should succeed"
         user_stats = aggregate_result.unwrap()
         assert len(user_stats) == 2, "Should have 2 users with edit/save actions"
-        
+
         # Step 4: Format as table (REAL formatting)
         table_result = flext_cli_table(user_stats, "User Activity Summary")
-        
+
         assert table_result.success, "Table formatting should succeed"
         table = table_result.unwrap()
-        assert str(table.title) == "User Activity Summary", "Table should have correct title"
-        
+        assert str(table.title) == "User Activity Summary", (
+            "Table should have correct title"
+        )
+
         # Step 5: Export to file (REAL file I/O)
         with tempfile.TemporaryDirectory() as temp_dir:
             export_path = Path(temp_dir) / "user_activity.json"
             export_result = flext_cli_export(user_stats, str(export_path), "json")
-            
+
             assert export_result.success, "Export should succeed"
             assert export_path.exists(), "Export file should exist"
-            
+
             # Verify ACTUAL file content
             file_data = json.loads(export_path.read_text(encoding="utf-8"))
             assert len(file_data) == 2, "File should contain 2 user records"
@@ -285,14 +317,18 @@ class TestFlextCliRealWorldScenarios:
     def test_error_handling_real_scenarios(self) -> None:
         """Test REAL error handling without mocking errors."""
         # Test invalid data format
-        invalid_result = flext_cli_format("not a valid data structure", "invalid_format")
+        invalid_result = flext_cli_format(
+            "not a valid data structure", "invalid_format"
+        )
         assert not invalid_result.success, "Should fail with invalid format"
         assert "error" in invalid_result.error.lower(), "Should have error message"
-        
+
         # Test invalid export path
-        invalid_export = flext_cli_export({"test": "data"}, "/invalid/path/file.json", "json")
+        invalid_export = flext_cli_export(
+            {"test": "data"}, "/invalid/path/file.json", "json"
+        )
         assert not invalid_export.success, "Should fail with invalid path"
-        
+
         # Test invalid aggregation
         invalid_agg = flext_cli_aggregate_data("not a list", group_by="field")
         assert not invalid_agg.success, "Should fail with non-list data"
@@ -301,33 +337,29 @@ class TestFlextCliRealWorldScenarios:
     def test_performance_with_real_data(self) -> None:
         """Test REAL performance with larger datasets."""
         # Generate larger dataset for performance testing
-        large_data = []
-        for i in range(1000):
-            large_data.append({
-                "id": i,
-                "category": f"cat_{i % 10}",
-                "value": i * 1.5,
-                "enabled": i % 2 == 0,
-            })
-        
+        large_data = [{
+                    "id": i,
+                    "category": f"cat_{i % 10}",
+                    "value": i * 1.5,
+                    "enabled": i % 2 == 0,
+                } for i in range(1000)]
+
         # Test aggregation performance (REAL processing)
         agg_result = flext_cli_aggregate_data(
-            large_data,
-            group_by="category",
-            sum_fields=["value"]
+            large_data, group_by="category", sum_fields=["value"]
         )
-        
+
         assert agg_result.success, "Large data aggregation should succeed"
         aggregated = agg_result.unwrap()
         assert len(aggregated) == 10, "Should have 10 categories"
-        
+
         # Test formatting performance (REAL formatting)
         format_result = flext_cli_format(aggregated, "json")
         assert format_result.success, "Large data formatting should succeed"
-        
+
         json_output = format_result.unwrap()
         assert len(json_output) > 500, "JSON output should be substantial"
-        
+
         # Verify the JSON is ACTUALLY valid
         parsed = json.loads(json_output)
         assert len(parsed) == 10, "Parsed data should have 10 categories"

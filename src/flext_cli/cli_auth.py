@@ -270,7 +270,7 @@ async def _async_login_impl(
                 )
                 ctx.exit(1)
 
-            response = login_result.data
+            response = login_result.value
             if response and "token" in response:
                 token_value = response["token"]
                 if isinstance(token_value, str):
@@ -467,8 +467,8 @@ def status(ctx: click.Context) -> None:
                 )
                 user_result = await client.get_current_user()
 
-                if user_result.success and user_result.data:
-                    user = user_result.data
+                if user_result.success and user_result.value:
+                    user = user_result.value
                     console.print(
                         f"[green]{FlextCliConstants.CliOutput.SUCCESS_CHECKMARK} {FlextCliConstants.CliMessages.STATUS_AUTHENTICATED}[/green]",
                     )
@@ -537,8 +537,8 @@ def whoami(ctx: click.Context) -> None:
             async with FlextApiClient() as client:
                 user_result = await client.get_current_user()
 
-                if user_result.success and user_result.data:
-                    user = user_result.data
+                if user_result.success and user_result.value:
+                    user = user_result.value
                     console.print(f"Username: {user.get('username', 'Unknown')}")
                     console.print(f"Full Name: {user.get('full_name', 'Unknown')}")
                     console.print(f"Email: {user.get('email', 'Unknown')}")

@@ -90,20 +90,30 @@ class TestFlextCliService:
 
         # Test actual configuration
         result = service.configure(config)
-        assert result.success, f"Configuration failed: {result.error if result.is_failure else 'Unknown error'}"
-        
+        assert result.success, (
+            f"Configuration failed: {result.error if result.is_failure else 'Unknown error'}"
+        )
+
         # Test that configuration was applied correctly
-        assert service._config.debug is False, f"Debug setting not applied correctly: {service._config.debug}"
-        assert service._config.format_type == "yaml", f"Format not applied correctly: {service._config.format_type}"
-        
+        assert service._config.debug is False, (
+            f"Debug setting not applied correctly: {service._config.debug}"
+        )
+        assert service._config.format_type == "yaml", (
+            f"Format not applied correctly: {service._config.format_type}"
+        )
+
         # Test that the service can actually use the configuration
         test_data = {"test": "value"}
         format_result = service.format_data(test_data, "yaml")
-        assert format_result.success, f"Service cannot use configuration: {format_result.error if format_result.is_failure else 'Unknown error'}"
-        
+        assert format_result.success, (
+            f"Service cannot use configuration: {format_result.error if format_result.is_failure else 'Unknown error'}"
+        )
+
         # Verify YAML output is actually generated
         yaml_output = format_result.unwrap()
-        assert "test: value" in yaml_output, f"YAML formatting not working: {yaml_output}"
+        assert "test: value" in yaml_output, (
+            f"YAML formatting not working: {yaml_output}"
+        )
 
     def test_configure_with_invalid_type(self) -> None:
         """Test configuring service with invalid config type."""

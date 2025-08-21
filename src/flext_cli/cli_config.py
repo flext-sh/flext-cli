@@ -355,7 +355,9 @@ class CLIConfig(FlextModel):
             return FlextResult[ConfigDict].ok(typed_profile_config)
 
         except Exception as e:
-            return FlextResult[ConfigDict].fail(f"Failed to load profile '{profile_name}': {e}")
+            return FlextResult[ConfigDict].fail(
+                f"Failed to load profile '{profile_name}': {e}"
+            )
 
     def save_config_file(self, file_path: Path | None = None) -> FlextResult[None]:
         """Save current configuration to file."""
@@ -459,7 +461,7 @@ class CLIConfig(FlextModel):
             if "output_format" in typed_settings:
                 # Accept raw string and convert via validator
                 format_value = typed_settings["output_format"]
-                self.output_format = format_value  # type: ignore[assignment]
+                self.output_format = self.validate_output_format(format_value)
             return True
         except Exception:
             return False
@@ -500,7 +502,7 @@ def create_cli_config(
         if config.config_file and config.config_file.exists():
             profile_result = config.load_profile_config(profile)
             if profile_result.is_success:
-                profile_config = profile_result.unwrap()
+                profile_config = profile_result.value
                 # Apply profile settings (overrides take precedence)
                 merged_config: dict[str, object] = {**profile_config}
                 merged_config.update(overrides)

@@ -245,7 +245,9 @@ def cli_quick_setup(
     except (OSError, PermissionError) as e:
         return FlextResult[dict[str, object]].fail(f"Setup failed: {e}")
     except Exception as e:
-        return FlextResult[dict[str, object]].fail(f"Unexpected error during setup: {e}")
+        return FlextResult[dict[str, object]].fail(
+            f"Unexpected error during setup: {e}"
+        )
 
 
 def cli_batch_process_files(
@@ -399,7 +401,9 @@ def _load_csv_file(path: Path) -> FlextResult[list[dict[str, str]]]:
             data = list(reader)
         return FlextResult[list[dict[str, str]]].ok(data)
     except (OSError, UnicodeDecodeError) as e:
-        return FlextResult[list[dict[str, str]]].fail(f"Failed to read CSV file {path}: {e}")
+        return FlextResult[list[dict[str, str]]].fail(
+            f"Failed to read CSV file {path}: {e}"
+        )
 
 
 def _load_text_file(path: Path) -> FlextResult[str]:
@@ -775,7 +779,7 @@ def cli_format_output(  # noqa: PLR0912,PLR0915
             if table_result.is_success:
                 output = io.StringIO()
                 console = Console(file=output, width=80)
-                console.print(table_result.unwrap())
+                console.print(table_result.value)
                 formatted = output.getvalue()
             else:
                 error = table_result.error or "Table creation failed"

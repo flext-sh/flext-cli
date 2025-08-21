@@ -68,13 +68,17 @@ class FlextCliValidationMixin:
             must_be_file=True,
         )
         if path_res.is_failure:
-            return FlextResult[str].fail(f"Validation failed for {key}: {path_res.error}")
+            return FlextResult[str].fail(
+                f"Validation failed for {key}: {path_res.error}"
+            )
         return path_res.map(str)
 
     def _validate_path_input(self, key: str, value: object) -> FlextResult[str]:
         path_res = self._flext_cli_helper.flext_cli_validate_path(str(value))
         if path_res.is_failure:
-            return FlextResult[str].fail(f"Validation failed for {key}: {path_res.error}")
+            return FlextResult[str].fail(
+                f"Validation failed for {key}: {path_res.error}"
+            )
         return path_res.map(str)
 
     def _validate_dir_input(self, key: str, value: object) -> FlextResult[str]:
@@ -84,7 +88,9 @@ class FlextCliValidationMixin:
             must_be_dir=True,
         )
         if path_res.is_failure:
-            return FlextResult[str].fail(f"Validation failed for {key}: {path_res.error}")
+            return FlextResult[str].fail(
+                f"Validation failed for {key}: {path_res.error}"
+            )
         return path_res.map(str)
 
     def flext_cli_validate_inputs(
@@ -101,7 +107,7 @@ class FlextCliValidationMixin:
                     return FlextResult[dict[str, object]].fail(
                         f"Validation failed for {key}: {validation_result.error}",
                     )
-                output[key] = validation_result.unwrap()
+                output[key] = validation_result.value
             else:
                 return FlextResult[dict[str, object]].fail(
                     f"Unknown validation type: {vtype} for key {key}",
@@ -118,10 +124,8 @@ class FlextCliValidationMixin:
         prompt = f"[bold red]{message}[/bold red]" if dangerous else message
         # Use back-compat helper attribute if present (tests patch this)
         helper = getattr(self, "_helper", self._flext_cli_helper)
-        res = helper.flext_cli_confirm(prompt)
-        if res.is_failure:
-            return FlextResult[bool].fail(f"Confirmation failed: {res.error}")
-        confirmed = res.unwrap()
+        # Use unwrap_or for cleaner conditional logic
+        confirmed = helper.flext_cli_confirm(prompt).unwrap_or(False)  # noqa: FBT003
         if not confirmed:
             return FlextResult[bool].fail("Operation cancelled by user")
         return FlextResult[bool].ok(True)  # noqa: FBT003
@@ -160,7 +164,7 @@ class FlextCliInteractiveMixin:
     def flext_cli_print_result(self, result: FlextResult[object]) -> None:
         """Print the result of a ``FlextResult`` to the console."""
         if result.success:
-            self.console.print(f"✓ {result.data}")
+            self.console.print(f"✓ {result.value}")
         else:
             self.console.print(f"✗ {result.error}")
 
@@ -174,7 +178,8 @@ class FlextCliInteractiveMixin:
         if res.is_failure:
             self.console.print(f"✗ {res.error}")
             return False
-        return bool(res.unwrap())
+        # Use unwrap_or for cleaner boolean conversion
+        return res.unwrap_or(False)  # noqa: FBT003
 
 
 class FlextCliProgressMixin:
@@ -222,7 +227,11 @@ class FlextCliProgressMixin:
 
         if len(args) == 1 and isinstance(args[0], str):
             message = args[0]
-        elif len(args) >= min_args_for_message and len(args) > 1 and isinstance(args[1], str):
+        elif (
+            len(args) >= min_args_for_message
+            and len(args) > 1
+            and isinstance(args[1], str)
+        ):
             message = args[1]
         if message:
             self.console.print(message)
@@ -251,7 +260,7 @@ class FlextCliResultMixin:
                 return FlextResult[list[object]].fail(f"Operation failed: {e}")
             if res.is_failure:
                 return FlextResult[list[object]].fail(res.error or "Unknown error")
-            results.append(res.unwrap())
+            results.append(res.value)
         return FlextResult[list[object]].ok(results)
 
     def flext_cli_handle_result(
@@ -264,8 +273,8 @@ class FlextCliResultMixin:
         """Encapsulate common logic for handling success/error of results."""
         if result.success:
             if success_action is not None:
-                success_action(result.data)
-            return result.data
+                success_action(result.value)
+            return result.value
         if error_action is not None and result.error is not None:
             error_action(result.error)
         return None
@@ -314,7 +323,7 @@ class FlextCliConfigMixin:
             return FlextResult[dict[str, object]].fail(
                 "Config loading failed: " + (res.error or "unknown"),
             )
-        self._flext_cli_config = res.unwrap()
+        self._flext_cli_config = res.value
         return FlextResult[dict[str, object]].ok(self._flext_cli_config)
 
 
@@ -353,7 +362,7 @@ class FlextCliAdvancedMixin(
                 operation_name,
                 dangerous=True,
             )
-            if confirm.is_failure or not confirm.unwrap():
+            if confirm.is_failure or not confirm.value:
                 return FlextResult[str].ok("Operation cancelled by user")
         if hasattr(self, "_flext_cli_console") and self._flext_cli_console is not None:
             self._flext_cli_console.print("✓ Validation passed")
@@ -398,7 +407,7 @@ class FlextCliAdvancedMixin(
                 return FlextResult[object].fail(f"Step '{name}' failed: {e}")
             if result.is_failure:
                 return FlextResult[object].fail(f"Step '{name}' failed: {result.error}")
-            current = result.unwrap()
+            current = result.value
         return FlextResult[object].ok(current)
 
     # File operations helper used by tests
@@ -420,9 +429,11 @@ class FlextCliAdvancedMixin(
             try:
                 res = func(str(p))
                 if res.is_failure:
-                    return FlextResult[list[str]].fail(f"Operation {op_name} failed: {res.error}")
+                    return FlextResult[list[str]].fail(
+                        f"Operation {op_name} failed: {res.error}"
+                    )
                 # If the operation returns content, write it back; otherwise keep original
-                new_content = res.unwrap()
+                new_content = res.value
                 if isinstance(new_content, str):
                     p.write_text(new_content, encoding="utf-8")
                 results.append(f"{op_name}_{path}")
@@ -461,7 +472,7 @@ def flext_cli_zero_config(
                     if dangerous
                     else operation_name,
                 )
-                if conf.is_failure or not conf.unwrap():
+                if conf.is_failure or not conf.value:
                     return FlextResult[str].ok("Operation cancelled by user")
             try:
                 result = func(*args, **kwargs)
@@ -619,7 +630,7 @@ def flext_cli_require_confirmation(message: str) -> FlextCliDecorator[P, R]:
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> FlextResult[str]:
             helper = FlextCliHelper()
             conf = helper.flext_cli_confirm(message)
-            if conf.is_failure or not conf.unwrap():
+            if conf.is_failure or not conf.value:
                 return FlextResult[str].ok("Operation cancelled by user")
             result = func(*args, **kwargs)
             if isinstance(result, FlextResult):

@@ -68,7 +68,9 @@ class DemoCommandMixin:
 @click.option("--config-file", type=ExistingFile, help="Configuration file path")
 @click.option("--debug/--no-debug", default=False, help="Enable debug mode")
 @click.pass_context
-def demo_cli(ctx: click.Context, config_file: Path | None, *, debug: bool = False) -> None:
+def demo_cli(
+    ctx: click.Context, config_file: Path | None, *, debug: bool = False
+) -> None:
     """FLEXT-CLI Click Integration Demo."""
     # Setup CLI using flext-cli patterns
     setup_result = setup_cli()
@@ -108,10 +110,12 @@ def connect(ctx: click.Context, url: str, timeout: int, retries: int) -> None:
         return
 
     command = command_result.unwrap()
-    console.print(Panel(
-        f"Testing connection to: {url}\nTimeout: {timeout}s\nRetries: {retries}",
-        title="Connection Test"
-    ))
+    console.print(
+        Panel(
+            f"Testing connection to: {url}\nTimeout: {timeout}s\nRetries: {retries}",
+            title="Connection Test",
+        )
+    )
 
     # Execute connection test using FlextResult pattern
     result = execute_connection_test(command)
@@ -121,22 +125,32 @@ def connect(ctx: click.Context, url: str, timeout: int, retries: int) -> None:
 
 
 @demo_cli.command()
-@click.option("--input-file", type=ExistingFile, required=True, help="Input file to process")
-@click.option("--output-format", type=click.Choice(["json", "yaml", "csv"]), default="json")
-@click.option("--batch-size", type=PositiveInt, default=100, help="Processing batch size")
+@click.option(
+    "--input-file", type=ExistingFile, required=True, help="Input file to process"
+)
+@click.option(
+    "--output-format", type=click.Choice(["json", "yaml", "csv"]), default="json"
+)
+@click.option(
+    "--batch-size", type=PositiveInt, default=100, help="Processing batch size"
+)
 @click.pass_context
 @cli_enhanced
 @cli_measure_time
-def process_file(ctx: click.Context, input_file: Path, output_format: str, batch_size: int) -> None:
+def process_file(
+    ctx: click.Context, input_file: Path, output_format: str, batch_size: int
+) -> None:
     """Process file with flext-cli patterns."""
     console = ctx.obj["console"]
 
-    console.print(Panel(
-        f"Processing file: {input_file}\n"
-        f"Output format: {output_format}\n"
-        f"Batch size: {batch_size}",
-        title="File Processing"
-    ))
+    console.print(
+        Panel(
+            f"Processing file: {input_file}\n"
+            f"Output format: {output_format}\n"
+            f"Batch size: {batch_size}",
+            title="File Processing",
+        )
+    )
 
     # Simulate file processing with FlextResult
     result = simulate_file_processing(input_file, output_format, batch_size)
@@ -146,7 +160,9 @@ def process_file(ctx: click.Context, input_file: Path, output_format: str, batch
 
 
 @demo_cli.command()
-@click.option("--workspace", type=click.Path(path_type=Path), help="Workspace directory")
+@click.option(
+    "--workspace", type=click.Path(path_type=Path), help="Workspace directory"
+)
 @click.pass_context
 @cli_enhanced
 def status(ctx: click.Context, workspace: Path | None) -> None:
@@ -155,16 +171,20 @@ def status(ctx: click.Context, workspace: Path | None) -> None:
     config = ctx.obj["config"]
 
     # Display configuration using flext-cli patterns
-    console.print(Panel(
-        f"Profile: {config.profile}\n"
-        f"Debug: {config.debug}\n"
-        f"Output Format: {config.output.format}\n"
-        f"Workspace: {workspace or Path.cwd()}",
-        title="CLI Status"
-    ))
+    console.print(
+        Panel(
+            f"Profile: {config.profile}\n"
+            f"Debug: {config.debug}\n"
+            f"Output Format: {config.output.format}\n"
+            f"Workspace: {workspace or Path.cwd()}",
+            title="CLI Status",
+        )
+    )
 
 
-def create_connection_command(url: str, timeout: int, retries: int) -> FlextResult[FlextCliCommand]:
+def create_connection_command(
+    url: str, timeout: int, retries: int
+) -> FlextResult[FlextCliCommand]:
     """Create connection command using flext-cli domain patterns."""
     try:
         command = FlextCliCommand(
@@ -189,7 +209,9 @@ def execute_connection_test(command: FlextCliCommand) -> FlextResult[str]:
         # Validate command before execution
         validation_result = command.validate_domain_rules()
         if not validation_result.success:
-            return FlextResult[None].fail(f"Command validation failed: {validation_result.error}")
+            return FlextResult[None].fail(
+                f"Command validation failed: {validation_result.error}"
+            )
 
         # Start command execution
         command.start_execution()
@@ -203,7 +225,9 @@ def execute_connection_test(command: FlextCliCommand) -> FlextResult[str]:
         return FlextResult[None].fail(f"Connection test failed: {e}")
 
 
-def simulate_file_processing(file_path: Path, output_format: str, batch_size: int) -> FlextResult[str]:
+def simulate_file_processing(
+    file_path: Path, output_format: str, batch_size: int
+) -> FlextResult[str]:
     """Simulate file processing with FlextResult pattern."""
     try:
         # Validate file exists

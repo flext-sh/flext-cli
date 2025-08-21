@@ -98,7 +98,7 @@ class FlextCliConfigFactory:
                 environment="production",
                 debug=True,
                 custom_field="value"
-            ).unwrap()
+            ).value
 
         """
         # Set generic defaults that any project can use
@@ -162,12 +162,14 @@ def setup_flext_cli_ecosystem(
                     f"Config creation failed: {config_result.error}",
                 )
 
-            config = config_result.data
+            config = config_result.value
 
         # Setup CLI with project-specific configuration
         setup_result = setup_flext_cli(config)
         if not setup_result.success:
-            return FlextResult[dict[str, object]].fail(f"CLI setup failed: {setup_result.error}")
+            return FlextResult[dict[str, object]].fail(
+                f"CLI setup failed: {setup_result.error}"
+            )
 
         # config is guaranteed to be non-None at this point due to success check above
 
@@ -223,7 +225,7 @@ def {old_setup_function}_modern(**config_overrides):
 # result = {old_setup_function}_modern(debug=True, environment="prod")
 # if result.success:
 #     print("Setup completed successfully!")
-#     context = result.data
+#     context = result.value
 # else:
 #     print(f"Setup failed: {{result.error}}")
 #
