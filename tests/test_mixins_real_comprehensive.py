@@ -682,7 +682,9 @@ class TestFlextCliConfigMixin:
     def test_load_config_custom_path(self) -> None:
         """Test loading configuration from custom path."""
         # Create temporary config file
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".json", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".json", delete=False
+        ) as f:
             import json
 
             config_data = {"test_key": "test_value"}
@@ -892,11 +894,15 @@ class TestFlextCliAdvancedMixin:
     def test_execute_file_operations_success(self) -> None:
         """Test executing file operations successfully."""
         # Create temporary files
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as f1:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as f1:
             f1.write("content1")
             temp_file1 = Path(f1.name)
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as f2:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as f2:
             f2.write("content2")
             temp_file2 = Path(f2.name)
 

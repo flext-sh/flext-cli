@@ -298,7 +298,9 @@ class TestDataExport:
         """Test JSON export."""
         data = {"key": "value", "number": 42}
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".json", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".json", delete=False
+        ) as f:
             result = flext_cli_export(data, Path(f.name), "json")
 
             assert result.success
@@ -314,7 +316,9 @@ class TestDataExport:
         """Test YAML export."""
         data = {"key": "value", "list": [1, 2, 3]}
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+        ) as f:
             result = flext_cli_export(data, Path(f.name), "yaml")
 
             assert result.success

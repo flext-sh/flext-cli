@@ -40,7 +40,9 @@ class TestDataLoadingUtilities:
 
     def test_load_json_file_success(self) -> None:
         """Test successful JSON file loading."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".json", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".json", delete=False
+        ) as f:
             test_data = {"key": "value", "number": 42}
             json.dump(test_data, f)
             f.flush()
@@ -61,7 +63,9 @@ class TestDataLoadingUtilities:
 
     def test_load_text_file_success(self) -> None:
         """Test successful text file loading."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".txt", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".txt", delete=False
+        ) as f:
             content = "This is test content\nWith multiple lines"
             f.write(content)
             f.flush()
@@ -75,7 +79,9 @@ class TestDataLoadingUtilities:
 
     def test_cli_load_data_file_json(self) -> None:
         """Test cli_load_data_file with JSON file."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".json", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".json", delete=False
+        ) as f:
             test_data = {"test": "data"}
             json.dump(test_data, f)
             f.flush()

@@ -535,7 +535,9 @@ class TestFlextCliConfigMixin:
         """Test loading config from custom path."""
         mixin = FlextCliConfigMixin()
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".json", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".json", delete=False
+        ) as f:
             import json
 
             json.dump({"test": "config"}, f)
@@ -676,7 +678,9 @@ class TestFlextCliAdvancedMixin:
         """Test execute file operations."""
         mixin = FlextCliAdvancedMixin()
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as temp_file:
             temp_file.write("test content")
             temp_path = temp_file.name
 
@@ -713,7 +717,9 @@ class TestFlextCliAdvancedMixin:
         """Test execute file operations with processing failure."""
         mixin = FlextCliAdvancedMixin()
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as temp_file:
             temp_file.write("test content")
             temp_path = temp_file.name
 
@@ -922,7 +928,9 @@ class TestDecorators:
             "flext_cli_require_confirmation",
         ]
 
-        available_decorators = [name for name in decorator_names if hasattr(mixins, name)]
+        available_decorators = [
+            name for name in decorator_names if hasattr(mixins, name)
+        ]
 
         # At least some decorators should be available
         assert len(available_decorators) > 0

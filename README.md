@@ -86,7 +86,7 @@ FLEXT CLI serves as the central command hub for:
 - **🏗️ flext-core Integration (60%)**: Good foundations, missing enterprise patterns
   - ✅ FlextResult (railway-oriented programming)
   - ✅ FlextEntity (domain modeling)
-  - ✅ FlextValueObject (immutable value objects)
+  - ✅ FlextValue (immutable value objects)
   - ✅ FlextSettings (configuration)
   - ❌ FlextContainer (dependency injection)
   - ❌ CQRS (command/query separation)
@@ -503,7 +503,7 @@ pytest tests/test_integration.py -v
 
   - ✅ FlextResult (excellent railway-oriented programming)
   - ✅ FlextEntity (good domain modeling with validation)
-  - ✅ FlextValueObject (proper immutable value objects)
+  - ✅ FlextValue (proper immutable value objects)
   - ✅ FlextSettings (good configuration management)
   - ❌ FlextContainer (using custom SimpleDIContainer instead)
   - ❌ CQRS patterns (no command/query separation)
@@ -636,7 +636,7 @@ ls -la src/flext_cli/
 - **Core Commands**: 3 command groups (auth, config, debug) functional
 - **Quality Gates**: Comprehensive validation pipeline with 90% coverage
 - **Testing**: Complete test suite with pytest framework
-- **flext-core Basics**: FlextResult, FlextEntity, FlextValueObject, FlextSettings
+- **flext-core Basics**: FlextResult, FlextEntity, FlextValue, FlextSettings
 
 ### ⚠️ **Partial Implementation**
 

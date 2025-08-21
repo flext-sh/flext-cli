@@ -158,9 +158,12 @@ class TestConnectivityCommand(unittest.TestCase):
         test_client = _TestApiClient(should_fail=False)
 
         # Patch the client provider
-        with patch(
-            "flext_cli.cmd_debug.get_default_cli_client", return_value=test_client
-        ), patch("flext_cli.cmd_debug.FlextApiClient", return_value=test_client):
+        with (
+            patch(
+                "flext_cli.cmd_debug.get_default_cli_client", return_value=test_client
+            ),
+            patch("flext_cli.cmd_debug.FlextApiClient", return_value=test_client),
+        ):
             ctx = self.create_test_context()
 
             # Capture output
@@ -178,9 +181,12 @@ class TestConnectivityCommand(unittest.TestCase):
         test_client = _TestApiClient(should_fail=True)
 
         # Patch the client provider
-        with patch(
-            "flext_cli.cmd_debug.get_default_cli_client", return_value=test_client
-        ), patch("flext_cli.cmd_debug.FlextApiClient", return_value=test_client):
+        with (
+            patch(
+                "flext_cli.cmd_debug.get_default_cli_client", return_value=test_client
+            ),
+            patch("flext_cli.cmd_debug.FlextApiClient", return_value=test_client),
+        ):
             ctx = self.create_test_context()
 
             # Should raise SystemExit due to connection failure
@@ -194,9 +200,12 @@ class TestConnectivityCommand(unittest.TestCase):
         delattr(test_client, "test_connection")
         test_client.test_connection = test_client.test_connection_sync
 
-        with patch(
-            "flext_cli.cmd_debug.get_default_cli_client", return_value=test_client
-        ), patch("flext_cli.cmd_debug.FlextApiClient", return_value=test_client):
+        with (
+            patch(
+                "flext_cli.cmd_debug.get_default_cli_client", return_value=test_client
+            ),
+            patch("flext_cli.cmd_debug.FlextApiClient", return_value=test_client),
+        ):
             ctx = self.create_test_context()
 
             # Capture output
