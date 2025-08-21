@@ -10,7 +10,9 @@ from __future__ import annotations
 # Import both services from core.py directly (not the abstract base_service.py version)
 import importlib.util
 
-spec = importlib.util.spec_from_file_location("core_module", "/home/marlonsc/flext/flext-cli/src/flext_cli/core.py")
+spec = importlib.util.spec_from_file_location(
+    "core_module", "/home/marlonsc/flext/flext-cli/src/flext_cli/core.py"
+)
 core_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(core_module)
 

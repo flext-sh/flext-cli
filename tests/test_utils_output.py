@@ -20,50 +20,63 @@ from rich.table import Table
 # Import what exists in flext_cli
 # from flext_cli import setup_cli  # Unused import
 
+
 # Mock the functions that don't exist
 def format_json(data: object) -> str:
     """Mock format_json."""
     return json.dumps(data, indent=2)
 
+
 def format_yaml(data: object) -> str:
     """Mock format_yaml."""
     return yaml.dump(data, default_flow_style=False)
+
 
 def format_pipeline(console: Console, pipeline: object) -> None:
     """Mock format_pipeline."""
     console.print(f"Pipeline: {pipeline}")
 
+
 def format_pipeline_list(console: Console, pipelines: object) -> None:
     """Mock format_pipeline_list."""
     console.print(f"Pipelines: {pipelines}")
 
-def format_plugin_list(console: Console, plugins: object, format_type: str = "table") -> None:
+
+def format_plugin_list(
+    console: Console, plugins: object, format_type: str = "table"
+) -> None:
     """Mock format_plugin_list."""
     console.print(f"Plugins ({format_type}): {plugins}")
+
 
 def print_error(message: str, console: Console | None = None) -> None:
     """Mock print_error."""
     if console:
         console.print(f"[red]✗[/red] {message}")
 
+
 def print_info(message: str, console: Console | None = None) -> None:
     """Mock print_info."""
     if console:
         console.print(f"[blue]i[/blue] {message}")
+
 
 def print_success(message: str, console: Console | None = None) -> None:
     """Mock print_success."""
     if console:
         console.print(f"[green]✓[/green] {message}")
 
+
 def print_warning(message: str, console: Console | None = None) -> None:
     """Mock print_warning."""
     if console:
         console.print(f"[yellow]⚠[/yellow] {message}")
 
+
 def setup_console(*, no_color: bool = False, quiet: bool = False) -> Console:
     """Mock setup_console."""
     return Console(no_color=no_color, quiet=quiet)
+
 
 # Constants
 EXPECTED_BULK_SIZE = 2

@@ -57,19 +57,48 @@ def demonstrate_data_transformation() -> FlextResult[None]:
 
     # Sample raw data
     raw_data = [
-        {"name": "Service A", "status": "running", "cpu": 45, "memory": 1200, "region": "us-east"},
-        {"name": "Service B", "status": "stopped", "cpu": 0, "memory": 0, "region": "us-west"},
-        {"name": "Service C", "status": "running", "cpu": 78, "memory": 2100, "region": "us-east"},
-        {"name": "Service D", "status": "running", "cpu": 23, "memory": 800, "region": "eu-west"},
-        {"name": "Service E", "status": "failed", "cpu": 0, "memory": 0, "region": "us-east"},
+        {
+            "name": "Service A",
+            "status": "running",
+            "cpu": 45,
+            "memory": 1200,
+            "region": "us-east",
+        },
+        {
+            "name": "Service B",
+            "status": "stopped",
+            "cpu": 0,
+            "memory": 0,
+            "region": "us-west",
+        },
+        {
+            "name": "Service C",
+            "status": "running",
+            "cpu": 78,
+            "memory": 2100,
+            "region": "us-east",
+        },
+        {
+            "name": "Service D",
+            "status": "running",
+            "cpu": 23,
+            "memory": 800,
+            "region": "eu-west",
+        },
+        {
+            "name": "Service E",
+            "status": "failed",
+            "cpu": 0,
+            "memory": 0,
+            "region": "us-east",
+        },
     ]
 
     console.print("\n[green]1. Basic Data Transformation[/green]")
 
     # Transform data - filter only running services
     filter_result = flext_cli_transform_data(
-        raw_data,
-        filter_func=lambda service: service["status"] == "running"
+        raw_data, filter_func=lambda service: service["status"] == "running"
     )
 
     if filter_result.success:
@@ -83,26 +112,30 @@ def demonstrate_data_transformation() -> FlextResult[None]:
                 **service,
                 "health_score": min(100, max(0, 100 - service["cpu"])),
                 "memory_gb": round(service["memory"] / 1024, 1),
-                "efficiency": round((100 - service["cpu"]) * service["memory"] / 1000, 2)
+                "efficiency": round(
+                    (100 - service["cpu"]) * service["memory"] / 1000, 2
+                ),
             }
             enriched_services.append(enriched_service)
         enrich_result = FlextResult[list[dict[str, object]]].ok(enriched_services)
 
         if enrich_result.success:
             enriched_services = enrich_result.unwrap()
-            console.print("✅ Added computed fields: health_score, memory_gb, efficiency")
+            console.print(
+                "✅ Added computed fields: health_score, memory_gb, efficiency"
+            )
 
             # Display first enriched service as example
             if enriched_services:
                 sample = enriched_services[0]
-                console.print(f"   Sample: {sample['name']} - Health: {sample['health_score']}, "
-                            f"Memory: {sample['memory_gb']}GB, Efficiency: {sample['efficiency']}")
+                console.print(
+                    f"   Sample: {sample['name']} - Health: {sample['health_score']}, "
+                    f"Memory: {sample['memory_gb']}GB, Efficiency: {sample['efficiency']}"
+                )
 
             return FlextResult[None].ok(None)  # Return None for successful completion
-        else:
-            return FlextResult[None].fail("Data enrichment failed")
-    else:
-        return FlextResult[None].fail(f"Data filtering failed: {filter_result.error}")
+        return FlextResult[None].fail("Data enrichment failed")
+    return FlextResult[None].fail(f"Data filtering failed: {filter_result.error}")
 
 
 def demonstrate_data_aggregation() -> FlextResult[None]:
@@ -112,12 +145,42 @@ def demonstrate_data_aggregation() -> FlextResult[None]:
 
     # Sample metrics data
     metrics_data = [
-        {"timestamp": "2025-01-15T10:00:00", "service": "api", "requests": 150, "errors": 2},
-        {"timestamp": "2025-01-15T10:00:00", "service": "auth", "requests": 75, "errors": 0},
-        {"timestamp": "2025-01-15T10:00:00", "service": "db", "requests": 200, "errors": 1},
-        {"timestamp": "2025-01-15T11:00:00", "service": "api", "requests": 180, "errors": 3},
-        {"timestamp": "2025-01-15T11:00:00", "service": "auth", "requests": 90, "errors": 1},
-        {"timestamp": "2025-01-15T11:00:00", "service": "db", "requests": 240, "errors": 0},
+        {
+            "timestamp": "2025-01-15T10:00:00",
+            "service": "api",
+            "requests": 150,
+            "errors": 2,
+        },
+        {
+            "timestamp": "2025-01-15T10:00:00",
+            "service": "auth",
+            "requests": 75,
+            "errors": 0,
+        },
+        {
+            "timestamp": "2025-01-15T10:00:00",
+            "service": "db",
+            "requests": 200,
+            "errors": 1,
+        },
+        {
+            "timestamp": "2025-01-15T11:00:00",
+            "service": "api",
+            "requests": 180,
+            "errors": 3,
+        },
+        {
+            "timestamp": "2025-01-15T11:00:00",
+            "service": "auth",
+            "requests": 90,
+            "errors": 1,
+        },
+        {
+            "timestamp": "2025-01-15T11:00:00",
+            "service": "db",
+            "requests": 240,
+            "errors": 0,
+        },
     ]
 
     # Aggregate by service
@@ -125,7 +188,7 @@ def demonstrate_data_aggregation() -> FlextResult[None]:
         metrics_data,
         group_by="service",
         sum_fields=["requests", "errors"],
-        count_field="count"
+        count_field="count",
     )
 
     if service_agg_result.success:
@@ -136,12 +199,19 @@ def demonstrate_data_aggregation() -> FlextResult[None]:
             service = stats.get("service", "unknown")
             total_requests = stats.get("requests", 0)  # sum_fields creates this
             total_errors = stats.get("errors", 0)  # sum_fields creates this
-            error_rate = round((total_errors / total_requests * 100), 2) if total_requests > 0 else 0.0
-            console.print(f"   {service}: {total_requests} requests, {error_rate}% error rate")
+            error_rate = (
+                round((total_errors / total_requests * 100), 2)
+                if total_requests > 0
+                else 0.0
+            )
+            console.print(
+                f"   {service}: {total_requests} requests, {error_rate}% error rate"
+            )
 
         return FlextResult[None].ok(None)
-    else:
-        return FlextResult[None].fail(f"Data aggregation failed: {service_agg_result.error}")
+    return FlextResult[None].fail(
+        f"Data aggregation failed: {service_agg_result.error}"
+    )
 
 
 @cli_enhanced
@@ -164,8 +234,8 @@ def demonstrate_output_formatting() -> FlextResult[None]:
         "metrics": {
             "uptime": "99.9%",
             "requests_per_second": 1250,
-            "error_rate": "0.1%"
-        }
+            "error_rate": "0.1%",
+        },
     }
 
     # 1. JSON formatting
@@ -193,8 +263,7 @@ def demonstrate_output_formatting() -> FlextResult[None]:
 
     # 3. Rich table creation for services
     services_table_result = cli_create_table(
-        data=sample_data["services"],
-        title="Application Services"
+        data=sample_data["services"], title="Application Services"
     )
 
     if services_table_result.success:
@@ -216,30 +285,30 @@ def demonstrate_file_operations() -> FlextResult[None]:
             "host": "localhost",
             "port": 5432,
             "database": "flext_demo",
-            "username": "admin"
+            "username": "admin",
         },
         "api": {
             "host": "localhost",
             "port": 8080,
             "debug": False,
-            "cors_enabled": True
+            "cors_enabled": True,
         },
         "logging": {
             "level": "INFO",
             "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            "file": "/var/log/flext-demo.log"
-        }
+            "file": "/var/log/flext-demo.log",
+        },
     }
 
     try:
         # 1. Save configuration to temporary file
-        with NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".json", delete=False) as temp_file:
+        with NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".json", delete=False
+        ) as temp_file:
             temp_path = Path(temp_file.name)
 
         save_result = cli_save_data_file(
-            data=config_data,
-            file_path=temp_path,
-            format_type="json"
+            data=config_data, file_path=temp_path, format_type="json"
         )
 
         if save_result.success:
@@ -252,14 +321,15 @@ def demonstrate_file_operations() -> FlextResult[None]:
 
                 # Load data back
                 load_result = cli_load_data_file(
-                    file_path=temp_path,
-                    format_type="json"
+                    file_path=temp_path, format_type="json"
                 )
 
                 if load_result.success:
                     loaded_data = load_result.unwrap()
                     console.print("✅ Configuration loaded successfully")
-                    console.print(f"   Database host: {loaded_data['database']['host']}")
+                    console.print(
+                        f"   Database host: {loaded_data['database']['host']}"
+                    )
                     console.print(f"   API port: {loaded_data['api']['port']}")
 
         # 3. Demonstrate directory operations
@@ -305,12 +375,14 @@ def demonstrate_batch_processing() -> FlextResult[None]:
             batch_result = cli_batch_process_files(
                 input_directory=temp_path,
                 file_pattern="*.txt",
-                processor=lambda file: f"Processed: {file.name} ({file.stat().st_size} bytes)"
+                processor=lambda file: f"Processed: {file.name} ({file.stat().st_size} bytes)",
             )
 
             if batch_result.success:
                 results = batch_result.unwrap()
-                console.print(f"✅ Batch processing completed: {len(results)} files processed")
+                console.print(
+                    f"✅ Batch processing completed: {len(results)} files processed"
+                )
 
                 for result in results:
                     console.print(f"   {result}")
@@ -336,7 +408,7 @@ def demonstrate_data_export() -> FlextResult[None]:
             "requests": 15240,
             "response_time_ms": 45,
             "errors": 12,
-            "uptime": 99.8
+            "uptime": 99.8,
         },
         {
             "date": "2025-01-15",
@@ -344,7 +416,7 @@ def demonstrate_data_export() -> FlextResult[None]:
             "requests": 8750,
             "response_time_ms": 28,
             "errors": 2,
-            "uptime": 100.0
+            "uptime": 100.0,
         },
         {
             "date": "2025-01-15",
@@ -352,15 +424,15 @@ def demonstrate_data_export() -> FlextResult[None]:
             "requests": 23100,
             "response_time_ms": 15,
             "errors": 0,
-            "uptime": 100.0
-        }
+            "uptime": 100.0,
+        },
     ]
 
     # Export to JSON (as string)
     json_export_result = flext_cli_export(
         report_data,
         format_type="json",
-        output_file=None  # Return as string
+        output_file=None,  # Return as string
     )
 
     if json_export_result.success:
@@ -371,9 +443,7 @@ def demonstrate_data_export() -> FlextResult[None]:
 
     # Export to CSV format
     csv_export_result = flext_cli_export(
-        report_data,
-        format_type="csv",
-        output_file=None
+        report_data, format_type="csv", output_file=None
     )
 
     if csv_export_result.success:
@@ -391,27 +461,33 @@ def main() -> None:
     """Main demonstration function."""
     console = Console()
 
-    console.print(Panel(
-        "[bold cyan]03 - Data Processing and Output Formatting[/bold cyan]\n\n"
-        "[yellow]Comprehensive demonstration of flext-cli data processing capabilities:[/yellow]\n"
-        "• Data transformation and filtering\n"
-        "• Aggregation and statistical analysis\n"
-        "• Multiple output formats (JSON, YAML, CSV, Rich tables)\n"
-        "• Type-safe file operations\n"
-        "• Batch processing workflows\n"
-        "• Data export and formatting patterns",
-        expand=False
-    ))
+    console.print(
+        Panel(
+            "[bold cyan]03 - Data Processing and Output Formatting[/bold cyan]\n\n"
+            "[yellow]Comprehensive demonstration of flext-cli data processing capabilities:[/yellow]\n"
+            "• Data transformation and filtering\n"
+            "• Aggregation and statistical analysis\n"
+            "• Multiple output formats (JSON, YAML, CSV, Rich tables)\n"
+            "• Type-safe file operations\n"
+            "• Batch processing workflows\n"
+            "• Data export and formatting patterns",
+            expand=False,
+        )
+    )
 
     try:
         # Run all demonstrations
         transform_result = demonstrate_data_transformation()
         if transform_result.failure:
-            console.print(f"[red]Transformation demo failed: {transform_result.error}[/red]")
+            console.print(
+                f"[red]Transformation demo failed: {transform_result.error}[/red]"
+            )
 
         aggregate_result = demonstrate_data_aggregation()
         if aggregate_result.failure:
-            console.print(f"[red]Aggregation demo failed: {aggregate_result.error}[/red]")
+            console.print(
+                f"[red]Aggregation demo failed: {aggregate_result.error}[/red]"
+            )
 
         format_result = demonstrate_output_formatting()
         if format_result.failure:
@@ -419,30 +495,36 @@ def main() -> None:
 
         file_result = demonstrate_file_operations()
         if file_result.failure:
-            console.print(f"[red]File operations demo failed: {file_result.error}[/red]")
+            console.print(
+                f"[red]File operations demo failed: {file_result.error}[/red]"
+            )
 
         batch_result = demonstrate_batch_processing()
         if batch_result.failure:
-            console.print(f"[red]Batch processing demo failed: {batch_result.error}[/red]")
+            console.print(
+                f"[red]Batch processing demo failed: {batch_result.error}[/red]"
+            )
 
         export_result = demonstrate_data_export()
         if export_result.failure:
             console.print(f"[red]Data export demo failed: {export_result.error}[/red]")
 
         # Final summary
-        console.print(Panel(
-            "[bold green]✅ Data Processing and Output Demo Completed![/bold green]\n\n"
-            "[cyan]Key Features Demonstrated:[/cyan]\n"
-            "🔄 Data transformation with flext_cli_transform_data\n"
-            "📊 Aggregation patterns with flext_cli_aggregate_data\n"
-            "🎨 Multiple output formats (JSON, CSV, Rich tables)\n"
-            "📁 Type-safe file operations (ExistingFile, NewFile, ExistingDir)\n"
-            "⚡ Batch processing with cli_batch_process_files\n"
-            "📤 Data export with flext_cli_export\n"
-            "🏭 FormatterFactory pattern for consistent formatting\n\n"
-            "[yellow]All operations used FlextResult pattern for error handling![/yellow]",
-            expand=False
-        ))
+        console.print(
+            Panel(
+                "[bold green]✅ Data Processing and Output Demo Completed![/bold green]\n\n"
+                "[cyan]Key Features Demonstrated:[/cyan]\n"
+                "🔄 Data transformation with flext_cli_transform_data\n"
+                "📊 Aggregation patterns with flext_cli_aggregate_data\n"
+                "🎨 Multiple output formats (JSON, CSV, Rich tables)\n"
+                "📁 Type-safe file operations (ExistingFile, NewFile, ExistingDir)\n"
+                "⚡ Batch processing with cli_batch_process_files\n"
+                "📤 Data export with flext_cli_export\n"
+                "🏭 FormatterFactory pattern for consistent formatting\n\n"
+                "[yellow]All operations used FlextResult pattern for error handling![/yellow]",
+                expand=False,
+            )
+        )
 
     except Exception as e:
         console.print(f"[bold red]❌ Demo error: {e}[/bold red]")

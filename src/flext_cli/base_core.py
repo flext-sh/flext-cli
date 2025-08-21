@@ -203,7 +203,7 @@ def handle_service_result[**P](func: Callable[P, object]) -> Callable[P, object]
                     if result.is_failure:
                         _print_error(result.error or "Unknown error")
                         return None
-                    unwrapped_result: object = result.unwrap()
+                    unwrapped_result: object = result.value
                     return unwrapped_result
                 typed_result: object = result
                 return typed_result
@@ -223,7 +223,7 @@ def handle_service_result[**P](func: Callable[P, object]) -> Callable[P, object]
                 if result.is_failure:
                     _print_error(result.error or "Unknown error")
                     return None
-                unwrapped_result: object = result.unwrap()
+                unwrapped_result: object = result.value
                 return unwrapped_result
             typed_sync_result: object = result
             return typed_sync_result

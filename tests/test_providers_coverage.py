@@ -347,7 +347,9 @@ class TestModuleExports:
         from flext_cli import providers
 
         for export_name in providers.__all__:
-            assert hasattr(providers, export_name), f"Export {export_name} not found in module"
+            assert hasattr(providers, export_name), (
+                f"Export {export_name} not found in module"
+            )
 
     def test_expected_exports(self) -> None:
         """Test that expected classes are exported."""

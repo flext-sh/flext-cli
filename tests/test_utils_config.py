@@ -10,7 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from flext_core.constants import FlextConstants
+from flext_core import FlextConstants
 
 from flext_cli import CLIConfig, CLISettings, get_config, get_settings
 from flext_cli.config import CLIDirectoryConfig, CLIOutputConfig
@@ -70,7 +70,9 @@ class TestCLIConfig:
             )
         assert config.directories.cache_dir == expected_cache_dir
         if config.directories.log_dir != expected_log_dir:
-            raise AssertionError(f"Expected {expected_log_dir}, got {config.directories.log_dir}")
+            raise AssertionError(
+                f"Expected {expected_log_dir}, got {config.directories.log_dir}"
+            )
 
     def test_config_custom_directories(self) -> None:
         """Test configuration with custom directories."""
@@ -92,7 +94,9 @@ class TestCLIConfig:
             )
         assert config.directories.cache_dir == custom_cache_dir
         if config.directories.log_dir != custom_log_dir:
-            raise AssertionError(f"Expected {custom_log_dir}, got {config.directories.log_dir}")
+            raise AssertionError(
+                f"Expected {custom_log_dir}, got {config.directories.log_dir}"
+            )
 
     def test_config_validation(self) -> None:
         """Test config field validation."""

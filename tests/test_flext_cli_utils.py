@@ -28,15 +28,6 @@ from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table
 
-# Import private functions from their actual module location
-from flext_cli.utils_core import (
-    _current_timestamp,
-    _generate_session_id,
-    # _get_version,  # Function removed - not available in new API
-    _load_config_file,
-    _load_env_overrides,
-)
-
 # Import public API functions from main package
 from flext_cli import (
     flext_cli_auto_config,
@@ -48,6 +39,15 @@ from flext_cli import (
     flext_cli_require_all,
     flext_cli_save_file,
     flext_cli_validate_all,
+)
+
+# Import private functions from their actual module location
+from flext_cli.utils_core import (
+    _current_timestamp,
+    _generate_session_id,
+    # _get_version,  # Function removed - not available in new API
+    _load_config_file,
+    _load_env_overrides,
 )
 
 

@@ -135,7 +135,9 @@ class TestSaveAuthToken:
                 assert oct(stat.st_mode)[-3:] == "600"
 
     @patch("flext_cli.utils.auth.get_token_path")
-    def test_save_auth_token_creates_parent_dirs(self, mock_get_token_path: MagicMock) -> None:
+    def test_save_auth_token_creates_parent_dirs(
+        self, mock_get_token_path: MagicMock
+    ) -> None:
         """Test that parent directories are created."""
         with tempfile.TemporaryDirectory() as temp_dir:
             token_path = Path(temp_dir) / "nested" / "dirs" / "token"
@@ -148,7 +150,9 @@ class TestSaveAuthToken:
             assert token_path.parent.exists()
 
     @patch("flext_cli.utils.auth.get_token_path")
-    def test_save_auth_token_permission_error(self, mock_get_token_path: MagicMock) -> None:
+    def test_save_auth_token_permission_error(
+        self, mock_get_token_path: MagicMock
+    ) -> None:
         """Test handling of permission errors."""
         mock_path = MagicMock()
         mock_path.parent.mkdir.side_effect = PermissionError("Access denied")
@@ -160,7 +164,9 @@ class TestSaveAuthToken:
         assert "Failed to save auth token" in result.error
 
     @patch("flext_cli.utils.auth.get_token_path")
-    def test_save_auth_token_chmod_failure(self, mock_get_token_path: MagicMock) -> None:
+    def test_save_auth_token_chmod_failure(
+        self, mock_get_token_path: MagicMock
+    ) -> None:
         """Test handling of chmod failures."""
         with tempfile.TemporaryDirectory() as temp_dir:
             token_path = Path(temp_dir) / "token"
@@ -178,7 +184,9 @@ class TestSaveRefreshToken:
     """Test save_refresh_token function."""
 
     @patch("flext_cli.utils.auth.get_refresh_token_path")
-    def test_save_refresh_token_success(self, mock_get_refresh_token_path: MagicMock) -> None:
+    def test_save_refresh_token_success(
+        self, mock_get_refresh_token_path: MagicMock
+    ) -> None:
         """Test successful refresh token saving."""
         with tempfile.TemporaryDirectory() as temp_dir:
             token_path = Path(temp_dir) / "refresh_token"
@@ -191,7 +199,9 @@ class TestSaveRefreshToken:
             assert token_path.read_text(encoding="utf-8") == "refresh_token_xyz"
 
     @patch("flext_cli.utils.auth.get_refresh_token_path")
-    def test_save_refresh_token_os_error(self, mock_get_refresh_token_path: MagicMock) -> None:
+    def test_save_refresh_token_os_error(
+        self, mock_get_refresh_token_path: MagicMock
+    ) -> None:
         """Test handling of OS errors."""
         mock_path = MagicMock()
         mock_path.write_text.side_effect = OSError("Disk full")
@@ -258,7 +268,9 @@ class TestGetRefreshToken:
     """Test get_refresh_token function."""
 
     @patch("flext_cli.utils.auth.get_refresh_token_path")
-    def test_get_refresh_token_exists(self, mock_get_refresh_token_path: MagicMock) -> None:
+    def test_get_refresh_token_exists(
+        self, mock_get_refresh_token_path: MagicMock
+    ) -> None:
         """Test getting refresh token when file exists."""
         with tempfile.TemporaryDirectory() as temp_dir:
             token_path = Path(temp_dir) / "refresh_token"
@@ -270,7 +282,9 @@ class TestGetRefreshToken:
             assert result == "refresh_xyz_789"
 
     @patch("flext_cli.utils.auth.get_refresh_token_path")
-    def test_get_refresh_token_missing(self, mock_get_refresh_token_path: MagicMock) -> None:
+    def test_get_refresh_token_missing(
+        self, mock_get_refresh_token_path: MagicMock
+    ) -> None:
         """Test getting refresh token when file doesn't exist."""
         with tempfile.TemporaryDirectory() as temp_dir:
             token_path = Path(temp_dir) / "nonexistent"
@@ -286,7 +300,9 @@ class TestClearAuthTokens:
 
     @patch("flext_cli.utils.auth.get_token_path")
     @patch("flext_cli.utils.auth.get_refresh_token_path")
-    def test_clear_both_tokens(self, mock_refresh_path: MagicMock, mock_token_path: MagicMock) -> None:
+    def test_clear_both_tokens(
+        self, mock_refresh_path: MagicMock, mock_token_path: MagicMock
+    ) -> None:
         """Test clearing both token files when they exist."""
         with tempfile.TemporaryDirectory() as temp_dir:
             token_path = Path(temp_dir) / "token"
@@ -307,7 +323,9 @@ class TestClearAuthTokens:
 
     @patch("flext_cli.utils.auth.get_token_path")
     @patch("flext_cli.utils.auth.get_refresh_token_path")
-    def test_clear_partial_tokens(self, mock_refresh_path: MagicMock, mock_token_path: MagicMock) -> None:
+    def test_clear_partial_tokens(
+        self, mock_refresh_path: MagicMock, mock_token_path: MagicMock
+    ) -> None:
         """Test clearing when only one token exists."""
         with tempfile.TemporaryDirectory() as temp_dir:
             token_path = Path(temp_dir) / "token"
@@ -327,7 +345,9 @@ class TestClearAuthTokens:
 
     @patch("flext_cli.utils.auth.get_token_path")
     @patch("flext_cli.utils.auth.get_refresh_token_path")
-    def test_clear_tokens_permission_error(self, mock_refresh_path: MagicMock, mock_token_path: MagicMock) -> None:
+    def test_clear_tokens_permission_error(
+        self, mock_refresh_path: MagicMock, mock_token_path: MagicMock
+    ) -> None:
         """Test handling of permission errors during clear."""
         mock_token_path_obj = MagicMock()
         mock_token_path_obj.exists.return_value = True
@@ -381,7 +401,9 @@ class TestShouldAutoRefresh:
 
     @patch("flext_cli.utils.auth.get_config")
     @patch("flext_cli.utils.auth.get_refresh_token")
-    def test_direct_auto_refresh_true(self, mock_get_refresh_token: MagicMock, mock_get_config: MagicMock) -> None:
+    def test_direct_auto_refresh_true(
+        self, mock_get_refresh_token: MagicMock, mock_get_config: MagicMock
+    ) -> None:
         """Test auto refresh when config has direct auto_refresh=True."""
         mock_config = MagicMock()
         mock_config.auto_refresh = True
@@ -394,7 +416,9 @@ class TestShouldAutoRefresh:
 
     @patch("flext_cli.utils.auth.get_config")
     @patch("flext_cli.utils.auth.get_refresh_token")
-    def test_direct_auto_refresh_false(self, mock_get_refresh_token: MagicMock, mock_get_config: MagicMock) -> None:
+    def test_direct_auto_refresh_false(
+        self, mock_get_refresh_token: MagicMock, mock_get_config: MagicMock
+    ) -> None:
         """Test auto refresh when config has direct auto_refresh=False."""
         mock_config = MagicMock()
         mock_config.auto_refresh = False
@@ -407,7 +431,9 @@ class TestShouldAutoRefresh:
 
     @patch("flext_cli.utils.auth.get_config")
     @patch("flext_cli.utils.auth.get_refresh_token")
-    def test_auth_config_auto_refresh(self, mock_get_refresh_token: MagicMock, mock_get_config: MagicMock) -> None:
+    def test_auth_config_auto_refresh(
+        self, mock_get_refresh_token: MagicMock, mock_get_config: MagicMock
+    ) -> None:
         """Test auto refresh from auth config when no direct config."""
         mock_config = MagicMock()
         del mock_config.auto_refresh  # Simulate missing attribute
@@ -423,7 +449,9 @@ class TestShouldAutoRefresh:
 
     @patch("flext_cli.utils.auth.get_config")
     @patch("flext_cli.utils.auth.get_refresh_token")
-    def test_no_refresh_token(self, mock_get_refresh_token: MagicMock, mock_get_config: MagicMock) -> None:
+    def test_no_refresh_token(
+        self, mock_get_refresh_token: MagicMock, mock_get_config: MagicMock
+    ) -> None:
         """Test auto refresh when no refresh token available."""
         mock_config = MagicMock()
         mock_config.auto_refresh = True
@@ -436,7 +464,9 @@ class TestShouldAutoRefresh:
 
     @patch("flext_cli.utils.auth.get_config")
     @patch("flext_cli.utils.auth.get_refresh_token")
-    def test_no_auth_config(self, mock_get_refresh_token: MagicMock, mock_get_config: MagicMock) -> None:
+    def test_no_auth_config(
+        self, mock_get_refresh_token: MagicMock, mock_get_config: MagicMock
+    ) -> None:
         """Test auto refresh when no auth config available."""
         mock_config = MagicMock()
         del mock_config.auto_refresh

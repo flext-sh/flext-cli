@@ -73,7 +73,11 @@ def demonstrate_basic_authentication() -> FlextResult[None]:
         for key, value in headers.items():
             # Mask sensitive values
             max_display_length = 10
-            display_value = value[:max_display_length] + "..." if len(str(value)) > max_display_length else value
+            display_value = (
+                value[:max_display_length] + "..."
+                if len(str(value)) > max_display_length
+                else value
+            )
             console.print(f"     {key}: {display_value}")
     else:
         console.print(f"❌ Failed to get headers: {headers_result.error}")
@@ -103,7 +107,9 @@ def demonstrate_api_authentication() -> FlextResult[None]:
             console.print("✅ Authenticated API request successful")
             console.print(f"   User: {profile_data.get('username', 'demo_user')}")
             console.print(f"   Role: {profile_data.get('role', 'user')}")
-            console.print(f"   Permissions: {len(profile_data.get('permissions', []))} permissions")
+            console.print(
+                f"   Permissions: {len(profile_data.get('permissions', []))} permissions"
+            )
         else:
             console.print(f"❌ API request failed: {profile_result.error}")
 
@@ -144,16 +150,10 @@ def demonstrate_role_based_access() -> FlextResult[None]:
     demo_roles = [
         {
             "name": "admin",
-            "permissions": ["read", "write", "delete", "manage_users", "system_config"]
+            "permissions": ["read", "write", "delete", "manage_users", "system_config"],
         },
-        {
-            "name": "operator",
-            "permissions": ["read", "write", "deploy", "monitor"]
-        },
-        {
-            "name": "viewer",
-            "permissions": ["read", "monitor"]
-        }
+        {"name": "operator", "permissions": ["read", "write", "deploy", "monitor"]},
+        {"name": "viewer", "permissions": ["read", "monitor"]},
     ]
 
     # Create permissions table
@@ -164,14 +164,15 @@ def demonstrate_role_based_access() -> FlextResult[None]:
 
     for role in demo_roles:
         permissions_str = ", ".join(role["permissions"])
-        access_level = "Full" if "delete" in role["permissions"] else \
-                     "Limited" if "write" in role["permissions"] else "Read-Only"
-
-        permissions_table.add_row(
-            role["name"],
-            permissions_str,
-            access_level
+        access_level = (
+            "Full"
+            if "delete" in role["permissions"]
+            else "Limited"
+            if "write" in role["permissions"]
+            else "Read-Only"
         )
+
+        permissions_table.add_row(role["name"], permissions_str, access_level)
 
     console.print(permissions_table)
 
@@ -181,7 +182,9 @@ def demonstrate_role_based_access() -> FlextResult[None]:
 
     check_result = check_permission(current_user_role, required_permission, demo_roles)
     if check_result.success:
-        console.print(f"✅ Permission check passed: {current_user_role} can {required_permission}")
+        console.print(
+            f"✅ Permission check passed: {current_user_role} can {required_permission}"
+        )
     else:
         console.print(f"❌ Permission denied: {check_result.error}")
 
@@ -204,14 +207,18 @@ def demonstrate_session_management() -> FlextResult[None]:
         "last_activity": datetime.now(UTC),
         "permissions": ["read", "write", "deploy"],
         "ip_address": "127.0.0.1",
-        "user_agent": "flext-cli/1.0.0"
+        "user_agent": "flext-cli/1.0.0",
     }
 
     console.print("✅ Session created with the following details:")
     console.print(f"   Session ID: {session_data['session_id']}")
     console.print(f"   User ID: {session_data['user_id']}")
-    console.print(f"   Created: {session_data['created_at'].strftime('%Y-%m-%d %H:%M:%S UTC')}")
-    console.print(f"   Expires: {session_data['expires_at'].strftime('%Y-%m-%d %H:%M:%S UTC')}")
+    console.print(
+        f"   Created: {session_data['created_at'].strftime('%Y-%m-%d %H:%M:%S UTC')}"
+    )
+    console.print(
+        f"   Expires: {session_data['expires_at'].strftime('%Y-%m-%d %H:%M:%S UTC')}"
+    )
 
     # Check session validity
     validity_result = validate_session(session_data)
@@ -223,7 +230,9 @@ def demonstrate_session_management() -> FlextResult[None]:
         if refresh_result.success:
             refreshed_session = refresh_result.unwrap()
             console.print("✅ Session refreshed successfully")
-            console.print(f"   New expiry: {refreshed_session['expires_at'].strftime('%Y-%m-%d %H:%M:%S UTC')}")
+            console.print(
+                f"   New expiry: {refreshed_session['expires_at'].strftime('%Y-%m-%d %H:%M:%S UTC')}"
+            )
     else:
         console.print(f"❌ Session validation failed: {validity_result.error}")
 
@@ -247,7 +256,7 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
         ("FLEXT_API_BASE_URL", "Base URL for FLEXT API"),
         ("FLEXT_CLI_PROFILE", "CLI profile (dev/staging/prod)"),
         ("FLEXT_LOG_LEVEL", "Logging level for debugging"),
-        ("FLEXT_TIMEOUT", "Request timeout configuration")
+        ("FLEXT_TIMEOUT", "Request timeout configuration"),
     ]
 
     env_table = Table(title="Secure Environment Variables")
@@ -273,7 +282,9 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
     return FlextResult[None].ok(None)
 
 
-def simulate_authenticated_request(_client: FlextApiClient, endpoint: str) -> FlextResult[dict[str, Any]]:
+def simulate_authenticated_request(
+    _client: FlextApiClient, endpoint: str
+) -> FlextResult[dict[str, Any]]:
     """Simulate an authenticated API request."""
     try:
         # In a real implementation, this would make an actual HTTP request
@@ -287,20 +298,20 @@ def simulate_authenticated_request(_client: FlextApiClient, endpoint: str) -> Fl
                 "role": "operator",
                 "permissions": ["read", "write", "deploy", "monitor"],
                 "last_login": datetime.now(UTC).isoformat(),
-                "active": True
+                "active": True,
             }
         elif "health" in endpoint:
             response_data = {
                 "status": "healthy",
                 "version": "1.0.0",
                 "uptime": "24h 15m",
-                "authenticated": True
+                "authenticated": True,
             }
         else:
             response_data = {
                 "message": "Authenticated request successful",
                 "endpoint": endpoint,
-                "timestamp": datetime.now(UTC).isoformat()
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         return FlextResult[None].ok(response_data)
@@ -317,7 +328,7 @@ def perform_protected_business_logic() -> FlextResult[str]:
             "Deploying service configuration",
             "Updating security policies",
             "Accessing sensitive data",
-            "Modifying system settings"
+            "Modifying system settings",
         ]
 
         # For demo, just return a success message
@@ -329,7 +340,9 @@ def perform_protected_business_logic() -> FlextResult[str]:
         return FlextResult[None].fail(f"Business operation failed: {e}")
 
 
-def check_permission(user_role: str, required_permission: str, roles_config: list[dict[str, Any]]) -> FlextResult[bool]:
+def check_permission(
+    user_role: str, required_permission: str, roles_config: list[dict[str, Any]]
+) -> FlextResult[bool]:
     """Check if user role has required permission."""
     try:
         # Find user role configuration
@@ -346,7 +359,9 @@ def check_permission(user_role: str, required_permission: str, roles_config: lis
         if required_permission in role_config["permissions"]:
             is_authorized = True
             return FlextResult[None].ok(is_authorized)
-        return FlextResult[None].fail(f"Role '{user_role}' lacks permission '{required_permission}'")
+        return FlextResult[None].fail(
+            f"Role '{user_role}' lacks permission '{required_permission}'"
+        )
 
     except Exception as e:
         return FlextResult[None].fail(f"Permission check failed: {e}")
@@ -383,11 +398,13 @@ def refresh_session(session_data: dict[str, Any]) -> FlextResult[dict[str, Any]]
 
         # Create refreshed session data
         refreshed_session = session_data.copy()
-        refreshed_session.update({
-            "expires_at": current_time + timedelta(hours=8),
-            "last_activity": current_time,
-            "refreshed_at": current_time
-        })
+        refreshed_session.update(
+            {
+                "expires_at": current_time + timedelta(hours=8),
+                "last_activity": current_time,
+                "refreshed_at": current_time,
+            }
+        )
 
         return FlextResult[None].ok(refreshed_session)
 
@@ -399,18 +416,20 @@ def main() -> None:
     """Main demonstration function."""
     console = Console()
 
-    console.print(Panel(
-        "[bold magenta]04 - Authentication and Authorization Patterns[/bold magenta]\n\n"
-        "[yellow]Comprehensive demonstration of flext-cli authentication patterns:[/yellow]\n"
-        "🔐 Token management and secure storage\n"
-        "🛡️ Authorization headers and API authentication\n"
-        "🔒 Protected operations with @require_auth() decorator\n"
-        "👥 Role-based access control (RBAC)\n"
-        "⏰ Session management and token refresh\n"
-        "🔑 Secure configuration and credential handling\n"
-        "🌐 API client authentication patterns",
-        expand=False
-    ))
+    console.print(
+        Panel(
+            "[bold magenta]04 - Authentication and Authorization Patterns[/bold magenta]\n\n"
+            "[yellow]Comprehensive demonstration of flext-cli authentication patterns:[/yellow]\n"
+            "🔐 Token management and secure storage\n"
+            "🛡️ Authorization headers and API authentication\n"
+            "🔒 Protected operations with @require_auth() decorator\n"
+            "👥 Role-based access control (RBAC)\n"
+            "⏰ Session management and token refresh\n"
+            "🔑 Secure configuration and credential handling\n"
+            "🌐 API client authentication patterns",
+            expand=False,
+        )
+    )
 
     try:
         # Run all authentication demonstrations
@@ -424,7 +443,9 @@ def main() -> None:
 
         protected_result = demonstrate_protected_operation()
         if protected_result.failure:
-            console.print(f"[red]Protected operation demo failed: {protected_result.error}[/red]")
+            console.print(
+                f"[red]Protected operation demo failed: {protected_result.error}[/red]"
+            )
 
         rbac_result = demonstrate_role_based_access()
         if rbac_result.failure:
@@ -432,26 +453,32 @@ def main() -> None:
 
         session_result = demonstrate_session_management()
         if session_result.failure:
-            console.print(f"[red]Session management demo failed: {session_result.error}[/red]")
+            console.print(
+                f"[red]Session management demo failed: {session_result.error}[/red]"
+            )
 
         config_result = demonstrate_secure_configuration()
         if config_result.failure:
-            console.print(f"[red]Secure configuration demo failed: {config_result.error}[/red]")
+            console.print(
+                f"[red]Secure configuration demo failed: {config_result.error}[/red]"
+            )
 
         # Final summary
-        console.print(Panel(
-            "[bold green]✅ Authentication and Authorization Demo Completed![/bold green]\n\n"
-            "[cyan]Security Features Demonstrated:[/cyan]\n"
-            "🔐 Token-based authentication with save_auth_token()\n"
-            "🛡️ Authorization headers via get_auth_headers()\n"
-            "🔒 Protected operations using @require_auth() decorator\n"
-            "👥 Role-based permissions and access control\n"
-            "⏰ Session lifecycle management and validation\n"
-            "🔑 Environment-based secure configuration\n"
-            "🌐 FlextApiClient authentication patterns\n\n"
-            "[yellow]All security operations used FlextResult for error handling![/yellow]",
-            expand=False
-        ))
+        console.print(
+            Panel(
+                "[bold green]✅ Authentication and Authorization Demo Completed![/bold green]\n\n"
+                "[cyan]Security Features Demonstrated:[/cyan]\n"
+                "🔐 Token-based authentication with save_auth_token()\n"
+                "🛡️ Authorization headers via get_auth_headers()\n"
+                "🔒 Protected operations using @require_auth() decorator\n"
+                "👥 Role-based permissions and access control\n"
+                "⏰ Session lifecycle management and validation\n"
+                "🔑 Environment-based secure configuration\n"
+                "🌐 FlextApiClient authentication patterns\n\n"
+                "[yellow]All security operations used FlextResult for error handling![/yellow]",
+                expand=False,
+            )
+        )
 
     except Exception as e:
         console.print(f"[bold red]❌ Authentication demo error: {e}[/bold red]")

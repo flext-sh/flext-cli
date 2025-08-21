@@ -12,7 +12,7 @@ from __future__ import annotations
 import time
 from datetime import datetime
 
-from flext_core.constants import FlextConstants
+from flext_core import FlextConstants
 from rich.console import Console
 
 from flext_cli import (
@@ -640,7 +640,7 @@ class TestFlextCliSession:
             raise AssertionError(f"Expected {[]}, got {session.commands_executed}")
         assert isinstance(session.started_at, datetime)
         assert isinstance(session.last_activity, datetime)
-        assert hasattr(session.config, 'profile')  # Check it's a config object
+        assert hasattr(session.config, "profile")  # Check it's a config object
 
     def test_session_with_user(self) -> None:
         """Test session creation with user ID."""

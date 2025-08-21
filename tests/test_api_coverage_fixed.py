@@ -135,10 +135,7 @@ class TestTableCreation:
 
     def test_flext_cli_table_list_dict_data(self) -> None:
         """Test table creation from list of dictionaries."""
-        data = [
-            {"name": "John", "age": 30},
-            {"name": "Jane", "age": 25}
-        ]
+        data = [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]
 
         result = flext_cli_table(data)
 
@@ -214,7 +211,9 @@ class TestDataTransformation:
         """Test data transformation exists."""
         # Just test that the function exists and can be called
         data = [1, 2, 3]
-        transform_fn = lambda x: x * 2
+
+        def transform_fn(x):
+            return x * 2
 
         result = flext_cli_transform_data(data, transform_fn)
 
@@ -224,7 +223,9 @@ class TestDataTransformation:
     def test_flext_cli_transform_data_empty(self) -> None:
         """Test transformation with empty data."""
         data: list[object] = []
-        transform_fn = lambda x: x
+
+        def transform_fn(x):
+            return x
 
         result = flext_cli_transform_data(data, transform_fn)
 
@@ -268,13 +269,11 @@ class TestDataAggregation:
         data = [
             {"category": "A", "value": 10},
             {"category": "A", "value": 15},
-            {"category": "B", "value": 20}
+            {"category": "B", "value": 20},
         ]
 
         result = flext_cli_aggregate_data(
-            data,
-            group_by="category",
-            sum_fields=["value"]
+            data, group_by="category", sum_fields=["value"]
         )
 
         # Function should return a result
@@ -299,13 +298,13 @@ class TestDataExport:
         """Test JSON export."""
         data = {"key": "value", "number": 42}
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".json", delete=False) as f:
             result = flext_cli_export(data, Path(f.name), "json")
 
             assert result.success
 
             # Verify file was written correctly
-            with open(f.name) as saved_file:
+            with open(f.name, encoding="utf-8") as saved_file:
                 loaded_data = json.load(saved_file)
                 assert loaded_data == data
 
@@ -315,13 +314,13 @@ class TestDataExport:
         """Test YAML export."""
         data = {"key": "value", "list": [1, 2, 3]}
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
             result = flext_cli_export(data, Path(f.name), "yaml")
 
             assert result.success
 
             # Verify file was written correctly
-            with open(f.name) as saved_file:
+            with open(f.name, encoding="utf-8") as saved_file:
                 loaded_data = yaml.safe_load(saved_file)
                 assert loaded_data == data
 
@@ -341,10 +340,7 @@ class TestDataExport:
 
     def test_flext_cli_batch_export(self) -> None:
         """Test batch export."""
-        datasets = {
-            "data1": {"key1": "value1"},
-            "data2": {"key2": "value2"}
-        }
+        datasets = {"data1": {"key1": "value1"}, "data2": {"key2": "value2"}}
 
         with tempfile.TemporaryDirectory() as temp_dir:
             result = flext_cli_batch_export(datasets, Path(temp_dir), "json")
@@ -437,11 +433,7 @@ class TestEdgeCases:
 
     def test_table_creation_with_complex_data(self) -> None:
         """Test table creation with complex nested data."""
-        data = {
-            "simple": "value",
-            "nested": {"inner": "data"},
-            "list": [1, 2, 3]
-        }
+        data = {"simple": "value", "nested": {"inner": "data"}, "list": [1, 2, 3]}
 
         result = flext_cli_table(data)
 
@@ -463,6 +455,7 @@ class TestEdgeCases:
         """Test formatting with problematic data."""
         # Create data that might cause formatting issues
         import datetime
+
         data = {"date": datetime.datetime.now()}
 
         result = flext_cli_format(data, "json")
@@ -504,7 +497,9 @@ class TestSpecialCases:
     def test_transform_with_non_iterable_data(self) -> None:
         """Test transformation with non-iterable data."""
         data = "not a list"
-        transform_fn = lambda x: x
+
+        def transform_fn(x):
+            return x
 
         result = flext_cli_transform_data(data, transform_fn)
 

@@ -605,7 +605,7 @@ class TestErrorConditions:
         # Try to process non-existent file
         result = manager.flext_cli_backup_and_process(
             "/nonexistent/file.txt",
-            lambda content: FlextResult[str].ok(content),
+            FlextResult[str].ok,
             require_confirmation=False,
         )
         assert not result.success

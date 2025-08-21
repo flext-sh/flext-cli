@@ -13,7 +13,9 @@ from flext_core import get_flext_container
 from flext_cli.__version__ import __version__
 
 # Normalized version info tuple
-__version_info__: tuple[int, ...] = tuple(int(x) for x in __version__.split(".") if x.isdigit())
+__version_info__: tuple[int, ...] = tuple(
+    int(x) for x in __version__.split(".") if x.isdigit()
+)
 
 # Core configuration
 from flext_cli.config import CLIConfig, CLIConfig as TCliConfig
@@ -144,7 +146,15 @@ from flext_cli.decorators import (
     cli_validate_inputs,
 )
 from flext_cli.base_core import handle_service_result
-from flext_cli.helpers import FlextCliHelper as CLIHelper, FlextCliHelper, FlextCliFileManager, flext_cli_batch_validate, flext_cli_create_data_processor, flext_cli_create_helper, flext_cli_create_file_manager
+from flext_cli.helpers import (
+    FlextCliHelper as CLIHelper,
+    FlextCliHelper,
+    FlextCliFileManager,
+    flext_cli_batch_validate,
+    flext_cli_create_data_processor,
+    flext_cli_create_helper,
+    flext_cli_create_file_manager,
+)
 from flext_cli.utils_core import (
     flext_cli_auto_config,
     flext_cli_load_file,
@@ -183,7 +193,17 @@ from flext_cli.cli_mixins import (
     CLIValidationMixin,
     CLIValidationMixin as FlextCliValidationMixin,
 )
-from flext_cli.mixins import FlextCliAdvancedMixin, FlextCliBasicMixin, FlextCliMixin, FlextCliProgressMixin, FlextCliResultMixin, flext_cli_handle_exceptions, flext_cli_require_confirmation, flext_cli_with_progress, flext_cli_zero_config
+from flext_cli.mixins import (
+    FlextCliAdvancedMixin,
+    FlextCliBasicMixin,
+    FlextCliMixin,
+    FlextCliProgressMixin,
+    FlextCliResultMixin,
+    flext_cli_handle_exceptions,
+    flext_cli_require_confirmation,
+    flext_cli_with_progress,
+    flext_cli_zero_config,
+)
 
 # CLI utilities
 from flext_cli.cli_utils import (
@@ -240,7 +260,26 @@ from flext_cli.cmd_config_alt import (
 )
 
 # Application commands
-from flext_cli.application_commands import CancelCommandCommand, CreateConfigCommand, DeleteConfigCommand, DisablePluginCommand, EnablePluginCommand, EndSessionCommand, ExecuteCommandCommand, GetCommandHistoryCommand, GetCommandStatusCommand, GetSessionInfoCommand, InstallPluginCommand, ListCommandsCommand, ListConfigsCommand, ListPluginsCommand, StartSessionCommand, UninstallPluginCommand, UpdateConfigCommand, ValidateConfigCommand
+from flext_cli.application_commands import (
+    CancelCommandCommand,
+    CreateConfigCommand,
+    DeleteConfigCommand,
+    DisablePluginCommand,
+    EnablePluginCommand,
+    EndSessionCommand,
+    ExecuteCommandCommand,
+    GetCommandHistoryCommand,
+    GetCommandStatusCommand,
+    GetSessionInfoCommand,
+    InstallPluginCommand,
+    ListCommandsCommand,
+    ListConfigsCommand,
+    ListPluginsCommand,
+    StartSessionCommand,
+    UninstallPluginCommand,
+    UpdateConfigCommand,
+    ValidateConfigCommand,
+)
 
 # API functions
 from flext_cli.api import (

@@ -28,7 +28,7 @@ from pathlib import Path
 from typing import Any
 
 import click
-from flext_core import FlextSettings, FlextResult
+from flext_core import FlextResult, FlextSettings
 from rich.console import Console
 from rich.table import Table
 
@@ -46,6 +46,7 @@ from flext_cli import (
 # =============================================================================
 # ECOSYSTEM CONFIGURATION - Multi-service configuration
 # =============================================================================
+
 
 class EcosystemSettings(FlextSettings):
     """Configuration for FLEXT ecosystem integration."""
@@ -90,6 +91,7 @@ class ServiceHealth:
 # ECOSYSTEM SERVICE INTEGRATION
 # =============================================================================
 
+
 class EcosystemService(FlextCliService[dict[str, Any]]):
     """Service for integrating with FLEXT ecosystem projects."""
 
@@ -98,7 +100,9 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
         self.settings = settings
         self.api_client = FlextApiClient(base_url=settings.flext_api_url)
 
-    def check_service_health(self, service_name: str, _url: str) -> FlextResult[ServiceHealth]:
+    def check_service_health(
+        self, service_name: str, _url: str
+    ) -> FlextResult[ServiceHealth]:
         """Check health of ecosystem service."""
         try:
             # Simulate health check (in real implementation, make HTTP request)
@@ -106,27 +110,33 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
 
             # Mock response for demonstration
             if service_name == "flext-api":
-                return FlextResult[None].ok(ServiceHealth(
-                    name=service_name,
-                    status="healthy",
-                    version="2.0.0",
-                    uptime=1234.5
-                ))
+                return FlextResult[None].ok(
+                    ServiceHealth(
+                        name=service_name,
+                        status="healthy",
+                        version="2.0.0",
+                        uptime=1234.5,
+                    )
+                )
             if service_name == "flexcore":
-                return FlextResult[None].ok(ServiceHealth(
-                    name=service_name,
-                    status="healthy",
-                    version="1.5.0",
-                    uptime=987.3
-                ))
-            return FlextResult[None].ok(ServiceHealth(
-                name=service_name,
-                status="unknown",
-                error="Service not recognized"
-            ))
+                return FlextResult[None].ok(
+                    ServiceHealth(
+                        name=service_name,
+                        status="healthy",
+                        version="1.5.0",
+                        uptime=987.3,
+                    )
+                )
+            return FlextResult[None].ok(
+                ServiceHealth(
+                    name=service_name, status="unknown", error="Service not recognized"
+                )
+            )
 
         except Exception as e:
-            return FlextResult[None].fail(f"Health check failed for {service_name}: {e}")
+            return FlextResult[None].fail(
+                f"Health check failed for {service_name}: {e}"
+            )
 
     def get_ecosystem_status(self) -> FlextResult[list[ServiceHealth]]:
         """Get status of all ecosystem services."""
@@ -142,15 +152,17 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
             if health_result.is_success:
                 health_results.append(health_result.data)
             else:
-                health_results.append(ServiceHealth(
-                    name=service_name,
-                    status="error",
-                    error=health_result.error
-                ))
+                health_results.append(
+                    ServiceHealth(
+                        name=service_name, status="error", error=health_result.error
+                    )
+                )
 
         return FlextResult[None].ok(health_results)
 
-    def authenticate_with_services(self, username: str, password: str) -> FlextResult[dict[str, str]]:
+    def authenticate_with_services(
+        self, username: str, password: str
+    ) -> FlextResult[dict[str, str]]:
         """Authenticate with FLEXT services and get tokens."""
         auth_results = {}
 
@@ -162,7 +174,9 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
             # Save token for CLI usage
             token_save_result = save_auth_token(api_auth_result.data.get("token", ""))
             if token_save_result.is_failure:
-                return FlextResult[None].fail(f"Failed to save auth token: {token_save_result.error}")
+                return FlextResult[None].fail(
+                    f"Failed to save auth token: {token_save_result.error}"
+                )
         else:
             auth_results["flext-api"] = f"failed: {api_auth_result.error}"
 
@@ -172,7 +186,9 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
 
         return FlextResult[None].ok(auth_results)
 
-    def execute_meltano_operation(self, operation: str, project: str) -> FlextResult[dict[str, Any]]:
+    def execute_meltano_operation(
+        self, operation: str, project: str
+    ) -> FlextResult[dict[str, Any]]:
         """Execute Meltano operation through flext-meltano integration."""
         if not self.settings.enable_meltano_integration:
             return FlextResult[None].fail("Meltano integration is disabled")
@@ -185,13 +201,15 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
                 "status": "completed",
                 "duration": 45.2,
                 "records_processed": 1000 if operation == "run" else 0,
-                "message": f"Meltano {operation} completed successfully"
+                "message": f"Meltano {operation} completed successfully",
             }
             return FlextResult[None].ok(result)
         except Exception as e:
             return FlextResult[None].fail(f"Meltano operation failed: {e}")
 
-    def query_oracle_database(self, _query: str, _schema: str) -> FlextResult[list[dict[str, Any]]]:
+    def query_oracle_database(
+        self, _query: str, _schema: str
+    ) -> FlextResult[list[dict[str, Any]]]:
         """Query Oracle database through flext-db-oracle integration."""
         if not self.settings.enable_oracle_integration:
             return FlextResult[None].fail("Oracle integration is disabled")
@@ -201,7 +219,7 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
             mock_results = [
                 {"id": 1, "name": "Project Alpha", "status": "active"},
                 {"id": 2, "name": "Project Beta", "status": "completed"},
-                {"id": 3, "name": "Project Gamma", "status": "pending"}
+                {"id": 3, "name": "Project Gamma", "status": "pending"},
             ]
             return FlextResult[None].ok(mock_results)
         except Exception as e:
@@ -221,7 +239,7 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
                 "active_sessions": 45,
                 "database_connections": 12,
                 "memory_usage_mb": 256.8,
-                "cpu_usage_percent": 12.5
+                "cpu_usage_percent": 12.5,
             }
             return FlextResult[None].ok(metrics)
         except Exception as e:
@@ -231,6 +249,7 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
 # =============================================================================
 # CLI COMMANDS - Ecosystem integration interface
 # =============================================================================
+
 
 @click.group()
 @click.pass_context
@@ -272,7 +291,7 @@ def health(ctx: click.Context) -> None:
                 f"[{status_color}]{health.status}[/{status_color}]",
                 health.version or "N/A",
                 str(health.uptime) if health.uptime else "N/A",
-                health.error or ""
+                health.error or "",
             )
 
         console.print(table)
@@ -304,10 +323,7 @@ def authenticate(ctx: click.Context, username: str, password: str) -> None:
 
         for service_name, status in auth_results.items():
             status_color = "green" if status == "authenticated" else "red"
-            table.add_row(
-                service_name,
-                f"[{status_color}]{status}[/{status_color}]"
-            )
+            table.add_row(service_name, f"[{status_color}]{status}[/{status_color}]")
 
         console.print(table)
         console.print("[green]✅ Authentication tokens saved for CLI usage[/green]")
@@ -320,7 +336,7 @@ def authenticate(ctx: click.Context, username: str, password: str) -> None:
     "--operation",
     required=True,
     type=click.Choice(["run", "test", "invoke", "install"]),
-    help="Meltano operation to execute"
+    help="Meltano operation to execute",
 )
 @click.option("--project", required=True, help="Meltano project name")
 @click.pass_context
@@ -332,7 +348,9 @@ def meltano(ctx: click.Context, operation: str, project: str) -> None:
     console: Console = ctx.obj["console"]
     service: EcosystemService = ctx.obj["service"]
 
-    console.print(f"[blue]Executing Meltano {operation} for project {project}...[/blue]")
+    console.print(
+        f"[blue]Executing Meltano {operation} for project {project}...[/blue]"
+    )
 
     result = service.execute_meltano_operation(operation, project)
 
@@ -353,13 +371,15 @@ def meltano(ctx: click.Context, operation: str, project: str) -> None:
     "--format",
     type=click.Choice(["table", "json", "csv"]),
     default="table",
-    help="Output format"
+    help="Output format",
 )
 @click.pass_context
 @cli_enhanced
 @measure_time
 @require_auth()
-def oracle_query(ctx: click.Context, query: str, schema: str, output_format: str) -> None:
+def oracle_query(
+    ctx: click.Context, query: str, schema: str, output_format: str
+) -> None:
     """Query Oracle database through flext-db-oracle integration."""
     console: Console = ctx.obj["console"]
     service: EcosystemService = ctx.obj["service"]
@@ -389,7 +409,7 @@ def oracle_query(ctx: click.Context, query: str, schema: str, output_format: str
     "--format",
     type=click.Choice(["table", "json", "yaml"]),
     default="table",
-    help="Output format"
+    help="Output format",
 )
 @click.pass_context
 @cli_enhanced
@@ -455,7 +475,7 @@ def config(ctx: click.Context) -> None:
         ("Oracle Integration", "✅" if settings.enable_oracle_integration else "❌"),
         ("Observability", "✅" if settings.enable_observability else "❌"),
         ("Metrics", "✅" if settings.enable_metrics else "❌"),
-        ("Tracing", "✅" if settings.enable_tracing else "❌")
+        ("Tracing", "✅" if settings.enable_tracing else "❌"),
     ]
 
     for setting, value in config_items:
@@ -482,8 +502,12 @@ def main() -> None:
     print("  python examples/08_ecosystem_integration.py health")
     print("  python examples/08_ecosystem_integration.py authenticate --username admin")
     print("  python examples/08_ecosystem_integration.py config")
-    print("  python examples/08_ecosystem_integration.py meltano --operation run --project tap-to-target")
-    print("  python examples/08_ecosystem_integration.py oracle-query --query 'SELECT * FROM projects'")
+    print(
+        "  python examples/08_ecosystem_integration.py meltano --operation run --project tap-to-target"
+    )
+    print(
+        "  python examples/08_ecosystem_integration.py oracle-query --query 'SELECT * FROM projects'"
+    )
     print("  python examples/08_ecosystem_integration.py metrics")
     print()
 

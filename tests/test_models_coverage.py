@@ -10,10 +10,9 @@ from __future__ import annotations
 import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
-from unittest.mock import patch
 
+# unittest.mock import removed - using real functionality tests instead
 import pytest
-from flext_core import FlextEntityId
 
 from flext_cli.models import (
     MAX_EXIT_CODE,
@@ -149,7 +148,7 @@ class TestFlextCliContext:
                 user_id="test-user",
                 session_id="test-session",
                 configuration={"key": "value"},
-                timeout_seconds=600
+                timeout_seconds=600,
             )
 
             assert context.working_directory == Path(temp_dir)
@@ -191,7 +190,7 @@ class TestFlextCliContext:
         assert new_context.environment_variables == {
             "EXISTING": "value",
             "NEW": "new_value",
-            "OTHER": "other"
+            "OTHER": "other",
         }
         # Original context unchanged
         assert context.environment_variables == {"EXISTING": "value"}
@@ -250,7 +249,7 @@ class TestFlextCliOutput:
             execution_time_seconds=1.5,
             output_format=FlextCliOutputFormat.JSON,
             metadata={"key": "value"},
-            captured_at=now
+            captured_at=now,
         )
 
         assert output.stdout == "test output"
@@ -287,10 +286,7 @@ class TestFlextCliOutput:
 
     def test_output_validate_business_rules_success(self) -> None:
         """Test output business rules validation success."""
-        output = FlextCliOutput(
-            exit_code=0,
-            execution_time_seconds=1.0
-        )
+        output = FlextCliOutput(exit_code=0, execution_time_seconds=1.0)
 
         result = output.validate_business_rules()
 
@@ -319,7 +315,7 @@ class TestFlextCliOutput:
             stderr="test error",
             exit_code=0,
             execution_time_seconds=1.5,
-            output_format=FlextCliOutputFormat.JSON
+            output_format=FlextCliOutputFormat.JSON,
         )
 
         formatted = output.format_output()
@@ -335,7 +331,7 @@ class TestFlextCliOutput:
             stdout="test output",
             stderr="test error",
             exit_code=0,
-            output_format=FlextCliOutputFormat.PLAIN
+            output_format=FlextCliOutputFormat.PLAIN,
         )
 
         formatted = output.format_output()
@@ -346,11 +342,7 @@ class TestFlextCliOutput:
 
     def test_output_format_output_empty_streams(self) -> None:
         """Test format_output method with empty streams."""
-        output = FlextCliOutput(
-            stdout="",
-            stderr="",
-            exit_code=0
-        )
+        output = FlextCliOutput(stdout="", stderr="", exit_code=0)
 
         formatted = output.format_output()
 
@@ -388,7 +380,7 @@ class TestFlextCliConfiguration:
                 cache_directory=Path(temp_dir) / "cache",
                 plugin_directories=[Path(temp_dir)],
                 environment_overrides={"ENV": "prod"},
-                features_enabled=["feature1", "feature2"]
+                features_enabled=["feature1", "feature2"],
             )
 
             assert config.profile_name == "production"
@@ -516,7 +508,7 @@ class TestFlextCliCommand:
             exit_code=0,
             started_at=now,
             completed_at=now,
-            process_id=12345
+            process_id=12345,
         )
 
         assert command.name == "test-command"
@@ -536,11 +528,17 @@ class TestFlextCliCommand:
     def test_command_command_type_coercion(self) -> None:
         """Test command type coercion from different inputs."""
         # From string
-        command1 = FlextCliCommand(id="test-cmd", command_line="test", command_type="system")
+        command1 = FlextCliCommand(
+            id="test-cmd", command_line="test", command_type="system"
+        )
         assert command1.command_type == FlextCliCommandType.SYSTEM
 
         # From enum
-        command2 = FlextCliCommand(id="test-cmd", command_line="test", command_type=FlextCliCommandType.PIPELINE)
+        command2 = FlextCliCommand(
+            id="test-cmd",
+            command_line="test",
+            command_type=FlextCliCommandType.PIPELINE,
+        )
         assert command2.command_type == FlextCliCommandType.PIPELINE
 
     def test_command_command_type_coercion_invalid(self) -> None:
@@ -551,16 +549,26 @@ class TestFlextCliCommand:
     def test_command_is_terminal_state(self) -> None:
         """Test is_terminal_state property."""
         # Non-terminal states
-        pending = FlextCliCommand(id="test-cmd", command_line="test", status=FlextCliCommandStatus.PENDING)
-        running = FlextCliCommand(id="test-cmd", command_line="test", status=FlextCliCommandStatus.RUNNING)
+        pending = FlextCliCommand(
+            id="test-cmd", command_line="test", status=FlextCliCommandStatus.PENDING
+        )
+        running = FlextCliCommand(
+            id="test-cmd", command_line="test", status=FlextCliCommandStatus.RUNNING
+        )
 
         assert not pending.is_terminal_state
         assert not running.is_terminal_state
 
         # Terminal states
-        completed = FlextCliCommand(id="test-cmd", command_line="test", status=FlextCliCommandStatus.COMPLETED)
-        failed = FlextCliCommand(id="test-cmd", command_line="test", status=FlextCliCommandStatus.FAILED)
-        cancelled = FlextCliCommand(id="test-cmd", command_line="test", status=FlextCliCommandStatus.CANCELLED)
+        completed = FlextCliCommand(
+            id="test-cmd", command_line="test", status=FlextCliCommandStatus.COMPLETED
+        )
+        failed = FlextCliCommand(
+            id="test-cmd", command_line="test", status=FlextCliCommandStatus.FAILED
+        )
+        cancelled = FlextCliCommand(
+            id="test-cmd", command_line="test", status=FlextCliCommandStatus.CANCELLED
+        )
 
         assert completed.is_terminal_state
         assert failed.is_terminal_state
@@ -572,9 +580,7 @@ class TestFlextCliCommand:
         end = start.replace(second=start.second + 5)  # 5 seconds later
 
         command = FlextCliCommand(
-            command_line="test",
-            started_at=start,
-            completed_at=end
+            command_line="test", started_at=start, completed_at=end
         )
 
         assert command.execution_duration == 5.0
@@ -598,7 +604,7 @@ class TestFlextCliCommand:
         # Pydantic validation prevents creating commands with empty/whitespace command_line
         import pytest
         from pydantic_core import ValidationError
-        
+
         with pytest.raises(ValidationError):
             FlextCliCommand(id="test-cmd", command_line="   ")
 
@@ -608,9 +614,7 @@ class TestFlextCliCommand:
         end = start.replace(second=start.second - 5)  # 5 seconds before start
 
         command = FlextCliCommand(
-            command_line="test",
-            started_at=start,
-            completed_at=end
+            command_line="test", started_at=start, completed_at=end
         )
 
         result = command.validate_business_rules()
@@ -620,9 +624,7 @@ class TestFlextCliCommand:
     def test_command_validate_business_rules_running_without_start(self) -> None:
         """Test command business rules validation for running without start time."""
         command = FlextCliCommand(
-            command_line="test",
-            status=FlextCliCommandStatus.RUNNING,
-            started_at=None
+            command_line="test", status=FlextCliCommandStatus.RUNNING, started_at=None
         )
 
         result = command.validate_business_rules()
@@ -634,7 +636,7 @@ class TestFlextCliCommand:
         command = FlextCliCommand(
             command_line="test",
             status=FlextCliCommandStatus.COMPLETED,
-            completed_at=None
+            completed_at=None,
         )
 
         result = command.validate_business_rules()
@@ -644,18 +646,13 @@ class TestFlextCliCommand:
     def test_command_convenience_properties(self) -> None:
         """Test command convenience properties."""
         running_cmd = FlextCliCommand(
-            command_line="test",
-            status=FlextCliCommandStatus.RUNNING
+            command_line="test", status=FlextCliCommandStatus.RUNNING
         )
         completed_cmd = FlextCliCommand(
-            command_line="test",
-            status=FlextCliCommandStatus.COMPLETED,
-            exit_code=0
+            command_line="test", status=FlextCliCommandStatus.COMPLETED, exit_code=0
         )
         failed_cmd = FlextCliCommand(
-            command_line="test",
-            status=FlextCliCommandStatus.FAILED,
-            exit_code=1
+            command_line="test", status=FlextCliCommandStatus.FAILED, exit_code=1
         )
 
         assert running_cmd.flext_cli_is_running is True
@@ -682,9 +679,7 @@ class TestFlextCliCommand:
         command = FlextCliCommand(id="test-cmd", command_line="test")
 
         result = command.flext_cli_complete_execution(
-            exit_code=0,
-            stdout="output",
-            stderr="error"
+            exit_code=0, stdout="output", stderr="error"
         )
 
         assert result is True
@@ -707,8 +702,7 @@ class TestFlextCliCommand:
     def test_command_start_execution_invalid_status(self) -> None:
         """Test command start_execution with invalid status."""
         command = FlextCliCommand(
-            command_line="test",
-            status=FlextCliCommandStatus.RUNNING
+            command_line="test", status=FlextCliCommandStatus.RUNNING
         )
 
         result = command.start_execution()
@@ -720,9 +714,7 @@ class TestFlextCliCommand:
         command = FlextCliCommand(id="test-cmd", command_line="echo test")
 
         result = command.complete_execution(
-            exit_code=0,
-            stdout="test output",
-            stderr=""
+            exit_code=0, stdout="test output", stderr=""
         )
 
         assert result.success
@@ -737,9 +729,7 @@ class TestFlextCliCommand:
         command = FlextCliCommand(id="test-cmd", command_line="failing command")
 
         result = command.complete_execution(
-            exit_code=1,
-            stdout="",
-            stderr="command failed"
+            exit_code=1, stdout="", stderr="command failed"
         )
 
         assert result.success
@@ -751,8 +741,7 @@ class TestFlextCliCommand:
     def test_command_cancel_execution(self) -> None:
         """Test command cancel_execution method."""
         command = FlextCliCommand(
-            command_line="test",
-            status=FlextCliCommandStatus.RUNNING
+            command_line="test", status=FlextCliCommandStatus.RUNNING
         )
 
         result = command.cancel_execution()
@@ -764,7 +753,9 @@ class TestFlextCliCommand:
 
     def test_command_cancel_execution_invalid_status(self) -> None:
         """Test command cancel_execution with invalid status."""
-        command = FlextCliCommand(id="test-cmd", command_line="test", status=FlextCliCommandStatus.PENDING)
+        command = FlextCliCommand(
+            id="test-cmd", command_line="test", status=FlextCliCommandStatus.PENDING
+        )
 
         result = command.cancel_execution()
 
@@ -776,7 +767,7 @@ class TestFlextCliCommand:
         completed = FlextCliCommand(
             id="completed-cmd",
             command_line="test",
-            status=FlextCliCommandStatus.COMPLETED
+            status=FlextCliCommandStatus.COMPLETED,
         )
         assert completed.command_status == CommandStatus.COMPLETED
 
@@ -787,13 +778,15 @@ class TestFlextCliCommand:
             status=FlextCliCommandStatus.PENDING,  # Will be overridden by timestamps
             started_at=datetime.now(UTC),
             completed_at=datetime.now(UTC),
-            exit_code=0
+            exit_code=0,
         )
         assert command_with_timestamps.command_status == CommandStatus.COMPLETED
 
     def test_command_stdout_property(self) -> None:
         """Test command stdout property alias."""
-        command = FlextCliCommand(id="test-cmd", command_line="test", output="test output")
+        command = FlextCliCommand(
+            id="test-cmd", command_line="test", output="test output"
+        )
 
         assert command.stdout == "test output"
 
@@ -802,17 +795,13 @@ class TestFlextCliCommand:
         completed = FlextCliCommand(
             id="completed-cmd-2",
             command_line="test",
-            status=FlextCliCommandStatus.COMPLETED
+            status=FlextCliCommandStatus.COMPLETED,
         )
         failed = FlextCliCommand(
-            id="failed-cmd",
-            command_line="test",
-            status=FlextCliCommandStatus.FAILED
+            id="failed-cmd", command_line="test", status=FlextCliCommandStatus.FAILED
         )
         running = FlextCliCommand(
-            id="running-cmd",
-            command_line="test",
-            status=FlextCliCommandStatus.RUNNING
+            id="running-cmd", command_line="test", status=FlextCliCommandStatus.RUNNING
         )
 
         assert completed.is_completed is True
@@ -855,7 +844,7 @@ class TestFlextCliSession:
             current_command_id="cmd2",
             session_data={"key": "value"},
             started_at=now,
-            last_activity_at=now
+            last_activity_at=now,
         )
 
         assert session.user_id == "test-user"
@@ -882,7 +871,7 @@ class TestFlextCliSession:
         session = FlextCliSession(
             state=FlextCliSessionState.ACTIVE,
             current_command_id="cmd123",
-            command_history=["cmd1", "cmd2", "cmd3"]
+            command_history=["cmd1", "cmd2", "cmd3"],
         )
 
         assert session.session_status == SessionStatus.ACTIVE
@@ -898,10 +887,13 @@ class TestFlextCliSession:
         # Active session (no end time - should use current time)
         active_session = FlextCliSession(id="active-session", started_at=start)
         duration = active_session.session_duration
-        assert duration is not None and duration >= 0
+        assert duration is not None
+        assert duration >= 0
 
         # Ended session
-        ended_session = FlextCliSession(id="ended-session", started_at=start, ended_at=end)
+        ended_session = FlextCliSession(
+            id="ended-session", started_at=start, ended_at=end
+        )
         assert ended_session.session_duration == 10.0
 
     def test_session_validate_business_rules_success(self) -> None:
@@ -937,8 +929,7 @@ class TestFlextCliSession:
     def test_session_validate_business_rules_command_not_in_history(self) -> None:
         """Test session business rules validation with current command not in history."""
         session = FlextCliSession(
-            command_history=["cmd1", "cmd2"],
-            current_command_id="cmd3"
+            command_history=["cmd1", "cmd2"], current_command_id="cmd3"
         )
 
         result = session.validate_business_rules()
@@ -1049,10 +1040,7 @@ class TestFlextCliPlugin:
 
     def test_plugin_creation_minimal(self) -> None:
         """Test creating plugin with minimal fields."""
-        plugin = FlextCliPlugin(
-            name="test-plugin",
-            entry_point="test_plugin:main"
-        )
+        plugin = FlextCliPlugin(name="test-plugin", entry_point="test_plugin:main")
 
         assert str(plugin.id) == "test-plugin"  # id is FlextEntityId type
         assert plugin.name == "test-plugin"
@@ -1080,7 +1068,7 @@ class TestFlextCliPlugin:
             configuration={"setting": "value"},
             plugin_directory=Path("/plugins/advanced"),
             loaded_at=now,
-            last_error=None
+            last_error=None,
         )
 
         assert plugin.name == "advanced-plugin"
@@ -1102,20 +1090,22 @@ class TestFlextCliPlugin:
             "module:function",
             "package.module:function",
             "deep.package.module:function",
-            "module.path"  # Without colon
+            "module.path",  # Without colon
         ]
 
         for entry_point in valid_entry_points:
-            plugin = FlextCliPlugin(id="test-plugin", name="test", entry_point=entry_point)
+            plugin = FlextCliPlugin(
+                id="test-plugin", name="test", entry_point=entry_point
+            )
             assert plugin.entry_point == entry_point
 
     def test_plugin_validate_entry_point_invalid(self) -> None:
         """Test plugin entry point validation with invalid formats."""
         invalid_entry_points = [
-            ":",           # Empty parts
-            "module:",     # Empty function
-            ":function",   # Empty module
-            "function"     # No module path and no colon
+            ":",  # Empty parts
+            "module:",  # Empty function
+            ":function",  # Empty module
+            "function",  # No module path and no colon
         ]
 
         for entry_point in invalid_entry_points:
@@ -1124,18 +1114,20 @@ class TestFlextCliPlugin:
 
     def test_plugin_properties(self) -> None:
         """Test plugin convenience properties."""
-        unloaded = FlextCliPlugin(id="test-plugin", name="test", entry_point="test:main")
+        unloaded = FlextCliPlugin(
+            id="test-plugin", name="test", entry_point="test:main"
+        )
         loaded = FlextCliPlugin(
             id="loaded-plugin",
             name="test",
             entry_point="test:main",
-            state=FlextCliPluginState.LOADED
+            state=FlextCliPluginState.LOADED,
         )
         active = FlextCliPlugin(
             id="active-plugin",
             name="test",
             entry_point="test:main",
-            state=FlextCliPluginState.ACTIVE
+            state=FlextCliPluginState.ACTIVE,
         )
 
         assert not unloaded.is_loaded
@@ -1151,19 +1143,19 @@ class TestFlextCliPlugin:
             id="unloaded-plugin",
             name="test",
             entry_point="test:main",
-            state=FlextCliPluginState.UNLOADED
+            state=FlextCliPluginState.UNLOADED,
         )
         disabled = FlextCliPlugin(
             id="disabled-plugin",
             name="test",
             entry_point="test:main",
-            state=FlextCliPluginState.DISABLED
+            state=FlextCliPluginState.DISABLED,
         )
         active = FlextCliPlugin(
             id="active-plugin-2",
             name="test",
             entry_point="test:main",
-            state=FlextCliPluginState.ACTIVE
+            state=FlextCliPluginState.ACTIVE,
         )
 
         assert unloaded.plugin_status == PluginStatus.INACTIVE
@@ -1190,7 +1182,9 @@ class TestFlextCliPlugin:
 
     def test_plugin_validate_business_rules_success(self) -> None:
         """Test plugin business rules validation success."""
-        plugin = FlextCliPlugin(id="test-plugin", name="test-plugin", entry_point="test:main")
+        plugin = FlextCliPlugin(
+            id="test-plugin", name="test-plugin", entry_point="test:main"
+        )
 
         result = plugin.validate_business_rules()
 
@@ -1200,7 +1194,7 @@ class TestFlextCliPlugin:
         """Test plugin business rules validation - Pydantic prevents empty names."""
         import pytest
         from pydantic_core import ValidationError
-        
+
         with pytest.raises(ValidationError):
             FlextCliPlugin(id="test-plugin", name="   ", entry_point="test:main")
 
@@ -1208,7 +1202,7 @@ class TestFlextCliPlugin:
         """Test plugin business rules validation - Pydantic prevents empty entry points."""
         import pytest
         from pydantic_core import ValidationError
-        
+
         with pytest.raises(ValidationError):
             FlextCliPlugin(id="test-plugin", name="test", entry_point="   ")
 
@@ -1219,7 +1213,7 @@ class TestFlextCliPlugin:
             name="test",
             entry_point="test:main",
             state=FlextCliPluginState.ACTIVE,
-            loaded_at=None
+            loaded_at=None,
         )
 
         result = plugin.validate_business_rules()
@@ -1241,9 +1235,7 @@ class TestFlextCliPlugin:
     def test_plugin_load_plugin_invalid_state(self) -> None:
         """Test plugin load_plugin with invalid state."""
         plugin = FlextCliPlugin(
-            name="test",
-            entry_point="test:main",
-            state=FlextCliPluginState.LOADED
+            name="test", entry_point="test:main", state=FlextCliPluginState.LOADED
         )
 
         result = plugin.load_plugin()
@@ -1253,9 +1245,7 @@ class TestFlextCliPlugin:
     def test_plugin_activate_plugin_from_loaded(self) -> None:
         """Test plugin activate_plugin from loaded state."""
         plugin = FlextCliPlugin(
-            name="test",
-            entry_point="test:main",
-            state=FlextCliPluginState.LOADED
+            name="test", entry_point="test:main", state=FlextCliPluginState.LOADED
         )
 
         result = plugin.activate_plugin()
@@ -1267,9 +1257,7 @@ class TestFlextCliPlugin:
     def test_plugin_activate_plugin_from_unloaded(self) -> None:
         """Test plugin activate_plugin from unloaded state (should load first)."""
         plugin = FlextCliPlugin(
-            name="test",
-            entry_point="test:main",
-            state=FlextCliPluginState.UNLOADED
+            name="test", entry_point="test:main", state=FlextCliPluginState.UNLOADED
         )
 
         result = plugin.activate_plugin()
@@ -1282,9 +1270,7 @@ class TestFlextCliPlugin:
     def test_plugin_deactivate_plugin(self) -> None:
         """Test plugin deactivate_plugin method."""
         plugin = FlextCliPlugin(
-            name="test",
-            entry_point="test:main",
-            state=FlextCliPluginState.ACTIVE
+            name="test", entry_point="test:main", state=FlextCliPluginState.ACTIVE
         )
 
         result = plugin.deactivate_plugin()
@@ -1297,9 +1283,7 @@ class TestFlextCliPlugin:
     def test_plugin_unload_plugin(self) -> None:
         """Test plugin unload_plugin method."""
         plugin = FlextCliPlugin(
-            name="test",
-            entry_point="test:main",
-            state=FlextCliPluginState.LOADED
+            name="test", entry_point="test:main", state=FlextCliPluginState.LOADED
         )
 
         result = plugin.unload_plugin()
@@ -1312,9 +1296,7 @@ class TestFlextCliPlugin:
     def test_plugin_unload_plugin_from_active(self) -> None:
         """Test plugin unload_plugin from active state (should deactivate first)."""
         plugin = FlextCliPlugin(
-            name="test",
-            entry_point="test:main",
-            state=FlextCliPluginState.ACTIVE
+            name="test", entry_point="test:main", state=FlextCliPluginState.ACTIVE
         )
 
         result = plugin.unload_plugin()
@@ -1326,9 +1308,7 @@ class TestFlextCliPlugin:
     def test_plugin_unload_already_unloaded(self) -> None:
         """Test plugin unload_plugin with already unloaded plugin."""
         plugin = FlextCliPlugin(
-            name="test",
-            entry_point="test:main",
-            state=FlextCliPluginState.UNLOADED
+            name="test", entry_point="test:main", state=FlextCliPluginState.UNLOADED
         )
 
         result = plugin.unload_plugin()
@@ -1391,7 +1371,7 @@ class TestFlextCliWorkspace:
             configuration=config,
             session_ids=["session1", "session2"],
             plugin_ids=["plugin1", "plugin2"],
-            workspace_data={"setting": "value"}
+            workspace_data={"setting": "value"},
         )
 
         assert workspace.name == "advanced-workspace"
@@ -1431,10 +1411,7 @@ class TestFlextCliWorkspace:
     def test_workspace_add_session_duplicate(self) -> None:
         """Test workspace add_session with duplicate session."""
         session_id = "existing-session"
-        workspace = FlextCliWorkspace(
-            name="test-workspace",
-            session_ids=[session_id]
-        )
+        workspace = FlextCliWorkspace(name="test-workspace", session_ids=[session_id])
 
         result = workspace.add_session(session_id)
 
@@ -1444,8 +1421,7 @@ class TestFlextCliWorkspace:
         """Test workspace remove_session method."""
         session_id = "existing-session"
         workspace = FlextCliWorkspace(
-            name="test-workspace",
-            session_ids=[session_id, "other-session"]
+            name="test-workspace", session_ids=[session_id, "other-session"]
         )
 
         result = workspace.remove_session(session_id)
@@ -1478,10 +1454,7 @@ class TestFlextCliWorkspace:
     def test_workspace_install_plugin_duplicate(self) -> None:
         """Test workspace install_plugin with duplicate plugin."""
         plugin_id = "existing-plugin"
-        workspace = FlextCliWorkspace(
-            name="test-workspace",
-            plugin_ids=[plugin_id]
-        )
+        workspace = FlextCliWorkspace(name="test-workspace", plugin_ids=[plugin_id])
 
         result = workspace.install_plugin(plugin_id)
 
@@ -1534,7 +1507,9 @@ class TestIntegration:
     def test_plugin_workspace_integration(self) -> None:
         """Test integration between plugin and workspace."""
         workspace = FlextCliWorkspace(id="test-workspace", name="test-workspace")
-        plugin = FlextCliPlugin(id="test-plugin", name="test-plugin", entry_point="test:main")
+        plugin = FlextCliPlugin(
+            id="test-plugin", name="test-plugin", entry_point="test:main"
+        )
 
         # Install plugin in workspace
         install_result = workspace.install_plugin(plugin.id)
@@ -1545,27 +1520,29 @@ class TestIntegration:
 
     def test_context_command_integration(self) -> None:
         """Test integration between context and command."""
-        context = FlextCliContext(
-            user_id="test-user",
-            timeout_seconds=600
-        )
+        context = FlextCliContext(user_id="test-user", timeout_seconds=600)
         command = FlextCliCommand(
-            command_line="echo test",
-            context=context,
-            id="command-789"
+            command_line="echo test", context=context, id="command-789"
         )
 
         assert command.context == context
         assert command.context.user_id == "test-user"
 
-    @patch("flext_cli.models.datetime")
-    def test_timestamp_consistency(self, mock_datetime) -> None:
-        """Test timestamp consistency across models."""
-        fixed_time = datetime(2023, 1, 1, 12, 0, 0, tzinfo=UTC)
-        mock_datetime.now.return_value = fixed_time
+    def test_timestamp_consistency_real(self) -> None:
+        """Test real timestamp behavior across models without mocking."""
+        # Record time before creating models
+        before_time = datetime.now(tz=UTC)
 
-        # All models that use _now_utc should get the same time
+        # Create models that use _now_utc
         session = FlextCliSession(id="session-456")
 
-        # Since we're mocking datetime, started_at should use our fixed time
+        # Record time after creating models
+        after_time = datetime.now(tz=UTC)
+
+        # Verify that started_at is within the expected time range
         assert session.started_at is not None
+        assert before_time <= session.started_at <= after_time
+
+        # Test that timestamps are reasonably close (within 1 second)
+        time_diff = session.started_at - before_time
+        assert time_diff.total_seconds() < 1.0

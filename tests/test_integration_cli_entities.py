@@ -303,7 +303,7 @@ class TestCLISessionEntityIntegration:
         session = CLISession(id=str(uuid.uuid4()), session_id="test-context")
 
         # Create CLI context with proper components (SOLID: Dependency Injection)
-        base_config = get_config()
+        get_config()
         config = CLIConfig(
             profile="test",
             output_format="json",

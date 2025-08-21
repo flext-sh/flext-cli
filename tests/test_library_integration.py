@@ -13,8 +13,7 @@ import time
 from pathlib import Path
 
 import click
-from flext_core.constants import FlextConstants
-from flext_core.result import FlextResult
+from flext_core import FlextConstants, FlextResult
 from rich.console import Console
 
 import flext_cli

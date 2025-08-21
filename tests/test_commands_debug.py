@@ -140,7 +140,9 @@ class TestConnectivityCommand:
     ) -> None:
         mock_client = AsyncMock()
         mock_client.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
-        mock_client.test_connection.return_value = FlextResult[None].fail("Connection failed")
+        mock_client.test_connection.return_value = FlextResult[None].fail(
+            "Connection failed"
+        )
         mock_get_client.return_value = mock_client
 
         # Use CliRunner to test command

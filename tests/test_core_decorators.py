@@ -13,7 +13,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
-from flext_core.constants import FlextConstants
+from flext_core import FlextConstants
 
 from flext_cli import (
     async_command,
@@ -217,7 +217,11 @@ class TestMeasureTime:
             patch("flext_cli.decorators.time.time") as mock_time,
             patch("rich.console.Console.print") as mock_print,
         ):
-            mock_time.side_effect = [1000.0, 1002.5, 1003.0]  # 2.5 seconds elapsed + extra calls
+            mock_time.side_effect = [
+                1000.0,
+                1002.5,
+                1003.0,
+            ]  # 2.5 seconds elapsed + extra calls
 
             @measure_time(show_in_output=True)
             def timed_function() -> str:
@@ -235,7 +239,11 @@ class TestMeasureTime:
             patch("flext_cli.decorators.time.time") as mock_time,
             patch("rich.console.Console.print") as mock_print,
         ):
-            mock_time.side_effect = [1000.0, 1001.0, 1002.0]  # 1 second elapsed + extra calls
+            mock_time.side_effect = [
+                1000.0,
+                1001.0,
+                1002.0,
+            ]  # 1 second elapsed + extra calls
 
             @measure_time(show_in_output=False)
             def timed_function() -> str:

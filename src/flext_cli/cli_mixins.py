@@ -182,7 +182,9 @@ class CLIOutputMixin(FlextSerializableMixin):
                 result = FlextResult[str].ok(json_result)
             elif format_type == OutputFormat.YAML:
                 json_data = self.to_json()
-                result = FlextResult[str].ok("# YAML representation\ndata: " + json_data)
+                result = FlextResult[str].ok(
+                    "# YAML representation\ndata: " + json_data
+                )
             elif format_type == OutputFormat.TABLE:
                 result = self._format_as_table(data)
             elif format_type == OutputFormat.CSV:

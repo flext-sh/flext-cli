@@ -25,14 +25,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Protocol
 from uuid import UUID, uuid4
 
 import click
 from flext_core import (
-    FlextEntity,
     FlextDomainService,
+    FlextEntity,
     FlextResult,
 )
 from rich.console import Console
@@ -47,6 +47,7 @@ from flext_cli import (
 # =============================================================================
 # DOMAIN LAYER - Rich domain models with business logic
 # =============================================================================
+
 
 @dataclass(frozen=True)
 class ProjectCreated:
@@ -66,7 +67,7 @@ class ProjectStatusChanged:
     new_status: str
 
 
-class ProjectStatus(str, Enum):
+class ProjectStatus(StrEnum):
     """Project status enumeration."""
 
     ACTIVE = "active"
@@ -86,7 +87,9 @@ class Project(FlextEntity):
     created_at: datetime
     updated_at: datetime | None = None
 
-    def change_status(self, new_status: ProjectStatus, _reason: str) -> FlextResult[None]:
+    def change_status(
+        self, new_status: ProjectStatus, _reason: str
+    ) -> FlextResult[None]:
         """Change project status with business rules."""
         if self.status == new_status:
             return FlextResult[None].fail(f"Project already has status: {new_status}")
@@ -96,16 +99,13 @@ class Project(FlextEntity):
             return FlextResult[None].fail("Cannot activate archived projects")
 
         old_status = self.status
-        updated_project = self.model_copy(update={
-            "status": new_status,
-            "updated_at": datetime.now(UTC)
-        })
+        updated_project = self.model_copy(
+            update={"status": new_status, "updated_at": datetime.now(UTC)}
+        )
 
         # Add domain event (simplified for demo)
-        event = ProjectStatusChanged(
-            project_id=self.project_id,
-            old_status=old_status,
-            new_status=new_status
+        ProjectStatusChanged(
+            project_id=self.project_id, old_status=old_status, new_status=new_status
         )
         # In real implementation: updated_project.add_domain_event(event)
 
@@ -116,7 +116,9 @@ class Project(FlextEntity):
         # Define constant for minimum name length
         min_name_length = 3
         if not self.name or len(self.name.strip()) < min_name_length:
-            return FlextResult[None].fail(f"Project name must be at least {min_name_length} characters")
+            return FlextResult[None].fail(
+                f"Project name must be at least {min_name_length} characters"
+            )
 
         if not self.owner_id:
             return FlextResult[None].fail("Project must have an owner")
@@ -125,10 +127,7 @@ class Project(FlextEntity):
 
     @classmethod
     def create_new(
-        cls,
-        name: str,
-        description: str,
-        owner_id: str
+        cls, name: str, description: str, owner_id: str
     ) -> FlextResult[Project]:
         """Factory method to create new project."""
         project_id = uuid4()
@@ -139,7 +138,7 @@ class Project(FlextEntity):
             description=description.strip(),
             owner_id=owner_id,
             status=ProjectStatus.ACTIVE,
-            created_at=datetime.now(UTC)
+            created_at=datetime.now(UTC),
         )
 
         # Validate business rules
@@ -148,10 +147,8 @@ class Project(FlextEntity):
             return FlextResult[None].fail(validation_result.error)
 
         # Add domain event (simplified for demo)
-        event = ProjectCreated(
-            project_id=project_id,
-            project_name=name,
-            owner_id=owner_id
+        ProjectCreated(
+            project_id=project_id, project_name=name, owner_id=owner_id
         )
         # In real implementation: project.add_domain_event(event)
 
@@ -162,13 +159,12 @@ class Project(FlextEntity):
 # DOMAIN SERVICES
 # =============================================================================
 
+
 class ProjectDomainService(FlextDomainService):
     """Domain service for cross-project operations."""
 
     def can_transfer_ownership(
-        self,
-        project: Project,
-        new_owner_id: str
+        self, project: Project, new_owner_id: str
     ) -> FlextResult[bool]:
         """Check if project ownership can be transferred."""
         if project.status == ProjectStatus.ARCHIVED:
@@ -185,6 +181,7 @@ class ProjectDomainService(FlextDomainService):
 # =============================================================================
 # REPOSITORY PATTERN
 # =============================================================================
+
 
 class ProjectRepository(Protocol):
     """Repository interface for projects."""
@@ -221,7 +218,8 @@ class InMemoryProjectRepository:
     def find_by_owner(self, owner_id: str) -> FlextResult[list[Project]]:
         """Find projects by owner."""
         projects = [
-            project for project in self._projects.values()
+            project
+            for project in self._projects.values()
             if project.owner_id == owner_id
         ]
         return FlextResult[None].ok(projects)
@@ -230,6 +228,7 @@ class InMemoryProjectRepository:
 # =============================================================================
 # APPLICATION LAYER - CQRS Commands and Queries
 # =============================================================================
+
 
 @dataclass(frozen=True)
 class CreateProjectCommand:
@@ -270,7 +269,7 @@ class CreateProjectHandler(FlextCliService[Project]):
         self,
         repository: ProjectRepository,
         domain_service: ProjectDomainService,
-        **data: object
+        **data: object,
     ) -> None:
         super().__init__(service_name="create_project_handler", **data)
         self._repository = repository
@@ -282,7 +281,7 @@ class CreateProjectHandler(FlextCliService[Project]):
         create_result = Project.create_new(
             name=command.name,
             description=command.description,
-            owner_id=command.owner_id
+            owner_id=command.owner_id,
         )
 
         if create_result.is_failure:
@@ -293,7 +292,9 @@ class CreateProjectHandler(FlextCliService[Project]):
         # Save to repository
         save_result = self._repository.save(project)
         if save_result.is_failure:
-            return FlextResult[None].fail(f"Failed to save project: {save_result.error}")
+            return FlextResult[None].fail(
+                f"Failed to save project: {save_result.error}"
+            )
 
         # Process domain events (in real app, this would be async)
         self._process_domain_events([event])
@@ -311,11 +312,7 @@ class CreateProjectHandler(FlextCliService[Project]):
 class ChangeProjectStatusHandler(FlextCliService[Project]):
     """CQRS command handler for changing project status."""
 
-    def __init__(
-        self,
-        repository: ProjectRepository,
-        **data: object
-    ) -> None:
+    def __init__(self, repository: ProjectRepository, **data: object) -> None:
         super().__init__(service_name="change_status_handler", **data)
         self._repository = repository
 
@@ -348,15 +345,13 @@ class ChangeProjectStatusHandler(FlextCliService[Project]):
 class ProjectQueryHandler(FlextCliService[dict[str, object]]):
     """CQRS query handler for project queries."""
 
-    def __init__(
-        self,
-        repository: ProjectRepository,
-        **data: object
-    ) -> None:
+    def __init__(self, repository: ProjectRepository, **data: object) -> None:
         super().__init__(service_name="project_query_handler", **data)
         self._repository = repository
 
-    def execute_get_project(self, query: GetProjectQuery) -> FlextResult[dict[str, object]]:
+    def execute_get_project(
+        self, query: GetProjectQuery
+    ) -> FlextResult[dict[str, object]]:
         """Execute get project query."""
         find_result = self._repository.find_by_id(query.project_id)
         if find_result.is_failure:
@@ -374,14 +369,15 @@ class ProjectQueryHandler(FlextCliService[dict[str, object]]):
             "owner_id": project.owner_id,
             "status": project.status.value,
             "created_at": project.created_at.isoformat(),
-            "updated_at": project.updated_at.isoformat() if project.updated_at else None
+            "updated_at": project.updated_at.isoformat()
+            if project.updated_at
+            else None,
         }
 
         return FlextResult[None].ok(project_data)
 
     def execute_list_by_owner(
-        self,
-        query: ListProjectsByOwnerQuery
+        self, query: ListProjectsByOwnerQuery
     ) -> FlextResult[list[dict[str, object]]]:
         """Execute list projects by owner query."""
         find_result = self._repository.find_by_owner(query.owner_id)
@@ -394,7 +390,7 @@ class ProjectQueryHandler(FlextCliService[dict[str, object]]):
                 "id": str(project.project_id),
                 "name": project.name,
                 "status": project.status.value,
-                "created_at": project.created_at.isoformat()
+                "created_at": project.created_at.isoformat(),
             }
             for project in projects
         ]
@@ -406,6 +402,7 @@ class ProjectQueryHandler(FlextCliService[dict[str, object]]):
 # INFRASTRUCTURE LAYER - External services and configuration
 # =============================================================================
 
+
 class ProjectManagementService(FlextCliService[dict[str, object]]):
     """Infrastructure service orchestrating the application layer."""
 
@@ -416,27 +413,17 @@ class ProjectManagementService(FlextCliService[dict[str, object]]):
         self._repository = InMemoryProjectRepository()
         self._domain_service = ProjectDomainService()
         self._create_handler = CreateProjectHandler(
-            repository=self._repository,
-            domain_service=self._domain_service
+            repository=self._repository, domain_service=self._domain_service
         )
-        self._status_handler = ChangeProjectStatusHandler(
-            repository=self._repository
-        )
-        self._query_handler = ProjectQueryHandler(
-            repository=self._repository
-        )
+        self._status_handler = ChangeProjectStatusHandler(repository=self._repository)
+        self._query_handler = ProjectQueryHandler(repository=self._repository)
 
     def create_project(
-        self,
-        name: str,
-        description: str,
-        owner_id: str
+        self, name: str, description: str, owner_id: str
     ) -> FlextResult[dict[str, object]]:
         """Create new project through CQRS."""
         command = CreateProjectCommand(
-            name=name,
-            description=description,
-            owner_id=owner_id
+            name=name, description=description, owner_id=owner_id
         )
 
         result = self._create_handler.execute(command)
@@ -444,18 +431,17 @@ class ProjectManagementService(FlextCliService[dict[str, object]]):
             return result
 
         project = result.data
-        return FlextResult[None].ok({
-            "id": str(project.project_id),
-            "name": project.name,
-            "status": project.status.value,
-            "message": "Project created successfully"
-        })
+        return FlextResult[None].ok(
+            {
+                "id": str(project.project_id),
+                "name": project.name,
+                "status": project.status.value,
+                "message": "Project created successfully",
+            }
+        )
 
     def change_project_status(
-        self,
-        project_id: str,
-        new_status: str,
-        reason: str
+        self, project_id: str, new_status: str, reason: str
     ) -> FlextResult[dict[str, object]]:
         """Change project status through CQRS."""
         try:
@@ -465,9 +451,7 @@ class ProjectManagementService(FlextCliService[dict[str, object]]):
             return FlextResult[None].fail(f"Invalid input: {e}")
 
         command = ChangeProjectStatusCommand(
-            project_id=uuid_id,
-            new_status=status_enum,
-            reason=reason
+            project_id=uuid_id, new_status=status_enum, reason=reason
         )
 
         result = self._status_handler.execute(command)
@@ -475,11 +459,13 @@ class ProjectManagementService(FlextCliService[dict[str, object]]):
             return result
 
         project = result.data
-        return FlextResult[None].ok({
-            "id": str(project.project_id),
-            "status": project.status.value,
-            "message": "Status changed successfully"
-        })
+        return FlextResult[None].ok(
+            {
+                "id": str(project.project_id),
+                "status": project.status.value,
+                "message": "Status changed successfully",
+            }
+        )
 
     def get_project(self, project_id: str) -> FlextResult[dict[str, object]]:
         """Get project details through CQRS."""
@@ -491,7 +477,9 @@ class ProjectManagementService(FlextCliService[dict[str, object]]):
         query = GetProjectQuery(project_id=uuid_id)
         return self._query_handler.execute_get_project(query)
 
-    def list_projects_by_owner(self, owner_id: str) -> FlextResult[list[dict[str, object]]]:
+    def list_projects_by_owner(
+        self, owner_id: str
+    ) -> FlextResult[list[dict[str, object]]]:
         """List projects by owner through CQRS."""
         query = ListProjectsByOwnerQuery(owner_id=owner_id)
         return self._query_handler.execute_list_by_owner(query)
@@ -500,6 +488,7 @@ class ProjectManagementService(FlextCliService[dict[str, object]]):
 # =============================================================================
 # CLI COMMANDS LAYER - User interface
 # =============================================================================
+
 
 @click.group()
 @click.pass_context
@@ -517,12 +506,7 @@ def enterprise_cli(ctx: click.Context) -> None:
 @click.pass_context
 @cli_enhanced
 @measure_time
-def create_project(
-    ctx: click.Context,
-    name: str,
-    description: str,
-    owner: str
-) -> None:
+def create_project(ctx: click.Context, name: str, description: str, owner: str) -> None:
     """Create a new project using enterprise patterns."""
     console: Console = ctx.obj["console"]
     service: ProjectManagementService = ctx.obj["service"]
@@ -546,7 +530,7 @@ def create_project(
     "--status",
     required=True,
     type=click.Choice(["active", "suspended", "completed", "archived"]),
-    help="New status"
+    help="New status",
 )
 @click.option("--reason", required=True, help="Reason for status change")
 @click.pass_context
@@ -554,10 +538,7 @@ def create_project(
 @measure_time
 @require_auth()
 def change_status(
-    ctx: click.Context,
-    project_id: str,
-    status: str,
-    reason: str
+    ctx: click.Context, project_id: str, status: str, reason: str
 ) -> None:
     """Change project status using CQRS command."""
     console: Console = ctx.obj["console"]
@@ -618,7 +599,9 @@ def list_projects(ctx: click.Context, owner_id: str) -> None:
         if projects:
             console.print(f"[green]Projects for owner {owner_id}:[/green]")
             for project in projects:
-                console.print(f"- {project['name']} ({project['status']}) - {project['id']}")
+                console.print(
+                    f"- {project['name']} ({project['status']}) - {project['id']}"
+                )
         else:
             console.print(f"[yellow]No projects found for owner: {owner_id}[/yellow]")
     else:
@@ -639,10 +622,16 @@ def main() -> None:
     print("✅ Enterprise service orchestration")
     print()
     print("Try these commands:")
-    print("  python examples/07_enterprise_patterns.py create-project --name 'My Project' --description 'Test project' --owner 'user123'")
+    print(
+        "  python examples/07_enterprise_patterns.py create-project --name 'My Project' --description 'Test project' --owner 'user123'"
+    )
     print("  python examples/07_enterprise_patterns.py get-project --project-id <uuid>")
-    print("  python examples/07_enterprise_patterns.py change-status --project-id <uuid> --status suspended --reason 'Maintenance'")
-    print("  python examples/07_enterprise_patterns.py list-projects --owner-id 'user123'")
+    print(
+        "  python examples/07_enterprise_patterns.py change-status --project-id <uuid> --status suspended --reason 'Maintenance'"
+    )
+    print(
+        "  python examples/07_enterprise_patterns.py list-projects --owner-id 'user123'"
+    )
     print()
 
 

@@ -335,7 +335,9 @@ class FlextCliHelper:
             with p.open(encoding="utf-8") as f:
                 data = json.load(f)
             if not isinstance(data, dict):
-                return FlextResult[dict[str, object]].fail("JSON root must be an object")
+                return FlextResult[dict[str, object]].fail(
+                    "JSON root must be an object"
+                )
             return FlextResult[dict[str, object]].ok(data)
         except Exception as e:
             return FlextResult[dict[str, object]].fail(str(e))
@@ -421,7 +423,9 @@ class FlextCliDataProcessor:
         value = output.get(key, "")
         p = Path(str(value))
         if not p.exists():
-            return FlextResult[dict[str, object]].fail("Validation failed for config_file")
+            return FlextResult[dict[str, object]].fail(
+                "Validation failed for config_file"
+            )
         output[key] = p
         return FlextResult[dict[str, object]].ok(output)
 
@@ -454,8 +458,10 @@ class FlextCliDataProcessor:
         value = output.get(key, "")
         sanit = self.helper.flext_cli_sanitize_filename(str(value))
         if sanit.is_failure:
-            return FlextResult[dict[str, object]].fail(sanit.error or "Filename sanitization failed")
-        output[key] = sanit.unwrap()
+            return FlextResult[dict[str, object]].fail(
+                sanit.error or "Filename sanitization failed"
+            )
+        output[key] = sanit.value
         return FlextResult[dict[str, object]].ok(output)
 
     def flext_cli_process_workflow(
@@ -475,10 +481,14 @@ class FlextCliDataProcessor:
             try:
                 result = step(current)
                 if result.is_failure:
-                    return FlextResult[dict[str, object]].fail(f"Step '{name}' failed: {result.error}")
-                current = result.unwrap()
+                    return FlextResult[dict[str, object]].fail(
+                        f"Step '{name}' failed: {result.error}"
+                    )
+                current = result.value
             except Exception as e:
-                return FlextResult[dict[str, object]].fail(f"Step '{name}' raised exception: {e}")
+                return FlextResult[dict[str, object]].fail(
+                    f"Step '{name}' raised exception: {e}"
+                )
         return FlextResult[dict[str, object]].ok(current)
 
     def flext_cli_validate_and_transform(
@@ -496,12 +506,14 @@ class FlextCliDataProcessor:
                 validation_result = validator_func(key, output)
                 if validation_result.is_failure:
                     return validation_result
-                output = validation_result.unwrap()
+                output = validation_result.value
             else:
                 # Treat 'none' as no-op validator for convenience in tests
                 if vtype == "none":
                     continue
-                return FlextResult[dict[str, object]].fail(f"Unknown validation type: {vtype}")
+                return FlextResult[dict[str, object]].fail(
+                    f"Unknown validation type: {vtype}"
+                )
 
         for key, transformer in transformers.items():
             if key in output:
@@ -525,17 +537,23 @@ class FlextCliDataProcessor:
             try:
                 res = func()
                 if res.success:
-                    aggregated[name] = res.data
+                    aggregated[name] = res.value
                 else:
                     errors.append(f"{name}: {res.error}")
                     if fail_fast:
-                        return FlextResult[dict[str, object]].fail(f"Source {name} failed: {res.error}")
+                        return FlextResult[dict[str, object]].fail(
+                            f"Source {name} failed: {res.error}"
+                        )
             except Exception as e:
                 errors.append(f"{name}: {e}")
                 if fail_fast:
-                    return FlextResult[dict[str, object]].fail(f"Source {name} exception: {e}")
+                    return FlextResult[dict[str, object]].fail(
+                        f"Source {name} exception: {e}"
+                    )
         if errors and not aggregated:
-            return FlextResult[dict[str, object]].fail("All sources failed: " + "; ".join(errors))
+            return FlextResult[dict[str, object]].fail(
+                "All sources failed: " + "; ".join(errors)
+            )
         if errors:
             aggregated["_errors"] = errors
         return FlextResult[dict[str, object]].ok(aggregated)
@@ -553,10 +571,14 @@ class FlextCliDataProcessor:
             try:
                 res = transformer(current)
                 if not res.success:
-                    return FlextResult[dict[str, object]].fail(f"Transformer {i} failed: {res.error}")
-                current = res.data
+                    return FlextResult[dict[str, object]].fail(
+                        f"Transformer {i} failed: {res.error}"
+                    )
+                current = res.value
             except Exception as e:
-                return FlextResult[dict[str, object]].fail(f"Transformer {i} exception: {e}")
+                return FlextResult[dict[str, object]].fail(
+                    f"Transformer {i} exception: {e}"
+                )
         return FlextResult[dict[str, object]].ok(current)
 
 
@@ -580,15 +602,17 @@ class FlextCliFileManager:
             return FlextResult[dict[str, object]].fail("File not found")
         if require_confirmation:
             conf = self.helper.flext_cli_confirm(f"Process {file_path}?")
-            if conf.is_failure or not conf.unwrap():
+            if conf.is_failure or not conf.value:
                 return FlextResult[dict[str, object]].fail("User cancelled")
         backup = p.with_suffix(p.suffix + ".bak")
         shutil.copyfile(p, backup)
         result = processor(p.read_text(encoding="utf-8"))
         if result.is_failure:
             shutil.copyfile(backup, p)
-            return FlextResult[dict[str, object]].fail(result.error or "Processing failed")
-        p.write_text(result.unwrap(), encoding="utf-8")
+            return FlextResult[dict[str, object]].fail(
+                result.error or "Processing failed"
+            )
+        p.write_text(result.value, encoding="utf-8")
         return FlextResult[dict[str, object]].ok(
             {
                 "status": "completed",

@@ -48,7 +48,9 @@ class FlextCliEntity(FlextEntity):
 
     def execute(self) -> FlextResult[object]:
         """Execute CLI command with automatic error handling."""
-        return FlextResult[object].ok(f"CLI command '{self.name}' executed successfully")
+        return FlextResult[object].ok(
+            f"CLI command '{self.name}' executed successfully"
+        )
 
     def with_args(self, args: dict[str, object]) -> FlextCliEntity:
         """Update CLI entity with parsed arguments (immutable)."""
@@ -102,7 +104,7 @@ def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
 
     Example:
       # Zero-boilerplate configuration setup
-      config = create_cli_config(debug=True, profile="dev").unwrap()
+      config = create_cli_config(debug=True, profile="dev").value
 
     """
     try:
@@ -116,9 +118,9 @@ def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
                 f"Hierarchy creation failed: {hierarchy_result.error}",
             )
 
-        # MyPy can infer hierarchy_result.data is not None after success check
+        # MyPy can infer hierarchy_result.value is not None after success check
 
-        hierarchy = hierarchy_result.data
+        hierarchy = hierarchy_result.value
 
         # Collect all configuration values
         all_configs = hierarchy.copy()  # hierarchy is dict[str, object]
@@ -183,7 +185,7 @@ def setup_cli(config: FlextCliConfig | None = None) -> FlextResult[dict[str, obj
                 return FlextResult[dict[str, object]].fail(
                     f"Config creation failed: {config_result.error}",
                 )
-            config = config_result.data
+            config = config_result.value
 
         # MyPy can infer config is not None after successful creation
 

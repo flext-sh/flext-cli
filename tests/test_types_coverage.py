@@ -64,8 +64,12 @@ class TestTypeImports:
     def test_legacy_type_aliases(self) -> None:
         """Test legacy type aliases."""
         legacy_aliases = [
-            "TCliData", "TCliPath", "TCliFormat",
-            "TCliHandler", "TCliConfig", "TCliArgs"
+            "TCliData",
+            "TCliPath",
+            "TCliFormat",
+            "TCliHandler",
+            "TCliConfig",
+            "TCliArgs",
         ]
 
         for alias_name in legacy_aliases:
@@ -81,7 +85,9 @@ class TestAllExports:
     def test_all_exports_exist(self) -> None:
         """Test that all declared exports exist in module."""
         for export_name in types.__all__:
-            assert hasattr(types, export_name), f"Export {export_name} not found in types module"
+            assert hasattr(types, export_name), (
+                f"Export {export_name} not found in types module"
+            )
 
     def test_all_exports_not_none(self) -> None:
         """Test that all exports are not None."""
@@ -98,16 +104,28 @@ class TestAllExports:
         """Test that exports cover expected categories."""
         # Core re-exports
         core_exports = {
-            "URL", "URLType", "PositiveIntType",
-            "FlextCliCommand", "FlextCliCommandStatus", "FlextCliCommandType",
-            "FlextCliConfig", "FlextCliContext", "FlextCliOutputFormat",
-            "FlextCliPlugin", "FlextCliPluginStatus", "FlextCliSession"
+            "URL",
+            "URLType",
+            "PositiveIntType",
+            "FlextCliCommand",
+            "FlextCliCommandStatus",
+            "FlextCliCommandType",
+            "FlextCliConfig",
+            "FlextCliContext",
+            "FlextCliOutputFormat",
+            "FlextCliPlugin",
+            "FlextCliPluginStatus",
+            "FlextCliSession",
         }
 
         # Legacy aliases
         legacy_exports = {
-            "TCliArgs", "TCliConfig", "TCliData",
-            "TCliFormat", "TCliHandler", "TCliPath"
+            "TCliArgs",
+            "TCliConfig",
+            "TCliData",
+            "TCliFormat",
+            "TCliHandler",
+            "TCliPath",
         }
 
         all_expected = core_exports | legacy_exports
@@ -135,7 +153,9 @@ class TestTypeCompatibility:
         data: types.TCliData = {"key": "value"}
         path: types.TCliPath = "/some/path"
         format_str: types.TCliFormat = "json"
-        handler: types.TCliHandler = lambda x: x
+
+        def handler(x):
+            return x
         config: types.TCliConfig = {"debug": True}
         args: types.TCliArgs = {"arg": "value"}
 
@@ -187,6 +207,6 @@ class TestModuleStructure:
         # All public attributes should be in __all__
         undeclared = set(public_attrs) - set(types.__all__)
         # Filter out potential module-level attributes
-        undeclared = {attr for attr in undeclared if attr not in ["annotations"]}
+        undeclared = {attr for attr in undeclared if attr != "annotations"}
 
         assert len(undeclared) == 0, f"Undeclared public exports: {undeclared}"

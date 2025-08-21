@@ -18,7 +18,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import click
 from click.testing import CliRunner
-from flext_core.constants import FlextConstants
+from flext_core import FlextConstants
 from rich.table import Table
 
 from flext_cli import debug_cmd

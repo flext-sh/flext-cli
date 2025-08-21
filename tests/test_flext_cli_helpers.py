@@ -22,7 +22,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from flext_core.constants import FlextConstants
+from flext_core import FlextConstants
 from rich.console import Console
 
 from flext_cli import (

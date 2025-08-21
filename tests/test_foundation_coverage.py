@@ -22,7 +22,9 @@ class TestFlextCliEntity:
 
     def test_entity_creation(self) -> None:
         """Test entity can be created."""
-        entity = FlextCliEntity(id="test-id", name="test-entity", description="Test description")
+        entity = FlextCliEntity(
+            id="test-id", name="test-entity", description="Test description"
+        )
         assert entity.name == "test-entity"
         assert entity.description == "Test description"
         assert entity.id == "test-id"
@@ -81,11 +83,7 @@ class TestCreateCliConfig:
 
     def test_create_config_with_overrides(self) -> None:
         """Test creating config with overrides."""
-        result = create_cli_config(
-            debug=True,
-            profile="test",
-            output_format="yaml"
-        )
+        result = create_cli_config(debug=True, profile="test", output_format="yaml")
         assert result.success
         config = result.data
         assert config.debug is True

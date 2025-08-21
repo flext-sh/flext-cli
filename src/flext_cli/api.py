@@ -73,7 +73,9 @@ class FlextCliContext:
         self.console = console
 
 
-def flext_cli_format(data: FlextCliDataType, format_type: str = "table") -> FlextResult[str]:
+def flext_cli_format(
+    data: FlextCliDataType, format_type: str = "table"
+) -> FlextResult[str]:
     """Format data using specified format type.
 
     Args:
@@ -104,7 +106,7 @@ def flext_cli_format(data: FlextCliDataType, format_type: str = "table") -> Flex
                 # Render table to string
                 output_buffer = io.StringIO()
                 console = Console(file=output_buffer, width=80)
-                console.print(table_result.unwrap())
+                console.print(table_result.value)
                 formatted = output_buffer.getvalue()
             else:
                 return FlextResult[str].fail(
@@ -180,7 +182,9 @@ def _create_table_from_single_value(data: object, table: Table) -> None:
     table.add_row(str(data))
 
 
-def flext_cli_table(data: FlextCliDataType, title: str | None = None) -> FlextResult[Table]:
+def flext_cli_table(
+    data: FlextCliDataType, title: str | None = None
+) -> FlextResult[Table]:
     """Create a Rich table from data.
 
     Args:
@@ -197,7 +201,10 @@ def flext_cli_table(data: FlextCliDataType, title: str | None = None) -> FlextRe
         if isinstance(data, list) and data:
             if isinstance(data[0], dict):
                 # Cast to correct type for function call
-                dict_list = cast("list[dict[str, object]]", [item for item in data if isinstance(item, dict)])
+                dict_list = cast(
+                    "list[dict[str, object]]",
+                    [item for item in data if isinstance(item, dict)],
+                )
                 _create_table_from_dict_list(dict_list, table)
             else:
                 # Cast to list[object] for simple list
@@ -244,7 +251,10 @@ def flext_cli_transform_data(
         # Apply filter
         if filter_func:
             result = [
-                item for item in result if isinstance(item, dict) and filter_func(cast("dict[str, object]", item))
+                item
+                for item in result
+                if isinstance(item, dict)
+                and filter_func(cast("dict[str, object]", item))
             ]
 
         # Apply sort
@@ -254,8 +264,8 @@ def flext_cli_transform_data(
                 reverse=reverse,
             )
 
-        # Convert to expected type for MyPy compatibility
-        typed_result: list[dict[str, object]] = result  # type: ignore[assignment]
+        # Convert to expected type for MyPy compatibility using cast
+        typed_result = cast("list[dict[str, object]]", result)
         return FlextResult[list[dict[str, object]]].ok(typed_result)
 
     except (TypeError, AttributeError, KeyError) as e:
@@ -279,7 +289,9 @@ def _initialize_group(
     return group
 
 
-def _update_group_counts(group: dict[str, str | int | float | bool | None], count_field: str) -> None:
+def _update_group_counts(
+    group: dict[str, str | int | float | bool | None], count_field: str
+) -> None:
     """Update count for a group."""
     count_value = group[count_field]
     if isinstance(count_value, int):
@@ -347,7 +359,9 @@ def flext_cli_aggregate_data(
                 )
 
             # Type conversion for MyPy compatibility
-            group_data: dict[str, str | int | float | bool | None] = groups[group_key]  # type: ignore[assignment]
+            group_data = cast(
+                "dict[str, str | int | float | bool | None]", groups[group_key]
+            )
             item_data: dict[str, str | int | float | bool | None] = item
             _update_group_counts(group_data, count_field)
             _update_group_sums(group_data, item_data, sum_fields)
@@ -399,7 +413,9 @@ def flext_cli_export(
                     ]
                     writer.writerows(csv_data)
                 else:
-                    return FlextResult[str].fail("CSV export requires list of dictionaries")
+                    return FlextResult[str].fail(
+                        "CSV export requires list of dictionaries"
+                    )
 
         else:
             return FlextResult[str].fail(f"Unsupported export format: {format_type}")
@@ -437,7 +453,9 @@ def flext_cli_batch_export(
             result = flext_cli_export(data, file_path, format_type)
 
             if not result.success:
-                return FlextResult[list[str]].fail(f"Failed to export {name}: {result.error}")
+                return FlextResult[list[str]].fail(
+                    f"Failed to export {name}: {result.error}"
+                )
 
             created_files.append(str(file_path))
 
@@ -489,7 +507,9 @@ class FlextCliApi:
         result = flext_cli_export(data, path, format_type)
         return result.success
 
-    def flext_cli_format(self, data: FlextCliDataType, format_type: str = "table") -> str:
+    def flext_cli_format(
+        self, data: FlextCliDataType, format_type: str = "table"
+    ) -> str:
         """Format data for display."""
         result = flext_cli_format(data, format_type)
         # Use FlextResult.unwrap_or method following flext/docs/patterns
@@ -602,7 +622,7 @@ class FlextCliApi:
                     command_result.error or "Failed to create command",
                 )
 
-            command_obj = command_result.unwrap()
+            command_obj = command_result.value
             if not isinstance(command_obj, CLICommand):
                 return FlextResult[object].fail("Invalid command type")
             command = command_obj
@@ -698,7 +718,7 @@ class FlextCliApi:
                     f"Plugin creation failed: {plugin_result.error}",
                 )
 
-            plugin_entity = plugin_result.unwrap()
+            plugin_entity = plugin_result.value
             if plugin_entity is not None:
                 self._plugin_registry[name] = plugin_entity
         except (AttributeError, ValueError, TypeError, KeyError) as e:
@@ -798,7 +818,9 @@ class FlextCliApi:
 class ContextRenderingStrategy:
     """Strategy pattern for context-based rendering with SOLID principles."""
 
-    def __init__(self, data: FlextCliDataType, context: dict[str, object] | None = None) -> None:
+    def __init__(
+        self, data: FlextCliDataType, context: dict[str, object] | None = None
+    ) -> None:
         """Initialize rendering strategy."""
         self.data: FlextCliDataType = data
         self.context = context or {}
@@ -857,11 +879,12 @@ class ContextRenderingStrategy:
         format_type = self._get_format_type()
 
         # Use our flext_cli_format function instead of FormatterFactory
+        # Use unwrap_or for cleaner format result handling
         format_result = flext_cli_format(self.data, format_type)
-        if format_result.success:
-            rendered_output = format_result.unwrap()
+        rendered_output = format_result.unwrap_or("")
+        if rendered_output:  # Non-empty string indicates success
             return FlextResult[str].ok(self._apply_title_if_needed(rendered_output))
-        return format_result
+        return format_result  # Return original error result
 
     def _get_format_type(self) -> str:
         """Get format type from context."""

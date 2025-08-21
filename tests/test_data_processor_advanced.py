@@ -86,7 +86,9 @@ class TestFlextCliDataProcessorAdvanced:
                         )
 
             if errors and not aggregated_data:
-                return FlextResult[None].fail(f"All sources failed: {'; '.join(errors)}")
+                return FlextResult[None].fail(
+                    f"All sources failed: {'; '.join(errors)}"
+                )
 
             if errors:
                 aggregated_data["_errors"] = errors
@@ -159,7 +161,9 @@ class TestFlextCliDataProcessorAdvanced:
                         )
 
             if errors and not aggregated_data:
-                return FlextResult[None].fail(f"All sources failed: {'; '.join(errors)}")
+                return FlextResult[None].fail(
+                    f"All sources failed: {'; '.join(errors)}"
+                )
 
             if errors:
                 aggregated_data["_errors"] = errors
@@ -230,7 +234,9 @@ class TestFlextCliDataProcessorAdvanced:
                         )
 
             if errors and not aggregated_data:
-                return FlextResult[None].fail(f"All sources failed: {'; '.join(errors)}")
+                return FlextResult[None].fail(
+                    f"All sources failed: {'; '.join(errors)}"
+                )
 
             if errors:
                 aggregated_data["_errors"] = errors
@@ -263,7 +269,9 @@ class TestFlextCliDataProcessorAdvanced:
         def double_items(data: dict[str, object]) -> FlextResult[dict[str, object]]:
             # Double all items
             doubled_items = [item * 2 for item in data["items"]]
-            return FlextResult[None].ok({**data, "items": doubled_items, "doubled": True})
+            return FlextResult[None].ok(
+                {**data, "items": doubled_items, "doubled": True}
+            )
 
         def add_summary(data: dict[str, object]) -> FlextResult[dict[str, object]]:
             # Add summary statistics
@@ -607,7 +615,9 @@ class TestComplexDataProcessingWorkflows:
             for name, func in sources.items():
                 result = func()
                 if not result.success and fail_fast:
-                    return FlextResult[None].fail(f"Source {name} failed: {result.error}")
+                    return FlextResult[None].fail(
+                        f"Source {name} failed: {result.error}"
+                    )
             return FlextResult[None].ok({"working": ["data1", "data2"]})
 
         with patch.object(

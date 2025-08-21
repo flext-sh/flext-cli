@@ -17,14 +17,14 @@ from flext_cli.config import get_config as get_cli_config
 
 
 class FlextApiClientLike(Protocol):
-    """Protocol for FlextApiClient-like objects."""
+    """Protocol for FlextApiClient-like objects with async HTTP methods."""
 
-    def get(self, endpoint: str, **kwargs: object) -> object:
-        """HTTP GET request method."""
+    async def get(self, endpoint: str, **kwargs: object) -> FlextResult[object]:
+        """Async HTTP GET request method returning FlextResult."""
         ...
 
-    def post(self, endpoint: str, **kwargs: object) -> object:
-        """HTTP POST request method."""
+    async def post(self, endpoint: str, **kwargs: object) -> FlextResult[object]:
+        """Async HTTP POST request method returning FlextResult."""
         ...
 
     def stop(self) -> None:
@@ -36,6 +36,7 @@ class FlextApiClientLike(Protocol):
 def create_flext_api() -> FlextApiClientLike | None:
     """Temporary placeholder for flext_api dependency."""
     return None
+
 
 logger = get_logger(__name__)
 
@@ -134,11 +135,13 @@ class FlextCLIApiClient:
                 return FlextResult[bool].fail("API client not initialized")
 
             # Get response from API client - handle FlextResult
-            response_result = await self._api_client.get("/health")  # type: ignore[misc]
-            if not response_result.success or response_result.data is None:
-                return FlextResult[bool].fail(f"Connection failed: {response_result.error}")
+            response_result = await self._api_client.get("/health")
+            if not response_result.success or response_result.value is None:
+                return FlextResult[bool].fail(
+                    f"Connection failed: {response_result.error}"
+                )
 
-            response = response_result.data
+            response = response_result.value
             status_code = getattr(response, "status_code", None)
             if status_code == HTTP_OK:
                 logger.info("Connection test successful", base_url=self.base_url)
@@ -160,19 +163,21 @@ class FlextCLIApiClient:
                 return FlextResult[dict[str, object]].fail("API client not initialized")
 
             # Get response from API client - handle FlextResult
-            response_result = await self._api_client.get("/api/v1/system/status")  # type: ignore[misc]
-            if not response_result.success or response_result.data is None:
+            response_result = await self._api_client.get("/api/v1/system/status")
+            if not response_result.success or response_result.value is None:
                 return FlextResult[dict[str, object]].fail(
                     f"Status request failed: {response_result.error}",
                 )
 
-            response = response_result.data
+            response = response_result.value
             status_code = getattr(response, "status_code", None)
             if status_code == HTTP_OK:
                 # Safe JSON access with getattr
                 json_data: dict[str, object] = getattr(response, "json", dict)()
                 return FlextResult[dict[str, object]].ok(json_data)
-            return FlextResult[dict[str, object]].fail(f"Status request failed: {status_code}")
+            return FlextResult[dict[str, object]].fail(
+                f"Status request failed: {status_code}"
+            )
 
         except Exception as e:
             logger.exception("Failed to get system status")
@@ -181,7 +186,9 @@ class FlextCLIApiClient:
     async def list_services(self) -> FlextResult[list[dict[str, object]]]:
         """List available FLEXT services."""
         if not self.is_available():
-            return FlextResult[list[dict[str, object]]].fail("flext-api client not available")
+            return FlextResult[list[dict[str, object]]].fail(
+                "flext-api client not available"
+            )
 
         try:
             # Try both FlexCore (8080) and FLEXT Service (8081)
@@ -192,22 +199,27 @@ class FlextCLIApiClient:
                 "FlexCore",
                 f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXCORE_PORT}",
             )
-            if flexcore_result.success and flexcore_result.data:
-                services.append(flexcore_result.data)
+            # Use unwrap_or for cleaner conditional assignment with proper typing
+            flexcore_status = flexcore_result.unwrap_or({})
+            if flexcore_status:  # Empty dict is falsy, non-empty dict is truthy
+                services.append(flexcore_status)
 
             # FLEXT Service check
             flext_result = await self._check_service(
                 "FLEXT Service",
                 f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_SERVICE_PORT}",
             )
-            if flext_result.success and flext_result.data:
-                services.append(flext_result.data)
+            flext_status = flext_result.unwrap_or({})
+            if flext_status:  # Empty dict is falsy, non-empty dict is truthy
+                services.append(flext_status)
 
             return FlextResult[list[dict[str, object]]].ok(services)
 
         except Exception as e:
             logger.exception("Failed to list services")
-            return FlextResult[list[dict[str, object]]].fail(f"Service listing failed: {e}")
+            return FlextResult[list[dict[str, object]]].fail(
+                f"Service listing failed: {e}"
+            )
 
     async def _check_service(
         self,
@@ -216,7 +228,9 @@ class FlextCLIApiClient:
     ) -> FlextResult[dict[str, object]]:
         """Check individual service status."""
         # Temporarily disabled due to dependency issue with flext-api
-        return FlextResult[dict[str, object]].fail(f"{name} service check disabled - no API implementation")
+        return FlextResult[dict[str, object]].fail(
+            f"{name} service check disabled - no API implementation"
+        )
 
     async def login(
         self,
@@ -238,14 +252,13 @@ class FlextCLIApiClient:
                     "password": password,
                 },
             )
-            response_result = await self._api_client.post(  # type: ignore[misc]
+            response_result = await self._api_client.post(
                 "/auth/login",
                 data=login_data,
             )
-            if not response_result.success or response_result.data is None:
-                return FlextResult[dict[str, object]].fail(f"Login failed: {response_result.error}")
-
-            response = response_result.data
+            response = response_result.unwrap_or(None)
+            if response is None:
+                return FlextResult[dict[str, object]].fail("Login failed: No response")
             status_code = getattr(response, "status_code", None)
             if status_code == HTTP_OK:
                 json_data: dict[str, object] = getattr(response, "json", dict)()
@@ -266,11 +279,10 @@ class FlextCLIApiClient:
                 return FlextResult[bool].fail("API client not initialized")
 
             # Post to logout endpoint
-            response_result = await self._api_client.post("/auth/logout")  # type: ignore[misc]
-            if not response_result.success or response_result.data is None:
-                return FlextResult[bool].fail(f"Logout failed: {response_result.error}")
-
-            response = response_result.data
+            response_result = await self._api_client.post("/auth/logout")
+            response = response_result.unwrap_or(None)
+            if response is None:
+                return FlextResult[bool].fail("Logout failed: No response")
             status_code = getattr(response, "status_code", None)
             if status_code == HTTP_OK:
                 logout_success = True
@@ -291,16 +303,19 @@ class FlextCLIApiClient:
                 return FlextResult[dict[str, object]].fail("API client not initialized")
 
             # Get current user from API
-            response_result = await self._api_client.get("/auth/me")  # type: ignore[misc]
-            if not response_result.success or response_result.data is None:
-                return FlextResult[dict[str, object]].fail(f"Get user failed: {response_result.error}")
-
-            response = response_result.data
+            response_result = await self._api_client.get("/auth/me")
+            response = response_result.unwrap_or(None)
+            if response is None:
+                return FlextResult[dict[str, object]].fail(
+                    "Get user failed: No response"
+                )
             status_code = getattr(response, "status_code", None)
             if status_code == HTTP_OK:
                 json_data: dict[str, object] = getattr(response, "json", dict)()
                 return FlextResult[dict[str, object]].ok(json_data)
-            return FlextResult[dict[str, object]].fail(f"Get user failed: {status_code}")
+            return FlextResult[dict[str, object]].fail(
+                f"Get user failed: {status_code}"
+            )
 
         except Exception as e:
             logger.exception("Get user failed")

@@ -259,7 +259,7 @@ class FlextCliFormatterService(FlextCliService[str]):
         if format_type not in self.supported_formats:
             return FlextResult[None].fail(
                 f"Unsupported format: {format_type}. "
-                 f"Supported formats: {', '.join(self.supported_formats)}",
+                f"Supported formats: {', '.join(self.supported_formats)}",
             )
         return FlextResult[None].ok(None)
 
@@ -498,7 +498,9 @@ class FlextCliServiceFactory:
                 "FlextCliCommandService is abstract - use concrete implementation",
             )
         except Exception as e:
-            return FlextResult[FlextCliCommandService[object]].fail(f"Failed to create command service: {e}")
+            return FlextResult[FlextCliCommandService[object]].fail(
+                f"Failed to create command service: {e}"
+            )
 
     @staticmethod
     def create_formatter_service(
@@ -524,7 +526,9 @@ class FlextCliServiceFactory:
                 "FlextCliFormatterService is abstract - use concrete implementation",
             )
         except Exception as e:
-            return FlextResult[FlextCliFormatterService].fail(f"Failed to create formatter service: {e}")
+            return FlextResult[FlextCliFormatterService].fail(
+                f"Failed to create formatter service: {e}"
+            )
 
     @staticmethod
     def create_validator_service(
@@ -550,7 +554,9 @@ class FlextCliServiceFactory:
                 "FlextCliValidatorService is abstract - use concrete implementation",
             )
         except Exception as e:
-            return FlextResult[FlextCliValidatorService].fail(f"Failed to create validator service: {e}")
+            return FlextResult[FlextCliValidatorService].fail(
+                f"Failed to create validator service: {e}"
+            )
 
     @staticmethod
     def create_interactive_service(
@@ -576,7 +582,9 @@ class FlextCliServiceFactory:
                 "FlextCliInteractiveService is abstract - use concrete implementation",
             )
         except Exception as e:
-            return FlextResult[FlextCliInteractiveService].fail(f"Failed to create interactive service: {e}")
+            return FlextResult[FlextCliInteractiveService].fail(
+                f"Failed to create interactive service: {e}"
+            )
 
 
 # =============================================================================
