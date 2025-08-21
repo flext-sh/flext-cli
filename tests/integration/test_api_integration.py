@@ -11,7 +11,8 @@ from __future__ import annotations
 
 from flext_core import FlextResult
 
-from flext_cli import CLICommand, CommandType, FlextCliApi
+from flext_cli import CLICommand, CLIPlugin, FlextCliApi
+from flext_cli.domain.entities import FlextCliCommandType
 
 
 class TestFlextCliApiIntegration:
@@ -78,11 +79,11 @@ class TestFlextCliApiIntegration:
         assert isinstance(result, FlextResult)
         assert result.success
 
-        command = result.unwrap()
+        command = result.value
         assert isinstance(command, CLICommand)
         assert command.name == "test-command"
         assert command.command_line == "echo hello"
-        assert command.command_type == CommandType.SYSTEM
+        assert command.command_type == FlextCliCommandType.SYSTEM
         assert command.description == "Test command"
         assert command.timeout == 60
 
@@ -112,8 +113,8 @@ class TestFlextCliApiIntegration:
         assert result1.success
         assert result2.success
 
-        session_id1 = result1.unwrap()
-        session_id2 = result2.unwrap()
+        session_id1 = result1.value
+        session_id2 = result2.value
 
         assert isinstance(session_id1, str)
         assert isinstance(session_id2, str)
@@ -137,7 +138,7 @@ class TestFlextCliApiIntegration:
         exec_result = api.flext_cli_execute_handler("add", 5, 3)
         assert isinstance(exec_result, FlextResult)
         assert exec_result.success
-        assert exec_result.unwrap() == 8
+        assert exec_result.value == 8
 
     def test_api_handler_registration_invalid_handler(self) -> None:
         """Test handler registration with invalid handler."""
@@ -170,7 +171,7 @@ class TestFlextCliApiIntegration:
 
         assert isinstance(result, FlextResult)
         assert result.success
-        rendered = result.unwrap()
+        rendered = result.value
         assert isinstance(rendered, str)
         assert len(rendered) > 0
 
@@ -184,7 +185,7 @@ class TestFlextCliApiIntegration:
 
         assert isinstance(result, FlextResult)
         assert result.success
-        rendered = result.unwrap()
+        rendered = result.value
         assert isinstance(rendered, str)
         assert "# Test Data" in rendered  # Title should be added
 
@@ -215,7 +216,7 @@ class TestFlextCliApiIntegration:
         # Create a session
         session_result = api.flext_cli_create_session("test_user")
         assert session_result.success
-        session_id = session_result.unwrap()
+        session_id = session_result.value
 
         # Check sessions are tracked
         sessions = api.flext_cli_get_sessions()
@@ -233,15 +234,15 @@ class TestFlextCliApiIntegration:
         """Test plugin registration integration with flext-plugin."""
         api = FlextCliApi()
 
-        # Create a mock plugin object
-        class MockPlugin:
-            def __init__(self, name: str) -> None:
-                self.name = name
-
-        mock_plugin = MockPlugin("test-plugin")
+        # Create a real plugin instance
+        real_plugin = CLIPlugin(
+            name="test-plugin",
+            version="1.0.0",
+            description="Test plugin for integration tests"
+        )
 
         # Register plugin - this should work with real flext-plugin integration
-        result = api.flext_cli_register_plugin("test-plugin", mock_plugin)
+        result = api.flext_cli_register_plugin("test-plugin", real_plugin)
         assert isinstance(result, FlextResult)
         # Note: This might fail if flext-plugin dependencies aren't available
         # but the important thing is it uses real FlextPluginService

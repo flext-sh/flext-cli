@@ -512,9 +512,7 @@ class TestFlextCliDataProcessor:
         input_data = {"email": "test@example.com"}
 
         # Create valid workflow steps as list of tuples
-        steps = [
-            ("validate_email", FlextResult[dict[str, object]].ok)
-        ]
+        steps = [("validate_email", FlextResult[dict[str, object]].ok)]
 
         result = processor.flext_cli_process_workflow(input_data, steps)
 
@@ -580,7 +578,9 @@ class TestFlextCliFileManager:
         """Test backup_and_process with basic operation."""
         manager = FlextCliFileManager()
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as temp_file:
             temp_file.write("original content")
             temp_file_path = temp_file.name
 
@@ -609,7 +609,9 @@ class TestFlextCliFileManager:
             # Should succeed
             assert isinstance(result, FlextResult)
             if result.success:
-                assert Path(temp_file_path).read_text(encoding="utf-8") == "test content"
+                assert (
+                    Path(temp_file_path).read_text(encoding="utf-8") == "test content"
+                )
         finally:
             Path(temp_file_path).unlink()
 

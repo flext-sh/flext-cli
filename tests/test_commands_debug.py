@@ -15,7 +15,6 @@ import sys
 from pathlib import Path
 
 import click
-import pytest
 from click.testing import CliRunner
 from flext_core import FlextConstants
 from rich.console import Console
@@ -42,7 +41,7 @@ class TestDebugCommandReal:
         assert isinstance(debug_cmd, click.Group)
         assert debug_cmd.name == "debug"
         assert debug_cmd.help == "Debug commands for FLEXT CLI."
-        
+
         # Test that it has the click group attributes
         assert hasattr(debug_cmd, "commands")
         assert isinstance(debug_cmd.commands, dict)
@@ -52,7 +51,7 @@ class TestDebugCommandReal:
         commands = list(debug_cmd.commands.keys())
         expected_commands = [
             "connectivity",
-            "performance", 
+            "performance",
             "validate",
             "trace",
             "env",
@@ -62,10 +61,12 @@ class TestDebugCommandReal:
         # Verify all expected commands are registered
         for cmd in expected_commands:
             assert cmd in commands, f"Missing command: {cmd}"
-        
+
         # Verify commands are proper click commands
         for cmd_name, cmd_obj in debug_cmd.commands.items():
-            assert isinstance(cmd_obj, click.Command), f"Command {cmd_name} is not a Click command"
+            assert isinstance(cmd_obj, click.Command), (
+                f"Command {cmd_name} is not a Click command"
+            )
             assert callable(cmd_obj), f"Command {cmd_name} is not callable"
 
 
@@ -82,7 +83,7 @@ class TestConnectivityCommandReal:
         # Test that connectivity is a proper click command
         assert isinstance(connectivity, click.Command)
         assert callable(connectivity)
-        
+
         # Test command help text
         result = self.runner.invoke(connectivity, ["--help"])
         assert result.exit_code == 0
@@ -93,13 +94,13 @@ class TestConnectivityCommandReal:
         # Create real context object
         context = FlextCliUtilities.create_test_context()
         console = context["console"]
-        
+
         # Run connectivity command with real console
         result = self.runner.invoke(connectivity, [], obj={"console": console})
-        
+
         # Command should complete (success or controlled failure)
         assert result.exit_code in [0, 1]  # Either success or expected network failure
-        
+
         # Test with isolated runner that doesn't depend on external services
         isolated_result = self.runner.invoke(connectivity, ["--help"])
         assert isolated_result.exit_code == 0
@@ -120,7 +121,7 @@ class TestPerformanceCommandReal:
 
     def test_performance_command_structure_real(self) -> None:
         """Test performance command structure without mocking."""
-        # Test that performance is a proper click command  
+        # Test that performance is a proper click command
         assert isinstance(performance, click.Command)
         assert callable(performance)
 
@@ -129,10 +130,10 @@ class TestPerformanceCommandReal:
         # Create real context
         context = FlextCliUtilities.create_test_context()
         console = context["console"]
-        
+
         # Run performance command with real console
         result = self.runner.invoke(performance, [], obj={"console": console})
-        
+
         # Command should complete (success or controlled failure)
         assert result.exit_code in [0, 1]  # Either success or expected API failure
 
@@ -160,10 +161,10 @@ class TestValidateCommandReal:
         # Create real context
         context = FlextCliUtilities.create_test_context()
         console = context["console"]
-        
+
         # Run validate command with real console
         result = self.runner.invoke(validate, [], obj={"console": console})
-        
+
         # Validation should complete
         assert result.exit_code in [0, 1]  # Success or validation warnings/errors
 
@@ -171,10 +172,10 @@ class TestValidateCommandReal:
         """Test validation shows real Python version information."""
         # Run validate and capture output
         result = self.runner.invoke(validate, [], obj={"console": Console()})
-        
+
         # Should complete regardless of validation results
         assert result.exit_code in [0, 1]
-        
+
         # Verify we can access real Python version
         assert sys.version_info.major >= 3
         assert sys.version_info.minor >= 11  # FLEXT requires Python 3.11+
@@ -185,7 +186,7 @@ class TestValidateCommandReal:
         config = get_config()
         assert config is not None
         assert hasattr(config, "config_dir")
-        
+
         # Verify config directory is a Path object
         assert isinstance(config.config_dir, Path)
 
@@ -212,11 +213,9 @@ class TestTraceCommandReal:
         """Test trace command execution with real implementation."""
         # Test trace with some arguments
         result = self.runner.invoke(
-            trace,
-            ["echo", "hello", "world"],
-            obj={"console": Console()}
+            trace, ["echo", "hello", "world"], obj={"console": Console()}
         )
-        
+
         # Command should complete successfully
         assert result.exit_code == 0
 
@@ -243,7 +242,7 @@ class TestEnvCommandReal:
         """Test env command execution with real environment variables."""
         # Run env command with real console
         result = self.runner.invoke(env, [], obj={"console": Console()})
-        
+
         # Command should complete successfully
         assert result.exit_code == 0
 
@@ -253,11 +252,13 @@ class TestEnvCommandReal:
         original_env = dict(os.environ)
         try:
             os.environ["FLX_DEBUG"] = "true"
-            os.environ["FLX_API_URL"] = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
-            
+            os.environ["FLX_API_URL"] = (
+                f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
+            )
+
             result = self.runner.invoke(env, [], obj={"console": Console()})
             assert result.exit_code == 0
-            
+
         finally:
             # Restore original environment
             os.environ.clear()
@@ -272,10 +273,10 @@ class TestEnvCommandReal:
             for key in list(os.environ.keys()):
                 if key.startswith("FLX_"):
                     del os.environ[key]
-            
+
             result = self.runner.invoke(env, [], obj={"console": Console()})
             assert result.exit_code == 0
-            
+
         finally:
             # Restore original environment
             os.environ.clear()
@@ -304,7 +305,7 @@ class TestPathsCommandReal:
         """Test paths command execution with real filesystem paths."""
         # Run paths command with real console
         result = self.runner.invoke(paths, [], obj={"console": Console()})
-        
+
         # Command should complete successfully
         assert result.exit_code == 0
 
@@ -313,11 +314,11 @@ class TestPathsCommandReal:
         # Get actual config for real paths
         config = get_config()
         assert config is not None
-        
+
         # Verify config has real path information
         assert hasattr(config, "config_dir")
         assert isinstance(config.config_dir, Path)
-        
+
         # Test the command execution
         result = self.runner.invoke(paths, [], obj={"console": Console()})
         assert result.exit_code == 0
@@ -328,7 +329,7 @@ class TestPathsCommandReal:
         home_path = Path.home()
         assert home_path.exists()
         assert home_path.is_dir()
-        
+
         # Run paths command
         result = self.runner.invoke(paths, [], obj={"console": Console()})
         assert result.exit_code == 0
@@ -347,27 +348,38 @@ class TestDebugIntegrationReal:
         """Test that all debug commands are properly registered with real verification."""
         # Get all command functions
         command_functions = [connectivity, performance, validate, trace, env, paths]
-        
+
         # Verify they all have click decorators
         for func in command_functions:
             func_name = getattr(func, "__name__", "unknown_function")
-            assert isinstance(func, click.Command), f"Function {func_name} is not a Click command"
+            assert isinstance(func, click.Command), (
+                f"Function {func_name} is not a Click command"
+            )
             assert callable(func), f"Function {func_name} is not callable"
-        
+
         # Verify they're all part of the debug group
         registered_commands = debug_cmd.commands
         assert len(registered_commands) >= 6, "Missing commands in debug group"
-        
+
         # Verify each expected command is registered
-        expected_commands = ["connectivity", "performance", "validate", "trace", "env", "paths"]
+        expected_commands = [
+            "connectivity",
+            "performance",
+            "validate",
+            "trace",
+            "env",
+            "paths",
+        ]
         for cmd_name in expected_commands:
-            assert cmd_name in registered_commands, f"Command {cmd_name} not registered in debug group"
+            assert cmd_name in registered_commands, (
+                f"Command {cmd_name} not registered in debug group"
+            )
 
     def test_debug_group_help_real(self) -> None:
         """Test debug group help text with real implementation."""
         assert debug_cmd.help == "Debug commands for FLEXT CLI."
         assert debug_cmd.name == "debug"
-        
+
         # Test help invocation
         runner = CliRunner()
         result = runner.invoke(debug_cmd, ["--help"])
@@ -381,12 +393,12 @@ class TestDebugIntegrationReal:
         assert config is not None
         assert hasattr(config, "config_dir")
         assert isinstance(config.config_dir, Path)
-        
+
         # Test that validate command uses real config
         runner = CliRunner()
         result = runner.invoke(validate, [], obj={"console": Console()})
         assert result.exit_code in [0, 1]  # Success or validation issues
-        
+
         # Test that paths command uses real config
         result = runner.invoke(paths, [], obj={"console": Console()})
         assert result.exit_code == 0
@@ -396,11 +408,11 @@ class TestDebugIntegrationReal:
         # Test that we can get real platform information
         system_info = platform.system()
         assert system_info in ["Linux", "Darwin", "Windows"]
-        
+
         release_info = platform.release()
         assert isinstance(release_info, str)
         assert len(release_info) > 0
-        
+
         machine_info = platform.machine()
         assert isinstance(machine_info, str)
         assert len(machine_info) > 0
@@ -411,14 +423,14 @@ class TestDebugIntegrationReal:
         console = Console()
         assert hasattr(console, "print")
         assert callable(console.print)
-        
+
         # Test commands work with real console
         runner = CliRunner()
-        
+
         # Test env command with real console
         result = runner.invoke(env, [], obj={"console": console})
         assert result.exit_code == 0
-        
+
         # Test paths command with real console
         result = runner.invoke(paths, [], obj={"console": console})
         assert result.exit_code == 0
@@ -428,7 +440,7 @@ class TestDebugIntegrationReal:
         runner = CliRunner()
         console = Console()
         context = {"console": console}
-        
+
         # Test all debug commands in sequence
         commands_to_test = [
             ("env", []),
@@ -436,7 +448,7 @@ class TestDebugIntegrationReal:
             ("trace", ["echo", "test"]),
             ("validate", []),
         ]
-        
+
         for cmd_name, args in commands_to_test:
             result = runner.invoke(debug_cmd.commands[cmd_name], args, obj=context)
             # Commands should complete (may succeed or fail gracefully)
@@ -445,12 +457,12 @@ class TestDebugIntegrationReal:
     def test_error_handling_real(self) -> None:
         """Test debug commands handle real errors gracefully."""
         runner = CliRunner()
-        
+
         # Test with invalid context (should handle gracefully)
         result = runner.invoke(env, [], obj={})
-        # Should either work or fail gracefully 
+        # Should either work or fail gracefully
         assert result.exit_code in [0, 1]
-        
+
         # Test trace with no arguments (should handle gracefully)
         result = runner.invoke(trace, [], obj={"console": Console()})
         assert result.exit_code in [0, 1]
@@ -459,12 +471,12 @@ class TestDebugIntegrationReal:
         """Test debug commands work with real system dependencies."""
         # Verify Python version requirements
         assert sys.version_info >= (3, 11), "Python 3.11+ required for FLEXT"
-        
+
         # Verify we can import required modules
         import click  # noqa: F401
         import rich  # noqa: F401
         import yaml  # noqa: F401
-        
+
         # Verify constants are accessible
         assert hasattr(FlextConstants, "Platform")
         assert hasattr(FlextConstants.Platform, "DEFAULT_HOST")
@@ -477,42 +489,53 @@ class TestDebugCommandsRealFunctionality:
     def test_debug_commands_help_consistency_real(self) -> None:
         """Test that all debug commands have consistent help formatting."""
         runner = CliRunner()
-        
-        command_names = ["connectivity", "performance", "validate", "trace", "env", "paths"]
-        
+
+        command_names = [
+            "connectivity",
+            "performance",
+            "validate",
+            "trace",
+            "env",
+            "paths",
+        ]
+
         for cmd_name in command_names:
             result = runner.invoke(debug_cmd.commands[cmd_name], ["--help"])
             assert result.exit_code == 0, f"Help failed for {cmd_name}"
             assert len(result.output) > 0, f"No help output for {cmd_name}"
-            assert cmd_name in result.output.lower(), f"Command name not in help for {cmd_name}"
+            assert cmd_name in result.output.lower(), (
+                f"Command name not in help for {cmd_name}"
+            )
 
     def test_debug_commands_context_handling_real(self) -> None:
         """Test that debug commands handle context properly."""
         runner = CliRunner()
-        
+
         # Test with proper context
         proper_context = {"console": Console()}
-        
+
         # Test commands that should work with proper context
         safe_commands = ["env", "paths", "trace"]
-        
+
         for cmd_name in safe_commands:
             result = runner.invoke(debug_cmd.commands[cmd_name], [], obj=proper_context)
-            assert result.exit_code in [0, 1], f"Command {cmd_name} failed with proper context"
+            assert result.exit_code in [0, 1], (
+                f"Command {cmd_name} failed with proper context"
+            )
 
     def test_debug_commands_real_output_real(self) -> None:
         """Test that debug commands produce real output."""
         runner = CliRunner()
         console = Console()
-        
+
         # Capture what the trace command does
         result = runner.invoke(trace, ["echo", "hello"], obj={"console": console})
         assert result.exit_code == 0
-        
+
         # Test that env command completes
         result = runner.invoke(env, [], obj={"console": console})
         assert result.exit_code == 0
-        
+
         # Test that paths command completes
         result = runner.invoke(paths, [], obj={"console": console})
         assert result.exit_code == 0
@@ -524,12 +547,12 @@ class TestDebugCommandTypeSafety:
     def test_debug_commands_are_click_commands_real(self) -> None:
         """Test that all debug commands are proper Click commands."""
         commands = [connectivity, performance, validate, trace, env, paths]
-        
+
         for cmd in commands:
             # Test that it's a click command
             assert isinstance(cmd, click.Command)
             assert callable(cmd)
-            
+
             # Test that it has proper click attributes
             assert hasattr(cmd, "name") or hasattr(cmd, "__name__")
 
@@ -538,8 +561,10 @@ class TestDebugCommandTypeSafety:
         assert isinstance(debug_cmd, click.Group)
         assert hasattr(debug_cmd, "commands")
         assert isinstance(debug_cmd.commands, dict)
-        
+
         # Verify all registered commands are click objects
         for cmd_name, cmd_obj in debug_cmd.commands.items():
             assert callable(cmd_obj), f"Command {cmd_name} is not callable"
-            assert isinstance(cmd_obj, click.Command), f"Command {cmd_name} is not a Click command"
+            assert isinstance(cmd_obj, click.Command), (
+                f"Command {cmd_name} is not a Click command"
+            )

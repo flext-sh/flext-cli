@@ -100,7 +100,9 @@ class TestTokenManagement:
     @patch("flext_cli.cli_auth.get_token_path")
     def test_get_auth_token_success(self, mock_get_path: MagicMock) -> None:
         """Test successful auth token retrieval."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as temp_file:
             temp_file.write("test_auth_token")
             temp_file.flush()
             temp_path = Path(temp_file.name)
@@ -124,7 +126,9 @@ class TestTokenManagement:
     @patch("flext_cli.cli_auth.get_refresh_token_path")
     def test_get_refresh_token_success(self, mock_get_path: MagicMock) -> None:
         """Test successful refresh token retrieval."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as temp_file:
             temp_file.write("refresh_token_value")
             temp_file.flush()
             temp_path = Path(temp_file.name)
@@ -422,11 +426,14 @@ class TestIntegrationScenarios:
     def test_auth_workflow_failures(self) -> None:
         """Test authentication workflow with failures."""
         # Test with non-existent paths
-        with patch(
-            "flext_cli.cli_auth.get_token_path", return_value=Path("/nonexistent")
-        ), patch(
-            "flext_cli.cli_auth.get_refresh_token_path",
-            return_value=Path("/nonexistent"),
+        with (
+            patch(
+                "flext_cli.cli_auth.get_token_path", return_value=Path("/nonexistent")
+            ),
+            patch(
+                "flext_cli.cli_auth.get_refresh_token_path",
+                return_value=Path("/nonexistent"),
+            ),
         ):
             assert not is_authenticated()
             assert not should_auto_refresh()

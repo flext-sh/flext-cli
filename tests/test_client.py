@@ -7,14 +7,38 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from dataclasses import dataclass
+from typing import Any
 
 from flext_cli import FlextApiClient
 
-# Mock the missing classes
-Pipeline = MagicMock
-PipelineConfig = MagicMock
-PipelineList = MagicMock
+
+@dataclass
+class PipelineConfig:
+    """Real pipeline configuration class."""
+    name: str
+    tap: str
+    target: str
+
+
+@dataclass
+class Pipeline:
+    """Real pipeline class."""
+    id: str
+    name: str
+    status: str
+    created_at: str
+    updated_at: str
+    config: PipelineConfig
+
+
+@dataclass
+class PipelineList:
+    """Real pipeline list class."""
+    pipelines: list[Pipeline]
+    total: int
+    page: int = 1
+    page_size: int = 20
 
 
 class TestFlextApiClient:

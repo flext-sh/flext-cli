@@ -370,7 +370,12 @@ class TestYAMLFormatter(unittest.TestCase):
 
     def test_yaml_formatter_numeric_types(self) -> None:
         """Test YAML formatting with various numeric types."""
-        test_data = {"integer": 42, "float": math.pi, "scientific": 1e6, "negative": -17}
+        test_data = {
+            "integer": 42,
+            "float": math.pi,
+            "scientific": 1e6,
+            "negative": -17,
+        }
 
         self.formatter.format(test_data, self.console)
 

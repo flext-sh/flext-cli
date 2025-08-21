@@ -12,7 +12,7 @@ from __future__ import annotations
 import contextlib
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from flext_cli import (
     clear_auth_tokens,
@@ -71,7 +71,7 @@ class TestSaveAuthToken:
                 result = save_auth_token("test-token-123")
 
                 assert result.success
-                assert result.unwrap() is None
+                assert result.value is None
                 assert token_path.exists()
                 if token_path.read_text() != "test-token-123":
                     raise AssertionError(
@@ -165,7 +165,7 @@ class TestSaveRefreshToken:
                 result = save_refresh_token("refresh-token-789")
 
                 assert result.success
-                assert result.unwrap() is None
+                assert result.value is None
                 assert refresh_token_path.exists()
                 if refresh_token_path.read_text() != "refresh-token-789":
                     raise AssertionError(
@@ -356,7 +356,7 @@ class TestClearAuthTokens:
                 result = clear_auth_tokens()
 
                 assert result.success
-                assert result.unwrap() is None
+                assert result.value is None
                 assert not token_path.exists()
                 assert not refresh_token_path.exists()
 

@@ -164,7 +164,7 @@ class TestFlextCoreDomainEntityIntegration:
         # Add command - check if method exists and returns proper result
         command_id = str(uuid.uuid4())
         add_result = session.add_command(command_id)
-        
+
         # Handle FlextResult return type
         if hasattr(add_result, "success") and add_result.success:
             updated_session = add_result.value
@@ -193,10 +193,15 @@ class TestFlextCoreDomainEntityIntegration:
         assert hasattr(plugin, "updated_at") or hasattr(plugin, "created_at")
 
         # Initial state - check available plugin status values
-        plugin_status_attrs = [attr for attr in dir(PluginStatus) if not attr.startswith('_')]
+        plugin_status_attrs = [
+            attr for attr in dir(PluginStatus) if not attr.startswith("_")
+        ]
         assert hasattr(plugin, "plugin_status")
         # Plugin status should be one of the valid enum values
-        assert str(plugin.plugin_status) in plugin_status_attrs or plugin.plugin_status in plugin_status_attrs
+        assert (
+            str(plugin.plugin_status) in plugin_status_attrs
+            or plugin.plugin_status in plugin_status_attrs
+        )
 
         # Activation - returns FlextResult with new instance (railway-oriented programming)
         activated_result = plugin.activate()
@@ -292,12 +297,10 @@ class TestFlextCoreValidationIntegration:
         except (ValueError, TypeError):
             # Expected validation error
             pass
-        
+
         # Test that valid plugins work
         valid_plugin = CLIPlugin(
-            name="test-plugin",
-            entry_point="test.main",
-            commands=["test"]
+            name="test-plugin", entry_point="test.main", commands=["test"]
         )
         assert valid_plugin.name == "test-plugin"
         assert valid_plugin.entry_point == "test.main"
@@ -333,7 +336,10 @@ class TestFlextCoreValidationIntegration:
         if result.is_failure:
             # Error message should indicate command hasn't been started
             assert result.error is not None
-            assert "start" in result.error.lower() or "cannot complete" in result.error.lower()
+            assert (
+                "start" in result.error.lower()
+                or "cannot complete" in result.error.lower()
+            )
         else:
             # If completion succeeds, verify the command is marked as completed
             completed_command = result.value
@@ -366,7 +372,7 @@ class TestFlextCoreDependencyInjectionIntegration:
             assert context.output_format == "json"
         if "debug" in context_attrs:
             assert context.debug is True
-        
+
         # Alternative: check if context has configuration data
         if hasattr(context, "config"):
             assert context.config is not None

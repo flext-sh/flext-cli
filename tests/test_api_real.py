@@ -337,12 +337,15 @@ class TestFlextCliRealWorldScenarios:
     def test_performance_with_real_data(self) -> None:
         """Test REAL performance with larger datasets."""
         # Generate larger dataset for performance testing
-        large_data = [{
-                    "id": i,
-                    "category": f"cat_{i % 10}",
-                    "value": i * 1.5,
-                    "enabled": i % 2 == 0,
-                } for i in range(1000)]
+        large_data = [
+            {
+                "id": i,
+                "category": f"cat_{i % 10}",
+                "value": i * 1.5,
+                "enabled": i % 2 == 0,
+            }
+            for i in range(1000)
+        ]
 
         # Test aggregation performance (REAL processing)
         agg_result = flext_cli_aggregate_data(

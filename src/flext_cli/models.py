@@ -18,7 +18,7 @@ from flext_core import (
     FlextEntity,
     FlextEntityId,
     FlextResult,
-    FlextValueObject,
+    FlextValue,
     get_logger,
 )
 from pydantic import ConfigDict, Field, field_validator
@@ -130,7 +130,7 @@ class FlextCliOutputFormat(StrEnum):
 # =============================================================================
 
 
-class FlextCliContext(FlextValueObject):
+class FlextCliContext(FlextValue):
     """CLI execution context value object.
 
     Immutable context containing execution environment, user information,
@@ -266,7 +266,7 @@ class FlextCliContext(FlextValueObject):
 FlextCliContext.model_rebuild()
 
 
-class FlextCliOutput(FlextValueObject):
+class FlextCliOutput(FlextValue):
     """CLI command output value object.
 
     Immutable container for command execution results including stdout,
@@ -362,7 +362,7 @@ class FlextCliOutput(FlextValueObject):
         return "\n\n".join(result)
 
 
-class FlextCliConfiguration(FlextValueObject):
+class FlextCliConfiguration(FlextValue):
     """CLI configuration value object.
 
     Immutable configuration container for CLI application settings,

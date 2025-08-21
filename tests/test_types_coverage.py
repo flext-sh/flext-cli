@@ -156,6 +156,7 @@ class TestTypeCompatibility:
 
         def handler(x):
             return x
+
         config: types.TCliConfig = {"debug": True}
         args: types.TCliArgs = {"arg": "value"}
 

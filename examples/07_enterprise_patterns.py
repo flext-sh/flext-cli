@@ -147,9 +147,7 @@ class Project(FlextEntity):
             return FlextResult[None].fail(validation_result.error)
 
         # Add domain event (simplified for demo)
-        ProjectCreated(
-            project_id=project_id, project_name=name, owner_id=owner_id
-        )
+        ProjectCreated(project_id=project_id, project_name=name, owner_id=owner_id)
         # In real implementation: project.add_domain_event(event)
 
         return FlextResult[None].ok(project)

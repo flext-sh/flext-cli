@@ -22,7 +22,6 @@ from typing import Any
 import pytest
 from flext_core import FlextResult
 from rich.console import Console
-from rich.progress import Progress
 
 from flext_cli import (
     FlextCliConfigMixin,
@@ -55,10 +54,10 @@ class TestFlextCliValidationMixin:
         # Test that the mixin class can be instantiated
         assert self.test_instance is not None
         assert isinstance(self.test_instance, FlextCliValidationMixin)
-        
+
         # Test that the class has the expected methods (as abstract or inherited)
         # In this case, we're testing the structure not specific implementation
-        mixin_methods = ['flext_cli_validate_inputs', 'flext_cli_require_confirmation']
+        mixin_methods = ["flext_cli_validate_inputs", "flext_cli_require_confirmation"]
         for method_name in mixin_methods:
             # Method may exist as abstract or be added by composition
             # We test that the mixin pattern is established correctly
@@ -75,11 +74,12 @@ class TestFlextCliValidationMixin:
 
     def test_flext_cli_validate_inputs_failure(self) -> None:
         """Test validation mixin inheritance chain."""
+
         # Test that mixin can be used in multiple inheritance
         class TestMultipleInheritance(FlextCliValidationMixin, object):
             def __init__(self) -> None:
                 super().__init__()
-        
+
         multi_instance = TestMultipleInheritance()
         assert multi_instance is not None
         assert isinstance(multi_instance, FlextCliValidationMixin)
@@ -96,7 +96,7 @@ class TestFlextCliValidationMixin:
         # Test that the mixin class can work with file paths
         test_file = tmp_path / "test.txt"
         test_file.write_text("content")
-        
+
         # Test that mixin instance can access file system context if needed
         assert test_file.exists()
         # Mixin should be able to conceptually work with file validation
@@ -106,9 +106,10 @@ class TestFlextCliValidationMixin:
         """Test successful confirmation requirement."""
         # Create real helper with manual confirmation simulation
         from flext_cli.core.helpers import FlextCliHelper
+
         helper = FlextCliHelper()
         self.test_instance._helper = helper
-        
+
         # Create a real test that simulates user confirmation
         # In a real test environment, this would be interactive
         # For automated testing, we validate the method exists and can be called
@@ -121,10 +122,11 @@ class TestFlextCliValidationMixin:
     def test_flext_cli_require_confirmation_denied(self) -> None:
         """Test denied confirmation requirement with real helper."""
         from flext_cli.core.helpers import FlextCliHelper
+
         helper = FlextCliHelper()
         self.test_instance._helper = helper
-        
-        # Test mixin class inheritance structure 
+
+        # Test mixin class inheritance structure
         mro = self.test_instance.__class__.__mro__
         assert FlextCliValidationMixin in mro
         assert object in mro
@@ -132,14 +134,15 @@ class TestFlextCliValidationMixin:
     def test_flext_cli_require_confirmation_dangerous(self) -> None:
         """Test dangerous operation confirmation with real functionality."""
         from flext_cli.core.helpers import FlextCliHelper
+
         helper = FlextCliHelper()
         self.test_instance._helper = helper
-        
+
         # Test mixin composition capability
         class TestValidationComposition(FlextCliValidationMixin, object):
             def __init__(self) -> None:
                 super().__init__()
-        
+
         composition_instance = TestValidationComposition()
         assert isinstance(composition_instance, FlextCliValidationMixin)
         assert composition_instance is not None
@@ -175,7 +178,7 @@ class TestFlextCliInteractiveMixin:
         # Test that the mixin class can be instantiated
         assert self.test_instance is not None
         assert isinstance(self.test_instance, FlextCliInteractiveMixin)
-        
+
         # Test that console property works
         console = self.test_instance.console
         assert console is not None
@@ -191,11 +194,12 @@ class TestFlextCliInteractiveMixin:
 
     def test_flext_cli_print_warning(self) -> None:
         """Test interactive mixin inheritance chain."""
+
         # Test multiple inheritance capability
         class TestMixinComposition(FlextCliInteractiveMixin, object):
             def __init__(self) -> None:
                 super().__init__()
-        
+
         composition_instance = TestMixinComposition()
         assert isinstance(composition_instance, FlextCliInteractiveMixin)
         assert composition_instance.console is not None
@@ -205,7 +209,7 @@ class TestFlextCliInteractiveMixin:
         # Test that console can be configured
         custom_console = Console(width=120, legacy_windows=True)
         self.test_instance._flext_cli_console = custom_console
-        
+
         # Verify the custom console is used
         assert self.test_instance.console is custom_console
 
@@ -213,7 +217,7 @@ class TestFlextCliInteractiveMixin:
         """Test interactive mixin with FlextResult integration."""
         # Test that mixin can work with FlextResult patterns
         result = FlextResult[str].ok("Success data")
-        
+
         # Verify FlextResult integration at mixin level
         assert result.success
         assert result.value == "Success data"
@@ -224,7 +228,7 @@ class TestFlextCliInteractiveMixin:
         """Test interactive mixin error handling capability."""
         # Test that mixin can handle error results
         result = FlextResult[str].fail("Error message")
-        
+
         # Verify error result handling
         assert not result.success
         assert result.error == "Error message"
@@ -235,8 +239,8 @@ class TestFlextCliInteractiveMixin:
         """Test interactive mixin confirmation pattern support."""
         # Test that mixin supports confirmation patterns
         assert self.test_instance is not None
-        assert hasattr(self.test_instance, 'console')
-        
+        assert hasattr(self.test_instance, "console")
+
         # Test that mixin can work with confirmation concepts
         console = self.test_instance.console
         assert console is not None
@@ -254,12 +258,12 @@ class TestFlextCliInteractiveMixin:
         """Test interactive mixin console configuration persistence."""
         # Test that console configuration persists across operations
         original_console = self.test_instance.console
-        
+
         # Verify console properties
         assert original_console is not None
-        assert hasattr(original_console, 'print')
-        assert hasattr(original_console, 'width')
-        
+        assert hasattr(original_console, "print")
+        assert hasattr(original_console, "width")
+
         # Console should remain the same instance
         assert self.test_instance.console is original_console
 
@@ -285,19 +289,20 @@ class TestFlextCliProgressMixin:
         # Test that the mixin class can be instantiated
         assert self.test_instance is not None
         assert isinstance(self.test_instance, FlextCliProgressMixin)
-        
+
         # Test console integration
-        assert hasattr(self.test_instance, 'console')
+        assert hasattr(self.test_instance, "console")
         console = self.test_instance.console
         assert isinstance(console, Console)
 
     def test_flext_cli_with_progress(self) -> None:
         """Test progress mixin inheritance patterns."""
+
         # Test multiple inheritance with progress mixin
         class TestProgressMixinComposition(FlextCliProgressMixin, object):
             def __init__(self) -> None:
                 super().__init__()
-        
+
         composition_instance = TestProgressMixinComposition()
         assert isinstance(composition_instance, FlextCliProgressMixin)
         assert composition_instance is not None
@@ -364,9 +369,10 @@ class TestFlextCliResultMixin:
         """Test result handling with success action using real function."""
         # Create real action function instead of mock
         action_called = []
+
         def success_action(data: Any) -> None:
             action_called.append(data)
-        
+
         result = FlextResult[str].ok("success_data")
 
         data = self.test_instance.flext_cli_handle_result(
@@ -382,9 +388,10 @@ class TestFlextCliResultMixin:
         """Test result handling with error action using real function."""
         # Create real action function instead of mock
         action_called = []
+
         def error_action(error: str) -> None:
             action_called.append(error)
-        
+
         result = FlextResult[str].fail("error_message")
 
         data = self.test_instance.flext_cli_handle_result(
@@ -426,7 +433,7 @@ class TestFlextCliConfigMixin:
         # Test that the mixin class can be instantiated
         assert self.test_instance is not None
         assert isinstance(self.test_instance, FlextCliConfigMixin)
-        
+
         # Test mixin inheritance chain
         mro = self.test_instance.__class__.__mro__
         assert FlextCliConfigMixin in mro
@@ -434,11 +441,12 @@ class TestFlextCliConfigMixin:
 
     def test_flext_cli_load_config_with_path(self) -> None:
         """Test config mixin composition capability."""
+
         # Test multiple inheritance with config mixin
         class TestConfigMixinComposition(FlextCliConfigMixin, object):
             def __init__(self) -> None:
                 super().__init__()
-                
+
         composition_instance = TestConfigMixinComposition()
         assert isinstance(composition_instance, FlextCliConfigMixin)
         assert composition_instance is not None
@@ -446,9 +454,9 @@ class TestFlextCliConfigMixin:
     def test_flext_cli_load_config_failure(self) -> None:
         """Test config mixin attribute initialization."""
         # Test that mixin can initialize config attribute
-        if hasattr(self.test_instance, 'config'):
+        if hasattr(self.test_instance, "config"):
             # Config attribute exists - verify it's accessible
-            config = getattr(self.test_instance, 'config')
+            config = getattr(self.test_instance, "config")
             # Config can be None or dict initially
             assert config is None or isinstance(config, dict)
         else:
@@ -478,7 +486,7 @@ class TestFlextCliMixin:
         assert isinstance(self.test_instance, FlextCliProgressMixin)
         assert isinstance(self.test_instance, FlextCliResultMixin)
         assert isinstance(self.test_instance, FlextCliConfigMixin)
-        
+
         # Test MRO includes all mixin classes
         mro = self.test_instance.__class__.__mro__
         assert FlextCliMixin in mro
@@ -490,14 +498,13 @@ class TestFlextCliDecorators:
     def test_flext_cli_auto_validate_success(self) -> None:
         """Test auto validation decorator availability."""
         # Test that decorator can be imported and is callable
-        from flext_cli import flext_cli_auto_validate
         assert callable(flext_cli_auto_validate)
-        
+
         # Test decorator can be applied to functions
         @flext_cli_auto_validate(email="email", url="url")
         def test_function(email: str, url: str) -> FlextResult[str]:
             return FlextResult[str].ok(f"Processing {email} and {url}")
-        
+
         # Verify decorated function exists and has correct name
         assert callable(test_function)
         assert test_function.__name__ == "test_function"
@@ -505,18 +512,18 @@ class TestFlextCliDecorators:
     def test_flext_cli_auto_validate_failure(self) -> None:
         """Test auto validation decorator structure."""
         # Test decorator pattern structure
-        from flext_cli import flext_cli_auto_validate
         assert callable(flext_cli_auto_validate)
-        
+
         # Test decorator preserves function metadata
         @flext_cli_auto_validate(email="email")
         def test_function(email: str) -> FlextResult[str]:
             return FlextResult[str].ok("Success")
-        
+
         # Check function signature is preserved
         import inspect
+
         sig = inspect.signature(test_function)
-        assert 'email' in sig.parameters
+        assert "email" in sig.parameters
 
     def test_flext_cli_handle_exceptions_success(self) -> None:
         """Test exception handling decorator with successful execution."""
@@ -559,17 +566,16 @@ class TestFlextCliDecorators:
     def test_flext_cli_require_confirmation_confirmed(self) -> None:
         """Test confirmation decorator functionality."""
         # Test that decorator exists and can be imported
-        from flext_cli import flext_cli_require_confirmation
         assert callable(flext_cli_require_confirmation)
-        
+
         # Test decorator can be applied to functions
         @flext_cli_require_confirmation("Delete data")
         def test_function() -> FlextResult[str]:
             return FlextResult[str].ok("Data deleted")
-        
+
         # Verify the decorated function exists
         assert callable(test_function)
-        
+
         # In testing environment, interactive input may not work
         # But we can verify the structure is correct
         try:
@@ -586,22 +592,22 @@ class TestFlextCliDecorators:
     def test_flext_cli_require_confirmation_denied(self) -> None:
         """Test confirmation decorator with denial simulation."""
         # Test that decorator exists and can be applied
-        from flext_cli import flext_cli_require_confirmation
         assert callable(flext_cli_require_confirmation)
-        
+
         @flext_cli_require_confirmation("Delete data")
         def test_function() -> FlextResult[str]:
             return FlextResult[str].ok("Data deleted")
-        
+
         # Verify function can be created with decorator
         assert callable(test_function)
-        
+
         # Test decorator preserves function metadata
         assert test_function.__name__ == "test_function"
-        
+
         # In testing environment, we verify the decorator structure
         # rather than interactive behavior
         import inspect
+
         # The decorated function should still be callable
         sig = inspect.signature(test_function)
         assert sig is not None

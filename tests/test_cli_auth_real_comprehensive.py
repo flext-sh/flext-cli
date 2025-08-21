@@ -960,9 +960,10 @@ class TestAsyncWhoamiFunctionality:
             }
         )
 
-        with mock.patch(
-            "flext_cli.cli_auth.get_auth_token", return_value="valid_token"
-        ), mock.patch("flext_cli.cli_auth.FlextApiClient") as mock_client_class:
+        with (
+            mock.patch("flext_cli.cli_auth.get_auth_token", return_value="valid_token"),
+            mock.patch("flext_cli.cli_auth.FlextApiClient") as mock_client_class,
+        ):
             mock_client_class.return_value.__aenter__.return_value = mock_client
 
             async def test_whoami() -> None:
@@ -986,9 +987,7 @@ class TestAsyncWhoamiFunctionality:
                             self.mock_console.print(
                                 f"Role: {user.get('role', 'Unknown')}"
                             )
-                            self.mock_console.print(
-                                f"ID: {user.get('id', 'Unknown')}"
-                            )
+                            self.mock_console.print(f"ID: {user.get('id', 'Unknown')}")
 
                 # Verify all user info was displayed
                 calls = self.mock_console.print.call_args_list
@@ -1020,9 +1019,10 @@ class TestAsyncWhoamiFunctionality:
             "User fetch failed"
         )
 
-        with mock.patch(
-            "flext_cli.cli_auth.get_auth_token", return_value="valid_token"
-        ), mock.patch("flext_cli.cli_auth.FlextApiClient") as mock_client_class:
+        with (
+            mock.patch("flext_cli.cli_auth.get_auth_token", return_value="valid_token"),
+            mock.patch("flext_cli.cli_auth.FlextApiClient") as mock_client_class,
+        ):
             mock_client_class.return_value.__aenter__.return_value = mock_client
 
             async def test_whoami_error() -> None:

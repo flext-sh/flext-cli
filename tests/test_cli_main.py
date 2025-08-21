@@ -9,12 +9,8 @@ from __future__ import annotations
 
 import inspect
 import os
-import sys
-from pathlib import Path
 
-import pytest
 from click.testing import CliRunner
-from flext_core import FlextResult
 
 from flext_cli import cli, main
 from flext_cli.utils_core import FlextCliUtilities
@@ -86,10 +82,10 @@ class TestCliMain:
         # Test that CLI can execute without context errors
         result = self.runner.invoke(cli, ["--debug"])
         assert result.exit_code == 0
-        
+
         # Verify debug output shows actual configuration
         assert "Profile:" in result.output
-        
+
         # Test that configuration can be accessed
         test_config = FlextCliUtilities.create_test_config()
         assert "profile" in test_config
@@ -117,13 +113,14 @@ class TestMainEntryPoint:
         """Test main() function signature and existence."""
         # Verify main function exists and is callable
         assert callable(main)
-        
+
         # Check function signature
         sig = inspect.signature(main)
         assert len(sig.parameters) == 0  # main() takes no parameters
-        
+
         # Verify main function is importable and accessible
         from flext_cli import main as imported_main
+
         assert main is imported_main
 
     def test_main_cli_integration_real(self) -> None:
@@ -135,7 +132,7 @@ class TestMainEntryPoint:
         result = runner.invoke(cli, ["--help"])
         assert result.exit_code == 0
         assert "FLEXT Command Line Interface" in result.output
-        
+
         # Test version command integration
         result = runner.invoke(cli, ["--version"])
         assert result.exit_code == 0
@@ -211,7 +208,7 @@ class TestCliErrorHandling:
         # Test that CLI can read actual environment variables
         original_debug = os.environ.get("FLX_DEBUG")
         original_profile = os.environ.get("FLX_PROFILE")
-        
+
         try:
             # Test with debug environment variable
             os.environ["FLX_DEBUG"] = "true"
@@ -226,14 +223,14 @@ class TestCliErrorHandling:
             assert result.exit_code == 0
             # Should show test profile
             assert "Profile: test" in result.output
-            
+
         finally:
             # Restore original environment
             if original_debug is not None:
                 os.environ["FLX_DEBUG"] = original_debug
             elif "FLX_DEBUG" in os.environ:
                 del os.environ["FLX_DEBUG"]
-                
+
             if original_profile is not None:
                 os.environ["FLX_PROFILE"] = original_profile
             elif "FLX_PROFILE" in os.environ:
@@ -252,13 +249,15 @@ class TestCliConfiguration:
         # Test that CLI can load and use real configuration
         result = self.runner.invoke(cli, ["--debug"])
         assert result.exit_code == 0
-        
+
         # Verify configuration is loaded by checking debug output
         assert "Profile:" in result.output
         assert "Output format:" in result.output
-        
+
         # Test configuration with different values
-        result = self.runner.invoke(cli, ["--profile", "test", "--output", "json", "--debug"])
+        result = self.runner.invoke(
+            cli, ["--profile", "test", "--output", "json", "--debug"]
+        )
         assert result.exit_code == 0
         assert "Profile: test" in result.output
         assert "Output format: json" in result.output
@@ -268,15 +267,15 @@ class TestCliConfiguration:
         # Test that CLI context is created and works properly
         result = self.runner.invoke(cli, ["--debug"])
         assert result.exit_code == 0
-        
+
         # Test that CLI can execute subcommands (proves context works)
         result = self.runner.invoke(cli, ["debug", "env"])
         assert result.exit_code == 0
-        
+
         # Test that CLI can handle configuration commands
         result = self.runner.invoke(cli, ["config", "--help"])
         assert result.exit_code == 0
-        
+
     def test_cli_configuration_validation(self) -> None:
         """Test CLI configuration validation with real values."""
         # Test valid configuration options
@@ -285,7 +284,7 @@ class TestCliConfiguration:
             result = self.runner.invoke(cli, ["--output", fmt, "--debug"])
             assert result.exit_code == 0
             assert f"Output format: {fmt}" in result.output
-        
+
         # Test that CLI configuration can be inspected
         test_config = FlextCliUtilities.create_test_config()
         assert isinstance(test_config, dict)

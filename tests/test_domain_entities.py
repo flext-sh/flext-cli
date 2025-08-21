@@ -124,7 +124,7 @@ class TestCLICommand:
             command_type=CommandType.SYSTEM,
             command_line="echo hello",
         )
-        
+
         # Immutable pattern - each method returns FlextResult[CLICommand]
         running_result = sample_command.start_execution()
         assert running_result.success, f"Start execution failed: {running_result.error}"
@@ -198,14 +198,14 @@ class TestCLICommand:
             name="test",
             command_line="test",
         )
-        
+
         # Start execution to set started_at
         running_result = command.start_execution()
         assert running_result.success, f"Start execution failed: {running_result.error}"
         running_command = running_result.value
         assert running_command is not None
         assert running_command.started_at is not None
-        
+
         # Complete execution and verify duration exists
         completed_result = running_command.complete_execution(exit_code=0)
         assert completed_result.success, (
@@ -213,7 +213,7 @@ class TestCLICommand:
         )
         completed_command = completed_result.value
         assert completed_command is not None
-        
+
         # Duration should be calculated and be a reasonable small value
         assert completed_command.duration_seconds is not None
         assert isinstance(completed_command.duration_seconds, (int, float))
@@ -235,7 +235,7 @@ class TestCLIPlugin:
             enabled=True,
             installed=False,
         )
-        
+
         if sample_plugin.name != "test-plugin":
             raise AssertionError(f"Expected {'test-plugin'}, got {sample_plugin.name}")
         assert (
@@ -260,7 +260,7 @@ class TestCLIPlugin:
             enabled=True,
             installed=False,
         )
-        
+
         # Install plugin - FlextResult pattern
         install_result = sample_plugin.install()
         assert install_result.success, f"Install failed: {install_result.error}"
@@ -323,7 +323,7 @@ class TestCLISession:
             environment={"TEST": "true"},
             active=True,
         )
-        
+
         if sample_session.session_id != "test-session-123":
             raise AssertionError(
                 f"Expected {'test-session-123'}, got {sample_session.session_id}",
@@ -349,7 +349,7 @@ class TestCLISession:
             environment={"TEST": "true"},
             active=True,
         )
-        
+
         # Add commands to session
         command_id_1 = "cmd-1"
         command_id_2 = "cmd-2"
@@ -382,7 +382,7 @@ class TestCLISession:
             environment={"TEST": "true"},
             active=True,
         )
-        
+
         # Sessions are immutable, so methods return FlextResult with new instances
         result1 = sample_session.add_command("cmd-1")
         assert result1.success, f"Add command failed: {result1.error}"
@@ -400,20 +400,20 @@ class TestCLISession:
         """Test session activity tracking with real timestamp implementation."""
         # Record time before creating session
         before_time = datetime.now(tz=UTC)
-        
+
         session = CLISession(id="test_session_001", session_id="test")
         result = session.add_command("cmd-1")
         assert result.success, f"Add command failed: {result.error}"
         updated_session = result.value
-        
+
         # Record time after session update
         after_time = datetime.now(tz=UTC)
-        
+
         # Verify last_activity is within reasonable time range
         assert updated_session.last_activity is not None
         assert isinstance(updated_session.last_activity, datetime)
         assert before_time <= updated_session.last_activity <= after_time
-        
+
         # Time difference should be very small (less than 1 second)
         time_diff = updated_session.last_activity - before_time
         assert time_diff.total_seconds() < 1.0

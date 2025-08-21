@@ -99,7 +99,9 @@ class TestAuthTokenManagement:
 
     def test_get_auth_token_success(self) -> None:
         """Test successful auth token retrieval."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as temp_file:
             temp_file.write("test_auth_token")
             temp_file.flush()
             temp_path = Path(temp_file.name)
@@ -120,7 +122,9 @@ class TestAuthTokenManagement:
 
     def test_get_refresh_token_success(self) -> None:
         """Test successful refresh token retrieval."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as temp_file:
             temp_file.write("refresh_token_value")
             temp_file.flush()
             temp_path = Path(temp_file.name)
@@ -313,7 +317,9 @@ class TestAuthUtilities:
 
     def test_is_authenticated_true(self) -> None:
         """Test is_authenticated when token exists."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as temp_file:
             temp_file.write("valid_token")
             temp_file.flush()
             temp_path = Path(temp_file.name)
@@ -332,7 +338,9 @@ class TestAuthUtilities:
 
     def test_is_authenticated_false_empty_token(self) -> None:
         """Test is_authenticated when token file is empty."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as temp_file:
             temp_file.write("")  # Empty token
             temp_file.flush()
             temp_path = Path(temp_file.name)
@@ -345,7 +353,9 @@ class TestAuthUtilities:
 
     def test_refresh_auth_token_success(self) -> None:
         """Test successful auth token refresh."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as refresh_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as refresh_file:
             refresh_file.write("valid_refresh_token")
             refresh_file.flush()
             refresh_path = Path(refresh_file.name)
