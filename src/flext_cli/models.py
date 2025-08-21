@@ -493,7 +493,7 @@ class FlextCliCommand(FlextEntity):
     # Allow unknown/convenience fields and id auto-generation
     model_config = ConfigDict(extra="allow")
     # Override id to allow default generation for testing convenience
-    id: FlextEntityId = Field(
+    id: FlextEntityId | str = Field(
         default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex),
     )
     name: str | None = Field(default=None, description="Optional command name")
@@ -868,7 +868,7 @@ class FlextCliSession(FlextEntity):
     # Allow unknown convenience fields and provide default id
     model_config = ConfigDict(extra="allow")
     # Provide default id for testing convenience that omit it
-    id: FlextEntityId = Field(
+    id: FlextEntityId | str = Field(
         default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex),
     )
     user_id: str | None = Field(
@@ -1194,7 +1194,7 @@ class FlextCliPlugin(FlextEntity):
     # Allow unknown convenience fields and provide default id
     model_config = ConfigDict(extra="allow")
     # Provide default id for testing convenience that omit it
-    id: FlextEntityId = Field(
+    id: FlextEntityId | str = Field(
         default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex),
     )
     name: str = Field(
