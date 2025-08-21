@@ -13,7 +13,6 @@ import os
 import tempfile
 import time
 from pathlib import Path
-from unittest.mock import patch
 
 import yaml
 from click.testing import CliRunner
@@ -378,7 +377,7 @@ class TestE2EIntegrationWithCore:
         result = setup_cli(settings)
 
         assert result.success
-        assert result.unwrap() is True
+        assert result.value is True
 
     def test_domain_entity_lifecycle_workflow(self) -> None:
         """Test domain entity lifecycle in CLI context."""
@@ -449,19 +448,32 @@ class TestE2EConfigurationWorkflows:
 
     def test_environment_variable_workflow(self) -> None:
         """Test environment variable configuration workflow."""
-        # Test with environment variables
+        # Test with environment variables using real environment manipulation
         test_env = {
             "FLEXT_CLI_DEBUG": "true",
             "FLEXT_CLI_PROFILE": "test",
             "FLEXT_CLI_LOG_LEVEL": "DEBUG",
         }
 
-        with patch.dict(os.environ, test_env):
+        # Save original environment values
+        original_values = {}
+        for key, value in test_env.items():
+            original_values[key] = os.environ.get(key)
+            os.environ[key] = value
+
+        try:
             runner = CliRunner()
 
             # Commands should pick up environment variables
             result = runner.invoke(cli, ["config", "show"])
             assert result.exit_code == 0
+        finally:
+            # Restore original environment
+            for key, original_value in original_values.items():
+                if original_value is not None:
+                    os.environ[key] = original_value
+                elif key in os.environ:
+                    del os.environ[key]
 
     def test_profile_switching_workflow(self) -> None:
         """Test profile switching workflow."""

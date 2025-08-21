@@ -207,7 +207,7 @@ def cli_quick_setup(
                 f"Directory {project_path} exists. Continue?",
                 default=False,
             )
-            if not confirmation.success or not confirmation.data:
+            if not confirmation.success or not confirmation.value:
                 return FlextResult[dict[str, object]].fail("Setup cancelled")
 
         # Create directory structure

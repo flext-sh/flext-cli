@@ -785,7 +785,9 @@ class FlextCliApi:
                 # Type the session data with specific structure
                 session_data: dict[str, object] = {}
                 for k, v in sdata.items():
-                    session_data[str(k)] = v
+                    key_str: str = str(k)
+                    value_obj: object = v
+                    session_data[key_str] = value_obj
 
                 cmds_raw = session_data.get("commands", [])
                 cmds: list[dict[str, object]] = []
@@ -794,7 +796,9 @@ class FlextCliApi:
                         if isinstance(cmd, dict):
                             typed_cmd: dict[str, object] = {}
                             for ck, cv in cmd.items():
-                                typed_cmd[str(ck)] = cv
+                                cmd_key: str = str(ck)
+                                cmd_value: object = cv
+                                typed_cmd[cmd_key] = cmd_value
                             cmds.append(typed_cmd)
                 summary[sid] = {
                     "id": session_data.get("id"),
@@ -930,7 +934,9 @@ class ContextRenderingStrategy:
                     # Return safe summary without sensitive data
                     typed_session_data: dict[str, object] = {}
                     for sk, sv in session_data.items():
-                        typed_session_data[str(sk)] = sv
+                        session_key: str = str(sk)
+                        session_value: object = sv
+                        typed_session_data[session_key] = session_value
                     commands_raw = typed_session_data.get("commands", [])
                     commands: list[dict[str, object]] = []
                     if isinstance(commands_raw, list):

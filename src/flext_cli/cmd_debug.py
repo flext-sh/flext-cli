@@ -160,9 +160,9 @@ async def _test_connection(
 
     if hasattr(test_result, "success") and hasattr(test_result, "error"):
         # This is a FlextResult-like object
-        success_attr = getattr(test_result, "success", True)
+        success_attr = test_result.success
         if not success_attr:
-            error_attr = getattr(test_result, "error", "Unknown error")
+            error_attr = test_result.error or "Unknown error"
             console.print(
                 f"[red]❌ Failed to connect to API: {error_attr}[/red]",
             )

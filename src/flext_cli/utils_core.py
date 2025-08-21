@@ -11,6 +11,7 @@ import csv
 import io
 import json
 import os
+import tempfile
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
@@ -333,7 +334,7 @@ def flext_cli_batch_execute(  # noqa: D103
             res = op()
             results[name] = {
                 "success": res.success,
-                "data": getattr(res, "data", None),
+                "data": res.value,
                 "error": res.error,
             }
             if res.is_failure and stop_on_error:
@@ -387,8 +388,6 @@ class FlextCliUtilities:
             dict[str, object]: Valid test context for CLI commands
 
         """
-        from rich.console import Console
-
         return {
             "config": FlextCliUtilities.create_test_config(),
             "console": Console(width=80),
@@ -428,15 +427,12 @@ class FlextCliUtilities:
             dict[str, object]: Context with temporary file path and cleanup
 
         """
-        import tempfile
-        from pathlib import Path
-
-        temp_file = tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".test")
-        temp_file.write(content)
-        temp_file.flush()
-        temp_file.close()
-
-        temp_path = Path(temp_file.name)
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".test"
+        ) as temp_file:
+            temp_file.write(content)
+            temp_file.flush()
+            temp_path = Path(temp_file.name)
 
         return {
             "file_path": temp_path,
@@ -458,16 +454,12 @@ class FlextCliUtilities:
         """
         if expected_format == "json":
             try:
-                import json
-
                 json.dumps(data, default=str)
                 return True
             except (TypeError, ValueError):
                 return False
         elif expected_format == "yaml":
             try:
-                import yaml
-
                 yaml.dump(data)
                 return True
             except (TypeError, ValueError):
