@@ -70,7 +70,7 @@ class PluginStatus(StrEnum):
     ERROR = "error"
 
 
-class OutputFormat(StrEnum):
+class FlextCliOutputFormat(StrEnum):
     """CLI output format enumeration."""
 
     JSON = "json"
@@ -387,7 +387,7 @@ type FlextCliTransformer[T, U] = Callable[[T], FlextCliResult[U]]
 type FlextCliProcessor = Callable[[FlextCliDataDict], FlextCliDataResult]
 
 # Literal Types for Enhanced Type Safety
-type FlextCliOutputFormat = Literal["json", "yaml", "toml", "csv", "table", "plain"]
+# FlextCliOutputFormat defined as StrEnum above, not as type alias
 type FlextCliLogLevel = Literal["debug", "info", "warning", "error", "critical"]
 type FlextCliValidationType = Literal["email", "url", "path", "file", "uuid", "port"]
 type FlextCliStatusType = Literal["success", "error", "warning", "info", "pending"]
@@ -623,7 +623,7 @@ __all__ = [
     "NetworkResult",
     "NewFile",
     "OutputData",
-    "OutputFormat",
+    "FlextCliOutputFormat",
     "P",
     "PathType",
     "PluginName",

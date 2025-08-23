@@ -15,6 +15,7 @@ import shutil
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import cast
 
 from flext_core import FlextResult
 from rich.console import Console
@@ -115,7 +116,7 @@ class FlextCliHelper:
         """Validate an email and return a boolean."""
         if not isinstance(email, str):
             return False
-        return self.flext_cli_validate_email(email).success
+        return self.flext_cli_validate_email(email).is_success
 
     def flext_cli_validate_url(self, url: str | None) -> FlextResult[str]:
         """Validate a URL."""
@@ -133,7 +134,7 @@ class FlextCliHelper:
         """Validate a URL and return a boolean."""
         if not isinstance(url, str):
             return False
-        return self.flext_cli_validate_url(url).success
+        return self.flext_cli_validate_url(url).is_success
 
     def flext_cli_validate_path(
         self,
@@ -164,7 +165,7 @@ class FlextCliHelper:
             if not isinstance(path, (str, Path)):
                 return False
             res = self.flext_cli_validate_path(str(path), must_exist=must_exist)
-            return res.success
+            return res.is_success
         except Exception:
             return False
 
@@ -256,12 +257,14 @@ class FlextCliHelper:
         table = Table(title=title)
         first = data[0]
         if isinstance(first, dict):
-            columns = list(first.keys())
+            first_dict = cast("dict[str, object]", first)
+            columns = list(first_dict.keys())
             for col in columns:
                 table.add_column(str(col))
             for row in data:
                 if isinstance(row, dict):
-                    table.add_row(*(str(row.get(c, "")) for c in columns))
+                    row_dict = cast("dict[str, object]", row)
+                    table.add_row(*(str(row_dict.get(c, "")) for c in columns))
                 else:
                     # Fallback for non-dict objects
                     table.add_row(*(str(getattr(row, c, "")) for c in columns))
@@ -338,7 +341,8 @@ class FlextCliHelper:
                 return FlextResult[dict[str, object]].fail(
                     "JSON root must be an object"
                 )
-            return FlextResult[dict[str, object]].ok(data)
+            data_dict = cast("dict[str, object]", data)
+            return FlextResult[dict[str, object]].ok(data_dict)
         except Exception as e:
             return FlextResult[dict[str, object]].fail(str(e))
 
@@ -378,11 +382,11 @@ class FlextCliHelper:
 class FlextCliDataProcessor:
     """Small data processing helper that composes validation + transforms."""
 
-    helper: CLIHelper
+    helper: FlextCliHelper
 
-    def __init__(self, *, helper: CLIHelper | None = None) -> None:
+    def __init__(self, *, helper: FlextCliHelper | None = None) -> None:
         """Initialize the data processor."""
-        self.helper = helper or CLIHelper()
+        self.helper = helper or FlextCliHelper()
         self._validators: dict[
             str,
             Callable[[str, dict[str, object]], FlextResult[dict[str, object]]],
@@ -536,7 +540,7 @@ class FlextCliDataProcessor:
         for name, func in sources.items():
             try:
                 res = func()
-                if res.success:
+                if res.is_success:
                     aggregated[name] = res.value
                 else:
                     errors.append(f"{name}: {res.error}")
@@ -570,7 +574,7 @@ class FlextCliDataProcessor:
         for i, transformer in enumerate(transformers):
             try:
                 res = transformer(current)
-                if not res.success:
+                if not res.is_success:
                     return FlextResult[dict[str, object]].fail(
                         f"Transformer {i} failed: {res.error}"
                     )
@@ -585,9 +589,9 @@ class FlextCliDataProcessor:
 class FlextCliFileManager:
     """File safety utilities used by some commands/tests."""
 
-    def __init__(self, *, helper: CLIHelper | None = None) -> None:
+    def __init__(self, *, helper: FlextCliHelper | None = None) -> None:
         """Initialize the file manager."""
-        self.helper = helper or CLIHelper()
+        self.helper = helper or FlextCliHelper()
 
     def flext_cli_backup_and_process(
         self,
@@ -679,5 +683,4 @@ def flext_cli_batch_validate(
     return processor.flext_cli_validate_and_transform(data, validators, {})
 
 
-# Backwards-compatibility alias expected by tests
-CLIHelper = FlextCliHelper
+# Use FlextCliHelper directly - no more legacy aliases

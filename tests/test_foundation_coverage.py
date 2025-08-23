@@ -33,8 +33,8 @@ class TestFlextCliEntity:
         """Test entity execute method."""
         entity = FlextCliEntity(id="test-cmd-id", name="test-command")
         result = entity.execute()
-        assert result.success
-        assert "test-command" in str(result.data)
+        assert result.is_success
+        assert "test-command" in str(result.value)
 
     def test_entity_with_args(self) -> None:
         """Test entity with arguments."""
@@ -76,16 +76,16 @@ class TestCreateCliConfig:
     def test_create_default_config(self) -> None:
         """Test creating default config."""
         result = create_cli_config()
-        assert result.success
-        config = result.data
+        assert result.is_success
+        config = result.value
         assert isinstance(config, FlextCliConfig)
         assert config.profile == "default"
 
     def test_create_config_with_overrides(self) -> None:
         """Test creating config with overrides."""
         result = create_cli_config(debug=True, profile="test", output_format="yaml")
-        assert result.success
-        config = result.data
+        assert result.is_success
+        config = result.value
         assert config.debug is True
         assert config.profile == "test"
         assert config.output_format == "yaml"
@@ -104,16 +104,16 @@ class TestSetupCli:
     def test_setup_default(self) -> None:
         """Test setup with default config."""
         result = setup_cli()
-        assert result.success
-        assert isinstance(result.data, dict)
-        assert "debug_mode" in result.data
+        assert result.is_success
+        assert isinstance(result.value, dict)
+        assert "debug_mode" in result.value
 
     def test_setup_with_custom_config(self) -> None:
         """Test setup with custom config."""
         config = FlextCliConfig(debug=True, profile="test")
         result = setup_cli(config)
-        assert result.success
-        assert result.data["debug_mode"] is True
+        assert result.is_success
+        assert result.value["debug_mode"] is True
 
     def test_setup_handles_config_creation_failure(self) -> None:
         """Test setup handles config creation failure."""
@@ -121,5 +121,5 @@ class TestSetupCli:
         result = setup_cli(None)
         # Should either succeed or fail gracefully
         assert isinstance(result, FlextResult)
-        if result.success:
-            assert isinstance(result.data, dict)
+        if result.is_success:
+            assert isinstance(result.value, dict)

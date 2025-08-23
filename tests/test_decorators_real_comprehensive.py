@@ -762,8 +762,8 @@ class TestDecoratorIntegration(unittest.TestCase):
 
         result = comprehensive_function("test")
 
-        assert result.success
-        assert result.unwrap() == "comprehensive_result_test"
+        assert result.is_success
+        assert result.value == "comprehensive_result_test"
 
 
 if __name__ == "__main__":

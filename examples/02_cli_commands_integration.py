@@ -57,8 +57,8 @@ class DemoCommandMixin:
 
     def show_result(self, result: FlextResult[object]) -> None:
         """Display operation result."""
-        if result.success:
-            self.console.print(f"[green]✅ Success:[/green] {result.unwrap()}")
+        if result.is_success:
+            self.console.print(f"[green]✅ Success:[/green] {result.value}")
         else:
             self.console.print(f"[red]❌ Error:[/red] {result.error}")
 
@@ -74,7 +74,7 @@ def demo_cli(
     """FLEXT-CLI Click Integration Demo."""
     # Setup CLI using flext-cli patterns
     setup_result = setup_cli()
-    if not setup_result.success:
+    if setup_result.is_failure:
         click.echo(f"Setup failed: {setup_result.error}", err=True)
         ctx.exit(1)
 
@@ -105,11 +105,11 @@ def connect(ctx: click.Context, url: str, timeout: int, retries: int) -> None:
 
     # Create command entity using flext-cli patterns
     command_result = create_connection_command(url, timeout, retries)
-    if not command_result.success:
+    if command_result.is_failure:
         console.print(f"[red]Failed to create command: {command_result.error}[/red]")
         return
 
-    command = command_result.unwrap()
+    command = command_result.value
     console.print(
         Panel(
             f"Testing connection to: {url}\nTimeout: {timeout}s\nRetries: {retries}",
@@ -194,10 +194,10 @@ def create_connection_command(
             working_directory=Path.cwd(),
         )
 
-        return FlextResult[None].ok(command)
+        return FlextResult[FlextCliCommand].ok(command)
 
     except Exception as e:
-        return FlextResult[None].fail(f"Failed to create connection command: {e}")
+        return FlextResult[FlextCliCommand].fail(f"Failed to create connection command: {e}")
 
 
 def execute_connection_test(command: FlextCliCommand) -> FlextResult[str]:
@@ -208,8 +208,8 @@ def execute_connection_test(command: FlextCliCommand) -> FlextResult[str]:
 
         # Validate command before execution
         validation_result = command.validate_domain_rules()
-        if not validation_result.success:
-            return FlextResult[None].fail(
+        if validation_result.is_failure:
+            return FlextResult[str].fail(
                 f"Command validation failed: {validation_result.error}"
             )
 
@@ -218,11 +218,11 @@ def execute_connection_test(command: FlextCliCommand) -> FlextResult[str]:
 
         # Simulate execution result
         if "localhost" in command.command_line:
-            return FlextResult[None].ok("Connection successful to localhost")
-        return FlextResult[None].ok("Connection test completed")
+            return FlextResult[str].ok("Connection successful to localhost")
+        return FlextResult[str].ok("Connection test completed")
 
     except Exception as e:
-        return FlextResult[None].fail(f"Connection test failed: {e}")
+        return FlextResult[str].fail(f"Connection test failed: {e}")
 
 
 def simulate_file_processing(
@@ -232,7 +232,7 @@ def simulate_file_processing(
     try:
         # Validate file exists
         if not file_path.exists():
-            return FlextResult[None].fail(f"File not found: {file_path}")
+            return FlextResult[str].fail(f"File not found: {file_path}")
 
         # Simulate processing
         time.sleep(0.5)
@@ -240,13 +240,13 @@ def simulate_file_processing(
         lines_processed = 150  # Simulate
         batches = (lines_processed + batch_size - 1) // batch_size
 
-        return FlextResult[None].ok(
+        return FlextResult[str].ok(
             f"Processed {lines_processed} lines in {batches} batches. "
             f"Output format: {output_format}"
         )
 
     except Exception as e:
-        return FlextResult[None].fail(f"File processing failed: {e}")
+        return FlextResult[str].fail(f"File processing failed: {e}")
 
 
 def main() -> None:

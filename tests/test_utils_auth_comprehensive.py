@@ -70,7 +70,7 @@ class TestSaveAuthToken:
             with patch("flext_cli.utils.auth.get_token_path", return_value=token_path):
                 result = save_auth_token("test-token-123")
 
-                assert result.success
+                assert result.is_success
                 assert result.value is None
                 assert token_path.exists()
                 if token_path.read_text() != "test-token-123":
@@ -93,7 +93,7 @@ class TestSaveAuthToken:
             with patch("flext_cli.utils.auth.get_token_path", return_value=token_path):
                 result = save_auth_token("test-token-456")
 
-                assert result.success
+                assert result.is_success
                 assert token_path.exists()
                 if token_path.read_text() != "test-token-456":
                     raise AssertionError(
@@ -164,7 +164,7 @@ class TestSaveRefreshToken:
             ):
                 result = save_refresh_token("refresh-token-789")
 
-                assert result.success
+                assert result.is_success
                 assert result.value is None
                 assert refresh_token_path.exists()
                 if refresh_token_path.read_text() != "refresh-token-789":
@@ -192,7 +192,7 @@ class TestSaveRefreshToken:
             ):
                 result = save_refresh_token("refresh-token-abc")
 
-                assert result.success
+                assert result.is_success
                 assert refresh_token_path.exists()
                 if refresh_token_path.read_text() != "refresh-token-abc":
                     raise AssertionError(
@@ -355,7 +355,7 @@ class TestClearAuthTokens:
             ):
                 result = clear_auth_tokens()
 
-                assert result.success
+                assert result.is_success
                 assert result.value is None
                 assert not token_path.exists()
                 assert not refresh_token_path.exists()
@@ -378,7 +378,7 @@ class TestClearAuthTokens:
             ):
                 result = clear_auth_tokens()
 
-                assert result.success
+                assert result.is_success
                 assert not token_path.exists()
                 assert not refresh_token_path.exists()  # Still doesn't exist
 
@@ -400,7 +400,7 @@ class TestClearAuthTokens:
             ):
                 result = clear_auth_tokens()
 
-                assert result.success
+                assert result.is_success
                 assert not token_path.exists()  # Still doesn't exist
                 assert not refresh_token_path.exists()
 
@@ -419,7 +419,7 @@ class TestClearAuthTokens:
             ):
                 result = clear_auth_tokens()
 
-                assert result.success
+                assert result.is_success
                 assert not token_path.exists()
                 assert not refresh_token_path.exists()
 
@@ -580,8 +580,8 @@ class TestAuthIntegration:
                 auth_result = save_auth_token("my-auth-token")
                 refresh_result = save_refresh_token("my-refresh-token")
 
-                assert auth_result.success
-                assert refresh_result.success
+                assert auth_result.is_success
+                assert refresh_result.is_success
 
                 # Now authenticated
                 assert is_authenticated()
@@ -593,7 +593,7 @@ class TestAuthIntegration:
 
                 # Clear tokens
                 clear_result = clear_auth_tokens()
-                assert clear_result.success
+                assert clear_result.is_success
 
                 # No longer authenticated
                 assert not is_authenticated()

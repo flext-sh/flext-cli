@@ -140,7 +140,7 @@ class TestTokenManagement:
 
         result = save_auth_token(token)
 
-        assert result.success
+        assert result.is_success
         assert self.token_path.exists()
         assert self.token_path.read_text(encoding="utf-8") == token
 
@@ -156,7 +156,7 @@ class TestTokenManagement:
         with mock.patch("flext_cli.cli_auth.get_token_path", return_value=nested_path):
             result = save_auth_token("test_token")
 
-            assert result.success
+            assert result.is_success
             assert nested_path.exists()
             assert nested_path.parent.exists()
 
@@ -166,7 +166,7 @@ class TestTokenManagement:
 
         result = save_refresh_token(refresh_token)
 
-        assert result.success
+        assert result.is_success
         assert self.refresh_path.exists()
         assert self.refresh_path.read_text(encoding="utf-8") == refresh_token
 
@@ -182,7 +182,7 @@ class TestTokenManagement:
         with mock.patch("flext_cli.cli_auth.get_token_path", return_value=invalid_path):
             result = save_auth_token("test_token")
 
-            assert not result.success
+            assert not result.is_success
             # Check for either the constant or the actual error message
             error = result.error or ""
             assert (
@@ -245,7 +245,7 @@ class TestTokenManagement:
 
         result = clear_auth_tokens()
 
-        assert result.success
+        assert result.is_success
         assert not self.token_path.exists()
         assert not self.refresh_path.exists()
 
@@ -256,7 +256,7 @@ class TestTokenManagement:
 
         result = clear_auth_tokens()
 
-        assert result.success
+        assert result.is_success
         assert not self.token_path.exists()
         assert not self.refresh_path.exists()
 
@@ -264,7 +264,7 @@ class TestTokenManagement:
         """Test clearing tokens when none exist."""
         result = clear_auth_tokens()
 
-        assert result.success
+        assert result.is_success
 
     def test_clear_auth_tokens_permission_error(self) -> None:
         """Test clearing tokens with permission error."""
@@ -276,7 +276,7 @@ class TestTokenManagement:
         ):
             result = clear_auth_tokens()
 
-            assert not result.success
+            assert not result.is_success
             # Check for either the constant or the actual error message
             error = result.error or ""
             assert (
@@ -364,7 +364,7 @@ class TestBridgeFunctions:
 
             result = _clear_tokens_bridge()
 
-            assert result.success
+            assert result.is_success
             mock_clear.assert_called_once()
 
     def test_clear_tokens_bridge_exception(self) -> None:
@@ -375,7 +375,7 @@ class TestBridgeFunctions:
         ):
             result = _clear_tokens_bridge()
 
-            assert not result.success
+            assert not result.is_success
             assert "Clear error" in (result.error or "")
 
     def test_get_client_class(self) -> None:
@@ -850,8 +850,8 @@ class TestAsyncStatusFunctionality:
                             )
                             user_result = await client.get_current_user()
 
-                            if user_result.success and user_result.data:
-                                user = user_result.data
+                            if user_result.is_success and user_result.value:
+                                user = user_result.value
                                 self.mock_console.print(
                                     "[green]✓ Authenticated[/green]"
                                 )
@@ -913,7 +913,7 @@ class TestAsyncStatusFunctionality:
                     async with mock_client_class() as client:
                         user_result = await client.get_current_user()
 
-                        if not user_result.success:
+                        if not user_result.is_success:
                             error_msg = user_result.error or "Unknown error"
                             self.mock_console.print(
                                 f"[red]❌ Authentication check failed: {error_msg}[/red]"
@@ -973,8 +973,8 @@ class TestAsyncWhoamiFunctionality:
                     async with mock_client_class() as client:
                         user_result = await client.get_current_user()
 
-                        if user_result.success and user_result.data:
-                            user = user_result.data
+                        if user_result.is_success and user_result.value:
+                            user = user_result.value
                             self.mock_console.print(
                                 f"Username: {user.get('username', 'Unknown')}"
                             )
@@ -1029,7 +1029,7 @@ class TestAsyncWhoamiFunctionality:
                 async with mock_client_class() as client:
                     user_result = await client.get_current_user()
 
-                    if not user_result.success:
+                    if not user_result.is_success:
                         error_msg = user_result.error or "Unknown error"
                         self.mock_console.print(
                             f"[red]❌ Failed to get user info: {error_msg}[/red]"
@@ -1090,10 +1090,10 @@ class TestAuthIntegration:
         refresh_token = "test_refresh_token_cycle"
 
         save_result = save_auth_token(auth_token)
-        assert save_result.success
+        assert save_result.is_success
 
         refresh_result = save_refresh_token(refresh_token)
-        assert refresh_result.success
+        assert refresh_result.is_success
 
         # Step 3: Verify authentication state
         assert is_authenticated()
@@ -1103,7 +1103,7 @@ class TestAuthIntegration:
 
         # Step 4: Clear tokens (simulate logout)
         clear_result = clear_auth_tokens()
-        assert clear_result.success
+        assert clear_result.is_success
 
         # Step 5: Verify unauthenticated state
         assert not is_authenticated()
@@ -1160,7 +1160,7 @@ class TestAuthIntegration:
         def save_tokens() -> None:
             for i in range(5):
                 result = save_auth_token(f"token_{i}")
-                results.append(("save", i, result.success))
+                results.append(("save", i, result.is_success))
                 time.sleep(0.01)
 
         def read_tokens() -> None:
@@ -1235,7 +1235,7 @@ class TestAuthErrorHandling:
                 result = save_auth_token("test_token")
 
                 # Should fail gracefully
-                assert not result.success
+                assert not result.is_success
                 # Check for either the constant or the actual error message
                 error = result.error or ""
                 assert (
@@ -1278,7 +1278,7 @@ class TestAuthErrorHandling:
         ):
             result = _clear_tokens_bridge()
 
-            assert not result.success
+            assert not result.is_success
             assert "Unexpected error" in (result.error or "")
 
         # Test get auth token bridge

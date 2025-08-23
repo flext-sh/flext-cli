@@ -28,7 +28,7 @@ from flext_cli.client import (
 )
 
 
-class TestHTTPHandler(BaseHTTPRequestHandler):
+class MockHTTPHandler(BaseHTTPRequestHandler):
     """Simple test HTTP server for real client testing."""
 
     def do_GET(self) -> None:
@@ -328,7 +328,7 @@ class AsyncTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set up test server."""
-        self.server = HTTPServer(("localhost", 0), TestHTTPHandler)
+        self.server = HTTPServer(("localhost", 0), MockHTTPHandler)
         self.server_thread = threading.Thread(target=self.server.serve_forever)
         self.server_thread.daemon = True
         self.server_thread.start()

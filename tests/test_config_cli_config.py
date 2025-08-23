@@ -21,12 +21,12 @@ from flext_core import FlextConstants
 
 import flext_cli.config
 from flext_cli import (
-    CLIAPIConfig,
-    CLIAuthConfig,
-    CLIConfig,
-    CLIDirectoryConfig,
-    CLIOutputConfig,
-    CLISettings,
+    FlextCliApiConfig,
+    FlextCliAuthConfig,
+    FlextCliConfig,
+    FlextCliDirectoryConfig,
+    FlextCliOutputConfig,
+    FlextCliSettings,
     # _create_cli_config,  # Removed - not exported anymore
     get_cli_config,
     get_cli_settings,
@@ -38,12 +38,12 @@ EXPECTED_BULK_SIZE = 2
 EXPECTED_DATA_COUNT = 3
 
 
-class TestCLIOutputConfig:
-    """Test CLIOutputConfig class."""
+class TestFlextCliOutputConfig:
+    """Test FlextCliOutputConfig class."""
 
     def test_default_values(self) -> None:
         """Test default configuration values."""
-        config = CLIOutputConfig()
+        config = FlextCliOutputConfig()
 
         if config.format != "table":
             raise AssertionError(f"Expected {'table'}, got {config.format}")
@@ -56,7 +56,7 @@ class TestCLIOutputConfig:
 
     def test_custom_values(self) -> None:
         """Test custom configuration values."""
-        config = CLIOutputConfig(
+        config = FlextCliOutputConfig(
             format="json",
             no_color=True,
             quiet=True,
@@ -85,18 +85,18 @@ class TestCLIOutputConfig:
         ]
 
         for fmt in valid_formats:
-            config = CLIOutputConfig(format=fmt)
+            config = FlextCliOutputConfig(format=fmt)
             if config.format != fmt:
                 raise AssertionError(f"Expected {fmt}, got {config.format}")
 
     def test_invalid_format_validation(self) -> None:
         """Test format field rejects invalid values."""
         with pytest.raises((ValueError, TypeError)):
-            CLIOutputConfig(format="invalid_format")
+            FlextCliOutputConfig(format="invalid_format")
 
     def test_boolean_field_types(self) -> None:
         """Test boolean field type validation."""
-        config = CLIOutputConfig(
+        config = FlextCliOutputConfig(
             no_color=False,
             quiet=False,
             verbose=False,
@@ -109,21 +109,21 @@ class TestCLIOutputConfig:
     def test_pager_optional_string(self) -> None:
         """Test pager field as optional string."""
         # Test with None
-        config1 = CLIOutputConfig(pager=None)
+        config1 = FlextCliOutputConfig(pager=None)
         assert config1.pager is None
 
         # Test with string
-        config2 = CLIOutputConfig(pager="less -R")
+        config2 = FlextCliOutputConfig(pager="less -R")
         if config2.pager != "less -R":
             raise AssertionError(f"Expected {'less -R'}, got {config2.pager}")
 
 
-class TestCLIAPIConfig:
-    """Test CLIAPIConfig class."""
+class TestFlextCliApiConfig:
+    """Test FlextCliApiConfig class."""
 
     def test_default_values(self) -> None:
         """Test default configuration values."""
-        config = CLIAPIConfig()
+        config = FlextCliApiConfig()
 
         if config.url != _API:
             raise AssertionError(
@@ -137,7 +137,7 @@ class TestCLIAPIConfig:
 
     def test_custom_values(self) -> None:
         """Test custom configuration values."""
-        config = CLIAPIConfig(
+        config = FlextCliApiConfig(
             url="https://api.example.com:8443",
             timeout=60,
             retries=5,
@@ -165,7 +165,7 @@ class TestCLIAPIConfig:
         ]
 
         for input_url, expected_output in test_cases:
-            config = CLIAPIConfig(url=input_url)
+            config = FlextCliApiConfig(url=input_url)
             if config.base_url != expected_output:
                 raise AssertionError(
                     f"Expected {expected_output}, got {config.base_url}",
@@ -173,7 +173,7 @@ class TestCLIAPIConfig:
 
     def test_numeric_field_types(self) -> None:
         """Test numeric field type validation."""
-        config = CLIAPIConfig(timeout=45, retries=2)
+        config = FlextCliApiConfig(timeout=45, retries=2)
 
         assert isinstance(config.timeout, int)
         assert isinstance(config.retries, int)
@@ -183,7 +183,7 @@ class TestCLIAPIConfig:
 
     def test_boolean_field_type(self) -> None:
         """Test boolean field type validation."""
-        config = CLIAPIConfig(verify_ssl=False)
+        config = FlextCliApiConfig(verify_ssl=False)
 
         assert isinstance(config.verify_ssl, bool)
         if config.verify_ssl:
@@ -191,11 +191,11 @@ class TestCLIAPIConfig:
 
 
 class TestCLIAuthConfig:
-    """Test CLIAuthConfig class."""
+    """Test FlextCliAuthConfig class."""
 
     def test_default_values(self) -> None:
         """Test default configuration values."""
-        config = CLIAuthConfig()
+        config = FlextCliAuthConfig()
 
         expected_token_path = Path.home() / ".flext" / "auth" / "token"
         expected_refresh_path = Path.home() / ".flext" / "auth" / "refresh_token"
@@ -215,7 +215,7 @@ class TestCLIAuthConfig:
             custom_token = temp_path / "custom_token"
             custom_refresh = temp_path / "custom_refresh"
 
-            config = CLIAuthConfig(
+            config = FlextCliAuthConfig(
                 token_file=custom_token,
                 refresh_token_file=custom_refresh,
                 auto_refresh=False,
@@ -231,26 +231,26 @@ class TestCLIAuthConfig:
 
     def test_path_types(self) -> None:
         """Test that paths are Path objects."""
-        config = CLIAuthConfig()
+        config = FlextCliAuthConfig()
 
         assert isinstance(config.token_file, Path)
         assert isinstance(config.refresh_token_file, Path)
 
     def test_auto_refresh_boolean(self) -> None:
         """Test auto_refresh boolean type."""
-        config = CLIAuthConfig(auto_refresh=False)
+        config = FlextCliAuthConfig(auto_refresh=False)
 
         assert isinstance(config.auto_refresh, bool)
         if config.auto_refresh:
             raise AssertionError(f"Expected False, got {config.auto_refresh}")
 
 
-class TestCLIDirectoryConfig:
-    """Test CLIDirectoryConfig class."""
+class TestFlextCliDirectoryConfig:
+    """Test FlextCliDirectoryConfig class."""
 
     def test_default_values(self) -> None:
         """Test default directory configuration."""
-        config = CLIDirectoryConfig()
+        config = FlextCliDirectoryConfig()
 
         expected_config_dir = Path.home() / ".flext"
         expected_cache_dir = Path.home() / ".flext" / "cache"
@@ -275,7 +275,7 @@ class TestCLIDirectoryConfig:
             log_dir = temp_path / "logs"
             data_dir = temp_path / "data"
 
-            config = CLIDirectoryConfig(
+            config = FlextCliDirectoryConfig(
                 config_dir=config_dir,
                 cache_dir=cache_dir,
                 log_dir=log_dir,
@@ -293,7 +293,7 @@ class TestCLIDirectoryConfig:
         """Test ensure_directories creates all directories."""
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
-            config = CLIDirectoryConfig(
+            config = FlextCliDirectoryConfig(
                 config_dir=temp_path / "config",
                 cache_dir=temp_path / "cache",
                 log_dir=temp_path / "logs",
@@ -325,7 +325,7 @@ class TestCLIDirectoryConfig:
         """Test ensure_directories works with existing directories."""
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
-            config = CLIDirectoryConfig(
+            config = FlextCliDirectoryConfig(
                 config_dir=temp_path / "config",
                 cache_dir=temp_path / "cache",
                 log_dir=temp_path / "logs",
@@ -347,7 +347,7 @@ class TestCLIDirectoryConfig:
 
     def test_path_types(self) -> None:
         """Test that all directory fields are Path objects."""
-        config = CLIDirectoryConfig()
+        config = FlextCliDirectoryConfig()
 
         assert isinstance(config.config_dir, Path)
         assert isinstance(config.cache_dir, Path)
@@ -356,24 +356,24 @@ class TestCLIDirectoryConfig:
 
 
 class TestCLIConfig:
-    """Test CLIConfig main configuration class."""
+    """Test FlextCliConfig main configuration class."""
 
     def test_default_values(self) -> None:
         """Test default configuration values."""
-        config = CLIConfig()
+        config = FlextCliConfig()
 
         if config.profile != "default":
             raise AssertionError(f"Expected {'default'}, got {config.profile}")
         if config.debug:
             raise AssertionError(f"Expected False, got {config.debug}")
-        assert isinstance(config.output, CLIOutputConfig)
-        assert isinstance(config.api, CLIAPIConfig)
-        assert isinstance(config.auth, CLIAuthConfig)
-        assert isinstance(config.directories, CLIDirectoryConfig)
+        assert isinstance(config.output, FlextCliOutputConfig)
+        assert isinstance(config.api, FlextCliApiConfig)
+        assert isinstance(config.auth, FlextCliAuthConfig)
+        assert isinstance(config.directories, FlextCliDirectoryConfig)
 
     def test_custom_values(self) -> None:
         """Test custom configuration values."""
-        config = CLIConfig(
+        config = FlextCliConfig(
             profile="production",
             debug=True,
         )
@@ -385,7 +385,7 @@ class TestCLIConfig:
 
     def test_component_configurations(self) -> None:
         """Test component configuration objects."""
-        config = CLIConfig()
+        config = FlextCliConfig()
 
         # Test output config
         if config.output.format != "table":
@@ -416,7 +416,7 @@ class TestCLIConfig:
             temp_path = Path(temp_dir)
 
             # Create config with custom directories from the start
-            config = CLIConfig(
+            config = FlextCliConfig(
                 config_dir=temp_path / "config",
                 cache_dir=temp_path / "cache",
                 log_dir=temp_path / "logs",
@@ -438,7 +438,7 @@ class TestCLIConfig:
 
     def test_nested_configuration_access(self) -> None:
         """Test accessing nested configuration values."""
-        config = CLIConfig()
+        config = FlextCliConfig()
 
         # Test deep access to nested configurations
         if config.output.format != "table":
@@ -453,11 +453,11 @@ class TestCLIConfig:
 
 
 class TestCLISettings:
-    """Test CLISettings configuration class."""
+    """Test FlextCliSettings configuration class."""
 
     def test_default_values(self) -> None:
         """Test default settings values."""
-        settings = CLISettings()
+        settings = FlextCliSettings()
 
         if settings.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {settings.project_name}")
@@ -474,7 +474,7 @@ class TestCLISettings:
 
     def test_custom_values(self) -> None:
         """Test custom settings values."""
-        settings = CLISettings(
+        settings = FlextCliSettings(
             project_name="custom-cli",
             project_version="0.9.0",
             api_url="https://custom.api.com",
@@ -510,7 +510,7 @@ class TestCLISettings:
         }
 
         with patch.dict(os.environ, env_vars):
-            settings = CLISettings()
+            settings = FlextCliSettings()
 
             if settings.project_name != "env-cli":
                 raise AssertionError(
@@ -529,7 +529,7 @@ class TestCLISettings:
 
     def test_field_types(self) -> None:
         """Test field type validation."""
-        settings = CLISettings(
+        settings = FlextCliSettings(
             timeout=30,
             debug=False,
         )
@@ -543,7 +543,7 @@ class TestCLISettings:
 
     def test_model_config(self) -> None:
         """Test model configuration settings."""
-        settings = CLISettings()
+        settings = FlextCliSettings()
 
         # Test that model config is set correctly (model_config is a dict in pydantic-settings)
         if settings.model_config["env_prefix"] != "FLEXT_CLI_":
@@ -569,7 +569,7 @@ class TestConfigurationFunctions:
 
         config = get_cli_config()
 
-        assert isinstance(config, CLIConfig)
+        assert isinstance(config, FlextCliConfig)
         if config.profile != "default":
             raise AssertionError(f"Expected {'default'}, got {config.profile}")
         if config.debug:
@@ -589,13 +589,13 @@ class TestConfigurationFunctions:
 
         # Should be different instances when reloaded
         assert config1 is not config2
-        assert isinstance(config2, CLIConfig)
+        assert isinstance(config2, FlextCliConfig)
 
     def test_create_cli_config(self) -> None:
         """Test get_cli_config function (replacement for _create_cli_config)."""
         config = get_cli_config()
 
-        assert isinstance(config, CLIConfig)
+        assert isinstance(config, FlextCliConfig)
         if config.profile != "default":
             raise AssertionError(f"Expected {'default'}, got {config.profile}")
         if config.debug:
@@ -606,7 +606,7 @@ class TestConfigurationFunctions:
         with tempfile.TemporaryDirectory() as temp_dir:
             Path(temp_dir)
 
-            with patch("flext_cli.config.CLIConfig") as mock_config_class:
+            with patch("flext_cli.config.FlextCliConfig") as mock_config_class:
                 mock_config = mock_config_class.return_value
                 mock_config.ensure_setup = lambda: None
 
@@ -626,7 +626,7 @@ class TestConfigurationFunctions:
         """Test get_cli_settings function."""
         settings = get_cli_settings()
 
-        assert isinstance(settings, CLISettings)
+        assert isinstance(settings, FlextCliSettings)
         if settings.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {settings.project_name}")
         assert settings.project_version == "0.9.0"
@@ -650,7 +650,7 @@ class TestConfigurationIntegration:
             temp_path = Path(temp_dir)
 
             # Create configuration with custom paths
-            config = CLIConfig(
+            config = FlextCliConfig(
                 profile="integration_test",
                 debug=True,
                 # Set directory fields directly instead of using property setter
@@ -693,7 +693,7 @@ class TestConfigurationIntegration:
     def test_configuration_modification(self) -> None:
         """Test modifying configuration values."""
         # Create config with modified values directly in constructor
-        config = CLIConfig(
+        config = FlextCliConfig(
             output_format="json",
             no_color=True,
             quiet=True,
@@ -719,8 +719,8 @@ class TestConfigurationIntegration:
         config = get_cli_config()
 
         # Both should be independent instances
-        assert isinstance(settings, CLISettings)
-        assert isinstance(config, CLIConfig)
+        assert isinstance(settings, FlextCliSettings)
+        assert isinstance(config, FlextCliConfig)
 
         # But should have compatible values
         if settings.api_url != config.api.url:
@@ -738,7 +738,7 @@ class TestConfigurationIntegration:
 
             # Test directory creation error handling by creating a config
             # with a path that conflicts with an existing file
-            config = CLIConfig(
+            config = FlextCliConfig(
                 config_dir=conflicting_file
                 / "config",  # This will fail but should be handled
                 cache_dir=temp_path / "cache",

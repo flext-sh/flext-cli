@@ -113,7 +113,7 @@ def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
             config_path=None,  # Use defaults
         )
 
-        if not hierarchy_result.success:
+        if not hierarchy_result.is_success:
             return FlextResult[FlextCliConfig].fail(
                 f"Hierarchy creation failed: {hierarchy_result.error}",
             )
@@ -174,14 +174,16 @@ def setup_cli(config: FlextCliConfig | None = None) -> FlextResult[dict[str, obj
       from flext_cli import setup_cli
       result = setup_cli()  # Railway-oriented setup
 
-      if result.success:
+      if result.is_success:
           print("CLI ready for use")
 
     """
     try:
         if config is None:
             config_result = create_cli_config()
-            if not config_result.success:
+            # Early return on failure, or use value - no .unwrap_or() needed here
+            # since we need to propagate the error
+            if config_result.is_failure:
                 return FlextResult[dict[str, object]].fail(
                     f"Config creation failed: {config_result.error}",
                 )

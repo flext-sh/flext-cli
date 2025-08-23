@@ -58,8 +58,8 @@ class TestFlextCliGenericCommand:
 
         result = command.execute()
 
-        assert result.success
-        data = result.unwrap()
+        assert result.is_success
+        data = result.value
         assert isinstance(data, dict)
         assert data["command"] == "execute-test"
         assert data["environment"] == "test"
@@ -80,9 +80,9 @@ class TestFlextCliGenericCommand:
             )
 
             result = command.execute()
-            assert result.success
+            assert result.is_success
 
-            data = result.unwrap()
+            data = result.value
             assert data["config"] == {"setting": "value", "enabled": True}
         finally:
             # Restore original config
@@ -106,9 +106,9 @@ class TestFlextCliGenericCommand:
         )
 
         result = command.execute()
-        assert result.success
+        assert result.is_success
 
-        data = result.unwrap()
+        data = result.value
         assert data["executed"] == "project-command"
         assert data["my_field"] == "project_value"
         assert data["custom"] is True
@@ -125,8 +125,8 @@ class TestFlextCliConfigFactory:
 
         result = FlextCliConfigFactory.create_project_config("test-project")
 
-        assert result.success
-        config = result.unwrap()
+        assert result.is_success
+        config = result.value
         assert config.debug is False  # Verify we get the expected config
 
         # Check that defaults were applied
@@ -149,8 +149,8 @@ class TestFlextCliConfigFactory:
             custom_field="custom_value",
         )
 
-        assert result.success
-        config = result.unwrap()
+        assert result.is_success
+        config = result.value
         assert config.debug is True  # Verify override worked
 
         # Verify the call included all parameters
@@ -219,8 +219,8 @@ class TestSetupFlextCliEcosystem:
 
         result = setup_flext_cli_ecosystem("test-ecosystem")
 
-        assert result.success
-        data = result.unwrap()
+        assert result.is_success
+        data = result.value
         assert data["project"] == "test-ecosystem"
         assert data["setup"] is True
         assert "config" in data
@@ -235,8 +235,8 @@ class TestSetupFlextCliEcosystem:
 
         result = setup_flext_cli_ecosystem("preconfigured-project", config=config)
 
-        assert result.success
-        data = result.unwrap()
+        assert result.is_success
+        data = result.value
         assert data["project"] == "preconfigured-project"
 
         # Verify setup_cli was called with provided config
@@ -295,7 +295,7 @@ class TestSetupFlextCliEcosystem:
             custom_setting="value",
         )
 
-        assert result.success
+        assert result.is_success
 
         # Verify config factory was called with overrides
         mock_create_config.assert_called_once_with(
@@ -352,7 +352,7 @@ class TestMigrateToModernPatterns:
         # Check for various usage examples
         assert "Usage in my-app project:" in migration_code
         assert "result = setup_app_modern(debug=True" in migration_code
-        assert "if result.success:" in migration_code
+        assert "if result.is_success:" in migration_code
         assert 'print(f"Setup failed: {result.error}")' in migration_code
 
     def test_migrate_includes_custom_command_example(self) -> None:

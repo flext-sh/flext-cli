@@ -41,11 +41,11 @@ from rich.table import Table
 
 from flext_cli import (
     URL,
-    CLIContext,
-    CLIEntityFactory,
     ExistingDir,
     FlextApiClient,
-    OutputFormat,
+    FlextCliContext,
+    FlextCliEntityFactory,
+    FlextCliOutputFormat,
     PositiveInt,
     cli_enhanced,
     cli_handle_keyboard_interrupt,
@@ -66,7 +66,7 @@ class ComprehensiveCliApplication:
         self.config = get_cli_config()
         self.container = create_cli_container()
         self.api_client = FlextApiClient()
-        self.entity_factory = CLIEntityFactory()
+        self.entity_factory = FlextCliEntityFactory()
 
         # Application state
         self.current_session = None
@@ -87,7 +87,7 @@ class ComprehensiveCliApplication:
             # Setup CLI foundation
             setup_result = setup_cli()
             if setup_result.failure:
-                return FlextResult[None].fail(f"CLI setup failed: {setup_result.error}")
+                return FlextResult[str].fail(f"CLI setup failed: {setup_result.error}")
 
             # Register services in container
             self._register_core_services()
@@ -96,10 +96,10 @@ class ComprehensiveCliApplication:
             self._load_user_preferences()
 
             self.console.print("✅ Application initialized successfully")
-            return FlextResult[None].ok(None)
+            return FlextResult[str].ok(None)
 
         except Exception as e:
-            return FlextResult[None].fail(f"Application initialization failed: {e}")
+            return FlextResult[str].fail(f"Application initialization failed: {e}")
 
     def _register_core_services(self) -> None:
         """Register core services in the DI container."""
@@ -171,9 +171,9 @@ def cli(
     ctx.obj["verbose"] = verbose
 
     # Configure context
-    cli_context = CLIContext(
+    cli_context = FlextCliContext(
         profile=profile,
-        output=OutputFormat(output.upper()),
+        output=FlextCliOutputFormat(output.upper()),
         debug=debug,
         quiet=not verbose,
         verbose=verbose,
@@ -238,13 +238,13 @@ def create(
         )
         return
 
-    command = command_result.unwrap()
+    command = command_result.value
 
     # Execute project creation with progress
     with app.console.status(f"[bold green]Creating {template} project...") as status:
         execution_result = command.start_execution()
 
-        if execution_result.success:
+        if execution_result.is_success:
             # Simulate project creation steps
             status.update("[bold green]Setting up project structure...")
 
@@ -274,7 +274,7 @@ python = "^3.13"
                 exit_code=0, stdout=f"Project {name} created successfully", stderr=""
             )
 
-            if completion_result.success:
+            if completion_result.is_success:
                 app.console.print(
                     f"✅ Project '{name}' created successfully in {directory}"
                 )
@@ -377,13 +377,13 @@ def health(ctx: click.Context, url: str, timeout: int) -> None:
         )
         return
 
-    command = command_result.unwrap()
+    command = command_result.value
 
     # Execute health check
     with app.console.status("[bold green]Checking service health..."):
         execution_result = command.start_execution()
 
-        if execution_result.success:
+        if execution_result.is_success:
             # Simulate health check
 
             health_status = "healthy"  # Fixed status for demo
@@ -396,7 +396,7 @@ def health(ctx: click.Context, url: str, timeout: int) -> None:
                 stderr="" if health_status == "healthy" else "Service issues detected",
             )
 
-            if completion_result.success:
+            if completion_result.is_success:
                 # Display health results
                 health_table = Table(title=f"Service Health: {url}")
                 health_table.add_column("Metric", style="cyan")
@@ -440,7 +440,7 @@ def config(ctx: click.Context) -> None:
 def show(ctx: click.Context) -> None:
     """Show current configuration."""
     app: ComprehensiveCliApplication = ctx.obj["app"]
-    cli_context: CLIContext = ctx.obj["cli_context"]
+    cli_context: FlextCliContext = ctx.obj["cli_context"]
 
     app.console.print("[green]Current Configuration[/green]")
 

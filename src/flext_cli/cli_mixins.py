@@ -8,7 +8,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import override
+
+# Local import to avoid circular dependency
+from typing import TYPE_CHECKING, cast, override
 
 from flext_core import (
     FlextComparableMixin,
@@ -21,7 +23,17 @@ from flext_core import (
 from rich.console import Console
 from rich.progress import Progress, TaskID
 
-from flext_cli.cli_types import ConfigDict, OutputData, OutputFormat
+from flext_cli.cli_types import ConfigDict, OutputData
+
+if TYPE_CHECKING:
+    from flext_cli.models import FlextCliOutputFormat
+else:
+    # Runtime import to avoid circular dependency
+    def _get_output_format_enum():
+        from flext_cli.models import FlextCliOutputFormat
+        return FlextCliOutputFormat
+
+    FlextCliOutputFormat = _get_output_format_enum()
 
 # =============================================================================
 # CORE CLI MIXINS - Extending flext-core patterns
@@ -53,7 +65,7 @@ class CLIValidationMixin(FlextValidatableMixin):
 
     def validate_output_format(self, format_type: str) -> FlextResult[None]:
         """Validate CLI output format."""
-        valid_formats = [format_value.value for format_value in OutputFormat]
+        valid_formats = [format_value.value for format_value in FlextCliOutputFormat]
         if format_type not in valid_formats:
             return FlextResult[None].fail(
                 f"Invalid output format '{format_type}'. Valid formats: {', '.join(valid_formats)}",
@@ -92,7 +104,9 @@ class CLIConfigMixin(FlextComparableMixin):
                 return FlextResult[None].fail("output_format must be a string")
 
             # Validate against valid formats
-            valid_formats = [format_value.value for format_value in OutputFormat]
+            valid_formats = [
+                format_value.value for format_value in FlextCliOutputFormat
+            ]
             if output_format not in valid_formats:
                 return FlextResult[None].fail(
                     f"Invalid output format '{output_format}'. Valid formats: {', '.join(valid_formats)}",
@@ -164,12 +178,12 @@ class CLIOutputMixin(FlextSerializableMixin):
     def format_cli_output(
         self,
         data: OutputData,
-        format_type: OutputFormat = OutputFormat.TABLE,
+        format_type: FlextCliOutputFormat = FlextCliOutputFormat.TABLE,
         **_options: object,
     ) -> FlextResult[str]:
         """Format data for CLI output in specified format."""
         # Validate format without relying on mixin inheritance assumptions
-        valid_formats = [fmt.value for fmt in OutputFormat]
+        valid_formats = [fmt.value for fmt in FlextCliOutputFormat]
         if format_type.value not in valid_formats:
             return FlextResult[str].fail(
                 f"Invalid output format '{format_type.value}'. Valid formats: {', '.join(valid_formats)}",
@@ -177,17 +191,17 @@ class CLIOutputMixin(FlextSerializableMixin):
 
         try:
             result: FlextResult[str]
-            if format_type == OutputFormat.JSON:
+            if format_type == FlextCliOutputFormat.JSON:
                 json_result = self.to_json()
                 result = FlextResult[str].ok(json_result)
-            elif format_type == OutputFormat.YAML:
+            elif format_type == FlextCliOutputFormat.YAML:
                 json_data = self.to_json()
                 result = FlextResult[str].ok(
                     "# YAML representation\ndata: " + json_data
                 )
-            elif format_type == OutputFormat.TABLE:
+            elif format_type == FlextCliOutputFormat.TABLE:
                 result = self._format_as_table(data)
-            elif format_type == OutputFormat.CSV:
+            elif format_type == FlextCliOutputFormat.CSV:
                 result = self._format_as_csv(data)
             else:
                 fallback = str(data)
@@ -225,7 +239,7 @@ class CLIOutputMixin(FlextSerializableMixin):
             csv_lines: list[str] = []
             for item in data:
                 if isinstance(item, dict):
-                    typed_item: dict[str, object] = dict(item)
+                    typed_item = cast("dict[str, object]", item)
                     values = [str(v) for v in typed_item.values() if v is not None]
                     csv_lines.append(",".join(values))
                 else:

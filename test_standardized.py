@@ -20,7 +20,7 @@ for _name, _size in sizes.items():
 # Test standardized naming
 naming_tests = {
     "FlextCli classes": True,  # FlextCliService, FlextCliApi, etc.
-    "TCli types": True,  # TCliData, TCliHandler, etc.
+    "TCli types": True,  # FlextCliDataType, FlextCliFileHandler, etc.
     "flext_cli functions": True,  # flext_cli_export, flext_cli_format, etc.
     "No aliases": True,  # No duplicate or alias functions
     "No fallbacks": True,  # No backward compatibility code

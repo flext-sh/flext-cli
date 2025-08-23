@@ -18,8 +18,7 @@ __version_info__: tuple[int, ...] = tuple(
 )
 
 # Core configuration
-from flext_cli.config import CLIConfig, CLIConfig as TCliConfig
-from flext_cli.cli_config import FlextCliConfig
+from flext_cli.config import FlextCliConfig, FlextCliConfig as TCliConfig
 from flext_cli.api import FlextCliApi
 from flext_cli.helpers import FlextCliDataProcessor
 
@@ -37,7 +36,6 @@ from flext_cli.formatters import (
 # Core types
 from flext_cli.cli_types import (
     CommandArgs,
-    CommandArgs as TCliArgs,
     CommandOptions,
     CommandResult,
     CommandStatus,
@@ -48,12 +46,9 @@ from flext_cli.cli_types import (
     ErrorMessage,
     ExitCode,
     FlextCliDataType,
-    FlextCliDataType as TCliData,
     FlextCliFileHandler,
-    FlextCliFileHandler as TCliHandler,
     OutputData,
-    OutputFormat,
-    OutputFormat as TCliFormat,
+    FlextCliOutputFormat,
     PathType,
     PathType as TCliPath,
     PluginStatus,
@@ -66,11 +61,11 @@ from flext_cli.cli_types import (
 
 # Configuration utilities
 from flext_cli.config import (
-    CLIAPIConfig,
-    CLIAuthConfig,
-    CLIDirectoryConfig,
-    CLIOutputConfig,
-    CLISettings,
+    FlextCliApiConfig,
+    FlextCliAuthConfig,
+    FlextCliDirectoryConfig,
+    FlextCliOutputConfig,
+    FlextCliSettings,
     get_cli_config,
     get_cli_config as get_config,
     get_cli_settings as get_settings,
@@ -86,11 +81,8 @@ from flext_cli.models import (
     FlextCliConfiguration,
     FlextCliConfiguration as CLIConfiguration,
     FlextCliContext,
-    FlextCliContext as CLIContext,
     FlextCliOutput,
-    FlextCliOutputFormat,
     FlextCliPlugin,
-    FlextCliPlugin as CLIPlugin,
     FlextCliPluginState,
     FlextCliSession,
     FlextCliSession as CLISession,
@@ -100,10 +92,10 @@ from flext_cli.models import (
 )
 
 # CLI Context and Execution
-from flext_cli.context import CLIExecutionContext
+from flext_cli.context import FlextCliExecutionContext
 from flext_cli.services import (
-    CLICommandService,
-    CLISessionService,
+    FlextCliCommandService,
+    FlextCliSessionService,
 )
 
 # Service protocols
@@ -157,8 +149,10 @@ from flext_cli.helpers import (
 )
 from flext_cli.utils_core import (
     flext_cli_auto_config,
+    flext_cli_create_table,
     flext_cli_load_file,
     flext_cli_output_data,
+    flext_cli_quick_setup,
     flext_cli_require_all,
     flext_cli_save_file,
     flext_cli_validate_all,
@@ -209,13 +203,11 @@ from flext_cli.mixins import (
 from flext_cli.cli_utils import (
     cli_batch_process_files,
     cli_create_table,
-    cli_create_table as flext_cli_create_table,
     cli_format_output,
     cli_format_output as format_output,
     cli_load_data_file,
     cli_prompt,
     cli_quick_setup,
-    cli_quick_setup as flext_cli_quick_setup,
     cli_run_command,
     cli_save_data_file,
 )
@@ -298,7 +290,7 @@ from flext_cli.api import (
 from flext_cli.client import FlextApiClient
 
 # Domain factory and constants
-from flext_cli.entities import CLIEntityFactory, CommandType
+from flext_cli.entities import FlextCliEntityFactory, CommandType
 from flext_core import FlextConstants as FlextConstants
 
 # Core formatters
@@ -320,15 +312,15 @@ __all__: list[str] = [
     "FlextCliApi",
     "FlextCliDataProcessor",
     "CLICompleteMixin",
-    "CLIConfig",
+    "FlextCliConfig",
     "CLIConfigMixin",
     "CLIConfiguration",
-    "CLIContext",
-    "CLIAPIConfig",
-    "CLIAuthConfig",
-    "CLIDirectoryConfig",
-    "CLIOutputConfig",
-    "CLISettings",
+    "FlextCliContext",
+    "FlextCliApiConfig",
+    "FlextCliAuthConfig",
+    "FlextCliDirectoryConfig",
+    "FlextCliOutputConfig",
+    "FlextCliSettings",
     "get_cli_config",
     "get_settings",
     "CLICompleteMixin",
@@ -341,14 +333,14 @@ __all__: list[str] = [
     "CLIUIMixin",
     "CLIValidationMixin",
     # domain services/context
-    "CLICommandService",
-    "CLISessionService",
-    "CLIExecutionContext",
+    "FlextCliCommandService",
+    "FlextCliSessionService",
+    "FlextCliExecutionContext",
     "CommandArgs",
     "cli",
     "main",
     "CommandOptions",
-    "CLIEntityFactory",
+    "FlextCliEntityFactory",
     "CommandResult",
     "CommandStatus",
     "CommandType",
@@ -368,7 +360,6 @@ __all__: list[str] = [
     "FlextCliFormatterService",
     "FlextCliInteractiveService",
     "FlextCliOutput",
-    "FlextCliOutputFormat",
     "FlextCliPlugin",
     "FlextCliPluginState",
     "FlextCliService",
@@ -381,7 +372,7 @@ __all__: list[str] = [
     "FlextCliWorkspace",
     "FlextApiClient",
     "OutputData",
-    "OutputFormat",
+    "FlextCliOutputFormat",
     "PathType",
     "PluginStatus",
     "PositiveIntType",
@@ -474,13 +465,13 @@ __all__: list[str] = [
     "JSONFormatter",
     "YAMLFormatter",
     "TableFormatter",
-    "CLIPlugin",
+    "FlextCliPlugin",
     "FlextCliFileManager",
     "FlextCliAdvancedMixin",
     "FlextCliBasicMixin",
     "get_cli_settings",
     "get_refresh_token_path",
-    "CLISession",
+    "FlextCliSession",
     "FlextCliCommandType",
     "get_refresh_token",
     "CancelCommandCommand",
@@ -494,23 +485,23 @@ __all__: list[str] = [
     "FlextCliInteractiveMixin",
     "format_output",
     "flext_cli_batch_validate",
-    "TCliArgs",
+    "CommandArgs",
     "TCliConfig",
     "save_refresh_token",
     "EnablePluginCommand",
     "FlextCliMixin",
     "should_auto_refresh",
-    "TCliData",
+    "FlextCliDataType",
     "flext_cli_create_data_processor",
     "flext_cli_create_helper",
     "flext_cli_auto_config",
-    "TCliFormat",
+    "FlextCliOutputFormat",
     "EndSessionCommand",
     "flext_cli_create_file_manager",
     "FlextCliProgressMixin",
     "ExecuteCommandCommand",
     "FlextCliResultMixin",
-    "TCliHandler",
+    "FlextCliFileHandler",
     "flext_cli_batch_execute",
     "FlextCliFileHandler",
     "TCliPath",

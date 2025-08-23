@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json as _json
 from pathlib import Path
-from typing import ClassVar, Literal
+from typing import ClassVar, Literal, cast, override
 
 from flext_core import FlextBaseConfigModel, FlextConstants, FlextResult, FlextSettings
 from pydantic import Field, model_validator
@@ -20,7 +20,7 @@ from pydantic_settings import SettingsConfigDict
 # ----------------------------------------------------------------------------
 
 
-class CLIOutputConfig(FlextBaseConfigModel):
+class FlextCliOutputConfig(FlextBaseConfigModel):
     """Output configuration for CLI rendering and verbosity."""
 
     format: Literal["table", "json", "yaml", "csv", "plain"] = Field(
@@ -43,7 +43,7 @@ def _default_api_url() -> str:
         return "http://localhost:8000"
 
 
-class CLIAPIConfig(FlextBaseConfigModel):
+class FlextCliApiConfig(FlextBaseConfigModel):
     """API connectivity configuration for FLEXT services."""
 
     url: str = Field(default_factory=_default_api_url)
@@ -69,7 +69,7 @@ def _get_default_refresh_token_file() -> Path:
     return Path.home() / ".flext" / "auth" / "refresh_token"
 
 
-class CLIAuthConfig(FlextBaseConfigModel):
+class FlextCliAuthConfig(FlextBaseConfigModel):
     """Authentication token storage configuration."""
 
     token_file: Path = Field(default_factory=_get_default_token_file)
@@ -77,7 +77,7 @@ class CLIAuthConfig(FlextBaseConfigModel):
     auto_refresh: bool = Field(default=True)
 
 
-class CLIDirectoryConfig(FlextBaseConfigModel):
+class FlextCliDirectoryConfig(FlextBaseConfigModel):
     """Filesystem directory configuration for the CLI."""
 
     config_dir: Path = Field(default_factory=lambda: Path.home() / ".flext")
@@ -98,7 +98,7 @@ class CLIDirectoryConfig(FlextBaseConfigModel):
 # ----------------------------------------------------------------------------
 
 
-class CLIConfig(FlextBaseConfigModel):
+class FlextCliConfig(FlextBaseConfigModel):
     """Top-level CLI configuration aggregate."""
 
     model_config = SettingsConfigDict(extra="allow")
@@ -108,10 +108,12 @@ class CLIConfig(FlextBaseConfigModel):
     trace: bool = Field(default=False)
     log_level: str = Field(default="INFO")
 
-    output: CLIOutputConfig = Field(default_factory=CLIOutputConfig)
-    api: CLIAPIConfig = Field(default_factory=CLIAPIConfig)
-    auth: CLIAuthConfig = Field(default_factory=CLIAuthConfig)
-    directories: CLIDirectoryConfig = Field(default_factory=CLIDirectoryConfig)
+    output: FlextCliOutputConfig = Field(default_factory=FlextCliOutputConfig)
+    api: FlextCliApiConfig = Field(default_factory=FlextCliApiConfig)
+    auth: FlextCliAuthConfig = Field(default_factory=FlextCliAuthConfig)
+    directories: FlextCliDirectoryConfig = Field(
+        default_factory=FlextCliDirectoryConfig
+    )
 
     command_timeout: int = Field(default=300)
 
@@ -136,21 +138,29 @@ class CLIConfig(FlextBaseConfigModel):
         if not isinstance(data, dict):
             return data
 
-        data = dict(data)
-        cls._process_api_mappings(data)
-        cls._process_output_mappings(data)
-        cls._process_directory_mappings(data)
-        cls._process_auth_mappings(data)
+        # Type-safe conversion from dict with unknown keys
+        data_dict = cast("dict[object, object]", data)
+        typed_data: dict[str, object] = {}
+        for k, v in data_dict.items():
+            str_key: str = str(k)
+            typed_data[str_key] = v
+        cls._process_api_mappings(typed_data)
+        cls._process_output_mappings(typed_data)
+        cls._process_directory_mappings(typed_data)
+        cls._process_auth_mappings(typed_data)
 
-        return data
+        return typed_data
 
     @classmethod
     def _process_api_mappings(cls, data: dict[str, object]) -> None:
         """Process API-related flat key mappings."""
-        api_data = data.get("api") or {}
-        api_map: dict[str, object] = (
-            dict(api_data) if isinstance(api_data, dict) else {}
-        )
+        api_data: object = data.get("api") or {}
+        api_map: dict[str, object] = {}
+        if isinstance(api_data, dict):
+            api_dict = cast("dict[object, object]", api_data)
+            for k, v in api_dict.items():
+                str_key: str = str(k)
+                api_map[str_key] = v
 
         api_keys = {
             "api_url": "url",
@@ -171,10 +181,13 @@ class CLIConfig(FlextBaseConfigModel):
     @classmethod
     def _process_output_mappings(cls, data: dict[str, object]) -> None:
         """Process output-related flat key mappings."""
-        output_data = data.get("output") or {}
-        out_map: dict[str, object] = (
-            dict(output_data) if isinstance(output_data, dict) else {}
-        )
+        output_data: object = data.get("output") or {}
+        out_map: dict[str, object] = {}
+        if isinstance(output_data, dict):
+            output_dict = cast("dict[object, object]", output_data)
+            for k, v in output_dict.items():
+                str_key: str = str(k)
+                out_map[str_key] = v
 
         if "output_format" in data:
             out_map["format"] = data.pop("output_format")
@@ -189,10 +202,13 @@ class CLIConfig(FlextBaseConfigModel):
     @classmethod
     def _process_directory_mappings(cls, data: dict[str, object]) -> None:
         """Process directory-related flat key mappings."""
-        directories_data = data.get("directories") or {}
-        dir_map: dict[str, object] = (
-            dict(directories_data) if isinstance(directories_data, dict) else {}
-        )
+        directories_data: object = data.get("directories") or {}
+        dir_map: dict[str, object] = {}
+        if isinstance(directories_data, dict):
+            dir_dict = cast("dict[object, object]", directories_data)
+            for k, v in dir_dict.items():
+                str_key: str = str(k)
+                dir_map[str_key] = v
 
         for k in ("config_dir", "cache_dir", "log_dir", "data_dir"):
             if k in data:
@@ -204,10 +220,13 @@ class CLIConfig(FlextBaseConfigModel):
     @classmethod
     def _process_auth_mappings(cls, data: dict[str, object]) -> None:
         """Process authentication-related flat key mappings."""
-        auth_data = data.get("auth") or {}
-        auth_map: dict[str, object] = (
-            dict(auth_data) if isinstance(auth_data, dict) else {}
-        )
+        auth_data: object = data.get("auth") or {}
+        auth_map: dict[str, object] = {}
+        if isinstance(auth_data, dict):
+            auth_dict = cast("dict[object, object]", auth_data)
+            for k, v in auth_dict.items():
+                str_key: str = str(k)
+                auth_map[str_key] = v
 
         for k in ("token_file", "refresh_token_file", "auto_refresh"):
             if k in data:
@@ -222,15 +241,18 @@ class CLIConfig(FlextBaseConfigModel):
         self.auth.token_file.parent.mkdir(parents=True, exist_ok=True)
         self.auth.refresh_token_file.parent.mkdir(parents=True, exist_ok=True)
 
+    @override
     def model_post_init(self, __context: object, /) -> None:
         """Capture any extra (flat) fields for read-only properties."""
         # Collect extras from __pydantic_extra__ if present
-        extras = getattr(self, "__pydantic_extra__", None)
+        extras: object = getattr(self, "__pydantic_extra__", None)
         if isinstance(extras, dict):
-            type(self)._flat_overrides = dict(extras)
+            extras_dict = cast("dict[object, object]", extras)
+            type(self)._flat_overrides = {str(k): v for k, v in extras_dict.items()}
         # Mark instance as initialized for immutability guard
         object.__setattr__(self, "_initialized", True)
 
+    @override
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate simple invariants expected by tests."""
         if self.api.timeout <= 0 or self.command_timeout <= 0:
@@ -247,7 +269,7 @@ class CLIConfig(FlextBaseConfigModel):
 
     @api_url.setter
     def api_url(self, _value: str) -> None:  # pragma: no cover - immutability guard
-        msg = "cannot assign to field 'api_url' on frozen CLIConfig"
+        msg = "cannot assign to field 'api_url' on frozen FlextCliConfig"
         raise ValueError(msg)
 
     @property
@@ -312,16 +334,19 @@ class CLIConfig(FlextBaseConfigModel):
         val = self._flat_overrides.get("config_path")
         return str(val) if isinstance(val, (str, Path)) else None
 
+    @override
     def __repr__(self) -> str:  # pragma: no cover - string form
-        """Return string representation of CLIConfig."""
-        return f"CLIConfig(api_url='{self.api_url}', timeout={self.timeout}, profile='{self.profile}')"
+        """Return string representation of FlextCliConfig."""
+        return f"FlextCliConfig(api_url='{self.api_url}', timeout={self.timeout}, profile='{self.profile}')"
 
+    @override
     def __str__(self) -> str:  # pragma: no cover - string form
-        """Return string representation of CLIConfig."""
+        """Return string representation of FlextCliConfig."""
         return self.__repr__()
 
+    @override
     def __hash__(self) -> int:  # pragma: no cover - hashing stability for tests
-        """Return hash value for CLIConfig."""
+        """Return hash value for FlextCliConfig."""
         key = (
             self.profile,
             self.api_url,
@@ -333,6 +358,7 @@ class CLIConfig(FlextBaseConfigModel):
         return hash(key)
 
     # Enforce immutability with explicit error message expected by tests
+    @override
     def __setattr__(
         self,
         name: str,
@@ -352,7 +378,7 @@ def _default_settings_api_url() -> str:
         return "http://localhost:8000"
 
 
-class CLISettings(FlextSettings):
+class FlextCliSettings(FlextSettings):
     """Application-level settings for the CLI.
 
     Uses environment variables with the prefix 'FLEXT_CLI_'.
@@ -383,12 +409,13 @@ class CLISettings(FlextSettings):
     )
 
     @classmethod
+    @override
     def model_validate(
         cls,
         obj: object,
         *_args: object,
         **_kwargs: object,
-    ) -> CLISettings:
+    ) -> FlextCliSettings:
         """Hook to keep compatibility with test fixtures passing plain dicts."""
         return super().model_validate(obj)
 
@@ -397,17 +424,17 @@ class CLISettings(FlextSettings):
 # Accessors (singleton + factories)
 # ----------------------------------------------------------------------------
 
-_config: CLIConfig | None = None
+_config: FlextCliConfig | None = None
 
 
-def _create_cli_config() -> CLIConfig:
-    """Create a new CLIConfig with defaults and ensure filesystem setup."""
-    cfg = CLIConfig(profile="default", debug=False)
+def _create_cli_config() -> FlextCliConfig:
+    """Create a new FlextCliConfig with defaults and ensure filesystem setup."""
+    cfg = FlextCliConfig()  # Use defaults from Field definitions
     cfg.ensure_setup()
     return cfg
 
 
-def get_cli_config(*, reload: bool = False) -> CLIConfig:
+def get_cli_config(*, reload: bool = False) -> FlextCliConfig:
     """Return a singleton-style CLI configuration instance.
 
     Set reload=True to create and return a fresh instance, replacing the cached one.
@@ -421,14 +448,14 @@ def get_cli_config(*, reload: bool = False) -> CLIConfig:
 # Factory-style helpers used by some tests
 
 
-def get_config() -> CLIConfig:
-    """Return a fresh CLIConfig instance each call (not a singleton)."""
-    return CLIConfig()
+def get_config() -> FlextCliConfig:
+    """Return a fresh FlextCliConfig instance each call (not a singleton)."""
+    return FlextCliConfig()
 
 
-def get_settings() -> CLISettings:
-    """Return a fresh CLISettings instance each call."""
-    return CLISettings()
+def get_settings() -> FlextCliSettings:
+    """Return a fresh FlextCliSettings instance each call."""
+    return FlextCliSettings()
 
 
 # -------------------------------------------------------------
@@ -482,25 +509,26 @@ def set_config_attribute(target: object, key: str, value: object) -> _Result:
         return _Result(success=False, data=False, error=str(e))
 
 
-def get_cli_settings() -> CLISettings:
+def get_cli_settings() -> FlextCliSettings:
     """Alias for getting CLI settings as a fresh instance."""
-    return CLISettings()
+    return FlextCliSettings()
 
 
 __all__ = [
-    "CLIAPIConfig",
-    "CLIAuthConfig",
-    "CLIConfig",
-    "CLIDirectoryConfig",
-    "CLIOutputConfig",
-    "CLISettings",
+    # Config classes
+    "FlextCliAuthConfig",
+    "FlextCliSettings",
+    "FlextCliApiConfig",
+    "FlextCliConfig",
+    "FlextCliDirectoryConfig",
+    "FlextCliOutputConfig",
     # Accessors
     "_create_cli_config",
     "get_cli_config",
     "get_cli_settings",
     "get_config",
     "get_settings",
-    # helpers
+    # Helpers
     "parse_config_value",
     "set_config_attribute",
 ]

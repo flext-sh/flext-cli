@@ -19,11 +19,11 @@ from click.testing import CliRunner
 
 from flext_cli import (
     CLICommand,
-    CLIPlugin,
-    CLISession,
-    CLISettings,
     CommandStatus,
     CommandType,
+    FlextCliPlugin,
+    FlextCliSession,
+    FlextCliSettings,
     cli,
     setup_cli,
 )
@@ -373,10 +373,10 @@ class TestE2EIntegrationWithCore:
     def test_service_result_integration_workflow(self) -> None:
         """Test ServiceResult pattern integration workflow."""
         # Test that CLI setup uses ServiceResult patterns
-        settings = CLISettings()
+        settings = FlextCliSettings()
         result = setup_cli(settings)
 
-        assert result.success
+        assert result.is_success
         assert result.value is True
 
     def test_domain_entity_lifecycle_workflow(self) -> None:
@@ -403,7 +403,7 @@ class TestE2EIntegrationWithCore:
     def test_cli_session_workflow(self) -> None:
         """Test CLI session management workflow."""
         # Create a session
-        session = CLISession(session_id="e2e-test-session")
+        session = FlextCliSession(session_id="e2e-test-session")
 
         # Add multiple commands to session
         commands = []
@@ -427,7 +427,7 @@ class TestE2EIntegrationWithCore:
     def test_cli_plugin_integration_workflow(self) -> None:
         """Test CLI plugin integration workflow."""
         # Create a plugin
-        plugin = CLIPlugin(
+        plugin = FlextCliPlugin(
             name="test-plugin",
             entry_point="test.main",
             commands=["test", "validate", "process"],

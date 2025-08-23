@@ -200,16 +200,16 @@ class TestFlextCliService:
 
         # Initialize
         init_result = service.initialize()
-        assert init_result.success
+        assert init_result.is_success
 
         # Execute
         exec_result = service.execute()
-        assert exec_result.success
-        assert exec_result.unwrap() == "service executed"
+        assert exec_result.is_success
+        assert exec_result.value == "service executed"
 
         # Cleanup
         cleanup_result = service.cleanup()
-        assert cleanup_result.success
+        assert cleanup_result.is_success
 
     def test_service_validate_config_success(self) -> None:
         """Test service configuration validation success."""
@@ -217,7 +217,7 @@ class TestFlextCliService:
 
         result = service.validate_config()
 
-        assert result.success
+        assert result.is_success
 
     def test_service_validate_config_empty_name(self) -> None:
         """Test service configuration validation with empty name."""
@@ -225,7 +225,7 @@ class TestFlextCliService:
 
         result = service.validate_config()
 
-        assert not result.success
+        assert not result.is_success
         assert "Service name cannot be empty" in (result.error or "")
 
     def test_service_validate_config_whitespace_name(self) -> None:
@@ -234,7 +234,7 @@ class TestFlextCliService:
 
         result = service.validate_config()
 
-        assert not result.success
+        assert not result.is_success
         assert "Service name cannot be empty" in (result.error or "")
 
 
@@ -262,28 +262,28 @@ class TestFlextCliCommandService:
         """Test successful command execution."""
         result = self.service.execute_command("echo", {"message": "hello world"})
 
-        assert result.success
-        assert result.unwrap() == "echo: hello world"
+        assert result.is_success
+        assert result.value == "echo: hello world"
 
     def test_execute_command_echo_no_args(self) -> None:
         """Test command execution without arguments."""
         result = self.service.execute_command("echo")
 
-        assert result.success
-        assert result.unwrap() == "echo: hello"
+        assert result.is_success
+        assert result.value == "echo: hello"
 
     def test_execute_command_failure(self) -> None:
         """Test command execution failure."""
         result = self.service.execute_command("fail")
 
-        assert not result.success
+        assert not result.is_success
         assert result.error == "Command failed"
 
     def test_execute_command_unknown(self) -> None:
         """Test execution of unknown command."""
         result = self.service.execute_command("unknown_cmd")
 
-        assert not result.success
+        assert not result.is_success
         assert "Unknown command: unknown_cmd" in (result.error or "")
 
     def test_execute_command_exception(self) -> None:
@@ -295,27 +295,27 @@ class TestFlextCliCommandService:
         """Test command argument validation success."""
         result = self.service.validate_command_args("test_cmd", {"arg1": "value1"})
 
-        assert result.success
+        assert result.is_success
 
     def test_validate_command_args_empty_command(self) -> None:
         """Test command argument validation with empty command."""
         result = self.service.validate_command_args("", {"arg1": "value1"})
 
-        assert not result.success
+        assert not result.is_success
         assert "Command name cannot be empty" in (result.error or "")
 
     def test_validate_command_args_none_command(self) -> None:
         """Test command argument validation with None command."""
         result = self.service.validate_command_args(None, {"arg1": "value1"})
 
-        assert not result.success
+        assert not result.is_success
         assert "Command name cannot be empty" in (result.error or "")
 
     def test_base_execute_method(self) -> None:
         """Test base execute method returns failure."""
         result = self.service.execute()
 
-        assert not result.success
+        assert not result.is_success
         assert "Command execution not implemented" in (result.error or "")
 
 
@@ -347,8 +347,8 @@ class TestFlextCliFormatterService:
         data = {"name": "Alice", "age": 30}
         result = self.service.format_output(data, "json")
 
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         assert "Alice" in formatted
         assert "30" in formatted
         # Verify it's valid JSON
@@ -362,8 +362,8 @@ class TestFlextCliFormatterService:
         data = {"name": "Bob", "score": 95}
         result = self.service.format_output(data, "table")
 
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         assert "Table:" in formatted
         assert "Bob" in formatted
 
@@ -372,8 +372,8 @@ class TestFlextCliFormatterService:
         data = "Simple text data"
         result = self.service.format_output(data, "plain")
 
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         assert formatted == "Simple text data"
 
     def test_format_output_default_format(self) -> None:
@@ -381,8 +381,8 @@ class TestFlextCliFormatterService:
         data = "Default format test"
         result = self.service.format_output(data)
 
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         assert "Table:" in formatted
 
     def test_format_output_unsupported_format(self) -> None:
@@ -390,7 +390,7 @@ class TestFlextCliFormatterService:
         data = {"test": "data"}
         result = self.service.format_output(data, "xml")
 
-        assert not result.success
+        assert not result.is_success
         assert "Unsupported format: xml" in (result.error or "")
 
     def test_format_output_json_error(self) -> None:
@@ -405,20 +405,20 @@ class TestFlextCliFormatterService:
         data = NonSerializable()
         result = self.service.format_output(data, "json")
 
-        assert not result.success
+        assert not result.is_success
         assert "JSON formatting failed" in (result.error or "")
 
     def test_validate_format_valid(self) -> None:
         """Test format validation success."""
         result = self.service.validate_format("json")
 
-        assert result.success
+        assert result.is_success
 
     def test_validate_format_invalid(self) -> None:
         """Test format validation failure."""
         result = self.service.validate_format("invalid_format")
 
-        assert not result.success
+        assert not result.is_success
         assert "Unsupported format: invalid_format" in (result.error or "")
         assert "Supported formats:" in (result.error or "")
 
@@ -426,8 +426,8 @@ class TestFlextCliFormatterService:
         """Test base execute method returns empty string."""
         result = self.service.execute()
 
-        assert result.success
-        assert result.unwrap() == ""
+        assert result.is_success
+        assert result.value == ""
 
 
 # =============================================================================
@@ -456,77 +456,77 @@ class TestFlextCliValidatorService:
         """Test email validation success."""
         result = self.service.validate_input("test@example.com", "email")
 
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
 
     def test_validate_input_email_invalid(self) -> None:
         """Test email validation failure."""
         result = self.service.validate_input("invalid_email", "email")
 
-        assert not result.success
+        assert not result.is_success
         assert "Invalid email format" in (result.error or "")
 
     def test_validate_input_number_valid(self) -> None:
         """Test number validation success."""
         result = self.service.validate_input("42.5", "number")
 
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
 
     def test_validate_input_number_invalid(self) -> None:
         """Test number validation failure."""
         result = self.service.validate_input("not_a_number", "number")
 
-        assert not result.success
+        assert not result.is_success
         assert "Not a valid number" in (result.error or "")
 
     def test_validate_input_required_valid(self) -> None:
         """Test required field validation success."""
         result = self.service.validate_input("some_value", "required")
 
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
 
     def test_validate_input_required_empty(self) -> None:
         """Test required field validation failure."""
         result = self.service.validate_input("", "required")
 
-        assert not result.success
+        assert not result.is_success
         assert "Required field is empty" in (result.error or "")
 
     def test_validate_input_required_whitespace(self) -> None:
         """Test required field validation with whitespace."""
         result = self.service.validate_input("   ", "required")
 
-        assert not result.success
+        assert not result.is_success
         assert "Required field is empty" in (result.error or "")
 
     def test_validate_input_unknown_type(self) -> None:
         """Test validation with unknown type defaults to success."""
         result = self.service.validate_input("any_value", "unknown_type")
 
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
 
     def test_add_validation_rule_success(self) -> None:
         """Test adding validation rule success."""
         result = self.service.add_validation_rule("new_rule", lambda x: True)
 
-        assert result.success
+        assert result.is_success
 
     def test_add_validation_rule_empty_name(self) -> None:
         """Test adding validation rule with empty name."""
         result = self.service.add_validation_rule("", lambda x: True)
 
-        assert not result.success
+        assert not result.is_success
         assert "Rule name cannot be empty" in (result.error or "")
 
     def test_base_execute_method(self) -> None:
         """Test base execute method returns False."""
         result = self.service.execute()
 
-        assert result.success
-        assert result.unwrap() is False
+        assert result.is_success
+        assert result.value is False
 
 
 # =============================================================================
@@ -557,22 +557,22 @@ class TestFlextCliInteractiveService:
         """Test user text input prompt."""
         result = self.service.prompt_user("Enter your name:", "text")
 
-        assert result.success
-        assert result.unwrap() == "test input"
+        assert result.is_success
+        assert result.value == "test input"
 
     def test_prompt_user_password_input(self) -> None:
         """Test user password input prompt."""
         result = self.service.prompt_user("Enter password:", "password")
 
-        assert result.success
-        assert result.unwrap() == "secret123"
+        assert result.is_success
+        assert result.value == "secret123"
 
     def test_prompt_user_number_input(self) -> None:
         """Test user number input prompt."""
         result = self.service.prompt_user("Enter a number:", "number")
 
-        assert result.success
-        assert result.unwrap() == "42"
+        assert result.is_success
+        assert result.value == "42"
 
     def test_prompt_user_with_mock_input(self) -> None:
         """Test user prompt with mocked input."""
@@ -582,60 +582,60 @@ class TestFlextCliInteractiveService:
 
         result = service.prompt_user("Any prompt:")
 
-        assert result.success
-        assert result.unwrap() == "mocked response"
+        assert result.is_success
+        assert result.value == "mocked response"
 
     def test_confirm_action_default_true(self) -> None:
         """Test action confirmation with default True."""
         result = self.service.confirm_action("Proceed?", default=True)
 
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
 
     def test_confirm_action_default_false(self) -> None:
         """Test action confirmation with default False."""
         result = self.service.confirm_action("Delete files?", default=False)
 
-        assert result.success
-        assert result.unwrap() is False
+        assert result.is_success
+        assert result.value is False
 
     def test_display_message_info(self) -> None:
         """Test displaying info message."""
         result = self.service.display_message("Information message", "info")
 
-        assert result.success
+        assert result.is_success
 
     def test_display_message_warning(self) -> None:
         """Test displaying warning message."""
         result = self.service.display_message("Warning message", "warning")
 
-        assert result.success
+        assert result.is_success
 
     def test_display_message_error(self) -> None:
         """Test displaying error message."""
         result = self.service.display_message("Error message", "error")
 
-        assert result.success
+        assert result.is_success
 
     def test_display_message_success(self) -> None:
         """Test displaying success message."""
         result = self.service.display_message("Success message", "success")
 
-        assert result.success
+        assert result.is_success
 
     def test_display_message_empty(self) -> None:
         """Test displaying empty message fails."""
         result = self.service.display_message("", "info")
 
-        assert not result.success
+        assert not result.is_success
         assert "Message cannot be empty" in (result.error or "")
 
     def test_base_execute_method(self) -> None:
         """Test base execute method returns empty string."""
         result = self.service.execute()
 
-        assert result.success
-        assert result.unwrap() == ""
+        assert result.is_success
+        assert result.value == ""
 
 
 # =============================================================================
@@ -650,7 +650,7 @@ class TestFlextCliServiceFactory:
         """Test command service creation returns abstract error."""
         result = FlextCliServiceFactory.create_command_service("test_service")
 
-        assert not result.success
+        assert not result.is_success
         assert "FlextCliCommandService is abstract" in (result.error or "")
 
     def test_create_command_service_with_container(self) -> None:
@@ -660,14 +660,14 @@ class TestFlextCliServiceFactory:
             "test_service", container, timeout=60
         )
 
-        assert not result.success  # Still abstract, but tests parameter handling
+        assert not result.is_success  # Still abstract, but tests parameter handling
         assert "abstract" in (result.error or "").lower()
 
     def test_create_formatter_service_abstract_error(self) -> None:
         """Test formatter service creation returns abstract error."""
         result = FlextCliServiceFactory.create_formatter_service("format_service")
 
-        assert not result.success
+        assert not result.is_success
         assert "FlextCliFormatterService is abstract" in (result.error or "")
 
     def test_create_formatter_service_with_config(self) -> None:
@@ -679,14 +679,14 @@ class TestFlextCliServiceFactory:
             supported_formats=["json", "yaml"],
         )
 
-        assert not result.success  # Still abstract, but tests parameter handling
+        assert not result.is_success  # Still abstract, but tests parameter handling
         assert "abstract" in (result.error or "").lower()
 
     def test_create_validator_service_abstract_error(self) -> None:
         """Test validator service creation returns abstract error."""
         result = FlextCliServiceFactory.create_validator_service("validator")
 
-        assert not result.success
+        assert not result.is_success
         assert "FlextCliValidatorService is abstract" in (result.error or "")
 
     def test_create_validator_service_with_rules(self) -> None:
@@ -698,14 +698,14 @@ class TestFlextCliServiceFactory:
             validation_rules={"min_length": 5},
         )
 
-        assert not result.success  # Still abstract, but tests parameter handling
+        assert not result.is_success  # Still abstract, but tests parameter handling
         assert "abstract" in (result.error or "").lower()
 
     def test_create_interactive_service_abstract_error(self) -> None:
         """Test interactive service creation returns abstract error."""
         result = FlextCliServiceFactory.create_interactive_service("interactive")
 
-        assert not result.success
+        assert not result.is_success
         assert "FlextCliInteractiveService is abstract" in (result.error or "")
 
     def test_create_interactive_service_with_options(self) -> None:
@@ -714,7 +714,7 @@ class TestFlextCliServiceFactory:
             "interactive", None, enable_colors=False, input_timeout=60
         )
 
-        assert not result.success  # Still abstract, but tests parameter handling
+        assert not result.is_success  # Still abstract, but tests parameter handling
         assert "abstract" in (result.error or "").lower()
 
 
@@ -736,12 +736,12 @@ class TestServiceIntegration:
         cmd_result = cmd_service.execute_command(
             "echo", {"message": "integration test"}
         )
-        assert cmd_result.success
+        assert cmd_result.is_success
 
         # Format result
-        fmt_result = fmt_service.format_output(cmd_result.unwrap(), "plain")
-        assert fmt_result.success
-        assert "echo: integration test" in fmt_result.unwrap()
+        fmt_result = fmt_service.format_output(cmd_result.value, "plain")
+        assert fmt_result.is_success
+        assert "echo: integration test" in fmt_result.value
 
     def test_validator_formatter_integration(self) -> None:
         """Test integration between validator and formatter services."""
@@ -750,20 +750,20 @@ class TestServiceIntegration:
 
         # Validate data
         validation_result = validator.validate_input("test@example.com", "email")
-        assert validation_result.success
+        assert validation_result.is_success
 
         # Format validation result
         format_result = formatter.format_output(
             {
                 "input": "test@example.com",
-                "valid": validation_result.unwrap(),
+                "valid": validation_result.value,
                 "type": "email",
             },
             "json",
         )
 
-        assert format_result.success
-        formatted = format_result.unwrap()
+        assert format_result.is_success
+        formatted = format_result.value
         assert "test@example.com" in formatted
         assert "true" in formatted.lower()
 
@@ -776,12 +776,12 @@ class TestServiceIntegration:
 
         # Get user input
         input_result = interactive.prompt_user("Enter email:", "text")
-        assert input_result.success
+        assert input_result.is_success
 
         # Validate input
-        validation_result = validator.validate_input(input_result.unwrap(), "email")
-        assert validation_result.success
-        assert validation_result.unwrap() is True
+        validation_result = validator.validate_input(input_result.value, "email")
+        assert validation_result.is_success
+        assert validation_result.value is True
 
     def test_full_service_lifecycle(self) -> None:
         """Test complete service lifecycle with real operations."""
@@ -794,36 +794,36 @@ class TestServiceIntegration:
         # Initialize all services
         for service in services:
             init_result = service.initialize()
-            assert init_result.success
+            assert init_result.is_success
 
             # Validate configuration
             config_result = service.validate_config()
-            assert config_result.success
+            assert config_result.is_success
 
             # Execute service (skip command service as it has different execute behavior)
             exec_result = service.execute()
-            assert exec_result.success
+            assert exec_result.is_success
 
             # Cleanup service
             cleanup_result = service.cleanup()
-            assert cleanup_result.success
+            assert cleanup_result.is_success
 
         # Test command service separately with specific commands
         command_service = ConcreteCommandService(service_name="command_service")
         init_result = command_service.initialize()
-        assert init_result.success
+        assert init_result.is_success
 
         config_result = command_service.validate_config()
-        assert config_result.success
+        assert config_result.is_success
 
         # Execute specific command instead of base execute
         cmd_result = command_service.execute_command(
             "echo", {"message": "lifecycle test"}
         )
-        assert cmd_result.success
+        assert cmd_result.is_success
 
         cleanup_result = command_service.cleanup()
-        assert cleanup_result.success
+        assert cleanup_result.is_success
 
 
 # =============================================================================
@@ -863,7 +863,7 @@ class TestServiceErrorHandling:
 
         # All formats should fail validation
         result = service.validate_format("json")
-        assert not result.success
+        assert not result.is_success
 
     def test_validator_service_empty_rules(self) -> None:
         """Test validator service with empty validation rules."""
@@ -875,7 +875,7 @@ class TestServiceErrorHandling:
 
         # Should still validate normally
         result = service.validate_input("test", "email")
-        assert not result.success  # Email validation should still work
+        assert not result.is_success  # Email validation should still work
 
     def test_interactive_service_zero_timeout(self) -> None:
         """Test interactive service with zero timeout."""
@@ -887,4 +887,4 @@ class TestServiceErrorHandling:
 
         # Should still prompt normally (timeout not implemented in mock)
         result = service.prompt_user("Test prompt:")
-        assert result.success
+        assert result.is_success

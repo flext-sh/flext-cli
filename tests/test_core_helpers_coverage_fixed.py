@@ -58,8 +58,8 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_confirm("Are you sure?", default=False)
 
-        assert result.success
-        assert result.unwrap() is False
+        assert result.is_success
+        assert result.value is False
 
     def test_flext_cli_confirm_default_true(self) -> None:
         """Test confirmation with default True in quiet mode."""
@@ -67,8 +67,8 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_confirm("Are you sure?", default=True)
 
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
 
     @patch("rich.prompt.Confirm.ask")
     def test_flext_cli_confirm_interactive_yes(self, mock_confirm) -> None:
@@ -78,8 +78,8 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_confirm("Are you sure?")
 
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
         mock_confirm.assert_called_once()
 
     @patch("rich.prompt.Confirm.ask")
@@ -90,8 +90,8 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_confirm("Are you sure?")
 
-        assert result.success
-        assert result.unwrap() is False
+        assert result.is_success
+        assert result.value is False
 
     @patch("rich.prompt.Confirm.ask")
     def test_flext_cli_confirm_exception_handling(self, mock_confirm) -> None:
@@ -101,7 +101,7 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_confirm("Are you sure?")
 
-        assert not result.success
+        assert not result.is_success
         assert "User interrupted" in result.error
 
     def test_confirm_method_success(self) -> None:
@@ -128,8 +128,8 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_prompt("Enter name:")
 
-        assert result.success
-        assert result.unwrap() == "user input"
+        assert result.is_success
+        assert result.value == "user input"
 
     @patch("rich.prompt.Prompt.ask")
     def test_flext_cli_prompt_with_default(self, mock_prompt) -> None:
@@ -139,8 +139,8 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_prompt("Enter name:", default="default_value")
 
-        assert result.success
-        assert result.unwrap() == "default_value"
+        assert result.is_success
+        assert result.value == "default_value"
 
     @patch("rich.prompt.Prompt.ask")
     def test_flext_cli_prompt_empty_input(self, mock_prompt) -> None:
@@ -150,7 +150,7 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_prompt("Enter name:")
 
-        assert not result.success
+        assert not result.is_success
         assert "Empty input" in result.error
 
     @patch("rich.prompt.Prompt.ask")
@@ -161,7 +161,7 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_prompt("Enter name:")
 
-        assert not result.success
+        assert not result.is_success
         assert "User interrupted" in result.error
 
     def test_prompt_method_success(self) -> None:
@@ -186,8 +186,8 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_validate_email("test@example.com")
 
-        assert result.success
-        assert result.unwrap() == "test@example.com"
+        assert result.is_success
+        assert result.value == "test@example.com"
 
     def test_flext_cli_validate_email_invalid(self) -> None:
         """Test email validation with invalid email."""
@@ -195,7 +195,7 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_validate_email("invalid-email")
 
-        assert not result.success
+        assert not result.is_success
         assert "Invalid email" in result.error
 
     def test_flext_cli_validate_email_none(self) -> None:
@@ -204,7 +204,7 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_validate_email(None)
 
-        assert not result.success
+        assert not result.is_success
         assert "Email cannot be empty" in result.error
 
     def test_validate_email_method_valid(self) -> None:
@@ -227,8 +227,8 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_validate_url("https://example.com")
 
-        assert result.success
-        assert result.unwrap() == "https://example.com"
+        assert result.is_success
+        assert result.value == "https://example.com"
 
     def test_flext_cli_validate_url_invalid(self) -> None:
         """Test URL validation with invalid URL."""
@@ -236,7 +236,7 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_validate_url("not-a-url")
 
-        assert not result.success
+        assert not result.is_success
         assert "Invalid URL" in result.error
 
     def test_flext_cli_validate_url_none(self) -> None:
@@ -245,7 +245,7 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_validate_url(None)
 
-        assert not result.success
+        assert not result.is_success
         assert "Invalid URL format" in result.error
 
     def test_validate_url_method_valid(self) -> None:
@@ -269,8 +269,8 @@ class TestFlextCliHelper:
         with tempfile.NamedTemporaryFile() as temp_file:
             result = helper.flext_cli_validate_path(temp_file.name, must_exist=True)
 
-            assert result.success
-            assert Path(result.unwrap()) == Path(temp_file.name)
+            assert result.is_success
+            assert Path(result.value) == Path(temp_file.name)
 
     def test_flext_cli_validate_path_nonexistent_required(self) -> None:
         """Test path validation with nonexistent file when required."""
@@ -280,7 +280,7 @@ class TestFlextCliHelper:
             "/nonexistent/file.txt", must_exist=True
         )
 
-        assert not result.success
+        assert not result.is_success
         assert "does not exist" in result.error
 
     def test_flext_cli_validate_path_nonexistent_allowed(self) -> None:
@@ -291,7 +291,7 @@ class TestFlextCliHelper:
             "/nonexistent/file.txt", must_exist=False
         )
 
-        assert result.success
+        assert result.is_success
 
     def test_validate_path_method_existing(self) -> None:
         """Test non-FlextResult validate_path method."""
@@ -314,8 +314,8 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_sanitize_filename("valid_file.txt")
 
-        assert result.success
-        assert result.unwrap() == "valid_file.txt"
+        assert result.is_success
+        assert result.value == "valid_file.txt"
 
     def test_flext_cli_sanitize_filename_with_invalid_chars(self) -> None:
         """Test filename sanitization with invalid characters."""
@@ -323,8 +323,8 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_sanitize_filename('file<>:"|?*.txt')
 
-        assert result.success
-        sanitized = result.unwrap()
+        assert result.is_success
+        sanitized = result.value
         assert "<" not in sanitized
         assert ">" not in sanitized
         assert "|" not in sanitized
@@ -336,8 +336,8 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_sanitize_filename(long_name)
 
-        assert result.success
-        sanitized = result.unwrap()
+        assert result.is_success
+        sanitized = result.value
         assert len(sanitized) <= 255
 
     def test_sanitize_filename_method(self) -> None:
@@ -402,7 +402,7 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_create_table(data)
 
-        assert result.success
+        assert result.is_success
         # Result should be a formatted string or table object
 
     def test_flext_cli_execute_command_success(self) -> None:
@@ -411,8 +411,8 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_execute_command("echo hello")
 
-        assert result.success
-        output = result.unwrap()
+        assert result.is_success
+        output = result.value
         assert isinstance(output, dict)
         assert "stdout" in output or "output" in output
 
@@ -422,7 +422,7 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_execute_command("nonexistent_command_12345")
 
-        assert not result.success
+        assert not result.is_success
 
     def test_flext_cli_load_json_file_success(self) -> None:
         """Test loading JSON file successfully."""
@@ -437,8 +437,8 @@ class TestFlextCliHelper:
         try:
             result = helper.flext_cli_load_json_file(temp_file_path)
 
-            assert result.success
-            data = result.unwrap()
+            assert result.is_success
+            data = result.value
             assert data["test"] == "data"
         finally:
             Path(temp_file_path).unlink()
@@ -449,7 +449,7 @@ class TestFlextCliHelper:
 
         result = helper.flext_cli_load_json_file("/nonexistent/file.json")
 
-        assert not result.success
+        assert not result.is_success
 
     def test_flext_cli_save_json_file_success(self) -> None:
         """Test saving JSON file successfully."""
@@ -462,7 +462,7 @@ class TestFlextCliHelper:
         try:
             result = helper.flext_cli_save_json_file(data, temp_file_path)
 
-            assert result.success
+            assert result.is_success
 
             # Verify file was saved correctly
             with open(temp_file_path, encoding="utf-8") as f:
@@ -608,7 +608,7 @@ class TestFlextCliFileManager:
 
             # Should succeed
             assert isinstance(result, FlextResult)
-            if result.success:
+            if result.is_success:
                 assert (
                     Path(temp_file_path).read_text(encoding="utf-8") == "test content"
                 )
@@ -746,10 +746,10 @@ class TestEdgeCases:
 
         # Test methods that should handle None gracefully
         email_result = helper.flext_cli_validate_email(None)
-        assert not email_result.success
+        assert not email_result.is_success
 
         url_result = helper.flext_cli_validate_url(None)
-        assert not url_result.success
+        assert not url_result.is_success
 
     def test_processor_with_empty_data(self) -> None:
         """Test processor methods with empty data."""
@@ -769,7 +769,7 @@ class TestEdgeCases:
             "/nonexistent/file.txt", lambda x: x
         )
         assert isinstance(result, FlextResult)
-        assert not result.success
+        assert not result.is_success
 
     def test_concurrent_helper_usage(self) -> None:
         """Test multiple helpers used concurrently."""
@@ -782,8 +782,8 @@ class TestEdgeCases:
 
         # All should succeed
         for result in results:
-            assert result.success
-            assert result.unwrap() is True
+            assert result.is_success
+            assert result.value is True
 
     def test_large_data_processing(self) -> None:
         """Test processing larger datasets."""
@@ -809,6 +809,6 @@ class TestEdgeCases:
         unicode_filename = "测试文件_🚀.txt"
         result = helper.flext_cli_sanitize_filename(unicode_filename)
 
-        assert result.success
-        sanitized = result.unwrap()
+        assert result.is_success
+        sanitized = result.value
         assert len(sanitized) > 0

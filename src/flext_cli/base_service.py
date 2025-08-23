@@ -257,10 +257,11 @@ class FlextCliFormatterService(FlextCliService[str]):
     def validate_format(self, format_type: str) -> FlextResult[None]:
         """Validate output format type."""
         if format_type not in self.supported_formats:
-            return FlextResult[None].fail(
+            message = (
                 f"Unsupported format: {format_type}. "
-                f"Supported formats: {', '.join(self.supported_formats)}",
+                f"Supported formats: {', '.join(self.supported_formats)}"
             )
+            return FlextResult[None].fail(message)
         return FlextResult[None].ok(None)
 
 

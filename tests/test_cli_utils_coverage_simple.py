@@ -16,7 +16,7 @@ from uuid import UUID
 
 from flext_core import FlextResult
 
-from flext_cli.cli_types import OutputFormat
+from flext_cli.cli_types import FlextCliOutputFormat
 from flext_cli.cli_utils import (
     FlextCliData,
     _convert_to_serializable,
@@ -49,8 +49,8 @@ class TestDataLoadingUtilities:
 
             result = _load_json_file(Path(f.name))
 
-            assert result.success
-            assert result.unwrap() == test_data
+            assert result.is_success
+            assert result.value == test_data
 
             Path(f.name).unlink()
 
@@ -58,7 +58,7 @@ class TestDataLoadingUtilities:
         """Test loading non-existent JSON file."""
         result = _load_json_file(Path("/nonexistent.json"))
 
-        assert not result.success
+        assert not result.is_success
         assert "No such file or directory" in result.error
 
     def test_load_text_file_success(self) -> None:
@@ -72,8 +72,8 @@ class TestDataLoadingUtilities:
 
             result = _load_text_file(Path(f.name))
 
-            assert result.success
-            assert result.unwrap() == content
+            assert result.is_success
+            assert result.value == content
 
             Path(f.name).unlink()
 
@@ -88,8 +88,8 @@ class TestDataLoadingUtilities:
 
             result = cli_load_data_file(Path(f.name))
 
-            assert result.success
-            assert result.unwrap() == test_data
+            assert result.is_success
+            assert result.value == test_data
 
             Path(f.name).unlink()
 
@@ -101,7 +101,7 @@ class TestDataLoadingUtilities:
 
             result = cli_load_data_file(Path(f.name))
 
-            assert not result.success
+            assert not result.is_success
 
             Path(f.name).unlink()
 
@@ -134,7 +134,7 @@ class TestDataSavingUtilities:
 
             result = _save_json_file(test_data, Path(f.name))
 
-            assert result.success
+            assert result.is_success
 
             # Verify the file was saved correctly
             with open(f.name, encoding="utf-8") as saved_file:
@@ -150,7 +150,7 @@ class TestDataSavingUtilities:
 
             result = _save_text_file(test_content, Path(f.name))
 
-            assert result.success
+            assert result.is_success
 
             # Verify the file was saved correctly
             saved_content = Path(f.name).read_text(encoding="utf-8")
@@ -163,9 +163,11 @@ class TestDataSavingUtilities:
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
             test_data = {"test": "data"}
 
-            result = cli_save_data_file(test_data, Path(f.name), OutputFormat.JSON)
+            result = cli_save_data_file(
+                test_data, Path(f.name), FlextCliOutputFormat.JSON
+            )
 
-            assert result.success
+            assert result.is_success
 
             # Verify the file was saved correctly
             with open(f.name, encoding="utf-8") as saved_file:
@@ -184,8 +186,8 @@ class TestTableCreation:
 
         result = cli_create_table(data, "Test Table")
 
-        assert result.success
-        table = result.unwrap()
+        assert result.is_success
+        table = result.value
         assert hasattr(table, "title")
 
     def test_cli_create_table_list_data(self) -> None:
@@ -194,15 +196,15 @@ class TestTableCreation:
 
         result = cli_create_table(data)
 
-        assert result.success
-        table = result.unwrap()
+        assert result.is_success
+        table = result.value
         assert hasattr(table, "columns")
 
     def test_cli_create_table_empty_list(self) -> None:
         """Test creating table with empty list."""
         result = cli_create_table([])
 
-        assert not result.success
+        assert not result.is_success
 
 
 class TestFormatOutput:
@@ -212,10 +214,10 @@ class TestFormatOutput:
         """Test formatting output as JSON."""
         data = {"key": "value", "number": 42}
 
-        result = cli_format_output(data, OutputFormat.JSON)
+        result = cli_format_output(data, FlextCliOutputFormat.JSON)
 
-        assert result.success
-        output = result.unwrap()
+        assert result.is_success
+        output = result.value
         assert isinstance(output, str)
         parsed = json.loads(output)
         assert parsed == data
@@ -224,10 +226,10 @@ class TestFormatOutput:
         """Test formatting output as plain text."""
         data = "Simple string data"
 
-        result = cli_format_output(data, OutputFormat.PLAIN)
+        result = cli_format_output(data, FlextCliOutputFormat.PLAIN)
 
-        assert result.success
-        output = result.unwrap()
+        assert result.is_success
+        output = result.value
         assert output == str(data)
 
 
@@ -252,8 +254,8 @@ class TestBatchProcessing:
 
             result = cli_batch_process_files(input_files, simple_processor)
 
-            assert result.success
-            data = result.unwrap()
+            assert result.is_success
+            data = result.value
             assert isinstance(data, dict)
 
     def test_cli_batch_process_files_empty_list(self) -> None:
@@ -264,7 +266,7 @@ class TestBatchProcessing:
 
         result = cli_batch_process_files([], dummy_processor)
 
-        assert result.success  # Empty list is handled gracefully
+        assert result.is_success  # Empty list is handled gracefully
 
 
 class TestInteractiveUtilities:
@@ -344,8 +346,8 @@ class TestCommandExecution:
         """Test successful command execution."""
         result = cli_run_command("echo hello")
 
-        assert result.success
-        output = result.unwrap()
+        assert result.is_success
+        output = result.value
         assert isinstance(output, dict)
         assert "returncode" in output
         assert "stdout" in output
@@ -354,7 +356,7 @@ class TestCommandExecution:
         """Test command execution with non-existent command."""
         result = cli_run_command("nonexistent-command-xyz123")
 
-        assert not result.success
+        assert not result.is_success
         assert "failed" in result.error.lower()
 
 

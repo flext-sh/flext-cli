@@ -42,9 +42,9 @@ class TestFlextCliContext:
         """Test context initialization."""
         from rich.console import Console
 
-        from flext_cli.config import CLISettings
+        from flext_cli.config import FlextCliSettings
 
-        config = CLISettings()
+        config = FlextCliSettings()
         console = Console()
 
         context = FlextCliContext(config, console)
@@ -62,8 +62,8 @@ class TestFormatting:
 
         result = flext_cli_format(data, "json")
 
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         parsed = json.loads(formatted)
         assert parsed == data
 
@@ -73,8 +73,8 @@ class TestFormatting:
 
         result = flext_cli_format(data, "yaml")
 
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         parsed = yaml.safe_load(formatted)
         assert parsed == data
 
@@ -84,8 +84,8 @@ class TestFormatting:
 
         result = flext_cli_format(data, "table")
 
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         assert "John" in formatted
         assert "30" in formatted
 
@@ -95,8 +95,8 @@ class TestFormatting:
 
         result = flext_cli_format(data, "plain")
 
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         assert formatted == str(data)
 
     def test_flext_cli_format_csv(self) -> None:
@@ -105,8 +105,8 @@ class TestFormatting:
 
         result = flext_cli_format(data, "csv")
 
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         assert str(data) in formatted
 
     def test_flext_cli_format_invalid_format(self) -> None:
@@ -115,7 +115,7 @@ class TestFormatting:
 
         result = flext_cli_format(data, "invalid")
 
-        assert not result.success
+        assert not result.is_success
         assert "Invalid format" in result.error
 
 
@@ -128,8 +128,8 @@ class TestTableCreation:
 
         result = flext_cli_table(data, "Test Table")
 
-        assert result.success
-        table = result.unwrap()
+        assert result.is_success
+        table = result.value
         assert isinstance(table, Table)
         assert table.title == "Test Table"
 
@@ -139,8 +139,8 @@ class TestTableCreation:
 
         result = flext_cli_table(data)
 
-        assert result.success
-        table = result.unwrap()
+        assert result.is_success
+        table = result.value
         assert isinstance(table, Table)
 
     def test_flext_cli_table_simple_list_data(self) -> None:
@@ -149,8 +149,8 @@ class TestTableCreation:
 
         result = flext_cli_table(data)
 
-        assert result.success
-        table = result.unwrap()
+        assert result.is_success
+        table = result.value
         assert isinstance(table, Table)
 
     def test_flext_cli_table_single_value(self) -> None:
@@ -159,8 +159,8 @@ class TestTableCreation:
 
         result = flext_cli_table(data)
 
-        assert result.success
-        table = result.unwrap()
+        assert result.is_success
+        table = result.value
         assert isinstance(table, Table)
 
     def test_create_table_from_dict_list(self) -> None:
@@ -286,8 +286,8 @@ class TestDataAggregation:
         result = flext_cli_aggregate_data(data, group_by="field")
 
         assert isinstance(result, FlextResult)
-        if result.success:
-            aggregated = result.unwrap()
+        if result.is_success:
+            aggregated = result.value
             assert aggregated == []
 
 
@@ -303,7 +303,7 @@ class TestDataExport:
         ) as f:
             result = flext_cli_export(data, Path(f.name), "json")
 
-            assert result.success
+            assert result.is_success
 
             # Verify file was written correctly
             with open(f.name, encoding="utf-8") as saved_file:
@@ -321,7 +321,7 @@ class TestDataExport:
         ) as f:
             result = flext_cli_export(data, Path(f.name), "yaml")
 
-            assert result.success
+            assert result.is_success
 
             # Verify file was written correctly
             with open(f.name, encoding="utf-8") as saved_file:
@@ -337,7 +337,7 @@ class TestDataExport:
         with tempfile.NamedTemporaryFile(delete=False) as f:
             result = flext_cli_export(data, Path(f.name), "invalid")
 
-            assert not result.success
+            assert not result.is_success
             assert "Unsupported export format" in result.error
 
             Path(f.name).unlink()
@@ -349,8 +349,8 @@ class TestDataExport:
         with tempfile.TemporaryDirectory() as temp_dir:
             result = flext_cli_batch_export(datasets, Path(temp_dir), "json")
 
-            assert result.success
-            summary = result.unwrap()
+            assert result.is_success
+            summary = result.value
             assert isinstance(summary, list)  # Returns list of exported files
 
             # Verify files were created
@@ -364,8 +364,8 @@ class TestDataExport:
         with tempfile.TemporaryDirectory() as temp_dir:
             result = flext_cli_batch_export(datasets, Path(temp_dir), "json")
 
-            assert result.success
-            summary = result.unwrap()
+            assert result.is_success
+            summary = result.value
             assert isinstance(summary, list)
             assert len(summary) == 0
 
@@ -376,7 +376,7 @@ class TestDataExport:
         with tempfile.TemporaryDirectory() as temp_dir:
             result = flext_cli_batch_export(datasets, Path(temp_dir), "invalid")
 
-            assert not result.success
+            assert not result.is_success
             assert "Unsupported export format" in result.error
 
 
@@ -431,8 +431,8 @@ class TestEdgeCases:
         """Test formatting with None data."""
         result = flext_cli_format(None, "json")
 
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         assert formatted == "null"
 
     def test_table_creation_with_complex_data(self) -> None:
@@ -441,8 +441,8 @@ class TestEdgeCases:
 
         result = flext_cli_table(data)
 
-        assert result.success
-        table = result.unwrap()
+        assert result.is_success
+        table = result.value
         assert isinstance(table, Table)
 
     def test_export_to_readonly_directory(self) -> None:
@@ -452,7 +452,7 @@ class TestEdgeCases:
 
         result = flext_cli_export(data, readonly_path, "json")
 
-        assert not result.success
+        assert not result.is_success
         # Should handle permission/path errors gracefully
 
     def test_format_error_handling(self) -> None:
@@ -465,7 +465,7 @@ class TestEdgeCases:
         result = flext_cli_format(data, "json")
 
         # Should still work due to default=str in json.dumps
-        assert result.success
+        assert result.is_success
 
 
 class TestSpecialCases:

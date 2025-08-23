@@ -64,7 +64,7 @@ class TestTokenManagement:
 
             result = save_auth_token("test_token")
 
-            assert result.success
+            assert result.is_success
             assert temp_path.exists()
             content = temp_path.read_text(encoding="utf-8")
             assert "test_token" in content
@@ -78,7 +78,7 @@ class TestTokenManagement:
 
         result = save_auth_token("test_token")
 
-        assert not result.success
+        assert not result.is_success
         assert "error" in result.error.lower()
 
     @patch("flext_cli.cli_auth.get_refresh_token_path")
@@ -90,7 +90,7 @@ class TestTokenManagement:
 
             result = save_refresh_token("refresh_token")
 
-            assert result.success
+            assert result.is_success
             assert temp_path.exists()
             content = temp_path.read_text(encoding="utf-8")
             assert "refresh_token" in content
@@ -217,7 +217,7 @@ class TestAuthUtilities:
                 ):
                     result = clear_auth_tokens()
 
-                    assert result.success
+                    assert result.is_success
 
     @patch("flext_cli.cli_auth.get_auth_token")
     def test_get_auth_headers_with_token(self, mock_get_token: MagicMock) -> None:
@@ -276,7 +276,7 @@ class TestTokenOperations:
                 result = save_auth_token("")
 
                 # Empty token saving should work
-                assert result.success or not result.success
+                assert result.is_success or not result.is_success
 
             temp_path.unlink()
 
@@ -290,7 +290,7 @@ class TestTokenOperations:
             with patch("flext_cli.cli_auth.get_token_path", return_value=temp_path):
                 result = save_auth_token(long_token)
 
-                if result.success:
+                if result.is_success:
                     retrieved_token = get_auth_token()
                     if retrieved_token:
                         assert len(retrieved_token) == len(long_token)
@@ -307,7 +307,7 @@ class TestTokenOperations:
             with patch("flext_cli.cli_auth.get_token_path", return_value=temp_path):
                 result = save_auth_token(special_token)
 
-                if result.success:
+                if result.is_success:
                     retrieved_token = get_auth_token()
                     if retrieved_token:
                         assert retrieved_token == special_token
@@ -328,7 +328,7 @@ class TestErrorHandling:
         result = save_auth_token("token")
 
         # Should handle directory creation errors gracefully
-        assert not result.success
+        assert not result.is_success
 
     @patch("flext_cli.cli_auth.get_token_path")
     def test_get_token_read_permission_error(self, mock_get_path: MagicMock) -> None:
@@ -376,7 +376,7 @@ class TestErrorHandling:
                 result = clear_auth_tokens()
 
                 # Should handle partial failures gracefully
-                assert result.success or not result.success
+                assert result.is_success or not result.is_success
 
 
 class TestIntegrationScenarios:
@@ -399,10 +399,10 @@ class TestIntegrationScenarios:
 
                     # Save tokens
                     save_result = save_auth_token("access_token")
-                    assert save_result.success
+                    assert save_result.is_success
 
                     refresh_result = save_refresh_token("refresh_token")
-                    assert refresh_result.success
+                    assert refresh_result.is_success
 
                     # Now authenticated
                     assert is_authenticated()
@@ -421,7 +421,7 @@ class TestIntegrationScenarios:
 
                     # Clear auth
                     clear_result = clear_auth_tokens()
-                    assert clear_result.success
+                    assert clear_result.is_success
 
     def test_auth_workflow_failures(self) -> None:
         """Test authentication workflow with failures."""
@@ -458,7 +458,7 @@ class TestBridgeFunctions:
 
         result = _clear_tokens_bridge()
 
-        assert result.success
+        assert result.is_success
         mock_clear.assert_called_once()
 
     @patch("flext_cli.cli_auth.clear_auth_tokens")
@@ -470,7 +470,7 @@ class TestBridgeFunctions:
 
         result = _clear_tokens_bridge()
 
-        assert not result.success
+        assert not result.is_success
         assert "Clear failed" in result.error
 
     def test_get_auth_token_bridge(self) -> None:
@@ -522,7 +522,7 @@ class TestPerformanceAndEdgeCases:
                     token_value = f"token_{i}"
                     save_result = save_auth_token(token_value)
 
-                    if save_result.success:
+                    if save_result.is_success:
                         retrieved_token = get_auth_token()
                         if retrieved_token and i % 5 == 0:  # Check every 5th
                             assert retrieved_token == token_value
@@ -565,7 +565,7 @@ class TestPerformanceAndEdgeCases:
                 for token in test_tokens:
                     save_result = save_auth_token(token)
 
-                    if save_result.success:
+                    if save_result.is_success:
                         retrieved_token = get_auth_token()
                         if retrieved_token:
                             # Token should be preserved (possibly with normalization)

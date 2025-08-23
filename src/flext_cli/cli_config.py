@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import override
+from typing import cast, override
 
 import toml
 from flext_core import (
@@ -19,7 +19,7 @@ from flext_core import (
 )
 from pydantic import ConfigDict as PydanticConfigDict, Field, field_validator
 
-from flext_cli.cli_types import ConfigDict, OutputFormat
+from flext_cli.cli_types import ConfigDict, FlextCliOutputFormat
 
 
 # =============================================================================
@@ -39,7 +39,7 @@ def _default_api_url() -> str:
         return "http://localhost:8000"
 
 
-class CLIConfig(FlextModel):
+class FlextCliConfig(FlextModel):
     """Complete CLI configuration extending flext-core settings.
 
     Consolidates all CLI configuration needs into a single, comprehensive
@@ -53,8 +53,8 @@ class CLIConfig(FlextModel):
         description="Configuration profile name",
     )
 
-    output_format: OutputFormat = Field(
-        default=OutputFormat.TABLE,
+    output_format: FlextCliOutputFormat = Field(
+        default=FlextCliOutputFormat.TABLE,
         description="Default output format for CLI commands",
     )
 
@@ -223,16 +223,16 @@ class CLIConfig(FlextModel):
 
     @field_validator("output_format", mode="before")
     @classmethod
-    def validate_output_format(cls, v: object) -> OutputFormat:
+    def validate_output_format(cls, v: object) -> FlextCliOutputFormat:
         """Validate and convert output format."""
         if isinstance(v, str):
             try:
-                return OutputFormat(v.lower())
+                return FlextCliOutputFormat(v.lower())
             except ValueError as err:
-                valid_formats = [fmt.value for fmt in OutputFormat]
+                valid_formats = [fmt.value for fmt in FlextCliOutputFormat]
                 msg = f"Invalid output format '{v}'. Valid formats: {', '.join(valid_formats)}"
                 raise ValueError(msg) from err
-        if isinstance(v, OutputFormat):
+        if isinstance(v, FlextCliOutputFormat):
             return v
         msg = f"Invalid output format type: {type(v)}"
         raise ValueError(msg)
@@ -348,10 +348,11 @@ class CLIConfig(FlextModel):
                     f"Invalid profile configuration for '{profile_name}'",
                 )
 
-            # Type the profile config as ConfigDict
+            # Type the profile config as dict[str, object] for proper iteration
             typed_profile_config: ConfigDict = {}
-            for k, v in profile_config.items():
-                typed_profile_config[str(k)] = v
+            typed_dict = cast("dict[str, object]", profile_config)
+            for k, v in typed_dict.items():
+                typed_profile_config[k] = v
             return FlextResult[ConfigDict].ok(typed_profile_config)
 
         except Exception as e:
@@ -383,11 +384,11 @@ class CLIConfig(FlextModel):
             return FlextResult[None].fail(f"Failed to save configuration: {e}")
 
     @classmethod
-    def load_from_file(cls, file_path: Path) -> FlextResult[CLIConfig]:
+    def load_from_file(cls, file_path: Path) -> FlextResult[FlextCliConfig]:
         """Load configuration from file."""
         try:
             if not file_path.exists():
-                return FlextResult[CLIConfig].fail(
+                return FlextResult[FlextCliConfig].fail(
                     f"Configuration file does not exist: {file_path}",
                 )
 
@@ -409,10 +410,10 @@ class CLIConfig(FlextModel):
                 **{k: v for k, v in config_data.items() if k in known_fields},
             )
 
-            return FlextResult[CLIConfig].ok(config_instance)
+            return FlextResult[FlextCliConfig].ok(config_instance)
 
         except Exception as e:
-            return FlextResult[CLIConfig].fail(
+            return FlextResult[FlextCliConfig].fail(
                 f"Failed to load configuration from {file_path}: {e}",
             )
 
@@ -443,10 +444,9 @@ class CLIConfig(FlextModel):
         if not isinstance(settings, dict):
             return False
         try:
-            # Type the settings as dict[str, object]
-            typed_settings: dict[str, object] = {}
-            for k, v in settings.items():
-                typed_settings[str(k)] = v
+            # Type the settings as dict[str, object] for proper iteration
+            typed_dict = cast("dict[str, object]", settings)
+            typed_settings: dict[str, object] = dict(typed_dict.items())
 
             if "debug" in typed_settings:
                 debug_value = typed_settings["debug"]
@@ -480,7 +480,7 @@ class CLIConfig(FlextModel):
 def create_cli_config(
     profile: str = "default",
     **overrides: object,
-) -> FlextResult[CLIConfig]:
+) -> FlextResult[FlextCliConfig]:
     """Create CLI configuration with optional overrides.
 
     Args:
@@ -496,60 +496,62 @@ def create_cli_config(
         # Use model_validate for proper construction
         config_data: dict[str, object] = {"profile": profile}
         config_data.update(overrides)
-        config = CLIConfig.model_validate(config_data)
+        config = FlextCliConfig.model_validate(config_data)
 
         # Load profile-specific settings if config file exists
         if config.config_file and config.config_file.exists():
             profile_result = config.load_profile_config(profile)
-            if profile_result.is_success:
-                profile_config = profile_result.value
-                # Apply profile settings (overrides take precedence)
-                merged_config: dict[str, object] = {**profile_config}
-                merged_config.update(overrides)
-                # Use model_validate for proper construction
-                config_data = {"profile": profile}
-                config_data.update(merged_config)
-                config = CLIConfig.model_validate(config_data)
+            # Use .unwrap_or() pattern to simplify profile config handling
+            profile_config = profile_result.unwrap_or({})
+            # Apply profile settings (overrides take precedence)
+            merged_config: dict[str, object] = {**profile_config}
+            merged_config.update(overrides)
+            # Use model_validate for proper construction
+            config_data = {"profile": profile}
+            config_data.update(merged_config)
+            config = FlextCliConfig.model_validate(config_data)
 
         # Validate final configuration
         validation_result = config.validate_config()
         if validation_result.is_failure:
             error_msg = validation_result.error or "Configuration validation failed"
-            return FlextResult[CLIConfig].fail(error_msg)
+            return FlextResult[FlextCliConfig].fail(error_msg)
 
-        return FlextResult[CLIConfig].ok(config)
+        return FlextResult[FlextCliConfig].ok(config)
 
     except Exception as e:
-        return FlextResult[CLIConfig].fail(f"Failed to create CLI configuration: {e}")
+        return FlextResult[FlextCliConfig].fail(
+            f"Failed to create CLI configuration: {e}"
+        )
 
 
-def create_cli_config_from_env() -> FlextResult[CLIConfig]:
+def create_cli_config_from_env() -> FlextResult[FlextCliConfig]:
     """Create CLI configuration from environment variables only."""
     try:
-        config = CLIConfig()
+        config = FlextCliConfig()
         validation_result = config.validate_config()
 
         if validation_result.is_failure:
             error_msg = validation_result.error or "Configuration validation failed"
-            return FlextResult[CLIConfig].fail(error_msg)
+            return FlextResult[FlextCliConfig].fail(error_msg)
 
-        return FlextResult[CLIConfig].ok(config)
+        return FlextResult[FlextCliConfig].ok(config)
 
     except Exception as e:
-        return FlextResult[CLIConfig].fail(
+        return FlextResult[FlextCliConfig].fail(
             f"Failed to create configuration from environment: {e}"
         )
 
 
-def create_cli_config_from_file(file_path: Path) -> FlextResult[CLIConfig]:
+def create_cli_config_from_file(file_path: Path) -> FlextResult[FlextCliConfig]:
     """Create CLI configuration from file."""
-    return CLIConfig.load_from_file(file_path)
+    return FlextCliConfig.load_from_file(file_path)
 
 
 # Configuration aliases
-FlextCliConfig = CLIConfig
+# FlextCliConfig already defined above
 create_flext_cli_config = create_cli_config
-FlextCliConfigHierarchical = CLIConfig
+FlextCliConfigHierarchical = FlextCliConfig
 
 
 # =============================================================================
@@ -558,7 +560,7 @@ FlextCliConfigHierarchical = CLIConfig
 
 __all__ = [
     # Core configuration
-    "CLIConfig",
+    "FlextCliConfig",
     # Configuration aliases
     "FlextCliConfig",
     "FlextCliConfigHierarchical",
@@ -572,15 +574,15 @@ __all__ = [
 ]
 
 
-def get_cli_settings() -> CLIConfig:
-    """Compatibility helper for imports in simple_api/tests - returns default CLIConfig.
+def get_cli_settings() -> FlextCliConfig:
+    """Compatibility helper for imports in simple_api/tests - returns default FlextCliConfig.
 
-    This function returns a default CLIConfig instance with all fields set to their
+    This function returns a default FlextCliConfig instance with all fields set to their
     default values (profile='default', output_format=TABLE, debug=False, etc.).
 
     Important: This is a compatibility helper used primarily for imports in simple_api
     and test scenarios. Production code should not rely on its concrete behavior but
-    should inject or construct a CLIConfig explicitly with proper configuration.
+    should inject or construct a FlextCliConfig explicitly with proper configuration.
 
     Tests typically patch or monkeypatch this function to provide controlled configurations.
 
@@ -588,7 +590,7 @@ def get_cli_settings() -> CLIConfig:
     No side effects or global state modifications occur.
 
     Returns:
-      A new CLIConfig instance with default values
+      A new FlextCliConfig instance with default values
 
     """
-    return CLIConfig()
+    return FlextCliConfig()

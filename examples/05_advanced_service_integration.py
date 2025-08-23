@@ -114,11 +114,11 @@ class AdvancedCliService(FlextCliService):
                     "details": health_data.get("details", {}),
                 }
 
-            return FlextResult[None].ok(health_data)
+            return FlextResult[dict[str, Any]].ok(health_data)
 
         except Exception as e:
             self.logger.exception(f"Health check failed for {service_name}")
-            return FlextResult[None].fail(f"Health check failed: {e}")
+            return FlextResult[dict[str, Any]].fail(f"Health check failed: {e}")
 
     @cli_enhanced
     @with_spinner("Orchestrating services...")
@@ -143,15 +143,15 @@ class AdvancedCliService(FlextCliService):
                     service_name, step_operation
                 )
 
-                if step_result.success:
-                    results[service_name] = step_result.unwrap()
+                if step_result.is_success:
+                    results[service_name] = step_result.value
                     self.logger.info(f"Step completed: {service_name}.{step_operation}")
                 else:
                     # Handle step failure - implement rollback if needed
                     self.logger.error(
                         f"Step failed: {service_name}.{step_operation} - {step_result.error}"
                     )
-                    return FlextResult[None].fail(
+                    return FlextResult[dict[str, Any]].fail(
                         f"Orchestration failed at {service_name}: {step_result.error}"
                     )
 
@@ -163,11 +163,11 @@ class AdvancedCliService(FlextCliService):
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-            return FlextResult[None].ok(orchestration_result)
+            return FlextResult[dict[str, Any]].ok(orchestration_result)
 
         except Exception as e:
             self.logger.exception("Service orchestration failed")
-            return FlextResult[None].fail(f"Service orchestration failed: {e}")
+            return FlextResult[dict[str, Any]].fail(f"Service orchestration failed: {e}")
 
     def implement_circuit_breaker(
         self, service_name: str, failure_threshold: int = 5
@@ -200,7 +200,7 @@ class AdvancedCliService(FlextCliService):
 
             # Simulate service call based on circuit state
             if breaker["state"] == CircuitBreakerState.OPEN:
-                return FlextResult[None].fail(
+                return FlextResult[bool].fail(
                     f"Circuit breaker OPEN for {service_name}"
                 )
 
@@ -212,7 +212,7 @@ class AdvancedCliService(FlextCliService):
                 breaker["failure_count"] = 0
                 breaker["state"] = CircuitBreakerState.CLOSED
                 success_state = True
-                return FlextResult[None].ok(success_state)
+                return FlextResult[bool].ok(success_state)
             # Handle failure
             breaker["failure_count"] += 1
             breaker["last_failure"] = current_time
@@ -221,10 +221,10 @@ class AdvancedCliService(FlextCliService):
                 breaker["state"] = CircuitBreakerState.OPEN
                 self.logger.warning(f"Circuit breaker OPENED for {service_name}")
 
-            return FlextResult[None].fail(f"Service call failed for {service_name}")
+            return FlextResult[bool].fail(f"Service call failed for {service_name}")
 
         except Exception as e:
-            return FlextResult[None].fail(f"Circuit breaker implementation failed: {e}")
+            return FlextResult[bool].fail(f"Circuit breaker implementation failed: {e}")
 
     def _simulate_health_check(self, service_name: str) -> dict[str, Any]:
         """Simulate health check for demonstration."""
@@ -267,7 +267,7 @@ class AdvancedCliService(FlextCliService):
             success = True  # Always succeed for demo
 
             if success:
-                return FlextResult[None].ok(
+                return FlextResult[dict[str, Any]].ok(
                     {
                         "service": service_name,
                         "operation": operation,
@@ -276,10 +276,10 @@ class AdvancedCliService(FlextCliService):
                         "result": f"Operation {operation} completed successfully",
                     }
                 )
-            return FlextResult[None].fail(f"Operation {operation} failed")
+            return FlextResult[dict[str, Any]].fail(f"Operation {operation} failed")
 
         except Exception as e:
-            return FlextResult[None].fail(f"Step execution failed: {e}")
+            return FlextResult[dict[str, Any]].fail(f"Step execution failed: {e}")
 
     def _simulate_service_call(self, _service_name: str) -> bool:
         """Simulate service call for circuit breaker demo."""
@@ -344,8 +344,8 @@ async def demonstrate_async_service_operations() -> None:
     health_table.add_column("Details", style="blue")
 
     for service_name, result in results:
-        if result.success:
-            data = result.unwrap()
+        if result.is_success:
+            data = result.value
             status = data["status"]
             response_time = f"{data.get('response_time_ms', 0)}ms"
             details = f"CPU: {data.get('details', {}).get('cpu_usage', 'N/A')}"
@@ -396,14 +396,14 @@ def demonstrate_circuit_breaker_pattern() -> FlextResult[None]:
             "failure_count", 0
         )
 
-        status_color = "green" if result.success else "red"
+        status_color = "green" if result.is_success else "red"
         console.print(
-            f"   Attempt {attempt + 1}: [{status_color}]{result.success}[/{status_color}] "
+            f"   Attempt {attempt + 1}: [{status_color}]{result.is_success}[/{status_color}] "
             f"(State: {breaker_state.value if hasattr(breaker_state, 'value') else breaker_state}, "
             f"Failures: {failure_count})"
         )
 
-        if not result.success and "Circuit breaker OPEN" in result.error:
+        if result.is_failure and "Circuit breaker OPEN" in result.error:
             console.print(
                 "   🚨 Circuit breaker is OPEN - failing fast to protect system"
             )
@@ -428,7 +428,7 @@ def demonstrate_circuit_breaker_pattern() -> FlextResult[None]:
 
         console.print(breaker_table)
 
-    return FlextResult[None].ok(None)
+    return FlextResult[str].ok(None)
 
 
 def demonstrate_service_orchestration() -> FlextResult[None]:
@@ -441,8 +441,8 @@ def demonstrate_service_orchestration() -> FlextResult[None]:
     # Demonstrate complex service orchestration
     orchestration_result = service.orchestrate_services("deploy_application")
 
-    if orchestration_result.success:
-        result_data = orchestration_result.unwrap()
+    if orchestration_result.is_success:
+        result_data = orchestration_result.value
         console.print("✅ Service orchestration completed successfully")
 
         # Display orchestration results
@@ -470,7 +470,7 @@ def demonstrate_service_orchestration() -> FlextResult[None]:
     else:
         console.print(f"❌ Service orchestration failed: {orchestration_result.error}")
 
-    return FlextResult[None].ok(None)
+    return FlextResult[str].ok(None)
 
 
 def demonstrate_dependency_injection() -> FlextResult[None]:
@@ -498,8 +498,8 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     console.print("\n🔍 Retrieving services from container:")
     for service_name, _ in services_to_register:
         retrieval_result = container.get(service_name)
-        if retrieval_result.success:
-            retrieved_service = retrieval_result.unwrap()
+        if retrieval_result.is_success:
+            retrieved_service = retrieval_result.value
             console.print(f"   ✅ {service_name}: {type(retrieved_service).__name__}")
         else:
             console.print(f"   ❌ {service_name}: {retrieval_result.error}")
@@ -513,11 +513,11 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     api_client_result = container.get("api_client")
 
     if all(
-        result.success for result in [logger_result, config_result, api_client_result]
+        result.is_success for result in [logger_result, config_result, api_client_result]
     ):
-        logger = logger_result.unwrap()
-        config = config_result.unwrap()
-        api_client = api_client_result.unwrap()
+        logger = logger_result.value
+        config = config_result.value
+        api_client = api_client_result.value
 
         console.print("   ✅ All dependencies resolved successfully")
         console.print(f"   📋 Logger: {type(logger).__name__}")
@@ -528,7 +528,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
         logger.info("Dependency injection demonstration completed")
         console.print("   ✅ Services working together successfully")
 
-    return FlextResult[None].ok(None)
+    return FlextResult[str].ok(None)
 
 
 def main() -> None:

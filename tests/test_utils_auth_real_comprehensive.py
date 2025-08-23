@@ -85,7 +85,7 @@ class TestUtilsAuthTokenSaving(unittest.TestCase):
 
             try:
                 result = save_auth_token(test_token)
-                assert result.success
+                assert result.is_success
 
                 # Verify file was created and contains correct token
                 assert test_token_path.exists()
@@ -122,7 +122,7 @@ class TestUtilsAuthTokenSaving(unittest.TestCase):
 
             try:
                 result = save_refresh_token(test_refresh_token)
-                assert result.success
+                assert result.is_success
 
                 # Verify file was created and contains correct token
                 assert test_refresh_path.exists()
@@ -154,7 +154,7 @@ class TestUtilsAuthTokenSaving(unittest.TestCase):
 
             try:
                 result = save_auth_token(test_token)
-                assert result.success
+                assert result.is_success
 
                 # Verify parent directories were created
                 assert nested_path.parent.exists()
@@ -183,7 +183,7 @@ class TestUtilsAuthTokenSaving(unittest.TestCase):
 
         try:
             result = save_auth_token(test_token)
-            assert not result.success
+            assert not result.is_success
             assert "Failed to save auth token" in (result.error or "")
 
         finally:
@@ -365,7 +365,7 @@ class TestUtilsAuthTokenClearing(unittest.TestCase):
 
             try:
                 result = clear_auth_tokens()
-                assert result.success
+                assert result.is_success
 
                 # Verify both files were deleted
                 assert not auth_token_file.exists()
@@ -402,7 +402,7 @@ class TestUtilsAuthTokenClearing(unittest.TestCase):
 
             try:
                 result = clear_auth_tokens()
-                assert result.success
+                assert result.is_success
 
                 # Verify auth token was deleted, refresh token wasn't there to begin with
                 assert not auth_token_file.exists()
@@ -436,7 +436,7 @@ class TestUtilsAuthTokenClearing(unittest.TestCase):
 
             try:
                 result = clear_auth_tokens()
-                assert result.success
+                assert result.is_success
 
                 # Files still don't exist (which is fine)
                 assert not auth_token_file.exists()
@@ -478,7 +478,7 @@ class TestUtilsAuthTokenClearing(unittest.TestCase):
 
             result = clear_auth_tokens()
             # Should handle permission errors gracefully
-            if not result.success:
+            if not result.is_success:
                 assert "Failed to clear auth tokens" in (result.error or "")
 
         finally:
@@ -649,8 +649,8 @@ class TestUtilsAuthIntegration(unittest.TestCase):
                 # Step 1: Save tokens
                 auth_result = save_auth_token(test_auth_token)
                 refresh_result = save_refresh_token(test_refresh_token)
-                assert auth_result.success
-                assert refresh_result.success
+                assert auth_result.is_success
+                assert refresh_result.is_success
 
                 # Step 2: Verify authentication status
                 assert is_authenticated() is True
@@ -663,7 +663,7 @@ class TestUtilsAuthIntegration(unittest.TestCase):
 
                 # Step 4: Clear tokens
                 clear_result = clear_auth_tokens()
-                assert clear_result.success
+                assert clear_result.is_success
 
                 # Step 5: Verify tokens are gone
                 assert is_authenticated() is False
@@ -695,7 +695,7 @@ class TestUtilsAuthIntegration(unittest.TestCase):
             try:
                 # Save token
                 save_result = save_auth_token(test_token)
-                assert save_result.success
+                assert save_result.is_success
 
                 # Load token multiple times
                 for _ in range(5):
@@ -735,7 +735,7 @@ class TestUtilsAuthIntegration(unittest.TestCase):
                 time.sleep(0.001)
                 save_result = save_auth_token(test_token)
                 load_result = get_auth_token()
-                results.append((save_result.success, load_result == test_token))
+                results.append((save_result.is_success, load_result == test_token))
 
             try:
                 # Run multiple threads

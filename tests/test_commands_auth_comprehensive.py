@@ -76,8 +76,8 @@ class TestLoginCommand:
             msg: str = f"Expected {'--password'} in {result.output}"
             raise AssertionError(msg)
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.save_auth_token")
+    @patch("flext_cli.cli_auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.save_auth_token")
     def test_login_success(
         self,
         mock_save_token: MagicMock,
@@ -109,8 +109,8 @@ class TestLoginCommand:
         mock_console.print.assert_any_call("[green]✅ Login successful![/green]")
         mock_console.print.assert_any_call("Welcome, Test User!")
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.save_auth_token")
+    @patch("flext_cli.cli_auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.save_auth_token")
     def test_login_success_no_user_name(
         self,
         mock_save_token: MagicMock,
@@ -142,7 +142,7 @@ class TestLoginCommand:
             "Welcome, testuser!",
         )  # Falls back to username
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.FlextApiClient")
     def test_login_no_token_in_response(self, mock_client_class: MagicMock) -> None:
         """Test login when response doesn't contain token."""
         # Setup mocks
@@ -166,7 +166,7 @@ class TestLoginCommand:
             "[red]❌ Login failed: Invalid response[/red]",
         )
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.FlextApiClient")
     def test_login_connection_error(self, mock_client_class: MagicMock) -> None:
         """Test login with connection error."""
         # Setup mocks
@@ -190,7 +190,7 @@ class TestLoginCommand:
             "[red]❌ Login failed: Connection failed[/red]",
         )
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.FlextApiClient")
     def test_login_timeout_error(self, mock_client_class: MagicMock) -> None:
         """Test login with timeout error."""
         # Setup mocks
@@ -214,7 +214,7 @@ class TestLoginCommand:
             "[red]❌ Login failed: Request timed out[/red]",
         )
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.FlextApiClient")
     def test_login_value_error(self, mock_client_class: MagicMock) -> None:
         """Test login with value error."""
         # Setup mocks
@@ -238,7 +238,7 @@ class TestLoginCommand:
             "[red]❌ Login failed: Invalid credentials[/red]",
         )
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.FlextApiClient")
     def test_login_key_error(self, mock_client_class: MagicMock) -> None:
         """Test login with key error."""
         # Setup mocks
@@ -262,7 +262,7 @@ class TestLoginCommand:
             "[red]❌ Login failed: 'required_field'[/red]",
         )
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.FlextApiClient")
     def test_login_os_error(self, mock_client_class: MagicMock) -> None:
         """Test login with OS error."""
         # Setup mocks
@@ -318,7 +318,7 @@ class TestLogoutCommand:
             msg: str = f"Expected {'Logout from FLEXT'} in {result.output}"
             raise AssertionError(msg)
 
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_logout_not_logged_in(self, mock_get_token: MagicMock) -> None:
         """Test logout when not logged in."""
         mock_get_token.return_value = None
@@ -332,7 +332,7 @@ class TestLogoutCommand:
             raise AssertionError(msg)
         mock_console.print.assert_any_call("[yellow]Not logged in[/yellow]")
 
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_logout_empty_token(self, mock_get_token: MagicMock) -> None:
         """Test logout with empty token."""
         mock_get_token.return_value = ""
@@ -346,9 +346,9 @@ class TestLogoutCommand:
             raise AssertionError(msg)
         mock_console.print.assert_any_call("[yellow]Not logged in[/yellow]")
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.clear_auth_tokens")
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.clear_auth_tokens")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_logout_success(
         self,
         mock_get_token: MagicMock,
@@ -374,9 +374,9 @@ class TestLogoutCommand:
         mock_console.print.assert_any_call("[yellow]Logging out...[/yellow]")
         mock_console.print.assert_any_call("[green]✅ Logged out successfully[/green]")
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.clear_auth_tokens")
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.clear_auth_tokens")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_logout_connection_error(
         self,
         mock_get_token: MagicMock,
@@ -403,9 +403,9 @@ class TestLogoutCommand:
             "[yellow]⚠️  Logged out locally (Connection failed)[/yellow]",
         )
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.clear_auth_tokens")
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.clear_auth_tokens")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_logout_timeout_error(
         self,
         mock_get_token: MagicMock,
@@ -432,9 +432,9 @@ class TestLogoutCommand:
             "[yellow]⚠️  Logged out locally (Request timed out)[/yellow]",
         )
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.clear_auth_tokens")
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.clear_auth_tokens")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_logout_value_error(
         self,
         mock_get_token: MagicMock,
@@ -461,9 +461,9 @@ class TestLogoutCommand:
             "[yellow]⚠️  Logged out locally (Invalid token)[/yellow]",
         )
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.clear_auth_tokens")
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.clear_auth_tokens")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_logout_key_error(
         self,
         mock_get_token: MagicMock,
@@ -490,9 +490,9 @@ class TestLogoutCommand:
             "[green]✅ Logged out successfully[/green]",
         )
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.clear_auth_tokens")
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.clear_auth_tokens")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_logout_os_error(
         self,
         mock_get_token: MagicMock,
@@ -540,7 +540,7 @@ class TestStatusCommand:
             msg: str = f"Expected {'Check authentication status'} in {result.output}"
             raise AssertionError(msg)
 
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_status_not_authenticated(self, mock_get_token: MagicMock) -> None:
         """Test status when not authenticated."""
         mock_get_token.return_value = None
@@ -555,7 +555,7 @@ class TestStatusCommand:
         mock_console.print.assert_any_call("[red]❌ Not authenticated[/red]")
         mock_console.print.assert_any_call("Run 'flext auth login' to authenticate")
 
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_status_empty_token(self, mock_get_token: MagicMock) -> None:
         """Test status with empty token."""
         mock_get_token.return_value = ""
@@ -569,8 +569,8 @@ class TestStatusCommand:
             raise AssertionError(msg)
         mock_console.print.assert_any_call("[red]❌ Not authenticated[/red]")
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_status_authenticated(
         self,
         mock_get_token: MagicMock,
@@ -603,8 +603,8 @@ class TestStatusCommand:
         mock_console.print.assert_any_call("Email: test@example.com")
         mock_console.print.assert_any_call("Role: REDACTED_LDAP_BIND_PASSWORD")
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_status_authenticated_missing_fields(
         self,
         mock_get_token: MagicMock,
@@ -629,8 +629,8 @@ class TestStatusCommand:
         mock_console.print.assert_any_call("Email: Unknown")
         mock_console.print.assert_any_call("Role: Unknown")
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_status_connection_error(
         self,
         mock_get_token: MagicMock,
@@ -656,8 +656,8 @@ class TestStatusCommand:
         )
         mock_console.print.assert_any_call("Run 'flext auth login' to re-authenticate")
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_status_timeout_error(
         self,
         mock_get_token: MagicMock,
@@ -682,8 +682,8 @@ class TestStatusCommand:
             "[red]❌ Authentication check failed: Request timed out[/red]",
         )
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_status_value_error(
         self,
         mock_get_token: MagicMock,
@@ -708,8 +708,8 @@ class TestStatusCommand:
             "[red]❌ Authentication check failed: Invalid response[/red]",
         )
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_status_key_error(
         self,
         mock_get_token: MagicMock,
@@ -734,8 +734,8 @@ class TestStatusCommand:
             "[red]❌ Authentication check failed: 'user_id'[/red]",
         )
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_status_os_error(
         self,
         mock_get_token: MagicMock,
@@ -780,10 +780,10 @@ class TestAuthIntegration:
             msg: str = f"Expected {'status'} in {result.output}"
             raise AssertionError(msg)
 
-    @patch("flext_cli.commands.auth.FlextApiClient")
-    @patch("flext_cli.commands.auth.save_auth_token")
-    @patch("flext_cli.commands.auth.clear_auth_tokens")
-    @patch("flext_cli.commands.auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextApiClient")
+    @patch("flext_cli.cli_auth.save_auth_token")
+    @patch("flext_cli.cli_auth.clear_auth_tokens")
+    @patch("flext_cli.cli_auth.get_auth_token")
     def test_full_auth_workflow(
         self,
         mock_get_token: MagicMock,

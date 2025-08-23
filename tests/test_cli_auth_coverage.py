@@ -68,7 +68,7 @@ class TestAuthTokenManagement:
 
             result = save_auth_token("test_token", token_path=temp_path)
 
-            assert result.success
+            assert result.is_success
             assert temp_path.exists()
             content = temp_path.read_text(encoding="utf-8")
             assert "test_token" in content
@@ -80,7 +80,7 @@ class TestAuthTokenManagement:
         with patch("builtins.open", side_effect=PermissionError("Permission denied")):
             result = save_auth_token("test_token")
 
-            assert not result.success
+            assert not result.is_success
             assert "Permission" in result.error or "permission" in result.error
 
     def test_save_refresh_token_success(self) -> None:
@@ -90,7 +90,7 @@ class TestAuthTokenManagement:
 
             result = save_refresh_token("refresh_token", token_path=temp_path)
 
-            assert result.success
+            assert result.is_success
             assert temp_path.exists()
             content = temp_path.read_text(encoding="utf-8")
             assert "refresh_token" in content
@@ -108,8 +108,8 @@ class TestAuthTokenManagement:
 
             result = get_auth_token(token_path=temp_path)
 
-            assert result.success
-            assert result.unwrap() == "test_auth_token"
+            assert result.is_success
+            assert result.value == "test_auth_token"
 
             temp_path.unlink()
 
@@ -117,7 +117,7 @@ class TestAuthTokenManagement:
         """Test auth token retrieval with missing file."""
         result = get_auth_token(token_path=Path("/nonexistent/token"))
 
-        assert not result.success
+        assert not result.is_success
         assert "not found" in result.error or "No such file" in result.error
 
     def test_get_refresh_token_success(self) -> None:
@@ -131,8 +131,8 @@ class TestAuthTokenManagement:
 
             result = get_refresh_token(token_path=temp_path)
 
-            assert result.success
-            assert result.unwrap() == "refresh_token_value"
+            assert result.is_success
+            assert result.value == "refresh_token_value"
 
             temp_path.unlink()
 
@@ -149,7 +149,7 @@ class TestAuthTokenManagement:
 
             result = clear_auth(auth_data_path=auth_dir)
 
-            assert result.success
+            assert result.is_success
             # Files should be removed or directory cleared
             if auth_dir.exists():
                 assert not token_file.exists()
@@ -166,7 +166,7 @@ class TestAuthTokenManagement:
                 result = clear_auth()
 
                 # Should handle error gracefully
-                assert result.success or not result.success  # Either outcome is valid
+                assert result.is_success or not result.is_success  # Either outcome is valid
 
 
 class TestAuthConfiguration:
@@ -182,7 +182,7 @@ class TestAuthConfiguration:
 
         result = validate_auth_config(config)
 
-        assert result.success
+        assert result.is_success
 
     def test_validate_auth_config_missing_url(self) -> None:
         """Test validation of config missing auth_url."""
@@ -190,7 +190,7 @@ class TestAuthConfiguration:
 
         result = validate_auth_config(config)
 
-        assert not result.success
+        assert not result.is_success
         assert "auth_url" in result.error
 
     def test_validate_auth_config_invalid_url(self) -> None:
@@ -199,7 +199,7 @@ class TestAuthConfiguration:
 
         result = validate_auth_config(config)
 
-        assert not result.success
+        assert not result.is_success
         assert "URL" in result.error or "url" in result.error
 
     def test_save_auth_config_success(self) -> None:
@@ -214,7 +214,7 @@ class TestAuthConfiguration:
 
             result = save_auth_config(config, config_path=temp_path)
 
-            assert result.success
+            assert result.is_success
             assert temp_path.exists()
 
             temp_path.unlink()
@@ -237,8 +237,8 @@ class TestAuthConfiguration:
 
             result = load_auth_config(config_path=temp_path)
 
-            assert result.success
-            loaded_config = result.unwrap()
+            assert result.is_success
+            loaded_config = result.value
             assert loaded_config["auth_url"] == config["auth_url"]
             assert loaded_config["client_id"] == config["client_id"]
 
@@ -248,7 +248,7 @@ class TestAuthConfiguration:
         """Test auth config loading with missing file."""
         result = load_auth_config(config_path=Path("/nonexistent/config.json"))
 
-        assert not result.success
+        assert not result.is_success
         assert "not found" in result.error or "No such file" in result.error
 
 
@@ -272,8 +272,8 @@ class TestAuthTokenProvider:
 
             result = provider.get_token()
 
-            assert result.success
-            assert result.unwrap() == "test_token"
+            assert result.is_success
+            assert result.value == "test_token"
 
     def test_auth_token_provider_get_token_failure(self) -> None:
         """Test failed token retrieval."""
@@ -284,7 +284,7 @@ class TestAuthTokenProvider:
 
             result = provider.get_token()
 
-            assert not result.success
+            assert not result.is_success
             assert "Token not found" in result.error
 
     def test_auth_token_provider_refresh_token_success(self) -> None:
@@ -296,8 +296,8 @@ class TestAuthTokenProvider:
 
             result = provider.refresh_token("refresh_token")
 
-            assert result.success
-            assert result.unwrap() == "new_token"
+            assert result.is_success
+            assert result.value == "new_token"
 
     def test_auth_token_provider_refresh_token_failure(self) -> None:
         """Test failed token refresh."""
@@ -308,7 +308,7 @@ class TestAuthTokenProvider:
 
             result = provider.refresh_token("invalid_refresh")
 
-            assert not result.success
+            assert not result.is_success
             assert "Refresh failed" in result.error
 
 
@@ -374,14 +374,14 @@ class TestAuthUtilities:
                         refresh_token_path=refresh_path, token_path=token_path
                     )
 
-                    if result.success:
+                    if result.is_success:
                         assert (
-                            "new_token" in result.unwrap()
-                            or "refresh" in result.unwrap()
+                            "new_token" in result.value
+                            or "refresh" in result.value
                         )
                     else:
                         # Refresh may fail due to missing config, which is expected
-                        assert not result.success
+                        assert not result.is_success
 
                 token_path.unlink()
             refresh_path.unlink()
@@ -390,8 +390,8 @@ class TestAuthUtilities:
         """Test successful token provider creation."""
         result = create_token_provider()
 
-        assert result.success
-        provider = result.unwrap()
+        assert result.is_success
+        provider = result.value
         assert isinstance(provider, AuthTokenProvider)
 
     def test_create_auth_token_manager_success(self) -> None:
@@ -400,8 +400,8 @@ class TestAuthUtilities:
 
         # Manager creation may succeed or fail based on config availability
         assert isinstance(result, FlextResult)
-        if result.success:
-            assert result.unwrap() is not None
+        if result.is_success:
+            assert result.value is not None
 
 
 class TestFlextAuthenticationError:
@@ -442,32 +442,32 @@ class TestAuthIntegration:
             }
 
             config_result = save_auth_config(config, config_path=config_path)
-            assert config_result.success
+            assert config_result.is_success
 
             # Save tokens
             token_result = save_auth_token("access_token", token_path=token_path)
-            assert token_result.success
+            assert token_result.is_success
 
             refresh_result = save_refresh_token(
                 "refresh_token", token_path=refresh_path
             )
-            assert refresh_result.success
+            assert refresh_result.is_success
 
             # Check authentication
             assert is_authenticated(token_path=token_path)
 
             # Get tokens
             get_token_result = get_auth_token(token_path=token_path)
-            assert get_token_result.success
-            assert get_token_result.unwrap() == "access_token"
+            assert get_token_result.is_success
+            assert get_token_result.value == "access_token"
 
             get_refresh_result = get_refresh_token(token_path=refresh_path)
-            assert get_refresh_result.success
-            assert get_refresh_result.unwrap() == "refresh_token"
+            assert get_refresh_result.is_success
+            assert get_refresh_result.value == "refresh_token"
 
             # Clear auth
             clear_result = clear_auth(auth_data_path=auth_dir)
-            assert clear_result.success
+            assert clear_result.is_success
 
     def test_auth_workflow_with_failures(self) -> None:
         """Test authentication workflow with various failures."""
@@ -475,15 +475,15 @@ class TestAuthIntegration:
         assert not is_authenticated(token_path=Path("/nonexistent"))
 
         get_result = get_auth_token(token_path=Path("/nonexistent"))
-        assert not get_result.success
+        assert not get_result.is_success
 
         refresh_result = get_refresh_token(token_path=Path("/nonexistent"))
-        assert not refresh_result.success
+        assert not refresh_result.is_success
 
         # Test with invalid config
         invalid_config = {"invalid": "config"}
         validate_result = validate_auth_config(invalid_config)
-        assert not validate_result.success
+        assert not validate_result.is_success
 
 
 class TestErrorHandling:
@@ -494,7 +494,7 @@ class TestErrorHandling:
         with patch("builtins.open", side_effect=OSError("Disk full")):
             result = save_auth_token("token")
 
-            assert not result.success
+            assert not result.is_success
             assert "Disk full" in result.error or "error" in result.error
 
     def test_get_auth_token_unicode_error(self) -> None:
@@ -508,7 +508,7 @@ class TestErrorHandling:
             result = get_auth_token(token_path=temp_path)
 
             # Should handle unicode errors gracefully
-            assert not result.success or result.success  # Either outcome is valid
+            assert not result.is_success or result.is_success  # Either outcome is valid
 
             temp_path.unlink()
 
@@ -523,7 +523,7 @@ class TestErrorHandling:
 
             result = load_auth_config(config_path=temp_path)
 
-            assert not result.success
+            assert not result.is_success
             assert "JSON" in result.error or "json" in result.error
 
             temp_path.unlink()
@@ -548,10 +548,10 @@ class TestEdgeCases:
 
             result = save_auth_token(long_token, token_path=temp_path)
 
-            if result.success:
+            if result.is_success:
                 get_result = get_auth_token(token_path=temp_path)
-                if get_result.success:
-                    assert len(get_result.unwrap()) == len(long_token)
+                if get_result.is_success:
+                    assert len(get_result.value) == len(long_token)
 
             temp_path.unlink()
 
@@ -564,10 +564,10 @@ class TestEdgeCases:
 
             result = save_auth_token(special_token, token_path=temp_path)
 
-            if result.success:
+            if result.is_success:
                 get_result = get_auth_token(token_path=temp_path)
-                if get_result.success:
-                    assert get_result.unwrap() == special_token
+                if get_result.is_success:
+                    assert get_result.value == special_token
 
             temp_path.unlink()
 
@@ -651,10 +651,10 @@ class TestPerformance:
 
             result = save_auth_config(large_config, config_path=temp_path)
 
-            if result.success:
+            if result.is_success:
                 load_result = load_auth_config(config_path=temp_path)
-                if load_result.success:
-                    loaded_config = load_result.unwrap()
+                if load_result.is_success:
+                    loaded_config = load_result.value
                     assert len(loaded_config) >= 2  # At least auth_url and client_id
 
             temp_path.unlink()
@@ -669,9 +669,9 @@ class TestPerformance:
                 token_value = f"token_{i}"
                 save_result = save_auth_token(token_value, token_path=temp_path)
 
-                if save_result.success:
+                if save_result.is_success:
                     get_result = get_auth_token(token_path=temp_path)
-                    if get_result.success and i % 10 == 0:  # Check every 10th operation
-                        assert get_result.unwrap() == token_value
+                    if get_result.is_success and i % 10 == 0:  # Check every 10th operation
+                        assert get_result.value == token_value
 
             temp_path.unlink()

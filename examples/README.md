@@ -16,7 +16,7 @@ The examples are organized in a sequential learning path from foundational patte
 ## 🏗️ Architecture Patterns Demonstrated
 
 ### Clean Architecture Integration
-- **Domain Layer**: CLI entities (CLICommand, CLISession, CLIPlugin) with business rules
+- **Domain Layer**: CLI entities (CLICommand, FlextCliSession, FlextCliPlugin) with business rules
 - **Application Layer**: Command handlers and service orchestration
 - **Infrastructure Layer**: External service integration, file I/O, API clients
 
@@ -214,14 +214,14 @@ config.profile = "production"
 config.debug = False
 
 # Settings with validation
-settings = flext_cli.CLISettings(
+settings = flext_cli.FlextCliSettings(
     api_url="https://api.production.com",
     timeout=30,
     max_retries=3
 )
 
 # Context creation
-context = flext_cli.CLIContext(
+context = flext_cli.FlextCliContext(
     profile="production",
     output_format="json",
     debug=False
@@ -312,7 +312,7 @@ completed = running.complete_execution(
 )
 
 # Session tracking
-session = flext_cli.CLISession(
+session = flext_cli.FlextCliSession(
     session_id="deploy-session-001",
     user_id="REDACTED_LDAP_BIND_PASSWORD",
     profile="production"

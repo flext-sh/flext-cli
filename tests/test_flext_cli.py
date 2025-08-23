@@ -15,19 +15,18 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from flext_core import FlextResult
+from flext_core import FlextEntityId, FlextResult
 
 from flext_cli import (
     CLICommand,
-    CLIPlugin,
-    CLISession,
     FlextCliCommandStatus,
     FlextCliCommandType,
+    FlextCliPlugin,
+    FlextCliSession,
     flext_cli_create_data_processor,
     flext_cli_create_helper,
     setup_cli,
 )
-from flext_core import FlextEntityId
 
 
 class TestFlextCliPublicInterface:
@@ -35,17 +34,17 @@ class TestFlextCliPublicInterface:
 
     def test_setup_cli_functionality(self) -> None:
         """Test setup_cli function with real CLI settings."""
-        from flext_cli import CLISettings
+        from flext_cli import FlextCliSettings
 
         # Create real CLI settings
-        settings = CLISettings()
+        settings = FlextCliSettings()
 
         # Test setup_cli with real functionality
         result = setup_cli(settings)
 
         # Verify FlextResult pattern with .value
         assert isinstance(result, FlextResult)
-        assert result.success
+        assert result.is_success
         assert result.value is True
 
     def test_flext_cli_create_helper_functionality(self) -> None:
@@ -90,22 +89,22 @@ class TestFlextCliPublicInterface:
 
         # Start execution - returns FlextResult[CLICommand]
         running_result = command.start_execution()
-        assert running_result.success
-        running_command = running_result.value  # Use .value instead of .unwrap()
+        assert running_result.is_success
+        running_command = running_result.value  # Use .value instead of .value
         assert running_command.command_status == FlextCliCommandStatus.RUNNING
 
         # Complete execution - returns FlextResult[CLICommand]
         completed_result = running_command.complete_execution(
             exit_code=0, stdout="Hello, Real World!"
         )
-        assert completed_result.success
-        completed_command = completed_result.value  # Use .value instead of .unwrap()
+        assert completed_result.is_success
+        completed_command = completed_result.value  # Use .value instead of .value
         assert completed_command.successful
 
     def test_cli_plugin_real_functionality(self) -> None:
         """Test CLI plugin with real functionality."""
         # Create real plugin instance
-        plugin = CLIPlugin(
+        plugin = FlextCliPlugin(
             name="test-real-plugin",
             entry_point="test_plugin.main",
             plugin_version="1.0.0",
@@ -114,42 +113,42 @@ class TestFlextCliPublicInterface:
         # Test plugin lifecycle with real functionality
         assert plugin.plugin_status.value == "inactive"
 
-        # Test plugin installation - returns FlextResult[CLIPlugin]
+        # Test plugin installation - returns FlextResult[FlextCliPlugin]
         install_result = plugin.install()
-        assert install_result.success
-        installed_plugin = install_result.value  # Use .value instead of .unwrap()
+        assert install_result.is_success
+        installed_plugin = install_result.value  # Use .value instead of .value
         assert installed_plugin.installed
 
     def test_cli_session_real_functionality(self) -> None:
         """Test CLI session with real functionality."""
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create real session instance
-            session = CLISession(session_id="real-test-session")
+            session = FlextCliSession(session_id="real-test-session")
 
             # Test session command tracking with real functionality
             command_id = FlextEntityId("test-command-1")
             add_result = session.add_command(command_id)
-            assert add_result.success
-            updated_session = add_result.value  # Use .value instead of .unwrap()
+            assert add_result.is_success
+            updated_session = add_result.value  # Use .value instead of .value
             assert len(updated_session.commands_executed) == 1
 
             # Test session ending
             end_result = updated_session.end_session()
-            assert end_result.success
-            ended_session = end_result.value  # Use .value instead of .unwrap()
+            assert end_result.is_success
+            ended_session = end_result.value  # Use .value instead of .value
             assert not ended_session.is_active
 
     def test_flext_result_patterns(self) -> None:
         """Test FlextResult patterns throughout flext_cli."""
-        from flext_cli import CLISettings
+        from flext_cli import FlextCliSettings
 
         # Test setup_cli returns FlextResult
-        settings = CLISettings()
+        settings = FlextCliSettings()
         result = setup_cli(settings)
 
         # Test FlextResult.value property (modern pattern)
         assert isinstance(result, FlextResult)
-        if result.success:
+        if result.is_success:
             value = result.value
             assert value is not None
         else:
@@ -158,12 +157,12 @@ class TestFlextCliPublicInterface:
 
     def test_unwrap_or_pattern_usage(self) -> None:
         """Test FlextResult.unwrap_or() pattern for cleaner code."""
-        from flext_cli import CLISettings
+        from flext_cli import FlextCliSettings
 
         # Example of unwrap_or() usage to reduce bloat
-        settings = CLISettings()
+        settings = FlextCliSettings()
 
-        # Instead of: result = setup_cli(settings); return result.value if result.success else False
+        # Instead of: result = setup_cli(settings); return result.value if result.is_success else False
         # Use unwrap_or() for cleaner code:
         success = setup_cli(settings).unwrap_or(False)
         assert isinstance(success, bool)
@@ -204,7 +203,7 @@ class TestFlextCliPublicInterface:
 
         # Test domain validation
         validation_result = valid_command.validate_business_rules()
-        assert validation_result.success
+        assert validation_result.is_success
 
         # Test invalid command
         try:
@@ -215,7 +214,7 @@ class TestFlextCliPublicInterface:
             )
             validation_result = invalid_command.validate_business_rules()
             # Should fail validation for empty name
-            assert not validation_result.success
+            assert not validation_result.is_success
         except Exception:
             # Validation may be done at construction time
             assert True  # This is acceptable for domain validation
@@ -233,7 +232,7 @@ class TestFlextCliPublicInterface:
 
             # Test that validation returns proper FlextResult
             result = command.validate_business_rules()
-            if not result.success:
+            if not result.is_success:
                 error_message = result.error
                 assert isinstance(error_message, str)
                 assert len(error_message) > 0
@@ -243,10 +242,10 @@ class TestFlextCliPublicInterface:
 
     def test_integration_patterns(self) -> None:
         """Test integration patterns across flext_cli components."""
-        from flext_cli import CLISettings
+        from flext_cli import FlextCliSettings
 
         # Test that components work together
-        settings = CLISettings()
+        settings = FlextCliSettings()
         setup_result = setup_cli(settings)
 
         # Test components can be created together
@@ -261,23 +260,23 @@ class TestFlextCliPublicInterface:
     def test_type_safety_and_generics(self) -> None:
         """Test type safety and generic patterns in flext_cli."""
         # Test FlextResult type safety
-        from flext_cli import CLISettings
+        from flext_cli import FlextCliSettings
 
-        settings = CLISettings()
+        settings = FlextCliSettings()
         result: FlextResult[bool] = setup_cli(settings)
 
         # Test type annotations are preserved
         assert isinstance(result, FlextResult)
-        if result.success:
+        if result.is_success:
             value: bool = result.value
             assert isinstance(value, bool)
 
     def test_real_cli_context_functionality(self) -> None:
         """Test CLI context with real functionality."""
-        from flext_cli import CLIContext
+        from flext_cli import FlextCliContext
 
         # Test real CLI context creation
-        context = CLIContext()
+        context = FlextCliContext()
 
         # Test context properties and methods
         assert hasattr(context, "is_debug")
@@ -336,18 +335,18 @@ class TestFlextCliPublicInterface:
 
         # Test that session cleanup works
         with tempfile.TemporaryDirectory() as tmpdir:
-            session = CLISession(session_id="cleanup-test")
+            session = FlextCliSession(session_id="cleanup-test")
 
             # Add commands and then end session
             for i in range(5):
                 command_id = FlextEntityId(f"cleanup-cmd-{i}")
                 add_result = session.add_command(command_id)
-                if add_result.success:
+                if add_result.is_success:
                     session = add_result.value  # Use .value for clean updates
 
             # End session
             end_result = session.end_session()
-            if end_result.success:
+            if end_result.is_success:
                 final_session = end_result.value
                 assert not final_session.is_active
 
@@ -365,7 +364,7 @@ class TestFlextCliHelpers:
 
         # Test helper methods existence
         if hasattr(helper, "flext_cli_confirm"):
-            confirm_method = getattr(helper, "flext_cli_confirm")
+            confirm_method = helper.flext_cli_confirm
             assert callable(confirm_method)
 
             # Test method signature
@@ -384,7 +383,7 @@ class TestFlextCliHelpers:
 
         if hasattr(processor, "process"):
             # Test processing if available
-            process_method = getattr(processor, "process")
+            process_method = processor.process
             if callable(process_method):
                 try:
                     # Attempt real processing
@@ -411,10 +410,10 @@ class TestFlextCliHelpers:
 
     def test_real_configuration_loading(self) -> None:
         """Test configuration loading with real functionality."""
-        from flext_cli import CLISettings
+        from flext_cli import FlextCliSettings
 
         # Test settings creation
-        settings = CLISettings()
+        settings = FlextCliSettings()
         assert settings is not None
 
         # Test settings properties
@@ -426,31 +425,31 @@ class TestFlextCliHelpers:
 
     def test_flext_result_chaining_patterns(self) -> None:
         """Test FlextResult chaining patterns for complex operations."""
-        from flext_cli import CLISettings
+        from flext_cli import FlextCliSettings
 
         # Test chaining operations with FlextResult
-        def create_and_setup_cli() -> FlextResult[tuple[CLISettings, bool]]:
+        def create_and_setup_cli() -> FlextResult[tuple[FlextCliSettings, bool]]:
             try:
-                settings = CLISettings()
+                settings = FlextCliSettings()
                 setup_result = setup_cli(settings)
 
-                if setup_result.success:
-                    return FlextResult[tuple[CLISettings, bool]].ok(
-                        (settings, setup_result.value)
-                    )
-                else:
-                    error_msg = setup_result.error or "Setup failed"
-                    return FlextResult[tuple[CLISettings, bool]].fail(error_msg)
+                if setup_result.is_success:
+                    return FlextResult[tuple[FlextCliSettings, bool]].ok((
+                        settings,
+                        setup_result.value,
+                    ))
+                error_msg = setup_result.error or "Setup failed"
+                return FlextResult[tuple[FlextCliSettings, bool]].fail(error_msg)
             except Exception as e:
-                return FlextResult[tuple[CLISettings, bool]].fail(str(e))
+                return FlextResult[tuple[FlextCliSettings, bool]].fail(str(e))
 
         # Test chaining result
         chained_result = create_and_setup_cli()
         assert isinstance(chained_result, FlextResult)
 
-        if chained_result.success:
+        if chained_result.is_success:
             settings, success = chained_result.value
-            assert isinstance(settings, CLISettings)
+            assert isinstance(settings, FlextCliSettings)
             assert isinstance(success, bool)
 
 

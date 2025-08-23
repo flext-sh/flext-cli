@@ -211,7 +211,7 @@ class TestFlextCliContext:
 
         result = context.validate_business_rules()
 
-        assert result.success
+        assert result.is_success
 
     def test_context_validate_business_rules_timeout_exceeded(self) -> None:
         """Test context business rules validation with timeout exceeded."""
@@ -219,7 +219,7 @@ class TestFlextCliContext:
 
         result = context.validate_business_rules()
 
-        assert not result.success
+        assert not result.is_success
         assert "timeout" in result.error.lower()
 
 
@@ -290,7 +290,7 @@ class TestFlextCliOutput:
 
         result = output.validate_business_rules()
 
-        assert result.success
+        assert result.is_success
 
     def test_output_validate_business_rules_invalid_exit_code(self) -> None:
         """Test output business rules validation with invalid exit code."""
@@ -298,7 +298,7 @@ class TestFlextCliOutput:
 
         result = output.validate_business_rules()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_output_validate_business_rules_negative_time(self) -> None:
         """Test output business rules validation with negative execution time."""
@@ -306,7 +306,7 @@ class TestFlextCliOutput:
 
         result = output.validate_business_rules()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_output_format_output_json(self) -> None:
         """Test format_output method with JSON format."""
@@ -449,7 +449,7 @@ class TestFlextCliConfiguration:
 
         result = config.validate_business_rules()
 
-        assert result.success
+        assert result.is_success
 
     def test_configuration_validate_business_rules_invalid_config_path(self) -> None:
         """Test configuration business rules validation with invalid config path."""
@@ -459,7 +459,7 @@ class TestFlextCliConfiguration:
 
         result = config.validate_business_rules()
 
-        assert not result.success
+        assert not result.is_success
         assert "Config file directory does not exist" in result.error
 
     def test_configuration_validate_business_rules_invalid_plugin_dir(self) -> None:
@@ -470,7 +470,7 @@ class TestFlextCliConfiguration:
 
         result = config.validate_business_rules()
 
-        assert not result.success
+        assert not result.is_success
         assert "Plugin directory does not exist" in result.error
 
 
@@ -597,7 +597,7 @@ class TestFlextCliCommand:
 
         result = command.validate_business_rules()
 
-        assert result.success
+        assert result.is_success
 
     def test_command_validate_business_rules_empty_command_line(self) -> None:
         """Test command business rules validation - Pydantic prevents empty command lines."""
@@ -619,7 +619,7 @@ class TestFlextCliCommand:
 
         result = command.validate_business_rules()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_command_validate_business_rules_running_without_start(self) -> None:
         """Test command business rules validation for running without start time."""
@@ -629,7 +629,7 @@ class TestFlextCliCommand:
 
         result = command.validate_business_rules()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_command_validate_business_rules_terminal_without_completion(self) -> None:
         """Test command business rules validation for terminal state without completion."""
@@ -641,7 +641,7 @@ class TestFlextCliCommand:
 
         result = command.validate_business_rules()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_command_convenience_properties(self) -> None:
         """Test command convenience properties."""
@@ -694,8 +694,8 @@ class TestFlextCliCommand:
 
         result = command.start_execution()
 
-        assert result.success
-        updated_command = result.unwrap()
+        assert result.is_success
+        updated_command = result.value
         assert updated_command.status == FlextCliCommandStatus.RUNNING
         assert updated_command.started_at is not None
 
@@ -707,7 +707,7 @@ class TestFlextCliCommand:
 
         result = command.start_execution()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_command_complete_execution_full(self) -> None:
         """Test command complete_execution method."""
@@ -717,8 +717,8 @@ class TestFlextCliCommand:
             exit_code=0, stdout="test output", stderr=""
         )
 
-        assert result.success
-        updated_command = result.unwrap()
+        assert result.is_success
+        updated_command = result.value
         assert updated_command.status == FlextCliCommandStatus.COMPLETED
         assert updated_command.output == "test output"
         assert updated_command.exit_code == 0
@@ -732,8 +732,8 @@ class TestFlextCliCommand:
             exit_code=1, stdout="", stderr="command failed"
         )
 
-        assert result.success
-        updated_command = result.unwrap()
+        assert result.is_success
+        updated_command = result.value
         assert updated_command.status == FlextCliCommandStatus.FAILED
         assert updated_command.stderr == "command failed"
         assert updated_command.exit_code == 1
@@ -746,8 +746,8 @@ class TestFlextCliCommand:
 
         result = command.cancel_execution()
 
-        assert result.success
-        updated_command = result.unwrap()
+        assert result.is_success
+        updated_command = result.value
         assert updated_command.status == FlextCliCommandStatus.CANCELLED
         assert updated_command.completed_at is not None
 
@@ -759,7 +759,7 @@ class TestFlextCliCommand:
 
         result = command.cancel_execution()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_command_status_property_mapping(self) -> None:
         """Test command_status property mapping."""
@@ -902,7 +902,7 @@ class TestFlextCliSession:
 
         result = session.validate_business_rules()
 
-        assert result.success
+        assert result.is_success
 
     def test_session_validate_business_rules_invalid_timestamps(self) -> None:
         """Test session business rules validation with invalid timestamps."""
@@ -913,7 +913,7 @@ class TestFlextCliSession:
 
         result = session.validate_business_rules()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_session_validate_business_rules_activity_before_start(self) -> None:
         """Test session business rules validation with activity before start."""
@@ -924,7 +924,7 @@ class TestFlextCliSession:
 
         result = session.validate_business_rules()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_session_validate_business_rules_command_not_in_history(self) -> None:
         """Test session business rules validation with current command not in history."""
@@ -934,7 +934,7 @@ class TestFlextCliSession:
 
         result = session.validate_business_rules()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_session_add_command(self) -> None:
         """Test session add_command method."""
@@ -943,8 +943,8 @@ class TestFlextCliSession:
 
         result = session.add_command(command_id)
 
-        assert result.success
-        updated_session = result.unwrap()
+        assert result.is_success
+        updated_session = result.value
         assert command_id in updated_session.command_history
         assert updated_session.current_command_id == command_id
         assert updated_session.last_activity_at > session.last_activity_at
@@ -956,7 +956,7 @@ class TestFlextCliSession:
 
         result = session.add_command(command_id)
 
-        assert not result.success
+        assert not result.is_success
 
     def test_session_record_command_convenience(self) -> None:
         """Test session flext_cli_record_command convenience method."""
@@ -973,8 +973,8 @@ class TestFlextCliSession:
 
         result = session.suspend_session()
 
-        assert result.success
-        updated_session = result.unwrap()
+        assert result.is_success
+        updated_session = result.value
         assert updated_session.state == FlextCliSessionState.SUSPENDED
         assert updated_session.current_command_id is None
 
@@ -984,7 +984,7 @@ class TestFlextCliSession:
 
         result = session.suspend_session()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_session_resume_session(self) -> None:
         """Test session resume_session method."""
@@ -992,8 +992,8 @@ class TestFlextCliSession:
 
         result = session.resume_session()
 
-        assert result.success
-        updated_session = result.unwrap()
+        assert result.is_success
+        updated_session = result.value
         assert updated_session.state == FlextCliSessionState.ACTIVE
 
     def test_session_resume_session_not_suspended(self) -> None:
@@ -1002,7 +1002,7 @@ class TestFlextCliSession:
 
         result = session.resume_session()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_session_terminate_session(self) -> None:
         """Test session terminate_session method."""
@@ -1010,8 +1010,8 @@ class TestFlextCliSession:
 
         result = session.terminate_session()
 
-        assert result.success
-        updated_session = result.unwrap()
+        assert result.is_success
+        updated_session = result.value
         assert updated_session.state == FlextCliSessionState.COMPLETED
         assert updated_session.current_command_id is None
         assert updated_session.ended_at is not None
@@ -1022,7 +1022,7 @@ class TestFlextCliSession:
 
         result = session.terminate_session()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_session_end_session_alias(self) -> None:
         """Test session end_session alias method."""
@@ -1030,8 +1030,8 @@ class TestFlextCliSession:
 
         result = session.end_session()
 
-        assert result.success
-        updated_session = result.unwrap()
+        assert result.is_success
+        updated_session = result.value
         assert updated_session.state == FlextCliSessionState.COMPLETED
 
 
@@ -1171,13 +1171,13 @@ class TestFlextCliPlugin:
 
         # Test enable/disable
         result = plugin.disable()
-        assert result.success
-        disabled_plugin = result.unwrap()
+        assert result.is_success
+        disabled_plugin = result.value
         assert not disabled_plugin.enabled
 
         enable_result = disabled_plugin.enable()
-        assert enable_result.success
-        enabled_plugin = enable_result.unwrap()
+        assert enable_result.is_success
+        enabled_plugin = enable_result.value
         assert enabled_plugin.enabled
 
     def test_plugin_validate_business_rules_success(self) -> None:
@@ -1188,7 +1188,7 @@ class TestFlextCliPlugin:
 
         result = plugin.validate_business_rules()
 
-        assert result.success
+        assert result.is_success
 
     def test_plugin_validate_business_rules_empty_name(self) -> None:
         """Test plugin business rules validation - Pydantic prevents empty names."""
@@ -1218,7 +1218,7 @@ class TestFlextCliPlugin:
 
         result = plugin.validate_business_rules()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_plugin_load_plugin(self) -> None:
         """Test plugin load_plugin method."""
@@ -1226,8 +1226,8 @@ class TestFlextCliPlugin:
 
         result = plugin.load_plugin()
 
-        assert result.success
-        loaded_plugin = result.unwrap()
+        assert result.is_success
+        loaded_plugin = result.value
         assert loaded_plugin.state == FlextCliPluginState.LOADED
         assert loaded_plugin.loaded_at is not None
         assert loaded_plugin.last_error is None
@@ -1240,7 +1240,7 @@ class TestFlextCliPlugin:
 
         result = plugin.load_plugin()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_plugin_activate_plugin_from_loaded(self) -> None:
         """Test plugin activate_plugin from loaded state."""
@@ -1250,8 +1250,8 @@ class TestFlextCliPlugin:
 
         result = plugin.activate_plugin()
 
-        assert result.success
-        active_plugin = result.unwrap()
+        assert result.is_success
+        active_plugin = result.value
         assert active_plugin.state == FlextCliPluginState.ACTIVE
 
     def test_plugin_activate_plugin_from_unloaded(self) -> None:
@@ -1262,8 +1262,8 @@ class TestFlextCliPlugin:
 
         result = plugin.activate_plugin()
 
-        assert result.success
-        active_plugin = result.unwrap()
+        assert result.is_success
+        active_plugin = result.value
         assert active_plugin.state == FlextCliPluginState.ACTIVE
         assert active_plugin.loaded_at is not None
 
@@ -1275,8 +1275,8 @@ class TestFlextCliPlugin:
 
         result = plugin.deactivate_plugin()
 
-        assert result.success
-        deactivated_plugin = result.unwrap()
+        assert result.is_success
+        deactivated_plugin = result.value
         assert deactivated_plugin.state == FlextCliPluginState.UNLOADED
         assert deactivated_plugin.loaded_at is None
 
@@ -1288,8 +1288,8 @@ class TestFlextCliPlugin:
 
         result = plugin.unload_plugin()
 
-        assert result.success
-        unloaded_plugin = result.unwrap()
+        assert result.is_success
+        unloaded_plugin = result.value
         assert unloaded_plugin.state == FlextCliPluginState.UNLOADED
         assert unloaded_plugin.loaded_at is None
 
@@ -1301,8 +1301,8 @@ class TestFlextCliPlugin:
 
         result = plugin.unload_plugin()
 
-        assert result.success
-        unloaded_plugin = result.unwrap()
+        assert result.is_success
+        unloaded_plugin = result.value
         assert unloaded_plugin.state == FlextCliPluginState.UNLOADED
 
     def test_plugin_unload_already_unloaded(self) -> None:
@@ -1313,7 +1313,7 @@ class TestFlextCliPlugin:
 
         result = plugin.unload_plugin()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_plugin_convenience_aliases(self) -> None:
         """Test plugin convenience method aliases."""
@@ -1321,13 +1321,13 @@ class TestFlextCliPlugin:
 
         # Test activate alias
         activate_result = plugin.activate()
-        assert activate_result.success
+        assert activate_result.is_success
 
-        active_plugin = activate_result.unwrap()
+        active_plugin = activate_result.value
 
         # Test deactivate alias
         deactivate_result = active_plugin.deactivate()
-        assert deactivate_result.success
+        assert deactivate_result.is_success
 
     def test_plugin_install_uninstall_convenience(self) -> None:
         """Test plugin install/uninstall convenience methods."""
@@ -1335,14 +1335,14 @@ class TestFlextCliPlugin:
 
         # Test install (should load plugin)
         install_result = plugin.install()
-        assert install_result.success
-        installed_plugin = install_result.unwrap()
+        assert install_result.is_success
+        installed_plugin = install_result.value
         assert installed_plugin.state == FlextCliPluginState.LOADED
 
         # Test uninstall
         uninstall_result = installed_plugin.uninstall()
-        assert uninstall_result.success
-        uninstalled_plugin = uninstall_result.unwrap()
+        assert uninstall_result.is_success
+        uninstalled_plugin = uninstall_result.value
         assert uninstalled_plugin.state == FlextCliPluginState.UNLOADED
         assert not uninstalled_plugin.enabled
 
@@ -1387,7 +1387,7 @@ class TestFlextCliWorkspace:
 
         result = workspace.validate_business_rules()
 
-        assert result.success
+        assert result.is_success
 
     def test_workspace_validate_business_rules_empty_name(self) -> None:
         """Test workspace business rules validation with empty name."""
@@ -1395,7 +1395,7 @@ class TestFlextCliWorkspace:
 
         result = workspace.validate_business_rules()
 
-        assert not result.success
+        assert not result.is_success
 
     def test_workspace_add_session(self) -> None:
         """Test workspace add_session method."""
@@ -1404,8 +1404,8 @@ class TestFlextCliWorkspace:
 
         result = workspace.add_session(session_id)
 
-        assert result.success
-        updated_workspace = result.unwrap()
+        assert result.is_success
+        updated_workspace = result.value
         assert session_id in updated_workspace.session_ids
 
     def test_workspace_add_session_duplicate(self) -> None:
@@ -1415,7 +1415,7 @@ class TestFlextCliWorkspace:
 
         result = workspace.add_session(session_id)
 
-        assert not result.success
+        assert not result.is_success
 
     def test_workspace_remove_session(self) -> None:
         """Test workspace remove_session method."""
@@ -1426,8 +1426,8 @@ class TestFlextCliWorkspace:
 
         result = workspace.remove_session(session_id)
 
-        assert result.success
-        updated_workspace = result.unwrap()
+        assert result.is_success
+        updated_workspace = result.value
         assert session_id not in updated_workspace.session_ids
         assert "other-session" in updated_workspace.session_ids
 
@@ -1438,7 +1438,7 @@ class TestFlextCliWorkspace:
 
         result = workspace.remove_session(session_id)
 
-        assert not result.success
+        assert not result.is_success
 
     def test_workspace_install_plugin(self) -> None:
         """Test workspace install_plugin method."""
@@ -1447,8 +1447,8 @@ class TestFlextCliWorkspace:
 
         result = workspace.install_plugin(plugin_id)
 
-        assert result.success
-        updated_workspace = result.unwrap()
+        assert result.is_success
+        updated_workspace = result.value
         assert plugin_id in updated_workspace.plugin_ids
 
     def test_workspace_install_plugin_duplicate(self) -> None:
@@ -1458,7 +1458,7 @@ class TestFlextCliWorkspace:
 
         result = workspace.install_plugin(plugin_id)
 
-        assert not result.success
+        assert not result.is_success
 
 
 class TestModelRebuild:
@@ -1499,9 +1499,9 @@ class TestIntegration:
 
         # Add command to session
         add_result = session.add_command(command.id)
-        assert add_result.success
+        assert add_result.is_success
 
-        updated_session = add_result.unwrap()
+        updated_session = add_result.value
         assert command.id in updated_session.command_history
 
     def test_plugin_workspace_integration(self) -> None:
@@ -1513,9 +1513,9 @@ class TestIntegration:
 
         # Install plugin in workspace
         install_result = workspace.install_plugin(plugin.id)
-        assert install_result.success
+        assert install_result.is_success
 
-        updated_workspace = install_result.unwrap()
+        updated_workspace = install_result.value
         assert plugin.id in updated_workspace.plugin_ids
 
     def test_context_command_integration(self) -> None:

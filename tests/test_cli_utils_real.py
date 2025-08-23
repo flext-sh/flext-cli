@@ -48,8 +48,8 @@ class TestCliUtilsFileOperations:
             # Test REAL loading
             result = cli_load_data_file(str(json_file))
 
-            assert result.success, f"JSON loading should succeed: {result.error}"
-            loaded_data = result.unwrap()
+            assert result.is_success, f"JSON loading should succeed: {result.error}"
+            loaded_data = result.value
             assert loaded_data == test_data, "Loaded data should match original"
 
     def test_cli_load_data_file_yaml_real(self) -> None:
@@ -75,8 +75,8 @@ class TestCliUtilsFileOperations:
             # Test REAL loading
             result = cli_load_data_file(str(yaml_file))
 
-            assert result.success, f"YAML loading should succeed: {result.error}"
-            loaded_data = result.unwrap()
+            assert result.is_success, f"YAML loading should succeed: {result.error}"
+            loaded_data = result.value
             assert loaded_data == test_data, "YAML data should match original"
 
     def test_cli_load_data_file_csv_real(self) -> None:
@@ -91,8 +91,8 @@ class TestCliUtilsFileOperations:
             # Test REAL loading
             result = cli_load_data_file(str(csv_file))
 
-            assert result.success, f"CSV loading should succeed: {result.error}"
-            loaded_data = result.unwrap()
+            assert result.is_success, f"CSV loading should succeed: {result.error}"
+            loaded_data = result.value
 
             assert isinstance(loaded_data, list), "CSV should load as list"
             assert len(loaded_data) == 3, "Should have 3 rows"
@@ -120,7 +120,7 @@ class TestCliUtilsFileOperations:
             # Test REAL saving
             result = cli_save_data_file(test_data, str(json_file), "json")
 
-            assert result.success, f"JSON saving should succeed: {result.error}"
+            assert result.is_success, f"JSON saving should succeed: {result.error}"
 
             # Verify ACTUAL file was created
             assert json_file.exists(), "JSON file should exist"
@@ -149,7 +149,7 @@ class TestCliUtilsFileOperations:
             # Test REAL saving
             result = cli_save_data_file(test_data, str(yaml_file), "yaml")
 
-            assert result.success, f"YAML saving should succeed: {result.error}"
+            assert result.is_success, f"YAML saving should succeed: {result.error}"
 
             # Verify ACTUAL file was created
             assert yaml_file.exists(), "YAML file should exist"
@@ -172,7 +172,7 @@ class TestCliUtilsFileOperations:
             # Test REAL saving
             result = cli_save_data_file(test_data, str(csv_file), "csv")
 
-            assert result.success, f"CSV saving should succeed: {result.error}"
+            assert result.is_success, f"CSV saving should succeed: {result.error}"
 
             # Verify ACTUAL file was created
             assert csv_file.exists(), "CSV file should exist"
@@ -201,8 +201,8 @@ class TestCliUtilsFormatting:
         # Test REAL JSON formatting
         result = cli_format_output(test_data, "json")
 
-        assert result.success, f"JSON formatting should succeed: {result.error}"
-        formatted = result.unwrap()
+        assert result.is_success, f"JSON formatting should succeed: {result.error}"
+        formatted = result.value
 
         # Should be VALID JSON
         parsed = json.loads(formatted)
@@ -221,8 +221,8 @@ class TestCliUtilsFormatting:
         # Test REAL YAML formatting
         result = cli_format_output(test_data, "yaml")
 
-        assert result.success, f"YAML formatting should succeed: {result.error}"
-        formatted = result.unwrap()
+        assert result.is_success, f"YAML formatting should succeed: {result.error}"
+        formatted = result.value
 
         # Should be VALID YAML
         parsed = yaml.safe_load(formatted)
@@ -239,8 +239,8 @@ class TestCliUtilsFormatting:
         # Test REAL table formatting
         result = cli_format_output(test_data, "table")
 
-        assert result.success, f"Table formatting should succeed: {result.error}"
-        formatted = result.unwrap()
+        assert result.is_success, f"Table formatting should succeed: {result.error}"
+        formatted = result.value
 
         assert isinstance(formatted, str), "Table should be formatted as string"
         assert "Alice" in formatted, "Table should contain Alice"
@@ -258,8 +258,8 @@ class TestCliUtilsFormatting:
         # Test REAL table creation
         result = cli_create_table(test_data, "Server Status")
 
-        assert result.success, f"Table creation should succeed: {result.error}"
-        table = result.unwrap()
+        assert result.is_success, f"Table creation should succeed: {result.error}"
+        table = result.value
 
         # Should be ACTUAL Rich table
         assert hasattr(table, "title"), "Should be Rich table with title"
@@ -274,8 +274,8 @@ class TestCliUtilsCommandExecution:
         # Test REAL command that should always work
         result = cli_run_command(["echo", "Hello, World!"])
 
-        assert result.success, f"Echo command should succeed: {result.error}"
-        output = result.unwrap()
+        assert result.is_success, f"Echo command should succeed: {result.error}"
+        output = result.value
 
         assert isinstance(output, dict), "Command result should be dict"
         assert "stdout" in output, "Should have stdout"
@@ -290,8 +290,8 @@ class TestCliUtilsCommandExecution:
         # Test REAL command with multiple arguments
         result = cli_run_command(["python", "-c", "print('test'); print(1+1)"])
 
-        assert result.success, f"Python command should succeed: {result.error}"
-        output = result.unwrap()
+        assert result.is_success, f"Python command should succeed: {result.error}"
+        output = result.value
 
         assert output["returncode"] == 0, "Python command should succeed"
         assert "test" in output["stdout"], "Should contain 'test'"
@@ -303,8 +303,8 @@ class TestCliUtilsCommandExecution:
         result = cli_run_command(["python", "-c", "raise ValueError('test error')"])
 
         # Command should fail but result should still be success (we got output)
-        assert result.success, "Should get result even for failing command"
-        output = result.unwrap()
+        assert result.is_success, "Should get result even for failing command"
+        output = result.value
 
         assert output["returncode"] != 0, "Should have non-zero return code"
         assert "ValueError" in output["stderr"], "Should contain error in stderr"
@@ -350,8 +350,8 @@ class TestCliUtilsBatchProcessing:
             path_objects = [Path(p) for p in file_paths]
             result = cli_batch_process_files(path_objects, count_lines)
 
-            assert result.success, f"Batch processing should succeed: {result.error}"
-            results = result.unwrap()
+            assert result.is_success, f"Batch processing should succeed: {result.error}"
+            results = result.value
 
             assert isinstance(results, dict), "Results should be dict with summary"
             assert "successful" in results, "Should have successful results"
@@ -387,8 +387,8 @@ class TestCliUtilsBatchProcessing:
                 # Test REAL project setup (check correct signature)
                 result = cli_quick_setup("test-project")
 
-                assert result.success, f"Quick setup should succeed: {result.error}"
-                setup_info = result.unwrap()
+                assert result.is_success, f"Quick setup should succeed: {result.error}"
+                setup_info = result.value
 
                 assert isinstance(setup_info, dict), "Setup result should be dict"
                 assert "project_path" in setup_info, "Should have project path"
@@ -419,7 +419,7 @@ class TestCliUtilsErrorHandling:
         # Test loading ACTUALLY nonexistent file
         result = cli_load_data_file("/nonexistent/path/file.json")
 
-        assert not result.success, "Should fail for nonexistent file"
+        assert not result.is_success, "Should fail for nonexistent file"
         assert result.error is not None, "Should have error message"
         assert "not" in result.error.lower() or "exist" in result.error.lower(), (
             "Error should mention file doesn't exist"
@@ -432,7 +432,7 @@ class TestCliUtilsErrorHandling:
         # Test saving to ACTUALLY invalid path
         result = cli_save_data_file(test_data, "/root/forbidden/file.json", "json")
 
-        assert not result.success, "Should fail for invalid path"
+        assert not result.is_success, "Should fail for invalid path"
         assert result.error is not None, "Should have error message"
 
     def test_format_invalid_data_real(self) -> None:
@@ -442,7 +442,7 @@ class TestCliUtilsErrorHandling:
         # Test REAL invalid format
         result = cli_format_output(test_data, "invalid_format")
 
-        assert not result.success, "Should fail for invalid format"
+        assert not result.is_success, "Should fail for invalid format"
         assert result.error is not None, "Should have error message"
         assert "format" in result.error.lower(), "Error should mention format"
 
@@ -488,12 +488,12 @@ class TestCliUtilsDataTypes:
             json_file = Path(temp_dir) / "complex.json"
 
             save_result = cli_save_data_file(complex_data, str(json_file), "json")
-            assert save_result.success, "Should save complex data as JSON"
+            assert save_result.is_success, "Should save complex data as JSON"
 
             load_result = cli_load_data_file(str(json_file))
-            assert load_result.success, "Should load complex data from JSON"
+            assert load_result.is_success, "Should load complex data from JSON"
 
-            loaded_data = load_result.unwrap()
+            loaded_data = load_result.value
             assert loaded_data == complex_data, (
                 "Complex data should round-trip correctly"
             )
@@ -502,12 +502,12 @@ class TestCliUtilsDataTypes:
             yaml_file = Path(temp_dir) / "complex.yaml"
 
             save_yaml_result = cli_save_data_file(complex_data, str(yaml_file), "yaml")
-            assert save_yaml_result.success, "Should save complex data as YAML"
+            assert save_yaml_result.is_success, "Should save complex data as YAML"
 
             load_yaml_result = cli_load_data_file(str(yaml_file))
-            assert load_yaml_result.success, "Should load complex data from YAML"
+            assert load_yaml_result.is_success, "Should load complex data from YAML"
 
-            loaded_yaml_data = load_yaml_result.unwrap()
+            loaded_yaml_data = load_yaml_result.value
             assert loaded_yaml_data == complex_data, (
                 "Complex YAML data should round-trip correctly"
             )
@@ -528,12 +528,12 @@ class TestCliUtilsDataTypes:
             json_file = Path(temp_dir) / "unicode.json"
 
             save_result = cli_save_data_file(unicode_data, str(json_file), "json")
-            assert save_result.success, "Should save Unicode data as JSON"
+            assert save_result.is_success, "Should save Unicode data as JSON"
 
             load_result = cli_load_data_file(str(json_file))
-            assert load_result.success, "Should load Unicode data from JSON"
+            assert load_result.is_success, "Should load Unicode data from JSON"
 
-            loaded_data = load_result.unwrap()
+            loaded_data = load_result.value
             assert loaded_data == unicode_data, "Unicode data should be preserved"
 
             # Verify ACTUAL file content contains Unicode

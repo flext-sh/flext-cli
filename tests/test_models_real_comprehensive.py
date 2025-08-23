@@ -211,7 +211,7 @@ class TestFlextCliCommand(unittest.TestCase):
         command = FlextCliCommand(command_line="echo test")
 
         validation_result = command.validate_business_rules()
-        assert validation_result.success
+        assert validation_result.is_success
 
     def test_command_business_validation_empty_command_line(self) -> None:
         """Test command validation rejects empty command lines."""
@@ -221,7 +221,7 @@ class TestFlextCliCommand(unittest.TestCase):
 
         # Valid command should pass validation
         validation_result = command.validate_business_rules()
-        assert validation_result.success
+        assert validation_result.is_success
 
     def test_command_execution_properties(self) -> None:
         """Test command execution properties and helpers."""
@@ -266,7 +266,7 @@ class TestFlextCliCommand(unittest.TestCase):
         )
 
         validation_result = valid_command.validate_business_rules()
-        assert validation_result.success
+        assert validation_result.is_success
 
     def test_command_properties_and_helpers(self) -> None:
         """Test command properties and helper methods."""
@@ -358,7 +358,7 @@ class TestFlextCliSession(unittest.TestCase):
         session = FlextCliSession(user_id="validation-user")
 
         validation_result = session.validate_business_rules()
-        assert validation_result.success
+        assert validation_result.is_success
 
 
 class TestFlextCliPlugin(unittest.TestCase):
@@ -430,7 +430,7 @@ class TestFlextCliPlugin(unittest.TestCase):
         )
 
         validation_result = plugin.validate_business_rules()
-        assert validation_result.success
+        assert validation_result.is_success
 
 
 class TestFlextCliOutput(unittest.TestCase):

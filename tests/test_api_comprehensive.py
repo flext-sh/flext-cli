@@ -35,8 +35,8 @@ class TestFlextCliFormat:
         """Test format as JSON."""
         result = flext_cli_format({"test": "data"}, "json")
         assert isinstance(result, FlextResult)
-        if result.success:
-            formatted = result.unwrap()
+        if result.is_success:
+            formatted = result.value
             assert isinstance(formatted, str)
             if "test" not in formatted:
                 msg: str = f"Expected {'test'} in {formatted}"
@@ -47,32 +47,32 @@ class TestFlextCliFormat:
         """Test format as YAML."""
         result = flext_cli_format({"test": "data"}, "yaml")
         assert isinstance(result, FlextResult)
-        if result.success:
-            formatted = result.unwrap()
+        if result.is_success:
+            formatted = result.value
             assert isinstance(formatted, str)
 
     def test_flext_cli_format_table(self) -> None:
         """Test format as table."""
         result = flext_cli_format([{"name": "test", "value": 123}], "table")
         assert isinstance(result, FlextResult)
-        if result.success:
-            formatted = result.unwrap()
+        if result.is_success:
+            formatted = result.value
             assert isinstance(formatted, str)
 
     def test_flext_cli_format_csv(self) -> None:
         """Test format as CSV."""
         result = flext_cli_format([{"name": "test", "value": 123}], "csv")
         assert isinstance(result, FlextResult)
-        if result.success:
-            formatted = result.unwrap()
+        if result.is_success:
+            formatted = result.value
             assert isinstance(formatted, str)
 
     def test_flext_cli_format_plain(self) -> None:
         """Test format as plain text."""
         result = flext_cli_format("simple text", "plain")
         assert isinstance(result, FlextResult)
-        if result.success:
-            formatted = result.unwrap()
+        if result.is_success:
+            formatted = result.value
             assert isinstance(formatted, str)
 
     def test_flext_cli_format_invalid_format(self) -> None:
