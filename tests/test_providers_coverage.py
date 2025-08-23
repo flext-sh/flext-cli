@@ -37,8 +37,8 @@ class TestFlextCliArgsProvider:
         result = provider.get_config("debug")
 
         assert isinstance(result, FlextResult)
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
 
     def test_get_config_existing_key_string(self) -> None:
         """Test getting existing string configuration key."""
@@ -47,8 +47,8 @@ class TestFlextCliArgsProvider:
 
         result = provider.get_config("profile")
 
-        assert result.success
-        assert result.unwrap() == "production"
+        assert result.is_success
+        assert result.value == "production"
 
     def test_get_config_existing_key_number(self) -> None:
         """Test getting existing numeric configuration key."""
@@ -57,8 +57,8 @@ class TestFlextCliArgsProvider:
 
         result = provider.get_config("timeout")
 
-        assert result.success
-        assert result.unwrap() == 120
+        assert result.is_success
+        assert result.value == 120
 
     def test_get_config_missing_key_with_default(self) -> None:
         """Test getting missing key with default value."""
@@ -67,8 +67,8 @@ class TestFlextCliArgsProvider:
 
         result = provider.get_config("missing_key", "default_value")
 
-        assert result.success
-        assert result.unwrap() == "default_value"
+        assert result.is_success
+        assert result.value == "default_value"
 
     def test_get_config_missing_key_no_default(self) -> None:
         """Test getting missing key without default value."""
@@ -77,8 +77,8 @@ class TestFlextCliArgsProvider:
 
         result = provider.get_config("missing_key")
 
-        assert result.success
-        assert result.unwrap() is None
+        assert result.is_success
+        assert result.value is None
 
     def test_get_config_missing_key_none_default(self) -> None:
         """Test getting missing key with explicit None default."""
@@ -87,8 +87,8 @@ class TestFlextCliArgsProvider:
 
         result = provider.get_config("missing", None)
 
-        assert result.success
-        assert result.unwrap() is None
+        assert result.is_success
+        assert result.value is None
 
     def test_get_priority(self) -> None:
         """Test getting provider priority."""
@@ -156,8 +156,8 @@ class TestFlextConstantsProvider:
         result = provider.get_config("DEFAULT_TIMEOUT")
 
         assert isinstance(result, FlextResult)
-        assert result.success
-        assert result.unwrap() == 60
+        assert result.is_success
+        assert result.value == 60
 
     def test_get_config_existing_string_constant(self) -> None:
         """Test getting existing string constant."""
@@ -166,8 +166,8 @@ class TestFlextConstantsProvider:
 
         result = provider.get_config("APP_NAME")
 
-        assert result.success
-        assert result.unwrap() == "FlextCLI"
+        assert result.is_success
+        assert result.value == "FlextCLI"
 
     def test_get_config_existing_boolean_constant(self) -> None:
         """Test getting existing boolean constant."""
@@ -176,8 +176,8 @@ class TestFlextConstantsProvider:
 
         result = provider.get_config("DEBUG_MODE")
 
-        assert result.success
-        assert result.unwrap() is False
+        assert result.is_success
+        assert result.value is False
 
     def test_get_config_missing_constant_with_default(self) -> None:
         """Test getting missing constant with default value."""
@@ -186,8 +186,8 @@ class TestFlextConstantsProvider:
 
         result = provider.get_config("MISSING", "fallback")
 
-        assert result.success
-        assert result.unwrap() == "fallback"
+        assert result.is_success
+        assert result.value == "fallback"
 
     def test_get_config_missing_constant_no_default(self) -> None:
         """Test getting missing constant without default."""
@@ -196,8 +196,8 @@ class TestFlextConstantsProvider:
 
         result = provider.get_config("OTHER_KEY")
 
-        assert result.success
-        assert result.unwrap() is None
+        assert result.is_success
+        assert result.value is None
 
     def test_get_config_missing_constant_explicit_none(self) -> None:
         """Test getting missing constant with explicit None default."""
@@ -206,8 +206,8 @@ class TestFlextConstantsProvider:
 
         result = provider.get_config("absent", None)
 
-        assert result.success
-        assert result.unwrap() is None
+        assert result.is_success
+        assert result.value is None
 
     def test_get_priority(self) -> None:
         """Test getting constants provider priority."""
@@ -272,8 +272,8 @@ class TestProviderComparison:
         args_result = args_provider.get_config("config_key")
         constants_result = constants_provider.get_config("config_key")
 
-        assert args_result.unwrap() == "from_args"
-        assert constants_result.unwrap() == "from_constants"
+        assert args_result.value == "from_args"
+        assert constants_result.value == "from_constants"
 
     def test_provider_type_consistency(self) -> None:
         """Test that both providers return consistent FlextResult types."""
@@ -285,8 +285,8 @@ class TestProviderComparison:
 
         assert isinstance(args_result, FlextResult)
         assert isinstance(constants_result, FlextResult)
-        assert args_result.success
-        assert constants_result.success
+        assert args_result.is_success
+        assert constants_result.is_success
 
 
 class TestProvidersEdgeCases:
@@ -300,10 +300,10 @@ class TestProvidersEdgeCases:
         none_result = provider.get_config("none_value")
         empty_result = provider.get_config("empty_string")
 
-        assert none_result.success
-        assert none_result.unwrap() is None
-        assert empty_result.success
-        assert empty_result.unwrap() == ""
+        assert none_result.is_success
+        assert none_result.value is None
+        assert empty_result.is_success
+        assert empty_result.value == ""
 
     def test_constants_provider_none_values(self) -> None:
         """Test constants provider with None values."""
@@ -313,10 +313,10 @@ class TestProvidersEdgeCases:
         none_result = provider.get_config("none_constant")
         zero_result = provider.get_config("zero_value")
 
-        assert none_result.success
-        assert none_result.unwrap() is None
-        assert zero_result.success
-        assert zero_result.unwrap() == 0
+        assert none_result.is_success
+        assert none_result.value is None
+        assert zero_result.is_success
+        assert zero_result.value == 0
 
     def test_complex_data_types(self) -> None:
         """Test providers with complex data types."""
@@ -333,10 +333,10 @@ class TestProvidersEdgeCases:
             args_result = args_provider.get_config(key)
             constants_result = constants_provider.get_config(key)
 
-            assert args_result.success
-            assert constants_result.success
-            assert args_result.unwrap() == complex_args[key]
-            assert constants_result.unwrap() == complex_args[key]
+            assert args_result.is_success
+            assert constants_result.is_success
+            assert args_result.value == complex_args[key]
+            assert constants_result.value == complex_args[key]
 
 
 class TestModuleExports:

@@ -16,14 +16,14 @@ class TestTypeImports:
     """Test that all type imports work correctly."""
 
     def test_command_status_import(self) -> None:
-        """Test FlextCliCommandStatus import."""
-        assert hasattr(types, "FlextCliCommandStatus")
-        assert types.FlextCliCommandStatus is not None
+        """Test CommandStatus import."""
+        assert hasattr(types, "CommandStatus")
+        assert types.CommandStatus is not None
 
     def test_command_type_import(self) -> None:
-        """Test FlextCliCommandType import."""
-        assert hasattr(types, "FlextCliCommandType")
-        assert types.FlextCliCommandType is not None
+        """Test CommandType import."""
+        assert hasattr(types, "CommandType")
+        assert types.CommandType is not None
 
     def test_output_format_import(self) -> None:
         """Test FlextCliOutputFormat import."""
@@ -31,9 +31,9 @@ class TestTypeImports:
         assert types.FlextCliOutputFormat is not None
 
     def test_plugin_status_import(self) -> None:
-        """Test FlextCliPluginStatus import."""
-        assert hasattr(types, "FlextCliPluginStatus")
-        assert types.FlextCliPluginStatus is not None
+        """Test PluginStatus import."""
+        assert hasattr(types, "PluginStatus")
+        assert types.PluginStatus is not None
 
     def test_positive_int_type_import(self) -> None:
         """Test PositiveIntType import."""
@@ -49,30 +49,28 @@ class TestTypeImports:
 
     def test_model_imports(self) -> None:
         """Test model class imports."""
-        model_classes = [
+        model_types = [
             "FlextCliCommand",
-            "FlextCliConfig",
-            "FlextCliContext",
-            "FlextCliPlugin",
-            "FlextCliSession",
+            "FlextCliConfigDict",
+            "ContextParams",
+            "PluginResult",
+            "SessionData",
         ]
 
-        for class_name in model_classes:
-            assert hasattr(types, class_name)
-            assert getattr(types, class_name) is not None
+        for type_name in model_types:
+            assert hasattr(types, type_name), f"Missing type: {type_name}"
+            assert getattr(types, type_name) is not None
 
-    def test_legacy_type_aliases(self) -> None:
-        """Test legacy type aliases."""
-        legacy_aliases = [
-            "TCliData",
-            "TCliPath",
-            "TCliFormat",
-            "TCliHandler",
-            "TCliConfig",
-            "TCliArgs",
+    def test_modern_type_aliases(self) -> None:
+        """Test modern type aliases."""
+        modern_aliases = [
+            "FlextCliOutputFormat",
+            "CommandType",
+            "LogLevel",
+            "FlextCliDataType",
         ]
 
-        for alias_name in legacy_aliases:
+        for alias_name in modern_aliases:
             assert hasattr(types, alias_name)
             alias = getattr(types, alias_name)
             # For type aliases, we just check they exist and are not None
@@ -119,16 +117,14 @@ class TestAllExports:
         }
 
         # Legacy aliases
-        legacy_exports = {
-            "TCliArgs",
-            "TCliConfig",
-            "TCliData",
-            "TCliFormat",
-            "TCliHandler",
-            "TCliPath",
+        modern_exports = {
+            "FlextCliOutputFormat",
+            "CommandType",
+            "LogLevel",
+            "FlextCliDataType",
         }
 
-        all_expected = core_exports | legacy_exports
+        all_expected = core_exports | modern_exports
         all_actual = set(types.__all__)
 
         assert all_actual == all_expected
@@ -137,28 +133,28 @@ class TestAllExports:
 class TestTypeCompatibility:
     """Test type compatibility and usage."""
 
-    def test_legacy_aliases_are_types(self) -> None:
-        """Test that legacy aliases are available."""
+    def test_modern_aliases_are_types(self) -> None:
+        """Test that modern aliases are available."""
         # Just test that they exist and are not None (type annotations may vary)
-        assert types.TCliData is not None
+        assert types.FlextCliDataType is not None
         assert types.TCliPath is not None
-        assert types.TCliFormat is not None
-        assert types.TCliHandler is not None
+        assert types.FlextCliOutputFormat is not None
+        assert types.FlextCliFileHandler is not None
         assert types.TCliConfig is not None
-        assert types.TCliArgs is not None
+        assert types.CommandArgs is not None
 
-    def test_can_use_legacy_aliases(self) -> None:
-        """Test that legacy aliases can be used for type checking."""
+    def test_can_use_modern_aliases(self) -> None:
+        """Test that modern aliases can be used for type checking."""
         # These should not raise errors
-        data: types.TCliData = {"key": "value"}
+        data: types.FlextCliDataType = {"key": "value"}
         path: types.TCliPath = "/some/path"
-        format_str: types.TCliFormat = "json"
+        format_str: types.FlextCliOutputFormat = "json"
 
         def handler(x):
             return x
 
         config: types.TCliConfig = {"debug": True}
-        args: types.TCliArgs = {"arg": "value"}
+        args: types.CommandArgs = {"arg": "value"}
 
         assert isinstance(data, dict)
         assert isinstance(path, str)
@@ -168,20 +164,26 @@ class TestTypeCompatibility:
         assert isinstance(args, dict)
 
     def test_model_classes_importable(self) -> None:
-        """Test that model classes can be instantiated."""
-        # Test that we can access the classes (instantiation might fail due to validation)
-        assert callable(types.FlextCliCommand)
-        assert callable(types.FlextCliContext)
-        assert callable(types.FlextCliPlugin)
-        assert callable(types.FlextCliSession)
+        """Test that type aliases and classes can be accessed."""
+        # Test that we can access the actual exported type aliases
+        assert hasattr(types, "FlextCliCommand")
+        assert hasattr(types, "ContextParams")
+        assert hasattr(types, "PluginResult")
+        assert hasattr(types, "SessionData")
+
+        # Type aliases should not be callable, but should exist
+        assert types.FlextCliCommand is not None
+        assert types.ContextParams is not None
+        assert types.PluginResult is not None
+        assert types.SessionData is not None
 
     def test_enum_classes_accessible(self) -> None:
         """Test that enum classes are accessible."""
-        # These should be enum classes
-        assert hasattr(types.FlextCliCommandStatus, "__members__")
-        assert hasattr(types.FlextCliCommandType, "__members__")
+        # These should be enum classes using actual exported names
+        assert hasattr(types.CommandStatus, "__members__")
+        assert hasattr(types.CommandType, "__members__")
         assert hasattr(types.FlextCliOutputFormat, "__members__")
-        assert hasattr(types.FlextCliPluginStatus, "__members__")
+        assert hasattr(types.PluginStatus, "__members__")
 
 
 class TestModuleStructure:

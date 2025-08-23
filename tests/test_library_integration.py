@@ -33,19 +33,19 @@ class TestLibraryImports:
         """Test all public API components are accessible."""
         # Core Domain Entities
         assert hasattr(flext_cli, "CLICommand")
-        assert hasattr(flext_cli, "CLIPlugin")
-        assert hasattr(flext_cli, "CLISession")
+        assert hasattr(flext_cli, "FlextCliPlugin")
+        assert hasattr(flext_cli, "FlextCliSession")
         assert hasattr(flext_cli, "CommandStatus")
         assert hasattr(flext_cli, "CommandType")
 
         # Configuration
-        assert hasattr(flext_cli, "CLIConfig")
-        assert hasattr(flext_cli, "CLISettings")
+        assert hasattr(flext_cli, "FlextCliConfig")
+        assert hasattr(flext_cli, "FlextCliSettings")
         assert hasattr(flext_cli, "get_config")
         assert hasattr(flext_cli, "get_settings")
 
         # Core Utilities
-        assert hasattr(flext_cli, "CLIContext")
+        assert hasattr(flext_cli, "FlextCliContext")
         assert hasattr(flext_cli, "CLIHelper")
         assert hasattr(flext_cli, "handle_service_result")
         assert hasattr(flext_cli, "setup_cli")
@@ -84,8 +84,8 @@ class TestLibraryImports:
         if command.name != "test":
             raise AssertionError(f"Expected {'test'}, got {command.name}")
 
-        # CLIPlugin
-        plugin = flext_cli.CLIPlugin(
+        # FlextCliPlugin
+        plugin = flext_cli.FlextCliPlugin(
             id="test_plugin_001",
             name="test-plugin",
             entry_point="test.main",
@@ -93,29 +93,31 @@ class TestLibraryImports:
         if plugin.name != "test-plugin":
             raise AssertionError(f"Expected {'test-plugin'}, got {plugin.name}")
 
-        # CLISession
-        session = flext_cli.CLISession(id="test_session_001", session_id="test-session")
+        # FlextCliSession
+        session = flext_cli.FlextCliSession(
+            id="test_session_001", session_id="test-session"
+        )
         if session.session_id != "test-session":
             raise AssertionError(f"Expected {'test-session'}, got {session.session_id}")
 
-        # CLIContext - requires config and console
+        # FlextCliContext - requires config and console
 
-        config = flext_cli.CLIConfig()
+        config = flext_cli.FlextCliConfig()
         console = Console()
-        context = flext_cli.CLIContext(config=config, console=console)
+        context = flext_cli.FlextCliContext(config=config, console=console)
         if context.config.profile != "default":
             raise AssertionError(f"Expected {'default'}, got {context.config.profile}")
 
     def test_configuration_classes_instantiable(self) -> None:
         """Test that configuration classes can be instantiated."""
-        config = flext_cli.CLIConfig()
+        config = flext_cli.FlextCliConfig()
         expected_api = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
         if config.api_url != expected_api:
             raise AssertionError(
                 f"Expected {expected_api}, got {config.api_url}",
             )
 
-        settings = flext_cli.CLISettings()
+        settings = flext_cli.FlextCliSettings()
         if settings.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {settings.project_name}")
 
@@ -198,14 +200,14 @@ class TestLibraryFunctionality:
         config = flext_cli.get_config()
         settings = flext_cli.get_settings()
 
-        assert isinstance(config, flext_cli.CLIConfig)
-        assert isinstance(settings, flext_cli.CLISettings)
+        assert isinstance(config, flext_cli.FlextCliConfig)
+        assert isinstance(settings, flext_cli.FlextCliSettings)
 
     def test_setup_cli_function(self) -> None:
         """Test setup_cli function works."""
         result = flext_cli.setup_cli()
         assert isinstance(result, FlextResult)
-        assert result.success
+        assert result.is_success
 
     def test_helper_class_instantiation(self) -> None:
         """Test helper class can be instantiated."""
@@ -244,7 +246,7 @@ class TestLibraryCompatibility:
 
     def test_pydantic_compatibility(self) -> None:
         """Test compatibility with Pydantic."""
-        config = flext_cli.CLIConfig()
+        config = flext_cli.FlextCliConfig()
 
         # Should have Pydantic methods
         assert hasattr(config, "model_dump")
@@ -278,11 +280,11 @@ class TestLibraryCompatibility:
 
     def test_pathlib_compatibility(self) -> None:
         """Test compatibility with pathlib."""
-        flext_cli.CLIConfig()
+        flext_cli.FlextCliConfig()
 
         # Directory fields should work with Path objects
         custom_path = Path("/custom/path")
-        config_with_path = flext_cli.CLIConfig(config_dir=custom_path)
+        config_with_path = flext_cli.FlextCliConfig(config_dir=custom_path)
         if config_with_path.config_dir != custom_path:
             raise AssertionError(
                 f"Expected {custom_path}, got {config_with_path.config_dir}",
@@ -305,11 +307,11 @@ class TestLibraryDocumentation:
         """Test that main classes have docstrings."""
         classes_to_check = [
             flext_cli.CLICommand,
-            flext_cli.CLIPlugin,
-            flext_cli.CLISession,
-            flext_cli.CLIConfig,
-            flext_cli.CLISettings,
-            flext_cli.CLIContext,
+            flext_cli.FlextCliPlugin,
+            flext_cli.FlextCliSession,
+            flext_cli.FlextCliConfig,
+            flext_cli.FlextCliSettings,
+            flext_cli.FlextCliContext,
             flext_cli.CLIHelper,
         ]
 

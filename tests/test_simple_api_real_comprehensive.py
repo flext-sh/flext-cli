@@ -16,7 +16,7 @@ import unittest
 
 from flext_core import FlextResult
 
-from flext_cli.config import CLISettings
+from flext_cli.config import FlextCliSettings
 from flext_cli.simple_api import (
     create_development_cli_config,
     create_production_cli_config,
@@ -32,50 +32,52 @@ class TestSetupCli(unittest.TestCase):
         """Test setup_cli with no configuration provided."""
         result = setup_cli()
 
-        assert result.success
-        success_value = result.unwrap()
+        assert result.is_success
+        success_value = result.value
         assert success_value is True
 
     def test_setup_cli_with_valid_config(self) -> None:
         """Test setup_cli with valid configuration provided."""
-        config = CLISettings(debug=True, log_level="DEBUG", project_name="test-project")
+        config = FlextCliSettings(
+            debug=True, log_level="DEBUG", project_name="test-project"
+        )
 
         result = setup_cli(config)
 
-        assert result.success
-        success_value = result.unwrap()
+        assert result.is_success
+        success_value = result.value
         assert success_value is True
 
     def test_setup_cli_with_minimal_config(self) -> None:
         """Test setup_cli with minimal configuration."""
-        config = CLISettings()
+        config = FlextCliSettings()
 
         result = setup_cli(config)
 
-        assert result.success
-        success_value = result.unwrap()
+        assert result.is_success
+        success_value = result.value
         assert success_value is True
 
     def test_setup_cli_with_production_config(self) -> None:
         """Test setup_cli with production-style configuration."""
-        config = CLISettings(
+        config = FlextCliSettings(
             debug=False, log_level="INFO", project_name="production-app"
         )
 
         result = setup_cli(config)
 
-        assert result.success
-        success_value = result.unwrap()
+        assert result.is_success
+        success_value = result.value
         assert success_value is True
 
     def test_setup_cli_with_development_config(self) -> None:
         """Test setup_cli with development-style configuration."""
-        config = CLISettings(debug=True, log_level="DEBUG", project_name="dev-app")
+        config = FlextCliSettings(debug=True, log_level="DEBUG", project_name="dev-app")
 
         result = setup_cli(config)
 
-        assert result.success
-        success_value = result.unwrap()
+        assert result.is_success
+        success_value = result.value
         assert success_value is True
 
     def test_setup_cli_return_type_is_flext_result(self) -> None:
@@ -89,8 +91,8 @@ class TestSetupCli(unittest.TestCase):
 
     def test_setup_cli_multiple_calls_consistent(self) -> None:
         """Test setup_cli works consistently across multiple calls."""
-        config1 = CLISettings(project_name="test1")
-        config2 = CLISettings(project_name="test2")
+        config1 = FlextCliSettings(project_name="test1")
+        config2 = FlextCliSettings(project_name="test2")
 
         result1 = setup_cli(config1)
         result2 = setup_cli(config2)
@@ -101,9 +103,9 @@ class TestSetupCli(unittest.TestCase):
         assert result3.success
 
         # All should return True for success
-        assert result1.unwrap() is True
-        assert result2.unwrap() is True
-        assert result3.unwrap() is True
+        assert result1.value is True
+        assert result2.value is True
+        assert result3.value is True
 
 
 class TestCreateDevelopmentCliConfig(unittest.TestCase):
@@ -113,7 +115,7 @@ class TestCreateDevelopmentCliConfig(unittest.TestCase):
         """Test creating development config with default settings."""
         config = create_development_cli_config()
 
-        assert isinstance(config, CLISettings)
+        assert isinstance(config, FlextCliSettings)
         assert config.debug is True
         assert config.log_level == "DEBUG"
 
@@ -123,7 +125,7 @@ class TestCreateDevelopmentCliConfig(unittest.TestCase):
             project_name="dev-test-project", api_url="http://dev.api.test:8080"
         )
 
-        assert isinstance(config, CLISettings)
+        assert isinstance(config, FlextCliSettings)
         assert config.debug is True  # Still development default
         assert config.log_level == "DEBUG"  # Still development default
         assert config.project_name == "dev-test-project"
@@ -133,7 +135,7 @@ class TestCreateDevelopmentCliConfig(unittest.TestCase):
         """Test creating development config with debug override."""
         config = create_development_cli_config(debug=False)
 
-        assert isinstance(config, CLISettings)
+        assert isinstance(config, FlextCliSettings)
         assert config.debug is False  # Overridden
         assert config.log_level == "DEBUG"  # Still development default
 
@@ -141,7 +143,7 @@ class TestCreateDevelopmentCliConfig(unittest.TestCase):
         """Test creating development config with log level override."""
         config = create_development_cli_config(log_level="WARNING")
 
-        assert isinstance(config, CLISettings)
+        assert isinstance(config, FlextCliSettings)
         assert config.debug is True  # Still development default
         assert config.log_level == "WARNING"  # Overridden
 
@@ -154,7 +156,7 @@ class TestCreateDevelopmentCliConfig(unittest.TestCase):
             api_url="http://custom.test:9000",
         )
 
-        assert isinstance(config, CLISettings)
+        assert isinstance(config, FlextCliSettings)
         assert config.project_name == "multi-override-test"
         assert config.debug is False
         assert config.log_level == "ERROR"
@@ -165,7 +167,7 @@ class TestCreateDevelopmentCliConfig(unittest.TestCase):
         # Invalid fields are ignored by model_copy, doesn't raise error
         config = create_development_cli_config(invalid_field="should_fail")
 
-        assert isinstance(config, CLISettings)
+        assert isinstance(config, FlextCliSettings)
         assert config.debug is True  # Development default preserved
         assert config.log_level == "DEBUG"  # Development default preserved
         # invalid_field is ignored
@@ -174,7 +176,7 @@ class TestCreateDevelopmentCliConfig(unittest.TestCase):
         """Test creating development config with empty overrides dict."""
         config = create_development_cli_config()
 
-        assert isinstance(config, CLISettings)
+        assert isinstance(config, FlextCliSettings)
         assert config.debug is True
         assert config.log_level == "DEBUG"
 
@@ -195,7 +197,7 @@ class TestCreateProductionCliConfig(unittest.TestCase):
         """Test creating production config with default settings."""
         config = create_production_cli_config()
 
-        assert isinstance(config, CLISettings)
+        assert isinstance(config, FlextCliSettings)
         assert config.debug is False
         assert config.log_level == "INFO"
 
@@ -205,7 +207,7 @@ class TestCreateProductionCliConfig(unittest.TestCase):
             project_name="prod-app", api_url="https://prod.api.company.com"
         )
 
-        assert isinstance(config, CLISettings)
+        assert isinstance(config, FlextCliSettings)
         assert config.debug is False  # Still production default
         assert config.log_level == "INFO"  # Still production default
         assert config.project_name == "prod-app"
@@ -215,7 +217,7 @@ class TestCreateProductionCliConfig(unittest.TestCase):
         """Test creating production config with debug override (unusual but allowed)."""
         config = create_production_cli_config(debug=True)
 
-        assert isinstance(config, CLISettings)
+        assert isinstance(config, FlextCliSettings)
         assert config.debug is True  # Overridden to True
         assert config.log_level == "INFO"  # Still production default
 
@@ -223,7 +225,7 @@ class TestCreateProductionCliConfig(unittest.TestCase):
         """Test creating production config with log level override."""
         config = create_production_cli_config(log_level="ERROR")
 
-        assert isinstance(config, CLISettings)
+        assert isinstance(config, FlextCliSettings)
         assert config.debug is False  # Still production default
         assert config.log_level == "ERROR"  # Overridden
 
@@ -235,7 +237,7 @@ class TestCreateProductionCliConfig(unittest.TestCase):
             project_name="secure-production-app",
         )
 
-        assert isinstance(config, CLISettings)
+        assert isinstance(config, FlextCliSettings)
         assert config.debug is False
         assert config.log_level == "WARNING"
         assert config.project_name == "secure-production-app"
@@ -247,7 +249,7 @@ class TestCreateProductionCliConfig(unittest.TestCase):
             project_name="high-performance-app",
         )
 
-        assert isinstance(config, CLISettings)
+        assert isinstance(config, FlextCliSettings)
         assert config.debug is False
         assert config.log_level == "ERROR"
         assert config.project_name == "high-performance-app"
@@ -257,7 +259,7 @@ class TestCreateProductionCliConfig(unittest.TestCase):
         # Invalid fields are ignored by model_copy, doesn't raise error
         config = create_production_cli_config(nonexistent_field="invalid_value")
 
-        assert isinstance(config, CLISettings)
+        assert isinstance(config, FlextCliSettings)
         assert config.debug is False  # Production default preserved
         assert config.log_level == "INFO"  # Production default preserved
         # nonexistent_field is ignored
@@ -283,7 +285,7 @@ class TestGetCliSettings(unittest.TestCase):
         """Test basic get_cli_settings functionality."""
         settings = get_cli_settings()
 
-        assert isinstance(settings, CLISettings)
+        assert isinstance(settings, FlextCliSettings)
         # Should have basic required attributes
         assert hasattr(settings, "debug")
         assert hasattr(settings, "log_level")
@@ -294,8 +296,8 @@ class TestGetCliSettings(unittest.TestCase):
         settings1 = get_cli_settings(reload=False)
         settings2 = get_cli_settings(reload=False)
 
-        assert isinstance(settings1, CLISettings)
-        assert isinstance(settings2, CLISettings)
+        assert isinstance(settings1, FlextCliSettings)
+        assert isinstance(settings2, FlextCliSettings)
         # Both calls should work
         assert settings1.project_name == settings2.project_name
 
@@ -304,8 +306,8 @@ class TestGetCliSettings(unittest.TestCase):
         settings1 = get_cli_settings(reload=True)
         settings2 = get_cli_settings(reload=True)
 
-        assert isinstance(settings1, CLISettings)
-        assert isinstance(settings2, CLISettings)
+        assert isinstance(settings1, FlextCliSettings)
+        assert isinstance(settings2, FlextCliSettings)
         # Both calls should work and return valid settings
         assert hasattr(settings1, "project_name")
         assert hasattr(settings2, "project_name")
@@ -314,7 +316,7 @@ class TestGetCliSettings(unittest.TestCase):
         """Test get_cli_settings with reload=None (default)."""
         settings = get_cli_settings(reload=None)
 
-        assert isinstance(settings, CLISettings)
+        assert isinstance(settings, FlextCliSettings)
         assert hasattr(settings, "debug")
         assert hasattr(settings, "log_level")
 
@@ -324,10 +326,10 @@ class TestGetCliSettings(unittest.TestCase):
         settings2 = get_cli_settings(reload=False)
         settings3 = get_cli_settings(reload=True)
 
-        # All should be CLISettings instances
-        assert isinstance(settings1, CLISettings)
-        assert isinstance(settings2, CLISettings)
-        assert isinstance(settings3, CLISettings)
+        # All should be FlextCliSettings instances
+        assert isinstance(settings1, FlextCliSettings)
+        assert isinstance(settings2, FlextCliSettings)
+        assert isinstance(settings3, FlextCliSettings)
 
         # All should have same basic structure
         for settings in [settings1, settings2, settings3]:
@@ -358,8 +360,8 @@ class TestSimpleApiIntegration(unittest.TestCase):
         # Use it with setup_cli
         result = setup_cli(dev_config)
 
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
 
         # Verify config properties were maintained
         assert dev_config.debug is True
@@ -374,8 +376,8 @@ class TestSimpleApiIntegration(unittest.TestCase):
         # Use it with setup_cli
         result = setup_cli(prod_config)
 
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
 
         # Verify config properties were maintained
         assert prod_config.debug is False
@@ -391,10 +393,10 @@ class TestSimpleApiIntegration(unittest.TestCase):
         dev_config = create_development_cli_config()
         prod_config = create_production_cli_config()
 
-        # All should be CLISettings instances
-        assert isinstance(retrieved_settings, CLISettings)
-        assert isinstance(dev_config, CLISettings)
-        assert isinstance(prod_config, CLISettings)
+        # All should be FlextCliSettings instances
+        assert isinstance(retrieved_settings, FlextCliSettings)
+        assert isinstance(dev_config, FlextCliSettings)
+        assert isinstance(prod_config, FlextCliSettings)
 
         # All should have required attributes
         for config in [retrieved_settings, dev_config, prod_config]:
@@ -411,11 +413,11 @@ class TestSimpleApiIntegration(unittest.TestCase):
 
         # Step 2: Setup CLI with config
         setup_result = setup_cli(config)
-        assert setup_result.success
+        assert setup_result.is_success
 
         # Step 3: Get CLI settings
         settings = get_cli_settings()
-        assert isinstance(settings, CLISettings)
+        assert isinstance(settings, FlextCliSettings)
 
         # Verify development characteristics
         assert config.debug is True
@@ -431,11 +433,11 @@ class TestSimpleApiIntegration(unittest.TestCase):
 
         # Step 2: Setup CLI with config
         setup_result = setup_cli(config)
-        assert setup_result.success
+        assert setup_result.is_success
 
         # Step 3: Get CLI settings
         settings = get_cli_settings()
-        assert isinstance(settings, CLISettings)
+        assert isinstance(settings, FlextCliSettings)
 
         # Verify production characteristics
         assert config.debug is False
@@ -446,37 +448,37 @@ class TestSimpleApiIntegration(unittest.TestCase):
         """Test error handling across integrated simple API functions."""
         # Test setup_cli with None (should work)
         setup_result = setup_cli(None)
-        assert setup_result.success
+        assert setup_result.is_success
 
         # Test config creation with invalid data is handled gracefully
         dev_config = create_development_cli_config(invalid_attribute="fail")
         prod_config = create_production_cli_config(another_invalid="fail")
 
         # Invalid attributes are ignored, configs created successfully
-        assert isinstance(dev_config, CLISettings)
-        assert isinstance(prod_config, CLISettings)
+        assert isinstance(dev_config, FlextCliSettings)
+        assert isinstance(prod_config, FlextCliSettings)
 
         # get_cli_settings should always work regardless
         settings = get_cli_settings()
-        assert isinstance(settings, CLISettings)
+        assert isinstance(settings, FlextCliSettings)
 
     def test_type_consistency_across_functions(self) -> None:
         """Test type consistency across all simple API functions."""
-        # All config creation functions should return CLISettings
+        # All config creation functions should return FlextCliSettings
         dev_config = create_development_cli_config()
         prod_config = create_production_cli_config()
         retrieved_settings = get_cli_settings()
 
         assert type(dev_config) == type(prod_config) == type(retrieved_settings)
         assert all(
-            isinstance(config, CLISettings)
+            isinstance(config, FlextCliSettings)
             for config in [dev_config, prod_config, retrieved_settings]
         )
 
         # setup_cli should always return FlextResult[bool]
         result = setup_cli()
         assert isinstance(result, FlextResult)
-        assert isinstance(result.unwrap(), bool)
+        assert isinstance(result.value, bool)
 
 
 if __name__ == "__main__":

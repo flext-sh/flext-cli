@@ -18,7 +18,7 @@ import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Protocol, cast
+from typing import Protocol, TypedDict, cast
 
 import yaml
 from flext_core import FlextEntityId, FlextResult
@@ -26,11 +26,30 @@ from rich.console import Console
 from rich.table import Table
 
 from flext_cli.cli_types import FlextCliDataType
-from flext_cli.config import CLISettings as FlextCliSettings
+from flext_cli.config import FlextCliSettings as FlextCliSettings
 from flext_cli.models import (
     FlextCliCommand as CLICommand,
-    FlextCliPlugin as CLIPlugin,
+    FlextCliPlugin as FlextCliPlugin,
 )
+
+
+# Type definitions for better PyRight compliance
+class SessionData(TypedDict):
+    """Type definition for session data."""
+
+    id: str
+    status: str
+    created_at: str
+    commands: list[str]
+
+
+class SessionSummary(TypedDict):
+    """Type definition for session summary."""
+
+    id: str
+    status: str
+    created_at: str
+    commands_count: int
 
 
 # Plugin Protocol Definition
@@ -102,7 +121,7 @@ def flext_cli_format(
         elif format_type == "table":
             # Create table using our existing function
             table_result = flext_cli_table(data)
-            if table_result.success:
+            if table_result.is_success:
                 # Render table to string
                 output_buffer = io.StringIO()
                 console = Console(file=output_buffer, width=80)
@@ -452,7 +471,7 @@ def flext_cli_batch_export(
             file_path = output_path / f"{name}.{format_type}"
             result = flext_cli_export(data, file_path, format_type)
 
-            if not result.success:
+            if not result.is_success:
                 return FlextResult[list[str]].fail(
                     f"Failed to export {name}: {result.error}"
                 )
@@ -505,7 +524,7 @@ class FlextCliApi:
     ) -> bool:
         """Export data to file."""
         result = flext_cli_export(data, path, format_type)
-        return result.success
+        return result.is_success
 
     def flext_cli_format(
         self, data: FlextCliDataType, format_type: str = "table"
@@ -521,7 +540,7 @@ class FlextCliApi:
             # Create config with defaults and update with provided values
             base_config = FlextCliSettings()
             if config:
-                # Filter out invalid fields for CLIConfig using dict comprehension
+                # Filter out invalid fields for FlextCliConfig using dict comprehension
                 valid_updates = {
                     key: value
                     for key, value in config.items()
@@ -631,7 +650,7 @@ class FlextCliApi:
         else:
             return FlextResult[object].ok(command)
 
-    def flext_cli_create_session(self, user_id: str | None = None) -> FlextResult[str]:
+    def flext_cli_create_session(self, user_id: str | None = None) -> FlextResult[str]:  # noqa: ARG002
         """Create CLI session with real session tracking."""
         try:
             # Generate unique session ID
@@ -642,14 +661,13 @@ class FlextCliApi:
 
             # Store session information for tracking
             if not hasattr(self, "_sessions"):
-                self._sessions: dict[str, object] = {}
+                self._sessions: dict[str, SessionData] = {}
 
-            session_data: dict[str, object] = {
+            session_data: SessionData = {
                 "id": session_id,
-                "user_id": user_id,
-                "created_at": datetime.now(UTC),
-                "commands": [],
                 "status": "active",
+                "created_at": datetime.now(UTC).isoformat(),
+                "commands": [],
             }
 
             self._sessions[session_id] = session_data
@@ -682,39 +700,39 @@ class FlextCliApi:
 
     def flext_cli_register_plugin(
         self, name: str, plugin: object
-    ) -> FlextResult[CLIPlugin | None]:
+    ) -> FlextResult[FlextCliPlugin | None]:
         """Register plugin with proper validation and storage."""
         try:
             # Initialize plugin registry if needed
             if not hasattr(self, "_plugin_registry"):
-                self._plugin_registry: dict[str, CLIPlugin] = {}
+                self._plugin_registry: dict[str, FlextCliPlugin] = {}
 
-            # If plugin is already a CLIPlugin, register it directly
-            if isinstance(plugin, CLIPlugin):
+            # If plugin is already a FlextCliPlugin, register it directly
+            if isinstance(plugin, FlextCliPlugin):
                 validation_result = plugin.validate_business_rules()
-                if not validation_result.success:
-                    return FlextResult[CLIPlugin | None].fail(
+                if not validation_result.is_success:
+                    return FlextResult[FlextCliPlugin | None].fail(
                         f"Plugin validation failed: {validation_result.error}",
                     )
 
                 self._plugin_registry[name] = plugin
-                return FlextResult[CLIPlugin | None].ok(None)
+                return FlextResult[FlextCliPlugin | None].ok(None)
 
-            # Otherwise, try to create a CLIPlugin from the object using direct instantiation
+            # Otherwise, try to create a FlextCliPlugin from the object using direct instantiation
             try:
-                cli_plugin = CLIPlugin(
+                cli_plugin = FlextCliPlugin(
                     id=FlextEntityId(str(uuid.uuid4())),
                     name=name,
                     entry_point=str(plugin) if plugin else f"plugin_{name}",
                 )
-                plugin_result = FlextResult[CLIPlugin | None].ok(cli_plugin)
+                plugin_result = FlextResult[FlextCliPlugin | None].ok(cli_plugin)
             except Exception as e:
-                plugin_result = FlextResult[CLIPlugin | None].fail(
+                plugin_result = FlextResult[FlextCliPlugin | None].fail(
                     f"Failed to create plugin: {e}"
                 )
 
             if plugin_result.is_failure:
-                return FlextResult[CLIPlugin | None].fail(
+                return FlextResult[FlextCliPlugin | None].fail(
                     f"Plugin creation failed: {plugin_result.error}",
                 )
 
@@ -722,11 +740,11 @@ class FlextCliApi:
             if plugin_entity is not None:
                 self._plugin_registry[name] = plugin_entity
         except (AttributeError, ValueError, TypeError, KeyError) as e:
-            return FlextResult[CLIPlugin | None].fail(
+            return FlextResult[FlextCliPlugin | None].fail(
                 f"Failed to register plugin {name}: {e}"
             )
         else:
-            return FlextResult[CLIPlugin | None].ok(None)
+            return FlextResult[FlextCliPlugin | None].ok(None)
 
     def flext_cli_execute_handler(
         self,
@@ -776,36 +794,24 @@ class FlextCliApi:
             self._commands: dict[str, object] = {}
         return dict(self._commands)
 
-    def flext_cli_get_sessions(self) -> dict[str, object]:
+    def flext_cli_get_sessions(self) -> dict[str, SessionSummary]:
         """Get all active sessions."""
-        sessions = dict(getattr(self, "_sessions", {}))
-        summary: dict[str, object] = {}
+        sessions: dict[str, SessionData] = dict(getattr(self, "_sessions", {}))
+        summary: dict[str, SessionSummary] = {}
+
         for sid, sdata in sessions.items():
             if isinstance(sdata, dict):
-                # Type the session data with specific structure
-                session_data: dict[str, object] = {}
-                for k, v in sdata.items():
-                    key_str: str = str(k)
-                    value_obj: object = v
-                    session_data[key_str] = value_obj
+                # Create type-safe session summary
+                commands = sdata.get("commands", [])
+                cmds_count = len(commands) if isinstance(commands, list) else 0
 
-                cmds_raw = session_data.get("commands", [])
-                cmds: list[dict[str, object]] = []
-                if isinstance(cmds_raw, list):
-                    for cmd in cmds_raw:
-                        if isinstance(cmd, dict):
-                            typed_cmd: dict[str, object] = {}
-                            for ck, cv in cmd.items():
-                                cmd_key: str = str(ck)
-                                cmd_value: object = cv
-                                typed_cmd[cmd_key] = cmd_value
-                            cmds.append(typed_cmd)
-                summary[sid] = {
-                    "id": session_data.get("id"),
-                    "status": session_data.get("status"),
-                    "created_at": session_data.get("created_at"),
-                    "commands_count": len(cmds) if isinstance(cmds, list) else 0,
+                session_summary: SessionSummary = {
+                    "id": str(sdata.get("id", sid)),
+                    "status": str(sdata.get("status", "unknown")),
+                    "created_at": str(sdata.get("created_at", "")),
+                    "commands_count": cmds_count,
                 }
+                summary[sid] = session_summary
         return summary
 
     def flext_cli_get_plugins(self) -> dict[str, object]:
@@ -833,7 +839,7 @@ class ContextRenderingStrategy:
         """Render data using appropriate strategy."""
         # Template substitution has priority
         template_result = self._try_template_substitution()
-        if template_result.success:
+        if template_result.is_success:
             return template_result
 
         # Fall back to formatter-based rendering
@@ -917,42 +923,34 @@ class ContextRenderingStrategy:
         else:
             return commands_copy
 
-    def flext_cli_get_sessions(self) -> dict[str, object]:
+    def flext_cli_get_sessions(self) -> dict[str, SessionSummary]:
         """Get all active sessions with real implementation."""
         try:
             # Initialize sessions registry if needed
             if not hasattr(self, "_sessions"):
-                self._sessions: dict[str, object] = {}
+                self._sessions: dict[str, SessionData] = {}
 
             # Filter active sessions only and return summary data
-            active_sessions: dict[str, object] = {}
+            active_sessions: dict[str, SessionSummary] = {}
             for session_id, session_data in self._sessions.items():
                 if (
                     isinstance(session_data, dict)
                     and session_data.get("status") == "active"
                 ):
                     # Return safe summary without sensitive data
-                    typed_session_data: dict[str, object] = {}
-                    for sk, sv in session_data.items():
-                        session_key: str = str(sk)
-                        session_value: object = sv
-                        typed_session_data[session_key] = session_value
-                    commands_raw = typed_session_data.get("commands", [])
-                    commands: list[dict[str, object]] = []
-                    if isinstance(commands_raw, list):
-                        for cmd in commands_raw:
-                            if isinstance(cmd, dict):
-                                typed_cmd: dict[str, object] = {}
-                                for ck, cv in cmd.items():
-                                    typed_cmd[str(ck)] = cv
-                                commands.append(typed_cmd)
-                    commands_count = len(commands) if isinstance(commands, list) else 0
-                    active_sessions[session_id] = {
-                        "id": session_data.get("id"),
-                        "created_at": session_data.get("created_at"),
+                    commands_data = session_data.get("commands", [])
+                    commands_count = (
+                        len(commands_data) if isinstance(commands_data, list) else 0
+                    )
+
+                    # Extract session data with proper defaults
+                    session_summary: SessionSummary = {
+                        "id": str(session_data.get("id", session_id)),
+                        "created_at": str(session_data.get("created_at", "")),
                         "commands_count": commands_count,
-                        "status": session_data.get("status"),
+                        "status": str(session_data.get("status", "active")),
                     }
+                    active_sessions[session_id] = session_summary
         except (ValueError, TypeError, KeyError, AttributeError):
             # Return empty dict on error for consistency
             return {}
@@ -980,10 +978,15 @@ class ContextRenderingStrategy:
         if not isinstance(plugins_list, list):
             return plugins_dict
 
-        for plugin in plugins_list:
+        # Cast to proper list type after isinstance check
+        plugin_objects = cast("list[object]", plugins_list)
+        for plugin_obj in plugin_objects:
             # Type check and cast to PluginLike
-            if not self._is_valid_plugin(plugin):
+            if not self._is_valid_plugin(plugin_obj):
                 continue
+
+            # We know it's a valid plugin after validation
+            plugin: object = plugin_obj
 
             # Cast to PluginLike for proper typing
             typed_plugin: PluginLike = cast("PluginLike", plugin)

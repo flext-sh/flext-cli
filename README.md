@@ -199,7 +199,7 @@ FLEXT CLI follows Clean Architecture principles with full flext-core integration
 ```
 src/flext_cli/
 ├── domain/                    # ✅ GOOD: FlextEntity domain modeling
-│   ├── entities.py           # ✅ CLICommand, CLISession, CLIPlugin entities
+│   ├── entities.py           # ✅ CLICommand, FlextCliSession, FlextCliPlugin entities
 │   ├── cli_context.py        # ✅ Value objects with validation
 │   └── cli_services.py       # ⚠️ BASIC: Services need FlextDomainService
 ├── application/               # ⚠️ INCOMPLETE: Missing CQRS implementation
@@ -214,7 +214,7 @@ src/flext_cli/
 │   │
 │   └── [MISSING COMMANDS]    # ❌ See "Missing Critical Features" above
 ├── core/                      # ✅ GOOD: CLI utilities with FlextResult
-│   ├── base.py              # ✅ CLIContext, handle_service_result
+│   ├── base.py              # ✅ FlextCliContext, handle_service_result
 │   ├── decorators.py        # ✅ CLI decorators and patterns
 │   └── formatters.py        # ✅ Output formatting utilities
 └── utils/                     # ✅ GOOD: FlextSettings integration

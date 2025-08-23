@@ -15,7 +15,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from flext_cli import CLIEntityFactory, FlextCliConfiguration, FlextCliPlugin
+from flext_cli import FlextCliConfiguration, FlextCliEntityFactory, FlextCliPlugin
 
 # Constants
 EXPECTED_BULK_SIZE = 2
@@ -27,13 +27,13 @@ def create_test_plugin(
     version: str = "0.9.0",
 ) -> FlextCliPlugin:
     """Create a test plugin using proper factory pattern."""
-    result = CLIEntityFactory.create_plugin(
+    result = FlextCliEntityFactory.create_plugin(
         name=name,
         entry_point=entry_point,
         plugin_version=version,
     )
-    assert result.success, f"Failed to create plugin: {result.error}"
-    return result.unwrap()
+    assert result.is_success, f"Failed to create plugin: {result.error}"
+    return result.value
 
 
 # Import directly from the core.py file to avoid conflict with core/ directory
@@ -88,7 +88,7 @@ class TestFlextCliService:
         }
 
         result = service.configure(config_data)
-        assert result.success
+        assert result.is_success
         assert service._config is not None
         if not (service._config.debug):
             raise AssertionError(f"Expected True, got {service._config.debug}")
@@ -104,7 +104,7 @@ class TestFlextCliService:
         config = FlextCliConfiguration(debug=False, output_format="yaml")
 
         result = service.configure(config)
-        assert result.success
+        assert result.is_success
         assert service._config is config
         if service._config.debug:
             raise AssertionError(f"Expected False, got {service._config.debug}")
@@ -116,7 +116,7 @@ class TestFlextCliService:
         invalid_config = "invalid"
 
         result = service.configure(invalid_config)
-        assert not result.success
+        assert not result.is_success
         if "Invalid config type:" not in result.error:
             raise AssertionError(f"Expected {'Invalid config type:'} in {result.error}")
 
@@ -130,7 +130,7 @@ class TestFlextCliService:
             side_effect=Exception("Config error"),
         ):
             result = service.configure({"test": "data"})
-            assert not result.success
+            assert not result.is_success
             if "Configuration failed:" not in result.error:
                 raise AssertionError(
                     f"Expected {'Configuration failed:'} in {result.error}",
@@ -151,9 +151,9 @@ class TestFlextCliService:
 
         try:
             result = service.flext_cli_export(data, temp_path, "json")
-            assert result.success
-            if not (result.unwrap()):
-                raise AssertionError(f"Expected True, got {result.unwrap()}")
+            assert result.is_success
+            if not (result.value):
+                raise AssertionError(f"Expected True, got {result.value}")
 
             # Verify file content
             exported_data = json.loads(Path(temp_path).read_text(encoding="utf-8"))
@@ -177,9 +177,9 @@ class TestFlextCliService:
 
         try:
             result = service.flext_cli_export(data, temp_path, "yaml")
-            assert result.success
-            if not (result.unwrap()):
-                raise AssertionError(f"Expected True, got {result.unwrap()}")
+            assert result.is_success
+            if not (result.value):
+                raise AssertionError(f"Expected True, got {result.value}")
 
             # Verify file exists and has content
             content = Path(temp_path).read_text(encoding="utf-8")
@@ -198,7 +198,7 @@ class TestFlextCliService:
             nested_path = Path(temp_dir) / "nested" / "path" / "file.json"
 
             result = service.flext_cli_export(data, str(nested_path), "json")
-            assert result.success
+            assert result.is_success
             assert nested_path.exists()
             assert nested_path.parent.exists()
 
@@ -216,7 +216,7 @@ class TestFlextCliService:
 
         try:
             result = service.flext_cli_export(data, temp_path, "invalid_format")
-            assert not result.success
+            assert not result.is_success
             if "Unsupported format:" not in result.error:
                 raise AssertionError(
                     f"Expected {'Unsupported format:'} in {result.error}",
@@ -235,7 +235,7 @@ class TestFlextCliService:
             "/invalid/path/that/does/not/exist.json",
             "json",
         )
-        assert not result.success
+        assert not result.is_success
         if "Export failed:" not in result.error:
             raise AssertionError(f"Expected {'Export failed:'} in {result.error}")
 
@@ -245,8 +245,8 @@ class TestFlextCliService:
         data = {"name": "test", "values": [1, 2, 3]}
 
         result = service.flext_cli_format(data, "json")
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         assert isinstance(formatted, str)
 
         # Verify it's valid JSON
@@ -260,8 +260,8 @@ class TestFlextCliService:
         data = {"name": "test", "enabled": True}
 
         result = service.flext_cli_format(data, "yaml")
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         if "name: test" not in formatted:
             raise AssertionError(f"Expected {'name: test'} in {formatted}")
         assert "enabled: true" in formatted
@@ -275,8 +275,8 @@ class TestFlextCliService:
         ]
 
         result = service.flext_cli_format(data, "csv")
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         lines = formatted.strip().split("\n")
         if "name,age" not in lines[0]:
             raise AssertionError(f"Expected {'name,age'} in {lines[0]}")
@@ -290,8 +290,8 @@ class TestFlextCliService:
         data = {"name": "Alice", "age": 30}
 
         result = service.flext_cli_format(data, "csv")
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         lines = formatted.strip().split("\n")
         if "name,age" not in lines[0]:
             raise AssertionError(f"Expected {'name,age'} in {lines[0]}")
@@ -303,8 +303,8 @@ class TestFlextCliService:
         data = ["apple", "banana", "cherry"]
 
         result = service.flext_cli_format(data, "csv")
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         lines = formatted.strip().split("\n")
         if "value" not in lines[0]:
             raise AssertionError(f"Expected {'value'} in {lines[0]}")
@@ -319,8 +319,8 @@ class TestFlextCliService:
         data: list[dict[str, object]] = []
 
         result = service.flext_cli_format(data, "csv")
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         if formatted != "":
             raise AssertionError(f"Expected {''}, got {formatted}")
 
@@ -330,8 +330,8 @@ class TestFlextCliService:
         data = "simple_value"
 
         result = service.flext_cli_format(data, "csv")
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         lines = formatted.strip().split("\n")
         if "value" not in lines[0]:
             raise AssertionError(f"Expected {'value'} in {lines[0]}")
@@ -343,8 +343,8 @@ class TestFlextCliService:
         data = {"name": "Alice", "age": 30, "city": "New York"}
 
         result = service.flext_cli_format(data, "table")
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         if "name" not in formatted:
             raise AssertionError(f"Expected {'name'} in {formatted}")
         assert "Alice" in formatted
@@ -361,8 +361,8 @@ class TestFlextCliService:
         ]
 
         result = service.flext_cli_format(data, "table")
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         if "name" not in formatted:
             raise AssertionError(f"Expected {'name'} in {formatted}")
         assert "age" in formatted
@@ -378,8 +378,8 @@ class TestFlextCliService:
         data = ["apple", "banana", "cherry"]
 
         result = service.flext_cli_format(data, "table")
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         if "apple" not in formatted:
             raise AssertionError(f"Expected {'apple'} in {formatted}")
         assert "banana" in formatted
@@ -392,8 +392,8 @@ class TestFlextCliService:
         data = "simple_value"
 
         result = service.flext_cli_format(data, "table")
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         if "simple_value" not in formatted:
             raise AssertionError(f"Expected {'simple_value'} in {formatted}")
 
@@ -403,8 +403,8 @@ class TestFlextCliService:
         data: dict[str, object] = {}
 
         result = service.flext_cli_format(data, "table")
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         if formatted != "":
             raise AssertionError(f"Expected {''}, got {formatted}")
 
@@ -414,8 +414,8 @@ class TestFlextCliService:
         data = {"name": "test", "value": 42}
 
         result = service.flext_cli_format(data, "plain")
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         if "test" not in formatted:
             raise AssertionError(f"Expected {'test'} in {formatted}")
         assert "42" in formatted
@@ -426,7 +426,7 @@ class TestFlextCliService:
         data = {"test": "data"}
 
         result = service.flext_cli_format(data, "unsupported")
-        assert not result.success
+        assert not result.is_success
         if "Unsupported format:" not in result.error:
             raise AssertionError(f"Expected {'Unsupported format:'} in {result.error}")
 
@@ -435,8 +435,8 @@ class TestFlextCliService:
         service = FlextCliService()
 
         result = service.flext_cli_health()
-        assert result.success
-        health_data = result.unwrap()
+        assert result.is_success
+        health_data = result.value
 
         if health_data["service"] != "FlextCliService":
             raise AssertionError(
@@ -465,8 +465,8 @@ class TestFlextCliService:
         service.configure(config)
 
         result = service.flext_cli_health()
-        assert result.success
-        health_data = result.unwrap()
+        assert result.is_success
+        health_data = result.value
 
         if not (health_data["configured"]):
             raise AssertionError(f"Expected True, got {health_data['configured']}")
@@ -493,7 +493,7 @@ class TestFlextCliService:
             side_effect=Exception("Time error"),
         ):
             result = service.flext_cli_health()
-            assert not result.success
+            assert not result.is_success
             if "Health check failed:" not in result.error:
                 raise AssertionError(
                     f"Expected {'Health check failed:'} in {result.error}",
@@ -505,16 +505,16 @@ class TestFlextCliService:
 
         for format_type in ["json", "yaml", "csv", "table", "plain"]:
             result = service.flext_cli_validate_format(format_type)
-            assert result.success
-            if result.unwrap() != format_type:
-                raise AssertionError(f"Expected {format_type}, got {result.unwrap()}")
+            assert result.is_success
+            if result.value != format_type:
+                raise AssertionError(f"Expected {format_type}, got {result.value}")
 
     def test_flext_cli_validate_format_invalid(self) -> None:
         """Test format validation with invalid format."""
         service = FlextCliService()
 
         result = service.flext_cli_validate_format("invalid")
-        assert not result.success
+        assert not result.is_success
         if "Unsupported format: invalid" not in result.error:
             raise AssertionError(
                 f"Expected {'Unsupported format: invalid'} in {result.error}",
@@ -526,8 +526,8 @@ class TestFlextCliService:
         service = FlextCliService()
 
         result = service.flext_cli_create_command("test-cmd", "echo hello", timeout=30)
-        assert result.success
-        created_message = result.unwrap()
+        assert result.is_success
+        created_message = result.value
         if "Command 'test-cmd' created" not in created_message:
             raise AssertionError(
                 f"Expected {"Command 'test-cmd' created"} in {created_message}",
@@ -535,8 +535,8 @@ class TestFlextCliService:
 
         # Verify command was stored
         commands_result = service.flext_cli_get_commands()
-        assert commands_result.success
-        commands = commands_result.unwrap()
+        assert commands_result.is_success
+        commands = commands_result.value
         if "test-cmd" not in commands:
             raise AssertionError(f"Expected {'test-cmd'} in {commands}")
         if commands["test-cmd"].name != "test-cmd":
@@ -564,7 +564,7 @@ class TestFlextCliService:
             side_effect=Exception("Command error"),
         ):
             result = service.flext_cli_create_command("test-cmd", "echo hello")
-            assert not result.success, f"Expected failure but got success: {result}"
+            assert not result.is_success, f"Expected failure but got success: {result}"
             if result.error and "Command error" not in result.error:
                 raise AssertionError(f"Expected 'Command error' in {result.error}")
 
@@ -573,16 +573,16 @@ class TestFlextCliService:
         service = FlextCliService()
 
         result = service.flext_cli_create_session()
-        assert result.success
-        created_message = result.unwrap()
+        assert result.is_success
+        created_message = result.value
         if "Session" not in created_message:
             raise AssertionError(f"Expected {'Session'} in {created_message}")
         assert "created" in created_message
 
         # Verify session was stored
         sessions_result = service.flext_cli_get_sessions()
-        assert sessions_result.success
-        sessions = sessions_result.unwrap()
+        assert sessions_result.is_success
+        sessions = sessions_result.value
         if len(sessions) != 1:
             raise AssertionError(f"Expected {1}, got {len(sessions)}")
 
@@ -591,16 +591,16 @@ class TestFlextCliService:
         service = FlextCliService()
 
         result = service.flext_cli_create_session("test-user-123")
-        assert result.success
-        created_message = result.unwrap()
+        assert result.is_success
+        created_message = result.value
         if "Session" not in created_message:
             raise AssertionError(f"Expected {'Session'} in {created_message}")
         assert "created" in created_message
 
         # Verify session was stored with user
         sessions_result = service.flext_cli_get_sessions()
-        assert sessions_result.success
-        sessions = sessions_result.unwrap()
+        assert sessions_result.is_success
+        sessions = sessions_result.value
         if len(sessions) != 1:
             raise AssertionError(f"Expected {1}, got {len(sessions)}")
         session = next(iter(sessions.values()))
@@ -618,7 +618,7 @@ class TestFlextCliService:
             side_effect=Exception("Session error"),
         ):
             result = service.flext_cli_create_session()
-            assert not result.success
+            assert not result.is_success
             if "Session error" not in result.error:
                 raise AssertionError(f"Expected {'Session error'} in {result.error}")
 
@@ -630,12 +630,12 @@ class TestFlextCliService:
             return x * 2
 
         result = service.flext_cli_register_handler("multiply", handler)
-        assert result.success
+        assert result.is_success
 
         # Verify handler was stored
         handlers_result = service.flext_cli_get_handlers()
-        assert handlers_result.success
-        handlers = handlers_result.unwrap()
+        assert handlers_result.is_success
+        handlers = handlers_result.value
         if "multiply" not in handlers:
             raise AssertionError(f"Expected {'multiply'} in {handlers}")
         assert handlers["multiply"] is handler
@@ -666,12 +666,12 @@ class TestFlextCliService:
         plugin = create_test_plugin()
 
         result = service.flext_cli_register_plugin("test-plugin", plugin)
-        assert result.success
+        assert result.is_success
 
         # Verify plugin was stored
         plugins_result = service.flext_cli_get_plugins()
-        assert plugins_result.success
-        plugins = plugins_result.unwrap()
+        assert plugins_result.is_success
+        plugins = plugins_result.value
         if "test-plugin" not in plugins:
             raise AssertionError(f"Expected {'test-plugin'} in {plugins}")
         assert plugins["test-plugin"] is plugin
@@ -704,16 +704,16 @@ class TestFlextCliService:
 
         # Execute handler
         result = service.flext_cli_execute_handler("multiply", 5, y=3)
-        assert result.success
-        if result.unwrap() != 15:
-            raise AssertionError(f"Expected {15}, got {result.unwrap()}")
+        assert result.is_success
+        if result.value != 15:
+            raise AssertionError(f"Expected {15}, got {result.value}")
 
     def test_flext_cli_execute_handler_not_found(self) -> None:
         """Test executing non-existent handler."""
         service = FlextCliService()
 
         result = service.flext_cli_execute_handler("nonexistent")
-        assert not result.success
+        assert not result.is_success
         if "not found" not in result.error:
             raise AssertionError(f"Expected {'not found'} in {result.error}")
 
@@ -729,7 +729,7 @@ class TestFlextCliService:
 
         # Execute handler
         result = service.flext_cli_execute_handler("error")
-        assert not result.success
+        assert not result.is_success
         if "division by zero" not in result.error:
             raise AssertionError(f"Expected {'division by zero'} in {result.error}")
 
@@ -741,10 +741,10 @@ class TestFlextCliService:
 
         data = {"name": "test", "value": 42}
         result = service.flext_cli_render_with_context(data)
-        assert result.success
+        assert result.is_success
 
         # Should be formatted as JSON (default format)
-        formatted = result.unwrap()
+        formatted = result.value
         parsed = json.loads(formatted)
         if parsed != data:
             raise AssertionError(f"Expected {data}, got {parsed}")
@@ -759,10 +759,10 @@ class TestFlextCliService:
         context_options = {"output_format": "plain"}
 
         result = service.flext_cli_render_with_context(data, context_options)
-        assert result.success
+        assert result.is_success
 
         # Should be formatted as plain text (override)
-        formatted = result.unwrap()
+        formatted = result.value
         if "test" not in formatted:
             raise AssertionError(f"Expected {'test'} in {formatted}")
         assert "42" in formatted
@@ -773,9 +773,9 @@ class TestFlextCliService:
 
         data = {"name": "test"}
         result = service.flext_cli_render_with_context(data, {"output_format": "json"})
-        assert result.success
+        assert result.is_success
 
-        formatted = result.unwrap()
+        formatted = result.value
         parsed = json.loads(formatted)
         if parsed != data:
             raise AssertionError(f"Expected {data}, got {parsed}")
@@ -785,8 +785,8 @@ class TestFlextCliService:
         service = FlextCliService()
 
         result = service.flext_cli_get_commands()
-        assert result.success
-        commands = result.unwrap()
+        assert result.is_success
+        commands = result.value
         assert isinstance(commands, dict)
         if len(commands) != 0:
             raise AssertionError(f"Expected {0}, got {len(commands)}")
@@ -800,8 +800,8 @@ class TestFlextCliService:
         service.flext_cli_create_command("cmd2", "echo 2")
 
         result = service.flext_cli_get_commands()
-        assert result.success
-        commands = result.unwrap()
+        assert result.is_success
+        commands = result.value
         if len(commands) != EXPECTED_BULK_SIZE:
             raise AssertionError(f"Expected {2}, got {len(commands)}")
         if "cmd1" not in commands:
@@ -813,8 +813,8 @@ class TestFlextCliService:
         service = FlextCliService()
 
         result = service.flext_cli_get_sessions()
-        assert result.success
-        sessions = result.unwrap()
+        assert result.is_success
+        sessions = result.value
         assert isinstance(sessions, dict)
         if len(sessions) != 0:
             raise AssertionError(f"Expected {0}, got {len(sessions)}")
@@ -828,8 +828,8 @@ class TestFlextCliService:
         service.flext_cli_create_session("user2")
 
         result = service.flext_cli_get_sessions()
-        assert result.success
-        sessions = result.unwrap()
+        assert result.is_success
+        sessions = result.value
         if len(sessions) != EXPECTED_BULK_SIZE:
             raise AssertionError(f"Expected {2}, got {len(sessions)}")
 
@@ -838,8 +838,8 @@ class TestFlextCliService:
         service = FlextCliService()
 
         result = service.flext_cli_get_plugins()
-        assert result.success
-        plugins = result.unwrap()
+        assert result.is_success
+        plugins = result.value
         assert isinstance(plugins, dict)
         if len(plugins) != 0:
             raise AssertionError(f"Expected {0}, got {len(plugins)}")
@@ -855,8 +855,8 @@ class TestFlextCliService:
         service.flext_cli_register_plugin("plugin2", plugin2)
 
         result = service.flext_cli_get_plugins()
-        assert result.success
-        plugins = result.unwrap()
+        assert result.is_success
+        plugins = result.value
         if len(plugins) != EXPECTED_BULK_SIZE:
             raise AssertionError(f"Expected {2}, got {len(plugins)}")
         if "plugin1" not in plugins:
@@ -868,8 +868,8 @@ class TestFlextCliService:
         service = FlextCliService()
 
         result = service.flext_cli_get_handlers()
-        assert result.success
-        handlers = result.unwrap()
+        assert result.is_success
+        handlers = result.value
         assert isinstance(handlers, dict)
         if len(handlers) != 0:
             raise AssertionError(f"Expected {0}, got {len(handlers)}")
@@ -889,8 +889,8 @@ class TestFlextCliService:
         service.flext_cli_register_handler("multiply", handler2)
 
         result = service.flext_cli_get_handlers()
-        assert result.success
-        handlers = result.unwrap()
+        assert result.is_success
+        handlers = result.value
         if len(handlers) != EXPECTED_BULK_SIZE:
             raise AssertionError(f"Expected {2}, got {len(handlers)}")
         if "add" not in handlers:
@@ -907,9 +907,9 @@ class TestPrivateFormatMethods:
         data = {"key": "value"}
 
         result = service._format_json(data)
-        assert result.success
-        if json.loads(result.unwrap()) != data:
-            raise AssertionError(f"Expected {data}, got {json.loads(result.unwrap())}")
+        assert result.is_success
+        if json.loads(result.value) != data:
+            raise AssertionError(f"Expected {data}, got {json.loads(result.value)}")
 
     def test_format_yaml_method(self) -> None:
         """Test _format_yaml method directly."""
@@ -917,8 +917,8 @@ class TestPrivateFormatMethods:
         data = {"key": "value"}
 
         result = service._format_yaml(data)
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         if "key: value" not in formatted:
             raise AssertionError(f"Expected {'key: value'} in {formatted}")
 
@@ -928,9 +928,9 @@ class TestPrivateFormatMethods:
         data: list[dict[str, object]] = []
 
         result = service._format_csv(data)
-        assert result.success
-        if result.unwrap() != "":
-            raise AssertionError(f"Expected {''}, got {result.unwrap()}")
+        assert result.is_success
+        if result.value != "":
+            raise AssertionError(f"Expected {''}, got {result.value}")
 
     def test_format_table_method_dict(self) -> None:
         """Test _format_table method with dict."""
@@ -938,8 +938,8 @@ class TestPrivateFormatMethods:
         data = {"key": "value", "number": 42}
 
         result = service._format_table(data)
-        assert result.success
-        formatted = result.unwrap()
+        assert result.is_success
+        formatted = result.value
         if "key" not in formatted:
             raise AssertionError(f"Expected {'key'} in {formatted}")
         assert "value" in formatted
@@ -950,9 +950,9 @@ class TestPrivateFormatMethods:
         data = {"key": "value"}
 
         result = service._format_plain(data)
-        assert result.success
-        if "key" not in result.unwrap():
-            raise AssertionError(f"Expected {'key'} in {result.unwrap()}")
+        assert result.is_success
+        if "key" not in result.value:
+            raise AssertionError(f"Expected {'key'} in {result.value}")
 
 
 class TestIntegration:
@@ -964,39 +964,39 @@ class TestIntegration:
 
         # 1. Configure service
         config_result = service.configure({"debug": True, "output_format": "json"})
-        assert config_result.success
+        assert config_result.is_success
 
         # 2. Check health
         health_result = service.flext_cli_health()
-        assert health_result.success
-        health_data = health_result.unwrap()
+        assert health_result.is_success
+        health_data = health_result.value
         if not (health_data["configured"]):
             raise AssertionError(f"Expected True, got {health_data['configured']}")
 
         # 3. Create command
         cmd_result = service.flext_cli_create_command("test", "echo hello")
-        assert cmd_result.success
+        assert cmd_result.is_success
 
         # 4. Create session
         session_result = service.flext_cli_create_session("test-user")
-        assert session_result.success
+        assert session_result.is_success
 
         # 5. Register handler
         def handler(data: dict[str, object]) -> dict[str, object]:
             return {"processed": data}
 
         handler_result = service.flext_cli_register_handler("process", handler)
-        assert handler_result.success
+        assert handler_result.is_success
 
         # 6. Register plugin
         plugin = create_test_plugin()
         plugin_result = service.flext_cli_register_plugin("test-plugin", plugin)
-        assert plugin_result.success
+        assert plugin_result.is_success
 
         # 7. Execute handler
         execute_result = service.flext_cli_execute_handler("process", {"input": "data"})
-        assert execute_result.success
-        processed = execute_result.unwrap()
+        assert execute_result.is_success
+        processed = execute_result.value
         if processed["processed"]["input"] != "data":
             raise AssertionError(
                 f"Expected {'data'}, got {processed['processed']['input']}",
@@ -1005,7 +1005,7 @@ class TestIntegration:
         # 8. Format and export data
         data = {"result": "success", "items": [1, 2, 3]}
         format_result = service.flext_cli_format(data, "json")
-        assert format_result.success
+        assert format_result.is_success
 
         with tempfile.NamedTemporaryFile(
             encoding="utf-8",
@@ -1017,7 +1017,7 @@ class TestIntegration:
 
         try:
             export_result = service.flext_cli_export(data, temp_path, "json")
-            assert export_result.success
+            assert export_result.is_success
 
             # Verify export
             exported = json.loads(Path(temp_path).read_text(encoding="utf-8"))
@@ -1028,7 +1028,7 @@ class TestIntegration:
 
         # 9. Render with context
         render_result = service.flext_cli_render_with_context(data)
-        assert render_result.success
+        assert render_result.is_success
 
         # 10. Get all resources
         commands_result = service.flext_cli_get_commands()
@@ -1036,17 +1036,17 @@ class TestIntegration:
         plugins_result = service.flext_cli_get_plugins()
         handlers_result = service.flext_cli_get_handlers()
 
-        assert commands_result.success
-        assert sessions_result.success
-        assert plugins_result.success
-        assert handlers_result.success
+        assert commands_result.is_success
+        assert sessions_result.is_success
+        assert plugins_result.is_success
+        assert handlers_result.is_success
 
-        if len(commands_result.unwrap()) != 1:
-            raise AssertionError(f"Expected {1}, got {len(commands_result.unwrap())}")
-        assert len(sessions_result.unwrap()) == 1
-        if len(plugins_result.unwrap()) != 1:
-            raise AssertionError(f"Expected {1}, got {len(plugins_result.unwrap())}")
-        assert len(handlers_result.unwrap()) == 1
+        if len(commands_result.value) != 1:
+            raise AssertionError(f"Expected {1}, got {len(commands_result.value)}")
+        assert len(sessions_result.value) == 1
+        if len(plugins_result.value) != 1:
+            raise AssertionError(f"Expected {1}, got {len(plugins_result.value)}")
+        assert len(handlers_result.value) == 1
 
     def test_service_error_handling(self) -> None:
         """Test service error handling across different methods."""
@@ -1054,15 +1054,15 @@ class TestIntegration:
 
         # Invalid configuration
         config_result = service.configure("invalid")
-        assert not config_result.success
+        assert not config_result.is_success
 
         # Invalid format validation
         format_result = service.flext_cli_validate_format("invalid")
-        assert not format_result.success
+        assert not format_result.is_success
 
         # Execute non-existent handler
         execute_result = service.flext_cli_execute_handler("nonexistent")
-        assert not execute_result.success
+        assert not execute_result.is_success
 
         # Duplicate registrations
         def handler(x: int) -> int:
@@ -1076,8 +1076,8 @@ class TestIntegration:
         dup_handler_result = service.flext_cli_register_handler("test", handler)
         dup_plugin_result = service.flext_cli_register_plugin("test", plugin)
 
-        assert not dup_handler_result.success
-        assert not dup_plugin_result.success
+        assert not dup_handler_result.is_success
+        assert not dup_plugin_result.is_success
 
     def test_format_compatibility(self) -> None:
         """Test format compatibility across different data types."""
@@ -1100,9 +1100,9 @@ class TestIntegration:
         for test_case in test_data:
             for format_type in formats:
                 result = service.flext_cli_format(test_case["data"], format_type)
-                assert result.success, (
+                assert result.is_success, (
                     f"Failed to format {test_case['name']} as {format_type}"
                 )
-                formatted = result.unwrap()
+                formatted = result.value
                 assert isinstance(formatted, str)
                 assert len(formatted) > 0

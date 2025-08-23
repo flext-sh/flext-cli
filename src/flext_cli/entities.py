@@ -12,11 +12,11 @@ from flext_cli.models import (
     FlextCliCommand as CLICommand,
     FlextCliCommandStatus,
     FlextCliCommandType,
-    FlextCliConfiguration as CLIConfig,
+    FlextCliConfiguration as FlextCliConfig,
     FlextCliOutput,
     FlextCliOutputFormat,
-    FlextCliPlugin as CLIPlugin,
-    FlextCliSession as CLISession,
+    FlextCliPlugin as FlextCliPlugin,
+    FlextCliSession as FlextCliSession,
     PluginStatus,
     SessionStatus,
 )
@@ -37,7 +37,7 @@ class CommandType(StrEnum):
     SQL = "sql"
 
 
-class CLIEntityFactory:
+class FlextCliEntityFactory:
     """Factory helpers used by tests to create entities safely."""
 
     @staticmethod
@@ -83,8 +83,8 @@ class CLIEntityFactory:
         entry_point: str,
         commands: list[str] | None = None,
         plugin_version: str | None = None,
-    ) -> FlextResult[CLIPlugin]:
-        """Create a `CLIPlugin` instance for tests.
+    ) -> FlextResult[FlextCliPlugin]:
+        """Create a `FlextCliPlugin` instance for tests.
 
         Args:
             name: Plugin identifier and display name.
@@ -93,59 +93,59 @@ class CLIEntityFactory:
             plugin_version: Optional plugin version string.
 
         Returns:
-            FlextResult with the created `CLIPlugin` or a failure message.
+            FlextResult with the created `FlextCliPlugin` or a failure message.
 
         """
         try:
             # Use individual arguments instead of **kwargs to avoid type issues
-            entity = CLIPlugin(
+            entity = FlextCliPlugin(
                 name=name,
                 entry_point=entry_point,
                 commands=commands or [],
                 plugin_version=plugin_version or "0.1.0",
             )
-            return FlextResult[CLIPlugin].ok(entity)
+            return FlextResult[FlextCliPlugin].ok(entity)
         except Exception as e:  # noqa: BLE001
-            return FlextResult[CLIPlugin].fail(
+            return FlextResult[FlextCliPlugin].fail(
                 f"{FlextCliConstants.CliErrors.PLUGIN_ENTRY_POINT_EMPTY}: {e!s}",
             )
 
     @staticmethod
-    def create_session(*, session_id: str) -> FlextResult[CLISession]:
-        """Create a `CLISession` instance for tests.
+    def create_session(*, session_id: str) -> FlextResult[FlextCliSession]:
+        """Create a `FlextCliSession` instance for tests.
 
         Args:
             session_id: Identifier used for both the session `id` and `user_id`.
 
         Returns:
-            FlextResult with the created `CLISession` or a failure message.
+            FlextResult with the created `FlextCliSession` or a failure message.
 
         """
         try:
-            # CLISession requires a non-empty user_id; map session_id to user_id for tests
+            # FlextCliSession requires a non-empty user_id; map session_id to user_id for tests
             if not session_id:
-                return FlextResult[CLISession].fail(
+                return FlextResult[FlextCliSession].fail(
                     FlextCliConstants.CliErrors.SESSION_VALIDATION_FAILED,
                 )
-            entity = CLISession(id=FlextEntityId(session_id), user_id=session_id)
-            return FlextResult[CLISession].ok(entity)
+            entity = FlextCliSession(id=FlextEntityId(session_id), user_id=session_id)
+            return FlextResult[FlextCliSession].ok(entity)
         except Exception as e:  # noqa: BLE001
-            return FlextResult[CLISession].fail(
+            return FlextResult[FlextCliSession].fail(
                 f"{FlextCliConstants.CliErrors.SESSION_VALIDATION_FAILED}: {e!s}",
             )
 
 
 __all__ = [
     "CLICommand",
-    "CLIConfig",
-    "CLIEntityFactory",
-    "CLIPlugin",
-    "CLISession",
     "CommandStatus",
     "CommandType",
     "FlextCliCommandStatus",
+    "FlextCliConfig",
+    "FlextCliEntityFactory",
     "FlextCliOutput",
     "FlextCliOutputFormat",
+    "FlextCliPlugin",
+    "FlextCliSession",
     "PluginStatus",
     "SessionStatus",
 ]

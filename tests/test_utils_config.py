@@ -12,8 +12,8 @@ from pathlib import Path
 import pytest
 from flext_core import FlextConstants
 
-from flext_cli import CLIConfig, CLISettings, get_config, get_settings
-from flext_cli.config import CLIDirectoryConfig, CLIOutputConfig
+from flext_cli import FlextCliConfig, FlextCliSettings, get_config, get_settings
+from flext_cli.config import FlextCliDirectoryConfig, FlextCliOutputConfig
 
 # Constants
 _API = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
@@ -23,11 +23,11 @@ EXPECTED_DATA_COUNT = 3
 
 
 class TestCLIConfig:
-    """Test cases for CLIConfig."""
+    """Test cases for FlextCliConfig."""
 
     def test_config_creation_with_defaults(self) -> None:
         """Test CLI config creation with default values."""
-        config = CLIConfig()
+        config = FlextCliConfig()
 
         if config.api_url != _API:
             raise AssertionError(f"Expected {_API}, got {config.api_url}")
@@ -42,7 +42,9 @@ class TestCLIConfig:
             raise AssertionError(f"Expected False, got {config.verbose}")
         assert config.no_color is False
 
-    def test_config_creation_with_custom_values(self, cli_config: CLIConfig) -> None:
+    def test_config_creation_with_custom_values(
+        self, cli_config: FlextCliConfig
+    ) -> None:
         """Test CLI config creation with custom values."""
         if cli_config.api_url != _API:
             raise AssertionError(f"Expected {_API}, got {cli_config.api_url}")
@@ -58,7 +60,7 @@ class TestCLIConfig:
 
     def test_config_directory_defaults(self) -> None:
         """Test configuration directory defaults."""
-        config = CLIConfig()
+        config = FlextCliConfig()
 
         expected_config_dir = Path.home() / ".flext"
         expected_cache_dir = Path.home() / ".flext" / "cache"
@@ -80,8 +82,8 @@ class TestCLIConfig:
         custom_cache_dir = Path("/custom/cache")
         custom_log_dir = Path("/custom/logs")
 
-        config = CLIConfig(
-            directories=CLIDirectoryConfig(
+        config = FlextCliConfig(
+            directories=FlextCliDirectoryConfig(
                 config_dir=custom_config_dir,
                 cache_dir=custom_cache_dir,
                 log_dir=custom_log_dir,
@@ -101,36 +103,36 @@ class TestCLIConfig:
     def test_config_validation(self) -> None:
         """Test config field validation."""
         # Test valid timeout
-        config = CLIConfig(command_timeout=60)
+        config = FlextCliConfig(command_timeout=60)
         if config.command_timeout != 60:
             raise AssertionError(f"Expected {60}, got {config.command_timeout}")
 
         # Test valid output format
-        config = CLIConfig(output=CLIOutputConfig(format="json"))
+        config = FlextCliConfig(output=FlextCliOutputConfig(format="json"))
         if config.output.format != "json":
             raise AssertionError(f"Expected {'json'}, got {config.output.format}")
 
     def test_config_field_constraints(self) -> None:
         """Test config field constraints."""
         # API URL should be a string
-        config = CLIConfig(api_url="https://api.example.com")
+        config = FlextCliConfig(api_url="https://api.example.com")
         if config.api_url != "https://api.example.com":
             raise AssertionError(
                 f"Expected {'https://api.example.com'}, got {config.api_url}",
             )
 
         # Profile should be a string
-        config = CLIConfig(profile="production")
+        config = FlextCliConfig(profile="production")
         if config.profile != "production":
             raise AssertionError(f"Expected {'production'}, got {config.profile}")
 
 
 class TestCLISettings:
-    """Test cases for CLISettings."""
+    """Test cases for FlextCliSettings."""
 
     def test_settings_creation_with_defaults(self) -> None:
         """Test CLI settings creation with default values."""
-        settings = CLISettings()
+        settings = FlextCliSettings()
 
         if settings.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {settings.project_name}")
@@ -147,7 +149,7 @@ class TestCLISettings:
 
     def test_settings_creation_with_custom_values(
         self,
-        cli_settings: CLISettings,
+        cli_settings: FlextCliSettings,
     ) -> None:
         """Test CLI settings creation with custom values."""
         if cli_settings.project_name != "test-cli":
@@ -175,7 +177,7 @@ class TestCLISettings:
         monkeypatch.setenv("FLEXT_CLI_CONFIG_PATH", "/custom/config.yaml")
 
         # Create settings
-        settings = CLISettings()
+        settings = FlextCliSettings()
 
         # Verify environment variables are loaded
         if not (settings.debug):
@@ -192,7 +194,7 @@ class TestCLISettings:
         monkeypatch.setenv("flext_cli_debug", "true")  # lowercase
         monkeypatch.setenv("FLEXT_CLI_LOG_LEVEL", "ERROR")  # uppercase
 
-        settings = CLISettings()
+        settings = FlextCliSettings()
 
         if not (settings.debug):
             raise AssertionError(f"Expected True, got {settings.debug}")
@@ -201,7 +203,7 @@ class TestCLISettings:
 
     def test_settings_model_config(self) -> None:
         """Test settings model configuration."""
-        settings = CLISettings()
+        settings = FlextCliSettings()
 
         # Verify model configuration
         config = settings.model_config
@@ -223,7 +225,7 @@ class TestConfigurationFunctions:
         """Test get_config function."""
         config = get_config()
 
-        assert isinstance(config, CLIConfig)
+        assert isinstance(config, FlextCliConfig)
         if config.api_url != _API:
             raise AssertionError(f"Expected {_API}, got {config.api_url}")
         assert config.output_format == "table"
@@ -234,7 +236,7 @@ class TestConfigurationFunctions:
         """Test get_settings function."""
         settings = get_settings()
 
-        assert isinstance(settings, CLISettings)
+        assert isinstance(settings, FlextCliSettings)
         if settings.project_name != "flext-cli":
             raise AssertionError(f"Expected {'flext-cli'}, got {settings.project_name}")
         assert settings.project_version == "0.9.0"
@@ -277,8 +279,8 @@ class TestConfigurationIntegration:
         settings = get_settings()
 
         # Both should be independent but compatible
-        assert isinstance(config, CLIConfig)
-        assert isinstance(settings, CLISettings)
+        assert isinstance(config, FlextCliConfig)
+        assert isinstance(settings, FlextCliSettings)
 
         # Both should have debug capability
         assert hasattr(config, "debug")
@@ -286,8 +288,8 @@ class TestConfigurationIntegration:
 
     def test_flext_core_integration(self) -> None:
         """Test integration with flext-core patterns."""
-        config = CLIConfig()
-        settings = CLISettings()
+        config = FlextCliConfig()
+        settings = FlextCliSettings()
 
         # Should inherit from flext-core base classes
         # This tests that our imports and inheritance work correctly
@@ -298,7 +300,7 @@ class TestConfigurationIntegration:
         """Test path handling in configuration."""
         custom_dir = temp_dir / "custom"
 
-        config = CLIConfig(
+        config = FlextCliConfig(
             config_dir=custom_dir,
             cache_dir=custom_dir / "cache",
             log_dir=custom_dir / "logs",

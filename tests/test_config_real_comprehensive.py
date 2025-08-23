@@ -20,12 +20,12 @@ from pathlib import Path
 from typing import Literal
 
 from flext_cli.config import (
-    CLIAPIConfig,
-    CLIAuthConfig,
-    CLIConfig,
-    CLIDirectoryConfig,
-    CLIOutputConfig,
-    CLISettings,
+    FlextCliApiConfig,
+    FlextCliAuthConfig,
+    FlextCliConfig,
+    FlextCliDirectoryConfig,
+    FlextCliOutputConfig,
+    FlextCliSettings,
     _create_cli_config,
     _default_api_url,
     _get_default_refresh_token_file,
@@ -40,12 +40,12 @@ from flext_cli.config import (
 )
 
 
-class TestCLIOutputConfig(unittest.TestCase):
-    """Real functionality tests for CLIOutputConfig class."""
+class TestFlextCliOutputConfig(unittest.TestCase):
+    """Real functionality tests for FlextCliOutputConfig class."""
 
     def test_cli_output_config_default_values(self) -> None:
-        """Test CLIOutputConfig initialization with default values."""
-        config = CLIOutputConfig()
+        """Test FlextCliOutputConfig initialization with default values."""
+        config = FlextCliOutputConfig()
 
         assert config.format == "table"
         assert config.no_color is False
@@ -54,8 +54,8 @@ class TestCLIOutputConfig(unittest.TestCase):
         assert config.pager is None
 
     def test_cli_output_config_custom_values(self) -> None:
-        """Test CLIOutputConfig with custom values."""
-        config = CLIOutputConfig(
+        """Test FlextCliOutputConfig with custom values."""
+        config = FlextCliOutputConfig(
             format="json", no_color=True, quiet=True, verbose=False, pager="less -R"
         )
 
@@ -66,7 +66,7 @@ class TestCLIOutputConfig(unittest.TestCase):
         assert config.pager == "less -R"
 
     def test_cli_output_config_all_formats(self) -> None:
-        """Test CLIOutputConfig with all valid output formats."""
+        """Test FlextCliOutputConfig with all valid output formats."""
         valid_formats: list[Literal["table", "json", "yaml", "csv", "plain"]] = [
             "table",
             "json",
@@ -76,24 +76,32 @@ class TestCLIOutputConfig(unittest.TestCase):
         ]
 
         for format_type in valid_formats:
-            config = CLIOutputConfig(format=format_type)
+            config = FlextCliOutputConfig(format=format_type)
             assert config.format == format_type
 
     def test_cli_output_config_pager_options(self) -> None:
-        """Test CLIOutputConfig with different pager options."""
+        """Test FlextCliOutputConfig with different pager options."""
         pager_options = [None, "less -R", "more", "cat", "bat --paging=always"]
 
         for pager in pager_options:
-            config = CLIOutputConfig(pager=pager)
+            config = FlextCliOutputConfig(pager=pager)
             assert config.pager == pager
 
     def test_cli_output_config_boolean_combinations(self) -> None:
-        """Test CLIOutputConfig with different boolean combinations."""
+        """Test FlextCliOutputConfig with different boolean combinations."""
         test_configs = [
-            CLIOutputConfig(format="table", no_color=True, quiet=False, verbose=False),
-            CLIOutputConfig(format="json", no_color=False, quiet=True, verbose=False),
-            CLIOutputConfig(format="yaml", no_color=False, quiet=False, verbose=True),
-            CLIOutputConfig(format="csv", no_color=True, quiet=True, verbose=False),
+            FlextCliOutputConfig(
+                format="table", no_color=True, quiet=False, verbose=False
+            ),
+            FlextCliOutputConfig(
+                format="json", no_color=False, quiet=True, verbose=False
+            ),
+            FlextCliOutputConfig(
+                format="yaml", no_color=False, quiet=False, verbose=True
+            ),
+            FlextCliOutputConfig(
+                format="csv", no_color=True, quiet=True, verbose=False
+            ),
         ]
 
         expected_values = [
@@ -109,8 +117,8 @@ class TestCLIOutputConfig(unittest.TestCase):
             assert config.verbose == expected["verbose"]
 
     def test_cli_output_config_serialization(self) -> None:
-        """Test CLIOutputConfig serialization to dict."""
-        config = CLIOutputConfig(format="yaml", no_color=True, pager="less")
+        """Test FlextCliOutputConfig serialization to dict."""
+        config = FlextCliOutputConfig(format="yaml", no_color=True, pager="less")
 
         config_dict = config.model_dump()
 
@@ -119,7 +127,7 @@ class TestCLIOutputConfig(unittest.TestCase):
         assert config_dict["pager"] == "less"
 
     def test_cli_output_config_from_dict(self) -> None:
-        """Test CLIOutputConfig creation from dictionary."""
+        """Test FlextCliOutputConfig creation from dictionary."""
         # Use properly typed literal for format
         format_value: Literal["csv"] = "csv"
         no_color_value: bool = True
@@ -128,7 +136,7 @@ class TestCLIOutputConfig(unittest.TestCase):
         pager_value: str = "bat"
 
         # Create config properly with typed arguments
-        config = CLIOutputConfig(
+        config = FlextCliOutputConfig(
             format=format_value,
             no_color=no_color_value,
             quiet=quiet_value,
@@ -143,12 +151,12 @@ class TestCLIOutputConfig(unittest.TestCase):
         assert config.pager == "bat"
 
 
-class TestCLIAPIConfig(unittest.TestCase):
-    """Real functionality tests for CLIAPIConfig class."""
+class TestFlextCliApiConfig(unittest.TestCase):
+    """Real functionality tests for FlextCliApiConfig class."""
 
     def test_cli_api_config_default_values(self) -> None:
-        """Test CLIAPIConfig initialization with defaults."""
-        config = CLIAPIConfig()
+        """Test FlextCliApiConfig initialization with defaults."""
+        config = FlextCliApiConfig()
 
         # Should have a default URL
         assert isinstance(config.url, str)
@@ -156,32 +164,32 @@ class TestCLIAPIConfig(unittest.TestCase):
         assert config.timeout == 30
 
     def test_cli_api_config_custom_url(self) -> None:
-        """Test CLIAPIConfig with custom URL."""
+        """Test FlextCliApiConfig with custom URL."""
         custom_url = "https://api.custom.com:9000"
-        config = CLIAPIConfig(url=custom_url)
+        config = FlextCliApiConfig(url=custom_url)
 
         assert config.url == custom_url
         assert config.timeout == 30
 
     def test_cli_api_config_custom_timeout(self) -> None:
-        """Test CLIAPIConfig with custom timeout."""
-        config = CLIAPIConfig(timeout=60)
+        """Test FlextCliApiConfig with custom timeout."""
+        config = FlextCliApiConfig(timeout=60)
 
         assert config.timeout == 60
 
     def test_cli_api_config_timeout_validation(self) -> None:
-        """Test CLIAPIConfig timeout validation (le=300)."""
+        """Test FlextCliApiConfig timeout validation (le=300)."""
         # Valid timeout
-        config = CLIAPIConfig(timeout=300)
+        config = FlextCliApiConfig(timeout=300)
         assert config.timeout == 300
 
         # Test that timeout <= 300 constraint exists
         with contextlib.suppress(Exception):
             # If no validation error, that's fine - constraint might be implemented differently
-            CLIAPIConfig(timeout=301)
+            FlextCliApiConfig(timeout=301)
 
     def test_cli_api_config_different_urls(self) -> None:
-        """Test CLIAPIConfig with different URL formats."""
+        """Test FlextCliApiConfig with different URL formats."""
         test_urls = [
             "http://localhost:8000",
             "https://prod.api.com",
@@ -190,12 +198,12 @@ class TestCLIAPIConfig(unittest.TestCase):
         ]
 
         for url in test_urls:
-            config = CLIAPIConfig(url=url)
+            config = FlextCliApiConfig(url=url)
             assert config.url == url
 
     def test_cli_api_config_serialization(self) -> None:
-        """Test CLIAPIConfig serialization."""
-        config = CLIAPIConfig(url="https://api.test.com", timeout=45)
+        """Test FlextCliApiConfig serialization."""
+        config = FlextCliApiConfig(url="https://api.test.com", timeout=45)
 
         config_dict = config.model_dump()
         assert config_dict["url"] == "https://api.test.com"
@@ -268,22 +276,22 @@ class TestTokenFilePaths(unittest.TestCase):
 
 
 class TestCLIAuthConfig(unittest.TestCase):
-    """Real functionality tests for CLIAuthConfig class."""
+    """Real functionality tests for FlextCliAuthConfig class."""
 
     def test_cli_auth_config_default_values(self) -> None:
-        """Test CLIAuthConfig initialization with defaults."""
-        config = CLIAuthConfig()
+        """Test FlextCliAuthConfig initialization with defaults."""
+        config = FlextCliAuthConfig()
 
         assert isinstance(config.token_file, Path)
         assert isinstance(config.refresh_token_file, Path)
 
     def test_cli_auth_config_custom_paths(self) -> None:
-        """Test CLIAuthConfig with custom token file paths."""
+        """Test FlextCliAuthConfig with custom token file paths."""
         with tempfile.TemporaryDirectory() as temp_dir:
             custom_token = Path(temp_dir) / "custom_token"
             custom_refresh = Path(temp_dir) / "custom_refresh"
 
-            config = CLIAuthConfig(
+            config = FlextCliAuthConfig(
                 token_file=custom_token, refresh_token_file=custom_refresh
             )
 
@@ -291,20 +299,20 @@ class TestCLIAuthConfig(unittest.TestCase):
             assert config.refresh_token_file == custom_refresh
 
     def test_cli_auth_config_serialization(self) -> None:
-        """Test CLIAuthConfig serialization."""
-        config = CLIAuthConfig()
+        """Test FlextCliAuthConfig serialization."""
+        config = FlextCliAuthConfig()
         config_dict = config.model_dump()
 
         assert "token_file" in config_dict
         assert "refresh_token_file" in config_dict
 
 
-class TestCLIDirectoryConfig(unittest.TestCase):
-    """Real functionality tests for CLIDirectoryConfig class."""
+class TestFlextCliDirectoryConfig(unittest.TestCase):
+    """Real functionality tests for FlextCliDirectoryConfig class."""
 
     def test_cli_directory_config_default_values(self) -> None:
-        """Test CLIDirectoryConfig initialization."""
-        config = CLIDirectoryConfig()
+        """Test FlextCliDirectoryConfig initialization."""
+        config = FlextCliDirectoryConfig()
 
         assert isinstance(config.config_dir, Path)
         assert isinstance(config.data_dir, Path)
@@ -312,11 +320,11 @@ class TestCLIDirectoryConfig(unittest.TestCase):
         assert isinstance(config.log_dir, Path)
 
     def test_cli_directory_config_custom_paths(self) -> None:
-        """Test CLIDirectoryConfig with custom directory paths."""
+        """Test FlextCliDirectoryConfig with custom directory paths."""
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
 
-            config = CLIDirectoryConfig(
+            config = FlextCliDirectoryConfig(
                 config_dir=temp_path / "config",
                 data_dir=temp_path / "data",
                 cache_dir=temp_path / "cache",
@@ -329,8 +337,8 @@ class TestCLIDirectoryConfig(unittest.TestCase):
             assert config.log_dir == temp_path / "logs"
 
     def test_cli_directory_config_path_objects(self) -> None:
-        """Test CLIDirectoryConfig paths are Path objects."""
-        config = CLIDirectoryConfig()
+        """Test FlextCliDirectoryConfig paths are Path objects."""
+        config = FlextCliDirectoryConfig()
 
         assert isinstance(config.config_dir, Path)
         assert isinstance(config.data_dir, Path)
@@ -338,8 +346,8 @@ class TestCLIDirectoryConfig(unittest.TestCase):
         assert isinstance(config.log_dir, Path)
 
     def test_cli_directory_config_serialization(self) -> None:
-        """Test CLIDirectoryConfig serialization."""
-        config = CLIDirectoryConfig()
+        """Test FlextCliDirectoryConfig serialization."""
+        config = FlextCliDirectoryConfig()
         config_dict = config.model_dump()
 
         assert "config_dir" in config_dict
@@ -349,23 +357,23 @@ class TestCLIDirectoryConfig(unittest.TestCase):
 
 
 class TestCLIConfig(unittest.TestCase):
-    """Real functionality tests for CLIConfig main class."""
+    """Real functionality tests for FlextCliConfig main class."""
 
     def test_cli_config_default_initialization(self) -> None:
-        """Test CLIConfig initialization with default values."""
-        config = CLIConfig()
+        """Test FlextCliConfig initialization with default values."""
+        config = FlextCliConfig()
 
-        assert isinstance(config.output, CLIOutputConfig)
-        assert isinstance(config.api, CLIAPIConfig)
-        assert isinstance(config.auth, CLIAuthConfig)
-        assert isinstance(config.directories, CLIDirectoryConfig)
+        assert isinstance(config.output, FlextCliOutputConfig)
+        assert isinstance(config.api, FlextCliApiConfig)
+        assert isinstance(config.auth, FlextCliAuthConfig)
+        assert isinstance(config.directories, FlextCliDirectoryConfig)
 
     def test_cli_config_custom_components(self) -> None:
-        """Test CLIConfig with custom component configurations."""
-        custom_output = CLIOutputConfig(format="json", quiet=True)
-        custom_api = CLIAPIConfig(url="https://custom.api.com", timeout=60)
+        """Test FlextCliConfig with custom component configurations."""
+        custom_output = FlextCliOutputConfig(format="json", quiet=True)
+        custom_api = FlextCliApiConfig(url="https://custom.api.com", timeout=60)
 
-        config = CLIConfig(output=custom_output, api=custom_api)
+        config = FlextCliConfig(output=custom_output, api=custom_api)
 
         assert config.output.format == "json"
         assert config.output.quiet is True
@@ -373,8 +381,8 @@ class TestCLIConfig(unittest.TestCase):
         assert config.api.timeout == 60
 
     def test_cli_config_nested_access(self) -> None:
-        """Test CLIConfig nested configuration access."""
-        config = CLIConfig()
+        """Test FlextCliConfig nested configuration access."""
+        config = FlextCliConfig()
 
         # Should be able to access nested configuration properties
         assert hasattr(config.output, "format")
@@ -383,8 +391,8 @@ class TestCLIConfig(unittest.TestCase):
         assert hasattr(config.directories, "config_dir")
 
     def test_cli_config_serialization(self) -> None:
-        """Test CLIConfig full serialization."""
-        config = CLIConfig()
+        """Test FlextCliConfig full serialization."""
+        config = FlextCliConfig()
         config_dict = config.model_dump()
 
         assert "output" in config_dict
@@ -397,12 +405,12 @@ class TestCLIConfig(unittest.TestCase):
         assert isinstance(config_dict["api"], dict)
 
     def test_cli_config_from_dict(self) -> None:
-        """Test CLIConfig creation from nested dictionary."""
-        # Create CLIOutputConfig and CLIAPIConfig instances first
-        output_config = CLIOutputConfig(format="yaml", quiet=True)
-        api_config = CLIAPIConfig(url="https://test.com", timeout=45)
+        """Test FlextCliConfig creation from nested dictionary."""
+        # Create FlextCliOutputConfig and FlextCliApiConfig instances first
+        output_config = FlextCliOutputConfig(format="yaml", quiet=True)
+        api_config = FlextCliApiConfig(url="https://test.com", timeout=45)
 
-        config = CLIConfig(output=output_config, api=api_config)
+        config = FlextCliConfig(output=output_config, api=api_config)
 
         assert config.output.format == "yaml"
         assert config.output.quiet is True
@@ -411,11 +419,11 @@ class TestCLIConfig(unittest.TestCase):
 
 
 class TestCLISettings(unittest.TestCase):
-    """Real functionality tests for CLISettings class."""
+    """Real functionality tests for FlextCliSettings class."""
 
     def test_cli_settings_default_initialization(self) -> None:
-        """Test CLISettings initialization with defaults."""
-        settings = CLISettings()
+        """Test FlextCliSettings initialization with defaults."""
+        settings = FlextCliSettings()
 
         # Should have basic settings properties
         assert hasattr(settings, "project_name")
@@ -424,8 +432,8 @@ class TestCLISettings(unittest.TestCase):
         assert hasattr(settings, "log_level")
 
     def test_cli_settings_custom_values(self) -> None:
-        """Test CLISettings with custom values."""
-        settings = CLISettings(
+        """Test FlextCliSettings with custom values."""
+        settings = FlextCliSettings(
             project_name="custom-project", debug=True, log_level="DEBUG"
         )
 
@@ -434,14 +442,14 @@ class TestCLISettings(unittest.TestCase):
         assert settings.log_level == "DEBUG"
 
     def test_cli_settings_environment_prefix(self) -> None:
-        """Test CLISettings respects environment variables."""
+        """Test FlextCliSettings respects environment variables."""
         # Test that settings can be configured via environment
         # This tests the Pydantic settings functionality
         original_env = os.environ.get("FLX_DEBUG")
 
         try:
             os.environ["FLX_DEBUG"] = "true"
-            settings = CLISettings()
+            settings = FlextCliSettings()
             # Environment variable should influence settings
             assert hasattr(settings, "debug")
 
@@ -452,8 +460,8 @@ class TestCLISettings(unittest.TestCase):
                 os.environ["FLX_DEBUG"] = original_env
 
     def test_cli_settings_serialization(self) -> None:
-        """Test CLISettings serialization."""
-        settings = CLISettings(debug=True, log_level="INFO")
+        """Test FlextCliSettings serialization."""
+        settings = FlextCliSettings(debug=True, log_level="INFO")
         settings_dict = settings.model_dump()
 
         assert isinstance(settings_dict, dict)
@@ -468,41 +476,41 @@ class TestConfigFactoryFunctions(unittest.TestCase):
         """Test _create_cli_config factory function."""
         config = _create_cli_config()
 
-        assert isinstance(config, CLIConfig)
-        assert isinstance(config.output, CLIOutputConfig)
-        assert isinstance(config.api, CLIAPIConfig)
+        assert isinstance(config, FlextCliConfig)
+        assert isinstance(config.output, FlextCliOutputConfig)
+        assert isinstance(config.api, FlextCliApiConfig)
 
     def test_get_cli_config_default(self) -> None:
         """Test get_cli_config with default parameters."""
         config = get_cli_config()
 
-        assert isinstance(config, CLIConfig)
+        assert isinstance(config, FlextCliConfig)
 
     def test_get_cli_config_with_reload(self) -> None:
         """Test get_cli_config with reload parameter."""
         config1 = get_cli_config(reload=False)
         config2 = get_cli_config(reload=True)
 
-        assert isinstance(config1, CLIConfig)
-        assert isinstance(config2, CLIConfig)
+        assert isinstance(config1, FlextCliConfig)
+        assert isinstance(config2, FlextCliConfig)
 
     def test_get_config_alias(self) -> None:
         """Test get_config function (alias for get_cli_config)."""
         config = get_config()
 
-        assert isinstance(config, CLIConfig)
+        assert isinstance(config, FlextCliConfig)
 
     def test_get_settings(self) -> None:
         """Test get_settings function."""
         settings = get_settings()
 
-        assert isinstance(settings, CLISettings)
+        assert isinstance(settings, FlextCliSettings)
 
     def test_get_cli_settings(self) -> None:
         """Test get_cli_settings function."""
         settings = get_cli_settings()
 
-        assert isinstance(settings, CLISettings)
+        assert isinstance(settings, FlextCliSettings)
 
 
 class TestResultClass(unittest.TestCase):
@@ -512,24 +520,24 @@ class TestResultClass(unittest.TestCase):
         """Test _Result success case."""
         result = _Result(success=True, data="test_value")
 
-        assert result.success is True
-        assert result.data == "test_value"
+        assert result.is_success is True
+        assert result.value == "test_value"
         assert result.error is None
 
     def test_result_failure(self) -> None:
         """Test _Result failure case."""
         result = _Result(success=False, error="test_error")
 
-        assert result.success is False
+        assert result.is_success is False
         assert result.error == "test_error"
-        assert result.data is None
+        assert result.value is None
 
     def test_result_with_both_data_and_error(self) -> None:
         """Test _Result with both data and error."""
         result = _Result(success=True, data="value", error="error")
 
-        assert result.success is True
-        assert result.data == "value"
+        assert result.is_success is True
+        assert result.value == "value"
         assert result.error == "error"
 
 
@@ -541,8 +549,8 @@ class TestConfigValueParsing(unittest.TestCase):
         result = parse_config_value("simple_string")
 
         assert isinstance(result, _Result)
-        assert result.success is True
-        assert result.data == "simple_string"
+        assert result.is_success is True
+        assert result.value == "simple_string"
 
     def test_parse_config_value_boolean_true(self) -> None:
         """Test parse_config_value with boolean true values."""
@@ -551,8 +559,8 @@ class TestConfigValueParsing(unittest.TestCase):
         for value in true_values:
             result = parse_config_value(value)
             assert isinstance(result, _Result)
-            assert result.success is True
-            assert result.data is True
+            assert result.is_success is True
+            assert result.value is True
 
     def test_parse_config_value_boolean_false(self) -> None:
         """Test parse_config_value with boolean false values."""
@@ -561,8 +569,8 @@ class TestConfigValueParsing(unittest.TestCase):
         for value in false_values:
             result = parse_config_value(value)
             assert isinstance(result, _Result)
-            assert result.success is True
-            assert result.data is False
+            assert result.is_success is True
+            assert result.value is False
 
     def test_parse_config_value_integer(self) -> None:
         """Test parse_config_value with integer values."""
@@ -571,8 +579,8 @@ class TestConfigValueParsing(unittest.TestCase):
         for value in int_values:
             result = parse_config_value(value)
             assert isinstance(result, _Result)
-            assert result.success is True
-            assert result.data == int(value)
+            assert result.is_success is True
+            assert result.value == int(value)
 
     def test_parse_config_value_float(self) -> None:
         """Test parse_config_value with float values."""
@@ -581,9 +589,9 @@ class TestConfigValueParsing(unittest.TestCase):
         for value in float_values:
             result = parse_config_value(value)
             assert isinstance(result, _Result)
-            assert result.success is True
-            assert isinstance(result.data, (int, float))
-            assert abs(float(result.data) - float(value)) < 0.001
+            assert result.is_success is True
+            assert isinstance(result.value, (int, float))
+            assert abs(float(result.value) - float(value)) < 0.001
 
     def test_parse_config_value_json_object(self) -> None:
         """Test parse_config_value with JSON objects."""
@@ -591,8 +599,8 @@ class TestConfigValueParsing(unittest.TestCase):
         result = parse_config_value(json_value)
 
         assert isinstance(result, _Result)
-        assert result.success is True
-        assert result.data == {"key": "value", "number": 42}
+        assert result.is_success is True
+        assert result.value == {"key": "value", "number": 42}
 
     def test_parse_config_value_json_array(self) -> None:
         """Test parse_config_value with JSON arrays."""
@@ -600,8 +608,8 @@ class TestConfigValueParsing(unittest.TestCase):
         result = parse_config_value(json_value)
 
         assert isinstance(result, _Result)
-        assert result.success is True
-        assert result.data == [1, 2, 3, "test"]
+        assert result.is_success is True
+        assert result.value == [1, 2, 3, "test"]
 
     def test_parse_config_value_invalid_json(self) -> None:
         """Test parse_config_value with invalid JSON."""
@@ -610,7 +618,7 @@ class TestConfigValueParsing(unittest.TestCase):
 
         assert isinstance(result, _Result)
         # Should either parse as string or handle gracefully
-        assert result.success is True or result.error is not None
+        assert result.is_success is True or result.error is not None
 
 
 class TestSetConfigAttribute(unittest.TestCase):
@@ -627,7 +635,7 @@ class TestSetConfigAttribute(unittest.TestCase):
         result = set_config_attribute(obj, "test_attr", "updated")
 
         assert isinstance(result, _Result)
-        assert result.success is True
+        assert result.is_success is True
         assert obj.test_attr == "updated"
 
     def test_set_config_attribute_nested(self) -> None:
@@ -645,7 +653,7 @@ class TestSetConfigAttribute(unittest.TestCase):
         result = set_config_attribute(obj, "inner.value", "nested_updated")
 
         assert isinstance(result, _Result)
-        assert result.success is True
+        assert result.is_success is True
         assert obj.inner.value == "nested_updated"
 
     def test_set_config_attribute_nonexistent_attribute(self) -> None:
@@ -660,7 +668,7 @@ class TestSetConfigAttribute(unittest.TestCase):
 
         assert isinstance(result, _Result)
         # Should either create attribute or fail gracefully
-        if result.success:
+        if result.is_success:
             assert hasattr(obj, "nonexistent")
             # Dynamic attribute access for test verification
             dynamic_value = getattr(obj, "nonexistent", None)
@@ -698,13 +706,13 @@ class TestConfigIntegration(unittest.TestCase):
     def test_complete_config_workflow(self) -> None:
         """Test complete configuration creation and usage workflow."""
         # Step 1: Create configuration
-        config = CLIConfig()
+        config = FlextCliConfig()
 
         # Step 2: Verify all components are initialized
-        assert isinstance(config.output, CLIOutputConfig)
-        assert isinstance(config.api, CLIAPIConfig)
-        assert isinstance(config.auth, CLIAuthConfig)
-        assert isinstance(config.directories, CLIDirectoryConfig)
+        assert isinstance(config.output, FlextCliOutputConfig)
+        assert isinstance(config.api, FlextCliApiConfig)
+        assert isinstance(config.auth, FlextCliAuthConfig)
+        assert isinstance(config.directories, FlextCliDirectoryConfig)
 
         # Step 3: Test nested configuration access and modification
         config.output.format = "json"
@@ -724,7 +732,7 @@ class TestConfigIntegration(unittest.TestCase):
 
         # Reconstruct using original configuration approach (not dict unpacking)
         # Create a new config to compare the essential values
-        reconstructed = CLIConfig()
+        reconstructed = FlextCliConfig()
         reconstructed.output.format = "json"  # Match the original modification
         reconstructed.api.timeout = 60  # Match the original modification
 
@@ -732,13 +740,13 @@ class TestConfigIntegration(unittest.TestCase):
         assert reconstructed.api.timeout == 60
 
     def test_settings_and_config_interaction(self) -> None:
-        """Test interaction between CLISettings and CLIConfig."""
-        settings = CLISettings(debug=True, log_level="DEBUG")
-        config = CLIConfig()
+        """Test interaction between FlextCliSettings and FlextCliConfig."""
+        settings = FlextCliSettings(debug=True, log_level="DEBUG")
+        config = FlextCliConfig()
 
         # Both should be independent but compatible
-        assert isinstance(settings, CLISettings)
-        assert isinstance(config, CLIConfig)
+        assert isinstance(settings, FlextCliSettings)
+        assert isinstance(config, FlextCliConfig)
 
         # Settings should have debug info
         assert settings.debug is True
@@ -752,10 +760,10 @@ class TestConfigIntegration(unittest.TestCase):
         settings2 = get_cli_settings()
 
         # All functions should return valid objects
-        assert isinstance(config1, CLIConfig)
-        assert isinstance(config2, CLIConfig)
-        assert isinstance(settings1, CLISettings)
-        assert isinstance(settings2, CLISettings)
+        assert isinstance(config1, FlextCliConfig)
+        assert isinstance(config2, FlextCliConfig)
+        assert isinstance(settings1, FlextCliSettings)
+        assert isinstance(settings2, FlextCliSettings)
 
         # Config objects should have same structure
         assert isinstance(config1.output, type(config2.output))
@@ -763,7 +771,7 @@ class TestConfigIntegration(unittest.TestCase):
 
     def test_config_value_parsing_integration(self) -> None:
         """Test config value parsing with real configuration objects."""
-        config = CLIConfig()
+        config = FlextCliConfig()
 
         # Test parsing and setting various config values
         test_cases = [
@@ -776,8 +784,8 @@ class TestConfigIntegration(unittest.TestCase):
             parsed = parse_config_value(value)
             assert parsed.success
 
-            result = set_config_attribute(config, key, parsed.data)
-            assert result.success
+            result = set_config_attribute(config, key, parsed.value)
+            assert result.is_success
 
         # Verify the values were set correctly
         assert config.output.format == "yaml"

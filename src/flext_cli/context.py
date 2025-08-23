@@ -9,13 +9,14 @@ from __future__ import annotations
 
 import sys
 from dataclasses import dataclass, field
+from typing import cast, override
 
 from flext_core import FlextModel
 from pydantic import ConfigDict, Field
 from rich.console import Console
 
 
-class CLIContext(FlextModel):
+class FlextCliContext(FlextModel):
     """CLI execution context carrying state across commands (Pydantic)."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -29,6 +30,7 @@ class CLIContext(FlextModel):
     quiet: bool = Field(default=False)
     verbose: bool = Field(default=False)
 
+    @override
     def model_post_init(self, __context: object, /) -> None:
         # Provide sensible defaults instead of failing hard. Tests construct this
         # context without explicitly providing config/console.
@@ -98,11 +100,13 @@ class CLIContext(FlextModel):
 
 
 @dataclass
-class CLIExecutionContext:
+class FlextCliExecutionContext:
     """Extended context for command execution (lightweight dataclass)."""
 
     command_name: str | None = None
-    command_args: dict[str, object] = field(default_factory=dict)
+    command_args: dict[str, object] = field(
+        default_factory=lambda: cast("dict[str, object]", {})
+    )
     execution_id: str | None = None
     start_time: float | None = None
     session_id: str | None = None
@@ -119,7 +123,7 @@ class CLIExecutionContext:
 
 
 # Factory functions
-def create_cli_context(**kwargs: object) -> CLIContext:
+def create_cli_context(**kwargs: object) -> FlextCliContext:
     """Create a CLI context with optional parameters."""
     config = kwargs.get("config")
     console_param = kwargs.get("console")
@@ -128,7 +132,7 @@ def create_cli_context(**kwargs: object) -> CLIContext:
     debug = bool(kwargs.get("debug"))
     quiet = bool(kwargs.get("quiet"))
     verbose = bool(kwargs.get("verbose"))
-    return CLIContext(
+    return FlextCliContext(
         config=config,
         settings=settings,
         console=console,
@@ -141,7 +145,7 @@ def create_cli_context(**kwargs: object) -> CLIContext:
 def create_execution_context(
     command_name: str,
     **kwargs: object,
-) -> CLIExecutionContext:
+) -> FlextCliExecutionContext:
     """Create an execution context for a specific command."""
     # Extract and cast specific fields with correct types
     kwargs.get("config", {})
@@ -150,13 +154,20 @@ def create_execution_context(
     user_id = kwargs.get("user_id")
     kwargs.get("debug", False)
     kwargs.get("verbose", False)
-    command_args = kwargs.get("command_args", {})
+    command_args_raw = kwargs.get("command_args", {})
     execution_id = kwargs.get("execution_id")
     start_time = kwargs.get("start_time")
 
-    return CLIExecutionContext(
+    # Properly type command_args
+    command_args = (
+        cast("dict[str, object]", command_args_raw)
+        if isinstance(command_args_raw, dict)
+        else {}
+    )
+
+    return FlextCliExecutionContext(
         command_name=command_name,
-        command_args=command_args if isinstance(command_args, dict) else {},
+        command_args=command_args,
         execution_id=str(execution_id) if execution_id is not None else None,
         start_time=float(start_time)
         if start_time is not None and (isinstance(start_time, (int, float, str)))

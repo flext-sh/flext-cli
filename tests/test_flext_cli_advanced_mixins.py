@@ -75,9 +75,9 @@ class TestFlextCliValidationMixin:
         }
 
         result = obj.flext_cli_validate_inputs(inputs)
-        assert result.success
-        assert "email" in result.data
-        assert "url" in result.data
+        assert result.is_success
+        assert "email" in result.value
+        assert "url" in result.value
 
         # Invalid inputs
         invalid_inputs = {
@@ -85,7 +85,7 @@ class TestFlextCliValidationMixin:
         }
 
         result = obj.flext_cli_validate_inputs(invalid_inputs)
-        assert not result.success
+        assert not result.is_success
 
         # Unknown validation type
         unknown_inputs = {
@@ -93,7 +93,7 @@ class TestFlextCliValidationMixin:
         }
 
         result = obj.flext_cli_validate_inputs(unknown_inputs)
-        assert not result.success
+        assert not result.is_success
 
     @patch("flext_cli.core.helpers.FlextCliHelper.flext_cli_confirm")
     def test_flext_cli_require_confirmation(self, mock_confirm: MagicMock) -> None:
@@ -108,18 +108,18 @@ class TestFlextCliValidationMixin:
         # User confirms
         mock_confirm.return_value = FlextResult[None].ok(True)
         result = obj.flext_cli_require_confirmation("Test operation")
-        assert result.success
-        assert result.data is True
+        assert result.is_success
+        assert result.value is True
 
         # User cancels
         mock_confirm.return_value = FlextResult[None].ok(False)
         result = obj.flext_cli_require_confirmation("Test operation")
-        assert not result.success
+        assert not result.is_success
 
         # Confirmation fails
         mock_confirm.return_value = FlextResult[None].fail("Confirmation error")
         result = obj.flext_cli_require_confirmation("Test operation")
-        assert not result.success
+        assert not result.is_success
 
 
 class TestFlextCliInteractiveMixin:
@@ -245,15 +245,15 @@ class TestFlextCliResultMixin:
             return FlextResult[None].ok("result2")
 
         result = obj.flext_cli_chain_results(op1, op2)
-        assert result.success
-        assert result.data == ["result1", "result2"]
+        assert result.is_success
+        assert result.value == ["result1", "result2"]
 
         # Failed operation
         def failing_op() -> FlextResult[str]:
             return FlextResult[None].fail("Operation failed")
 
         result = obj.flext_cli_chain_results(op1, failing_op, op2)
-        assert not result.success
+        assert not result.is_success
 
         # Exception in operation
         def exception_op() -> Never:
@@ -261,7 +261,7 @@ class TestFlextCliResultMixin:
             raise ValueError(msg)
 
         result = obj.flext_cli_chain_results(op1, exception_op)
-        assert not result.success
+        assert not result.is_success
 
     def test_flext_cli_handle_result(self) -> None:
         """Test result handling method."""
@@ -337,7 +337,7 @@ class TestFlextCliConfigMixin:
 
         obj = TestClass()
         result = obj.flext_cli_load_config()
-        assert result.success
+        assert result.is_success
         assert obj.config == mock_config
 
         # Mock failed config loading
@@ -345,7 +345,7 @@ class TestFlextCliConfigMixin:
 
         obj = TestClass()
         result = obj.flext_cli_load_config()
-        assert not result.success
+        assert not result.is_success
 
 
 class TestFlextCliAdvancedMixin:
@@ -388,7 +388,7 @@ class TestFlextCliAdvancedMixin:
                 obj.do_work,
                 operation_name="test operation",
             )
-            assert result.success
+            assert result.is_success
 
         # Test with invalid inputs
         invalid_inputs = {"email": ("invalid-email", "email")}
@@ -398,7 +398,7 @@ class TestFlextCliAdvancedMixin:
             obj.do_work,
             operation_name="test operation",
         )
-        assert not result.success
+        assert not result.is_success
 
     def test_flext_cli_process_data_workflow(self) -> None:
         """Test data workflow processing method."""
@@ -423,8 +423,8 @@ class TestFlextCliAdvancedMixin:
             workflow_steps,
             show_progress=False,
         )
-        assert result.success
-        assert result.data == "initial -> step1 -> step2"
+        assert result.is_success
+        assert result.value == "initial -> step1 -> step2"
 
     def test_flext_cli_handle_file_operations(self) -> None:
         """Test file operations handling method."""
@@ -455,7 +455,7 @@ class TestFlextCliAdvancedMixin:
                 file_operations,
                 require_confirmation=False,
             )
-            assert result.success
+            assert result.is_success
 
 
 class TestAdvancedDecorators:
@@ -470,11 +470,11 @@ class TestAdvancedDecorators:
 
         # Valid email
         result = test_function(email="user@example.com")
-        assert result.success
+        assert result.is_success
 
         # Invalid email
         result = test_function(email="invalid-email")
-        assert not result.success
+        assert not result.is_success
 
     def test_flext_cli_handle_exceptions_decorator(self) -> None:
         """Test exception handling decorator."""
@@ -485,7 +485,7 @@ class TestAdvancedDecorators:
             raise ValueError(msg)
 
         result = test_function()
-        assert not result.success
+        assert not result.is_success
         assert "Test operation failed" in result.error
         assert "Test exception" in result.error
 
@@ -495,8 +495,8 @@ class TestAdvancedDecorators:
             return "Success"
 
         result = success_function()
-        assert result.success
-        assert result.data == "Success"
+        assert result.is_success
+        assert result.value == "Success"
 
     @patch("flext_cli.core.helpers.FlextCliHelper.flext_cli_confirm")
     def test_flext_cli_require_confirmation_decorator(
@@ -511,13 +511,13 @@ class TestAdvancedDecorators:
         # User confirms
         mock_confirm.return_value = FlextResult[None].ok(True)
         result = test_function()
-        assert result.success
+        assert result.is_success
 
         # User cancels
         mock_confirm.return_value = FlextResult[None].ok(False)
         result = test_function()
-        assert result.success
-        assert "cancelled" in result.data
+        assert result.is_success
+        assert "cancelled" in result.value
 
     @patch("time.sleep")
     def test_flext_cli_auto_retry_decorator(self, mock_sleep: MagicMock) -> None:
@@ -533,7 +533,7 @@ class TestAdvancedDecorators:
             return FlextResult[None].ok("Success after retries")
 
         result = flaky_function()
-        assert result.success
+        assert result.is_success
         assert call_count == 3
         assert mock_sleep.call_count == 2  # Should sleep between retries
 
@@ -547,7 +547,7 @@ class TestAdvancedDecorators:
             return FlextResult[None].fail("Permanent failure")
 
         result = always_fail()
-        assert not result.success
+        assert not result.is_success
         assert call_count == 2
 
     def test_flext_cli_with_progress_decorator(self) -> None:
@@ -558,8 +558,8 @@ class TestAdvancedDecorators:
             return FlextResult[None].ok("Processed")
 
         result = test_function()
-        assert result.success
-        assert result.data == "Processed"
+        assert result.is_success
+        assert result.value == "Processed"
 
     def test_flext_cli_zero_config_decorator(self) -> None:
         """Test zero-configuration decorator."""
@@ -574,7 +574,7 @@ class TestAdvancedDecorators:
 
         obj = TestClass()
         result = obj.test_method()
-        assert result.success
+        assert result.is_success
 
 
 class TestMixinAliases:
@@ -616,7 +616,7 @@ class TestMixinIntegration:
                 inputs = {"email": (email, "email"), "file": (file_path, "file")}
 
                 validation_result = self.flext_cli_validate_inputs(inputs)
-                if not validation_result.success:
+                if not validation_result.is_success:
                     return validation_result
 
                 # Confirm operation
@@ -645,8 +645,8 @@ class TestMixinIntegration:
 
             with patch.object(cmd, "flext_cli_confirm_operation", return_value=True):
                 result = cmd.execute("user@example.com", temp_file)
-                assert result.success
-                assert result.data == "Command completed"
+                assert result.is_success
+                assert result.value == "Command completed"
 
         finally:
             Path(temp_file).unlink(missing_ok=True)
@@ -664,7 +664,7 @@ class TestMixinIntegration:
                 inputs = {"email": ("invalid-email", "email")}
                 validation_result = self.flext_cli_validate_inputs(inputs)
 
-                if not validation_result.success:
+                if not validation_result.is_success:
                     self.flext_cli_print_error(
                         f"Validation failed: {validation_result.error}",
                     )
@@ -674,7 +674,7 @@ class TestMixinIntegration:
 
         cmd = ErrorTestCommand()
         result = cmd.execute_with_errors()
-        assert not result.success
+        assert not result.is_success
 
     def test_workflow_integration(self) -> None:
         """Test workflow processing integration."""
@@ -709,5 +709,5 @@ class TestMixinIntegration:
 
         cmd = WorkflowCommand()
         result = cmd.process_data("hello world")
-        assert result.success
-        assert result.data == "Processed: HELLO WORLD - Complete"
+        assert result.is_success
+        assert result.value == "Processed: HELLO WORLD - Complete"

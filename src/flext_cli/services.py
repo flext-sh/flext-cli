@@ -2,17 +2,30 @@
 
 import uuid
 from collections.abc import Callable
-from typing import Protocol
+from typing import Protocol, TypedDict
 
 from flext_core import FlextResult, get_logger
 
-from flext_cli.context import CLIContext, CLIExecutionContext
+from flext_cli.context import FlextCliContext, FlextCliExecutionContext
+
+
+class SessionData(TypedDict, total=False):
+    """Type definition for CLI session data."""
+
+    id: str
+    user_id: str | None
+    created_at: object | None  # Could be datetime
+    active: bool
+    commands: list[object]  # List of command objects
+    commands_count: int  # Derived field
 
 
 class CLIServiceProtocol(Protocol):
     """Protocol for CLI services."""
 
-    def execute(self, context: CLIContext, **kwargs: object) -> FlextResult[object]:
+    def execute(
+        self, context: FlextCliContext, **kwargs: object
+    ) -> FlextResult[object]:
         """Execute service operation."""
         ...
 
@@ -23,7 +36,7 @@ class CLICommandServiceProtocol(Protocol):
     def execute_command(
         self,
         command_name: str,
-        context: CLIExecutionContext,
+        context: FlextCliExecutionContext,
         **kwargs: object,
     ) -> FlextResult[object]:
         """Execute a CLI command."""
@@ -37,12 +50,12 @@ class CLISessionServiceProtocol(Protocol):
         """Create a new CLI session."""
         ...
 
-    def get_session(self, session_id: str) -> FlextResult[dict[str, object]]:
+    def get_session(self, session_id: str) -> FlextResult[SessionData]:
         """Get session information."""
         ...
 
 
-class CLICommandService:
+class FlextCliCommandService:
     """Basic CLI command service implementation."""
 
     def __init__(self) -> None:
@@ -53,8 +66,8 @@ class CLICommandService:
     def register_command(
         self,
         name: str,
-        handler: Callable[[CLIExecutionContext], object]
-        | Callable[[CLIExecutionContext], FlextResult[object]],
+        handler: Callable[[FlextCliExecutionContext], object]
+        | Callable[[FlextCliExecutionContext], FlextResult[object]],
     ) -> None:
         """Register a command handler."""
         self.commands[name] = handler
@@ -62,7 +75,7 @@ class CLICommandService:
     def execute_command(
         self,
         command_name: str,
-        context: CLIExecutionContext,
+        context: FlextCliExecutionContext,
         **kwargs: object,
     ) -> FlextResult[object]:
         """Execute a CLI command."""
@@ -88,11 +101,11 @@ class CLICommandService:
         return list(self.commands.keys())
 
 
-class CLISessionService:
+class FlextCliSessionService:
     """Basic CLI session service implementation."""
 
     def __init__(self) -> None:
-        self.sessions: dict[str, dict[str, object]] = {}
+        self.sessions: dict[str, SessionData] = {}
 
     def create_session(self, user_id: str | None = None) -> FlextResult[str]:
         """Create a new CLI session."""
@@ -105,18 +118,16 @@ class CLISessionService:
         }
         return FlextResult[str].ok(session_id)
 
-    def get_session(self, session_id: str) -> FlextResult[dict[str, object]]:
+    def get_session(self, session_id: str) -> FlextResult[SessionData]:
         """Get session information."""
         if session_id not in self.sessions:
-            return FlextResult[dict[str, object]].fail(
-                f"Session '{session_id}' not found"
-            )
+            return FlextResult[SessionData].fail(f"Session '{session_id}' not found")
         # Enrich with commands_count to match tests
         data = dict(self.sessions[session_id])
         commands = data.get("commands", [])
         if isinstance(commands, list):
             data["commands_count"] = len(commands)
-        return FlextResult[dict[str, object]].ok(data)
+        return FlextResult[SessionData].ok(data)  # type: ignore[arg-type]  # Dict compatible with SessionData
 
     def end_session(self, session_id: str) -> FlextResult[None]:
         """End a CLI session."""
@@ -127,5 +138,5 @@ class CLISessionService:
 
 
 # Create default service instances
-default_command_service: CLICommandService = CLICommandService()
-default_session_service: CLISessionService = CLISessionService()
+default_command_service: FlextCliCommandService = FlextCliCommandService()
+default_session_service: FlextCliSessionService = FlextCliSessionService()

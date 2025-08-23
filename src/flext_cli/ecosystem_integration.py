@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import ClassVar
+from typing import ClassVar, override
 
 from flext_core import FlextResult
 
@@ -39,6 +39,7 @@ class FlextCliGenericCommand(FlextCliEntity):
     config_data: ClassVar[dict[str, object]] = {}
     environment: str = "default"
 
+    @override
     def execute(self) -> FlextResult[object]:
         """Execute generic command with automatic error handling."""
         # Generic implementation - projects override this
@@ -102,14 +103,14 @@ class FlextCliConfigFactory:
 
         """
         # Set generic defaults that any project can use
-        generic_defaults = {
+        generic_defaults: dict[str, object] = {
             "project_name": project_name,
             "environment": "development",
             "debug": False,
         }
 
         # Merge with project-specific overrides
-        final_config = {**generic_defaults, **overrides}
+        final_config: dict[str, object] = {**generic_defaults, **overrides}
 
         return create_flext_cli_config(**final_config)
 
@@ -157,7 +158,7 @@ def setup_flext_cli_ecosystem(
                 **config_overrides,
             )
 
-            if not config_result.success:
+            if not config_result.is_success:
                 return FlextResult[dict[str, object]].fail(
                     f"Config creation failed: {config_result.error}",
                 )
@@ -166,7 +167,7 @@ def setup_flext_cli_ecosystem(
 
         # Setup CLI with project-specific configuration
         setup_result = setup_flext_cli(config)
-        if not setup_result.success:
+        if not setup_result.is_success:
             return FlextResult[dict[str, object]].fail(
                 f"CLI setup failed: {setup_result.error}"
             )
@@ -223,7 +224,7 @@ def {old_setup_function}_modern(**config_overrides):
 
 # Usage in {project_name} project:
 # result = {old_setup_function}_modern(debug=True, environment="prod")
-# if result.success:
+# if result.is_success:
 #     print("Setup completed successfully!")
 #     context = result.value
 # else:

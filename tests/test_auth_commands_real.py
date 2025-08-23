@@ -56,33 +56,33 @@ class TestAuthCommandsReal:
 
         # Clear any existing tokens first
         clear_result = clear_auth_tokens()
-        assert clear_result.success, (
-            f"Failed to clear existing tokens: {clear_result.error if clear_result.is_failure else 'Unknown error'}"
+        assert clear_result.is_success, (
+            f"Failed to clear existing tokens: {clear_result.error if not clear_result.is_success else 'Unknown error'}"
         )
 
         # Test REAL save operation with actual API
         save_result = save_auth_token(test_token)
-        assert save_result.success, (
-            f"Failed to save token: {save_result.error if save_result.is_failure else 'Unknown error'}"
+        assert save_result.is_success, (
+            f"Failed to save token: {save_result.error if not save_result.is_success else 'Unknown error'}"
         )
 
         # Test REAL load operation with actual API
-        loaded_token = get_auth_token()
-        assert loaded_token is not None, "Failed to load token: got None"
-        assert loaded_token == test_token, (
-            f"Token mismatch: expected '{test_token}', got '{loaded_token}'"
+        loaded_token_result = get_auth_token()
+        assert loaded_token_result.is_success, "Failed to load token: operation failed"
+        assert loaded_token_result.value == test_token, (
+            f"Token mismatch: expected '{test_token}', got '{loaded_token_result.value}'"
         )
 
         # Test REAL clear operation with actual API
         clear_result = clear_auth_tokens()
-        assert clear_result.success, (
-            f"Failed to clear token: {clear_result.error if clear_result.is_failure else 'Unknown error'}"
+        assert clear_result.is_success, (
+            f"Failed to clear token: {clear_result.error if not clear_result.is_success else 'Unknown error'}"
         )
 
         # Verify token was ACTUALLY cleared
-        cleared_token = get_auth_token()
-        assert cleared_token is None, (
-            f"Token should be None after clear, got '{cleared_token}'"
+        cleared_token_result = get_auth_token()
+        assert not cleared_token_result.is_success, (
+            f"Token should be cleared after clear operation: {cleared_token_result}"
         )
 
     def test_auth_status_command_real_execution(self) -> None:
@@ -124,12 +124,13 @@ class TestAuthCommandsReal:
         assert isinstance(save_result, FlextResult), (
             "save_auth_token should return FlextResult"
         )
-        assert save_result.success, f"Save should succeed: {save_result.error}"
+        assert save_result.is_success, f"Save should succeed: {save_result.error}"
 
         # Test successful load
-        loaded_token = get_auth_token()
-        assert loaded_token == test_token, (
-            f"Token should match: expected '{test_token}', got '{loaded_token}'"
+        loaded_token_result = get_auth_token()
+        assert loaded_token_result.is_success, "Token load should succeed"
+        assert loaded_token_result.value == test_token, (
+            f"Token should match: expected '{test_token}', got '{loaded_token_result.value}'"
         )
 
         # Test successful clear returns FlextResult
@@ -137,7 +138,7 @@ class TestAuthCommandsReal:
         assert isinstance(clear_result, FlextResult), (
             "clear_auth_tokens should return FlextResult"
         )
-        assert clear_result.success, f"Clear should succeed: {clear_result.error}"
+        assert clear_result.is_success, f"Clear should succeed: {clear_result.error}"
 
     def test_auth_commands_help_real(self) -> None:
         """Test auth command help - REAL execution."""
@@ -162,13 +163,13 @@ class TestAuthCommandsReal:
 
         # Save token using real API
         save_result = save_auth_token(test_token)
-        assert save_result.success, f"Failed to save token: {save_result.error}"
+        assert save_result.is_success, f"Failed to save token: {save_result.error}"
 
         # Verify we can load the token (tests file readability)
-        loaded_token = get_auth_token()
-        assert loaded_token is not None, "Should be able to load saved token"
-        assert loaded_token == test_token, (
-            f"Content mismatch: expected '{test_token}', got '{loaded_token}'"
+        loaded_token_result = get_auth_token()
+        assert loaded_token_result.is_success, "Should be able to load saved token"
+        assert loaded_token_result.value == test_token, (
+            f"Content mismatch: expected '{test_token}', got '{loaded_token_result.value}'"
         )
 
         # Clean up
@@ -176,34 +177,33 @@ class TestAuthCommandsReal:
 
     def test_auth_token_edge_cases_real(self) -> None:
         """Test REAL edge cases for auth token operations using actual API."""
-        # Test empty token
+        # Test empty token (should fail validation)
         clear_auth_tokens()
         empty_result = save_auth_token("")
-        assert empty_result.success, "Should be able to save empty token"
-
-        loaded_empty = get_auth_token()
-        assert loaded_empty is not None, "Empty token should be loadable (not None)"
-        assert loaded_empty == "", "Empty token should load as empty string"
+        assert not empty_result.is_success, "Empty token should be rejected (validation working correctly)"
+        assert "cannot be empty" in empty_result.error.lower(), "Should have meaningful error message"
 
         # Test token with special characters
         special_token = "token_with_!@#$%^&*()_+-={}[]|\\:;\"'<>,.?/"
         special_result = save_auth_token(special_token)
-        assert special_result.success, (
+        assert special_result.is_success, (
             "Should be able to save token with special characters"
         )
 
-        loaded_special = get_auth_token()
-        assert loaded_special == special_token, (
+        loaded_special_result = get_auth_token()
+        assert loaded_special_result.is_success, "Special token load should succeed"
+        assert loaded_special_result.value == special_token, (
             "Special character token should load correctly"
         )
 
         # Test very long token
         long_token = "x" * 1000  # 1000 character token
         long_result = save_auth_token(long_token)
-        assert long_result.success, "Should be able to save very long token"
+        assert long_result.is_success, "Should be able to save very long token"
 
-        loaded_long = get_auth_token()
-        assert loaded_long == long_token, "Long token should load correctly"
+        loaded_long_result = get_auth_token()
+        assert loaded_long_result.is_success, "Long token load should succeed"
+        assert loaded_long_result.value == long_token, "Long token should load correctly"
 
         # Clean up
         clear_auth_tokens()
@@ -215,12 +215,13 @@ class TestAuthCommandsReal:
 
         for token in tokens:
             save_result = save_auth_token(token)
-            assert save_result.success, f"Failed to save token '{token}'"
+            assert save_result.is_success, f"Failed to save token '{token}'"
 
             # Verify ACTUAL token content after each save
-            loaded_token = get_auth_token()
-            assert loaded_token == token, (
-                f"Token mismatch after save: expected '{token}', got '{loaded_token}'"
+            loaded_token_result = get_auth_token()
+            assert loaded_token_result.is_success, f"Failed to load token '{token}'"
+            assert loaded_token_result.value == token, (
+                f"Token mismatch after save: expected '{token}', got '{loaded_token_result.value}'"
             )
 
         # Clean up
@@ -276,19 +277,20 @@ class TestAuthFunctionalityReal:
         assert isinstance(save_result, FlextResult), (
             "save_auth_token should return FlextResult"
         )
-        assert save_result.success, "Save operation should succeed"
+        assert save_result.is_success, "Save operation should succeed"
         assert save_result.error is None, "Successful result should have no error"
 
-        # Test that get_auth_token works (returns string, not FlextResult)
-        loaded_token = get_auth_token()
-        assert loaded_token == test_token, "Should load correct token"
+        # Test that get_auth_token works (returns FlextResult[str])
+        loaded_token_result = get_auth_token()
+        assert loaded_token_result.is_success, "Load operation should succeed"
+        assert loaded_token_result.value == test_token, "Should load correct token"
 
         # Test REAL FlextResult success case for clear
         clear_result = clear_auth_tokens()
         assert isinstance(clear_result, FlextResult), (
             "clear_auth_tokens should return FlextResult"
         )
-        assert clear_result.success, "Clear operation should succeed"
+        assert clear_result.is_success, "Clear operation should succeed"
         assert clear_result.error is None, "Successful result should have no error"
 
     def test_auth_error_propagation_real(self) -> None:
@@ -297,18 +299,20 @@ class TestAuthFunctionalityReal:
         clear_auth_tokens()
 
         # Test loading when no token exists
-        no_token = get_auth_token()
-        assert no_token is None, "Should return None when no token exists"
+        no_token_result = get_auth_token()
+        assert not no_token_result.is_success, "Should fail when no token exists"
+        assert "not found" in no_token_result.error.lower(), "Should have meaningful error message"
 
         # Test saving and loading work correctly
         test_token = "error_test_token"
         save_result = save_auth_token(test_token)
         assert isinstance(save_result, FlextResult), "Should return FlextResult"
-        assert save_result.success, "Should succeed for valid operation"
+        assert save_result.is_success, "Should succeed for valid operation"
 
         # Verify token was saved
-        loaded_token = get_auth_token()
-        assert loaded_token == test_token, "Should load saved token correctly"
+        loaded_token_result = get_auth_token()
+        assert loaded_token_result.is_success, "Should load saved token correctly"
+        assert loaded_token_result.value == test_token, "Should load saved token correctly"
 
         # Clean up
         clear_auth_tokens()
@@ -338,16 +342,17 @@ class TestAuthFunctionalityReal:
 
         # Step 1: Clear any existing tokens
         clear_result = clear_auth_tokens()
-        assert clear_result.success, f"Workflow step 1 failed: {clear_result.error}"
+        assert clear_result.is_success, f"Workflow step 1 failed: {clear_result.error}"
 
         # Step 2: Save token (REAL operation)
         save_result = save_auth_token(test_token)
-        assert save_result.success, f"Workflow step 2 failed: {save_result.error}"
+        assert save_result.is_success, f"Workflow step 2 failed: {save_result.error}"
 
         # Step 3: Load token (REAL operation)
-        loaded_token = get_auth_token()
-        assert loaded_token == test_token, (
-            f"Workflow step 3 failed: expected '{test_token}', got '{loaded_token}'"
+        loaded_token_result = get_auth_token()
+        assert loaded_token_result.is_success, "Workflow step 3 failed: token load should succeed"
+        assert loaded_token_result.value == test_token, (
+            f"Workflow step 3 failed: expected '{test_token}', got '{loaded_token_result.value}'"
         )
 
         # Step 4: Check status command works (REAL execution)
@@ -359,10 +364,10 @@ class TestAuthFunctionalityReal:
 
         # Step 5: Clear token (REAL operation)
         clear_result = clear_auth_tokens()
-        assert clear_result.success, f"Workflow step 5 failed: {clear_result.error}"
+        assert clear_result.is_success, f"Workflow step 5 failed: {clear_result.error}"
 
         # Step 6: Verify token cleared (REAL operation)
-        cleared_token = get_auth_token()
-        assert cleared_token is None, (
-            "Workflow step 6 failed: token should be None after clear"
+        cleared_token_result = get_auth_token()
+        assert not cleared_token_result.is_success, (
+            "Workflow step 6 failed: token should be cleared after clear operation"
         )

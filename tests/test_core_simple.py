@@ -212,7 +212,7 @@ class TestFlextCliServiceReal:
             "test", ["--help"], test_context
         )
         assert isinstance(command_result, FlextResult)
-        assert command_result.success
+        assert command_result.is_success
 
     def test_real_cleanup_operations(self) -> None:
         """Test cleanup operations with real resources."""
@@ -304,11 +304,11 @@ class TestFlextCliServiceReal:
 
         # Test real result creation and handling
         test_result = FlextResult[str].ok("test success")
-        assert test_result.success
+        assert test_result.is_success
         assert test_result.value == "test success"
 
         error_result = FlextResult[str].fail("test error")
-        assert not error_result.success
+        assert not error_result.is_success
         assert error_result.error == "test error"
 
         # Service should work with FlextResult patterns

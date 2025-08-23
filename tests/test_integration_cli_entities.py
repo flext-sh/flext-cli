@@ -22,17 +22,17 @@ from rich.console import Console
 
 from flext_cli import (
     CLICommand,
-    CLICommandService,
-    CLIConfig,
-    CLIEntityFactory,
-    CLIExecutionContext,
-    CLIExecutionContext as CLIContext,
-    CLIPlugin,
-    CLISession,
-    CLISessionService,
-    CLISettings,
     CommandStatus,
     CommandType,
+    FlextCliCommandService,
+    FlextCliConfig,
+    FlextCliEntityFactory,
+    FlextCliExecutionContext,
+    FlextCliExecutionContext as FlextCliContext,
+    FlextCliPlugin,
+    FlextCliSession,
+    FlextCliSessionService,
+    FlextCliSettings,
     PluginStatus,
     SessionStatus,
     cli,
@@ -62,16 +62,16 @@ class TestCLICommandEntityIntegration:
 
         # Test command lifecycle - properly unwrap FlextResult
         start_result = command.start_execution()
-        assert start_result.success, f"Start execution failed: {start_result.error}"
-        command = start_result.data
+        assert start_result.is_success, f"Start execution failed: {start_result.error}"
+        command = start_result.value
 
         assert command.command_status == CommandStatus.RUNNING
 
         complete_result = command.complete_execution(exit_code=0, stdout=result.output)
-        assert complete_result.success, (
+        assert complete_result.is_success, (
             f"Complete execution failed: {complete_result.error}"
         )
-        command = complete_result.data
+        command = complete_result.value
 
         assert command.command_status == CommandStatus.COMPLETED
         assert command.successful
@@ -114,17 +114,17 @@ class TestCLICommandEntityIntegration:
         )
 
         start_result = command.start_execution()
-        assert start_result.success, f"Start execution failed: {start_result.error}"
-        command = start_result.data
+        assert start_result.is_success, f"Start execution failed: {start_result.error}"
+        command = start_result.value
 
         complete_result = command.complete_execution(
             exit_code=result.exit_code,
             stderr="Command not found",
         )
-        assert complete_result.success, (
+        assert complete_result.is_success, (
             f"Complete execution failed: {complete_result.error}"
         )
-        command = complete_result.data
+        command = complete_result.value
 
         assert command.command_status == CommandStatus.FAILED
         assert not command.successful
@@ -168,27 +168,27 @@ class TestCLICommandEntityIntegration:
             )
 
             start_result = command.start_execution()
-            assert start_result.success
-            command = start_result.unwrap()
+            assert start_result.is_success
+            command = start_result.value
 
             complete_result = command.complete_execution(
                 exit_code=0,
                 stdout=result.output,
             )
-            assert complete_result.success
-            command = complete_result.unwrap()
+            assert complete_result.is_success
+            command = complete_result.value
 
             assert command.successful
             assert fmt in command.command_line
 
 
 class TestCLISessionEntityIntegration:
-    """Test CLI session integration with CLISession entities."""
+    """Test CLI session integration with FlextCliSession entities."""
 
     def test_session_tracks_multiple_commands(self) -> None:
         """Test session tracks multiple CLI commands."""
         runner = CliRunner()
-        session = CLISession(id=str(uuid.uuid4()), session_id="test-session-multi")
+        session = FlextCliSession(id=str(uuid.uuid4()), session_id="test-session-multi")
 
         # Execute multiple commands
         commands = [
@@ -203,18 +203,18 @@ class TestCLISessionEntityIntegration:
             assert result.exit_code == expected_exit_code
 
             # Create command entity with factory
-            command_result = CLIEntityFactory.create_command(
+            command_result = FlextCliEntityFactory.create_command(
                 name="-".join(cmd_args),
                 command_line=f"flext {' '.join(cmd_args)}",
                 command_type=CommandType.CLI,
             )
-            assert command_result.success
-            command = command_result.unwrap()
+            assert command_result.is_success
+            command = command_result.value
 
             # Add to session
             session_result = session.add_command(command.id)
-            assert session_result.success
-            session = session_result.unwrap()
+            assert session_result.is_success
+            session = session_result.value
 
         # Verify session state
         assert len(session.command_history) == len(commands)
@@ -223,7 +223,9 @@ class TestCLISessionEntityIntegration:
     def test_session_with_command_failures(self) -> None:
         """Test session handles command failures."""
         runner = CliRunner()
-        session = CLISession(id=str(uuid.uuid4()), session_id="test-session-failures")
+        session = FlextCliSession(
+            id=str(uuid.uuid4()), session_id="test-session-failures"
+        )
 
         # Mix of successful and failed commands
         test_commands = [
@@ -242,36 +244,36 @@ class TestCLISessionEntityIntegration:
                 assert result.exit_code != 0
 
             # Create command entity with factory
-            command_result = CLIEntityFactory.create_command(
+            command_result = FlextCliEntityFactory.create_command(
                 name="-".join(cmd_args),
                 command_line=f"flext {' '.join(cmd_args)}",
                 command_type=CommandType.CLI,
             )
-            assert command_result.success
-            command = command_result.unwrap()
+            assert command_result.is_success
+            command = command_result.value
 
             start_result = command.start_execution()
-            assert start_result.success
-            command = start_result.unwrap()
+            assert start_result.is_success
+            command = start_result.value
 
             complete_result = command.complete_execution(
                 exit_code=result.exit_code,
                 stdout=result.output if should_succeed else None,
                 stderr=result.output if not should_succeed else None,
             )
-            assert complete_result.success
-            command = complete_result.unwrap()
+            assert complete_result.is_success
+            command = complete_result.value
 
             session_result = session.add_command(command.id)
-            assert session_result.success
-            session = session_result.unwrap()
+            assert session_result.is_success
+            session = session_result.value
 
         # Session should track all commands
         assert len(session.command_history) == len(test_commands)
 
     def test_session_lifecycle_with_cli(self) -> None:
         """Test complete session lifecycle with CLI commands."""
-        session = CLISession(id=str(uuid.uuid4()), session_id="test-lifecycle")
+        session = FlextCliSession(id=str(uuid.uuid4()), session_id="test-lifecycle")
         runner = CliRunner()
 
         # Session should start active
@@ -288,29 +290,31 @@ class TestCLISessionEntityIntegration:
             command_type=CommandType.CLI,
         )
         session_result = session.add_command(command.id)
-        assert session_result.success
-        session = session_result.unwrap()
+        assert session_result.is_success
+        session = session_result.value
 
         # End session
         end_result = session.end_session()
-        assert end_result.success
-        session = end_result.unwrap()
+        assert end_result.is_success
+        session = end_result.value
         assert session.session_status == SessionStatus.COMPLETED
         assert session.ended_at is not None
 
     def test_session_context_integration(self) -> None:
         """Test session integrates with CLI context."""
-        session = CLISession(id=str(uuid.uuid4()), session_id="test-context")
+        session = FlextCliSession(id=str(uuid.uuid4()), session_id="test-context")
 
         # Create CLI context with proper components (SOLID: Dependency Injection)
         get_config()
-        config = CLIConfig(
+        config = FlextCliConfig(
             profile="test",
             output_format="json",
             debug=True,
         )
 
-        context = CLIContext(config=config, settings=CLISettings(), console=Console())
+        context = FlextCliContext(
+            config=config, settings=FlextCliSettings(), console=Console()
+        )
 
         # Session should be able to track context
         assert session.session_id == "test-context"
@@ -319,11 +323,11 @@ class TestCLISessionEntityIntegration:
 
 
 class TestCLIPluginEntityIntegration:
-    """Test CLI plugin integration with CLIPlugin entities."""
+    """Test CLI plugin integration with FlextCliPlugin entities."""
 
     def test_plugin_lifecycle_with_cli(self) -> None:
         """Test plugin lifecycle with CLI integration."""
-        plugin = CLIPlugin(
+        plugin = FlextCliPlugin(
             id=str(uuid.uuid4()),
             name="test-plugin",
             entry_point="test.main",
@@ -336,8 +340,8 @@ class TestCLIPluginEntityIntegration:
 
         # Activate plugin
         activated_result = plugin.activate()
-        assert activated_result.success
-        plugin = activated_result.unwrap()
+        assert activated_result.is_success
+        plugin = activated_result.value
         assert plugin.plugin_status == PluginStatus.ACTIVE
 
         # Plugin should be able to provide commands
@@ -347,13 +351,13 @@ class TestCLIPluginEntityIntegration:
 
         # Deactivate plugin
         deactivated_result = plugin.deactivate()
-        assert deactivated_result.success
-        plugin = deactivated_result.unwrap()
+        assert deactivated_result.is_success
+        plugin = deactivated_result.value
         assert plugin.plugin_status == PluginStatus.INACTIVE
 
     def test_plugin_command_integration(self) -> None:
         """Test plugin commands integrate with CLI."""
-        plugin = CLIPlugin(
+        plugin = FlextCliPlugin(
             id=str(uuid.uuid4()),
             name="config-plugin",
             entry_point="flext_cli.commands.config",
@@ -370,7 +374,7 @@ class TestCLIPluginEntityIntegration:
 
     def test_plugin_with_dependencies(self) -> None:
         """Test plugin with dependencies."""
-        plugin = CLIPlugin(
+        plugin = FlextCliPlugin(
             id=str(uuid.uuid4()),
             name="advanced-plugin",
             entry_point="advanced.main",
@@ -385,10 +389,10 @@ class TestCLIPluginEntityIntegration:
 
 
 class TestCLIConfigEntityIntegration:
-    """Test CLI configuration integration with CLIConfig entities."""
+    """Test CLI configuration integration with FlextCliConfig entities."""
 
     def test_config_entity_with_cli_options(self) -> None:
-        """Test CLIConfig entity reflects CLI options."""
+        """Test FlextCliConfig entity reflects CLI options."""
         runner = CliRunner()
 
         # Test different configuration scenarios
@@ -415,7 +419,7 @@ class TestCLIConfigEntityIntegration:
             expected: dict[str, object] = scenario["expected"]
 
             # Create config entity that reflects the CLI options
-            config = CLIConfig(
+            config = FlextCliConfig(
                 profile=str(expected.get("profile", "default")),
                 debug=bool(expected.get("debug")),
                 output_format=str(expected.get("output_format", "table")),
@@ -445,7 +449,7 @@ class TestCLIConfigEntityIntegration:
             assert result.exit_code == 0
 
             # Create config for this format
-            config = CLIConfig(output_format=fmt)
+            config = FlextCliConfig(output_format=fmt)
             assert config.output_format == fmt
 
     def test_config_with_environment_variables(self) -> None:
@@ -458,7 +462,7 @@ class TestCLIConfigEntityIntegration:
 
         with patch.dict(os.environ, test_env):
             # Environment variables should influence config
-            config = CLIConfig(
+            config = FlextCliConfig(
                 profile=os.getenv("FLEXT_CLI_PROFILE", "default"),
                 debug=os.getenv("FLEXT_CLI_DEBUG", "false").lower() == "true",
                 output_format=os.getenv("FLEXT_CLI_OUTPUT_FORMAT", "table"),
@@ -473,8 +477,8 @@ class TestCLIServiceIntegration:
     """Test CLI services integration with entities."""
 
     def test_command_service_integration(self) -> None:
-        """Test CLICommandService integrates with CLI."""
-        service = CLICommandService()
+        """Test FlextCliCommandService integrates with CLI."""
+        service = FlextCliCommandService()
         runner = CliRunner()
 
         # Execute a command via CLI
@@ -494,12 +498,12 @@ class TestCLIServiceIntegration:
         assert command.name == "config-show"
 
     def test_session_service_integration(self) -> None:
-        """Test CLISessionService integrates with CLI."""
-        service = CLISessionService()
+        """Test FlextCliSessionService integrates with CLI."""
+        service = FlextCliSessionService()
         runner = CliRunner()
 
         # Create a session for CLI operations
-        session = CLISession(id=str(uuid.uuid4()), session_id="service-test")
+        session = FlextCliSession(id=str(uuid.uuid4()), session_id="service-test")
 
         # Execute commands and track in session
         commands = [
@@ -518,8 +522,8 @@ class TestCLIServiceIntegration:
                 command_type=CommandType.CLI,
             )
             session_result = session.add_command(command.id)
-            assert session_result.success
-            session = session_result.unwrap()
+            assert session_result.is_success
+            session = session_result.value
 
         # Service should handle session operations
         assert service is not None
@@ -530,15 +534,17 @@ class TestCLIContextIntegration:
     """Test CLI context integration with entities."""
 
     def test_cli_context_with_commands(self) -> None:
-        """Test CLIContext integrates with command execution."""
+        """Test FlextCliContext integrates with command execution."""
         # Create proper CLI context (SOLID: Dependency Injection)
-        config = CLIConfig(
+        config = FlextCliConfig(
             profile="integration-test",
             output_format="json",
             debug=True,
         )
 
-        context = CLIContext(config=config, settings=CLISettings(), console=Console())
+        context = FlextCliContext(
+            config=config, settings=FlextCliSettings(), console=Console()
+        )
 
         runner = CliRunner()
 
@@ -558,8 +564,8 @@ class TestCLIContextIntegration:
         assert result.exit_code == 0
 
     def test_execution_context_with_entities(self) -> None:
-        """Test CLIExecutionContext with command entities."""
-        execution_context = CLIExecutionContext(
+        """Test FlextCliExecutionContext with command entities."""
+        execution_context = FlextCliExecutionContext(
             command_name="config-show",
             user_id="test-user",
             session_id="test-session",
@@ -573,13 +579,13 @@ class TestCLIContextIntegration:
             command_type=CommandType.CLI,
         )
 
-        session = CLISession(
+        session = FlextCliSession(
             id=str(uuid.uuid4()),
             session_id=execution_context.session_id or "test-session",
         )
         session_result = session.add_command(command.id)
-        assert session_result.success
-        session = session_result.unwrap()
+        assert session_result.is_success
+        session = session_result.value
 
         # Context should link entities
         assert execution_context.command_name == command.name
@@ -590,15 +596,15 @@ class TestCLIContextIntegration:
         """Test context with file-based operations."""
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create proper CLI context (SOLID: Dependency Injection)
-            config = CLIConfig(
+            config = FlextCliConfig(
                 profile="file-test",
                 output_format="yaml",
                 debug=False,
             )
 
-            context = CLIContext(
+            context = FlextCliContext(
                 config=config,
-                settings=CLISettings(),
+                settings=FlextCliSettings(),
                 console=Console(),
             )
 
@@ -641,11 +647,13 @@ class TestIntegrationErrorHandling:
         # Test invalid session creation - Pydantic validation (has min_length=1)
 
         with pytest.raises(ValidationError):
-            CLISession(id=str(uuid.uuid4()), session_id="")  # Invalid - empty string
+            FlextCliSession(
+                id=str(uuid.uuid4()), session_id=""
+            )  # Invalid - empty string
 
         # Test invalid plugin creation - Pydantic validation (has min_length=1)
         with pytest.raises(ValidationError):
-            CLIPlugin(
+            FlextCliPlugin(
                 id=str(uuid.uuid4()),
                 name="",  # Invalid - empty string
                 entry_point="test.main",
@@ -669,15 +677,15 @@ class TestIntegrationErrorHandling:
         )
 
         start_result = command.start_execution()
-        assert start_result.success
-        command = start_result.unwrap()
+        assert start_result.is_success
+        command = start_result.value
 
         complete_result = command.complete_execution(
             exit_code=result.exit_code,
             stderr=result.output,
         )
-        assert complete_result.success
-        command = complete_result.unwrap()
+        assert complete_result.is_success
+        command = complete_result.value
 
         assert command.command_status == CommandStatus.FAILED
         assert not command.successful
@@ -698,16 +706,16 @@ class TestIntegrationErrorHandling:
 
         # Start execution
         start_result = command.start_execution()
-        assert start_result.success
-        command = start_result.unwrap()
+        assert start_result.is_success
+        command = start_result.value
         assert command.command_status == CommandStatus.RUNNING
         assert command.started_at is not None
         assert command.finished_at is None
 
         # Complete execution
         complete_result = command.complete_execution(exit_code=0, stdout="test")
-        assert complete_result.success
-        command = complete_result.unwrap()
+        assert complete_result.is_success
+        command = complete_result.value
         assert command.command_status == CommandStatus.COMPLETED
         assert command.finished_at is not None
         assert command.successful
@@ -719,7 +727,7 @@ class TestRealWorldIntegrationScenarios:
     def test_development_session_scenario(self) -> None:
         """Test complete development session scenario."""
         # Developer starts a session
-        session = CLISession(id=str(uuid.uuid4()), session_id="dev-session-001")
+        session = FlextCliSession(id=str(uuid.uuid4()), session_id="dev-session-001")
         runner = CliRunner()
 
         # Developer workflow
@@ -742,33 +750,33 @@ class TestRealWorldIntegrationScenarios:
             )
 
             start_result = command.start_execution()
-            assert start_result.success
-            command = start_result.unwrap()
+            assert start_result.is_success
+            command = start_result.value
 
             complete_result = command.complete_execution(
                 exit_code=expected_exit_code,
                 stdout=result.output,
             )
-            assert complete_result.success
-            command = complete_result.unwrap()
+            assert complete_result.is_success
+            command = complete_result.value
 
             session_result = session.add_command(command.id)
-            assert session_result.success
-            session = session_result.unwrap()
+            assert session_result.is_success
+            session = session_result.value
 
         # Session should track all developer commands
         assert len(session.command_history) == len(dev_commands)
 
         # End development session
         end_result = session.end_session()
-        assert end_result.success
-        session = end_result.unwrap()
+        assert end_result.is_success
+        session = end_result.value
         assert session.session_status == SessionStatus.COMPLETED
 
     def test_production_monitoring_scenario(self) -> None:
         """Test production monitoring scenario."""
         # Ops engineer monitoring session
-        session = CLISession(id=str(uuid.uuid4()), session_id="ops-monitoring-001")
+        session = FlextCliSession(id=str(uuid.uuid4()), session_id="ops-monitoring-001")
         runner = CliRunner()
 
         # Monitoring commands (all in JSON for automation)
@@ -799,29 +807,29 @@ class TestRealWorldIntegrationScenarios:
             )
 
             start_result = command.start_execution()
-            assert start_result.success
-            command = start_result.unwrap()
+            assert start_result.is_success
+            command = start_result.value
 
             complete_result = command.complete_execution(
                 exit_code=expected_exit_code,
                 stdout=result.output,
             )
-            assert complete_result.success
-            command = complete_result.unwrap()
+            assert complete_result.is_success
+            command = complete_result.value
 
             session_result = session.add_command(command.id)
-            assert session_result.success
-            session = session_result.unwrap()
+            assert session_result.is_success
+            session = session_result.value
 
         assert len(session.command_history) == len(monitoring_commands)
         end_result = session.end_session()
-        assert end_result.success
-        session = end_result.unwrap()
+        assert end_result.is_success
+        session = end_result.value
 
     def test_troubleshooting_scenario(self) -> None:
         """Test troubleshooting scenario."""
         # Support engineer troubleshooting session
-        session = CLISession(id=str(uuid.uuid4()), session_id="troubleshoot-001")
+        session = FlextCliSession(id=str(uuid.uuid4()), session_id="troubleshoot-001")
         runner = CliRunner()
 
         # Troubleshooting workflow
@@ -848,22 +856,22 @@ class TestRealWorldIntegrationScenarios:
             )
 
             start_result = command.start_execution()
-            assert start_result.success
-            command = start_result.unwrap()
+            assert start_result.is_success
+            command = start_result.value
 
             complete_result = command.complete_execution(
                 exit_code=expected_exit_code,
                 stdout=result.output,
             )
-            assert complete_result.success
-            command = complete_result.unwrap()
+            assert complete_result.is_success
+            command = complete_result.value
 
             session_result = session.add_command(command.id)
-            assert session_result.success
-            session = session_result.unwrap()
+            assert session_result.is_success
+            session = session_result.value
 
         # All troubleshooting commands should be tracked
         assert len(session.command_history) == len(troubleshoot_commands)
         end_result = session.end_session()
-        assert end_result.success
-        session = end_result.unwrap()
+        assert end_result.is_success
+        session = end_result.value

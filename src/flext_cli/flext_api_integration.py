@@ -136,7 +136,7 @@ class FlextCLIApiClient:
 
             # Get response from API client - handle FlextResult
             response_result = await self._api_client.get("/health")
-            if not response_result.success or response_result.value is None:
+            if response_result.unwrap_or(None) is None:
                 return FlextResult[bool].fail(
                     f"Connection failed: {response_result.error}"
                 )
@@ -164,7 +164,7 @@ class FlextCLIApiClient:
 
             # Get response from API client - handle FlextResult
             response_result = await self._api_client.get("/api/v1/system/status")
-            if not response_result.success or response_result.value is None:
+            if response_result.unwrap_or(None) is None:
                 return FlextResult[dict[str, object]].fail(
                     f"Status request failed: {response_result.error}",
                 )

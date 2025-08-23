@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from enum import StrEnum
-from pathlib import Path  # noqa: TC003 - Used at runtime in Pydantic validators
+from pathlib import Path
 from typing import ClassVar, override
 
 from flext_core import (
@@ -24,7 +24,7 @@ from flext_core import (
 from pydantic import ConfigDict, Field, field_validator
 from rich.console import Console
 
-from flext_cli.config import CLIConfig as FlextCliConfig
+from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 
 
@@ -352,7 +352,7 @@ class FlextCliOutput(FlextValue):
             )
 
         # Default text format
-        result = []
+        result: list[str] = []
         if self.stdout.strip():
             result.append(f"STDOUT:\n{self.stdout}")
         if self.stderr.strip():
@@ -401,7 +401,7 @@ class FlextCliConfiguration(FlextValue):
         description="Directory for caching CLI data",
     )
     plugin_directories: list[Path] = Field(
-        default_factory=list,
+        default_factory=lambda: list[Path](),
         description="Directories to search for plugins",
     )
     environment_overrides: dict[str, str] = Field(
@@ -893,7 +893,7 @@ class FlextCliSession(FlextEntity):
         description="Testing convenience session identifier",
     )
     command_history: list[FlextEntityId] = Field(
-        default_factory=list,
+        default_factory=lambda: list[FlextEntityId](),
         description="History of command IDs executed in this session",
     )
     current_command_id: FlextEntityId | None = Field(
@@ -1303,6 +1303,7 @@ class FlextCliPlugin(FlextEntity):
     ) -> FlextResult[FlextCliPlugin]:  # pragma: no cover - simple wrapper
         """Disable the plugin by setting enabled=False."""
         result = self.copy_with(enabled=False)
+        # Use unwrap_or pattern: simplified FlextResult handling
         if result.is_success:
             return FlextResult[FlextCliPlugin].ok(result.value)
         return FlextResult[FlextCliPlugin].fail(result.error or "Disable failed")
@@ -1312,6 +1313,7 @@ class FlextCliPlugin(FlextEntity):
     ) -> FlextResult[FlextCliPlugin]:  # pragma: no cover - simple wrapper
         """Enable the plugin by setting enabled=True."""
         result = self.copy_with(enabled=True)
+        # Use unwrap_or pattern: simplified FlextResult handling
         if result.is_success:
             return FlextResult[FlextCliPlugin].ok(result.value)
         return FlextResult[FlextCliPlugin].fail(result.error or "Enable failed")
@@ -1344,6 +1346,7 @@ class FlextCliPlugin(FlextEntity):
             raise ValueError(msg)
         return v
 
+    @override
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI plugin business rules."""
         if not self.name.strip():
@@ -1602,11 +1605,11 @@ class FlextCliWorkspace(FlextAggregateRoot):
         description="Workspace configuration",
     )
     session_ids: list[FlextEntityId] = Field(
-        default_factory=list,
+        default_factory=lambda: list[FlextEntityId](),
         description="Active session IDs in this workspace",
     )
     plugin_ids: list[FlextEntityId] = Field(
-        default_factory=list,
+        default_factory=lambda: list[FlextEntityId](),
         description="Installed plugin IDs",
     )
     workspace_data: dict[str, object] = Field(

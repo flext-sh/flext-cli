@@ -110,7 +110,7 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
 
             # Mock response for demonstration
             if service_name == "flext-api":
-                return FlextResult[None].ok(
+                return FlextResult[str].ok(
                     ServiceHealth(
                         name=service_name,
                         status="healthy",
@@ -119,7 +119,7 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
                     )
                 )
             if service_name == "flexcore":
-                return FlextResult[None].ok(
+                return FlextResult[str].ok(
                     ServiceHealth(
                         name=service_name,
                         status="healthy",
@@ -127,14 +127,14 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
                         uptime=987.3,
                     )
                 )
-            return FlextResult[None].ok(
+            return FlextResult[str].ok(
                 ServiceHealth(
                     name=service_name, status="unknown", error="Service not recognized"
                 )
             )
 
         except Exception as e:
-            return FlextResult[None].fail(
+            return FlextResult[str].fail(
                 f"Health check failed for {service_name}: {e}"
             )
 
@@ -150,7 +150,7 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
         for service_name, url in services:
             health_result = self.check_service_health(service_name, url)
             if health_result.is_success:
-                health_results.append(health_result.data)
+                health_results.append(health_result.value)
             else:
                 health_results.append(
                     ServiceHealth(
@@ -158,7 +158,7 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
                     )
                 )
 
-        return FlextResult[None].ok(health_results)
+        return FlextResult[str].ok(health_results)
 
     def authenticate_with_services(
         self, username: str, password: str
@@ -172,9 +172,9 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
             auth_results["flext-api"] = "authenticated"
 
             # Save token for CLI usage
-            token_save_result = save_auth_token(api_auth_result.data.get("token", ""))
+            token_save_result = save_auth_token(api_auth_result.value.get("token", ""))
             if token_save_result.is_failure:
-                return FlextResult[None].fail(
+                return FlextResult[str].fail(
                     f"Failed to save auth token: {token_save_result.error}"
                 )
         else:
@@ -184,14 +184,14 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
         auth_results["flexcore"] = "authenticated"
         auth_results["flext-observability"] = "authenticated"
 
-        return FlextResult[None].ok(auth_results)
+        return FlextResult[str].ok(auth_results)
 
     def execute_meltano_operation(
         self, operation: str, project: str
     ) -> FlextResult[dict[str, Any]]:
         """Execute Meltano operation through flext-meltano integration."""
         if not self.settings.enable_meltano_integration:
-            return FlextResult[None].fail("Meltano integration is disabled")
+            return FlextResult[str].fail("Meltano integration is disabled")
 
         # Mock Meltano operation (in real implementation, use flext-meltano)
         try:
@@ -203,16 +203,16 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
                 "records_processed": 1000 if operation == "run" else 0,
                 "message": f"Meltano {operation} completed successfully",
             }
-            return FlextResult[None].ok(result)
+            return FlextResult[str].ok(result)
         except Exception as e:
-            return FlextResult[None].fail(f"Meltano operation failed: {e}")
+            return FlextResult[str].fail(f"Meltano operation failed: {e}")
 
     def query_oracle_database(
         self, _query: str, _schema: str
     ) -> FlextResult[list[dict[str, Any]]]:
         """Query Oracle database through flext-db-oracle integration."""
         if not self.settings.enable_oracle_integration:
-            return FlextResult[None].fail("Oracle integration is disabled")
+            return FlextResult[str].fail("Oracle integration is disabled")
 
         # Mock Oracle query (in real implementation, use flext-db-oracle)
         try:
@@ -221,14 +221,14 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
                 {"id": 2, "name": "Project Beta", "status": "completed"},
                 {"id": 3, "name": "Project Gamma", "status": "pending"},
             ]
-            return FlextResult[None].ok(mock_results)
+            return FlextResult[str].ok(mock_results)
         except Exception as e:
-            return FlextResult[None].fail(f"Oracle query failed: {e}")
+            return FlextResult[str].fail(f"Oracle query failed: {e}")
 
     def get_observability_metrics(self) -> FlextResult[dict[str, Any]]:
         """Get metrics from flext-observability."""
         if not self.settings.enable_observability:
-            return FlextResult[None].fail("Observability is disabled")
+            return FlextResult[str].fail("Observability is disabled")
 
         # Mock metrics (in real implementation, use flext-observability)
         try:
@@ -241,9 +241,9 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
                 "memory_usage_mb": 256.8,
                 "cpu_usage_percent": 12.5,
             }
-            return FlextResult[None].ok(metrics)
+            return FlextResult[str].ok(metrics)
         except Exception as e:
-            return FlextResult[None].fail(f"Failed to get metrics: {e}")
+            return FlextResult[str].fail(f"Failed to get metrics: {e}")
 
 
 # =============================================================================
@@ -275,7 +275,7 @@ def health(ctx: click.Context) -> None:
     result = service.get_ecosystem_status()
 
     if result.is_success:
-        health_data = result.data
+        health_data = result.value
 
         table = Table(title="FLEXT Ecosystem Health")
         table.add_column("Service", style="cyan")
@@ -315,7 +315,7 @@ def authenticate(ctx: click.Context, username: str, password: str) -> None:
     result = service.authenticate_with_services(username, password)
 
     if result.is_success:
-        auth_results = result.data
+        auth_results = result.value
 
         table = Table(title="Authentication Results")
         table.add_column("Service", style="cyan")
@@ -355,7 +355,7 @@ def meltano(ctx: click.Context, operation: str, project: str) -> None:
     result = service.execute_meltano_operation(operation, project)
 
     if result.is_success:
-        data = result.data
+        data = result.value
         console.print(f"[green]✅ {data['message']}[/green]")
         console.print(f"Duration: {data['duration']:.1f}s")
         if data["records_processed"] > 0:
@@ -389,7 +389,7 @@ def oracle_query(
     result = service.query_oracle_database(query, schema)
 
     if result.is_success:
-        data = result.data
+        data = result.value
 
         if output_format == "table":
             table = cli_create_table(data, title=f"Query Results ({len(data)} rows)")
@@ -397,7 +397,7 @@ def oracle_query(
         else:
             formatted_result = cli_format_output(data, output_format)
             if formatted_result.is_success:
-                console.print(formatted_result.data)
+                console.print(formatted_result.value)
             else:
                 console.print(f"[red]❌ Format error: {formatted_result.error}[/red]")
     else:
@@ -424,7 +424,7 @@ def metrics(ctx: click.Context, output_format: str) -> None:
     result = service.get_observability_metrics()
 
     if result.is_success:
-        metrics_data = result.data
+        metrics_data = result.value
 
         if output_format == "table":
             table = Table(title="FLEXT Ecosystem Metrics")
@@ -445,7 +445,7 @@ def metrics(ctx: click.Context, output_format: str) -> None:
         else:
             formatted_result = cli_format_output(metrics_data, output_format)
             if formatted_result.is_success:
-                console.print(formatted_result.data)
+                console.print(formatted_result.value)
             else:
                 console.print(f"[red]❌ Format error: {formatted_result.error}[/red]")
     else:

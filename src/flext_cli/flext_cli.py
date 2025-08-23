@@ -11,9 +11,8 @@ from pathlib import Path
 
 from flext_core import get_logger
 
-from flext_cli.api import FlextCliApi
-from flext_cli.cli_config import CLIConfig as FlextCliConfig
-from flext_cli.cli_types import FlextCliDataType, OutputFormat
+from flext_cli.api import FlextCliApi, SessionSummary
+from flext_cli.cli_types import FlextCliDataType, FlextCliOutputFormat
 from flext_cli.models import FlextCliContext
 
 # Global API instance
@@ -23,7 +22,7 @@ _api = FlextCliApi()
 def flext_cli_export(
     data: FlextCliDataType,
     path: str | Path,
-    format_type: OutputFormat = OutputFormat.JSON,
+    format_type: FlextCliOutputFormat = FlextCliOutputFormat.JSON,
 ) -> bool:
     """Export data to file in specified format.
 
@@ -41,7 +40,7 @@ def flext_cli_export(
 
 def flext_cli_format(
     data: FlextCliDataType,
-    format_type: OutputFormat = OutputFormat.JSON,
+    format_type: FlextCliOutputFormat = FlextCliOutputFormat.JSON,
 ) -> str:
     """Format data for display.
 
@@ -93,22 +92,22 @@ def flext_cli_create_context(
     """
     result = _api.flext_cli_create_context(config)
     # Cast to expected type since API returns object
-    try:
-        if isinstance(result, FlextCliContext):
-            return result
-    except TypeError as e:
-        # Handle cases where isinstance fails due to import issues
-        logger = get_logger(__name__)
-        logger.warning(f"Type checking failed for FlextCliContext: {e}")
-    # Create fallback context if cast fails
-    cli_config = FlextCliConfig()
-    if config:
-        cli_config = cli_config.model_copy(update=config)
-    # Create CLI context without invalid parameters - just use defaults
-    return FlextCliContext()
+    if isinstance(result, FlextCliContext):
+        return result
+
+    # If not the expected type, this indicates a serious API issue
+    logger = get_logger(__name__)
+    result_type = type(result)
+    logger.error(
+        f"API returned unexpected type: {result_type}, expected FlextCliContext"
+    )
+    error_msg = (
+        f"CLI context creation failed: got {result_type}, expected FlextCliContext"
+    )
+    raise TypeError(error_msg)
 
 
-# RESTORED FROM BACKUP - All additional functionality
+# Additional flext-cli functionality
 
 
 def flext_cli_create_command(name: str, command_line: str, **options: object) -> bool:
@@ -123,8 +122,8 @@ def flext_cli_create_command(name: str, command_line: str, **options: object) ->
       True if command created successfully, False otherwise
 
     """
-    result = _api.flext_cli_create_command(name, command_line, **options)
-    return result.success if hasattr(result, "success") else False
+    # Use FlextResult's is_success for cleaner boolean conversion
+    return _api.flext_cli_create_command(name, command_line, **options).is_success
 
 
 def flext_cli_create_session(user_id: str | None = None) -> str:
@@ -152,8 +151,8 @@ def flext_cli_register_handler(name: str, handler: object) -> bool:
       True if handler registered successfully, False otherwise
 
     """
-    result = _api.flext_cli_register_handler(name, handler)
-    return result.success if hasattr(result, "success") else False
+    # Use FlextResult's is_success for cleaner boolean conversion
+    return _api.flext_cli_register_handler(name, handler).is_success
 
 
 def flext_cli_register_plugin(name: str, plugin: object) -> bool:
@@ -167,8 +166,8 @@ def flext_cli_register_plugin(name: str, plugin: object) -> bool:
       True if plugin registered successfully, False otherwise
 
     """
-    result = _api.flext_cli_register_plugin(name, plugin)
-    return result.success if hasattr(result, "success") else False
+    # Use FlextResult's is_success for cleaner boolean conversion
+    return _api.flext_cli_register_plugin(name, plugin).is_success
 
 
 def flext_cli_execute_handler(name: str, *args: object, **kwargs: object) -> object:
@@ -215,7 +214,7 @@ def flext_cli_get_commands() -> dict[str, object]:
     return _api.flext_cli_get_commands()
 
 
-def flext_cli_get_sessions() -> dict[str, object]:
+def flext_cli_get_sessions() -> dict[str, SessionSummary]:
     """Get all sessions.
 
     Returns:

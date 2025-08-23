@@ -17,16 +17,16 @@ from flext_core import FlextResult
 
 from flext_cli import (
     CLICommand,
-    CLICommandService,
-    CLIConfig,
-    CLIContext,
-    CLIExecutionContext,
-    CLIPlugin,
-    CLISession,
-    CLISessionService,
-    CLISettings,
     CommandStatus,
     CommandType,
+    FlextCliCommandService,
+    FlextCliConfig,
+    FlextCliContext,
+    FlextCliExecutionContext,
+    FlextCliPlugin,
+    FlextCliSession,
+    FlextCliSessionService,
+    FlextCliSettings,
     PluginStatus,
     SessionStatus,
     get_config,
@@ -40,26 +40,26 @@ class TestFlextCoreFlextResultIntegration:
 
     def test_cli_setup_service_result(self) -> None:
         """Test CLI setup returns proper FlextResult."""
-        settings = CLISettings()
+        settings = FlextCliSettings()
 
         result = setup_cli(settings)
 
         # Should return FlextResult
         assert isinstance(result, FlextResult)
-        assert result.success
+        assert result.is_success
         assert result.value is True
 
     def test_cli_setup_with_invalid_settings(self) -> None:
         """Test CLI setup with invalid settings returns error FlextResult."""
         # Create settings with invalid configuration
-        settings = CLISettings(log_level="INVALID_LEVEL")
+        settings = FlextCliSettings(log_level="INVALID_LEVEL")
 
         result = setup_cli(settings)
 
-        # Should handle gracefully and still succeed (with fallback)
+        # Should handle gracefully using modern error handling
         assert isinstance(result, FlextResult)
         # Implementation should handle invalid log levels gracefully
-        assert result.success or result.is_failure
+        assert result.is_success or result.is_failure
 
     def test_config_retrieval_service_result(self) -> None:
         """Test configuration retrieval uses FlextResult patterns."""
@@ -70,7 +70,7 @@ class TestFlextCoreFlextResultIntegration:
         # Should return valid objects
         assert config is not None
         assert settings is not None
-        assert isinstance(settings, CLISettings)
+        assert isinstance(settings, FlextCliSettings)
 
     def test_service_result_error_handling(self) -> None:
         """Test FlextResult error handling patterns with real implementation."""
@@ -79,7 +79,7 @@ class TestFlextCoreFlextResultIntegration:
 
         # Verify error result properties
         assert test_error_result.is_failure
-        assert not test_error_result.success
+        assert not test_error_result.is_success
         assert test_error_result.error == "Test error"
 
         # Test that unwrap_or works correctly
@@ -89,9 +89,9 @@ class TestFlextCoreFlextResultIntegration:
 
         # Test successful result for comparison
         success_result = FlextResult[str].ok("success")
-        assert success_result.success
+        assert success_result.is_success
         assert not success_result.is_failure
-        assert success_result.unwrap_or("fallback") == "success"
+        assert success_result.unwrap_or("default") == "success"
 
 
 class TestFlextCoreDomainEntityIntegration:
@@ -133,14 +133,14 @@ class TestFlextCoreDomainEntityIntegration:
 
         # Start execution (should generate domain event)
         start_result = command.start_execution()
-        assert start_result.success, f"Start execution failed: {start_result.error}"
+        assert start_result.is_success, f"Start execution failed: {start_result.error}"
         command = start_result.value
         assert command.command_status == CommandStatus.RUNNING
         assert command.started_at is not None
 
         # Complete execution (should generate domain event)
         complete_result = command.complete_execution(exit_code=0, stdout="hello")
-        assert complete_result.success, (
+        assert complete_result.is_success, (
             f"Complete execution failed: {complete_result.error}"
         )
         command = complete_result.value
@@ -149,8 +149,8 @@ class TestFlextCoreDomainEntityIntegration:
         assert command.successful
 
     def test_cli_session_domain_entity_behavior(self) -> None:
-        """Test CLISession follows domain entity patterns."""
-        session = CLISession(session_id="test-session-123")
+        """Test FlextCliSession follows domain entity patterns."""
+        session = FlextCliSession(session_id="test-session-123")
 
         # Domain entity properties
         assert hasattr(session, "id")
@@ -166,7 +166,7 @@ class TestFlextCoreDomainEntityIntegration:
         add_result = session.add_command(command_id)
 
         # Handle FlextResult return type
-        if hasattr(add_result, "success") and add_result.success:
+        if hasattr(add_result, "success") and add_result.is_success:
             updated_session = add_result.value
             assert len(updated_session.command_history) == 1
             assert command_id in updated_session.command_history
@@ -177,8 +177,8 @@ class TestFlextCoreDomainEntityIntegration:
             assert command_id in updated_session.command_history
 
     def test_cli_plugin_domain_entity_lifecycle(self) -> None:
-        """Test CLIPlugin domain entity lifecycle."""
-        plugin = CLIPlugin(
+        """Test FlextCliPlugin domain entity lifecycle."""
+        plugin = FlextCliPlugin(
             name="test-plugin",
             entry_point="test.main",
             commands=["test", "validate"],
@@ -205,7 +205,7 @@ class TestFlextCoreDomainEntityIntegration:
 
         # Activation - returns FlextResult with new instance (railway-oriented programming)
         activated_result = plugin.activate()
-        assert activated_result.success
+        assert activated_result.is_success
         activated_plugin = activated_result.value
         # Check that activation changed the plugin status
         assert hasattr(activated_plugin, "plugin_status")
@@ -214,7 +214,7 @@ class TestFlextCoreDomainEntityIntegration:
 
         # Deactivation - returns FlextResult with new instance (railway-oriented programming)
         deactivated_result = activated_plugin.deactivate()
-        assert deactivated_result.success
+        assert deactivated_result.is_success
         deactivated_plugin = deactivated_result.value
         # Check that deactivation changed the plugin status
         assert hasattr(deactivated_plugin, "plugin_status")
@@ -222,10 +222,10 @@ class TestFlextCoreDomainEntityIntegration:
             assert deactivated_plugin.enabled is False
 
     def test_cli_config_value_object_behavior(self) -> None:
-        """Test CLIConfig behaves as a proper value object."""
-        config1 = CLIConfig(profile="test", debug=True, output_format="json")
+        """Test FlextCliConfig behaves as a proper value object."""
+        config1 = FlextCliConfig(profile="test", debug=True, output_format="json")
 
-        config2 = CLIConfig(profile="test", debug=True, output_format="json")
+        config2 = FlextCliConfig(profile="test", debug=True, output_format="json")
 
         # Value objects should be equal with same values
         assert config1.profile == config2.profile
@@ -270,56 +270,56 @@ class TestFlextCoreValidationIntegration:
         assert valid_command.command_line == "echo hello"
 
     def test_cli_session_validation_rules(self) -> None:
-        """Test CLISession validation rules."""
+        """Test FlextCliSession validation rules."""
         # Test session ID validation with real implementation
         try:
-            CLISession(session_id="")
+            FlextCliSession(session_id="")
             # If no exception raised, validation might be different
         except (ValueError, TypeError):
             # Expected validation error for empty session_id
             pass
 
         # Test that valid session works
-        valid_session = CLISession(session_id="test-session")
+        valid_session = FlextCliSession(session_id="test-session")
         assert valid_session.session_id == "test-session"
 
     def test_cli_plugin_validation_rules(self) -> None:
-        """Test CLIPlugin validation rules."""
+        """Test FlextCliPlugin validation rules."""
         # Test plugin validation with real implementation
         try:
-            CLIPlugin(name="", entry_point="test.main", commands=["test"])
+            FlextCliPlugin(name="", entry_point="test.main", commands=["test"])
         except (ValueError, TypeError):
             # Expected validation error
             pass
 
         try:
-            CLIPlugin(name="test-plugin", entry_point="", commands=["test"])
+            FlextCliPlugin(name="test-plugin", entry_point="", commands=["test"])
         except (ValueError, TypeError):
             # Expected validation error
             pass
 
         # Test that valid plugins work
-        valid_plugin = CLIPlugin(
+        valid_plugin = FlextCliPlugin(
             name="test-plugin", entry_point="test.main", commands=["test"]
         )
         assert valid_plugin.name == "test-plugin"
         assert valid_plugin.entry_point == "test.main"
 
     def test_cli_config_validation_rules(self) -> None:
-        """Test CLIConfig validation rules."""
-        # CLIConfig validation is handled by business rules, not Pydantic validation
+        """Test FlextCliConfig validation rules."""
+        # FlextCliConfig validation is handled by business rules, not Pydantic validation
         # Test business rule validation for CLI config
         try:
             # Try to create config with invalid format - may raise validation error
-            config = CLIConfig(profile="test", output_format="invalid_format")
+            config = FlextCliConfig(profile="test", output_format="invalid_format")
             validation_result = config.validate_business_rules()
             assert validation_result.is_failure
         except (ValueError, TypeError):
             # Pydantic validation prevents creation of invalid config
             # Test with valid config instead
-            config = CLIConfig(profile="test", output_format="json")
+            config = FlextCliConfig(profile="test", output_format="json")
             validation_result = config.validate_business_rules()
-            assert validation_result.success
+            assert validation_result.is_success
 
     def test_business_rule_validation(self) -> None:
         """Test business rule validation in domain entities."""
@@ -352,8 +352,8 @@ class TestFlextCoreDependencyInjectionIntegration:
     def test_cli_service_dependency_injection(self) -> None:
         """Test CLI services use dependency injection."""
         # Test that services can be created and used
-        command_service = CLICommandService()
-        session_service = CLISessionService()
+        command_service = FlextCliCommandService()
+        session_service = FlextCliSessionService()
 
         # Services should be properly initialized
         assert command_service is not None
@@ -361,7 +361,7 @@ class TestFlextCoreDependencyInjectionIntegration:
 
     def test_cli_context_dependency_injection(self) -> None:
         """Test CLI context uses dependency injection patterns."""
-        context = CLIContext(profile="test", output_format="json", debug=True)
+        context = FlextCliContext(profile="test", output_format="json", debug=True)
 
         # Context should be properly configured
         # Check attributes that may exist on the context
@@ -381,7 +381,7 @@ class TestFlextCoreDependencyInjectionIntegration:
 
     def test_cli_execution_context_integration(self) -> None:
         """Test CLI execution context integration."""
-        execution_context = CLIExecutionContext(
+        execution_context = FlextCliExecutionContext(
             command_name="test",
             user_id="user123",
             session_id="session123",
@@ -406,20 +406,20 @@ class TestFlextCoreLoggingIntegration:
 
         # Start execution
         start_result = command.start_execution()
-        assert start_result.success
+        assert start_result.is_success
         command = start_result.value
         assert command.command_status == CommandStatus.RUNNING
 
         # Complete execution
         complete_result = command.complete_execution(exit_code=0, stdout="hello")
-        assert complete_result.success
+        assert complete_result.is_success
         command = complete_result.value
         assert command.command_status == CommandStatus.COMPLETED
         assert command.successful
 
     def test_service_logging_integration(self) -> None:
         """Test services integrate with logging using real implementation."""
-        service = CLICommandService()
+        service = FlextCliCommandService()
 
         # Service should be properly instantiated
         assert service is not None
@@ -449,7 +449,7 @@ class TestFlextCoreErrorHandlingIntegration:
 
         # Test error handling in command execution
         start_result = command.start_execution()
-        assert start_result.success
+        assert start_result.is_success
         command = start_result.value
 
         # Test command failure
@@ -457,7 +457,7 @@ class TestFlextCoreErrorHandlingIntegration:
             exit_code=1,
             stderr="Command failed",
         )
-        assert complete_result.success
+        assert complete_result.is_success
         command = complete_result.value
         assert not command.successful
         assert command.command_status == CommandStatus.FAILED
@@ -465,7 +465,7 @@ class TestFlextCoreErrorHandlingIntegration:
 
     def test_service_error_handling(self) -> None:
         """Test services handle errors using flext-core patterns."""
-        service = CLICommandService()
+        service = FlextCliCommandService()
 
         # Services should handle errors gracefully
         # This is a basic test that services can be instantiated without error
@@ -506,12 +506,12 @@ class TestFlextCoreTypeIntegration:
 
     def test_service_result_type_safety(self) -> None:
         """Test FlextResult type safety."""
-        settings = CLISettings()
+        settings = FlextCliSettings()
         result = setup_cli(settings)
 
         # Type safety checks
         assert isinstance(result, FlextResult)
-        if result.success:
+        if result.is_success:
             value = result.value
             assert isinstance(value, bool)
         else:
@@ -520,7 +520,7 @@ class TestFlextCoreTypeIntegration:
 
     def test_value_object_type_safety(self) -> None:
         """Test value objects maintain type safety."""
-        config = CLIConfig(profile="test", debug=True, output_format="json")
+        config = FlextCliConfig(profile="test", debug=True, output_format="json")
 
         # Type checks
         assert isinstance(config.profile, str)
@@ -543,13 +543,13 @@ class TestFlextCoreEventIntegration:
         initial_events = len(getattr(command, "_domain_events", []))
 
         start_result = command.start_execution()
-        assert start_result.success
+        assert start_result.is_success
         command = start_result.value
         # Check execution events without storing unused variable
         assert len(getattr(command, "_domain_events", [])) >= 0
 
         complete_result = command.complete_execution(exit_code=0, stdout="hello")
-        assert complete_result.success
+        assert complete_result.is_success
         command = complete_result.value
         completion_events = len(getattr(command, "_domain_events", []))
 
@@ -559,7 +559,7 @@ class TestFlextCoreEventIntegration:
 
     def test_session_events_integration(self) -> None:
         """Test session events integration."""
-        session = CLISession(session_id="test-session")
+        session = FlextCliSession(session_id="test-session")
 
         # Session operations should generate events
         initial_events = len(getattr(session, "_domain_events", []))
@@ -569,7 +569,7 @@ class TestFlextCoreEventIntegration:
 
         # End session - handle FlextResult return type
         end_result = session.end_session()
-        if hasattr(end_result, "success") and end_result.success:
+        if hasattr(end_result, "success") and end_result.is_success:
             session = end_result.value
         else:
             session = end_result
@@ -617,8 +617,8 @@ class TestFlextCorePatternCompliance:
 
     def test_service_pattern_compliance(self) -> None:
         """Test services follow service pattern."""
-        command_service = CLICommandService()
-        session_service = CLISessionService()
+        command_service = FlextCliCommandService()
+        session_service = FlextCliSessionService()
 
         # Services should encapsulate business operations
         assert command_service is not None
@@ -626,9 +626,9 @@ class TestFlextCorePatternCompliance:
 
     def test_value_object_pattern_compliance(self) -> None:
         """Test value objects follow value object pattern."""
-        config1 = CLIConfig(profile="test", debug=True, output_format="json")
+        config1 = FlextCliConfig(profile="test", debug=True, output_format="json")
 
-        config2 = CLIConfig(profile="test", debug=True, output_format="json")
+        config2 = FlextCliConfig(profile="test", debug=True, output_format="json")
 
         # Value objects with same values should be equal
         assert config1.profile == config2.profile

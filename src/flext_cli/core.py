@@ -13,6 +13,7 @@ import json
 from collections.abc import Callable
 from contextlib import suppress
 from pathlib import Path
+from typing import cast
 
 import yaml
 from flext_core import (
@@ -23,10 +24,10 @@ from flext_core import (
     safe_call,
 )
 
-from flext_cli.cli_config import CLIConfig as FlextCliConfig
+from flext_cli.cli_config import FlextCliConfig
 from flext_cli.cli_types import (
+    FlextCliOutputFormat,
     OutputData,
-    OutputFormat,
 )
 from flext_cli.models import (
     FlextCliCommand,
@@ -87,7 +88,10 @@ class FlextCliService(FlextService):
                 self._config = config
             elif isinstance(config, dict):
                 # Handle format_type -> output_format mapping
-                cleaned_config: dict[str, object] = dict(config)
+                dict_config = cast("dict[object, object]", config)
+                cleaned_config: dict[str, object] = {
+                    str(k): v for k, v in dict_config.items()
+                }
                 if (
                     "format_type" in cleaned_config
                     and "output_format" not in cleaned_config
@@ -141,7 +145,7 @@ class FlextCliService(FlextService):
         self,
         data: OutputData,
         path: str | Path,
-        format_type: OutputFormat = OutputFormat.JSON,
+        format_type: FlextCliOutputFormat = FlextCliOutputFormat.JSON,
     ) -> FlextResult[bool]:
         """Export data to file in specified format."""
         try:
@@ -168,7 +172,7 @@ class FlextCliService(FlextService):
     def flext_cli_format(
         self,
         data: OutputData,
-        format_type: OutputFormat = OutputFormat.JSON,
+        format_type: FlextCliOutputFormat = FlextCliOutputFormat.JSON,
     ) -> FlextResult[str]:
         """Format data in specified format."""
         formatters = {
@@ -256,6 +260,7 @@ class FlextCliService(FlextService):
         """Format data as CSV."""
 
         def format_csv_data() -> str:
+            # Initialize data_list once based on data type
             if not isinstance(data, (list, tuple)):
                 data_list: list[dict[str, object]] = (
                     [data] if isinstance(data, dict) else [{"value": str(data)}]
@@ -265,7 +270,11 @@ class FlextCliService(FlextService):
                 data_list = []
                 for item in data:
                     if isinstance(item, dict):
-                        data_list.append(item)
+                        item_dict = cast("dict[object, object]", item)
+                        typed_item: dict[str, object] = {
+                            str(k): v for k, v in item_dict.items()
+                        }
+                        data_list.append(typed_item)
                     else:
                         data_list.append({"value": str(item)})
 
@@ -306,9 +315,15 @@ class FlextCliService(FlextService):
                 return "\\n".join(lines)
             if isinstance(data, (list, tuple)) and data and isinstance(data[0], dict):
                 # Table with headers - ensure we're working with dict objects
-                dict_data = [item for item in data if isinstance(item, dict)]
+                dict_data: list[dict[str, object]] = []
+                data_seq = cast("list[object] | tuple[object, ...]", data)
+                for item in data_seq:
+                    if isinstance(item, dict):
+                        item_dict = cast("dict[object, object]", item)
+                        typed_dict = {str(k): v for k, v in item_dict.items()}
+                        dict_data.append(typed_dict)
                 if dict_data:
-                    headers = list(dict_data[0].keys())
+                    headers: list[str] = list(dict_data[0].keys())
                     col_widths = [
                         max(
                             len(str(header)),
@@ -325,7 +340,7 @@ class FlextCliService(FlextService):
                     separator = "-+-".join("-" * width for width in col_widths)
 
                     # Data rows
-                    data_rows = []
+                    data_rows: list[str] = []
                     for row in dict_data:
                         row_str = " | ".join(
                             f"{row.get(header, '')!s:<{width}}"
@@ -355,7 +370,7 @@ class FlextCliService(FlextService):
         except Exception as e:
             return FlextResult[str].fail(f"Plain formatting failed: {e}")
 
-    # RESTORED FROM BACKUP - All additional functionality
+    # Additional CLI service functionality
 
     def flext_cli_validate_format(self, format_type: str) -> FlextResult[str]:
         """Validate format using flext-core validation."""
@@ -372,7 +387,7 @@ class FlextCliService(FlextService):
         command_line: str,
         **_kwargs: object,
     ) -> FlextResult[str]:
-        """Create command using flext-core safe operations - restored from backup."""
+        """Create command using flext-core safe operations."""
 
         def create_command() -> str:
             entity_id = FlextUtilities.generate_entity_id()
@@ -395,7 +410,7 @@ class FlextCliService(FlextService):
         user_id: str | None = None,
         **_kwargs: object,
     ) -> FlextResult[str]:
-        """Create session using auto-generated ID - restored from backup."""
+        """Create session using auto-generated ID."""
 
         def create_session() -> str:
             entity_id = FlextUtilities.generate_entity_id()
@@ -418,7 +433,7 @@ class FlextCliService(FlextService):
         name: str,
         handler: Callable[[object], object],
     ) -> FlextResult[None]:
-        """Register handler using flext-core validation - restored from backup."""
+        """Register handler using flext-core validation."""
         if name in self._handlers:
             return FlextResult[None].fail(f"Handler '{name}' already registered")
         self._handlers[name] = handler
@@ -429,7 +444,7 @@ class FlextCliService(FlextService):
         name: str,
         plugin: FlextCliPlugin,
     ) -> FlextResult[None]:
-        """Register plugin using flext-core validation - restored from backup."""
+        """Register plugin using flext-core validation."""
         if name in self._plugins:
             return FlextResult[None].fail(f"Plugin '{name}' already registered")
         self._plugins[name] = plugin
@@ -441,7 +456,7 @@ class FlextCliService(FlextService):
         *args: object,
         **kwargs: object,
     ) -> FlextResult[object]:
-        """Execute handler using flext-core safe_call - restored from backup."""
+        """Execute handler using flext-core safe_call."""
         if name not in self._handlers:
             return FlextResult[object].fail(f"Handler '{name}' not found")
         try:
@@ -455,7 +470,7 @@ class FlextCliService(FlextService):
         data: object,
         context_options: dict[str, object] | None = None,
     ) -> FlextResult[str]:
-        """Render using immutable context - restored from backup."""
+        """Render using immutable context."""
         # Create context with required fields - handle missing config
         # and output override
         config = self._config or FlextCliConfig()
@@ -464,43 +479,45 @@ class FlextCliService(FlextService):
         context_options = context_options or {}
         format_value = context_options.get("output_format", config.output_format)
 
-        # Ensure output_format is OutputFormat type
-        if isinstance(format_value, OutputFormat):
+        # Ensure output_format is FlextCliOutputFormat type
+        if isinstance(format_value, FlextCliOutputFormat):
             output_format = format_value
         elif isinstance(format_value, str):
             try:
-                output_format = OutputFormat(format_value)
+                output_format = FlextCliOutputFormat(format_value)
             except ValueError:
-                output_format = OutputFormat.TABLE  # Default fallback
+                output_format = FlextCliOutputFormat.TABLE  # Default fallback
         else:
-            output_format = OutputFormat.TABLE  # Default fallback
+            output_format = FlextCliOutputFormat.TABLE  # Default fallback
 
         # If caller didn't specify and config is set to JSON, honor JSON
         if not context_options and hasattr(config, "output_format"):
             with suppress(Exception):
                 cfg_fmt = config.output_format
                 cfg_key = cfg_fmt.value if hasattr(cfg_fmt, "value") else str(cfg_fmt)
-                output_format = OutputFormat(cfg_key)
+                output_format = FlextCliOutputFormat(cfg_key)
 
         # Convert data to OutputData type (str | dict | list)
-        output_data = data if isinstance(data, (str, dict, list)) else str(data)
+        output_data = cast(
+            "OutputData", data if isinstance(data, (str, dict, list)) else str(data)
+        )
 
         return self.flext_cli_format(output_data, output_format)
 
     def flext_cli_get_commands(self) -> FlextResult[dict[str, FlextCliCommand]]:
-        """Get all commands - restored from backup."""
+        """Get all commands."""
         return FlextResult[dict[str, FlextCliCommand]].ok(self._commands.copy())
 
     def flext_cli_get_sessions(self) -> FlextResult[dict[str, FlextCliSession]]:
-        """Get all sessions - restored from backup."""
+        """Get all sessions."""
         return FlextResult[dict[str, FlextCliSession]].ok(self._sessions.copy())
 
     def flext_cli_get_plugins(self) -> FlextResult[dict[str, FlextCliPlugin]]:
-        """Get all plugins - restored from backup."""
+        """Get all plugins."""
         return FlextResult[dict[str, FlextCliPlugin]].ok(self._plugins.copy())
 
     def flext_cli_get_handlers(self) -> FlextResult[dict[str, object]]:
-        """Get all handlers - restored from backup."""
+        """Get all handlers."""
         # Convert handlers to dict[str, object] for return type compliance
         handlers_as_objects: dict[str, object] = dict(self._handlers)
         return FlextResult[dict[str, object]].ok(handlers_as_objects)

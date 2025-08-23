@@ -70,16 +70,16 @@ class TestFlextCliHelper(unittest.TestCase):
         result = self.quiet_helper.flext_cli_confirm("Test question?")
 
         assert isinstance(result, FlextResult)
-        assert result.success
-        assert result.unwrap() is False  # Default is False
+        assert result.is_success
+        assert result.value is False  # Default is False
 
     def test_flext_cli_confirm_quiet_mode_default_true(self) -> None:
         """Test confirm in quiet mode returns default True."""
         result = self.quiet_helper.flext_cli_confirm("Test question?", default=True)
 
         assert isinstance(result, FlextResult)
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
 
     def test_flext_cli_confirm_quiet_mode_multiple_calls(self) -> None:
         """Test confirm in quiet mode works consistently across calls."""
@@ -87,10 +87,10 @@ class TestFlextCliHelper(unittest.TestCase):
         result2 = self.quiet_helper.flext_cli_confirm("Question 2?", default=True)
         result3 = self.quiet_helper.flext_cli_confirm("Question 3?")  # Default False
 
-        assert all(result.success for result in [result1, result2, result3])
-        assert result1.unwrap() is False
-        assert result2.unwrap() is True
-        assert result3.unwrap() is False
+        assert all(result.is_success for result in [result1, result2, result3])
+        assert result1.value is False
+        assert result2.value is True
+        assert result3.value is False
 
     def test_flext_cli_confirm_interactive_mode_mocked_input(self) -> None:
         """Test confirm in interactive mode with mocked user input."""
@@ -99,15 +99,15 @@ class TestFlextCliHelper(unittest.TestCase):
             result = self.helper.flext_cli_confirm("Do you agree?")
 
             assert isinstance(result, FlextResult)
-            assert result.success
-            assert result.unwrap() is True
+            assert result.is_success
+            assert result.value is True
 
         with patch("rich.prompt.Confirm.ask", return_value=False):
             result = self.helper.flext_cli_confirm("Do you disagree?")
 
             assert isinstance(result, FlextResult)
-            assert result.success
-            assert result.unwrap() is False
+            assert result.is_success
+            assert result.value is False
 
     def test_flext_cli_confirm_exception_handling(self) -> None:
         """Test confirm handles exceptions gracefully."""
@@ -118,7 +118,7 @@ class TestFlextCliHelper(unittest.TestCase):
             result = self.helper.flext_cli_confirm("This will be interrupted")
 
             assert isinstance(result, FlextResult)
-            assert not result.success
+            assert not result.is_success
             assert "User interrupted confirmation" in (result.error or "")
 
     def test_helper_console_properties(self) -> None:
@@ -141,7 +141,7 @@ class TestFlextCliHelper(unittest.TestCase):
         result2 = quiet_helper2.flext_cli_confirm("Question?", default=True)
 
         assert result1.success == result2.success
-        assert result1.unwrap() == result2.unwrap()
+        assert result1.value == result2.value
 
 
 class TestFlextCliDataProcessor(unittest.TestCase):
@@ -427,7 +427,7 @@ class TestFlextCliBatchValidate(unittest.TestCase):
 
         assert isinstance(result, FlextResult)
         # Empty dict should be considered valid
-        assert result.success
+        assert result.is_success
 
     def test_batch_validate_single_email_item(self) -> None:
         """Test batch validate with single email item."""
@@ -436,7 +436,7 @@ class TestFlextCliBatchValidate(unittest.TestCase):
         result = flext_cli_batch_validate(inputs)
 
         assert isinstance(result, FlextResult)
-        assert result.success
+        assert result.is_success
 
     def test_batch_validate_single_invalid_email(self) -> None:
         """Test batch validate with invalid email."""
@@ -446,7 +446,7 @@ class TestFlextCliBatchValidate(unittest.TestCase):
 
         assert isinstance(result, FlextResult)
         # Should handle invalid email gracefully
-        assert not result.success
+        assert not result.is_success
 
     def test_batch_validate_mixed_valid_items(self) -> None:
         """Test batch validate with mixed valid items."""
@@ -458,7 +458,7 @@ class TestFlextCliBatchValidate(unittest.TestCase):
         result = flext_cli_batch_validate(inputs)
 
         assert isinstance(result, FlextResult)
-        assert result.success
+        assert result.is_success
 
     def test_batch_validate_path_items(self) -> None:
         """Test batch validate with path items."""
@@ -482,7 +482,7 @@ class TestFlextCliBatchValidate(unittest.TestCase):
         result = flext_cli_batch_validate(inputs)
 
         assert isinstance(result, FlextResult)
-        assert result.success
+        assert result.is_success
 
     def test_batch_validate_unknown_validator_type(self) -> None:
         """Test batch validate with unknown validator type."""
@@ -504,7 +504,7 @@ class TestFlextCliBatchValidate(unittest.TestCase):
         result = flext_cli_batch_validate(inputs)
 
         assert isinstance(result, FlextResult)
-        assert result.success
+        assert result.is_success
 
     def test_batch_validate_return_type_structure(self) -> None:
         """Test batch validate return type structure."""
@@ -516,8 +516,8 @@ class TestFlextCliBatchValidate(unittest.TestCase):
         assert hasattr(result, "success")
         assert hasattr(result, "error")
 
-        if result.success:
-            validated_data = result.unwrap()
+        if result.is_success:
+            validated_data = result.value
             assert isinstance(validated_data, dict)
 
 

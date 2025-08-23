@@ -10,9 +10,17 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 from functools import wraps
-from typing import NotRequired, ParamSpec, TypedDict, TypeVar, override
+from typing import (
+    NotRequired,
+    ParamSpec,
+    TypedDict,
+    TypeVar,
+    cast,
+    override,
+)
 
-from flext_core import FlextModel, FlextResult, get_logger
+from flext_core import FlextModel, FlextResult
+from flext_core.loggings import get_logger
 from pydantic import ConfigDict, Field
 from rich.console import Console
 
@@ -29,7 +37,7 @@ class InitErrorDetails(TypedDict):
     input: object  # Flexible type for error input data
 
 
-class CLIContext(FlextModel):
+class FlextCliContext(FlextModel):
     """Simplified CLI context for tests."""
 
     profile: str = Field(default="default")
@@ -127,7 +135,7 @@ class CLIContext(FlextModel):
         if getattr(self, "__frozen__", False):
             # Use the local InitErrorDetails TypedDict
             # Raise a standard ValueError to avoid relying on Pydantic's private error structures
-            msg = f"Cannot modify immutable CLIContext field '{name}'"
+            msg = f"Cannot modify immutable FlextCliContext field '{name}'"
             raise ValueError(msg)
         super().__setattr__(name, value)
 
@@ -141,8 +149,8 @@ class CLIContext(FlextModel):
         quiet: bool = False,
         verbose: bool = False,
         no_color: bool = False,
-    ) -> CLIContext:
-        """Create a CLIContext with specified parameters.
+    ) -> FlextCliContext:
+        """Create a FlextCliContext with specified parameters.
 
         Args:
             profile: The profile to use.
@@ -170,6 +178,8 @@ class CLIContext(FlextModel):
             quiet=quiet,
             verbose=verbose,
             no_color=no_color,
+            config={},  # Minimal config to satisfy validation
+            console=Console(),  # Provide console to satisfy validation
         )
 
 
@@ -184,11 +194,14 @@ def _print_error(message: str) -> None:
     console.print(f"[red]Error: {message}[/red]")
 
 
-def handle_service_result[**P](func: Callable[P, object]) -> Callable[P, object]:
+def handle_service_result[T, **P](func: Callable[P, FlextResult[T] | T]) -> object:
     """Unwrap a FlextResult or print errors, preserving passthrough.
 
     Args:
-      func: The function to wrap.
+      func: The function to wrap that returns FlextResult[T] or T (sync or async).
+
+    Returns:
+      Wrapper function that returns T | None (sync or async).
 
     """
     logger = get_logger("flext_cli.handle_service_result")
@@ -196,17 +209,17 @@ def handle_service_result[**P](func: Callable[P, object]) -> Callable[P, object]
     if asyncio.iscoroutinefunction(func):
         logger_async = get_logger("flext_cli.handle_service_result.async")
 
-        async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> object | None:
+        async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
             try:
                 result = await func(*args, **kwargs)
                 if isinstance(result, FlextResult):
                     if result.is_failure:
                         _print_error(result.error or "Unknown error")
                         return None
-                    unwrapped_result: object = result.value
-                    return unwrapped_result
-                typed_result: object = result
-                return typed_result
+                    # Cast to T to work around flext-core Any typing limitations
+                    return cast("T", result.value)
+                # Cast to T - function signature guarantees this is T
+                return cast("T", result)
             except Exception as exc:
                 _print_error(str(exc))
                 # Keep message consistent with sync wrapper if tests expect that
@@ -216,17 +229,17 @@ def handle_service_result[**P](func: Callable[P, object]) -> Callable[P, object]
         return async_wrapper
 
     @wraps(func)
-    def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> object | None:
+    def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
         try:
             result = func(*args, **kwargs)
             if isinstance(result, FlextResult):
                 if result.is_failure:
                     _print_error(result.error or "Unknown error")
                     return None
-                unwrapped_result: object = result.value
-                return unwrapped_result
-            typed_sync_result: object = result
-            return typed_sync_result
+                # Cast to T to work around flext-core Any typing limitations
+                return cast("T", result.value)
+            # Return result directly - function signature guarantees this is T
+            return result
         except Exception as exc:
             _print_error(str(exc))
             logger.exception("Unhandled exception in CLI command")

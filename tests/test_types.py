@@ -16,19 +16,18 @@ from flext_core import FlextConstants
 from rich.console import Console
 
 from flext_cli import (
+    CommandArgs,
     FlextCliCommand,
     FlextCliCommandStatus,
     FlextCliCommandType,
     FlextCliConfig,
     FlextCliContext,
+    FlextCliDataType,
+    FlextCliFileHandler,
     FlextCliOutputFormat,
     FlextCliPlugin,
     FlextCliSession,
-    TCliArgs,
     TCliConfig,
-    TCliData,
-    TCliFormat,
-    TCliHandler,
     TCliPath,
 )
 
@@ -45,12 +44,12 @@ class TestTypeAliases:
     def test_type_aliases(self) -> None:
         """Test that type aliases are properly defined."""
         # These are type aliases - just verify they exist
-        assert TCliData is not None
+        assert FlextCliDataType is not None
         assert TCliPath is not None
-        assert TCliFormat is not None
-        assert TCliHandler is not None
+        assert FlextCliOutputFormat is not None
+        assert FlextCliFileHandler is not None
         assert TCliConfig is not None
-        assert TCliArgs is not None
+        assert CommandArgs is not None
 
 
 class TestEnums:
@@ -317,7 +316,7 @@ class TestFlextCliCommand:
             command_line="echo hello",
         )
         result = command.validate_business_rules()
-        if not result.success:
+        if not result.is_success:
             raise AssertionError(f"Expected True, got {result}")
 
         # Test command with empty name (currently allowed by implementation)
@@ -442,7 +441,7 @@ class TestFlextCliConfig:
         """Test domain rule validation."""
         config = FlextCliConfig()
         result = config.validate_business_rules()
-        if not result.success:
+        if not result.is_success:
             raise AssertionError(f"Expected True, got {result}")
 
         # Config is always valid according to implementation
@@ -462,18 +461,18 @@ class TestFlextCliContext:
         context = FlextCliContext(config=config, console=console)
 
         assert isinstance(context.config, FlextCliConfig)
-        # CLIContext should have the fields from domain/cli_context.py
+        # FlextCliContext should have the fields from domain/cli_context.py
         assert context.config is config
         assert context.console is console
 
     def test_context_with_custom_config(self) -> None:
         """Test creating context with custom config."""
-        # Create config and console - CLIContext requires both
+        # Create config and console - FlextCliContext requires both
         config = FlextCliConfig(debug=True, output_format="json", profile="production")
         console = Console()
         context = FlextCliContext(config=config, console=console)
 
-        # Verify CLIContext fields
+        # Verify FlextCliContext fields
         assert context.config is config
         assert context.console is console
 
@@ -484,7 +483,7 @@ class TestFlextCliContext:
         console = Console()
         context = FlextCliContext(config=config, console=console)
 
-        # Verify CLIContext fields
+        # Verify FlextCliContext fields
         assert context.config is config
         assert context.console is console
 
@@ -494,7 +493,7 @@ class TestFlextCliContext:
         console = Console()
         context = FlextCliContext(config=config, console=console)
 
-        # Test is_debug property from CLIContext
+        # Test is_debug property from FlextCliContext
         assert context.is_debug  # Should be True because config.debug=True
         assert context.config is config
         assert context.console is console
@@ -543,7 +542,7 @@ class TestFlextCliContext:
 
         # Test business rules validation (returns FlextResult)
         validation_result = context.validate_business_rules()
-        assert validation_result.success
+        assert validation_result.is_success
         assert context.config is config
         assert context.console is console
 
@@ -612,7 +611,7 @@ class TestFlextCliPlugin:
             plugin_version="0.9.0",
         )
         validation_result = plugin.validate_business_rules()
-        if not validation_result.success:
+        if not validation_result.is_success:
             raise AssertionError(f"Expected success, got {validation_result.error}")
 
         # Note: Pydantic already validates min_length=1 for name and entry_point
@@ -713,7 +712,7 @@ class TestFlextCliSession:
 
         # Should be valid (checks for entity_id existence)
         result = session.validate_business_rules()
-        if not result.success:
+        if not result.is_success:
             raise AssertionError(f"Expected True, got {result}")
         assert bool(session.id) is True
 
@@ -775,7 +774,7 @@ class TestIntegration:
 
     def test_session_with_multiple_commands(self) -> None:
         """Test session recording multiple commands."""
-        # CLISession needs both id (entity_id) and session_id
+        # FlextCliSession needs both id (entity_id) and session_id
         session = FlextCliSession(
             id="test-session-135",
             session_id="test-session-135",

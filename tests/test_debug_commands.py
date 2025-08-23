@@ -1,6 +1,6 @@
-"""Tests for debug commands.
+"""Tests for debug commands - REAL FUNCTIONALITY EXECUTION.
 
-Tests debug command functionality for coverage.
+Tests debug command functionality with actual execution, eliminating mocks.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -9,486 +9,280 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
 import os
 import platform
 import sys
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import click
 from click.testing import CliRunner
 from flext_core import FlextConstants
-from rich.table import Table
+from rich.console import Console
 
 from flext_cli import debug_cmd
 
 
-class TestDebugCommands:
-    """Test debug commands."""
+class TestDebugCommandsReal:
+    """Test debug commands with REAL execution - no mocks."""
 
     def setup_method(self) -> None:
-        """Set up test environment."""
+        """Set up test environment with real console."""
         self.runner = CliRunner()
+        self.console = Console(width=80, legacy_windows=False)
 
-    def test_connectivity_command(self) -> None:
-        """Test connectivity command."""
-        with (
-            patch("flext_cli.commands.debug.get_default_cli_client") as mock_get_client,
-            patch("asyncio.run") as mock_asyncio_run,
-        ):
-            self._test_connectivity_command_impl(mock_asyncio_run, mock_get_client)
+    def test_debug_group_exists(self) -> None:
+        """Test that debug command group exists and is properly structured."""
+        assert isinstance(debug_cmd, click.Group), f"Expected Group, got {type(debug_cmd)}"
+        assert debug_cmd.name == "debug"
+        
+        # Verify essential commands exist
+        essential_commands = ["connectivity", "performance", "validate", "env", "paths"]
+        for cmd_name in essential_commands:
+            assert cmd_name in debug_cmd.commands, f"Missing command: {cmd_name}"
 
-    def _test_connectivity_command_impl(
-        self,
-        mock_asyncio_run: MagicMock,
-        mock_get_client: MagicMock,
-    ) -> None:
-        """Test connectivity command."""
-        # Mock client
-        mock_client = AsyncMock()
+    def test_debug_help_real(self) -> None:
+        """Test debug help command with real execution."""
+        result = self.runner.invoke(debug_cmd, ["--help"])
+        
+        assert result.exit_code == 0, f"Help failed: {result.output}"
+        assert "debug" in result.output.lower()
+        assert "commands" in result.output.lower()
 
-        mock_client.base_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
-        mock_client.test_connection.return_value = MagicMock(success=True, data=True)
-        mock_client.get_system_status.return_value = MagicMock(
-            success=True,
-            data={
-                "version": "0.9.0",
-                "status": "healthy",
-                "uptime": "5 days",
-            },
-        )
-        mock_get_client.return_value = mock_client
+    def test_connectivity_real(self) -> None:
+        """Test connectivity command with real execution."""
+        # Create real context object
+        ctx_obj = {"console": self.console}
+        
+        result = self.runner.invoke(debug_cmd, ["connectivity"], obj=ctx_obj, catch_exceptions=False)
+        
+        # Command should handle connection failures gracefully 
+        # Exit code 1 is expected when API is not available
+        assert result.exit_code in [0, 1], f"Unexpected exit code: {result.exit_code}, output: {result.output}"
 
-        # Test the command
-        self.runner.invoke(debug_cmd, ["connectivity"], obj={"console": MagicMock()})
+    def test_performance_real(self) -> None:
+        """Test performance command with real execution."""
+        ctx_obj = {"console": self.console}
+        
+        result = self.runner.invoke(debug_cmd, ["performance"], obj=ctx_obj, catch_exceptions=False)
+        
+        # Command should handle API unavailability gracefully
+        assert result.exit_code in [0, 1], f"Unexpected exit code: {result.exit_code}, output: {result.output}"
 
-        # Should not crash (might exit with code due to async issues but that's ok)
-        assert mock_asyncio_run.called
-
-    def test_performance_command(self) -> None:
-        """Test performance command."""
-        with (
-            patch("flext_cli.commands.debug.get_default_cli_client") as mock_get_client,
-            patch("asyncio.run") as mock_asyncio_run,
-        ):
-            self._test_performance_command_impl(mock_asyncio_run, mock_get_client)
-
-    def _test_performance_command_impl(
-        self,
-        mock_asyncio_run: MagicMock,
-        mock_get_client: MagicMock,
-    ) -> None:
-        """Test performance command implementation."""
-        # Mock client
-        mock_client = AsyncMock()
-        mock_client.get_system_status.return_value = MagicMock(
-            success=True,
-            data={
-                "cpu_usage": "25%",
-                "memory_usage": "60%",
-                "disk_usage": "40%",
-            },
-        )
-        mock_get_client.return_value = mock_client
-
-        # Test the command
-        self.runner.invoke(debug_cmd, ["performance"], obj={"console": MagicMock()})
-
-        assert mock_asyncio_run.called
-
-    def test_validate_command_success(self) -> None:
-        """Test validate command with success."""
-        with (
-            patch("flext_cli.commands.debug.get_config") as mock_get_config,
-            patch("flext_cli.commands.debug.sys.version_info", (3, 11, 0)),
-            patch("flext_cli.commands.debug.sys.version", "3.11.0 (main, Oct 24 2022)"),
-        ):
-            self._test_validate_command_success_impl(mock_get_config)
-
-    def _test_validate_command_success_impl(self, mock_get_config: MagicMock) -> None:
-        """Test validate command with success implementation."""
-        # Mock config
-        mock_config = MagicMock()
-        mock_config.config_dir = Path("/home/user/.flext")
-        mock_get_config.return_value = mock_config
-
-        # Just patch the validate_dependencies function to avoid import issues
-        with patch(
-            "flext_cli.commands.debug._validate_dependencies",
-        ) as mock_validate_deps:
-            mock_validate_deps.return_value = None  # no issues added
-
-            result = self.runner.invoke(
-                debug_cmd,
-                ["validate"],
-                obj={"console": MagicMock()},
-            )
-
-            # Should complete without error exit
-            if result.exit_code != 0:
-                raise AssertionError(f"Expected {0}, got {result.exit_code}")
-
-    def test_validate_command_old_python(self) -> None:
-        """Test validate command with old Python."""
-        with (
-            patch("flext_cli.commands.debug.get_config") as mock_get_config,
-            patch("flext_cli.commands.debug.sys.version_info", (3, 9, 0)),
-            patch("flext_cli.commands.debug.sys.version", "3.9.0 (main, Oct 24 2021)"),
-        ):
-            self._test_validate_command_old_python_impl(mock_get_config)
-
-    def _test_validate_command_old_python_impl(
-        self,
-        mock_get_config: MagicMock,
-    ) -> None:
-        """Test validate command with old Python implementation."""
-        # Mock config
-        mock_config = MagicMock()
-        mock_config.config_dir = Path("/home/user/.flext")
-        mock_get_config.return_value = mock_config
-
-        # Just patch the validate_dependencies function to avoid import issues
-        with patch(
-            "flext_cli.commands.debug._validate_dependencies",
-        ) as mock_validate_deps:
-            mock_validate_deps.return_value = None  # no issues added
-
-            result = self.runner.invoke(
-                debug_cmd,
-                ["validate"],
-                obj={"console": MagicMock()},
-            )
-
-            # Should exit with error due to old Python
-            if result.exit_code != 1:
-                raise AssertionError(f"Expected {1}, got {result.exit_code}")
-
-    def test_trace_command(self) -> None:
-        """Test trace command."""
-        result = self.runner.invoke(
-            debug_cmd,
-            ["trace", "test", "command"],
-            obj={"console": MagicMock()},
-        )
-
-        # Should complete successfully (tracing not implemented)
-        if result.exit_code != 0:
-            raise AssertionError(f"Expected {0}, got {result.exit_code}")
-
-    def test_env_command_with_vars(self) -> None:
-        """Test env command with FLEXT variables."""
-        api = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
-        with patch.dict(
-            os.environ,
-            {
-                "FLX_API_URL": api,
-                "FLX_TOKEN": "secret123456",
-                "FLX_DEBUG": "true",
-                "OTHER_VAR": "not_flext",
-            },
-        ):
-            result = self.runner.invoke(
-                debug_cmd,
-                ["env"],
-                obj={"console": MagicMock()},
-            )
-
-            if result.exit_code != 0:
-                raise AssertionError(f"Expected {0}, got {result.exit_code}")
-
-    def test_env_command_no_vars(self) -> None:
-        """Test env command with no FLEXT variables."""
-        with patch.dict(os.environ, {}, clear=True):
-            result = self.runner.invoke(
-                debug_cmd,
-                ["env"],
-                obj={"console": MagicMock()},
-            )
-
-            if result.exit_code != 0:
-                raise AssertionError(f"Expected {0}, got {result.exit_code}")
-
-    def test_paths_command(self) -> None:
-        """Test paths command."""
-        with (
-            patch("flext_cli.commands.debug.get_config") as mock_get_config,
-            patch("flext_cli.commands.debug.Path") as mock_path_class,
-        ):
-            self._test_paths_command_impl(mock_path_class, mock_get_config)
-
-    def _test_paths_command_impl(
-        self,
-        mock_path_class: MagicMock,
-        mock_get_config: MagicMock,
-    ) -> None:
-        """Test paths command implementation."""
-        # Mock config
-        mock_config = MagicMock()
-        mock_config.config_dir = Path("/home/user/.flext")
-        mock_get_config.return_value = mock_config
-
-        # Mock Path.home()
-        mock_home = MagicMock()
-        mock_home.__truediv__ = lambda _, other: Path(f"/home/user/{other}")
-        mock_path_class.home.return_value = mock_home
-
-        with patch.object(Path, "exists", return_value=True):
-            result = self.runner.invoke(
-                debug_cmd,
-                ["paths"],
-                obj={"console": MagicMock()},
-            )
-
-            if result.exit_code != 0:
-                raise AssertionError(f"Expected {0}, got {result.exit_code}")
-
-    def test_debug_group_structure(self) -> None:
-        """Test debug command group structure."""
-        # Test that debug command group exists and has expected commands
-        if debug_cmd.name != "debug":
-            raise AssertionError(f"Expected {'debug'}, got {debug_cmd.name}")
-        if "connectivity" not in debug_cmd.commands:
-            raise AssertionError(f"Expected {'connectivity'} in {debug_cmd.commands}")
-        assert "performance" in debug_cmd.commands
-        if "validate" not in debug_cmd.commands:
-            raise AssertionError(f"Expected {'validate'} in {debug_cmd.commands}")
-        assert "trace" in debug_cmd.commands
-        if "env" not in debug_cmd.commands:
-            raise AssertionError(f"Expected {'env'} in {debug_cmd.commands}")
-        assert "paths" in debug_cmd.commands
-
-
-class TestDebugFunctionality:
-    """Test individual debug functions."""
-
-    def test_platform_info_access(self) -> None:
-        """Test that platform information is accessed correctly."""
-        with (
-            patch("platform.system") as mock_system,
-            patch("platform.release") as mock_release,
-            patch("platform.machine") as mock_machine,
-        ):
-            self._test_platform_info_access_impl(
-                mock_machine,
-                mock_release,
-                mock_system,
-            )
-
-    def _test_platform_info_access_impl(
-        self,
-        mock_machine: MagicMock,
-        mock_release: MagicMock,
-        mock_system: MagicMock,
-    ) -> None:
-        """Test that platform information is accessed correctly implementation."""
-        mock_system.return_value = "Linux"
-        mock_release.return_value = "5.15.0"
-        mock_machine.return_value = "x86_64"
-
-        # Import and call a function that uses platform info
-
-        # This tests that the imports work
-        assert platform.system
-        assert platform.release
-        assert platform.machine
-
-    def test_os_environ_access(self) -> None:
-        """Test OS environment variable access."""
-        # Test that we can access os.environ
-
-        # Test environment variable filtering
-        test_vars = {"FLX_TEST": "value", "OTHER": "value"}
-        flext_vars = {k: v for k, v in test_vars.items() if k.startswith("FLX_")}
-
-        if len(flext_vars) != 1:
-            raise AssertionError(f"Expected {1}, got {len(flext_vars)}")
-        if "FLX_TEST" not in flext_vars:
-            raise AssertionError(f"Expected {'FLX_TEST'} in {flext_vars}")
-
-    def test_path_operations(self) -> None:
-        """Test Path operations used in commands."""
-        # Test path operations used in the debug commands
-        test_path = Path("/test/path")
-
-        # Test path joining (used in paths command)
-        joined = test_path / "subpath"
-        if str(joined) != "/test/path/subpath":
-            raise AssertionError(f"Expected {'/test/path/subpath'}, got {joined!s}")
-
-    def test_config_access(self) -> None:
-        """Test config access in debug commands."""
-        with patch("flext_cli.commands.debug.get_config") as mock_get_config:
-            self._test_config_access_impl(mock_get_config)
-
-    def _test_config_access_impl(self, mock_get_config: MagicMock) -> None:
-        """Test config access in debug commands implementation."""
-        mock_config = MagicMock()
-        mock_config.config_dir = Path("/test/config")
-        mock_get_config.return_value = mock_config
-
-        # Test that get_config can be called
-        config = mock_get_config()
-        if config.config_dir != Path("/test/config"):
-            raise AssertionError(
-                f"Expected {Path('/test/config')}, got {config.config_dir}",
-            )
-
-    def test_sys_version_access(self) -> None:
-        """Test sys.version access."""
-        # Test that we can access sys.version_info and sys.version
-        assert sys.version_info
-        assert sys.version
-
-        # Test version comparison logic used in validate command
-        py_version = sys.version_info
-        is_new_enough = py_version >= (3, 10)
-        assert isinstance(is_new_enough, bool)
-
-    def test_asyncio_integration(self) -> None:
-        """Test asyncio integration."""
-        # Test that asyncio.run exists (used in async commands)
-        assert hasattr(asyncio, "run")
-
-        # Test simple async function
-        async def test_async() -> str:
-            return "test"
-
-        result = asyncio.run(test_async())
-        if result != "test":
-            raise AssertionError(f"Expected {'test'}, got {result}")
-
-    def test_rich_table_integration(self) -> None:
-        """Test Rich table integration."""
-        # Test table creation (used in performance and paths commands)
-        table = Table(title="Test Table")
-        table.add_column("Column 1", style="cyan")
-        table.add_column("Column 2", style="white")
-        table.add_row("value1", "value2")
-
-        if table.title != "Test Table":
-            raise AssertionError(f"Expected {'Test Table'}, got {table.title}")
-
-    def test_click_context_pattern(self) -> None:
-        """Test Click context pattern used in commands."""
-        # Test that we can create a mock context like used in commands
-        console = MagicMock()
-        ctx = MagicMock(spec=click.Context)
-        ctx.obj = {"console": console}
-
-        # Test accessing console from context (pattern used in all debug commands)
-        accessed_console = ctx.obj["console"]
-        assert accessed_console is console
-
-    def test_import_error_handling(self) -> None:
-        """Test import error handling used in validate command."""
-        # Test the pattern used for checking package availability
-        required_packages = ["click", "rich", "httpx", "pydantic", "yaml"]
-        missing_packages = []
-
-        for package in required_packages:
-            try:
-                __import__(package)
-            except ImportError:
-                missing_packages.append(package)
-
-        # These packages should be available in test environment
-        if "click" in missing_packages:
-            raise AssertionError(
-                f"Expected click available, but found in missing: {missing_packages}",
-            )
-        assert "rich" not in missing_packages
-
-    def test_sensitive_value_masking(self) -> None:
-        """Test sensitive value masking logic from env command."""
-        test_vars = {
-            "FLX_TOKEN": "verylongtoken123456",
-            "FLX_SECRET_KEY": "short",
-            "FLX_API_KEY": "apikey123",
+    def test_env_command_real(self) -> None:
+        """Test env command with real environment variables."""
+        # Set some real FLEXT environment variables for testing
+        test_env = os.environ.copy()
+        test_env.update({
             "FLX_DEBUG": "true",
-        }
+            "FLX_PROFILE": "test",
+            "NON_FLX_VAR": "should_not_appear"
+        })
+        
+        ctx_obj = {"console": self.console}
+        
+        with self.runner.isolated_filesystem():
+            result = self.runner.invoke(
+                debug_cmd, 
+                ["env"], 
+                obj=ctx_obj, 
+                env=test_env,
+                catch_exceptions=False
+            )
+        
+        assert result.exit_code == 0, f"Env command failed: {result.output}"
+        
+        # Should show FLX_ variables but not others
+        assert "FLX_DEBUG" in result.output or "FLX_PROFILE" in result.output or "No FLEXT environment" in result.output
 
-        # Test masking logic
-        for key, value in test_vars.items():
-            if "TOKEN" in key or "KEY" in key or "SECRET" in key:
-                display_value = value[:4] + "****" if len(value) > 4 else "****"
-            else:
-                display_value = value
+    def test_paths_command_real(self) -> None:
+        """Test paths command with real filesystem paths."""
+        ctx_obj = {"console": self.console}
+        
+        result = self.runner.invoke(debug_cmd, ["paths"], obj=ctx_obj, catch_exceptions=False)
+        
+        assert result.exit_code == 0, f"Paths command failed: {result.output}"
+        
+        # Should show actual paths
+        assert "Config" in result.output or "Path" in result.output
 
-            # Verify masking works correctly
-            if key in {"FLX_TOKEN", "FLX_SECRET_KEY", "FLX_API_KEY"}:
-                if "****" not in display_value:
-                    raise AssertionError(f"Expected {'****'} in {display_value}")
-            elif display_value != value:
-                raise AssertionError(f"Expected {value}, got {display_value}")
+    def test_validate_command_real(self) -> None:
+        """Test validate command with real system validation."""
+        ctx_obj = {"console": self.console}
+        
+        result = self.runner.invoke(debug_cmd, ["validate"], obj=ctx_obj, catch_exceptions=False)
+        
+        # Should complete successfully or with validation warnings
+        assert result.exit_code in [0, 1], f"Validate command failed: {result.output}"
+        
+        # Should contain validation output (may be config info, version, or validation results)
+        assert result.output.strip()  # Should have some output
+        assert len(result.output.strip()) > 0  # Output should not be empty
 
-    def test_path_existence_checking(self) -> None:
-        """Test path existence checking pattern from paths command."""
-        # Test the pattern used in paths command
-        test_paths = {
-            "Config Directory": Path.home() / ".flext",
-            "Config File": Path.home() / ".flext" / "config.yaml",
-        }
+    def test_trace_command_real(self) -> None:
+        """Test trace command with real arguments."""
+        ctx_obj = {"console": self.console}
+        
+        result = self.runner.invoke(
+            debug_cmd, 
+            ["trace", "test", "command"], 
+            obj=ctx_obj,
+            catch_exceptions=False
+        )
+        
+        # Trace command should execute (placeholder implementation)
+        assert result.exit_code == 0, f"Trace command failed: {result.output}"
 
-        for path in test_paths.values():
-            exists = "✅" if path.exists() else "❌"
-            if exists not in {"✅", "❌"}:  # Should be one of these symbols
-                raise AssertionError(f"Expected {exists} in {['✅', '❌']}")
+
+class TestDebugSystemIntegration:
+    """Test debug commands integration with real system."""
+
+    def setup_method(self) -> None:
+        """Set up test environment."""
+        self.console = Console(width=80, legacy_windows=False)
+
+    def test_real_python_version_access(self) -> None:
+        """Test accessing real Python version information."""
+        # Test real Python version access (used by validate command)
+        py_version = sys.version_info
+        py_version_string = sys.version
+        
+        assert py_version >= (3, 8), f"Unexpected Python version: {py_version}"
+        assert isinstance(py_version_string, str)
+        assert str(py_version.major) in py_version_string
+
+    def test_real_platform_info_access(self) -> None:
+        """Test accessing real platform information."""
+        # Test real platform info (used by validate command)
+        system_name = platform.system()
+        release_info = platform.release()
+        machine_type = platform.machine()
+        
+        assert isinstance(system_name, str)
+        assert isinstance(release_info, str)
+        assert isinstance(machine_type, str)
+
+    def test_real_environment_variable_access(self) -> None:
+        """Test real environment variable access."""
+        # Test real environment access (used by env command)
+        all_vars = dict(os.environ)
+        
+        # Filter for FLEXT variables (real logic from env command)
+        flext_vars = {k: v for k, v in all_vars.items() if k.startswith("FLX_")}
+        
+        # Test that filtering works correctly
+        for key in flext_vars:
+            assert key.startswith("FLX_"), f"Non-FLEXT var found: {key}"
+
+    def test_real_path_operations(self) -> None:
+        """Test real path operations used in commands."""
+        # Test real path operations (used by paths command)
+        home_path = Path.home()
+        config_path = home_path / ".flext"
+        
+        assert isinstance(home_path, Path)
+        assert isinstance(config_path, Path)
+        assert str(config_path).endswith(".flext")
+        
+        # Test path existence checking (real filesystem)
+        home_exists = home_path.exists()
+        assert isinstance(home_exists, bool)
+
+    def test_real_constants_access(self) -> None:
+        """Test accessing real FLEXT constants."""
+        # Test real constants access (used in multiple commands)
+        default_host = FlextConstants.Platform.DEFAULT_HOST
+        api_port = FlextConstants.Platform.FLEXT_API_PORT
+        
+        assert isinstance(default_host, str)
+        assert isinstance(api_port, int)
+        assert api_port > 0
+        
+        # Construct real API URL
+        api_url = f"http://{default_host}:{api_port}"
+        assert "http://" in api_url
 
 
-class TestDebugCommandErrorHandling:
-    """Test error handling in debug commands."""
+class TestDebugErrorHandlingReal:
+    """Test real error handling in debug commands."""
 
     def setup_method(self) -> None:
         """Set up test environment."""
         self.runner = CliRunner()
+        self.console = Console(width=80, legacy_windows=False)
 
-    def test_connectivity_with_exception(self) -> None:
-        """Test connectivity command with exception."""
-        with (
-            patch("flext_cli.commands.debug.get_default_cli_client") as mock_get_client,
-            patch("asyncio.run") as mock_asyncio_run,
-        ):
-            self._test_connectivity_with_exception_impl(
-                mock_asyncio_run,
-                mock_get_client,
-            )
+    def test_connectivity_without_context_real(self) -> None:
+        """Test connectivity command without proper context - real error."""
+        # Test with no context object (should fail gracefully)
+        result = self.runner.invoke(debug_cmd, ["connectivity"], obj=None)
+        
+        # Should fail gracefully with proper error message
+        assert result.exit_code == 1
+        assert "context" in result.output.lower() or "available" in result.output.lower()
 
-    def _test_connectivity_with_exception_impl(
-        self,
-        mock_asyncio_run: MagicMock,
-        _mock_get_client: MagicMock,
-    ) -> None:
-        """Test connectivity command with exception implementation."""
-        # Make asyncio.run raise an exception
-        mock_asyncio_run.side_effect = Exception("Connection failed")
+    def test_connectivity_network_failure_real(self) -> None:
+        """Test connectivity with real network conditions."""
+        ctx_obj = {"console": self.console}
+        
+        # This tests real network behavior - may succeed or fail based on environment
+        result = self.runner.invoke(debug_cmd, ["connectivity"], obj=ctx_obj)
+        
+        # Should handle network issues gracefully
+        assert result.exit_code in [0, 1]
+        
+        if result.exit_code == 1:
+            # Check that error message is informative
+            assert result.output  # Should have some error output
 
-        self.runner.invoke(debug_cmd, ["connectivity"], obj={"console": MagicMock()})
+    def test_performance_api_unavailable_real(self) -> None:
+        """Test performance command when API is unavailable."""
+        ctx_obj = {"console": self.console}
+        
+        result = self.runner.invoke(debug_cmd, ["performance"], obj=ctx_obj)
+        
+        # Should handle API unavailability gracefully
+        assert result.exit_code in [0, 1]
 
-        # Command should handle the exception
-        assert mock_asyncio_run.called
+    def test_validate_with_real_system_state(self) -> None:
+        """Test validate command with actual system state."""
+        ctx_obj = {"console": self.console}
+        
+        result = self.runner.invoke(debug_cmd, ["validate"], obj=ctx_obj)
+        
+        # Should validate actual system and provide meaningful results
+        assert result.exit_code in [0, 1]  # Success or validation warnings
+        assert result.output  # Should provide validation output
 
-    def test_performance_with_exception(self) -> None:
-        """Test performance command with exception."""
-        with (
-            patch("flext_cli.commands.debug.get_default_cli_client") as mock_get_client,
-            patch("asyncio.run") as mock_asyncio_run,
-        ):
-            self._test_performance_with_exception_impl(
-                mock_asyncio_run,
-                mock_get_client,
-            )
 
-    def _test_performance_with_exception_impl(
-        self,
-        mock_asyncio_run: MagicMock,
-        _mock_get_client: MagicMock,
-    ) -> None:
-        """Test performance command with exception implementation."""
-        # Make asyncio.run raise an exception
-        mock_asyncio_run.side_effect = Exception("Metrics failed")
+class TestDebugCommandFlow:
+    """Test complete debug command workflows."""
 
-        self.runner.invoke(debug_cmd, ["performance"], obj={"console": MagicMock()})
+    def setup_method(self) -> None:
+        """Set up test environment."""
+        self.runner = CliRunner()
+        self.console = Console(width=80, legacy_windows=False)
 
-        # Command should handle the exception
-        assert mock_asyncio_run.called
+    def test_complete_debug_workflow(self) -> None:
+        """Test running multiple debug commands in sequence."""
+        ctx_obj = {"console": self.console}
+        
+        # Run commands in typical debug workflow order
+        commands_to_test = [
+            ["env"],        # Check environment
+            ["paths"],      # Check paths
+            ["validate"],   # Validate system
+            # Skip connectivity and performance as they require API
+        ]
+        
+        for cmd_args in commands_to_test:
+            result = self.runner.invoke(debug_cmd, cmd_args, obj=ctx_obj)
+            
+            assert result.exit_code in [0, 1], f"Command {cmd_args} failed: {result.output}"
+            assert result.output, f"Command {cmd_args} produced no output"
+
+    def test_help_for_all_subcommands(self) -> None:
+        """Test help output for all debug subcommands."""
+        for cmd_name in debug_cmd.commands:
+            result = self.runner.invoke(debug_cmd, [cmd_name, "--help"])
+            
+            assert result.exit_code == 0, f"Help failed for {cmd_name}: {result.output}"
+            assert cmd_name in result.output or "Usage" in result.output

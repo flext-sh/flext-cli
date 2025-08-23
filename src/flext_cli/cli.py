@@ -12,8 +12,8 @@ import sys
 
 import click
 from flext_core import (
-    FlextUtilities,
     __version__ as core_version,
+    get_logger,
 )
 from rich.console import Console
 
@@ -21,7 +21,7 @@ from flext_cli.__version__ import __version__
 from flext_cli.cmd import auth, config, debug
 from flext_cli.config import get_config
 from flext_cli.constants import FlextCliConstants
-from flext_cli.models import FlextCliContext as CLIContext
+from flext_cli.models import FlextCliContext
 
 
 @click.group(
@@ -79,7 +79,7 @@ def cli(
     console = Console(quiet=quiet)
 
     # Create CLI context with correct fields (SOLID: Single Responsibility)
-    cli_context = CLIContext()
+    cli_context = FlextCliContext()
 
     ctx.ensure_object(dict)
     ctx.obj["config"] = config
@@ -198,9 +198,13 @@ def version(ctx: click.Context) -> None:
 
 def main() -> None:
     """Execute the main CLI entry point with error handling."""
-    # Use centralized error handling from flext-core to follow DRY principle
-    # This ensures consistent error handling across all FLEXT ecosystem tools
-    FlextUtilities.handle_cli_main_errors(cli, debug_mode=True)
+    # Direct CLI execution - FlextUtilities has issues in current flext-core
+    try:
+        cli()
+    except Exception:
+        logger = get_logger(__name__)
+        logger.exception("CLI execution failed")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

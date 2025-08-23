@@ -8,12 +8,33 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import TypedDict
 from uuid import UUID
 
 from flext_cli.entities import CommandType
 
-# Type alias for command arguments and options
+# Type alias for command arguments and options using Union for better PyRight compatibility
 AnyPrimitive = str | int | float | bool | None
+
+
+class CommandOptions(TypedDict, total=False):
+    """Type definition for command options."""
+
+    # Common command options - allows any string keys with primitive values
+    timeout: int | float
+    verbose: bool
+    output_format: str
+    working_directory: str
+
+
+class ConfigData(TypedDict, total=False):
+    """Type definition for configuration data."""
+
+    # Common configuration keys - allows any string keys with primitive values
+    api_endpoint: str
+    timeout: int | float
+    enabled: bool
+    version: str
 
 
 @dataclass
@@ -25,7 +46,7 @@ class ExecuteCommandCommand:
     command_type: CommandType = CommandType.SYSTEM
     timeout_seconds: float | None = None
     arguments: dict[str, AnyPrimitive] | None = None
-    options: dict[str, AnyPrimitive] = field(default_factory=dict)
+    options: CommandOptions = field(default_factory=CommandOptions)
     user_id: UUID | None = None
     session_id: str | None = None
     working_directory: str | None = None
@@ -60,7 +81,7 @@ class UpdateConfigCommand:
     config_id: UUID | None = None
     name: str | None = None
     description: str | None = None
-    config_data: dict[str, AnyPrimitive] = field(default_factory=dict)
+    config_data: ConfigData = field(default_factory=ConfigData)
     version: str | None = None
     user_id: UUID | None = None
 

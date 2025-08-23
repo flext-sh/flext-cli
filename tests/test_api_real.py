@@ -100,10 +100,10 @@ class TestFlextCliFormattingReal:
         result = flext_cli_format(test_data, "json")
 
         # Should succeed
-        assert result.success, f"JSON formatting should succeed: {result.error}"
+        assert result.is_success, f"JSON formatting should succeed: {result.error}"
 
         # Should produce ACTUAL JSON
-        formatted = result.unwrap()
+        formatted = result.value
         assert isinstance(formatted, str), "Result should be string"
 
         # Should be VALID JSON that can be parsed back
@@ -122,10 +122,10 @@ class TestFlextCliFormattingReal:
         result = flext_cli_table(test_data, "Team Roster")
 
         # Should succeed
-        assert result.success, f"Table formatting should succeed: {result.error}"
+        assert result.is_success, f"Table formatting should succeed: {result.error}"
 
         # Should produce ACTUAL Rich table
-        table = result.unwrap()
+        table = result.value
         assert hasattr(table, "title"), "Should be a Rich table with title"
         assert str(table.title) == "Team Roster", "Table title should match"
 
@@ -145,10 +145,10 @@ class TestFlextCliFormattingReal:
         )
 
         # Should succeed
-        assert result.success, f"Aggregation should succeed: {result.error}"
+        assert result.is_success, f"Aggregation should succeed: {result.error}"
 
         # Should produce ACTUAL aggregated data
-        aggregated = result.unwrap()
+        aggregated = result.value
         assert isinstance(aggregated, list), "Result should be list"
         assert len(aggregated) == 2, "Should have 2 regions"
 
@@ -175,10 +175,10 @@ class TestFlextCliFormattingReal:
         )
 
         # Should succeed
-        assert result.success, f"Transform should succeed: {result.error}"
+        assert result.is_success, f"Transform should succeed: {result.error}"
 
         # Should produce ACTUAL filtered data
-        filtered = result.unwrap()
+        filtered = result.value
         assert len(filtered) == 2, "Should have 2 engineers over 30"
 
         names = [person["name"] for person in filtered]
@@ -206,7 +206,7 @@ class TestFlextCliFormattingReal:
             result = flext_cli_export(export_data, str(export_path), "json")
 
             # Should succeed
-            assert result.success, f"Export should succeed: {result.error}"
+            assert result.is_success, f"Export should succeed: {result.error}"
 
             # Should have ACTUALLY created the file
             assert export_path.exists(), "Export file should exist"
@@ -276,8 +276,8 @@ class TestFlextCliRealWorldScenarios:
             reverse=True,  # Most time-consuming first
         )
 
-        assert transform_result.success, "Transform should succeed"
-        filtered_data = transform_result.unwrap()
+        assert transform_result.is_success, "Transform should succeed"
+        filtered_data = transform_result.value
         assert len(filtered_data) == 3, "Should have 3 edit/save actions"
 
         # Should be sorted by duration (descending)
@@ -289,15 +289,15 @@ class TestFlextCliRealWorldScenarios:
             filtered_data, group_by="user", sum_fields=["duration"]
         )
 
-        assert aggregate_result.success, "Aggregation should succeed"
-        user_stats = aggregate_result.unwrap()
+        assert aggregate_result.is_success, "Aggregation should succeed"
+        user_stats = aggregate_result.value
         assert len(user_stats) == 2, "Should have 2 users with edit/save actions"
 
         # Step 4: Format as table (REAL formatting)
         table_result = flext_cli_table(user_stats, "User Activity Summary")
 
-        assert table_result.success, "Table formatting should succeed"
-        table = table_result.unwrap()
+        assert table_result.is_success, "Table formatting should succeed"
+        table = table_result.value
         assert str(table.title) == "User Activity Summary", (
             "Table should have correct title"
         )
@@ -307,7 +307,7 @@ class TestFlextCliRealWorldScenarios:
             export_path = Path(temp_dir) / "user_activity.json"
             export_result = flext_cli_export(user_stats, str(export_path), "json")
 
-            assert export_result.success, "Export should succeed"
+            assert export_result.is_success, "Export should succeed"
             assert export_path.exists(), "Export file should exist"
 
             # Verify ACTUAL file content
@@ -320,7 +320,7 @@ class TestFlextCliRealWorldScenarios:
         invalid_result = flext_cli_format(
             "not a valid data structure", "invalid_format"
         )
-        assert not invalid_result.success, "Should fail with invalid format"
+        assert not invalid_result.is_success, "Should fail with invalid format"
         assert "error" in invalid_result.error.lower(), "Should have error message"
 
         # Test invalid export path
@@ -352,15 +352,15 @@ class TestFlextCliRealWorldScenarios:
             large_data, group_by="category", sum_fields=["value"]
         )
 
-        assert agg_result.success, "Large data aggregation should succeed"
-        aggregated = agg_result.unwrap()
+        assert agg_result.is_success, "Large data aggregation should succeed"
+        aggregated = agg_result.value
         assert len(aggregated) == 10, "Should have 10 categories"
 
         # Test formatting performance (REAL formatting)
         format_result = flext_cli_format(aggregated, "json")
-        assert format_result.success, "Large data formatting should succeed"
+        assert format_result.is_success, "Large data formatting should succeed"
 
-        json_output = format_result.unwrap()
+        json_output = format_result.value
         assert len(json_output) > 500, "JSON output should be substantial"
 
         # Verify the JSON is ACTUALLY valid

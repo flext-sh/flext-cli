@@ -14,12 +14,45 @@ import platform as _platform
 import sys
 from contextlib import suppress
 from pathlib import Path
+from typing import TypedDict
 
 import click
 from rich.console import Console
 from rich.table import Table
 
 from flext_cli.client import FlextApiClient
+
+
+class CliContextObj(TypedDict, total=False):
+    """Type definition for Click context object."""
+
+    console: Console
+    config: object
+    profile: str
+    debug: bool
+
+
+class SystemStatus(TypedDict, total=False):
+    """Type definition for system status response."""
+
+    version: str
+    status: str
+    uptime: str
+
+
+def _get_cli_context_obj(ctx_obj: object) -> CliContextObj:
+    """Extract CLI context object with proper typing."""
+    if isinstance(ctx_obj, dict):
+        return ctx_obj  # type: ignore[return-value]  # TypedDict compatible
+    return CliContextObj()
+
+
+def _get_status_dict(status_obj: object) -> SystemStatus | None:
+    """Extract system status with proper typing."""
+    if isinstance(status_obj, dict):
+        return status_obj  # type: ignore[return-value]  # TypedDict compatible
+    return None
+
 
 # Flags patchable by tests
 FLEXT_API_AVAILABLE = False
@@ -66,10 +99,9 @@ def connectivity(ctx: click.Context) -> None:
         error_console.print("[red]❌ CLI context not available[/red]")
         ctx.exit(1)
 
-    obj = ctx.obj if hasattr(ctx.obj, "get") else {}
-    console: Console = (
-        obj.get("console", Console()) if hasattr(obj, "get") else Console()
-    )
+    obj: CliContextObj = _get_cli_context_obj(ctx.obj)
+    console_obj = obj.get("console", Console())
+    console: Console = console_obj if isinstance(console_obj, Console) else Console()
 
     # Resolve patchable module-level hooks from flext_cli.commands.debug
     try:
@@ -110,29 +142,21 @@ def _get_client(
     else:
         provider = get_default_cli_client
 
-    client = None
+    # Try the provider first
     if callable(provider):
         try:
             client = provider()
-        except Exception:
-            client = None
+            if isinstance(client, FlextApiClient):
+                return client
+        except Exception as e:
+            console.print(f"[yellow]Warning: Provider failed: {e}[/yellow]")
 
-    # Fallback: usar classe FlextApiClient se disponível e patchada nos testes
-    if client is None:
-        try:
-            client_class = getattr(debug_mod, "FlextApiClient", None)
-            if client_class is None:
-                client_class = FlextApiClient
-            client = client_class()
-        except Exception:
-            client = None
-
-    if client is None:
-        console.print("[red]❌ Failed to get client provider[/red]")
+    # Use standard FlextApiClient as the reliable default
+    try:
+        return FlextApiClient()
+    except Exception as e:
+        console.print(f"[red]❌ Failed to create API client: {e}[/red]")
         ctx.exit(1)
-
-    # Ensure we return the correct type for mypy
-    return client if isinstance(client, FlextApiClient) else FlextApiClient()
 
 
 async def _test_connection(
@@ -143,26 +167,20 @@ async def _test_connection(
     """Test API connection."""
     console.print("[yellow]Testing API connectivity[/yellow]")
 
-    # FlextResult expected in tests
+    # Test connection using async client
     try:
         test_result = await client.test_connection()
-    except (TypeError, AttributeError):
-        # Método síncrono ou mock simples
-        try:
-            # If test_connection is sync, this will work
-            sync_result = getattr(client, "test_connection", None)
-            if sync_result and not asyncio.iscoroutinefunction(sync_result):
-                test_result = sync_result()
-            else:
-                test_result = False
-        except (AttributeError, TypeError):
-            test_result = False
+    except Exception:
+        test_result = False
 
     if hasattr(test_result, "success") and hasattr(test_result, "error"):
         # This is a FlextResult-like object
-        success_attr = test_result.success
-        if not success_attr:
-            error_attr = test_result.error or "Unknown error"
+        if hasattr(test_result, "success") and not getattr(
+            test_result, "success", True
+        ):
+            error_attr = (
+                getattr(test_result, "error", "Unknown error") or "Unknown error"
+            )
             console.print(
                 f"[red]❌ Failed to connect to API: {error_attr}[/red]",
             )
@@ -181,24 +199,14 @@ async def _test_connection(
 async def _get_system_status(client: FlextApiClient, console: Console) -> None:
     """Get and display system status."""
     try:
-        try:
-            status_result = await client.get_system_status()
-        except (TypeError, AttributeError):
-            try:
-                # If get_system_status is sync, this will work
-                sync_method = getattr(client, "get_system_status", None)
-                if sync_method and not asyncio.iscoroutinefunction(sync_method):
-                    status_result = sync_method()
-                else:
-                    status_result = None
-            except (AttributeError, TypeError):
-                status_result = None
+        status_result = await client.get_system_status()
 
-        if status_result and isinstance(status_result, dict):
+        status_data = _get_status_dict(status_result)
+        if status_data:
             console.print("\nSystem Status:")
-            console.print(f"  Version: {status_result.get('version', 'Unknown')}")
-            console.print(f"  Status: {status_result.get('status', 'Unknown')}")
-            console.print(f"  Uptime: {status_result.get('uptime', 'Unknown')}")
+            console.print(f"  Version: {status_data.get('version', 'Unknown')}")
+            console.print(f"  Status: {status_data.get('status', 'Unknown')}")
+            console.print(f"  Uptime: {status_data.get('uptime', 'Unknown')}")
         else:
             console.print(
                 "[yellow]⚠ Could not get system status: No data available[/yellow]",
@@ -237,27 +245,16 @@ def performance(ctx: click.Context) -> None:
 
         metrics: dict[str, object] | None = None
 
-        async def _fetch() -> dict[str, object] | None:
+        async def _fetch_metrics() -> dict[str, object] | None:
             try:
                 status_result = await client.get_system_status()
                 return status_result if isinstance(status_result, dict) else None
             except Exception:  # noqa: BLE001
                 return None
 
+        # Get metrics using consistent async approach
         try:
-            # Try to get metrics
-            try:
-                metrics = asyncio.run(_fetch())
-            except Exception:
-                # Fallback to sync method if available
-                sync_method = getattr(client, "get_system_status", None)
-                if sync_method and not asyncio.iscoroutinefunction(sync_method):
-                    try:
-                        metrics = sync_method()
-                    except Exception:
-                        metrics = None
-                else:
-                    metrics = None
+            metrics = asyncio.run(_fetch_metrics())
         except Exception:
             metrics = None
 
@@ -284,10 +281,9 @@ def validate(ctx: click.Context) -> None:
         error_console.print("[red]❌ CLI context not available[/red]")
         ctx.exit(1)
 
-    obj = ctx.obj if hasattr(ctx.obj, "get") else {}
-    console: Console = (
-        obj.get("console", Console()) if hasattr(obj, "get") else Console()
-    )
+    obj: CliContextObj = _get_cli_context_obj(ctx.obj)
+    console_obj = obj.get("console", Console())
+    console: Console = console_obj if isinstance(console_obj, Console) else Console()
     cfg = get_config()
 
     cfg_path = Path(getattr(cfg, "config_dir", Path.home() / ".flext")) / "config.yaml"
@@ -322,10 +318,9 @@ def trace(ctx: click.Context, args: tuple[str, ...]) -> None:
         error_console.print("[red]❌ CLI context not available[/red]")
         ctx.exit(1)
 
-    obj = ctx.obj if hasattr(ctx.obj, "get") else {}
-    console: Console = (
-        obj.get("console", Console()) if hasattr(obj, "get") else Console()
-    )
+    obj: CliContextObj = _get_cli_context_obj(ctx.obj)
+    console_obj = obj.get("console", Console())
+    console: Console = console_obj if isinstance(console_obj, Console) else Console()
     console.print(f"Tracing: {' '.join(args)}")
 
 
@@ -401,10 +396,9 @@ def check(ctx: click.Context) -> None:
         error_console.print("[red]❌ CLI context not available[/red]")
         ctx.exit(1)
 
-    obj = ctx.obj if hasattr(ctx.obj, "get") else {}
-    console: Console = (
-        obj.get("console", Console()) if hasattr(obj, "get") else Console()
-    )
+    obj: CliContextObj = _get_cli_context_obj(ctx.obj)
+    console_obj = obj.get("console", Console())
+    console: Console = console_obj if isinstance(console_obj, Console) else Console()
     console.print("[green]System OK[/green]")
 
 

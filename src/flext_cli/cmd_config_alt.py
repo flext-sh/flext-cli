@@ -107,7 +107,7 @@ def show(ctx: click.Context) -> None:
     cfg = getattr(cli_context, "config", None) if cli_context else None
     if cfg is not None:
         fmt = getattr(cfg, "output_format", "table")
-        data = {
+        data: dict[str, object] = {
             "api_url": getattr(cfg, "api_url", ""),
             "timeout": getattr(cfg, "timeout", 0),
             "profile": getattr(cfg, "profile", "default"),
@@ -119,7 +119,7 @@ def show(ctx: click.Context) -> None:
         if fmt == "yaml":
             console.print(yaml.dump(data, default_flow_style=False))
             return
-    # fallback simples
+    # default display
     console.print(FlextCliConstants.CliMessages.STATUS_DISPLAY_CONFIG)
 
 

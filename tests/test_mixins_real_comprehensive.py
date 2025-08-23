@@ -61,28 +61,28 @@ class TestFlextCliValidationMixin:
         """Test email validation with valid email."""
         result = self.mixin._validate_email_input("email", "test@example.com")
 
-        assert result.success
-        assert result.unwrap() == "test@example.com"
+        assert result.is_success
+        assert result.value == "test@example.com"
 
     def test_validate_email_input_invalid(self) -> None:
         """Test email validation with invalid email."""
         result = self.mixin._validate_email_input("email", "invalid_email")
 
-        assert not result.success
+        assert not result.is_success
         assert "Validation failed for email" in (result.error or "")
 
     def test_validate_url_input_valid(self) -> None:
         """Test URL validation with valid URL."""
         result = self.mixin._validate_url_input("url", "https://example.com")
 
-        assert result.success
-        assert result.unwrap() == "https://example.com"
+        assert result.is_success
+        assert result.value == "https://example.com"
 
     def test_validate_url_input_invalid(self) -> None:
         """Test URL validation with invalid URL."""
         result = self.mixin._validate_url_input("url", "not_a_url")
 
-        assert not result.success
+        assert not result.is_success
         assert "Validation failed for url" in (result.error or "")
 
     def test_validate_file_input_valid(self) -> None:
@@ -93,8 +93,8 @@ class TestFlextCliValidationMixin:
 
         try:
             result = self.mixin._validate_file_input("file", str(temp_file))
-            assert result.success
-            assert str(temp_file) in result.unwrap()
+            assert result.is_success
+            assert str(temp_file) in result.value
         finally:
             temp_file.unlink()
 
@@ -102,29 +102,29 @@ class TestFlextCliValidationMixin:
         """Test file validation with non-existent file."""
         result = self.mixin._validate_file_input("file", "/nonexistent/file.txt")
 
-        assert not result.success
+        assert not result.is_success
         assert "Validation failed for file" in (result.error or "")
 
     def test_validate_path_input_valid(self) -> None:
         """Test path validation with valid path."""
         result = self.mixin._validate_path_input("path", "/tmp")
 
-        assert result.success
-        assert "/tmp" in result.unwrap()
+        assert result.is_success
+        assert "/tmp" in result.value
 
     def test_validate_dir_input_valid(self) -> None:
         """Test directory validation with existing directory."""
         with tempfile.TemporaryDirectory() as temp_dir:
             result = self.mixin._validate_dir_input("dir", temp_dir)
 
-            assert result.success
-            assert temp_dir in result.unwrap()
+            assert result.is_success
+            assert temp_dir in result.value
 
     def test_validate_dir_input_nonexistent(self) -> None:
         """Test directory validation with non-existent directory."""
         result = self.mixin._validate_dir_input("dir", "/nonexistent/directory")
 
-        assert not result.success
+        assert not result.is_success
         assert "Validation failed for dir" in (result.error or "")
 
     def test_validate_inputs_success_mixed(self) -> None:
@@ -145,8 +145,8 @@ class TestFlextCliValidationMixin:
             try:
                 result = self.mixin.flext_cli_validate_inputs(inputs)
 
-                assert result.success
-                validated = result.unwrap()
+                assert result.is_success
+                validated = result.value
                 assert len(validated) == 5
                 assert "test@example.com" in validated["email"]
                 assert "https://example.com" in validated["website"]
@@ -162,7 +162,7 @@ class TestFlextCliValidationMixin:
 
         result = self.mixin.flext_cli_validate_inputs(inputs)
 
-        assert not result.success
+        assert not result.is_success
         assert "Validation failed for" in (result.error or "")
 
     def test_validate_inputs_unknown_type(self) -> None:
@@ -173,7 +173,7 @@ class TestFlextCliValidationMixin:
 
         result = self.mixin.flext_cli_validate_inputs(inputs)
 
-        assert not result.success
+        assert not result.is_success
         assert "Unknown validation type: unknown_type" in (result.error or "")
 
     def test_require_confirmation_success(self) -> None:
@@ -186,8 +186,8 @@ class TestFlextCliValidationMixin:
 
             result = self.mixin.flext_cli_require_confirmation("Proceed?")
 
-            assert result.success
-            assert result.unwrap() is True
+            assert result.is_success
+            assert result.value is True
 
     def test_require_confirmation_dangerous(self) -> None:
         """Test confirmation requirement with dangerous flag."""
@@ -200,7 +200,7 @@ class TestFlextCliValidationMixin:
                 "Delete files?", dangerous=True
             )
 
-            assert result.success
+            assert result.is_success
             mock_confirm.assert_called_once()
             # Verify dangerous styling was applied
             call_args = mock_confirm.call_args[0]
@@ -215,7 +215,7 @@ class TestFlextCliValidationMixin:
 
             result = self.mixin.flext_cli_require_confirmation("Continue?")
 
-            assert not result.success
+            assert not result.is_success
             assert "Operation cancelled by user" in (result.error or "")
 
     def test_require_confirmation_helper_failure(self) -> None:
@@ -227,7 +227,7 @@ class TestFlextCliValidationMixin:
 
             result = self.mixin.flext_cli_require_confirmation("Continue?")
 
-            assert not result.success
+            assert not result.is_success
             assert "Confirmation failed" in (result.error or "")
 
 
@@ -467,8 +467,8 @@ class TestFlextCliResultMixin:
 
         result = self.mixin.flext_cli_chain_results(op1, op2, op3)
 
-        assert result.success
-        results = result.unwrap()
+        assert result.is_success
+        results = result.value
         assert len(results) == 3
         assert results[0] == "result1"
         assert results[1] == 42
@@ -485,7 +485,7 @@ class TestFlextCliResultMixin:
 
         result = self.mixin.flext_cli_chain_results(op1, op2)
 
-        assert not result.success
+        assert not result.is_success
         assert "First operation failed" in (result.error or "")
 
     def test_chain_results_middle_failure(self) -> None:
@@ -502,7 +502,7 @@ class TestFlextCliResultMixin:
 
         result = self.mixin.flext_cli_chain_results(op1, op2, op3)
 
-        assert not result.success
+        assert not result.is_success
         assert "Second operation failed" in (result.error or "")
 
     def test_chain_results_exception_handling(self) -> None:
@@ -517,7 +517,7 @@ class TestFlextCliResultMixin:
 
         result = self.mixin.flext_cli_chain_results(op1, op2)
 
-        assert not result.success
+        assert not result.is_success
         assert "Operation failed" in (result.error or "")
         assert "Operation raised exception" in (result.error or "")
 
@@ -525,8 +525,8 @@ class TestFlextCliResultMixin:
         """Test chaining with no operations."""
         result = self.mixin.flext_cli_chain_results()
 
-        assert result.success
-        results = result.unwrap()
+        assert result.is_success
+        results = result.value
         assert len(results) == 0
 
     def test_handle_result_success_with_action(self) -> None:
@@ -637,8 +637,8 @@ class TestFlextCliBasicMixin:
 
             result = self.mixin.flext_cli_validate_inputs(inputs)
 
-            assert result.success
-            validated = result.unwrap()
+            assert result.is_success
+            validated = result.value
             assert "email" in validated
             assert "config" in validated
         finally:
@@ -672,8 +672,8 @@ class TestFlextCliConfigMixin:
         result = self.mixin.flext_cli_load_config()
 
         # Config loading should succeed (may return empty dict)
-        assert result.success
-        loaded_config = result.unwrap()
+        assert result.is_success
+        loaded_config = result.value
         assert isinstance(loaded_config, dict)
 
         # Config should be cached
@@ -695,8 +695,8 @@ class TestFlextCliConfigMixin:
             result = self.mixin.flext_cli_load_config(temp_config_path)
 
             # May succeed or fail depending on implementation
-            if result.success:
-                loaded_config = result.unwrap()
+            if result.is_success:
+                loaded_config = result.value
                 assert isinstance(loaded_config, dict)
         finally:
             Path(temp_config_path).unlink()
@@ -749,8 +749,8 @@ class TestFlextCliAdvancedMixin:
                     dangerous=False,
                 )
 
-                assert result.success
-                assert result.unwrap() == "operation completed"
+                assert result.is_success
+                assert result.value == "operation completed"
         finally:
             temp_file.unlink()
 
@@ -769,8 +769,8 @@ class TestFlextCliAdvancedMixin:
                 {}, test_operation, operation_name="dangerous operation", dangerous=True
             )
 
-            assert result.success
-            assert result.unwrap() == "dangerous operation completed"
+            assert result.is_success
+            assert result.value == "dangerous operation completed"
             mock_confirm.assert_called_once()
 
     def test_execute_with_full_validation_dangerous_cancelled(self) -> None:
@@ -788,8 +788,8 @@ class TestFlextCliAdvancedMixin:
                 {}, test_operation, operation_name="dangerous operation", dangerous=True
             )
 
-            assert result.success
-            assert result.unwrap() == "Operation cancelled by user"
+            assert result.is_success
+            assert result.value == "Operation cancelled by user"
 
     def test_execute_with_full_validation_invalid_inputs(self) -> None:
         """Test full validation with invalid inputs."""
@@ -805,7 +805,7 @@ class TestFlextCliAdvancedMixin:
             inputs, test_operation, operation_name="test operation"
         )
 
-        assert not result.success
+        assert not result.is_success
         assert "Validation failed" in (result.error or "")
 
     def test_require_confirmation_delegation(self) -> None:
@@ -819,7 +819,7 @@ class TestFlextCliAdvancedMixin:
                 "Continue?", dangerous=True
             )
 
-            assert result.success
+            assert result.is_success
 
     def test_process_data_workflow_success(self) -> None:
         """Test processing data workflow successfully."""
@@ -843,8 +843,8 @@ class TestFlextCliAdvancedMixin:
             "input_data", steps, show_progress=True
         )
 
-        assert result.success
-        final_result = result.unwrap()
+        assert result.is_success
+        final_result = result.value
         assert str(final_result) == "final(step2(step1(input_data)))"
 
     def test_process_data_workflow_step_failure(self) -> None:
@@ -867,7 +867,7 @@ class TestFlextCliAdvancedMixin:
 
         result = self.mixin.flext_cli_process_data_workflow("input", steps)
 
-        assert not result.success
+        assert not result.is_success
         assert "Step 'Second step' failed" in (result.error or "")
 
     def test_process_data_workflow_step_exception(self) -> None:
@@ -887,7 +887,7 @@ class TestFlextCliAdvancedMixin:
 
         result = self.mixin.flext_cli_process_data_workflow("input", steps)
 
-        assert not result.success
+        assert not result.is_success
         assert "Step 'Second step' failed" in (result.error or "")
         assert "Step 2 exception" in (result.error or "")
 
@@ -923,8 +923,8 @@ class TestFlextCliAdvancedMixin:
 
             result = self.mixin.flext_cli_execute_file_operations(operations)
 
-            assert result.success
-            results = result.unwrap()
+            assert result.is_success
+            results = result.value
             assert len(results) == 2
             assert f"transform_{temp_file1}" in results
             assert f"modify_{temp_file2}" in results
@@ -948,7 +948,7 @@ class TestFlextCliAdvancedMixin:
 
         result = self.mixin.flext_cli_execute_file_operations(operations)
 
-        assert not result.success
+        assert not result.is_success
         assert "File not found" in (result.error or "")
 
     def test_execute_file_operations_operation_failure(self) -> None:
@@ -967,7 +967,7 @@ class TestFlextCliAdvancedMixin:
 
             result = self.mixin.flext_cli_execute_file_operations(operations)
 
-            assert not result.success
+            assert not result.is_success
             assert "Operation failing failed" in (result.error or "")
         finally:
             temp_file.unlink()
@@ -994,8 +994,8 @@ class TestDecorators:
 
             result = test_func(value="test")
 
-            assert result.success
-            assert "processed: test" in result.unwrap()
+            assert result.is_success
+            assert "processed: test" in result.value
 
     def test_zero_config_decorator_cancelled(self) -> None:
         """Test zero config decorator with cancelled confirmation."""
@@ -1010,8 +1010,8 @@ class TestDecorators:
 
             result = test_func()
 
-            assert result.success
-            assert "Operation cancelled by user" in result.unwrap()
+            assert result.is_success
+            assert "Operation cancelled by user" in result.value
 
     def test_zero_config_decorator_validation_failure(self) -> None:
         """Test zero config decorator with validation failure."""
@@ -1022,7 +1022,7 @@ class TestDecorators:
 
         result = test_func(email="invalid_email")
 
-        assert not result.success
+        assert not result.is_success
         assert "Validation failed" in (result.error or "")
 
     def test_zero_config_decorator_exception(self) -> None:
@@ -1035,7 +1035,7 @@ class TestDecorators:
 
         result = test_func()
 
-        assert not result.success
+        assert not result.is_success
         assert "Test operation raised exception" in (result.error or "")
 
     def test_auto_retry_decorator_success_first_attempt(self) -> None:
@@ -1047,8 +1047,8 @@ class TestDecorators:
 
         result = test_func()
 
-        assert result.success
-        assert result.unwrap() == "success"
+        assert result.is_success
+        assert result.value == "success"
 
     def test_auto_retry_decorator_success_after_retries(self) -> None:
         """Test auto retry decorator with success after retries."""
@@ -1064,8 +1064,8 @@ class TestDecorators:
 
         result = test_func()
 
-        assert result.success
-        assert result.unwrap() == "success on attempt 3"
+        assert result.is_success
+        assert result.value == "success on attempt 3"
         assert attempt_count == 3
 
     def test_auto_retry_decorator_all_attempts_fail(self) -> None:
@@ -1077,7 +1077,7 @@ class TestDecorators:
 
         result = test_func()
 
-        assert not result.success
+        assert not result.is_success
         assert "Operation failed after 2 attempts" in (result.error or "")
         assert "Always fails" in (result.error or "")
 
@@ -1091,7 +1091,7 @@ class TestDecorators:
 
         result = test_func()
 
-        assert not result.success
+        assert not result.is_success
         assert "Operation failed after 2 attempts" in (result.error or "")
         assert "Function exception" in (result.error or "")
 
@@ -1105,8 +1105,8 @@ class TestDecorators:
 
         result = test_func(data="test_data")
 
-        assert result.success
-        assert "processed: test_data" in result.unwrap()
+        assert result.is_success
+        assert "processed: test_data" in result.value
 
     def test_with_progress_decorator_exception(self) -> None:
         """Test with progress decorator with exception."""
@@ -1118,7 +1118,7 @@ class TestDecorators:
 
         result = test_func()
 
-        assert not result.success
+        assert not result.is_success
         assert "Operation failed" in (result.error or "")
         assert "Processing error" in (result.error or "")
 
@@ -1131,8 +1131,8 @@ class TestDecorators:
 
         result = test_func(email="test@example.com", website="https://example.com")
 
-        assert result.success
-        assert "Contact: test@example.com at https://example.com" in result.unwrap()
+        assert result.is_success
+        assert "Contact: test@example.com at https://example.com" in result.value
 
     def test_auto_validate_decorator_invalid_email(self) -> None:
         """Test auto validate decorator with invalid email."""
@@ -1143,7 +1143,7 @@ class TestDecorators:
 
         result = test_func(email="invalid_email")
 
-        assert not result.success
+        assert not result.is_success
         assert "Validation failed for email" in (result.error or "")
 
     def test_auto_validate_decorator_unknown_type(self) -> None:
@@ -1155,7 +1155,7 @@ class TestDecorators:
 
         result = test_func(field="value")
 
-        assert not result.success
+        assert not result.is_success
         assert "Unknown validation type for field" in (result.error or "")
 
     def test_handle_exceptions_decorator_success(self) -> None:
@@ -1167,8 +1167,8 @@ class TestDecorators:
 
         result = test_func(value="test")
 
-        assert result.success
-        assert "Success: test" in result.unwrap()
+        assert result.is_success
+        assert "Success: test" in result.value
 
     def test_handle_exceptions_decorator_exception(self) -> None:
         """Test handle exceptions decorator with exception."""
@@ -1180,7 +1180,7 @@ class TestDecorators:
 
         result = test_func()
 
-        assert not result.success
+        assert not result.is_success
         assert "Test operation: Function error" in (result.error or "")
 
     def test_handle_exceptions_decorator_no_message(self) -> None:
@@ -1193,7 +1193,7 @@ class TestDecorators:
 
         result = test_func()
 
-        assert not result.success
+        assert not result.is_success
         assert "Runtime error" in (result.error or "")
         assert "Test operation:" not in (result.error or "")
 
@@ -1210,8 +1210,8 @@ class TestDecorators:
 
             result = test_func(value="test")
 
-            assert result.success
-            assert "Executed: test" in result.unwrap()
+            assert result.is_success
+            assert "Executed: test" in result.value
 
     def test_require_confirmation_decorator_cancelled(self) -> None:
         """Test require confirmation decorator when cancelled."""
@@ -1226,8 +1226,8 @@ class TestDecorators:
 
             result = test_func()
 
-            assert result.success
-            assert "Operation cancelled by user" in result.unwrap()
+            assert result.is_success
+            assert "Operation cancelled by user" in result.value
 
 
 # =============================================================================
@@ -1244,7 +1244,7 @@ class TestMixinIntegration:
 
         # Load configuration
         config_result = mixin.flext_cli_load_config()
-        assert config_result.success
+        assert config_result.is_success
 
         # Validate inputs
         with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as f:
@@ -1257,7 +1257,7 @@ class TestMixinIntegration:
             }
 
             validation_result = mixin.flext_cli_validate_inputs(inputs)
-            assert validation_result.success
+            assert validation_result.is_success
 
             # Chain multiple operations
             def op1() -> FlextResult[str]:
@@ -1267,7 +1267,7 @@ class TestMixinIntegration:
                 return FlextResult[str].ok("step2")
 
             chain_result = mixin.flext_cli_chain_results(op1, op2)
-            assert chain_result.success
+            assert chain_result.is_success
 
             # Process data workflow
             def transform(data: object) -> FlextResult[object]:
@@ -1276,7 +1276,7 @@ class TestMixinIntegration:
             workflow_result = mixin.flext_cli_process_data_workflow(
                 "input", [("Transform", transform)], show_progress=False
             )
-            assert workflow_result.success
+            assert workflow_result.is_success
         finally:
             temp_file.unlink()
 
@@ -1293,9 +1293,9 @@ class TestMixinIntegration:
 
         # Test success case
         result = complex_func(value="success")
-        assert result.success
-        assert "Success: success" in result.unwrap()
+        assert result.is_success
+        assert "Success: success" in result.value
 
         # Test failure case (should retry)
         result = complex_func(value="fail")
-        assert not result.success
+        assert not result.is_success

@@ -10,7 +10,7 @@ from __future__ import annotations
 from flext_core import FlextResult
 
 from flext_cli.config import (
-    CLISettings,
+    FlextCliSettings,
     get_cli_settings as _get_cli_settings,
 )
 
@@ -22,7 +22,7 @@ __all__ = [
 ]
 
 
-def setup_cli(config: CLISettings | None = None) -> FlextResult[bool]:
+def setup_cli(config: FlextCliSettings | None = None) -> FlextResult[bool]:
     """Set up CLI with modern zero-boilerplate approach using hierarchical configuration.
 
     This function integrates the 3 main functions of flext-cli:
@@ -39,7 +39,7 @@ def setup_cli(config: CLISettings | None = None) -> FlextResult[bool]:
     """
     try:
         if config is None:
-            config = CLISettings()
+            config = FlextCliSettings()
 
         # Configuration setup successful
         setup_success = True
@@ -49,7 +49,7 @@ def setup_cli(config: CLISettings | None = None) -> FlextResult[bool]:
         return FlextResult[bool].fail(f"Failed to setup CLI: {e}")
 
 
-def create_development_cli_config(**kwargs: object) -> CLISettings:
+def create_development_cli_config(**kwargs: object) -> FlextCliSettings:
     """Create development CLI configuration with hierarchical precedence.
 
     Uses flext/docs/patterns hierarchical configuration for ecosystem integration.
@@ -59,13 +59,16 @@ def create_development_cli_config(**kwargs: object) -> CLISettings:
       **kwargs: Configuration overrides
 
     Returns:
-      CLISettings: Development configuration with debug enabled
+      FlextCliSettings: Development configuration with debug enabled
 
     """
     # Create configuration with development defaults
-    config = CLISettings(
-        debug=True,
-        log_level="DEBUG",
+    config = FlextCliSettings()
+    config = config.model_copy(
+        update={
+            "debug": True,
+            "log_level": "DEBUG",
+        }
     )
 
     # Apply overrides using model_copy for type safety
@@ -80,20 +83,23 @@ def create_development_cli_config(**kwargs: object) -> CLISettings:
     return config
 
 
-def create_production_cli_config(**kwargs: object) -> CLISettings:
+def create_production_cli_config(**kwargs: object) -> FlextCliSettings:
     """Create production CLI configuration.
 
     Args:
       **kwargs: Configuration overrides
 
     Returns:
-      CLISettings: Production configuration with optimized settings
+      FlextCliSettings: Production configuration with optimized settings
 
     """
     # Create base configuration with production defaults
-    config = CLISettings(
-        debug=False,
-        log_level="INFO",
+    config = FlextCliSettings()
+    config = config.model_copy(
+        update={
+            "debug": False,
+            "log_level": "INFO",
+        }
     )
 
     # Apply overrides using model_copy for type safety
@@ -108,8 +114,8 @@ def create_production_cli_config(**kwargs: object) -> CLISettings:
     return config
 
 
-def get_cli_settings(*, reload: bool | None = None) -> CLISettings:
-    """Return CLISettings; when reload is True, return a fresh instance.
+def get_cli_settings(*, reload: bool | None = None) -> FlextCliSettings:
+    """Return FlextCliSettings; when reload is True, return a fresh instance.
 
     Args:
       reload: If True, returns a fresh instance.

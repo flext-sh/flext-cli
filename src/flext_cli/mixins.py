@@ -11,7 +11,7 @@ import time
 from collections.abc import Callable, Iterable
 from functools import wraps
 from pathlib import Path
-from typing import ParamSpec, TypeVar
+from typing import ParamSpec, TypeVar, override
 
 from flext_core import FlextResult
 from rich.console import Console
@@ -163,7 +163,7 @@ class FlextCliInteractiveMixin:
 
     def flext_cli_print_result(self, result: FlextResult[object]) -> None:
         """Print the result of a ``FlextResult`` to the console."""
-        if result.success:
+        if result.is_success:
             self.console.print(f"✓ {result.value}")
         else:
             self.console.print(f"✗ {result.error}")
@@ -271,13 +271,12 @@ class FlextCliResultMixin:
         error_action: Callable[[str], None] | None = None,
     ) -> object | None:
         """Encapsulate common logic for handling success/error of results."""
-        if result.success:
+        if result.is_success:
             if success_action is not None:
                 success_action(result.value)
-            return result.value
-        if error_action is not None and result.error is not None:
+        elif error_action is not None and result.error is not None:
             error_action(result.error)
-        return None
+        return result.unwrap_or(None)
 
 
 class FlextCliBasicMixin(FlextCliValidationMixin):
@@ -367,12 +366,13 @@ class FlextCliAdvancedMixin(
         if hasattr(self, "_flext_cli_console") and self._flext_cli_console is not None:
             self._flext_cli_console.print("✓ Validation passed")
         result = operation()
-        if result.success and (
+        if result.is_success and (
             hasattr(self, "_flext_cli_console") and self._flext_cli_console is not None
         ):
             self._flext_cli_console.print("✓ Operation completed")
         return result
 
+    @override
     def flext_cli_require_confirmation(
         self,
         message: str,
@@ -504,7 +504,7 @@ def flext_cli_auto_retry(
                 try:
                     result = func(*args, **kwargs)
                     if isinstance(result, FlextResult):
-                        if result.success:
+                        if result.is_success:
                             return result.map(str)
                         last_error = result.error
                     else:

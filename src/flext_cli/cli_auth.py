@@ -10,21 +10,38 @@ from __future__ import annotations
 import asyncio
 import contextlib
 from pathlib import Path
+from typing import TypedDict
 
 import click
 from flext_core import FlextResult
 from rich.console import Console
 
-from flext_cli.config import CLIConfig, get_config as _get_config
+from flext_cli.config import FlextCliConfig, get_config as _get_config
 from flext_cli.constants import FlextCliConstants
 from flext_cli.flext_api_integration import FlextCLIApiClient as FlextApiClient
+
+
+class UserData(TypedDict, total=False):
+    """Type definition for user data in authentication response."""
+
+    name: str
+    email: str
+    id: str
+
+
+def _get_user_data(data_obj: object) -> UserData | None:
+    """Extract user data with proper typing."""
+    if isinstance(data_obj, dict):
+        return data_obj  # type: ignore[return-value]  # TypedDict compatible
+    return None
+
 
 # =============================================================================
 # AUTHENTICATION UTILITIES - Token management and security operations
 # =============================================================================
 
 
-def get_cli_config() -> CLIConfig:
+def get_cli_config() -> FlextCliConfig:
     """Get CLI configuration instance using high-level config factory.
 
     Uses flext_cli.config.get_config to avoid strict env parsing from FlextSettings.
@@ -52,7 +69,8 @@ def _get_client_class() -> type[FlextApiClient]:
 
 def _get_auth_token_bridge() -> str | None:
     """Return auth token via local implementation (patchable here)."""
-    return get_auth_token()
+    # Use FlextResult's value_or_none for cleaner code
+    return get_auth_token().value_or_none
 
 
 def get_token_path() -> Path:
@@ -108,6 +126,10 @@ def save_auth_token(token: str) -> FlextResult[None]:
       Result of the operation
 
     """
+    # Validate token is not empty
+    if not token or not token.strip():
+        return FlextResult[None].fail("Token cannot be empty")
+
     try:
         token_path = get_token_path()
         token_path.parent.mkdir(parents=True, exist_ok=True)
@@ -148,40 +170,46 @@ def save_refresh_token(refresh_token: str) -> FlextResult[None]:
         )
 
 
-def get_auth_token() -> str | None:
+def get_auth_token() -> FlextResult[str]:
     """Get the auth token from the file.
 
     Returns:
-      The auth token or None if not found
+      FlextResult containing the auth token or failure
 
     """
     token_path = get_token_path()
 
     if token_path.exists():
         try:
-            return token_path.read_text(encoding="utf-8").strip()
-        except (OSError, UnicodeDecodeError):
-            return None
+            token = token_path.read_text(encoding="utf-8").strip()
+            if token:
+                return FlextResult[str].ok(token)
+            return FlextResult[str].fail("Token file is empty")
+        except (OSError, UnicodeDecodeError) as e:
+            return FlextResult[str].fail(f"Failed to read token: {e}")
 
-    return None
+    return FlextResult[str].fail("Token file not found")
 
 
-def get_refresh_token() -> str | None:
+def get_refresh_token() -> FlextResult[str]:
     """Get the refresh token from the file.
 
     Returns:
-      The refresh token or None if not found
+      FlextResult containing the refresh token or failure
 
     """
     refresh_token_path = get_refresh_token_path()
 
     if refresh_token_path.exists():
         try:
-            return refresh_token_path.read_text(encoding="utf-8").strip()
-        except (OSError, UnicodeDecodeError):
-            return None
+            token = refresh_token_path.read_text(encoding="utf-8").strip()
+            if token:
+                return FlextResult[str].ok(token)
+            return FlextResult[str].fail("Refresh token file is empty")
+        except (OSError, UnicodeDecodeError) as e:
+            return FlextResult[str].fail(f"Failed to read refresh token: {e}")
 
-    return None
+    return FlextResult[str].fail("Refresh token file not found")
 
 
 def clear_auth_tokens() -> FlextResult[None]:
@@ -215,7 +243,7 @@ def is_authenticated() -> bool:
       True if the user is authenticated, False otherwise
 
     """
-    return get_auth_token() is not None
+    return bool(get_auth_token().unwrap_or(""))
 
 
 def should_auto_refresh() -> bool:
@@ -229,7 +257,7 @@ def should_auto_refresh() -> bool:
     return (
         hasattr(config, "auto_refresh")
         and getattr(config, "auto_refresh", False)
-        and get_refresh_token() is not None
+        and bool(get_refresh_token().unwrap_or(""))
     )
 
 
@@ -286,13 +314,9 @@ async def _async_login_impl(
                         ctx.exit(1)
 
                 if "user" in response:
-                    user_data = response["user"]
-                    if isinstance(user_data, dict):
-                        # Type the user data properly
-                        typed_user_data: dict[str, object] = {}
-                        for k, v in user_data.items():
-                            typed_user_data[str(k)] = v
-                        user_name = typed_user_data.get("name", username)
+                    user_obj = _get_user_data(response["user"])
+                    if user_obj:
+                        user_name = user_obj.get("name", username)
                         console.print(f"Welcome, {user_name}!")
             else:
                 console.print(
@@ -467,8 +491,9 @@ def status(ctx: click.Context) -> None:
                 )
                 user_result = await client.get_current_user()
 
-                if user_result.success and user_result.value:
-                    user = user_result.value
+                # Use FlextResult's unwrap_or method for cleaner code
+                user = user_result.unwrap_or({})
+                if user:
                     console.print(
                         f"[green]{FlextCliConstants.CliOutput.SUCCESS_CHECKMARK} {FlextCliConstants.CliMessages.STATUS_AUTHENTICATED}[/green]",
                     )
@@ -537,8 +562,9 @@ def whoami(ctx: click.Context) -> None:
             async with FlextApiClient() as client:
                 user_result = await client.get_current_user()
 
-                if user_result.success and user_result.value:
-                    user = user_result.value
+                # Use FlextResult's unwrap_or method for cleaner code
+                user = user_result.unwrap_or({})
+                if user:
                     console.print(f"Username: {user.get('username', 'Unknown')}")
                     console.print(f"Full Name: {user.get('full_name', 'Unknown')}")
                     console.print(f"Email: {user.get('email', 'Unknown')}")

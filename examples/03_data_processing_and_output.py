@@ -101,8 +101,8 @@ def demonstrate_data_transformation() -> FlextResult[None]:
         raw_data, filter_func=lambda service: service["status"] == "running"
     )
 
-    if filter_result.success:
-        running_services = filter_result.unwrap()
+    if filter_result.is_success:
+        running_services = filter_result.value
         console.print(f"✅ Filtered to {len(running_services)} running services")
 
         # Transform data - add computed fields (custom transformation)
@@ -119,8 +119,8 @@ def demonstrate_data_transformation() -> FlextResult[None]:
             enriched_services.append(enriched_service)
         enrich_result = FlextResult[list[dict[str, object]]].ok(enriched_services)
 
-        if enrich_result.success:
-            enriched_services = enrich_result.unwrap()
+        if enrich_result.is_success:
+            enriched_services = enrich_result.value
             console.print(
                 "✅ Added computed fields: health_score, memory_gb, efficiency"
             )
@@ -133,9 +133,9 @@ def demonstrate_data_transformation() -> FlextResult[None]:
                     f"Memory: {sample['memory_gb']}GB, Efficiency: {sample['efficiency']}"
                 )
 
-            return FlextResult[None].ok(None)  # Return None for successful completion
-        return FlextResult[None].fail("Data enrichment failed")
-    return FlextResult[None].fail(f"Data filtering failed: {filter_result.error}")
+            return FlextResult[str].ok(None)  # Return None for successful completion
+        return FlextResult[str].fail("Data enrichment failed")
+    return FlextResult[str].fail(f"Data filtering failed: {filter_result.error}")
 
 
 def demonstrate_data_aggregation() -> FlextResult[None]:
@@ -191,8 +191,8 @@ def demonstrate_data_aggregation() -> FlextResult[None]:
         count_field="count",
     )
 
-    if service_agg_result.success:
-        service_stats = service_agg_result.unwrap()
+    if service_agg_result.is_success:
+        service_stats = service_agg_result.value
         console.print("✅ Service aggregation completed:")
 
         for stats in service_stats:
@@ -208,8 +208,8 @@ def demonstrate_data_aggregation() -> FlextResult[None]:
                 f"   {service}: {total_requests} requests, {error_rate}% error rate"
             )
 
-        return FlextResult[None].ok(None)
-    return FlextResult[None].fail(
+        return FlextResult[str].ok(None)
+    return FlextResult[str].fail(
         f"Data aggregation failed: {service_agg_result.error}"
     )
 
@@ -240,10 +240,10 @@ def demonstrate_output_formatting() -> FlextResult[None]:
 
     # 1. JSON formatting
     json_result = flext_cli_format(sample_data, format_type="json")
-    if json_result.success:
+    if json_result.is_success:
         console.print("✅ JSON format generated")
         # Show first few lines of JSON
-        json_lines = json_result.unwrap().split("\n")[:3]
+        json_lines = json_result.value.split("\n")[:3]
         for line in json_lines:
             console.print(f"   {line}")
         console.print("   ... (truncated)")
@@ -266,12 +266,12 @@ def demonstrate_output_formatting() -> FlextResult[None]:
         data=sample_data["services"], title="Application Services"
     )
 
-    if services_table_result.success:
+    if services_table_result.is_success:
         console.print("✅ Rich table created for services:")
-        table = services_table_result.unwrap()
+        table = services_table_result.value
         console.print(table)
 
-    return FlextResult[None].ok(None)
+    return FlextResult[str].ok(None)
 
 
 def demonstrate_file_operations() -> FlextResult[None]:
@@ -311,7 +311,7 @@ def demonstrate_file_operations() -> FlextResult[None]:
             data=config_data, file_path=temp_path, format_type="json"
         )
 
-        if save_result.success:
+        if save_result.is_success:
             console.print(f"✅ Configuration saved to: {temp_path}")
 
             # 2. Validate file exists and load it back
@@ -324,8 +324,8 @@ def demonstrate_file_operations() -> FlextResult[None]:
                     file_path=temp_path, format_type="json"
                 )
 
-                if load_result.success:
-                    loaded_data = load_result.unwrap()
+                if load_result.is_success:
+                    loaded_data = load_result.value
                     console.print("✅ Configuration loaded successfully")
                     console.print(
                         f"   Database host: {loaded_data['database']['host']}"
@@ -346,9 +346,9 @@ def demonstrate_file_operations() -> FlextResult[None]:
         console.print("✅ Temporary file cleaned up")
 
     except Exception as e:
-        return FlextResult[None].fail(f"File operations failed: {e}")
+        return FlextResult[str].fail(f"File operations failed: {e}")
 
-    return FlextResult[None].ok(None)
+    return FlextResult[str].ok(None)
 
 
 def demonstrate_batch_processing() -> FlextResult[None]:
@@ -378,8 +378,8 @@ def demonstrate_batch_processing() -> FlextResult[None]:
                 processor=lambda file: f"Processed: {file.name} ({file.stat().st_size} bytes)",
             )
 
-            if batch_result.success:
-                results = batch_result.unwrap()
+            if batch_result.is_success:
+                results = batch_result.value
                 console.print(
                     f"✅ Batch processing completed: {len(results)} files processed"
                 )
@@ -387,12 +387,12 @@ def demonstrate_batch_processing() -> FlextResult[None]:
                 for result in results:
                     console.print(f"   {result}")
 
-                return FlextResult[None].ok(results)
+                return FlextResult[str].ok(results)
 
     except Exception as e:
-        return FlextResult[None].fail(f"Batch processing failed: {e}")
+        return FlextResult[str].fail(f"Batch processing failed: {e}")
 
-    return FlextResult[None].fail("Batch processing not completed")
+    return FlextResult[str].fail("Batch processing not completed")
 
 
 def demonstrate_data_export() -> FlextResult[None]:
@@ -435,8 +435,8 @@ def demonstrate_data_export() -> FlextResult[None]:
         output_file=None,  # Return as string
     )
 
-    if json_export_result.success:
-        json_output = json_export_result.unwrap()
+    if json_export_result.is_success:
+        json_output = json_export_result.value
         console.print("✅ JSON export completed")
         # Show first few characters
         console.print(f"   Preview: {json_output[:100]}...")
@@ -446,15 +446,15 @@ def demonstrate_data_export() -> FlextResult[None]:
         report_data, format_type="csv", output_file=None
     )
 
-    if csv_export_result.success:
-        csv_output = csv_export_result.unwrap()
+    if csv_export_result.is_success:
+        csv_output = csv_export_result.value
         console.print("✅ CSV export completed")
         # Show first line (headers)
         csv_lines = csv_output.split("\n")
         if csv_lines:
             console.print(f"   Headers: {csv_lines[0]}")
 
-    return FlextResult[None].ok(None)
+    return FlextResult[str].ok(None)
 
 
 def main() -> None:

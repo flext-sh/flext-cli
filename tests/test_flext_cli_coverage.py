@@ -13,7 +13,7 @@ from pathlib import Path
 
 from flext_core import FlextResult
 
-from flext_cli.cli_types import OutputFormat
+from flext_cli.cli_types import FlextCliOutputFormat
 from flext_cli.flext_cli import (
     flext_cli_configure,
     flext_cli_create_command,
@@ -53,7 +53,7 @@ class TestFlextCliExportReal:
             }
 
             # Test real export functionality
-            result = flext_cli_export(data, temp_path, OutputFormat.JSON)
+            result = flext_cli_export(data, temp_path, FlextCliOutputFormat.JSON)
 
             # Verify result is boolean
             assert isinstance(result, bool)
@@ -81,7 +81,7 @@ class TestFlextCliExportReal:
                 "enabled": True,
             }
 
-            result = flext_cli_export(data, temp_path, OutputFormat.YAML)
+            result = flext_cli_export(data, temp_path, FlextCliOutputFormat.YAML)
             assert isinstance(result, bool)
 
         finally:
@@ -120,7 +120,7 @@ class TestFlextCliExportReal:
             data: dict[str, str | int | float | bool | None] = {"test": "string_path"}
 
             # Use string path instead of Path object
-            result = flext_cli_export(data, str(temp_path), OutputFormat.JSON)
+            result = flext_cli_export(data, str(temp_path), FlextCliOutputFormat.JSON)
             assert isinstance(result, bool)
 
         finally:
@@ -137,7 +137,7 @@ class TestFlextCliFormatReal:
             "number": 42,
         }
 
-        result = flext_cli_format(data, OutputFormat.JSON)
+        result = flext_cli_format(data, FlextCliOutputFormat.JSON)
 
         # Result should be a string containing valid JSON
         assert isinstance(result, str)
@@ -152,7 +152,7 @@ class TestFlextCliFormatReal:
             "enabled": True,
         }
 
-        result = flext_cli_format(data, OutputFormat.YAML)
+        result = flext_cli_format(data, FlextCliOutputFormat.YAML)
 
         assert isinstance(result, str)
         if result:  # If formatting succeeded
@@ -165,7 +165,7 @@ class TestFlextCliFormatReal:
             {"name": "Bob", "age": 25},
         ]
 
-        result = flext_cli_format(data, OutputFormat.CSV)
+        result = flext_cli_format(data, FlextCliOutputFormat.CSV)
 
         assert isinstance(result, str)
         if result:  # If formatting succeeded
@@ -179,7 +179,7 @@ class TestFlextCliFormatReal:
             "city": "NYC",
         }
 
-        result = flext_cli_format(data, OutputFormat.TABLE)
+        result = flext_cli_format(data, FlextCliOutputFormat.TABLE)
 
         assert isinstance(result, str)
         # Table format might include Rich markup or plain text
@@ -188,7 +188,7 @@ class TestFlextCliFormatReal:
         """Test formatting data as plain text with real implementation."""
         data: str = "Simple string data"
 
-        result = flext_cli_format(data, OutputFormat.PLAIN)
+        result = flext_cli_format(data, FlextCliOutputFormat.PLAIN)
 
         assert isinstance(result, str)
         if result:  # If formatting succeeded
@@ -465,7 +465,7 @@ class TestFlextCliIntegrationReal:
             "workflow": "test",
             "step": 1,
         }
-        format_result = flext_cli_format(data, OutputFormat.JSON)
+        format_result = flext_cli_format(data, FlextCliOutputFormat.JSON)
         assert isinstance(format_result, str)
 
     def test_export_and_format_integration_real(self) -> None:
@@ -484,11 +484,11 @@ class TestFlextCliIntegrationReal:
             }
 
             # First format the data
-            formatted = flext_cli_format(data, OutputFormat.JSON)
+            formatted = flext_cli_format(data, FlextCliOutputFormat.JSON)
             assert isinstance(formatted, str)
 
             # Then export it
-            export_result = flext_cli_export(data, temp_path, OutputFormat.JSON)
+            export_result = flext_cli_export(data, temp_path, FlextCliOutputFormat.JSON)
             assert isinstance(export_result, bool)
 
         finally:

@@ -20,12 +20,13 @@ from rich.console import Console
 
 from flext_cli import (
     CLICommand,
-    CLIConfig,
-    CLIExecutionContext as CLIContext,
+    FlextCliConfig,
+    FlextCliSettings,
     FlextConstants,
     create_cli_container,
 )
-from flext_cli.cli_types import CommandType as FlextCliCommandType, OutputFormat
+from flext_cli.base_core import FlextCliContext
+from flext_cli.cli_types import CommandType as FlextCliCommandType, FlextCliOutputFormat
 
 # =============================================================================
 # PYTEST CONFIGURATION - REAL FUNCTIONALITY TESTING
@@ -43,12 +44,12 @@ def temp_dir() -> Generator[Path]:
 
 
 @pytest.fixture
-def cli_config() -> CLIConfig:
+def cli_config() -> FlextCliConfig:
     """Create REAL CLI configuration for testing actual functionality."""
-    return CLIConfig(
+    return FlextCliConfig(
         api_url=f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}",
         output_format="json",
-        timeout=30,
+        command_timeout=30,
         profile="test",
         debug=True,
         quiet=False,
@@ -58,12 +59,10 @@ def cli_config() -> CLIConfig:
 
 
 @pytest.fixture
-def cli_settings() -> CLIConfig:
+def cli_settings() -> FlextCliSettings:
     """Create REAL CLI settings for testing actual functionality."""
-    return CLIConfig(
+    return FlextCliSettings(
         debug=True,
-        profile="test",
-        output_format=OutputFormat.JSON,
         project_name="test-cli",
         project_description="Test CLI Library",
         log_level="DEBUG",
@@ -71,9 +70,17 @@ def cli_settings() -> CLIConfig:
 
 
 @pytest.fixture
-def cli_context(cli_config: CLIConfig) -> CLIContext:
+def cli_context(cli_config: FlextCliConfig) -> FlextCliContext:
     """Create REAL CLI context for testing actual functionality."""
-    return CLIContext(config=cli_config)
+    return FlextCliContext(
+        profile="test",
+        output_format="json",
+        debug=True,
+        verbose=True,
+        no_color=True,
+        config=cli_config,
+        console=Console(),
+    )
 
 
 @pytest.fixture
@@ -116,13 +123,13 @@ def cli_container() -> object:
 
 
 @pytest.fixture
-def isolated_config() -> CLIConfig:
+def isolated_config() -> FlextCliConfig:
     """Create REAL isolated config for testing without state contamination."""
     # Return fresh config instance for each test
-    return CLIConfig(
+    return FlextCliConfig(
         profile="test",
         debug=True,
-        output_format=OutputFormat.JSON,
+        output_format=FlextCliOutputFormat.JSON,
         project_name="test-cli",
         project_description="Test CLI Library",
         log_level="DEBUG",

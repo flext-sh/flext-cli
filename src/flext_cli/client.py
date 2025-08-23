@@ -12,7 +12,7 @@ from typing import Self, cast
 from urllib.parse import urljoin
 
 import httpx
-from flext_core import get_logger
+from flext_core.loggings import get_logger
 from pydantic import BaseModel, Field
 
 from flext_cli.config import get_config as get_cli_config

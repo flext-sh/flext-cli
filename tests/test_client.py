@@ -8,7 +8,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from flext_cli import FlextApiClient
 
@@ -16,6 +15,7 @@ from flext_cli import FlextApiClient
 @dataclass
 class PipelineConfig:
     """Real pipeline configuration class."""
+
     name: str
     tap: str
     target: str
@@ -24,6 +24,7 @@ class PipelineConfig:
 @dataclass
 class Pipeline:
     """Real pipeline class."""
+
     id: str
     name: str
     status: str
@@ -35,6 +36,7 @@ class Pipeline:
 @dataclass
 class PipelineList:
     """Real pipeline list class."""
+
     pipelines: list[Pipeline]
     total: int
     page: int = 1

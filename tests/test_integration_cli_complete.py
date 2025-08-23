@@ -21,10 +21,10 @@ from click.testing import CliRunner
 
 from flext_cli import (
     CLICommand,
-    CLISession,
-    CLISettings,
     CommandStatus,
     CommandType,
+    FlextCliSession,
+    FlextCliSettings,
     cli,
     setup_cli,
 )
@@ -153,12 +153,12 @@ class TestCLIIntegration:
 
     def test_cli_setup_integration(self) -> None:
         """Test CLI setup integration with simple API."""
-        settings = CLISettings()
+        settings = FlextCliSettings()
 
         # Test setup succeeds
         result = setup_cli(settings)
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
 
     def test_domain_entities_integration(self) -> None:
         """Test domain entities work with CLI commands."""
@@ -178,7 +178,7 @@ class TestCLIIntegration:
         assert command.command_status == CommandStatus.COMPLETED
 
         # Create a session
-        session = CLISession(session_id="test-session")
+        session = FlextCliSession(session_id="test-session")
         session = session.add_command(command.id)
 
         assert len(session.command_history) == 1

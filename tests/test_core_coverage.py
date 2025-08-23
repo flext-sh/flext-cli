@@ -32,8 +32,8 @@ class TestFlextService:
         """Test service start method."""
         service = FlextService()
         result = service.start()
-        assert result.success
-        assert result.data is None
+        assert result.is_success
+        assert result.value is None
 
 
 class TestFlextCliService:
@@ -50,36 +50,36 @@ class TestFlextCliService:
         data = [{"name": "test", "value": 123}]
         # Use the actual method name flext_cli_format
         result = service.flext_cli_format(data, "table")
-        assert result.success
-        assert "test" in result.data
-        assert "123" in result.data
+        assert result.is_success
+        assert "test" in result.value
+        assert "123" in result.value
 
     def test_cli_service_format_json_data(self) -> None:
         """Test JSON formatting."""
         service = FlextCliService()
         data = {"test": "value", "number": 42}
         result = service.flext_cli_format(data, "json")
-        assert result.success
-        assert "test" in result.data
-        assert "value" in result.data
+        assert result.is_success
+        assert "test" in result.value
+        assert "value" in result.value
 
     def test_cli_service_format_yaml_data(self) -> None:
         """Test YAML formatting."""
         service = FlextCliService()
         data = {"test": "value", "items": [1, 2, 3]}
         result = service.flext_cli_format(data, "yaml")
-        assert result.success
-        assert "test:" in result.data
-        assert "value" in result.data
+        assert result.is_success
+        assert "test:" in result.value
+        assert "value" in result.value
 
     def test_cli_service_format_csv_data(self) -> None:
         """Test CSV formatting."""
         service = FlextCliService()
         data = [{"name": "item1", "value": 10}, {"name": "item2", "value": 20}]
         result = service.flext_cli_format(data, "csv")
-        assert result.success
-        assert "name,value" in result.data
-        assert "item1,10" in result.data
+        assert result.is_success
+        assert "name,value" in result.value
+        assert "item1,10" in result.value
 
     def test_cli_service_validate_format(self) -> None:
         """Test format validation."""
@@ -87,7 +87,7 @@ class TestFlextCliService:
 
         # Test valid format
         result = service.flext_cli_validate_format("json")
-        assert result.success
+        assert result.is_success
 
         # Test invalid format
         result = service.flext_cli_validate_format("invalid")
@@ -100,13 +100,13 @@ class TestFlextCliService:
 
         # Test flext_cli_health method
         result = service.flext_cli_health()
-        assert result.success
-        assert "service" in result.data
-        assert result.data["service"] == "FlextCliService"
+        assert result.is_success
+        assert "service" in result.value
+        assert result.value["service"] == "FlextCliService"
 
         # Test inherited health_check method
         result = service.health_check()
-        assert result.success
+        assert result.is_success
 
     def test_cli_service_export_data(self) -> None:
         """Test data export functionality."""
@@ -115,12 +115,12 @@ class TestFlextCliService:
         # Test JSON export
         data = {"test": "value", "number": 42}
         result = service.flext_cli_export(data, "/tmp/test_export.json", "json")
-        assert result.success
+        assert result.is_success
 
         # Test CSV export
         data = [{"name": "item1", "value": 10}, {"name": "item2", "value": 20}]
         result = service.flext_cli_export(data, "/tmp/test_export.csv", "csv")
-        assert result.success
+        assert result.is_success
 
     def test_cli_service_render_with_context(self) -> None:
         """Test rendering with context options."""
@@ -129,12 +129,12 @@ class TestFlextCliService:
         # Test rendering with context options
         data = {"message": "Hello", "status": "active"}
         result = service.flext_cli_render_with_context(data, {"output_format": "json"})
-        assert result.success
-        assert "message" in result.data
+        assert result.is_success
+        assert "message" in result.value
 
         # Test rendering with table format
         result = service.flext_cli_render_with_context(data, {"output_format": "table"})
-        assert result.success
+        assert result.is_success
 
     def test_cli_service_register_handler(self) -> None:
         """Test handler registration."""
@@ -144,9 +144,9 @@ class TestFlextCliService:
             return f"processed: {data}"
 
         result = service.flext_cli_register_handler("test_handler", test_handler)
-        assert result.success
+        assert result.is_success
 
         # Test handler execution
         exec_result = service.flext_cli_execute_handler("test_handler", "test_data")
-        assert exec_result.success
-        assert "processed: test_data" in str(exec_result.data)
+        assert exec_result.is_success
+        assert "processed: test_data" in str(exec_result.value)

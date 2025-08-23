@@ -17,7 +17,7 @@ from uuid import UUID
 import yaml
 from flext_core import FlextResult
 
-from flext_cli.cli_types import OutputFormat
+from flext_cli.cli_types import FlextCliOutputFormat
 from flext_cli.cli_utils import (
     FlextCliData,
     _convert_to_serializable,
@@ -285,8 +285,8 @@ class TestQuickSetup:
 
             result = cli_quick_setup(project_name)
 
-            assert result.success
-            data = result.unwrap()
+            assert result.is_success
+            data = result.value
             assert isinstance(data, dict)
             assert "project_path" in data
 
@@ -303,7 +303,7 @@ class TestQuickSetup:
 
                 result = cli_quick_setup("existing")
 
-                assert not result.success
+                assert not result.is_success
                 assert "cancelled" in result.error
             finally:
                 os.chdir(os_chdir)
@@ -312,7 +312,7 @@ class TestQuickSetup:
         """Test quick setup with empty project name."""
         result = cli_quick_setup("")
 
-        assert not result.success
+        assert not result.is_success
         assert "cannot be empty" in result.error
 
     @patch("flext_cli.cli_utils._write_basic_pyproject")
@@ -338,7 +338,7 @@ class TestQuickSetup:
                 result = cli_quick_setup(project_name, init_git=True)
 
                 # Should still succeed even if git fails
-                assert result.success
+                assert result.is_success
             finally:
                 os.chdir(os_chdir)
 
@@ -366,8 +366,8 @@ class TestBatchProcessing:
                 input_files, mock_processor, show_progress=False
             )
 
-            assert result.success
-            data = result.unwrap()
+            assert result.is_success
+            data = result.value
             assert isinstance(data, dict)
             assert "processed" in data
             assert data["processed"] == 3
@@ -380,8 +380,8 @@ class TestBatchProcessing:
 
         result = cli_batch_process_files([], mock_processor)
 
-        assert result.success
-        data = result.unwrap()
+        assert result.is_success
+        data = result.value
         assert data["processed"] == 0
 
     def test_cli_batch_process_files_with_failures(self) -> None:
@@ -404,8 +404,8 @@ class TestBatchProcessing:
                 files, failing_processor, show_progress=False
             )
 
-            assert result.success
-            data = result.unwrap()
+            assert result.is_success
+            data = result.value
             assert data["processed"] == 2
             assert data["failed"] == 1
 
@@ -424,8 +424,8 @@ class TestDataLoading:
 
             result = _load_json_file(Path(f.name))
 
-            assert result.success
-            assert result.unwrap() == test_data
+            assert result.is_success
+            assert result.value == test_data
 
             Path(f.name).unlink()
 
@@ -439,7 +439,7 @@ class TestDataLoading:
 
             result = _load_json_file(Path(f.name))
 
-            assert not result.success
+            assert not result.is_success
             assert "JSON decode error" in result.error
 
             Path(f.name).unlink()
@@ -448,7 +448,7 @@ class TestDataLoading:
         """Test loading non-existent JSON file."""
         result = _load_json_file(Path("/nonexistent.json"))
 
-        assert not result.success
+        assert not result.is_success
         assert "File not found" in result.error
 
     def test_load_yaml_file_success(self) -> None:
@@ -462,8 +462,8 @@ class TestDataLoading:
 
             result = _load_yaml_file(Path(f.name))
 
-            assert result.success
-            assert result.unwrap() == test_data
+            assert result.is_success
+            assert result.value == test_data
 
             Path(f.name).unlink()
 
@@ -477,7 +477,7 @@ class TestDataLoading:
 
             result = _load_yaml_file(Path(f.name))
 
-            assert not result.success
+            assert not result.is_success
             assert "YAML parse error" in result.error
 
             Path(f.name).unlink()
@@ -492,8 +492,8 @@ class TestDataLoading:
 
             result = _load_csv_file(Path(f.name))
 
-            assert result.success
-            data = result.unwrap()
+            assert result.is_success
+            data = result.value
             assert isinstance(data, list)
             assert len(data) == 2
             assert data[0]["name"] == "John"
@@ -512,8 +512,8 @@ class TestDataLoading:
 
             result = _load_text_file(Path(f.name))
 
-            assert result.success
-            assert result.unwrap() == content
+            assert result.is_success
+            assert result.value == content
 
             Path(f.name).unlink()
 
@@ -528,8 +528,8 @@ class TestDataLoading:
 
             result = cli_load_data_file(Path(f.name))
 
-            assert result.success
-            assert result.unwrap() == test_data
+            assert result.is_success
+            assert result.value == test_data
 
             Path(f.name).unlink()
 
@@ -541,7 +541,7 @@ class TestDataLoading:
 
             result = cli_load_data_file(Path(f.name))
 
-            assert not result.success
+            assert not result.is_success
             assert "Unsupported file format" in result.error
 
             Path(f.name).unlink()
@@ -597,7 +597,7 @@ class TestDataSaving:
 
             result = _save_json_file(test_data, Path(f.name))
 
-            assert result.success
+            assert result.is_success
 
             # Verify the file was saved correctly
             with open(f.name, encoding="utf-8") as saved_file:
@@ -613,7 +613,7 @@ class TestDataSaving:
 
             result = _save_yaml_file(test_data, Path(f.name))
 
-            assert result.success
+            assert result.is_success
 
             # Verify the file was saved correctly
             with open(f.name, encoding="utf-8") as saved_file:
@@ -629,7 +629,7 @@ class TestDataSaving:
 
             result = _save_csv_file(test_data, Path(f.name))
 
-            assert result.success
+            assert result.is_success
 
             # Verify the file was saved correctly
             content = Path(f.name).read_text(encoding="utf-8")
@@ -645,7 +645,7 @@ class TestDataSaving:
 
             result = _save_csv_file(invalid_data, Path(f.name))
 
-            assert not result.success
+            assert not result.is_success
             assert "must be a list" in result.error
 
             Path(f.name).unlink()
@@ -657,7 +657,7 @@ class TestDataSaving:
 
             result = _save_text_file(test_content, Path(f.name))
 
-            assert result.success
+            assert result.is_success
 
             # Verify the file was saved correctly
             saved_content = Path(f.name).read_text(encoding="utf-8")
@@ -670,9 +670,11 @@ class TestDataSaving:
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
             test_data = {"test": "data"}
 
-            result = cli_save_data_file(test_data, Path(f.name), OutputFormat.JSON)
+            result = cli_save_data_file(
+                test_data, Path(f.name), FlextCliOutputFormat.JSON
+            )
 
-            assert result.success
+            assert result.is_success
 
             # Verify the file was saved correctly
             with open(f.name, encoding="utf-8") as saved_file:
@@ -685,10 +687,10 @@ class TestDataSaving:
         """Test cli_save_data_file with unsupported format."""
         with tempfile.NamedTemporaryFile(suffix=".xyz", delete=False) as f:
             result = cli_save_data_file(
-                {"data": "test"}, Path(f.name), OutputFormat.PLAIN
+                {"data": "test"}, Path(f.name), FlextCliOutputFormat.PLAIN
             )
 
-            assert not result.success
+            assert not result.is_success
             assert "Unsupported output format" in result.error
 
             Path(f.name).unlink()
@@ -703,8 +705,8 @@ class TestTableCreation:
 
         result = cli_create_table(data, "Test Table")
 
-        assert result.success
-        table = result.unwrap()
+        assert result.is_success
+        table = result.value
         assert hasattr(table, "title")
         assert table.title == "Test Table"
 
@@ -714,22 +716,22 @@ class TestTableCreation:
 
         result = cli_create_table(data)
 
-        assert result.success
-        table = result.unwrap()
+        assert result.is_success
+        table = result.value
         assert hasattr(table, "columns")
 
     def test_cli_create_table_invalid_data(self) -> None:
         """Test creating table with invalid data."""
         result = cli_create_table("invalid data")
 
-        assert not result.success
+        assert not result.is_success
         assert "must be a dictionary or list" in result.error
 
     def test_cli_create_table_empty_list(self) -> None:
         """Test creating table with empty list."""
         result = cli_create_table([])
 
-        assert not result.success
+        assert not result.is_success
         assert "empty" in result.error
 
 
@@ -740,10 +742,10 @@ class TestFormatOutput:
         """Test formatting output as JSON."""
         data = {"key": "value", "number": 42}
 
-        result = cli_format_output(data, OutputFormat.JSON)
+        result = cli_format_output(data, FlextCliOutputFormat.JSON)
 
-        assert result.success
-        output = result.unwrap()
+        assert result.is_success
+        output = result.value
         assert isinstance(output, str)
         parsed = json.loads(output)
         assert parsed == data
@@ -752,10 +754,10 @@ class TestFormatOutput:
         """Test formatting output as YAML."""
         data = {"key": "value", "list": [1, 2, 3]}
 
-        result = cli_format_output(data, OutputFormat.YAML)
+        result = cli_format_output(data, FlextCliOutputFormat.YAML)
 
-        assert result.success
-        output = result.unwrap()
+        assert result.is_success
+        output = result.value
         assert isinstance(output, str)
         parsed = yaml.safe_load(output)
         assert parsed == data
@@ -764,10 +766,10 @@ class TestFormatOutput:
         """Test formatting output as table."""
         data = {"name": "John", "age": 30}
 
-        result = cli_format_output(data, OutputFormat.TABLE)
+        result = cli_format_output(data, FlextCliOutputFormat.TABLE)
 
-        assert result.success
-        output = result.unwrap()
+        assert result.is_success
+        output = result.value
         assert isinstance(output, str)
         # Table output should contain the data
         assert "John" in output
@@ -776,10 +778,10 @@ class TestFormatOutput:
         """Test formatting output as CSV."""
         data = [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]
 
-        result = cli_format_output(data, OutputFormat.CSV)
+        result = cli_format_output(data, FlextCliOutputFormat.CSV)
 
-        assert result.success
-        output = result.unwrap()
+        assert result.is_success
+        output = result.value
         assert isinstance(output, str)
         assert "name,age" in output
         assert "John,30" in output
@@ -788,19 +790,19 @@ class TestFormatOutput:
         """Test formatting output as plain text."""
         data = "Simple string data"
 
-        result = cli_format_output(data, OutputFormat.PLAIN)
+        result = cli_format_output(data, FlextCliOutputFormat.PLAIN)
 
-        assert result.success
-        output = result.unwrap()
+        assert result.is_success
+        output = result.value
         assert output == str(data)
 
     def test_cli_format_output_invalid_csv_data(self) -> None:
         """Test formatting invalid data as CSV."""
         data = "not a list"
 
-        result = cli_format_output(data, OutputFormat.CSV)
+        result = cli_format_output(data, FlextCliOutputFormat.CSV)
 
-        assert not result.success
+        assert not result.is_success
         assert "CSV format requires" in result.error
 
 
@@ -818,8 +820,8 @@ class TestCommandExecution:
 
         result = cli_run_command("echo hello")
 
-        assert result.success
-        output = result.unwrap()
+        assert result.is_success
+        output = result.value
         assert isinstance(output, dict)
         assert output["returncode"] == 0
         assert output["stdout"] == "Success output"
@@ -835,7 +837,7 @@ class TestCommandExecution:
 
         result = cli_run_command("false")
 
-        assert not result.success
+        assert not result.is_success
         assert "Command failed" in result.error
 
     @patch("subprocess.run")
@@ -849,7 +851,7 @@ class TestCommandExecution:
 
         result = cli_run_command("sleep 1", timeout=30)
 
-        assert result.success
+        assert result.is_success
         mock_run.assert_called_once()
         call_args = mock_run.call_args
         assert call_args[1]["timeout"] == 30
@@ -861,7 +863,7 @@ class TestCommandExecution:
 
         result = cli_run_command("nonexistent-command")
 
-        assert not result.success
+        assert not result.is_success
         assert "Command not found" in result.error
 
 
@@ -875,8 +877,8 @@ class TestInteractiveUtilities:
 
         result = cli_confirm("Do you want to continue?")
 
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
 
     @patch("builtins.input")
     def test_cli_confirm_no(self, mock_input: MagicMock) -> None:
@@ -885,8 +887,8 @@ class TestInteractiveUtilities:
 
         result = cli_confirm("Do you want to continue?")
 
-        assert result.success
-        assert result.unwrap() is False
+        assert result.is_success
+        assert result.value is False
 
     @patch("builtins.input")
     def test_cli_confirm_default_true(self, mock_input: MagicMock) -> None:
@@ -895,8 +897,8 @@ class TestInteractiveUtilities:
 
         result = cli_confirm("Continue?", default=True)
 
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
 
     @patch("builtins.input")
     def test_cli_confirm_default_false(self, mock_input: MagicMock) -> None:
@@ -905,8 +907,8 @@ class TestInteractiveUtilities:
 
         result = cli_confirm("Continue?", default=False)
 
-        assert result.success
-        assert result.unwrap() is False
+        assert result.is_success
+        assert result.value is False
 
     @patch("builtins.input")
     def test_cli_confirm_invalid_then_valid(self, mock_input: MagicMock) -> None:
@@ -915,8 +917,8 @@ class TestInteractiveUtilities:
 
         result = cli_confirm("Continue?")
 
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
 
     @patch("builtins.input")
     def test_cli_confirm_exception(self, mock_input: MagicMock) -> None:
@@ -925,7 +927,7 @@ class TestInteractiveUtilities:
 
         result = cli_confirm("Continue?")
 
-        assert not result.success
+        assert not result.is_success
         assert "cancelled" in result.error
 
     @patch("builtins.input")
@@ -935,8 +937,8 @@ class TestInteractiveUtilities:
 
         result = cli_prompt("Enter your name:")
 
-        assert result.success
-        assert result.unwrap() == "user response"
+        assert result.is_success
+        assert result.value == "user response"
 
     @patch("builtins.input")
     def test_cli_prompt_with_default(self, mock_input: MagicMock) -> None:
@@ -945,8 +947,8 @@ class TestInteractiveUtilities:
 
         result = cli_prompt("Enter name:", default="Anonymous")
 
-        assert result.success
-        assert result.unwrap() == "Anonymous"
+        assert result.is_success
+        assert result.value == "Anonymous"
 
     @patch("builtins.input")
     def test_cli_prompt_exception(self, mock_input: MagicMock) -> None:
@@ -955,7 +957,7 @@ class TestInteractiveUtilities:
 
         result = cli_prompt("Enter input:")
 
-        assert not result.success
+        assert not result.is_success
         assert "cancelled" in result.error
 
     @patch("getpass.getpass")
@@ -965,8 +967,8 @@ class TestInteractiveUtilities:
 
         result = cli_prompt("Enter password:", secure=True)
 
-        assert result.success
-        assert result.unwrap() == "secret"
+        assert result.is_success
+        assert result.value == "secret"
 
 
 class TestUtilityFunctions:

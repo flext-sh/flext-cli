@@ -12,10 +12,10 @@ from datetime import UTC, datetime
 
 from flext_cli import (
     CLICommand,
-    CLIPlugin,
-    CLISession,
     CommandStatus,
     CommandType,
+    FlextCliPlugin,
+    FlextCliSession,
 )
 
 # Constants
@@ -52,7 +52,9 @@ class TestCLICommand:
 
         # Start execution - immutable pattern returns FlextResult[CLICommand]
         running_result = sample_command.start_execution()
-        assert running_result.success, f"Start execution failed: {running_result.error}"
+        assert running_result.is_success, (
+            f"Start execution failed: {running_result.error}"
+        )
         running_command = running_result.value
         assert running_command is not None
         if running_command.command_status != CommandStatus.RUNNING:
@@ -68,7 +70,7 @@ class TestCLICommand:
             stdout="hello",
             stderr="",
         )
-        assert completed_result.success, (
+        assert completed_result.is_success, (
             f"Complete execution failed: {completed_result.error}"
         )
         completed_command = completed_result.value
@@ -88,7 +90,9 @@ class TestCLICommand:
         """Test command failed execution."""
         # Immutable pattern - each method returns FlextResult[CLICommand]
         running_result = sample_command.start_execution()
-        assert running_result.success, f"Start execution failed: {running_result.error}"
+        assert running_result.is_success, (
+            f"Start execution failed: {running_result.error}"
+        )
         running_command = running_result.value
         assert running_command is not None
 
@@ -97,7 +101,7 @@ class TestCLICommand:
             stdout="",
             stderr="Error occurred",
         )
-        assert failed_result.success, (
+        assert failed_result.is_success, (
             f"Complete execution failed: {failed_result.error}"
         )
         failed_command = failed_result.value
@@ -127,12 +131,14 @@ class TestCLICommand:
 
         # Immutable pattern - each method returns FlextResult[CLICommand]
         running_result = sample_command.start_execution()
-        assert running_result.success, f"Start execution failed: {running_result.error}"
+        assert running_result.is_success, (
+            f"Start execution failed: {running_result.error}"
+        )
         running_command = running_result.value
         assert running_command is not None
 
         cancelled_result = running_command.cancel_execution()
-        assert cancelled_result.success, (
+        assert cancelled_result.is_success, (
             f"Cancel execution failed: {cancelled_result.error}"
         )
         cancelled_command = cancelled_result.value
@@ -160,12 +166,14 @@ class TestCLICommand:
 
         # Test completed status
         running_result = command.start_execution()
-        assert running_result.success, f"Start execution failed: {running_result.error}"
+        assert running_result.is_success, (
+            f"Start execution failed: {running_result.error}"
+        )
         running_command = running_result.value
         assert running_command is not None
 
         completed_result = running_command.complete_execution(exit_code=0)
-        assert completed_result.success, (
+        assert completed_result.is_success, (
             f"Complete execution failed: {completed_result.error}"
         )
         completed_command = completed_result.value
@@ -182,7 +190,7 @@ class TestCLICommand:
         assert running_command2 is not None
 
         failed_result = running_command2.complete_execution(exit_code=1)
-        assert failed_result.success, (
+        assert failed_result.is_success, (
             f"Complete execution failed: {failed_result.error}"
         )
         failed_command = failed_result.value
@@ -201,14 +209,16 @@ class TestCLICommand:
 
         # Start execution to set started_at
         running_result = command.start_execution()
-        assert running_result.success, f"Start execution failed: {running_result.error}"
+        assert running_result.is_success, (
+            f"Start execution failed: {running_result.error}"
+        )
         running_command = running_result.value
         assert running_command is not None
         assert running_command.started_at is not None
 
         # Complete execution and verify duration exists
         completed_result = running_command.complete_execution(exit_code=0)
-        assert completed_result.success, (
+        assert completed_result.is_success, (
             f"Complete execution failed: {completed_result.error}"
         )
         completed_command = completed_result.value
@@ -223,11 +233,11 @@ class TestCLICommand:
 
 
 class TestCLIPlugin:
-    """Test cases for CLIPlugin entity."""
+    """Test cases for FlextCliPlugin entity."""
 
     def test_plugin_creation_real(self) -> None:
         """Test plugin creation with real object."""
-        sample_plugin = CLIPlugin(
+        sample_plugin = FlextCliPlugin(
             id="test_plugin_001",
             name="test-plugin",
             entry_point="test_plugin.main",
@@ -252,7 +262,7 @@ class TestCLIPlugin:
 
     def test_plugin_lifecycle_real(self) -> None:
         """Test plugin lifecycle operations with real object."""
-        sample_plugin = CLIPlugin(
+        sample_plugin = FlextCliPlugin(
             id="test_plugin_002",
             name="test-plugin",
             entry_point="test_plugin.main",
@@ -263,7 +273,7 @@ class TestCLIPlugin:
 
         # Install plugin - FlextResult pattern
         install_result = sample_plugin.install()
-        assert install_result.success, f"Install failed: {install_result.error}"
+        assert install_result.is_success, f"Install failed: {install_result.error}"
         installed_plugin = install_result.value
         if not (installed_plugin.installed):
             raise AssertionError(f"Expected True, got {installed_plugin.installed}")
@@ -271,7 +281,7 @@ class TestCLIPlugin:
 
         # Disable plugin - FlextResult pattern
         disable_result = installed_plugin.disable()
-        assert disable_result.success, f"Disable failed: {disable_result.error}"
+        assert disable_result.is_success, f"Disable failed: {disable_result.error}"
         disabled_plugin = disable_result.value
         if disabled_plugin.enabled:
             raise AssertionError(f"Expected False, got {disabled_plugin.enabled}")
@@ -280,14 +290,16 @@ class TestCLIPlugin:
 
         # Enable plugin - FlextResult pattern
         enable_result = disabled_plugin.enable()
-        assert enable_result.success, f"Enable failed: {enable_result.error}"
+        assert enable_result.is_success, f"Enable failed: {enable_result.error}"
         enabled_plugin = enable_result.value
         if not (enabled_plugin.enabled):
             raise AssertionError(f"Expected True, got {enabled_plugin.enabled}")
 
         # Uninstall plugin - FlextResult pattern
         uninstall_result = enabled_plugin.uninstall()
-        assert uninstall_result.success, f"Uninstall failed: {uninstall_result.error}"
+        assert uninstall_result.is_success, (
+            f"Uninstall failed: {uninstall_result.error}"
+        )
         uninstalled_plugin = uninstall_result.value
         if uninstalled_plugin.installed:
             raise AssertionError(f"Expected False, got {uninstalled_plugin.installed}")
@@ -295,7 +307,7 @@ class TestCLIPlugin:
 
     def test_plugin_with_dependencies(self) -> None:
         """Test plugin with dependencies."""
-        plugin = CLIPlugin(
+        plugin = FlextCliPlugin(
             id="complex_plugin_001",
             name="complex-plugin",
             entry_point="complex.main",
@@ -312,11 +324,11 @@ class TestCLIPlugin:
 
 
 class TestCLISession:
-    """Test cases for CLISession entity."""
+    """Test cases for FlextCliSession entity."""
 
     def test_session_creation_real(self) -> None:
         """Test session creation with real object."""
-        sample_session = CLISession(
+        sample_session = FlextCliSession(
             id="test_session_003",
             session_id="test-session-123",
             working_directory=tempfile.gettempdir(),
@@ -342,7 +354,7 @@ class TestCLISession:
 
     def test_session_command_tracking_real(self) -> None:
         """Test session command tracking with real object."""
-        sample_session = CLISession(
+        sample_session = FlextCliSession(
             id="test_session_004",
             session_id="test-session-456",
             working_directory=tempfile.gettempdir(),
@@ -375,7 +387,7 @@ class TestCLISession:
 
     def test_session_end_real(self) -> None:
         """Test session ending with real object."""
-        sample_session = CLISession(
+        sample_session = FlextCliSession(
             id="test_session_005",
             session_id="test-session-789",
             working_directory=tempfile.gettempdir(),
@@ -401,9 +413,9 @@ class TestCLISession:
         # Record time before creating session
         before_time = datetime.now(tz=UTC)
 
-        session = CLISession(id="test_session_001", session_id="test")
+        session = FlextCliSession(id="test_session_001", session_id="test")
         result = session.add_command("cmd-1")
-        assert result.success, f"Add command failed: {result.error}"
+        assert result.is_success, f"Add command failed: {result.error}"
         updated_session = result.value
 
         # Record time after session update

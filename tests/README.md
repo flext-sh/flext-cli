@@ -35,7 +35,7 @@ tests/
 
 ### ✅ **Domain Layer Tests** (95% Coverage)
 
-- **test_domain_entities.py**: CLICommand, CLISession, CLIPlugin entity testing
+- **test_domain_entities.py**: CLICommand, FlextCliSession, FlextCliPlugin entity testing
 - **test_domain_entities_complete.py**: Comprehensive domain entity validation
 - **test_domain_cli_context.py**: CLI context and value object testing
 - **Coverage**: Domain business logic, entity lifecycle, validation rules

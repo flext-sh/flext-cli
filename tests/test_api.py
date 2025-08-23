@@ -38,8 +38,8 @@ class TestFlextCliFormat:
             {"name": "Bob", "age": 25},
         ]
         result = flext_cli_format(data, "table")
-        assert result.success
-        output = result.unwrap()
+        assert result.is_success
+        output = result.value
         if "Alice" not in output:
             msg: str = f"Expected {'Alice'} in {output}"
             raise AssertionError(msg)
@@ -49,8 +49,8 @@ class TestFlextCliFormat:
         """Test formatting as JSON."""
         data = {"key": "value", "number": 42}
         result = flext_cli_format(data, "json")
-        assert result.success
-        output = result.unwrap()
+        assert result.is_success
+        output = result.value
         if "key" not in output:
             msg: str = f"Expected {'key'} in {output}"
             raise AssertionError(msg)
@@ -60,7 +60,7 @@ class TestFlextCliFormat:
         """Test formatting with invalid format type."""
         data = {"test": "data"}
         result = flext_cli_format(data, "invalid_format")
-        assert not result.success
+        assert not result.is_success
         if "Format error" not in result.error:
             msg: str = f"Expected {'Format error'} in {result.error}"
             raise AssertionError(msg)
@@ -76,8 +76,8 @@ class TestFlextCliTable:
             {"name": "Bob", "role": "Designer"},
         ]
         result = flext_cli_table(data, "Team Members")
-        assert result.success
-        table = result.unwrap()
+        assert result.is_success
+        table = result.value
         assert isinstance(table, Table)
         if table.title != "Team Members":
             msg: str = f"Expected {'Team Members'}, got {table.title}"
@@ -87,24 +87,24 @@ class TestFlextCliTable:
         """Test creating table from single dictionary."""
         data = {"name": "Alice", "age": 30}
         result = flext_cli_table(data)
-        assert result.success
-        table = result.unwrap()
+        assert result.is_success
+        table = result.value
         assert isinstance(table, Table)
 
     def test_create_table_from_simple_list(self) -> None:
         """Test creating table from simple list."""
         data = ["item1", "item2", "item3"]
         result = flext_cli_table(data)
-        assert result.success
-        table = result.unwrap()
+        assert result.is_success
+        table = result.value
         assert isinstance(table, Table)
 
     def test_create_table_from_single_value(self) -> None:
         """Test creating table from single value."""
         data = "single value"
         result = flext_cli_table(data)
-        assert result.success
-        table = result.unwrap()
+        assert result.is_success
+        table = result.value
         assert isinstance(table, Table)
 
 
@@ -122,8 +122,8 @@ class TestFlextCliTransformData:
             data,
             filter_func=lambda x: x["age"] >= 30,
         )
-        assert result.success
-        filtered_data = result.unwrap()
+        assert result.is_success
+        filtered_data = result.value
         if len(filtered_data) != EXPECTED_BULK_SIZE:
             msg: str = f"Expected {2}, got {len(filtered_data)}"
             raise AssertionError(msg)
@@ -139,8 +139,8 @@ class TestFlextCliTransformData:
             {"name": "Bob", "age": 20},
         ]
         result = flext_cli_transform_data(data, sort_key="age")
-        assert result.success
-        sorted_data = result.unwrap()
+        assert result.is_success
+        sorted_data = result.value
         ages = [item["age"] for item in sorted_data]
         if ages != [20, 30, 35]:
             msg: str = f"Expected {[20, 30, 35]}, got {ages}"
@@ -154,8 +154,8 @@ class TestFlextCliTransformData:
             {"name": "Carol", "age": 35},
         ]
         result = flext_cli_transform_data(data, sort_key="age", reverse=True)
-        assert result.success
-        sorted_data = result.unwrap()
+        assert result.is_success
+        sorted_data = result.value
         ages = [item["age"] for item in sorted_data]
         if ages != [35, 30, 20]:
             msg: str = f"Expected {[35, 30, 20]}, got {ages}"
@@ -164,7 +164,7 @@ class TestFlextCliTransformData:
     def test_transform_invalid_data_type(self) -> None:
         """Test transformation with invalid data type."""
         result = flext_cli_transform_data("not a list")
-        assert not result.success
+        assert not result.is_success
         if "Data must be a list" not in result.error:
             msg: str = f"Expected {'Data must be a list'} in {result.error}"
             raise AssertionError(msg)
@@ -181,8 +181,8 @@ class TestFlextCliAggregateData:
             {"department": "Sales", "salary": 80000},
         ]
         result = flext_cli_aggregate_data(data, group_by="department")
-        assert result.success
-        aggregated = result.unwrap()
+        assert result.is_success
+        aggregated = result.value
         if len(aggregated) != EXPECTED_BULK_SIZE:
             msg: str = f"Expected {2}, got {len(aggregated)}"
             raise AssertionError(msg)
@@ -207,8 +207,8 @@ class TestFlextCliAggregateData:
             group_by="department",
             sum_fields=["salary", "bonus"],
         )
-        assert result.success
-        aggregated = result.unwrap()
+        assert result.is_success
+        aggregated = result.value
 
         # Find Engineering department
         eng_dept = next(
@@ -222,7 +222,7 @@ class TestFlextCliAggregateData:
     def test_aggregate_invalid_data_type(self) -> None:
         """Test aggregation with invalid data type."""
         result = flext_cli_aggregate_data("not a list", group_by="field")
-        assert not result.success
+        assert not result.is_success
         if "Data must be a list" not in result.error:
             msg: str = f"Expected {'Data must be a list'} in {result.error}"
             raise AssertionError(msg)
@@ -237,9 +237,9 @@ class TestFlextCliExport:
 
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
             result = flext_cli_export(data, tmp.name, "json")
-            assert result.success
-            if "Data exported" not in result.unwrap():
-                msg: str = f"Expected {'Data exported'} in {result.unwrap()}"
+            assert result.is_success
+            if "Data exported" not in result.value:
+                msg: str = f"Expected {'Data exported'} in {result.value}"
                 raise AssertionError(msg)
 
             # Verify file exists and has content
@@ -257,7 +257,7 @@ class TestFlextCliExport:
 
         with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as tmp:
             result = flext_cli_export(data, tmp.name, "yaml")
-            assert result.success
+            assert result.is_success
 
             # Verify file exists and has content
             path = Path(tmp.name)
@@ -277,7 +277,7 @@ class TestFlextCliExport:
 
         with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as tmp:
             result = flext_cli_export(data, tmp.name, "csv")
-            assert result.success
+            assert result.is_success
 
             # Verify file exists and has content
             path = Path(tmp.name)
@@ -292,7 +292,7 @@ class TestFlextCliExport:
     def test_export_csv_invalid_data(self) -> None:
         """Test CSV export with invalid data."""
         result = flext_cli_export("not a list", "test.csv", "csv")
-        assert not result.success
+        assert not result.is_success
         if "CSV export requires list of dictionaries" not in result.error:
             msg: str = f"Expected {'CSV export requires list of dictionaries'} in {result.error}"
             raise AssertionError(msg)
@@ -301,7 +301,7 @@ class TestFlextCliExport:
         """Test export with unsupported format."""
         data = {"test": "data"}
         result = flext_cli_export(data, "test.txt", "unsupported")
-        assert not result.success
+        assert not result.is_success
         if "Unsupported export format" not in result.error:
             msg: str = f"Expected {'Unsupported export format'} in {result.error}"
             raise AssertionError(msg)
@@ -319,9 +319,9 @@ class TestFlextCliBatchExport:
 
         with tempfile.TemporaryDirectory() as tmpdir:
             result = flext_cli_batch_export(datasets, tmpdir, "json")
-            assert result.success
+            assert result.is_success
 
-            files = result.unwrap()
+            files = result.value
             if len(files) != EXPECTED_BULK_SIZE:
                 msg: str = f"Expected {2}, got {len(files)}"
                 raise AssertionError(msg)
@@ -341,7 +341,7 @@ class TestFlextCliBatchExport:
 
         with tempfile.TemporaryDirectory() as tmpdir:
             result = flext_cli_batch_export(datasets, tmpdir, "csv")
-            assert not result.success
+            assert not result.is_success
             if "Failed to export invalid" not in result.error:
                 msg: str = f"Expected {'Failed to export invalid'} in {result.error}"
                 raise AssertionError(msg)

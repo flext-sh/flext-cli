@@ -10,7 +10,7 @@ from __future__ import annotations
 import csv
 import io
 import json
-from typing import ClassVar
+from typing import ClassVar, cast, override
 
 import yaml
 from rich.console import Console
@@ -28,31 +28,50 @@ class OutputFormatter:
 class TableFormatter(OutputFormatter):
     """Formats data as a table."""
 
+    @override
     def format(self, data: object, console: Console) -> None:
         """Format data as a table."""
         table = Table()
-        if isinstance(data, list) and data and isinstance(data[0], dict):
-            headers = list(data[0].keys())
-            for h in headers:
-                table.add_column(str(h))
-            for item in data:
-                if isinstance(item, dict):
-                    table.add_row(*(str(item.get(h, "")) for h in headers))
+        if isinstance(data, list) and data:
+            first_item = cast("object", data[0])
+            if isinstance(first_item, dict):
+                # Type-safe dict handling for table headers
+                first_dict_raw = cast("dict[object, object]", first_item)
+                first_dict: dict[str, object] = {str(k): v for k, v in first_dict_raw.items()}
+                headers: list[str] = list(first_dict.keys())
+                for header_str in headers:
+                    table.add_column(header_str)
+
+                # Type-safe list iteration for table rows
+                data_list = cast("list[object]", data)
+                for item in data_list:
+                    if isinstance(item, dict):
+                        # Type-safe dict access for row values
+                        item_dict_raw = cast("dict[object, object]", item)
+                        item_dict: dict[str, object] = {str(k): v for k, v in item_dict_raw.items()}
+                        row_values = [str(item_dict.get(h, "")) for h in headers]
+                        table.add_row(*row_values)
         elif isinstance(data, dict):
             table.add_column("Key")
             table.add_column("Value")
-            for k, v in data.items():
+            data_dict = cast("dict[object, object]", data)
+            for k, v in data_dict.items():
                 table.add_row(str(k), str(v))
         else:
             table.add_column("Value")
-            for item in data if isinstance(data, list) else [data]:
-                table.add_row(str(item))
+            if isinstance(data, list):
+                list_data = cast("list[object]", data)
+                for list_item in list_data:
+                    table.add_row(str(list_item))
+            else:
+                table.add_row(str(data))
         console.print(table)
 
 
 class JSONFormatter(OutputFormatter):
     """Formats data as JSON."""
 
+    @override
     def format(self, data: object, console: Console) -> None:
         """Format data as JSON."""
         console.print(json.dumps(data, indent=2, default=str))
@@ -61,6 +80,7 @@ class JSONFormatter(OutputFormatter):
 class YAMLFormatter(OutputFormatter):
     """Formats data as YAML."""
 
+    @override
     def format(self, data: object, console: Console) -> None:
         """Format data as YAML."""
         console.print(yaml.dump(data, default_flow_style=False))
@@ -69,21 +89,39 @@ class YAMLFormatter(OutputFormatter):
 class CSVFormatter(OutputFormatter):
     """Formats data as CSV."""
 
+    @override
     def format(self, data: object, console: Console) -> None:
         """Format data as CSV."""
         output = io.StringIO()
-        if isinstance(data, list) and data and isinstance(data[0], dict):
-            dict_writer = csv.DictWriter(output, fieldnames=list(data[0].keys()))
-            dict_writer.writeheader()
-            dict_writer.writerows(data)
+        if isinstance(data, list) and data:
+            first_item = cast("object", data[0])
+            if isinstance(first_item, dict):
+                first_dict = cast("dict[object, object]", first_item)
+                fieldnames: list[str] = [str(k) for k in first_dict]
+                dict_writer = csv.DictWriter(output, fieldnames=fieldnames)
+                dict_writer.writeheader()
+
+                # Convert all dict items for CSV writing
+                csv_rows: list[dict[str, object]] = []
+                data_list = cast("list[object]", data)
+                for item in data_list:
+                    if isinstance(item, dict):
+                        item_dict = cast("dict[object, object]", item)
+                        str_dict: dict[str, object] = {str(k): v for k, v in item_dict.items()}
+                        csv_rows.append(str_dict)
+                dict_writer.writerows(csv_rows)
         elif isinstance(data, list):
             list_writer = csv.writer(output)
-            for item in data:
+            list_data = cast("list[object]", data)
+            for item in list_data:
                 list_writer.writerow([str(item)])
         elif isinstance(data, dict):
             csv_writer = csv.writer(output)
-            csv_writer.writerow(list(data.keys()))
-            csv_writer.writerow(list(data.values()))
+            data_dict = cast("dict[object, object]", data)
+            keys_list: list[str] = [str(k) for k in data_dict]
+            values_list: list[str] = [str(v) for v in data_dict.values()]
+            csv_writer.writerow(keys_list)
+            csv_writer.writerow(values_list)
         else:
             single_writer = csv.writer(output)
             single_writer.writerow([str(data)])
@@ -93,20 +131,27 @@ class CSVFormatter(OutputFormatter):
 class PlainFormatter(OutputFormatter):
     """Formats data as plain text."""
 
+    @override
     def format(self, data: object, console: Console) -> None:
         """Format data as plain text."""
         if isinstance(data, dict):
-            for k, v in data.items():
+            data_dict = cast("dict[object, object]", data)
+            for k, v in data_dict.items():
                 console.print(f"{k}: {v}")
         elif isinstance(data, list):
-            if data and isinstance(data[0], dict):
-                # Print each dict item as key: value lines to satisfy tests
-                for item in data:
-                    for k, v in item.items():
-                        console.print(f"{k}: {v}")
-            else:
-                for item in data:
-                    console.print(str(item))
+            plain_list = cast("list[object]", data)
+            if plain_list:
+                first_item = plain_list[0]
+                if isinstance(first_item, dict):
+                    # Print each dict item as key: value lines to satisfy tests
+                    for item in plain_list:
+                        if isinstance(item, dict):
+                            item_dict = cast("dict[object, object]", item)
+                            for k, v in item_dict.items():
+                                console.print(f"{k}: {v}")
+                else:
+                    for item in plain_list:
+                        console.print(str(item))
         else:
             console.print(str(data))
 

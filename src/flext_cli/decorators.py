@@ -13,9 +13,16 @@ import hashlib
 import time
 from collections.abc import Callable, Coroutine
 from pathlib import Path
-from typing import ParamSpec, TypeVar
+from typing import ParamSpec, TypeVar, cast
 
-from flext_core import FlextErrorHandlingDecorators, FlextResult, get_logger
+from flext_core import (
+    FlextCallable,
+    FlextDecoratedFunction,
+    FlextDecorators,
+    FlextResult,
+    get_logger,
+    safe_call,
+)
 from rich.console import Console
 
 P = ParamSpec("P")
@@ -26,101 +33,108 @@ T = TypeVar("T")
 # =============================================================================
 
 
-def cli_enhanced[**P, T](
+def cli_enhanced[T, **P](
     func: Callable[P, T] | None = None,
     *,
-    validate_inputs: bool = True,
+    validate_inputs: bool = False,
     handle_keyboard_interrupt: bool = True,
     measure_time: bool = False,
-    log_execution: bool = True,
+    log_execution: bool = False,
     show_spinner: bool = False,
+    safe_execution: bool = True,
 ) -> Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]:
-    """Enhanced CLI decorator combining multiple CLI-specific behaviors.
+    """Enhanced CLI decorator using flext-core FlextDecorators patterns.
 
-      This decorator consolidates common CLI patterns into a single,
-      configurable decorator that delegates to appropriate flext-core
-      decorators where possible.
-
-    Args:
-          func: Optional function for bare decorator usage (@cli_enhanced)
-          validate_inputs: Enable input validation
-          handle_keyboard_interrupt: Handle Ctrl+C gracefully
-          measure_time: Measure and log execution time
-          log_execution: Log command execution
-          show_spinner: Show spinner during execution
-
-    Returns:
-          Decorated function with CLI enhancements
-
-
-
-    Args:
-      func (Callable[P, T] | None): Description.
-      validate_inputs (bool): Description.
-      handle_keyboard_interrupt (bool): Description.
-      measure_time (bool): Description.
-      log_execution (bool): Description.
-      show_spinner (bool): Description.
-
-    Returns:
-      Callable[[Callable[P, T]], Callable[P, T]] | Callable[P, T]: Description.
-
+    Integrates with FlextDecorators for modern decorator patterns including
+    safe execution, validation, timing, and logging capabilities.
     """
 
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
-        """Decorator function.
+        """Decorator that uses FlextDecorators for comprehensive CLI enhancement."""
+        # Start with base function
+        enhanced_func = func
 
-        Args:
-            func (Callable[P, T]): Description.
+        # Apply FlextDecorators chain based on options
+        if safe_execution:
+            # Cast to FlextCallable[T] for FlextDecorators.safe_result compatibility
+            # This preserves the return type T through the decoration chain
+            flext_callable = cast("FlextCallable[T]", enhanced_func)
+            safe_wrapper = FlextDecorators.safe_result(flext_callable)
 
-        Returns:
-            Callable[P, T]: Description.
+            # Wrap the safe result to handle CLI-specific needs
+            @functools.wraps(func)
+            def cli_safe_wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+                """CLI-specific wrapper for FlextResult handling."""
+                logger = get_logger(func.__name__) if log_execution else None
 
-        """
-        enhanced_func: Callable[P, T] = func
+                # Show spinner if requested
+                if show_spinner and logger:
+                    logger.info("Processing %s...", func.__name__)
 
-        # Apply flext-core error handling with proper type casting for CLI compatibility
-        if handle_keyboard_interrupt:
-            # Create a protocol-compatible function that returns FlextResult
-            def object_func(*args: object, **kwargs: object) -> FlextResult[object]:
+                # Validate inputs if requested
+                if validate_inputs:
+                    _validate_cli_inputs(args, kwargs)
+
+                # Execute with timing if requested
+                if measure_time and logger:
+                    start_time = time.time()
+                    result = safe_wrapper(*args, **kwargs)
+                    elapsed = time.time() - start_time
+                    logger.info(
+                        "Function %s completed in %.3fs", func.__name__, elapsed
+                    )
+                else:
+                    result = safe_wrapper(*args, **kwargs)
+
+                # Handle FlextResult return from FlextDecorators.safe_result
+                if isinstance(result, FlextResult):
+                    # Log errors but preserve FlextResult pattern
+                    if result.is_failure and logger:
+                        error = result.error or "Unknown error"
+                        logger.error(
+                            "CLI command failed: %s - %s", func.__name__, error
+                        )
+
+                        # Handle keyboard interrupt specially
+                        if "KeyboardInterrupt" in error and handle_keyboard_interrupt:
+                            raise SystemExit(1)
+
+                    # Always return the FlextResult to preserve railway-oriented programming
+                    return cast("T", result)
+
+                # If not a FlextResult, return directly
+                return cast("T", result)
+
+            enhanced_func = cli_safe_wrapper
+
+        else:
+            # Without safe execution, just basic CLI wrapper
+            @functools.wraps(func)
+            def basic_wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+                logger = get_logger(func.__name__) if log_execution else None
+
+                if show_spinner and logger:
+                    logger.info("Processing %s...", func.__name__)
+
+                if validate_inputs:
+                    _validate_cli_inputs(args, kwargs)
+
                 try:
-                    result = enhanced_func(*args, **kwargs)  # type: ignore[arg-type]
-                    return FlextResult[object].ok(result)
-                except Exception as e:
-                    return FlextResult[object].fail(str(e))
+                    if measure_time and logger:
+                        start_time = time.time()
+                        result = func(*args, **kwargs)
+                        elapsed = time.time() - start_time
+                        logger.info(
+                            "Function %s completed in %.3fs", func.__name__, elapsed
+                        )
+                        return result
+                    return func(*args, **kwargs)
+                except KeyboardInterrupt as e:
+                    if handle_keyboard_interrupt:
+                        raise SystemExit(1) from e
+                    raise
 
-            safe_func = FlextErrorHandlingDecorators.safe_call()(object_func)
-
-            # Type-safe wrapper that preserves P and T while using the decorated function
-            def type_safe_wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-                result = safe_func(*args, **kwargs)
-                if isinstance(result, FlextResult) and result.is_success:
-                    return result.value  # type: ignore[return-value]
-                # Handle error case by raising exception to maintain T return type
-                error_msg = (
-                    result.error if isinstance(result, FlextResult) else str(result)
-                )
-                raise RuntimeError(error_msg)
-
-            enhanced_func = type_safe_wrapper
-
-        # Apply CLI-specific decorators
-        if validate_inputs:
-            enhanced_func = cli_validate_inputs(enhanced_func)
-
-        if handle_keyboard_interrupt:
-            enhanced_func = cli_handle_keyboard_interrupt(enhanced_func)
-
-        if measure_time:
-            # Skip timing for now due to type inference issues with Python 3.13 generics
-            # enhanced_func = cli_measure_time(show_in_output=False)(enhanced_func)
-            pass
-
-        if log_execution:
-            enhanced_func = cli_log_execution(enhanced_func)
-
-        if show_spinner:
-            enhanced_func = cli_spinner()(enhanced_func)
+            enhanced_func = basic_wrapper
 
         return enhanced_func
 
@@ -130,52 +144,68 @@ def cli_enhanced[**P, T](
     return decorator
 
 
+def _validate_cli_inputs(args: tuple[object, ...], kwargs: dict[str, object]) -> None:
+    """Basic CLI input validation helper."""
+    # Basic validation - check for None values in required parameters
+    for arg in args:
+        if arg is None:
+            msg = "Required positional argument cannot be None"
+            raise ValueError(msg)
+
+    # Check for empty strings in common CLI parameters
+    for key, value in kwargs.items():
+        if isinstance(value, str) and not value.strip():
+            msg = f"Parameter '{key}' cannot be empty"
+            raise ValueError(msg)
+
+
 def cli_validate_inputs[**P, T](func: Callable[P, T]) -> Callable[P, T]:
-    """Validate CLI command inputs before execution.
+    """Validate CLI command inputs using flext-core patterns.
 
-      Delegates to flext-core validation where possible and adds
-      CLI-specific input validation.
-
+    Integrates with flext-core validation and adds CLI-specific
+    input validation for better error handling.
 
     Args:
-      func (Callable[P, T]): Description.
+      func: Function to validate inputs for
 
     Returns:
-      Callable[P, T]: Description.
+      Wrapper function with validation logic
 
     """
 
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        """Wrapper function.
-
-        Args:
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-
-        Returns:
-            T: Description.
-
-        """
+        """Wrapper with flext-core validation patterns."""
         logger = get_logger(func.__name__)
 
-        # Basic input validation (linear, minimal branching)
-        for arg in args:
-            if isinstance(arg, str) and arg.strip() == "":
-                logger.error("Input validation failed for %s", func.__name__)
-                msg = "Empty string argument not allowed"
-                raise ValueError(msg)
+        def validate_and_execute() -> T:
+            # Use flext-core patterns for validation
+            # Basic input validation (linear, minimal branching)
+            for arg in args:
+                if isinstance(arg, str) and arg.strip() == "":
+                    logger.error("Input validation failed for %s", func.__name__)
+                    msg = "Empty string argument not allowed"
+                    raise ValueError(msg)
 
-        for key, value in kwargs.items():
-            if (
-                isinstance(value, str)
-                and key.endswith("_required")
-                and value.strip() == ""
-            ):
-                logger.error("Input validation failed for %s", func.__name__)
-                raise ValueError("Required argument '" + key + "' cannot be empty")
+            for key, value in kwargs.items():
+                if (
+                    isinstance(value, str)
+                    and key.endswith("_required")
+                    and value.strip() == ""
+                ):
+                    logger.error("Input validation failed for %s", func.__name__)
+                    raise ValueError("Required argument '" + key + "' cannot be empty")
 
-        return func(*args, **kwargs)
+            return func(*args, **kwargs)
+
+        # Use safe_call for flext-core integration and unwrap_or pattern
+        result = safe_call(validate_and_execute)
+
+        if result.is_failure:
+            logger.error("Validation failed: %s", result.error)
+
+        # Use .unwrap_or_raise() pattern to simplify error handling
+        return FlextResult.unwrap_or_raise(result, RuntimeError)
 
     return wrapper
 
@@ -475,8 +505,7 @@ def cli_retry(
                         )
 
                         console.print(
-                            f"[yellow]Attempt {attempt + 1} failed. "
-                            f"Retrying in {retry_delay:.1f} seconds...[/yellow]"
+                            f"[yellow]Attempt {attempt + 1} failed. Retrying in {retry_delay:.1f} seconds...[/yellow]"
                         )
 
                         time.sleep(retry_delay)
@@ -844,6 +873,36 @@ flext_cli_inject_config = cli_inject_config
 flext_cli_file_operation = cli_file_operation
 
 
+def cli_complete(
+    model_class: object | None = None,
+    *,
+    cache_size: int = 128,
+    with_timing: bool = False,
+    with_logging: bool = False,
+) -> Callable[[FlextDecoratedFunction[object]], FlextDecoratedFunction[object]]:
+    """Complete CLI decorator using FlextDecorators.complete_decorator.
+
+    This provides full FlextDecorators functionality for CLI functions including
+    validation, caching, timing, and logging in a single decorator.
+
+    Args:
+        model_class: Optional Pydantic model for input validation
+        cache_size: Cache size for result caching
+        with_timing: Enable execution timing
+        with_logging: Enable structured logging
+
+    Returns:
+        Complete decorator with all requested features
+
+    """
+    return FlextDecorators.complete_decorator(
+        model_class=model_class,
+        cache_size=cache_size,
+        with_timing=with_timing,
+        with_logging=with_logging,
+    )
+
+
 # =============================================================================
 # EXPORTS
 # =============================================================================
@@ -851,8 +910,9 @@ flext_cli_file_operation = cli_file_operation
 __all__ = [
     # Consolidated decorators from core/decorators.py
     "async_command",
-    # Modern CLI decorators
+    # Modern CLI decorators using FlextDecorators
     "cli_cache_result",
+    "cli_complete",
     "cli_confirm",
     "cli_enhanced",
     "cli_file_operation",

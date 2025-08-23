@@ -70,8 +70,8 @@ class TestFlextCliDataProcessorAdvanced:
             for source_name, source_func in sources.items():
                 try:
                     result = source_func()
-                    if result.success:
-                        aggregated_data[source_name] = result.data
+                    if result.is_success:
+                        aggregated_data[source_name] = result.value
                     else:
                         errors.append(f"{source_name}: {result.error}")
                         if fail_fast:
@@ -106,13 +106,13 @@ class TestFlextCliDataProcessorAdvanced:
                 fail_fast=False,
             )
 
-        assert result.success
-        assert "users" in result.data
-        assert "orders" in result.data
-        assert "products" in result.data
-        assert len(result.data["users"]) == 2
-        assert len(result.data["orders"]) == 2
-        assert len(result.data["products"]) == 2
+        assert result.is_success
+        assert "users" in result.value
+        assert "orders" in result.value
+        assert "products" in result.value
+        assert len(result.value["users"]) == 2
+        assert len(result.value["orders"]) == 2
+        assert len(result.value["products"]) == 2
 
     def test_flext_cli_aggregate_data_partial_failure_continue(self) -> None:
         """Test data aggregation with partial failures and continue processing."""
@@ -145,8 +145,8 @@ class TestFlextCliDataProcessorAdvanced:
             for source_name, source_func in sources.items():
                 try:
                     result = source_func()
-                    if result.success:
-                        aggregated_data[source_name] = result.data
+                    if result.is_success:
+                        aggregated_data[source_name] = result.value
                     else:
                         errors.append(f"{source_name}: {result.error}")
                         if fail_fast:
@@ -180,12 +180,12 @@ class TestFlextCliDataProcessorAdvanced:
                 fail_fast=False,
             )
 
-        assert result.success
-        assert "users" in result.data
-        assert "products" in result.data
-        assert "orders" not in result.data  # Failed source not included
-        assert "_errors" in result.data
-        assert "orders: Orders service unavailable" in result.data["_errors"]
+        assert result.is_success
+        assert "users" in result.value
+        assert "products" in result.value
+        assert "orders" not in result.value  # Failed source not included
+        assert "_errors" in result.value
+        assert "orders: Orders service unavailable" in result.value["_errors"]
 
     def test_flext_cli_aggregate_data_fail_fast_mode(self) -> None:
         """Test data aggregation with fail_fast=True."""
@@ -218,8 +218,8 @@ class TestFlextCliDataProcessorAdvanced:
             for source_name, source_func in sources.items():
                 try:
                     result = source_func()
-                    if result.success:
-                        aggregated_data[source_name] = result.data
+                    if result.is_success:
+                        aggregated_data[source_name] = result.value
                     else:
                         errors.append(f"{source_name}: {result.error}")
                         if fail_fast:
@@ -253,7 +253,7 @@ class TestFlextCliDataProcessorAdvanced:
                 fail_fast=True,
             )
 
-        assert not result.success
+        assert not result.is_success
         assert "Source orders failed: Orders service unavailable" in result.error
 
     def test_flext_cli_transform_data_pipeline_success(self) -> None:
@@ -299,11 +299,11 @@ class TestFlextCliDataProcessorAdvanced:
             for i, transformer in enumerate(transformers):
                 try:
                     result = transformer(current_data)
-                    if not result.success:
+                    if not result.is_success:
                         return FlextResult[None].fail(
                             f"Transformer {i} failed: {result.error}",
                         )
-                    current_data = result.data
+                    current_data = result.value
                 except Exception as e:
                     return FlextResult[None].fail(f"Transformer {i} exception: {e!s}")
 
@@ -319,13 +319,13 @@ class TestFlextCliDataProcessorAdvanced:
                 transformers,
             )
 
-        assert result.success
-        assert result.data["normalized"] is True
-        assert result.data["doubled"] is True
-        assert result.data["items"] == [2, 4, 6, 8, 10]  # Doubled
-        assert "summary" in result.data
-        assert result.data["summary"]["total"] == 30  # Sum of doubled items
-        assert result.data["summary"]["count"] == 5
+        assert result.is_success
+        assert result.value["normalized"] is True
+        assert result.value["doubled"] is True
+        assert result.value["items"] == [2, 4, 6, 8, 10]  # Doubled
+        assert "summary" in result.value
+        assert result.value["summary"]["total"] == 30  # Sum of doubled items
+        assert result.value["summary"]["count"] == 5
 
     def test_flext_cli_transform_data_pipeline_transformer_failure(self) -> None:
         """Test data transformation pipeline with transformer failure."""
@@ -359,11 +359,11 @@ class TestFlextCliDataProcessorAdvanced:
             for i, transformer in enumerate(transformers):
                 try:
                     result = transformer(current_data)
-                    if not result.success:
+                    if not result.is_success:
                         return FlextResult[None].fail(
                             f"Transformer {i} failed: {result.error}",
                         )
-                    current_data = result.data
+                    current_data = result.value
                 except Exception as e:
                     return FlextResult[None].fail(f"Transformer {i} exception: {e!s}")
 
@@ -379,7 +379,7 @@ class TestFlextCliDataProcessorAdvanced:
                 transformers,
             )
 
-        assert not result.success
+        assert not result.is_success
         assert "Transformer 1 failed: Transformation logic error" in result.error
 
     def test_flext_cli_transform_data_pipeline_transformer_exception(self) -> None:
@@ -410,11 +410,11 @@ class TestFlextCliDataProcessorAdvanced:
             for i, transformer in enumerate(transformers):
                 try:
                     result = transformer(current_data)
-                    if not result.success:
+                    if not result.is_success:
                         return FlextResult[None].fail(
                             f"Transformer {i} failed: {result.error}",
                         )
-                    current_data = result.data
+                    current_data = result.value
                 except Exception as e:
                     return FlextResult[None].fail(f"Transformer {i} exception: {e!s}")
 
@@ -430,7 +430,7 @@ class TestFlextCliDataProcessorAdvanced:
                 transformers,
             )
 
-        assert not result.success
+        assert not result.is_success
         assert "Transformer 1 exception: Unexpected transformer error" in result.error
 
 
@@ -489,8 +489,8 @@ class TestComplexDataProcessingWorkflows:
             result_data = {}
             for name, func in sources.items():
                 data_result = func()
-                if data_result.success:
-                    result_data[name] = data_result.data
+                if data_result.is_success:
+                    result_data[name] = data_result.value
                 else:
                     return data_result
             return FlextResult[None].ok(result_data)
@@ -547,9 +547,9 @@ class TestComplexDataProcessingWorkflows:
             current = data
             for transformer in transformers:
                 result = transformer(current)
-                if not result.success:
+                if not result.is_success:
                     return result
-                current = result.data
+                current = result.value
             return FlextResult[None].ok(current)
 
         # Execute the complete pipeline
@@ -569,16 +569,16 @@ class TestComplexDataProcessingWorkflows:
             extraction_result = self.processor.flext_cli_aggregate_data(
                 extraction_sources,
             )
-            assert extraction_result.success
+            assert extraction_result.is_success
 
             # Step 2: Transform data
             transformation_result = self.processor.flext_cli_transform_data_pipeline(
-                extraction_result.data,
+                extraction_result.value,
                 transformation_pipeline,
             )
-            assert transformation_result.success
+            assert transformation_result.is_success
 
-        final_data = transformation_result.data
+        final_data = transformation_result.value
 
         # Validate final results
         assert "scored_users" in final_data
@@ -614,7 +614,7 @@ class TestComplexDataProcessingWorkflows:
         ) -> FlextResult[dict[str, object]]:
             for name, func in sources.items():
                 result = func()
-                if not result.success and fail_fast:
+                if not result.is_success and fail_fast:
                     return FlextResult[None].fail(
                         f"Source {name} failed: {result.error}"
                     )
@@ -627,7 +627,7 @@ class TestComplexDataProcessingWorkflows:
         ):
             result = self.processor.flext_cli_aggregate_data(sources, fail_fast=True)
 
-        assert not result.success
+        assert not result.is_success
         assert "Source failing failed: Source system unavailable" in result.error
 
     def test_validation_and_transformation_integration(self) -> None:
@@ -657,13 +657,13 @@ class TestComplexDataProcessingWorkflows:
             transformers,
         )
 
-        assert result.success
+        assert result.is_success
         assert (
-            result.data["user_email"] == "user@example.com"
+            result.value["user_email"] == "user@example.com"
         )  # Validated and lowercased
-        assert result.data["api_url"] == "https://api.flext.sh/v1"  # Validated
-        assert result.data["batch_size"] == 25  # Converted to int
-        assert result.data["active_only"] is True  # Converted to boolean
+        assert result.value["api_url"] == "https://api.flext.sh/v1"  # Validated
+        assert result.value["batch_size"] == 25  # Converted to int
+        assert result.value["active_only"] is True  # Converted to boolean
 
 
 if __name__ == "__main__":

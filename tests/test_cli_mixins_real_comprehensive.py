@@ -44,7 +44,7 @@ class TestCLIValidationMixin(unittest.TestCase):
         result = self.mixin.validate_cli_arguments([])
 
         assert isinstance(result, FlextResult)
-        assert result.success is True
+        assert result.is_success is True
 
     def test_validate_cli_arguments_valid_args(self) -> None:
         """Test validate_cli_arguments with valid arguments."""
@@ -52,7 +52,7 @@ class TestCLIValidationMixin(unittest.TestCase):
         result = self.mixin.validate_cli_arguments(valid_args)
 
         assert isinstance(result, FlextResult)
-        assert result.success is True
+        assert result.is_success is True
 
     def test_validate_cli_arguments_empty_string(self) -> None:
         """Test validate_cli_arguments with empty string arguments."""
@@ -60,7 +60,7 @@ class TestCLIValidationMixin(unittest.TestCase):
         result = self.mixin.validate_cli_arguments(args_with_empty)
 
         assert isinstance(result, FlextResult)
-        assert not result.success
+        assert not result.is_success
         assert "Argument 1 cannot be empty" in (result.error or "")
 
     def test_validate_cli_arguments_whitespace_only(self) -> None:
@@ -69,7 +69,7 @@ class TestCLIValidationMixin(unittest.TestCase):
         result = self.mixin.validate_cli_arguments(args_with_whitespace)
 
         assert isinstance(result, FlextResult)
-        assert not result.success
+        assert not result.is_success
         assert "whitespace-only" in (result.error or "")
 
     def test_validate_cli_arguments_mixed_valid_invalid(self) -> None:
@@ -78,7 +78,7 @@ class TestCLIValidationMixin(unittest.TestCase):
         result = self.mixin.validate_cli_arguments(mixed_args)
 
         assert isinstance(result, FlextResult)
-        assert not result.success
+        assert not result.is_success
         assert "Argument 2" in (result.error or "")
 
     def test_validate_cli_arguments_single_valid(self) -> None:
@@ -86,7 +86,7 @@ class TestCLIValidationMixin(unittest.TestCase):
         result = self.mixin.validate_cli_arguments(["single-command"])
 
         assert isinstance(result, FlextResult)
-        assert result.success is True
+        assert result.is_success is True
 
     def test_validate_cli_arguments_long_list(self) -> None:
         """Test validate_cli_arguments with long argument list."""
@@ -94,7 +94,7 @@ class TestCLIValidationMixin(unittest.TestCase):
         result = self.mixin.validate_cli_arguments(long_args)
 
         assert isinstance(result, FlextResult)
-        assert result.success is True
+        assert result.is_success is True
 
     def test_validation_mixin_inheritance(self) -> None:
         """Test CLIValidationMixin properly inherits from FlextValidatableMixin."""
@@ -125,14 +125,14 @@ class TestCLIConfigMixin(unittest.TestCase):
         if hasattr(self.mixin, "get_config_value"):
             result = self.mixin.get_config_value("output_format")
             if isinstance(result, FlextResult):
-                assert result.success is True
+                assert result.is_success is True
 
     def test_set_config_value_basic(self) -> None:
         """Test set_config_value with basic key-value pairs."""
         if hasattr(self.mixin, "set_config_value"):
             result = self.mixin.set_config_value("test_key", "test_value")
             if isinstance(result, FlextResult):
-                assert result.success is True
+                assert result.is_success is True
 
     def test_config_mixin_inheritance(self) -> None:
         """Test CLIConfigMixin properly inherits from FlextComparableMixin."""
@@ -184,7 +184,7 @@ class TestCLILoggingMixin(unittest.TestCase):
         if hasattr(self.mixin, "log_cli_action"):
             result = self.mixin.log_cli_action("Test CLI action")
             if isinstance(result, FlextResult):
-                assert result.success is True
+                assert result.is_success is True
 
     def test_log_cli_action_with_level(self) -> None:
         """Test log_cli_action with different log levels."""
@@ -197,7 +197,7 @@ class TestCLILoggingMixin(unittest.TestCase):
                 )
                 if isinstance(result, FlextResult):
                     # Should handle different log levels
-                    assert result.success is True
+                    assert result.is_success is True
 
     def test_logging_mixin_inheritance(self) -> None:
         """Test CLILoggingMixin properly inherits from FlextLoggableMixin."""
@@ -227,7 +227,7 @@ class TestCLILoggingMixin(unittest.TestCase):
             if hasattr(self.mixin, "log_cli_action"):
                 result = self.mixin.log_cli_action(message)
                 if isinstance(result, FlextResult):
-                    assert result.success is True
+                    assert result.is_success is True
 
 
 class TestCLIOutputMixin(unittest.TestCase):
@@ -244,7 +244,7 @@ class TestCLIOutputMixin(unittest.TestCase):
         if hasattr(self.mixin, "format_cli_output"):
             result = self.mixin.format_cli_output(test_data, format="table")
             if isinstance(result, FlextResult):
-                assert result.success is True
+                assert result.is_success is True
 
     def test_format_cli_output_json(self) -> None:
         """Test format_cli_output with JSON format."""
@@ -253,11 +253,11 @@ class TestCLIOutputMixin(unittest.TestCase):
         if hasattr(self.mixin, "format_cli_output"):
             result = self.mixin.format_cli_output(test_data, format="json")
             if isinstance(result, FlextResult):
-                assert result.success is True
-                if result.success:
+                assert result.is_success is True
+                if result.is_success:
                     # Should be valid JSON
                     try:
-                        json.loads(result.unwrap())
+                        json.loads(result.value)
                     except (json.JSONDecodeError, TypeError):
                         # If not JSON string, that's also valid
                         pass
@@ -269,7 +269,7 @@ class TestCLIOutputMixin(unittest.TestCase):
         if hasattr(self.mixin, "format_cli_output"):
             result = self.mixin.format_cli_output(test_data, format="yaml")
             if isinstance(result, FlextResult):
-                assert result.success is True
+                assert result.is_success is True
 
     def test_output_mixin_inheritance(self) -> None:
         """Test CLIOutputMixin properly inherits from FlextSerializableMixin."""
@@ -323,7 +323,7 @@ class TestCLIInteractiveMixin(unittest.TestCase):
                 try:
                     result = self.mixin.update_progress(progress, 50.0)
                     if isinstance(result, FlextResult):
-                        assert result.success is True
+                        assert result.is_success is True
                 except Exception:
                     # If method signature is different, that's fine
                     pass
@@ -452,7 +452,7 @@ class TestCLIDataMixin(unittest.TestCase):
             validation_result = self.mixin.validate_cli_arguments(args)
             assert isinstance(validation_result, FlextResult)
 
-            if validation_result.success and hasattr(self.mixin, "format_cli_output"):
+            if validation_result.is_success and hasattr(self.mixin, "format_cli_output"):
                 # Process some test data
                 processed_data = {"args": args, "status": "validated"}
                 output_result = self.mixin.format_cli_output(processed_data)
@@ -479,7 +479,7 @@ class TestCLIExecutionMixin(unittest.TestCase):
         if hasattr(self.mixin, "log_cli_action"):
             result = self.mixin.log_cli_action("Starting command execution")
             if isinstance(result, FlextResult):
-                assert result.success is True
+                assert result.is_success is True
 
     def test_execution_mixin_interactive_capabilities(self) -> None:
         """Test execution mixin has interactive capabilities."""
@@ -494,7 +494,7 @@ class TestCLIExecutionMixin(unittest.TestCase):
         if hasattr(self.mixin, "log_cli_action"):
             log_result = self.mixin.log_cli_action("Command execution started")
             if isinstance(log_result, FlextResult):
-                assert log_result.success is True
+                assert log_result.is_success is True
 
         # Test interactive elements during execution
         if hasattr(self.mixin, "create_progress_bar"):
@@ -633,7 +633,7 @@ class TestMixinIntegration(unittest.TestCase):
         if hasattr(complete_cli, "log_cli_action"):
             log_result = complete_cli.log_cli_action("Processing user command")
             if isinstance(log_result, FlextResult):
-                assert log_result.success is True
+                assert log_result.is_success is True
 
         # Step 3: Format output (if output method exists)
         if hasattr(complete_cli, "format_cli_output"):

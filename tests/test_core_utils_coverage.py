@@ -133,8 +133,8 @@ class TestConfigFileLoading:
 
             result = _load_config_file(str(temp_path))
 
-            assert result.success
-            loaded_config = result.unwrap()
+            assert result.is_success
+            loaded_config = result.value
             assert loaded_config["debug"] == config_data["debug"]
             assert loaded_config["timeout"] == config_data["timeout"]
 
@@ -153,8 +153,8 @@ class TestConfigFileLoading:
 
             result = _load_config_file(str(temp_path))
 
-            assert result.success
-            loaded_config = result.unwrap()
+            assert result.is_success
+            loaded_config = result.value
             assert loaded_config["debug"] == config_data["debug"]
             assert loaded_config["features"] == config_data["features"]
 
@@ -164,7 +164,7 @@ class TestConfigFileLoading:
         """Test config file loading with missing file."""
         result = _load_config_file("/nonexistent/config.json")
 
-        assert not result.success
+        assert not result.is_success
         assert (
             "not found" in result.error.lower()
             or "no such file" in result.error.lower()
@@ -181,7 +181,7 @@ class TestConfigFileLoading:
 
             result = _load_config_file(str(temp_path))
 
-            assert not result.success
+            assert not result.is_success
             assert "json" in result.error.lower() or "parse" in result.error.lower()
 
             temp_path.unlink()
@@ -197,7 +197,7 @@ class TestConfigFileLoading:
 
             result = _load_config_file(str(temp_path))
 
-            assert not result.success
+            assert not result.is_success
             assert (
                 "unsupported" in result.error.lower()
                 or "format" in result.error.lower()
@@ -215,8 +215,8 @@ class TestQuickSetup:
 
         result = flext_cli_quick_setup(config)
 
-        assert result.success
-        setup_info = result.unwrap()
+        assert result.is_success
+        setup_info = result.value
         assert isinstance(setup_info, dict)
         assert "project_name" in setup_info or "status" in setup_info
 
@@ -226,8 +226,8 @@ class TestQuickSetup:
 
         result = flext_cli_quick_setup(config)
 
-        assert result.success
-        setup_info = result.unwrap()
+        assert result.is_success
+        setup_info = result.value
         assert isinstance(setup_info, dict)
 
     def test_flext_cli_quick_setup_empty_config(self) -> None:
@@ -250,8 +250,8 @@ class TestQuickSetup:
 
         result = flext_cli_quick_setup(config)
 
-        assert result.success
-        setup_info = result.unwrap()
+        assert result.is_success
+        setup_info = result.value
         assert isinstance(setup_info, dict)
 
 
@@ -271,8 +271,8 @@ class TestAutoConfig:
 
         result = flext_cli_auto_config(config_file="config.json")
 
-        assert result.success
-        config = result.unwrap()
+        assert result.is_success
+        config = result.value
         assert isinstance(config, dict)
         assert "debug" in config
         mock_load_file.assert_called_once()
@@ -284,8 +284,8 @@ class TestAutoConfig:
 
         result = flext_cli_auto_config()
 
-        assert result.success
-        config = result.unwrap()
+        assert result.is_success
+        config = result.value
         assert isinstance(config, dict)
 
     @patch("flext_cli.core.utils._load_env_overrides")
@@ -322,8 +322,8 @@ class TestValidation:
         """Test validation with empty lists."""
         result = flext_cli_validate_all([], [])
 
-        assert result.success
-        validated = result.unwrap()
+        assert result.is_success
+        validated = result.value
         assert validated == []
 
     def test_flext_cli_validate_all_mismatched_lengths(self) -> None:
@@ -333,7 +333,7 @@ class TestValidation:
 
         result = flext_cli_validate_all(items, validators)
 
-        assert not result.success
+        assert not result.is_success
         assert "length" in result.error.lower() or "mismatch" in result.error.lower()
 
     def test_flext_cli_validate_all_invalid_items(self) -> None:
@@ -343,7 +343,7 @@ class TestValidation:
 
         result = flext_cli_validate_all(items, validators)
 
-        assert not result.success
+        assert not result.is_success
         assert "validation" in result.error.lower() or "invalid" in result.error.lower()
 
     def test_flext_cli_validate_all_mixed_valid_invalid(self) -> None:
@@ -354,7 +354,7 @@ class TestValidation:
         result = flext_cli_validate_all(items, validators)
 
         # Should fail on the invalid URL
-        assert not result.success
+        assert not result.is_success
 
 
 class TestRequireAll:
@@ -372,8 +372,8 @@ class TestRequireAll:
 
         result = flext_cli_require_all(confirmations)
 
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
         assert mock_confirm.call_count == len(confirmations)
 
     @patch("flext_cli.core.utils.cli_confirm")
@@ -391,7 +391,7 @@ class TestRequireAll:
 
         result = flext_cli_require_all(confirmations)
 
-        assert not result.success
+        assert not result.is_success
         assert "declined" in result.error.lower() or "cancelled" in result.error.lower()
 
     @patch("flext_cli.core.utils.cli_confirm")
@@ -399,8 +399,8 @@ class TestRequireAll:
         """Test require all with empty confirmation list."""
         result = flext_cli_require_all([])
 
-        assert result.success
-        assert result.unwrap() is True
+        assert result.is_success
+        assert result.value is True
         mock_confirm.assert_not_called()
 
     @patch("flext_cli.core.utils.cli_confirm")
@@ -414,7 +414,7 @@ class TestRequireAll:
 
         result = flext_cli_require_all(confirmations)
 
-        assert not result.success
+        assert not result.is_success
         assert "input error" in result.error.lower()
 
 
@@ -427,7 +427,7 @@ class TestOutputData:
 
         result = flext_cli_output_data(data)
 
-        assert result.success
+        assert result.is_success
 
     def test_flext_cli_output_data_with_format(self) -> None:
         """Test outputting data with specific format."""
@@ -435,7 +435,7 @@ class TestOutputData:
 
         result = flext_cli_output_data(data, format_type="table")
 
-        assert result.success
+        assert result.is_success
 
     def test_flext_cli_output_data_json_format(self) -> None:
         """Test outputting data in JSON format."""
@@ -443,7 +443,7 @@ class TestOutputData:
 
         result = flext_cli_output_data(data, format_type="json")
 
-        assert result.success
+        assert result.is_success
 
     def test_flext_cli_output_data_with_title(self) -> None:
         """Test outputting data with title."""
@@ -451,20 +451,20 @@ class TestOutputData:
 
         result = flext_cli_output_data(data, title="Test Output")
 
-        assert result.success
+        assert result.is_success
 
     def test_flext_cli_output_data_empty_data(self) -> None:
         """Test outputting empty data."""
         result = flext_cli_output_data({})
 
-        assert result.success
+        assert result.is_success
 
     def test_flext_cli_output_data_none_data(self) -> None:
         """Test outputting None data."""
         result = flext_cli_output_data(None)
 
         # Should handle None gracefully
-        assert result.success or not result.success  # Either is acceptable
+        assert result.is_success or not result.is_success  # Either is acceptable
 
 
 class TestCreateTable:
@@ -476,8 +476,8 @@ class TestCreateTable:
 
         result = flext_cli_create_table(data)
 
-        assert result.success
-        table = result.unwrap()
+        assert result.is_success
+        table = result.value
         assert isinstance(table, Table)
 
     def test_flext_cli_create_table_list_data(self) -> None:
@@ -486,8 +486,8 @@ class TestCreateTable:
 
         result = flext_cli_create_table(data)
 
-        assert result.success
-        table = result.unwrap()
+        assert result.is_success
+        table = result.value
         assert isinstance(table, Table)
 
     def test_flext_cli_create_table_with_title(self) -> None:
@@ -496,8 +496,8 @@ class TestCreateTable:
 
         result = flext_cli_create_table(data, title="System Status")
 
-        assert result.success
-        table = result.unwrap()
+        assert result.is_success
+        table = result.value
         assert isinstance(table, Table)
         assert table.title == "System Status"
 
@@ -506,14 +506,14 @@ class TestCreateTable:
         result = flext_cli_create_table([])
 
         # Empty data may fail table creation
-        assert not result.success or result.success
+        assert not result.is_success or result.is_success
 
     def test_flext_cli_create_table_invalid_data(self) -> None:
         """Test creating table with invalid data."""
         result = flext_cli_create_table("not_table_data")
 
         # Should handle invalid data gracefully
-        assert result.success or not result.success
+        assert result.is_success or not result.is_success
 
 
 class TestFileOperations:
@@ -532,8 +532,8 @@ class TestFileOperations:
 
             result = flext_cli_load_file(str(temp_path))
 
-            assert result.success
-            loaded_data = result.unwrap()
+            assert result.is_success
+            loaded_data = result.value
             assert loaded_data["test"] == data["test"]
             assert loaded_data["number"] == data["number"]
 
@@ -552,8 +552,8 @@ class TestFileOperations:
 
             result = flext_cli_load_file(str(temp_path))
 
-            assert result.success
-            loaded_data = result.unwrap()
+            assert result.is_success
+            loaded_data = result.value
             assert loaded_data["config"]["debug"] == data["config"]["debug"]
 
             temp_path.unlink()
@@ -562,7 +562,7 @@ class TestFileOperations:
         """Test loading non-existent file."""
         result = flext_cli_load_file("/nonexistent/file.json")
 
-        assert not result.success
+        assert not result.is_success
         assert (
             "not found" in result.error.lower()
             or "no such file" in result.error.lower()
@@ -577,7 +577,7 @@ class TestFileOperations:
 
             result = flext_cli_save_file(data, str(temp_path))
 
-            assert result.success
+            assert result.is_success
 
             # Verify file was saved correctly
             with open(temp_path, encoding="utf-8") as saved_file:
@@ -595,7 +595,7 @@ class TestFileOperations:
 
             result = flext_cli_save_file(data, str(temp_path))
 
-            assert result.success
+            assert result.is_success
 
             # Verify file was saved correctly
             with open(temp_path, encoding="utf-8") as saved_file:
@@ -610,7 +610,7 @@ class TestFileOperations:
 
         result = flext_cli_save_file(data, "/protected/path/file.json")
 
-        assert not result.success
+        assert not result.is_success
         assert "permission" in result.error.lower() or "error" in result.error.lower()
 
 
@@ -627,8 +627,8 @@ class TestBatchExecute:
 
         result = flext_cli_batch_execute(items, simple_operation)
 
-        assert result.success
-        results = result.unwrap()
+        assert result.is_success
+        results = result.value
         assert len(results) == 3
         assert all("processed_" in str(r) for r in results)
 
@@ -640,8 +640,8 @@ class TestBatchExecute:
 
         result = flext_cli_batch_execute([], dummy_operation)
 
-        assert result.success
-        results = result.unwrap()
+        assert result.is_success
+        results = result.value
         assert len(results) == 0
 
     def test_flext_cli_batch_execute_with_failures(self) -> None:
@@ -688,8 +688,8 @@ class TestBatchExecute:
 
         result = flext_cli_batch_execute(items, slow_operation, show_progress=True)
 
-        assert result.success
-        results = result.unwrap()
+        assert result.is_success
+        results = result.value
         assert len(results) == 3
 
 
@@ -798,9 +798,9 @@ class TestIntegrationScenarios:
 
             # Load config
             load_result = _load_config_file(str(temp_path))
-            assert load_result.success
+            assert load_result.is_success
 
-            loaded_config = load_result.unwrap()
+            loaded_config = load_result.value
 
             # Validate loaded values
             items = [loaded_config["email"], loaded_config["url"]]
@@ -822,7 +822,7 @@ class TestIntegrationScenarios:
             for i, data in enumerate(test_data):
                 file_path = Path(temp_dir) / f"test_{i}.json"
                 save_result = flext_cli_save_file(data, str(file_path))
-                if save_result.success:
+                if save_result.is_success:
                     test_files.append(str(file_path))
 
             # Batch load all files
@@ -831,8 +831,8 @@ class TestIntegrationScenarios:
 
             batch_result = flext_cli_batch_execute(test_files, load_operation)
 
-            if batch_result.success:
-                loaded_data = batch_result.unwrap()
+            if batch_result.is_success:
+                loaded_data = batch_result.value
                 assert len(loaded_data) == len(test_files)
 
 
@@ -853,8 +853,8 @@ class TestEdgeCasesAndBoundaries:
 
             load_result = _load_config_file(str(temp_path))
 
-            if load_result.success:
-                loaded_config = load_result.unwrap()
+            if load_result.is_success:
+                loaded_config = load_result.value
                 assert len(loaded_config["items"]) == 1000
 
             temp_path.unlink()
@@ -877,8 +877,8 @@ class TestEdgeCasesAndBoundaries:
 
             load_result = _load_config_file(str(temp_path))
 
-            if load_result.success:
-                loaded_data = load_result.unwrap()
+            if load_result.is_success:
+                loaded_data = load_result.value
                 assert loaded_data["emoji"] == unicode_data["emoji"]
                 assert loaded_data["chinese"] == unicode_data["chinese"]
 
@@ -903,7 +903,7 @@ class TestEdgeCasesAndBoundaries:
         result = flext_cli_quick_setup(nested_data)
 
         # Should handle nested structures
-        assert result.success
+        assert result.is_success
 
     def test_concurrent_operations_simulation(self) -> None:
         """Test simulation of concurrent operations."""
