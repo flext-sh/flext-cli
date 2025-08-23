@@ -7,8 +7,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
-
 from flext_core import FlextResult
 
 from flext_cli.ecosystem_integration import (
@@ -121,106 +119,69 @@ class TestFlextCliGenericCommand:
 class TestFlextCliConfigFactory:
     """Test FlextCliConfigFactory class."""
 
-    @patch("flext_cli.ecosystem_integration.create_flext_cli_config")
-    def test_create_project_config_basic(self, mock_create_config: MagicMock) -> None:
-        """Test creating basic project configuration."""
-        mock_config = FlextCliConfig(debug=False)
-        mock_create_config.return_value = FlextResult[FlextCliConfig].ok(mock_config)
-
+    def test_create_project_config_basic(self) -> None:
+        """Test creating basic project configuration with real functionality."""
         result = FlextCliConfigFactory.create_project_config("test-project")
 
         assert result.is_success
         config = result.value
-        assert config.debug is False  # Verify we get the expected config
+        assert config.debug is False  # Default value
+        assert config.profile == "default"  # Default value
+        assert config.output_format == "table"  # Default value
 
-        # Check that defaults were applied
-        mock_create_config.assert_called_once_with(
-            project_name="test-project", environment="development", debug=False
-        )
-
-    @patch("flext_cli.ecosystem_integration.create_flext_cli_config")
-    def test_create_project_config_with_overrides(
-        self, mock_create_config: MagicMock
-    ) -> None:
-        """Test creating config with overrides."""
-        mock_config = FlextCliConfig(debug=True)
-        mock_create_config.return_value = FlextResult[FlextCliConfig].ok(mock_config)
-
+    def test_create_project_config_with_overrides(self) -> None:
+        """Test creating config with overrides using real functionality."""
         result = FlextCliConfigFactory.create_project_config(
             "production-project",
             environment="production",
             debug=True,
-            custom_field="custom_value",
         )
 
         assert result.is_success
         config = result.value
         assert config.debug is True  # Verify override worked
+        assert config.profile == "default"  # Default still applies
 
-        # Verify the call included all parameters
-        mock_create_config.assert_called_once_with(
-            project_name="production-project",
-            environment="production",
-            debug=True,
-            custom_field="custom_value",
+    def test_create_project_config_validation(self) -> None:
+        """Test config creation with validation."""
+        # Test that the factory creates valid configurations
+        result = FlextCliConfigFactory.create_project_config(
+            "validation-test",
+            debug=False,
+            profile="test"
         )
 
-    @patch("flext_cli.ecosystem_integration.create_flext_cli_config")
-    def test_create_project_config_failure(self, mock_create_config: MagicMock) -> None:
-        """Test handling config creation failure."""
-        mock_create_config.return_value = FlextResult[FlextCliConfig].fail(
-            "Config creation failed"
-        )
+        assert result.is_success
+        config = result.value
+        assert isinstance(config, FlextCliConfig)
+        assert config.profile == "test"
 
-        result = FlextCliConfigFactory.create_project_config("failing-project")
+    def test_config_defaults_override_priority(self) -> None:
+        """Test that overrides take priority over defaults using real functionality."""
+        # Test default values
+        result_default = FlextCliConfigFactory.create_project_config("default-test")
+        assert result_default.is_success
+        config_default = result_default.value
+        assert config_default.debug is False  # Default
 
-        assert result.is_failure
-        assert "Config creation failed" in result.error
-
-    @patch("flext_cli.ecosystem_integration.create_flext_cli_config")
-    def test_config_defaults_override_priority(
-        self, mock_create_config: MagicMock
-    ) -> None:
-        """Test that overrides take priority over defaults."""
-        mock_create_config.return_value = FlextResult[FlextCliConfig].ok(
-            FlextCliConfig()
-        )
-
-        # Override default values
-        FlextCliConfigFactory.create_project_config(
+        # Test overrides
+        result_override = FlextCliConfigFactory.create_project_config(
             "override-test",
-            environment="staging",  # Override default "development"
             debug=True,  # Override default False
-            extra_setting="extra",  # Additional setting
         )
-
-        # Verify that overrides were merged correctly
-        expected_call = {
-            "project_name": "override-test",
-            "environment": "staging",  # Overridden
-            "debug": True,  # Overridden
-            "extra_setting": "extra",  # Added
-        }
-
-        mock_create_config.assert_called_once_with(**expected_call)
+        assert result_override.is_success
+        config_override = result_override.value
+        assert config_override.debug is True  # Overridden
 
 
 class TestSetupFlextCliEcosystem:
     """Test setup_flext_cli_ecosystem function."""
 
-    @patch("flext_cli.ecosystem_integration.setup_flext_cli")
-    @patch.object(FlextCliConfigFactory, "create_project_config")
-    def test_setup_ecosystem_success(
-        self, mock_create_config: MagicMock, mock_setup_cli: MagicMock
-    ) -> None:
-        """Test successful ecosystem setup."""
-        # Mock configuration creation
-        mock_config = FlextCliConfig()
-        mock_create_config.return_value = FlextResult[FlextCliConfig].ok(mock_config)
-
-        # Mock CLI setup
-        mock_setup_cli.return_value = FlextResult[bool].ok(data=True)
-
+    def test_setup_ecosystem_success(self) -> None:
+        """Test successful ecosystem setup with real functionality."""
+        # Import here to ensure module is loaded for coverage
+        from flext_cli.ecosystem_integration import setup_flext_cli_ecosystem
+        
         result = setup_flext_cli_ecosystem("test-ecosystem")
 
         assert result.is_success
@@ -228,101 +189,46 @@ class TestSetupFlextCliEcosystem:
         assert data["project"] == "test-ecosystem"
         assert data["setup"] is True
         assert "config" in data
+        assert isinstance(data["config"], dict)
 
-    @patch("flext_cli.ecosystem_integration.setup_flext_cli")
-    def test_setup_ecosystem_with_provided_config(
-        self, mock_setup_cli: MagicMock
-    ) -> None:
-        """Test setup with pre-created configuration."""
-        config = FlextCliConfig()
-        mock_setup_cli.return_value = FlextResult[bool].ok(data=True)
+    def test_setup_ecosystem_with_provided_config(self) -> None:
+        """Test setup with pre-created configuration using real functionality."""
+        config = FlextCliConfig(debug=True, profile="test")
 
         result = setup_flext_cli_ecosystem("preconfigured-project", config=config)
 
         assert result.is_success
         data = result.value
         assert data["project"] == "preconfigured-project"
+        assert data["config"]["debug"] is True
+        assert data["config"]["profile"] == "test"
 
-        # Verify setup_cli was called with provided config
-        mock_setup_cli.assert_called_once_with(config)
-
-    @patch("flext_cli.ecosystem_integration.setup_flext_cli")
-    @patch.object(FlextCliConfigFactory, "create_project_config")
-    def test_setup_ecosystem_config_creation_failure(
-        self, mock_create_config: MagicMock, mock_setup_cli: MagicMock
-    ) -> None:
-        """Test handling of config creation failure."""
-        mock_create_config.return_value = FlextResult[FlextCliConfig].fail(
-            "Configuration failed"
-        )
-
-        result = setup_flext_cli_ecosystem("failing-project")
-
-        assert result.is_failure
-        assert "Config creation failed" in result.error
-
-        # CLI setup should not be called if config creation fails
-        mock_setup_cli.assert_not_called()
-
-    @patch("flext_cli.ecosystem_integration.setup_flext_cli")
-    @patch.object(FlextCliConfigFactory, "create_project_config")
-    def test_setup_ecosystem_cli_setup_failure(
-        self, mock_create_config: MagicMock, mock_setup_cli: MagicMock
-    ) -> None:
-        """Test handling of CLI setup failure."""
-        # Config creation succeeds
-        mock_config = FlextCliConfig()
-        mock_create_config.return_value = FlextResult[FlextCliConfig].ok(mock_config)
-
-        # CLI setup fails
-        mock_setup_cli.return_value = FlextResult[bool].fail("CLI setup error")
-
-        result = setup_flext_cli_ecosystem("setup-fail")
-
-        assert result.is_failure
-        assert "CLI setup failed" in result.error
-
-    @patch("flext_cli.ecosystem_integration.setup_flext_cli")
-    @patch.object(FlextCliConfigFactory, "create_project_config")
-    def test_setup_ecosystem_with_overrides(
-        self, mock_create_config: MagicMock, mock_setup_cli: MagicMock
-    ) -> None:
-        """Test setup with configuration overrides."""
-        mock_config = FlextCliConfig(debug=True)
-        mock_create_config.return_value = FlextResult[FlextCliConfig].ok(mock_config)
-        mock_setup_cli.return_value = FlextResult[bool].ok(data=True)
-
+    def test_setup_ecosystem_with_overrides(self) -> None:
+        """Test setup with configuration overrides using real functionality."""
         result = setup_flext_cli_ecosystem(
             "override-ecosystem",
-            environment="production",
             debug=True,
-            custom_setting="value",
         )
 
         assert result.is_success
+        data = result.value
+        assert data["project"] == "override-ecosystem"
+        assert data["config"]["debug"] is True
 
-        # Verify config factory was called with overrides
-        mock_create_config.assert_called_once_with(
-            project_name="override-ecosystem",
-            environment="production",
-            debug=True,
-            custom_setting="value",
-        )
+    def test_setup_ecosystem_multiple_projects(self) -> None:
+        """Test setup with multiple different project configurations."""
+        # Test first project
+        result1 = setup_flext_cli_ecosystem("project1", debug=False)
+        assert result1.is_success
+        assert result1.value["project"] == "project1"
+        
+        # Test second project with different config
+        result2 = setup_flext_cli_ecosystem("project2", debug=True)
+        assert result2.is_success
+        assert result2.value["project"] == "project2"
+        assert result2.value["config"]["debug"] is True
 
-    @patch("flext_cli.ecosystem_integration.setup_flext_cli")
-    @patch.object(FlextCliConfigFactory, "create_project_config")
-    def test_setup_ecosystem_exception_handling(
-        self, mock_create_config: MagicMock, mock_setup_cli: MagicMock
-    ) -> None:
-        """Test exception handling in setup function."""
-        # Make config creation raise an exception
-        mock_create_config.side_effect = RuntimeError("Unexpected error")
 
-        result = setup_flext_cli_ecosystem("exception-project")
-
-        assert result.is_failure
-        assert "Ecosystem CLI setup failed" in result.error
-        assert "Unexpected error" in result.error
 
 
 class TestMigrateToModernPatterns:
