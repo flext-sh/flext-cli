@@ -78,9 +78,9 @@ class TestCLIContext:
 
         # Check if arbitrary types are allowed through the model config
         if hasattr(context, "model_config"):
-            config = getattr(context, "model_config", {})
+            getattr(context, "model_config", {})
             # Model should be configured to handle arbitrary types
-            assert config or True  # Either has config or default is OK
+            assert True  # Either has config or default is OK
 
     def test_context_with_real_console_output(self, real_console: Console) -> None:
         """Test FlextCliContext with real console output methods."""

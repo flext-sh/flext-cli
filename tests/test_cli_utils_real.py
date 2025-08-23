@@ -336,11 +336,13 @@ class TestCliUtilsBatchProcessing:
                 try:
                     content = file_path.read_text(encoding="utf-8")
                     lines = content.split("\n")
-                    return FlextResult.ok({
-                        "file": file_path.name,
-                        "lines": len(lines),
-                        "chars": len(content),
-                    })
+                    return FlextResult.ok(
+                        {
+                            "file": file_path.name,
+                            "lines": len(lines),
+                            "chars": len(content),
+                        }
+                    )
                 except Exception as e:
                     return FlextResult.fail(f"Error processing {file_path}: {e}")
 

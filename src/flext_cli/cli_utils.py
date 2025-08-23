@@ -159,7 +159,7 @@ def _create_directory_structure(base: Path, dir_names: list[str]) -> dict[str, s
 
 def _record_success(results: ProcessingResults, path: Path) -> None:
     """Record successful file processing."""
-    results["processed"] = results["processed"] + 1
+    results["processed"] += 1
     results["successful"].append(str(path))
 
 
@@ -169,7 +169,7 @@ def _record_failure(
     error_msg: str,
 ) -> None:
     """Record failed file processing."""
-    results["failed"] = results["failed"] + 1
+    results["failed"] += 1
     results["errors"].append({"file": str(path), "error": error_msg})
 
 
@@ -524,7 +524,9 @@ def _save_json_file(data: FlextCliData, path: Path) -> FlextResult[None]:
         return FlextResult[None].fail(f"Failed to write JSON file {path}: {e}")
 
 
-def _convert_to_serializable(data: object) -> str | int | float | bool | None | list[object] | dict[str, object]:
+def _convert_to_serializable(
+    data: object,
+) -> str | int | float | bool | None | list[object] | dict[str, object]:
     """Convert data to a YAML/JSON serializable format.
 
     Args:

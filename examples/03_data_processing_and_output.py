@@ -209,9 +209,7 @@ def demonstrate_data_aggregation() -> FlextResult[None]:
             )
 
         return FlextResult[str].ok(None)
-    return FlextResult[str].fail(
-        f"Data aggregation failed: {service_agg_result.error}"
-    )
+    return FlextResult[str].fail(f"Data aggregation failed: {service_agg_result.error}")
 
 
 @cli_enhanced

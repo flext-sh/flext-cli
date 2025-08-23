@@ -66,7 +66,7 @@ class TestTypeImports:
         # Updated aliases after flext-core refactoring
         modern_aliases = [
             "FlextCliOutputFormat",
-            "CommandType", 
+            "CommandType",
             "FlextCliLogLevel",  # Changed from LogLevel
             "FlextCliDataType",
         ]
@@ -104,22 +104,27 @@ class TestAllExports:
         """Test that exports cover expected categories after flext-core refactoring."""
         # Updated to validate actual structure instead of outdated hardcoded list
         all_actual = set(types.__all__)
-        
+
         # Validate that we have the critical core types (subset validation)
         # Updated to reflect actual names after flext-core refactoring
         essential_types = {
-            "URL", "URLType", "CommandType", "FlextCliConfigDict", 
-            "FlextCliLogLevel"  # Names changed in flext-core refactoring
+            "URL",
+            "URLType",
+            "CommandType",
+            "FlextCliConfigDict",
+            "FlextCliLogLevel",  # Names changed in flext-core refactoring
         }
-        
+
         # Essential types should be present (subset validation)
         missing_essential = essential_types - all_actual
         assert not missing_essential, f"Missing essential types: {missing_essential}"
-        
+
         # Validate that all exports are actually importable
         for export_name in all_actual:
-            assert hasattr(types, export_name), f"Export {export_name} not found in module"
-        
+            assert hasattr(types, export_name), (
+                f"Export {export_name} not found in module"
+            )
+
         # Ensure we have substantial exports (avoid accidental mass deletion)
         assert len(all_actual) >= 50, f"Too few exports: {len(all_actual)} < 50"
 
@@ -145,7 +150,7 @@ class TestTypeCompatibility:
 
         def handler(x):
             return x
-            
+
         # Basic validation that types work
         assert isinstance(data, dict)
         assert isinstance(format_str, str)
@@ -199,24 +204,24 @@ class TestModuleStructure:
 
         # All public attributes should be in __all__
         undeclared = set(public_attrs) - set(types.__all__)
-        
+
         # Filter out legitimate imports that don't need to be in __all__
         # These are legitimate re-exports/imports used by the module
         legitimate_imports = {
             "annotations",  # from __future__ import annotations
-            "override",     # from typing import override
+            "override",  # from typing import override
             "FlextResult",  # from flext_core import FlextResult
-            "Protocol",     # from typing import Protocol  
-            "Table",        # from rich.table import Table
-            "Literal",      # from typing import Literal
-            "FlextEntityId", # from flext_core import FlextEntityId
-            "CoreFlextTypes", # from flext_core.typings import FlextTypes as CoreFlextTypes
-            "TypeVar",      # from typing import TypeVar
-            "Path",         # from pathlib import Path
-            "click",        # import click
-            "Callable",     # from collections.abc import Callable
-            "StrEnum",      # from enum import StrEnum
+            "Protocol",  # from typing import Protocol
+            "Table",  # from rich.table import Table
+            "Literal",  # from typing import Literal
+            "FlextEntityId",  # from flext_core import FlextEntityId
+            "CoreFlextTypes",  # from flext_core.typings import FlextTypes as CoreFlextTypes
+            "TypeVar",  # from typing import TypeVar
+            "Path",  # from pathlib import Path
+            "click",  # import click
+            "Callable",  # from collections.abc import Callable
+            "StrEnum",  # from enum import StrEnum
         }
-        undeclared = undeclared - legitimate_imports
+        undeclared -= legitimate_imports
 
         assert len(undeclared) == 0, f"Undeclared public exports: {undeclared}"

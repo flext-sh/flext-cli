@@ -97,11 +97,13 @@ class TestFlextCliGenericCommand:
             my_field: str = "project_value"
 
             def execute(self) -> FlextResult[object]:
-                return FlextResult[object].ok({
-                    "executed": self.name,
-                    "my_field": self.my_field,
-                    "custom": True,
-                })
+                return FlextResult[object].ok(
+                    {
+                        "executed": self.name,
+                        "my_field": self.my_field,
+                        "custom": True,
+                    }
+                )
 
         command = ProjectSpecificCommand(
             id="project-id", name="project-command", description="Project command"

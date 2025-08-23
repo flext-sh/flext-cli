@@ -180,8 +180,12 @@ class TestAuthCommandsReal:
         # Test empty token (should fail validation)
         clear_auth_tokens()
         empty_result = save_auth_token("")
-        assert not empty_result.is_success, "Empty token should be rejected (validation working correctly)"
-        assert "cannot be empty" in empty_result.error.lower(), "Should have meaningful error message"
+        assert not empty_result.is_success, (
+            "Empty token should be rejected (validation working correctly)"
+        )
+        assert "cannot be empty" in empty_result.error.lower(), (
+            "Should have meaningful error message"
+        )
 
         # Test token with special characters
         special_token = "token_with_!@#$%^&*()_+-={}[]|\\:;\"'<>,.?/"
@@ -203,7 +207,9 @@ class TestAuthCommandsReal:
 
         loaded_long_result = get_auth_token()
         assert loaded_long_result.is_success, "Long token load should succeed"
-        assert loaded_long_result.value == long_token, "Long token should load correctly"
+        assert loaded_long_result.value == long_token, (
+            "Long token should load correctly"
+        )
 
         # Clean up
         clear_auth_tokens()
@@ -301,7 +307,9 @@ class TestAuthFunctionalityReal:
         # Test loading when no token exists
         no_token_result = get_auth_token()
         assert not no_token_result.is_success, "Should fail when no token exists"
-        assert "not found" in no_token_result.error.lower(), "Should have meaningful error message"
+        assert "not found" in no_token_result.error.lower(), (
+            "Should have meaningful error message"
+        )
 
         # Test saving and loading work correctly
         test_token = "error_test_token"
@@ -312,7 +320,9 @@ class TestAuthFunctionalityReal:
         # Verify token was saved
         loaded_token_result = get_auth_token()
         assert loaded_token_result.is_success, "Should load saved token correctly"
-        assert loaded_token_result.value == test_token, "Should load saved token correctly"
+        assert loaded_token_result.value == test_token, (
+            "Should load saved token correctly"
+        )
 
         # Clean up
         clear_auth_tokens()
@@ -350,7 +360,9 @@ class TestAuthFunctionalityReal:
 
         # Step 3: Load token (REAL operation)
         loaded_token_result = get_auth_token()
-        assert loaded_token_result.is_success, "Workflow step 3 failed: token load should succeed"
+        assert loaded_token_result.is_success, (
+            "Workflow step 3 failed: token load should succeed"
+        )
         assert loaded_token_result.value == test_token, (
             f"Workflow step 3 failed: expected '{test_token}', got '{loaded_token_result.value}'"
         )

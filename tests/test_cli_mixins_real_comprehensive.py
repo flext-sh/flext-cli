@@ -452,7 +452,9 @@ class TestCLIDataMixin(unittest.TestCase):
             validation_result = self.mixin.validate_cli_arguments(args)
             assert isinstance(validation_result, FlextResult)
 
-            if validation_result.is_success and hasattr(self.mixin, "format_cli_output"):
+            if validation_result.is_success and hasattr(
+                self.mixin, "format_cli_output"
+            ):
                 # Process some test data
                 processed_data = {"args": args, "status": "validated"}
                 output_result = self.mixin.format_cli_output(processed_data)

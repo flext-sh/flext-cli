@@ -197,7 +197,9 @@ def create_connection_command(
         return FlextResult[FlextCliCommand].ok(command)
 
     except Exception as e:
-        return FlextResult[FlextCliCommand].fail(f"Failed to create connection command: {e}")
+        return FlextResult[FlextCliCommand].fail(
+            f"Failed to create connection command: {e}"
+        )
 
 
 def execute_connection_test(command: FlextCliCommand) -> FlextResult[str]:

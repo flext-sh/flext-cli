@@ -21,7 +21,7 @@ from typing import Any
 import yaml
 from flext_core import FlextEntityId
 
-from flext_cli.cli_config import FlextCliConfig as FlextCliConfig
+from flext_cli.cli_config import FlextCliConfig
 from flext_cli.cli_types import FlextCliOutputFormat
 from flext_cli.core import FlextCliService, FlextService
 from flext_cli.models import FlextCliCommand, FlextCliPlugin, FlextCliSession

@@ -9,21 +9,15 @@ Tests execute REAL service functionality.
 
 from __future__ import annotations
 
-import pytest
 from flext_core import FlextResult
 
 # Import the module for coverage tracking
-import flext_cli.services
 from flext_cli.context import FlextCliExecutionContext
-from flext_cli.services import (
-    FlextCliCommandService,
-    FlextCliSessionService,
-)
 
 # Import module-level objects to ensure coverage
 from flext_cli.services import (
-    default_command_service,
-    default_session_service,
+    FlextCliCommandService,
+    FlextCliSessionService,
 )
 
 
@@ -33,35 +27,35 @@ class TestFlextCliCommandService:
     def test_init_creates_empty_commands_dict(self) -> None:
         """Test service initialization creates empty commands dict."""
         service = FlextCliCommandService()
-        assert hasattr(service, 'commands')
+        assert hasattr(service, "commands")
         assert isinstance(service.commands, dict)
         assert len(service.commands) == 0
 
     def test_register_command_adds_to_dict(self) -> None:
         """Test register_command adds callable to commands dict."""
         service = FlextCliCommandService()
-        
+
         def test_handler(context: FlextCliExecutionContext, **kwargs: object) -> str:
             return "test_result"
-        
+
         service.register_command("test_cmd", test_handler)
-        
+
         assert "test_cmd" in service.commands
         assert service.commands["test_cmd"] is test_handler
 
     def test_list_commands_returns_keys_as_list(self) -> None:
         """Test list_commands returns command names as list."""
         service = FlextCliCommandService()
-        
+
         def handler1(context: FlextCliExecutionContext, **kwargs: object) -> str:
             return "result1"
-            
+
         def handler2(context: FlextCliExecutionContext, **kwargs: object) -> str:
             return "result2"
-        
+
         service.register_command("zebra", handler1)
         service.register_command("alpha", handler2)
-        
+
         commands = service.list_commands()
         assert isinstance(commands, list)
         assert len(commands) == 2
@@ -72,14 +66,14 @@ class TestFlextCliCommandService:
         """Test execute_command works with callable handler."""
         service = FlextCliCommandService()
         context = FlextCliExecutionContext()
-        
+
         def test_handler(context: FlextCliExecutionContext, **kwargs: object) -> str:
             return "success"
-        
+
         service.register_command("test", test_handler)
-        
+
         result = service.execute_command("test", context)
-        
+
         assert isinstance(result, FlextResult)
         assert result.is_success
         assert result.value == "success"
@@ -88,14 +82,16 @@ class TestFlextCliCommandService:
         """Test execute_command works with handler returning FlextResult."""
         service = FlextCliCommandService()
         context = FlextCliExecutionContext()
-        
-        def result_handler(context: FlextCliExecutionContext, **kwargs: object) -> FlextResult[str]:
+
+        def result_handler(
+            context: FlextCliExecutionContext, **kwargs: object
+        ) -> FlextResult[str]:
             return FlextResult[str].ok("flext_success")
-        
+
         service.register_command("result_test", result_handler)
-        
+
         result = service.execute_command("result_test", context)
-        
+
         assert isinstance(result, FlextResult)
         assert result.is_success
         assert result.value == "flext_success"
@@ -104,9 +100,9 @@ class TestFlextCliCommandService:
         """Test execute_command returns failure for unknown command."""
         service = FlextCliCommandService()
         context = FlextCliExecutionContext()
-        
+
         result = service.execute_command("nonexistent", context)
-        
+
         assert isinstance(result, FlextResult)
         assert result.is_failure
         assert "Command 'nonexistent' not found" in result.error
@@ -115,14 +111,15 @@ class TestFlextCliCommandService:
         """Test execute_command handles exceptions properly."""
         service = FlextCliCommandService()
         context = FlextCliExecutionContext()
-        
+
         def failing_handler(context: FlextCliExecutionContext, **kwargs: object) -> str:
-            raise ValueError("Test exception")
-        
+            msg = "Test exception"
+            raise ValueError(msg)
+
         service.register_command("failing", failing_handler)
-        
+
         result = service.execute_command("failing", context)
-        
+
         assert isinstance(result, FlextResult)
         assert result.is_failure
         assert "Command execution failed" in result.error
@@ -132,12 +129,12 @@ class TestFlextCliCommandService:
         """Test execute_command fails with non-callable handler."""
         service = FlextCliCommandService()
         context = FlextCliExecutionContext()
-        
+
         # Directly set a non-callable to simulate edge case
         service.commands["bad"] = "not_callable"
-        
+
         result = service.execute_command("bad", context)
-        
+
         assert isinstance(result, FlextResult)
         assert result.is_failure
         assert "Handler is not callable" in result.error
@@ -146,14 +143,14 @@ class TestFlextCliCommandService:
         """Test execute_command passes kwargs to handler."""
         service = FlextCliCommandService()
         context = FlextCliExecutionContext()
-        
+
         def kwargs_handler(context: FlextCliExecutionContext, **kwargs: object) -> str:
             return f"received: {kwargs.get('test_param', 'none')}"
-        
+
         service.register_command("kwargs_test", kwargs_handler)
-        
+
         result = service.execute_command("kwargs_test", context, test_param="value123")
-        
+
         assert isinstance(result, FlextResult)
         assert result.is_success
         assert result.value == "received: value123"
@@ -165,23 +162,23 @@ class TestFlextCliSessionService:
     def test_init_creates_empty_sessions_dict(self) -> None:
         """Test service initialization creates empty sessions dict."""
         service = FlextCliSessionService()
-        assert hasattr(service, 'sessions')
+        assert hasattr(service, "sessions")
         assert isinstance(service.sessions, dict)
         assert len(service.sessions) == 0
 
     def test_create_session_creates_new_session(self) -> None:
         """Test create_session creates new session."""
         service = FlextCliSessionService()
-        
+
         result = service.create_session("test_user")
-        
+
         assert isinstance(result, FlextResult)
         assert result.is_success
         session_id = result.value
-        
+
         assert isinstance(session_id, str)
         assert session_id in service.sessions
-        
+
         session_data = service.sessions[session_id]
         assert session_data["id"] == session_id
         assert session_data["user_id"] == "test_user"
@@ -190,18 +187,18 @@ class TestFlextCliSessionService:
     def test_get_session_returns_existing_session(self) -> None:
         """Test get_session returns existing session with commands_count."""
         service = FlextCliSessionService()
-        
+
         # Create a session first
         create_result = service.create_session("test_user")
         session_id = create_result.value
-        
+
         # Get the session
         result = service.get_session(session_id)
-        
+
         assert isinstance(result, FlextResult)
         assert result.is_success
         session_data = result.value
-        
+
         assert session_data["id"] == session_id
         assert session_data["user_id"] == "test_user"
         assert "commands_count" in session_data
@@ -210,9 +207,9 @@ class TestFlextCliSessionService:
     def test_get_session_not_found(self) -> None:
         """Test get_session returns failure for unknown session."""
         service = FlextCliSessionService()
-        
+
         result = service.get_session("nonexistent_session")
-        
+
         assert isinstance(result, FlextResult)
         assert result.is_failure
         assert "Session 'nonexistent_session' not found" in result.error
@@ -220,17 +217,17 @@ class TestFlextCliSessionService:
     def test_end_session_success(self) -> None:
         """Test end_session marks session as inactive."""
         service = FlextCliSessionService()
-        
+
         # Create a session first
         create_result = service.create_session("test_user")
         session_id = create_result.value
-        
+
         # End the session
         result = service.end_session(session_id)
-        
+
         assert isinstance(result, FlextResult)
         assert result.is_success
-        
+
         # Verify session is marked inactive (not removed)
         assert session_id in service.sessions
         assert service.sessions[session_id]["active"] is False
@@ -238,9 +235,9 @@ class TestFlextCliSessionService:
     def test_end_session_not_found(self) -> None:
         """Test end_session returns failure for unknown session."""
         service = FlextCliSessionService()
-        
+
         result = service.end_session("nonexistent_session")
-        
+
         assert isinstance(result, FlextResult)
         assert result.is_failure
         assert "Session 'nonexistent_session' not found" in result.error
@@ -248,21 +245,21 @@ class TestFlextCliSessionService:
     def test_session_workflow_integration(self) -> None:
         """Test complete session workflow integration."""
         service = FlextCliSessionService()
-        
+
         # Create session
         create_result = service.create_session("integration_user")
         assert create_result.is_success
         session_id = create_result.value
-        
+
         # Get session
         get_result = service.get_session(session_id)
         assert get_result.is_success
         assert get_result.value["user_id"] == "integration_user"
-        
+
         # End session
         end_result = service.end_session(session_id)
         assert end_result.is_success
-        
+
         # Verify session still exists but is inactive
         final_get = service.get_session(session_id)
         assert final_get.is_success
@@ -271,17 +268,17 @@ class TestFlextCliSessionService:
     def test_session_data_contains_all_required_fields(self) -> None:
         """Test session data contains all required fields."""
         service = FlextCliSessionService()
-        
+
         result = service.create_session("field_test_user")
         session_id = result.value
-        
+
         session_data = service.sessions[session_id]
-        
+
         # Check all required fields are present
         required_fields = ["id", "user_id", "created_at", "active"]
         for field in required_fields:
             assert field in session_data, f"Required field '{field}' missing"
-        
+
         # Get session should add commands_count
         get_result = service.get_session(session_id)
         get_data = get_result.value
@@ -295,21 +292,21 @@ class TestServicesModuleIntegration:
         """Test command and session services can work together."""
         command_service = FlextCliCommandService()
         session_service = FlextCliSessionService()
-        
+
         # Create a session
         session_result = session_service.create_session("integration_test")
         assert session_result.is_success
-        
+
         # Register a command
         def test_command(context: FlextCliExecutionContext, **kwargs: object) -> str:
             return "integration_success"
-        
+
         command_service.register_command("integration_cmd", test_command)
-        
+
         # Execute command
         context = FlextCliExecutionContext()
         cmd_result = command_service.execute_command("integration_cmd", context)
-        
+
         assert cmd_result.is_success
         assert cmd_result.value == "integration_success"
 
@@ -318,17 +315,17 @@ class TestServicesModuleIntegration:
         # Verify services can be instantiated
         command_service = FlextCliCommandService()
         session_service = FlextCliSessionService()
-        
+
         assert isinstance(command_service, FlextCliCommandService)
         assert isinstance(session_service, FlextCliSessionService)
-        
+
         # Verify they have expected attributes
-        assert hasattr(command_service, 'commands')
-        assert hasattr(command_service, 'register_command')
-        assert hasattr(command_service, 'execute_command')
-        assert hasattr(command_service, 'list_commands')
-        
-        assert hasattr(session_service, 'sessions')
-        assert hasattr(session_service, 'create_session')
-        assert hasattr(session_service, 'get_session')
-        assert hasattr(session_service, 'end_session')
+        assert hasattr(command_service, "commands")
+        assert hasattr(command_service, "register_command")
+        assert hasattr(command_service, "execute_command")
+        assert hasattr(command_service, "list_commands")
+
+        assert hasattr(session_service, "sessions")
+        assert hasattr(session_service, "create_session")
+        assert hasattr(session_service, "get_session")
+        assert hasattr(session_service, "end_session")

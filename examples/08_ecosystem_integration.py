@@ -134,9 +134,7 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
             )
 
         except Exception as e:
-            return FlextResult[str].fail(
-                f"Health check failed for {service_name}: {e}"
-            )
+            return FlextResult[str].fail(f"Health check failed for {service_name}: {e}")
 
     def get_ecosystem_status(self) -> FlextResult[list[ServiceHealth]]:
         """Get status of all ecosystem services."""

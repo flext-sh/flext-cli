@@ -97,7 +97,9 @@ def save_auth_token(token: str, *, token_path: Path | None = None) -> FlextResul
         return FlextResult[None].fail(f"Failed to save auth token: {e}")
 
 
-def save_refresh_token(refresh_token: str, *, token_path: Path | None = None) -> FlextResult[None]:
+def save_refresh_token(
+    refresh_token: str, *, token_path: Path | None = None
+) -> FlextResult[None]:
     """Save refresh token to disk with secure permissions.
 
     Args:

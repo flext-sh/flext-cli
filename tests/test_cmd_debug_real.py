@@ -367,15 +367,15 @@ class TestValidateCommand(unittest.TestCase):
 
         with patch("flext_cli.cmd_debug.validate_dependencies", mock_validate_deps):
             runner = CliRunner()
-            
+
             # Use the underlying Click command directly
-            validate_cmd = validate._cmd if hasattr(validate, '_cmd') else validate
-            
+            validate_cmd = validate._cmd if hasattr(validate, "_cmd") else validate
+
             # Invoke using CliRunner which properly handles Click commands
             result = runner.invoke(validate_cmd, [])
-            
+
             # Should not exit with error
-            assert result.exit_code in [0, None]
+            assert result.exit_code in {0, None}
 
 
 class TestTraceCommand(unittest.TestCase):
