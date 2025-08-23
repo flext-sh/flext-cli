@@ -58,7 +58,7 @@ class TestExecuteCommandCommand:
 
         # Check optional parameters have default values
         assert cmd.arguments is None
-        assert cmd.options is None
+        assert cmd.options == {}  # CommandOptions default_factory creates empty dict
         assert cmd.user_id is None
         assert cmd.session_id is None
         assert cmd.working_directory is None
@@ -226,7 +226,7 @@ class TestUpdateConfigCommand:
         # Test default values
         assert cmd.name is None
         assert cmd.description is None
-        assert cmd.config_data is None
+        assert cmd.config_data == {}  # ConfigData default_factory creates empty dict
         assert cmd.version is None
         assert cmd.user_id is None
 
@@ -270,7 +270,7 @@ class TestUpdateConfigCommand:
         cmd.description = "new_description"
         if cmd.description != "new_description":
             raise AssertionError(f"Expected {'new_description'}, got {cmd.description}")
-        assert cmd.config_data is None
+        assert cmd.config_data == {}  # ConfigData default_factory creates empty dict
 
 
 class TestDeleteConfigCommand:
