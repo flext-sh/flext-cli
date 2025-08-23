@@ -110,12 +110,17 @@ from flext_cli.simple_api import (
 
 # Base service patterns
 from flext_cli.base_service import (
-    FlextCliCommandService,
     FlextCliFormatterService,
     FlextCliInteractiveService,
     FlextCliService,
     FlextCliServiceFactory,
     FlextCliValidatorService,
+)
+
+# Concrete service implementations  
+from flext_cli.services import (
+    FlextCliCommandService,
+    FlextCliSessionService,
 )
 
 # CLI decorators
