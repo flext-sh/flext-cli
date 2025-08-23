@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
-from pathlib import Path
 
 import click
 from click.testing import CliRunner
@@ -54,7 +53,7 @@ class TestAuthCommands:
             # Use real token saving functionality
             test_token = "test_token_123"
             result = save_auth_token(test_token)
-            
+
             # Verify result using FlextResult patterns
             assert result.is_success, f"Token save failed: {result.error}"
             # For save operations, success is indicated by is_success being True
@@ -72,7 +71,7 @@ class TestAuthCommands:
         # Clear any existing tokens first
         clear_result = clear_auth_tokens()
         # Don't assert on clear result as it may fail if no tokens exist
-        
+
         # Try to get token
         result = get_auth_token()
         assert result.is_failure, "Should fail when no token exists"
@@ -87,7 +86,7 @@ class TestAuthCommands:
             clear_result = clear_auth_tokens()
             # Should succeed or be idempotent
             assert clear_result.is_success or clear_result.is_failure
-            
+
             # Verify token is gone
             get_result = get_auth_token()
             assert get_result.is_failure, "Token should be cleared"
@@ -96,12 +95,12 @@ class TestAuthCommands:
         """Test auth status command - REAL execution."""
         # Run the actual status command
         result = self.runner.invoke(auth, ["status"])
-        
+
         # Should execute without crashing
         assert result.exit_code == 0 or result.exit_code == 1, (
             f"Status command should exit with 0 or 1, got {result.exit_code}: {result.output}"
         )
-        
+
         # Output should contain status information
         assert result.output, "Status command should produce output"
 
@@ -109,7 +108,7 @@ class TestAuthCommands:
         """Test auth help command - REAL execution."""
         # Test help for auth group
         result = self.runner.invoke(auth, ["--help"])
-        
+
         assert result.exit_code == 0, f"Help command failed: {result.output}"
         assert "auth" in result.output.lower()
         assert "command" in result.output.lower()
@@ -117,25 +116,25 @@ class TestAuthCommands:
     def test_token_roundtrip(self) -> None:
         """Test complete token save/get/clear cycle - REAL functionality."""
         test_token = "roundtrip_token_xyz"
-        
+
         # 1. Clear any existing tokens
         clear_auth_tokens()
-        
+
         # 2. Save a token
         save_result = save_auth_token(test_token)
         assert save_result.is_success, f"Failed to save token: {save_result.error}"
-        
+
         # 3. Retrieve the token
         get_result = get_auth_token()
         if get_result.is_success:
             assert get_result.value == test_token, (
                 f"Retrieved token doesn't match. Expected: {test_token}, Got: {get_result.value}"
             )
-        
+
         # 4. Clear tokens
         clear_result = clear_auth_tokens()
         assert clear_result.is_success or clear_result.is_failure  # Either outcome is acceptable
-        
+
         # 5. Verify token is cleared
         final_get_result = get_auth_token()
         assert final_get_result.is_failure, "Token should be cleared"
@@ -145,15 +144,15 @@ class TestAuthCommands:
         # Test save_auth_token returns FlextResult
         result = save_auth_token("test")
         assert isinstance(result, FlextResult), f"Expected FlextResult, got {type(result)}"
-        assert hasattr(result, 'is_success'), "Result should have is_success property"
-        assert hasattr(result, 'is_failure'), "Result should have is_failure property"
-        assert hasattr(result, 'value'), "Result should have value property"
-        assert hasattr(result, 'error'), "Result should have error property"
-        
+        assert hasattr(result, "is_success"), "Result should have is_success property"
+        assert hasattr(result, "is_failure"), "Result should have is_failure property"
+        assert hasattr(result, "value"), "Result should have value property"
+        assert hasattr(result, "error"), "Result should have error property"
+
         # Test get_auth_token returns FlextResult
         get_result = get_auth_token()
         assert isinstance(get_result, FlextResult), f"Expected FlextResult, got {type(get_result)}"
-        
-        # Test clear_auth_tokens returns FlextResult  
+
+        # Test clear_auth_tokens returns FlextResult
         clear_result = clear_auth_tokens()
         assert isinstance(clear_result, FlextResult), f"Expected FlextResult, got {type(clear_result)}"

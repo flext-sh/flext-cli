@@ -97,9 +97,11 @@ class TestFlextCliGenericCommand:
             my_field: str = "project_value"
 
             def execute(self) -> FlextResult[object]:
-                return FlextResult[object].ok(
-                    {"executed": self.name, "my_field": self.my_field, "custom": True}
-                )
+                return FlextResult[object].ok({
+                    "executed": self.name,
+                    "my_field": self.my_field,
+                    "custom": True,
+                })
 
         command = ProjectSpecificCommand(
             id="project-id", name="project-command", description="Project command"
@@ -215,7 +217,7 @@ class TestSetupFlextCliEcosystem:
         mock_create_config.return_value = FlextResult[FlextCliConfig].ok(mock_config)
 
         # Mock CLI setup
-        mock_setup_cli.return_value = FlextResult[bool].ok(True)
+        mock_setup_cli.return_value = FlextResult[bool].ok(data=True)
 
         result = setup_flext_cli_ecosystem("test-ecosystem")
 
@@ -231,7 +233,7 @@ class TestSetupFlextCliEcosystem:
     ) -> None:
         """Test setup with pre-created configuration."""
         config = FlextCliConfig()
-        mock_setup_cli.return_value = FlextResult[bool].ok(True)
+        mock_setup_cli.return_value = FlextResult[bool].ok(data=True)
 
         result = setup_flext_cli_ecosystem("preconfigured-project", config=config)
 
@@ -286,7 +288,7 @@ class TestSetupFlextCliEcosystem:
         """Test setup with configuration overrides."""
         mock_config = FlextCliConfig(debug=True)
         mock_create_config.return_value = FlextResult[FlextCliConfig].ok(mock_config)
-        mock_setup_cli.return_value = FlextResult[bool].ok(True)
+        mock_setup_cli.return_value = FlextResult[bool].ok(data=True)
 
         result = setup_flext_cli_ecosystem(
             "override-ecosystem",

@@ -95,7 +95,7 @@ class TestFlextCliValidationMixin:
         result = obj.flext_cli_validate_inputs(unknown_inputs)
         assert not result.is_success
 
-    @patch("flext_cli.core.helpers.FlextCliHelper.flext_cli_confirm")
+    @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
     def test_flext_cli_require_confirmation(self, mock_confirm: MagicMock) -> None:
         """Test confirmation requirement method."""
 
@@ -106,7 +106,7 @@ class TestFlextCliValidationMixin:
         obj = TestClass()
 
         # User confirms
-        mock_confirm.return_value = FlextResult[None].ok(True)
+        mock_confirm.return_value = FlextResult[None].ok(data=True)
         result = obj.flext_cli_require_confirmation("Test operation")
         assert result.is_success
         assert result.value is True
@@ -165,7 +165,7 @@ class TestFlextCliInteractiveMixin:
         failure_result = FlextResult[None].fail("Error message")
         obj.flext_cli_print_result(failure_result)
 
-    @patch("flext_cli.core.helpers.FlextCliHelper.flext_cli_confirm")
+    @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
     def test_flext_cli_confirm_operation(self, mock_confirm: MagicMock) -> None:
         """Test operation confirmation method."""
 
@@ -175,7 +175,7 @@ class TestFlextCliInteractiveMixin:
         obj = TestClass()
 
         # Successful confirmation
-        mock_confirm.return_value = FlextResult[None].ok(True)
+        mock_confirm.return_value = FlextResult[None].ok(data=True)
         result = obj.flext_cli_confirm_operation("Test operation")
         assert result is True
 
@@ -426,8 +426,8 @@ class TestFlextCliAdvancedMixin:
         assert result.is_success
         assert result.value == "initial -> step1 -> step2"
 
-    def test_flext_cli_handle_file_operations(self) -> None:
-        """Test file operations handling method."""
+    def test_flext_cli_execute_file_operations(self) -> None:
+        """Test file operations execution method."""
 
         class TestClass(FlextCliAdvancedMixin):
             def __init__(self) -> None:
@@ -451,7 +451,7 @@ class TestFlextCliAdvancedMixin:
                 ("read", str(test_file2), read_file),
             ]
 
-            result = obj.flext_cli_handle_file_operations(
+            result = obj.flext_cli_execute_file_operations(
                 file_operations,
                 require_confirmation=False,
             )
@@ -498,7 +498,7 @@ class TestAdvancedDecorators:
         assert result.is_success
         assert result.value == "Success"
 
-    @patch("flext_cli.core.helpers.FlextCliHelper.flext_cli_confirm")
+    @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
     def test_flext_cli_require_confirmation_decorator(
         self, mock_confirm: MagicMock
     ) -> None:
@@ -509,7 +509,7 @@ class TestAdvancedDecorators:
             return FlextResult[None].ok("Function executed")
 
         # User confirms
-        mock_confirm.return_value = FlextResult[None].ok(True)
+        mock_confirm.return_value = FlextResult[None].ok(data=True)
         result = test_function()
         assert result.is_success
 

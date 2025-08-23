@@ -131,7 +131,7 @@ class TestPrintFunctions:
 class TestShowFlextCliPaths:
     """Test show_flext_cli_paths function."""
 
-    @patch("flext_cli.utils.output.get_config")
+    @patch("flext_cli.utils_output.get_config")
     def test_show_flext_cli_paths(self, mock_get_config: MagicMock) -> None:
         """Test displaying FLEXT CLI paths."""
         # Mock config object

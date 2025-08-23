@@ -85,7 +85,7 @@ class FlextCliCommandService:
             handler = self.commands[command_name]
             # Runtime callable guard
             if callable(handler):
-                result = handler(context, **kwargs)
+                result: object = handler(context, **kwargs)
             else:
                 return FlextResult[object].fail("Handler is not callable")
             return (

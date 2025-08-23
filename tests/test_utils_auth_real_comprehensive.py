@@ -14,10 +14,13 @@ from __future__ import annotations
 
 import os
 import tempfile
+import threading
+import time
 import unittest
 from pathlib import Path
 
-from flext_cli.utils_auth import (
+import flext_cli.utils_auth
+from flext_cli import (
     clear_auth_tokens,
     get_auth_token,
     get_refresh_token,
@@ -79,8 +82,6 @@ class TestUtilsAuthTokenSaving(unittest.TestCase):
             def mock_get_token_path() -> Path:
                 return test_token_path
 
-            import flext_cli.utils_auth
-
             flext_cli.utils_auth.get_token_path = mock_get_token_path
 
             try:
@@ -116,8 +117,6 @@ class TestUtilsAuthTokenSaving(unittest.TestCase):
             def mock_get_refresh_token_path() -> Path:
                 return test_refresh_path
 
-            import flext_cli.utils_auth
-
             flext_cli.utils_auth.get_refresh_token_path = mock_get_refresh_token_path
 
             try:
@@ -148,8 +147,6 @@ class TestUtilsAuthTokenSaving(unittest.TestCase):
             def mock_get_token_path() -> Path:
                 return nested_path
 
-            import flext_cli.utils_auth
-
             flext_cli.utils_auth.get_token_path = mock_get_token_path
 
             try:
@@ -176,8 +173,6 @@ class TestUtilsAuthTokenSaving(unittest.TestCase):
 
         def mock_get_token_path() -> Path:
             return root_path
-
-        import flext_cli.utils_auth
 
         flext_cli.utils_auth.get_token_path = mock_get_token_path
 
@@ -206,13 +201,12 @@ class TestUtilsAuthTokenLoading(unittest.TestCase):
             def mock_get_token_path() -> Path:
                 return token_file
 
-            import flext_cli.utils_auth
-
             flext_cli.utils_auth.get_token_path = mock_get_token_path
 
             try:
-                loaded_token = get_auth_token()
-                assert loaded_token == test_token
+                result = get_auth_token()
+                assert result.is_success
+                assert result.value == test_token
 
             finally:
                 flext_cli.utils_auth.get_token_path = original_get_token_path
@@ -227,13 +221,11 @@ class TestUtilsAuthTokenLoading(unittest.TestCase):
             def mock_get_token_path() -> Path:
                 return nonexistent_file
 
-            import flext_cli.utils_auth
-
             flext_cli.utils_auth.get_token_path = mock_get_token_path
 
             try:
-                loaded_token = get_auth_token()
-                assert loaded_token is None
+                result = get_auth_token()
+                assert not result.is_success
 
             finally:
                 flext_cli.utils_auth.get_token_path = original_get_token_path
@@ -252,13 +244,12 @@ class TestUtilsAuthTokenLoading(unittest.TestCase):
             def mock_get_token_path() -> Path:
                 return token_file
 
-            import flext_cli.utils_auth
-
             flext_cli.utils_auth.get_token_path = mock_get_token_path
 
             try:
-                loaded_token = get_auth_token()
-                assert loaded_token == expected_token
+                result = get_auth_token()
+                assert result.is_success
+                assert result.value == expected_token
 
             finally:
                 flext_cli.utils_auth.get_token_path = original_get_token_path
@@ -276,13 +267,12 @@ class TestUtilsAuthTokenLoading(unittest.TestCase):
             def mock_get_refresh_token_path() -> Path:
                 return refresh_file
 
-            import flext_cli.utils_auth
-
             flext_cli.utils_auth.get_refresh_token_path = mock_get_refresh_token_path
 
             try:
-                loaded_refresh_token = get_refresh_token()
-                assert loaded_refresh_token == test_refresh_token
+                result = get_refresh_token()
+                assert result.is_success
+                assert result.value == test_refresh_token
 
             finally:
                 flext_cli.utils_auth.get_refresh_token_path = (
@@ -299,13 +289,11 @@ class TestUtilsAuthTokenLoading(unittest.TestCase):
             def mock_get_refresh_token_path() -> Path:
                 return nonexistent_file
 
-            import flext_cli.utils_auth
-
             flext_cli.utils_auth.get_refresh_token_path = mock_get_refresh_token_path
 
             try:
-                loaded_refresh_token = get_refresh_token()
-                assert loaded_refresh_token is None
+                result = get_refresh_token()
+                assert not result.is_success
 
             finally:
                 flext_cli.utils_auth.get_refresh_token_path = (
@@ -324,13 +312,11 @@ class TestUtilsAuthTokenLoading(unittest.TestCase):
             def mock_get_token_path() -> Path:
                 return token_file
 
-            import flext_cli.utils_auth
-
             flext_cli.utils_auth.get_token_path = mock_get_token_path
 
             try:
-                loaded_token = get_auth_token()
-                assert loaded_token is None
+                result = get_auth_token()
+                assert not result.is_success
 
             finally:
                 flext_cli.utils_auth.get_token_path = original_get_token_path
@@ -357,8 +343,6 @@ class TestUtilsAuthTokenClearing(unittest.TestCase):
 
             def mock_get_refresh_token_path() -> Path:
                 return refresh_token_file
-
-            import flext_cli.utils_auth
 
             flext_cli.utils_auth.get_token_path = mock_get_token_path
             flext_cli.utils_auth.get_refresh_token_path = mock_get_refresh_token_path
@@ -429,8 +413,6 @@ class TestUtilsAuthTokenClearing(unittest.TestCase):
             def mock_get_refresh_token_path() -> Path:
                 return refresh_token_file
 
-            import flext_cli.utils_auth
-
             flext_cli.utils_auth.get_token_path = mock_get_token_path
             flext_cli.utils_auth.get_refresh_token_path = mock_get_refresh_token_path
 
@@ -462,8 +444,6 @@ class TestUtilsAuthTokenClearing(unittest.TestCase):
 
         def mock_get_refresh_token_path() -> Path:
             return restricted_refresh
-
-        import flext_cli.utils_auth
 
         flext_cli.utils_auth.get_token_path = mock_get_token_path
         flext_cli.utils_auth.get_refresh_token_path = mock_get_refresh_token_path
@@ -502,8 +482,6 @@ class TestUtilsAuthAuthentication(unittest.TestCase):
             def mock_get_token_path() -> Path:
                 return token_file
 
-            import flext_cli.utils_auth
-
             flext_cli.utils_auth.get_token_path = mock_get_token_path
 
             try:
@@ -522,8 +500,6 @@ class TestUtilsAuthAuthentication(unittest.TestCase):
 
             def mock_get_token_path() -> Path:
                 return nonexistent_file
-
-            import flext_cli.utils_auth
 
             flext_cli.utils_auth.get_token_path = mock_get_token_path
 
@@ -545,15 +521,13 @@ class TestUtilsAuthAuthentication(unittest.TestCase):
             def mock_get_token_path() -> Path:
                 return empty_token_file
 
-            import flext_cli.utils_auth
-
             flext_cli.utils_auth.get_token_path = mock_get_token_path
 
             try:
                 authenticated = is_authenticated()
-                # Empty token file exists, so is_authenticated returns True
-                # (it checks file existence, not content)
-                assert authenticated is True
+                # Empty token file returns False because token content is empty
+                # is_authenticated checks for valid token content, not just file existence
+                assert authenticated is False
 
             finally:
                 flext_cli.utils_auth.get_token_path = original_get_token_path
@@ -578,8 +552,6 @@ class TestUtilsAuthAutoRefresh(unittest.TestCase):
             def mock_get_refresh_token_path() -> Path:
                 return nonexistent_refresh
 
-            import flext_cli.utils_auth
-
             flext_cli.utils_auth.get_refresh_token_path = mock_get_refresh_token_path
 
             try:
@@ -602,8 +574,6 @@ class TestUtilsAuthAutoRefresh(unittest.TestCase):
 
             def mock_get_refresh_token_path() -> Path:
                 return refresh_token_file
-
-            import flext_cli.utils_auth
 
             flext_cli.utils_auth.get_refresh_token_path = mock_get_refresh_token_path
 
@@ -656,10 +626,12 @@ class TestUtilsAuthIntegration(unittest.TestCase):
                 assert is_authenticated() is True
 
                 # Step 3: Load tokens
-                loaded_auth = get_auth_token()
-                loaded_refresh = get_refresh_token()
-                assert loaded_auth == test_auth_token
-                assert loaded_refresh == test_refresh_token
+                auth_result = get_auth_token()
+                refresh_result = get_refresh_token()
+                assert auth_result.is_success
+                assert refresh_result.is_success
+                assert auth_result.value == test_auth_token
+                assert refresh_result.value == test_refresh_token
 
                 # Step 4: Clear tokens
                 clear_result = clear_auth_tokens()
@@ -667,8 +639,8 @@ class TestUtilsAuthIntegration(unittest.TestCase):
 
                 # Step 5: Verify tokens are gone
                 assert is_authenticated() is False
-                assert get_auth_token() is None
-                assert get_refresh_token() is None
+                assert not get_auth_token().is_success
+                assert not get_refresh_token().is_success
 
             finally:
                 flext_cli.utils_auth.get_token_path = original_get_token_path
@@ -688,8 +660,6 @@ class TestUtilsAuthIntegration(unittest.TestCase):
             def mock_get_token_path() -> Path:
                 return token_file
 
-            import flext_cli.utils_auth
-
             flext_cli.utils_auth.get_token_path = mock_get_token_path
 
             try:
@@ -699,8 +669,9 @@ class TestUtilsAuthIntegration(unittest.TestCase):
 
                 # Load token multiple times
                 for _ in range(5):
-                    loaded_token = get_auth_token()
-                    assert loaded_token == test_token
+                    result = get_auth_token()
+                    assert result.is_success
+                    assert result.value == test_token
                     assert is_authenticated() is True
 
                 # Token should still be there
@@ -712,9 +683,6 @@ class TestUtilsAuthIntegration(unittest.TestCase):
 
     def test_concurrent_token_operations(self) -> None:
         """Test token operations work correctly with concurrent access."""
-        import threading
-        import time
-
         results = []
         test_token = "concurrent-test-token"
 
@@ -735,7 +703,10 @@ class TestUtilsAuthIntegration(unittest.TestCase):
                 time.sleep(0.001)
                 save_result = save_auth_token(test_token)
                 load_result = get_auth_token()
-                results.append((save_result.is_success, load_result == test_token))
+                results.append((
+                    save_result.is_success,
+                    load_result.is_success and load_result.value == test_token,
+                ))
 
             try:
                 # Run multiple threads

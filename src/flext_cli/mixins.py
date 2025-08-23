@@ -128,7 +128,7 @@ class FlextCliValidationMixin:
         confirmed = helper.flext_cli_confirm(prompt).unwrap_or(False)  # noqa: FBT003
         if not confirmed:
             return FlextResult[bool].fail("Operation cancelled by user")
-        return FlextResult[bool].ok(True)  # noqa: FBT003
+        return FlextResult[bool].ok(data=True)  # noqa: FBT003
 
 
 class FlextCliInteractiveMixin:
@@ -296,8 +296,7 @@ class FlextCliBasicMixin(FlextCliValidationMixin):
         return self._flext_cli_console
 
 
-class FlextCliMixin(FlextCliBasicMixin):
-    """Temporary alias to basic mixin; reassigned after advanced is defined."""
+# FlextCliMixin will be alias to FlextCliAdvancedMixin at end of file
 
 
 class FlextCliConfigMixin:
@@ -443,7 +442,7 @@ class FlextCliAdvancedMixin(
 
 
 # Rebind alias after advanced mixin is available
-# FlextCliMixin = FlextCliAdvancedMixin  # Removed to avoid redefinition
+FlextCliMixin = FlextCliAdvancedMixin
 
 
 def flext_cli_zero_config(
@@ -477,7 +476,9 @@ def flext_cli_zero_config(
             try:
                 result = func(*args, **kwargs)
                 if isinstance(result, FlextResult):
-                    return result.map(str)
+                    if result.is_success:
+                        return FlextResult[str].ok(str(result.value))
+                    return FlextResult[str].fail(result.error or "Unknown error")
                 return FlextResult[str].ok(str(result))
             except Exception as e:
                 return FlextResult[str].fail(
@@ -505,7 +506,7 @@ def flext_cli_auto_retry(
                     result = func(*args, **kwargs)
                     if isinstance(result, FlextResult):
                         if result.is_success:
-                            return result.map(str)
+                            return FlextResult[str].ok(str(result.value))
                         last_error = result.error
                     else:
                         return FlextResult[str].ok(str(result))
@@ -534,7 +535,9 @@ def flext_cli_with_progress(message: str) -> FlextCliDecorator[P, R]:
                 try:
                     result = func(*args, **kwargs)
                     if isinstance(result, FlextResult):
-                        return result.map(str)
+                        if result.is_success:
+                            return FlextResult[str].ok(str(result.value))
+                        return FlextResult[str].fail(result.error or "Unknown error")
                     return FlextResult[str].ok(str(result))
                 except Exception as e:
                     return FlextResult[str].fail(f"Operation failed: {e}")
@@ -590,7 +593,9 @@ def flext_cli_auto_validate(**rules: str) -> FlextCliDecorator[P, R]:
             try:
                 result = func(*args, **kwargs)
                 if isinstance(result, FlextResult):
-                    return result.map(str)
+                    if result.is_success:
+                        return FlextResult[str].ok(str(result.value))
+                    return FlextResult[str].fail(result.error or "Unknown error")
                 return FlextResult[str].ok(str(result))
             except Exception as e:
                 return FlextResult[str].fail(str(e))
@@ -611,7 +616,9 @@ def flext_cli_handle_exceptions(
             try:
                 value = func(*args, **kwargs)
                 if isinstance(value, FlextResult):
-                    return value.map(str)
+                    if value.is_success:
+                        return FlextResult[str].ok(str(value.value))
+                    return FlextResult[str].fail(value.error or "Unknown error")
                 return FlextResult[str].ok(str(value))
             except Exception as e:
                 prefix = (message + ": ") if message else ""
@@ -634,7 +641,9 @@ def flext_cli_require_confirmation(message: str) -> FlextCliDecorator[P, R]:
                 return FlextResult[str].ok("Operation cancelled by user")
             result = func(*args, **kwargs)
             if isinstance(result, FlextResult):
-                return result.map(str)
+                if result.is_success:
+                    return FlextResult[str].ok(str(result.value))
+                return FlextResult[str].fail(result.error or "Unknown error")
             return FlextResult[str].ok(str(result))
 
         return wrapper

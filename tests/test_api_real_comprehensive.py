@@ -697,7 +697,7 @@ class TestFlextCliUnwrapFunctions:
         assert flext_cli_unwrap_or_none(list_result) == ["a", "b", "c"]
 
         # Test with boolean
-        bool_result = FlextResult[bool].ok(True)
+        bool_result = FlextResult[bool].ok(data=True)
         assert flext_cli_unwrap_or_none(bool_result) is True
 
         # Test with None value

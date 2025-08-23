@@ -281,7 +281,7 @@ class TestQuickSetup:
             mock_write_pyproject.return_value = project_path / "pyproject.toml"
             mock_init_git.return_value = True
             mock_create_dirs.return_value = {"dir_src": str(project_path / "src")}
-            mock_confirm.return_value = FlextResult[bool].ok(True)
+            mock_confirm.return_value = FlextResult[bool].ok(data=True)
 
             result = cli_quick_setup(project_name)
 

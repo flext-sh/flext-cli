@@ -67,10 +67,10 @@ def _get_client_class() -> type[FlextApiClient]:
     return FlextApiClient
 
 
-def _get_auth_token_bridge() -> str | None:
+def _get_auth_token_bridge(*, token_path: Path | None = None) -> str | None:
     """Return auth token via local implementation (patchable here)."""
-    # Use FlextResult's value_or_none for cleaner code
-    return get_auth_token().value_or_none
+    # Use FlextResult's value_or_none property for None handling
+    return get_auth_token(token_path=token_path).value_or_none
 
 
 def get_token_path() -> Path:
@@ -116,11 +116,12 @@ def get_refresh_token_path() -> Path:
     return data_dir / "refresh_token"
 
 
-def save_auth_token(token: str) -> FlextResult[None]:
+def save_auth_token(token: str, *, token_path: Path | None = None) -> FlextResult[None]:
     """Save the auth token to the file with secure permissions.
 
     Args:
       token: The auth token to save
+      token_path: Optional path to save token (defaults to configured path)
 
     Returns:
       Result of the operation
@@ -131,12 +132,12 @@ def save_auth_token(token: str) -> FlextResult[None]:
         return FlextResult[None].fail("Token cannot be empty")
 
     try:
-        token_path = get_token_path()
-        token_path.parent.mkdir(parents=True, exist_ok=True)
+        path = token_path or get_token_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
 
         # Save token with restricted permissions
-        token_path.write_text(token, encoding="utf-8")
-        token_path.chmod(0o600)  # Read/write for owner only
+        path.write_text(token, encoding="utf-8")
+        path.chmod(0o600)  # Read/write for owner only
 
         return FlextResult[None].ok(None)
     except (OSError, PermissionError, ValueError) as e:
@@ -145,23 +146,26 @@ def save_auth_token(token: str) -> FlextResult[None]:
         )
 
 
-def save_refresh_token(refresh_token: str) -> FlextResult[None]:
+def save_refresh_token(
+    refresh_token: str, *, refresh_token_path: Path | None = None
+) -> FlextResult[None]:
     """Save the refresh token to the file with secure permissions.
 
     Args:
       refresh_token: The refresh token to save
+      refresh_token_path: Optional path to save refresh token (defaults to configured path)
 
     Returns:
       Result of the operation
 
     """
     try:
-        refresh_token_path = get_refresh_token_path()
-        refresh_token_path.parent.mkdir(parents=True, exist_ok=True)
+        path = refresh_token_path or get_refresh_token_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
 
         # Save token with restricted permissions
-        refresh_token_path.write_text(refresh_token, encoding="utf-8")
-        refresh_token_path.chmod(0o600)  # Read/write for owner only
+        path.write_text(refresh_token, encoding="utf-8")
+        path.chmod(0o600)  # Read/write for owner only
 
         return FlextResult[None].ok(None)
     except (OSError, PermissionError, ValueError) as e:
@@ -170,18 +174,21 @@ def save_refresh_token(refresh_token: str) -> FlextResult[None]:
         )
 
 
-def get_auth_token() -> FlextResult[str]:
+def get_auth_token(*, token_path: Path | None = None) -> FlextResult[str]:
     """Get the auth token from the file.
+
+    Args:
+      token_path: Optional path to read token from (defaults to configured path)
 
     Returns:
       FlextResult containing the auth token or failure
 
     """
-    token_path = get_token_path()
+    path = token_path or get_token_path()
 
-    if token_path.exists():
+    if path.exists():
         try:
-            token = token_path.read_text(encoding="utf-8").strip()
+            token = path.read_text(encoding="utf-8").strip()
             if token:
                 return FlextResult[str].ok(token)
             return FlextResult[str].fail("Token file is empty")
@@ -191,18 +198,21 @@ def get_auth_token() -> FlextResult[str]:
     return FlextResult[str].fail("Token file not found")
 
 
-def get_refresh_token() -> FlextResult[str]:
+def get_refresh_token(*, refresh_token_path: Path | None = None) -> FlextResult[str]:
     """Get the refresh token from the file.
+
+    Args:
+      refresh_token_path: Optional path to read refresh token from (defaults to configured path)
 
     Returns:
       FlextResult containing the refresh token or failure
 
     """
-    refresh_token_path = get_refresh_token_path()
+    path = refresh_token_path or get_refresh_token_path()
 
-    if refresh_token_path.exists():
+    if path.exists():
         try:
-            token = refresh_token_path.read_text(encoding="utf-8").strip()
+            token = path.read_text(encoding="utf-8").strip()
             if token:
                 return FlextResult[str].ok(token)
             return FlextResult[str].fail("Refresh token file is empty")
@@ -236,14 +246,17 @@ def clear_auth_tokens() -> FlextResult[None]:
         )
 
 
-def is_authenticated() -> bool:
+def is_authenticated(*, token_path: Path | None = None) -> bool:
     """Check if the user is authenticated.
+
+    Args:
+      token_path: Optional path to check token from (defaults to configured path)
 
     Returns:
       True if the user is authenticated, False otherwise
 
     """
-    return bool(get_auth_token().unwrap_or(""))
+    return bool(get_auth_token(token_path=token_path).unwrap_or(""))
 
 
 def should_auto_refresh() -> bool:
@@ -595,9 +608,9 @@ def whoami(ctx: click.Context) -> None:
 
 def get_auth_headers() -> dict[str, str]:
     """Get authentication headers for API requests."""
-    token = get_auth_token()
-    if token:
-        return {"Authorization": f"Bearer {token}"}
+    token_result = get_auth_token()
+    if token_result.is_success and token_result.value:
+        return {"Authorization": f"Bearer {token_result.value}"}
     return {}
 
 

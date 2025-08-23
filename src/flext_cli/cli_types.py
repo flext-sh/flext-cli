@@ -543,9 +543,7 @@ class FlextCliConfigProvider(Protocol):
 
 __all__ = [
     "URL",
-    # Consolidated from typings.py and core/types.py
     "ClickPath",
-    # Original cli_types exports
     "CommandArgs",
     "CommandOptions",
     "CommandResult",
@@ -596,6 +594,7 @@ __all__ = [
     "FlextCliOperationType",
     "FlextCliOptionalPath",
     "FlextCliOutputFormat",
+    "FlextCliOutputFormat",
     "FlextCliPathLike",
     "FlextCliPathList",
     "FlextCliProcessResult",
@@ -623,7 +622,6 @@ __all__ = [
     "NetworkResult",
     "NewFile",
     "OutputData",
-    "FlextCliOutputFormat",
     "P",
     "PathType",
     "PluginName",

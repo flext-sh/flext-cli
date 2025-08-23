@@ -86,7 +86,9 @@ class TestSetupCli(unittest.TestCase):
 
         assert isinstance(result, FlextResult)
         assert hasattr(result, "success")
-        assert hasattr(result, "unwrap")
+        assert hasattr(result, "unwrap_or")  # Correct API method
+        assert hasattr(result, "value")      # Correct API property
+        assert hasattr(result, "is_success") # Correct API property
         assert hasattr(result, "error")
 
     def test_setup_cli_multiple_calls_consistent(self) -> None:

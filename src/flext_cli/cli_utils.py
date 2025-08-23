@@ -20,26 +20,17 @@ from collections.abc import Callable
 from pathlib import Path
 
 # FlextCliOutputFormat imported from models to avoid circular dependency
-from typing import TYPE_CHECKING, Literal, Protocol, TypedDict, TypeVar
+from typing import Literal, Protocol, TypedDict, TypeVar
 from uuid import UUID
 
 import yaml
-from flext_core import FlextResult
-from flext_core.loggings import get_logger
+from flext_core import FlextResult, get_logger
 from rich.console import Console
 from rich.progress import Progress, TaskID
 from rich.style import Style
 from rich.table import Table
 
-if TYPE_CHECKING:
-    from flext_cli.models import FlextCliOutputFormat
-else:
-    # Runtime import to avoid circular dependency
-    def _get_output_format_enum():
-        from flext_cli.models import FlextCliOutputFormat
-        return FlextCliOutputFormat
-
-    FlextCliOutputFormat = _get_output_format_enum()
+from flext_cli.models import FlextCliOutputFormat
 
 T = TypeVar("T")
 # Type aliases for utility functions
@@ -533,7 +524,7 @@ def _save_json_file(data: FlextCliData, path: Path) -> FlextResult[None]:
         return FlextResult[None].fail(f"Failed to write JSON file {path}: {e}")
 
 
-def _convert_to_serializable(data: object) -> object:
+def _convert_to_serializable(data: object) -> str | int | float | bool | None | list[object] | dict[str, object]:
     """Convert data to a YAML/JSON serializable format.
 
     Args:
@@ -561,7 +552,7 @@ def _convert_to_serializable(data: object) -> object:
         # After isinstance check, data is already dict
         for key, value in data.items():
             key_str: str = str(key)
-            value_converted: object = _convert_to_serializable(value)
+            value_converted = _convert_to_serializable(value)
             result_dict[key_str] = value_converted
         return result_dict
 
@@ -569,6 +560,7 @@ def _convert_to_serializable(data: object) -> object:
     if isinstance(data, (list, tuple, set)):
         result_list: list[object] = []
         # Convert to list for uniform handling - no casts needed after isinstance
+        sequence_items: list[object]
         if isinstance(data, list):
             sequence_items = data
         elif isinstance(data, tuple):
@@ -577,7 +569,7 @@ def _convert_to_serializable(data: object) -> object:
             sequence_items = list(data)
 
         for item in sequence_items:
-            converted_item: object = _convert_to_serializable(item)
+            converted_item = _convert_to_serializable(item)
             result_list.append(converted_item)
         return result_list
 

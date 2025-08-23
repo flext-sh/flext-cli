@@ -10,13 +10,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
 from io import StringIO
 
 import yaml
 from rich.console import Console
 
-from flext_cli.utils_output import (
+from flext_cli import (
     format_json,
     format_pipeline,
     format_pipeline_list,
@@ -36,7 +35,7 @@ class TestFormatJsonReal:
         """Test formatting simple dictionary."""
         data = {"key": "value", "number": 42}
         result = format_json(data)
-        
+
         assert isinstance(result, str)
         # Should be valid JSON
         parsed = json.loads(result)
@@ -46,7 +45,7 @@ class TestFormatJsonReal:
         """Test formatting list."""
         data = [1, 2, 3, "test"]
         result = format_json(data)
-        
+
         assert isinstance(result, str)
         parsed = json.loads(result)
         assert parsed == data
@@ -65,7 +64,7 @@ class TestFormatYamlReal:
         """Test formatting simple dictionary to YAML."""
         data = {"key": "value", "number": 42}
         result = format_yaml(data)
-        
+
         assert isinstance(result, str)
         # Should be valid YAML
         parsed = yaml.safe_load(result)
@@ -75,7 +74,7 @@ class TestFormatYamlReal:
         """Test formatting nested dictionary."""
         data = {"outer": {"inner": "value"}, "list": [1, 2, 3]}
         result = format_yaml(data)
-        
+
         assert isinstance(result, str)
         parsed = yaml.safe_load(result)
         assert parsed == data
@@ -94,7 +93,7 @@ class TestPrintFunctionsReal:
         """Test print_success function."""
         print_success(self.console, "Success message")
         output = self.output.getvalue()
-        
+
         assert "Success message" in output
         assert len(output) > 0
 
@@ -102,7 +101,7 @@ class TestPrintFunctionsReal:
         """Test basic print_error function."""
         print_error(self.console, "Error message")
         output = self.output.getvalue()
-        
+
         assert "Error message" in output
         assert len(output) > 0
 
@@ -110,7 +109,7 @@ class TestPrintFunctionsReal:
         """Test print_warning function."""
         print_warning(self.console, "Warning message")
         output = self.output.getvalue()
-        
+
         assert "Warning message" in output
         assert len(output) > 0
 
@@ -118,7 +117,7 @@ class TestPrintFunctionsReal:
         """Test print_info function."""
         print_info(self.console, "Info message")
         output = self.output.getvalue()
-        
+
         assert "Info message" in output
         assert len(output) > 0
 
@@ -127,7 +126,7 @@ class TestPrintFunctionsReal:
         details = "Error code: 500, description: Internal error"
         print_error(self.console, "Error occurred", details)
         output = self.output.getvalue()
-        
+
         assert "Error occurred" in output
         assert "Error code: 500" in output
         assert len(output) > 0
@@ -143,6 +142,7 @@ class TestFormatPipelineReal:
 
     def test_format_pipeline_basic(self) -> None:
         """Test formatting basic pipeline with proper object structure."""
+
         # Create mock pipeline object with required attributes
         class MockPipeline:
             def __init__(self):
@@ -150,11 +150,11 @@ class TestFormatPipelineReal:
                 self.status = "active"
                 self.id = "test-123"
                 self.created_at = "2023-01-01T00:00:00Z"
-        
+
         pipeline = MockPipeline()
         format_pipeline(self.console, pipeline)
         output = self.output.getvalue()
-        
+
         assert len(output) > 0
         # Should contain pipeline information
         assert "test-pipeline" in output
@@ -164,11 +164,11 @@ class TestFormatPipelineReal:
         pipeline = {
             "name": "complex-pipeline",
             "status": "running",
-            "config": {"source": "database", "target": "warehouse"}
+            "config": {"source": "database", "target": "warehouse"},
         }
         format_pipeline(self.console, pipeline)
         output = self.output.getvalue()
-        
+
         assert len(output) > 0
 
     def test_format_pipeline_with_full_config(self) -> None:
@@ -177,19 +177,12 @@ class TestFormatPipelineReal:
             "name": "full-pipeline",
             "status": "completed",
             "created_at": "2023-01-01T00:00:00Z",
-            "config": {
-                "source": "api",
-                "target": "lake",
-                "schedule": "daily"
-            },
-            "metrics": {
-                "records_processed": 1000,
-                "duration": 300
-            }
+            "config": {"source": "api", "target": "lake", "schedule": "daily"},
+            "metrics": {"records_processed": 1000, "duration": 300},
         }
         format_pipeline(self.console, pipeline)
         output = self.output.getvalue()
-        
+
         assert len(output) > 0
 
 
@@ -205,13 +198,18 @@ class TestFormatPipelineListReal:
         """Test formatting empty pipeline list."""
         format_pipeline_list(self.console, [])
         output = self.output.getvalue()
-        
+
         assert len(output) > 0
         # Should handle empty list gracefully
-        assert "no" in output.lower() or "empty" in output.lower() or "pipelines" in output.lower()
+        assert (
+            "no" in output.lower()
+            or "empty" in output.lower()
+            or "pipelines" in output.lower()
+        )
 
     def test_format_pipeline_list_with_pipelines(self) -> None:
         """Test formatting pipeline list with proper object structure."""
+
         # Create mock pipeline objects with required attributes
         class MockPipeline:
             def __init__(self, name: str, status: str, pipeline_id: str = "test-id"):
@@ -219,22 +217,22 @@ class TestFormatPipelineListReal:
                 self.status = status
                 self.id = pipeline_id
                 self.created_at = "2023-01-01T00:00:00Z"
-        
+
         # Create mock pipeline list object
         class MockPipelineList:
             def __init__(self):
                 self.pipelines = [
                     MockPipeline("pipeline1", "running"),
-                    MockPipeline("pipeline2", "completed")
+                    MockPipeline("pipeline2", "completed"),
                 ]
                 self.total = 2
                 self.page = 1
                 self.page_size = 10
-        
+
         pipeline_list = MockPipelineList()
         format_pipeline_list(self.console, pipeline_list)
         output = self.output.getvalue()
-        
+
         assert len(output) > 0
         assert "pipeline1" in output or "pipeline2" in output
 
@@ -243,11 +241,11 @@ class TestFormatPipelineListReal:
         pipelines = [
             {"name": "active-pipeline", "status": "active"},
             {"name": "error-pipeline", "status": "error"},
-            {"name": "pending-pipeline", "status": "pending"}
+            {"name": "pending-pipeline", "status": "pending"},
         ]
         format_pipeline_list(self.console, pipelines)
         output = self.output.getvalue()
-        
+
         assert len(output) > 0
 
     def test_format_pipeline_list_multiple_pages(self) -> None:
@@ -255,7 +253,7 @@ class TestFormatPipelineListReal:
         pipelines = [{"name": f"pipeline{i}", "status": "active"} for i in range(10)]
         format_pipeline_list(self.console, pipelines)
         output = self.output.getvalue()
-        
+
         assert len(output) > 0
 
 
@@ -271,18 +269,18 @@ class TestFormatPluginListReal:
         """Test formatting empty plugin list."""
         format_plugin_list(self.console, [], "table")
         output = self.output.getvalue()
-        
+
         assert len(output) > 0
 
     def test_format_plugin_list_table(self) -> None:
         """Test formatting plugin list as table."""
         plugins = [
             {"name": "plugin1", "version": "1.0", "status": "enabled"},
-            {"name": "plugin2", "version": "2.0", "status": "disabled"}
+            {"name": "plugin2", "version": "2.0", "status": "disabled"},
         ]
         format_plugin_list(self.console, plugins, "table")
         output = self.output.getvalue()
-        
+
         assert len(output) > 0
         assert "plugin1" in output or "plugin2" in output
 
@@ -290,22 +288,22 @@ class TestFormatPluginListReal:
         """Test formatting plugin list as JSON."""
         plugins = [
             {"name": "plugin1", "version": "1.0"},
-            {"name": "plugin2", "version": "2.0"}
+            {"name": "plugin2", "version": "2.0"},
         ]
         format_plugin_list(self.console, plugins, "json")
         output = self.output.getvalue()
-        
+
         assert len(output) > 0
 
     def test_format_plugin_list_missing_fields(self) -> None:
         """Test formatting plugin list with missing fields."""
         plugins = [
             {"name": "incomplete-plugin"},  # Missing version and status
-            {"name": "plugin2", "version": "1.0"}  # Missing status
+            {"name": "plugin2", "version": "1.0"},  # Missing status
         ]
         format_plugin_list(self.console, plugins, "table")
         output = self.output.getvalue()
-        
+
         # Should handle missing fields gracefully
         assert len(output) > 0
 
@@ -317,16 +315,16 @@ class TestUtilsOutputIntegration:
         """Test that pipeline status handling is case insensitive."""
         output = StringIO()
         console = Console(file=output, width=80)
-        
+
         # Test with different case statuses
         pipelines = [
             {"name": "test1", "status": "ACTIVE"},
             {"name": "test2", "status": "inactive"},
-            {"name": "test3", "status": "Error"}
+            {"name": "test3", "status": "Error"},
         ]
-        
+
         format_pipeline_list(console, pipelines)
         result = output.getvalue()
-        
+
         assert len(result) > 0
         # Should handle all statuses gracefully regardless of case

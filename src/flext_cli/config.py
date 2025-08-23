@@ -164,7 +164,7 @@ class FlextCliConfig(FlextBaseConfigModel):
 
         api_keys = {
             "api_url": "url",
-            "timeout": "timeout",
+            "api_timeout": "timeout",
             "max_retries": "retries",
             "connect_timeout": "connect_timeout",
             "read_timeout": "read_timeout",
@@ -357,6 +357,115 @@ class FlextCliConfig(FlextBaseConfigModel):
         )
         return hash(key)
 
+    def _configure_basic_settings(self, typed_settings: dict[str, object]) -> None:
+        """Configure basic settings like debug, trace, etc."""
+        if "debug" in typed_settings:
+            self.debug = bool(typed_settings["debug"])
+        if "trace" in typed_settings:
+            self.trace = bool(typed_settings["trace"])
+        if "log_level" in typed_settings:
+            self.log_level = str(typed_settings["log_level"])
+        if "profile" in typed_settings:
+            self.profile = str(typed_settings["profile"])
+        if "command_timeout" in typed_settings:
+            timeout_val = typed_settings["command_timeout"]
+            self.command_timeout = (
+                int(cast("int | str", timeout_val))
+                if timeout_val is not None
+                else self.command_timeout
+            )
+
+    def _configure_api_settings(self, typed_settings: dict[str, object]) -> None:
+        """Configure API-related settings."""
+        if "api_timeout" in typed_settings:
+            timeout_val = typed_settings["api_timeout"]
+            self.api = self.api.model_copy(
+                update={
+                    "timeout": int(cast("int | str", timeout_val))
+                    if timeout_val is not None
+                    else self.api.timeout
+                }
+            )
+        if "api_url" in typed_settings:
+            self.api = self.api.model_copy(
+                update={"url": str(typed_settings["api_url"])}
+            )
+
+    def _configure_timeout_settings(self, typed_settings: dict[str, object]) -> None:
+        """Configure timeout-related settings."""
+        if "connect_timeout" in typed_settings:
+            conn_timeout_val = typed_settings["connect_timeout"]
+            self.api = self.api.model_copy(
+                update={
+                    "connect_timeout": int(cast("int | str", conn_timeout_val))
+                    if conn_timeout_val is not None
+                    else self.api.connect_timeout
+                }
+            )
+        if "read_timeout" in typed_settings:
+            read_timeout_val = typed_settings["read_timeout"]
+            self.api = self.api.model_copy(
+                update={
+                    "read_timeout": int(cast("int | str", read_timeout_val))
+                    if read_timeout_val is not None
+                    else self.api.read_timeout
+                }
+            )
+        if "max_retries" in typed_settings:
+            retries_val = typed_settings["max_retries"]
+            self.api = self.api.model_copy(
+                update={
+                    "retries": int(cast("int | str", retries_val))
+                    if retries_val is not None
+                    else self.api.retries
+                }
+            )
+
+    def _configure_output_settings(self, typed_settings: dict[str, object]) -> None:
+        """Configure output-related settings."""
+        if "output_format" in typed_settings:
+            self.output = self.output.model_copy(
+                update={"format": str(typed_settings["output_format"])}
+            )
+        if "no_color" in typed_settings:
+            self.output = self.output.model_copy(
+                update={"no_color": bool(typed_settings["no_color"])}
+            )
+        if "quiet" in typed_settings:
+            self.output = self.output.model_copy(
+                update={"quiet": bool(typed_settings["quiet"])}
+            )
+        if "verbose" in typed_settings:
+            self.output = self.output.model_copy(
+                update={"verbose": bool(typed_settings["verbose"])}
+            )
+
+    def configure(self, settings: object) -> bool:
+        """Apply simple settings updates from a plain dict, return success."""
+        if not isinstance(settings, dict):
+            return False
+        try:
+            # Temporarily bypass immutability
+            old_initialized = getattr(self, "_initialized", False)
+            if old_initialized:
+                object.__setattr__(self, "_initialized", False)
+
+            typed_settings = cast("dict[str, object]", settings)
+
+            # Configure different setting groups
+            self._configure_basic_settings(typed_settings)
+            self._configure_api_settings(typed_settings)
+            self._configure_timeout_settings(typed_settings)
+            self._configure_output_settings(typed_settings)
+
+            # Restore immutability
+            if old_initialized:
+                object.__setattr__(self, "_initialized", True)
+
+            return True
+        except Exception:
+            return False
+
     # Enforce immutability with explicit error message expected by tests
     @override
     def __setattr__(
@@ -515,20 +624,17 @@ def get_cli_settings() -> FlextCliSettings:
 
 
 __all__ = [
-    # Config classes
-    "FlextCliAuthConfig",
-    "FlextCliSettings",
     "FlextCliApiConfig",
+    "FlextCliAuthConfig",
     "FlextCliConfig",
     "FlextCliDirectoryConfig",
     "FlextCliOutputConfig",
-    # Accessors
+    "FlextCliSettings",
     "_create_cli_config",
     "get_cli_config",
     "get_cli_settings",
     "get_config",
     "get_settings",
-    # Helpers
     "parse_config_value",
     "set_config_attribute",
 ]

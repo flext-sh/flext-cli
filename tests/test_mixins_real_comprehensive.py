@@ -182,7 +182,7 @@ class TestFlextCliValidationMixin:
         with mock.patch.object(
             self.mixin._flext_cli_helper, "flext_cli_confirm"
         ) as mock_confirm:
-            mock_confirm.return_value = FlextResult[bool].ok(True)
+            mock_confirm.return_value = FlextResult[bool].ok(data=True)
 
             result = self.mixin.flext_cli_require_confirmation("Proceed?")
 
@@ -194,7 +194,7 @@ class TestFlextCliValidationMixin:
         with mock.patch.object(
             self.mixin._flext_cli_helper, "flext_cli_confirm"
         ) as mock_confirm:
-            mock_confirm.return_value = FlextResult[bool].ok(True)
+            mock_confirm.return_value = FlextResult[bool].ok(data=True)
 
             result = self.mixin.flext_cli_require_confirmation(
                 "Delete files?", dangerous=True
@@ -308,7 +308,7 @@ class TestFlextCliInteractiveMixin:
         from flext_cli.helpers import FlextCliHelper
 
         with mock.patch.object(FlextCliHelper, "flext_cli_confirm") as mock_confirm:
-            mock_confirm.return_value = FlextResult[bool].ok(True)
+            mock_confirm.return_value = FlextResult[bool].ok(data=True)
 
             result = self.mixin.flext_cli_confirm_operation("Proceed?")
 
@@ -463,7 +463,7 @@ class TestFlextCliResultMixin:
             return FlextResult[int].ok(42)
 
         def op3() -> FlextResult[bool]:
-            return FlextResult[bool].ok(True)
+            return FlextResult[bool].ok(data=True)
 
         result = self.mixin.flext_cli_chain_results(op1, op2, op3)
 
@@ -498,7 +498,7 @@ class TestFlextCliResultMixin:
             return FlextResult[int].fail("Second operation failed")
 
         def op3() -> FlextResult[bool]:
-            return FlextResult[bool].ok(True)
+            return FlextResult[bool].ok(data=True)
 
         result = self.mixin.flext_cli_chain_results(op1, op2, op3)
 
@@ -740,7 +740,7 @@ class TestFlextCliAdvancedMixin:
             with mock.patch.object(
                 self.mixin._flext_cli_helper, "flext_cli_confirm"
             ) as mock_confirm:
-                mock_confirm.return_value = FlextResult[bool].ok(True)
+                mock_confirm.return_value = FlextResult[bool].ok(data=True)
 
                 result = self.mixin.flext_cli_execute_with_full_validation(
                     inputs,
@@ -763,7 +763,7 @@ class TestFlextCliAdvancedMixin:
         with mock.patch.object(
             self.mixin._flext_cli_helper, "flext_cli_confirm"
         ) as mock_confirm:
-            mock_confirm.return_value = FlextResult[bool].ok(True)
+            mock_confirm.return_value = FlextResult[bool].ok(data=True)
 
             result = self.mixin.flext_cli_execute_with_full_validation(
                 {}, test_operation, operation_name="dangerous operation", dangerous=True
@@ -813,7 +813,7 @@ class TestFlextCliAdvancedMixin:
         with mock.patch.object(
             self.mixin._flext_cli_helper, "flext_cli_confirm"
         ) as mock_confirm:
-            mock_confirm.return_value = FlextResult[bool].ok(True)
+            mock_confirm.return_value = FlextResult[bool].ok(data=True)
 
             result = self.mixin.flext_cli_require_confirmation(
                 "Continue?", dangerous=True
@@ -990,7 +990,7 @@ class TestDecorators:
 
         with mock.patch("flext_cli.mixins.FlextCliHelper") as mock_helper_class:
             mock_helper = mock_helper_class.return_value
-            mock_helper.flext_cli_confirm.return_value = FlextResult[bool].ok(True)
+            mock_helper.flext_cli_confirm.return_value = FlextResult[bool].ok(data=True)
 
             result = test_func(value="test")
 
@@ -1206,7 +1206,7 @@ class TestDecorators:
 
         with mock.patch("flext_cli.mixins.FlextCliHelper") as mock_helper_class:
             mock_helper = mock_helper_class.return_value
-            mock_helper.flext_cli_confirm.return_value = FlextResult[bool].ok(True)
+            mock_helper.flext_cli_confirm.return_value = FlextResult[bool].ok(data=True)
 
             result = test_func(value="test")
 
