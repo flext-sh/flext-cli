@@ -20,9 +20,8 @@ from flext_cli import (
     PlainFormatter,
     TableFormatter,
     YAMLFormatter,
-    cli_format_output,
+    format_output,
 )
-from flext_cli.formatters import format_output as formatters_format_output
 
 
 class TestTableFormatter:
@@ -174,7 +173,7 @@ class TestCSVFormatter:
 
         formatter.format(data, console)
         result = output.getvalue()
-        
+
         # The CSV formatter might output in different formats
         # Check for presence of items, not necessarily exact format
         if result.strip():  # If there's actual content
@@ -343,7 +342,7 @@ class TestFormatOutput:
 
         data = [{"name": "Alice", "age": 30}]
 
-        formatters_format_output(data, "table", console)
+        format_output(data, "table", console)
         # Should not raise any exceptions
 
     def test_format_output_json(self) -> None:
@@ -353,7 +352,7 @@ class TestFormatOutput:
 
         data = {"name": "Alice", "age": 30}
 
-        formatters_format_output(data, "json", console)
+        format_output(data, "json", console)
         result = output.getvalue()
         if "Alice" not in result:
             output_alice_msg: str = f"Expected {'Alice'} in {result}"
@@ -365,4 +364,4 @@ class TestFormatOutput:
         data = {"test": "data"}
 
         with pytest.raises(ValueError, match="Unknown formatter type"):
-            formatters_format_output(data, "unknown", console)
+            format_output(data, "unknown", console)

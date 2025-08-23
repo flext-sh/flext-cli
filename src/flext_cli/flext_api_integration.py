@@ -192,7 +192,7 @@ class FlextCLIApiClient:
 
         try:
             # Try both FlexCore (8080) and FLEXT Service (8081)
-            services = []
+            services: list[dict[str, object]] = []
 
             # FlexCore service check
             flexcore_result = await self._check_service(

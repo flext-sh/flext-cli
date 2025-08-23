@@ -88,20 +88,20 @@ class ConcreteValidatorService(FlextCliValidatorService):
         if validation_type == "email":
             email = str(input_data)
             if "@" in email and "." in email:
-                return FlextResult[bool].ok(True)
+                return FlextResult[bool].ok(data=True)
             return FlextResult[bool].fail("Invalid email format")
         if validation_type == "number":
             try:
                 float(str(input_data))
-                return FlextResult[bool].ok(True)
+                return FlextResult[bool].ok(data=True)
             except ValueError:
                 return FlextResult[bool].fail("Not a valid number")
         elif validation_type == "required":
             if input_data and str(input_data).strip():
-                return FlextResult[bool].ok(True)
+                return FlextResult[bool].ok(data=True)
             return FlextResult[bool].fail("Required field is empty")
         else:
-            return FlextResult[bool].ok(True)
+            return FlextResult[bool].ok(data=True)
 
 
 class ConcreteInteractiveService(FlextCliInteractiveService):

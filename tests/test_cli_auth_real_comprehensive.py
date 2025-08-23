@@ -10,7 +10,10 @@ Following user requirement: "pare de ficar mockando tudo!"
 from __future__ import annotations
 
 import asyncio
+import shutil
 import tempfile
+import threading
+import time
 from pathlib import Path
 from typing import Never
 from unittest import mock
@@ -22,7 +25,8 @@ from flext_core import FlextResult
 from rich.console import Console
 
 from flext_cli.cli_auth import (
-    # Bridge functions (for testing)
+    _async_login_impl,
+    _async_logout_impl,
     _clear_tokens_bridge,
     _get_auth_token_bridge,
     _get_client_class,
@@ -45,6 +49,7 @@ from flext_cli.cli_auth import (
     status,
     whoami,
 )
+from flext_cli.flext_api_integration import FlextCLIApiClient
 
 # =============================================================================
 # CONFIGURATION TESTS
@@ -126,8 +131,6 @@ class TestTokenManagement:
                 if item.is_file():
                     item.unlink()
                 elif item.is_dir():
-                    import shutil
-
                     shutil.rmtree(item)
             self.temp_dir.rmdir()
         except (OSError, FileNotFoundError):
@@ -195,48 +198,54 @@ class TestTokenManagement:
         token = "existing_auth_token"
         self.token_path.write_text(token, encoding="utf-8")
 
-        retrieved_token = get_auth_token()
+        result = get_auth_token()
 
-        assert retrieved_token == token
+        assert result.is_success
+        assert result.value == token
 
     def test_get_auth_token_not_exists(self) -> None:
         """Test getting authentication token when it doesn't exist."""
-        retrieved_token = get_auth_token()
+        result = get_auth_token()
 
-        assert retrieved_token is None
+        assert not result.is_success
+        assert result.unwrap_or(None) is None
 
     def test_get_auth_token_with_whitespace(self) -> None:
         """Test getting authentication token strips whitespace."""
         token = "  token_with_spaces  \n"
         self.token_path.write_text(token, encoding="utf-8")
 
-        retrieved_token = get_auth_token()
+        result = get_auth_token()
 
-        assert retrieved_token == "token_with_spaces"
+        assert result.is_success
+        assert result.value == "token_with_spaces"
 
     def test_get_auth_token_read_error(self) -> None:
         """Test getting authentication token with read error."""
         # Create file with invalid encoding
         self.token_path.write_bytes(b"\x80\x81\x82")  # Invalid UTF-8
 
-        retrieved_token = get_auth_token()
+        result = get_auth_token()
 
-        assert retrieved_token is None
+        assert not result.is_success
+        assert result.unwrap_or(None) is None
 
     def test_get_refresh_token_exists(self) -> None:
         """Test getting refresh token when it exists."""
         token = "existing_refresh_token"
         self.refresh_path.write_text(token, encoding="utf-8")
 
-        retrieved_token = get_refresh_token()
+        result = get_refresh_token()
 
-        assert retrieved_token == token
+        assert result.is_success
+        assert result.value == token
 
     def test_get_refresh_token_not_exists(self) -> None:
         """Test getting refresh token when it doesn't exist."""
-        retrieved_token = get_refresh_token()
+        result = get_refresh_token()
 
-        assert retrieved_token is None
+        assert not result.is_success
+        assert result.unwrap_or(None) is None
 
     def test_clear_auth_tokens_both_exist(self) -> None:
         """Test clearing both auth and refresh tokens."""
@@ -340,6 +349,7 @@ class TestTokenManagement:
 
         headers = get_auth_headers()
 
+        # get_auth_headers should extract the value from FlextResult internally
         assert headers == {"Authorization": f"Bearer {token}"}
 
     def test_get_auth_headers_no_token(self) -> None:
@@ -380,18 +390,26 @@ class TestBridgeFunctions:
 
     def test_get_client_class(self) -> None:
         """Test getting client class."""
-        from flext_cli.flext_api_integration import FlextCLIApiClient
-
         client_class = _get_client_class()
 
         assert client_class is FlextCLIApiClient
 
     def test_get_auth_token_bridge(self) -> None:
-        """Test getting auth token via bridge function."""
-        with mock.patch("flext_cli.cli_auth.get_auth_token", return_value="test_token"):
-            token = _get_auth_token_bridge()
+        """Test getting auth token via bridge function - NO MOCKS, real execution."""
+        temp_dir = Path(tempfile.mkdtemp())
+        token_path = temp_dir / "bridge_token"
 
-            assert token == "test_token"
+        try:
+            # Create a real token file for the bridge function to read
+            test_token = "real_bridge_token"
+            token_path.write_text(test_token, encoding="utf-8")
+
+            # Use real functionality with explicit token_path parameter - NO MOCKS!
+            token = _get_auth_token_bridge(token_path=token_path)
+
+            assert token == test_token
+        finally:
+            shutil.rmtree(temp_dir)
 
 
 # =============================================================================
@@ -473,9 +491,10 @@ class TestAsyncLoginFunctionality:
         """Test successful login scenario."""
         # Mock API client response
         mock_client = AsyncMock()
-        mock_client.login.return_value = FlextResult[dict[str, object]].ok(
-            {"token": "login_success_token", "user": {"name": "Test User", "id": "123"}}
-        )
+        mock_client.login.return_value = FlextResult[dict[str, object]].ok({
+            "token": "login_success_token",
+            "user": {"name": "Test User", "id": "123"},
+        })
 
         # Mock FlextApiClient class
         with mock.patch("flext_cli.cli_auth.FlextApiClient") as mock_client_class:
@@ -484,8 +503,6 @@ class TestAsyncLoginFunctionality:
             # Use runner to test command but we need to mock the async parts
             # Since click testing with async is complex, we'll test the async function directly
             async def test_async_login() -> None:
-                from flext_cli.cli_auth import _async_login_impl
-
                 await _async_login_impl(
                     self.mock_ctx, self.mock_console, "testuser", "testpass123"
                 )
@@ -506,10 +523,8 @@ class TestAsyncLoginFunctionality:
         """Test login with invalid credentials."""
 
         async def test_async_login_fail() -> None:
-            from flext_cli.cli_auth import _async_login_impl
-
             # Mock ctx.exit to raise SystemExit to stop execution properly
-            def mock_exit(code) -> Never:
+            def mock_exit(code: int) -> Never:
                 raise SystemExit(code)
 
             self.mock_ctx.exit = mock.MagicMock(side_effect=mock_exit)
@@ -553,8 +568,6 @@ class TestAsyncLoginFunctionality:
             mock_client_class.return_value.__aenter__.return_value = mock_client
 
             async def test_empty_password() -> None:
-                from flext_cli.cli_auth import _async_login_impl
-
                 # Mock ctx.exit to not actually exit
                 self.mock_ctx.exit = mock.MagicMock()
 
@@ -581,19 +594,15 @@ class TestAsyncLoginFunctionality:
     def test_login_invalid_response(self) -> None:
         """Test login with invalid API response."""
         mock_client = AsyncMock()
-        mock_client.login.return_value = FlextResult[dict[str, object]].ok(
-            {
-                # Missing 'token' field
-                "user": {"name": "Test User"}
-            }
-        )
+        mock_client.login.return_value = FlextResult[dict[str, object]].ok({
+            # Missing 'token' field
+            "user": {"name": "Test User"}
+        })
 
         with mock.patch("flext_cli.cli_auth.FlextApiClient") as mock_client_class:
             mock_client_class.return_value.__aenter__.return_value = mock_client
 
             async def test_invalid_response() -> None:
-                from flext_cli.cli_auth import _async_login_impl
-
                 # Mock ctx.exit to not actually exit
                 self.mock_ctx.exit = mock.MagicMock()
 
@@ -622,8 +631,6 @@ class TestAsyncLoginFunctionality:
         ):
 
             async def test_network_error() -> None:
-                from flext_cli.cli_auth import _async_login_impl
-
                 # Mock ctx.exit to not actually exit
                 self.mock_ctx.exit = mock.MagicMock()
 
@@ -686,8 +693,6 @@ class TestAsyncLogoutFunctionality:
             mock_get_client_class.return_value = mock_client_class
 
             async def test_logout() -> None:
-                from flext_cli.cli_auth import _async_logout_impl
-
                 await _async_logout_impl(self.mock_ctx, self.mock_console)
 
                 # Verify logout was called
@@ -713,8 +718,6 @@ class TestAsyncLogoutFunctionality:
         self.mock_get_token.return_value = None  # No token
 
         async def test_logout_no_token() -> None:
-            from flext_cli.cli_auth import _async_logout_impl
-
             await _async_logout_impl(self.mock_ctx, self.mock_console)
 
             # Verify not logged in message
@@ -740,8 +743,6 @@ class TestAsyncLogoutFunctionality:
             mock_get_client_class.return_value = mock_client_class
 
             async def test_logout_api_fail() -> None:
-                from flext_cli.cli_auth import _async_logout_impl
-
                 await _async_logout_impl(self.mock_ctx, self.mock_console)
 
                 # Should still clear tokens locally even if API fails
@@ -771,8 +772,6 @@ class TestAsyncLogoutFunctionality:
         ):
 
             async def test_logout_connection_error() -> None:
-                from flext_cli.cli_auth import _async_logout_impl
-
                 await _async_logout_impl(self.mock_ctx, self.mock_console)
 
                 # Should still clear tokens locally
@@ -815,14 +814,12 @@ class TestAsyncStatusFunctionality:
         self.mock_get_token.return_value = "valid_token"
 
         mock_client = AsyncMock()
-        mock_client.get_current_user.return_value = FlextResult[dict[str, object]].ok(
-            {
-                "username": "testuser",
-                "email": "test@example.com",
-                "role": "admin",
-                "id": "123",
-            }
-        )
+        mock_client.get_current_user.return_value = FlextResult[dict[str, object]].ok({
+            "username": "testuser",
+            "email": "test@example.com",
+            "role": "admin",
+            "id": "123",
+        })
 
         with mock.patch("flext_cli.cli_auth.FlextApiClient") as mock_client_class:
             mock_client_class.return_value.__aenter__.return_value = mock_client
@@ -950,15 +947,13 @@ class TestAsyncWhoamiFunctionality:
     def test_whoami_success(self) -> None:
         """Test whoami command with successful user retrieval."""
         mock_client = AsyncMock()
-        mock_client.get_current_user.return_value = FlextResult[dict[str, object]].ok(
-            {
-                "username": "john_doe",
-                "full_name": "John Doe",
-                "email": "john.doe@example.com",
-                "role": "developer",
-                "id": "user_123",
-            }
-        )
+        mock_client.get_current_user.return_value = FlextResult[dict[str, object]].ok({
+            "username": "john_doe",
+            "full_name": "John Doe",
+            "email": "john.doe@example.com",
+            "role": "developer",
+            "id": "user_123",
+        })
 
         with (
             mock.patch("flext_cli.cli_auth.get_auth_token", return_value="valid_token"),
@@ -1097,8 +1092,15 @@ class TestAuthIntegration:
 
         # Step 3: Verify authentication state
         assert is_authenticated()
-        assert get_auth_token() == auth_token
-        assert get_refresh_token() == refresh_token
+
+        auth_token_result = get_auth_token()
+        assert auth_token_result.is_success
+        assert auth_token_result.value == auth_token
+
+        refresh_token_result = get_refresh_token()
+        assert refresh_token_result.is_success
+        assert refresh_token_result.value == refresh_token
+
         assert get_auth_headers() == {"Authorization": f"Bearer {auth_token}"}
 
         # Step 4: Clear tokens (simulate logout)
@@ -1107,8 +1109,15 @@ class TestAuthIntegration:
 
         # Step 5: Verify unauthenticated state
         assert not is_authenticated()
-        assert get_auth_token() is None
-        assert get_refresh_token() is None
+
+        auth_result_after_clear = get_auth_token()
+        assert not auth_result_after_clear.is_success
+        assert auth_result_after_clear.unwrap_or(None) is None
+
+        refresh_result_after_clear = get_refresh_token()
+        assert not refresh_result_after_clear.is_success
+        assert refresh_result_after_clear.unwrap_or(None) is None
+
         assert get_auth_headers() == {}
 
     def test_auto_refresh_scenario(self) -> None:
@@ -1152,9 +1161,6 @@ class TestAuthIntegration:
 
     def test_concurrent_token_operations(self) -> None:
         """Test concurrent token save and read operations."""
-        import threading
-        import time
-
         results = []
 
         def save_tokens() -> None:
@@ -1197,7 +1203,7 @@ class TestAuthErrorHandling:
     """Test error handling and edge cases in authentication system."""
 
     def test_malformed_token_files(self) -> None:
-        """Test handling of malformed token files."""
+        """Test handling of malformed token files - NO MOCKS, real execution."""
         temp_dir = Path(tempfile.mkdtemp())
         token_path = temp_dir / "malformed_token"
 
@@ -1205,13 +1211,13 @@ class TestAuthErrorHandling:
             # Create file with invalid UTF-8 data that should cause UnicodeDecodeError
             token_path.write_bytes(b"\xff\xfe\xfd")  # Invalid UTF-8 sequence
 
-            with mock.patch(
-                "flext_cli.cli_auth.get_token_path", return_value=token_path
-            ):
-                # Should handle malformed file gracefully
-                token = get_auth_token()
-                # Implementation might read it as string or return None - check either
-                assert token is None or isinstance(token, str)
+            # Use real functionality with explicit token_path parameter
+            result = get_auth_token(token_path=token_path)
+
+            # Should handle malformed file gracefully and return failed FlextResult
+            assert not result.is_success
+            assert result.unwrap_or(None) is None
+            assert "Failed to read token" in result.error
         finally:
             if token_path.exists():
                 token_path.unlink()
@@ -1281,12 +1287,24 @@ class TestAuthErrorHandling:
             assert not result.is_success
             assert "Unexpected error" in (result.error or "")
 
-        # Test get auth token bridge
-        with mock.patch(
-            "flext_cli.cli_auth.get_auth_token", return_value="bridge_token"
-        ):
-            token = _get_auth_token_bridge()
-            assert token == "bridge_token"
+        # Test get auth token bridge with real functionality
+        # Create a temporary token file with real content
+        with tempfile.NamedTemporaryFile(
+            mode="w", delete=False, suffix=".token"
+        ) as temp_file:
+            temp_file.write("real_bridge_token")
+            temp_path = Path(temp_file.name)
+
+        try:
+            # Use real implementation with temp file
+            with mock.patch(
+                "flext_cli.cli_auth.get_token_path", return_value=temp_path
+            ):
+                token = _get_auth_token_bridge()
+                assert token == "real_bridge_token"
+        finally:
+            # Cleanup
+            temp_path.unlink()
 
     def test_command_alias_consistency(self) -> None:
         """Test that command aliases are consistent."""

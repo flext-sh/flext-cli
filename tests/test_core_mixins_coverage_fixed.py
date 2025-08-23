@@ -8,15 +8,16 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
 from typing import Never
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from flext_core import FlextResult
 from rich.console import Console
 from rich.progress import Progress
 
-from flext_cli.mixins import (
+from flext_cli import (
     FlextCliAdvancedMixin,
     FlextCliBasicMixin,
     FlextCliConfigMixin,
@@ -145,10 +146,10 @@ class TestFlextCliValidationMixin:
             validated = result.value
             assert len(validated) == 3
 
-    @patch("flext_cli.core.helpers.FlextCliHelper.flext_cli_confirm")
-    def test_require_confirmation_yes(self, mock_confirm) -> None:
+    @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
+    def test_require_confirmation_yes(self, mock_confirm: MagicMock) -> None:
         """Test require confirmation returning yes."""
-        mock_confirm.return_value = FlextResult[bool].ok(True)
+        mock_confirm.return_value = FlextResult[bool].ok(data=True)
         mixin = FlextCliValidationMixin()
 
         result = mixin.flext_cli_require_confirmation("Are you sure?")
@@ -156,8 +157,8 @@ class TestFlextCliValidationMixin:
         assert result.is_success
         assert result.value is True
 
-    @patch("flext_cli.core.helpers.FlextCliHelper.flext_cli_confirm")
-    def test_require_confirmation_no(self, mock_confirm) -> None:
+    @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
+    def test_require_confirmation_no(self, mock_confirm: MagicMock) -> None:
         """Test require confirmation returning no."""
         mock_confirm.return_value = FlextResult[bool].ok(False)
         mixin = FlextCliValidationMixin()
@@ -168,10 +169,10 @@ class TestFlextCliValidationMixin:
         assert not result.is_success
         assert "cancelled by user" in result.error
 
-    @patch("flext_cli.core.helpers.FlextCliHelper.flext_cli_confirm")
-    def test_require_confirmation_dangerous(self, mock_confirm) -> None:
+    @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
+    def test_require_confirmation_dangerous(self, mock_confirm: MagicMock) -> None:
         """Test require confirmation with dangerous flag."""
-        mock_confirm.return_value = FlextResult[bool].ok(True)
+        mock_confirm.return_value = FlextResult[bool].ok(data=True)
         mixin = FlextCliValidationMixin()
 
         result = mixin.flext_cli_require_confirmation(
@@ -181,8 +182,8 @@ class TestFlextCliValidationMixin:
         assert result.is_success
         assert result.value is True
 
-    @patch("flext_cli.core.helpers.FlextCliHelper.flext_cli_confirm")
-    def test_require_confirmation_error(self, mock_confirm) -> None:
+    @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
+    def test_require_confirmation_error(self, mock_confirm: MagicMock) -> None:
         """Test require confirmation with error."""
         mock_confirm.return_value = FlextResult[bool].fail("Confirmation error")
         mixin = FlextCliValidationMixin()
@@ -256,18 +257,18 @@ class TestFlextCliInteractiveMixin:
         # Should not raise exception
         mixin.flext_cli_print_result(result)
 
-    @patch("flext_cli.core.helpers.FlextCliHelper.flext_cli_confirm")
-    def test_confirm_operation_yes(self, mock_confirm) -> None:
+    @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
+    def test_confirm_operation_yes(self, mock_confirm: MagicMock) -> None:
         """Test confirm operation returning yes."""
-        mock_confirm.return_value = FlextResult[bool].ok(True)
+        mock_confirm.return_value = FlextResult[bool].ok(data=True)
         mixin = FlextCliInteractiveMixin()
 
         result = mixin.flext_cli_confirm_operation("Proceed?")
 
         assert result is True
 
-    @patch("flext_cli.core.helpers.FlextCliHelper.flext_cli_confirm")
-    def test_confirm_operation_no(self, mock_confirm) -> None:
+    @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
+    def test_confirm_operation_no(self, mock_confirm: MagicMock) -> None:
         """Test confirm operation returning no."""
         mock_confirm.return_value = FlextResult[bool].ok(False)
         mixin = FlextCliInteractiveMixin()
@@ -276,8 +277,8 @@ class TestFlextCliInteractiveMixin:
 
         assert result is False
 
-    @patch("flext_cli.core.helpers.FlextCliHelper.flext_cli_confirm")
-    def test_confirm_operation_error(self, mock_confirm) -> None:
+    @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
+    def test_confirm_operation_error(self, mock_confirm: MagicMock) -> None:
         """Test confirm operation with error."""
         mock_confirm.return_value = FlextResult[bool].fail("Confirmation failed")
         mixin = FlextCliInteractiveMixin()
@@ -327,7 +328,7 @@ class TestFlextCliProgressMixin:
         """Test track progress with generator."""
         mixin = FlextCliProgressMixin()
 
-        def item_generator():
+        def item_generator() -> Generator[int]:
             yield from range(5)
 
         result = mixin.flext_cli_track_progress(item_generator(), "Processing")
@@ -364,13 +365,13 @@ class TestFlextCliResultMixin:
         """Test chaining all successful results."""
         mixin = FlextCliResultMixin()
 
-        def op1():
+        def op1() -> FlextResult[str]:
             return FlextResult[str].ok("result1")
 
-        def op2():
+        def op2() -> FlextResult[str]:
             return FlextResult[str].ok("result2")
 
-        def op3():
+        def op3() -> FlextResult[str]:
             return FlextResult[str].ok("result3")
 
         result = mixin.flext_cli_chain_results(op1, op2, op3)
@@ -383,13 +384,13 @@ class TestFlextCliResultMixin:
         """Test chaining results with failure."""
         mixin = FlextCliResultMixin()
 
-        def op1():
+        def op1() -> FlextResult[str]:
             return FlextResult[str].ok("result1")
 
-        def op2():
+        def op2() -> FlextResult[str]:
             return FlextResult[str].fail("operation failed")
 
-        def op3():
+        def op3() -> FlextResult[str]:
             return FlextResult[str].ok("result3")
 
         result = mixin.flext_cli_chain_results(op1, op2, op3)
@@ -400,7 +401,7 @@ class TestFlextCliResultMixin:
         """Test chaining results with exception."""
         mixin = FlextCliResultMixin()
 
-        def op1():
+        def op1() -> FlextResult[str]:
             return FlextResult[str].ok("result1")
 
         def op2() -> Never:
@@ -418,7 +419,7 @@ class TestFlextCliResultMixin:
         result = FlextResult[str].ok("success")
         success_called = False
 
-        def success_action(data) -> None:
+        def success_action(data: str) -> None:
             nonlocal success_called
             success_called = True
             assert data == "success"
@@ -437,7 +438,7 @@ class TestFlextCliResultMixin:
         result = FlextResult[str].fail("error message")
         error_called = False
 
-        def error_action(error) -> None:
+        def error_action(error: str) -> None:
             nonlocal error_called
             error_called = True
             assert error == "error message"
@@ -586,11 +587,11 @@ class TestFlextCliAdvancedMixin:
                 "file": (temp_file.name, "file"),
             }
 
-            def simple_operation():
+            def simple_operation() -> FlextResult[str]:
                 return FlextResult[str].ok("operation completed")
 
             with patch.object(mixin, "flext_cli_require_confirmation") as mock_confirm:
-                mock_confirm.return_value = FlextResult[bool].ok(True)
+                mock_confirm.return_value = FlextResult[bool].ok(data=True)
 
                 result = mixin.flext_cli_execute_with_full_validation(
                     inputs, simple_operation, operation_name="test operation"
@@ -605,7 +606,7 @@ class TestFlextCliAdvancedMixin:
 
         inputs = {"email": ("invalid-email", "email")}
 
-        def simple_operation():
+        def simple_operation() -> FlextResult[str]:
             return FlextResult[str].ok("operation completed")
 
         result = mixin.flext_cli_execute_with_full_validation(inputs, simple_operation)
@@ -619,7 +620,7 @@ class TestFlextCliAdvancedMixin:
         with patch.object(
             FlextCliValidationMixin, "flext_cli_require_confirmation"
         ) as mock_confirm:
-            mock_confirm.return_value = FlextResult[bool].ok(True)
+            mock_confirm.return_value = FlextResult[bool].ok(data=True)
 
             result = mixin.flext_cli_require_confirmation("Are you sure?")
 
@@ -630,10 +631,10 @@ class TestFlextCliAdvancedMixin:
         """Test process data workflow success."""
         mixin = FlextCliAdvancedMixin()
 
-        def step1(data):
+        def step1(data: object) -> FlextResult[object]:
             return FlextResult[object].ok(f"step1_{data}")
 
-        def step2(data):
+        def step2(data: object) -> FlextResult[object]:
             return FlextResult[object].ok(f"step2_{data}")
 
         steps = [("transform_step1", step1), ("transform_step2", step2)]
@@ -647,10 +648,10 @@ class TestFlextCliAdvancedMixin:
         """Test process data workflow with failure."""
         mixin = FlextCliAdvancedMixin()
 
-        def step1(data):
+        def step1(data: object) -> FlextResult[object]:
             return FlextResult[object].ok(f"step1_{data}")
 
-        def step2(data):
+        def step2(data: object) -> FlextResult[object]:
             return FlextResult[object].fail("step2 failed")
 
         steps = [("transform_step1", step1), ("failing_step2", step2)]
@@ -663,7 +664,7 @@ class TestFlextCliAdvancedMixin:
         """Test process data workflow without progress."""
         mixin = FlextCliAdvancedMixin()
 
-        def simple_step(data):
+        def simple_step(data: object) -> FlextResult[object]:
             return FlextResult[object].ok(data)
 
         steps = [("simple", simple_step)]
@@ -686,7 +687,7 @@ class TestFlextCliAdvancedMixin:
 
         try:
 
-            def process_file(content):
+            def process_file(content: str) -> FlextResult[str]:
                 return FlextResult[str].ok(content.upper())
 
             operations = [("process", temp_path, process_file)]
@@ -704,7 +705,7 @@ class TestFlextCliAdvancedMixin:
         """Test execute file operations with nonexistent file."""
         mixin = FlextCliAdvancedMixin()
 
-        def process_file(content):
+        def process_file(content: str) -> FlextResult[str]:
             return FlextResult[str].ok(content)
 
         operations = [("process", "/nonexistent/file.txt", process_file)]
@@ -725,7 +726,7 @@ class TestFlextCliAdvancedMixin:
 
         try:
 
-            def failing_process(content):
+            def failing_process(content: str) -> FlextResult[str]:
                 return FlextResult[str].fail("Processing failed")
 
             operations = [("failing_process", temp_path, failing_process)]
@@ -809,7 +810,7 @@ class TestErrorHandling:
         mixin = FlextCliValidationMixin()
 
         with patch(
-            "flext_cli.core.helpers.FlextCliHelper.flext_cli_confirm"
+            "flext_cli.helpers.FlextCliHelper.flext_cli_confirm"
         ) as mock_confirm:
             mock_confirm.return_value = FlextResult[bool].fail("Confirmation error")
 
@@ -821,7 +822,7 @@ class TestErrorHandling:
         """Test workflow error handling."""
         mixin = FlextCliAdvancedMixin()
 
-        def failing_step(data) -> Never:
+        def failing_step(data: object) -> Never:
             msg = "Step failed"
             raise ValueError(msg)
 

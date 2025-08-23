@@ -264,9 +264,10 @@ class TestAutoConfig:
         self, mock_load_file: MagicMock, mock_env: MagicMock
     ) -> None:
         """Test auto config with config file."""
-        mock_load_file.return_value = FlextResult[dict[str, object]].ok(
-            {"debug": True, "log_level": "info"}
-        )
+        mock_load_file.return_value = FlextResult[dict[str, object]].ok({
+            "debug": True,
+            "log_level": "info",
+        })
         mock_env.return_value = {"timeout": 30}
 
         result = flext_cli_auto_config(config_file="config.json")
@@ -363,7 +364,7 @@ class TestRequireAll:
     @patch("flext_cli.core.utils.cli_confirm")
     def test_flext_cli_require_all_all_confirmed(self, mock_confirm: MagicMock) -> None:
         """Test require all with all confirmations accepted."""
-        mock_confirm.return_value = FlextResult[bool].ok(True)
+        mock_confirm.return_value = FlextResult[bool].ok(data=True)
 
         confirmations = [
             ("Delete all files?", True),
@@ -380,7 +381,7 @@ class TestRequireAll:
     def test_flext_cli_require_all_one_declined(self, mock_confirm: MagicMock) -> None:
         """Test require all with one confirmation declined."""
         mock_confirm.side_effect = [
-            FlextResult[bool].ok(True),  # First confirmation accepted
+            FlextResult[bool].ok(data=True),  # First confirmation accepted
             FlextResult[bool].ok(False),  # Second confirmation declined
         ]
 

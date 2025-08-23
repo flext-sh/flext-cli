@@ -99,7 +99,7 @@ def save_auth_token(token: str, *, token_path: Path | None = None) -> FlextResul
 
 def save_refresh_token(refresh_token: str, *, token_path: Path | None = None) -> FlextResult[None]:
     """Save refresh token to disk with secure permissions.
-    
+
     Args:
         refresh_token: The refresh token to save
         token_path: Optional path to save token (defaults to configured path)
@@ -120,7 +120,7 @@ def save_refresh_token(refresh_token: str, *, token_path: Path | None = None) ->
 
 def get_auth_token(*, token_path: Path | None = None) -> FlextResult[str]:
     """Load auth token contents if file exists; returns FlextResult.
-    
+
     Args:
         token_path: Optional path to read token from (defaults to configured path)
 
@@ -139,7 +139,7 @@ def get_auth_token(*, token_path: Path | None = None) -> FlextResult[str]:
 
 def get_refresh_token(*, token_path: Path | None = None) -> FlextResult[str]:
     """Load refresh token contents if file exists; returns FlextResult.
-    
+
     Args:
         token_path: Optional path to read token from (defaults to configured path)
 
@@ -172,7 +172,7 @@ def clear_auth_tokens() -> FlextResult[None]:
 
 def is_authenticated(*, token_path: Path | None = None) -> bool:
     """Return True if token file is present and contains valid token.
-    
+
     Args:
         token_path: Optional path to check for token (defaults to configured path)
 

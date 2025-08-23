@@ -350,16 +350,16 @@ class TestFlextCliConfig:
         assert config.trace is False
         if config.log_level != "INFO":
             raise AssertionError(f"Expected {'INFO'}, got {config.log_level}")
-        assert config.api_url == _API
-        if config.api_timeout != 30:
-            raise AssertionError(f"Expected {30}, got {config.api_timeout}")
-        assert config.format_type == "table"
-        if config.no_color:
-            raise AssertionError(f"Expected False, got {config.no_color}")
+        assert config.api.url == _API
+        if config.api.timeout != 30:
+            raise AssertionError(f"Expected {30}, got {config.api.timeout}")
+        assert config.output.format == "table"
+        if config.output.no_color:
+            raise AssertionError(f"Expected False, got {config.output.no_color}")
         assert config.profile == "default"
-        if config.connect_timeout != 10:
-            raise AssertionError(f"Expected {10}, got {config.connect_timeout}")
-        assert config.read_timeout == 30
+        if config.api.connect_timeout != 10:
+            raise AssertionError(f"Expected {10}, got {config.api.connect_timeout}")
+        assert config.api.read_timeout == 30
         if config.command_timeout != 300:
             raise AssertionError(f"Expected {300}, got {config.command_timeout}")
 
@@ -386,17 +386,17 @@ class TestFlextCliConfig:
         assert config.trace is True
         if config.log_level != "DEBUG":
             raise AssertionError(f"Expected {'DEBUG'}, got {config.log_level}")
-        assert config.api_url == "https://api.example.com"
-        if config.api_timeout != 60:
-            raise AssertionError(f"Expected {60}, got {config.api_timeout}")
-        assert config.format_type == "json"
-        if not (config.no_color):
-            raise AssertionError(f"Expected True, got {config.no_color}")
+        assert config.api.url == "https://api.example.com"
+        if config.api.timeout != 60:
+            raise AssertionError(f"Expected {60}, got {config.api.timeout}")
+        assert config.output.format == "json"
+        if not (config.output.no_color):
+            raise AssertionError(f"Expected True, got {config.output.no_color}")
         if config.profile != "production":
             raise AssertionError(f"Expected {'production'}, got {config.profile}")
-        assert config.connect_timeout == 20
-        if config.read_timeout != 60:
-            raise AssertionError(f"Expected {60}, got {config.read_timeout}")
+        assert config.api.connect_timeout == 20
+        if config.api.read_timeout != 60:
+            raise AssertionError(f"Expected {60}, got {config.api.read_timeout}")
         assert config.command_timeout == DEFAULT_TTL
 
     def test_config_configure_success(self) -> None:
@@ -411,8 +411,8 @@ class TestFlextCliConfig:
         if not (config.configure(new_settings)):
             raise AssertionError(f"Expected True, got {config.configure(new_settings)}")
         assert config.debug is True
-        if config.api_timeout != 45:
-            raise AssertionError(f"Expected {45}, got {config.api_timeout}")
+        if config.api.timeout != 45:
+            raise AssertionError(f"Expected {45}, got {config.api.timeout}")
         # Other values should remain unchanged
         if config.log_level != "INFO":
             raise AssertionError(f"Expected {'INFO'}, got {config.log_level}")

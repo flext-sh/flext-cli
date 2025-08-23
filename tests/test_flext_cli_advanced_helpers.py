@@ -224,8 +224,8 @@ class TestFlextCliHelper:
         result = helper.flext_cli_create_table([])
         assert not result.is_success
 
-    @patch("flext_cli.core.helpers.asyncio.wait_for")
-    @patch("flext_cli.core.helpers.asyncio.create_subprocess_exec")
+    @patch("flext_cli.helpers.asyncio.wait_for")
+    @patch("flext_cli.helpers.asyncio.create_subprocess_exec")
     def test_flext_cli_execute_command(
         self,
         mock_create: MagicMock,
@@ -577,8 +577,8 @@ class TestErrorConditions:
         result = helper.flext_cli_validate_path(None)
         assert not result.is_success
 
-    @patch("flext_cli.core.helpers.asyncio.wait_for")
-    @patch("flext_cli.core.helpers.asyncio.create_subprocess_exec")
+    @patch("flext_cli.helpers.asyncio.wait_for")
+    @patch("flext_cli.helpers.asyncio.create_subprocess_exec")
     def test_command_execution_timeout(
         self,
         mock_create: MagicMock,

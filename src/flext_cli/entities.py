@@ -15,8 +15,8 @@ from flext_cli.models import (
     FlextCliConfiguration as FlextCliConfig,
     FlextCliOutput,
     FlextCliOutputFormat,
-    FlextCliPlugin as FlextCliPlugin,
-    FlextCliSession as FlextCliSession,
+    FlextCliPlugin,
+    FlextCliSession,
     PluginStatus,
     SessionStatus,
 )

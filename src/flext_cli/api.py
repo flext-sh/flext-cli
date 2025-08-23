@@ -26,10 +26,10 @@ from rich.console import Console
 from rich.table import Table
 
 from flext_cli.cli_types import FlextCliDataType
-from flext_cli.config import FlextCliSettings as FlextCliSettings
+from flext_cli.config import FlextCliSettings
 from flext_cli.models import (
     FlextCliCommand as CLICommand,
-    FlextCliPlugin as FlextCliPlugin,
+    FlextCliPlugin,
 )
 
 

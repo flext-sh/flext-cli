@@ -95,8 +95,8 @@ class TestGetAuthTokenReal:
         """Test getting auth token when file doesn't exist."""
         result = get_auth_token()
         # Should return FlextResult
-        assert hasattr(result, 'is_success')
-        assert hasattr(result, 'is_failure')
+        assert hasattr(result, "is_success")
+        assert hasattr(result, "is_failure")
         # In test environment, most likely no token file exists
         assert result.is_failure or result.is_success
 
@@ -115,8 +115,8 @@ class TestGetRefreshTokenReal:
         """Test getting refresh token when file doesn't exist."""
         result = get_refresh_token()
         # Should return FlextResult
-        assert hasattr(result, 'is_success')
-        assert hasattr(result, 'is_failure')
+        assert hasattr(result, "is_success")
+        assert hasattr(result, "is_failure")
         # In test environment, most likely no token file exists
         assert result.is_failure or result.is_success
 
@@ -128,20 +128,20 @@ class TestSaveAuthTokenReal:
         """Test saving auth token to temporary location."""
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir) / "test_token"
-            
+
             # Save a test token - the function will use its default path
             # but we can verify it executes without error
-            result = save_auth_token("test_token_value")
-            
+            result = save_auth_token("test_token_value", token_path=temp_path)
+
             # Should return FlextResult
-            assert hasattr(result, 'is_success')
-            assert hasattr(result, 'is_failure')
+            assert hasattr(result, "is_success")
+            assert hasattr(result, "is_failure")
 
     def test_save_auth_token_empty_string(self) -> None:
         """Test saving empty token."""
         result = save_auth_token("")
         # Should handle empty token gracefully
-        assert hasattr(result, 'is_success')
+        assert hasattr(result, "is_success")
 
 
 class TestSaveRefreshTokenReal:
@@ -150,10 +150,10 @@ class TestSaveRefreshTokenReal:
     def test_save_refresh_token_temp_dir(self) -> None:
         """Test saving refresh token."""
         result = save_refresh_token("test_refresh_token")
-        
+
         # Should return FlextResult
-        assert hasattr(result, 'is_success')
-        assert hasattr(result, 'is_failure')
+        assert hasattr(result, "is_success")
+        assert hasattr(result, "is_failure")
 
 
 class TestClearAuthTokensReal:
@@ -162,16 +162,16 @@ class TestClearAuthTokensReal:
     def test_clear_auth_tokens_safe(self) -> None:
         """Test clearing auth tokens safely."""
         result = clear_auth_tokens()
-        
+
         # Should return FlextResult
-        assert hasattr(result, 'is_success')
-        assert hasattr(result, 'is_failure')
+        assert hasattr(result, "is_success")
+        assert hasattr(result, "is_failure")
 
     def test_clear_auth_tokens_idempotent(self) -> None:
         """Test clearing tokens is idempotent."""
         result1 = clear_auth_tokens()
         result2 = clear_auth_tokens()
-        
+
         # Both should succeed (clearing non-existent files is OK)
-        assert hasattr(result1, 'is_success')
-        assert hasattr(result2, 'is_success')
+        assert hasattr(result1, "is_success")
+        assert hasattr(result2, "is_success")

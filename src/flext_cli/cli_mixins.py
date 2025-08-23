@@ -29,8 +29,8 @@ if TYPE_CHECKING:
     from flext_cli.models import FlextCliOutputFormat
 else:
     # Runtime import to avoid circular dependency
-    def _get_output_format_enum():
-        from flext_cli.models import FlextCliOutputFormat
+    def _get_output_format_enum() -> type:
+        from flext_cli.models import FlextCliOutputFormat  # noqa: PLC0415
         return FlextCliOutputFormat
 
     FlextCliOutputFormat = _get_output_format_enum()

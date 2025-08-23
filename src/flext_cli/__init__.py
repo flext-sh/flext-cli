@@ -85,7 +85,6 @@ from flext_cli.models import (
     FlextCliPlugin,
     FlextCliPluginState,
     FlextCliSession,
-    FlextCliSession as CLISession,
     FlextCliSessionState,
     FlextCliWorkspace,
     SessionStatus,
@@ -94,7 +93,6 @@ from flext_cli.models import (
 # CLI Context and Execution
 from flext_cli.context import FlextCliExecutionContext
 from flext_cli.services import (
-    FlextCliCommandService,
     FlextCliSessionService,
 )
 
@@ -180,7 +178,6 @@ from flext_cli.cli_mixins import (
     CLIDataMixin,
     CLIExecutionMixin,
     CLIInteractiveMixin,
-    CLIInteractiveMixin as FlextCliInteractiveMixin,
     CLILoggingMixin,
     CLIOutputMixin,
     CLIUIMixin,
@@ -190,6 +187,7 @@ from flext_cli.cli_mixins import (
 from flext_cli.mixins import (
     FlextCliAdvancedMixin,
     FlextCliBasicMixin,
+    FlextCliInteractiveMixin,
     FlextCliMixin,
     FlextCliProgressMixin,
     FlextCliResultMixin,
@@ -287,7 +285,12 @@ from flext_cli.api import (
 )
 
 # Client
-from flext_cli.client import FlextApiClient
+from flext_cli.client import (
+    FlextApiClient,
+    Pipeline,
+    PipelineConfig,
+    PipelineList,
+)
 
 # Domain factory and constants
 from flext_cli.entities import FlextCliEntityFactory, CommandType
@@ -307,12 +310,30 @@ def create_cli_container() -> object:
     return get_flext_container()
 
 
+# Output formatting utilities
+from flext_cli.utils_output import (
+    format_json,
+    format_pipeline,
+    format_pipeline_list,
+    format_plugin_list,
+    format_yaml,
+    print_error,
+    print_info,
+    print_success,
+    print_warning,
+)
+
 __all__: list[str] = [
     "CLICommand",
     "FlextCliApi",
     "FlextCliDataProcessor",
     "CLICompleteMixin",
     "FlextCliConfig",
+    # Client classes
+    "FlextApiClient",
+    "Pipeline",
+    "PipelineConfig",
+    "PipelineList",
     "CLIConfigMixin",
     "CLIConfiguration",
     "FlextCliContext",
@@ -396,6 +417,11 @@ __all__: list[str] = [
     "cli_format_output",
     "cli_handle_keyboard_interrupt",
     "cli_inject_config",
+    "format_json",
+    "format_pipeline",
+    "format_pipeline_list",
+    "format_plugin_list",
+    "format_yaml",
     "cli_load_data_file",
     "cli_log_execution",
     "cli_measure_time",
@@ -470,6 +496,11 @@ __all__: list[str] = [
     "FlextCliAdvancedMixin",
     "FlextCliBasicMixin",
     "get_cli_settings",
+    # Output utilities
+    "print_error",
+    "print_info",
+    "print_success",
+    "print_warning",
     "get_refresh_token_path",
     "FlextCliSession",
     "FlextCliCommandType",

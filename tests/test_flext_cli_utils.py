@@ -270,14 +270,14 @@ class TestFlextCliValidateAll:
 class TestFlextCliRequireAll:
     """Test suite for flext_cli_require_all function."""
 
-    @patch("flext_cli.core.helpers.FlextCliHelper")
+    @patch("flext_cli.helpers.FlextCliHelper")
     def test_require_all_success(self, mock_helper_class: MagicMock) -> None:
         """Test successful multiple confirmations."""
         mock_helper = mock_helper_class.return_value
         mock_helper.flext_cli_confirm.side_effect = [
-            FlextResult[None].ok(True),
-            FlextResult[None].ok(True),
-            FlextResult[None].ok(True),
+            FlextResult[None].ok(data=True),
+            FlextResult[None].ok(data=True),
+            FlextResult[None].ok(data=True),
         ]
 
         confirmations = [
@@ -292,12 +292,12 @@ class TestFlextCliRequireAll:
         assert result.value is True
         assert mock_helper.flext_cli_confirm.call_count == 3
 
-    @patch("flext_cli.core.helpers.FlextCliHelper")
+    @patch("flext_cli.helpers.FlextCliHelper")
     def test_require_all_denial(self, mock_helper_class: MagicMock) -> None:
         """Test multiple confirmations with user denial."""
         mock_helper = mock_helper_class.return_value
         mock_helper.flext_cli_confirm.side_effect = [
-            FlextResult[None].ok(True),
+            FlextResult[None].ok(data=True),
             FlextResult[None].ok(False),  # User denies second confirmation
         ]
 
@@ -313,7 +313,7 @@ class TestFlextCliRequireAll:
         assert result.value is False  # User cancelled
         assert mock_helper.flext_cli_confirm.call_count == 2  # Stopped after denial
 
-    @patch("flext_cli.core.helpers.FlextCliHelper")
+    @patch("flext_cli.helpers.FlextCliHelper")
     def test_require_all_confirmation_failure(
         self,
         mock_helper_class: MagicMock,

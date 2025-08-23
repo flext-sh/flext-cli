@@ -12,8 +12,9 @@ from __future__ import annotations
 import contextlib
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
+from flext_core import FlextResult
 from flext_cli import (
     clear_auth_tokens,
     get_auth_token,
@@ -32,30 +33,24 @@ class TestTokenPaths:
 
     def test_get_token_path(self) -> None:
         """Test getting token path."""
-        with patch("flext_cli.utils.auth.get_config") as mock_get_config:
+        with patch("flext_cli.cli_auth.get_cli_config") as mock_get_config:
             mock_config = MagicMock()
             mock_config.token_file = Path("/test/token.txt")
             mock_get_config.return_value = mock_config
 
             result = get_token_path()
-            if result != Path("/test/token.txt"):
-                raise AssertionError(
-                    f"Expected {Path('/test/token.txt')}, got {result}",
-                )
+            assert result == Path("/test/token.txt")
             mock_get_config.assert_called_once()
 
     def test_get_refresh_token_path(self) -> None:
         """Test getting refresh token path."""
-        with patch("flext_cli.utils.auth.get_config") as mock_get_config:
+        with patch("flext_cli.cli_auth.get_cli_config") as mock_get_config:
             mock_config = MagicMock()
             mock_config.refresh_token_file = Path("/test/refresh_token.txt")
             mock_get_config.return_value = mock_config
 
             result = get_refresh_token_path()
-            if result != Path("/test/refresh_token.txt"):
-                raise AssertionError(
-                    f"Expected {Path('/test/refresh_token.txt')}, got {result}",
-                )
+            assert result == Path("/test/refresh_token.txt")
             mock_get_config.assert_called_once()
 
 
@@ -67,30 +62,23 @@ class TestSaveAuthToken:
         with tempfile.TemporaryDirectory() as temp_dir:
             token_path = Path(temp_dir) / "token.txt"
 
-            with patch("flext_cli.utils.auth.get_token_path", return_value=token_path):
-                result = save_auth_token("test-token-123")
+            result = save_auth_token("test-token-123", token_path=token_path)
 
-                assert result.is_success
-                assert result.value is None
-                assert token_path.exists()
-                if token_path.read_text() != "test-token-123":
-                    raise AssertionError(
-                        f"Expected {'test-token-123'}, got {token_path.read_text()}",
-                    )
+            assert result.is_success
+            assert result.value is None
+            assert token_path.exists()
+            assert token_path.read_text() == "test-token-123"
 
-                # Check file permissions
-                stat = token_path.stat()
-                if oct(stat.st_mode)[-3:] != "600":
-                    raise AssertionError(
-                        f"Expected {'600'}, got {oct(stat.st_mode)[-3:]}",
-                    )
+            # Check file permissions
+            stat = token_path.stat()
+            assert oct(stat.st_mode)[-3:] == "600"
 
     def test_save_auth_token_creates_parent_directories(self) -> None:
         """Test that parent directories are created."""
         with tempfile.TemporaryDirectory() as temp_dir:
             token_path = Path(temp_dir) / "nested" / "path" / "token.txt"
 
-            with patch("flext_cli.utils.auth.get_token_path", return_value=token_path):
+            with patch("flext_cli.utils_auth.get_token_path", return_value=token_path):
                 result = save_auth_token("test-token-456")
 
                 assert result.is_success
@@ -105,7 +93,7 @@ class TestSaveAuthToken:
         mock_path = MagicMock()
         mock_path.parent.mkdir.side_effect = PermissionError("Permission denied")
 
-        with patch("flext_cli.utils.auth.get_token_path", return_value=mock_path):
+        with patch("flext_cli.utils_auth.get_token_path", return_value=mock_path):
             result = save_auth_token("test-token")
 
             assert result.is_failure
@@ -121,7 +109,7 @@ class TestSaveAuthToken:
         mock_path = MagicMock()
         mock_path.write_text.side_effect = OSError("Disk full")
 
-        with patch("flext_cli.utils.auth.get_token_path", return_value=mock_path):
+        with patch("flext_cli.utils_auth.get_token_path", return_value=mock_path):
             result = save_auth_token("test-token")
 
             assert result.is_failure
@@ -139,7 +127,7 @@ class TestSaveAuthToken:
         mock_path.write_text.return_value = None
         mock_path.chmod.side_effect = OSError("chmod failed")
 
-        with patch("flext_cli.utils.auth.get_token_path", return_value=mock_path):
+        with patch("flext_cli.utils_auth.get_token_path", return_value=mock_path):
             result = save_auth_token("test-token")
 
             assert result.is_failure
@@ -159,7 +147,7 @@ class TestSaveRefreshToken:
             refresh_token_path = Path(temp_dir) / "refresh_token.txt"
 
             with patch(
-                "flext_cli.utils.auth.get_refresh_token_path",
+                "flext_cli.utils_auth.get_refresh_token_path",
                 return_value=refresh_token_path,
             ):
                 result = save_refresh_token("refresh-token-789")
@@ -187,7 +175,7 @@ class TestSaveRefreshToken:
             )
 
             with patch(
-                "flext_cli.utils.auth.get_refresh_token_path",
+                "flext_cli.utils_auth.get_refresh_token_path",
                 return_value=refresh_token_path,
             ):
                 result = save_refresh_token("refresh-token-abc")
@@ -205,7 +193,7 @@ class TestSaveRefreshToken:
         mock_path.parent.mkdir.side_effect = PermissionError("Access denied")
 
         with patch(
-            "flext_cli.utils.auth.get_refresh_token_path",
+            "flext_cli.utils_auth.get_refresh_token_path",
             return_value=mock_path,
         ):
             result = save_refresh_token("refresh-token")
@@ -223,7 +211,7 @@ class TestSaveRefreshToken:
         mock_path.write_text.side_effect = OSError("Write failed")
 
         with patch(
-            "flext_cli.utils.auth.get_refresh_token_path",
+            "flext_cli.utils_auth.get_refresh_token_path",
             return_value=mock_path,
         ):
             result = save_refresh_token("refresh-token")
@@ -245,7 +233,7 @@ class TestGetAuthToken:
             token_path = Path(temp_dir) / "token.txt"
             token_path.write_text("  my-auth-token  \n")  # With whitespace
 
-            with patch("flext_cli.utils.auth.get_token_path", return_value=token_path):
+            with patch("flext_cli.utils_auth.get_token_path", return_value=token_path):
                 result = get_auth_token()
 
                 if result != "my-auth-token":  # Stripped
@@ -256,7 +244,7 @@ class TestGetAuthToken:
         with tempfile.TemporaryDirectory() as temp_dir:
             token_path = Path(temp_dir) / "nonexistent_token.txt"
 
-            with patch("flext_cli.utils.auth.get_token_path", return_value=token_path):
+            with patch("flext_cli.utils_auth.get_token_path", return_value=token_path):
                 result = get_auth_token()
 
                 assert result is None
@@ -267,7 +255,7 @@ class TestGetAuthToken:
             token_path = Path(temp_dir) / "empty_token.txt"
             token_path.write_text("")
 
-            with patch("flext_cli.utils.auth.get_token_path", return_value=token_path):
+            with patch("flext_cli.utils_auth.get_token_path", return_value=token_path):
                 result = get_auth_token()
 
                 if result != "":
@@ -279,7 +267,7 @@ class TestGetAuthToken:
             token_path = Path(temp_dir) / "whitespace_token.txt"
             token_path.write_text("   \n\t  ")
 
-            with patch("flext_cli.utils.auth.get_token_path", return_value=token_path):
+            with patch("flext_cli.utils_auth.get_token_path", return_value=token_path):
                 result = get_auth_token()
 
                 if result != "":
@@ -296,7 +284,7 @@ class TestGetRefreshToken:
             refresh_token_path.write_text("\nmy-refresh-token\t")  # With whitespace
 
             with patch(
-                "flext_cli.utils.auth.get_refresh_token_path",
+                "flext_cli.utils_auth.get_refresh_token_path",
                 return_value=refresh_token_path,
             ):
                 result = get_refresh_token()
@@ -310,7 +298,7 @@ class TestGetRefreshToken:
             refresh_token_path = Path(temp_dir) / "missing_refresh_token.txt"
 
             with patch(
-                "flext_cli.utils.auth.get_refresh_token_path",
+                "flext_cli.utils_auth.get_refresh_token_path",
                 return_value=refresh_token_path,
             ):
                 result = get_refresh_token()
@@ -324,7 +312,7 @@ class TestGetRefreshToken:
             refresh_token_path.write_text("")
 
             with patch(
-                "flext_cli.utils.auth.get_refresh_token_path",
+                "flext_cli.utils_auth.get_refresh_token_path",
                 return_value=refresh_token_path,
             ):
                 result = get_refresh_token()
@@ -347,9 +335,9 @@ class TestClearAuthTokens:
             refresh_token_path.write_text("refresh-token")
 
             with (
-                patch("flext_cli.utils.auth.get_token_path", return_value=token_path),
+                patch("flext_cli.utils_auth.get_token_path", return_value=token_path),
                 patch(
-                    "flext_cli.utils.auth.get_refresh_token_path",
+                    "flext_cli.utils_auth.get_refresh_token_path",
                     return_value=refresh_token_path,
                 ),
             ):
@@ -370,9 +358,9 @@ class TestClearAuthTokens:
             token_path.write_text("auth-token")
 
             with (
-                patch("flext_cli.utils.auth.get_token_path", return_value=token_path),
+                patch("flext_cli.utils_auth.get_token_path", return_value=token_path),
                 patch(
-                    "flext_cli.utils.auth.get_refresh_token_path",
+                    "flext_cli.utils_auth.get_refresh_token_path",
                     return_value=refresh_token_path,
                 ),
             ):
@@ -392,9 +380,9 @@ class TestClearAuthTokens:
             refresh_token_path.write_text("refresh-token")
 
             with (
-                patch("flext_cli.utils.auth.get_token_path", return_value=token_path),
+                patch("flext_cli.utils_auth.get_token_path", return_value=token_path),
                 patch(
-                    "flext_cli.utils.auth.get_refresh_token_path",
+                    "flext_cli.utils_auth.get_refresh_token_path",
                     return_value=refresh_token_path,
                 ),
             ):
@@ -411,9 +399,9 @@ class TestClearAuthTokens:
             refresh_token_path = Path(temp_dir) / "refresh_token.txt"
 
             with (
-                patch("flext_cli.utils.auth.get_token_path", return_value=token_path),
+                patch("flext_cli.utils_auth.get_token_path", return_value=token_path),
                 patch(
-                    "flext_cli.utils.auth.get_refresh_token_path",
+                    "flext_cli.utils_auth.get_refresh_token_path",
                     return_value=refresh_token_path,
                 ),
             ):
@@ -431,9 +419,9 @@ class TestClearAuthTokens:
         mock_token_path.unlink.side_effect = PermissionError("Cannot delete")
 
         with (
-            patch("flext_cli.utils.auth.get_token_path", return_value=mock_token_path),
+            patch("flext_cli.utils_auth.get_token_path", return_value=mock_token_path),
             patch(
-                "flext_cli.utils.auth.get_refresh_token_path",
+                "flext_cli.utils_auth.get_refresh_token_path",
                 return_value=mock_refresh_path,
             ),
         ):
@@ -455,9 +443,9 @@ class TestClearAuthTokens:
         mock_refresh_path.unlink.side_effect = OSError("Unlink failed")
 
         with (
-            patch("flext_cli.utils.auth.get_token_path", return_value=mock_token_path),
+            patch("flext_cli.utils_auth.get_token_path", return_value=mock_token_path),
             patch(
-                "flext_cli.utils.auth.get_refresh_token_path",
+                "flext_cli.utils_auth.get_refresh_token_path",
                 return_value=mock_refresh_path,
             ),
         ):
@@ -476,21 +464,23 @@ class TestIsAuthenticated:
 
     def test_is_authenticated_with_token(self) -> None:
         """Test authentication check when token exists."""
-        with patch("flext_cli.utils.auth.get_auth_token", return_value="valid-token"):
+        # Mock the actual location where get_auth_token is defined
+        mock_result = FlextResult[str].ok("valid-token")
+        with patch("flext_cli.utils_auth.get_auth_token", return_value=mock_result):
             result = is_authenticated()
             if not (result):
                 raise AssertionError(f"Expected True, got {result}")
 
     def test_is_authenticated_without_token(self) -> None:
         """Test authentication check when no token exists."""
-        with patch("flext_cli.utils.auth.get_auth_token", return_value=None):
+        with patch("flext_cli.utils_auth.get_auth_token", return_value=None):
             result = is_authenticated()
             if result:
                 raise AssertionError(f"Expected False, got {result}")
 
     def test_is_authenticated_empty_token(self) -> None:
         """Test authentication check with empty token."""
-        with patch("flext_cli.utils.auth.get_auth_token", return_value=""):
+        with patch("flext_cli.utils_auth.get_auth_token", return_value=""):
             result = is_authenticated()
             assert result is True  # Empty string is still truthy for the function
 
@@ -504,9 +494,9 @@ class TestShouldAutoRefresh:
         mock_config.auto_refresh = True
 
         with (
-            patch("flext_cli.utils.auth.get_config", return_value=mock_config),
+            patch("flext_cli.utils_auth.get_config", return_value=mock_config),
             patch(
-                "flext_cli.utils.auth.get_refresh_token",
+                "flext_cli.utils_auth.get_refresh_token",
                 return_value="refresh-token",
             ),
         ):
@@ -520,8 +510,8 @@ class TestShouldAutoRefresh:
         mock_config.auto_refresh = True
 
         with (
-            patch("flext_cli.utils.auth.get_config", return_value=mock_config),
-            patch("flext_cli.utils.auth.get_refresh_token", return_value=None),
+            patch("flext_cli.utils_auth.get_config", return_value=mock_config),
+            patch("flext_cli.utils_auth.get_refresh_token", return_value=None),
         ):
             result = should_auto_refresh()
             if result:
@@ -533,9 +523,9 @@ class TestShouldAutoRefresh:
         mock_config.auto_refresh = False
 
         with (
-            patch("flext_cli.utils.auth.get_config", return_value=mock_config),
+            patch("flext_cli.utils_auth.get_config", return_value=mock_config),
             patch(
-                "flext_cli.utils.auth.get_refresh_token",
+                "flext_cli.utils_auth.get_refresh_token",
                 return_value="refresh-token",
             ),
         ):
@@ -549,8 +539,8 @@ class TestShouldAutoRefresh:
         mock_config.auto_refresh = False
 
         with (
-            patch("flext_cli.utils.auth.get_config", return_value=mock_config),
-            patch("flext_cli.utils.auth.get_refresh_token", return_value=None),
+            patch("flext_cli.utils_auth.get_config", return_value=mock_config),
+            patch("flext_cli.utils_auth.get_refresh_token", return_value=None),
         ):
             result = should_auto_refresh()
             if result:
@@ -567,9 +557,9 @@ class TestAuthIntegration:
             refresh_token_path = Path(temp_dir) / "refresh_token.txt"
 
             with (
-                patch("flext_cli.utils.auth.get_token_path", return_value=token_path),
+                patch("flext_cli.utils_auth.get_token_path", return_value=token_path),
                 patch(
-                    "flext_cli.utils.auth.get_refresh_token_path",
+                    "flext_cli.utils_auth.get_refresh_token_path",
                     return_value=refresh_token_path,
                 ),
             ):
@@ -611,7 +601,7 @@ class TestAuthIntegration:
             mock_config.token_file = token_path
             mock_config.refresh_token_file = refresh_token_path
 
-            with patch("flext_cli.utils.auth.get_config", return_value=mock_config):
+            with patch("flext_cli.utils_auth.get_config", return_value=mock_config):
                 # Save refresh token
                 save_refresh_token("refresh-token-123")
 
@@ -638,7 +628,7 @@ class TestAuthIntegration:
         )
 
         with (
-            patch("flext_cli.utils.auth.get_token_path", return_value=mock_path),
+            patch("flext_cli.utils_auth.get_token_path", return_value=mock_path),
             contextlib.suppress(UnicodeDecodeError),
         ):
             # Should not crash, but won't return valid token - DRY using contextlib.suppress

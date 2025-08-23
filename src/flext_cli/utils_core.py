@@ -218,7 +218,7 @@ def flext_cli_require_all(confirmations: list[tuple[str, bool]]) -> FlextResult[
             return FlextResult[bool].fail(res.error or "Confirmation failed")
         if not res.value:
             return FlextResult[bool].ok(False)  # noqa: FBT003
-    return FlextResult[bool].ok(True)  # noqa: FBT003
+    return FlextResult[bool].ok(data=True)  # noqa: FBT003
 
 
 def flext_cli_output_data(
@@ -258,7 +258,7 @@ def flext_cli_output_data(
                 console.print(str(data))
         else:
             console.print(data)
-        return FlextResult[bool].ok(True)  # noqa: FBT003
+        return FlextResult[bool].ok(data=True)  # noqa: FBT003
     except Exception as e:  # noqa: BLE001
         return FlextResult[bool].fail(str(e))
 
@@ -333,7 +333,7 @@ def flext_cli_save_file(data: object, file_path: str | Path) -> FlextResult[bool
             p.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
         else:
             p.write_text(str(data), encoding="utf-8")
-        return FlextResult[bool].ok(True)  # noqa: FBT003
+        return FlextResult[bool].ok(data=True)  # noqa: FBT003
     except Exception as e:  # noqa: BLE001
         return FlextResult[bool].fail(str(e))
 
@@ -396,9 +396,7 @@ def flext_cli_batch_execute[T](
     if errors and not stop_on_error:
         # If there were errors but we didn't stop, include partial results
         max_errors_to_show = 3
-        error_summary = (
-            f"Batch completed with {len(errors)} errors: {'; '.join(errors[:max_errors_to_show])}"
-        )
+        error_summary = f"Batch completed with {len(errors)} errors: {'; '.join(errors[:max_errors_to_show])}"
         if len(errors) > max_errors_to_show:
             error_summary += f" and {len(errors) - max_errors_to_show} more..."
         return FlextResult[list[T]].fail(error_summary)
