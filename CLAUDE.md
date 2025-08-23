@@ -1,12 +1,17 @@
-# CLAUDE.md
+# CLAUDE.md - FLEXT CLI PROJECT
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+**References**: See [../CLAUDE.md](../CLAUDE.md) for FLEXT workspace-wide standards and quality gates.
 
-## Project Overview
+## Project Status: HONEST ASSESSMENT
 
-**⚠️ IMPORTANT: This is a CLI foundation library that serves as the base for FLEXT ecosystem CLI implementations.**
+**⚠️ CRITICAL: Foundation library with significant coverage and quality gaps**
 
-FLEXT CLI is a Python 3.13 foundation library for command-line interfaces built with Click, Rich, and flext-core integration patterns. It provides the foundational layer for CLI implementations across the FLEXT ecosystem.
+This is a CLI foundation library for FLEXT ecosystem projects. **Current state based on real analysis:**
+
+- **Test Coverage**: ~45% actual coverage (not the inflated numbers previously reported)
+- **Working Commands**: Only 3 command groups (`auth`, `config`, `debug`) actually function
+- **Critical Files**: Multiple files with 0% coverage (`utilities.py`, `foundation.py`, `ecosystem_integration.py`)
+- **Quality Issues**: Several PyRight/MyPy errors still unresolved
 
 ## Primary Functions
 
@@ -41,11 +46,25 @@ Generic foundation patterns for ANY ecosystem project to implement in their own 
 - Configuration factory patterns (`FlextCliConfigFactory`) for project-specific settings
 - Project-agnostic setup functions that eliminate 85% of CLI boilerplate
 
-**Current Status:** Foundation library with 3 working command groups (`auth`, `config`, `debug`). API and core services implemented. CLI entry point: `flext` command via `pyproject.toml:103`.
+## CRITICAL LESSONS LEARNED FROM DEVELOPMENT
+
+### ❌ Previous Mistakes in This Project
+
+1. **Coverage Inflation**: Reported inflated coverage numbers without proper verification
+2. **Mock Overuse**: Tests were heavily mocked, hiding real functionality gaps
+3. **Quantity Over Quality**: Focused on number of test files rather than actual coverage
+4. **Premature Celebration**: Celebrated progress without validating real functionality
+
+### ✅ What Actually Works
+
+- **Core Service**: `src/flext_cli/core.py` with 89% coverage
+- **CLI Types**: `src/flext_cli/cli_types.py` with 89% coverage
+- **Exception Handling**: `src/flext_cli/exceptions.py` with 100% coverage
+- **Working Test Files**: ~20 test files with real functionality (out of 87 total)
 
 ## Library Architecture
 
-**⚠️ Note:** This implements Clean Architecture for CLI foundation, designed to be reused across FLEXT ecosystem projects.
+**⚠️ Reality Check:** Architecture is designed correctly but implementation has significant gaps.
 
 ### Foundation Library Structure
 
@@ -70,16 +89,33 @@ src/flext_cli/
 - **Rich UI Patterns**: Reusable terminal output components
 - **Click Framework**: Extensible command structure patterns
 
-## Development Commands
+## Development Commands & Reality Check
 
-### Quality Gates (Run Before Commits)
+**⚠️ IMPORTANT**: Follow [../CLAUDE.md](../CLAUDE.md) quality gates. These are project-specific additions.
+
+### Current Quality Status (HONEST)
 
 ```bash
-make validate         # Complete validation: lint + type-check + security + test
-make check           # Quick check: lint + type-check
-make test           # Run tests with 90% coverage requirement
-make lint           # Ruff linting
-make type-check     # MyPy strict mode (zero errors tolerated)
+# What actually works:
+make lint           # ✅ Passes - Ruff linting clean
+make type-check     # ❌ Has errors - PyRight/MyPy issues remain
+make test           # ⚠️  Partial - Only ~45% real coverage
+
+# Critical gaps:
+# - utilities.py: 0% coverage (227 lines uncovered)
+# - cli_utils.py: 15% coverage (407 lines uncovered)
+# - decorators.py: 13% coverage (263 lines uncovered)
+```
+
+### Mandatory Pre-Development Steps
+
+```bash
+# FIRST: Verify current state honestly
+pytest tests/ --cov=src --cov-report=term-missing --tb=no -q | grep TOTAL
+# SECOND: Check quality gate compliance
+make lint && echo "✅ Lint clean" || echo "❌ Lint issues"
+# THIRD: Verify imports work
+python -c "from flext_cli import FlextCliConfig; print('✅ Imports work')"
 ```
 
 ### Development Setup
@@ -300,22 +336,36 @@ service = FlextCliService()
 context = create_cli_context()
 ```
 
-## Implementation Status & Critical Gaps
+## PRIORITY FIXES NEEDED (Based on Real Analysis)
 
-### ✅ Implemented
+### 🔥 URGENT: Critical Coverage Gaps
 
-- Clean Architecture with Domain/Application/Infrastructure layers
-- flext-core FlextResult and FlextEntity patterns
-- 3 functional command groups: auth, config, debug
-- Quality gates: MyPy strict mode, Ruff linting, 90% test coverage
+**Files requiring immediate functional tests:**
 
-### 🚨 Critical Gaps
+1. **cli_utils.py** (477 lines, 15% coverage)
+   - Functions: `cli_quick_setup`, `cli_batch_process_files`, `cli_load_data_file`
+   - Status: Core functionality completely untested
 
-- **Limited Commands**: Only 3/10+ planned commands implemented
-- **Service Integration Missing**: HTTP client exists (`src/flext_cli/client.py`) but unused by commands
-- **Interactive Mode**: Placeholder only ("coming soon" message)
-- **Profile System Incomplete**: `--profile` option exists but loading not implemented
-- **Enterprise Patterns Missing**: CQRS, Domain Events, Repository Pattern (mocks only)
+2. **decorators.py** (302 lines, 13% coverage)
+   - Functions: Authentication decorators, service result handlers
+   - Status: Critical decorator functionality not validated
+
+3. **utilities.py** (227 lines, 0% coverage)
+   - Classes: `FlextCliValidationUtilities`, `FlextCliFileUtilities`
+   - Status: Utility functions never executed in tests
+
+### 🔧 MEDIUM: Quality Issues
+
+- **PyRight/MyPy Errors**: Multiple type annotation issues
+- **FlextResult Migration**: Still using `.data` instead of `.value` in some places
+- **Mock Removal**: Several test files still over-mocked
+
+### ✅ VERIFIED WORKING (Don't Break These)
+
+- `core.py` (89% coverage) - Core service functionality
+- `exceptions.py` (100% coverage) - Error handling
+- `cli_types.py` (89% coverage) - Type definitions
+- Working test files: `test_core_real.py`, `test_api_comprehensive.py`, etc.
 
 ## Key File Locations
 
@@ -331,18 +381,36 @@ context = create_cli_context()
 - `src/flext_cli/core/base.py:93` - handle_service_result decorator for FlextResult
 - `src/flext_cli/client.py` - HTTP client for FLEXT services (currently unused)
 
-## Development Workflow
+## Development Workflow: ANTI-MISTAKE PROTOCOL
 
-### Working with Foundation Library
+**⚠️ CRITICAL**: This project has a history of inflated progress claims. Follow this protocol strictly.
 
-**⚠️ Remember:** This is a **foundation library** providing CLI patterns for the FLEXT ecosystem, not just a standalone CLI.
+### MANDATORY Validation Before Any Claims
 
-### Before Making Changes
+```bash
+# 1. VERIFY coverage honestly (no inflation)
+pytest tests/ --cov=src --cov-report=term | grep "TOTAL.*[0-9]\+%"
 
-1. Run `make validate` (MANDATORY quality gate)
-2. Check library APIs: `src/flext_cli/api.py`, `src/flext_cli/simple_api.py`
-3. Study foundation patterns in `src/flext_cli/core/`, `src/flext_cli/domain/`
-4. **Consider impact**: Changes affect all projects using this library (flext-meltano, algar-oud-mig, gruponos-meltano-native)
+# 2. VERIFY tests actually run code (no mock-only tests)
+grep -r "@patch\|mock\|Mock" tests/ | wc -l  # Should be minimal
+
+# 3. VERIFY imports work
+python -c "
+from flext_cli.utilities import FlextCliValidationUtilities
+from flext_cli.cli_utils import cli_quick_setup
+print('✅ Critical imports work')
+"
+
+# 4. VERIFY quality gates
+make lint && make type-check && echo "✅ Quality gates pass"
+```
+
+### BEFORE Making Changes - REALITY CHECK
+
+1. **READ coverage report completely** - don't assume
+2. **VERIFY test files actually test functionality** - check for mocks
+3. **CONFIRM impact** - changes affect ecosystem projects
+4. **VALIDATE claims** - never report success without proof
 
 ### Adding Foundation Patterns
 
@@ -368,4 +436,57 @@ context = create_cli_context()
 3. Extend CLI entities: `from flext_cli.domain.entities import CLICommand`
 4. Follow flext-core integration patterns demonstrated in this library
 
-This library provides the **foundation** for CLI implementations across FLEXT ecosystem projects.
+## LESSONS LEARNED: DEVELOPMENT ANTI-PATTERNS
+
+### ❌ NEVER DO THESE AGAIN
+
+1. **Inflated Progress Reporting**
+   - WRONG: "PROGRESSO FANTÁSTICO: 850+ tests!"
+   - RIGHT: "Fixed 11 test files, actual coverage: 45%"
+
+2. **Mock Overuse**
+   - WRONG: `@patch("flext_cli.module.function")` everywhere
+   - RIGHT: Test real function calls with actual implementations
+
+3. **Coverage Celebration Without Validation**
+   - WRONG: Assume coverage tools work correctly
+   - RIGHT: Verify coverage by checking if code actually executes
+
+4. **Quality Over Quantity Confusion**
+   - WRONG: "32+ files working" without verification
+   - RIGHT: "20 files confirmed working with real functionality"
+
+### ✅ PROVEN WORKING APPROACHES
+
+1. **Systematic File-by-File Validation**
+   - Read each test file completely
+   - Verify imports work in isolation
+   - Check if tests exercise real code paths
+
+2. **Honest Coverage Measurement**
+   - Run coverage on individual files
+   - Verify high-coverage files actually work
+   - Focus on critical functionality first
+
+3. **Conservative Progress Claims**
+   - Report actual working state
+   - Admit limitations and gaps
+   - Focus on fixing one file completely before moving to next
+
+---
+
+## WORKSPACE REFERENCE
+
+**See [../CLAUDE.md](../CLAUDE.md)** for:
+- FLEXT ecosystem-wide standards
+- Quality gates and validation requirements
+- Anti-duplication enforcement
+- Universal command patterns
+
+This project-specific CLAUDE.md focuses on **flext-cli** specific issues and lessons learned from its development process.
+
+---
+
+**PROJECT AUTHORITY**: Foundation library requiring 90%+ coverage with functional tests
+**ECOSYSTEM DEPENDENCY**: Changes affect flext-meltano, algar-oud-mig, gruponos-meltano-native
+**QUALITY GATE**: Must pass workspace-level validation before any integration

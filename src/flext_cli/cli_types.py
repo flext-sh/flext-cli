@@ -62,6 +62,7 @@ class SessionStatus(StrEnum):
 class PluginStatus(StrEnum):
     """CLI plugin status enumeration."""
 
+    INACTIVE = "inactive"
     UNLOADED = "unloaded"
     LOADING = "loading"
     LOADED = "loaded"

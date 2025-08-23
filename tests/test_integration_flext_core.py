@@ -193,14 +193,12 @@ class TestFlextCoreDomainEntityIntegration:
         assert hasattr(plugin, "updated_at") or hasattr(plugin, "created_at")
 
         # Initial state - check available plugin status values
-        plugin_status_attrs = [
-            attr for attr in dir(PluginStatus) if not attr.startswith("_")
-        ]
+        plugin_status_values = [status.value for status in PluginStatus]
         assert hasattr(plugin, "plugin_status")
         # Plugin status should be one of the valid enum values
         assert (
-            str(plugin.plugin_status) in plugin_status_attrs
-            or plugin.plugin_status in plugin_status_attrs
+            str(plugin.plugin_status) in plugin_status_values
+            or plugin.plugin_status in list(PluginStatus)
         )
 
         # Activation - returns FlextResult with new instance (railway-oriented programming)
@@ -565,7 +563,9 @@ class TestFlextCoreEventIntegration:
         initial_events = len(getattr(session, "_domain_events", []))
 
         command_id = str(uuid.uuid4())
-        session = session.add_command(command_id)
+        add_result = session.add_command(command_id)
+        if add_result.is_success:
+            session = add_result.value
 
         # End session - handle FlextResult return type
         end_result = session.end_session()

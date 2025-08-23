@@ -477,7 +477,7 @@ def flext_cli_zero_config(
                 result = func(*args, **kwargs)
                 if isinstance(result, FlextResult):
                     if result.is_success:
-                        return FlextResult[str].ok(str(result.value))
+                        return FlextResult[str].ok(str(result.value) if result.value is not None else "")
                     return FlextResult[str].fail(result.error or "Unknown error")
                 return FlextResult[str].ok(str(result))
             except Exception as e:
@@ -506,7 +506,7 @@ def flext_cli_auto_retry(
                     result = func(*args, **kwargs)
                     if isinstance(result, FlextResult):
                         if result.is_success:
-                            return FlextResult[str].ok(str(result.value))
+                            return FlextResult[str].ok(str(result.value) if result.value is not None else "")
                         last_error = result.error
                     else:
                         return FlextResult[str].ok(str(result))
@@ -536,7 +536,7 @@ def flext_cli_with_progress(message: str) -> FlextCliDecorator[P, R]:
                     result = func(*args, **kwargs)
                     if isinstance(result, FlextResult):
                         if result.is_success:
-                            return FlextResult[str].ok(str(result.value))
+                            return FlextResult[str].ok(str(result.value) if result.value is not None else "")
                         return FlextResult[str].fail(result.error or "Unknown error")
                     return FlextResult[str].ok(str(result))
                 except Exception as e:
@@ -594,7 +594,7 @@ def flext_cli_auto_validate(**rules: str) -> FlextCliDecorator[P, R]:
                 result = func(*args, **kwargs)
                 if isinstance(result, FlextResult):
                     if result.is_success:
-                        return FlextResult[str].ok(str(result.value))
+                        return FlextResult[str].ok(str(result.value) if result.value is not None else "")
                     return FlextResult[str].fail(result.error or "Unknown error")
                 return FlextResult[str].ok(str(result))
             except Exception as e:
@@ -642,7 +642,7 @@ def flext_cli_require_confirmation(message: str) -> FlextCliDecorator[P, R]:
             result = func(*args, **kwargs)
             if isinstance(result, FlextResult):
                 if result.is_success:
-                    return FlextResult[str].ok(str(result.value))
+                    return FlextResult[str].ok(str(result.value) if result.value is not None else "")
                 return FlextResult[str].fail(result.error or "Unknown error")
             return FlextResult[str].ok(str(result))
 
