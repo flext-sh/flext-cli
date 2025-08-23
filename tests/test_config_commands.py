@@ -63,7 +63,7 @@ class TestConfigCommandsReal:
         result = self.runner.invoke(config, ["get"], obj=ctx_obj)
 
         # Should execute - may succeed or fail based on command implementation
-        assert result.exit_code in [0, 1], f"Unexpected exit code: {result.exit_code}"
+        assert result.exit_code in {0, 1}, f"Unexpected exit code: {result.exit_code}"
 
     def test_config_validate_real(self) -> None:
         """Test config validate command with real validation."""
@@ -77,7 +77,7 @@ class TestConfigCommandsReal:
         result = self.runner.invoke(config, ["validate"], obj=ctx_obj)
 
         # Should execute successfully or with validation warnings
-        assert result.exit_code in [0, 1], f"Config validate failed: {result.output}"
+        assert result.exit_code in {0, 1}, f"Config validate failed: {result.output}"
 
     def test_config_path_real(self) -> None:
         """Test config path command with real paths."""
@@ -91,7 +91,7 @@ class TestConfigCommandsReal:
         result = self.runner.invoke(config, ["path"], obj=ctx_obj)
 
         # Should execute - may succeed or fail based on implementation
-        assert result.exit_code in [0, 1], f"Unexpected exit code: {result.exit_code}"
+        assert result.exit_code in {0, 1}, f"Unexpected exit code: {result.exit_code}"
 
     def test_config_edit_real(self) -> None:
         """Test config edit command with real functionality."""
@@ -105,7 +105,7 @@ class TestConfigCommandsReal:
         result = self.runner.invoke(config, ["edit"], obj=ctx_obj)
 
         # Should execute - may succeed or fail based on environment
-        assert result.exit_code in [0, 1], f"Unexpected exit code: {result.exit_code}"
+        assert result.exit_code in {0, 1}, f"Unexpected exit code: {result.exit_code}"
 
     def test_help_for_all_subcommands(self) -> None:
         """Test help output for all config subcommands."""
@@ -130,7 +130,7 @@ class TestConfigHelperFunctionsReal:
 
         # Create test context object with real config
         class TestContext:
-            def __init__(self, console):
+            def __init__(self, console) -> None:
                 self.config = real_config
                 self.settings = real_config
                 self.console = console
@@ -151,7 +151,7 @@ class TestConfigHelperFunctionsReal:
         real_config = get_cli_config()
 
         class TestContext:
-            def __init__(self):
+            def __init__(self) -> None:
                 self.config = real_config
                 self.settings = real_config
                 self.console = Console(file=io.StringIO(), width=80)
@@ -177,7 +177,7 @@ class TestConfigHelperFunctionsReal:
         real_config = get_cli_config()
 
         class TestContext:
-            def __init__(self):
+            def __init__(self) -> None:
                 self.config = real_config
                 self.settings = real_config
                 self.console = Console(file=io.StringIO(), width=80)
@@ -273,7 +273,7 @@ class TestConfigIntegration:
         real_config = get_cli_config()
 
         # Test different output formats
-        for output_format in ["table", "json", "yaml"]:
+        for _output_format in ["table", "json", "yaml"]:
             # Create new config with different output format if supported
             test_config = real_config
 

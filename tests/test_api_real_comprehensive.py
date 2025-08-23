@@ -35,10 +35,10 @@ from flext_cli.api import (
     flext_cli_unwrap_or_default,
     flext_cli_unwrap_or_none,
 )
-from flext_cli.config import FlextCliSettings as FlextCliSettings
+from flext_cli.config import FlextCliSettings
 from flext_cli.models import (
     FlextCliCommand as CLICommand,
-    FlextCliPlugin as FlextCliPlugin,
+    FlextCliPlugin,
 )
 
 
@@ -925,7 +925,7 @@ class TestFlextCliApi:
 
         from flext_core import FlextEntityId
 
-        from flext_cli.models import FlextCliPlugin as FlextCliPlugin
+        from flext_cli.models import FlextCliPlugin
 
         plugin = FlextCliPlugin(
             id=FlextEntityId(str(uuid.uuid4())),

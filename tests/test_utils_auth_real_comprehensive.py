@@ -703,10 +703,12 @@ class TestUtilsAuthIntegration(unittest.TestCase):
                 time.sleep(0.001)
                 save_result = save_auth_token(test_token)
                 load_result = get_auth_token()
-                results.append((
-                    save_result.is_success,
-                    load_result.is_success and load_result.value == test_token,
-                ))
+                results.append(
+                    (
+                        save_result.is_success,
+                        load_result.is_success and load_result.value == test_token,
+                    )
+                )
 
             try:
                 # Run multiple threads

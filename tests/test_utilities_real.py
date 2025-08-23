@@ -292,7 +292,7 @@ class TestFlextCliSystemUtilitiesReal:
         """Test file permission checking with real functionality."""
         # Create a temporary file
         temp_file = Path(tempfile.mktemp())
-        temp_file.write_text("test content")
+        temp_file.write_text("test content", encoding="utf-8")
 
         try:
             # Check read permission

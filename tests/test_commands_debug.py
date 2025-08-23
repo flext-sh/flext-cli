@@ -99,7 +99,7 @@ class TestConnectivityCommandReal:
         result = self.runner.invoke(connectivity, [], obj={"console": console})
 
         # Command should complete (success or controlled failure)
-        assert result.exit_code in [0, 1]  # Either success or expected network failure
+        assert result.exit_code in {0, 1}  # Either success or expected network failure
 
         # Test with isolated runner that doesn't depend on external services
         isolated_result = self.runner.invoke(connectivity, ["--help"])
@@ -135,7 +135,7 @@ class TestPerformanceCommandReal:
         result = self.runner.invoke(performance, [], obj={"console": console})
 
         # Command should complete (success or controlled failure)
-        assert result.exit_code in [0, 1]  # Either success or expected API failure
+        assert result.exit_code in {0, 1}  # Either success or expected API failure
 
     def test_performance_help_real(self) -> None:
         """Test performance command help."""
@@ -166,7 +166,7 @@ class TestValidateCommandReal:
         result = self.runner.invoke(validate, [], obj={"console": console})
 
         # Validation should complete
-        assert result.exit_code in [0, 1]  # Success or validation warnings/errors
+        assert result.exit_code in {0, 1}  # Success or validation warnings/errors
 
     def test_validate_python_version_real(self) -> None:
         """Test validation shows real Python version information."""
@@ -174,7 +174,7 @@ class TestValidateCommandReal:
         result = self.runner.invoke(validate, [], obj={"console": Console()})
 
         # Should complete regardless of validation results
-        assert result.exit_code in [0, 1]
+        assert result.exit_code in {0, 1}
 
         # Verify we can access real Python version
         assert sys.version_info.major >= 3
@@ -397,7 +397,7 @@ class TestDebugIntegrationReal:
         # Test that validate command uses real config
         runner = CliRunner()
         result = runner.invoke(validate, [], obj={"console": Console()})
-        assert result.exit_code in [0, 1]  # Success or validation issues
+        assert result.exit_code in {0, 1}  # Success or validation issues
 
         # Test that paths command uses real config
         result = runner.invoke(paths, [], obj={"console": Console()})
@@ -407,7 +407,7 @@ class TestDebugIntegrationReal:
         """Test debug commands work with real platform information."""
         # Test that we can get real platform information
         system_info = platform.system()
-        assert system_info in ["Linux", "Darwin", "Windows"]
+        assert system_info in {"Linux", "Darwin", "Windows"}
 
         release_info = platform.release()
         assert isinstance(release_info, str)
@@ -452,7 +452,7 @@ class TestDebugIntegrationReal:
         for cmd_name, args in commands_to_test:
             result = runner.invoke(debug_cmd.commands[cmd_name], args, obj=context)
             # Commands should complete (may succeed or fail gracefully)
-            assert result.exit_code in [0, 1], f"Command {cmd_name} failed unexpectedly"
+            assert result.exit_code in {0, 1}, f"Command {cmd_name} failed unexpectedly"
 
     def test_error_handling_real(self) -> None:
         """Test debug commands handle real errors gracefully."""
@@ -461,11 +461,11 @@ class TestDebugIntegrationReal:
         # Test with invalid context (should handle gracefully)
         result = runner.invoke(env, [], obj={})
         # Should either work or fail gracefully
-        assert result.exit_code in [0, 1]
+        assert result.exit_code in {0, 1}
 
         # Test trace with no arguments (should handle gracefully)
         result = runner.invoke(trace, [], obj={"console": Console()})
-        assert result.exit_code in [0, 1]
+        assert result.exit_code in {0, 1}
 
     def test_real_system_dependencies_real(self) -> None:
         """Test debug commands work with real system dependencies."""
@@ -519,7 +519,7 @@ class TestDebugCommandsRealFunctionality:
 
         for cmd_name in safe_commands:
             result = runner.invoke(debug_cmd.commands[cmd_name], [], obj=proper_context)
-            assert result.exit_code in [0, 1], (
+            assert result.exit_code in {0, 1}, (
                 f"Command {cmd_name} failed with proper context"
             )
 

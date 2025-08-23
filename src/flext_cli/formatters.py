@@ -37,7 +37,9 @@ class TableFormatter(OutputFormatter):
             if isinstance(first_item, dict):
                 # Type-safe dict handling for table headers
                 first_dict_raw = cast("dict[object, object]", first_item)
-                first_dict: dict[str, object] = {str(k): v for k, v in first_dict_raw.items()}
+                first_dict: dict[str, object] = {
+                    str(k): v for k, v in first_dict_raw.items()
+                }
                 headers: list[str] = list(first_dict.keys())
                 for header_str in headers:
                     table.add_column(header_str)
@@ -48,7 +50,9 @@ class TableFormatter(OutputFormatter):
                     if isinstance(item, dict):
                         # Type-safe dict access for row values
                         item_dict_raw = cast("dict[object, object]", item)
-                        item_dict: dict[str, object] = {str(k): v for k, v in item_dict_raw.items()}
+                        item_dict: dict[str, object] = {
+                            str(k): v for k, v in item_dict_raw.items()
+                        }
                         row_values = [str(item_dict.get(h, "")) for h in headers]
                         table.add_row(*row_values)
         elif isinstance(data, dict):
@@ -107,7 +111,9 @@ class CSVFormatter(OutputFormatter):
                 for item in data_list:
                     if isinstance(item, dict):
                         item_dict = cast("dict[object, object]", item)
-                        str_dict: dict[str, object] = {str(k): v for k, v in item_dict.items()}
+                        str_dict: dict[str, object] = {
+                            str(k): v for k, v in item_dict.items()
+                        }
                         csv_rows.append(str_dict)
                 dict_writer.writerows(csv_rows)
         elif isinstance(data, list):

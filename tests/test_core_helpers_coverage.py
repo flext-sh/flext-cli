@@ -241,7 +241,7 @@ class TestFlextCliHelper:
         helper = FlextCliHelper()
 
         with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
+            encoding="utf-8", mode="w", suffix=".json", delete=False
         ) as temp_file:
             temp_file.write('{"test": "data"}')
             temp_file.flush()
@@ -282,7 +282,7 @@ class TestFlextCliHelper:
             assert file_path.exists()
             import json
 
-            with open(file_path) as f:
+            with open(file_path, encoding="utf-8") as f:
                 saved_data = json.load(f)
             assert saved_data == data
 
@@ -343,7 +343,9 @@ class TestFlextCliFileManager:
         """Test backup_and_process with existing file."""
         manager = FlextCliFileManager()
 
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as temp_file:
             temp_file.write("original content")
             temp_file.flush()
             file_path = Path(temp_file.name)
@@ -355,7 +357,7 @@ class TestFlextCliFileManager:
 
             assert result.is_success
             # Verify processed content
-            processed_content = file_path.read_text()
+            processed_content = file_path.read_text(encoding="utf-8")
             assert "ORIGINAL CONTENT" in processed_content
 
             # Clean up
@@ -510,7 +512,7 @@ class TestFlextCliDataProcessor:
 
 
 # Factory function tests
-def test_flext_cli_create_helper():
+def test_flext_cli_create_helper() -> None:
     """Test create_helper factory function."""
     helper = flext_cli_create_helper()
 
@@ -520,7 +522,7 @@ def test_flext_cli_create_helper():
     assert hasattr(helper, "quiet")
 
 
-def test_flext_cli_create_data_processor():
+def test_flext_cli_create_data_processor() -> None:
     """Test create_data_processor factory function."""
     processor = flext_cli_create_data_processor()
 
@@ -528,7 +530,7 @@ def test_flext_cli_create_data_processor():
     assert isinstance(processor, FlextCliDataProcessor)
 
 
-def test_flext_cli_create_file_manager():
+def test_flext_cli_create_file_manager() -> None:
     """Test create_file_manager factory function."""
     manager = flext_cli_create_file_manager()
 
@@ -536,7 +538,7 @@ def test_flext_cli_create_file_manager():
     assert isinstance(manager, FlextCliFileManager)
 
 
-def test_flext_cli_batch_validate_simple_case():
+def test_flext_cli_batch_validate_simple_case() -> None:
     """Test batch_validate with simple validation."""
     # batch_validate expects dict[str, tuple[object, str]] where str is validation type
     inputs = {
@@ -552,7 +554,7 @@ def test_flext_cli_batch_validate_simple_case():
     assert result.value["field3"] == "test3"
 
 
-def test_flext_cli_batch_validate_empty_dict():
+def test_flext_cli_batch_validate_empty_dict() -> None:
     """Test batch_validate with empty dict."""
     inputs: dict[str, tuple[object, str]] = {}
 
@@ -562,7 +564,7 @@ def test_flext_cli_batch_validate_empty_dict():
     assert result.value == {}
 
 
-def test_flext_cli_batch_validate_with_validation():
+def test_flext_cli_batch_validate_with_validation() -> None:
     """Test batch_validate with actual validation."""
     # Use 'none' validation type which passes everything through
     inputs = {

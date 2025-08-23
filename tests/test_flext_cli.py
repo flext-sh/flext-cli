@@ -121,7 +121,7 @@ class TestFlextCliPublicInterface:
 
     def test_cli_session_real_functionality(self) -> None:
         """Test CLI session with real functionality."""
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with tempfile.TemporaryDirectory():
             # Create real session instance
             session = FlextCliSession(session_id="real-test-session")
 
@@ -334,7 +334,7 @@ class TestFlextCliPublicInterface:
         del objects
 
         # Test that session cleanup works
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with tempfile.TemporaryDirectory():
             session = FlextCliSession(session_id="cleanup-test")
 
             # Add commands and then end session
@@ -434,10 +434,12 @@ class TestFlextCliHelpers:
                 setup_result = setup_cli(settings)
 
                 if setup_result.is_success:
-                    return FlextResult[tuple[FlextCliSettings, bool]].ok((
-                        settings,
-                        setup_result.value,
-                    ))
+                    return FlextResult[tuple[FlextCliSettings, bool]].ok(
+                        (
+                            settings,
+                            setup_result.value,
+                        )
+                    )
                 error_msg = setup_result.error or "Setup failed"
                 return FlextResult[tuple[FlextCliSettings, bool]].fail(error_msg)
             except Exception as e:

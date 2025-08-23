@@ -491,10 +491,12 @@ class TestAsyncLoginFunctionality:
         """Test successful login scenario."""
         # Mock API client response
         mock_client = AsyncMock()
-        mock_client.login.return_value = FlextResult[dict[str, object]].ok({
-            "token": "login_success_token",
-            "user": {"name": "Test User", "id": "123"},
-        })
+        mock_client.login.return_value = FlextResult[dict[str, object]].ok(
+            {
+                "token": "login_success_token",
+                "user": {"name": "Test User", "id": "123"},
+            }
+        )
 
         # Mock FlextApiClient class
         with mock.patch("flext_cli.cli_auth.FlextApiClient") as mock_client_class:
@@ -594,10 +596,12 @@ class TestAsyncLoginFunctionality:
     def test_login_invalid_response(self) -> None:
         """Test login with invalid API response."""
         mock_client = AsyncMock()
-        mock_client.login.return_value = FlextResult[dict[str, object]].ok({
-            # Missing 'token' field
-            "user": {"name": "Test User"}
-        })
+        mock_client.login.return_value = FlextResult[dict[str, object]].ok(
+            {
+                # Missing 'token' field
+                "user": {"name": "Test User"}
+            }
+        )
 
         with mock.patch("flext_cli.cli_auth.FlextApiClient") as mock_client_class:
             mock_client_class.return_value.__aenter__.return_value = mock_client
@@ -814,12 +818,14 @@ class TestAsyncStatusFunctionality:
         self.mock_get_token.return_value = "valid_token"
 
         mock_client = AsyncMock()
-        mock_client.get_current_user.return_value = FlextResult[dict[str, object]].ok({
-            "username": "testuser",
-            "email": "test@example.com",
-            "role": "admin",
-            "id": "123",
-        })
+        mock_client.get_current_user.return_value = FlextResult[dict[str, object]].ok(
+            {
+                "username": "testuser",
+                "email": "test@example.com",
+                "role": "admin",
+                "id": "123",
+            }
+        )
 
         with mock.patch("flext_cli.cli_auth.FlextApiClient") as mock_client_class:
             mock_client_class.return_value.__aenter__.return_value = mock_client
@@ -947,13 +953,15 @@ class TestAsyncWhoamiFunctionality:
     def test_whoami_success(self) -> None:
         """Test whoami command with successful user retrieval."""
         mock_client = AsyncMock()
-        mock_client.get_current_user.return_value = FlextResult[dict[str, object]].ok({
-            "username": "john_doe",
-            "full_name": "John Doe",
-            "email": "john.doe@example.com",
-            "role": "developer",
-            "id": "user_123",
-        })
+        mock_client.get_current_user.return_value = FlextResult[dict[str, object]].ok(
+            {
+                "username": "john_doe",
+                "full_name": "John Doe",
+                "email": "john.doe@example.com",
+                "role": "developer",
+                "id": "user_123",
+            }
+        )
 
         with (
             mock.patch("flext_cli.cli_auth.get_auth_token", return_value="valid_token"),
@@ -1290,7 +1298,7 @@ class TestAuthErrorHandling:
         # Test get auth token bridge with real functionality
         # Create a temporary token file with real content
         with tempfile.NamedTemporaryFile(
-            mode="w", delete=False, suffix=".token"
+            encoding="utf-8", mode="w", delete=False, suffix=".token"
         ) as temp_file:
             temp_file.write("real_bridge_token")
             temp_path = Path(temp_file.name)

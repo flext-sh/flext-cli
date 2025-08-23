@@ -61,7 +61,7 @@ class TestDebugCommandsReal:
 
         # Command should handle connection failures gracefully
         # Exit code 1 is expected when API is not available
-        assert result.exit_code in [0, 1], (
+        assert result.exit_code in {0, 1}, (
             f"Unexpected exit code: {result.exit_code}, output: {result.output}"
         )
 
@@ -74,7 +74,7 @@ class TestDebugCommandsReal:
         )
 
         # Command should handle API unavailability gracefully
-        assert result.exit_code in [0, 1], (
+        assert result.exit_code in {0, 1}, (
             f"Unexpected exit code: {result.exit_code}, output: {result.output}"
         )
 
@@ -82,11 +82,13 @@ class TestDebugCommandsReal:
         """Test env command with real environment variables."""
         # Set some real FLEXT environment variables for testing
         test_env = os.environ.copy()
-        test_env.update({
-            "FLX_DEBUG": "true",
-            "FLX_PROFILE": "test",
-            "NON_FLX_VAR": "should_not_appear",
-        })
+        test_env.update(
+            {
+                "FLX_DEBUG": "true",
+                "FLX_PROFILE": "test",
+                "NON_FLX_VAR": "should_not_appear",
+            }
+        )
 
         ctx_obj = {"console": self.console}
 
@@ -126,7 +128,7 @@ class TestDebugCommandsReal:
         )
 
         # Should complete successfully or with validation warnings
-        assert result.exit_code in [0, 1], f"Validate command failed: {result.output}"
+        assert result.exit_code in {0, 1}, f"Validate command failed: {result.output}"
 
         # Should contain validation output (may be config info, version, or validation results)
         assert result.output.strip()  # Should have some output
@@ -240,7 +242,7 @@ class TestDebugErrorHandlingReal:
         result = self.runner.invoke(debug_cmd, ["connectivity"], obj=ctx_obj)
 
         # Should handle network issues gracefully
-        assert result.exit_code in [0, 1]
+        assert result.exit_code in {0, 1}
 
         if result.exit_code == 1:
             # Check that error message is informative
@@ -253,7 +255,7 @@ class TestDebugErrorHandlingReal:
         result = self.runner.invoke(debug_cmd, ["performance"], obj=ctx_obj)
 
         # Should handle API unavailability gracefully
-        assert result.exit_code in [0, 1]
+        assert result.exit_code in {0, 1}
 
     def test_validate_with_real_system_state(self) -> None:
         """Test validate command with actual system state."""
@@ -262,7 +264,7 @@ class TestDebugErrorHandlingReal:
         result = self.runner.invoke(debug_cmd, ["validate"], obj=ctx_obj)
 
         # Should validate actual system and provide meaningful results
-        assert result.exit_code in [0, 1]  # Success or validation warnings
+        assert result.exit_code in {0, 1}  # Success or validation warnings
         assert result.output  # Should provide validation output
 
 
@@ -289,7 +291,7 @@ class TestDebugCommandFlow:
         for cmd_args in commands_to_test:
             result = self.runner.invoke(debug_cmd, cmd_args, obj=ctx_obj)
 
-            assert result.exit_code in [0, 1], (
+            assert result.exit_code in {0, 1}, (
                 f"Command {cmd_args} failed: {result.output}"
             )
             assert result.output, f"Command {cmd_args} produced no output"

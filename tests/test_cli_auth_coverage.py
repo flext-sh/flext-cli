@@ -166,7 +166,9 @@ class TestAuthTokenManagement:
                 result = clear_auth()
 
                 # Should handle error gracefully
-                assert result.is_success or not result.is_success  # Either outcome is valid
+                assert (
+                    result.is_success or not result.is_success
+                )  # Either outcome is valid
 
 
 class TestAuthConfiguration:
@@ -375,10 +377,7 @@ class TestAuthUtilities:
                     )
 
                     if result.is_success:
-                        assert (
-                            "new_token" in result.value
-                            or "refresh" in result.value
-                        )
+                        assert "new_token" in result.value or "refresh" in result.value
                     else:
                         # Refresh may fail due to missing config, which is expected
                         assert not result.is_success
@@ -671,7 +670,9 @@ class TestPerformance:
 
                 if save_result.is_success:
                     get_result = get_auth_token(token_path=temp_path)
-                    if get_result.is_success and i % 10 == 0:  # Check every 10th operation
+                    if (
+                        get_result.is_success and i % 10 == 0
+                    ):  # Check every 10th operation
                         assert get_result.value == token_value
 
             temp_path.unlink()

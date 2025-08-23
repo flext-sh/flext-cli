@@ -145,7 +145,7 @@ class TestFormatPipelineReal:
 
         # Create mock pipeline object with required attributes
         class MockPipeline:
-            def __init__(self):
+            def __init__(self) -> None:
                 self.name = "test-pipeline"
                 self.status = "active"
                 self.id = "test-123"
@@ -212,7 +212,9 @@ class TestFormatPipelineListReal:
 
         # Create mock pipeline objects with required attributes
         class MockPipeline:
-            def __init__(self, name: str, status: str, pipeline_id: str = "test-id"):
+            def __init__(
+                self, name: str, status: str, pipeline_id: str = "test-id"
+            ) -> None:
                 self.name = name
                 self.status = status
                 self.id = pipeline_id
@@ -220,7 +222,7 @@ class TestFormatPipelineListReal:
 
         # Create mock pipeline list object
         class MockPipelineList:
-            def __init__(self):
+            def __init__(self) -> None:
                 self.pipelines = [
                     MockPipeline("pipeline1", "running"),
                     MockPipeline("pipeline2", "completed"),

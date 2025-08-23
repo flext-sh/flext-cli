@@ -290,9 +290,7 @@ class CreateProjectHandler(FlextCliService[Project]):
         # Save to repository
         save_result = self._repository.save(project)
         if save_result.is_failure:
-            return FlextResult[str].fail(
-                f"Failed to save project: {save_result.error}"
-            )
+            return FlextResult[str].fail(f"Failed to save project: {save_result.error}")
 
         # Process domain events (in real app, this would be async)
         self._process_domain_events([event])

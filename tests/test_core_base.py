@@ -91,7 +91,7 @@ class TestHandleServiceResult:
     def test_failed_result_handling(self) -> None:
         """Test handling of failed FlextResult."""
         # Capture console output to verify error printing
-        console_output = io.StringIO()
+        io.StringIO()
 
         @handle_service_result
         def fail_function() -> FlextResult[str]:

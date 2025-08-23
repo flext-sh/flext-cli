@@ -167,7 +167,9 @@ class AdvancedCliService(FlextCliService):
 
         except Exception as e:
             self.logger.exception("Service orchestration failed")
-            return FlextResult[dict[str, Any]].fail(f"Service orchestration failed: {e}")
+            return FlextResult[dict[str, Any]].fail(
+                f"Service orchestration failed: {e}"
+            )
 
     def implement_circuit_breaker(
         self, service_name: str, failure_threshold: int = 5
@@ -513,7 +515,8 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     api_client_result = container.get("api_client")
 
     if all(
-        result.is_success for result in [logger_result, config_result, api_client_result]
+        result.is_success
+        for result in [logger_result, config_result, api_client_result]
     ):
         logger = logger_result.value
         config = config_result.value

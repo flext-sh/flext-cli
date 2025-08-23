@@ -33,11 +33,13 @@ class MockHTTPHandler(BaseHTTPRequestHandler):
         params = parse_qs(parsed_url.query)
 
         if path == "/api/v1/auth/user":
-            self._send_json_response({
-                "id": "user-123",
-                "username": "testuser",
-                "email": "test@example.com",
-            })
+            self._send_json_response(
+                {
+                    "id": "user-123",
+                    "username": "testuser",
+                    "email": "test@example.com",
+                }
+            )
         elif path == "/api/v1/pipelines":
             page = int(params.get("page", ["1"])[0])
             page_size = int(params.get("page_size", ["20"])[0])
@@ -72,27 +74,31 @@ class MockHTTPHandler(BaseHTTPRequestHandler):
             end = start + page_size
             pipelines_page = filtered_pipelines[start:end]
 
-            self._send_json_response({
-                "pipelines": pipelines_page,
-                "total": len(filtered_pipelines),
-                "page": page,
-                "page_size": page_size,
-            })
+            self._send_json_response(
+                {
+                    "pipelines": pipelines_page,
+                    "total": len(filtered_pipelines),
+                    "page": page,
+                    "page_size": page_size,
+                }
+            )
         elif path.startswith("/api/v1/pipelines/"):
             pipeline_id = path.split("/")[-1]
-            self._send_json_response({
-                "id": pipeline_id,
-                "name": f"Pipeline {pipeline_id}",
-                "status": "active",
-                "created_at": "2025-01-01T00:00:00Z",
-                "updated_at": "2025-01-01T00:00:00Z",
-                "config": {
+            self._send_json_response(
+                {
+                    "id": pipeline_id,
                     "name": f"Pipeline {pipeline_id}",
-                    "tap": "tap-csv",
-                    "target": "target-json",
-                    "schedule": "0 0 * * *",
-                },
-            })
+                    "status": "active",
+                    "created_at": "2025-01-01T00:00:00Z",
+                    "updated_at": "2025-01-01T00:00:00Z",
+                    "config": {
+                        "name": f"Pipeline {pipeline_id}",
+                        "tap": "tap-csv",
+                        "target": "target-json",
+                        "schedule": "0 0 * * *",
+                    },
+                }
+            )
         else:
             self._send_error_response(404, "Not Found")
 
@@ -114,11 +120,13 @@ class MockHTTPHandler(BaseHTTPRequestHandler):
             password = request_data.get("password")
 
             if username == "testuser" and password == "testpass":
-                self._send_json_response({
-                    "access_token": "test-token-12345",
-                    "token_type": "bearer",
-                    "user": {"id": "user-123", "username": "testuser"},
-                })
+                self._send_json_response(
+                    {
+                        "access_token": "test-token-12345",
+                        "token_type": "bearer",
+                        "user": {"id": "user-123", "username": "testuser"},
+                    }
+                )
             else:
                 self._send_error_response(401, "Invalid credentials")
         elif path == "/api/v1/auth/logout":
@@ -137,12 +145,14 @@ class MockHTTPHandler(BaseHTTPRequestHandler):
             self._send_json_response(created_pipeline, status_code=201)
         elif path.startswith("/api/v1/pipelines/") and path.endswith("/run"):
             pipeline_id = path.split("/")[-2]
-            self._send_json_response({
-                "id": f"run-{pipeline_id}-001",
-                "pipeline_id": pipeline_id,
-                "status": "running",
-                "started_at": "2025-01-01T00:00:00Z",
-            })
+            self._send_json_response(
+                {
+                    "id": f"run-{pipeline_id}-001",
+                    "pipeline_id": pipeline_id,
+                    "status": "running",
+                    "started_at": "2025-01-01T00:00:00Z",
+                }
+            )
         else:
             self._send_error_response(404, "Not Found")
 

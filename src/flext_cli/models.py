@@ -401,7 +401,7 @@ class FlextCliConfiguration(FlextValue):
         description="Directory for caching CLI data",
     )
     plugin_directories: list[Path] = Field(
-        default_factory=lambda: list[Path](),
+        default_factory=list[Path],
         description="Directories to search for plugins",
     )
     environment_overrides: dict[str, str] = Field(
@@ -893,7 +893,7 @@ class FlextCliSession(FlextEntity):
         description="Testing convenience session identifier",
     )
     command_history: list[FlextEntityId] = Field(
-        default_factory=lambda: list[FlextEntityId](),
+        default_factory=list[FlextEntityId],
         description="History of command IDs executed in this session",
     )
     current_command_id: FlextEntityId | None = Field(
@@ -1605,11 +1605,11 @@ class FlextCliWorkspace(FlextAggregateRoot):
         description="Workspace configuration",
     )
     session_ids: list[FlextEntityId] = Field(
-        default_factory=lambda: list[FlextEntityId](),
+        default_factory=list[FlextEntityId],
         description="Active session IDs in this workspace",
     )
     plugin_ids: list[FlextEntityId] = Field(
-        default_factory=lambda: list[FlextEntityId](),
+        default_factory=list[FlextEntityId],
         description="Installed plugin IDs",
     )
     workspace_data: dict[str, object] = Field(
