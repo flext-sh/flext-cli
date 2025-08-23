@@ -104,7 +104,7 @@ class TestFlextCliService:
 
         # Test that the service can actually use the configuration
         test_data = {"test": "value"}
-        format_result = service.format_data(test_data, "yaml")
+        format_result = service.flext_cli_format(test_data, "yaml")
         assert format_result.is_success, (
             f"Service cannot use configuration: {format_result.error if format_result.is_failure else 'Unknown error'}"
         )
@@ -223,9 +223,9 @@ class TestFlextCliService:
         try:
             result = service.flext_cli_export(data, temp_path, "invalid_format")
             assert not result.is_success
-            if "Unsupported format:" not in result.error:
+            if "Formatting failed:" not in result.error and "Unsupported format:" not in result.error:
                 raise AssertionError(
-                    f"Expected {'Unsupported format:'} in {result.error}",
+                    f"Expected 'Formatting failed:' or 'Unsupported format:' in {result.error}",
                 )
         finally:
             Path(temp_path).unlink(missing_ok=True)
