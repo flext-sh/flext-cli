@@ -117,7 +117,7 @@ class TestFlextCliQuickSetup:
         """Test quick setup exception handling."""
         # Mock Console to raise exception
         with patch(
-            "flext_cli.core.utils.Console",
+            "flext_cli.utils_core.Console",
             side_effect=Exception("Console init failed"),
         ):
             result = flext_cli_quick_setup({})
@@ -137,7 +137,7 @@ class TestFlextCliAutoConfig:
         config_data = {"profile": "test", "debug": True}
         config_file.write_text(yaml.dump(config_data))
 
-        with patch("flext_cli.core.utils._load_env_overrides", return_value={}):
+        with patch("flext_cli.utils_core._load_env_overrides", return_value={}):
             result = flext_cli_auto_config("default", [str(config_file)])
 
         assert result.is_success
@@ -152,7 +152,7 @@ class TestFlextCliAutoConfig:
         config_data = {"api_url": "https://prod.api.flext.sh", "timeout": 30}
         config_file.write_text(yaml.dump(config_data))
 
-        with patch("flext_cli.core.utils._load_env_overrides", return_value={}):
+        with patch("flext_cli.utils_core._load_env_overrides", return_value={}):
             result = flext_cli_auto_config("production", [str(config_file)])
 
         assert result.is_success
@@ -169,7 +169,7 @@ class TestFlextCliAutoConfig:
         env_overrides = {"debug": True, "api_url": "https://override.api.flext.sh"}
 
         with patch(
-            "flext_cli.core.utils._load_env_overrides",
+            "flext_cli.utils_core._load_env_overrides",
             return_value=env_overrides,
         ):
             result = flext_cli_auto_config("default", [str(config_file)])
@@ -182,7 +182,7 @@ class TestFlextCliAutoConfig:
 
     def test_auto_config_no_files_found(self) -> None:
         """Test auto config when no config files are found."""
-        with patch("flext_cli.core.utils._load_env_overrides", return_value={}):
+        with patch("flext_cli.utils_core._load_env_overrides", return_value={}):
             result = flext_cli_auto_config("default", ["/nonexistent/config.yml"])
 
         assert result.is_success
@@ -197,7 +197,7 @@ class TestFlextCliAutoConfig:
         config_data = {"profile": "json_test", "features": ["auth", "config"]}
         config_file.write_text(json.dumps(config_data))
 
-        with patch("flext_cli.core.utils._load_env_overrides", return_value={}):
+        with patch("flext_cli.utils_core._load_env_overrides", return_value={}):
             result = flext_cli_auto_config("default", [str(config_file)])
 
         assert result.is_success
@@ -270,7 +270,7 @@ class TestFlextCliValidateAll:
 class TestFlextCliRequireAll:
     """Test suite for flext_cli_require_all function."""
 
-    @patch("flext_cli.helpers.FlextCliHelper")
+    @patch("flext_cli.utils_core.FlextCliHelper")
     def test_require_all_success(self, mock_helper_class: MagicMock) -> None:
         """Test successful multiple confirmations."""
         mock_helper = mock_helper_class.return_value
@@ -292,7 +292,7 @@ class TestFlextCliRequireAll:
         assert result.value is True
         assert mock_helper.flext_cli_confirm.call_count == 3
 
-    @patch("flext_cli.helpers.FlextCliHelper")
+    @patch("flext_cli.utils_core.FlextCliHelper")
     def test_require_all_denial(self, mock_helper_class: MagicMock) -> None:
         """Test multiple confirmations with user denial."""
         mock_helper = mock_helper_class.return_value
@@ -313,7 +313,7 @@ class TestFlextCliRequireAll:
         assert result.value is False  # User cancelled
         assert mock_helper.flext_cli_confirm.call_count == 2  # Stopped after denial
 
-    @patch("flext_cli.helpers.FlextCliHelper")
+    @patch("flext_cli.utils_core.FlextCliHelper")
     def test_require_all_confirmation_failure(
         self,
         mock_helper_class: MagicMock,
@@ -552,26 +552,26 @@ class TestFlextCliFileOperations:
 class TestFlextCliBatchExecute:
     """Test suite for flext_cli_batch_execute function."""
 
-    @patch("flext_cli.core.utils.track")
+    @patch("flext_cli.utils_core.track")
     def test_batch_execute_success(self, mock_track: MagicMock) -> None:
         """Test successful batch execution."""
-        operations = [
-            ("op1", lambda: FlextResult[None].ok("result1")),
-            ("op2", lambda: FlextResult[None].ok("result2")),
-            ("op3", lambda: FlextResult[None].ok("result3")),
-        ]
-        mock_track.return_value = operations
+        items = ["item1", "item2", "item3"]
 
-        result = flext_cli_batch_execute(operations)
+        def operation(item: object) -> FlextResult[str]:
+            return FlextResult[str].ok(f"result_{item}")
+
+        mock_track.return_value = items
+
+        result = flext_cli_batch_execute(items, operation)
 
         assert result.is_success
         results = result.value
-        assert results["op1"]["success"] is True
-        assert results["op1"]["data"] == "result1"
-        assert results["op2"]["success"] is True
-        assert results["op3"]["success"] is True
+        assert len(results) == 3
+        assert results[0] == "result_item1"
+        assert results[1] == "result_item2"
+        assert results[2] == "result_item3"
 
-    @patch("flext_cli.core.utils.track")
+    @patch("flext_cli.utils_core.track")
     def test_batch_execute_with_failure_stop(self, mock_track: MagicMock) -> None:
         """Test batch execution with failure and stop_on_error=True."""
         operations = [
@@ -586,7 +586,7 @@ class TestFlextCliBatchExecute:
         assert not result.is_success
         assert "Operation op2 failed" in result.error
 
-    @patch("flext_cli.core.utils.track")
+    @patch("flext_cli.utils_core.track")
     def test_batch_execute_with_failure_continue(self, mock_track: MagicMock) -> None:
         """Test batch execution with failure and stop_on_error=False."""
         operations = [
@@ -605,7 +605,7 @@ class TestFlextCliBatchExecute:
         assert results["op2"]["error"] == "operation failed"
         assert results["op3"]["success"] is True
 
-    @patch("flext_cli.core.utils.track")
+    @patch("flext_cli.utils_core.track")
     def test_batch_execute_with_exception(self, mock_track: MagicMock) -> None:
         """Test batch execution with raised exception."""
 

@@ -27,7 +27,8 @@ class TestSetupCli:
         result = setup_cli()
         assert result.is_success
         if not (result.value):
-            raise AssertionError(f"Expected True, got {result.value}")
+            msg = f"Expected True, got {result.value}"
+            raise AssertionError(msg)
 
     def test_setup_cli_with_settings(self) -> None:
         """Test CLI setup with provided settings."""
@@ -35,7 +36,8 @@ class TestSetupCli:
         result = setup_cli(settings)
         assert result.is_success
         if not (result.value):
-            raise AssertionError(f"Expected True, got {result.value}")
+            msg = f"Expected True, got {result.value}"
+            raise AssertionError(msg)
 
     def test_setup_cli_with_exception(self) -> None:
         """Test CLI setup when an exception occurs with invalid config."""
@@ -73,13 +75,16 @@ class TestCreateDevelopmentCliConfig:
         config = create_development_cli_config()
 
         if not (config.debug):
-            raise AssertionError(f"Expected True, got {config.debug}")
+            msg = f"Expected True, got {config.debug}"
+            raise AssertionError(msg)
         if config.log_level != "DEBUG":
-            raise AssertionError(f"Expected {'DEBUG'}, got {config.log_level}")
+            msg = f"Expected {'DEBUG'}, got {config.log_level}"
+            raise AssertionError(msg)
         assert config.config_path is None
         # Check that default FlextCliSettings fields are present
         if config.project_name != "flext-cli":
-            raise AssertionError(f"Expected {'flext-cli'}, got {config.project_name}")
+            msg = f"Expected {'flext-cli'}, got {config.project_name}"
+            raise AssertionError(msg)
         assert config.project_version == "0.9.0"
 
     def test_create_development_config_with_overrides(self) -> None:
@@ -91,13 +96,16 @@ class TestCreateDevelopmentCliConfig:
         )
 
         if config.debug:
-            raise AssertionError(f"Expected False, got {config.debug}")
+            msg = f"Expected False, got {config.debug}"
+            raise AssertionError(msg)
         assert config.log_level == "INFO"
         if config.config_path != "/custom/path":
-            raise AssertionError(f"Expected {'/custom/path'}, got {config.config_path}")
+            msg = f"Expected {'/custom/path'}, got {config.config_path}"
+            raise AssertionError(msg)
         # Default values should still be present
         if config.project_name != "flext-cli":
-            raise AssertionError(f"Expected {'flext-cli'}, got {config.project_name}")
+            msg = f"Expected {'flext-cli'}, got {config.project_name}"
+            raise AssertionError(msg)
         assert config.project_version == "0.9.0"
 
     def test_create_development_config_with_all_overrides(self) -> None:
@@ -111,15 +119,18 @@ class TestCreateDevelopmentCliConfig:
         config = create_development_cli_config(**overrides)
 
         if config.debug:
-            raise AssertionError(f"Expected False, got {config.debug}")
+            msg = f"Expected False, got {config.debug}"
+            raise AssertionError(msg)
         assert config.log_level == "WARNING"
         if config.config_path != "/test/config/path":
+            msg = f"Expected {'/test/config/path'}, got {config.config_path}"
             raise AssertionError(
-                f"Expected {'/test/config/path'}, got {config.config_path}",
+                msg,
             )
         # Default fields should still be present
         if config.project_name != "flext-cli":
-            raise AssertionError(f"Expected {'flext-cli'}, got {config.project_name}")
+            msg = f"Expected {'flext-cli'}, got {config.project_name}"
+            raise AssertionError(msg)
         assert config.project_version == "0.9.0"
 
 
@@ -131,12 +142,14 @@ class TestCreateProductionCliConfig:
         config = create_production_cli_config()
 
         if config.debug:
-            raise AssertionError(f"Expected False, got {config.debug}")
+            msg = f"Expected False, got {config.debug}"
+            raise AssertionError(msg)
         assert config.log_level == "INFO"
         assert config.config_path is None
         # Check that default FlextCliSettings fields are present
         if config.project_name != "flext-cli":
-            raise AssertionError(f"Expected {'flext-cli'}, got {config.project_name}")
+            msg = f"Expected {'flext-cli'}, got {config.project_name}"
+            raise AssertionError(msg)
         assert config.project_version == "0.9.0"
 
     def test_create_production_config_with_overrides(self) -> None:
@@ -148,13 +161,16 @@ class TestCreateProductionCliConfig:
         )
 
         if not (config.debug):
-            raise AssertionError(f"Expected True, got {config.debug}")
+            msg = f"Expected True, got {config.debug}"
+            raise AssertionError(msg)
         if config.log_level != "DEBUG":
-            raise AssertionError(f"Expected {'DEBUG'}, got {config.log_level}")
+            msg = f"Expected {'DEBUG'}, got {config.log_level}"
+            raise AssertionError(msg)
         assert config.config_path == "/staging/config"
         # Default values should still be present
         if config.project_name != "flext-cli":
-            raise AssertionError(f"Expected {'flext-cli'}, got {config.project_name}")
+            msg = f"Expected {'flext-cli'}, got {config.project_name}"
+            raise AssertionError(msg)
         assert config.project_version == "0.9.0"
 
     def test_create_production_config_with_all_overrides(self) -> None:
@@ -168,13 +184,16 @@ class TestCreateProductionCliConfig:
         config = create_production_cli_config(**overrides)
 
         if not (config.debug):
-            raise AssertionError(f"Expected True, got {config.debug}")
+            msg = f"Expected True, got {config.debug}"
+            raise AssertionError(msg)
         if config.log_level != "DEBUG":
-            raise AssertionError(f"Expected {'DEBUG'}, got {config.log_level}")
+            msg = f"Expected {'DEBUG'}, got {config.log_level}"
+            raise AssertionError(msg)
         assert config.config_path == "/production/config/path"
         # Default fields should still be present
         if config.project_name != "flext-cli":
-            raise AssertionError(f"Expected {'flext-cli'}, got {config.project_name}")
+            msg = f"Expected {'flext-cli'}, got {config.project_name}"
+            raise AssertionError(msg)
         assert config.project_version == "0.9.0"
 
 
@@ -203,11 +222,13 @@ class TestGetCliSettings:
 
         # But should have same default values
         if settings1.debug != settings2.debug:
-            raise AssertionError(f"Expected {settings2.debug}, got {settings1.debug}")
+            msg = f"Expected {settings2.debug}, got {settings1.debug}"
+            raise AssertionError(msg)
         assert settings1.log_level == settings2.log_level
         if settings1.project_name != settings2.project_name:
+            msg = f"Expected {settings2.project_name}, got {settings1.project_name}"
             raise AssertionError(
-                f"Expected {settings2.project_name}, got {settings1.project_name}",
+                msg,
             )
 
 
@@ -224,8 +245,9 @@ class TestSimpleApiExports:
         ]
 
         if set(__all__) != set(expected_exports):
+            msg = f"Expected {set(expected_exports)}, got {set(__all__)}"
             raise AssertionError(
-                f"Expected {set(expected_exports)}, got {set(__all__)}",
+                msg,
             )
 
     def test_functions_can_be_imported(self) -> None:

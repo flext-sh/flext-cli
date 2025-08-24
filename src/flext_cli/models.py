@@ -623,6 +623,10 @@ class FlextCliCommand(FlextEntity):
     def is_running(self) -> bool:  # pragma: no cover - trivial alias
         return self.flext_cli_is_running
 
+    def start_execution(self) -> FlextResult[FlextCliCommand]:
+        """Start command execution - returns FlextResult for proper error handling."""
+        return self._start_execution_impl()
+
     def flext_cli_start_execution(self) -> bool:
         """Testing convenience boolean API: start once, then return False if already running."""
         try:
@@ -643,7 +647,8 @@ class FlextCliCommand(FlextEntity):
         """Testing convenience boolean wrapper around complete_execution()."""
         if exit_code is None:
             exit_code = 0
-        result = self.complete_execution(
+        # Use the safe version that returns FlextResult
+        result = self._complete_execution_impl(
             exit_code=exit_code,
             stdout=stdout,
             stderr=stderr,
@@ -657,8 +662,8 @@ class FlextCliCommand(FlextEntity):
             return True
         return False
 
-    def start_execution(self) -> FlextResult[FlextCliCommand]:
-        """Start command execution with validation."""
+    def _start_execution_impl(self) -> FlextResult[FlextCliCommand]:
+        """Start command execution with validation - internal implementation."""
         if self.command_status != FlextCliCommandStatus.PENDING:
             return FlextResult[FlextCliCommand].fail(
                 f"Cannot start command in {self.command_status} status",
@@ -718,7 +723,7 @@ class FlextCliCommand(FlextEntity):
     def finished_at(self) -> datetime | None:  # pragma: no cover - simple alias
         return self.completed_at
 
-    def complete_execution(
+    def _complete_execution_impl(
         self,
         exit_code: int,
         stdout: str = "",
@@ -775,6 +780,15 @@ class FlextCliCommand(FlextEntity):
             return FlextResult[FlextCliCommand].fail(f"Failed to add domain event: {e}")
 
         return FlextResult[FlextCliCommand].ok(result)
+
+    def complete_execution(
+        self,
+        exit_code: int,
+        stdout: str = "",
+        stderr: str = "",
+    ) -> FlextResult[FlextCliCommand]:
+        """Complete command execution - returns FlextResult for proper error handling."""
+        return self._complete_execution_impl(exit_code, stdout, stderr)
 
     def cancel_execution(self) -> FlextResult[FlextCliCommand]:
         """Cancel running command execution."""
@@ -1281,11 +1295,11 @@ class FlextCliPlugin(FlextEntity):
         return PluginStatus(state)
 
     def activate(self) -> FlextResult[FlextCliPlugin]:
-        """Testing convenience alias for activate_plugin."""
+        """Activate the plugin - returns FlextResult for proper error handling."""
         return self.activate_plugin()
 
     def deactivate(self) -> FlextResult[FlextCliPlugin]:
-        """Testing convenience alias for deactivate_plugin."""
+        """Deactivate the plugin - returns FlextResult for proper error handling."""
         return self.deactivate_plugin()
 
     # Testing convenience properties/methods expected by some tests
@@ -1504,6 +1518,7 @@ class FlextCliPlugin(FlextEntity):
 
         updated_plugin = self.copy_with(
             state=FlextCliPluginState.UNLOADED,
+            enabled=False,
             loaded_at=None,
         )
         result = updated_plugin.value

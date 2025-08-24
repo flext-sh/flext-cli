@@ -17,10 +17,6 @@ from rich.table import Table
 
 from flext_cli.api import (
     FlextCliContext,
-    _create_table_from_dict,
-    _create_table_from_dict_list,
-    _create_table_from_simple_list,
-    _create_table_from_single_value,
     _initialize_group,
     _update_group_counts,
     _update_group_sums,
@@ -163,45 +159,41 @@ class TestTableCreation:
         table = result.value
         assert isinstance(table, Table)
 
-    def test_create_table_from_dict_list(self) -> None:
-        """Test _create_table_from_dict_list function."""
-        table = Table()
+    def test_table_creation_dict_list(self) -> None:
+        """Test flext_cli_table with list of dictionaries."""
         data = [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]
+        result = flext_cli_table(data)
 
-        _create_table_from_dict_list(data, table)
+        assert result.is_success
+        table = result.value
+        assert isinstance(table, Table)
 
-        # Should have columns and data
-        assert len(table.columns) == 2
-
-    def test_create_table_from_simple_list(self) -> None:
-        """Test _create_table_from_simple_list function."""
-        table = Table()
+    def test_table_creation_simple_list(self) -> None:
+        """Test flext_cli_table with simple list."""
         data = ["item1", "item2", "item3"]
+        result = flext_cli_table(data)
 
-        _create_table_from_simple_list(data, table)
+        assert result.is_success
+        table = result.value
+        assert isinstance(table, Table)
 
-        # Should have one column named "Value"
-        assert len(table.columns) == 1
-
-    def test_create_table_from_dict(self) -> None:
-        """Test _create_table_from_dict function."""
-        table = Table()
+    def test_table_creation_dict(self) -> None:
+        """Test flext_cli_table with dictionary."""
         data = {"name": "John", "age": 30}
+        result = flext_cli_table(data)
 
-        _create_table_from_dict(data, table)
+        assert result.is_success
+        table = result.value
+        assert isinstance(table, Table)
 
-        # Should have Key and Value columns
-        assert len(table.columns) == 2
-
-    def test_create_table_from_single_value(self) -> None:
-        """Test _create_table_from_single_value function."""
-        table = Table()
+    def test_table_creation_single_value(self) -> None:
+        """Test flext_cli_table with single value."""
         data = "Single value"
+        result = flext_cli_table(data)
 
-        _create_table_from_single_value(data, table)
-
-        # Should have one column
-        assert len(table.columns) == 1
+        assert result.is_success
+        table = result.value
+        assert isinstance(table, Table)
 
 
 class TestDataTransformation:

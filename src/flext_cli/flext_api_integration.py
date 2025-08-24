@@ -224,7 +224,7 @@ class FlextCLIApiClient:
     async def _check_service(
         self,
         name: str,
-        url: str,  # noqa: ARG002  # Unused but part of interface
+        url: str,  # noqa: ARG002
     ) -> FlextResult[dict[str, object]]:
         """Check individual service status."""
         # Temporarily disabled due to dependency issue with flext-api

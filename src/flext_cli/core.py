@@ -24,11 +24,8 @@ from flext_core import (
     safe_call,
 )
 
-from flext_cli.cli_config import FlextCliConfig
-from flext_cli.cli_types import (
-    FlextCliOutputFormat,
-    OutputData,
-)
+from flext_cli.cli_types import FlextCliOutputFormat, OutputData
+from flext_cli.config import FlextCliConfig
 from flext_cli.models import (
     FlextCliCommand,
     FlextCliPlugin,
@@ -494,7 +491,7 @@ class FlextCliService(FlextService):
         if not context_options and hasattr(config, "output_format"):
             with suppress(Exception):
                 cfg_fmt = config.output_format
-                cfg_key = cfg_fmt.value if hasattr(cfg_fmt, "value") else str(cfg_fmt)
+                cfg_key = cfg_fmt.value if hasattr(cfg_fmt, "value") else str(cfg_fmt)  # type: ignore[reportAttributeAccessIssue]
                 output_format = FlextCliOutputFormat(cfg_key)
 
         # Convert data to OutputData type (str | dict | list)

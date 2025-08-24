@@ -17,7 +17,7 @@ from flext_core import FlextResult
 from rich.console import Console
 from rich.progress import Progress, track as rich_track
 
-from flext_cli import config_hierarchical
+from flext_cli.config_hierarchical import create_default_hierarchy
 from flext_cli.helpers import FlextCliHelper
 
 # Helper types for static annotations
@@ -125,10 +125,10 @@ class FlextCliValidationMixin:
         # Use back-compat helper attribute if present (tests patch this)
         helper = getattr(self, "_helper", self._flext_cli_helper)
         # Use unwrap_or for cleaner conditional logic
-        confirmed = helper.flext_cli_confirm(prompt).unwrap_or(False)  # noqa: FBT003
+        confirmed = helper.flext_cli_confirm(prompt).unwrap_or(default=False)
         if not confirmed:
             return FlextResult[bool].fail("Operation cancelled by user")
-        return FlextResult[bool].ok(data=True)  # noqa: FBT003
+        return FlextResult[bool].ok(data=True)
 
 
 class FlextCliInteractiveMixin:
@@ -179,7 +179,7 @@ class FlextCliInteractiveMixin:
             self.console.print(f"✗ {res.error}")
             return False
         # Use unwrap_or for cleaner boolean conversion
-        return res.unwrap_or(False)  # noqa: FBT003
+        return res.unwrap_or(default=False)
 
 
 class FlextCliProgressMixin:
@@ -316,7 +316,7 @@ class FlextCliConfigMixin:
         config_path: str | None = None,
     ) -> FlextResult[dict[str, object]]:
         """Load default configuration (or custom via path)."""
-        res = config_hierarchical.create_default_hierarchy(config_path=config_path)
+        res = create_default_hierarchy(config_path=config_path)
         if res.is_failure:
             return FlextResult[dict[str, object]].fail(
                 "Config loading failed: " + (res.error or "unknown"),
@@ -326,7 +326,7 @@ class FlextCliConfigMixin:
 
 
 class FlextCliAdvancedMixin(
-    FlextCliValidationMixin,
+    FlextCliBasicMixin,
     FlextCliInteractiveMixin,
     FlextCliProgressMixin,
     FlextCliResultMixin,
@@ -336,7 +336,7 @@ class FlextCliAdvancedMixin(
 
     def __init__(self) -> None:
         """Initialize the mixin."""
-        FlextCliValidationMixin.__init__(self)
+        FlextCliBasicMixin.__init__(self)
         FlextCliInteractiveMixin.__init__(self)
         FlextCliProgressMixin.__init__(self)
         FlextCliResultMixin.__init__(self)
@@ -433,8 +433,8 @@ class FlextCliAdvancedMixin(
                     )
                 # If the operation returns content, write it back; otherwise keep original
                 new_content = res.value
-                if isinstance(new_content, str):
-                    p.write_text(new_content, encoding="utf-8")
+                # Write content back to file
+                p.write_text(str(new_content), encoding="utf-8")
                 results.append(f"{op_name}_{path}")
             except Exception as e:
                 return FlextResult[list[str]].fail(str(e))
@@ -477,7 +477,9 @@ def flext_cli_zero_config(
                 result = func(*args, **kwargs)
                 if isinstance(result, FlextResult):
                     if result.is_success:
-                        return FlextResult[str].ok(str(result.value) if result.value is not None else "")
+                        # Handle generic result value safely
+                        value_str = "" if result.value is None else str(result.value)  # type: ignore[arg-type]
+                        return FlextResult[str].ok(value_str)
                     return FlextResult[str].fail(result.error or "Unknown error")
                 return FlextResult[str].ok(str(result))
             except Exception as e:
@@ -506,7 +508,8 @@ def flext_cli_auto_retry(
                     result = func(*args, **kwargs)
                     if isinstance(result, FlextResult):
                         if result.is_success:
-                            return FlextResult[str].ok(str(result.value) if result.value is not None else "")
+                            # Convert value to string safely, handling None case
+                            return FlextResult[str].ok("" if result.value is None else str(result.value))  # type: ignore[arg-type]
                         last_error = result.error
                     else:
                         return FlextResult[str].ok(str(result))
@@ -536,7 +539,8 @@ def flext_cli_with_progress(message: str) -> FlextCliDecorator[P, R]:
                     result = func(*args, **kwargs)
                     if isinstance(result, FlextResult):
                         if result.is_success:
-                            return FlextResult[str].ok(str(result.value) if result.value is not None else "")
+                            # Convert value to string safely, handling None case
+                            return FlextResult[str].ok("" if result.value is None else str(result.value))  # type: ignore[arg-type]
                         return FlextResult[str].fail(result.error or "Unknown error")
                     return FlextResult[str].ok(str(result))
                 except Exception as e:
@@ -594,7 +598,8 @@ def flext_cli_auto_validate(**rules: str) -> FlextCliDecorator[P, R]:
                 result = func(*args, **kwargs)
                 if isinstance(result, FlextResult):
                     if result.is_success:
-                        return FlextResult[str].ok(str(result.value) if result.value is not None else "")
+                        # Convert value to string safely, handling None case
+                        return FlextResult[str].ok("" if result.value is None else str(result.value))  # type: ignore[arg-type]
                     return FlextResult[str].fail(result.error or "Unknown error")
                 return FlextResult[str].ok(str(result))
             except Exception as e:
@@ -617,7 +622,9 @@ def flext_cli_handle_exceptions(
                 value = func(*args, **kwargs)
                 if isinstance(value, FlextResult):
                     if value.is_success:
-                        return FlextResult[str].ok(str(value.value))
+                        # Handle generic result value safely
+                        value_str = "" if value.value is None else str(value.value)  # type: ignore[arg-type]
+                        return FlextResult[str].ok(value_str)
                     return FlextResult[str].fail(value.error or "Unknown error")
                 return FlextResult[str].ok(str(value))
             except Exception as e:
@@ -642,7 +649,9 @@ def flext_cli_require_confirmation(message: str) -> FlextCliDecorator[P, R]:
             result = func(*args, **kwargs)
             if isinstance(result, FlextResult):
                 if result.is_success:
-                    return FlextResult[str].ok(str(result.value) if result.value is not None else "")
+                    # Handle generic result value safely
+                    value_str = "" if result.value is None else str(result.value)  # type: ignore[arg-type]
+                    return FlextResult[str].ok(value_str)
                 return FlextResult[str].fail(result.error or "Unknown error")
             return FlextResult[str].ok(str(result))
 

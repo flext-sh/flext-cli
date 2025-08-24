@@ -12,7 +12,7 @@ from typing import Self, cast
 from urllib.parse import urljoin
 
 import httpx
-from flext_core.loggings import get_logger
+from flext_core import FlextResult, get_logger
 from pydantic import BaseModel, Field
 
 from flext_cli.config import get_config as get_cli_config
@@ -165,19 +165,31 @@ class FlextApiClient:
         return response
 
     # Authentication methods
-    async def login(self, username: str, password: str) -> dict[str, object]:
+    async def login(
+        self, username: str, password: str
+    ) -> FlextResult[dict[str, object]]:
         """Login with username and password.
 
         Returns:
-            Login response with token and user info
+            FlextResult with login response containing token and user info
 
         """
-        response = await self._request(
-            "POST",
-            "/api/v1/auth/login",
-            json_data={"username": username, "password": password},
-        )
-        return cast("dict[str, object]", response.json())
+        try:
+            response = await self._request(
+                "POST",
+                "/api/v1/auth/login",
+                json_data={"username": username, "password": password},
+            )
+            http_ok = 200
+            if response.status_code == http_ok:
+                return FlextResult[dict[str, object]].ok(
+                    cast("dict[str, object]", response.json())
+                )
+            return FlextResult[dict[str, object]].fail(
+                f"Login failed: {response.status_code} {response.text}"
+            )
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(f"Login error: {e}")
 
     async def logout(self) -> None:
         """Logout the current user and invalidate token."""

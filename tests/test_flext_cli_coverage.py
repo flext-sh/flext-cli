@@ -9,11 +9,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import tempfile
 from pathlib import Path
 
 from flext_core import FlextResult
 
 from flext_cli.cli_types import FlextCliOutputFormat
+from flext_cli.config import FlextCliConfig
 from flext_cli.flext_cli import (
     flext_cli_configure,
     flext_cli_create_command,
@@ -31,7 +33,7 @@ from flext_cli.flext_cli import (
     flext_cli_register_plugin,
     flext_cli_render_with_context,
 )
-from flext_cli.utils_core import FlextCliUtilities
+from flext_cli.utils_core import flext_cli_quick_setup
 
 
 class TestFlextCliExportReal:
@@ -40,9 +42,12 @@ class TestFlextCliExportReal:
     def test_export_success_real(self) -> None:
         """Test successful data export with real file I/O."""
         # Create temporary file for real export
-        temp_context = FlextCliUtilities.create_temp_file_context()
-        temp_path = temp_context["file_path"]
-        cleanup = temp_context["cleanup"]
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as f:
+            temp_path = Path(f.name)
+
+        def cleanup() -> None:
+            temp_path.unlink(missing_ok=True)
+
         assert isinstance(temp_path, Path)
         assert callable(cleanup)
 
@@ -60,7 +65,7 @@ class TestFlextCliExportReal:
 
             # If export succeeded, verify file content
             if result and temp_path.exists():
-                content = temp_path.read_text()
+                content = temp_path.read_text(encoding="utf-8")
                 assert "test" in content
                 assert "data" in content
 
@@ -69,9 +74,12 @@ class TestFlextCliExportReal:
 
     def test_export_yaml_format_real(self) -> None:
         """Test export with YAML format using real functionality."""
-        temp_context = FlextCliUtilities.create_temp_file_context()
-        temp_path = temp_context["file_path"]
-        cleanup = temp_context["cleanup"]
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as f:
+            temp_path = Path(f.name)
+
+        def cleanup() -> None:
+            temp_path.unlink(missing_ok=True)
+
         assert isinstance(temp_path, Path)
         assert callable(cleanup)
 
@@ -89,9 +97,12 @@ class TestFlextCliExportReal:
 
     def test_export_default_format_real(self) -> None:
         """Test export with default format (JSON)."""
-        temp_context = FlextCliUtilities.create_temp_file_context()
-        temp_path = temp_context["file_path"]
-        cleanup = temp_context["cleanup"]
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as f:
+            temp_path = Path(f.name)
+
+        def cleanup() -> None:
+            temp_path.unlink(missing_ok=True)
+
         assert isinstance(temp_path, Path)
         assert callable(cleanup)
 
@@ -110,9 +121,12 @@ class TestFlextCliExportReal:
 
     def test_export_string_path_real(self) -> None:
         """Test export with string path instead of Path object."""
-        temp_context = FlextCliUtilities.create_temp_file_context()
-        temp_path = temp_context["file_path"]
-        cleanup = temp_context["cleanup"]
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as f:
+            temp_path = Path(f.name)
+
+        def cleanup() -> None:
+            temp_path.unlink(missing_ok=True)
+
         assert isinstance(temp_path, Path)
         assert callable(cleanup)
 
@@ -220,7 +234,7 @@ class TestFlextCliConfigureReal:
 
     def test_configure_with_dict_real(self) -> None:
         """Test configuring with dictionary."""
-        config = FlextCliUtilities.create_test_config()
+        config = FlextCliConfig().model_dump()
 
         result = flext_cli_configure(config)
 
@@ -230,7 +244,8 @@ class TestFlextCliConfigureReal:
 
     def test_configure_with_config_object_real(self) -> None:
         """Test configuring with FlextCliContext object."""
-        test_context = FlextCliUtilities.create_test_context()
+        context_result = flext_cli_quick_setup({})
+        test_context = context_result.value if context_result.is_success else {}
         test_context["console"]
         config_dict = test_context["config"]
         assert isinstance(config_dict, dict)
@@ -252,7 +267,7 @@ class TestFlextCliContextReal:
 
     def test_create_context_real(self) -> None:
         """Test context creation with real implementation."""
-        config = FlextCliUtilities.create_test_config()
+        config = FlextCliConfig().model_dump()
 
         result = flext_cli_create_context(config)
 
@@ -267,7 +282,7 @@ class TestFlextCliContextReal:
 
     def test_create_context_with_options_real(self) -> None:
         """Test context creation with additional options."""
-        config = FlextCliUtilities.create_test_config()
+        config = FlextCliConfig().model_dump()
 
         # Test with standard parameters only
         result = flext_cli_create_context(config)
@@ -420,7 +435,8 @@ class TestFlextCliRenderReal:
             "test": "render_data",
             "timestamp": "2023-01-01",
         }
-        context = FlextCliUtilities.create_test_context()
+        context_result = flext_cli_quick_setup({})
+        context = context_result.value if context_result.is_success else {}
 
         try:
             result = flext_cli_render_with_context(data, context)
@@ -448,7 +464,7 @@ class TestFlextCliIntegrationReal:
     def test_full_workflow_real(self) -> None:
         """Test complete workflow with real implementations."""
         # 1. Configure the CLI
-        config = FlextCliUtilities.create_test_config()
+        config = FlextCliConfig().model_dump()
         configure_result = flext_cli_configure(config)
         assert configure_result is not None
 
@@ -470,9 +486,12 @@ class TestFlextCliIntegrationReal:
 
     def test_export_and_format_integration_real(self) -> None:
         """Test export and format integration."""
-        temp_context = FlextCliUtilities.create_temp_file_context()
-        temp_path = temp_context["file_path"]
-        cleanup = temp_context["cleanup"]
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as f:
+            temp_path = Path(f.name)
+
+        def cleanup() -> None:
+            temp_path.unlink(missing_ok=True)
+
         assert isinstance(temp_path, Path)
         assert callable(cleanup)
 

@@ -11,9 +11,15 @@ from pathlib import Path
 
 from flext_core import get_logger
 
-from flext_cli.api import FlextCliApi, SessionSummary
-from flext_cli.cli_types import FlextCliDataType, FlextCliOutputFormat
-from flext_cli.models import FlextCliContext
+from flext_cli.api import (
+    FlextCliApi,
+    FlextCliContext,
+    SessionSummary,
+)
+from flext_cli.cli_types import (
+    FlextCliDataType,
+    FlextCliOutputFormat,
+)
 
 # Global API instance
 _api = FlextCliApi()

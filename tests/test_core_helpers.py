@@ -43,7 +43,8 @@ class TestCLIHelper:
         with patch.object(Confirm, "ask", return_value=True):
             result = helper.confirm("Are you sure?")
             if not (result):
-                raise AssertionError(f"Expected True, got {result}")
+                msg = f"Expected True, got {result}"
+                raise AssertionError(msg)
 
     def test_confirm_default_true(self) -> None:
         """Test confirm method with default True."""
@@ -52,7 +53,8 @@ class TestCLIHelper:
         with patch.object(Confirm, "ask", return_value=False):
             result = helper.confirm("Are you sure?", default=True)
             if result:
-                raise AssertionError(f"Expected False, got {result}")
+                msg = f"Expected False, got {result}"
+                raise AssertionError(msg)
 
     def test_prompt_without_default(self) -> None:
         """Test prompt method without default."""
@@ -61,7 +63,8 @@ class TestCLIHelper:
         with patch.object(Prompt, "ask", return_value="test input"):
             result = helper.prompt("Enter name:")
             if result != "test input":
-                raise AssertionError(f"Expected {'test input'}, got {result}")
+                msg = f"Expected {'test input'}, got {result}"
+                raise AssertionError(msg)
 
     def test_prompt_with_default(self) -> None:
         """Test prompt method with default."""
@@ -70,20 +73,23 @@ class TestCLIHelper:
         with patch.object(Prompt, "ask", return_value="default"):
             result = helper.prompt("Enter name:", default="default")
             if result != "default":
-                raise AssertionError(f"Expected {'default'}, got {result}")
+                msg = f"Expected {'default'}, got {result}"
+                raise AssertionError(msg)
 
     def test_validate_url_valid(self) -> None:
         """Test URL validation with valid URLs."""
         helper = CLIHelper()
 
         if not (helper.validate_url("https://example.com")):
+            msg = f"Expected True, got {helper.validate_url('https://example.com')}"
             raise AssertionError(
-                f"Expected True, got {helper.validate_url('https://example.com')}",
+                msg,
             )
         assert helper.validate_url("http://localhost:8080") is True
         if not (helper.validate_url("ftp://files.example.com")):
+            msg = f"Expected True, got {helper.validate_url('ftp://files.example.com')}"
             raise AssertionError(
-                f"Expected True, got {helper.validate_url('ftp://files.example.com')}",
+                msg,
             )
 
     def test_validate_url_invalid(self) -> None:
@@ -91,8 +97,9 @@ class TestCLIHelper:
         helper = CLIHelper()
 
         if helper.validate_url("not-a-url"):
+            msg = f"Expected False, got {helper.validate_url('not-a-url')}"
             raise AssertionError(
-                f"Expected False, got {helper.validate_url('not-a-url')}",
+                msg,
             )
         assert helper.validate_url("") is False
         assert helper.validate_url("example.com") is False  # No scheme
@@ -109,8 +116,9 @@ class TestCLIHelper:
 
         with tempfile.NamedTemporaryFile() as tmp:
             if not (helper.validate_path(tmp.name, must_exist=True)):
+                msg = f"Expected True, got {helper.validate_path(tmp.name, must_exist=True)}"
                 raise AssertionError(
-                    f"Expected True, got {helper.validate_path(tmp.name, must_exist=True)}",
+                    msg,
                 )
 
     def test_validate_path_non_existing_must_exist(self) -> None:
@@ -118,8 +126,9 @@ class TestCLIHelper:
         helper = CLIHelper()
 
         if helper.validate_path("/non/existing/path", must_exist=True):
+            msg = f"Expected False, got {helper.validate_path('/non/existing/path', must_exist=True)}"
             raise AssertionError(
-                f"Expected False, got {helper.validate_path('/non/existing/path', must_exist=True)}",
+                msg,
             )
 
     def test_validate_path_non_existing_no_requirement(self) -> None:
@@ -127,8 +136,9 @@ class TestCLIHelper:
         helper = CLIHelper()
 
         if not (helper.validate_path("/non/existing/path", must_exist=False)):
+            msg = f"Expected True, got {helper.validate_path('/non/existing/path', must_exist=False)}"
             raise AssertionError(
-                f"Expected True, got {helper.validate_path('/non/existing/path', must_exist=False)}",
+                msg,
             )
 
     def test_validate_path_exception_handling(self) -> None:
@@ -139,8 +149,9 @@ class TestCLIHelper:
         with patch("pathlib.Path.exists") as mock_exists:
             mock_exists.side_effect = OSError("Permission denied")
             if helper.validate_path("/some/path", must_exist=True):
+                msg = f"Expected False, got {helper.validate_path('/some/path', must_exist=True)}"
                 raise AssertionError(
-                    f"Expected False, got {helper.validate_path('/some/path', must_exist=True)}",
+                    msg,
                 )
 
     def test_validate_email_valid(self) -> None:
@@ -148,13 +159,15 @@ class TestCLIHelper:
         helper = CLIHelper()
 
         if not (helper.validate_email("test@example.com")):
+            msg = f"Expected True, got {helper.validate_email('test@example.com')}"
             raise AssertionError(
-                f"Expected True, got {helper.validate_email('test@example.com')}",
+                msg,
             )
         assert helper.validate_email("user.name+tag@domain.co.uk") is True
         if not (helper.validate_email("123@456.com")):
+            msg = f"Expected True, got {helper.validate_email('123@456.com')}"
             raise AssertionError(
-                f"Expected True, got {helper.validate_email('123@456.com')}",
+                msg,
             )
 
     def test_validate_email_invalid(self) -> None:
@@ -162,13 +175,15 @@ class TestCLIHelper:
         helper = CLIHelper()
 
         if helper.validate_email("not-an-email"):
+            msg = f"Expected False, got {helper.validate_email('not-an-email')}"
             raise AssertionError(
-                f"Expected False, got {helper.validate_email('not-an-email')}",
+                msg,
             )
         assert helper.validate_email("@example.com") is False
         if helper.validate_email("test@"):
+            msg = f"Expected False, got {helper.validate_email('test@')}"
             raise AssertionError(
-                f"Expected False, got {helper.validate_email('test@')}",
+                msg,
             )
         assert helper.validate_email("") is False
 
@@ -177,7 +192,8 @@ class TestCLIHelper:
         helper = CLIHelper()
 
         if helper.format_size(100) != "100.0 B":
-            raise AssertionError(f"Expected {'100.0 B'}, got {helper.format_size(100)}")
+            msg = f"Expected {'100.0 B'}, got {helper.format_size(100)}"
+            raise AssertionError(msg)
         assert helper.format_size(0) == "0.0 B"
 
     def test_format_size_kilobytes(self) -> None:
@@ -185,7 +201,8 @@ class TestCLIHelper:
         helper = CLIHelper()
 
         if helper.format_size(1024) != "1.0 KB":
-            raise AssertionError(f"Expected {'1.0 KB'}, got {helper.format_size(1024)}")
+            msg = f"Expected {'1.0 KB'}, got {helper.format_size(1024)}"
+            raise AssertionError(msg)
         assert helper.format_size(2048) == "2.0 KB"
 
     def test_format_size_megabytes(self) -> None:
@@ -193,8 +210,9 @@ class TestCLIHelper:
         helper = CLIHelper()
 
         if helper.format_size(1024 * 1024) != "1.0 MB":
+            msg = f"Expected {'1.0 MB'}, got {helper.format_size(1024 * 1024)}"
             raise AssertionError(
-                f"Expected {'1.0 MB'}, got {helper.format_size(1024 * 1024)}",
+                msg,
             )
         assert helper.format_size(5 * 1024 * 1024) == "5.0 MB"
 
@@ -203,8 +221,9 @@ class TestCLIHelper:
         helper = CLIHelper()
 
         if helper.format_size(1024 * 1024 * 1024) != "1.0 GB":
+            msg = f"Expected {'1.0 GB'}, got {helper.format_size(1024 * 1024 * 1024)}"
             raise AssertionError(
-                f"Expected {'1.0 GB'}, got {helper.format_size(1024 * 1024 * 1024)}",
+                msg,
             )
 
     def test_truncate_text_short(self) -> None:
@@ -213,8 +232,9 @@ class TestCLIHelper:
 
         text = "Short text"
         if helper.truncate_text(text, max_length=50) != "Short text":
+            msg = f"Expected {'Short text'}, got {helper.truncate_text(text, max_length=50)}"
             raise AssertionError(
-                f"Expected {'Short text'}, got {helper.truncate_text(text, max_length=50)}",
+                msg,
             )
 
     def test_truncate_text_long(self) -> None:
@@ -224,7 +244,8 @@ class TestCLIHelper:
         text = "This is a very long text that should be truncated"
         result = helper.truncate_text(text, max_length=20)
         if len(result) != 20:
-            raise AssertionError(f"Expected {20}, got {len(result)}")
+            msg = f"Expected {20}, got {len(result)}"
+            raise AssertionError(msg)
         assert result.endswith("...")
 
     def test_truncate_text_exact_length(self) -> None:
@@ -233,8 +254,9 @@ class TestCLIHelper:
 
         text = "12345"
         if helper.truncate_text(text, max_length=5) != "12345":
+            msg = f"Expected {'12345'}, got {helper.truncate_text(text, max_length=5)}"
             raise AssertionError(
-                f"Expected {'12345'}, got {helper.truncate_text(text, max_length=5)}",
+                msg,
             )
 
     def test_sanitize_filename_safe(self) -> None:
@@ -242,8 +264,9 @@ class TestCLIHelper:
         helper = CLIHelper()
 
         if helper.sanitize_filename("safe_filename.txt") != "safe_filename.txt":
+            msg = f"Expected {'safe_filename.txt'}, got {helper.sanitize_filename('safe_filename.txt')}"
             raise AssertionError(
-                f"Expected {'safe_filename.txt'}, got {helper.sanitize_filename('safe_filename.txt')}",
+                msg,
             )
 
     def test_sanitize_filename_unsafe_characters(self) -> None:
@@ -252,28 +275,33 @@ class TestCLIHelper:
 
         result = helper.sanitize_filename('file<>:"/\\|?*.txt')
         if "<" in result:
+            msg = f"Expected '<' not in result, but found it in {result}"
             raise AssertionError(
-                f"Expected '<' not in result, but found it in {result}",
+                msg,
             )
         assert ">" not in result
         if ":" in result:
+            msg = f"Expected ':' not in result, but found it in {result}"
             raise AssertionError(
-                f"Expected ':' not in result, but found it in {result}",
+                msg,
             )
         assert '"' not in result
         if "/" in result:
+            msg = f"Expected '/' not in result, but found it in {result}"
             raise AssertionError(
-                f"Expected '/' not in result, but found it in {result}",
+                msg,
             )
         assert "\\" not in result
         if "|" in result:
+            msg = f"Expected '|' not in result, but found it in {result}"
             raise AssertionError(
-                f"Expected '|' not in result, but found it in {result}",
+                msg,
             )
         assert "?" not in result
         if "*" in result:
+            msg = f"Expected '*' not in result, but found it in {result}"
             raise AssertionError(
-                f"Expected '*' not in result, but found it in {result}",
+                msg,
             )
 
     def test_sanitize_filename_dots_and_spaces(self) -> None:
@@ -281,8 +309,9 @@ class TestCLIHelper:
         helper = CLIHelper()
 
         if helper.sanitize_filename("  .filename.  ") != "filename":
+            msg = f"Expected {'filename'}, got {helper.sanitize_filename('  .filename.  ')}"
             raise AssertionError(
-                f"Expected {'filename'}, got {helper.sanitize_filename('  .filename.  ')}",
+                msg,
             )
         assert helper.sanitize_filename("...") == "untitled"
 
@@ -291,8 +320,9 @@ class TestCLIHelper:
         helper = CLIHelper()
 
         if helper.sanitize_filename("") != "untitled":
+            msg = f"Expected {'untitled'}, got {helper.sanitize_filename('')}"
             raise AssertionError(
-                f"Expected {'untitled'}, got {helper.sanitize_filename('')}",
+                msg,
             )
         assert helper.sanitize_filename("   ") == "untitled"
 

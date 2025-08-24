@@ -11,6 +11,7 @@ import json
 import os
 import tempfile
 from pathlib import Path
+from typing import TypeVar
 from unittest.mock import MagicMock, patch
 from uuid import UUID
 
@@ -45,6 +46,9 @@ from flext_cli.cli_utils import (
     cli_run_command,
     cli_save_data_file,
 )
+
+# Type variable for testing
+T = TypeVar("T")
 
 
 class TestProjectSetupUtilities:
@@ -965,7 +969,7 @@ class TestInteractiveUtilities:
         """Test secure prompt."""
         mock_getpass.return_value = "secret"
 
-        result = cli_prompt("Enter password:", secure=True)
+        result = cli_prompt("Enter password:", hidden=True)
 
         assert result.is_success
         assert result.value == "secret"

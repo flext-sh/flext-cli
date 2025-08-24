@@ -6,9 +6,11 @@ from typing import ClassVar, override
 
 from flext_core import FlextResult
 
+from flext_cli import (
+    FlextCliEntity,
+)
 from flext_cli.foundation import (
     FlextCliConfig,
-    FlextCliEntity,
     create_flext_cli_config,
     setup_flext_cli,
 )

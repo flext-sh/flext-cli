@@ -33,18 +33,21 @@ class TestPositiveIntType:
 
         # Test various positive integers
         if param_type.convert(1, None, None) != 1:
+            msg = f"Expected {1}, got {param_type.convert(1, None, None)}"
             raise AssertionError(
-                f"Expected {1}, got {param_type.convert(1, None, None)}",
+                msg,
             )
         assert param_type.convert(42, None, None) == 42
         if param_type.convert(1000, None, None) != 1000:
+            msg = f"Expected {1000}, got {param_type.convert(1000, None, None)}"
             raise AssertionError(
-                f"Expected {1000}, got {param_type.convert(1000, None, None)}",
+                msg,
             )
         assert param_type.convert("5", None, None) == 5
         if param_type.convert("999", None, None) != 999:
+            msg = f"Expected {999}, got {param_type.convert('999', None, None)}"
             raise AssertionError(
-                f"Expected {999}, got {param_type.convert('999', None, None)}",
+                msg,
             )
 
     def test_invalid_values(self) -> None:
@@ -78,7 +81,8 @@ class TestPositiveIntType:
         """Test convenience PositiveInt instance."""
         assert isinstance(PositiveInt, PositiveIntType)
         if PositiveInt.name != "positive_int":
-            raise AssertionError(f"Expected {'positive_int'}, got {PositiveInt.name}")
+            msg = f"Expected {'positive_int'}, got {PositiveInt.name}"
+            raise AssertionError(msg)
 
 
 class TestURLType:
@@ -99,8 +103,9 @@ class TestURLType:
 
         for url in valid_urls:
             if url_type.convert(url, None, None) != url:
+                msg = f"Expected {url}, got {url_type.convert(url, None, None)}"
                 raise AssertionError(
-                    f"Expected {url}, got {url_type.convert(url, None, None)}",
+                    msg,
                 )
 
     def test_invalid_urls(self) -> None:
@@ -137,7 +142,8 @@ class TestURLType:
         """Test convenience URL instance."""
         assert isinstance(URL, URLType)
         if URL.name != "url":
-            raise AssertionError(f"Expected {'url'}, got {URL.name}")
+            msg = f"Expected {'url'}, got {URL.name}"
+            raise AssertionError(msg)
 
 
 class TestClickPath:
@@ -154,12 +160,15 @@ class TestClickPath:
 
         assert isinstance(path_type, click.Path)
         if not (path_type.exists):
-            raise AssertionError(f"Expected True, got {path_type.exists}")
+            msg = f"Expected True, got {path_type.exists}"
+            raise AssertionError(msg)
         assert path_type.file_okay is True
         if path_type.dir_okay:
-            raise AssertionError(f"Expected False, got {path_type.dir_okay}")
+            msg = f"Expected False, got {path_type.dir_okay}"
+            raise AssertionError(msg)
         if not (path_type.readable):
-            raise AssertionError(f"Expected True, got {path_type.readable}")
+            msg = f"Expected True, got {path_type.readable}"
+            raise AssertionError(msg)
 
     def test_path_type_parameter(self) -> None:
         """Test path_type parameter configuration."""
@@ -185,27 +194,35 @@ class TestClickPath:
         # ExistingFile
         assert isinstance(ExistingFile, ClickPath)
         if not (ExistingFile.exists):
-            raise AssertionError(f"Expected True, got {ExistingFile.exists}")
+            msg = f"Expected True, got {ExistingFile.exists}"
+            raise AssertionError(msg)
         assert ExistingFile.file_okay is True
         if ExistingFile.dir_okay:
-            raise AssertionError(f"Expected False, got {ExistingFile.dir_okay}")
+            msg = f"Expected False, got {ExistingFile.dir_okay}"
+            raise AssertionError(msg)
         # ExistingDir
         assert isinstance(ExistingDir, ClickPath)
         if not (ExistingDir.exists):
-            raise AssertionError(f"Expected True, got {ExistingDir.exists}")
+            msg = f"Expected True, got {ExistingDir.exists}"
+            raise AssertionError(msg)
         if ExistingDir.file_okay:
-            raise AssertionError(f"Expected False, got {ExistingDir.file_okay}")
+            msg = f"Expected False, got {ExistingDir.file_okay}"
+            raise AssertionError(msg)
         if not (ExistingDir.dir_okay):
-            raise AssertionError(f"Expected True, got {ExistingDir.dir_okay}")
+            msg = f"Expected True, got {ExistingDir.dir_okay}"
+            raise AssertionError(msg)
 
         # NewFile
         assert isinstance(NewFile, ClickPath)
         if NewFile.exists:
-            raise AssertionError(f"Expected False, got {NewFile.exists}")
+            msg = f"Expected False, got {NewFile.exists}"
+            raise AssertionError(msg)
         if not (NewFile.file_okay):
-            raise AssertionError(f"Expected True, got {NewFile.file_okay}")
+            msg = f"Expected True, got {NewFile.file_okay}"
+            raise AssertionError(msg)
         if NewFile.dir_okay:
-            raise AssertionError(f"Expected False, got {NewFile.dir_okay}")
+            msg = f"Expected False, got {NewFile.dir_okay}"
+            raise AssertionError(msg)
 
     def test_path_resolution(self, temp_dir: Path) -> None:
         """Test path resolution functionality."""
@@ -219,43 +236,53 @@ class TestClickPath:
         # This would normally be tested with click's testing utilities
         # For unit testing, we verify the configuration is correct
         if not (existing_file_type.exists):
-            raise AssertionError(f"Expected True, got {existing_file_type.exists}")
+            msg = f"Expected True, got {existing_file_type.exists}"
+            raise AssertionError(msg)
         assert existing_file_type.file_okay is True
         if existing_file_type.dir_okay:
-            raise AssertionError(f"Expected False, got {existing_file_type.dir_okay}")
+            msg = f"Expected False, got {existing_file_type.dir_okay}"
+            raise AssertionError(msg)
 
     def test_writable_readable_options(self) -> None:
         """Test writable and readable options."""
         writable_path = ClickPath(writable=True, readable=False)
         if not (writable_path.writable):
-            raise AssertionError(f"Expected True, got {writable_path.writable}")
+            msg = f"Expected True, got {writable_path.writable}"
+            raise AssertionError(msg)
         if writable_path.readable:
-            raise AssertionError(f"Expected False, got {writable_path.readable}")
+            msg = f"Expected False, got {writable_path.readable}"
+            raise AssertionError(msg)
         readable_path = ClickPath(writable=False, readable=True)
         if readable_path.writable:
-            raise AssertionError(f"Expected False, got {readable_path.writable}")
+            msg = f"Expected False, got {readable_path.writable}"
+            raise AssertionError(msg)
         if not (readable_path.readable):
-            raise AssertionError(f"Expected True, got {readable_path.readable}")
+            msg = f"Expected True, got {readable_path.readable}"
+            raise AssertionError(msg)
 
     def test_allow_dash_option(self) -> None:
         """Test allow_dash option."""
         dash_path = ClickPath(allow_dash=True)
         if not (dash_path.allow_dash):
-            raise AssertionError(f"Expected True, got {dash_path.allow_dash}")
+            msg = f"Expected True, got {dash_path.allow_dash}"
+            raise AssertionError(msg)
 
         no_dash_path = ClickPath(allow_dash=False)
         if no_dash_path.allow_dash:
-            raise AssertionError(f"Expected False, got {no_dash_path.allow_dash}")
+            msg = f"Expected False, got {no_dash_path.allow_dash}"
+            raise AssertionError(msg)
 
     def test_resolve_path_option(self) -> None:
         """Test resolve_path option."""
         resolve_path = ClickPath(resolve_path=True)
         if not (resolve_path.resolve_path):
-            raise AssertionError(f"Expected True, got {resolve_path.resolve_path}")
+            msg = f"Expected True, got {resolve_path.resolve_path}"
+            raise AssertionError(msg)
 
         no_resolve_path = ClickPath(resolve_path=False)
         if no_resolve_path.resolve_path:
-            raise AssertionError(f"Expected False, got {no_resolve_path.resolve_path}")
+            msg = f"Expected False, got {no_resolve_path.resolve_path}"
+            raise AssertionError(msg)
 
 
 class TestIntegrationWithClick:
@@ -306,7 +333,8 @@ class TestIntegrationWithClick:
     def test_type_names_for_help(self) -> None:
         """Test type names appear correctly in help."""
         if PositiveInt.name != "positive_int":
-            raise AssertionError(f"Expected {'positive_int'}, got {PositiveInt.name}")
+            msg = f"Expected {'positive_int'}, got {PositiveInt.name}"
+            raise AssertionError(msg)
         assert URL.name == "url"
 
         # Click.Path doesn't have a specific name attribute in the same way,

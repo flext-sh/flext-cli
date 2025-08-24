@@ -18,8 +18,6 @@ import json
 import shlex
 from collections.abc import Callable
 from pathlib import Path
-
-# FlextCliOutputFormat imported from models to avoid circular dependency
 from typing import Literal, Protocol, TypedDict, TypeVar
 from uuid import UUID
 
@@ -194,7 +192,7 @@ def _process_single_file(
         if fail_fast:
             return True, f"Processing failed for {path}: {result.error}"
         return False, None
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         _record_failure(results, path, str(e))
         if fail_fast:
             return True, f"Processing failed for {path}: {e}"
@@ -706,7 +704,8 @@ def cli_create_table(
 
         if isinstance(data, list):
             if not data:
-                return FlextResult[Table].fail("Cannot create table from empty list")
+                # Empty list creates valid empty table
+                return FlextResult[Table].ok(table)
 
             first_item = data[0]
             if isinstance(first_item, dict):
@@ -761,7 +760,7 @@ def cli_create_table(
 # Legacy functions removed - using FlextResult pattern consistently
 
 
-def cli_format_output(  # noqa: PLR0912,PLR0915
+def cli_format_output(  # noqa: PLR0912, PLR0915
     data: FlextCliData,
     format_type: FlextCliOutputFormat | str = FlextCliOutputFormat.TABLE,
     **options: object,

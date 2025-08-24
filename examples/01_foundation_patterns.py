@@ -22,7 +22,6 @@ SPDX-License-Identifier: MIT
 """
 
 from datetime import UTC, datetime
-from pathlib import Path
 
 from flext_core import FlextResult, get_flext_container
 from rich.console import Console
@@ -36,10 +35,8 @@ from flext_cli import (
     FlextCliCommand,
     FlextCliEntityFactory,
     FlextCliSession,
-    FlextCliSessionState,
     FlextCliSettings,
     get_cli_config,
-    handle_service_result,
     setup_cli,
 )
 from flext_cli.config import FlextCliConfig
@@ -50,13 +47,13 @@ def _setup_cli_demo(console: Console) -> FlextResult[None]:
     console.print("\\n[green]1. 🔧 FlextResult Railway-Oriented Programming[/green]")
     setup_result = setup_cli()
     if setup_result.is_failure:
-        return FlextResult[str].fail(f"Setup failed: {setup_result.error}")
+        return FlextResult[None].fail(f"Setup failed: {setup_result.error}")
 
     setup_success = setup_result.value
     console.print("✅ CLI setup using FlextResult pattern")
     console.print(f"   [dim]Setup successful: {setup_success}[/dim]")
     console.print(f"   [dim]Result type: {type(setup_result).__name__}[/dim]")
-    return FlextResult[str].ok(None)
+    return FlextResult[None].ok(None)
 
 
 def _config_demo(console: Console) -> FlextResult[FlextCliConfig]:
@@ -104,7 +101,7 @@ def _container_demo(console: Console, config: FlextCliConfig) -> FlextResult[Non
         services_table.add_row(service_name, status, service_type)
 
     console.print(services_table)
-    return FlextResult[str].ok(None)
+    return FlextResult[None].ok(None)
 
 
 def _entities_demo(
@@ -159,15 +156,17 @@ def _validation_demo(console: Console, command: FlextCliCommand) -> FlextResult[
     # Command execution lifecycle demo
     console.print("✅ Command execution started: [yellow]running[/yellow]")
 
-    @handle_service_result
     def sample_service_operation() -> FlextResult[str]:
         return FlextResult[str].ok("Service operation completed successfully")
 
     console.print("\\n[green]7. 🎭 Service Result Handling Decorator[/green]")
-    result = sample_service_operation()
-    console.print(f"✅ Decorated service result: [cyan]{result}[/cyan]")
+    service_result = sample_service_operation()
+    if service_result.is_success:
+        console.print(f"✅ Service result: [cyan]{service_result.value}[/cyan]")
+    else:
+        console.print(f"❌ Service failed: [red]{service_result.error}[/red]")
 
-    return FlextResult[str].ok(None)
+    return FlextResult[None].ok(None)
 
 
 def _summary_demo(console: Console) -> None:
@@ -221,7 +220,7 @@ def demonstrate_foundation_patterns() -> FlextResult[None]:
 
     config_result = _config_demo(console)
     if config_result.is_failure:
-        return FlextResult[str].fail(config_result.error or "Config failed")
+        return FlextResult[None].fail(config_result.error or "Config failed")
     config = config_result.value
 
     container_result = _container_demo(console, config)
@@ -230,7 +229,7 @@ def demonstrate_foundation_patterns() -> FlextResult[None]:
 
     entities_result = _entities_demo(console, config)
     if entities_result.is_failure:
-        return FlextResult[str].fail(entities_result.error or "Entity creation failed")
+        return FlextResult[None].fail(entities_result.error or "Entity creation failed")
     command, _session = entities_result.value
 
     validation_result = _validation_demo(console, command)
@@ -239,7 +238,7 @@ def demonstrate_foundation_patterns() -> FlextResult[None]:
 
     _summary_demo(console)
 
-    return FlextResult[str].ok(None)
+    return FlextResult[None].ok(None)
 
 
 def create_sample_command_with_factory(
@@ -297,25 +296,6 @@ def create_sample_session_with_factory(
 ) -> FlextResult[FlextCliSession]:
     """Create a sample CLI session using factory pattern with extensive configuration."""
     try:
-        # Use factory to create session with advanced configuration
-        session_data = {
-            "session_id": f"foundation-demo-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}",
-            "session_state": FlextCliSessionState.ACTIVE,
-            "start_time": datetime.now(UTC),
-            "workspace_path": Path.cwd(),
-            "profile": getattr(config, "profile", "default"),
-            "metadata": {
-                "demo_type": "foundation_patterns",
-                "flext_core_version": "0.9.0",
-                "patterns_demonstrated": [
-                    "FlextResult",
-                    "FlextModel",
-                    "FlextContainer",
-                    "FlextEntity",
-                ],
-            },
-        }
-
         # Factory creates validated session entity
         # Factory creates validated session entity using simplified API
         try:
@@ -323,14 +303,15 @@ def create_sample_session_with_factory(
             session_id = (
                 f"foundation-demo-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}"
             )
-            session_data: dict[str, object] = {
+            additional_session_data: dict[str, object] = {
                 "session_id": session_id,
                 "user_id": "demo-user",
                 "start_time": datetime.now(UTC),
+                "profile": getattr(config, "profile", "default"),
             }
             session = FlextCliSession(
                 id=session_id,
-                session_data=session_data,
+                session_data=additional_session_data,
             )
             return FlextResult[FlextCliSession].ok(session)
         except Exception as e:
@@ -461,10 +442,11 @@ def demonstrate_advanced_patterns() -> None:
     # Demonstrate configuration validation
     console.print("\\n[cyan]Configuration Validation Example:[/cyan]")
     try:
-        # Create settings with validation
-        settings = FlextCliSettings(
-            debug=True, project_name="flext-cli-demo", log_level="DEBUG"
-        )
+        # Create settings with validation - use model constructor correctly
+        settings = FlextCliSettings()
+        settings.debug = True
+        settings.project_name = "flext-cli-demo"
+        settings.log_level = "DEBUG"
         console.print(
             f"✅ Validated settings: {settings.project_name} (debug: {settings.debug})"
         )

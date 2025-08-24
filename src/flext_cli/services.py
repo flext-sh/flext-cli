@@ -2,7 +2,7 @@
 
 import uuid
 from collections.abc import Callable
-from typing import Protocol, TypedDict
+from typing import Protocol, TypedDict, cast
 
 from flext_core import FlextResult, get_logger
 
@@ -127,7 +127,7 @@ class FlextCliSessionService:
         commands = data.get("commands", [])
         if isinstance(commands, list):
             data["commands_count"] = len(commands)
-        return FlextResult[SessionData].ok(data)  # type: ignore[arg-type]  # Dict compatible with SessionData
+        return FlextResult[SessionData].ok(cast("SessionData", data))
 
     def end_session(self, session_id: str) -> FlextResult[None]:
         """End a CLI session."""

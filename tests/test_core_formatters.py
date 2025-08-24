@@ -309,7 +309,7 @@ class TestFormatterFactory:
         """Test registering custom formatter."""
 
         class CustomFormatter(OutputFormatter):
-            def format(self, data: object, console: Console) -> None:  # noqa: ARG002
+            def format(self, data: object, console: Console) -> None:
                 console.print("custom")
 
         FormatterFactory.register("custom", CustomFormatter)

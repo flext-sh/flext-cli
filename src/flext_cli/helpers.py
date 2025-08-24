@@ -523,7 +523,7 @@ class FlextCliDataProcessor:
             if key in output:
                 try:
                     output[key] = transformer(output[key])
-                except Exception as e:  # noqa: BLE001
+                except Exception as e:
                     return FlextResult[dict[str, object]].fail(str(e))
         return FlextResult[dict[str, object]].ok(output)
 

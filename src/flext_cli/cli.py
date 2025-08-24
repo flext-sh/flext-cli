@@ -18,10 +18,12 @@ from flext_core import (
 from rich.console import Console
 
 from flext_cli.__version__ import __version__
-from flext_cli.cmd import auth, config, debug
+from flext_cli.commands_auth import auth
+from flext_cli.commands_config import config
+from flext_cli.commands_debug import debug_cmd as debug
 from flext_cli.config import get_config
 from flext_cli.constants import FlextCliConstants
-from flext_cli.models import FlextCliContext
+from flext_cli.context import FlextCliContext
 
 
 @click.group(
@@ -66,13 +68,13 @@ def cli(
     """FLEXT Command Line Interface."""
     # Load configuration and override with CLI options
     base_config = get_config()
+
+    # Create new config with CLI overrides using model_copy
     config = base_config.model_copy(
         update={
-            "profile": profile,
-            "output_format": output,
-            "debug": debug,
-            "quiet": quiet,
-        },
+            "output_format": output or base_config.output_format,
+            "debug": debug or base_config.debug,
+        }
     )
 
     # Setup click context with components

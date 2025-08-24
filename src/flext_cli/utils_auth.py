@@ -11,7 +11,7 @@ from pathlib import Path
 
 from flext_core import FlextResult
 
-from flext_cli.config import get_config
+from flext_cli import get_config
 
 __all__ = [
     "clear_auth_tokens",

@@ -269,9 +269,11 @@ class TestFlextCliDataProcessorAdvanced:
         def double_items(data: dict[str, object]) -> FlextResult[dict[str, object]]:
             # Double all items
             doubled_items = [item * 2 for item in data["items"]]
-            return FlextResult[None].ok(
-                {**data, "items": doubled_items, "doubled": True}
-            )
+            return FlextResult[None].ok({
+                **data,
+                "items": doubled_items,
+                "doubled": True,
+            })
 
         def add_summary(data: dict[str, object]) -> FlextResult[dict[str, object]]:
             # Add summary statistics
@@ -337,7 +339,7 @@ class TestFlextCliDataProcessorAdvanced:
             return FlextResult[None].ok({**data, "processed": True})
 
         def failing_transformer(
-            data: dict[str, object],  # noqa: ARG001
+            data: dict[str, object],
         ) -> FlextResult[dict[str, object]]:
             return FlextResult[None].fail("Transformation logic error")
 
@@ -392,7 +394,7 @@ class TestFlextCliDataProcessorAdvanced:
             return FlextResult[None].ok({**data, "processed": True})
 
         def exception_transformer(
-            data: dict[str, object],  # noqa: ARG001
+            data: dict[str, object],
         ) -> FlextResult[dict[str, object]]:
             msg = "Unexpected transformer error"
             raise ValueError(msg)
@@ -484,7 +486,7 @@ class TestComplexDataProcessingWorkflows:
         def mock_aggregate(
             sources: dict[str, Callable[[], FlextResult[object]]],
             *,
-            fail_fast: bool = True,  # noqa: ARG001
+            fail_fast: bool = True,
         ) -> FlextResult[dict[str, object]]:
             result_data = {}
             for name, func in sources.items():
