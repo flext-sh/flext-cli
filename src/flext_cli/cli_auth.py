@@ -10,15 +10,15 @@ from __future__ import annotations
 import asyncio
 import contextlib
 from pathlib import Path
-from typing import TypedDict
+from typing import TypedDict, cast
 
 import click
 from flext_core import FlextResult
 from rich.console import Console
 
+from flext_cli.client import FlextApiClient
 from flext_cli.config import FlextCliConfig, get_config as _get_config
 from flext_cli.constants import FlextCliConstants
-from flext_cli.flext_api_integration import FlextCLIApiClient as FlextApiClient
 
 
 class UserData(TypedDict, total=False):
@@ -32,7 +32,7 @@ class UserData(TypedDict, total=False):
 def _get_user_data(data_obj: object) -> UserData | None:
     """Extract user data with proper typing."""
     if isinstance(data_obj, dict):
-        return data_obj  # type: ignore[return-value]  # TypedDict compatible
+        return cast("UserData", data_obj)
     return None
 
 
@@ -58,7 +58,7 @@ def _clear_tokens_bridge() -> FlextResult[None]:
     """
     try:
         return clear_auth_tokens()
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         return FlextResult[None].fail(str(e))
 
 
@@ -405,11 +405,11 @@ async def _async_logout_impl(_ctx: click.Context, console: Console) -> None:
             console.print(
                 f"[yellow]{FlextCliConstants.CliMessages.PROCESS_LOGGING_OUT}[/yellow]",
             )
-            logout_result = await client.logout()
-
-            if logout_result.is_failure:
+            try:
+                await client.logout()
+            except Exception as e:
                 console.print(
-                    f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_LOGOUT_FAILED}: {logout_result.error}[/red]",
+                    f"[red]{FlextCliConstants.CliOutput.ERROR_X} {FlextCliConstants.CliErrors.AUTH_LOGOUT_FAILED}: {e}[/red]",
                 )
 
             clear_result = FlextResult[None].ok(None)  # already cleared proactively
@@ -504,8 +504,8 @@ def status(ctx: click.Context) -> None:
                 )
                 user_result = await client.get_current_user()
 
-                # Use FlextResult's unwrap_or method for cleaner code
-                user = user_result.unwrap_or({})
+                # user_result is already a dict[str, object], not FlextResult
+                user = user_result
                 if user:
                     console.print(
                         f"[green]{FlextCliConstants.CliOutput.SUCCESS_CHECKMARK} {FlextCliConstants.CliMessages.STATUS_AUTHENTICATED}[/green]",
@@ -520,7 +520,7 @@ def status(ctx: click.Context) -> None:
                         f"{FlextCliConstants.CliMessages.LABEL_ROLE}: {user.get('role', FlextCliConstants.CliMessages.UNKNOWN)}",
                     )
                 else:
-                    error_msg = user_result.error or "Unknown error"
+                    error_msg = "No user data returned"
                     console.print(
                         f"[red]❌ Authentication check failed: {error_msg}[/red]",
                     )
@@ -575,8 +575,8 @@ def whoami(ctx: click.Context) -> None:
             async with FlextApiClient() as client:
                 user_result = await client.get_current_user()
 
-                # Use FlextResult's unwrap_or method for cleaner code
-                user = user_result.unwrap_or({})
+                # user_result is already a dict[str, object], not FlextResult
+                user = user_result
                 if user:
                     console.print(f"Username: {user.get('username', 'Unknown')}")
                     console.print(f"Full Name: {user.get('full_name', 'Unknown')}")
@@ -584,7 +584,7 @@ def whoami(ctx: click.Context) -> None:
                     console.print(f"Role: {user.get('role', 'Unknown')}")
                     console.print(f"ID: {user.get('id', 'Unknown')}")
                 else:
-                    error_msg = user_result.error or "Unknown error"
+                    error_msg = "No user data returned"
                     console.print(f"[red]❌ Failed to get user info: {error_msg}[/red]")
                     console.print("Run 'flext auth login' to re-authenticate")
                     ctx.exit(1)

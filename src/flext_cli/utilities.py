@@ -14,12 +14,12 @@ import os
 import re
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TypedDict
+from typing import TypedDict, cast
 
 from flext_core import FlextResult
 from rich.table import Table
 
-from flext_cli.config import FlextCliSettings
+from flext_cli import FlextCliSettings
 
 
 class JsonObject(TypedDict, total=False):
@@ -131,7 +131,7 @@ class FlextCliValidationUtilities:
         try:
             parsed = json.loads(json_str)
             if isinstance(parsed, dict):
-                return FlextResult[JsonObject].ok(parsed)  # type: ignore[arg-type]  # Dict is compatible with JsonObject
+                return FlextResult[JsonObject].ok(cast("JsonObject", parsed))
             return FlextResult[JsonObject].fail("JSON must be an object")
         except json.JSONDecodeError as e:
             return FlextResult[JsonObject].fail(f"Invalid JSON: {e}")

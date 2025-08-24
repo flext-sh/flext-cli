@@ -79,7 +79,7 @@ class TestTableFormatter(unittest.TestCase):
         self.formatter = TableFormatter()
         # Use console with string buffer to capture output
         self.output_buffer = io.StringIO()
-        self.console = Console(file=self.output_buffer, force_terminal=True, width=80)
+        self.console = Console(file=self.output_buffer, force_terminal=False, width=80)
 
     def test_table_formatter_inheritance(self) -> None:
         """Test TableFormatter properly inherits from OutputFormatter."""

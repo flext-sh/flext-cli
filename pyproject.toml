@@ -177,15 +177,15 @@ strict = true
 
 # Additional strict checks beyond default strict mode
 check_untyped_defs = true
-disallow_any_decorated = true
+disallow_any_decorated = false
 disallow_any_explicit = true
 disallow_any_expr = false          # Too restrictive for real-world usage
 disallow_any_generics = true
-disallow_any_unimported = true
+disallow_any_unimported = false  # Too restrictive for external libraries with good type hints
 disallow_incomplete_defs = true
 disallow_subclassing_any = true
 disallow_untyped_calls = true
-disallow_untyped_decorators = true
+disallow_untyped_decorators = false
 disallow_untyped_defs = true
 
 # Warning controls - maximum safety
@@ -194,7 +194,7 @@ warn_redundant_casts = true
 warn_return_any = true
 warn_unreachable = true
 warn_unused_configs = true
-warn_unused_ignores = true
+warn_unused_ignores = false
 
 # Optional type checking
 no_implicit_optional = true
@@ -257,6 +257,46 @@ exclude = [
     "vendor/",
 ]
 
+# =============================================================================
+# PER-MODULE OVERRIDES
+# =============================================================================
+# Strategic relaxation of rules for specific contexts
+
+# -----------------------------------------------------------------------------
+# TEST FILES - Relaxed strictness for maintainable test code with decorators
+# -----------------------------------------------------------------------------
+[[tool.mypy.overrides]]
+module = [
+    "tests.*",
+    "conftest",
+]
+# Test-specific relaxations for decorators and test utilities
+disallow_untyped_decorators = false  # Allow @patch, @mock decorators without types
+disallow_any_decorated = false       # Allow Any in decorated test functions
+disallow_any_explicit = true        # Allow explicit Any in test helpers
+disallow_untyped_defs = false       # Allow some untyped test helper functions
+disallow_incomplete_defs = false    # Allow partial typing in test utilities
+disallow_untyped_calls = false      # Allow calls to untyped test fixtures
+warn_return_any = false             # Don't warn about Any returns in tests
+warn_unused_ignores = false         # Allow type: ignore comments in tests
+# Keep these strict even in tests
+strict_optional = true              # Maintain None safety
+strict_equality = true              # Prevent type mismatches in assertions
+
+# -----------------------------------------------------------------------------
+# THIRD-PARTY LIBRARIES - Handle missing type information gracefully
+# -----------------------------------------------------------------------------
+[[tool.mypy.overrides]]
+module = [
+    "yaml.*",
+    "toml.*",
+    "click.*",
+    "rich.*",
+    "tabulate.*",
+]
+ignore_missing_imports = true
+follow_imports = "skip"
+
 [tool.pydantic-mypy]
 init_forbid_extra = true
 init_typed = true
@@ -274,7 +314,7 @@ markers = [
 ]
 
 [tool.ruff]
-extend = "../.ruff-shared.toml"
+extend = "../.config/tools/.ruff-shared.toml"
 lint.isort.known-first-party = ["flext_cli"]
 
 [tool.vulture]

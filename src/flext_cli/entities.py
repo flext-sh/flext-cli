@@ -71,7 +71,7 @@ class FlextCliEntityFactory:
             except Exception:
                 ...
             return FlextResult[CLICommand].ok(entity)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             return FlextResult[CLICommand].fail(
                 f"{FlextCliConstants.CliErrors.COMMAND_EXECUTION_FAILED}: {e!s}",
             )
@@ -105,7 +105,7 @@ class FlextCliEntityFactory:
                 plugin_version=plugin_version or "0.1.0",
             )
             return FlextResult[FlextCliPlugin].ok(entity)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             return FlextResult[FlextCliPlugin].fail(
                 f"{FlextCliConstants.CliErrors.PLUGIN_ENTRY_POINT_EMPTY}: {e!s}",
             )
@@ -129,7 +129,7 @@ class FlextCliEntityFactory:
                 )
             entity = FlextCliSession(id=FlextEntityId(session_id), user_id=session_id)
             return FlextResult[FlextCliSession].ok(entity)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             return FlextResult[FlextCliSession].fail(
                 f"{FlextCliConstants.CliErrors.SESSION_VALIDATION_FAILED}: {e!s}",
             )

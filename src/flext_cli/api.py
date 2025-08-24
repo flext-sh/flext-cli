@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import contextlib
 import csv
-import io
 import json
 import pathlib
 import platform
@@ -25,7 +24,9 @@ from flext_core import FlextEntityId, FlextResult
 from rich.console import Console
 from rich.table import Table
 
-from flext_cli.cli_types import FlextCliDataType
+# Fixed circular import: Import directly from specific modules instead of main package
+from flext_cli.cli_types import FlextCliDataType, FlextCliOutputFormat
+from flext_cli.cli_utils import cli_create_table, cli_format_output
 from flext_cli.config import FlextCliSettings
 from flext_cli.models import (
     FlextCliCommand as CLICommand,
@@ -40,6 +41,7 @@ class SessionData(TypedDict):
     id: str
     status: str
     created_at: str
+    user_id: str | None
     commands: list[str]
 
 
@@ -97,6 +99,8 @@ def flext_cli_format(
 ) -> FlextResult[str]:
     """Format data using specified format type.
 
+    Delegates to cli_utils.cli_format_output to avoid code duplication.
+
     Args:
       data: Data to format
       format_type: Output format (table, json, yaml, csv, plain)
@@ -105,106 +109,29 @@ def flext_cli_format(
       FlextResult with formatted output or error
 
     """
+    # Convert string format to FlextCliOutputFormat enum and delegate
     try:
-        # Validate format type first
-        valid_formats = {"json", "yaml", "table", "csv", "plain"}
-        if format_type not in valid_formats:
-            return FlextResult[str].fail(
-                f"Format error: Invalid format '{format_type}'. Valid formats: {', '.join(sorted(valid_formats))}",
-            )
+        format_enum = FlextCliOutputFormat(format_type.lower())
+    except ValueError:
+        # Handle invalid format types
+        valid_formats = [fmt.value for fmt in FlextCliOutputFormat]
+        return FlextResult[str].fail(
+            f"Format error: Invalid format '{format_type}'. Valid formats: {', '.join(valid_formats)}"
+        )
 
-        # Simple formatting without FormatterFactory
-        if format_type == "json":
-            formatted = json.dumps(data, indent=2, default=str)
-        elif format_type == "yaml":
-            formatted = yaml.dump(data, default_flow_style=False, sort_keys=False)
-        elif format_type == "table":
-            # Create table using our existing function
-            table_result = flext_cli_table(data)
-            if table_result.is_success:
-                # Render table to string
-                output_buffer = io.StringIO()
-                console = Console(file=output_buffer, width=80)
-                console.print(table_result.value)
-                formatted = output_buffer.getvalue()
-            else:
-                return FlextResult[str].fail(
-                    table_result.error or "Table creation failed"
-                )
-        elif format_type in {"csv", "plain"}:
-            # Handle csv and plain formats
-            formatted = str(data)
-        else:
-            # This should never be reached due to validation above
-            formatted = str(data)
-
-        return FlextResult[str].ok(formatted)
-
-    except (AttributeError, ValueError, TypeError) as e:
-        return FlextResult[str].fail(f"Format error: {e}")
+    # Cast to FlextCliData type for compatibility
+    return cli_format_output(cast("dict[str, object] | list[object] | str | float | int | None", data), format_enum)
 
 
-def _create_table_from_dict_list(data: list[dict[str, object]], table: Table) -> None:
-    """Create table from list of dictionaries.
-
-    Args:
-      data: List of dictionaries
-      table: Table to populate
-
-    """
-    headers = list(data[0].keys())
-
-    for header in headers:
-        table.add_column(header.replace("_", " ").title())
-
-    for item in data:
-        table.add_row(*[str(item.get(h, "")) for h in headers])
-
-
-def _create_table_from_simple_list(data: list[object], table: Table) -> None:
-    """Create table from simple list.
-
-    Args:
-      data: Simple list of values
-      table: Table to populate
-
-    """
-    table.add_column("Value")
-    for item in data:
-        table.add_row(str(item))
-
-
-def _create_table_from_dict(data: dict[str, object], table: Table) -> None:
-    """Create table from single dictionary.
-
-    Args:
-      data: Dictionary data
-      table: Table to populate
-
-    """
-    table.add_column("Key", style="cyan")
-    table.add_column("Value")
-
-    for key, value in data.items():
-        table.add_row(key.replace("_", " ").title(), str(value))
-
-
-def _create_table_from_single_value(data: object, table: Table) -> None:
-    """Create table from single value.
-
-    Args:
-      data: Single value
-      table: Table to populate
-
-    """
-    table.add_column("Value")
-    table.add_row(str(data))
+# Table creation helpers removed - functionality consolidated in cli_utils.py
 
 
 def flext_cli_table(
     data: FlextCliDataType, title: str | None = None
 ) -> FlextResult[Table]:
     """Create a Rich table from data.
+
+    Delegates to cli_utils.cli_create_table to avoid code duplication.
 
     Args:
       data: Data to convert to table
@@ -214,30 +141,9 @@ def flext_cli_table(
       FlextResult with Rich Table or error
 
     """
-    try:
-        table = Table(title=title, show_header=True, header_style="bold cyan")
-
-        if isinstance(data, list) and data:
-            if isinstance(data[0], dict):
-                # Cast to correct type for function call
-                dict_list = cast(
-                    "list[dict[str, object]]",
-                    [item for item in data if isinstance(item, dict)],
-                )
-                _create_table_from_dict_list(dict_list, table)
-            else:
-                # Cast to list[object] for simple list
-                simple_list = cast("list[object]", list(data))
-                _create_table_from_simple_list(simple_list, table)
-        elif isinstance(data, dict):
-            _create_table_from_dict(cast("dict[str, object]", data), table)
-        else:
-            _create_table_from_single_value(data, table)
-
-        return FlextResult[Table].ok(table)
-
-    except (AttributeError, ValueError, TypeError) as e:
-        return FlextResult[Table].fail(f"Table creation error: {e}")
+    # Delegate to the more feature-rich cli_utils implementation
+    # Cast to FlextCliData type for compatibility
+    return cli_create_table(cast("dict[str, object] | list[object] | str | float | int | None", data), title)
 
 
 def flext_cli_transform_data(
@@ -650,7 +556,7 @@ class FlextCliApi:
         else:
             return FlextResult[object].ok(command)
 
-    def flext_cli_create_session(self, user_id: str | None = None) -> FlextResult[str]:  # noqa: ARG002
+    def flext_cli_create_session(self, user_id: str | None = None) -> FlextResult[str]:
         """Create CLI session with real session tracking."""
         try:
             # Generate unique session ID
@@ -667,6 +573,7 @@ class FlextCliApi:
                 "id": session_id,
                 "status": "active",
                 "created_at": datetime.now(UTC).isoformat(),
+                "user_id": user_id,  # Include user_id in session data
                 "commands": [],
             }
 

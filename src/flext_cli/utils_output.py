@@ -14,7 +14,7 @@ import yaml as _yaml
 from rich.console import Console
 from rich.table import Table
 
-from flext_cli import get_config
+from flext_cli.config import get_config
 
 
 class ConsoleProtocol(Protocol):

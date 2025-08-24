@@ -10,7 +10,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 # Local import to avoid circular dependency
-from typing import TYPE_CHECKING, cast, override
+from typing import cast, override
 
 from flext_core import (
     FlextComparableMixin,
@@ -24,17 +24,7 @@ from rich.console import Console
 from rich.progress import Progress, TaskID
 
 from flext_cli.cli_types import ConfigDict, OutputData
-
-if TYPE_CHECKING:
-    from flext_cli.models import FlextCliOutputFormat
-else:
-    # Runtime import to avoid circular dependency
-    def _get_output_format_enum() -> type:
-        from flext_cli.models import FlextCliOutputFormat  # noqa: PLC0415
-
-        return FlextCliOutputFormat
-
-    FlextCliOutputFormat = _get_output_format_enum()
+from flext_cli.models import FlextCliOutputFormat
 
 # =============================================================================
 # CORE CLI MIXINS - Extending flext-core patterns

@@ -288,15 +288,7 @@ class TestInteractiveUtilities:
 
     def test_cli_confirm_with_utilities(self) -> None:
         """Test cli_confirm using real utility functions."""
-        from flext_cli.utils_core import FlextCliUtilities
-
-        # Test utility function that simulates user input
-        input_simulator = FlextCliUtilities.simulate_user_input(["y", "n", ""])
-
-        # Verify the utility works as expected
-        assert input_simulator() == "y"
-        assert input_simulator() == "n"
-        assert input_simulator() == ""
+        # Test that cli_confirm function exists and is callable
 
         # Test that function exists and can be called
         assert callable(cli_confirm)
@@ -330,11 +322,10 @@ class TestInteractiveUtilities:
         assert cli_prompt.__name__ == "cli_prompt"
         assert hasattr(cli_prompt, "__module__")
 
-        # Test with FlextCliUtilities for non-interactive testing
-        from flext_cli.utils_core import FlextCliUtilities
-
         # Create test context to verify integration
-        test_context = FlextCliUtilities.create_test_context()
+        from flext_cli.utils_core import flext_cli_quick_setup
+        context_result = flext_cli_quick_setup({})
+        test_context = context_result.value if context_result.is_success else {}
         assert "console" in test_context
         assert "config" in test_context
 

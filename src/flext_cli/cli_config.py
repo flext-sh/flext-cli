@@ -19,7 +19,7 @@ from flext_core import (
 )
 from pydantic import ConfigDict as PydanticConfigDict, Field, field_validator
 
-from flext_cli.cli_types import ConfigDict, FlextCliOutputFormat
+from flext_cli import ConfigDict, FlextCliOutputFormat
 
 
 # =============================================================================

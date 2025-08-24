@@ -28,7 +28,6 @@ from flext_cli import (
     FlextCliConfig,
     FlextCliEntityFactory,
     FlextCliExecutionContext,
-    FlextCliExecutionContext as FlextCliContext,
     FlextCliPlugin,
     FlextCliSession,
     FlextCliSessionService,
@@ -38,6 +37,7 @@ from flext_cli import (
     cli,
     get_config,
 )
+from flext_cli.api import FlextCliContext
 
 
 class TestCLICommandEntityIntegration:
@@ -306,20 +306,19 @@ class TestCLISessionEntityIntegration:
 
         # Create CLI context with proper components (SOLID: Dependency Injection)
         get_config()
-        config = FlextCliConfig(
-            profile="test",
+        settings = FlextCliSettings(
             output_format="json",
             debug=True,
         )
 
         context = FlextCliContext(
-            config=config, settings=FlextCliSettings(), console=Console()
+            config=settings, console=Console()
         )
 
         # Session should be able to track context
         assert session.session_id == "test-context"
-        assert context.config.profile == "test"
         assert context.config.debug is True
+        assert context.config.output_format == "json"
 
 
 class TestCLIPluginEntityIntegration:
@@ -339,21 +338,17 @@ class TestCLIPluginEntityIntegration:
         assert len(plugin.commands) == 3
 
         # Activate plugin
-        activated_result = plugin.activate()
-        assert activated_result.is_success
-        plugin = activated_result.value
-        assert plugin.plugin_status == PluginStatus.ACTIVE
+        activated_plugin = plugin.activate()
+        assert activated_plugin.plugin_status == PluginStatus.ACTIVE
 
         # Plugin should be able to provide commands
-        assert "test" in plugin.commands
-        assert "validate" in plugin.commands
-        assert "process" in plugin.commands
+        assert "test" in activated_plugin.commands
+        assert "validate" in activated_plugin.commands
+        assert "process" in activated_plugin.commands
 
         # Deactivate plugin
-        deactivated_result = plugin.deactivate()
-        assert deactivated_result.is_success
-        plugin = deactivated_result.value
-        assert plugin.plugin_status == PluginStatus.INACTIVE
+        deactivated_plugin = activated_plugin.deactivate()
+        assert deactivated_plugin.plugin_status == PluginStatus.INACTIVE
 
     def test_plugin_command_integration(self) -> None:
         """Test plugin commands integrate with CLI."""
@@ -536,14 +531,13 @@ class TestCLIContextIntegration:
     def test_cli_context_with_commands(self) -> None:
         """Test FlextCliContext integrates with command execution."""
         # Create proper CLI context (SOLID: Dependency Injection)
-        config = FlextCliConfig(
-            profile="integration-test",
+        settings = FlextCliSettings(
             output_format="json",
             debug=True,
         )
 
         context = FlextCliContext(
-            config=config, settings=FlextCliSettings(), console=Console()
+            config=settings, console=Console()
         )
 
         runner = CliRunner()
@@ -596,15 +590,13 @@ class TestCLIContextIntegration:
         """Test context with file-based operations."""
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create proper CLI context (SOLID: Dependency Injection)
-            config = FlextCliConfig(
-                profile="file-test",
+            settings = FlextCliSettings(
                 output_format="yaml",
                 debug=False,
             )
 
             context = FlextCliContext(
-                config=config,
-                settings=FlextCliSettings(),
+                config=settings,
                 console=Console(),
             )
 

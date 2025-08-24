@@ -181,7 +181,7 @@ class TestSetupFlextCliEcosystem:
         """Test successful ecosystem setup with real functionality."""
         # Import here to ensure module is loaded for coverage
         from flext_cli.ecosystem_integration import setup_flext_cli_ecosystem
-        
+
         result = setup_flext_cli_ecosystem("test-ecosystem")
 
         assert result.is_success
@@ -221,14 +221,12 @@ class TestSetupFlextCliEcosystem:
         result1 = setup_flext_cli_ecosystem("project1", debug=False)
         assert result1.is_success
         assert result1.value["project"] == "project1"
-        
+
         # Test second project with different config
         result2 = setup_flext_cli_ecosystem("project2", debug=True)
         assert result2.is_success
         assert result2.value["project"] == "project2"
         assert result2.value["config"]["debug"] is True
-
-
 
 
 class TestMigrateToModernPatterns:

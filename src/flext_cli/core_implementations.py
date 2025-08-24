@@ -19,8 +19,7 @@ from typing import (
     override,
 )
 
-from flext_core import FlextModel, FlextResult
-from flext_core.loggings import get_logger
+from flext_core import FlextModel, FlextResult, get_logger
 from pydantic import ConfigDict, Field
 from rich.console import Console
 
@@ -217,9 +216,9 @@ def handle_service_result[T, **P](func: Callable[P, FlextResult[T] | T]) -> obje
                         _print_error(result.error or "Unknown error")
                         return None
                     # Cast to T to work around flext-core Any typing limitations
-                    return cast(T, result.value)
+                    return cast("T", result.value)
                 # Cast to T - function signature guarantees this is T
-                return cast(T, result)
+                return cast("T", result)
             except Exception as exc:
                 _print_error(str(exc))
                 # Keep message consistent with sync wrapper if tests expect that
@@ -237,7 +236,7 @@ def handle_service_result[T, **P](func: Callable[P, FlextResult[T] | T]) -> obje
                     _print_error(result.error or "Unknown error")
                     return None
                 # Cast to T to work around flext-core Any typing limitations
-                return cast(T, result.value)
+                return cast("T", result.value)
             # Return result directly - function signature guarantees this is T
             return result
         except Exception as exc:

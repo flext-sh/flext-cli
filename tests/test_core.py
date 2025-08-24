@@ -53,15 +53,18 @@ class TestFlextCliService:
         assert isinstance(service._sessions, dict)
         assert isinstance(service._commands, dict)
         if service._formats != {"json", "yaml", "csv", "table", "plain"}:
+            msg = f'Expected {{"json", "yaml", "csv", "table", "plain"}}, got {service._formats}'
             raise AssertionError(
-                f'Expected {{"json", "yaml", "csv", "table", "plain"}}, got {service._formats}',
+                msg,
             )
         assert len(service._handlers) == 0
         if len(service._plugins) != 0:
-            raise AssertionError(f"Expected {0}, got {len(service._plugins)}")
+            msg = f"Expected {0}, got {len(service._plugins)}"
+            raise AssertionError(msg)
         assert len(service._sessions) == 0
         if len(service._commands) != 0:
-            raise AssertionError(f"Expected {0}, got {len(service._commands)}")
+            msg = f"Expected {0}, got {len(service._commands)}"
+            raise AssertionError(msg)
 
     def test_configure_with_dict(self) -> None:
         """Test configuring service with dictionary."""
@@ -76,10 +79,12 @@ class TestFlextCliService:
         assert result.is_success
         assert service._config is not None
         if not (service._config.debug):
-            raise AssertionError(f"Expected True, got {service._config.debug}")
+            msg = f"Expected True, got {service._config.debug}"
+            raise AssertionError(msg)
         if service._config.format_type != "json":
+            msg = f"Expected {'json'}, got {service._config.format_type}"
             raise AssertionError(
-                f"Expected {'json'}, got {service._config.format_type}",
+                msg,
             )
         assert service._config.profile == "test"
 
@@ -123,7 +128,8 @@ class TestFlextCliService:
         result = service.configure(invalid_config)
         assert not result.is_success
         if "Invalid config type:" not in result.error:
-            raise AssertionError(f"Expected {'Invalid config type:'} in {result.error}")
+            msg = f"Expected {'Invalid config type:'} in {result.error}"
+            raise AssertionError(msg)
 
     def test_configure_exception_handling(self) -> None:
         """Test configure method exception handling."""
@@ -138,8 +144,9 @@ class TestFlextCliService:
             result = service.configure({"test": "data"})
             assert not result.is_success
             if "Configuration failed:" not in result.error:
+                msg = f"Expected {'Configuration failed:'} in {result.error}"
                 raise AssertionError(
-                    f"Expected {'Configuration failed:'} in {result.error}",
+                    msg,
                 )
 
     def test_flext_cli_export_json(self) -> None:
@@ -159,12 +166,14 @@ class TestFlextCliService:
             result = service.flext_cli_export(data, temp_path, "json")
             assert result.is_success
             if not (result.value):
-                raise AssertionError(f"Expected True, got {result.value}")
+                msg = f"Expected True, got {result.value}"
+                raise AssertionError(msg)
 
             # Verify file content
             exported_data = json.loads(Path(temp_path).read_text(encoding="utf-8"))
             if exported_data != data:
-                raise AssertionError(f"Expected {data}, got {exported_data}")
+                msg = f"Expected {data}, got {exported_data}"
+                raise AssertionError(msg)
         finally:
             Path(temp_path).unlink(missing_ok=True)
 
@@ -185,12 +194,14 @@ class TestFlextCliService:
             result = service.flext_cli_export(data, temp_path, "yaml")
             assert result.is_success
             if not (result.value):
-                raise AssertionError(f"Expected True, got {result.value}")
+                msg = f"Expected True, got {result.value}"
+                raise AssertionError(msg)
 
             # Verify file exists and has content
             content = Path(temp_path).read_text(encoding="utf-8")
             if "name: test" not in content:
-                raise AssertionError(f"Expected {'name: test'} in {content}")
+                msg = f"Expected {'name: test'} in {content}"
+                raise AssertionError(msg)
             assert "items:" in content
         finally:
             Path(temp_path).unlink(missing_ok=True)
@@ -224,8 +235,9 @@ class TestFlextCliService:
             result = service.flext_cli_export(data, temp_path, "invalid_format")
             assert not result.is_success
             if "Formatting failed:" not in result.error and "Unsupported format:" not in result.error:
+                msg = f"Expected 'Formatting failed:' or 'Unsupported format:' in {result.error}"
                 raise AssertionError(
-                    f"Expected 'Formatting failed:' or 'Unsupported format:' in {result.error}",
+                    msg,
                 )
         finally:
             Path(temp_path).unlink(missing_ok=True)
@@ -243,7 +255,8 @@ class TestFlextCliService:
         )
         assert not result.is_success
         if "Export failed:" not in result.error:
-            raise AssertionError(f"Expected {'Export failed:'} in {result.error}")
+            msg = f"Expected {'Export failed:'} in {result.error}"
+            raise AssertionError(msg)
 
     def test_flext_cli_format_json(self) -> None:
         """Test formatting data as JSON."""
@@ -258,7 +271,8 @@ class TestFlextCliService:
         # Verify it's valid JSON
         parsed = json.loads(formatted)
         if parsed != data:
-            raise AssertionError(f"Expected {data}, got {parsed}")
+            msg = f"Expected {data}, got {parsed}"
+            raise AssertionError(msg)
 
     def test_flext_cli_format_yaml(self) -> None:
         """Test formatting data as YAML."""
@@ -269,7 +283,8 @@ class TestFlextCliService:
         assert result.is_success
         formatted = result.value
         if "name: test" not in formatted:
-            raise AssertionError(f"Expected {'name: test'} in {formatted}")
+            msg = f"Expected {'name: test'} in {formatted}"
+            raise AssertionError(msg)
         assert "enabled: true" in formatted
 
     def test_flext_cli_format_csv_dict_list(self) -> None:
@@ -285,10 +300,12 @@ class TestFlextCliService:
         formatted = result.value
         lines = formatted.strip().split("\n")
         if "name,age" not in lines[0]:
-            raise AssertionError(f"Expected {'name,age'} in {lines[0]}")
+            msg = f"Expected {'name,age'} in {lines[0]}"
+            raise AssertionError(msg)
         assert "Alice,30" in lines[1]
         if "Bob,25" not in lines[2]:
-            raise AssertionError(f"Expected {'Bob,25'} in {lines[2]}")
+            msg = f"Expected {'Bob,25'} in {lines[2]}"
+            raise AssertionError(msg)
 
     def test_flext_cli_format_csv_single_dict(self) -> None:
         """Test formatting single dictionary as CSV."""
@@ -300,7 +317,8 @@ class TestFlextCliService:
         formatted = result.value
         lines = formatted.strip().split("\n")
         if "name,age" not in lines[0]:
-            raise AssertionError(f"Expected {'name,age'} in {lines[0]}")
+            msg = f"Expected {'name,age'} in {lines[0]}"
+            raise AssertionError(msg)
         assert "Alice,30" in lines[1]
 
     def test_flext_cli_format_csv_simple_list(self) -> None:
@@ -313,10 +331,12 @@ class TestFlextCliService:
         formatted = result.value
         lines = formatted.strip().split("\n")
         if "value" not in lines[0]:
-            raise AssertionError(f"Expected {'value'} in {lines[0]}")
+            msg = f"Expected {'value'} in {lines[0]}"
+            raise AssertionError(msg)
         assert "apple" in lines[1]
         if "banana" not in lines[2]:
-            raise AssertionError(f"Expected {'banana'} in {lines[2]}")
+            msg = f"Expected {'banana'} in {lines[2]}"
+            raise AssertionError(msg)
         assert "cherry" in lines[3]
 
     def test_flext_cli_format_csv_empty_list(self) -> None:
@@ -328,7 +348,8 @@ class TestFlextCliService:
         assert result.is_success
         formatted = result.value
         if formatted != "":
-            raise AssertionError(f"Expected {''}, got {formatted}")
+            msg = f"Expected {''}, got {formatted}"
+            raise AssertionError(msg)
 
     def test_flext_cli_format_csv_simple_value(self) -> None:
         """Test formatting simple value as CSV."""
@@ -340,7 +361,8 @@ class TestFlextCliService:
         formatted = result.value
         lines = formatted.strip().split("\n")
         if "value" not in lines[0]:
-            raise AssertionError(f"Expected {'value'} in {lines[0]}")
+            msg = f"Expected {'value'} in {lines[0]}"
+            raise AssertionError(msg)
         assert "simple_value" in lines[1]
 
     def test_flext_cli_format_table_dict(self) -> None:
@@ -352,10 +374,12 @@ class TestFlextCliService:
         assert result.is_success
         formatted = result.value
         if "name" not in formatted:
-            raise AssertionError(f"Expected {'name'} in {formatted}")
+            msg = f"Expected {'name'} in {formatted}"
+            raise AssertionError(msg)
         assert "Alice" in formatted
         if "age" not in formatted:
-            raise AssertionError(f"Expected {'age'} in {formatted}")
+            msg = f"Expected {'age'} in {formatted}"
+            raise AssertionError(msg)
         assert "30" in formatted
 
     def test_flext_cli_format_table_dict_list(self) -> None:
@@ -370,13 +394,16 @@ class TestFlextCliService:
         assert result.is_success
         formatted = result.value
         if "name" not in formatted:
-            raise AssertionError(f"Expected {'name'} in {formatted}")
+            msg = f"Expected {'name'} in {formatted}"
+            raise AssertionError(msg)
         assert "age" in formatted
         if "Alice" not in formatted:
-            raise AssertionError(f"Expected {'Alice'} in {formatted}")
+            msg = f"Expected {'Alice'} in {formatted}"
+            raise AssertionError(msg)
         assert "Bob" in formatted
         if "|" not in formatted:  # Table separator
-            raise AssertionError(f"Expected {'|'} in {formatted}")
+            msg = f"Expected {'|'} in {formatted}"
+            raise AssertionError(msg)
 
     def test_flext_cli_format_table_simple_list(self) -> None:
         """Test formatting simple list as table."""
@@ -387,10 +414,12 @@ class TestFlextCliService:
         assert result.is_success
         formatted = result.value
         if "apple" not in formatted:
-            raise AssertionError(f"Expected {'apple'} in {formatted}")
+            msg = f"Expected {'apple'} in {formatted}"
+            raise AssertionError(msg)
         assert "banana" in formatted
         if "cherry" not in formatted:
-            raise AssertionError(f"Expected {'cherry'} in {formatted}")
+            msg = f"Expected {'cherry'} in {formatted}"
+            raise AssertionError(msg)
 
     def test_flext_cli_format_table_simple_value(self) -> None:
         """Test formatting simple value as table."""
@@ -401,7 +430,8 @@ class TestFlextCliService:
         assert result.is_success
         formatted = result.value
         if "simple_value" not in formatted:
-            raise AssertionError(f"Expected {'simple_value'} in {formatted}")
+            msg = f"Expected {'simple_value'} in {formatted}"
+            raise AssertionError(msg)
 
     def test_flext_cli_format_table_empty_dict(self) -> None:
         """Test formatting empty dict as table."""
@@ -412,7 +442,8 @@ class TestFlextCliService:
         assert result.is_success
         formatted = result.value
         if formatted != "":
-            raise AssertionError(f"Expected {''}, got {formatted}")
+            msg = f"Expected {''}, got {formatted}"
+            raise AssertionError(msg)
 
     def test_flext_cli_format_plain(self) -> None:
         """Test formatting data as plain text."""
@@ -423,7 +454,8 @@ class TestFlextCliService:
         assert result.is_success
         formatted = result.value
         if "test" not in formatted:
-            raise AssertionError(f"Expected {'test'} in {formatted}")
+            msg = f"Expected {'test'} in {formatted}"
+            raise AssertionError(msg)
         assert "42" in formatted
 
     def test_flext_cli_format_unsupported(self) -> None:
@@ -434,7 +466,8 @@ class TestFlextCliService:
         result = service.flext_cli_format(data, "unsupported")
         assert not result.is_success
         if "Unsupported format:" not in result.error:
-            raise AssertionError(f"Expected {'Unsupported format:'} in {result.error}")
+            msg = f"Expected {'Unsupported format:'} in {result.error}"
+            raise AssertionError(msg)
 
     def test_flext_cli_health_without_config(self) -> None:
         """Test health check without configuration."""
@@ -445,22 +478,27 @@ class TestFlextCliService:
         health_data = result.value
 
         if health_data["service"] != "FlextCliService":
+            msg = f"Expected {'FlextCliService'}, got {health_data['service']}"
             raise AssertionError(
-                f"Expected {'FlextCliService'}, got {health_data['service']}",
+                msg,
             )
         assert health_data["status"] == "healthy"
         if health_data["configured"]:
-            raise AssertionError(f"Expected False, got {health_data['configured']}")
+            msg = f"Expected False, got {health_data['configured']}"
+            raise AssertionError(msg)
         assert health_data["handlers"] == 0
         if health_data["plugins"] != 0:
-            raise AssertionError(f"Expected {0}, got {health_data['plugins']}")
+            msg = f"Expected {0}, got {health_data['plugins']}"
+            raise AssertionError(msg)
         assert health_data["sessions"] == 0
         if health_data["commands"] != 0:
-            raise AssertionError(f"Expected {0}, got {health_data['commands']}")
+            msg = f"Expected {0}, got {health_data['commands']}"
+            raise AssertionError(msg)
         assert isinstance(health_data["supported_formats"], list)
         if "json" not in health_data["supported_formats"]:
+            msg = f"Expected {'json'} in {health_data['supported_formats']}"
             raise AssertionError(
-                f"Expected {'json'} in {health_data['supported_formats']}",
+                msg,
             )
         assert "config" not in health_data
 
@@ -475,18 +513,23 @@ class TestFlextCliService:
         health_data = result.value
 
         if not (health_data["configured"]):
-            raise AssertionError(f"Expected True, got {health_data['configured']}")
+            msg = f"Expected True, got {health_data['configured']}"
+            raise AssertionError(msg)
         if "config" not in health_data:
-            raise AssertionError(f"Expected {'config'} in {health_data}")
+            msg = f"Expected {'config'} in {health_data}"
+            raise AssertionError(msg)
         if health_data["config"]["format"] != "json":
+            msg = f"Expected {'json'}, got {health_data['config']['format']}"
             raise AssertionError(
-                f"Expected {'json'}, got {health_data['config']['format']}",
+                msg,
             )
         if not (health_data["config"]["debug"]):
-            raise AssertionError(f"Expected True, got {health_data['config']['debug']}")
+            msg = f"Expected True, got {health_data['config']['debug']}"
+            raise AssertionError(msg)
         if health_data["config"]["profile"] != "test":
+            msg = f"Expected {'test'}, got {health_data['config']['profile']}"
             raise AssertionError(
-                f"Expected {'test'}, got {health_data['config']['profile']}",
+                msg,
             )
 
     def test_flext_cli_health_exception_handling(self) -> None:
@@ -501,8 +544,9 @@ class TestFlextCliService:
             result = service.flext_cli_health()
             assert not result.is_success
             if "Health check failed:" not in result.error:
+                msg = f"Expected {'Health check failed:'} in {result.error}"
                 raise AssertionError(
-                    f"Expected {'Health check failed:'} in {result.error}",
+                    msg,
                 )
 
     def test_flext_cli_validate_format_valid(self) -> None:
@@ -513,7 +557,8 @@ class TestFlextCliService:
             result = service.flext_cli_validate_format(format_type)
             assert result.is_success
             if result.value != format_type:
-                raise AssertionError(f"Expected {format_type}, got {result.value}")
+                msg = f"Expected {format_type}, got {result.value}"
+                raise AssertionError(msg)
 
     def test_flext_cli_validate_format_invalid(self) -> None:
         """Test format validation with invalid format."""
@@ -522,8 +567,9 @@ class TestFlextCliService:
         result = service.flext_cli_validate_format("invalid")
         assert not result.is_success
         if "Unsupported format: invalid" not in result.error:
+            msg = f"Expected {'Unsupported format: invalid'} in {result.error}"
             raise AssertionError(
-                f"Expected {'Unsupported format: invalid'} in {result.error}",
+                msg,
             )
         assert "Supported:" in result.error
 
@@ -535,8 +581,9 @@ class TestFlextCliService:
         assert result.is_success
         created_message = result.value
         if "Command 'test-cmd' created" not in created_message:
+            msg = f"Expected {"Command 'test-cmd' created"} in {created_message}"
             raise AssertionError(
-                f"Expected {"Command 'test-cmd' created"} in {created_message}",
+                msg,
             )
 
         # Verify command was stored
@@ -544,10 +591,12 @@ class TestFlextCliService:
         assert commands_result.is_success
         commands = commands_result.value
         if "test-cmd" not in commands:
-            raise AssertionError(f"Expected {'test-cmd'} in {commands}")
+            msg = f"Expected {'test-cmd'} in {commands}"
+            raise AssertionError(msg)
         if commands["test-cmd"].name != "test-cmd":
+            msg = f"Expected {'test-cmd'}, got {commands['test-cmd'].name}"
             raise AssertionError(
-                f"Expected {'test-cmd'}, got {commands['test-cmd'].name}",
+                msg,
             )
         assert commands["test-cmd"].command_line == "echo hello"
 
@@ -564,7 +613,8 @@ class TestFlextCliService:
             result = service.flext_cli_create_command("test-cmd", "echo hello")
             assert not result.is_success
             if "Command error" not in result.error:
-                raise AssertionError(f"Expected {'Command error'} in {result.error}")
+                msg = f"Expected {'Command error'} in {result.error}"
+                raise AssertionError(msg)
 
     def test_flext_cli_create_session_without_user(self) -> None:
         """Test creating session without user ID."""
@@ -574,7 +624,8 @@ class TestFlextCliService:
         assert result.is_success
         created_message = result.value
         if "Session" not in created_message:
-            raise AssertionError(f"Expected {'Session'} in {created_message}")
+            msg = f"Expected {'Session'} in {created_message}"
+            raise AssertionError(msg)
         assert "created" in created_message
 
         # Verify session was stored
@@ -582,7 +633,8 @@ class TestFlextCliService:
         assert sessions_result.is_success
         sessions = sessions_result.value
         if len(sessions) != 1:
-            raise AssertionError(f"Expected {1}, got {len(sessions)}")
+            msg = f"Expected {1}, got {len(sessions)}"
+            raise AssertionError(msg)
 
     def test_flext_cli_create_session_with_user(self) -> None:
         """Test creating session with user ID."""
@@ -592,7 +644,8 @@ class TestFlextCliService:
         assert result.is_success
         created_message = result.value
         if "Session" not in created_message:
-            raise AssertionError(f"Expected {'Session'} in {created_message}")
+            msg = f"Expected {'Session'} in {created_message}"
+            raise AssertionError(msg)
         assert "created" in created_message
 
         # Verify session was stored with user
@@ -600,10 +653,12 @@ class TestFlextCliService:
         assert sessions_result.is_success
         sessions = sessions_result.value
         if len(sessions) != 1:
-            raise AssertionError(f"Expected {1}, got {len(sessions)}")
+            msg = f"Expected {1}, got {len(sessions)}"
+            raise AssertionError(msg)
         session = next(iter(sessions.values()))
         if session.user_id != "test-user-123":
-            raise AssertionError(f"Expected {'test-user-123'}, got {session.user_id}")
+            msg = f"Expected {'test-user-123'}, got {session.user_id}"
+            raise AssertionError(msg)
 
     def test_flext_cli_create_session_exception_handling(self) -> None:
         """Test create session exception handling."""
@@ -618,7 +673,8 @@ class TestFlextCliService:
             result = service.flext_cli_create_session()
             assert not result.is_success
             if "Session error" not in result.error:
-                raise AssertionError(f"Expected {'Session error'} in {result.error}")
+                msg = f"Expected {'Session error'} in {result.error}"
+                raise AssertionError(msg)
 
     def test_flext_cli_register_handler(self) -> None:
         """Test registering handler."""
@@ -635,7 +691,8 @@ class TestFlextCliService:
         assert handlers_result.is_success
         handlers = handlers_result.value
         if "multiply" not in handlers:
-            raise AssertionError(f"Expected {'multiply'} in {handlers}")
+            msg = f"Expected {'multiply'} in {handlers}"
+            raise AssertionError(msg)
         assert handlers["multiply"] is handler
 
     def test_flext_cli_register_handler_duplicate(self) -> None:
@@ -656,7 +713,8 @@ class TestFlextCliService:
         result2 = service.flext_cli_register_handler("test", handler2)
         assert not result2.success
         if "already registered" not in result2.error:
-            raise AssertionError(f"Expected {'already registered'} in {result2.error}")
+            msg = f"Expected {'already registered'} in {result2.error}"
+            raise AssertionError(msg)
 
     def test_flext_cli_register_plugin(self) -> None:
         """Test registering plugin."""
@@ -675,7 +733,8 @@ class TestFlextCliService:
         assert plugins_result.is_success
         plugins = plugins_result.value
         if "test-plugin" not in plugins:
-            raise AssertionError(f"Expected {'test-plugin'} in {plugins}")
+            msg = f"Expected {'test-plugin'} in {plugins}"
+            raise AssertionError(msg)
         assert plugins["test-plugin"] is plugin
 
     def test_flext_cli_register_plugin_duplicate(self) -> None:
@@ -700,7 +759,8 @@ class TestFlextCliService:
         result2 = service.flext_cli_register_plugin("test-plugin", plugin2)
         assert not result2.success
         if "already registered" not in result2.error:
-            raise AssertionError(f"Expected {'already registered'} in {result2.error}")
+            msg = f"Expected {'already registered'} in {result2.error}"
+            raise AssertionError(msg)
 
     def test_flext_cli_execute_handler(self) -> None:
         """Test executing handler."""
@@ -716,7 +776,8 @@ class TestFlextCliService:
         result = service.flext_cli_execute_handler("multiply", 5, y=3)
         assert result.is_success
         if result.value != 15:
-            raise AssertionError(f"Expected {15}, got {result.value}")
+            msg = f"Expected {15}, got {result.value}"
+            raise AssertionError(msg)
 
     def test_flext_cli_execute_handler_not_found(self) -> None:
         """Test executing non-existent handler."""
@@ -725,7 +786,8 @@ class TestFlextCliService:
         result = service.flext_cli_execute_handler("nonexistent")
         assert not result.is_success
         if "not found" not in result.error:
-            raise AssertionError(f"Expected {'not found'} in {result.error}")
+            msg = f"Expected {'not found'} in {result.error}"
+            raise AssertionError(msg)
 
     def test_flext_cli_execute_handler_exception(self) -> None:
         """Test executing handler that raises exception."""
@@ -742,7 +804,8 @@ class TestFlextCliService:
         result = service.flext_cli_execute_handler("error")
         assert not result.is_success
         if "Handler error" not in result.error:
-            raise AssertionError(f"Expected {'Handler error'} in {result.error}")
+            msg = f"Expected {'Handler error'} in {result.error}"
+            raise AssertionError(msg)
 
     def test_flext_cli_render_with_context_default(self) -> None:
         """Test rendering with default context."""
@@ -758,7 +821,8 @@ class TestFlextCliService:
         formatted = result.value
         parsed = json.loads(formatted)
         if parsed != data:
-            raise AssertionError(f"Expected {data}, got {parsed}")
+            msg = f"Expected {data}, got {parsed}"
+            raise AssertionError(msg)
 
     def test_flext_cli_render_with_context_override(self) -> None:
         """Test rendering with context override."""
@@ -775,7 +839,8 @@ class TestFlextCliService:
         # Should be formatted as plain text (override)
         formatted = result.value
         if "test" not in formatted:
-            raise AssertionError(f"Expected {'test'} in {formatted}")
+            msg = f"Expected {'test'} in {formatted}"
+            raise AssertionError(msg)
         assert "42" in formatted
 
     def test_flext_cli_render_with_context_no_config(self) -> None:
@@ -789,7 +854,8 @@ class TestFlextCliService:
         formatted = result.value
         parsed = json.loads(formatted)
         if parsed != data:
-            raise AssertionError(f"Expected {data}, got {parsed}")
+            msg = f"Expected {data}, got {parsed}"
+            raise AssertionError(msg)
 
     def test_flext_cli_get_commands_empty(self) -> None:
         """Test getting commands when empty."""
@@ -800,7 +866,8 @@ class TestFlextCliService:
         commands = result.value
         assert isinstance(commands, dict)
         if len(commands) != 0:
-            raise AssertionError(f"Expected {0}, got {len(commands)}")
+            msg = f"Expected {0}, got {len(commands)}"
+            raise AssertionError(msg)
 
     def test_flext_cli_get_commands_with_data(self) -> None:
         """Test getting commands with data."""
@@ -814,9 +881,11 @@ class TestFlextCliService:
         assert result.is_success
         commands = result.value
         if len(commands) != EXPECTED_BULK_SIZE:
-            raise AssertionError(f"Expected {2}, got {len(commands)}")
+            msg = f"Expected {2}, got {len(commands)}"
+            raise AssertionError(msg)
         if "cmd1" not in commands:
-            raise AssertionError(f"Expected {'cmd1'} in {commands}")
+            msg = f"Expected {'cmd1'} in {commands}"
+            raise AssertionError(msg)
         assert "cmd2" in commands
 
     def test_flext_cli_get_sessions_empty(self) -> None:
@@ -828,7 +897,8 @@ class TestFlextCliService:
         sessions = result.value
         assert isinstance(sessions, dict)
         if len(sessions) != 0:
-            raise AssertionError(f"Expected {0}, got {len(sessions)}")
+            msg = f"Expected {0}, got {len(sessions)}"
+            raise AssertionError(msg)
 
     def test_flext_cli_get_sessions_with_data(self) -> None:
         """Test getting sessions with data."""
@@ -842,7 +912,8 @@ class TestFlextCliService:
         assert result.is_success
         sessions = result.value
         if len(sessions) != EXPECTED_BULK_SIZE:
-            raise AssertionError(f"Expected {2}, got {len(sessions)}")
+            msg = f"Expected {2}, got {len(sessions)}"
+            raise AssertionError(msg)
 
     def test_flext_cli_get_plugins_empty(self) -> None:
         """Test getting plugins when empty."""
@@ -853,7 +924,8 @@ class TestFlextCliService:
         plugins = result.value
         assert isinstance(plugins, dict)
         if len(plugins) != 0:
-            raise AssertionError(f"Expected {0}, got {len(plugins)}")
+            msg = f"Expected {0}, got {len(plugins)}"
+            raise AssertionError(msg)
 
     def test_flext_cli_get_plugins_with_data(self) -> None:
         """Test getting plugins with data."""
@@ -880,9 +952,11 @@ class TestFlextCliService:
         assert result.is_success
         plugins = result.value
         if len(plugins) != EXPECTED_BULK_SIZE:
-            raise AssertionError(f"Expected {2}, got {len(plugins)}")
+            msg = f"Expected {2}, got {len(plugins)}"
+            raise AssertionError(msg)
         if "plugin1" not in plugins:
-            raise AssertionError(f"Expected {'plugin1'} in {plugins}")
+            msg = f"Expected {'plugin1'} in {plugins}"
+            raise AssertionError(msg)
         assert "plugin2" in plugins
 
     def test_flext_cli_get_handlers_empty(self) -> None:
@@ -894,7 +968,8 @@ class TestFlextCliService:
         handlers = result.value
         assert isinstance(handlers, dict)
         if len(handlers) != 0:
-            raise AssertionError(f"Expected {0}, got {len(handlers)}")
+            msg = f"Expected {0}, got {len(handlers)}"
+            raise AssertionError(msg)
 
     def test_flext_cli_get_handlers_with_data(self) -> None:
         """Test getting handlers with data."""
@@ -914,9 +989,11 @@ class TestFlextCliService:
         assert result.is_success
         handlers = result.value
         if len(handlers) != EXPECTED_BULK_SIZE:
-            raise AssertionError(f"Expected {2}, got {len(handlers)}")
+            msg = f"Expected {2}, got {len(handlers)}"
+            raise AssertionError(msg)
         if "add" not in handlers:
-            raise AssertionError(f"Expected {'add'} in {handlers}")
+            msg = f"Expected {'add'} in {handlers}"
+            raise AssertionError(msg)
         assert "multiply" in handlers
 
 
@@ -936,7 +1013,8 @@ class TestIntegration:
         assert health_result.is_success
         health_data = health_result.value
         if not (health_data["configured"]):
-            raise AssertionError(f"Expected True, got {health_data['configured']}")
+            msg = f"Expected True, got {health_data['configured']}"
+            raise AssertionError(msg)
 
         # 3. Create command
         cmd_result = service.flext_cli_create_command("test", "echo hello")
@@ -967,8 +1045,9 @@ class TestIntegration:
         assert execute_result.is_success
         processed = execute_result.value
         if processed["processed"]["input"] != "data":
+            msg = f"Expected {'data'}, got {processed['processed']['input']}"
             raise AssertionError(
-                f"Expected {'data'}, got {processed['processed']['input']}",
+                msg,
             )
 
         # 8. Format and export data
@@ -991,7 +1070,8 @@ class TestIntegration:
             # Verify export
             exported = json.loads(Path(temp_path).read_text(encoding="utf-8"))
             if exported != data:
-                raise AssertionError(f"Expected {data}, got {exported}")
+                msg = f"Expected {data}, got {exported}"
+                raise AssertionError(msg)
         finally:
             Path(temp_path).unlink(missing_ok=True)
 
@@ -1011,10 +1091,12 @@ class TestIntegration:
         assert handlers_result.is_success
 
         if len(commands_result.value) != 1:
-            raise AssertionError(f"Expected {1}, got {len(commands_result.value)}")
+            msg = f"Expected {1}, got {len(commands_result.value)}"
+            raise AssertionError(msg)
         assert len(sessions_result.value) == 1
         if len(plugins_result.value) != 1:
-            raise AssertionError(f"Expected {1}, got {len(plugins_result.value)}")
+            msg = f"Expected {1}, got {len(plugins_result.value)}"
+            raise AssertionError(msg)
         assert len(handlers_result.value) == 1
 
     def test_service_error_handling(self) -> None:

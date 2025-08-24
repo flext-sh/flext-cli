@@ -405,7 +405,7 @@ class TestE2EIntegrationWithCore:
         # Create a session
         session = FlextCliSession(session_id="e2e-test-session")
 
-        # Add multiple commands to session
+        # Add multiple commands to session (FlextResult pattern)
         commands = []
         for i in range(3):
             cmd = CLICommand(
@@ -414,15 +414,26 @@ class TestE2EIntegrationWithCore:
                 command_type=CommandType.SYSTEM,
             )
             commands.append(cmd)
-            session.add_command(cmd.id)
+            # Use FlextResult pattern - add_command returns new session
+            add_result = session.add_command(cmd.id)
+            if add_result.success:
+                session = add_result.value  # Update session with new state
+            else:
+                msg = f"Failed to add command: {add_result.error}"
+                raise AssertionError(msg)
 
         # Verify session state
         assert len(session.command_history) == 3
         assert session.session_status.value == "active"
 
-        # Complete session
-        session.end_session()
-        assert session.session_status.value == "completed"
+        # Complete session (FlextResult pattern)
+        end_result = session.end_session()
+        if end_result.success:
+            session = end_result.value  # Update session with new state
+            assert session.session_status.value == "completed"
+        else:
+            msg = f"Failed to end session: {end_result.error}"
+            raise AssertionError(msg)
 
     def test_cli_plugin_integration_workflow(self) -> None:
         """Test CLI plugin integration workflow."""
@@ -436,10 +447,10 @@ class TestE2EIntegrationWithCore:
         # Test plugin lifecycle
         assert plugin.plugin_status.value == "inactive"
 
-        plugin.activate()
+        plugin = plugin.activate()  # Facade pattern - returns updated plugin
         assert plugin.plugin_status.value == "active"
 
-        plugin.deactivate()
+        plugin = plugin.deactivate()  # Facade pattern - returns updated plugin
         assert plugin.plugin_status.value == "inactive"
 
 

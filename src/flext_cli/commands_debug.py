@@ -14,7 +14,7 @@ import platform as _platform
 import sys
 from contextlib import suppress
 from pathlib import Path
-from typing import TypedDict
+from typing import TypedDict, cast
 
 import click
 from rich.console import Console
@@ -43,14 +43,14 @@ class SystemStatus(TypedDict, total=False):
 def _get_cli_context_obj(ctx_obj: object) -> CliContextObj:
     """Extract CLI context object with proper typing."""
     if isinstance(ctx_obj, dict):
-        return ctx_obj  # type: ignore[return-value]  # TypedDict compatible
+        return cast("CliContextObj", ctx_obj)
     return CliContextObj()
 
 
 def _get_status_dict(status_obj: object) -> SystemStatus | None:
     """Extract system status with proper typing."""
     if isinstance(status_obj, dict):
-        return status_obj  # type: ignore[return-value]  # TypedDict compatible
+        return cast("SystemStatus", status_obj)
     return None
 
 
@@ -157,6 +157,7 @@ def _get_client(
     except Exception as e:
         console.print(f"[red]❌ Failed to create API client: {e}[/red]")
         ctx.exit(1)
+        return FlextApiClient()  # Never reached, but satisfies mypy
 
 
 async def _test_connection(
@@ -211,7 +212,7 @@ async def _get_system_status(client: FlextApiClient, console: Console) -> None:
             console.print(
                 "[yellow]⚠ Could not get system status: No data available[/yellow]",
             )
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         console.print(f"[yellow]⚠ Could not get system status: {e}[/yellow]")
 
 
@@ -249,7 +250,7 @@ def performance(ctx: click.Context) -> None:
             try:
                 status_result = await client.get_system_status()
                 return status_result if isinstance(status_result, dict) else None
-            except Exception:  # noqa: BLE001
+            except Exception:
                 return None
 
         # Get metrics using consistent async approach

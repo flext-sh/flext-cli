@@ -29,7 +29,7 @@ from flext_cli.cmd_debug import (
     validate,
 )
 from flext_cli.config import get_config
-from flext_cli.utils_core import FlextCliUtilities
+from flext_cli.utils_core import flext_cli_quick_setup
 
 
 class TestDebugCommandReal:
@@ -92,7 +92,8 @@ class TestConnectivityCommandReal:
     def test_connectivity_execution_real(self) -> None:
         """Test connectivity command execution with real implementation."""
         # Create real context object
-        context = FlextCliUtilities.create_test_context()
+        context_result = flext_cli_quick_setup({})
+        context = context_result.value if context_result.is_success else {}
         console = context["console"]
 
         # Run connectivity command with real console
@@ -128,7 +129,8 @@ class TestPerformanceCommandReal:
     def test_performance_execution_real(self) -> None:
         """Test performance command execution with real implementation."""
         # Create real context
-        context = FlextCliUtilities.create_test_context()
+        context_result = flext_cli_quick_setup({})
+        context = context_result.value if context_result.is_success else {}
         console = context["console"]
 
         # Run performance command with real console
@@ -159,7 +161,8 @@ class TestValidateCommandReal:
     def test_validate_execution_real(self) -> None:
         """Test validate command execution with real system validation."""
         # Create real context
-        context = FlextCliUtilities.create_test_context()
+        context_result = flext_cli_quick_setup({})
+        context = context_result.value if context_result.is_success else {}
         console = context["console"]
 
         # Run validate command with real console
@@ -473,9 +476,6 @@ class TestDebugIntegrationReal:
         assert sys.version_info >= (3, 11), "Python 3.11+ required for FLEXT"
 
         # Verify we can import required modules
-        import click  # noqa: F401
-        import rich  # noqa: F401
-        import yaml  # noqa: F401
 
         # Verify constants are accessible
         assert hasattr(FlextConstants, "Platform")

@@ -363,7 +363,7 @@ class TestFlextCliDataProcessor:
         assert result.value == "initial -> step1 -> step2"
 
         # Test failing step
-        def failing_step(data: str) -> FlextResult[str]:  # noqa: ARG001
+        def failing_step(data: str) -> FlextResult[str]:
             return FlextResult[None].fail("Step failed")
 
         steps_with_failure = [
@@ -614,7 +614,7 @@ class TestErrorConditions:
         """Test data processor with exception in steps."""
         processor = FlextCliDataProcessor(helper=FlextCliHelper(quiet=True))
 
-        def exception_step(data: str) -> Never:  # noqa: ARG001
+        def exception_step(data: str) -> Never:
             msg = "Simulated error"
             raise ValueError(msg)
 
@@ -681,7 +681,7 @@ class TestIntegrationScenarios:
         def step1(data: str) -> FlextResult[str]:
             return FlextResult[None].ok(data + " -> step1")
 
-        def failing_step(data: str) -> FlextResult[str]:  # noqa: ARG001
+        def failing_step(data: str) -> FlextResult[str]:
             return FlextResult[None].fail("Step failed intentionally")
 
         def step3(data: str) -> FlextResult[str]:

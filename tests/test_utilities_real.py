@@ -62,7 +62,7 @@ class TestFlextCliValidationUtilitiesReal:
         assert path_obj_result.is_success
 
         # Invalid path
-        invalid_result = FlextCliValidationUtilities.validate_path(123)  # type: ignore
+        invalid_result = FlextCliValidationUtilities.validate_path(123)
         assert isinstance(invalid_result, FlextResult)
         assert not invalid_result.is_success
 
@@ -347,7 +347,7 @@ class TestFlextCliTimeUtilitiesReal:
         assert custom_result.value == "2025/01/15"
 
         # Invalid input
-        invalid_result = FlextCliTimeUtilities.format_timestamp("not a datetime")  # type: ignore
+        invalid_result = FlextCliTimeUtilities.format_timestamp("not a datetime")
         assert isinstance(invalid_result, FlextResult)
         assert not invalid_result.is_success
 
@@ -379,7 +379,7 @@ class TestFlextCliTimeUtilitiesReal:
         assert diff_result.value == 30.0  # 30 seconds
 
         # Invalid inputs
-        invalid_result = FlextCliTimeUtilities.get_time_difference("not datetime", end)  # type: ignore
+        invalid_result = FlextCliTimeUtilities.get_time_difference("not datetime", end)
         assert isinstance(invalid_result, FlextResult)
         assert not invalid_result.is_success
 

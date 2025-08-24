@@ -165,6 +165,7 @@ class FlextCliConfig(FlextBaseConfigModel):
         api_keys = {
             "api_url": "url",
             "api_timeout": "timeout",
+            "timeout": "timeout",  # Allow both timeout and api_timeout
             "max_retries": "retries",
             "connect_timeout": "connect_timeout",
             "read_timeout": "read_timeout",
@@ -583,6 +584,21 @@ class _Result:
         self.success = success
         self.data = data
         self.error = error
+
+    @property
+    def is_success(self) -> bool:
+        """Compatibility with FlextResult API."""
+        return self.success
+
+    @property
+    def is_failure(self) -> bool:
+        """Compatibility with FlextResult API."""
+        return not self.success
+
+    @property
+    def value(self) -> object | None:
+        """Compatibility with FlextResult API - alias for data."""
+        return self.data
 
 
 def parse_config_value(value: str) -> _Result:

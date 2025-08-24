@@ -34,8 +34,6 @@ from rich.table import Table
 
 from flext_cli import (
     FlextApiClient,
-    cli_enhanced,
-    cli_measure_time,
     get_auth_headers,
     get_cli_config,
     require_auth,
@@ -60,29 +58,32 @@ def demonstrate_basic_authentication() -> FlextResult[None]:
         console.print(f"   Token prefix: {demo_token[:20]}...")
     else:
         console.print(f"❌ Failed to save token: {save_result.error}")
-        return FlextResult[str].fail("Token save failed")
+        return FlextResult[None].fail("Token save failed")
 
     # 2. Retrieve authentication headers
     console.print("\n[green]2. Authorization Headers[/green]")
 
-    headers_result = get_auth_headers()
-    if headers_result.is_success:
-        headers = headers_result.value
-        console.print("✅ Authorization headers retrieved")
-        console.print("   Headers structure:")
-        for key, value in headers.items():
-            # Mask sensitive values
-            max_display_length = 10
-            display_value = (
-                value[:max_display_length] + "..."
-                if len(str(value)) > max_display_length
-                else value
-            )
-            console.print(f"     {key}: {display_value}")
-    else:
-        console.print(f"❌ Failed to get headers: {headers_result.error}")
+    # get_auth_headers returns dict[str, str] directly, not FlextResult
+    try:
+        headers = get_auth_headers()
+        if headers and isinstance(headers, dict):
+            console.print("✅ Authorization headers retrieved")
+            console.print("   Headers structure:")
+            for key, value in headers.items():
+                # Mask sensitive values
+                max_display_length = 10
+                display_value = (
+                    value[:max_display_length] + "..."
+                    if len(str(value)) > max_display_length
+                    else value
+                )
+                console.print(f"     {key}: {display_value}")
+        else:
+            console.print("❌ No headers returned")
+    except Exception as e:
+        console.print(f"❌ Error getting headers: {e}")
 
-    return FlextResult[str].ok(None)
+    return FlextResult[None].ok(None)
 
 
 def demonstrate_api_authentication() -> FlextResult[None]:
@@ -104,19 +105,22 @@ def demonstrate_api_authentication() -> FlextResult[None]:
 
         if profile_result.is_success:
             profile_data = profile_result.value
-            console.print("✅ Authenticated API request successful")
-            console.print(f"   User: {profile_data.get('username', 'demo_user')}")
-            console.print(f"   Role: {profile_data.get('role', 'user')}")
-            console.print(
-                f"   Permissions: {len(profile_data.get('permissions', []))} permissions"
-            )
+            if profile_data and isinstance(profile_data, dict):
+                console.print("✅ Authenticated API request successful")
+                console.print(f"   User: {profile_data.get('username', 'demo_user')}")
+                console.print(f"   Role: {profile_data.get('role', 'user')}")
+                console.print(
+                    f"   Permissions: {len(profile_data.get('permissions', []))} permissions"
+                )
+            else:
+                console.print("❌ Invalid profile data returned")
         else:
             console.print(f"❌ API request failed: {profile_result.error}")
 
     except Exception as e:
-        return FlextResult[str].fail(f"API authentication demo failed: {e}")
+        return FlextResult[None].fail(f"API authentication demo failed: {e}")
 
-    return FlextResult[str].ok(None)
+    return FlextResult[None].ok(None)
 
 
 @require_auth()
@@ -188,11 +192,9 @@ def demonstrate_role_based_access() -> FlextResult[None]:
     else:
         console.print(f"❌ Permission denied: {check_result.error}")
 
-    return FlextResult[str].ok(None)
+    return FlextResult[None].ok(None)
 
 
-@cli_enhanced
-@cli_measure_time
 def demonstrate_session_management() -> FlextResult[None]:
     """Demonstrate session management patterns."""
     console = Console()
@@ -230,13 +232,18 @@ def demonstrate_session_management() -> FlextResult[None]:
         if refresh_result.is_success:
             refreshed_session = refresh_result.value
             console.print("✅ Session refreshed successfully")
-            console.print(
-                f"   New expiry: {refreshed_session['expires_at'].strftime('%Y-%m-%d %H:%M:%S UTC')}"
-            )
+            if refreshed_session and isinstance(refreshed_session, dict):
+                expires_at = refreshed_session.get("expires_at")
+                if expires_at and hasattr(expires_at, "strftime"):
+                    console.print(
+                        f"   New expiry: {expires_at.strftime('%Y-%m-%d %H:%M:%S UTC')}"
+                    )
+                else:
+                    console.print("   New expiry: Updated successfully")
     else:
         console.print(f"❌ Session validation failed: {validity_result.error}")
 
-    return FlextResult[str].ok(None)
+    return FlextResult[None].ok(None)
 
 
 def demonstrate_secure_configuration() -> FlextResult[None]:
@@ -279,7 +286,7 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
     console.print("   • Use secure storage for persistent tokens")
     console.print("   • Validate and sanitize all credential inputs")
 
-    return FlextResult[str].ok(None)
+    return FlextResult[None].ok(None)
 
 
 def simulate_authenticated_request(
@@ -434,31 +441,33 @@ def main() -> None:
     try:
         # Run all authentication demonstrations
         auth_result = demonstrate_basic_authentication()
-        if auth_result.failure:
+        if auth_result.is_failure:
             console.print(f"[red]Basic auth demo failed: {auth_result.error}[/red]")
 
         api_result = demonstrate_api_authentication()
-        if api_result.failure:
+        if api_result.is_failure:
             console.print(f"[red]API auth demo failed: {api_result.error}[/red]")
 
         protected_result = demonstrate_protected_operation()
-        if protected_result.failure:
+        if protected_result and protected_result.is_failure:
             console.print(
                 f"[red]Protected operation demo failed: {protected_result.error}[/red]"
             )
+        elif not protected_result:
+            console.print("[red]Protected operation failed - authentication required[/red]")
 
         rbac_result = demonstrate_role_based_access()
-        if rbac_result.failure:
+        if rbac_result.is_failure:
             console.print(f"[red]RBAC demo failed: {rbac_result.error}[/red]")
 
         session_result = demonstrate_session_management()
-        if session_result.failure:
+        if session_result.is_failure:
             console.print(
                 f"[red]Session management demo failed: {session_result.error}[/red]"
             )
 
         config_result = demonstrate_secure_configuration()
-        if config_result.failure:
+        if config_result.is_failure:
             console.print(
                 f"[red]Secure configuration demo failed: {config_result.error}[/red]"
             )

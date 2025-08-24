@@ -98,9 +98,41 @@ def config() -> None:
 @config.command()
 @click.pass_context
 def show(ctx: click.Context) -> None:
-    """Show a basic confirmation that config is accessible."""
+    """Show configuration in the requested output format."""
+    cli_context = ctx.obj.get("cli_context")
     console: Console = ctx.obj.get("console", Console())
-    console.print("config shown")
+
+    if not cli_context:
+        console.print("config shown")  # Fallback for missing context
+        return
+
+    # Get output format from Click context (config object)
+    config = ctx.obj.get("config")
+    output_format = getattr(config, "output_format", "table") if config else "table"
+
+    # Get actual config data from the config object
+    config_data = {}
+    if config:
+        config_data = {
+            "profile": getattr(config, "profile", "default"),
+            "debug": getattr(config, "debug", False),
+            "output_format": output_format
+        }
+
+    # Format output according to requested format
+    if output_format == "json":
+        console.print(json.dumps(config_data, indent=2))
+    elif output_format == "yaml":
+        try:
+            console.print(yaml.safe_dump(config_data, default_flow_style=False))
+        except ImportError:
+            console.print(str(config_data))  # Fallback if yaml not available
+    # Table format (default) or plain text
+    elif config_data:
+        for key, value in config_data.items():
+            console.print(f"{key}: {value}")
+    else:
+        console.print("config shown")
 
 
 @config.command(name="get")

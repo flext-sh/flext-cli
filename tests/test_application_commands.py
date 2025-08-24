@@ -48,11 +48,13 @@ class TestExecuteCommandCommand:
         )
 
         if cmd.name != "test_command":
-            raise AssertionError(f"Expected {'test_command'}, got {cmd.name}")
+            msg = f"Expected {'test_command'}, got {cmd.name}"
+            raise AssertionError(msg)
         assert cmd.command_line == "echo hello"
         if cmd.command_type != CommandType.SYSTEM:
+            msg = f"Expected {CommandType.SYSTEM}, got {cmd.command_type}"
             raise AssertionError(
-                f"Expected {CommandType.SYSTEM}, got {cmd.command_type}",
+                msg,
             )
         assert cmd.timeout_seconds is None
 
@@ -74,11 +76,13 @@ class TestExecuteCommandCommand:
         )
 
         if cmd.name != "complex_command":
-            raise AssertionError(f"Expected {'complex_command'}, got {cmd.name}")
+            msg = f"Expected {'complex_command'}, got {cmd.name}"
+            raise AssertionError(msg)
         assert cmd.command_line == "python script.py"
         if cmd.command_type != CommandType.PIPELINE:
+            msg = f"Expected {CommandType.PIPELINE}, got {cmd.command_type}"
             raise AssertionError(
-                f"Expected {CommandType.PIPELINE}, got {cmd.command_type}",
+                msg,
             )
         assert cmd.timeout_seconds == 30.0
 
@@ -96,13 +100,16 @@ class TestExecuteCommandCommand:
         cmd.environment = {"ENV_VAR": "value"}
 
         if cmd.user_id != test_uuid:
-            raise AssertionError(f"Expected {test_uuid}, got {cmd.user_id}")
+            msg = f"Expected {test_uuid}, got {cmd.user_id}"
+            raise AssertionError(msg)
         assert cmd.session_id == "session123"
         if cmd.working_directory != "/test/tmp":
-            raise AssertionError(f"Expected {'/test/tmp'}, got {cmd.working_directory}")
+            msg = f"Expected {'/test/tmp'}, got {cmd.working_directory}"
+            raise AssertionError(msg)
         assert cmd.arguments == {"arg1": "value1"}
         if cmd.options != {"verbose": True}:
-            raise AssertionError(f'Expected {{"verbose": True}}, got {cmd.options}')
+            msg = f'Expected {{"verbose": True}}, got {cmd.options}'
+            raise AssertionError(msg)
         assert cmd.environment == {"ENV_VAR": "value"}
 
     def test_different_command_types(self) -> None:
@@ -124,7 +131,8 @@ class TestExecuteCommandCommand:
                 command_type=cmd_type,
             )
             if cmd.command_type != cmd_type:
-                raise AssertionError(f"Expected {cmd_type}, got {cmd.command_type}")
+                msg = f"Expected {cmd_type}, got {cmd.command_type}"
+                raise AssertionError(msg)
 
 
 class TestCancelCommandCommand:
@@ -136,7 +144,8 @@ class TestCancelCommandCommand:
         cmd = CancelCommandCommand(command_id)
 
         if cmd.command_id != command_id:
-            raise AssertionError(f"Expected {command_id}, got {cmd.command_id}")
+            msg = f"Expected {command_id}, got {cmd.command_id}"
+            raise AssertionError(msg)
         assert cmd.user_id is None
 
     def test_init_with_all_parameters(self) -> None:
@@ -146,7 +155,8 @@ class TestCancelCommandCommand:
         cmd = CancelCommandCommand(command_id, user_id)
 
         if cmd.command_id != command_id:
-            raise AssertionError(f"Expected {command_id}, got {cmd.command_id}")
+            msg = f"Expected {command_id}, got {cmd.command_id}"
+            raise AssertionError(msg)
         assert cmd.user_id == user_id
 
     def test_command_id_type(self) -> None:
@@ -156,7 +166,8 @@ class TestCancelCommandCommand:
 
         assert isinstance(cmd.command_id, UUID)
         if cmd.command_id != command_id:
-            raise AssertionError(f"Expected {command_id}, got {cmd.command_id}")
+            msg = f"Expected {command_id}, got {cmd.command_id}"
+            raise AssertionError(msg)
 
 
 class TestCreateConfigCommand:
@@ -169,10 +180,12 @@ class TestCreateConfigCommand:
         # Test default values
         assert cmd.description is None
         if cmd.version != "0.9.0":
-            raise AssertionError(f"Expected {'1.0.0'}, got {cmd.version}")
+            msg = f"Expected {'1.0.0'}, got {cmd.version}"
+            raise AssertionError(msg)
         assert cmd.user_id is None
         if cmd.is_global:
-            raise AssertionError(f"Expected False, got {cmd.is_global}")
+            msg = f"Expected False, got {cmd.is_global}"
+            raise AssertionError(msg)
 
     def test_attribute_assignment(self) -> None:
         """Test attribute assignment."""
@@ -187,16 +200,20 @@ class TestCreateConfigCommand:
         cmd.is_global = True
 
         if cmd.name != "test_config":
-            raise AssertionError(f"Expected {'test_config'}, got {cmd.name}")
+            msg = f"Expected {'test_config'}, got {cmd.name}"
+            raise AssertionError(msg)
         assert cmd.description == "Test configuration"
         if cmd.config_data != {"key": "value"}:
-            raise AssertionError(f'Expected {{"key": "value"}}, got {cmd.config_data}')
+            msg = f'Expected {{"key": "value"}}, got {cmd.config_data}'
+            raise AssertionError(msg)
         assert cmd.config_type == "application"
         if cmd.version != "0.9.0":
-            raise AssertionError(f"Expected {'2.0.0'}, got {cmd.version}")
+            msg = f"Expected {'2.0.0'}, got {cmd.version}"
+            raise AssertionError(msg)
         assert isinstance(cmd.user_id, UUID)
         if not (cmd.is_global):
-            raise AssertionError(f"Expected True, got {cmd.is_global}")
+            msg = f"Expected True, got {cmd.is_global}"
+            raise AssertionError(msg)
 
     def test_config_data_types(self) -> None:
         """Test different config data types."""
@@ -213,7 +230,8 @@ class TestCreateConfigCommand:
         for config_data in test_configs:
             cmd.config_data = config_data
             if cmd.config_data != config_data:
-                raise AssertionError(f"Expected {config_data}, got {cmd.config_data}")
+                msg = f"Expected {config_data}, got {cmd.config_data}"
+                raise AssertionError(msg)
 
 
 class TestUpdateConfigCommand:
@@ -244,15 +262,18 @@ class TestUpdateConfigCommand:
         cmd.user_id = user_id
 
         if cmd.config_id != config_id:
-            raise AssertionError(f"Expected {config_id}, got {cmd.config_id}")
+            msg = f"Expected {config_id}, got {cmd.config_id}"
+            raise AssertionError(msg)
         assert cmd.name == "updated_config"
         if cmd.description != "Updated description":
+            msg = f"Expected {'Updated description'}, got {cmd.description}"
             raise AssertionError(
-                f"Expected {'Updated description'}, got {cmd.description}",
+                msg,
             )
         assert cmd.config_data == {"updated": "data"}
         if cmd.version != "1.1.0":
-            raise AssertionError(f"Expected {'1.1.0'}, got {cmd.version}")
+            msg = f"Expected {'1.1.0'}, got {cmd.version}"
+            raise AssertionError(msg)
         assert cmd.user_id == user_id
 
     def test_partial_updates(self) -> None:
@@ -263,13 +284,15 @@ class TestUpdateConfigCommand:
         # Test updating only name
         cmd.name = "new_name"
         if cmd.name != "new_name":
-            raise AssertionError(f"Expected {'new_name'}, got {cmd.name}")
+            msg = f"Expected {'new_name'}, got {cmd.name}"
+            raise AssertionError(msg)
         assert cmd.description is None
 
         # Test updating only description
         cmd.description = "new_description"
         if cmd.description != "new_description":
-            raise AssertionError(f"Expected {'new_description'}, got {cmd.description}")
+            msg = f"Expected {'new_description'}, got {cmd.description}"
+            raise AssertionError(msg)
         assert cmd.config_data == {}  # ConfigData default_factory creates empty dict
 
 
@@ -291,7 +314,8 @@ class TestDeleteConfigCommand:
         cmd.user_id = user_id
 
         if cmd.config_id != config_id:
-            raise AssertionError(f"Expected {config_id}, got {cmd.config_id}")
+            msg = f"Expected {config_id}, got {cmd.config_id}"
+            raise AssertionError(msg)
         assert cmd.user_id == user_id
 
 
@@ -313,7 +337,8 @@ class TestValidateConfigCommand:
         cmd.user_id = user_id
 
         if cmd.config_id != config_id:
-            raise AssertionError(f"Expected {config_id}, got {cmd.config_id}")
+            msg = f"Expected {config_id}, got {cmd.config_id}"
+            raise AssertionError(msg)
         assert cmd.user_id == user_id
 
 
@@ -337,11 +362,13 @@ class TestStartSessionCommand:
         cmd.environment = {"PATH": "/usr/bin", "HOME": "/home/user"}
 
         if cmd.session_id != "session_123":
-            raise AssertionError(f"Expected {'session_123'}, got {cmd.session_id}")
+            msg = f"Expected {'session_123'}, got {cmd.session_id}"
+            raise AssertionError(msg)
         assert isinstance(cmd.user_id, UUID)
         if cmd.working_directory != "/home/user":
+            msg = f"Expected {'/home/user'}, got {cmd.working_directory}"
             raise AssertionError(
-                f"Expected {'/home/user'}, got {cmd.working_directory}",
+                msg,
             )
         assert cmd.environment == {"PATH": "/usr/bin", "HOME": "/home/user"}
 
@@ -352,7 +379,8 @@ class TestStartSessionCommand:
         # Test empty environment
         cmd.environment = {}
         if cmd.environment != {}:
-            raise AssertionError(f"Expected {{}}, got {cmd.environment}")
+            msg = f"Expected {{}}, got {cmd.environment}"
+            raise AssertionError(msg)
 
         # Test None environment
         cmd.environment = None
@@ -366,7 +394,8 @@ class TestStartSessionCommand:
         }
         cmd.environment = env
         if cmd.environment != env:
-            raise AssertionError(f"Expected {env}, got {cmd.environment}")
+            msg = f"Expected {env}, got {cmd.environment}"
+            raise AssertionError(msg)
 
 
 class TestEndSessionCommand:
@@ -387,7 +416,8 @@ class TestEndSessionCommand:
         cmd.user_id = user_id
 
         if cmd.session_id != session_id:
-            raise AssertionError(f"Expected {session_id}, got {cmd.session_id}")
+            msg = f"Expected {session_id}, got {cmd.session_id}"
+            raise AssertionError(msg)
         assert cmd.user_id == user_id
 
 
@@ -423,21 +453,26 @@ class TestInstallPluginCommand:
         cmd.user_id = user_id
 
         if cmd.name != "test_plugin":
-            raise AssertionError(f"Expected {'test_plugin'}, got {cmd.name}")
+            msg = f"Expected {'test_plugin'}, got {cmd.name}"
+            raise AssertionError(msg)
         assert cmd.version == "0.9.0"
         if cmd.entry_point != "test_plugin.main":
+            msg = f"Expected {'test_plugin.main'}, got {cmd.entry_point}"
             raise AssertionError(
-                f"Expected {'test_plugin.main'}, got {cmd.entry_point}",
+                msg,
             )
         assert cmd.commands == ["cmd1", "cmd2"]
         if cmd.dependencies != ["dep1", "dep2"]:
-            raise AssertionError(f"Expected {['dep1', 'dep2']}, got {cmd.dependencies}")
+            msg = f"Expected {['dep1', 'dep2']}, got {cmd.dependencies}"
+            raise AssertionError(msg)
         assert cmd.author == "Test Author"
         if cmd.license != "MIT":
-            raise AssertionError(f"Expected {'MIT'}, got {cmd.license}")
+            msg = f"Expected {'MIT'}, got {cmd.license}"
+            raise AssertionError(msg)
         assert cmd.repository_url == "https://github.com/test/plugin"
         if cmd.user_id != user_id:
-            raise AssertionError(f"Expected {user_id}, got {cmd.user_id}")
+            msg = f"Expected {user_id}, got {cmd.user_id}"
+            raise AssertionError(msg)
 
     def test_empty_lists(self) -> None:
         """Test with empty lists for commands and dependencies."""
@@ -447,7 +482,8 @@ class TestInstallPluginCommand:
         cmd.dependencies = []
 
         if cmd.commands != []:
-            raise AssertionError(f"Expected {[]}, got {cmd.commands}")
+            msg = f"Expected {[]}, got {cmd.commands}"
+            raise AssertionError(msg)
         assert cmd.dependencies == []
 
 
@@ -469,7 +505,8 @@ class TestUninstallPluginCommand:
         cmd.user_id = user_id
 
         if cmd.plugin_id != plugin_id:
-            raise AssertionError(f"Expected {plugin_id}, got {cmd.plugin_id}")
+            msg = f"Expected {plugin_id}, got {cmd.plugin_id}"
+            raise AssertionError(msg)
         assert cmd.user_id == user_id
 
 
@@ -491,7 +528,8 @@ class TestEnablePluginCommand:
         cmd.user_id = user_id
 
         if cmd.plugin_id != plugin_id:
-            raise AssertionError(f"Expected {plugin_id}, got {cmd.plugin_id}")
+            msg = f"Expected {plugin_id}, got {cmd.plugin_id}"
+            raise AssertionError(msg)
         assert cmd.user_id == user_id
 
 
@@ -513,7 +551,8 @@ class TestDisablePluginCommand:
         cmd.user_id = user_id
 
         if cmd.plugin_id != plugin_id:
-            raise AssertionError(f"Expected {plugin_id}, got {cmd.plugin_id}")
+            msg = f"Expected {plugin_id}, got {cmd.plugin_id}"
+            raise AssertionError(msg)
         assert cmd.user_id == user_id
 
 
@@ -538,12 +577,14 @@ class TestListCommandsCommand:
         cmd.session_id = "session_456"
 
         if cmd.command_type != CommandType.PIPELINE:
+            msg = f"Expected {CommandType.PIPELINE}, got {cmd.command_type}"
             raise AssertionError(
-                f"Expected {CommandType.PIPELINE}, got {cmd.command_type}",
+                msg,
             )
         assert cmd.user_id == user_id
         if cmd.session_id != "session_456":
-            raise AssertionError(f"Expected {'session_456'}, got {cmd.session_id}")
+            msg = f"Expected {'session_456'}, got {cmd.session_id}"
+            raise AssertionError(msg)
 
     def test_all_command_types(self) -> None:
         """Test with all command types."""
@@ -552,7 +593,8 @@ class TestListCommandsCommand:
         for cmd_type in CommandType:
             cmd.command_type = cmd_type
             if cmd.command_type != cmd_type:
-                raise AssertionError(f"Expected {cmd_type}, got {cmd.command_type}")
+                msg = f"Expected {cmd_type}, got {cmd.command_type}"
+                raise AssertionError(msg)
 
 
 class TestGetCommandHistoryCommand:
@@ -565,7 +607,8 @@ class TestGetCommandHistoryCommand:
         assert cmd.user_id is None
         assert cmd.session_id is None
         if cmd.limit != 100:
-            raise AssertionError(f"Expected {100}, got {cmd.limit}")
+            msg = f"Expected {100}, got {cmd.limit}"
+            raise AssertionError(msg)
         assert cmd.command_type is None
 
     def test_attribute_assignment(self) -> None:
@@ -579,10 +622,12 @@ class TestGetCommandHistoryCommand:
         cmd.command_type = CommandType.DATA
 
         if cmd.user_id != user_id:
-            raise AssertionError(f"Expected {user_id}, got {cmd.user_id}")
+            msg = f"Expected {user_id}, got {cmd.user_id}"
+            raise AssertionError(msg)
         assert cmd.session_id == "session_789"
         if cmd.limit != 50:
-            raise AssertionError(f"Expected {50}, got {cmd.limit}")
+            msg = f"Expected {50}, got {cmd.limit}"
+            raise AssertionError(msg)
         assert cmd.command_type == CommandType.DATA
 
     def test_limit_variations(self) -> None:
@@ -593,7 +638,8 @@ class TestGetCommandHistoryCommand:
         for limit in limits:
             cmd.limit = limit
             if cmd.limit != limit:
-                raise AssertionError(f"Expected {limit}, got {cmd.limit}")
+                msg = f"Expected {limit}, got {cmd.limit}"
+                raise AssertionError(msg)
 
 
 class TestGetCommandStatusCommand:
@@ -614,7 +660,8 @@ class TestGetCommandStatusCommand:
         cmd.user_id = user_id
 
         if cmd.command_id != command_id:
-            raise AssertionError(f"Expected {command_id}, got {cmd.command_id}")
+            msg = f"Expected {command_id}, got {cmd.command_id}"
+            raise AssertionError(msg)
         assert cmd.user_id == user_id
 
 
@@ -628,7 +675,8 @@ class TestListConfigsCommand:
         assert cmd.config_type is None
         assert cmd.user_id is None
         if not (cmd.include_global):
-            raise AssertionError(f"Expected True, got {cmd.include_global}")
+            msg = f"Expected True, got {cmd.include_global}"
+            raise AssertionError(msg)
 
     def test_attribute_assignment(self) -> None:
         """Test attribute assignment."""
@@ -640,10 +688,12 @@ class TestListConfigsCommand:
         cmd.include_global = False
 
         if cmd.config_type != "application":
-            raise AssertionError(f"Expected {'application'}, got {cmd.config_type}")
+            msg = f"Expected {'application'}, got {cmd.config_type}"
+            raise AssertionError(msg)
         assert cmd.user_id == user_id
         if cmd.include_global:
-            raise AssertionError(f"Expected False, got {cmd.include_global}")
+            msg = f"Expected False, got {cmd.include_global}"
+            raise AssertionError(msg)
 
     def test_config_type_variations(self) -> None:
         """Test different config type values."""
@@ -653,7 +703,8 @@ class TestListConfigsCommand:
         for config_type in config_types:
             cmd.config_type = config_type
             if cmd.config_type != config_type:
-                raise AssertionError(f"Expected {config_type}, got {cmd.config_type}")
+                msg = f"Expected {config_type}, got {cmd.config_type}"
+                raise AssertionError(msg)
 
 
 class TestListPluginsCommand:
@@ -664,7 +715,8 @@ class TestListPluginsCommand:
         cmd = ListPluginsCommand()
 
         if cmd.enabled_only:
-            raise AssertionError(f"Expected False, got {cmd.enabled_only}")
+            msg = f"Expected False, got {cmd.enabled_only}"
+            raise AssertionError(msg)
         assert cmd.installed_only is False
         assert cmd.user_id is None
 
@@ -678,10 +730,12 @@ class TestListPluginsCommand:
         cmd.user_id = user_id
 
         if not (cmd.enabled_only):
-            raise AssertionError(f"Expected True, got {cmd.enabled_only}")
+            msg = f"Expected True, got {cmd.enabled_only}"
+            raise AssertionError(msg)
         assert cmd.installed_only is True
         if cmd.user_id != user_id:
-            raise AssertionError(f"Expected {user_id}, got {cmd.user_id}")
+            msg = f"Expected {user_id}, got {cmd.user_id}"
+            raise AssertionError(msg)
 
     def test_boolean_combinations(self) -> None:
         """Test different boolean combinations."""
@@ -698,7 +752,8 @@ class TestListPluginsCommand:
             cmd.enabled_only = enabled
             cmd.installed_only = installed
             if cmd.enabled_only != enabled:
-                raise AssertionError(f"Expected {enabled}, got {cmd.enabled_only}")
+                msg = f"Expected {enabled}, got {cmd.enabled_only}"
+                raise AssertionError(msg)
             assert cmd.installed_only == installed
 
 
@@ -720,7 +775,8 @@ class TestGetSessionInfoCommand:
         cmd.user_id = user_id
 
         if cmd.session_id != session_id:
-            raise AssertionError(f"Expected {session_id}, got {cmd.session_id}")
+            msg = f"Expected {session_id}, got {cmd.session_id}"
+            raise AssertionError(msg)
         assert cmd.user_id == user_id
 
 
@@ -772,7 +828,8 @@ class TestCommandImports:
         uuid_str = str(test_uuid)
         assert isinstance(uuid_str, str)
         if len(uuid_str) != 36:  # Standard UUID string length
-            raise AssertionError(f"Expected {36}, got {len(uuid_str)}")
+            msg = f"Expected {36}, got {len(uuid_str)}"
+            raise AssertionError(msg)
 
 
 class TestCommandInstantiation:
@@ -836,10 +893,12 @@ class TestCommandInstantiation:
         # These are defined as class attributes in the command classes
         assert config_cmd.description is None
         if config_cmd.version != "0.9.0":
-            raise AssertionError(f"Expected {'1.0.0'}, got {config_cmd.version}")
+            msg = f"Expected {'1.0.0'}, got {config_cmd.version}"
+            raise AssertionError(msg)
         assert config_cmd.user_id is None
         if config_cmd.is_global:
-            raise AssertionError(f"Expected False, got {config_cmd.is_global}")
+            msg = f"Expected False, got {config_cmd.is_global}"
+            raise AssertionError(msg)
 
 
 class TestCommandTypeCompatibility:
@@ -854,7 +913,8 @@ class TestCommandTypeCompatibility:
                 command_type=cmd_type,
             )
             if cmd.command_type != cmd_type:
-                raise AssertionError(f"Expected {cmd_type}, got {cmd.command_type}")
+                msg = f"Expected {cmd_type}, got {cmd.command_type}"
+                raise AssertionError(msg)
             if cmd.command_type.value not in {
                 "cli",
                 "system",
@@ -867,7 +927,7 @@ class TestCommandTypeCompatibility:
                 "auth",
                 "monitoring",
             }:
-                raise AssertionError(
+                msg = (
                     f"Expected {cmd.command_type.value} is not in {
                         [
                             'cli',
@@ -881,7 +941,10 @@ class TestCommandTypeCompatibility:
                             'auth',
                             'monitoring',
                         ]
-                    }",
+                    }"
+                )
+                raise AssertionError(
+                    msg,
                 )
 
     def test_command_type_usage_in_list_commands(self) -> None:
@@ -892,7 +955,8 @@ class TestCommandTypeCompatibility:
         for cmd_type in CommandType:
             cmd.command_type = cmd_type
             if cmd.command_type != cmd_type:
-                raise AssertionError(f"Expected {cmd_type}, got {cmd.command_type}")
+                msg = f"Expected {cmd_type}, got {cmd.command_type}"
+                raise AssertionError(msg)
 
         # Test with None
         cmd.command_type = None
@@ -906,7 +970,8 @@ class TestCommandTypeCompatibility:
         for cmd_type in CommandType:
             cmd.command_type = cmd_type
             if cmd.command_type != cmd_type:
-                raise AssertionError(f"Expected {cmd_type}, got {cmd.command_type}")
+                msg = f"Expected {cmd_type}, got {cmd.command_type}"
+                raise AssertionError(msg)
 
         # Test with None
         cmd.command_type = None

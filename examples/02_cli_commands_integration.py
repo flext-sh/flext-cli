@@ -35,9 +35,6 @@ from flext_cli import (
     ExistingFile,
     FlextCliCommand,
     PositiveInt,
-    cli_confirm,
-    cli_enhanced,
-    cli_measure_time,
     get_cli_config,
     setup_cli,
 )
@@ -55,7 +52,7 @@ class DemoCommandMixin:
         """Log operation using Rich console."""
         self.console.print(f"[green]→[/green] {operation}")
 
-    def show_result(self, result: FlextResult[object]) -> None:
+    def show_result[T](self, result: FlextResult[T]) -> None:
         """Display operation result."""
         if result.is_success:
             self.console.print(f"[green]✅ Success:[/green] {result.value}")
@@ -96,11 +93,16 @@ def demo_cli(
 @click.option("--timeout", type=PositiveInt, default=30, help="Connection timeout")
 @click.option("--retries", type=PositiveInt, default=3, help="Number of retries")
 @click.pass_context
-@cli_enhanced  # flext-cli decorator for enhanced functionality
-@cli_measure_time  # flext-cli decorator for timing
-@cli_confirm("This will test the connection. Continue?")  # flext-cli confirmation
 def connect(ctx: click.Context, url: str, timeout: int, retries: int) -> None:
     """Test connection to a service with flext-cli integration."""
+    # Manual confirmation (instead of @cli_confirm decorator)
+    if not click.confirm("This will test the connection. Continue?"):
+        return
+
+    # Manual timing start (instead of @cli_measure_time decorator)
+    import time
+    start_time = time.time()
+
     console = ctx.obj["console"]
 
     # Create command entity using flext-cli patterns
@@ -123,6 +125,10 @@ def connect(ctx: click.Context, url: str, timeout: int, retries: int) -> None:
     mixin = DemoCommandMixin()
     mixin.show_result(result)
 
+    # Manual timing end (instead of @cli_measure_time decorator)
+    elapsed = time.time() - start_time
+    console.print(f"[dim]Operation completed in {elapsed:.2f}s[/dim]")
+
 
 @demo_cli.command()
 @click.option(
@@ -135,12 +141,14 @@ def connect(ctx: click.Context, url: str, timeout: int, retries: int) -> None:
     "--batch-size", type=PositiveInt, default=100, help="Processing batch size"
 )
 @click.pass_context
-@cli_enhanced
-@cli_measure_time
 def process_file(
     ctx: click.Context, input_file: Path, output_format: str, batch_size: int
 ) -> None:
     """Process file with flext-cli patterns."""
+    # Manual timing start (instead of @cli_measure_time decorator)
+    import time
+    start_time = time.time()
+
     console = ctx.obj["console"]
 
     console.print(
@@ -158,13 +166,16 @@ def process_file(
     mixin = DemoCommandMixin()
     mixin.show_result(result)
 
+    # Manual timing end (instead of @cli_measure_time decorator)
+    elapsed = time.time() - start_time
+    console.print(f"[dim]Operation completed in {elapsed:.2f}s[/dim]")
+
 
 @demo_cli.command()
 @click.option(
     "--workspace", type=click.Path(path_type=Path), help="Workspace directory"
 )
 @click.pass_context
-@cli_enhanced
 def status(ctx: click.Context, workspace: Path | None) -> None:
     """Show CLI status with flext-cli integration."""
     console = ctx.obj["console"]
@@ -191,7 +202,7 @@ def create_connection_command(
             name="connection-test",
             command_line=f"curl --connect-timeout {timeout} --retry {retries} {url}",
             description=f"Test connection to {url}",
-            working_directory=Path.cwd(),
+            working_directory=Path.cwd(),  # type: ignore[call-arg]
         )
 
         return FlextResult[FlextCliCommand].ok(command)
@@ -209,7 +220,7 @@ def execute_connection_test(command: FlextCliCommand) -> FlextResult[str]:
         time.sleep(1)  # Simulate network delay
 
         # Validate command before execution
-        validation_result = command.validate_domain_rules()
+        validation_result = command.validate_business_rules()
         if validation_result.is_failure:
             return FlextResult[str].fail(
                 f"Command validation failed: {validation_result.error}"

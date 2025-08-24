@@ -26,27 +26,34 @@ class TestCLIContext:
     def test_context_creation(self, cli_context: FlextCliContext) -> None:
         """Test CLI context creation."""
         if cli_context.profile != "test":
-            raise AssertionError(f"Expected {'test'}, got {cli_context.profile}")
+            msg = f"Expected {'test'}, got {cli_context.profile}"
+            raise AssertionError(msg)
         assert cli_context.output_format == "json"
         if not (cli_context.debug):
-            raise AssertionError(f"Expected True, got {cli_context.debug}")
+            msg = f"Expected True, got {cli_context.debug}"
+            raise AssertionError(msg)
         if cli_context.quiet:
-            raise AssertionError(f"Expected False, got {cli_context.quiet}")
+            msg = f"Expected False, got {cli_context.quiet}"
+            raise AssertionError(msg)
         if not (cli_context.verbose):
-            raise AssertionError(f"Expected True, got {cli_context.verbose}")
+            msg = f"Expected True, got {cli_context.verbose}"
+            raise AssertionError(msg)
         assert cli_context.no_color is True
 
     def test_context_defaults(self) -> None:
         """Test CLI context with defaults."""
         context = FlextCliContext.create_with_params()
         if context.profile != "default":
-            raise AssertionError(f"Expected {'default'}, got {context.profile}")
+            msg = f"Expected {'default'}, got {context.profile}"
+            raise AssertionError(msg)
         assert context.output_format == "table"
         if context.debug:
-            raise AssertionError(f"Expected False, got {context.debug}")
+            msg = f"Expected False, got {context.debug}"
+            raise AssertionError(msg)
         assert context.quiet is False
         if context.verbose:
-            raise AssertionError(f"Expected False, got {context.verbose}")
+            msg = f"Expected False, got {context.verbose}"
+            raise AssertionError(msg)
         assert context.no_color is False
 
     def test_context_immutability(self, cli_context: FlextCliContext) -> None:
@@ -86,7 +93,8 @@ class TestHandleServiceResult:
 
         result = success_function()
         if result != "success data":
-            raise AssertionError(f"Expected {'success data'}, got {result}")
+            msg = f"Expected {'success data'}, got {result}"
+            raise AssertionError(msg)
 
     def test_failed_result_handling(self) -> None:
         """Test handling of failed FlextResult."""
@@ -111,7 +119,8 @@ class TestHandleServiceResult:
 
         result = regular_function()
         if result != "regular data":
-            raise AssertionError(f"Expected {'regular data'}, got {result}")
+            msg = f"Expected {'regular data'}, got {result}"
+            raise AssertionError(msg)
 
     def test_exception_handling(self) -> None:
         """Test exception handling in decorator."""
@@ -134,8 +143,9 @@ class TestHandleServiceResult:
             return "result"
 
         if documented_function.__name__ != "documented_function":
+            msg = f"Expected {'documented_function'}, got {documented_function.__name__}"
             raise AssertionError(
-                f"Expected {'documented_function'}, got {documented_function.__name__}",
+                msg,
             )
         assert documented_function.__doc__ == "A documented function."
 
@@ -148,7 +158,8 @@ class TestHandleServiceResult:
 
         result = function_with_args("test", 42, kwarg1="custom")
         if result != "test-42-custom":
-            raise AssertionError(f"Expected {'test-42-custom'}, got {result}")
+            msg = f"Expected {'test-42-custom'}, got {result}"
+            raise AssertionError(msg)
 
     def test_result_with_complex_data(self) -> None:
         """Test handling FlextResult with complex data types."""
@@ -167,11 +178,13 @@ class TestHandleServiceResult:
 
         assert isinstance(result, dict)
         if result["data"] != [1, 2, 3]:
-            raise AssertionError(f"Expected {[1, 2, 3]}, got {result['data']}")
+            msg = f"Expected {[1, 2, 3]}, got {result['data']}"
+            raise AssertionError(msg)
         assert result["metadata"]["count"] == EXPECTED_DATA_COUNT
         if result["nested"]["deep"]["value"] != "found":
+            msg = f"Expected {'found'}, got {result['nested']['deep']['value']}"
             raise AssertionError(
-                f"Expected {'found'}, got {result['nested']['deep']['value']}",
+                msg,
             )
 
     def test_async_function_compatibility(self) -> None:
@@ -185,7 +198,8 @@ class TestHandleServiceResult:
         async def test_runner() -> None:
             result = await async_function()
             if result != "async result":
-                raise AssertionError(f"Expected {'async result'}, got {result}")
+                msg = f"Expected {'async result'}, got {result}"
+                raise AssertionError(msg)
 
         # Run the async test
         asyncio.run(test_runner())
@@ -234,7 +248,8 @@ class TestHandleServiceResult:
         async def test_runner() -> None:
             result = await async_regular_function()
             if result != "async regular data":
-                raise AssertionError(f"Expected {'async regular data'}, got {result}")
+                msg = f"Expected {'async regular data'}, got {result}"
+                raise AssertionError(msg)
 
         # Run the async test
         asyncio.run(test_runner())

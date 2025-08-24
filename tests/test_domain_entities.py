@@ -29,18 +29,21 @@ class TestCLICommand:
     def test_command_creation(self, sample_command: CLICommand) -> None:
         """Test CLI command creation."""
         if sample_command.name != "test-command":
+            msg = f"Expected {'test-command'}, got {sample_command.name}"
             raise AssertionError(
-                f"Expected {'test-command'}, got {sample_command.name}",
+                msg,
             )
         assert sample_command.description == "A test command"
         if sample_command.command_type != CommandType.SYSTEM:
+            msg = f"Expected {CommandType.SYSTEM}, got {sample_command.command_type}"
             raise AssertionError(
-                f"Expected {CommandType.SYSTEM}, got {sample_command.command_type}",
+                msg,
             )
         assert sample_command.command_line == "echo hello"
         if sample_command.command_status != CommandStatus.PENDING:
+            msg = f"Expected {CommandStatus.PENDING}, got {sample_command.command_status}"
             raise AssertionError(
-                f"Expected {CommandStatus.PENDING}, got {sample_command.command_status}",
+                msg,
             )
 
     def test_command_execution_lifecycle(self, sample_command: CLICommand) -> None:
@@ -58,8 +61,9 @@ class TestCLICommand:
         running_command = running_result.value
         assert running_command is not None
         if running_command.command_status != CommandStatus.RUNNING:
+            msg = f"Expected {CommandStatus.RUNNING}, got {running_command.command_status}"
             raise AssertionError(
-                f"Expected {CommandStatus.RUNNING}, got {running_command.command_status}",
+                msg,
             )
         assert running_command.started_at is not None
         assert not running_command.is_completed
@@ -76,12 +80,14 @@ class TestCLICommand:
         completed_command = completed_result.value
         assert completed_command is not None
         if completed_command.command_status != CommandStatus.COMPLETED:
+            msg = f"Expected {CommandStatus.COMPLETED}, got {completed_command.command_status}"
             raise AssertionError(
-                f"Expected {CommandStatus.COMPLETED}, got {completed_command.command_status}",
+                msg,
             )
         assert completed_command.exit_code == 0
         if completed_command.stdout != "hello":
-            raise AssertionError(f"Expected {'hello'}, got {completed_command.stdout}")
+            msg = f"Expected {'hello'}, got {completed_command.stdout}"
+            raise AssertionError(msg)
         assert completed_command.is_completed
         assert completed_command.successful
         assert completed_command.duration_seconds is not None
@@ -108,13 +114,15 @@ class TestCLICommand:
         assert failed_command is not None
 
         if failed_command.command_status != CommandStatus.FAILED:
+            msg = f"Expected {CommandStatus.FAILED}, got {failed_command.command_status}"
             raise AssertionError(
-                f"Expected {CommandStatus.FAILED}, got {failed_command.command_status}",
+                msg,
             )
         assert failed_command.exit_code == 1
         if failed_command.stderr != "Error occurred":
+            msg = f"Expected {'Error occurred'}, got {failed_command.stderr}"
             raise AssertionError(
-                f"Expected {'Error occurred'}, got {failed_command.stderr}",
+                msg,
             )
         assert failed_command.is_completed
         assert not failed_command.successful
@@ -145,8 +153,9 @@ class TestCLICommand:
         assert cancelled_command is not None
 
         if cancelled_command.command_status != CommandStatus.CANCELLED:
+            msg = f"Expected {CommandStatus.CANCELLED}, got {cancelled_command.command_status}"
             raise AssertionError(
-                f"Expected {CommandStatus.CANCELLED}, got {cancelled_command.command_status}",
+                msg,
             )
         assert cancelled_command.is_completed
         assert not cancelled_command.successful
@@ -247,18 +256,22 @@ class TestCLIPlugin:
         )
 
         if sample_plugin.name != "test-plugin":
-            raise AssertionError(f"Expected {'test-plugin'}, got {sample_plugin.name}")
+            msg = f"Expected {'test-plugin'}, got {sample_plugin.name}"
+            raise AssertionError(msg)
         assert (
             sample_plugin.plugin_version == "0.9.0"
         )  # Using correct plugin_version field
         if sample_plugin.entry_point != "test_plugin.main":
+            msg = f"Expected {'test_plugin.main'}, got {sample_plugin.entry_point}"
             raise AssertionError(
-                f"Expected {'test_plugin.main'}, got {sample_plugin.entry_point}",
+                msg,
             )
         if not (sample_plugin.enabled):
-            raise AssertionError(f"Expected True, got {sample_plugin.enabled}")
+            msg = f"Expected True, got {sample_plugin.enabled}"
+            raise AssertionError(msg)
         if sample_plugin.installed:
-            raise AssertionError(f"Expected False, got {sample_plugin.installed}")
+            msg = f"Expected False, got {sample_plugin.installed}"
+            raise AssertionError(msg)
 
     def test_plugin_lifecycle_real(self) -> None:
         """Test plugin lifecycle operations with real object."""
@@ -276,7 +289,8 @@ class TestCLIPlugin:
         assert install_result.is_success, f"Install failed: {install_result.error}"
         installed_plugin = install_result.value
         if not (installed_plugin.installed):
-            raise AssertionError(f"Expected True, got {installed_plugin.installed}")
+            msg = f"Expected True, got {installed_plugin.installed}"
+            raise AssertionError(msg)
         assert installed_plugin.enabled is True
 
         # Disable plugin - FlextResult pattern
@@ -284,16 +298,19 @@ class TestCLIPlugin:
         assert disable_result.is_success, f"Disable failed: {disable_result.error}"
         disabled_plugin = disable_result.value
         if disabled_plugin.enabled:
-            raise AssertionError(f"Expected False, got {disabled_plugin.enabled}")
+            msg = f"Expected False, got {disabled_plugin.enabled}"
+            raise AssertionError(msg)
         if not (disabled_plugin.installed):
-            raise AssertionError(f"Expected True, got {disabled_plugin.installed}")
+            msg = f"Expected True, got {disabled_plugin.installed}"
+            raise AssertionError(msg)
 
         # Enable plugin - FlextResult pattern
         enable_result = disabled_plugin.enable()
         assert enable_result.is_success, f"Enable failed: {enable_result.error}"
         enabled_plugin = enable_result.value
         if not (enabled_plugin.enabled):
-            raise AssertionError(f"Expected True, got {enabled_plugin.enabled}")
+            msg = f"Expected True, got {enabled_plugin.enabled}"
+            raise AssertionError(msg)
 
         # Uninstall plugin - FlextResult pattern
         uninstall_result = enabled_plugin.uninstall()
@@ -302,7 +319,8 @@ class TestCLIPlugin:
         )
         uninstalled_plugin = uninstall_result.value
         if uninstalled_plugin.installed:
-            raise AssertionError(f"Expected False, got {uninstalled_plugin.installed}")
+            msg = f"Expected False, got {uninstalled_plugin.installed}"
+            raise AssertionError(msg)
         assert uninstalled_plugin.enabled is False
 
     def test_plugin_with_dependencies(self) -> None:
@@ -315,12 +333,15 @@ class TestCLIPlugin:
         )
 
         if len(plugin.dependencies) != EXPECTED_DATA_COUNT:
-            raise AssertionError(f"Expected {3}, got {len(plugin.dependencies)}")
+            msg = f"Expected {3}, got {len(plugin.dependencies)}"
+            raise AssertionError(msg)
         if "click" not in plugin.dependencies:
-            raise AssertionError(f"Expected {'click'} in {plugin.dependencies}")
+            msg = f"Expected {'click'} in {plugin.dependencies}"
+            raise AssertionError(msg)
         assert "rich" in plugin.dependencies
         if "requests" not in plugin.dependencies:
-            raise AssertionError(f"Expected {'requests'} in {plugin.dependencies}")
+            msg = f"Expected {'requests'} in {plugin.dependencies}"
+            raise AssertionError(msg)
 
 
 class TestCLISession:
@@ -337,19 +358,23 @@ class TestCLISession:
         )
 
         if sample_session.session_id != "test-session-123":
+            msg = f"Expected {'test-session-123'}, got {sample_session.session_id}"
             raise AssertionError(
-                f"Expected {'test-session-123'}, got {sample_session.session_id}",
+                msg,
             )
         assert sample_session.working_directory == tempfile.gettempdir()
         if sample_session.environment["TEST"] != "true":
+            msg = f"Expected {'true'}, got {sample_session.environment['TEST']}"
             raise AssertionError(
-                f"Expected {'true'}, got {sample_session.environment['TEST']}",
+                msg,
             )
         if not (sample_session.active):
-            raise AssertionError(f"Expected True, got {sample_session.active}")
+            msg = f"Expected True, got {sample_session.active}"
+            raise AssertionError(msg)
         if len(sample_session.commands_executed) != 0:
+            msg = f"Expected {0}, got {len(sample_session.commands_executed)}"
             raise AssertionError(
-                f"Expected {0}, got {len(sample_session.commands_executed)}",
+                msg,
             )
 
     def test_session_command_tracking_real(self) -> None:
@@ -371,8 +396,9 @@ class TestCLISession:
         assert result1.success, f"Add command failed: {result1.error}"
         session_with_cmd1 = result1.value
         if len(session_with_cmd1.commands_executed) != 1:
+            msg = f"Expected {1}, got {len(session_with_cmd1.commands_executed)}"
             raise AssertionError(
-                f"Expected {1}, got {len(session_with_cmd1.commands_executed)}",
+                msg,
             )
         assert session_with_cmd1.current_command == command_id_1
 
@@ -380,8 +406,9 @@ class TestCLISession:
         assert result2.success, f"Add command failed: {result2.error}"
         session_with_cmd2 = result2.value
         if len(session_with_cmd2.commands_executed) != EXPECTED_BULK_SIZE:
+            msg = f"Expected {2}, got {len(session_with_cmd2.commands_executed)}"
             raise AssertionError(
-                f"Expected {2}, got {len(session_with_cmd2.commands_executed)}",
+                msg,
             )
         assert session_with_cmd2.current_command == command_id_2
 
@@ -405,7 +432,8 @@ class TestCLISession:
         ended_session = result2.value
 
         if ended_session.active:
-            raise AssertionError(f"Expected False, got {ended_session.active}")
+            msg = f"Expected False, got {ended_session.active}"
+            raise AssertionError(msg)
         assert ended_session.current_command is None
 
     def test_session_activity_tracking_real(self) -> None:

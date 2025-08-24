@@ -13,7 +13,7 @@ import os
 from click.testing import CliRunner
 
 from flext_cli import cli, main
-from flext_cli.utils_core import FlextCliUtilities
+from flext_cli.config import FlextCliConfig
 
 
 class TestCliMain:
@@ -87,7 +87,7 @@ class TestCliMain:
         assert "Profile:" in result.output
 
         # Test that configuration can be accessed
-        test_config = FlextCliUtilities.create_test_config()
+        test_config = FlextCliConfig().model_dump()
         assert "profile" in test_config
         assert "debug" in test_config
 
@@ -286,6 +286,6 @@ class TestCliConfiguration:
             assert f"Output format: {fmt}" in result.output
 
         # Test that CLI configuration can be inspected
-        test_config = FlextCliUtilities.create_test_config()
+        test_config = FlextCliConfig().model_dump()
         assert isinstance(test_config, dict)
         assert "output_format" in test_config
