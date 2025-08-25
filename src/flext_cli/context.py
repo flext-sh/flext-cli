@@ -12,14 +12,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextContext
+from flext_core import FlextModel
 from pydantic import ConfigDict, Field
 from rich.console import Console
 
 from flext_cli.config import FlextCliConfig
 
 
-class FlextCliContext(FlextContext):
+class FlextCliContext(FlextModel):
     """CLI execution context extending FlextContext with CLI-specific functionality.
 
     Immutable context containing execution environment, user information,
@@ -38,7 +38,7 @@ class FlextCliContext(FlextContext):
         default_factory=FlextCliConfig,
         description="CLI configuration instance",
     )
-    console: Console = Field(
+    console: Console | None = Field(
         default_factory=Console,
         description="Rich console for output",
     )
@@ -177,7 +177,6 @@ def create_cli_context(**kwargs: object) -> FlextCliContext:
     config = kwargs.get("config")
     console_param = kwargs.get("console")
     console = console_param if isinstance(console_param, Console) else Console()
-    settings = kwargs.get("settings")
     debug = bool(kwargs.get("debug"))
     quiet = bool(kwargs.get("quiet"))
     verbose = bool(kwargs.get("verbose"))
@@ -185,12 +184,16 @@ def create_cli_context(**kwargs: object) -> FlextCliContext:
     # Use provided config or create new one
     cli_config = config if isinstance(config, FlextCliConfig) else FlextCliConfig()
 
-    return FlextCliContext(
-        config=cli_config,
-        console=console,
-        debug=debug,
-        quiet=quiet,
-        verbose=verbose,
+    # Create context using model_copy to properly set fields
+    context = FlextCliContext()
+    return context.model_copy(
+        update={
+            "config": cli_config,
+            "console": console,
+            "debug": debug,
+            "quiet": quiet,
+            "verbose": verbose,
+        }
     )
 
 

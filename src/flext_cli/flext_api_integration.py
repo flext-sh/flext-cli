@@ -10,7 +10,6 @@ from __future__ import annotations
 import json
 from typing import Protocol, Self
 
-# from flext_api import create_flext_api  # Temporarily disabled due to dependency issue
 from flext_core import FlextConstants, FlextResult, get_logger
 
 from flext_cli.config import get_config as get_cli_config

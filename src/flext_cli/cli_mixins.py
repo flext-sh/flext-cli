@@ -28,7 +28,7 @@ from flext_cli.cli_types import ConfigDict, FlextCliOutputFormat, OutputData
 # =============================================================================
 
 
-class CLIValidationMixin(FlextValidatableMixin):
+class CliValidationMixin(FlextValidatableMixin):
     """CLI-specific validation mixin extending flext-core validation.
 
     Adds CLI-specific validation methods while delegating core validation
@@ -61,7 +61,7 @@ class CLIValidationMixin(FlextValidatableMixin):
         return FlextResult[None].ok(None)
 
 
-class CLIConfigMixin(FlextComparableMixin):
+class CliConfigMixin(FlextComparableMixin):
     """CLI-specific configuration mixin extending flext-core configuration.
 
     Adds CLI-specific configuration methods while delegating core configuration
@@ -74,7 +74,7 @@ class CLIConfigMixin(FlextComparableMixin):
             return FlextResult[ConfigDict].fail("Profile name cannot be empty")
 
         # Simple profile configuration without parent delegation
-        # (CLIConfigMixin doesn't inherit actual configuration loading)
+        # (CliConfigMixin doesn't inherit actual configuration loading)
         profile_config: ConfigDict = {
             "name": profile_name,
             "output_format": "table",
@@ -103,7 +103,7 @@ class CLIConfigMixin(FlextComparableMixin):
         return FlextResult[None].ok(None)
 
 
-class CLILoggingMixin(FlextLoggableMixin):
+class CliLoggingMixin(FlextLoggableMixin):
     """CLI-specific logging mixin extending flext-core logging.
 
     Adds CLI-specific logging methods while delegating core logging
@@ -156,7 +156,7 @@ class CLILoggingMixin(FlextLoggableMixin):
         return FlextResult[None].ok(None)
 
 
-class CLIOutputMixin(FlextSerializableMixin):
+class CliOutputMixin(FlextSerializableMixin):
     """CLI-specific output formatting mixin extending flext-core serialization.
 
     Adds CLI-specific output formatting while delegating core serialization
@@ -237,10 +237,10 @@ class CLIOutputMixin(FlextSerializableMixin):
 
         return FlextResult[str].ok(str(data))
 
-    # Note: validation logic is provided by CLIValidationMixin to avoid duplication
+    # Note: validation logic is provided by CliValidationMixin to avoid duplication
 
 
-class CLIInteractiveMixin:
+class CliInteractiveMixin:
     """CLI interactive functionality mixin.
 
     Provides interactive CLI capabilities like prompts, confirmations,
@@ -349,12 +349,12 @@ class CLIInteractiveMixin:
 # =============================================================================
 
 
-class CLICompleteMixin(
-    CLIValidationMixin,
-    CLIConfigMixin,
-    CLILoggingMixin,
-    CLIOutputMixin,
-    CLIInteractiveMixin,
+class CliCompleteMixin(
+    CliValidationMixin,
+    CliConfigMixin,
+    CliLoggingMixin,
+    CliOutputMixin,
+    CliInteractiveMixin,
 ):
     """Complete CLI mixin combining all CLI functionality.
 
@@ -378,7 +378,7 @@ class CLICompleteMixin(
             return FlextResult[None].fail(f"Mixin setup failed: {e}")
 
 
-class CLIDataMixin(CLIValidationMixin, CLIOutputMixin):
+class CliDataMixin(CliValidationMixin, CliOutputMixin):
     """Data-focused CLI mixin for validation and output formatting."""
 
     @override
@@ -388,7 +388,7 @@ class CLIDataMixin(CLIValidationMixin, CLIOutputMixin):
         super().mixin_setup()
 
 
-class CLIExecutionMixin(CLILoggingMixin, CLIInteractiveMixin):
+class CliExecutionMixin(CliLoggingMixin, CliInteractiveMixin):
     """Execution-focused CLI mixin for logging and interaction."""
 
     @override
@@ -398,7 +398,7 @@ class CLIExecutionMixin(CLILoggingMixin, CLIInteractiveMixin):
         super().mixin_setup()
 
 
-class CLIUIMixin(CLIOutputMixin, CLIInteractiveMixin):
+class CliUIMixin(CliOutputMixin, CliInteractiveMixin):
     """UI-focused CLI mixin for output and interaction."""
 
     @override
@@ -413,13 +413,13 @@ class CLIUIMixin(CLIOutputMixin, CLIInteractiveMixin):
 # =============================================================================
 
 __all__ = [
-    "CLICompleteMixin",
-    "CLIConfigMixin",
-    "CLIDataMixin",
-    "CLIExecutionMixin",
-    "CLIInteractiveMixin",
-    "CLILoggingMixin",
-    "CLIOutputMixin",
-    "CLIUIMixin",
-    "CLIValidationMixin",
+    "CliCompleteMixin",
+    "CliConfigMixin",
+    "CliDataMixin",
+    "CliExecutionMixin",
+    "CliInteractiveMixin",
+    "CliLoggingMixin",
+    "CliOutputMixin",
+    "CliUIMixin",
+    "CliValidationMixin",
 ]

@@ -16,6 +16,7 @@ import pytest
 from flext_core import FlextResult
 
 from flext_cli import (
+    BasicFlextCliSessionService,
     CLICommand,
     CommandStatus,
     CommandType,
@@ -25,7 +26,6 @@ from flext_cli import (
     FlextCliExecutionContext,
     FlextCliPlugin,
     FlextCliSession,
-    FlextCliSessionService,
     FlextCliSettings,
     PluginStatus,
     SessionStatus,
@@ -351,7 +351,7 @@ class TestFlextCoreDependencyInjectionIntegration:
         """Test CLI services use dependency injection."""
         # Test that services can be created and used
         command_service = FlextCliCommandService()
-        session_service = FlextCliSessionService()
+        session_service = BasicFlextCliSessionService()
 
         # Services should be properly initialized
         assert command_service is not None
@@ -618,7 +618,7 @@ class TestFlextCorePatternCompliance:
     def test_service_pattern_compliance(self) -> None:
         """Test services follow service pattern."""
         command_service = FlextCliCommandService()
-        session_service = FlextCliSessionService()
+        session_service = BasicFlextCliSessionService()
 
         # Services should encapsulate business operations
         assert command_service is not None

@@ -33,19 +33,19 @@ from flext_cli.ecosystem_integration import *
 from flext_cli.entities import *
 from flext_cli.exceptions import *
 from flext_cli.flext_api_integration import *
-from flext_cli.flext_cli import *
+from flext_cli.flext_cli import *  # type: ignore[assignment]
 from flext_cli.formatters import *
-from flext_cli.foundation import *
+from flext_cli.foundation import *  # type: ignore[assignment]
 from flext_cli.helpers import *
 from flext_cli.mixins import *
 from flext_cli.models import *
 from flext_cli.providers import *
 from flext_cli.service_implementations import *
 from flext_cli.service_protocols import *
-from flext_cli.services import *
-from flext_cli.simple_api import *
+from flext_cli.services import *  # type: ignore[assignment]
+from flext_cli.simple_api import *  # type: ignore[assignment]
 from flext_cli.utilities import *
-from flext_cli.utils_auth import *
+from flext_cli.utils_auth import *  # type: ignore[assignment]
 from flext_cli.utils_core import *
 from flext_cli.utils_output import *
 

@@ -8,11 +8,10 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.models import (
     FlextCliCommand as CLICommand,
     FlextCliCommandType,
+    FlextCliCommandType as CommandType,
     FlextCliPlugin,
     FlextCliSession,
 )
-
-# CommandType moved to models.py - import from there
 
 
 class FlextCliEntityFactory:

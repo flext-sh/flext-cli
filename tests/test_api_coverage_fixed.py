@@ -13,6 +13,7 @@ from pathlib import Path
 
 import yaml
 from flext_core import FlextResult
+from rich.console import Console
 from rich.table import Table
 
 from flext_cli.api import (
@@ -29,6 +30,7 @@ from flext_cli.api import (
     flext_cli_unwrap_or_default,
     flext_cli_unwrap_or_none,
 )
+from flext_cli.config import FlextCliSettings
 
 
 class TestFlextCliContext:
@@ -36,10 +38,6 @@ class TestFlextCliContext:
 
     def test_context_init(self) -> None:
         """Test context initialization."""
-        from rich.console import Console
-
-        from flext_cli.config import FlextCliSettings
-
         config = FlextCliSettings()
         console = Console()
 

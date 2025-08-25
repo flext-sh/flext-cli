@@ -92,9 +92,8 @@ class AdvancedCliService(FlextCliService):
         """Check health of a specific service with retry logic."""
         try:
             logger = getattr(self, "logger", None)
-            if logger:
-                if logger and hasattr(logger, "info"):
-                    logger.info(f"Checking health for service: {service_name}")
+            if logger and hasattr(logger, "info"):
+                logger.info(f"Checking health for service: {service_name}")
 
             # Simulate health check call
             health_data = self._simulate_health_check(service_name)
@@ -519,7 +518,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     else:
         # Create mock container for demonstration
         class MockContainer:
-            def __init__(self):
+            def __init__(self) -> None:
                 self._services = {}
 
             def register(self, name: str, service: object) -> None:

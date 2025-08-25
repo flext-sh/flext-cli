@@ -169,6 +169,9 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
         self, username: str, password: str
     ) -> FlextResult[dict[str, str]]:
         """Authenticate with FLEXT services and get tokens."""
+        # These parameters would be used for actual authentication
+        # but are unused in this demo implementation
+        _ = username, password
         auth_results = {}
 
         # Authenticate with FLEXT API

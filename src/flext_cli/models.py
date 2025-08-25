@@ -22,12 +22,21 @@ from flext_core import (
     get_logger,
 )
 from pydantic import ConfigDict, Field, field_validator
-from rich.console import Console
 
-from flext_cli.cli_types import FlextCliOutputFormat
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
+
+
+# FlextCliOutputFormat defined here to avoid circular import with cli_types.py
+class FlextCliOutputFormat(StrEnum):
+    """CLI output format enumeration."""
+
+    JSON = "json"
+    CSV = "csv"
+    YAML = "yaml"
+    TABLE = "table"
+    PLAIN = "plain"
 
 
 def _now_utc() -> datetime:
@@ -135,142 +144,6 @@ SessionStatus = FlextCliModels.SessionState
 # FlextCliContext moved to context.py - import from there
 
 
-# Placeholder to maintain line numbers for now
-class _RemovedFlextCliContext:
-    """CLI execution context value object.
-
-    Immutable context containing execution environment, user information,
-    and configuration settings for CLI command execution.
-
-    Business Rules:
-      - Working directory must exist if specified
-      - Environment variables must be valid strings
-      - User ID must be non-empty if provided
-    """
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    # Minimal fields used by tests
-    # Accept any object to avoid strict model_type validation issues in tests
-    config: object = Field(
-        default_factory=FlextCliConfig,
-        description="CLI configuration instance",
-    )
-    console: Console = Field(
-        default_factory=Console,
-        description="Rich console for output",
-    )
-
-    # Additional context data (kept for forward-convenience)
-    working_directory: Path | None = Field(
-        default=None,
-        description="Working directory for command execution",
-    )
-    environment_variables: dict[str, str] = Field(
-        default_factory=dict,
-        description="Environment variables for execution context",
-    )
-    user_id: str | None = Field(
-        default=None,
-        description="User identifier for the context",
-    )
-    session_id: str | None = Field(
-        default=None,
-        description="CLI session identifier",
-    )
-    configuration: dict[str, object] = Field(
-        default_factory=dict,
-        description="Context-specific configuration",
-    )
-    timeout_seconds: int = Field(
-        default=300,
-        ge=1,
-        description="Default timeout for operations in this context",
-    )
-
-    @field_validator("working_directory")
-    @classmethod
-    def validate_working_directory(cls, v: Path | None) -> Path | None:
-        """Validate working directory exists if specified."""
-        if v is not None and not v.exists():
-            msg = f"Working directory does not exist: {v}"
-            raise ValueError(msg)
-        return v
-
-    @field_validator("user_id")
-    @classmethod
-    def validate_user_id(cls, v: str | None) -> str | None:
-        """Validate user ID is not empty if provided."""
-        if v is not None and not v.strip():
-            msg = "User ID cannot be empty string"
-            raise ValueError(msg)
-        return v.strip() if v else None
-
-    # Convenience properties used in tests
-    @property
-    def is_debug(self) -> bool:  # pragma: no cover - trivial
-        return bool(getattr(self.config, "debug", False))
-
-    @property
-    def is_quiet(self) -> bool:  # pragma: no cover - trivial
-        return bool(getattr(self.config, "quiet", False))
-
-    def with_environment(self, **env_vars: str) -> FlextCliContext:
-        """Create new context with additional environment variables."""
-        new_env = {**self.environment_variables, **env_vars}
-        return self.model_copy(update={"environment_variables": new_env})
-
-    def with_working_directory(self, directory: Path) -> FlextCliContext:
-        """Create new context with different working directory."""
-        return self.model_copy(update={"working_directory": directory})
-
-    # Printing helpers expected by some tests
-    def print_success(
-        self,
-        message: str,
-    ) -> None:  # pragma: no cover - simple passthrough
-        self.console.print(f"[green][SUCCESS][/green] {message}")
-
-    def print_error(
-        self,
-        message: str,
-    ) -> None:  # pragma: no cover - simple passthrough
-        self.console.print(f"[red][ERROR][/red] {message}")
-
-    def print_warning(
-        self,
-        message: str,
-    ) -> None:  # pragma: no cover - simple passthrough
-        self.console.print(f"[yellow][WARNING][/yellow] {message}")
-
-    def print_info(self, message: str) -> None:  # pragma: no cover - simple passthrough
-        if not self.is_quiet:
-            self.console.print(f"[blue][INFO][/blue] {message}")
-
-    def print_debug(
-        self,
-        message: str,
-    ) -> None:  # pragma: no cover - simple passthrough
-        if self.is_debug:
-            self.console.print(f"[dim][DEBUG][/dim] {message}")
-
-    @override
-    def validate_business_rules(self) -> FlextResult[None]:
-        """Validate CLI context business rules."""
-        # Environment variables are already validated by type annotations (dict[str, str])
-
-        # Timeout must be reasonable
-        if self.timeout_seconds > MAX_TIMEOUT_SECONDS:
-            return FlextResult[None].fail(
-                FlextCliConstants.CliErrors.TIME_TIMEOUT_EXCEEDED
-            )
-
-        return FlextResult[None].ok(None)
-
-
-# FlextCliContext.model_rebuild() - removed since FlextCliContext moved to context.py
-
-
 class FlextCliOutput(FlextValue):
     """CLI command output value object.
 
@@ -300,8 +173,8 @@ class FlextCliOutput(FlextValue):
         ge=0,
         description="Command execution duration in seconds",
     )
-    output_format: FlextCliOutputFormat = Field(
-        default="plain",
+    output_format: "FlextCliOutputFormat" = Field(  # noqa: UP037
+        default="plain",  # type: ignore[assignment]
         description="Format of the output content",
     )
     metadata: dict[str, object] = Field(
@@ -393,8 +266,8 @@ class FlextCliConfiguration(FlextValue):
         ge=1,
         description="Default timeout for CLI operations in seconds",
     )
-    output_format: FlextCliOutputFormat = Field(
-        default="table",
+    output_format: "FlextCliOutputFormat" = Field(  # noqa: UP037
+        default="table",  # type: ignore[assignment]
         description="Default output format",
     )
     config_file_path: Path | None = Field(
@@ -863,13 +736,14 @@ class FlextCliCommand(FlextEntity):
 
 # Ensure forward references used in command are resolved early
 _logger = get_logger(__name__)
-try:  # pragma: no cover
-    FlextCliCommand.model_rebuild()
-except Exception as exc:  # Do not silently swallow model rebuild errors
-    _logger.warning(
-        "Pydantic model_rebuild failed for FlextCliCommand",
-        error=str(exc),
-    )
+# FlextCliCommand.model_rebuild() - disabled due to FlextCliOutputFormat circular import
+# try:  # pragma: no cover
+#     FlextCliCommand.model_rebuild()
+# except Exception as exc:  # Do not silently swallow model rebuild errors
+#     _logger.warning(
+#         "Pydantic model_rebuild failed for FlextCliCommand",
+#         error=str(exc),
+#     )
 
 
 class FlextCliSession(FlextEntity):
@@ -903,7 +777,7 @@ class FlextCliSession(FlextEntity):
         description="Session execution context",
     )
     configuration: FlextCliConfiguration = Field(
-        default_factory=FlextCliConfiguration,
+        default_factory=lambda: FlextCliConfiguration(),
         description="Session configuration",
     )
     # Testing convenience-friendly fields
@@ -1188,15 +1062,16 @@ class FlextCliSession(FlextEntity):
 
 
 # Ensure forward references used in session are resolved early
-try:  # pragma: no cover
-    FlextCliSession.model_rebuild()
-except Exception as exc:  # Do not silently swallow model rebuild errors
-    # Type the exception explicitly for PyRight
-    typed_exc: Exception = exc
-    _logger.warning(
-        "Pydantic model_rebuild failed for FlextCliSession",
-        error=str(typed_exc),
-    )
+# FlextCliSession.model_rebuild() - disabled due to FlextCliOutputFormat circular import
+# try:  # pragma: no cover
+#     FlextCliSession.model_rebuild()
+# except Exception as exc:  # Do not silently swallow model rebuild errors
+#     # Type the exception explicitly for PyRight
+#     typed_exc: Exception = exc
+#     _logger.warning(
+#         "Pydantic model_rebuild failed for FlextCliSession",
+#         error=str(typed_exc),
+#     )
 
 
 class FlextCliPlugin(FlextEntity):
@@ -1621,7 +1496,7 @@ class FlextCliWorkspace(FlextAggregateRoot):
         description="Workspace description",
     )
     configuration: FlextCliConfiguration = Field(
-        default_factory=FlextCliConfiguration,
+        default_factory=lambda: FlextCliConfiguration(),
         description="Workspace configuration",
     )
     session_ids: list[FlextEntityId] = Field(

@@ -484,7 +484,8 @@ class FlextCliApi:
         cli_config = FlextCliSettings()
         if config:
             cli_config = cli_config.model_copy(update=config)
-        return FlextCliContext(config=cli_config, console=Console())
+        context = FlextCliContext()
+        return context.model_copy(update={"config": cli_config, "console": Console()})
 
     def flext_cli_create_command(
         self,
