@@ -9,59 +9,104 @@ from __future__ import annotations
 
 import sys
 from dataclasses import dataclass, field
-from typing import cast, override
+from pathlib import Path
+from typing import cast
 
-from flext_core import FlextModel
+from flext_core import FlextContext
 from pydantic import ConfigDict, Field
 from rich.console import Console
 
+from flext_cli.config import FlextCliConfig
 
-class FlextCliContext(FlextModel):
-    """CLI execution context carrying state across commands (Pydantic)."""
+
+class FlextCliContext(FlextContext):
+    """CLI execution context extending FlextContext with CLI-specific functionality.
+
+    Immutable context containing execution environment, user information,
+    and configuration settings for CLI command execution.
+
+    Business Rules:
+      - Working directory must exist if specified
+      - Environment variables must be valid strings
+      - User ID must be non-empty if provided
+    """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    config: object | None = Field(default=None)
-    settings: object | None = Field(default=None)
-    console: Console | None = Field(default=None)
+    # CLI-specific fields
+    config: FlextCliConfig = Field(
+        default_factory=FlextCliConfig,
+        description="CLI configuration instance",
+    )
+    console: Console = Field(
+        default_factory=Console,
+        description="Rich console for output",
+    )
+
+    # Additional context data
+    working_directory: Path | None = Field(
+        default=None,
+        description="Working directory for command execution",
+    )
+    environment_variables: dict[str, str] = Field(
+        default_factory=dict,
+        description="Environment variables for execution context",
+    )
+    user_id: str | None = Field(
+        default=None,
+        description="User identifier for the context",
+    )
+    session_id: str | None = Field(
+        default=None,
+        description="CLI session identifier",
+    )
+    configuration: dict[str, object] = Field(
+        default_factory=dict,
+        description="Context-specific configuration",
+    )
+    timeout_seconds: int = Field(
+        default=300,
+        ge=1,
+        description="Default timeout for operations in this context",
+    )
 
     # Derived flags (also used directly by some tests when config is missing)
     debug: bool = Field(default=False)
     quiet: bool = Field(default=False)
     verbose: bool = Field(default=False)
 
-    @override
     def model_post_init(self, __context: object, /) -> None:
+        """Initialize context after model creation."""
         # Provide sensible defaults instead of failing hard. Tests construct this
         # context without explicitly providing config/console.
         if self.console is None:
             self.console = Console()
-        # Leave config optional; derived flags already fall back to fields
 
     # Properties based on config if present, otherwise fall back to fields
     @property
     def is_debug(self) -> bool:
-        cfg = self.config
-        if cfg is not None and hasattr(cfg, "debug"):
-            return bool(getattr(cfg, "debug", False))
-        return bool(getattr(self, "debug", False))
+        """Check if debug mode is enabled."""
+        if hasattr(self.config, "debug"):
+            return bool(self.config.debug)
+        return bool(self.debug)
 
     @property
     def is_quiet(self) -> bool:
-        cfg = self.config
-        if cfg is not None and hasattr(cfg, "quiet"):
-            return bool(getattr(cfg, "quiet", False))
-        return bool(getattr(self, "quiet", False))
+        """Check if quiet mode is enabled."""
+        if hasattr(self.config, "output") and hasattr(self.config.output, "quiet"):
+            return bool(self.config.output.quiet)
+        return bool(self.quiet)
 
     @property
     def is_verbose(self) -> bool:
-        cfg = self.config
-        if cfg is not None and hasattr(cfg, "verbose"):
-            return bool(getattr(cfg, "verbose", False))
-        return bool(getattr(self, "verbose", False))
+        """Check if verbose mode is enabled."""
+        if hasattr(self.config, "output") and hasattr(self.config.output, "verbose"):
+            return bool(self.config.output.verbose)
+        return bool(self.verbose)
 
     # Printing helpers expected by tests
     def print_success(self, message: str) -> None:
+        """Print success message."""
         if self.console is None:
             sys.stdout.write(f"[SUCCESS] {message}\n")
             sys.stdout.flush()
@@ -69,6 +114,7 @@ class FlextCliContext(FlextModel):
             self.console.print(f"[green][SUCCESS][/green] {message}")
 
     def print_error(self, message: str) -> None:
+        """Print error message."""
         if self.console is None:
             sys.stderr.write(f"[ERROR] {message}\n")
             sys.stderr.flush()
@@ -76,6 +122,7 @@ class FlextCliContext(FlextModel):
             self.console.print(f"[red][ERROR][/red] {message}")
 
     def print_warning(self, message: str) -> None:
+        """Print warning message."""
         if self.console is None:
             sys.stderr.write(f"[WARNING] {message}\n")
             sys.stderr.flush()
@@ -83,6 +130,7 @@ class FlextCliContext(FlextModel):
             self.console.print(f"[yellow][WARNING][/yellow] {message}")
 
     def print_info(self, message: str) -> None:
+        """Print info message."""
         if not self.is_quiet:
             if self.console is None:
                 sys.stdout.write(f"[INFO] {message}\n")
@@ -91,6 +139,7 @@ class FlextCliContext(FlextModel):
                 self.console.print(f"[blue][INFO][/blue] {message}")
 
     def print_verbose(self, message: str) -> None:
+        """Print verbose message."""
         if self.is_verbose:
             if self.console is None:
                 sys.stdout.write(f"[VERBOSE] {message}\n")
@@ -132,9 +181,12 @@ def create_cli_context(**kwargs: object) -> FlextCliContext:
     debug = bool(kwargs.get("debug"))
     quiet = bool(kwargs.get("quiet"))
     verbose = bool(kwargs.get("verbose"))
+
+    # Use provided config or create new one
+    cli_config = config if isinstance(config, FlextCliConfig) else FlextCliConfig()
+
     return FlextCliContext(
-        config=config,
-        settings=settings,
+        config=cli_config,
         console=console,
         debug=debug,
         quiet=quiet,
@@ -175,3 +227,11 @@ def create_execution_context(
         session_id=str(session_id) if session_id is not None else None,
         user_id=str(user_id) if user_id is not None else None,
     )
+
+
+__all__ = [
+    "FlextCliContext",
+    "FlextCliExecutionContext",
+    "create_cli_context",
+    "create_execution_context",
+]

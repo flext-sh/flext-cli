@@ -27,13 +27,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-# import random  # Removed for security - using fixed values instead
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
 import click
-from flext_core import FlextResult, get_logger
+from flext_core import FlextContainer, FlextResult, get_logger
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
@@ -47,10 +46,7 @@ from flext_cli import (
     FlextCliEntityFactory,
     FlextCliOutputFormat,
     PositiveInt,
-    cli_enhanced,
     cli_handle_keyboard_interrupt,
-    cli_measure_time,
-    create_cli_container,
     get_cli_config,
     setup_cli,
 )
@@ -64,7 +60,7 @@ class ComprehensiveCliApplication:
         self.console = Console()
         self.logger = get_logger(__name__)
         self.config = get_cli_config()
-        self.container = create_cli_container()
+        self.container = FlextContainer.create_cli_container()
         self.api_client = FlextApiClient()
         self.entity_factory = FlextCliEntityFactory()
 
@@ -86,7 +82,7 @@ class ComprehensiveCliApplication:
 
             # Setup CLI foundation
             setup_result = setup_cli()
-            if setup_result.failure:
+            if setup_result.is_failure:
                 return FlextResult[None].fail(f"CLI setup failed: {setup_result.error}")
 
             # Register services in container
@@ -158,7 +154,7 @@ def cli(
     """
     # Initialize application
     init_result = app.initialize_application()
-    if init_result.failure:
+    if init_result.is_failure:
         app.console.print(f"[red]Initialization failed: {init_result.error}[/red]")
         ctx.exit(1)
 
@@ -173,7 +169,7 @@ def cli(
     # Configure context - use basic FlextCliContext
     cli_context = FlextCliContext()
     # Store context values in object for access
-    cli_context._profile = profile  # type: ignore[attr-defined]  
+    cli_context._profile = profile  # type: ignore[attr-defined]
     cli_context._output = FlextCliOutputFormat(output.upper())  # type: ignore[attr-defined]
     cli_context._debug = debug  # type: ignore[attr-defined]
     cli_context._quiet = not verbose  # type: ignore[attr-defined]
@@ -227,7 +223,7 @@ def create(
     command_result = app.entity_factory.create_command(
         name=f"create-project-{name}",
         command_line=f"mkdir -p {directory} && echo 'Project {name} created'",
-        # Removed unsupported parameters: description, arguments  
+        # Removed unsupported parameters: description, arguments
     )
 
     if command_result.failure:
@@ -353,7 +349,7 @@ def service(ctx: click.Context) -> None:
 @click.option("--url", type=URL, required=True, help="Service URL")
 @click.option("--timeout", type=PositiveInt, default=30, help="Timeout in seconds")
 # Removed problematic decorators @cli_enhanced, @cli_measure_time - cause type inference issues
-@click.pass_context  
+@click.pass_context
 def health(ctx: click.Context, url: str, timeout: int) -> None:
     """Check health of a service."""
     app: ComprehensiveCliApplication = ctx.obj["app"]

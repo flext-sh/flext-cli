@@ -56,17 +56,17 @@ FlextCliValidatorImpl = FlextCliValidatorProtocol
 # =============================================================================
 
 __all__ = [
+    # Compatibility aliases
+    "FlextCliCommandImpl",
     # Main protocol aliases
     "FlextCliCommandProtocol",
     "FlextCliConnectionProtocol",
     "FlextCliFactoryProtocol",
+    "FlextCliFormatterImpl",
     "FlextCliFormatterProtocol",
     "FlextCliRepositoryProtocol",
-    "FlextCliServiceProtocol",
-    "FlextCliValidatorProtocol",
-    # Compatibility aliases
-    "FlextCliCommandImpl",
-    "FlextCliFormatterImpl",
     "FlextCliServiceImpl",
+    "FlextCliServiceProtocol",
     "FlextCliValidatorImpl",
+    "FlextCliValidatorProtocol",
 ]

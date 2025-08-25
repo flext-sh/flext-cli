@@ -2,39 +2,17 @@
 
 from __future__ import annotations
 
-from enum import StrEnum
-
 from flext_core import FlextEntityId, FlextResult
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import (
-    CommandStatus,
     FlextCliCommand as CLICommand,
-    FlextCliCommandStatus,
     FlextCliCommandType,
-    FlextCliConfiguration as FlextCliConfig,
-    FlextCliOutput,
-    FlextCliOutputFormat,
     FlextCliPlugin,
     FlextCliSession,
-    PluginStatus,
-    SessionStatus,
 )
 
-
-class CommandType(StrEnum):
-    """Enumeration of supported CLI command categories."""
-
-    SYSTEM = "system"
-    PIPELINE = "pipeline"
-    PLUGIN = "plugin"
-    DATA = "data"
-    CONFIG = "config"
-    AUTH = "auth"
-    MONITORING = "monitoring"
-    CLI = "cli"
-    SCRIPT = "script"
-    SQL = "sql"
+# CommandType moved to models.py - import from there
 
 
 class FlextCliEntityFactory:
@@ -136,16 +114,6 @@ class FlextCliEntityFactory:
 
 
 __all__ = [
-    "CLICommand",
-    "CommandStatus",
-    "CommandType",
-    "FlextCliCommandStatus",
-    "FlextCliConfig",
+    # "CommandType",  # Moved to models.py
     "FlextCliEntityFactory",
-    "FlextCliOutput",
-    "FlextCliOutputFormat",
-    "FlextCliPlugin",
-    "FlextCliSession",
-    "PluginStatus",
-    "SessionStatus",
 ]

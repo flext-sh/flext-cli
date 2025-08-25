@@ -13,13 +13,13 @@ from flext_core import get_logger
 
 from flext_cli.api import (
     FlextCliApi,
-    FlextCliContext,
     SessionSummary,
 )
 from flext_cli.cli_types import (
     FlextCliDataType,
     FlextCliOutputFormat,
 )
+from flext_cli.context import FlextCliContext
 
 # Global API instance
 _api = FlextCliApi()
@@ -248,3 +248,21 @@ def flext_cli_get_handlers() -> dict[str, object]:
 
     """
     return _api.flext_cli_get_handlers()
+
+
+__all__ = [
+    "flext_cli_create_command",
+    "flext_cli_create_context",
+    "flext_cli_create_session",
+    "flext_cli_execute_handler",
+    "flext_cli_export",
+    "flext_cli_format",
+    "flext_cli_get_commands",
+    "flext_cli_get_handlers",
+    "flext_cli_get_plugins",
+    "flext_cli_get_sessions",
+    "flext_cli_health",
+    "flext_cli_register_handler",
+    "flext_cli_register_plugin",
+    "flext_cli_render_with_context",
+]

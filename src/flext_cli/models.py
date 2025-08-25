@@ -1,4 +1,4 @@
-"""CLI Domain Models.
+"""CLI Domain Models - CONSOLIDATED Pattern following FLEXT standards.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -24,8 +24,10 @@ from flext_core import (
 from pydantic import ConfigDict, Field, field_validator
 from rich.console import Console
 
+from flext_cli.cli_types import FlextCliOutputFormat
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
+from flext_cli.context import FlextCliContext
 
 
 def _now_utc() -> datetime:
@@ -41,88 +43,88 @@ MAX_TIMEOUT_SECONDS: int = 60 * 60 * 24  # 86400 (24 hours)
 MIN_EXIT_CODE: int = 0
 MAX_EXIT_CODE: int = 255
 
-# Ensure Path is available to Pydantic during model build to avoid
-# "class-not-fully-defined" errors reported by tests
+
+class FlextCliModels:
+    """Single CONSOLIDATED class containing ALL CLI domain models.
+
+    Consolidates ALL model definitions into one class following FLEXT patterns.
+    Individual models available as nested classes for organization.
+    Maintains backward compatibility through direct exports.
+    """
+
+    class CommandType(StrEnum):
+        """CLI command type enumeration."""
+
+        SYSTEM = "system"
+        PIPELINE = "pipeline"
+        PLUGIN = "plugin"
+        DATA = "data"
+        CONFIG = "config"
+        AUTH = "auth"
+        MONITORING = "monitoring"
+        CLI = "cli"
+        SCRIPT = "script"
+        SQL = "sql"
+
+    class CommandStatus(StrEnum):
+        """CLI command execution status enumeration."""
+
+        PENDING = "pending"
+        RUNNING = "running"
+        COMPLETED = "completed"
+        FAILED = "failed"
+        CANCELLED = "cancelled"
+
+    class SessionState(StrEnum):
+        """CLI session state enumeration."""
+
+        ACTIVE = "active"
+        IDLE = "idle"
+        SUSPENDED = "suspended"
+        COMPLETED = "completed"
+        TERMINATED = "terminated"
+        ERROR = "error"
+
+    class PluginState(StrEnum):
+        """CLI plugin state enumeration."""
+
+        UNLOADED = "unloaded"
+        LOADING = "loading"
+        LOADED = "loaded"
+        ACTIVE = "active"
+        DISABLED = "disabled"
+        ERROR = "error"
+
+    class PluginStatus(StrEnum):
+        """Plugin status enumeration with INACTIVE alias."""
+
+        INACTIVE = "inactive"
+        UNLOADED = "unloaded"
+        LOADING = "loading"
+        LOADED = "loaded"
+        ACTIVE = "active"
+        DISABLED = "disabled"
+        ERROR = "error"
+
+    class OutputFormat(StrEnum):
+        """CLI output format enumeration."""
+
+        JSON = "json"
+        CSV = "csv"
+        YAML = "yaml"
+        TABLE = "table"
+        PLAIN = "plain"
 
 
-# Local import to avoid circular during module import
-class FlextCliCommandType(StrEnum):
-    SYSTEM = "system"
-    PIPELINE = "pipeline"
-    PLUGIN = "plugin"
-    DATA = "data"
-    CONFIG = "config"
-    AUTH = "auth"
-    MONITORING = "monitoring"
-    CLI = "cli"
-    SCRIPT = "script"
-    SQL = "sql"
-
-
-# =============================================================================
-# CLI-SPECIFIC ENUMERATIONS
-# =============================================================================
-
-
-class FlextCliCommandStatus(StrEnum):
-    """CLI command execution status enumeration."""
-
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
-
-
-# Compatibility alias names expected by api layer/tests
-CommandStatus = FlextCliCommandStatus
-
-
-class FlextCliSessionState(StrEnum):
-    """CLI session state enumeration."""
-
-    ACTIVE = "active"
-    IDLE = "idle"
-    SUSPENDED = "suspended"
-    COMPLETED = "completed"
-    TERMINATED = "terminated"
-    ERROR = "error"
-
-
-SessionStatus = FlextCliSessionState
-
-
-class FlextCliPluginState(StrEnum):
-    """CLI plugin state enumeration."""
-
-    UNLOADED = "unloaded"
-    LOADING = "loading"
-    LOADED = "loaded"
-    ACTIVE = "active"
-    DISABLED = "disabled"
-    ERROR = "error"
-
-
-class PluginStatus(StrEnum):
-    """Plugin status enumeration with INACTIVE alias."""
-
-    INACTIVE = "inactive"
-    UNLOADED = "unloaded"
-    LOADING = "loading"
-    LOADED = "loaded"
-    ACTIVE = "active"
-    DISABLED = "disabled"
-    ERROR = "error"
-
-
-class FlextCliOutputFormat(StrEnum):
-    """CLI output format enumeration."""
-
-    JSON = "json"
-    CSV = "csv"
-    YAML = "yaml"
-    TABLE = "table"
-    PLAIN = "plain"
+# Legacy compatibility exports for backward compatibility
+FlextCliCommandType = FlextCliModels.CommandType
+FlextCliCommandStatus = FlextCliModels.CommandStatus
+FlextCliSessionState = FlextCliModels.SessionState
+FlextCliPluginState = FlextCliModels.PluginState
+PluginStatus = FlextCliModels.PluginStatus
+# FlextCliOutputFormat is defined in cli_types.py - use import instead
+CommandStatus = FlextCliModels.CommandStatus
+SessionStatus = FlextCliModels.SessionState
 
 
 # =============================================================================
@@ -130,7 +132,11 @@ class FlextCliOutputFormat(StrEnum):
 # =============================================================================
 
 
-class FlextCliContext(FlextValue):
+# FlextCliContext moved to context.py - import from there
+
+
+# Placeholder to maintain line numbers for now
+class _RemovedFlextCliContext:
     """CLI execution context value object.
 
     Immutable context containing execution environment, user information,
@@ -249,7 +255,6 @@ class FlextCliContext(FlextValue):
             self.console.print(f"[dim][DEBUG][/dim] {message}")
 
     @override
-    @override
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI context business rules."""
         # Environment variables are already validated by type annotations (dict[str, str])
@@ -263,7 +268,7 @@ class FlextCliContext(FlextValue):
         return FlextResult[None].ok(None)
 
 
-FlextCliContext.model_rebuild()
+# FlextCliContext.model_rebuild() - removed since FlextCliContext moved to context.py
 
 
 class FlextCliOutput(FlextValue):
@@ -296,7 +301,7 @@ class FlextCliOutput(FlextValue):
         description="Command execution duration in seconds",
     )
     output_format: FlextCliOutputFormat = Field(
-        default=FlextCliOutputFormat.PLAIN,
+        default="plain",
         description="Format of the output content",
     )
     metadata: dict[str, object] = Field(
@@ -340,7 +345,7 @@ class FlextCliOutput(FlextValue):
 
     def format_output(self) -> str:
         """Format output for display based on output format."""
-        if self.output_format == FlextCliOutputFormat.JSON:
+        if self.output_format == "json":
             return json.dumps(
                 {
                     "stdout": self.stdout,
@@ -389,7 +394,7 @@ class FlextCliConfiguration(FlextValue):
         description="Default timeout for CLI operations in seconds",
     )
     output_format: FlextCliOutputFormat = Field(
-        default=FlextCliOutputFormat.TABLE,
+        default="table",
         description="Default output format",
     )
     config_file_path: Path | None = Field(
@@ -893,8 +898,8 @@ class FlextCliSession(FlextEntity):
         default=FlextCliSessionState.ACTIVE,
         description="Current session state",
     )
-    context: FlextCliContext = Field(
-        default_factory=FlextCliContext,
+    context: FlextCliContext | None = Field(
+        default=None,  # Will be set properly when context.py is imported
         description="Session execution context",
     )
     configuration: FlextCliConfiguration = Field(
@@ -1745,12 +1750,15 @@ class FlextCliWorkspace(FlextAggregateRoot):
         return FlextResult[FlextCliWorkspace].ok(result)
 
 
-FlextCliOutput.model_rebuild()
-FlextCliConfiguration.model_rebuild()
-FlextCliCommand.model_rebuild()
-FlextCliSession.model_rebuild()
-FlextCliPlugin.model_rebuild()
-FlextCliWorkspace.model_rebuild()
+# FlextCliOutput.model_rebuild()  # Commented out due to circular import with FlextCliOutputFormat
+
+
+# Model rebuilds commented out - using string annotations instead
+# FlextCliConfiguration.model_rebuild()
+# FlextCliCommand.model_rebuild()
+# FlextCliSession.model_rebuild()
+# FlextCliPlugin.model_rebuild()
+# FlextCliWorkspace.model_rebuild()
 
 
 # =============================================================================
@@ -1761,12 +1769,9 @@ __all__ = [
     # Entities
     "FlextCliCommand",
     # Enumerations
-    "FlextCliCommandStatus",
     "FlextCliConfiguration",
     # Value Objects
-    "FlextCliContext",
     "FlextCliOutput",
-    "FlextCliOutputFormat",
     "FlextCliPlugin",
     "FlextCliPluginState",
     "FlextCliSession",

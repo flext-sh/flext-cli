@@ -25,10 +25,11 @@ from flext_cli.cli_auth import (
     status as _cli_status,
     whoami as _cli_whoami,
 )
-from flext_cli.flext_api_integration import FlextCLIApiClient as FlextApiClient
+
+# Use FlextApiClient from client.py instead
 
 __all__ = [
-    "FlextApiClient",
+    # "FlextApiClient",  # Removed - use from client.py instead
     "auth",
     "clear_auth_tokens",
     "get_auth_token",

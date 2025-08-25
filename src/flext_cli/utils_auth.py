@@ -11,7 +11,7 @@ from pathlib import Path
 
 from flext_core import FlextResult
 
-from flext_cli import get_config
+from flext_cli.config import get_cli_config
 
 __all__ = [
     "clear_auth_tokens",
@@ -29,7 +29,7 @@ __all__ = [
 def should_auto_refresh() -> bool:
     """Return True if token auto-refresh should be performed."""
     """Return whether refresh tokens should be auto-refreshed based on config."""
-    cfg = get_config()
+    cfg = get_cli_config()
     # If explicit auto_refresh exists at root, honor it first
     if hasattr(cfg, "auto_refresh"):
         return bool(cfg.auto_refresh and get_refresh_token().is_success)
@@ -43,7 +43,7 @@ def should_auto_refresh() -> bool:
 
 def get_token_path() -> Path:
     """Return token path, honoring tests that patch get_config()."""
-    cfg = get_config()
+    cfg = get_cli_config()
     direct = getattr(cfg, "token_file", None)
     if isinstance(direct, Path):
         return direct
@@ -56,7 +56,7 @@ def get_token_path() -> Path:
 
 def get_refresh_token_path() -> Path:
     """Return refresh token path, honoring tests that patch get_config()."""
-    cfg = get_config()
+    cfg = get_cli_config()
     direct = getattr(cfg, "refresh_token_file", None)
     if isinstance(direct, Path):
         return direct

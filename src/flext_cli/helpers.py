@@ -683,4 +683,16 @@ def flext_cli_batch_validate(
     return processor.flext_cli_validate_and_transform(data, validators, {})
 
 
-# Use FlextCliHelper directly - no more legacy aliases
+# Legacy aliases for backward compatibility
+CLIHelper = FlextCliHelper
+
+__all__ = [
+    "CLIHelper",  # Legacy alias
+    "FlextCliDataProcessor",
+    "FlextCliFileManager",
+    "FlextCliHelper",
+    "flext_cli_batch_validate",
+    "flext_cli_create_data_processor",
+    "flext_cli_create_file_manager",
+    "flext_cli_create_helper",
+]

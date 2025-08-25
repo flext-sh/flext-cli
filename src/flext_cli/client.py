@@ -12,8 +12,8 @@ from typing import Self, cast
 from urllib.parse import urljoin
 
 import httpx
-from flext_core import FlextResult, get_logger
-from pydantic import BaseModel, Field
+from flext_core import FlextModel, FlextResult, get_logger
+from pydantic import Field
 
 from flext_cli.config import get_config as get_cli_config
 
@@ -37,13 +37,7 @@ def _compute_default_base_url() -> str | None:
         return None
 
 
-class APIBaseModel(BaseModel):
-    """Base model for API responses."""
-
-    model_config = {"extra": "allow"}
-
-
-class PipelineConfig(APIBaseModel):
+class PipelineConfig(FlextModel):
     """Pipeline configuration model for Singer/Meltano workflows."""
 
     name: str = Field(description="Pipeline name")
@@ -55,7 +49,7 @@ class PipelineConfig(APIBaseModel):
     config: dict[str, object] | None = Field(None, description="Additional config")
 
 
-class Pipeline(APIBaseModel):
+class Pipeline(FlextModel):
     """Pipeline model for API responses."""
 
     id: str = Field(description="Pipeline ID")
@@ -66,7 +60,7 @@ class Pipeline(APIBaseModel):
     config: PipelineConfig = Field(description="Pipeline configuration")
 
 
-class PipelineList(APIBaseModel):
+class PipelineList(FlextModel):
     """Pipeline list response."""
 
     pipelines: list[Pipeline] = Field(description="List of pipelines")

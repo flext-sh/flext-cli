@@ -2,15 +2,15 @@
 
 import uuid
 from collections.abc import Callable
-from typing import Protocol, TypedDict, cast
+from typing import TypedDict, cast
 
-from flext_core import FlextResult, get_logger
+from flext_core import FlextProtocols, FlextResult, get_logger
 
-from flext_cli.context import FlextCliContext, FlextCliExecutionContext
+from flext_cli.context import FlextCliExecutionContext
 
 
-class SessionData(TypedDict, total=False):
-    """Type definition for CLI session data."""
+class BasicSessionData(TypedDict, total=False):
+    """Type definition for basic CLI session data."""
 
     id: str
     user_id: str | None
@@ -20,42 +20,13 @@ class SessionData(TypedDict, total=False):
     commands_count: int  # Derived field
 
 
-class CLIServiceProtocol(Protocol):
-    """Protocol for CLI services."""
-
-    def execute(
-        self, context: FlextCliContext, **kwargs: object
-    ) -> FlextResult[object]:
-        """Execute service operation."""
-        ...
+# Use flext-core protocols instead of local definitions
+CLIServiceProtocol = FlextProtocols.Domain.Service
+CLICommandServiceProtocol = FlextProtocols.Application.Handler[str, object]
+CLISessionServiceProtocol = FlextProtocols.Domain.Service
 
 
-class CLICommandServiceProtocol(Protocol):
-    """Protocol for CLI command services."""
-
-    def execute_command(
-        self,
-        command_name: str,
-        context: FlextCliExecutionContext,
-        **kwargs: object,
-    ) -> FlextResult[object]:
-        """Execute a CLI command."""
-        ...
-
-
-class CLISessionServiceProtocol(Protocol):
-    """Protocol for CLI session services."""
-
-    def create_session(self, user_id: str | None = None) -> FlextResult[str]:
-        """Create a new CLI session."""
-        ...
-
-    def get_session(self, session_id: str) -> FlextResult[SessionData]:
-        """Get session information."""
-        ...
-
-
-class FlextCliCommandService:
+class BasicFlextCliCommandService:
     """Basic CLI command service implementation."""
 
     def __init__(self) -> None:
@@ -101,11 +72,11 @@ class FlextCliCommandService:
         return list(self.commands.keys())
 
 
-class FlextCliSessionService:
+class BasicFlextCliSessionService:
     """Basic CLI session service implementation."""
 
     def __init__(self) -> None:
-        self.sessions: dict[str, SessionData] = {}
+        self.sessions: dict[str, BasicSessionData] = {}
 
     def create_session(self, user_id: str | None = None) -> FlextResult[str]:
         """Create a new CLI session."""
@@ -118,16 +89,18 @@ class FlextCliSessionService:
         }
         return FlextResult[str].ok(session_id)
 
-    def get_session(self, session_id: str) -> FlextResult[SessionData]:
+    def get_session(self, session_id: str) -> FlextResult[BasicSessionData]:
         """Get session information."""
         if session_id not in self.sessions:
-            return FlextResult[SessionData].fail(f"Session '{session_id}' not found")
+            return FlextResult[BasicSessionData].fail(
+                f"Session '{session_id}' not found"
+            )
         # Enrich with commands_count to match tests
         data = dict(self.sessions[session_id])
         commands = data.get("commands", [])
         if isinstance(commands, list):
             data["commands_count"] = len(commands)
-        return FlextResult[SessionData].ok(cast("SessionData", data))
+        return FlextResult[BasicSessionData].ok(cast("BasicSessionData", data))
 
     def end_session(self, session_id: str) -> FlextResult[None]:
         """End a CLI session."""
@@ -138,5 +111,5 @@ class FlextCliSessionService:
 
 
 # Create default service instances
-default_command_service: FlextCliCommandService = FlextCliCommandService()
-default_session_service: FlextCliSessionService = FlextCliSessionService()
+default_command_service: BasicFlextCliCommandService = BasicFlextCliCommandService()
+default_session_service: BasicFlextCliSessionService = BasicFlextCliSessionService()

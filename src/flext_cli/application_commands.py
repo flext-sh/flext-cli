@@ -8,33 +8,15 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TypedDict
 from uuid import UUID
 
-from flext_cli.entities import CommandType
+from flext_cli.cli_types import CommandOptions, ConfigData
+from flext_cli.models import FlextCliModels
+
+CommandType = FlextCliModels.CommandType
 
 # Type alias for command arguments and options using Union for better PyRight compatibility
 AnyPrimitive = str | int | float | bool | None
-
-
-class CommandOptions(TypedDict, total=False):
-    """Type definition for command options."""
-
-    # Common command options - allows any string keys with primitive values
-    timeout: int | float
-    verbose: bool
-    output_format: str
-    working_directory: str
-
-
-class ConfigData(TypedDict, total=False):
-    """Type definition for configuration data."""
-
-    # Common configuration keys - allows any string keys with primitive values
-    api_endpoint: str
-    timeout: int | float
-    enabled: bool
-    version: str
 
 
 @dataclass

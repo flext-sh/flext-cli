@@ -15,18 +15,17 @@ import tempfile
 from collections.abc import Generator
 from pathlib import Path
 
+import click
 import pytest
+from flext_core import FlextContainer
 from rich.console import Console
 
 from flext_cli import (
-    CLICommand,
+    FlextCliCommand,
     FlextCliConfig,
+    FlextCliContext,
     FlextCliSettings,
-    FlextConstants,
-    create_cli_container,
 )
-from flext_cli.base_core import FlextCliContext
-from flext_cli.cli_types import CommandType as FlextCliCommandType, FlextCliOutputFormat
 
 # =============================================================================
 # PYTEST CONFIGURATION - REAL FUNCTIONALITY TESTING
@@ -47,14 +46,10 @@ def temp_dir() -> Generator[Path]:
 def cli_config() -> FlextCliConfig:
     """Create REAL CLI configuration for testing actual functionality."""
     return FlextCliConfig(
-        api_url=f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}",
-        output_format="json",
-        command_timeout=30,
         profile="test",
         debug=True,
-        quiet=False,
-        verbose=True,
-        no_color=True,
+        log_level="DEBUG",
+        project_name="test-cli",
     )
 
 
@@ -73,11 +68,6 @@ def cli_settings() -> FlextCliSettings:
 def cli_context(cli_config: FlextCliConfig) -> FlextCliContext:
     """Create REAL CLI context for testing actual functionality."""
     return FlextCliContext(
-        profile="test",
-        output_format="json",
-        debug=True,
-        verbose=True,
-        no_color=True,
         config=cli_config,
         console=Console(),
     )
@@ -90,16 +80,12 @@ def console() -> Console:
 
 
 @pytest.fixture
-def sample_command() -> CLICommand:
+def sample_command() -> FlextCliCommand:
     """Create REAL sample CLI command for testing actual execution."""
-    return CLICommand(
-        id="test_cmd_001",
+    return FlextCliCommand(
         name="test-command",
         description="A test command",
-        command_type=FlextCliCommandType.SYSTEM,
         command_line="echo hello",
-        arguments={"arg1": "value1"},
-        options={"--verbose": True},
     )
 
 
@@ -109,8 +95,6 @@ def real_click_context(console: Console) -> tuple[object, Console]:
 
     This provides real Click context without mocking for testing actual command behavior.
     """
-    import click
-
     ctx = click.Context(click.Command("test"))
     ctx.obj = {"console": console}
     return ctx, console
@@ -119,21 +103,22 @@ def real_click_context(console: Console) -> tuple[object, Console]:
 @pytest.fixture
 def cli_container() -> object:
     """Create REAL CLI container for testing actual dependency injection."""
-    return create_cli_container()
+    return FlextContainer.create_container()
 
 
 @pytest.fixture
 def isolated_config() -> FlextCliConfig:
     """Create REAL isolated config for testing without state contamination."""
     # Return fresh config instance for each test
-    return FlextCliConfig(
+    config = FlextCliConfig(
         profile="test",
         debug=True,
-        output_format=FlextCliOutputFormat.JSON,
-        project_name="test-cli",
-        project_description="Test CLI Library",
         log_level="DEBUG",
+        project_name="test-cli",
     )
+    # Set output format via nested config
+    config.output.format = "json"
+    return config
 
 
 @pytest.fixture

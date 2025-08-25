@@ -6,66 +6,71 @@ from typing import ClassVar, Final
 
 from flext_core import FlextConstants
 
-# =============================================================================
-# CLI-SPECIFIC CONSTANTS
-# =============================================================================
-
-# CLI-specific environment configuration
-CLI_ENV_PREFIX: Final[str] = "FLEXT_CLI_"
-CLI_PROFILE_ENV_VAR: Final[str] = "FLX_PROFILE"
-CLI_DEBUG_ENV_VAR: Final[str] = "FLX_DEBUG"
-
-# CLI-specific behavior defaults
-DEFAULT_PROFILE: Final[str] = "default"
-DEFAULT_CONFIRM_PROMPT: Final[str] = "Are you sure?"
-DEFAULT_RICH_THEME: Final[str] = "monokai"
-
-# CLI-specific output formats (extends core)
-OUTPUT_FORMAT_RICH: Final[str] = "rich"
-OUTPUT_FORMAT_PLAIN: Final[str] = "plain"
-
-# CLI-specific validation (extends core limits)
-MAX_COMMAND_LENGTH: Final[int] = 512
-MAX_PROMPT_LENGTH: Final[int] = 256
-
-# =============================================================================
-# DELEGATE TO FLEXT-CORE CONSTANTS
-# =============================================================================
-
-# API defaults - delegate to flext-core Platform constants
-DEFAULT_API_URL: str = f"{FlextConstants.Platform.DEFAULT_BASE_URL}:{FlextConstants.Platform.FLEXT_API_PORT}"
-DEFAULT_TIMEOUT: int = FlextConstants.Defaults.TIMEOUT
-DEFAULT_RETRIES: int = FlextConstants.Defaults.MAX_RETRIES
-
-# Output defaults - delegate to flext-core
-DEFAULT_OUTPUT_FORMAT: str = FlextConstants.Cli.DEFAULT_OUTPUT_FORMAT
-DEFAULT_LOG_LEVEL: str = FlextConstants.Observability.DEFAULT_LOG_LEVEL
-
-# CLI behavior - delegate to flext-core
-DEFAULT_DEBUG: bool = False  # CLI-specific default
-
-# Environment configuration - delegate to flext-core
-ENV_PREFIX: str = CLI_ENV_PREFIX  # Use CLI-specific prefix
-ENV_FILE: str = FlextConstants.Configuration.DOTENV_FILES[0]
-
-# Validation limits - delegate to flext-core
-MAX_TIMEOUT: int = FlextConstants.Limits.MAX_PORT  # Reuse appropriate limit
-MIN_TIMEOUT: int = FlextConstants.Defaults.VALIDATION_TIMEOUT
-MAX_RETRIES: int = 10  # CLI-specific limit
-
-# Entity limits - delegate to flext-core
-MAX_ENTITY_NAME_LENGTH: int = FlextConstants.Platform.MAX_NAME_LENGTH
-MAX_ERROR_MESSAGE_LENGTH: int = FlextConstants.Limits.MAX_STRING_LENGTH
-
 
 class FlextCliConstants:
-    """CLI-specific constants that extend FlextConstants.
+    """Single CONSOLIDATED class containing ALL CLI constants.
 
-    This class provides CLI-specific constants while delegating
-    to flext_core.FlextConstants for all shared constants.
+    This class follows FLEXT consolidated class pattern by organizing
+    all CLI constants into nested classes within a single container.
+    Extends FlextConstants while adding CLI-specific constants.
     """
 
-    # Delegate to core constants
+    # =============================================================================
+    # DIRECT CLI-SPECIFIC CONSTANTS (Module Level)
+    # =============================================================================
+
+    # CLI-specific environment configuration
+    CLI_ENV_PREFIX: Final[str] = "FLEXT_CLI_"
+    CLI_PROFILE_ENV_VAR: Final[str] = "FLX_PROFILE"
+    CLI_DEBUG_ENV_VAR: Final[str] = "FLX_DEBUG"
+
+    # CLI-specific behavior defaults
+    DEFAULT_PROFILE: Final[str] = "default"
+    DEFAULT_CONFIRM_PROMPT: Final[str] = "Are you sure?"
+    DEFAULT_RICH_THEME: Final[str] = "monokai"
+
+    # CLI-specific output formats (extends core)
+    OUTPUT_FORMAT_RICH: Final[str] = "rich"
+    OUTPUT_FORMAT_PLAIN: Final[str] = "plain"
+
+    # CLI-specific validation (extends core limits)
+    MAX_COMMAND_LENGTH: Final[int] = 512
+    MAX_PROMPT_LENGTH: Final[int] = 256
+
+    # =============================================================================
+    # DELEGATE TO FLEXT-CORE CONSTANTS
+    # =============================================================================
+
+    # API defaults - delegate to flext-core Platform constants
+    DEFAULT_API_URL: str = f"{FlextConstants.Platform.DEFAULT_BASE_URL}:{FlextConstants.Platform.FLEXT_API_PORT}"
+    DEFAULT_TIMEOUT: int = FlextConstants.Defaults.TIMEOUT
+    DEFAULT_RETRIES: int = FlextConstants.Defaults.MAX_RETRIES
+
+    # Output defaults - delegate to flext-core
+    DEFAULT_OUTPUT_FORMAT: str = FlextConstants.Cli.DEFAULT_OUTPUT_FORMAT
+    DEFAULT_LOG_LEVEL: str = FlextConstants.Observability.DEFAULT_LOG_LEVEL
+
+    # CLI behavior - delegate to flext-core
+    DEFAULT_DEBUG: bool = False  # CLI-specific default
+
+    # Environment configuration - delegate to flext-core
+    ENV_PREFIX: str = CLI_ENV_PREFIX  # Use CLI-specific prefix
+    ENV_FILE: str = FlextConstants.Configuration.DOTENV_FILES[0]
+
+    # Validation limits - delegate to flext-core
+    MAX_TIMEOUT: int = FlextConstants.Limits.MAX_PORT  # Reuse appropriate limit
+    MIN_TIMEOUT: int = FlextConstants.Defaults.VALIDATION_TIMEOUT
+    MAX_RETRIES: int = 10  # CLI-specific limit
+
+    # Entity limits - delegate to flext-core
+    MAX_ENTITY_NAME_LENGTH: int = FlextConstants.Platform.MAX_NAME_LENGTH
+    MAX_ERROR_MESSAGE_LENGTH: int = FlextConstants.Limits.MAX_STRING_LENGTH
+
+    # =============================================================================
+    # FLEXT-CORE DELEGATION (Inherit All Core Constants)
+    # =============================================================================
+
+    # Delegate to core constants - maintain full compatibility
     Core = FlextConstants.Core
     Errors = FlextConstants.Errors
     Messages = FlextConstants.Messages
@@ -478,7 +483,7 @@ class FlextCliConstants:
 
         # Command validation
         MIN_COMMAND_LENGTH = 1
-        MAX_COMMAND_LENGTH = MAX_COMMAND_LENGTH
+        MAX_COMMAND_LENGTH = 512  # Reference to FlextCliConstants.MAX_COMMAND_LENGTH
 
         # Input validation
         MIN_INPUT_LENGTH = 1
@@ -486,7 +491,7 @@ class FlextCliConstants:
 
         # Prompt validation
         MIN_PROMPT_LENGTH = 1
-        MAX_PROMPT_LENGTH = MAX_PROMPT_LENGTH
+        MAX_PROMPT_LENGTH = 256  # Reference to FlextCliConstants.MAX_PROMPT_LENGTH
 
         # File path validation
         MAX_PATH_LENGTH = 4096
@@ -519,3 +524,42 @@ class FlextCliConstants:
 
         # Mock API failure rate (for examples only)
         MOCK_API_FAILURE_RATE = 0.3  # 30% chance of failure for demo purposes
+
+
+# =============================================================================
+# BACKWARD COMPATIBILITY EXPORTS (Legacy Module-Level Access)
+# =============================================================================
+
+# Module-level constants for backward compatibility
+CLI_ENV_PREFIX = FlextCliConstants.CLI_ENV_PREFIX
+CLI_PROFILE_ENV_VAR = FlextCliConstants.CLI_PROFILE_ENV_VAR
+CLI_DEBUG_ENV_VAR = FlextCliConstants.CLI_DEBUG_ENV_VAR
+DEFAULT_PROFILE = FlextCliConstants.DEFAULT_PROFILE
+DEFAULT_CONFIRM_PROMPT = FlextCliConstants.DEFAULT_CONFIRM_PROMPT
+DEFAULT_RICH_THEME = FlextCliConstants.DEFAULT_RICH_THEME
+OUTPUT_FORMAT_RICH = FlextCliConstants.OUTPUT_FORMAT_RICH
+OUTPUT_FORMAT_PLAIN = FlextCliConstants.OUTPUT_FORMAT_PLAIN
+MAX_COMMAND_LENGTH = FlextCliConstants.MAX_COMMAND_LENGTH
+MAX_PROMPT_LENGTH = FlextCliConstants.MAX_PROMPT_LENGTH
+DEFAULT_API_URL = FlextCliConstants.DEFAULT_API_URL
+DEFAULT_TIMEOUT = FlextCliConstants.DEFAULT_TIMEOUT
+DEFAULT_RETRIES = FlextCliConstants.DEFAULT_RETRIES
+DEFAULT_OUTPUT_FORMAT = FlextCliConstants.DEFAULT_OUTPUT_FORMAT
+DEFAULT_LOG_LEVEL = FlextCliConstants.DEFAULT_LOG_LEVEL
+DEFAULT_DEBUG = FlextCliConstants.DEFAULT_DEBUG
+ENV_PREFIX = FlextCliConstants.ENV_PREFIX
+ENV_FILE = FlextCliConstants.ENV_FILE
+MAX_TIMEOUT = FlextCliConstants.MAX_TIMEOUT
+MIN_TIMEOUT = FlextCliConstants.MIN_TIMEOUT
+MAX_RETRIES = FlextCliConstants.MAX_RETRIES
+MAX_ENTITY_NAME_LENGTH = FlextCliConstants.MAX_ENTITY_NAME_LENGTH
+MAX_ERROR_MESSAGE_LENGTH = FlextCliConstants.MAX_ERROR_MESSAGE_LENGTH
+
+# Nested class exports for backward compatibility
+CliErrors = FlextCliConstants.CliErrors
+CliMessages = FlextCliConstants.CliMessages
+CliOutput = FlextCliConstants.CliOutput
+Cli = FlextCliConstants.Cli
+Validation = FlextCliConstants.Validation
+Display = FlextCliConstants.Display
+Examples = FlextCliConstants.Examples

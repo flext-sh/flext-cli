@@ -405,13 +405,11 @@ def refresh_session(session_data: dict[str, Any]) -> FlextResult[dict[str, Any]]
 
         # Create refreshed session data
         refreshed_session = session_data.copy()
-        refreshed_session.update(
-            {
-                "expires_at": current_time + timedelta(hours=8),
-                "last_activity": current_time,
-                "refreshed_at": current_time,
-            }
-        )
+        refreshed_session.update({
+            "expires_at": current_time + timedelta(hours=8),
+            "last_activity": current_time,
+            "refreshed_at": current_time,
+        })
 
         return FlextResult[dict[str, Any]].ok(refreshed_session)
 
@@ -454,7 +452,9 @@ def main() -> None:
                 f"[red]Protected operation demo failed: {protected_result.error}[/red]"
             )
         elif not protected_result:
-            console.print("[red]Protected operation failed - authentication required[/red]")
+            console.print(
+                "[red]Protected operation failed - authentication required[/red]"
+            )
 
         rbac_result = demonstrate_role_based_access()
         if rbac_result.is_failure:

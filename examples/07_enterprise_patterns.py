@@ -97,9 +97,7 @@ class Project(FlextEntity):
             return FlextResult[None].fail("Cannot activate archived projects")
 
         old_status = self.status
-        self.model_copy(
-            update={"status": new_status, "updated_at": datetime.now(UTC)}
-        )
+        self.model_copy(update={"status": new_status, "updated_at": datetime.now(UTC)})
 
         # Add domain event (simplified for demo)
         ProjectStatusChanged(
@@ -143,7 +141,11 @@ class Project(FlextEntity):
         # Validate business rules
         validation_result = project.validate_domain_rules()
         if validation_result.is_failure:
-            return FlextResult[Project].fail(str(validation_result.error) if validation_result.error else "Validation failed")
+            return FlextResult[Project].fail(
+                str(validation_result.error)
+                if validation_result.error
+                else "Validation failed"
+            )
 
         # Add domain event (simplified for demo)
         ProjectCreated(project_id=project_id, project_name=name, owner_id=owner_id)
@@ -291,10 +293,16 @@ class CreateProjectHandler:
         # Save to repository
         save_result = self._repository.save(project)
         if save_result.is_failure:
-            return FlextResult[Project].fail(f"Failed to save project: {save_result.error}")
+            return FlextResult[Project].fail(
+                f"Failed to save project: {save_result.error}"
+            )
 
         # Process domain events (in real app, this would be async)
-        project_created_event = {"type": "ProjectCreated", "project_id": str(project.project_id), "timestamp": "2025-01-27"}
+        project_created_event = {
+            "type": "ProjectCreated",
+            "project_id": str(project.project_id),
+            "timestamp": "2025-01-27",
+        }
         self._process_domain_events([project_created_event])
 
         return FlextResult[Project].ok(project)
@@ -318,7 +326,9 @@ class ChangeProjectStatusHandler:
         # Load aggregate
         find_result = self._repository.find_by_id(command.project_id)
         if find_result.is_failure:
-            return FlextResult[Project].fail(str(find_result.error) if find_result.error else "Find failed")
+            return FlextResult[Project].fail(
+                str(find_result.error) if find_result.error else "Find failed"
+            )
 
         project = find_result.value
         if not project:
@@ -327,14 +337,24 @@ class ChangeProjectStatusHandler:
         # Execute business logic
         change_result = project.change_status(command.new_status, command.reason)
         if change_result.is_failure:
-            return FlextResult[Project].fail(str(change_result.error) if change_result.error else "Status change failed")
+            return FlextResult[Project].fail(
+                str(change_result.error)
+                if change_result.error
+                else "Status change failed"
+            )
 
         # Save changes
-        save_result = self._repository.save(project)  # Use original project, not updated_project
+        save_result = self._repository.save(
+            project
+        )  # Use original project, not updated_project
         if save_result.is_failure:
-            return FlextResult[Project].fail(str(save_result.error) if save_result.error else "Save failed")
+            return FlextResult[Project].fail(
+                str(save_result.error) if save_result.error else "Save failed"
+            )
 
-        return FlextResult[Project].ok(project)  # Return the project, not updated_project
+        return FlextResult[Project].ok(
+            project
+        )  # Return the project, not updated_project
 
 
 class ProjectQueryHandler:
@@ -349,11 +369,15 @@ class ProjectQueryHandler:
         """Execute get project query."""
         find_result = self._repository.find_by_id(query.project_id)
         if find_result.is_failure:
-            return FlextResult[dict[str, object]].fail(str(find_result.error) if find_result.error else "Find failed")
+            return FlextResult[dict[str, object]].fail(
+                str(find_result.error) if find_result.error else "Find failed"
+            )
 
         project = find_result.value
         if not project:
-            return FlextResult[dict[str, object]].fail(f"Project not found: {query.project_id}")
+            return FlextResult[dict[str, object]].fail(
+                f"Project not found: {query.project_id}"
+            )
 
         # Return read model (DTO)
         project_data = {
@@ -363,9 +387,7 @@ class ProjectQueryHandler:
             "owner_id": project.owner_id,
             "status": project.status.value,
             "created_at": str(project.created_at),
-            "updated_at": str(project.updated_at)
-            if project.updated_at
-            else None,
+            "updated_at": str(project.updated_at) if project.updated_at else None,
         }
 
         return FlextResult[dict[str, object]].ok(project_data)
@@ -376,7 +398,9 @@ class ProjectQueryHandler:
         """Execute list projects by owner query."""
         find_result = self._repository.find_by_owner(query.owner_id)
         if find_result.is_failure:
-            return FlextResult[list[dict[str, object]]].fail(str(find_result.error) if find_result.error else "Find by owner failed")
+            return FlextResult[list[dict[str, object]]].fail(
+                str(find_result.error) if find_result.error else "Find by owner failed"
+            )
 
         projects = find_result.value
         project_list = [
@@ -421,7 +445,10 @@ class ProjectManagementService(FlextCliService[dict[str, object]]):
 
     def execute(self) -> FlextResult[dict[str, object]]:
         """Execute method required by FlextService base class."""
-        return FlextResult[dict[str, object]].ok({"service": "project_management", "status": "active"})
+        return FlextResult[dict[str, object]].ok({
+            "service": "project_management",
+            "status": "active",
+        })
 
     def create_project(
         self, name: str, description: str, owner_id: str
@@ -433,17 +460,17 @@ class ProjectManagementService(FlextCliService[dict[str, object]]):
 
         result = self._create_handler.handle(command)
         if result.is_failure:
-            return FlextResult[dict[str, object]].fail(str(result.error) if result.error else "Create failed")
+            return FlextResult[dict[str, object]].fail(
+                str(result.error) if result.error else "Create failed"
+            )
 
         project = result.value
-        return FlextResult[dict[str, object]].ok(
-            {
-                "id": str(project.project_id),
-                "name": project.name,
-                "status": project.status.value,
-                "message": "Project created successfully",
-            }
-        )
+        return FlextResult[dict[str, object]].ok({
+            "id": str(project.project_id),
+            "name": project.name,
+            "status": project.status.value,
+            "message": "Project created successfully",
+        })
 
     def change_project_status(
         self, project_id: str, new_status: str, reason: str
@@ -461,16 +488,16 @@ class ProjectManagementService(FlextCliService[dict[str, object]]):
 
         result = self._status_handler.handle(command)
         if result.is_failure:
-            return FlextResult[dict[str, object]].fail(str(result.error) if result.error else "Status change failed")
+            return FlextResult[dict[str, object]].fail(
+                str(result.error) if result.error else "Status change failed"
+            )
 
         project = result.value
-        return FlextResult[dict[str, object]].ok(
-            {
-                "id": str(project.project_id),
-                "status": project.status.value,
-                "message": "Status changed successfully",
-            }
-        )
+        return FlextResult[dict[str, object]].ok({
+            "id": str(project.project_id),
+            "status": project.status.value,
+            "message": "Status changed successfully",
+        })
 
     def get_project(self, project_id: str) -> FlextResult[dict[str, object]]:
         """Get project details through CQRS."""

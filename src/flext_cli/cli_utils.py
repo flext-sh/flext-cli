@@ -28,7 +28,7 @@ from rich.progress import Progress, TaskID
 from rich.style import Style
 from rich.table import Table
 
-from flext_cli.models import FlextCliOutputFormat
+from flext_cli.cli_types import FlextCliOutputFormat
 
 T = TypeVar("T")
 # Type aliases for utility functions
