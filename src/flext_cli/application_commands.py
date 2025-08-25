@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from uuid import UUID
 
-from flext_cli.cli_types import CommandOptions, ConfigData
+from flext_cli.cli_types import CommandOptions
 from flext_cli.models import FlextCliModels
 
 CommandType = FlextCliModels.CommandType
@@ -63,7 +63,7 @@ class UpdateConfigCommand:
     config_id: UUID | None = None
     name: str | None = None
     description: str | None = None
-    config_data: ConfigData = field(default_factory=ConfigData)
+    config_data: dict[str, object] = field(default_factory=dict)
     version: str | None = None
     user_id: UUID | None = None
 

@@ -14,6 +14,8 @@ from pathlib import Path
 # unittest.mock import removed - using real functionality tests instead
 import pytest
 
+from flext_cli.cli_types import FlextCliOutputFormat
+from flext_cli.context import FlextCliContext
 from flext_cli.models import (
     MAX_EXIT_CODE,
     MAX_TIMEOUT_SECONDS,
@@ -23,9 +25,7 @@ from flext_cli.models import (
     FlextCliCommandStatus,
     FlextCliCommandType,
     FlextCliConfiguration,
-    FlextCliContext,
     FlextCliOutput,
-    FlextCliOutputFormat,
     FlextCliPlugin,
     FlextCliPluginState,
     FlextCliSession,

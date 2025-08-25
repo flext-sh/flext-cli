@@ -21,9 +21,6 @@ class ValidationError(TypedDict):
     input: object  # Flexible type for error input data
 
 
-# FlextCliContext moved to context.py - import from there
-
-
 def handle_service_result(result: object) -> object:
     """Handle service result and return appropriate response.
 

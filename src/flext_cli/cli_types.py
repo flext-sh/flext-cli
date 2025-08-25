@@ -18,7 +18,7 @@ import click
 from flext_core import E, F, FlextCoreTypes, FlextEntityId, FlextResult, P, R
 from rich.table import Table
 
-from flext_cli.models import FlextCliModels
+from flext_cli.models import FlextCliModels, FlextCliOutputFormat
 
 CommandType = FlextCliModels.CommandType
 
@@ -56,14 +56,7 @@ class PluginStatus(StrEnum):
     ERROR = "error"
 
 
-class FlextCliOutputFormat(StrEnum):
-    """CLI output format enumeration."""
-
-    JSON = "json"
-    CSV = "csv"
-    YAML = "yaml"
-    TABLE = "table"
-    PLAIN = "plain"
+# FlextCliOutputFormat moved to models.py to avoid circular import
 
 
 # =============================================================================

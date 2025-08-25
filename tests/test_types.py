@@ -27,8 +27,6 @@ from flext_cli import (
     FlextCliOutputFormat,
     FlextCliPlugin,
     FlextCliSession,
-    TCliConfig,
-    TCliPath,
 )
 
 # Constants
@@ -45,10 +43,8 @@ class TestTypeAliases:
         """Test that type aliases are properly defined."""
         # These are type aliases - just verify they exist
         assert FlextCliDataType is not None
-        assert TCliPath is not None
         assert FlextCliOutputFormat is not None
         assert FlextCliFileHandler is not None
-        assert TCliConfig is not None
         assert CommandArgs is not None
 
 

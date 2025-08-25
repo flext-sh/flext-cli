@@ -12,6 +12,7 @@ from flext_core import (
     FlextResult,
 )
 
+from flext_cli.config import FlextCliConfig
 from flext_cli.config_hierarchical import create_default_hierarchy
 
 
@@ -58,7 +59,7 @@ class FlextCliEntity(FlextEntity):
 # FlextCliConfig moved to config.py - import from there
 
 
-def create_cli_config(**overrides: object) -> FlextResult[object]:
+def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
     """Create CLI configuration with hierarchical precedence following config-cli.md patterns.
 
     This function implements the hierarchical configuration system from docs/patterns/config-cli.md:
