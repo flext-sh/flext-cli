@@ -281,7 +281,7 @@ class FlextCliService(FlextService):
             output = io.StringIO()
 
             # Handle list of dictionaries vs list of values
-            if data_list and isinstance(data_list[0], dict):
+            if data_list:
                 fieldnames = list(data_list[0].keys())
                 dict_writer = csv.DictWriter(output, fieldnames=fieldnames)
                 dict_writer.writeheader()
@@ -491,7 +491,10 @@ class FlextCliService(FlextService):
         if not context_options and hasattr(config, "output_format"):
             with suppress(Exception):
                 cfg_fmt = config.output_format
-                cfg_key = cfg_fmt.value if hasattr(cfg_fmt, "value") else str(cfg_fmt)  # type: ignore[reportAttributeAccessIssue]
+                if hasattr(cfg_fmt, "value"):
+                    cfg_key = getattr(cfg_fmt, "value")  # noqa: B009
+                else:
+                    cfg_key = str(cfg_fmt)
                 output_format = FlextCliOutputFormat(cfg_key)
 
         # Convert data to OutputData type (str | dict | list)

@@ -8,8 +8,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
-
-# Local import to avoid circular dependency
 from typing import cast, override
 
 from flext_core import (
@@ -23,8 +21,7 @@ from flext_core import (
 from rich.console import Console
 from rich.progress import Progress, TaskID
 
-from flext_cli.cli_types import ConfigDict, OutputData
-from flext_cli.models import FlextCliOutputFormat
+from flext_cli.cli_types import ConfigDict, FlextCliOutputFormat, OutputData
 
 # =============================================================================
 # CORE CLI MIXINS - Extending flext-core patterns

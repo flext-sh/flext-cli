@@ -157,7 +157,6 @@ def _get_client(
     except Exception as e:
         console.print(f"[red]❌ Failed to create API client: {e}[/red]")
         ctx.exit(1)
-        return FlextApiClient()  # Never reached, but satisfies mypy
 
 
 async def _test_connection(

@@ -100,7 +100,10 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
 
     def execute(self) -> FlextResult[dict[str, Any]]:
         """Execute ecosystem service operations."""
-        return FlextResult[dict[str, Any]].ok({"service": "ecosystem_integration", "status": "running"})
+        return FlextResult[dict[str, Any]].ok({
+            "service": "ecosystem_integration",
+            "status": "running",
+        })
 
     def check_service_health(
         self, service_name: str, _url: str
@@ -136,7 +139,9 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
             )
 
         except Exception as e:
-            return FlextResult[ServiceHealth].fail(f"Health check failed for {service_name}: {e}")
+            return FlextResult[ServiceHealth].fail(
+                f"Health check failed for {service_name}: {e}"
+            )
 
     def get_ecosystem_status(self) -> FlextResult[list[ServiceHealth]]:
         """Get status of all ecosystem services."""
@@ -171,9 +176,14 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
         try:
             # api_auth_result = self.api_client.authenticate(username, password)
             # FlextApiClient doesn't have authenticate method - simulate it
-            api_auth_result = FlextResult[dict[str, str]].ok({"token": "demo_token", "status": "authenticated"})
+            api_auth_result = FlextResult[dict[str, str]].ok({
+                "token": "demo_token",
+                "status": "authenticated",
+            })
         except Exception:
-            api_auth_result = FlextResult[dict[str, str]].fail("Authentication simulation failed")
+            api_auth_result = FlextResult[dict[str, str]].fail(
+                "Authentication simulation failed"
+            )
         if api_auth_result.is_success:
             auth_results["flext-api"] = "authenticated"
 
@@ -218,7 +228,9 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
     ) -> FlextResult[list[dict[str, Any]]]:
         """Query Oracle database through flext-db-oracle integration."""
         if not self.settings.enable_oracle_integration:
-            return FlextResult[list[dict[str, Any]]].fail("Oracle integration is disabled")
+            return FlextResult[list[dict[str, Any]]].fail(
+                "Oracle integration is disabled"
+            )
 
         # Mock Oracle query (in real implementation, use flext-db-oracle)
         try:
@@ -399,7 +411,10 @@ def oracle_query(
                 table_data = data
             else:
                 table_data = str(data)
-            table = cli_create_table(table_data, title=f"Query Results ({len(data) if hasattr(data, '__len__') else 0} rows)")
+            table = cli_create_table(
+                table_data,
+                title=f"Query Results ({len(data) if hasattr(data, '__len__') else 0} rows)",
+            )
             console.print(table)
         else:
             # Convert list[dict[str, Any]] to compatible format for cli_format_output

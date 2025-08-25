@@ -17,7 +17,6 @@ from typing import ParamSpec, TypeVar, cast
 
 from flext_core import (
     FlextCallable,
-    FlextDecoratedFunction,
     FlextDecorators,
     FlextResult,
     get_logger,
@@ -348,7 +347,7 @@ def cli_log_execution[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     return wrapper
 
 
-def cli_confirm(
+def cli_confirm_decorator(
     message: str,
     *,
     default: bool = False,
@@ -866,20 +865,20 @@ flext_cli_validate_inputs = cli_validate_inputs
 flext_cli_handle_keyboard_interrupt = cli_handle_keyboard_interrupt
 flext_cli_measure_time = cli_measure_time
 flext_cli_log_execution = cli_log_execution
-flext_cli_confirm = cli_confirm
+flext_cli_confirm = cli_confirm_decorator
 flext_cli_retry = cli_retry
 flext_cli_cache_result = cli_cache_result
 flext_cli_inject_config = cli_inject_config
 flext_cli_file_operation = cli_file_operation
 
 
-def cli_complete(
-    model_class: object | None = None,
+def cli_complete(  # type: ignore[explicit-any]
+    model_class: type | None = None,
     *,
     cache_size: int = 128,
     with_timing: bool = False,
     with_logging: bool = False,
-) -> Callable[[FlextDecoratedFunction[object]], FlextDecoratedFunction[object]]:
+) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Complete CLI decorator using FlextDecorators.complete_decorator.
 
     This provides full FlextDecorators functionality for CLI functions including
@@ -895,11 +894,14 @@ def cli_complete(
         Complete decorator with all requested features
 
     """
-    return FlextDecorators.complete_decorator(
-        model_class=model_class,
-        cache_size=cache_size,
-        with_timing=with_timing,
-        with_logging=with_logging,
+    return cast(  # type: ignore[explicit-any]
+        "Callable[[Callable[..., T]], Callable[..., T]]",
+        FlextDecorators.complete_decorator(
+            validator_class=model_class,
+            cache_size=cache_size,
+            with_timing=with_timing,
+            with_logging=with_logging,
+        ),
     )
 
 
@@ -913,7 +915,7 @@ __all__ = [
     # Modern CLI decorators using FlextDecorators
     "cli_cache_result",
     "cli_complete",
-    "cli_confirm",
+    "cli_confirm_decorator",
     "cli_enhanced",
     "cli_file_operation",
     "cli_handle_keyboard_interrupt",

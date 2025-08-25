@@ -283,20 +283,6 @@ warn_unused_ignores = false         # Allow type: ignore comments in tests
 strict_optional = true              # Maintain None safety
 strict_equality = true              # Prevent type mismatches in assertions
 
-# -----------------------------------------------------------------------------
-# THIRD-PARTY LIBRARIES - Handle missing type information gracefully
-# -----------------------------------------------------------------------------
-[[tool.mypy.overrides]]
-module = [
-    "yaml.*",
-    "toml.*",
-    "click.*",
-    "rich.*",
-    "tabulate.*",
-]
-ignore_missing_imports = true
-follow_imports = "skip"
-
 [tool.pydantic-mypy]
 init_forbid_extra = true
 init_typed = true
@@ -314,7 +300,7 @@ markers = [
 ]
 
 [tool.ruff]
-extend = "../.config/tools/.ruff-shared.toml"
+extend = "../ruff-shared.toml"
 lint.isort.known-first-party = ["flext_cli"]
 
 [tool.vulture]

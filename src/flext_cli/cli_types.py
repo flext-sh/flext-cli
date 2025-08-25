@@ -18,24 +18,9 @@ import click
 from flext_core import E, F, FlextCoreTypes, FlextEntityId, FlextResult, P, R
 from rich.table import Table
 
-# =============================================================================
-# CLI-SPECIFIC ENUMERATIONS
-# =============================================================================
+from flext_cli.models import FlextCliModels
 
-class CommandType(StrEnum):
-    """CLI command type enumeration."""
-
-    SYSTEM = "system"
-    USER = "user"
-    PLUGIN = "plugin"
-    INTERACTIVE = "interactive"
-    BATCH = "batch"
-    DEBUG = "debug"
-    PIPELINE = "pipeline"
-    DATA = "data"
-    CONFIG = "config"
-    AUTH = "auth"
-    MONITORING = "monitoring"
+CommandType = FlextCliModels.CommandType
 
 
 class CommandStatus(StrEnum):
@@ -85,6 +70,7 @@ class FlextCliOutputFormat(StrEnum):
 # FLEXT CLI TYPES - Main hierarchical class inheriting from FlextCoreTypes
 # =============================================================================
 
+
 class FlextCliTypes(FlextCoreTypes):
     """CLI-specific type system inheriting from FlextCoreTypes.
 
@@ -117,13 +103,16 @@ class FlextCliTypes(FlextCoreTypes):
         # Configuration types - usando FlextCoreTypes como base
         ConfigDict = FlextCoreTypes.Core.Dict
         ConfigData = FlextCoreTypes.Core.Dict
+        ConfigResult = FlextResult[dict[str, object]]
         SettingsDict = FlextCoreTypes.Core.Dict
+        EnvironmentDict = dict[str, str]  # Environment variables
 
         # Click integration types
         ClickContext = click.Context
         ClickCommand = click.Command
         ClickGroup = click.Group
         ClickParameter = click.Parameter
+        ClickPath = click.Path
 
         # Rich integration types
         RichTable = Table
@@ -135,6 +124,8 @@ class FlextCliTypes(FlextCoreTypes):
         CommandResult = dict[str, object]
 
         # Handler types - CLI command and result handlers
+        CommandArgs = dict[str, object]  # Command arguments
+        CommandOptions = dict[str, object]  # Command options
         CommandHandler = Callable[[dict[str, object]], object]
         ResultHandler = Callable[[object], FlextResult[object]]
 
@@ -146,6 +137,25 @@ class FlextCliTypes(FlextCoreTypes):
         PathType = Path | str
         FileContent = str | bytes
         FileResult = FlextResult[str]
+        FlextCliFileHandler = object  # File handler placeholder
+        ExistingDir = Path  # Path that must exist as directory
+        ExistingFile = Path  # Path that must exist as file
+        NewFile = Path  # Path for new file
+
+        # Data types - CLI data handling
+        DataType = FlextCoreTypes.Core.Data
+        OutputData = str | dict[str, object] | list[object]
+
+        # URL types
+        URL = str  # URL strings
+        URLType = str  # URL type alias
+
+        # CLI specific types
+        ErrorMessage = str  # Error message type
+        ExitCode = int  # Process exit code
+        PositiveInt = int  # Positive integer constraint
+        PositiveIntType = int  # Positive integer type alias
+        ProfileType = str  # Profile name type
 
     # =============================================================================
     # INTERNAL ALIASES - All current functionality preserved
@@ -216,11 +226,7 @@ class FlextCliTypes(FlextCoreTypes):
 
     @classmethod
     def create_processing_result(
-        cls,
-        *,
-        success: bool,
-        data: object = None,
-        error: str | None = None
+        cls, *, success: bool, data: object = None, error: str | None = None
     ) -> dict[str, object]:
         """Create processing result dictionary.
 
@@ -269,7 +275,7 @@ FlextCliPluginStatus = PluginStatus
 # Type aliases - preservar aliases existentes
 EntityId = FlextCliTypes.Cli.EntityId
 TUserId = FlextCliTypes.Cli.TUserId
-ConfigDict = FlextCliTypes.Cli.ConfigDict
+type ConfigDict = dict[str, object]
 ConfigData = FlextCliTypes.Cli.ConfigData
 SettingsDict = FlextCliTypes.Cli.SettingsDict
 ProcessingResults = FlextCliTypes.Cli.ProcessingResults
@@ -285,11 +291,39 @@ ClickContext = FlextCliTypes.Cli.ClickContext
 ClickCommand = FlextCliTypes.Cli.ClickCommand
 ClickGroup = FlextCliTypes.Cli.ClickGroup
 ClickParameter = FlextCliTypes.Cli.ClickParameter
+ClickPath = FlextCliTypes.Cli.ClickPath
 RichTable = FlextCliTypes.Cli.RichTable
 
 # Handler types - preservar aliases
+CommandArgs = FlextCliTypes.Cli.CommandArgs
+CommandOptions = FlextCliTypes.Cli.CommandOptions
 CommandHandler = FlextCliTypes.Cli.CommandHandler
 ResultHandler = FlextCliTypes.Cli.ResultHandler
+
+# Type aliases - Python 3.13+ type syntax
+type FlextCliDataType = str | dict[str, object] | list[object] | object
+type OutputData = str | dict[str, object] | list[object]
+
+# URL types
+type URL = str
+type URLType = str
+
+# Configuration and environment types
+type ConfigResult = FlextResult[dict[str, object]]
+type EnvironmentDict = dict[str, str]
+
+# File operation types
+type FlextCliFileHandler = object
+type ExistingDir = Path
+type ExistingFile = Path
+type NewFile = Path
+
+# CLI specific types
+type ErrorMessage = str
+type ExitCode = int
+type PositiveInt = int
+type PositiveIntType = int
+type ProfileType = str
 
 # Legacy FlextTypes compatibility
 FlextTypes = FlextCoreTypes
@@ -300,33 +334,50 @@ CoreFlextTypes = FlextCoreTypes
 # =============================================================================
 
 __all__ = [
+    "URL",
     "ClickCommand",
     "ClickContext",
     "ClickGroup",
     "ClickParameter",
+    "ClickPath",
+    "CommandArgs",
     "CommandHandler",
+    "CommandOptions",
     "CommandResult",
     "CommandStatus",
     "CommandType",
     "ConfigData",
     "ConfigDict",
+    "ConfigResult",
     "CoreFlextTypes",
     "E",
     "EntityId",
+    "EnvironmentDict",
+    "ErrorMessage",
+    "ExistingDir",
+    "ExistingFile",
+    "ExitCode",
     "F",
     "FileContent",
     "FileResult",
     "FlextCliCommandStatus",
     "FlextCliCommandType",
+    "FlextCliDataType",
+    "FlextCliFileHandler",
     "FlextCliOutputFormat",
     "FlextCliPluginStatus",
     "FlextCliSessionStatus",
     "FlextCliTypes",
     "FlextTypes",
+    "NewFile",
+    "OutputData",
     "P",
     "PathType",
     "PluginStatus",
+    "PositiveInt",
+    "PositiveIntType",
     "ProcessingResults",
+    "ProfileType",
     "R",
     "ResultHandler",
     "RichTable",
@@ -334,5 +385,6 @@ __all__ = [
     "SettingsDict",
     "SetupResults",
     "TUserId",
+    "URLType",
     "ValidationResult",
 ]

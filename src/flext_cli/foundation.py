@@ -9,10 +9,8 @@ from __future__ import annotations
 
 from flext_core import (
     FlextEntity,
-    FlextModel,
     FlextResult,
 )
-from pydantic import ConfigDict as PydanticConfigDict
 
 from flext_cli.config_hierarchical import create_default_hierarchy
 
@@ -57,36 +55,10 @@ class FlextCliEntity(FlextEntity):
         return self.model_copy(update={"args": args})
 
 
-class FlextCliConfig(FlextModel):
-    """Modern CLI configuration following foundation-refactored.md patterns.
-
-    Features:
-    - Automatic environment variable loading
-    - Hierarchical configuration precedence
-    - Type validation and conversion
-    - Zero boilerplate configuration setup
-
-    Example:
-      # OLD: 30+ lines of configuration boilerplate
-      # NEW: 4 lines - 87% reduction!
-
-      class AppConfig(FlextCliConfig):
-          database_url: str
-          debug: bool = False
-          # Automatic: env loading, validation, type conversion
-
-    """
-
-    # CLI-specific configuration
-    profile: str = "default"
-    output_format: str = "table"
-    debug: bool = False
-    quiet: bool = False
-
-    model_config = PydanticConfigDict()
+# FlextCliConfig moved to config.py - import from there
 
 
-def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
+def create_cli_config(**overrides: object) -> FlextResult[object]:
     """Create CLI configuration with hierarchical precedence following config-cli.md patterns.
 
     This function implements the hierarchical configuration system from docs/patterns/config-cli.md:
@@ -200,7 +172,7 @@ def setup_cli(config: FlextCliConfig | None = None) -> FlextResult[dict[str, obj
 
 
 __all__ = [
-    "FlextCliConfig",
+    # "FlextCliConfig",  # Moved to config.py
     "FlextCliEntity",
     "create_cli_config",
     "setup_cli",

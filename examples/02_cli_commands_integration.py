@@ -100,7 +100,6 @@ def connect(ctx: click.Context, url: str, timeout: int, retries: int) -> None:
         return
 
     # Manual timing start (instead of @cli_measure_time decorator)
-    import time
     start_time = time.time()
 
     console = ctx.obj["console"]
@@ -146,7 +145,6 @@ def process_file(
 ) -> None:
     """Process file with flext-cli patterns."""
     # Manual timing start (instead of @cli_measure_time decorator)
-    import time
     start_time = time.time()
 
     console = ctx.obj["console"]

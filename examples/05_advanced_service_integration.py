@@ -5,7 +5,7 @@ This example demonstrates advanced service integration patterns using flext-cli:
 
 Key Patterns Demonstrated:
 - FlextCliService inheritance with comprehensive mixins
-- Dependency injection with create_cli_container()
+- Dependency injection with create_container()
 - Async command execution with @async_command decorator
 - Error handling with retry patterns and circuit breakers
 - Service composition and orchestration
@@ -32,23 +32,16 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-from flext_core import FlextResult, get_logger
+from flext_core import FlextContainer, FlextResult, get_logger
 from rich.console import Console
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn, TaskID
+from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
 from rich.table import Table
 
 from flext_cli import (
     FlextApiClient,
     FlextCliService,
-    async_command,
-    cli_enhanced,
-    cli_handle_keyboard_interrupt,
-    cli_measure_time,
-    cli_retry,
-    create_cli_container,
     get_cli_config,
-    with_spinner,
 )
 
 
@@ -80,20 +73,18 @@ class AdvancedCliService(FlextCliService):
         object.__setattr__(self, "_service_health", {})
         object.__setattr__(self, "_circuit_breakers", {})
         object.__setattr__(self, "_performance_metrics", {})
-        
+
         # Initialize circuit_breakers as public attribute
         circuit_breakers_dict = {}
         object.__setattr__(self, "circuit_breakers", circuit_breakers_dict)
 
     def execute(self) -> FlextResult[object]:
         """Execute advanced CLI service operations."""
-        return FlextResult[object].ok(
-            {
-                "service": "AdvancedCliService",
-                "status": "operational",
-                "features": ["health_check", "circuit_breaker", "async_operations"],
-            }
-        )
+        return FlextResult[object].ok({
+            "service": "AdvancedCliService",
+            "status": "operational",
+            "features": ["health_check", "circuit_breaker", "async_operations"],
+        })
 
     # Removed problematic decorators - @cli_enhanced, @cli_measure_time, @cli_retry
     # These decorators cause type inference issues with PyRight
@@ -102,7 +93,7 @@ class AdvancedCliService(FlextCliService):
         try:
             logger = getattr(self, "logger", None)
             if logger:
-                if logger and hasattr(logger, 'info'):
+                if logger and hasattr(logger, "info"):
                     logger.info(f"Checking health for service: {service_name}")
 
             # Simulate health check call
@@ -121,16 +112,20 @@ class AdvancedCliService(FlextCliService):
             return FlextResult[dict[str, Any]].ok(health_data)
 
         except Exception as e:
-            if hasattr(self, 'logger') and self.logger and hasattr(self.logger, 'exception'):
+            if (
+                hasattr(self, "logger")
+                and self.logger
+                and hasattr(self.logger, "exception")
+            ):
                 self.logger.exception(f"Health check failed for {service_name}")
             return FlextResult[dict[str, Any]].fail(f"Health check failed: {e}")
 
-    # Removed problematic decorators - @cli_enhanced, @with_spinner 
+    # Removed problematic decorators - @cli_enhanced, @with_spinner
     # These decorators cause type inference issues with PyRight
     def orchestrate_services(self, operation: str) -> FlextResult[dict[str, Any]]:
         """Orchestrate multiple services for complex operations."""
         try:
-            if hasattr(self, 'logger') and self.logger and hasattr(self.logger, 'info'):
+            if hasattr(self, "logger") and self.logger and hasattr(self.logger, "info"):
                 self.logger.info(f"Starting service orchestration: {operation}")
 
             # Define service orchestration steps
@@ -151,11 +146,21 @@ class AdvancedCliService(FlextCliService):
 
                 if step_result.is_success:
                     results[service_name] = step_result.value
-                    if hasattr(self, 'logger') and self.logger and hasattr(self.logger, 'info'):
-                        self.logger.info(f"Step completed: {service_name}.{step_operation}")
+                    if (
+                        hasattr(self, "logger")
+                        and self.logger
+                        and hasattr(self.logger, "info")
+                    ):
+                        self.logger.info(
+                            f"Step completed: {service_name}.{step_operation}"
+                        )
                 else:
                     # Handle step failure - implement rollback if needed
-                    if hasattr(self, 'logger') and self.logger and hasattr(self.logger, 'error'):
+                    if (
+                        hasattr(self, "logger")
+                        and self.logger
+                        and hasattr(self.logger, "error")
+                    ):
                         self.logger.error(
                             f"Step failed: {service_name}.{step_operation} - {step_result.error}"
                         )
@@ -174,7 +179,11 @@ class AdvancedCliService(FlextCliService):
             return FlextResult[dict[str, Any]].ok(orchestration_result)
 
         except Exception as e:
-            if hasattr(self, 'logger') and self.logger and hasattr(self.logger, 'exception'):
+            if (
+                hasattr(self, "logger")
+                and self.logger
+                and hasattr(self.logger, "exception")
+            ):
                 self.logger.exception("Service orchestration failed")
             return FlextResult[dict[str, Any]].fail(
                 f"Service orchestration failed: {e}"
@@ -205,7 +214,11 @@ class AdvancedCliService(FlextCliService):
                 > breaker["timeout_duration"]
             ):
                 breaker["state"] = CircuitBreakerState.HALF_OPEN
-                if hasattr(self, 'logger') and self.logger and hasattr(self.logger, 'info'):
+                if (
+                    hasattr(self, "logger")
+                    and self.logger
+                    and hasattr(self.logger, "info")
+                ):
                     self.logger.info(
                         f"Circuit breaker for {service_name} moved to HALF_OPEN"
                     )
@@ -231,7 +244,11 @@ class AdvancedCliService(FlextCliService):
 
             if breaker["failure_count"] >= breaker["failure_threshold"]:
                 breaker["state"] = CircuitBreakerState.OPEN
-                if hasattr(self, 'logger') and self.logger and hasattr(self.logger, 'warning'):
+                if (
+                    hasattr(self, "logger")
+                    and self.logger
+                    and hasattr(self.logger, "warning")
+                ):
                     self.logger.warning(f"Circuit breaker OPENED for {service_name}")
 
             return FlextResult[bool].fail(f"Service call failed for {service_name}")
@@ -280,15 +297,13 @@ class AdvancedCliService(FlextCliService):
             success = True  # Always succeed for demo
 
             if success:
-                return FlextResult[dict[str, Any]].ok(
-                    {
-                        "service": service_name,
-                        "operation": operation,
-                        "status": "success",
-                        "execution_time_ms": 150,
-                        "result": f"Operation {operation} completed successfully",
-                    }
-                )
+                return FlextResult[dict[str, Any]].ok({
+                    "service": service_name,
+                    "operation": operation,
+                    "status": "success",
+                    "execution_time_ms": 150,
+                    "result": f"Operation {operation} completed successfully",
+                })
             return FlextResult[dict[str, Any]].fail(f"Operation {operation} failed")
 
         except Exception as e:
@@ -300,7 +315,7 @@ class AdvancedCliService(FlextCliService):
         return True  # Always succeed for demo
 
 
-# Removed @async_command and @cli_handle_keyboard_interrupt decorators - cause type inference issues  
+# Removed @async_command and @cli_handle_keyboard_interrupt decorators - cause type inference issues
 async def demonstrate_async_service_operations() -> None:
     """Demonstrate asynchronous service operations."""
     console = Console()
@@ -340,7 +355,9 @@ async def demonstrate_async_service_operations() -> None:
                 # Simulate async health check
                 await asyncio.sleep(0.5)  # Simulate network delay
                 result = service.check_service_health(name)
-                progress.update(task_id, description=f"✅ {name} checked", completed=100)
+                progress.update(
+                    task_id, description=f"✅ {name} checked", completed=100
+                )
                 return name, result
 
             tasks.append(check_service_async(service_name, task))
@@ -415,7 +432,11 @@ def demonstrate_circuit_breaker_pattern() -> FlextResult[None]:
             f"Failures: {failure_count})"
         )
 
-        if result.is_failure and result.error and "Circuit breaker OPEN" in result.error:
+        if (
+            result.is_failure
+            and result.error
+            and "Circuit breaker OPEN" in result.error
+        ):
             console.print(
                 "   🚨 Circuit breaker is OPEN - failing fast to protect system"
             )
@@ -491,21 +512,24 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     console.print("\n[green]Dependency Injection with CLI Container[/green]")
 
     # Create and configure CLI container
-    container_result = create_cli_container()
+    container_result = FlextContainer.create_container()
     # Assume container has register/get methods for demo purposes
-    if hasattr(container_result, 'register') and hasattr(container_result, 'get'):
+    if hasattr(container_result, "register") and hasattr(container_result, "get"):
         container = container_result
     else:
         # Create mock container for demonstration
         class MockContainer:
             def __init__(self):
                 self._services = {}
+
             def register(self, name: str, service: object) -> None:
                 self._services[name] = service
+
             def get(self, name: str) -> FlextResult[object]:
                 if name in self._services:
                     return FlextResult[object].ok(self._services[name])
                 return FlextResult[object].fail(f"Service {name} not found")
+
         container = MockContainer()
 
     # Register various services

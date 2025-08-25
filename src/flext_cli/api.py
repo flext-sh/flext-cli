@@ -24,10 +24,10 @@ from flext_core import FlextEntityId, FlextResult
 from rich.console import Console
 from rich.table import Table
 
-# Fixed circular import: Import directly from specific modules instead of main package
 from flext_cli.cli_types import FlextCliDataType, FlextCliOutputFormat
 from flext_cli.cli_utils import cli_create_table, cli_format_output
 from flext_cli.config import FlextCliSettings
+from flext_cli.context import FlextCliContext
 from flext_cli.models import (
     FlextCliCommand as CLICommand,
     FlextCliPlugin,
@@ -85,13 +85,7 @@ class PluginLike(Protocol):
 
 
 # Simple context class since FlextCliContext doesn't exist
-class FlextCliContext:
-    """Simple CLI context holder."""
-
-    def __init__(self, config: FlextCliSettings, console: Console) -> None:
-        """Initialize context."""
-        self.config = config
-        self.console = console
+# FlextCliContext moved to context.py - import from there
 
 
 def flext_cli_format(
@@ -120,7 +114,10 @@ def flext_cli_format(
         )
 
     # Cast to FlextCliData type for compatibility
-    return cli_format_output(cast("dict[str, object] | list[object] | str | float | int | None", data), format_enum)
+    return cli_format_output(
+        cast("dict[str, object] | list[object] | str | float | int | None", data),
+        format_enum,
+    )
 
 
 # Table creation helpers removed - functionality consolidated in cli_utils.py
@@ -143,7 +140,9 @@ def flext_cli_table(
     """
     # Delegate to the more feature-rich cli_utils implementation
     # Cast to FlextCliData type for compatibility
-    return cli_create_table(cast("dict[str, object] | list[object] | str | float | int | None", data), title)
+    return cli_create_table(
+        cast("dict[str, object] | list[object] | str | float | int | None", data), title
+    )
 
 
 def flext_cli_transform_data(

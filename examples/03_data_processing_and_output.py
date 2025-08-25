@@ -23,6 +23,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import csv
+import io
+import json
 import tempfile
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -103,16 +106,20 @@ def demonstrate_data_transformation() -> FlextResult[None]:
         enriched_services = []
         for service in running_services:
             # Type cast for mathematical operations
-            cpu_val = int(service["cpu"]) if isinstance(service["cpu"], (int, float)) else 0
-            memory_val = int(service["memory"]) if isinstance(service["memory"], (int, float)) else 0
+            cpu_val = (
+                int(service["cpu"]) if isinstance(service["cpu"], (int, float)) else 0
+            )
+            memory_val = (
+                int(service["memory"])
+                if isinstance(service["memory"], (int, float))
+                else 0
+            )
 
             enriched_service = {
                 **service,
                 "health_score": min(100, max(0, 100 - cpu_val)),
                 "memory_gb": round(memory_val / 1024, 1),
-                "efficiency": round(
-                    (100 - cpu_val) * memory_val / 1000, 2
-                ),
+                "efficiency": round((100 - cpu_val) * memory_val / 1000, 2),
             }
             enriched_services.append(enriched_service)
         enrich_result = FlextResult[list[dict[str, object]]].ok(enriched_services)
@@ -198,8 +205,12 @@ def demonstrate_data_aggregation() -> FlextResult[None]:
             # Type cast for mathematical operations
             requests_val = stats.get("requests", 0)
             errors_val = stats.get("errors", 0)
-            total_requests = int(requests_val) if isinstance(requests_val, (int, float)) else 0
-            total_errors = int(errors_val) if isinstance(errors_val, (int, float)) else 0
+            total_requests = (
+                int(requests_val) if isinstance(requests_val, (int, float)) else 0
+            )
+            total_errors = (
+                int(errors_val) if isinstance(errors_val, (int, float)) else 0
+            )
             error_rate = (
                 round((total_errors / total_requests * 100), 2)
                 if total_requests > 0
@@ -210,7 +221,9 @@ def demonstrate_data_aggregation() -> FlextResult[None]:
             )
 
         return FlextResult[None].ok(None)
-    return FlextResult[None].fail(f"Data aggregation failed: {service_agg_result.error}")
+    return FlextResult[None].fail(
+        f"Data aggregation failed: {service_agg_result.error}"
+    )
 
 
 def demonstrate_output_formatting() -> FlextResult[None]:
@@ -306,9 +319,8 @@ def demonstrate_file_operations() -> FlextResult[None]:
 
         # Simple JSON save implementation
         try:
-            import json
             temp_path.write_text(json.dumps(config_data, indent=2), encoding="utf-8")
-            save_result = FlextResult[bool].ok(True)
+            save_result = FlextResult[bool].ok(value=True)
         except Exception as e:
             save_result = FlextResult[bool].fail(f"Save failed: {e}")
 
@@ -322,11 +334,12 @@ def demonstrate_file_operations() -> FlextResult[None]:
 
                 # Load data back
                 try:
-                    import json
                     loaded_data = json.loads(temp_path.read_text(encoding="utf-8"))
                     load_result = FlextResult[dict[str, object]].ok(loaded_data)
                 except Exception as e:
-                    load_result = FlextResult[dict[str, object]].fail(f"Load failed: {e}")
+                    load_result = FlextResult[dict[str, object]].fail(
+                        f"Load failed: {e}"
+                    )
 
                 if load_result.is_success:
                     loaded_data = load_result.value
@@ -386,17 +399,16 @@ def demonstrate_batch_processing() -> FlextResult[None]:
 
             # Process files in batch - simple implementation
             try:
-                import glob
-                pattern = str(temp_path / "*.txt")
-                matching_files = glob.glob(pattern)
+                matching_files = list(temp_path.glob("*.txt"))
                 results = []
-                for file_path in matching_files:
-                    file = Path(file_path)
+                for file in matching_files:
                     processed = f"Processed: {file.name} ({file.stat().st_size} bytes)"
                     results.append(processed)
                 batch_result = FlextResult[list[str]].ok(results)
             except Exception as e:
-                batch_result = FlextResult[list[str]].fail(f"Batch processing failed: {e}")
+                batch_result = FlextResult[list[str]].fail(
+                    f"Batch processing failed: {e}"
+                )
 
             if batch_result.is_success:
                 results = batch_result.value
@@ -450,7 +462,6 @@ def demonstrate_data_export() -> FlextResult[None]:
 
     # Export to JSON (as string) - simple implementation
     try:
-        import json
         json_output = json.dumps(report_data, indent=2)
         json_export_result = FlextResult[str].ok(json_output)
     except Exception as e:
@@ -464,8 +475,6 @@ def demonstrate_data_export() -> FlextResult[None]:
 
     # Export to CSV format - simple implementation
     try:
-        import csv
-        import io
         output = io.StringIO()
         if report_data:
             writer = csv.DictWriter(output, fieldnames=report_data[0].keys())

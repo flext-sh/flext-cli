@@ -116,7 +116,7 @@ def show(ctx: click.Context) -> None:
         config_data = {
             "profile": getattr(config, "profile", "default"),
             "debug": getattr(config, "debug", False),
-            "output_format": output_format
+            "output_format": output_format,
         }
 
     # Format output according to requested format

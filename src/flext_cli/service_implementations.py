@@ -1,4 +1,4 @@
-"""Base CLI service classes.
+"""CLI service implementations using flext-core domain services.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import TypeVar, override
 
 from flext_core import (
@@ -25,110 +25,16 @@ CommandResultType = TypeVar("CommandResultType")
 ValidationResultType = TypeVar("ValidationResultType")
 
 # =============================================================================
-# BASE CLI SERVICE - Extends FlextDomainService
+# CLI COMMAND SERVICE - Direct FlextDomainService extension
 # =============================================================================
 
 
-class FlextCliService(FlextDomainService[T], ABC):
-    """Base CLI service extending flext-core domain service patterns.
-
-    Provides foundation for CLI-specific services with:
-    - FlextResult-based error handling
-    - Dependency injection via FlextContainer
-    - Proper initialization and cleanup
-    - Service lifecycle management
-    - Logging and observability
-
-    Extends FlextDomainService to inherit stateless cross-entity operations
-    while adding CLI-specific functionality.
-    """
-
-    model_config = ConfigDict(
-        frozen=True,
-        validate_assignment=True,
-        extra="forbid",
-        arbitrary_types_allowed=True,
-    )
-
-    # CLI-specific configuration
-    service_name: str = Field(..., description="Name of the CLI service")
-    container: FlextContainer | None = Field(
-        default=None,
-        description="Dependency injection container",
-    )
-    enable_logging: bool = Field(
-        default=True,
-        description="Enable service logging",
-    )
-
-    def __init__(self, **data: object) -> None:
-        """Initialize CLI service with container and logging."""
-        super().__init__(**data)
-
-        # Set up logger if enabled
-        self._logger: FlextLogger | None
-        if self.enable_logging:
-            self._logger = get_logger(f"flext_cli.{self.service_name}")
-        else:
-            self._logger = None
-
-    @property
-    def logger(self) -> FlextLogger | None:
-        """Get logger instance."""
-        return self._logger
-
-    def get_container(self) -> FlextContainer | None:
-        """Get dependency injection container."""
-        return self.container
-
-    def initialize(self) -> FlextResult[None]:
-        """Initialize the CLI service.
-
-        Override in subclasses to provide specific initialization logic.
-        Default implementation returns success.
-        """
-        if self.logger:
-            self.logger.info(f"Initializing CLI service: {self.service_name}")
-        return FlextResult[None].ok(None)
-
-    def cleanup(self) -> FlextResult[None]:
-        """Cleanup the CLI service resources.
-
-        Override in subclasses to provide specific cleanup logic.
-        Default implementation returns success.
-        """
-        if self.logger:
-            self.logger.info(f"Cleaning up CLI service: {self.service_name}")
-        return FlextResult[None].ok(None)
-
-    @override
-    def validate_config(self) -> FlextResult[None]:
-        """Validate CLI service configuration.
-
-        Extends base validation with CLI-specific checks.
-        """
-        # Call parent validation first
-        parent_result = super().validate_config()
-        if parent_result.is_failure:
-            return parent_result
-
-        # CLI-specific validation
-        if not self.service_name or not self.service_name.strip():
-            return FlextResult[None].fail("Service name cannot be empty")
-
-        return FlextResult[None].ok(None)
-
-
-# =============================================================================
-# CLI COMMAND SERVICE - For command execution
-# =============================================================================
-
-
-class FlextCliCommandService(FlextCliService[T]):
+class FlextCliCommandService(FlextDomainService[T]):
     """Service for CLI command execution and management.
 
-    Extends FlextCliService to provide command execution capabilities
-    with proper error handling, validation, and result processing.
+    Directly extends FlextDomainService following FLEXT architectural standards.
+    Provides command execution capabilities with proper error handling,
+    validation, and result processing.
     """
 
     model_config = ConfigDict(
@@ -139,6 +45,7 @@ class FlextCliCommandService(FlextCliService[T]):
     )
 
     # Command-specific configuration
+    service_name: str = Field(..., description="Name of the CLI command service")
     command_timeout: int = Field(
         default=300,
         description="Command timeout in seconds",
@@ -147,6 +54,20 @@ class FlextCliCommandService(FlextCliService[T]):
         default=True,
         description="Enable argument validation",
     )
+    container: FlextContainer | None = Field(
+        default=None,
+        description="Dependency injection container",
+    )
+
+    def __init__(self, **data: object) -> None:
+        """Initialize CLI command service."""
+        super().__init__(**data)
+        self._logger = get_logger(f"flext_cli.{self.service_name}")
+
+    @property
+    def logger(self) -> FlextLogger:
+        """Get logger instance."""
+        return self._logger
 
     @abstractmethod
     def execute_command(
@@ -202,11 +123,12 @@ class FlextCliCommandService(FlextCliService[T]):
 # =============================================================================
 
 
-class FlextCliFormatterService(FlextCliService[str]):
+class FlextCliFormatterService(FlextDomainService[str]):
     """Service for CLI output formatting and presentation.
 
-    Extends FlextCliService to provide output formatting capabilities
-    with support for multiple output formats (JSON, table, plain text).
+    Directly extends FlextDomainService following FLEXT architectural standards.
+    Provides output formatting capabilities with support for multiple
+    output formats (JSON, table, plain text).
     """
 
     model_config = ConfigDict(
@@ -216,7 +138,8 @@ class FlextCliFormatterService(FlextCliService[str]):
         arbitrary_types_allowed=True,
     )
 
-    # Formatter-specific configuration
+    # Service identification and formatting configuration
+    service_name: str = Field(..., description="Name of the CLI formatter service")
     default_format: str = Field(
         default="table",
         description="Default output format",
@@ -225,6 +148,16 @@ class FlextCliFormatterService(FlextCliService[str]):
         default=["table", "json", "csv", "plain"],
         description="Supported output formats",
     )
+
+    def __init__(self, **data: object) -> None:
+        """Initialize CLI formatter service."""
+        super().__init__(**data)
+        self._logger = get_logger(f"flext_cli.{self.service_name}")
+
+    @property
+    def logger(self) -> FlextLogger:
+        """Get logger instance."""
+        return self._logger
 
     @abstractmethod
     def format_output(
@@ -270,11 +203,12 @@ class FlextCliFormatterService(FlextCliService[str]):
 # =============================================================================
 
 
-class FlextCliValidatorService(FlextCliService[bool]):
+class FlextCliValidatorService(FlextDomainService[bool]):
     """Service for CLI input validation and sanitization.
 
-    Extends FlextCliService to provide input validation capabilities
-    with comprehensive validation rules and error reporting.
+    Directly extends FlextDomainService following FLEXT architectural standards.
+    Provides input validation capabilities with comprehensive validation rules
+    and error reporting.
     """
 
     model_config = ConfigDict(
@@ -284,7 +218,8 @@ class FlextCliValidatorService(FlextCliService[bool]):
         arbitrary_types_allowed=True,
     )
 
-    # Validator-specific configuration
+    # Service identification and validator-specific configuration
+    service_name: str = Field(..., description="Name of the CLI validator service")
     strict_validation: bool = Field(
         default=True,
         description="Enable strict validation mode",
@@ -293,6 +228,16 @@ class FlextCliValidatorService(FlextCliService[bool]):
         default_factory=dict,
         description="Custom validation rules",
     )
+
+    def __init__(self, **data: object) -> None:
+        """Initialize CLI validator service."""
+        super().__init__(**data)
+        self._logger = get_logger(f"flext_cli.{self.service_name}")
+
+    @property
+    def logger(self) -> FlextLogger:
+        """Get logger instance."""
+        return self._logger
 
     @abstractmethod
     def validate_input(
@@ -348,8 +293,7 @@ class FlextCliValidatorService(FlextCliService[bool]):
         # This method shows the pattern - actual implementation would need
         # to return a new instance or use a different approach
 
-        if self.logger and hasattr(self.logger, "info"):
-            self.logger.info(f"Added validation rule: {rule_name}")
+        self.logger.info(f"Added validation rule: {rule_name}")
 
         return FlextResult[None].ok(None)
 
@@ -359,11 +303,12 @@ class FlextCliValidatorService(FlextCliService[bool]):
 # =============================================================================
 
 
-class FlextCliInteractiveService(FlextCliService[str]):
+class FlextCliInteractiveService(FlextDomainService[str]):
     """Service for CLI user interaction and prompts.
 
-    Extends FlextCliService to provide interactive capabilities
-    with support for prompts, confirmations, and user input handling.
+    Directly extends FlextDomainService following FLEXT architectural standards.
+    Provides interactive capabilities with support for prompts, confirmations,
+    and user input handling.
     """
 
     model_config = ConfigDict(
@@ -373,7 +318,8 @@ class FlextCliInteractiveService(FlextCliService[str]):
         arbitrary_types_allowed=True,
     )
 
-    # Interactive service configuration
+    # Service identification and interactive service configuration
+    service_name: str = Field(..., description="Name of the CLI interactive service")
     enable_colors: bool = Field(
         default=True,
         description="Enable colored output",
@@ -386,6 +332,16 @@ class FlextCliInteractiveService(FlextCliService[str]):
         default=30,
         description="User input timeout in seconds",
     )
+
+    def __init__(self, **data: object) -> None:
+        """Initialize CLI interactive service."""
+        super().__init__(**data)
+        self._logger = get_logger(f"flext_cli.{self.service_name}")
+
+    @property
+    def logger(self) -> FlextLogger:
+        """Get logger instance."""
+        return self._logger
 
     @abstractmethod
     def prompt_user(
@@ -452,13 +408,12 @@ class FlextCliInteractiveService(FlextCliService[str]):
             return FlextResult[None].fail("Message cannot be empty")
 
         # Log the message
-        if self.logger and hasattr(self.logger, "info"):
-            if message_type == "error" and hasattr(self.logger, "error"):
-                self.logger.error(message)
-            elif message_type == "warning" and hasattr(self.logger, "warning"):
-                self.logger.warning(message)
-            else:
-                self.logger.info(message)
+        if message_type == "error":
+            self.logger.error(message)
+        elif message_type == "warning":
+            self.logger.warning(message)
+        else:
+            self.logger.info(message)
 
         # In actual implementation, this would handle colored output
         # and proper terminal formatting based on enable_colors setting
@@ -596,8 +551,6 @@ __all__ = [
     "FlextCliCommandService",
     "FlextCliFormatterService",
     "FlextCliInteractiveService",
-    # Base service classes
-    "FlextCliService",
     # Factory
     "FlextCliServiceFactory",
     "FlextCliValidatorService",

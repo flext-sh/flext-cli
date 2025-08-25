@@ -250,7 +250,9 @@ def flext_cli_output_data(
                 # Convert to dict[str, str] for CSV compatibility
                 csv_rows: list[dict[str, str]] = []
                 for csv_item in typed_data:
-                    csv_row: dict[str, str] = {str(k): str(v) for k, v in csv_item.items()}
+                    csv_row: dict[str, str] = {
+                        str(k): str(v) for k, v in csv_item.items()
+                    }
                     csv_rows.append(csv_row)
                 writer.writerows(csv_rows)
             console.print(output.getvalue())
@@ -453,8 +455,12 @@ def flext_cli_batch_execute[T](
         # Simple check: if first item is a tuple, assume it's named operations
         if isinstance(first_item, tuple):
             # Handle (name, operation) tuples - return dict format
-            named_operations = cast("list[tuple[str, Callable[[], FlextResult[T]]]]", items)
-            return _execute_named_operations(named_operations, stop_on_error=stop_on_error)
+            named_operations = cast(
+                "list[tuple[str, Callable[[], FlextResult[T]]]]", items
+            )
+            return _execute_named_operations(
+                named_operations, stop_on_error=stop_on_error
+            )
 
     # Handle regular items with single operation - return list format
     if operation is None:
@@ -488,4 +494,4 @@ def track[T](
 
     """
     # Use Rich's track function for progress bar
-    return rich_track(sequence, description=description, total=total)  # type: ignore[no-any-return]
+    return rich_track(sequence, description=description, total=total)
