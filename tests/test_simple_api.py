@@ -60,7 +60,9 @@ class TestSetupCli:
         # setup_cli should handle exceptions gracefully and return FlextResult
         if result.is_success:
             # If no exception occurred, that's also valid behavior
-            assert result.value is True
+            # setup_cli returns the configuration dict, not a boolean
+            assert result.value is not None
+            assert isinstance(result.value, dict)
         else:
             # If exception was caught, verify error message format
             assert result.error is not None

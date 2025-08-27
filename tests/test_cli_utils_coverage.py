@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import datetime
 import json
 import os
 import tempfile
@@ -219,7 +220,7 @@ class TestFileProcessing:
     def test_process_single_file_failure(self) -> None:
         """Test single file processing with failure."""
 
-        def mock_processor(path: Path) -> FlextResult[object]:
+        def mock_processor(_path: Path) -> FlextResult[object]:
             return FlextResult[object].fail("Processing failed")
 
         results: dict[str, object] = {
@@ -242,7 +243,7 @@ class TestFileProcessing:
     def test_process_single_file_exception(self) -> None:
         """Test single file processing with processor exception."""
 
-        def failing_processor(path: Path) -> FlextResult[object]:
+        def failing_processor(_path: Path) -> FlextResult[object]:
             msg = "Processing exception"
             raise ValueError(msg)
 
@@ -379,7 +380,7 @@ class TestBatchProcessing:
     def test_cli_batch_process_files_empty_list(self) -> None:
         """Test batch processing with empty file list."""
 
-        def mock_processor(path: Path) -> FlextResult[object]:
+        def mock_processor(_path: Path) -> FlextResult[object]:
             return FlextResult[object].ok("processed")
 
         result = cli_batch_process_files([], mock_processor)
@@ -568,8 +569,6 @@ class TestDataSaving:
 
     def test_convert_to_serializable_datetime(self) -> None:
         """Test converting datetime to serializable format."""
-        import datetime
-
         dt = datetime.datetime(2025, 1, 15, 12, 30, 45)
         result = _convert_to_serializable(dt)
         assert isinstance(result, str)
@@ -604,7 +603,7 @@ class TestDataSaving:
             assert result.is_success
 
             # Verify the file was saved correctly
-            with open(f.name, encoding="utf-8") as saved_file:
+            with Path(f.name).open(encoding="utf-8") as saved_file:
                 loaded_data = json.load(saved_file)
                 assert loaded_data == test_data
 

@@ -1,7 +1,7 @@
-"""FLEXT CLI Utility Classes with Static Methods.
+"""FLEXT CLI Utilities - Extension of flext-core FlextUtilities.
 
-Provides comprehensive utility classes following user requirement to
-"criar utilities classes com métodos estáticos"
+Provides CLI-specific utilities while massively using FlextUtilities from flext-core.
+Follows FLEXT architectural pattern of extending core functionality with proper prefixes.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -9,17 +9,19 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import json
 import os
 import re
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TypedDict, cast
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextUtilities
 from rich.table import Table
 
 from flext_cli import FlextCliSettings
+
+# Re-export FlextUtilities for convenience
+FlextCliUtilities = FlextUtilities
 
 
 class JsonObject(TypedDict, total=False):
@@ -41,11 +43,11 @@ class FileInfo(TypedDict):
 
 
 class FlextCliValidationUtilities:
-    """Static utility methods for CLI validation operations."""
+    """CLI-specific validation utilities extending flext-core patterns."""
 
     @staticmethod
     def validate_email(email: str) -> FlextResult[bool]:
-        """Validate an email address format.
+        """Validate an email address format using flext-core type guards.
 
         Args:
             email: Email address to validate
@@ -54,12 +56,16 @@ class FlextCliValidationUtilities:
             FlextResult[bool]: True if valid email format
 
         """
-        if not email.strip():
+        # Use FlextUtilities type guards and text processing
+        if not FlextUtilities.is_non_empty_string(email):
             return FlextResult[bool].fail("Email cannot be empty")
 
-        # Basic email validation pattern
+        # Use flext-core text processing for cleaning
+        clean_email = FlextUtilities.clean_text(email.strip())
+
+        # Basic email validation pattern using FlextUtilities
         email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-        is_valid = bool(re.match(email_pattern, email.strip()))
+        is_valid = bool(re.match(email_pattern, clean_email))
         return (
             FlextResult[bool].ok(is_valid)
             if is_valid
@@ -116,7 +122,7 @@ class FlextCliValidationUtilities:
 
     @staticmethod
     def validate_json_string(json_str: str) -> FlextResult[JsonObject]:
-        """Validate and parse JSON string.
+        """Validate and parse JSON string using FlextUtilities.
 
         Args:
             json_str: JSON string to validate and parse
@@ -125,16 +131,16 @@ class FlextCliValidationUtilities:
             FlextResult[JsonObject]: Parsed JSON object
 
         """
-        if not json_str.strip():
+        # Use FlextUtilities for safe JSON parsing
+        if not FlextUtilities.is_non_empty_string(json_str):
             return FlextResult[JsonObject].fail("JSON string cannot be empty")
 
-        try:
-            parsed = json.loads(json_str)
-            if isinstance(parsed, dict):
-                return FlextResult[JsonObject].ok(cast("JsonObject", parsed))
-            return FlextResult[JsonObject].fail("JSON must be an object")
-        except json.JSONDecodeError as e:
-            return FlextResult[JsonObject].fail(f"Invalid JSON: {e}")
+        # Use flext-core safe JSON parsing
+        parsed_dict = FlextUtilities.safe_json_parse(json_str.strip())
+        if not parsed_dict:
+            return FlextResult[JsonObject].fail("Invalid JSON format")
+
+        return FlextResult[JsonObject].ok(cast("JsonObject", parsed_dict))
 
 
 class FlextCliFileUtilities:
@@ -243,7 +249,7 @@ class FlextCliFormattingUtilities:
 
     @staticmethod
     def format_json_pretty(data: object) -> FlextResult[str]:
-        """Format data as pretty JSON string.
+        """Format data as pretty JSON string using FlextUtilities.
 
         Args:
             data: Data to format as JSON
@@ -252,11 +258,11 @@ class FlextCliFormattingUtilities:
             FlextResult[str]: Pretty formatted JSON string
 
         """
-        try:
-            formatted = json.dumps(data, indent=2, default=str, ensure_ascii=False)
-            return FlextResult[str].ok(formatted)
-        except (TypeError, ValueError) as e:
-            return FlextResult[str].fail(f"Failed to format JSON: {e}")
+        # Use FlextUtilities for safe JSON stringification
+        formatted = FlextUtilities.safe_json_stringify(data)
+        if formatted == "{}" and data != {}:
+            return FlextResult[str].fail("Failed to format data as JSON")
+        return FlextResult[str].ok(formatted)
 
     @staticmethod
     def create_table(
@@ -297,7 +303,7 @@ class FlextCliFormattingUtilities:
 
     @staticmethod
     def format_duration(seconds: float) -> FlextResult[str]:
-        """Format duration in seconds to human-readable string.
+        """Format duration using FlextUtilities.
 
         Args:
             seconds: Duration in seconds
@@ -307,36 +313,17 @@ class FlextCliFormattingUtilities:
 
         """
         try:
-            if seconds < 0:
-                return FlextResult[str].fail("Duration cannot be negative")
-
-            # Constants for time conversion
-            seconds_per_minute = 60
-            seconds_per_hour = 3600
-
-            if seconds < 1:
-                return FlextResult[str].ok(f"{seconds * 1000:.1f}ms")
-            if seconds < seconds_per_minute:
-                return FlextResult[str].ok(f"{seconds:.2f}s")
-            if seconds < seconds_per_hour:
-                minutes = int(seconds // seconds_per_minute)
-                remaining_seconds = seconds % seconds_per_minute
-                return FlextResult[str].ok(f"{minutes}m {remaining_seconds:.1f}s")
-            hours = int(seconds // seconds_per_hour)
-            remaining_minutes = int((seconds % seconds_per_hour) // seconds_per_minute)
-            remaining_seconds = seconds % seconds_per_minute
-            return FlextResult[str].ok(
-                f"{hours}h {remaining_minutes}m {remaining_seconds:.1f}s"
-            )
-
-        except (TypeError, ValueError) as e:
+            # Use FlextUtilities for duration formatting
+            formatted = FlextUtilities.format_duration(seconds)
+            return FlextResult[str].ok(formatted)
+        except Exception as e:
             return FlextResult[str].fail(f"Invalid duration: {e}")
 
     @staticmethod
     def truncate_string(
         text: str, max_length: int, suffix: str = "..."
     ) -> FlextResult[str]:
-        """Truncate string to maximum length with suffix.
+        """Truncate string using FlextUtilities.
 
         Args:
             text: Text to truncate
@@ -348,18 +335,9 @@ class FlextCliFormattingUtilities:
 
         """
         try:
-            if max_length < 0:
-                return FlextResult[str].fail("Max length cannot be negative")
-
-            if len(text) <= max_length:
-                return FlextResult[str].ok(text)
-
-            if max_length <= len(suffix):
-                return FlextResult[str].ok(text[:max_length])
-
-            truncated = text[: max_length - len(suffix)] + suffix
+            # Use FlextUtilities for text truncation
+            truncated = FlextUtilities.truncate(text, max_length, suffix)
             return FlextResult[str].ok(truncated)
-
         except Exception as e:
             return FlextResult[str].fail(f"Failed to truncate string: {e}")
 
@@ -465,18 +443,34 @@ class FlextCliTimeUtilities:
     """Static utility methods for CLI time operations."""
 
     @staticmethod
-    def get_current_timestamp() -> FlextResult[datetime]:
-        """Get current UTC timestamp.
+    def get_current_timestamp() -> FlextResult[float]:
+        """Get current timestamp using FlextUtilities.
 
         Returns:
-            FlextResult[datetime]: Current UTC datetime
+            FlextResult[float]: Current timestamp
 
         """
         try:
-            current_time = datetime.now(UTC)
-            return FlextResult[datetime].ok(current_time)
+            # Use FlextUtilities for timestamp generation
+            timestamp = FlextUtilities.generate_timestamp()
+            return FlextResult[float].ok(timestamp)
         except Exception as e:
-            return FlextResult[datetime].fail(f"Failed to get timestamp: {e}")
+            return FlextResult[float].fail(f"Failed to get timestamp: {e}")
+
+    @staticmethod
+    def get_current_iso_timestamp() -> FlextResult[str]:
+        """Get current ISO timestamp using FlextUtilities.
+
+        Returns:
+            FlextResult[str]: Current ISO timestamp
+
+        """
+        try:
+            # Use FlextUtilities for ISO timestamp generation
+            timestamp = FlextUtilities.generate_iso_timestamp()
+            return FlextResult[str].ok(timestamp)
+        except Exception as e:
+            return FlextResult[str].fail(f"Failed to get ISO timestamp: {e}")
 
     @staticmethod
     def format_timestamp(
@@ -502,44 +496,41 @@ class FlextCliTimeUtilities:
             return FlextResult[str].fail(f"Unexpected error: {e}")
 
     @staticmethod
-    def parse_timestamp(
-        timestamp_str: str, format_str: str = "%Y-%m-%d %H:%M:%S"
-    ) -> FlextResult[datetime]:
-        """Parse timestamp string to datetime.
+    def parse_iso_timestamp(timestamp_str: str) -> FlextResult[object]:
+        """Parse ISO timestamp string using FlextUtilities.
 
         Args:
-            timestamp_str: Timestamp string to parse
-            format_str: Format string
+            timestamp_str: ISO timestamp string to parse
 
         Returns:
-            FlextResult[datetime]: Parsed datetime object
+            FlextResult[object]: Parsed datetime object
 
         """
         try:
-            if not timestamp_str.strip():
-                return FlextResult[datetime].fail("Timestamp cannot be empty")
+            # Use FlextUtilities type guard for validation
+            if not FlextUtilities.is_non_empty_string(timestamp_str):
+                return FlextResult[object].fail("Timestamp cannot be empty")
 
-            dt = datetime.strptime(timestamp_str, format_str).replace(tzinfo=UTC)
-            return FlextResult[datetime].ok(dt)
-
-        except ValueError as e:
-            return FlextResult[datetime].fail(f"Failed to parse timestamp: {e}")
+            # Use FlextUtilities for ISO timestamp parsing
+            dt = FlextUtilities.parse_iso_timestamp(timestamp_str.strip())
+            return FlextResult[object].ok(dt)
+        except Exception as e:
+            return FlextResult[object].fail(f"Failed to parse timestamp: {e}")
 
     @staticmethod
-    def get_time_difference(start: datetime, end: datetime) -> FlextResult[float]:
-        """Get time difference in seconds.
+    def get_elapsed_time(start_time: float) -> FlextResult[float]:
+        """Get elapsed time using FlextUtilities.
 
         Args:
-            start: Start datetime
-            end: End datetime
+            start_time: Start timestamp
 
         Returns:
-            FlextResult[float]: Difference in seconds
+            FlextResult[float]: Elapsed time in seconds
 
         """
         try:
-            difference = (end - start).total_seconds()
-            return FlextResult[float].ok(difference)
-
+            # Use FlextUtilities for elapsed time calculation
+            elapsed = FlextUtilities.get_elapsed_time(start_time)
+            return FlextResult[float].ok(elapsed)
         except Exception as e:
-            return FlextResult[float].fail(f"Failed to calculate time difference: {e}")
+            return FlextResult[float].fail(f"Failed to calculate elapsed time: {e}")

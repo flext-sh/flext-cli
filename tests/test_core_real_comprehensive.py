@@ -16,7 +16,6 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from typing import Any
 
 import yaml
 from flext_core import FlextEntityId
@@ -505,7 +504,7 @@ class TestFlextCliService(unittest.TestCase):
     def test_flext_cli_register_and_execute_handler(self) -> None:
         """Test registering and executing handlers with real functionality."""
 
-        def test_handler(data: Any) -> str:
+        def test_handler(data: object) -> str:
             return f"Processed: {data}"
 
         # Register handler
@@ -524,10 +523,10 @@ class TestFlextCliService(unittest.TestCase):
     def test_flext_cli_register_duplicate_handler_fails(self) -> None:
         """Test registering duplicate handler names fails."""
 
-        def handler1(data: Any) -> str:
+        def handler1(_data: object) -> str:
             return "handler1"
 
-        def handler2(data: Any) -> str:
+        def handler2(_data: object) -> str:
             return "handler2"
 
         # Register first handler
@@ -686,7 +685,7 @@ class TestFlextCliService(unittest.TestCase):
     def test_flext_cli_get_handlers_returns_objects(self) -> None:
         """Test get_handlers returns handlers as objects."""
 
-        def test_handler(data: Any) -> str:
+        def test_handler(data: object) -> str:
             return str(data)
 
         self.service.flext_cli_register_handler("test", test_handler)

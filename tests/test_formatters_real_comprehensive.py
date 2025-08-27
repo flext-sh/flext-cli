@@ -141,7 +141,7 @@ class TestTableFormatter(unittest.TestCase):
 
     def test_table_formatter_empty_list(self) -> None:
         """Test table formatting with empty list."""
-        test_data = []
+        test_data: list[dict[str, object]] = []
 
         # Should handle empty data gracefully
         self.formatter.format(test_data, self.console)
@@ -431,7 +431,7 @@ class TestCSVFormatter(unittest.TestCase):
 
     def test_csv_formatter_empty_data(self) -> None:
         """Test CSV formatting with empty data."""
-        test_data = []
+        test_data: list[dict[str, object]] = []
 
         self.formatter.format(test_data, self.console)
 
@@ -670,7 +670,7 @@ class TestFormatterFactory(unittest.TestCase):
 
             # Should create separate instances
             assert formatter1 is not formatter2
-            assert type(formatter1) == type(formatter2)
+            assert type(formatter1) is type(formatter2)
 
 
 class TestFormatterIntegration(unittest.TestCase):

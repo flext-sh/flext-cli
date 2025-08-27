@@ -1,4 +1,4 @@
-"""Real functional tests for utilities module - NO MOCKS!
+"""Real functional tests for utilities module - NO MOCKS!.
 
 Tests the new utility classes with static methods, following user requirement:
 "criar utilities classes com métodos estáticos"
@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
+import shutil
 import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
@@ -106,8 +107,6 @@ class TestFlextCliFileUtilitiesReal:
 
     def teardown_method(self) -> None:
         """Clean up test environment."""
-        import shutil
-
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_ensure_directory_exists_real(self) -> None:

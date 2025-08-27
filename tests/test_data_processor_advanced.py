@@ -260,13 +260,13 @@ class TestFlextCliDataProcessorAdvanced:
         """Test successful data transformation pipeline."""
         initial_data = {"items": [1, 2, 3, 4, 5]}
 
-        def normalize_data(data: dict[str, object]) -> FlextResult[dict[str, object]]:
+        def failing_transformer(_data: dict[str, object]) -> FlextResult[dict[str, object]]:
             # Add metadata
             return FlextResult[None].ok(
                 {**data, "normalized": True, "item_count": len(data["items"])},
             )
 
-        def double_items(data: dict[str, object]) -> FlextResult[dict[str, object]]:
+        def failing_transformer(_data: dict[str, object]) -> FlextResult[dict[str, object]]:
             # Double all items
             doubled_items = [item * 2 for item in data["items"]]
             return FlextResult[None].ok({
@@ -275,7 +275,7 @@ class TestFlextCliDataProcessorAdvanced:
                 "doubled": True,
             })
 
-        def add_summary(data: dict[str, object]) -> FlextResult[dict[str, object]]:
+        def failing_transformer(_data: dict[str, object]) -> FlextResult[dict[str, object]]:
             # Add summary statistics
             return FlextResult[None].ok(
                 {
@@ -498,7 +498,7 @@ class TestComplexDataProcessingWorkflows:
             return FlextResult[None].ok(result_data)
 
         # Step 2: Data transformation
-        def merge_user_data(data: dict[str, object]) -> FlextResult[dict[str, object]]:
+        def failing_transformer(_data: dict[str, object]) -> FlextResult[dict[str, object]]:
             """Merge users with their metrics."""
             users = {user["id"]: user for user in data["users"]}
             metrics = {metric["user_id"]: metric for metric in data["metrics"]}

@@ -7,11 +7,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import click
 import yaml
+from flext_core import FlextUtilities
 from rich.console import Console
 from rich.table import Table
 
@@ -30,7 +30,9 @@ def _print_config_value(cli_context: object, key: str, value: object) -> None:
     console: Console = getattr(cli_context, "console", Console())
     fmt = getattr(getattr(cli_context, "config", object()), "output_format", "table")
     if fmt == "json":
-        console.print(json.dumps({key: value}, indent=2, default=str))
+        # Use FlextUtilities for consistent JSON formatting
+        formatted = FlextUtilities.safe_json_stringify({key: value})
+        console.print(formatted)
     elif fmt == "yaml":
         console.print(yaml.dump({key: value}, default_flow_style=False))
     else:
@@ -52,11 +54,9 @@ def _get_all_config(cli_context: object) -> None:
     fmt = getattr(getattr(cli_context, "config", object()), "output_format", "table")
     if fmt == "json":
         console.print(
-            json.dumps(
-                {"config": cfg_dict, "settings": stg_dict},
-                indent=2,
-                default=str,
-            ),
+            FlextUtilities.safe_json_stringify(
+                {"config": cfg_dict, "settings": stg_dict}
+            )
         )
         return
     if fmt == "yaml":
@@ -121,7 +121,7 @@ def show(ctx: click.Context) -> None:
 
     # Format output according to requested format
     if output_format == "json":
-        console.print(json.dumps(config_data, indent=2))
+        console.print(FlextUtilities.safe_json_stringify(config_data))
     elif output_format == "yaml":
         try:
             console.print(yaml.safe_dump(config_data, default_flow_style=False))

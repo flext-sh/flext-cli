@@ -7,6 +7,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from flext_cli import cli_types as types
@@ -148,7 +150,7 @@ class TestTypeCompatibility:
         format_str: types.FlextCliOutputFormat = "json"
         args: types.CommandArgs = ["arg1", "arg2"]
 
-        def handler(x):
+        def handler(x: Any) -> Any:
             return x
 
         # Basic validation that types work

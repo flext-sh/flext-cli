@@ -98,17 +98,17 @@ def save_auth_token(token: str, *, token_path: Path | None = None) -> FlextResul
 
 
 def save_refresh_token(
-    refresh_token: str, *, token_path: Path | None = None
+    refresh_token: str, *, refresh_token_path: Path | None = None
 ) -> FlextResult[None]:
     """Save refresh token to disk with secure permissions.
 
     Args:
         refresh_token: The refresh token to save
-        token_path: Optional path to save token (defaults to configured path)
+        refresh_token_path: Optional path to save token (defaults to configured path)
 
     """
     try:
-        path = token_path or get_refresh_token_path()
+        path = refresh_token_path or get_refresh_token_path()
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(refresh_token, encoding="utf-8")
         try:
@@ -139,14 +139,14 @@ def get_auth_token(*, token_path: Path | None = None) -> FlextResult[str]:
         return FlextResult[str].fail(f"Failed to read token: {e}")
 
 
-def get_refresh_token(*, token_path: Path | None = None) -> FlextResult[str]:
+def get_refresh_token(*, refresh_token_path: Path | None = None) -> FlextResult[str]:
     """Load refresh token contents if file exists; returns FlextResult.
 
     Args:
-        token_path: Optional path to read token from (defaults to configured path)
+        refresh_token_path: Optional path to read token from (defaults to configured path)
 
     """
-    path = token_path or get_refresh_token_path()
+    path = refresh_token_path or get_refresh_token_path()
     if not path.exists():
         return FlextResult[str].fail("Refresh token file not found")
     try:

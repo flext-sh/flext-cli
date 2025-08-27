@@ -25,7 +25,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 import click
 from flext_core import FlextResult, FlextSettings
@@ -90,20 +89,22 @@ class ServiceHealth:
 # =============================================================================
 
 
-class EcosystemService(FlextCliService[dict[str, Any]]):
+class EcosystemService(FlextCliService):
     """Service for integrating with FLEXT ecosystem projects."""
 
     def __init__(self, settings: EcosystemSettings, **data: object) -> None:
-        super().__init__(service_name="ecosystem_integration", **data)
+        super().__init__(**data)
         self.settings = settings
         self.api_client = FlextApiClient(base_url=settings.flext_api_url)
 
-    def execute(self) -> FlextResult[dict[str, Any]]:
+    def execute(self) -> FlextResult[dict[str, object]]:
         """Execute ecosystem service operations."""
-        return FlextResult[dict[str, Any]].ok({
-            "service": "ecosystem_integration",
-            "status": "running",
-        })
+        return FlextResult[dict[str, object]].ok(
+            {
+                "service": "ecosystem_integration",
+                "status": "running",
+            }
+        )
 
     def check_service_health(
         self, service_name: str, _url: str
@@ -179,10 +180,12 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
         try:
             # api_auth_result = self.api_client.authenticate(username, password)
             # FlextApiClient doesn't have authenticate method - simulate it
-            api_auth_result = FlextResult[dict[str, str]].ok({
-                "token": "demo_token",
-                "status": "authenticated",
-            })
+            api_auth_result = FlextResult[dict[str, str]].ok(
+                {
+                    "token": "demo_token",
+                    "status": "authenticated",
+                }
+            )
         except Exception:
             api_auth_result = FlextResult[dict[str, str]].fail(
                 "Authentication simulation failed"
@@ -207,10 +210,10 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
 
     def execute_meltano_operation(
         self, operation: str, project: str
-    ) -> FlextResult[dict[str, Any]]:
+    ) -> FlextResult[dict[str, object]]:
         """Execute Meltano operation through flext-meltano integration."""
         if not self.settings.enable_meltano_integration:
-            return FlextResult[dict[str, Any]].fail("Meltano integration is disabled")
+            return FlextResult[dict[str, object]].fail("Meltano integration is disabled")
 
         # Mock Meltano operation (in real implementation, use flext-meltano)
         try:
@@ -222,16 +225,16 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
                 "records_processed": 1000 if operation == "run" else 0,
                 "message": f"Meltano {operation} completed successfully",
             }
-            return FlextResult[dict[str, Any]].ok(result)
+            return FlextResult[dict[str, object]].ok(result)
         except Exception as e:
-            return FlextResult[dict[str, Any]].fail(f"Meltano operation failed: {e}")
+            return FlextResult[dict[str, object]].fail(f"Meltano operation failed: {e}")
 
     def query_oracle_database(
         self, _query: str, _schema: str
-    ) -> FlextResult[list[dict[str, Any]]]:
+    ) -> FlextResult[list[dict[str, object]]]:
         """Query Oracle database through flext-db-oracle integration."""
         if not self.settings.enable_oracle_integration:
-            return FlextResult[list[dict[str, Any]]].fail(
+            return FlextResult[list[dict[str, object]]].fail(
                 "Oracle integration is disabled"
             )
 
@@ -242,14 +245,14 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
                 {"id": 2, "name": "Project Beta", "status": "completed"},
                 {"id": 3, "name": "Project Gamma", "status": "pending"},
             ]
-            return FlextResult[list[dict[str, Any]]].ok(mock_results)
+            return FlextResult[list[dict[str, object]]].ok(mock_results)
         except Exception as e:
-            return FlextResult[list[dict[str, Any]]].fail(f"Oracle query failed: {e}")
+            return FlextResult[list[dict[str, object]]].fail(f"Oracle query failed: {e}")
 
-    def get_observability_metrics(self) -> FlextResult[dict[str, Any]]:
+    def get_observability_metrics(self) -> FlextResult[dict[str, object]]:
         """Get metrics from flext-observability."""
         if not self.settings.enable_observability:
-            return FlextResult[dict[str, Any]].fail("Observability is disabled")
+            return FlextResult[dict[str, object]].fail("Observability is disabled")
 
         # Mock metrics (in real implementation, use flext-observability)
         try:
@@ -262,9 +265,9 @@ class EcosystemService(FlextCliService[dict[str, Any]]):
                 "memory_usage_mb": 256.8,
                 "cpu_usage_percent": 12.5,
             }
-            return FlextResult[dict[str, Any]].ok(metrics)
+            return FlextResult[dict[str, object]].ok(dict(metrics))
         except Exception as e:
-            return FlextResult[dict[str, Any]].fail(f"Failed to get metrics: {e}")
+            return FlextResult[dict[str, object]].fail(f"Failed to get metrics: {e}")
 
 
 # =============================================================================
@@ -373,7 +376,8 @@ def meltano(ctx: click.Context, operation: str, project: str) -> None:
         data = result.value
         console.print(f"[green]✅ {data['message']}[/green]")
         console.print(f"Duration: {data['duration']:.1f}s")
-        if data["records_processed"] > 0:
+        records = data["records_processed"]
+        if isinstance(records, int) and records > 0:
             console.print(f"Records processed: {data['records_processed']:,}")
     else:
         console.print(f"[red]❌ Meltano operation failed: {result.error}[/red]")
@@ -405,13 +409,10 @@ def oracle_query(
         data = result.value
 
         if output_format == "table":
-            # Convert list[dict[str, Any]] to compatible format for cli_create_table
+            # Convert list[dict[str, object]] to compatible format for cli_create_table
             if isinstance(data, list) and data:
                 # Convert to string representation for display
                 table_data = str(data)
-            elif isinstance(data, dict):
-                # Use dict directly - PyRight accepts dict[str, Any] as dict[str, object]
-                table_data = data
             else:
                 table_data = str(data)
             table = cli_create_table(
@@ -420,13 +421,10 @@ def oracle_query(
             )
             console.print(table)
         else:
-            # Convert list[dict[str, Any]] to compatible format for cli_format_output
+            # Convert list[dict[str, object]] to compatible format for cli_format_output
             if isinstance(data, list) and data:
                 # Convert to string representation for formatting
                 format_data = str(data)
-            elif isinstance(data, dict):
-                # Use dict directly - PyRight accepts dict[str, Any] as dict[str, object]
-                format_data = data
             else:
                 format_data = str(data)
             formatted_result = cli_format_output(format_data, output_format)

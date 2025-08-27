@@ -9,18 +9,16 @@ from __future__ import annotations
 
 import contextlib
 import csv
-import json
 import pathlib
 import platform
 import sys
-import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol, TypedDict, cast
 
 import yaml
-from flext_core import FlextEntityId, FlextResult
+from flext_core import FlextEntityId, FlextResult, FlextUtilities
 from rich.console import Console
 from rich.table import Table
 
@@ -318,7 +316,8 @@ def flext_cli_export(
 
         if format_type == "json":
             with path.open("w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2, default=str)
+                json_content = FlextUtilities.safe_json_stringify(data)
+                f.write(json_content)
 
         elif format_type == "yaml":
             with path.open("w", encoding="utf-8") as f:
@@ -525,7 +524,9 @@ class FlextCliApi:
             # Create the domain entity using correct constructor parameters
             # Use name as command ID prefix for better identification
             command_id = (
-                f"{name}_{uuid.uuid4().hex[:8]}" if name.strip() else str(uuid.uuid4())
+                f"{name}_{FlextUtilities.generate_id()}"
+                if name.strip()
+                else FlextUtilities.generate_uuid()
             )
 
             try:
@@ -562,7 +563,7 @@ class FlextCliApi:
             # Generate unique session ID
             session_id = (
                 f"cli_session_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
-                f"_{uuid.uuid4().hex[:8]}"
+                f"_{FlextUtilities.generate_id()}"
             )
 
             # Store session information for tracking
@@ -628,7 +629,7 @@ class FlextCliApi:
             # Otherwise, try to create a FlextCliPlugin from the object using direct instantiation
             try:
                 cli_plugin = FlextCliPlugin(
-                    id=FlextEntityId(str(uuid.uuid4())),
+                    id=FlextEntityId(FlextUtilities.generate_uuid()),
                     name=name,
                     entry_point=str(plugin) if plugin else f"plugin_{name}",
                 )

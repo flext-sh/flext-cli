@@ -1,4 +1,4 @@
-"""Real functional tests for simple_api module - NO MOCKS!
+"""Real functional tests for simple_api module - NO MOCKS!.
 
 Tests the simple_api module with ACTUAL execution, following user requirement:
 "pare de ficar mockando tudo! execute código real e validar a funcionalidade requerida"

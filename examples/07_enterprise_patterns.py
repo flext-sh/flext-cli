@@ -39,7 +39,7 @@ from rich.console import Console
 
 from flext_cli import (
     FlextCliService,
-    measure_time,
+    cli_measure_time,
     require_auth,
 )
 
@@ -159,12 +159,12 @@ class Project(FlextEntity):
 # =============================================================================
 
 
-class ProjectDomainService(FlextDomainService):
+class ProjectDomainService(FlextDomainService[dict[str, object]]):
     """Domain service for cross-project operations."""
 
-    def execute(self) -> FlextResult[None]:
+    def execute(self) -> FlextResult[dict[str, object]]:
         """Execute method required by FlextDomainService base class."""
-        return FlextResult[None].ok(None)
+        return FlextResult[dict[str, object]].ok({"service": "project_domain"})
 
     def can_transfer_ownership(
         self, project: Project, new_owner_id: str
@@ -390,7 +390,7 @@ class ProjectQueryHandler:
             "updated_at": str(project.updated_at) if project.updated_at else None,
         }
 
-        return FlextResult[dict[str, object]].ok(project_data)
+        return FlextResult[dict[str, object]].ok(dict(project_data))
 
     def execute_list_by_owner(
         self, query: ListProjectsByOwnerQuery
@@ -423,7 +423,7 @@ class ProjectQueryHandler:
 # =============================================================================
 
 
-class ProjectManagementService(FlextCliService[dict[str, object]]):
+class ProjectManagementService(FlextCliService):
     """Infrastructure service orchestrating the application layer."""
 
     _repository: InMemoryProjectRepository
@@ -432,7 +432,7 @@ class ProjectManagementService(FlextCliService[dict[str, object]]):
     _query_handler: ProjectQueryHandler
 
     def __init__(self, **data: object) -> None:
-        super().__init__(service_name="project_management", **data)
+        super().__init__(**data)
 
         # Setup dependencies (in real app: DI container)
         self._repository = InMemoryProjectRepository()
@@ -445,10 +445,12 @@ class ProjectManagementService(FlextCliService[dict[str, object]]):
 
     def execute(self) -> FlextResult[dict[str, object]]:
         """Execute method required by FlextService base class."""
-        return FlextResult[dict[str, object]].ok({
-            "service": "project_management",
-            "status": "active",
-        })
+        return FlextResult[dict[str, object]].ok(
+            {
+                "service": "project_management",
+                "status": "active",
+            }
+        )
 
     def create_project(
         self, name: str, description: str, owner_id: str
@@ -465,12 +467,14 @@ class ProjectManagementService(FlextCliService[dict[str, object]]):
             )
 
         project = result.value
-        return FlextResult[dict[str, object]].ok({
-            "id": str(project.project_id),
-            "name": project.name,
-            "status": project.status.value,
-            "message": "Project created successfully",
-        })
+        return FlextResult[dict[str, object]].ok(
+            {
+                "id": str(project.project_id),
+                "name": project.name,
+                "status": project.status.value,
+                "message": "Project created successfully",
+            }
+        )
 
     def change_project_status(
         self, project_id: str, new_status: str, reason: str
@@ -493,11 +497,13 @@ class ProjectManagementService(FlextCliService[dict[str, object]]):
             )
 
         project = result.value
-        return FlextResult[dict[str, object]].ok({
-            "id": str(project.project_id),
-            "status": project.status.value,
-            "message": "Status changed successfully",
-        })
+        return FlextResult[dict[str, object]].ok(
+            {
+                "id": str(project.project_id),
+                "status": project.status.value,
+                "message": "Status changed successfully",
+            }
+        )
 
     def get_project(self, project_id: str) -> FlextResult[dict[str, object]]:
         """Get project details through CQRS."""
@@ -535,7 +541,7 @@ def enterprise_cli(ctx: click.Context) -> None:
 @click.option("--name", required=True, help="Project name")
 @click.option("--description", required=True, help="Project description")
 @click.option("--owner", required=True, help="Project owner ID")
-@measure_time
+@cli_measure_time
 @click.pass_context
 def create_project(ctx: click.Context, name: str, description: str, owner: str) -> None:
     """Create a new project using enterprise patterns."""
@@ -564,7 +570,7 @@ def create_project(ctx: click.Context, name: str, description: str, owner: str) 
     help="New status",
 )
 @click.option("--reason", required=True, help="Reason for status change")
-@measure_time
+@cli_measure_time
 @require_auth()
 @click.pass_context
 def change_status(

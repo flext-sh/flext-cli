@@ -921,12 +921,6 @@ class TestFlextCliApi:
     def test_flext_cli_register_plugin_with_object(self) -> None:
         """Test API register_plugin method with generic object."""
         # Create a proper FlextCliPlugin instance to avoid validation errors
-        import uuid
-
-        from flext_core import FlextEntityId
-
-        from flext_cli.models import FlextCliPlugin
-
         plugin = FlextCliPlugin(
             id=FlextEntityId(str(uuid.uuid4())),
             name="generic_plugin",

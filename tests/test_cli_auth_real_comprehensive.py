@@ -32,6 +32,10 @@ from flext_cli.cli_auth import (
     _get_client_class,
     # Command functions
     auth,
+    auth_login,
+    auth_logout,
+    auth_status,
+    auth_whoami,
     clear_auth_tokens,
     get_auth_headers,
     get_auth_token,
@@ -42,11 +46,14 @@ from flext_cli.cli_auth import (
     get_token_path,
     is_authenticated,
     login,
+    login_command,
     logout,
+    logout_command,
     save_auth_token,
     save_refresh_token,
     should_auto_refresh,
     status,
+    status_command,
     whoami,
 )
 from flext_cli.flext_api_integration import FlextCLIApiClient
@@ -1261,7 +1268,7 @@ class TestAuthErrorHandling:
             try:
                 readonly_dir.chmod(0o755)
                 readonly_dir.rmdir()
-            except:
+            except OSError:
                 pass
             temp_dir.rmdir()
 
@@ -1316,16 +1323,6 @@ class TestAuthErrorHandling:
 
     def test_command_alias_consistency(self) -> None:
         """Test that command aliases are consistent."""
-        from flext_cli.cli_auth import (
-            auth_login,
-            auth_logout,
-            auth_status,
-            auth_whoami,
-            login_command,
-            logout_command,
-            status_command,
-        )
-
         # Verify aliases point to correct functions
         assert auth_login is login
         assert auth_logout is logout

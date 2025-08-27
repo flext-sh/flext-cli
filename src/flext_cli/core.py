@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Callable
 from contextlib import suppress
 from pathlib import Path
@@ -238,9 +237,9 @@ class FlextCliService(FlextService):
             return FlextResult[dict[str, object]].fail(f"Health check failed: {e}")
 
     def _format_json(self, data: OutputData) -> FlextResult[str]:
-        """Format data as JSON."""
+        """Format data as JSON using FlextUtilities."""
         try:
-            result = json.dumps(data, indent=2, default=str)
+            result = FlextUtilities.safe_json_stringify(data)
             return FlextResult[str].ok(result)
         except Exception as e:
             return FlextResult[str].fail(f"JSON formatting failed: {e}")

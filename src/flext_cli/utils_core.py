@@ -10,7 +10,6 @@ from __future__ import annotations
 import contextlib
 import csv
 import io
-import json
 import os
 import secrets
 from collections.abc import Callable, Iterable
@@ -19,7 +18,7 @@ from pathlib import Path
 from typing import cast
 
 import yaml
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextUtilities
 from rich.console import Console
 from rich.progress import track as rich_track
 from rich.table import Table
@@ -68,9 +67,8 @@ def _load_config_file(path: str | Path) -> FlextResult[dict[str, object]]:
                 yaml.safe_load(p.read_text(encoding="utf-8")) or {}
             )
         if p.suffix.lower() == ".json":
-            return FlextResult[dict[str, object]].ok(
-                json.loads(p.read_text(encoding="utf-8"))
-            )
+            parsed_data = FlextUtilities.safe_json_parse(p.read_text(encoding="utf-8"))
+            return FlextResult[dict[str, object]].ok(parsed_data)
         return FlextResult[dict[str, object]].fail("Unsupported config format")
     except Exception as e:
         return FlextResult[dict[str, object]].fail(str(e))
@@ -228,12 +226,12 @@ def flext_cli_output_data(
     format_type: str,
     *,
     console: Console,
-    indent: int | None = None,
+    indent: int | None = None,  # noqa: ARG001
 ) -> FlextResult[bool]:
     """Render data to console in the specified format."""
     try:
         if format_type == "json":
-            console.print(json.dumps(data, indent=indent or 2, default=str))
+            console.print(FlextUtilities.safe_json_stringify(data))
         elif format_type == "yaml":
             console.print(yaml.dump(data, default_flow_style=False))
         elif format_type == "table":
@@ -324,7 +322,8 @@ def flext_cli_load_file(
         if suffix in {".yml", ".yaml"}:
             return FlextResult[object].ok(yaml.safe_load(p.read_text(encoding="utf-8")))
         if suffix == ".json":
-            return FlextResult[object].ok(json.loads(p.read_text(encoding="utf-8")))
+            parsed_data = FlextUtilities.safe_json_parse(p.read_text(encoding="utf-8"))
+            return FlextResult[object].ok(parsed_data)
         return FlextResult[object].fail("Unsupported file format")
     except Exception as e:
         return FlextResult[object].fail(str(e))
@@ -338,7 +337,7 @@ def flext_cli_save_file(data: object, file_path: str | Path) -> FlextResult[bool
         if p.suffix.lower() in {".yml", ".yaml"}:
             p.write_text(yaml.dump(data, default_flow_style=False), encoding="utf-8")
         elif p.suffix.lower() == ".json":
-            p.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
+            p.write_text(FlextUtilities.safe_json_stringify(data), encoding="utf-8")
         else:
             p.write_text(str(data), encoding="utf-8")
         return FlextResult[bool].ok(data=True)

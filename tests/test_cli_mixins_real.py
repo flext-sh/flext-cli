@@ -17,19 +17,19 @@ import unittest
 from unittest.mock import patch
 
 from flext_cli.cli_mixins import (
-    CLICompleteMixin,
-    CLIConfigMixin,
-    CLIDataMixin,
-    CLIExecutionMixin,
-    CLIInteractiveMixin,
-    CLILoggingMixin,
-    CLIUIMixin,
-    CLIValidationMixin,
+    CliCompleteMixin,
+    CliConfigMixin,
+    CliDataMixin,
+    CliExecutionMixin,
+    CliInteractiveMixin,
+    CliLoggingMixin,
+    CliUIMixin,
+    CliValidationMixin,
 )
 from flext_cli.cli_types import FlextCliOutputFormat
 
 
-class _TestMixinConcrete(CLICompleteMixin):
+class _TestMixinConcrete(CliCompleteMixin):
     """Concrete class for testing mixins - implements required abstract methods."""
 
     def to_json(self) -> str:
@@ -41,12 +41,12 @@ class _TestMixinConcrete(CLICompleteMixin):
         super().__init__()
 
 
-class TestCLIValidationMixin(unittest.TestCase):
-    """Real functionality tests for CLIValidationMixin."""
+class TestCliValidationMixin(unittest.TestCase):
+    """Real functionality tests for CliValidationMixin."""
 
     def setUp(self) -> None:
         """Set up test fixtures."""
-        self.mixin = CLIValidationMixin()
+        self.mixin = CliValidationMixin()
 
     def test_validate_cli_arguments_empty_list(self) -> None:
         """Test CLI argument validation with empty list."""
@@ -91,12 +91,12 @@ class TestCLIValidationMixin(unittest.TestCase):
         assert "Invalid output format 'xml'" in (result.error or "")
 
 
-class TestCLIConfigMixin(unittest.TestCase):
-    """Real functionality tests for CLIConfigMixin."""
+class TestCliConfigMixin(unittest.TestCase):
+    """Real functionality tests for CliConfigMixin."""
 
     def setUp(self) -> None:
         """Set up test fixtures."""
-        self.mixin = CLIConfigMixin()
+        self.mixin = CliConfigMixin()
 
     def test_load_cli_profile_valid_name(self) -> None:
         """Test loading CLI profile with valid name."""
@@ -153,12 +153,12 @@ class TestCLIConfigMixin(unittest.TestCase):
         assert "Invalid output format 'xml'" in (result.error or "")
 
 
-class TestCLILoggingMixin(unittest.TestCase):
-    """Real functionality tests for CLILoggingMixin."""
+class TestCliLoggingMixin(unittest.TestCase):
+    """Real functionality tests for CliLoggingMixin."""
 
     def setUp(self) -> None:
         """Set up test fixtures."""
-        self.mixin = CLILoggingMixin()
+        self.mixin = CliLoggingMixin()
 
     def test_log_command_execution_success(self) -> None:
         """Test logging successful command execution."""
@@ -262,12 +262,12 @@ class TestCLIOutputMixin(unittest.TestCase):
         assert result.value == ""
 
 
-class TestCLIInteractiveMixin(unittest.TestCase):
-    """Real functionality tests for CLIInteractiveMixin."""
+class TestCliInteractiveMixin(unittest.TestCase):
+    """Real functionality tests for CliInteractiveMixin."""
 
     def setUp(self) -> None:
         """Set up test fixtures."""
-        self.mixin = CLIInteractiveMixin()
+        self.mixin = CliInteractiveMixin()
         # Initialize the mixin properly
         self.mixin._console = None
         self.mixin._progress = None
@@ -367,8 +367,8 @@ class TestCLIInteractiveMixin(unittest.TestCase):
         assert result.value is None
 
 
-class TestCLICompleteMixin(unittest.TestCase):
-    """Real functionality tests for CLICompleteMixin."""
+class TestCliCompleteMixin(unittest.TestCase):
+    """Real functionality tests for CliCompleteMixin."""
 
     def setUp(self) -> None:
         """Set up test fixtures."""
@@ -407,13 +407,13 @@ class TestCLICompleteMixin(unittest.TestCase):
         assert log_result.is_success
 
 
-class TestCLIDataMixin(unittest.TestCase):
-    """Real functionality tests for CLIDataMixin."""
+class TestCliDataMixin(unittest.TestCase):
+    """Real functionality tests for CliDataMixin."""
 
     def setUp(self) -> None:
         """Set up test fixtures."""
 
-        class TestDataMixin(CLIDataMixin):
+        class TestDataMixin(CliDataMixin):
             def to_json(self) -> str:
                 return json.dumps({"test": "data"})
 
@@ -431,12 +431,12 @@ class TestCLIDataMixin(unittest.TestCase):
         assert output_result.is_success
 
 
-class TestCLIExecutionMixin(unittest.TestCase):
-    """Real functionality tests for CLIExecutionMixin."""
+class TestCliExecutionMixin(unittest.TestCase):
+    """Real functionality tests for CliExecutionMixin."""
 
     def setUp(self) -> None:
         """Set up test fixtures."""
-        self.mixin = CLIExecutionMixin()
+        self.mixin = CliExecutionMixin()
         # Initialize the interactive mixin properly
         self.mixin._console = None
         self.mixin._progress = None
@@ -456,13 +456,13 @@ class TestCLIExecutionMixin(unittest.TestCase):
         assert console is not None
 
 
-class TestCLIUIMixin(unittest.TestCase):
-    """Real functionality tests for CLIUIMixin."""
+class TestCliUIMixin(unittest.TestCase):
+    """Real functionality tests for CliUIMixin."""
 
     def setUp(self) -> None:
         """Set up test fixtures."""
 
-        class TestUIMixin(CLIUIMixin):
+        class TestUIMixin(CliUIMixin):
             def to_json(self) -> str:
                 return json.dumps({"ui": "test"})
 

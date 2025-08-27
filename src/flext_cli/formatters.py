@@ -9,10 +9,10 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from typing import ClassVar, cast, override
 
 import yaml
+from flext_core import FlextUtilities
 from rich.console import Console
 from rich.table import Table
 
@@ -83,8 +83,8 @@ class FlextCliFormatters:
 
         @override
         def format(self, data: object, console: Console) -> None:
-            """Format data as JSON."""
-            console.print(json.dumps(data, indent=2, default=str))
+            """Format data as JSON using FlextUtilities."""
+            console.print(FlextUtilities.safe_json_stringify(data))
 
     class YAMLFormatter(OutputFormatter):
         """Formats data as YAML."""
@@ -205,9 +205,23 @@ def create_formatter(format_name: str) -> FlextCliFormatters.OutputFormatter:
 # EXPORTS - Comprehensive formatter system
 # =============================================================================
 
+# Export formatters from FlextCliFormatters namespace
+OutputFormatter = FlextCliFormatters.OutputFormatter
+PlainFormatter = FlextCliFormatters.PlainFormatter
+CSVFormatter = FlextCliFormatters.CSVFormatter
+JSONFormatter = FlextCliFormatters.JSONFormatter
+TableFormatter = FlextCliFormatters.TableFormatter
+YAMLFormatter = FlextCliFormatters.YAMLFormatter
+
 __all__ = [
+    "CSVFormatter",
     "FlextCliFormatters",
     "FormatterFactory",
+    "JSONFormatter",
+    "OutputFormatter",
+    "PlainFormatter",
+    "TableFormatter",
+    "YAMLFormatter",
     "create_formatter",
     "format_output",
 ]

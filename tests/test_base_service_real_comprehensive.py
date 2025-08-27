@@ -9,14 +9,15 @@ Following user requirement: "pare de ficar mockando tudo!"
 
 from __future__ import annotations
 
+import json
+
 import pytest
 from flext_core import FlextContainer, FlextResult
 
-from flext_cli.base_service import (
+from flext_cli.service_implementations import (
     FlextCliCommandService,
     FlextCliFormatterService,
     FlextCliInteractiveService,
-    FlextCliService,
     FlextCliServiceFactory,
     FlextCliValidatorService,
 )
@@ -33,7 +34,7 @@ class ConcreteCommandService(FlextCliCommandService[str]):
         self,
         command: str,
         args: dict[str, object] | None = None,
-        **kwargs: object,
+        **_kwargs: object,
     ) -> FlextResult[str]:
         """Execute command with real implementation."""
         if command == "echo":
@@ -54,14 +55,12 @@ class ConcreteFormatterService(FlextCliFormatterService):
         self,
         data: object,
         format_type: str | None = None,
-        **options: object,
+        **_options: object,
     ) -> FlextResult[str]:
         """Format data with real implementation."""
         fmt = format_type or self.default_format
 
         if fmt == "json":
-            import json
-
             try:
                 formatted = json.dumps(data, default=str, indent=2)
                 return FlextResult[str].ok(formatted)
@@ -82,7 +81,7 @@ class ConcreteValidatorService(FlextCliValidatorService):
         self,
         input_data: object,
         validation_type: str | None = None,
-        **options: object,
+        **_options: object,
     ) -> FlextResult[bool]:
         """Validate input with real implementation."""
         if validation_type == "email":
@@ -116,7 +115,7 @@ class ConcreteInteractiveService(FlextCliInteractiveService):
         self,
         message: str,
         input_type: str = "text",
-        **options: object,
+        **_options: object,
     ) -> FlextResult[str]:
         """Prompt user with real implementation (mock for testing)."""
         if self._mock_input is not None:
@@ -144,22 +143,22 @@ class ConcreteInteractiveService(FlextCliInteractiveService):
 # =============================================================================
 
 
-class TestFlextCliService:
-    """Test FlextCliService base class with real service operations."""
+class TestFlextCliCommandService:
+    """Test FlextCliCommandService with real service operations."""
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
 
         # Create a concrete subclass for testing
-        class ConcreteCliService(FlextCliService[str]):
-            def execute(self) -> FlextResult[str]:
+        class ConcreteCommandService(FlextCliCommandService[str]):
+            def execute_command(self, command: str, *args: object, **kwargs: object) -> FlextResult[str]:
                 return FlextResult[str].ok("service executed")
 
-        self.ConcreteCliService = ConcreteCliService
+        self.ConcreteCommandService = ConcreteCommandService
 
     def test_service_initialization_basic(self) -> None:
         """Test basic service initialization."""
-        service = self.ConcreteCliService(service_name="test_service")
+        service = self.ConcreteCommandService(service_name="test_service")
 
         assert service.service_name == "test_service"
         assert service.enable_logging is True
@@ -168,7 +167,7 @@ class TestFlextCliService:
     def test_service_initialization_with_container(self) -> None:
         """Test service initialization with dependency container."""
         container = FlextContainer()
-        service = self.ConcreteCliService(
+        service = self.ConcreteCommandService(
             service_name="container_service", container=container
         )
 
@@ -178,7 +177,7 @@ class TestFlextCliService:
 
     def test_service_initialization_no_logging(self) -> None:
         """Test service initialization with logging disabled."""
-        service = self.ConcreteCliService(
+        service = self.ConcreteCommandService(
             service_name="no_log_service", enable_logging=False
         )
 
@@ -188,7 +187,7 @@ class TestFlextCliService:
 
     def test_service_logger_property(self) -> None:
         """Test service logger property access."""
-        service = self.ConcreteCliService(service_name="logged_service")
+        service = self.ConcreteCommandService(service_name="logged_service")
 
         # Logger should be initialized when logging is enabled
         logger = service.logger
@@ -196,7 +195,7 @@ class TestFlextCliService:
 
     def test_service_initialization_lifecycle(self) -> None:
         """Test service initialization and cleanup lifecycle."""
-        service = self.ConcreteCliService(service_name="lifecycle_service")
+        service = self.ConcreteCommandService(service_name="lifecycle_service")
 
         # Initialize
         init_result = service.initialize()
@@ -213,7 +212,7 @@ class TestFlextCliService:
 
     def test_service_validate_config_success(self) -> None:
         """Test service configuration validation success."""
-        service = self.ConcreteCliService(service_name="valid_service")
+        service = self.ConcreteCommandService(service_name="valid_service")
 
         result = service.validate_config()
 
@@ -221,7 +220,7 @@ class TestFlextCliService:
 
     def test_service_validate_config_empty_name(self) -> None:
         """Test service configuration validation with empty name."""
-        service = self.ConcreteCliService(service_name="")
+        service = self.ConcreteCommandService(service_name="")
 
         result = service.validate_config()
 
@@ -230,7 +229,7 @@ class TestFlextCliService:
 
     def test_service_validate_config_whitespace_name(self) -> None:
         """Test service configuration validation with whitespace name."""
-        service = self.ConcreteCliService(service_name="   ")
+        service = self.ConcreteCommandService(service_name="   ")
 
         result = service.validate_config()
 
@@ -352,8 +351,6 @@ class TestFlextCliFormatterService:
         assert "Alice" in formatted
         assert "30" in formatted
         # Verify it's valid JSON
-        import json
-
         parsed = json.loads(formatted)
         assert parsed["name"] == "Alice"
 

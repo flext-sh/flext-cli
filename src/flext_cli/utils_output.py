@@ -7,10 +7,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import json as _json
 from typing import Protocol, cast
 
 import yaml as _yaml
+from flext_core import FlextUtilities
 from rich.console import Console
 from rich.table import Table
 
@@ -85,7 +85,7 @@ def format_plugin_list(
         return
 
     if fmt.lower() == "json":
-        console.print(_json.dumps(plugins, indent=2))
+        console.print(FlextUtilities.safe_json_stringify(plugins))
         return
 
     table = Table(title="Available Plugins")
@@ -187,7 +187,7 @@ def format_pipeline(console: Console, pipeline: object) -> None:
 
 def format_json(data: object) -> str:
     """Return pretty JSON string for arbitrary data."""
-    return _json.dumps(data, indent=2, default=str)
+    return FlextUtilities.safe_json_stringify(data)
 
 
 def format_yaml(data: object) -> str:

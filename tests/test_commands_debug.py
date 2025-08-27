@@ -19,7 +19,7 @@ from click.testing import CliRunner
 from flext_core import FlextConstants
 from rich.console import Console
 
-from flext_cli.cmd_debug import (
+from flext_cli.commands_debug import (
     connectivity,
     debug_cmd,
     env,

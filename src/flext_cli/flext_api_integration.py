@@ -7,10 +7,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import json
 from typing import Protocol, Self
 
-from flext_core import FlextConstants, FlextResult, get_logger
+from flext_core import FlextConstants, FlextResult, FlextUtilities, get_logger
 
 from flext_cli.config import get_config as get_cli_config
 
@@ -245,11 +244,11 @@ class FlextCLIApiClient:
                 return FlextResult[dict[str, object]].fail("API client not initialized")
 
             # Post credentials to login endpoint
-            login_data = json.dumps(
+            login_data = FlextUtilities.safe_json_stringify(
                 {
                     "username": username,
                     "password": password,
-                },
+                }
             )
             response_result = await self._api_client.post(
                 "/auth/login",

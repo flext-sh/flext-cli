@@ -9,8 +9,11 @@ Following user requirement: "pare de ficar mockando tudo!"
 
 from __future__ import annotations
 
+import io
+import json
 import tempfile
 import time
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest import mock
 
@@ -18,6 +21,7 @@ from flext_core import FlextResult
 from rich.console import Console
 from rich.progress import Progress
 
+from flext_cli.helpers import FlextCliHelper
 from flext_cli.mixins import (
     FlextCliAdvancedMixin,
     FlextCliBasicMixin,
@@ -261,9 +265,6 @@ class TestFlextCliInteractiveMixin:
     def test_print_success(self) -> None:
         """Test printing success message."""
         # Capture output using StringIO
-        import io
-        from contextlib import redirect_stdout
-
         output = io.StringIO()
         with redirect_stdout(output):
             self.mixin.flext_cli_print_success("Operation completed")
@@ -305,8 +306,6 @@ class TestFlextCliInteractiveMixin:
     def test_confirm_operation_success(self) -> None:
         """Test operation confirmation with success."""
         # Create helper with mocked confirmation
-        from flext_cli.helpers import FlextCliHelper
-
         with mock.patch.object(FlextCliHelper, "flext_cli_confirm") as mock_confirm:
             mock_confirm.return_value = FlextResult[bool].ok(data=True)
 
@@ -316,8 +315,6 @@ class TestFlextCliInteractiveMixin:
 
     def test_confirm_operation_declined(self) -> None:
         """Test operation confirmation when declined."""
-        from flext_cli.helpers import FlextCliHelper
-
         with mock.patch.object(FlextCliHelper, "flext_cli_confirm") as mock_confirm:
             mock_confirm.return_value = FlextResult[bool].ok(False)
 
@@ -327,8 +324,6 @@ class TestFlextCliInteractiveMixin:
 
     def test_confirm_operation_failure(self) -> None:
         """Test operation confirmation with helper failure."""
-        from flext_cli.helpers import FlextCliHelper
-
         with mock.patch.object(FlextCliHelper, "flext_cli_confirm") as mock_confirm:
             mock_confirm.return_value = FlextResult[bool].fail("Confirmation failed")
 
@@ -685,8 +680,6 @@ class TestFlextCliConfigMixin:
         with tempfile.NamedTemporaryFile(
             encoding="utf-8", mode="w", suffix=".json", delete=False
         ) as f:
-            import json
-
             config_data = {"test_key": "test_value"}
             json.dump(config_data, f)
             temp_config_path = f.name

@@ -14,6 +14,9 @@ from unittest.mock import MagicMock, patch
 from flext_core import FlextResult
 
 from flext_cli.cli_auth import (
+    _clear_tokens_bridge,
+    _get_auth_token_bridge,
+    _get_client_class,
     clear_auth_tokens,
     get_auth_headers,
     get_auth_token,
@@ -454,8 +457,6 @@ class TestBridgeFunctions:
         mock_clear.return_value = FlextResult[None].ok(None)
 
         # Import the bridge function directly for testing
-        from flext_cli.cli_auth import _clear_tokens_bridge
-
         result = _clear_tokens_bridge()
 
         assert result.is_success
@@ -466,8 +467,6 @@ class TestBridgeFunctions:
         """Test _clear_tokens_bridge with exception."""
         mock_clear.side_effect = Exception("Clear failed")
 
-        from flext_cli.cli_auth import _clear_tokens_bridge
-
         result = _clear_tokens_bridge()
 
         assert not result.is_success
@@ -475,8 +474,6 @@ class TestBridgeFunctions:
 
     def test_get_auth_token_bridge(self) -> None:
         """Test _get_auth_token_bridge function."""
-        from flext_cli.cli_auth import _get_auth_token_bridge
-
         with patch("flext_cli.cli_auth.get_auth_token") as mock_get:
             mock_get.return_value = "test_token"
 
@@ -487,8 +484,6 @@ class TestBridgeFunctions:
 
     def test_get_client_class(self) -> None:
         """Test _get_client_class function."""
-        from flext_cli.cli_auth import _get_client_class
-
         client_class = _get_client_class()
 
         assert client_class is not None

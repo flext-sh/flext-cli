@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import datetime
 import json
 import tempfile
 from pathlib import Path
@@ -202,7 +203,7 @@ class TestDataTransformation:
         # Just test that the function exists and can be called
         data = [1, 2, 3]
 
-        def transform_fn(x):
+        def transform_fn(x: int) -> int:
             return x * 2
 
         result = flext_cli_transform_data(data, transform_fn)
@@ -214,7 +215,7 @@ class TestDataTransformation:
         """Test transformation with empty data."""
         data: list[object] = []
 
-        def transform_fn(x):
+        def transform_fn(x: object) -> object:
             return x
 
         result = flext_cli_transform_data(data, transform_fn)
@@ -296,7 +297,7 @@ class TestDataExport:
             assert result.is_success
 
             # Verify file was written correctly
-            with open(f.name, encoding="utf-8") as saved_file:
+            with Path(f.name).open(encoding="utf-8") as saved_file:
                 loaded_data = json.load(saved_file)
                 assert loaded_data == data
 
@@ -314,7 +315,7 @@ class TestDataExport:
             assert result.is_success
 
             # Verify file was written correctly
-            with open(f.name, encoding="utf-8") as saved_file:
+            with Path(f.name).open(encoding="utf-8") as saved_file:
                 loaded_data = yaml.safe_load(saved_file)
                 assert loaded_data == data
 
@@ -448,9 +449,7 @@ class TestEdgeCases:
     def test_format_error_handling(self) -> None:
         """Test formatting with problematic data."""
         # Create data that might cause formatting issues
-        import datetime
-
-        data = {"date": datetime.datetime.now()}
+        data = {"date": datetime.datetime.now(tz=datetime.UTC)}
 
         result = flext_cli_format(data, "json")
 
@@ -492,7 +491,7 @@ class TestSpecialCases:
         """Test transformation with non-iterable data."""
         data = "not a list"
 
-        def transform_fn(x):
+        def transform_fn(x: object) -> object:
             return x
 
         result = flext_cli_transform_data(data, transform_fn)
