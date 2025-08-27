@@ -111,7 +111,7 @@ def create_auth_token_manager() -> FlextResult[object]:
     return FlextResult.ok({"manager": "placeholder"})
 
 
-class FlextExceptions.AuthenticationError(Exception):
+class FlextExceptions(Exception):
     """Authentication error exception."""
 
     def __init__(self, message: str, details: dict[str, object] | None = None) -> None:
@@ -497,18 +497,18 @@ class TestAuthUtilities:
 
 
 class TestFlextAuthenticationError:
-    """Test FlextExceptions.AuthenticationError exception."""
+    """Test FlextExceptions exception."""
 
     def test_flext_authentication_error_init(self) -> None:
-        """Test FlextExceptions.AuthenticationError initialization."""
-        error = FlextExceptions.AuthenticationError("Test error")
+        """Test FlextExceptions initialization."""
+        error = FlextExceptions("Test error")
 
         assert isinstance(error, Exception)
         assert str(error) == "Test error"
 
     def test_flext_authentication_error_with_details(self) -> None:
-        """Test FlextExceptions.AuthenticationError with additional details."""
-        error = FlextExceptions.AuthenticationError("Auth failed", details={"code": 401})
+        """Test FlextExceptions with additional details."""
+        error = FlextExceptions("Auth failed", details={"code": 401})
 
         assert "Auth failed" in str(error)
         assert hasattr(error, "details")

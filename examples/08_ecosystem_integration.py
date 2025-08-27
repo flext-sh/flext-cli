@@ -27,7 +27,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import click
-from flext_core import FlextResult, FlextSettings
+from flext_core import FlextConfig, FlextResult
 from rich.console import Console
 from rich.table import Table
 
@@ -45,7 +45,7 @@ from flext_cli import (
 # =============================================================================
 
 
-class EcosystemSettings(FlextSettings):
+class EcosystemSettings(FlextConfig):
     """Configuration for FLEXT ecosystem integration."""
 
     # FLEXT Service endpoints
@@ -99,12 +99,10 @@ class EcosystemService(FlextCliService):
 
     def execute(self) -> FlextResult[dict[str, object]]:
         """Execute ecosystem service operations."""
-        return FlextResult[dict[str, object]].ok(
-            {
-                "service": "ecosystem_integration",
-                "status": "running",
-            }
-        )
+        return FlextResult[dict[str, object]].ok({
+            "service": "ecosystem_integration",
+            "status": "running",
+        })
 
     def check_service_health(
         self, service_name: str, _url: str
@@ -180,12 +178,10 @@ class EcosystemService(FlextCliService):
         try:
             # api_auth_result = self.api_client.authenticate(username, password)
             # FlextApiClient doesn't have authenticate method - simulate it
-            api_auth_result = FlextResult[dict[str, str]].ok(
-                {
-                    "token": "demo_token",
-                    "status": "authenticated",
-                }
-            )
+            api_auth_result = FlextResult[dict[str, str]].ok({
+                "token": "demo_token",
+                "status": "authenticated",
+            })
         except Exception:
             api_auth_result = FlextResult[dict[str, str]].fail(
                 "Authentication simulation failed"
@@ -213,7 +209,9 @@ class EcosystemService(FlextCliService):
     ) -> FlextResult[dict[str, object]]:
         """Execute Meltano operation through flext-meltano integration."""
         if not self.settings.enable_meltano_integration:
-            return FlextResult[dict[str, object]].fail("Meltano integration is disabled")
+            return FlextResult[dict[str, object]].fail(
+                "Meltano integration is disabled"
+            )
 
         # Mock Meltano operation (in real implementation, use flext-meltano)
         try:
@@ -247,7 +245,9 @@ class EcosystemService(FlextCliService):
             ]
             return FlextResult[list[dict[str, object]]].ok(mock_results)
         except Exception as e:
-            return FlextResult[list[dict[str, object]]].fail(f"Oracle query failed: {e}")
+            return FlextResult[list[dict[str, object]]].fail(
+                f"Oracle query failed: {e}"
+            )
 
     def get_observability_metrics(self) -> FlextResult[dict[str, object]]:
         """Get metrics from flext-observability."""

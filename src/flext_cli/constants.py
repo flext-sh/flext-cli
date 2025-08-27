@@ -7,7 +7,7 @@ from typing import ClassVar, Final
 from flext_core import FlextConstants
 
 
-class FlextCliConstants:
+class FlextCliConstants(FlextConstants):
     """Single CONSOLIDATED class containing ALL CLI constants.
 
     This class follows FLEXT consolidated class pattern by organizing
@@ -527,39 +527,9 @@ class FlextCliConstants:
 
 
 # =============================================================================
-# BACKWARD COMPATIBILITY EXPORTS (Legacy Module-Level Access)
+# EXPORTS - Modern FlextCliConstants API
 # =============================================================================
 
-# Module-level constants for backward compatibility
-CLI_ENV_PREFIX = FlextCliConstants.CLI_ENV_PREFIX
-CLI_PROFILE_ENV_VAR = FlextCliConstants.CLI_PROFILE_ENV_VAR
-CLI_DEBUG_ENV_VAR = FlextCliConstants.CLI_DEBUG_ENV_VAR
-DEFAULT_PROFILE = FlextCliConstants.DEFAULT_PROFILE
-DEFAULT_CONFIRM_PROMPT = FlextCliConstants.DEFAULT_CONFIRM_PROMPT
-DEFAULT_RICH_THEME = FlextCliConstants.DEFAULT_RICH_THEME
-OUTPUT_FORMAT_RICH = FlextCliConstants.OUTPUT_FORMAT_RICH
-OUTPUT_FORMAT_PLAIN = FlextCliConstants.OUTPUT_FORMAT_PLAIN
-MAX_COMMAND_LENGTH = FlextCliConstants.MAX_COMMAND_LENGTH
-MAX_PROMPT_LENGTH = FlextCliConstants.MAX_PROMPT_LENGTH
-DEFAULT_API_URL = FlextCliConstants.DEFAULT_API_URL
-DEFAULT_TIMEOUT = FlextCliConstants.DEFAULT_TIMEOUT
-DEFAULT_RETRIES = FlextCliConstants.DEFAULT_RETRIES
-DEFAULT_OUTPUT_FORMAT = FlextCliConstants.DEFAULT_OUTPUT_FORMAT
-DEFAULT_LOG_LEVEL = FlextCliConstants.DEFAULT_LOG_LEVEL
-DEFAULT_DEBUG = FlextCliConstants.DEFAULT_DEBUG
-ENV_PREFIX = FlextCliConstants.ENV_PREFIX
-ENV_FILE = FlextCliConstants.ENV_FILE
-MAX_TIMEOUT = FlextCliConstants.MAX_TIMEOUT
-MIN_TIMEOUT = FlextCliConstants.MIN_TIMEOUT
-MAX_RETRIES = FlextCliConstants.MAX_RETRIES
-MAX_ENTITY_NAME_LENGTH = FlextCliConstants.MAX_ENTITY_NAME_LENGTH
-MAX_ERROR_MESSAGE_LENGTH = FlextCliConstants.MAX_ERROR_MESSAGE_LENGTH
-
-# Nested class exports for backward compatibility
-CliErrors = FlextCliConstants.CliErrors
-CliMessages = FlextCliConstants.CliMessages
-CliOutput = FlextCliConstants.CliOutput
-Cli = FlextCliConstants.Cli
-Validation = FlextCliConstants.Validation
-Display = FlextCliConstants.Display
-Examples = FlextCliConstants.Examples
+__all__ = [
+    "FlextCliConstants",
+]

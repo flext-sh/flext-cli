@@ -32,7 +32,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import click
-from flext_core import FlextResult, get_flext_container, get_logger
+from flext_core import FlextResult, get_logger
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
@@ -60,7 +60,7 @@ class ComprehensiveCliApplication:
         self.console = Console()
         self.logger = get_logger(__name__)
         self.config = get_cli_config()
-        self.container = get_flext_container()
+        self.container = FlextContainer.get_global()
         self.api_client = FlextApiClient()
         self.entity_factory = FlextCliEntityFactory()
 

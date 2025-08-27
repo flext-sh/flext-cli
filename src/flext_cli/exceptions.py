@@ -38,28 +38,28 @@ class FlextCliExceptions:
         CLI_CONTEXT_ERROR = "CLI_CONTEXT_ERROR"
 
     # Base CLI exception
-    class CliError(FlextExceptions.Error):
+    class CliError(FlextExceptions):
         """Base exception for all CLI domain errors."""
 
-    class ValidationError(FlextExceptions.Error):
+    class ValidationError(FlextExceptions):
         """CLI validation errors."""
 
-    class ConfigurationError(FlextExceptions.Error):
+    class ConfigurationError(FlextExceptions):
         """CLI configuration errors."""
 
-    class CliConnectionError(FlextExceptions.Error):
+    class CliConnectionError(FlextExceptions):
         """CLI connection errors."""
 
-    class ProcessingError(FlextExceptions.Error):
+    class ProcessingError(FlextExceptions):
         """CLI processing errors."""
 
-    class AuthenticationError(FlextExceptions.Error):
+    class AuthenticationError(FlextExceptions):
         """CLI authentication errors."""
 
-    class CliTimeoutError(FlextExceptions.Error):
+    class CliTimeoutError(FlextExceptions):
         """CLI timeout errors."""
 
-    class CommandError(FlextExceptions.Error):
+    class CommandError(FlextExceptions):
         """CLI command execution errors with command context."""
 
         def __init__(
@@ -84,7 +84,7 @@ class FlextCliExceptions:
                 context=context_dict,
             )
 
-    class ArgumentError(FlextExceptions.Error):
+    class ArgumentError(FlextExceptions):
         """CLI argument validation errors with argument context."""
 
         def __init__(
@@ -109,7 +109,7 @@ class FlextCliExceptions:
                 context=context_dict,
             )
 
-    class FormatError(FlextExceptions.Error):
+    class FormatError(FlextExceptions):
         """CLI formatting errors with format context."""
 
         def __init__(
@@ -134,7 +134,7 @@ class FlextCliExceptions:
                 context=context_dict,
             )
 
-    class OutputError(FlextExceptions.Error):
+    class OutputError(FlextExceptions):
         """CLI output errors with output context."""
 
         def __init__(
@@ -159,7 +159,7 @@ class FlextCliExceptions:
                 context=context_dict,
             )
 
-    class ContextError(FlextExceptions.Error):
+    class ContextError(FlextExceptions):
         """CLI context errors with context state information."""
 
         def __init__(

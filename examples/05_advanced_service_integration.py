@@ -30,7 +30,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-from flext_core import FlextResult, get_flext_container, get_logger
+from flext_core import FlextResult, get_logger
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
@@ -78,13 +78,11 @@ class AdvancedCliService(FlextCliService):
 
     def execute(self) -> FlextResult[object]:
         """Execute advanced CLI service operations."""
-        return FlextResult[object].ok(
-            {
-                "service": "AdvancedCliService",
-                "status": "operational",
-                "features": ["health_check", "circuit_breaker", "async_operations"],
-            }
-        )
+        return FlextResult[object].ok({
+            "service": "AdvancedCliService",
+            "status": "operational",
+            "features": ["health_check", "circuit_breaker", "async_operations"],
+        })
 
     # Removed problematic decorators - @cli_enhanced, @cli_measure_time, @cli_retry
     # These decorators cause type inference issues with PyRight
@@ -296,15 +294,13 @@ class AdvancedCliService(FlextCliService):
             success = True  # Always succeed for demo
 
             if success:
-                return FlextResult[dict[str, Any]].ok(
-                    {
-                        "service": service_name,
-                        "operation": operation,
-                        "status": "success",
-                        "execution_time_ms": 150,
-                        "result": f"Operation {operation} completed successfully",
-                    }
-                )
+                return FlextResult[dict[str, Any]].ok({
+                    "service": service_name,
+                    "operation": operation,
+                    "status": "success",
+                    "execution_time_ms": 150,
+                    "result": f"Operation {operation} completed successfully",
+                })
             return FlextResult[dict[str, Any]].fail(f"Operation {operation} failed")
 
         except Exception as e:
@@ -513,7 +509,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     console.print("\n[green]Dependency Injection with CLI Container[/green]")
 
     # Create and configure CLI container
-    container = get_flext_container()
+    container = FlextContainer.get_global()
     # Container has register/get methods available
     if container:
         pass  # Container is ready to use

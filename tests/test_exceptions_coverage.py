@@ -61,9 +61,9 @@ class TestFlextCliError:
         assert isinstance(error, Exception)
 
     def test_inheritance_chain(self) -> None:
-        """Test inheritance from FlextExceptions.Error."""
+        """Test inheritance from FlextExceptions."""
         error = FlextCliError("Test")
-        # Should be instance of FlextCliError and its parent FlextExceptions.Error
+        # Should be instance of FlextCliError and its parent FlextExceptions
         assert isinstance(error, FlextCliError)
 
 
@@ -140,7 +140,7 @@ class TestFlextCliCommandError:
         """Test command error with command context."""
         error = FlextCliCommandError("Command failed", command="echo test", exit_code=1)
         assert "Command failed" in str(error)
-        # Context should be available via the FlextExceptions.Error base class
+        # Context should be available via the FlextExceptions base class
         assert hasattr(error, "context") or hasattr(error, "_context")
 
     def test_command_error_with_context(self) -> None:
