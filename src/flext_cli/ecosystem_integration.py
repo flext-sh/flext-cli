@@ -112,7 +112,9 @@ class FlextCliConfigFactory:
         # Merge with project-specific overrides
         final_config: dict[str, object] = {**generic_defaults, **overrides}
 
-        return create_flext_cli_config(**final_config)
+        # Extract profile from config, use default if not present
+        profile = str(final_config.pop("profile", "default"))
+        return create_flext_cli_config(profile=profile, **final_config)
 
 
 def setup_flext_cli_ecosystem(

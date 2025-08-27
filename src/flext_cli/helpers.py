@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import json
 import shlex
 import shutil
 from collections.abc import Callable
@@ -17,7 +16,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextUtilities
 from rich.console import Console
 from rich.progress import Progress
 from rich.prompt import Confirm, Prompt
@@ -335,14 +334,10 @@ class FlextCliHelper:
             p = Path(file_path)
             if not p.exists():
                 return FlextResult[dict[str, object]].fail("File not found")
-            with p.open(encoding="utf-8") as f:
-                data = json.load(f)
-            if not isinstance(data, dict):
-                return FlextResult[dict[str, object]].fail(
-                    "JSON root must be an object"
-                )
-            data_dict = cast("dict[str, object]", data)
-            return FlextResult[dict[str, object]].ok(data_dict)
+            content = p.read_text(encoding="utf-8")
+            data = FlextUtilities.safe_json_parse(content)
+            # FlextUtilities.safe_json_parse always returns a dict
+            return FlextResult[dict[str, object]].ok(data)
         except Exception as e:
             return FlextResult[dict[str, object]].fail(str(e))
 
@@ -355,8 +350,8 @@ class FlextCliHelper:
         try:
             p = Path(file_path)
             p.parent.mkdir(parents=True, exist_ok=True)
-            with p.open("w", encoding="utf-8") as f:
-                json.dump(data, f)
+            json_content = FlextUtilities.safe_json_stringify(data)
+            p.write_text(json_content, encoding="utf-8")
             return FlextResult[str].ok(str(p))
         except Exception as e:
             return FlextResult[str].fail(str(e))

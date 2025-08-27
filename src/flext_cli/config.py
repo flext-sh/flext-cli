@@ -7,11 +7,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import json as _json
 from pathlib import Path
 from typing import ClassVar, Literal, cast, override
 
-from flext_core import FlextBaseConfigModel, FlextConstants, FlextResult, FlextSettings
+from flext_core import (
+    FlextBaseConfigModel,
+    FlextConstants,
+    FlextResult,
+    FlextSettings,
+    FlextUtilities,
+)
 from pydantic import Field, model_validator
 from pydantic_settings import SettingsConfigDict
 
@@ -609,7 +614,8 @@ def parse_config_value(value: str) -> _Result:
     if lowered in {"null", "none"}:
         return _Result(success=True, data=None)
     try:
-        return _Result(success=True, data=_json.loads(value))
+        parsed_data = FlextUtilities.safe_json_parse(value)
+        return _Result(success=True, data=parsed_data)
     except Exception:
         return _Result(success=True, data=value)
 

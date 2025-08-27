@@ -30,11 +30,8 @@ from rich.console import Console
 from rich.panel import Panel
 
 from flext_cli import (
-    URL,
     CLIHelper,
-    ExistingFile,
     FlextCliCommand,
-    PositiveInt,
     get_cli_config,
     setup_cli,
 )
@@ -62,7 +59,11 @@ class DemoCommandMixin:
 
 # Click integration with flext-cli patterns
 @click.group()
-@click.option("--config-file", type=ExistingFile, help="Configuration file path")
+@click.option(
+    "--config-file",
+    type=click.Path(exists=True, path_type=Path),
+    help="Configuration file path",
+)
 @click.option("--debug/--no-debug", default=False, help="Enable debug mode")
 @click.pass_context
 def demo_cli(
@@ -89,9 +90,9 @@ def demo_cli(
 
 
 @demo_cli.command()
-@click.option("--url", type=URL, required=True, help="Service URL to connect to")
-@click.option("--timeout", type=PositiveInt, default=30, help="Connection timeout")
-@click.option("--retries", type=PositiveInt, default=3, help="Number of retries")
+@click.option("--url", type=str, required=True, help="Service URL to connect to")
+@click.option("--timeout", type=int, default=30, help="Connection timeout")
+@click.option("--retries", type=int, default=3, help="Number of retries")
 @click.pass_context
 def connect(ctx: click.Context, url: str, timeout: int, retries: int) -> None:
     """Test connection to a service with flext-cli integration."""
@@ -131,14 +132,15 @@ def connect(ctx: click.Context, url: str, timeout: int, retries: int) -> None:
 
 @demo_cli.command()
 @click.option(
-    "--input-file", type=ExistingFile, required=True, help="Input file to process"
+    "--input-file",
+    type=click.Path(exists=True, path_type=Path),
+    required=True,
+    help="Input file to process",
 )
 @click.option(
     "--output-format", type=click.Choice(["json", "yaml", "csv"]), default="json"
 )
-@click.option(
-    "--batch-size", type=PositiveInt, default=100, help="Processing batch size"
-)
+@click.option("--batch-size", type=int, default=100, help="Processing batch size")
 @click.pass_context
 def process_file(
     ctx: click.Context, input_file: Path, output_format: str, batch_size: int

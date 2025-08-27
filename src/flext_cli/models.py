@@ -7,7 +7,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import json
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
@@ -18,6 +17,7 @@ from flext_core import (
     FlextEntity,
     FlextEntityId,
     FlextResult,
+    FlextUtilities,
     FlextValue,
     get_logger,
 )
@@ -219,14 +219,13 @@ class FlextCliOutput(FlextValue):
     def format_output(self) -> str:
         """Format output for display based on output format."""
         if self.output_format == "json":
-            return json.dumps(
+            return FlextUtilities.safe_json_stringify(
                 {
                     "stdout": self.stdout,
                     "stderr": self.stderr,
                     "exit_code": self.exit_code,
                     "execution_time": self.execution_time_seconds,
-                },
-                indent=2,
+                }
             )
 
         # Default text format
@@ -372,7 +371,7 @@ class FlextCliCommand(FlextEntity):
     model_config = ConfigDict(extra="allow")
     # Override id to allow default generation for testing convenience
     id: FlextEntityId | str = Field(
-        default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex),
+        default_factory=lambda: FlextEntityId(FlextUtilities.generate_id()),
     )
     name: str | None = Field(default=None, description="Optional command name")
     description: str | None = Field(default=None, description="Optional description")
@@ -762,7 +761,7 @@ class FlextCliSession(FlextEntity):
     model_config = ConfigDict(extra="allow")
     # Provide default id for testing convenience that omit it
     id: FlextEntityId | str = Field(
-        default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex),
+        default_factory=lambda: FlextEntityId(FlextUtilities.generate_id()),
     )
     user_id: str | None = Field(
         default=None,
@@ -777,7 +776,7 @@ class FlextCliSession(FlextEntity):
         description="Session execution context",
     )
     configuration: FlextCliConfiguration = Field(
-        default_factory=lambda: FlextCliConfiguration(),
+        default_factory=FlextCliConfiguration,
         description="Session configuration",
     )
     # Testing convenience-friendly fields
@@ -1089,7 +1088,7 @@ class FlextCliPlugin(FlextEntity):
     model_config = ConfigDict(extra="allow")
     # Provide default id for testing convenience that omit it
     id: FlextEntityId | str = Field(
-        default_factory=lambda: FlextEntityId(__import__("uuid").uuid4().hex),
+        default_factory=lambda: FlextEntityId(FlextUtilities.generate_id()),
     )
     name: str = Field(
         ...,
@@ -1496,15 +1495,15 @@ class FlextCliWorkspace(FlextAggregateRoot):
         description="Workspace description",
     )
     configuration: FlextCliConfiguration = Field(
-        default_factory=lambda: FlextCliConfiguration(),
+        default_factory=FlextCliConfiguration,
         description="Workspace configuration",
     )
     session_ids: list[FlextEntityId] = Field(
-        default_factory=list[FlextEntityId],
+        default_factory=list,
         description="Active session IDs in this workspace",
     )
     plugin_ids: list[FlextEntityId] = Field(
-        default_factory=list[FlextEntityId],
+        default_factory=list,
         description="Installed plugin IDs",
     )
     workspace_data: dict[str, object] = Field(

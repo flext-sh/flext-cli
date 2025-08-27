@@ -19,8 +19,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
-from typing import Never
+from typing import Any, Never
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -38,6 +39,10 @@ from flext_cli import (
     FlextCliResultMixin,
     FlextCliValidationMixin,
     flext_cli_auto_validate,
+    flext_cli_handle_exceptions,
+    flext_cli_require_confirmation,
+    flext_cli_with_progress,
+    flext_cli_zero_config,
 )
 
 
@@ -47,9 +52,9 @@ def flext_cli_auto_retry(max_attempts: int = 3, delay: float = 0.1):
     import time
     from functools import wraps
 
-    def decorator(func):
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             for attempt in range(max_attempts):
                 try:
                     result = func(*args, **kwargs)
@@ -67,14 +72,6 @@ def flext_cli_auto_retry(max_attempts: int = 3, delay: float = 0.1):
         return wrapper
 
     return decorator
-
-
-from flext_cli import (
-    flext_cli_handle_exceptions,
-    flext_cli_require_confirmation,
-    flext_cli_with_progress,
-    flext_cli_zero_config,
-)
 
 
 class TestFlextCliValidationMixin:

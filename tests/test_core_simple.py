@@ -118,7 +118,7 @@ class TestFlextCliServiceReal:
             f.write('{"test": "data"}')
             file_path = Path(f.name)
 
-        def cleanup():
+        def cleanup() -> None:
             return file_path.unlink(missing_ok=True)
         assert isinstance(file_path, Path)
         assert callable(cleanup)
@@ -230,7 +230,7 @@ class TestFlextCliServiceReal:
             f.write("test content")
             file_path = Path(f.name)
 
-        def cleanup():
+        def cleanup() -> None:
             return file_path.unlink(missing_ok=True)
         assert isinstance(file_path, Path)
         assert callable(cleanup)
@@ -260,7 +260,7 @@ class TestFlextCliServiceReal:
             f.write(config_data)
             config_path = Path(f.name)
 
-        def cleanup():
+        def cleanup() -> None:
             return config_path.unlink(missing_ok=True)
         assert isinstance(config_path, Path)
         assert callable(cleanup)

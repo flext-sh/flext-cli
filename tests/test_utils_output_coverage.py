@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from io import StringIO
 from unittest.mock import MagicMock, patch
 
@@ -444,8 +445,6 @@ class TestFormatJson:
 
     def test_format_json_with_non_serializable(self) -> None:
         """Test formatting data with non-JSON-serializable objects."""
-        from datetime import datetime
-
         data = {"timestamp": datetime(2025, 1, 1, 12, 0, 0)}
 
         result = format_json(data)

@@ -59,7 +59,10 @@ class FlextCliEntity(FlextEntity):
 # FlextCliConfig moved to config.py - import from there
 
 
-def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
+def create_cli_config(
+    profile: str = "default",
+    **overrides: object,
+) -> FlextResult[FlextCliConfig]:
     """Create CLI configuration with hierarchical precedence following config-cli.md patterns.
 
     This function implements the hierarchical configuration system from docs/patterns/config-cli.md:
@@ -70,6 +73,7 @@ def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
     5. Constants (lowest precedence)
 
     Args:
+      profile: Configuration profile to load
       **overrides: Configuration overrides (typically from CLI arguments)
 
     Returns:
@@ -104,7 +108,7 @@ def create_cli_config(**overrides: object) -> FlextResult[FlextCliConfig]:
         # Explicitly map known keys to expected types for FlextCliConfig
         # This addresses the 'incompatible type' errors during model_validate
         final_config_data: dict[str, object] = {
-            "profile": str(all_configs.get("profile", "default")),
+            "profile": str(all_configs.get("profile", profile)),
             "output_format": str(all_configs.get("output_format", "table")),
             "debug": bool(all_configs.get("debug", False)),
             "quiet": bool(all_configs.get("quiet", False)),

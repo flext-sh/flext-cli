@@ -7,7 +7,7 @@ Following user requirement: "melhore bem os tests para executar codigo de verdad
 a funcionalidade requerida, pare de ficar mockando tudo!"
 
 These tests execute REAL debug command functionality with minimal mocking.
-Coverage target: Increase cmd_debug.py from 24% to 90%+
+Coverage target: Increase commands_debug.py from 24% to 90%+
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ from click.testing import CliRunner
 from rich.console import Console
 
 from flext_cli.client import FlextApiClient
-from flext_cli.cmd_debug import (
+from flext_cli.commands_debug import (
     check,
     debug_cmd,
     env,

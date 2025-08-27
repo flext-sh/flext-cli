@@ -35,10 +35,7 @@ from rich.console import Console
 from rich.panel import Panel
 
 from flext_cli import (
-    ExistingDir,
-    ExistingFile,
     FormatterFactory,
-    NewFile,
     PlainFormatter,
     cli_create_table,
     flext_cli_aggregate_data,
@@ -320,7 +317,7 @@ def demonstrate_file_operations() -> FlextResult[None]:
         # Simple JSON save implementation
         try:
             temp_path.write_text(json.dumps(config_data, indent=2), encoding="utf-8")
-            save_result = FlextResult[bool].ok(value=True)
+            save_result = FlextResult[bool].ok(data=True)
         except Exception as e:
             save_result = FlextResult[bool].fail(f"Save failed: {e}")
 
@@ -329,7 +326,7 @@ def demonstrate_file_operations() -> FlextResult[None]:
 
             # 2. Validate file exists and load it back
             if temp_path.exists():
-                existing_file = ExistingFile(str(temp_path))
+                existing_file = Path(str(temp_path))
                 console.print(f"✅ File validated as existing: {existing_file}")
 
                 # Load data back
@@ -359,12 +356,12 @@ def demonstrate_file_operations() -> FlextResult[None]:
                         console.print("   Loaded data is not a dictionary")
 
         # 3. Demonstrate directory operations
-        current_dir = ExistingDir(".")
+        current_dir = Path()
         console.print(f"✅ Current directory validated: {current_dir}")
 
         # 4. Prepare new file path
         new_config_path = temp_path.parent / "new_config.yaml"
-        new_file = NewFile(str(new_config_path))
+        new_file = Path(str(new_config_path))
         console.print(f"✅ New file path prepared: {new_file}")
 
         # Clean up temporary file

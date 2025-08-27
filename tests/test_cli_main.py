@@ -12,7 +12,11 @@ import os
 
 from click.testing import CliRunner
 
-from flext_cli import cli, main
+from flext_cli import (
+    cli,
+    main,
+    main as imported_main,  # Import alias to avoid duplicate import
+)
 from flext_cli.config import FlextCliConfig
 
 
@@ -119,8 +123,6 @@ class TestMainEntryPoint:
         assert len(sig.parameters) == 0  # main() takes no parameters
 
         # Verify main function is importable and accessible
-        from flext_cli import main as imported_main
-
         assert main is imported_main
 
     def test_main_cli_integration_real(self) -> None:

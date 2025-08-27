@@ -9,15 +9,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from flext_core import get_logger
+from flext_core import FlextResult, get_logger
 
 from flext_cli.api import (
     FlextCliApi,
     SessionSummary,
+    flext_cli_export as api_export,
+    flext_cli_format as api_format,
 )
 from flext_cli.cli_types import (
     FlextCliDataType,
-    FlextCliOutputFormat,
 )
 from flext_cli.context import FlextCliContext
 
@@ -27,27 +28,28 @@ _api = FlextCliApi()
 
 def flext_cli_export(
     data: FlextCliDataType,
-    path: str | Path,
-    format_type: FlextCliOutputFormat = FlextCliOutputFormat.JSON,
-) -> bool:
+    file_path: str | Path,
+    format_type: str = "json",
+) -> FlextResult[str]:
     """Export data to file in specified format.
 
     Args:
       data: Data to export
-      path: File path to write to
+      file_path: File path to write to
       format_type: Output format (json, yaml, csv, table, plain)
 
     Returns:
-      True if export successful, False otherwise
+      FlextResult with success message or error
 
     """
-    return _api.flext_cli_export(data, path, format_type)
+    # Use API function directly to match signature
+    return api_export(data, file_path, format_type)
 
 
 def flext_cli_format(
     data: FlextCliDataType,
-    format_type: FlextCliOutputFormat = FlextCliOutputFormat.JSON,
-) -> str:
+    format_type: str = "json",
+) -> FlextResult[str]:
     """Format data for display.
 
     Args:
@@ -55,10 +57,10 @@ def flext_cli_format(
       format_type: Output format (json, yaml, csv, table, plain)
 
     Returns:
-      Formatted string representation
+      FlextResult with formatted string or error
 
     """
-    return _api.flext_cli_format(data, format_type)
+    return api_format(data, format_type)
 
 
 def flext_cli_configure(config: dict[str, object]) -> bool:

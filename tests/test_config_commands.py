@@ -17,7 +17,7 @@ from click.testing import CliRunner
 from rich.console import Console
 
 from flext_cli import FlextCliConfig, config, get_cli_config
-from flext_cli.cmd_config import (
+from flext_cli.commands_config import (
     _find_config_value,
     _get_all_config,
     _print_config_value,

@@ -471,7 +471,7 @@ class TestSimpleApiIntegration(unittest.TestCase):
         prod_config = create_production_cli_config()
         retrieved_settings = get_cli_settings()
 
-        assert type(dev_config) == type(prod_config) == type(retrieved_settings)
+        assert type(dev_config) is type(prod_config) is type(retrieved_settings)
         assert all(
             isinstance(config, FlextCliSettings)
             for config in [dev_config, prod_config, retrieved_settings]

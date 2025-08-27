@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import inspect
 import json
 import tempfile
 from pathlib import Path
@@ -33,6 +34,7 @@ from flext_cli.cli_utils import (
     cli_run_command,
     cli_save_data_file,
 )
+from flext_cli.utils_core import flext_cli_quick_setup
 
 
 class TestDataLoadingUtilities:
@@ -261,7 +263,7 @@ class TestBatchProcessing:
     def test_cli_batch_process_files_empty_list(self) -> None:
         """Test batch processing with empty file list."""
 
-        def dummy_processor(file_path: Path) -> FlextResult[object]:
+        def dummy_processor(_file_path: Path) -> FlextResult[object]:
             return FlextResult[object].ok("dummy")
 
         result = cli_batch_process_files([], dummy_processor)
@@ -274,8 +276,6 @@ class TestInteractiveUtilities:
 
     def test_cli_confirm_function_signature(self) -> None:
         """Test cli_confirm function signature and behavior without mocking."""
-        import inspect
-
         # Verify function signature
         sig = inspect.signature(cli_confirm)
         assert len(sig.parameters) == 2
@@ -296,8 +296,6 @@ class TestInteractiveUtilities:
 
     def test_cli_prompt_function_structure(self) -> None:
         """Test cli_prompt function structure without mocking input."""
-        import inspect
-
         # Verify function exists and is callable
         assert callable(cli_prompt)
 
@@ -323,7 +321,6 @@ class TestInteractiveUtilities:
         assert hasattr(cli_prompt, "__module__")
 
         # Create test context to verify integration
-        from flext_cli.utils_core import flext_cli_quick_setup
         context_result = flext_cli_quick_setup({})
         test_context = context_result.value if context_result.is_success else {}
         assert "console" in test_context

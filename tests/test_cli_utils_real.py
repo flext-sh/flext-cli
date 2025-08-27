@@ -1,4 +1,4 @@
-"""REAL tests for cli_utils.py - NO MOCKING!
+"""REAL tests for cli_utils.py - NO MOCKING!.
 
 Tests ALL cli_utils functions with ACTUAL execution and real data processing.
 

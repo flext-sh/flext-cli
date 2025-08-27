@@ -9,13 +9,19 @@ a funcionalidade requerida, pare de ficar mockando tudo!"
 
 from __future__ import annotations
 
+import inspect
+import typing
+
 import pytest
 from flext_core import FlextResult
 
 # Import the whole module to ensure coverage tracking
 from flext_cli.flext_api_integration import (
+    HTTP_OK,
+    FlextApiClientLike,
     FlextCLIApiClient,
     create_flext_api,
+    logger,
 )
 
 
@@ -29,8 +35,6 @@ class TestCreateFlextApi:
 
     def test_create_flext_api_return_type(self) -> None:
         """Test that create_flext_api has correct return type annotation."""
-        import inspect
-
         signature = inspect.signature(create_flext_api)
         assert signature.return_annotation is not None
 
@@ -120,27 +124,17 @@ class TestFlextAPIIntegrationModule:
 
     def test_module_has_constants(self) -> None:
         """Test module defines expected constants."""
-        from flext_cli.flext_api_integration import HTTP_OK
-
         assert HTTP_OK == 200
 
     def test_module_has_logger(self) -> None:
         """Test module has logger defined."""
-        from flext_cli.flext_api_integration import logger
-
         assert logger is not None
         assert hasattr(logger, "info")
         assert hasattr(logger, "error")
 
     def test_module_imports_work(self) -> None:
         """Test all module imports work correctly."""
-        # Import all main components to ensure no import errors
-        from flext_cli.flext_api_integration import (
-            FlextApiClientLike,
-            FlextCLIApiClient,
-            create_flext_api,
-        )
-
+        # Test all main components to ensure no import errors
         assert FlextApiClientLike is not None
         assert FlextCLIApiClient is not None
         assert create_flext_api is not None
@@ -152,9 +146,6 @@ class TestFlextApiClientLikeProtocol:
     def test_protocol_has_required_methods(self) -> None:
         """Test protocol defines required methods."""
         # Check protocol has required methods by examining annotations
-        import typing
-
-        from flext_cli.flext_api_integration import FlextApiClientLike
 
         if hasattr(typing, "get_type_hints"):
             # Protocol should have get, post, and stop methods
@@ -164,10 +155,6 @@ class TestFlextApiClientLikeProtocol:
 
     def test_protocol_method_signatures(self) -> None:
         """Test protocol method signatures are correct."""
-        import inspect
-
-        from flext_cli.flext_api_integration import FlextApiClientLike
-
         # Test get method signature
         if hasattr(FlextApiClientLike, "get"):
             get_sig = inspect.signature(FlextApiClientLike.get)

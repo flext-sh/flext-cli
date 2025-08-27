@@ -13,6 +13,7 @@ from pathlib import Path
 
 # unittest.mock import removed - using real functionality tests instead
 import pytest
+from pydantic_core import ValidationError
 
 from flext_cli.cli_types import FlextCliOutputFormat
 from flext_cli.context import FlextCliContext
@@ -602,9 +603,6 @@ class TestFlextCliCommand:
     def test_command_validate_business_rules_empty_command_line(self) -> None:
         """Test command business rules validation - Pydantic prevents empty command lines."""
         # Pydantic validation prevents creating commands with empty/whitespace command_line
-        import pytest
-        from pydantic_core import ValidationError
-
         with pytest.raises(ValidationError):
             FlextCliCommand(id="test-cmd", command_line="   ")
 
@@ -1192,17 +1190,11 @@ class TestFlextCliPlugin:
 
     def test_plugin_validate_business_rules_empty_name(self) -> None:
         """Test plugin business rules validation - Pydantic prevents empty names."""
-        import pytest
-        from pydantic_core import ValidationError
-
         with pytest.raises(ValidationError):
             FlextCliPlugin(id="test-plugin", name="   ", entry_point="test:main")
 
     def test_plugin_validate_business_rules_empty_entry_point(self) -> None:
         """Test plugin business rules validation - Pydantic prevents empty entry points."""
-        import pytest
-        from pydantic_core import ValidationError
-
         with pytest.raises(ValidationError):
             FlextCliPlugin(id="test-plugin", name="test", entry_point="   ")
 

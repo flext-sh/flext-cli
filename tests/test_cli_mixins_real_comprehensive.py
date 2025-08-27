@@ -15,29 +15,29 @@ from __future__ import annotations
 import json
 import unittest
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextValidatableMixin
 from rich.console import Console
 from rich.progress import Progress
 
 from flext_cli.cli_mixins import (
-    CLICompleteMixin,
-    CLIConfigMixin,
-    CLIDataMixin,
-    CLIExecutionMixin,
-    CLIInteractiveMixin,
-    CLILoggingMixin,
-    CLIOutputMixin,
-    CLIUIMixin,
-    CLIValidationMixin,
+    CliCompleteMixin,
+    CliConfigMixin,
+    CliDataMixin,
+    CliExecutionMixin,
+    CliInteractiveMixin,
+    CliLoggingMixin,
+    CliOutputMixin,
+    CliUIMixin,
+    CliValidationMixin,
 )
 
 
-class TestCLIValidationMixin(unittest.TestCase):
-    """Real functionality tests for CLIValidationMixin."""
+class TestCliValidationMixin(unittest.TestCase):
+    """Real functionality tests for CliValidationMixin."""
 
     def setUp(self) -> None:
         """Set up test environment with validation mixin."""
-        self.mixin = CLIValidationMixin()
+        self.mixin = CliValidationMixin()
 
     def test_validate_cli_arguments_empty_list(self) -> None:
         """Test validate_cli_arguments with empty list."""
@@ -97,21 +97,19 @@ class TestCLIValidationMixin(unittest.TestCase):
         assert result.is_success is True
 
     def test_validation_mixin_inheritance(self) -> None:
-        """Test CLIValidationMixin properly inherits from FlextValidatableMixin."""
+        """Test CliValidationMixin properly inherits from FlextValidatableMixin."""
         # Should have inherited validation capabilities
         assert hasattr(self.mixin, "validate_cli_arguments")
         # Should inherit from FlextValidatableMixin (check class hierarchy)
-        from flext_core import FlextValidatableMixin
-
         assert isinstance(self.mixin, FlextValidatableMixin)
 
 
-class TestCLIConfigMixin(unittest.TestCase):
-    """Real functionality tests for CLIConfigMixin."""
+class TestCliConfigMixin(unittest.TestCase):
+    """Real functionality tests for CliConfigMixin."""
 
     def setUp(self) -> None:
         """Set up test environment with config mixin."""
-        self.mixin = CLIConfigMixin()
+        self.mixin = CliConfigMixin()
 
     def test_get_config_value_existing(self) -> None:
         """Test get_config_value with existing configuration."""
@@ -135,14 +133,14 @@ class TestCLIConfigMixin(unittest.TestCase):
                 assert result.is_success is True
 
     def test_config_mixin_inheritance(self) -> None:
-        """Test CLIConfigMixin properly inherits from FlextComparableMixin."""
+        """Test CliConfigMixin properly inherits from FlextComparableMixin."""
         # Should inherit comparison capabilities
         assert hasattr(self.mixin, "__eq__") or hasattr(self.mixin, "equals")
 
     def test_config_mixin_basic_functionality(self) -> None:
         """Test basic config mixin functionality."""
         # Config mixin should have basic config-related capabilities
-        assert isinstance(self.mixin, CLIConfigMixin)
+        assert isinstance(self.mixin, CliConfigMixin)
 
         # Should be able to handle configuration operations
         if hasattr(self.mixin, "config"):
@@ -172,12 +170,12 @@ class TestCLIConfigMixin(unittest.TestCase):
                     assert True
 
 
-class TestCLILoggingMixin(unittest.TestCase):
-    """Real functionality tests for CLILoggingMixin."""
+class TestCliLoggingMixin(unittest.TestCase):
+    """Real functionality tests for CliLoggingMixin."""
 
     def setUp(self) -> None:
         """Set up test environment with logging mixin."""
-        self.mixin = CLILoggingMixin()
+        self.mixin = CliLoggingMixin()
 
     def test_log_cli_action_basic(self) -> None:
         """Test log_cli_action with basic message."""
@@ -200,7 +198,7 @@ class TestCLILoggingMixin(unittest.TestCase):
                     assert result.is_success is True
 
     def test_logging_mixin_inheritance(self) -> None:
-        """Test CLILoggingMixin properly inherits from FlextLoggableMixin."""
+        """Test CliLoggingMixin properly inherits from FlextLoggableMixin."""
         # Should inherit logging capabilities from flext-core
         assert hasattr(self.mixin, "get_logger") or hasattr(self.mixin, "logger")
 
@@ -230,12 +228,12 @@ class TestCLILoggingMixin(unittest.TestCase):
                     assert result.is_success is True
 
 
-class TestCLIOutputMixin(unittest.TestCase):
-    """Real functionality tests for CLIOutputMixin."""
+class TestCliOutputMixin(unittest.TestCase):
+    """Real functionality tests for CliOutputMixin."""
 
     def setUp(self) -> None:
         """Set up test environment with output mixin."""
-        self.mixin = CLIOutputMixin()
+        self.mixin = CliOutputMixin()
 
     def test_format_cli_output_table(self) -> None:
         """Test format_cli_output with table format."""
@@ -272,7 +270,7 @@ class TestCLIOutputMixin(unittest.TestCase):
                 assert result.is_success is True
 
     def test_output_mixin_inheritance(self) -> None:
-        """Test CLIOutputMixin properly inherits from FlextSerializableMixin."""
+        """Test CliOutputMixin properly inherits from FlextSerializableMixin."""
         # Should inherit serialization capabilities
         assert hasattr(self.mixin, "to_dict") or hasattr(self.mixin, "serialize")
 
@@ -295,12 +293,12 @@ class TestCLIOutputMixin(unittest.TestCase):
                     assert isinstance(result, FlextResult)
 
 
-class TestCLIInteractiveMixin(unittest.TestCase):
-    """Real functionality tests for CLIInteractiveMixin."""
+class TestCliInteractiveMixin(unittest.TestCase):
+    """Real functionality tests for CliInteractiveMixin."""
 
     def setUp(self) -> None:
         """Set up test environment with interactive mixin."""
-        self.mixin = CLIInteractiveMixin()
+        self.mixin = CliInteractiveMixin()
 
     def test_create_progress_bar(self) -> None:
         """Test create_progress_bar functionality."""
@@ -354,33 +352,33 @@ class TestCLIInteractiveMixin(unittest.TestCase):
 
     def test_interactive_mixin_basic_functionality(self) -> None:
         """Test basic interactive mixin functionality."""
-        assert isinstance(self.mixin, CLIInteractiveMixin)
+        assert isinstance(self.mixin, CliInteractiveMixin)
 
         # Should have interactive capabilities
         # Since actual interaction requires user input, we just test structure
         assert hasattr(self.mixin, "__class__")
 
 
-class TestCLICompleteMixin(unittest.TestCase):
-    """Real functionality tests for CLICompleteMixin."""
+class TestCliCompleteMixin(unittest.TestCase):
+    """Real functionality tests for CliCompleteMixin."""
 
     def setUp(self) -> None:
         """Set up test environment with complete mixin."""
-        # CLICompleteMixin combines multiple mixins
-        self.mixin = CLICompleteMixin()
+        # CliCompleteMixin combines multiple mixins
+        self.mixin = CliCompleteMixin()
 
     def test_complete_mixin_inheritance(self) -> None:
-        """Test CLICompleteMixin inherits from all expected mixins."""
+        """Test CliCompleteMixin inherits from all expected mixins."""
         # Should inherit from multiple mixin classes
-        assert isinstance(self.mixin, CLICompleteMixin)
+        assert isinstance(self.mixin, CliCompleteMixin)
 
         # Check for inherited capabilities from various mixins
         expected_mixins = [
-            CLIValidationMixin,
-            CLIConfigMixin,
-            CLILoggingMixin,
-            CLIOutputMixin,
-            CLIInteractiveMixin,
+            CliValidationMixin,
+            CliConfigMixin,
+            CliLoggingMixin,
+            CliOutputMixin,
+            CliInteractiveMixin,
         ]
 
         # Should inherit from at least some of these
@@ -390,7 +388,7 @@ class TestCLICompleteMixin(unittest.TestCase):
         assert inheritance_count > 0
 
     def test_complete_mixin_combined_functionality(self) -> None:
-        """Test CLICompleteMixin provides combined functionality."""
+        """Test CliCompleteMixin provides combined functionality."""
         # Should have validation capabilities
         if hasattr(self.mixin, "validate_cli_arguments"):
             result = self.mixin.validate_cli_arguments(["test", "args"])
@@ -402,9 +400,9 @@ class TestCLICompleteMixin(unittest.TestCase):
             assert isinstance(result, FlextResult) or result is not None
 
     def test_complete_mixin_method_resolution(self) -> None:
-        """Test CLICompleteMixin method resolution order works correctly."""
+        """Test CliCompleteMixin method resolution order works correctly."""
         # Multiple inheritance should work without conflicts
-        assert isinstance(self.mixin, CLICompleteMixin)
+        assert isinstance(self.mixin, CliCompleteMixin)
 
         # Should be able to call methods without ambiguity
         if hasattr(self.mixin, "validate_domain_rules"):
@@ -416,28 +414,28 @@ class TestCLICompleteMixin(unittest.TestCase):
                 pass
 
 
-class TestCLIDataMixin(unittest.TestCase):
-    """Real functionality tests for CLIDataMixin."""
+class TestCliDataMixin(unittest.TestCase):
+    """Real functionality tests for CliDataMixin."""
 
     def setUp(self) -> None:
         """Set up test environment with data mixin."""
-        self.mixin = CLIDataMixin()
+        self.mixin = CliDataMixin()
 
     def test_data_mixin_inheritance(self) -> None:
-        """Test CLIDataMixin properly inherits from validation and output mixins."""
-        assert isinstance(self.mixin, CLIValidationMixin)
-        assert isinstance(self.mixin, CLIOutputMixin)
+        """Test CliDataMixin properly inherits from validation and output mixins."""
+        assert isinstance(self.mixin, CliValidationMixin)
+        assert isinstance(self.mixin, CliOutputMixin)
 
     def test_data_mixin_validation_capabilities(self) -> None:
         """Test data mixin has validation capabilities."""
-        # Should inherit validation from CLIValidationMixin
+        # Should inherit validation from CliValidationMixin
         if hasattr(self.mixin, "validate_cli_arguments"):
             result = self.mixin.validate_cli_arguments(["data", "command"])
             assert isinstance(result, FlextResult)
 
     def test_data_mixin_output_capabilities(self) -> None:
         """Test data mixin has output formatting capabilities."""
-        # Should inherit output formatting from CLIOutputMixin
+        # Should inherit output formatting from CliOutputMixin
         if hasattr(self.mixin, "format_cli_output"):
             test_data = {"processed": True, "count": 5}
             result = self.mixin.format_cli_output(test_data)
@@ -463,21 +461,21 @@ class TestCLIDataMixin(unittest.TestCase):
                 )
 
 
-class TestCLIExecutionMixin(unittest.TestCase):
-    """Real functionality tests for CLIExecutionMixin."""
+class TestCliExecutionMixin(unittest.TestCase):
+    """Real functionality tests for CliExecutionMixin."""
 
     def setUp(self) -> None:
         """Set up test environment with execution mixin."""
-        self.mixin = CLIExecutionMixin()
+        self.mixin = CliExecutionMixin()
 
     def test_execution_mixin_inheritance(self) -> None:
-        """Test CLIExecutionMixin properly inherits from logging and interactive mixins."""
-        assert isinstance(self.mixin, CLILoggingMixin)
-        assert isinstance(self.mixin, CLIInteractiveMixin)
+        """Test CliExecutionMixin properly inherits from logging and interactive mixins."""
+        assert isinstance(self.mixin, CliLoggingMixin)
+        assert isinstance(self.mixin, CliInteractiveMixin)
 
     def test_execution_mixin_logging_capabilities(self) -> None:
         """Test execution mixin has logging capabilities."""
-        # Should inherit logging from CLILoggingMixin
+        # Should inherit logging from CliLoggingMixin
         if hasattr(self.mixin, "log_cli_action"):
             result = self.mixin.log_cli_action("Starting command execution")
             if isinstance(result, FlextResult):
@@ -485,7 +483,7 @@ class TestCLIExecutionMixin(unittest.TestCase):
 
     def test_execution_mixin_interactive_capabilities(self) -> None:
         """Test execution mixin has interactive capabilities."""
-        # Should inherit interactive features from CLIInteractiveMixin
+        # Should inherit interactive features from CliInteractiveMixin
         if hasattr(self.mixin, "create_progress_bar"):
             progress = self.mixin.create_progress_bar()
             assert progress is not None
@@ -504,21 +502,21 @@ class TestCLIExecutionMixin(unittest.TestCase):
             assert progress is not None
 
 
-class TestCLIUIMixin(unittest.TestCase):
-    """Real functionality tests for CLIUIMixin."""
+class TestCliUIMixin(unittest.TestCase):
+    """Real functionality tests for CliUIMixin."""
 
     def setUp(self) -> None:
         """Set up test environment with UI mixin."""
-        self.mixin = CLIUIMixin()
+        self.mixin = CliUIMixin()
 
     def test_ui_mixin_inheritance(self) -> None:
-        """Test CLIUIMixin properly inherits from output and interactive mixins."""
-        assert isinstance(self.mixin, CLIOutputMixin)
-        assert isinstance(self.mixin, CLIInteractiveMixin)
+        """Test CliUIMixin properly inherits from output and interactive mixins."""
+        assert isinstance(self.mixin, CliOutputMixin)
+        assert isinstance(self.mixin, CliInteractiveMixin)
 
     def test_ui_mixin_output_capabilities(self) -> None:
         """Test UI mixin has output formatting capabilities."""
-        # Should inherit output formatting from CLIOutputMixin
+        # Should inherit output formatting from CliOutputMixin
         if hasattr(self.mixin, "format_cli_output"):
             ui_data = {"title": "CLI Application", "version": "1.0.0"}
             result = self.mixin.format_cli_output(ui_data)
@@ -526,7 +524,7 @@ class TestCLIUIMixin(unittest.TestCase):
 
     def test_ui_mixin_interactive_capabilities(self) -> None:
         """Test UI mixin has interactive capabilities."""
-        # Should inherit interactive features from CLIInteractiveMixin
+        # Should inherit interactive features from CliInteractiveMixin
         if hasattr(self.mixin, "create_progress_bar"):
             progress = self.mixin.create_progress_bar()
             assert progress is not None
@@ -555,15 +553,15 @@ class TestMixinIntegration(unittest.TestCase):
     def test_mixin_instantiation_all_classes(self) -> None:
         """Test all mixin classes can be instantiated successfully."""
         mixin_classes = [
-            CLIValidationMixin,
-            CLIConfigMixin,
-            CLILoggingMixin,
-            CLIOutputMixin,
-            CLIInteractiveMixin,
-            CLICompleteMixin,
-            CLIDataMixin,
-            CLIExecutionMixin,
-            CLIUIMixin,
+            CliValidationMixin,
+            CliConfigMixin,
+            CliLoggingMixin,
+            CliOutputMixin,
+            CliInteractiveMixin,
+            CliCompleteMixin,
+            CliDataMixin,
+            CliExecutionMixin,
+            CliUIMixin,
         ]
 
         for mixin_class in mixin_classes:
@@ -577,38 +575,38 @@ class TestMixinIntegration(unittest.TestCase):
 
     def test_mixin_inheritance_hierarchy(self) -> None:
         """Test mixin inheritance hierarchy is properly established."""
-        # CLIDataMixin should inherit from validation and output
-        data_mixin = CLIDataMixin()
-        assert isinstance(data_mixin, CLIValidationMixin)
-        assert isinstance(data_mixin, CLIOutputMixin)
+        # CliDataMixin should inherit from validation and output
+        data_mixin = CliDataMixin()
+        assert isinstance(data_mixin, CliValidationMixin)
+        assert isinstance(data_mixin, CliOutputMixin)
 
-        # CLIExecutionMixin should inherit from logging and interactive
-        exec_mixin = CLIExecutionMixin()
-        assert isinstance(exec_mixin, CLILoggingMixin)
-        assert isinstance(exec_mixin, CLIInteractiveMixin)
+        # CliExecutionMixin should inherit from logging and interactive
+        exec_mixin = CliExecutionMixin()
+        assert isinstance(exec_mixin, CliLoggingMixin)
+        assert isinstance(exec_mixin, CliInteractiveMixin)
 
-        # CLIUIMixin should inherit from output and interactive
-        ui_mixin = CLIUIMixin()
-        assert isinstance(ui_mixin, CLIOutputMixin)
-        assert isinstance(ui_mixin, CLIInteractiveMixin)
+        # CliUIMixin should inherit from output and interactive
+        ui_mixin = CliUIMixin()
+        assert isinstance(ui_mixin, CliOutputMixin)
+        assert isinstance(ui_mixin, CliInteractiveMixin)
 
     def test_flext_core_integration(self) -> None:
         """Test CLI mixins properly integrate with flext-core mixins."""
         # Validation mixin should inherit from flext-core
-        validation_mixin = CLIValidationMixin()
+        validation_mixin = CliValidationMixin()
         # Should have flext-core validation capabilities
         assert hasattr(validation_mixin, "validate_domain_rules") or hasattr(
             validation_mixin, "__class__"
         )
 
         # Logging mixin should inherit from flext-core
-        logging_mixin = CLILoggingMixin()
+        logging_mixin = CliLoggingMixin()
         # Should have flext-core logging capabilities
         assert hasattr(logging_mixin, "__class__")
 
     def test_mixin_method_availability(self) -> None:
         """Test expected methods are available across mixins."""
-        complete_mixin = CLICompleteMixin()
+        complete_mixin = CliCompleteMixin()
 
         # Should have methods from various inherited mixins
 
@@ -622,7 +620,7 @@ class TestMixinIntegration(unittest.TestCase):
     def test_real_world_mixin_usage_scenario(self) -> None:
         """Test real-world scenario combining multiple mixin capabilities."""
         # Create a complete mixin that should have all capabilities
-        complete_cli = CLICompleteMixin()
+        complete_cli = CliCompleteMixin()
 
         # Step 1: Validate input (if validation method exists)
         if hasattr(complete_cli, "validate_cli_arguments"):
@@ -644,7 +642,7 @@ class TestMixinIntegration(unittest.TestCase):
             assert isinstance(format_result, FlextResult) or format_result is not None
 
         # The complete CLI should successfully combine all these capabilities
-        assert isinstance(complete_cli, CLICompleteMixin)
+        assert isinstance(complete_cli, CliCompleteMixin)
 
 
 if __name__ == "__main__":

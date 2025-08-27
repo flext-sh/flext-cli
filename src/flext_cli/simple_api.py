@@ -10,6 +10,7 @@ from __future__ import annotations
 from flext_core import FlextResult
 
 from flext_cli.config import (
+    FlextCliConfig,
     FlextCliSettings,
     get_cli_settings as _get_cli_settings,
 )
@@ -22,7 +23,7 @@ __all__ = [
 ]
 
 
-def setup_cli(config: FlextCliSettings | None = None) -> FlextResult[bool]:
+def setup_cli(config: FlextCliConfig | None = None) -> FlextResult[dict[str, object]]:
     """Set up CLI with modern zero-boilerplate approach using hierarchical configuration.
 
     This function integrates the 3 main functions of flext-cli:
@@ -34,19 +35,19 @@ def setup_cli(config: FlextCliSettings | None = None) -> FlextResult[bool]:
       config: Optional CLI configuration (auto-created with hierarchy if None)
 
     Returns:
-      FlextResult[bool]: Success/failure with railway-oriented programming
+      FlextResult[dict[str, object]]: Success with config dict or error
 
     """
     try:
         if config is None:
-            config = FlextCliSettings()
+            config = FlextCliConfig()
 
-        # Configuration setup successful
-        setup_success = True
-        return FlextResult[bool].ok(setup_success)
+        # Return configuration as dict
+        config_dict = config.model_dump()
+        return FlextResult[dict[str, object]].ok(config_dict)
 
     except (AttributeError, ValueError, RuntimeError) as e:
-        return FlextResult[bool].fail(f"Failed to setup CLI: {e}")
+        return FlextResult[dict[str, object]].fail(f"Failed to setup CLI: {e}")
 
 
 def create_development_cli_config(**kwargs: object) -> FlextCliSettings:

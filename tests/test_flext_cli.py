@@ -11,7 +11,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import inspect
+import json
 import tempfile
+import time
 from pathlib import Path
 
 import pytest
@@ -21,8 +23,10 @@ from flext_cli import (
     CLICommand,
     FlextCliCommandStatus,
     FlextCliCommandType,
+    FlextCliContext,
     FlextCliPlugin,
     FlextCliSession,
+    FlextCliSettings,
     flext_cli_create_data_processor,
     flext_cli_create_helper,
     setup_cli,
@@ -34,8 +38,6 @@ class TestFlextCliPublicInterface:
 
     def test_setup_cli_functionality(self) -> None:
         """Test setup_cli function with real CLI settings."""
-        from flext_cli import FlextCliSettings
-
         # Create real CLI settings
         settings = FlextCliSettings()
 
@@ -140,8 +142,6 @@ class TestFlextCliPublicInterface:
 
     def test_flext_result_patterns(self) -> None:
         """Test FlextResult patterns throughout flext_cli."""
-        from flext_cli import FlextCliSettings
-
         # Test setup_cli returns FlextResult
         settings = FlextCliSettings()
         result = setup_cli(settings)
@@ -157,8 +157,6 @@ class TestFlextCliPublicInterface:
 
     def test_unwrap_or_pattern_usage(self) -> None:
         """Test FlextResult.unwrap_or() pattern for cleaner code."""
-        from flext_cli import FlextCliSettings
-
         # Example of unwrap_or() usage to reduce bloat
         settings = FlextCliSettings()
 
@@ -169,8 +167,6 @@ class TestFlextCliPublicInterface:
 
     def test_real_data_export_functionality(self, tmp_path: Path) -> None:
         """Test data export with real file operations."""
-        import json
-
         # Create test data
         test_data = {
             "commands": [
@@ -242,8 +238,6 @@ class TestFlextCliPublicInterface:
 
     def test_integration_patterns(self) -> None:
         """Test integration patterns across flext_cli components."""
-        from flext_cli import FlextCliSettings
-
         # Test that components work together
         settings = FlextCliSettings()
         setup_result = setup_cli(settings)
@@ -260,8 +254,6 @@ class TestFlextCliPublicInterface:
     def test_type_safety_and_generics(self) -> None:
         """Test type safety and generic patterns in flext_cli."""
         # Test FlextResult type safety
-        from flext_cli import FlextCliSettings
-
         settings = FlextCliSettings()
         result: FlextResult[bool] = setup_cli(settings)
 
@@ -273,8 +265,6 @@ class TestFlextCliPublicInterface:
 
     def test_real_cli_context_functionality(self) -> None:
         """Test CLI context with real functionality."""
-        from flext_cli import FlextCliContext
-
         # Test real CLI context creation
         context = FlextCliContext()
 
@@ -295,8 +285,6 @@ class TestFlextCliPublicInterface:
 
     def test_performance_and_resource_usage(self) -> None:
         """Test performance characteristics of real functionality."""
-        import time
-
         # Test that real operations complete in reasonable time
         start_time = time.time()
 
@@ -410,8 +398,6 @@ class TestFlextCliHelpers:
 
     def test_real_configuration_loading(self) -> None:
         """Test configuration loading with real functionality."""
-        from flext_cli import FlextCliSettings
-
         # Test settings creation
         settings = FlextCliSettings()
         assert settings is not None
@@ -425,8 +411,6 @@ class TestFlextCliHelpers:
 
     def test_flext_result_chaining_patterns(self) -> None:
         """Test FlextResult chaining patterns for complex operations."""
-        from flext_cli import FlextCliSettings
-
         # Test chaining operations with FlextResult
         def create_and_setup_cli() -> FlextResult[tuple[FlextCliSettings, bool]]:
             try:

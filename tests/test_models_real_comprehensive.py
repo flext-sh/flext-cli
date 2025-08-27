@@ -518,7 +518,7 @@ class TestFlextCliConfiguration(unittest.TestCase):
         assert config.log_level == "DEBUG"
 
 
-class TestFlextCliContext(unittest.TestCase):
+class TestFlextCliContextAdvanced(unittest.TestCase):
     """Real functionality tests for FlextCliContext additional methods."""
 
     def test_context_with_environment_helpers(self) -> None:

@@ -7,7 +7,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import json
 import tempfile
+import threading
+import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -58,7 +61,6 @@ def clear_auth(auth_data_path: Path | None = None) -> FlextResult[bool]:
 def save_auth_config(config: dict[str, object], config_path: Path) -> FlextResult[bool]:
     """Save authentication configuration."""
     try:
-        import json
         config_path.parent.mkdir(parents=True, exist_ok=True)
         config_path.write_text(json.dumps(config, indent=2), encoding="utf-8")
         return FlextResult.ok(True)
@@ -69,7 +71,6 @@ def save_auth_config(config: dict[str, object], config_path: Path) -> FlextResul
 def load_auth_config(config_path: Path) -> FlextResult[dict[str, object]]:
     """Load authentication configuration."""
     try:
-        import json
         if not config_path.exists():
             return FlextResult.fail("Config file not found")
 
@@ -91,7 +92,7 @@ class AuthTokenProvider:
         return FlextResult.ok("refreshed_token")
 
 
-def refresh_auth_token(refresh_token_path: Path, token_path: Path) -> FlextResult[str]:
+def refresh_auth_token(_refresh_token_path: Path, _token_path: Path) -> FlextResult[str]:
     """Refresh authentication token."""
     try:
         # Placeholder implementation
@@ -110,7 +111,7 @@ def create_auth_token_manager() -> FlextResult[object]:
     return FlextResult.ok({"manager": "placeholder"})
 
 
-class FlextAuthenticationError(Exception):
+class FlextExceptions.AuthenticationError(Exception):
     """Authentication error exception."""
 
     def __init__(self, message: str, details: dict[str, object] | None = None) -> None:
@@ -325,8 +326,6 @@ class TestAuthConfiguration:
         with tempfile.NamedTemporaryFile(
             encoding="utf-8", mode="w", suffix=".json", delete=False
         ) as temp_file:
-            import json
-
             json.dump(config, temp_file)
             temp_file.flush()
             temp_path = Path(temp_file.name)
@@ -498,18 +497,18 @@ class TestAuthUtilities:
 
 
 class TestFlextAuthenticationError:
-    """Test FlextAuthenticationError exception."""
+    """Test FlextExceptions.AuthenticationError exception."""
 
     def test_flext_authentication_error_init(self) -> None:
-        """Test FlextAuthenticationError initialization."""
-        error = FlextAuthenticationError("Test error")
+        """Test FlextExceptions.AuthenticationError initialization."""
+        error = FlextExceptions.AuthenticationError("Test error")
 
         assert isinstance(error, Exception)
         assert str(error) == "Test error"
 
     def test_flext_authentication_error_with_details(self) -> None:
-        """Test FlextAuthenticationError with additional details."""
-        error = FlextAuthenticationError("Auth failed", details={"code": 401})
+        """Test FlextExceptions.AuthenticationError with additional details."""
+        error = FlextExceptions.AuthenticationError("Auth failed", details={"code": 401})
 
         assert "Auth failed" in str(error)
         assert hasattr(error, "details")
@@ -687,9 +686,6 @@ class TestConcurrency:
 
     def test_concurrent_token_access(self) -> None:
         """Test concurrent token file access."""
-        import threading
-        import time
-
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
             temp_path = Path(temp_file.name)
             results = []

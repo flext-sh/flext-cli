@@ -1,4 +1,4 @@
-"""REAL tests for auth commands - NO MOCKING!
+"""REAL tests for auth commands - NO MOCKING!.
 
 Tests authentication command functionality with ACTUAL execution.
 Following user requirement: "melhore bem os tests para executar codigo de verdade

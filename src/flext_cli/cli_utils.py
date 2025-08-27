@@ -22,7 +22,7 @@ from typing import Literal, Protocol, TypedDict, TypeVar
 from uuid import UUID
 
 import yaml
-from flext_core import FlextResult, get_logger
+from flext_core import FlextResult, FlextUtilities, get_logger
 from rich.console import Console
 from rich.progress import Progress, TaskID
 from rich.style import Style
@@ -408,13 +408,15 @@ def cli_load_data_file(
 
 
 def _load_json_file(path: Path) -> FlextResult[object]:
-    """Load JSON file with error handling."""
+    """Load JSON file with error handling using FlextUtilities."""
     try:
-        with path.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        return FlextResult[object].ok(data)
-    except json.JSONDecodeError as e:
-        return FlextResult[object].fail(f"Invalid JSON in {path}: {e}")
+        content = path.read_text(encoding="utf-8")
+        # Use json.loads directly to handle different return types
+        try:
+            data = json.loads(content)
+            return FlextResult[object].ok(data)
+        except json.JSONDecodeError:
+            return FlextResult[object].fail(f"Invalid JSON in {path}")
     except (OSError, UnicodeDecodeError) as e:
         return FlextResult[object].fail(f"Failed to read JSON file {path}: {e}")
 
@@ -513,10 +515,10 @@ def cli_save_data_file(
 
 
 def _save_json_file(data: FlextCliData, path: Path) -> FlextResult[None]:
-    """Save data as JSON file."""
+    """Save data as JSON file using FlextUtilities."""
     try:
-        with path.open("w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, default=str, ensure_ascii=False)
+        json_content = FlextUtilities.safe_json_stringify(data)
+        path.write_text(json_content, encoding="utf-8")
         return FlextResult[None].ok(None)
     except (OSError, TypeError) as e:
         return FlextResult[None].fail(f"Failed to write JSON file {path}: {e}")
@@ -798,7 +800,8 @@ def cli_format_output(  # noqa: PLR0912, PLR0915
                 return FlextResult[str].fail(error)
 
         if format_type == FlextCliOutputFormat.JSON:
-            formatted = json.dumps(data, indent=2, default=str, ensure_ascii=False)
+            # Use FlextUtilities for consistent JSON formatting
+            formatted = FlextUtilities.safe_json_stringify(data)
         elif format_type == FlextCliOutputFormat.YAML:
             output = io.StringIO()
             yaml.dump(data, output, default_flow_style=False, allow_unicode=True)

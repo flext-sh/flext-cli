@@ -1,4 +1,4 @@
-"""REAL tests for API functionality - NO MOCKING!
+"""REAL tests for API functionality - NO MOCKING!.
 
 Tests API functions with ACTUAL execution and real data processing.
 Following user requirement: "melhore bem os tests para executar codigo de verdade

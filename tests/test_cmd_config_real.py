@@ -21,7 +21,7 @@ import yaml
 from click.testing import CliRunner
 from rich.console import Console
 
-from flext_cli.cmd_config import (
+from flext_cli.commands_config import (
     _find_config_value,
     _get_all_config,
     _print_config_value,
@@ -325,7 +325,7 @@ class TestConfigCommands(unittest.TestCase):
         assert "Set timeout = 60" in result.output
 
         # Verify value was actually set
-        assert self.cli_context.config.timeout == "60"
+        assert self.cli_context.config.timeout == 60
 
     def test_set_value_command_no_context(self) -> None:
         """Test config set-value command without CLI context."""
@@ -637,7 +637,7 @@ class TestConfigIntegration(unittest.TestCase):
             # 3. Set new value
             result = self.runner.invoke(set_value, ["timeout", "45"], obj=obj)
             assert result.exit_code == 0
-            assert cli_context.config.timeout == "45"
+            assert cli_context.config.timeout == 45
 
             # 4. Validate config
             result = self.runner.invoke(validate, [], obj=obj)

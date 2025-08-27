@@ -16,8 +16,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import inspect
 from pathlib import Path
-from typing import Any
 
 import pytest
 from flext_core import FlextResult
@@ -26,6 +26,7 @@ from rich.console import Console
 from flext_cli import (
     FlextCliBasicMixin,
     FlextCliConfigMixin,
+    FlextCliHelper,
     FlextCliInteractiveMixin,
     FlextCliMixin,
     FlextCliProgressMixin,
@@ -108,8 +109,6 @@ class TestFlextCliValidationMixin:
     def test_flext_cli_require_confirmation_success(self) -> None:
         """Test successful confirmation requirement."""
         # Create real helper with manual confirmation simulation
-        from flext_cli import FlextCliHelper
-
         helper = FlextCliHelper()
         self.test_instance._helper = helper
 
@@ -124,8 +123,6 @@ class TestFlextCliValidationMixin:
 
     def test_flext_cli_require_confirmation_denied(self) -> None:
         """Test denied confirmation requirement with real helper."""
-        from flext_cli import FlextCliHelper
-
         helper = FlextCliHelper()
         self.test_instance._helper = helper
 
@@ -136,8 +133,6 @@ class TestFlextCliValidationMixin:
 
     def test_flext_cli_require_confirmation_dangerous(self) -> None:
         """Test dangerous operation confirmation with real functionality."""
-        from flext_cli import FlextCliHelper
-
         helper = FlextCliHelper()
         self.test_instance._helper = helper
 
@@ -374,7 +369,7 @@ class TestFlextCliResultMixin:
         # Create real action function instead of mock
         action_called = []
 
-        def success_action(data: Any) -> None:
+        def success_action(data: object) -> None:
             action_called.append(data)
 
         result = FlextResult[str].ok("success_data")
@@ -526,8 +521,6 @@ class TestFlextCliDecorators:
             return FlextResult[str].ok("Success")
 
         # Check function signature is preserved
-        import inspect
-
         sig = inspect.signature(test_function)
         assert "email" in sig.parameters
 
@@ -612,8 +605,6 @@ class TestFlextCliDecorators:
 
         # In testing environment, we verify the decorator structure
         # rather than interactive behavior
-        import inspect
-
         # The decorated function should still be callable
         sig = inspect.signature(test_function)
         assert sig is not None

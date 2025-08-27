@@ -17,7 +17,6 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
-from typing import Any
 
 import pytest
 from flext_core import FlextResult
@@ -25,7 +24,7 @@ from flext_core import FlextResult
 from flext_cli.decorators import (
     async_command,
     cli_cache_result,
-    cli_confirm,
+    cli_confirm_decorator,
     cli_enhanced,
     cli_file_operation,
     cli_handle_keyboard_interrupt,
@@ -355,7 +354,7 @@ class TestCliValidateInputs(unittest.TestCase):
         """Test input validation with complex types."""
 
         @cli_validate_inputs
-        def process_data(items: list[str], metadata: dict[str, int]) -> dict[str, Any]:
+        def process_data(items: list[str], metadata: dict[str, int]) -> dict[str, object]:
             return {"count": len(items), "items": items, "metadata": metadata}
 
         result = process_data(["a", "b", "c"], {"version": 1})
@@ -435,7 +434,7 @@ class TestCliCacheResult(unittest.TestCase):
         call_count = 0
 
         @cli_cache_result(ttl=1)
-        def complex_function(key: str) -> dict[str, Any]:
+        def complex_function(key: str) -> dict[str, object]:
             nonlocal call_count
             call_count += 1
             return {
@@ -500,7 +499,7 @@ class TestCliSpinner(unittest.TestCase):
         """Test spinner decorator with complex operations."""
 
         @cli_spinner("Running complex operations...")
-        def complex_operations() -> dict[str, Any]:
+        def complex_operations() -> dict[str, object]:
             # Simulate multiple steps
             data = {}
             for step in range(5):
@@ -642,7 +641,7 @@ class TestCliConfirm(unittest.TestCase):
 
         # Note: cli_confirm typically requires user interaction,
         # so we test the decorator application without actual confirmation
-        @cli_confirm("Are you sure?")
+        @cli_confirm_decorator("Are you sure?")
         def confirmed_function(value: int) -> int:
             return value * 2
 
@@ -653,7 +652,7 @@ class TestCliConfirm(unittest.TestCase):
     def test_cli_confirm_with_custom_message(self) -> None:
         """Test confirm decorator with custom confirmation message."""
 
-        @cli_confirm("Do you want to proceed with this operation?")
+        @cli_confirm_decorator("Do you want to proceed with this operation?")
         def custom_confirm_function() -> str:
             return "operation completed"
 

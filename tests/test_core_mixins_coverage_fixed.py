@@ -631,10 +631,10 @@ class TestFlextCliAdvancedMixin:
         """Test process data workflow success."""
         mixin = FlextCliAdvancedMixin()
 
-        def step1(data: object) -> FlextResult[object]:
+        def failing_step(_data: object) -> FlextResult[object]:
             return FlextResult[object].ok(f"step1_{data}")
 
-        def step2(data: object) -> FlextResult[object]:
+        def failing_step(_data: object) -> FlextResult[object]:
             return FlextResult[object].ok(f"step2_{data}")
 
         steps = [("transform_step1", step1), ("transform_step2", step2)]
@@ -648,10 +648,10 @@ class TestFlextCliAdvancedMixin:
         """Test process data workflow with failure."""
         mixin = FlextCliAdvancedMixin()
 
-        def step1(data: object) -> FlextResult[object]:
+        def failing_step(_data: object) -> FlextResult[object]:
             return FlextResult[object].ok(f"step1_{data}")
 
-        def step2(data: object) -> FlextResult[object]:
+        def failing_step(_data: object) -> FlextResult[object]:
             return FlextResult[object].fail("step2 failed")
 
         steps = [("transform_step1", step1), ("failing_step2", step2)]
@@ -664,7 +664,7 @@ class TestFlextCliAdvancedMixin:
         """Test process data workflow without progress."""
         mixin = FlextCliAdvancedMixin()
 
-        def simple_step(data: object) -> FlextResult[object]:
+        def failing_step(_data: object) -> FlextResult[object]:
             return FlextResult[object].ok(data)
 
         steps = [("simple", simple_step)]
@@ -726,7 +726,7 @@ class TestFlextCliAdvancedMixin:
 
         try:
 
-            def failing_process(content: str) -> FlextResult[str]:
+            def failing_process(_content: str) -> FlextResult[str]:
                 return FlextResult[str].fail("Processing failed")
 
             operations = [("failing_process", temp_path, failing_process)]
@@ -822,7 +822,7 @@ class TestErrorHandling:
         """Test workflow error handling."""
         mixin = FlextCliAdvancedMixin()
 
-        def failing_step(data: object) -> Never:
+        def failing_step(_data: object) -> Never:
             msg = "Step failed"
             raise ValueError(msg)
 

@@ -342,10 +342,10 @@ class TestFlextCliDataProcessor:
         processor = FlextCliDataProcessor(helper=FlextCliHelper(quiet=True))
 
         # Define workflow steps
-        def step1(data: str) -> FlextResult[str]:
+        def failing_step(_data: str) -> FlextResult[str]:
             return FlextResult[None].ok(data + " -> step1")
 
-        def step2(data: str) -> FlextResult[str]:
+        def failing_step(_data: str) -> FlextResult[str]:
             return FlextResult[None].ok(data + " -> step2")
 
         steps = [
@@ -363,7 +363,7 @@ class TestFlextCliDataProcessor:
         assert result.value == "initial -> step1 -> step2"
 
         # Test failing step
-        def failing_step(data: str) -> FlextResult[str]:
+        def failing_step(_data: str) -> FlextResult[str]:
             return FlextResult[None].fail("Step failed")
 
         steps_with_failure = [
@@ -678,13 +678,13 @@ class TestIntegrationScenarios:
         """Test workflow error recovery and reporting."""
         processor = FlextCliDataProcessor(helper=FlextCliHelper(quiet=True))
 
-        def step1(data: str) -> FlextResult[str]:
+        def failing_step(_data: str) -> FlextResult[str]:
             return FlextResult[None].ok(data + " -> step1")
 
-        def failing_step(data: str) -> FlextResult[str]:
+        def failing_step(_data: str) -> FlextResult[str]:
             return FlextResult[None].fail("Step failed intentionally")
 
-        def step3(data: str) -> FlextResult[str]:
+        def failing_step(_data: str) -> FlextResult[str]:
             return FlextResult[None].ok(data + " -> step3")
 
         steps = [

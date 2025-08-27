@@ -32,7 +32,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import click
-from flext_core import FlextContainer, FlextResult, get_logger
+from flext_core import FlextResult, get_flext_container, get_logger
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
@@ -60,14 +60,14 @@ class ComprehensiveCliApplication:
         self.console = Console()
         self.logger = get_logger(__name__)
         self.config = get_cli_config()
-        self.container = FlextContainer.create_cli_container()
+        self.container = get_flext_container()
         self.api_client = FlextApiClient()
         self.entity_factory = FlextCliEntityFactory()
 
         # Application state
         self.current_session = None
-        self.active_commands = []
-        self.user_preferences = {}
+        self.active_commands: list[str] = []
+        self.user_preferences: dict[str, object] = {}
 
     def initialize_application(self) -> FlextResult[None]:
         """Initialize the CLI application with setup and validation."""
