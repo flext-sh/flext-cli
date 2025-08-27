@@ -87,7 +87,7 @@ FLEXT CLI serves as the central command hub for:
   - ✅ FlextResult (railway-oriented programming)
   - ✅ FlextEntity (domain modeling)
   - ✅ FlextValue (immutable value objects)
-  - ✅ FlextSettings (configuration)
+  - ✅ FlextConfig (configuration)
   - ❌ FlextContainer (dependency injection)
   - ❌ CQRS (command/query separation)
   - ❌ Domain Events (event-driven architecture)
@@ -217,9 +217,9 @@ src/flext_cli/
 │   ├── base.py              # ✅ FlextCliContext, handle_service_result
 │   ├── decorators.py        # ✅ CLI decorators and patterns
 │   └── formatters.py        # ✅ Output formatting utilities
-└── utils/                     # ✅ GOOD: FlextSettings integration
+└── utils/                     # ✅ GOOD: FlextConfig integration
     ├── auth.py              # ✅ Authentication utilities
-    ├── config.py            # ✅ Configuration with FlextSettings
+    ├── config.py            # ✅ Configuration with FlextConfig
     └── output.py            # ✅ Rich console output
 ```
 
@@ -504,7 +504,7 @@ pytest tests/test_integration.py -v
   - ✅ FlextResult (excellent railway-oriented programming)
   - ✅ FlextEntity (good domain modeling with validation)
   - ✅ FlextValue (proper immutable value objects)
-  - ✅ FlextSettings (good configuration management)
+  - ✅ FlextConfig (good configuration management)
   - ❌ FlextContainer (using custom SimpleDIContainer instead)
   - ❌ CQRS patterns (no command/query separation)
   - ❌ Domain Events (defined but unused)
@@ -636,7 +636,7 @@ ls -la src/flext_cli/
 - **Core Commands**: 3 command groups (auth, config, debug) functional
 - **Quality Gates**: Comprehensive validation pipeline with 90% coverage
 - **Testing**: Complete test suite with pytest framework
-- **flext-core Basics**: FlextResult, FlextEntity, FlextValue, FlextSettings
+- **flext-core Basics**: FlextResult, FlextEntity, FlextValue, FlextConfig
 
 ### ⚠️ **Partial Implementation**
 

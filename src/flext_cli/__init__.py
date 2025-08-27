@@ -24,6 +24,7 @@ from flext_cli.commands_config import *
 from flext_cli.commands_debug import *
 from flext_cli.config import *
 from flext_cli.config_hierarchical import *
+from flext_cli.legacy import *
 from flext_cli.constants import *
 from flext_cli.context import *
 from flext_cli.core import *

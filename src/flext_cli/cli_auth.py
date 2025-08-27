@@ -44,7 +44,7 @@ def _get_user_data(data_obj: object) -> UserData | None:
 def get_cli_config() -> FlextCliConfig:
     """Get CLI configuration instance using high-level config factory.
 
-    Uses flext_cli.config.get_config to avoid strict env parsing from FlextSettings.
+    Uses flext_cli.config.get_config to avoid strict env parsing from FlextConfig.
     """
     # Import local tardio para evitar ciclos e importes pesados no carregamento
 

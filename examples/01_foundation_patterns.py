@@ -23,19 +23,17 @@ SPDX-License-Identifier: MIT
 
 from datetime import UTC, datetime
 
-from flext_core import FlextResult, get_flext_container
+from flext_core import FlextContainer, FlextResult
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-# 🔧 Import flext-cli foundation components
 from flext_cli import (
     CLIHelper,
     FlextCliApi,
     FlextCliCommand,
     FlextCliEntityFactory,
     FlextCliSession,
-    FlextCliSettings,
     get_cli_config,
     setup_cli,
 )
@@ -68,7 +66,7 @@ def _config_demo(console: Console) -> FlextResult[FlextCliConfig]:
 
     config_table.add_row("Profile", config.profile, str(type(config.profile).__name__))
     config_table.add_row("Debug", str(config.debug), str(type(config.debug).__name__))
-    config_table.add_row("Output Format", config.output.format, "Literal[...]")
+    config_table.add_row("Output Format", str(config.output_format), "Literal[...]")
     config_table.add_row("Project Name", getattr(config, "project_name", "N/A"), "str")
 
     console.print(config_table)
@@ -78,7 +76,7 @@ def _config_demo(console: Console) -> FlextResult[FlextCliConfig]:
 def _container_demo(console: Console, config: FlextCliConfig) -> FlextResult[None]:
     """Demo FlextContainer dependency injection."""
     console.print("\\n[green]3. 🏭 FlextContainer DI Pattern (Advanced)[/green]")
-    container = get_flext_container()
+    container = FlextContainer.get_global()
 
     container.register("console", console)
     container.register("config", config)
@@ -442,11 +440,10 @@ def demonstrate_advanced_patterns() -> None:
     # Demonstrate configuration validation
     console.print("\\n[cyan]Configuration Validation Example:[/cyan]")
     try:
-        # Create settings with validation - use model constructor correctly
-        settings = FlextCliSettings()
-        settings.debug = True
-        settings.project_name = "flext-cli-demo"
-        settings.log_level = "DEBUG"
+        # Create settings with validation - use modern FlextCliConfig
+        settings = FlextCliConfig(
+            debug=True, project_name="flext-cli-demo", log_level="DEBUG"
+        )
         console.print(
             f"✅ Validated settings: {settings.project_name} (debug: {settings.debug})"
         )

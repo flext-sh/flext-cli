@@ -80,9 +80,12 @@ class FlextCliUtilities(FlextUtilities):
             if not json_str.strip():
                 return FlextResult[JsonObject].fail("JSON string cannot be empty")
 
-            parsed_data = FlextUtilities.safe_json_parse(json_str)
-            # FlextUtilities.safe_json_parse always returns a dict
-            return FlextResult[JsonObject].ok(cast("JsonObject", parsed_data))
+            try:
+                parsed_data = FlextUtilities.safe_json_parse(json_str)
+                # FlextUtilities.safe_json_parse always returns a dict
+                return FlextResult[JsonObject].ok(cast("JsonObject", parsed_data))
+            except Exception as e:
+                return FlextResult[JsonObject].fail(f"Failed to parse JSON: {e}")
 
     class CliFileUtils:
         """CLI-specific file utilities extending flext-core."""
