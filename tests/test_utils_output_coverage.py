@@ -42,7 +42,7 @@ class TestSetupConsole:
         console = setup_console()
 
         assert isinstance(console, Console)
-        assert console.is_terminal or not console.is_terminal  # Any boolean is fine
+        assert console.is_terminal or not console.is_terminal  # object boolean is fine
         assert not console.quiet
 
     def test_setup_console_no_color(self) -> None:

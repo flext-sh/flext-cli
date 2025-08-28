@@ -143,7 +143,7 @@ def setup_flext_cli_ecosystem(
           debug=True
       )
 
-      # Any project can use this pattern
+      # object project can use this pattern
       result = setup_flext_cli_ecosystem(
           "another-project",
           custom_setting="value",
@@ -238,7 +238,7 @@ def {old_setup_function}_modern(**config_overrides):
 # class {project_name.title().replace("-", "")}Command(FlextCliGenericCommand):
 #     project_specific_field: str
 #
-#     def execute(self) -> FlextResult[dict[str, object]]: # Changed from Any
+#     def execute(self) -> FlextResult[dict[str, object]]: # Changed from object
 #         return FlextResult[None].ok({{
 #             "project": "{project_name}",
 #             "field": self.project_specific_field,

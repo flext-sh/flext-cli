@@ -10,7 +10,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any
+
+object
 from uuid import uuid4
 
 
@@ -35,13 +36,13 @@ class FlextCliOutputFormat(StrEnum):
 class FlextResult:
     """Railway-oriented FlextResult implementing proven flext-core patterns."""
 
-    def __init__(self, value: Any = None, error: str | None = None) -> None:
+    def __init__(self, value: object = None, error: str | None = None) -> None:
         self._value = value
         self._error = error
         self._success = error is None
 
     @property
-    def value(self) -> Any:
+    def value(self) -> object:
         """Get success value - use after checking is_success."""
         return self._value
 
@@ -65,19 +66,19 @@ class FlextResult:
         """Check if operation failed."""
         return not self._success
 
-    def unwrap(self) -> Any:
+    def unwrap(self) -> object:
         """Safely unwrap value after success check - FLEXT pattern."""
         if not self.is_success:
             msg = f"Cannot unwrap failed result: {self._error}"
             raise RuntimeError(msg)
         return self._value
 
-    def unwrap_or(self, default: Any) -> Any:
+    def unwrap_or(self, default: object) -> object:
         """Return value if success, otherwise default - LEGACY compatibility."""
         return self._value if self.is_success else default
 
     @classmethod
-    def ok(cls, value: Any = None) -> FlextResult:
+    def ok(cls, value: object = None) -> FlextResult:
         """Create successful result - FLEXT pattern."""
         return cls(value=value, error=None)
 

@@ -711,7 +711,7 @@ def cli_inject_config(config_key: str) -> Callable[[Callable[P, T]], Callable[P,
                 new_kwargs = dict(kwargs)
                 new_kwargs["config"] = {config_key: "default_value"}
                 # Use type ignore for kwargs unpacking due to ParamSpec limitations
-                return func(*args, **new_kwargs)  # type: ignore[arg-type]
+                return func(*args, **new_kwargs)
 
             return func(*args, **kwargs)
 

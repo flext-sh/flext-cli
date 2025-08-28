@@ -198,7 +198,9 @@ class FlextCLIApiClient:
                 f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXCORE_PORT}",
             )
             # Use modern FlextResult pattern following flext-core standards
-            flexcore_status = flexcore_result.value if flexcore_result.is_success else {}
+            flexcore_status = (
+                flexcore_result.value if flexcore_result.is_success else {}
+            )
             if flexcore_status:  # Empty dict is falsy, non-empty dict is truthy
                 services.append(flexcore_status)
 
@@ -222,7 +224,7 @@ class FlextCLIApiClient:
     async def _check_service(
         self,
         name: str,
-        url: str,  # noqa: ARG002
+        url: str,
     ) -> FlextResult[dict[str, object]]:
         """Check individual service status."""
         # Temporarily disabled due to dependency issue with flext-api
@@ -244,12 +246,10 @@ class FlextCLIApiClient:
                 return FlextResult[dict[str, object]].fail("API client not initialized")
 
             # Post credentials to login endpoint
-            login_data = FlextUtilities.safe_json_stringify(
-                {
-                    "username": username,
-                    "password": password,
-                }
-            )
+            login_data = FlextUtilities.safe_json_stringify({
+                "username": username,
+                "password": password,
+            })
             response_result = await self._api_client.post(
                 "/auth/login",
                 data=login_data,

@@ -97,13 +97,13 @@ class FlextCliConstants(FlextConstants):
         USER_INTERRUPTED: Final[str] = "User interrupted"
 
         # Authentication errors
-        AUTH_TOKEN_SAVE_FAILED: Final[str] = "Failed to save auth token"  # noqa: S105
-        AUTH_TOKEN_CLEAR_FAILED: Final[str] = "Failed to clear auth tokens"  # noqa: S105
-        AUTH_REFRESH_TOKEN_SAVE_FAILED: Final[str] = "Failed to save refresh token"  # noqa: S105
+        AUTH_TOKEN_SAVE_FAILED: Final[str] = "Failed to save auth token"
+        AUTH_TOKEN_CLEAR_FAILED: Final[str] = "Failed to clear auth tokens"
+        AUTH_REFRESH_TOKEN_SAVE_FAILED: Final[str] = "Failed to save refresh token"
         AUTH_NOT_AUTHENTICATED: Final[str] = "Not authenticated"
         AUTH_LOGIN_FAILED: Final[str] = "Login failed"
         AUTH_LOGOUT_FAILED: Final[str] = "Logout failed"
-        AUTH_PASSWORD_EMPTY: Final[str] = "Password cannot be empty"  # noqa: S105
+        AUTH_PASSWORD_EMPTY: Final[str] = "Password cannot be empty"
         AUTH_INVALID_RESPONSE: Final[str] = "Login failed: Invalid response"
         AUTH_NETWORK_ERROR: Final[str] = "Network error during login"
         AUTH_CHECK_FAILED: Final[str] = "Authentication check failed"
@@ -325,7 +325,7 @@ class FlextCliConstants(FlextConstants):
         WARNING_NO_FLEXT_ENV: Final[str] = "No FLEXT environment variables found"
         WARNING_STATUS_FAILED: Final[str] = "Could not get system status"
         WARNING_TOKEN_CLEAR_FAILED: Final[str] = (
-            "Logged out, but failed to clear tokens"  # noqa: S105
+            "Logged out, but failed to clear tokens"
         )
         WARNING_LOGOUT_LOCAL: Final[str] = "Error during logout, logged out locally"
 

@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, TypeVar
+from typing import TypeVar, object
 
 from flext_cli.models_simple import FlextResult
 
@@ -22,6 +22,7 @@ U = TypeVar("U")
 # DOMAIN LAYER - Business Logic Core
 # =============================================================================
 
+
 class FlextDomainService(ABC):
     """Base class for domain services - FLEXT pattern."""
 
@@ -29,7 +30,7 @@ class FlextDomainService(ABC):
         self._name = self.__class__.__name__
 
     @abstractmethod
-    def execute(self, *args, **kwargs) -> FlextResult[Any]:
+    def execute(self, *args, **kwargs) -> FlextResult[object]:
         """Execute domain service operation."""
 
 
@@ -48,6 +49,7 @@ class FlextEntity(ABC):
 # =============================================================================
 # APPLICATION LAYER - Use Cases and Handlers
 # =============================================================================
+
 
 class FlextUseCase[T, U](ABC):
     """Base use case following Clean Architecture - FLEXT pattern."""
@@ -77,6 +79,7 @@ class FlextQueryHandler[T, U](ABC):
 # INFRASTRUCTURE LAYER - External Concerns
 # =============================================================================
 
+
 class FlextRepository[T](ABC):
     """Repository pattern base - FLEXT pattern."""
 
@@ -105,6 +108,7 @@ class FlextExternalService(ABC):
 # PRESENTATION LAYER - CLI Interface
 # =============================================================================
 
+
 class FlextCliController(ABC):
     """CLI controller base following MVC - FLEXT pattern."""
 
@@ -112,13 +116,14 @@ class FlextCliController(ABC):
         self._name = self.__class__.__name__
 
     @abstractmethod
-    def handle_command(self, args: dict[str, Any]) -> FlextResult[None]:
+    def handle_command(self, args: dict[str, object]) -> FlextResult[None]:
         """Handle CLI command with arguments."""
 
 
 # =============================================================================
 # FACTORY PATTERNS - Object Creation
 # =============================================================================
+
 
 class FlextFactory[T](ABC):
     """Factory pattern base - FLEXT pattern."""
@@ -132,27 +137,34 @@ class FlextFactory[T](ABC):
 # DECORATOR PATTERNS - Cross-cutting Concerns
 # =============================================================================
 
+
 def flext_use_case(use_case_name: str):
     """Decorator for use cases - FLEXT pattern."""
+
     def decorator(cls):
         cls._use_case_name = use_case_name
         return cls
+
     return decorator
 
 
 def flext_command_handler(command_name: str):
     """Decorator for command handlers - FLEXT pattern."""
+
     def decorator(cls):
         cls._command_name = command_name
         return cls
+
     return decorator
 
 
 def flext_query_handler(query_name: str):
     """Decorator for query handlers - FLEXT pattern."""
+
     def decorator(cls):
         cls._query_name = query_name
         return cls
+
     return decorator
 
 

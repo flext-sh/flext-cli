@@ -126,7 +126,9 @@ class FlextCliValidationMixin:
         helper = getattr(self, "_helper", self._flext_cli_helper)
         # Use modern FlextResult pattern following flext-core standards
         confirmation_result = helper.flext_cli_confirm(prompt)
-        confirmed = confirmation_result.value if confirmation_result.is_success else False
+        confirmed = (
+            confirmation_result.value if confirmation_result.is_success else False
+        )
         if not confirmed:
             return FlextResult[bool].fail("Operation cancelled by user")
         return FlextResult[bool].ok(data=True)
@@ -240,7 +242,7 @@ class FlextCliProgressMixin:
         try:
             return Progress(console=self.console)
         except Exception:
-            from rich.console import Console as _Console  # noqa: PLC0415
+            from rich.console import Console as _Console
 
             return Progress(console=_Console())
 
@@ -415,7 +417,7 @@ class FlextCliAdvancedMixin(
         self,
         operations: list[tuple[str, str, Callable[[str], FlextResult[str]]]],
         *,
-        require_confirmation: bool | None = None,  # noqa: ARG002
+        require_confirmation: bool | None = None,
     ) -> FlextResult[list[str]]:
         """Execute operations on files, ensuring existence and safe I/O.
 

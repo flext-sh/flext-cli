@@ -23,6 +23,7 @@ from rich.console import Console
 from flext_cli import (
     FlextCliCommand,
 )
+
 # Import specific classes that exist
 try:
     from flext_cli.config import FlextCliConfig

@@ -1,7 +1,7 @@
-"""FLEXT CLI Utilities - Extending FlextUtilities from flext-core.
+"""CLI-specific utilities using flext-core modern API.
 
-Provides CLI-specific utility functionality while maximally reusing
-generic utilities from flext-core FlextUtilities class.
+Migrated from legacy FlextUtilities inheritance to direct usage of flext-core
+functions, eliminating code bloat and using modern FLEXT architectural patterns.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -33,11 +33,19 @@ class FileInfo(TypedDict):
     permissions: str
 
 
-class FlextCliUtilities(FlextUtilities):
-    """FLEXT CLI Utilities extending FlextUtilities from flext-core.
+class FlextCliUtilities:
+    """CLI utilities using flext-core modern API.
 
-    Adds CLI-specific functionality while reusing all generic utilities
-    from flext-core. Uses proper naming convention with FlextCli prefix.
+    Uses FlextUtilities direct functions to reduce complexity and eliminate inheritance.
+    Only CLI-specific functionality is implemented here.
+
+    Uses FlextUtilities modern API:
+    - FlextUtilities.Generators: UUID, timestamps, correlation IDs
+    - FlextUtilities.TextProcessor: text processing, formatting, validation
+    - FlextUtilities.ProcessingUtils: JSON processing and data operations
+    - FlextUtilities.Performance: performance tracking, metrics
+    - FlextUtilities.TypeGuards: type validation and checking
+    - FlextUtilities.Formatters: data formatting utilities
     """
 
     class CliValidation:
@@ -81,8 +89,8 @@ class FlextCliUtilities(FlextUtilities):
                 return FlextResult[JsonObject].fail("JSON string cannot be empty")
 
             try:
-                parsed_data = FlextUtilities.safe_json_parse(json_str)
-                # FlextUtilities.safe_json_parse always returns a dict
+                parsed_data = FlextUtilities.ProcessingUtils.safe_json_parse(json_str)
+                # safe_json_parse always returns a dict
                 return FlextResult[JsonObject].ok(cast("JsonObject", parsed_data))
             except Exception as e:
                 return FlextResult[JsonObject].fail(f"Failed to parse JSON: {e}")
@@ -140,7 +148,7 @@ class FlextCliUtilities(FlextUtilities):
                 stat = path_obj.stat()
 
                 # Use flext-core timestamp utilities
-                modified_timestamp = FlextUtilities.generate_iso_timestamp()
+                modified_timestamp = FlextUtilities.Generators.generate_iso_timestamp()
 
                 info: FileInfo = {
                     "path": str(path_obj.absolute()),
@@ -162,7 +170,7 @@ class FlextCliUtilities(FlextUtilities):
         def format_json_pretty(data: object) -> FlextResult[str]:
             """Format JSON prettily using flext-core utilities."""
             # Use FlextUtilities for JSON formatting
-            formatted = FlextUtilities.safe_json_stringify(data)
+            formatted = FlextUtilities.ProcessingUtils.safe_json_stringify(data)
             return FlextResult[str].ok(formatted)
 
         @staticmethod
@@ -230,16 +238,9 @@ class FlextCliUtilities(FlextUtilities):
                     f"Failed to set environment variable: {e}"
                 )
 
-    # Reuse all FlextUtilities functionality
-    # These are inherited from FlextUtilities:
-    # - Generators: generate_id, generate_uuid, generate_timestamp, etc.
-    # - TimeUtils: unix_to_iso, format_duration, etc.
-    # - TextProcessor: validate_patterns, clean_text, etc.
-    # - Conversions: safe_cast, convert_types, etc.
-    # - TypeGuards: is_valid_type, etc.
-    # - Formatters: format_data, etc.
-    # - Performance: track_execution_time, etc.
-    # - ResultUtils: chain_results, collect_results, etc.
+    # CLI-specific constants
+    CLI_MAX_TABLE_ROWS = 1000
+    CLI_DEFAULT_TRUNCATION = 80
 
 
 # Legacy compatibility - redirect to new class

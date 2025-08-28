@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import ClassVar, override
 
 from flext_core import (
-    FlextAggregateRoot,
+    FlextAggregates,
     FlextEntity,
     FlextEntityId,
     FlextLogger,
@@ -173,7 +173,7 @@ class FlextCliOutput(FlextValue):
         ge=0,
         description="Command execution duration in seconds",
     )
-    output_format: "FlextCliOutputFormat" = Field(  # noqa: UP037
+    output_format: FlextCliOutputFormat = Field(
         default="plain",  # type: ignore[assignment]
         description="Format of the output content",
     )
@@ -219,14 +219,12 @@ class FlextCliOutput(FlextValue):
     def format_output(self) -> str:
         """Format output for display based on output format."""
         if self.output_format == "json":
-            return FlextUtilities.safe_json_stringify(
-                {
-                    "stdout": self.stdout,
-                    "stderr": self.stderr,
-                    "exit_code": self.exit_code,
-                    "execution_time": self.execution_time_seconds,
-                }
-            )
+            return FlextUtilities.safe_json_stringify({
+                "stdout": self.stdout,
+                "stderr": self.stderr,
+                "exit_code": self.exit_code,
+                "execution_time": self.execution_time_seconds,
+            })
 
         # Default text format
         result: list[str] = []
@@ -265,7 +263,7 @@ class FlextCliConfiguration(FlextValue):
         ge=1,
         description="Default timeout for CLI operations in seconds",
     )
-    output_format: "FlextCliOutputFormat" = Field(  # noqa: UP037
+    output_format: FlextCliOutputFormat = Field(
         default="table",  # type: ignore[assignment]
         description="Default output format",
     )
@@ -1473,7 +1471,7 @@ class FlextCliPlugin(FlextEntity):
 # =============================================================================
 
 
-class FlextCliWorkspace(FlextAggregateRoot):
+class FlextCliWorkspace(FlextAggregates):
     """CLI workspace aggregate root.
 
     Manages complex CLI operations involving multiple entities and

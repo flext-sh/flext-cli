@@ -272,12 +272,12 @@ module = [
 ]
 # Test-specific relaxations for decorators and test utilities
 disallow_untyped_decorators = false  # Allow @patch, @mock decorators without types
-disallow_any_decorated = false       # Allow Any in decorated test functions
-disallow_any_explicit = true        # Allow explicit Any in test helpers
+disallow_any_decorated = false       # Allow object in decorated test functions
+disallow_any_explicit = true        # Allow explicit object in test helpers
 disallow_untyped_defs = false       # Allow some untyped test helper functions
 disallow_incomplete_defs = false    # Allow partial typing in test utilities
 disallow_untyped_calls = false      # Allow calls to untyped test fixtures
-warn_return_any = false             # Don't warn about Any returns in tests
+warn_return_any = false             # Don't warn about object returns in tests
 warn_unused_ignores = false         # Allow type: ignore comments in tests
 # Keep these strict even in tests
 strict_optional = true              # Maintain None safety
