@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Protocol, Self
 
-from flext_core import FlextConstants, FlextResult, FlextUtilities, get_logger
+from flext_core import FlextConstants, FlextLogger, FlextResult, FlextUtilities
 
 from flext_cli.config import get_config as get_cli_config
 
@@ -36,7 +36,7 @@ def create_flext_api() -> FlextApiClientLike | None:
     return None
 
 
-logger = get_logger(__name__)
+logger = FlextLogger(__name__)
 
 # HTTP status constants
 HTTP_OK = 200
@@ -134,7 +134,7 @@ class FlextCLIApiClient:
 
             # Get response from API client - handle FlextResult
             response_result = await self._api_client.get("/health")
-            if response_result.unwrap_or(None) is None:
+            if not response_result.is_success or response_result.value is None:
                 return FlextResult[bool].fail(
                     f"Connection failed: {response_result.error}"
                 )
@@ -162,7 +162,7 @@ class FlextCLIApiClient:
 
             # Get response from API client - handle FlextResult
             response_result = await self._api_client.get("/api/v1/system/status")
-            if response_result.unwrap_or(None) is None:
+            if not response_result.is_success or response_result.value is None:
                 return FlextResult[dict[str, object]].fail(
                     f"Status request failed: {response_result.error}",
                 )
@@ -197,8 +197,8 @@ class FlextCLIApiClient:
                 "FlexCore",
                 f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXCORE_PORT}",
             )
-            # Use unwrap_or for cleaner conditional assignment with proper typing
-            flexcore_status = flexcore_result.unwrap_or({})
+            # Use modern FlextResult pattern following flext-core standards
+            flexcore_status = flexcore_result.value if flexcore_result.is_success else {}
             if flexcore_status:  # Empty dict is falsy, non-empty dict is truthy
                 services.append(flexcore_status)
 
@@ -207,7 +207,7 @@ class FlextCLIApiClient:
                 "FLEXT Service",
                 f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_SERVICE_PORT}",
             )
-            flext_status = flext_result.unwrap_or({})
+            flext_status = flext_result.value if flext_result.is_success else {}
             if flext_status:  # Empty dict is falsy, non-empty dict is truthy
                 services.append(flext_status)
 
@@ -254,7 +254,7 @@ class FlextCLIApiClient:
                 "/auth/login",
                 data=login_data,
             )
-            response = response_result.unwrap_or(None)
+            response = response_result.value if response_result.is_success else None
             if response is None:
                 return FlextResult[dict[str, object]].fail("Login failed: No response")
             status_code = getattr(response, "status_code", None)
@@ -278,7 +278,7 @@ class FlextCLIApiClient:
 
             # Post to logout endpoint
             response_result = await self._api_client.post("/auth/logout")
-            response = response_result.unwrap_or(None)
+            response = response_result.value if response_result.is_success else None
             if response is None:
                 return FlextResult[bool].fail("Logout failed: No response")
             status_code = getattr(response, "status_code", None)
@@ -302,7 +302,7 @@ class FlextCLIApiClient:
 
             # Get current user from API
             response_result = await self._api_client.get("/auth/me")
-            response = response_result.unwrap_or(None)
+            response = response_result.value if response_result.is_success else None
             if response is None:
                 return FlextResult[dict[str, object]].fail(
                     "Get user failed: No response"

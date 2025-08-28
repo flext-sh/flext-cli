@@ -8,27 +8,25 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import cast, override
+from typing import cast
 
 from flext_core import (
-    FlextComparableMixin,
-    FlextLoggableMixin,
+    FlextLogger,
+    FlextMixins,
     FlextResult,
-    FlextSerializableMixin,
-    FlextValidatableMixin,
-    get_logger,
+    FlextUtilities,
 )
 from rich.console import Console
 from rich.progress import Progress, TaskID
 
-from flext_cli.cli_types import ConfigDict, FlextCliOutputFormat, OutputData
+from flext_cli.typings import ConfigDict, FlextCliOutputFormat, OutputData
 
 # =============================================================================
 # CORE CLI MIXINS - Extending flext-core patterns
 # =============================================================================
 
 
-class CliValidationMixin(FlextValidatableMixin):
+class CliValidationMixin(FlextMixins.Validatable):
     """CLI-specific validation mixin extending flext-core validation.
 
     Adds CLI-specific validation methods while delegating core validation
@@ -61,7 +59,7 @@ class CliValidationMixin(FlextValidatableMixin):
         return FlextResult[None].ok(None)
 
 
-class CliConfigMixin(FlextComparableMixin):
+class CliConfigMixin(FlextMixins.Validatable):
     """CLI-specific configuration mixin extending flext-core configuration.
 
     Adds CLI-specific configuration methods while delegating core configuration
@@ -103,7 +101,7 @@ class CliConfigMixin(FlextComparableMixin):
         return FlextResult[None].ok(None)
 
 
-class CliLoggingMixin(FlextLoggableMixin):
+class CliLoggingMixin(FlextMixins.Loggable):
     """CLI-specific logging mixin extending flext-core logging.
 
     Adds CLI-specific logging methods while delegating core logging
@@ -118,7 +116,7 @@ class CliLoggingMixin(FlextLoggableMixin):
         duration: float,
     ) -> FlextResult[None]:
         """Log CLI command execution with structured data."""
-        logger = get_logger(self.__class__.__name__)
+        logger = FlextLogger(self.__class__.__name__)
 
         if success:
             logger.info(
@@ -147,7 +145,7 @@ class CliLoggingMixin(FlextLoggableMixin):
         context: Mapping[str, object] | None = None,
     ) -> FlextResult[None]:
         """Log CLI-specific errors with context."""
-        logger = get_logger(self.__class__.__name__)
+        logger = FlextLogger(self.__class__.__name__)
 
         log_context = dict(context) if context else {}
         log_context.update({"error_type": "cli_error"})
@@ -156,7 +154,7 @@ class CliLoggingMixin(FlextLoggableMixin):
         return FlextResult[None].ok(None)
 
 
-class CliOutputMixin(FlextSerializableMixin):
+class CliOutputMixin(FlextMixins.Serializable):
     """CLI-specific output formatting mixin extending flext-core serialization.
 
     Adds CLI-specific output formatting while delegating core serialization
@@ -180,10 +178,12 @@ class CliOutputMixin(FlextSerializableMixin):
         try:
             result: FlextResult[str]
             if format_type == FlextCliOutputFormat.JSON:
-                json_result = self.to_json()
+                dict_result = self.to_dict()
+                json_result = FlextUtilities.ProcessingUtils.safe_json_stringify(dict_result)
                 result = FlextResult[str].ok(json_result)
             elif format_type == FlextCliOutputFormat.YAML:
-                json_data = self.to_json()
+                dict_data = self.to_dict()
+                json_data = FlextUtilities.ProcessingUtils.safe_json_stringify(dict_data)
                 result = FlextResult[str].ok(
                     "# YAML representation\ndata: " + json_data
                 )
@@ -362,11 +362,9 @@ class CliCompleteMixin(
     inheritance. Use this when you need full CLI functionality.
     """
 
-    @override
     def mixin_setup(self) -> None:
         """Set up all mixin components."""
-        # Call parent mixin setup (returns None)
-        super().mixin_setup()
+        # Initialize mixin components
 
     def setup_cli_complete(self) -> FlextResult[None]:
         """Set up all mixin components with FlextResult return."""
@@ -381,31 +379,25 @@ class CliCompleteMixin(
 class CliDataMixin(CliValidationMixin, CliOutputMixin):
     """Data-focused CLI mixin for validation and output formatting."""
 
-    @override
     def mixin_setup(self) -> None:
         """Set up data mixin components."""
-        # Call parent mixin setup (returns None)
-        super().mixin_setup()
+        # Initialize data mixin components
 
 
 class CliExecutionMixin(CliLoggingMixin, CliInteractiveMixin):
     """Execution-focused CLI mixin for logging and interaction."""
 
-    @override
     def mixin_setup(self) -> None:
         """Set up execution mixin components."""
-        # Call parent mixin setup (returns None)
-        super().mixin_setup()
+        # Initialize execution mixin components
 
 
 class CliUIMixin(CliOutputMixin, CliInteractiveMixin):
     """UI-focused CLI mixin for output and interaction."""
 
-    @override
     def mixin_setup(self) -> None:
         """Set up UI mixin components."""
-        # Call parent mixin setup (returns None)
-        super().mixin_setup()
+        # Initialize UI mixin components
 
 
 # =============================================================================

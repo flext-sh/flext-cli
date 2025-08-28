@@ -12,8 +12,8 @@ import sys
 
 import click
 from flext_core import (
+    FlextLogger,
     __version__ as core_version,
-    get_logger,
 )
 from rich.console import Console
 
@@ -204,7 +204,7 @@ def main() -> None:
     try:
         cli()
     except Exception:
-        logger = get_logger(__name__)
+        logger = FlextLogger(__name__)
         logger.exception("CLI execution failed")
         sys.exit(1)
 

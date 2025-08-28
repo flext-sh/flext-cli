@@ -15,7 +15,6 @@ from flext_core import (
     FlextDomainService,
     FlextLogger,
     FlextResult,
-    get_logger,
 )
 from pydantic import ConfigDict, Field
 
@@ -62,7 +61,7 @@ class FlextCliCommandService(FlextDomainService[T]):
     def __init__(self, **data: object) -> None:
         """Initialize CLI command service."""
         super().__init__(**data)
-        self._logger = get_logger(f"flext_cli.{self.service_name}")
+        self._logger = FlextLogger(f"flext_cli.{self.service_name}")
 
     @property
     def logger(self) -> FlextLogger:
@@ -152,7 +151,7 @@ class FlextCliFormatterService(FlextDomainService[str]):
     def __init__(self, **data: object) -> None:
         """Initialize CLI formatter service."""
         super().__init__(**data)
-        self._logger = get_logger(f"flext_cli.{self.service_name}")
+        self._logger = FlextLogger(f"flext_cli.{self.service_name}")
 
     @property
     def logger(self) -> FlextLogger:
@@ -232,7 +231,7 @@ class FlextCliValidatorService(FlextDomainService[bool]):
     def __init__(self, **data: object) -> None:
         """Initialize CLI validator service."""
         super().__init__(**data)
-        self._logger = get_logger(f"flext_cli.{self.service_name}")
+        self._logger = FlextLogger(f"flext_cli.{self.service_name}")
 
     @property
     def logger(self) -> FlextLogger:
@@ -336,7 +335,7 @@ class FlextCliInteractiveService(FlextDomainService[str]):
     def __init__(self, **data: object) -> None:
         """Initialize CLI interactive service."""
         super().__init__(**data)
-        self._logger = get_logger(f"flext_cli.{self.service_name}")
+        self._logger = FlextLogger(f"flext_cli.{self.service_name}")
 
     @property
     def logger(self) -> FlextLogger:

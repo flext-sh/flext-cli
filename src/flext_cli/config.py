@@ -25,7 +25,7 @@ class FlextCliConfig(FlextConfig):
     debug: bool = Field(default=False, description="Enable debug mode")
     trace: bool = Field(default=False, description="Enable trace mode")
     log_level: str = Field(default="INFO", description="Logging level")
-    command_timeout: int = Field(default=FlextConstants.Defaults.COMMAND_TIMEOUT, description="Command execution timeout")
+    command_timeout: int = Field(default=FlextConstants.Performance.COMMAND_TIMEOUT, description="Command execution timeout")
 
     # Project identity
     project_name: str = Field(default="flext-cli", description="Project name")
@@ -35,9 +35,9 @@ class FlextCliConfig(FlextConfig):
     )
 
     # API configuration (consolidated from FlextCliApiConfig)
-    api_url: str = Field(default=f"http://{FlextConstants.Infrastructure.DEFAULT_HOST}:{FlextConstants.Platform.DEFAULT_API_PORT}", description="API base URL")
+    api_url: str = Field(default=f"http://{FlextConstants.Infrastructure.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}", description="API base URL")
     api_timeout: int = Field(default=FlextConstants.Defaults.TIMEOUT, le=300, description="API request timeout")
-    connect_timeout: int = Field(default=FlextConstants.Defaults.CONNECT_TIMEOUT, description="Connection timeout")
+    connect_timeout: int = Field(default=FlextConstants.Defaults.CONNECTION_TIMEOUT, description="Connection timeout")
     read_timeout: int = Field(default=FlextConstants.Defaults.TIMEOUT, description="Read timeout")
     retries: int = Field(default=FlextConstants.Defaults.MAX_RETRIES, description="Maximum retry attempts")
     verify_ssl: bool = Field(default=True, description="Verify SSL certificates")
@@ -133,4 +133,50 @@ class FlextCliConfig(FlextConfig):
         return hash(key)
 
 
-__all__ = ["FlextCliConfig"]
+# Module-level configuration instances and functions following flext-core patterns
+class _ConfigSingleton:
+    """Singleton for configuration instance."""
+
+    _instance: FlextCliConfig | None = None
+
+    @classmethod
+    def get_instance(cls) -> FlextCliConfig:
+        """Get singleton instance."""
+        if cls._instance is None:
+            cls._instance = FlextCliConfig()
+            cls._instance.ensure_setup()
+        return cls._instance
+
+
+def get_config() -> FlextCliConfig:
+    """Get global CLI configuration instance using flext-core patterns."""
+    return _ConfigSingleton.get_instance()
+
+
+def get_cli_config() -> FlextCliConfig:
+    """Alias for get_config() for backward compatibility."""
+    return get_config()
+
+
+def flext_cli_settings() -> FlextCliConfig:
+    """Factory function for FlextCliConfig for backward compatibility."""
+    return FlextCliConfig()
+
+
+# Keep the uppercase version for backward compatibility
+FlextCliSettings = flext_cli_settings
+
+
+def get_cli_settings() -> FlextCliConfig:
+    """Get CLI settings - alias for get_config for backward compatibility."""
+    return get_config()
+
+
+__all__ = [
+    "FlextCliConfig",
+    "FlextCliSettings",
+    "flext_cli_settings",
+    "get_cli_config",
+    "get_cli_settings",
+    "get_config",
+]

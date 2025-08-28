@@ -256,7 +256,8 @@ def is_authenticated(*, token_path: Path | None = None) -> bool:
       True if the user is authenticated, False otherwise
 
     """
-    return bool(get_auth_token(token_path=token_path).unwrap_or(""))
+    token_result = get_auth_token(token_path=token_path)
+    return bool(token_result.value if token_result.is_success else "")
 
 
 def should_auto_refresh() -> bool:
@@ -270,7 +271,7 @@ def should_auto_refresh() -> bool:
     return (
         hasattr(config, "auto_refresh")
         and getattr(config, "auto_refresh", False)
-        and bool(get_refresh_token().unwrap_or(""))
+        and bool(get_refresh_token().value if get_refresh_token().is_success else "")
     )
 
 

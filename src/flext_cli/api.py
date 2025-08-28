@@ -22,7 +22,6 @@ from flext_core import FlextEntityId, FlextResult, FlextUtilities
 from rich.console import Console
 from rich.table import Table
 
-from flext_cli.cli_types import FlextCliDataType, FlextCliOutputFormat
 from flext_cli.cli_utils import cli_create_table, cli_format_output
 from flext_cli.config import FlextCliSettings
 from flext_cli.context import FlextCliContext
@@ -30,6 +29,7 @@ from flext_cli.models import (
     FlextCliCommand as CLICommand,
     FlextCliPlugin,
 )
+from flext_cli.typings import FlextCliDataType, FlextCliOutputFormat
 
 
 # Type definitions for better PyRight compliance
@@ -399,8 +399,8 @@ def flext_cli_unwrap_or_default(result: FlextResult[object], default: object) ->
       Result data or default value
 
     """
-    # Use standard FlextResult.unwrap_or method following flext/docs/patterns
-    return result.unwrap_or(default)
+    # Use modern FlextResult pattern following flext-core standards
+    return result.value if result.is_success else default
 
 
 def flext_cli_unwrap_or_none(result: FlextResult[object]) -> object | None:
@@ -413,8 +413,8 @@ def flext_cli_unwrap_or_none(result: FlextResult[object]) -> object | None:
       Result data or None
 
     """
-    # Use standard FlextResult.unwrap_or method following flext/docs/patterns
-    return result.unwrap_or(None)
+    # Use modern FlextResult pattern following flext-core standards
+    return result.value if result.is_success else None
 
 
 class FlextCliApi:
@@ -435,8 +435,8 @@ class FlextCliApi:
     ) -> str:
         """Format data for display."""
         result = flext_cli_format(data, format_type)
-        # Use FlextResult.unwrap_or method following flext/docs/patterns
-        return result.unwrap_or("")
+        # Use modern FlextResult pattern following flext-core standards
+        return result.value if result.is_success else ""
 
     def flext_cli_configure(self, config: dict[str, object]) -> bool:
         """Configure CLI service using real configuration management."""
@@ -740,7 +740,7 @@ class ContextRenderingStrategy:
         self, data: FlextCliDataType, context: dict[str, object] | None = None
     ) -> None:
         """Initialize rendering strategy."""
-        self.data: FlextCliDataType = data
+        self.value: FlextCliDataType = data
         self.context = context or {}
 
     def render(self) -> FlextResult[str]:
@@ -755,26 +755,26 @@ class ContextRenderingStrategy:
 
     def _try_template_substitution(self) -> FlextResult[str]:
         """Try template substitution first."""
-        if isinstance(self.data, dict):
+        if isinstance(self.value, dict):
             return self._render_dict_templates()
 
-        if isinstance(self.data, str):
+        if isinstance(self.value, str):
             return self._render_string_template()
 
         return FlextResult[str].fail("No template patterns found")
 
     def _render_dict_templates(self) -> FlextResult[str]:
         """Render templates in dictionary values."""
-        if isinstance(self.data, dict):
-            for value in self.data.values():
-                if self._is_template_string(value):
-                    return FlextResult[str].ok(self._substitute_template(str(value)))
+        if isinstance(self.value, dict):
+            for val in self.value.values():
+                if self._is_template_string(val):
+                    return FlextResult[str].ok(self._substitute_template(str(val)))
         return FlextResult[str].fail("No template patterns in dict")
 
     def _render_string_template(self) -> FlextResult[str]:
         """Render string template directly."""
-        if self._is_template_string(self.data):
-            return FlextResult[str].ok(self._substitute_template(str(self.data)))
+        if self._is_template_string(self.value):
+            return FlextResult[str].ok(self._substitute_template(str(self.value)))
         return FlextResult[str].fail("Not a template string")
 
     def _is_template_string(self, value: object) -> bool:
@@ -797,9 +797,9 @@ class ContextRenderingStrategy:
         format_type = self._get_format_type()
 
         # Use our flext_cli_format function instead of FormatterFactory
-        # Use unwrap_or for cleaner format result handling
-        format_result = flext_cli_format(self.data, format_type)
-        rendered_output = format_result.unwrap_or("")
+        # Use modern FlextResult pattern following flext-core standards
+        format_result = flext_cli_format(self.value, format_type)
+        rendered_output = format_result.value if format_result.is_success else ""
         if rendered_output:  # Non-empty string indicates success
             return FlextResult[str].ok(self._apply_title_if_needed(rendered_output))
         return format_result  # Return original error result

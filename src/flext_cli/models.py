@@ -16,10 +16,10 @@ from flext_core import (
     FlextAggregateRoot,
     FlextEntity,
     FlextEntityId,
+    FlextLogger,
     FlextResult,
     FlextUtilities,
     FlextValue,
-    get_logger,
 )
 from pydantic import ConfigDict, Field, field_validator
 
@@ -734,7 +734,7 @@ class FlextCliCommand(FlextEntity):
 
 
 # Ensure forward references used in command are resolved early
-_logger = get_logger(__name__)
+_logger = FlextLogger(__name__)
 # FlextCliCommand.model_rebuild() - disabled due to FlextCliOutputFormat circular import
 # try:  # pragma: no cover
 #     FlextCliCommand.model_rebuild()

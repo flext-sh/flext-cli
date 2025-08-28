@@ -193,7 +193,8 @@ class FlextCliHelper:
 
     def sanitize_filename(self, name: str) -> str:
         """Sanitize a filename."""
-        return self.flext_cli_sanitize_filename(name).unwrap_or("untitled")
+        sanitize_result = self.flext_cli_sanitize_filename(name)
+        return sanitize_result.value if sanitize_result.is_success else "untitled"
 
     def format_size(self, size_bytes: int) -> str:
         """Format a size in bytes to a human-readable string."""

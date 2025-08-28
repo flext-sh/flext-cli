@@ -443,19 +443,19 @@ class FlextCliTimeUtilities:
     """Static utility methods for CLI time operations."""
 
     @staticmethod
-    def get_current_timestamp() -> FlextResult[float]:
+    def get_current_timestamp() -> FlextResult[str]:
         """Get current timestamp using FlextUtilities.
 
         Returns:
-            FlextResult[float]: Current timestamp
+            FlextResult[str]: Current timestamp as string
 
         """
         try:
             # Use FlextUtilities for timestamp generation
             timestamp = FlextUtilities.generate_timestamp()
-            return FlextResult[float].ok(timestamp)
+            return FlextResult[str].ok(str(timestamp))
         except Exception as e:
-            return FlextResult[float].fail(f"Failed to get timestamp: {e}")
+            return FlextResult[str].fail(f"Failed to get timestamp: {e}")
 
     @staticmethod
     def get_current_iso_timestamp() -> FlextResult[str]:
@@ -530,7 +530,9 @@ class FlextCliTimeUtilities:
         """
         try:
             # Use FlextUtilities for elapsed time calculation
-            elapsed = FlextUtilities.get_elapsed_time(start_time)
+            from datetime import datetime
+            start_datetime = datetime.fromtimestamp(start_time)
+            elapsed = FlextUtilities.get_elapsed_time(start_datetime)
             return FlextResult[float].ok(elapsed)
         except Exception as e:
             return FlextResult[float].fail(f"Failed to calculate elapsed time: {e}")
