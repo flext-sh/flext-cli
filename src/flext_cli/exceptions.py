@@ -38,28 +38,28 @@ class FlextCliExceptions:
         CLI_CONTEXT_ERROR = "CLI_CONTEXT_ERROR"
 
     # Base CLI exception
-    class CliError(FlextExceptions):
+    class CliError(FlextExceptions.BaseError):
         """Base exception for all CLI domain errors."""
 
-    class ValidationError(FlextExceptions):
+    class ValidationError(FlextExceptions.BaseError):
         """CLI validation errors."""
 
-    class ConfigurationError(FlextExceptions):
+    class ConfigurationError(FlextExceptions.BaseError):
         """CLI configuration errors."""
 
-    class CliConnectionError(FlextExceptions):
+    class CliConnectionError(FlextExceptions.BaseError):
         """CLI connection errors."""
 
-    class ProcessingError(FlextExceptions):
+    class ProcessingError(FlextExceptions.BaseError):
         """CLI processing errors."""
 
-    class AuthenticationError(FlextExceptions):
+    class AuthenticationError(FlextExceptions.BaseError):
         """CLI authentication errors."""
 
-    class CliTimeoutError(FlextExceptions):
+    class CliTimeoutError(FlextExceptions.BaseError):
         """CLI timeout errors."""
 
-    class CommandError(FlextExceptions):
+    class CommandError(FlextExceptions.BaseError):
         """CLI command execution errors with command context."""
 
         def __init__(
@@ -68,7 +68,7 @@ class FlextCliExceptions:
             *,
             command: str | None = None,
             exit_code: int | None = None,
-            code: object | None = None,  # Will use ErrorCodes.CLI_COMMAND_ERROR
+            code: str | None = None,  # Will use ErrorCodes.CLI_COMMAND_ERROR
             context: Mapping[str, object] | None = None,
         ) -> None:
             """Initialize with CLI command context."""
@@ -84,7 +84,7 @@ class FlextCliExceptions:
                 context=context_dict,
             )
 
-    class ArgumentError(FlextExceptions):
+    class ArgumentError(FlextExceptions.BaseError):
         """CLI argument validation errors with argument context."""
 
         def __init__(
@@ -93,7 +93,7 @@ class FlextCliExceptions:
             *,
             argument_name: str | None = None,
             argument_value: str | None = None,
-            code: object | None = None,  # Will use ErrorCodes.CLI_ARGUMENT_ERROR
+            code: str | None = None,  # Will use ErrorCodes.CLI_ARGUMENT_ERROR
             context: Mapping[str, object] | None = None,
         ) -> None:
             """Initialize with CLI argument context."""
@@ -109,7 +109,7 @@ class FlextCliExceptions:
                 context=context_dict,
             )
 
-    class FormatError(FlextExceptions):
+    class FormatError(FlextExceptions.BaseError):
         """CLI formatting errors with format context."""
 
         def __init__(
@@ -118,7 +118,7 @@ class FlextCliExceptions:
             *,
             format_type: str | None = None,
             data_type: str | None = None,
-            code: object | None = None,  # Will use ErrorCodes.CLI_FORMAT_ERROR
+            code: str | None = None,  # Will use ErrorCodes.CLI_FORMAT_ERROR
             context: Mapping[str, object] | None = None,
         ) -> None:
             """Initialize with CLI format context."""
@@ -134,7 +134,7 @@ class FlextCliExceptions:
                 context=context_dict,
             )
 
-    class OutputError(FlextExceptions):
+    class OutputError(FlextExceptions.BaseError):
         """CLI output errors with output context."""
 
         def __init__(
@@ -143,7 +143,7 @@ class FlextCliExceptions:
             *,
             output_format: str | None = None,
             output_path: str | None = None,
-            code: object | None = None,  # Will use ErrorCodes.CLI_OUTPUT_ERROR
+            code: str | None = None,  # Will use ErrorCodes.CLI_OUTPUT_ERROR
             context: Mapping[str, object] | None = None,
         ) -> None:
             """Initialize with CLI output context."""
@@ -159,7 +159,7 @@ class FlextCliExceptions:
                 context=context_dict,
             )
 
-    class ContextError(FlextExceptions):
+    class ContextError(FlextExceptions.BaseError):
         """CLI context errors with context state information."""
 
         def __init__(
@@ -168,7 +168,7 @@ class FlextCliExceptions:
             *,
             context_name: str | None = None,
             context_state: str | None = None,
-            code: object | None = None,  # Will use ErrorCodes.CLI_CONTEXT_ERROR
+            code: str | None = None,  # Will use ErrorCodes.CLI_CONTEXT_ERROR
             context: Mapping[str, object] | None = None,
         ) -> None:
             """Initialize with CLI context state."""

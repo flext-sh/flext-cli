@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from flext_core import FlextResult, get_logger
+from flext_core import FlextLogger, FlextResult
 
 from flext_cli.api import (
     FlextCliApi,
@@ -17,10 +17,10 @@ from flext_cli.api import (
     flext_cli_export as api_export,
     flext_cli_format as api_format,
 )
-from flext_cli.cli_types import (
+from flext_cli.context import FlextCliContext
+from flext_cli.typings import (
     FlextCliDataType,
 )
-from flext_cli.context import FlextCliContext
 
 # Global API instance
 _api = FlextCliApi()
@@ -104,7 +104,7 @@ def flext_cli_create_context(
         return result
 
     # If not the expected type, this indicates a serious API issue
-    logger = get_logger(__name__)
+    logger = FlextLogger(__name__)
     result_type = type(result)
     logger.error(
         f"API returned unexpected type: {result_type}, expected FlextCliContext"
@@ -145,7 +145,7 @@ def flext_cli_create_session(user_id: str | None = None) -> str:
 
     """
     result = _api.flext_cli_create_session(user_id)
-    return result.unwrap_or("")
+    return result.value if result.is_success else ""
 
 
 def flext_cli_register_handler(name: str, handler: object) -> bool:
@@ -191,7 +191,7 @@ def flext_cli_execute_handler(name: str, *args: object, **kwargs: object) -> obj
 
     """
     result = _api.flext_cli_execute_handler(name, *args, **kwargs)
-    return result.unwrap_or({})
+    return result.value if result.is_success else {}
 
 
 def flext_cli_render_with_context(
@@ -209,7 +209,7 @@ def flext_cli_render_with_context(
 
     """
     result = _api.flext_cli_render_with_context(data, context)
-    return result.unwrap_or("")
+    return result.value if result.is_success else ""
 
 
 def flext_cli_get_commands() -> dict[str, object]:

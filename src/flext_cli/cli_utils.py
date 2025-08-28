@@ -22,13 +22,13 @@ from typing import Literal, Protocol, TypedDict, TypeVar
 from uuid import UUID
 
 import yaml
-from flext_core import FlextResult, FlextUtilities, get_logger
+from flext_core import FlextLogger, FlextResult, FlextUtilities
 from rich.console import Console
 from rich.progress import Progress, TaskID
 from rich.style import Style
 from rich.table import Table
 
-from flext_cli.cli_types import FlextCliOutputFormat
+from flext_cli.typings import FlextCliOutputFormat
 
 T = TypeVar("T")
 # Type aliases for utility functions
@@ -235,7 +235,7 @@ def cli_quick_setup(  # noqa: PLR0912
                 f"Directory {project_path} exists. Continue?",
                 default=False,
             )
-            if not confirmation.unwrap_or(default=False):
+            if not (confirmation.value if confirmation.is_success else False):
                 return FlextResult[SetupResults].fail("Setup cancelled")
 
         # Create directory structure
@@ -911,7 +911,7 @@ def cli_run_command(
         if not cmd_list:
             error_message = "Empty command"
         else:
-            logger = get_logger(__name__)
+            logger = FlextLogger(__name__)
             logger.debug(f"Running command: {cmd_list}")
 
             async def _run() -> CommandResult:

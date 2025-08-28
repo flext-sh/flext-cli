@@ -97,7 +97,7 @@ class TestFlextCliArgsProvider:
 
         priority = provider.get_priority()
 
-        assert priority == FlextConstants.Configuration.CLI_PRIORITY
+        assert priority == FlextConstants.Config.CLI_PRIORITY
 
     def test_get_all(self) -> None:
         """Test getting all CLI arguments."""
@@ -216,7 +216,7 @@ class TestFlextConstantsProvider:
 
         priority = provider.get_priority()
 
-        assert priority == FlextConstants.Configuration.CONSTANTS_PRIORITY
+        assert priority == FlextConstants.Config.CONSTANTS_PRIORITY
 
     def test_get_all(self) -> None:
         """Test getting all constants."""

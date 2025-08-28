@@ -22,10 +22,16 @@ from rich.console import Console
 
 from flext_cli import (
     FlextCliCommand,
-    FlextCliConfig,
-    FlextCliContext,
-    FlextCliSettings,
 )
+# Import specific classes that exist
+try:
+    from flext_cli.config import FlextCliConfig
+except ImportError:
+    FlextCliConfig = None
+try:
+    from flext_cli.context import FlextCliContext
+except ImportError:
+    FlextCliContext = None
 
 # =============================================================================
 # PYTEST CONFIGURATION - REAL FUNCTIONALITY TESTING

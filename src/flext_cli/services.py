@@ -5,10 +5,10 @@ from typing import ClassVar, TypedDict, cast
 
 from flext_core import (
     FlextDomainService,
+    FlextLogger,
     FlextProtocols,
     FlextResult,
     FlextUtilities,
-    get_logger,
 )
 
 from flext_cli.context import FlextCliExecutionContext
@@ -43,7 +43,7 @@ class BasicFlextCliCommandService(FlextDomainService[FlextResult[object]]):
         if not self.commands:
             object.__setattr__(self, "commands", {})
         # Expose module-level logger name for tests to patch
-        object.__setattr__(self, "_logger", get_logger(__name__))
+        object.__setattr__(self, "_logger", FlextLogger(__name__))
 
     def register_command(
         self,

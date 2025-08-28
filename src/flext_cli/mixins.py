@@ -124,8 +124,9 @@ class FlextCliValidationMixin:
         prompt = f"[bold red]{message}[/bold red]" if dangerous else message
         # Use back-compat helper attribute if present (tests patch this)
         helper = getattr(self, "_helper", self._flext_cli_helper)
-        # Use unwrap_or for cleaner conditional logic
-        confirmed = helper.flext_cli_confirm(prompt).unwrap_or(default=False)
+        # Use modern FlextResult pattern following flext-core standards
+        confirmation_result = helper.flext_cli_confirm(prompt)
+        confirmed = confirmation_result.value if confirmation_result.is_success else False
         if not confirmed:
             return FlextResult[bool].fail("Operation cancelled by user")
         return FlextResult[bool].ok(data=True)
@@ -178,8 +179,8 @@ class FlextCliInteractiveMixin:
         if res.is_failure:
             self.console.print(f"✗ {res.error}")
             return False
-        # Use unwrap_or for cleaner boolean conversion
-        return res.unwrap_or(default=False)
+        # Use modern FlextResult pattern following flext-core standards
+        return res.value if res.is_success else False
 
 
 class FlextCliProgressMixin:
@@ -276,7 +277,7 @@ class FlextCliResultMixin:
                 success_action(result.value)
         elif error_action is not None and result.error is not None:
             error_action(result.error)
-        return result.unwrap_or(None)
+        return result.value if result.is_success else None
 
 
 class FlextCliBasicMixin(FlextCliValidationMixin):

@@ -16,10 +16,10 @@ from pathlib import Path
 from typing import ParamSpec, TypeVar, cast
 
 from flext_core import (
-    FlextCallable,
     FlextDecorators,
+    FlextLogger,
     FlextResult,
-    get_logger,
+    FlextTypes,
     safe_call,
 )
 from rich.console import Console
@@ -57,14 +57,14 @@ def cli_enhanced[T, **P](
         if safe_execution:
             # Cast to FlextCallable[T] for FlextDecorators.safe_result compatibility
             # This preserves the return type T through the decoration chain
-            flext_callable = cast("FlextCallable[T]", enhanced_func)
-            safe_wrapper = FlextDecorators.safe_result(flext_callable)
+            flext_callable = cast("FlextTypes.Core.FlextCallableType", enhanced_func)
+            safe_wrapper = FlextDecorators.Reliability.safe_result(flext_callable)
 
             # Wrap the safe result to handle CLI-specific needs
             @functools.wraps(func)
             def cli_safe_wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
                 """CLI-specific wrapper for FlextResult handling."""
-                logger = get_logger(func.__name__) if log_execution else None
+                logger = FlextLogger(func.__name__) if log_execution else None
 
                 # Show spinner if requested
                 if show_spinner and logger:
@@ -100,8 +100,7 @@ def cli_enhanced[T, **P](
 
                     # Always return the FlextResult to preserve railway-oriented programming
                     return cast("T", result)
-
-                # If not a FlextResult, return directly
+                # If not FlextResult, return as-is
                 return cast("T", result)
 
             enhanced_func = cli_safe_wrapper
@@ -110,7 +109,7 @@ def cli_enhanced[T, **P](
             # Without safe execution, just basic CLI wrapper
             @functools.wraps(func)
             def basic_wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-                logger = get_logger(func.__name__) if log_execution else None
+                logger = FlextLogger(func.__name__) if log_execution else None
 
                 if show_spinner and logger:
                     logger.info("Processing %s...", func.__name__)
@@ -175,7 +174,7 @@ def cli_validate_inputs[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         """Wrapper with flext-core validation patterns."""
-        logger = get_logger(func.__name__)
+        logger = FlextLogger(func.__name__)
 
         def validate_and_execute() -> T:
             # Use flext-core patterns for validation
@@ -262,7 +261,7 @@ def cli_measure_time[**P, T](
         @functools.wraps(f)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             """Wrapper function."""
-            logger = get_logger(f.__name__)
+            logger = FlextLogger(f.__name__)
             start_time = time.time()
 
             try:
@@ -326,7 +325,7 @@ def cli_log_execution[**P, T](func: Callable[P, T]) -> Callable[P, T]:
             T: Description.
 
         """
-        logger = get_logger(func.__name__)
+        logger = FlextLogger(func.__name__)
 
         # Log command start
         logger.info("Starting CLI command: %s", func.__name__)
@@ -476,7 +475,7 @@ def cli_retry(
                 T: Description.
 
             """
-            logger = get_logger(func.__name__)
+            logger = FlextLogger(func.__name__)
             console = Console()
 
             last_exception = None
@@ -642,7 +641,7 @@ def cli_cache_result(
             if key in cache:
                 result, timestamp = cache[key]
                 if current_time - timestamp < ttl:
-                    logger = get_logger(func.__name__)
+                    logger = FlextLogger(func.__name__)
                     logger.debug(f"Using cached result for {func.__name__}")
                     return result
                 # Expired, remove from cache
@@ -703,7 +702,7 @@ def cli_inject_config(config_key: str) -> Callable[[Callable[P, T]], Callable[P,
             """
             # This would integrate with the actual configuration system
             # For now, it's a placeholder implementation
-            logger = get_logger(func.__name__)
+            logger = FlextLogger(func.__name__)
             logger.debug("Injecting configuration key: %s", config_key)
 
             # Add config to kwargs if not already present
@@ -766,7 +765,7 @@ def cli_file_operation(
                 T: Description.
 
             """
-            logger = get_logger(func.__name__)
+            logger = FlextLogger(func.__name__)
 
             if backup:
                 logger.debug(f"File operation with backup enabled: {func.__name__}")
@@ -896,10 +895,10 @@ def cli_complete(  # type: ignore[explicit-any]
     """
     return cast(  # type: ignore[explicit-any]
         "Callable[[Callable[..., T]], Callable[..., T]]",
-        FlextDecorators.complete_decorator(
-            validator_class=model_class,
-            cache_size=cache_size,
-            with_timing=with_timing,
+        FlextDecorators.Integration.create_enterprise_decorator(
+            with_validation=model_class is not None,
+            with_caching=cache_size > 0,
+            with_monitoring=with_timing,
             with_logging=with_logging,
         ),
     )

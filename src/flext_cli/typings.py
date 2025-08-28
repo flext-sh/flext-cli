@@ -18,9 +18,25 @@ import click
 from flext_core import E, F, FlextCoreTypes, FlextEntityId, FlextResult, P, R
 from rich.table import Table
 
-from flext_cli.models import FlextCliModels, FlextCliOutputFormat
+# Move FlextCliOutputFormat here to avoid circular dependencies
 
-CommandType = FlextCliModels.CommandType
+
+class FlextCliOutputFormat(StrEnum):
+    """CLI output format enumeration."""
+
+    TABLE = "table"
+    JSON = "json"
+    YAML = "yaml"
+    CSV = "csv"
+    PLAIN = "plain"
+
+
+class CommandType(StrEnum):
+    """CLI command type enumeration."""
+
+    SYSTEM = "system"
+    INTERACTIVE = "interactive"
+    BATCH = "batch"
 
 
 class CommandStatus(StrEnum):

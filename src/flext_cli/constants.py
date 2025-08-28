@@ -43,7 +43,9 @@ class FlextCliConstants(FlextConstants):
 
     # API defaults - delegate to flext-core Platform constants
     DEFAULT_API_URL: str = f"{FlextConstants.Platform.DEFAULT_BASE_URL}:{FlextConstants.Platform.FLEXT_API_PORT}"
-    DEFAULT_TIMEOUT: int = FlextConstants.Defaults.TIMEOUT
+    DEFAULT_TIMEOUT: int = (
+        30  # Use value from flext-core: FlextConstants.Defaults.TIMEOUT
+    )
     DEFAULT_RETRIES: int = FlextConstants.Defaults.MAX_RETRIES
 
     # Output defaults - delegate to flext-core
@@ -55,7 +57,7 @@ class FlextCliConstants(FlextConstants):
 
     # Environment configuration - delegate to flext-core
     ENV_PREFIX: str = CLI_ENV_PREFIX  # Use CLI-specific prefix
-    ENV_FILE: str = FlextConstants.Configuration.DOTENV_FILES[0]
+    ENV_FILE: str = FlextConstants.Config.DOTENV_FILES[0]
 
     # Validation limits - delegate to flext-core
     MAX_TIMEOUT: int = FlextConstants.Limits.MAX_PORT  # Reuse appropriate limit
@@ -79,7 +81,7 @@ class FlextCliConstants(FlextConstants):
     Defaults = FlextConstants.Defaults
     Limits = FlextConstants.Limits
     Performance = FlextConstants.Performance
-    Configuration = FlextConstants.Configuration
+    Configuration = FlextConstants.Config
     Infrastructure = FlextConstants.Infrastructure
     Models = FlextConstants.Models
     Observability = FlextConstants.Observability

@@ -17,19 +17,19 @@ from typing import cast
 import yaml
 from flext_core import (
     FlextEntityId,
+    FlextLogger,
     FlextResult,
     FlextUtilities,
-    get_logger,
     safe_call,
 )
 
-from flext_cli.cli_types import FlextCliOutputFormat, OutputData
 from flext_cli.config import FlextCliConfig
 from flext_cli.models import (
     FlextCliCommand,
     FlextCliPlugin,
     FlextCliSession,
 )
+from flext_cli.typings import FlextCliOutputFormat, OutputData
 
 # Export imports for test access
 __all__: list[str] = [
@@ -61,7 +61,7 @@ class FlextCliService(FlextService):
 
     def __init__(self) -> None:
         """Initialize CLI service with all functionality."""
-        self.logger = get_logger(__name__)
+        self.logger = FlextLogger(__name__)
         self._config: FlextCliConfig | None = None
 
         # Restored from backup - full functionality
@@ -145,8 +145,9 @@ class FlextCliService(FlextService):
     ) -> FlextResult[bool]:
         """Export data to file in specified format."""
         try:
-            # Use unwrap_or() for cleaner code following user's example pattern
-            formatted_data = self.flext_cli_format(data, format_type).unwrap_or("")
+            # Use modern FlextResult pattern following flext-core standards
+            format_result = self.flext_cli_format(data, format_type)
+            formatted_data = format_result.value if format_result.is_success else ""
             if not formatted_data:
                 return FlextResult[bool].fail("Formatting failed: Empty result")
             path_obj = Path(path)

@@ -32,7 +32,7 @@ def handle_service_result(result: object) -> object:
 
     """
     if isinstance(result, FlextResult):
-        return result.data if result.success else result.error
+        return result.value if result.is_success else result.error
     return result
 
 

@@ -24,7 +24,7 @@ class FlextCliArgsProvider:
 
     def get_priority(self) -> int:
         """Get provider priority."""
-        return FlextConstants.Configuration.CLI_PRIORITY
+        return FlextConstants.Config.CLI_PRIORITY
 
     def get_all(self) -> dict[str, object]:
         """Get all CLI arguments."""
@@ -45,7 +45,7 @@ class FlextConstantsProvider:
 
     def get_priority(self) -> int:
         """Get provider priority."""
-        return FlextConstants.Configuration.CONSTANTS_PRIORITY
+        return FlextConstants.Config.CONSTANTS_PRIORITY
 
     def get_all(self) -> dict[str, object]:
         """Get all constants."""
