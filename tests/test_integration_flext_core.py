@@ -196,10 +196,9 @@ class TestFlextCoreDomainEntityIntegration:
         plugin_status_values = [status.value for status in PluginStatus]
         assert hasattr(plugin, "plugin_status")
         # Plugin status should be one of the valid enum values
-        assert (
-            str(plugin.plugin_status) in plugin_status_values
-            or plugin.plugin_status in list(PluginStatus)
-        )
+        assert str(
+            plugin.plugin_status
+        ) in plugin_status_values or plugin.plugin_status in list(PluginStatus)
 
         # Activation - returns FlextResult with new instance (railway-oriented programming)
         activated_result = plugin.activate()
@@ -479,7 +478,7 @@ class TestFlextCoreErrorHandlingIntegration:
             assert config is not None
             assert settings is not None
         except Exception:
-            # Any exceptions should be informative
+            # object exceptions should be informative
             pytest.fail("Exception occurred during execution")
 
 

@@ -50,7 +50,7 @@ def get_cli_config(*, reload: bool = False) -> FlextCliConfig:
 
     Deprecated: Use FlextCliConfig() directly for new instances.
     """
-    global _config  # noqa: PLW0603
+    global _config
     if reload or _config is None:
         _config = _create_cli_config()
     return _config

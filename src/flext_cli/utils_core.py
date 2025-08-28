@@ -67,7 +67,9 @@ def _load_config_file(path: str | Path) -> FlextResult[dict[str, object]]:
                 yaml.safe_load(p.read_text(encoding="utf-8")) or {}
             )
         if p.suffix.lower() == ".json":
-            parsed_data = FlextUtilities.safe_json_parse(p.read_text(encoding="utf-8"))
+            parsed_data = FlextUtilities.ProcessingUtils.safe_json_parse(
+                p.read_text(encoding="utf-8")
+            )
             return FlextResult[dict[str, object]].ok(parsed_data)
         return FlextResult[dict[str, object]].fail("Unsupported config format")
     except Exception as e:
@@ -226,12 +228,12 @@ def flext_cli_output_data(
     format_type: str,
     *,
     console: Console,
-    indent: int | None = None,  # noqa: ARG001
+    indent: int | None = None,
 ) -> FlextResult[bool]:
     """Render data to console in the specified format."""
     try:
         if format_type == "json":
-            console.print(FlextUtilities.safe_json_stringify(data))
+            console.print(FlextUtilities.ProcessingUtils.safe_json_stringify(data))
         elif format_type == "yaml":
             console.print(yaml.dump(data, default_flow_style=False))
         elif format_type == "table":
@@ -322,7 +324,9 @@ def flext_cli_load_file(
         if suffix in {".yml", ".yaml"}:
             return FlextResult[object].ok(yaml.safe_load(p.read_text(encoding="utf-8")))
         if suffix == ".json":
-            parsed_data = FlextUtilities.safe_json_parse(p.read_text(encoding="utf-8"))
+            parsed_data = FlextUtilities.ProcessingUtils.safe_json_parse(
+                p.read_text(encoding="utf-8")
+            )
             return FlextResult[object].ok(parsed_data)
         return FlextResult[object].fail("Unsupported file format")
     except Exception as e:
@@ -337,7 +341,10 @@ def flext_cli_save_file(data: object, file_path: str | Path) -> FlextResult[bool
         if p.suffix.lower() in {".yml", ".yaml"}:
             p.write_text(yaml.dump(data, default_flow_style=False), encoding="utf-8")
         elif p.suffix.lower() == ".json":
-            p.write_text(FlextUtilities.safe_json_stringify(data), encoding="utf-8")
+            p.write_text(
+                FlextUtilities.ProcessingUtils.safe_json_stringify(data),
+                encoding="utf-8",
+            )
         else:
             p.write_text(str(data), encoding="utf-8")
         return FlextResult[bool].ok(data=True)

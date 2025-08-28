@@ -151,7 +151,9 @@ class TestFlextCliCommandService:
 
         # Create a concrete subclass for testing
         class ConcreteCommandService(FlextCliCommandService[str]):
-            def execute_command(self, command: str, *args: object, **kwargs: object) -> FlextResult[str]:
+            def execute_command(
+                self, command: str, *args: object, **kwargs: object
+            ) -> FlextResult[str]:
                 return FlextResult[str].ok("service executed")
 
         self.ConcreteCommandService = ConcreteCommandService
@@ -577,7 +579,7 @@ class TestFlextCliInteractiveService:
             service_name="mock_service", mock_input="mocked response"
         )
 
-        result = service.prompt_user("Any prompt:")
+        result = service.prompt_user("object prompt:")
 
         assert result.is_success
         assert result.value == "mocked response"

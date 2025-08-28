@@ -35,6 +35,18 @@ with contextlib.suppress(ImportError, AttributeError, SyntaxError):
 with contextlib.suppress(ImportError, AttributeError, SyntaxError):
     from flext_cli.typings import *
 
+with contextlib.suppress(ImportError, AttributeError, SyntaxError):
+    from flext_cli.decorators import *
+
+with contextlib.suppress(ImportError, AttributeError, SyntaxError):
+    from flext_cli.utils_core import flext_cli_output_data
+
+with contextlib.suppress(ImportError, AttributeError, SyntaxError):
+    from flext_cli.config import get_cli_config
+
+with contextlib.suppress(ImportError, AttributeError, SyntaxError):
+    from flext_cli.simple_api import setup_cli
+
 # CLI-specific exports
 __all__ = [
     # From core_bridge
@@ -51,6 +63,16 @@ __all__ = [
     "FlextContainer",
     "get_flext_container",
     "flext_service",
+    # From decorators
+    "cli_handle_keyboard_interrupt",
+    "flext_cli_handle_keyboard_interrupt",
+    "cli_measure_time",
+    # From utils_core
+    "flext_cli_output_data",
+    # From config
+    "get_cli_config",
+    # From simple_api
+    "setup_cli",
     # Version
     "__version__",
 ]

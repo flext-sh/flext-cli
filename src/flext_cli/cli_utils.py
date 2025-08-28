@@ -199,7 +199,7 @@ def _process_single_file(
         return False, None
 
 
-def cli_quick_setup(  # noqa: PLR0912
+def cli_quick_setup(
     project_name: str,
     *,
     create_dirs: bool = True,
@@ -517,7 +517,7 @@ def cli_save_data_file(
 def _save_json_file(data: FlextCliData, path: Path) -> FlextResult[None]:
     """Save data as JSON file using FlextUtilities."""
     try:
-        json_content = FlextUtilities.safe_json_stringify(data)
+        json_content = FlextUtilities.ProcessingUtils.safe_json_stringify(data)
         path.write_text(json_content, encoding="utf-8")
         return FlextResult[None].ok(None)
     except (OSError, TypeError) as e:
@@ -762,7 +762,7 @@ def cli_create_table(
 # Legacy functions removed - using FlextResult pattern consistently
 
 
-def cli_format_output(  # noqa: PLR0912, PLR0915
+def cli_format_output(
     data: FlextCliData,
     format_type: FlextCliOutputFormat | str = FlextCliOutputFormat.TABLE,
     **options: object,
@@ -801,7 +801,7 @@ def cli_format_output(  # noqa: PLR0912, PLR0915
 
         if format_type == FlextCliOutputFormat.JSON:
             # Use FlextUtilities for consistent JSON formatting
-            formatted = FlextUtilities.safe_json_stringify(data)
+            formatted = FlextUtilities.ProcessingUtils.safe_json_stringify(data)
         elif format_type == FlextCliOutputFormat.YAML:
             output = io.StringIO()
             yaml.dump(data, output, default_flow_style=False, allow_unicode=True)

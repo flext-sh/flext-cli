@@ -9,29 +9,31 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Any, TypeVar
+from typing import TypeVar, object
 
 T = TypeVar("T")
 
 # Safe imports from flext-core with fallbacks - handle all issues gracefully
 try:
     from flext_core import FlextEntity, FlextEntityId, FlextResult
+
     FLEXT_CORE_AVAILABLE = True
 except (ImportError, AttributeError, SyntaxError) as e:
     FLEXT_CORE_AVAILABLE = False
     # Log the issue but continue with fallbacks
     import logging
+
     logging.getLogger(__name__).debug(f"flext-core not available: {e}")
 
     # Minimal FlextResult implementation when flext-core is not available
     class FlextResult:
-        def __init__(self, value: Any = None, error: str | None = None) -> None:
+        def __init__(self, value: object = None, error: str | None = None) -> None:
             self._value = value
             self._error = error
             self._success = error is None
 
         @property
-        def value(self) -> Any:
+        def value(self) -> object:
             return self._value
 
         @property
@@ -47,7 +49,7 @@ except (ImportError, AttributeError, SyntaxError) as e:
             return not self._success
 
         @classmethod
-        def ok(cls, value: Any = None) -> FlextResult:
+        def ok(cls, value: object = None) -> FlextResult:
             return cls(value=value, error=None)
 
         @classmethod
@@ -82,12 +84,14 @@ def get_logger(name: str):
     if FLEXT_CORE_AVAILABLE:
         try:
             from flext_core import FlextLogger
+
             return FlextLogger(name)
         except ImportError:
             pass
 
     # Fallback to standard logging
     import logging
+
     return logging.getLogger(name)
 
 

@@ -25,7 +25,8 @@ from __future__ import annotations
 
 import os
 from datetime import UTC, datetime, timedelta
-from typing import Any
+
+object
 
 from flext_core import FlextResult
 from rich.console import Console
@@ -291,7 +292,7 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
 
 def simulate_authenticated_request(
     _client: FlextApiClient, endpoint: str
-) -> FlextResult[dict[str, Any]]:
+) -> FlextResult[dict[str, object]]:
     """Simulate an authenticated API request."""
     try:
         # In a real implementation, this would make an actual HTTP request
@@ -321,10 +322,10 @@ def simulate_authenticated_request(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        return FlextResult[dict[str, Any]].ok(response_data)
+        return FlextResult[dict[str, object]].ok(response_data)
 
     except Exception as e:
-        return FlextResult[dict[str, Any]].fail(f"API request failed: {e}")
+        return FlextResult[dict[str, object]].fail(f"API request failed: {e}")
 
 
 def perform_protected_business_logic() -> FlextResult[str]:
@@ -348,7 +349,7 @@ def perform_protected_business_logic() -> FlextResult[str]:
 
 
 def check_permission(
-    user_role: str, required_permission: str, roles_config: list[dict[str, Any]]
+    user_role: str, required_permission: str, roles_config: list[dict[str, object]]
 ) -> FlextResult[bool]:
     """Check if user role has required permission."""
     try:
@@ -374,7 +375,7 @@ def check_permission(
         return FlextResult[bool].fail(f"Permission check failed: {e}")
 
 
-def validate_session(session_data: dict[str, Any]) -> FlextResult[bool]:
+def validate_session(session_data: dict[str, object]) -> FlextResult[bool]:
     """Validate session data and expiration."""
     try:
         current_time = datetime.now(UTC)
@@ -398,7 +399,7 @@ def validate_session(session_data: dict[str, Any]) -> FlextResult[bool]:
         return FlextResult[bool].fail(f"Session validation error: {e}")
 
 
-def refresh_session(session_data: dict[str, Any]) -> FlextResult[dict[str, Any]]:
+def refresh_session(session_data: dict[str, object]) -> FlextResult[dict[str, object]]:
     """Refresh session with new expiration time."""
     try:
         current_time = datetime.now(UTC)
@@ -411,10 +412,10 @@ def refresh_session(session_data: dict[str, Any]) -> FlextResult[dict[str, Any]]
             "refreshed_at": current_time,
         })
 
-        return FlextResult[dict[str, Any]].ok(refreshed_session)
+        return FlextResult[dict[str, object]].ok(refreshed_session)
 
     except Exception as e:
-        return FlextResult[dict[str, Any]].fail(f"Session refresh failed: {e}")
+        return FlextResult[dict[str, object]].fail(f"Session refresh failed: {e}")
 
 
 def main() -> None:
