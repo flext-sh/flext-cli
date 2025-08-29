@@ -216,7 +216,7 @@ class TestModuleStructure:
             "Protocol",  # from typing import Protocol
             "Table",  # from rich.table import Table
             "Literal",  # from typing import Literal
-            "FlextEntityId",  # from flext_core import FlextEntityId
+            "FlextModels.EntityId",  # from flext_core import FlextModels
             "CoreFlextTypes",  # from flext_core.typings import FlextTypes as CoreFlextTypes
             "TypeVar",  # from typing import TypeVar
             "Path",  # from pathlib import Path

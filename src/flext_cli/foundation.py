@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import (
-    FlextEntity,
+    FlextModels.Entity,
     FlextResult,
 )
 
@@ -16,7 +16,7 @@ from flext_cli.config import FlextCliConfig
 from flext_cli.config_hierarchical import create_default_hierarchy
 
 
-class FlextCliEntity(FlextEntity):
+class FlextCliEntity(FlextModels.Entity):
     """Modern CLI entity with zero boilerplate following foundation-refactored.md patterns.
 
     Automatic Features (Zero Configuration):

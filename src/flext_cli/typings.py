@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Protocol
 
 import click
-from flext_core import E, F, FlextCoreTypes, FlextEntityId, FlextResult, P, R
+from flext_core import E, F, FlextCoreTypes, FlextModels.EntityId, FlextResult, P, R
 from rich.table import Table
 
 # Move FlextCliOutputFormat here to avoid circular dependencies
@@ -106,7 +106,7 @@ class FlextCliTypes(FlextCoreTypes):
         OutputFormat = FlextCliOutputFormat
 
         # Entity identifiers - aliases para compatibilidade
-        EntityId = FlextEntityId
+        EntityId = FlextModels.EntityId
         TUserId = str
 
         # Configuration types - usando FlextCoreTypes como base

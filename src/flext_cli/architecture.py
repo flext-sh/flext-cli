@@ -34,7 +34,7 @@ class FlextDomainService(ABC):
         """Execute domain service operation."""
 
 
-class FlextEntity(ABC):
+class FlextModels.Entity(ABC):
     """Base entity class following FLEXT patterns."""
 
     def __init__(self, **kwargs) -> None:
@@ -174,7 +174,7 @@ __all__ = [
     "FlextCommandHandler",
     # Domain Layer
     "FlextDomainService",
-    "FlextEntity",
+    "FlextModels.Entity",
     "FlextExternalService",
     # Factory Pattern
     "FlextFactory",

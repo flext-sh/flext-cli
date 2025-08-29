@@ -17,7 +17,7 @@ import time
 from pathlib import Path
 
 import pytest
-from flext_core import FlextEntityId, FlextResult
+from flext_core import FlextModels, FlextResult
 
 from flext_cli import (
     CLICommand,
@@ -128,7 +128,7 @@ class TestFlextCliPublicInterface:
             session = FlextCliSession(session_id="real-test-session")
 
             # Test session command tracking with real functionality
-            command_id = FlextEntityId("test-command-1")
+            command_id = FlextModels.EntityId("test-command-1")
             add_result = session.add_command(command_id)
             assert add_result.is_success
             updated_session = add_result.value  # Use .value instead of .value
@@ -327,7 +327,7 @@ class TestFlextCliPublicInterface:
 
             # Add commands and then end session
             for i in range(5):
-                command_id = FlextEntityId(f"cleanup-cmd-{i}")
+                command_id = FlextModels.EntityId(f"cleanup-cmd-{i}")
                 add_result = session.add_command(command_id)
                 if add_result.is_success:
                     session = add_result.value  # Use .value for clean updates
@@ -411,6 +411,7 @@ class TestFlextCliHelpers:
 
     def test_flext_result_chaining_patterns(self) -> None:
         """Test FlextResult chaining patterns for complex operations."""
+
         # Test chaining operations with FlextResult
         def create_and_setup_cli() -> FlextResult[tuple[FlextCliSettings, bool]]:
             try:
@@ -418,12 +419,10 @@ class TestFlextCliHelpers:
                 setup_result = setup_cli(settings)
 
                 if setup_result.is_success:
-                    return FlextResult[tuple[FlextCliSettings, bool]].ok(
-                        (
-                            settings,
-                            setup_result.value,
-                        )
-                    )
+                    return FlextResult[tuple[FlextCliSettings, bool]].ok((
+                        settings,
+                        setup_result.value,
+                    ))
                 error_msg = setup_result.error or "Setup failed"
                 return FlextResult[tuple[FlextCliSettings, bool]].fail(error_msg)
             except Exception as e:

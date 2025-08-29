@@ -14,12 +14,12 @@ from typing import ClassVar, override
 
 from flext_core import (
     FlextAggregates,
-    FlextEntity,
-    FlextEntityId,
+    FlextModels.Entity,
+    FlextModels.EntityId,
     FlextLogger,
     FlextResult,
     FlextUtilities,
-    FlextValue,
+    FlextModels.Value,
 )
 from pydantic import ConfigDict, Field, field_validator
 
@@ -144,7 +144,7 @@ SessionStatus = FlextCliModels.SessionState
 # FlextCliContext moved to context.py - import from there
 
 
-class FlextCliOutput(FlextValue):
+class FlextCliOutput(FlextModels.Value):
     """CLI command output value object.
 
     Immutable container for command execution results including stdout,
@@ -237,7 +237,7 @@ class FlextCliOutput(FlextValue):
         return "\n\n".join(result)
 
 
-class FlextCliConfiguration(FlextValue):
+class FlextCliConfiguration(FlextModels.Value):
     """CLI configuration value object.
 
     Immutable configuration container for CLI application settings,
@@ -352,11 +352,11 @@ class FlextCliConfiguration(FlextValue):
 # =============================================================================
 
 
-class FlextCliCommand(FlextEntity):
+class FlextCliCommand(FlextModels.Entity):
     """CLI command execution entity.
 
     Represents a CLI command with full execution lifecycle management,
-    extending FlextEntity with CLI-specific business logic.
+    extending FlextModels.Entity with CLI-specific business logic.
 
     Business Rules:
       - Command line must not be empty
@@ -368,8 +368,8 @@ class FlextCliCommand(FlextEntity):
     # Allow unknown/convenience fields and id auto-generation
     model_config = ConfigDict(extra="allow")
     # Override id to allow default generation for testing convenience
-    id: FlextEntityId | str = Field(
-        default_factory=lambda: FlextEntityId(FlextUtilities.generate_id()),
+    id: FlextModels.EntityId | str = Field(
+        default_factory=lambda: FlextModels.EntityId(FlextUtilities.generate_id()),
     )
     name: str | None = Field(default=None, description="Optional command name")
     description: str | None = Field(default=None, description="Optional description")
@@ -743,7 +743,7 @@ _logger = FlextLogger(__name__)
 #     )
 
 
-class FlextCliSession(FlextEntity):
+class FlextCliSession(FlextModels.Entity):
     """CLI session tracking entity.
 
     Manages CLI session state with command history, user context,
@@ -758,8 +758,8 @@ class FlextCliSession(FlextEntity):
     # Allow unknown convenience fields and provide default id
     model_config = ConfigDict(extra="allow")
     # Provide default id for testing convenience that omit it
-    id: FlextEntityId | str = Field(
-        default_factory=lambda: FlextEntityId(FlextUtilities.generate_id()),
+    id: FlextModels.EntityId | str = Field(
+        default_factory=lambda: FlextModels.EntityId(FlextUtilities.generate_id()),
     )
     user_id: str | None = Field(
         default=None,
@@ -782,11 +782,11 @@ class FlextCliSession(FlextEntity):
         default="",
         description="Testing convenience session identifier",
     )
-    command_history: list[FlextEntityId] = Field(
-        default_factory=list[FlextEntityId],
+    command_history: list[FlextModels.EntityId] = Field(
+        default_factory=list[FlextModels.EntityId],
         description="History of command IDs executed in this session",
     )
-    current_command_id: FlextEntityId | None = Field(
+    current_command_id: FlextModels.EntityId | None = Field(
         default=None,
         description="ID of currently executing command",
     )
@@ -868,7 +868,7 @@ class FlextCliSession(FlextEntity):
 
         return FlextResult[None].ok(None)
 
-    def add_command(self, command_id: FlextEntityId) -> FlextResult[FlextCliSession]:
+    def add_command(self, command_id: FlextModels.EntityId) -> FlextResult[FlextCliSession]:
         """Add command to session history."""
         if not self.is_active:
             return FlextResult[FlextCliSession].fail(
@@ -915,7 +915,7 @@ class FlextCliSession(FlextEntity):
 
     def flext_cli_record_command(self, command_name: str) -> bool:
         try:
-            updated = self.add_command(command_id=FlextEntityId(command_name))
+            updated = self.add_command(command_id=FlextModels.EntityId(command_name))
             if updated.is_success:
                 # assign back
                 new_obj = updated.value
@@ -1071,7 +1071,7 @@ class FlextCliSession(FlextEntity):
 #     )
 
 
-class FlextCliPlugin(FlextEntity):
+class FlextCliPlugin(FlextModels.Entity):
     """CLI plugin management entity.
 
     Manages plugin lifecycle, metadata, and integration with the CLI system.
@@ -1085,8 +1085,8 @@ class FlextCliPlugin(FlextEntity):
     # Allow unknown convenience fields and provide default id
     model_config = ConfigDict(extra="allow")
     # Provide default id for testing convenience that omit it
-    id: FlextEntityId | str = Field(
-        default_factory=lambda: FlextEntityId(FlextUtilities.generate_id()),
+    id: FlextModels.EntityId | str = Field(
+        default_factory=lambda: FlextModels.EntityId(FlextUtilities.generate_id()),
     )
     name: str = Field(
         ...,
@@ -1496,11 +1496,11 @@ class FlextCliWorkspace(FlextAggregates):
         default_factory=FlextCliConfiguration,
         description="Workspace configuration",
     )
-    session_ids: list[FlextEntityId] = Field(
+    session_ids: list[FlextModels.EntityId] = Field(
         default_factory=list,
         description="Active session IDs in this workspace",
     )
-    plugin_ids: list[FlextEntityId] = Field(
+    plugin_ids: list[FlextModels.EntityId] = Field(
         default_factory=list,
         description="Installed plugin IDs",
     )
@@ -1519,7 +1519,7 @@ class FlextCliWorkspace(FlextAggregates):
 
         return FlextResult[None].ok(None)
 
-    def add_session(self, session_id: FlextEntityId) -> FlextResult[FlextCliWorkspace]:
+    def add_session(self, session_id: FlextModels.EntityId) -> FlextResult[FlextCliWorkspace]:
         """Add session to workspace."""
         validation_result = self.validate_business_rules()
         if validation_result.is_failure:
@@ -1557,7 +1557,7 @@ class FlextCliWorkspace(FlextAggregates):
 
     def remove_session(
         self,
-        session_id: FlextEntityId,
+        session_id: FlextModels.EntityId,
     ) -> FlextResult[FlextCliWorkspace]:
         """Remove session from workspace."""
         if session_id not in self.session_ids:
@@ -1590,7 +1590,7 @@ class FlextCliWorkspace(FlextAggregates):
 
     def install_plugin(
         self,
-        plugin_id: FlextEntityId,
+        plugin_id: FlextModels.EntityId,
     ) -> FlextResult[FlextCliWorkspace]:
         """Install plugin in workspace."""
         if plugin_id in self.plugin_ids:

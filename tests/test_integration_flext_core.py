@@ -110,7 +110,7 @@ class TestFlextCoreDomainEntityIntegration:
         assert hasattr(command, "version")
         assert hasattr(command, "domain_events")
 
-        # ID should be string-like (FlextEntity pattern supports FlextEntityId)
+        # ID should be string-like (FlextModels.Entity pattern supports FlextModels.EntityId)
         assert hasattr(command.id, "__str__")  # Can be converted to string
         assert str(command.id)  # Has string representation
 
@@ -184,7 +184,7 @@ class TestFlextCoreDomainEntityIntegration:
             commands=["test", "validate"],
         )
 
-        # Domain entity properties (what flext-core FlextEntity actually provides)
+        # Domain entity properties (what flext-core FlextModels.Entity actually provides)
         assert hasattr(plugin, "id")
         assert hasattr(plugin, "version")  # flext-core provides version tracking
         # Check for entity status or plugin_status
@@ -644,7 +644,7 @@ class TestFlextCorePatternCompliance:
         )
 
         # Should have UUID ID compatible with repository pattern
-        # FlextEntityId wraps UUID but provides string representation
+        # FlextModels.EntityId wraps UUID but provides string representation
         command_id_str = str(command.id)
         assert isinstance(command_id_str, str)
         # Verify it's a valid UUID format by parsing it

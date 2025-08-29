@@ -186,7 +186,7 @@ def _summary_demo(console: Console) -> None:
             "Type-safe settings with validation",
         ),
         ("FlextContainer", "Dependency injection", "Service management & testing"),
-        ("FlextEntity", "Domain entity factories", "Business rule validation"),
+        ("FlextModels.Entity", "Domain entity factories", "Business rule validation"),
         ("Decorators", "Service result handling", "Automatic error management"),
     ]
 
@@ -297,7 +297,7 @@ def create_sample_session_with_factory(
         # Factory creates validated session entity
         # Factory creates validated session entity using simplified API
         try:
-            # FlextEntityId already imported at top
+            # FlextModels.EntityId already imported at top
             session_id = (
                 f"foundation-demo-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}"
             )

@@ -15,7 +15,7 @@ T = TypeVar("T")
 
 # Safe imports from flext-core with fallbacks - handle all issues gracefully
 try:
-    from flext_core import FlextEntity, FlextEntityId, FlextResult
+    from flext_core import FlextModels.Entity, FlextModels.EntityId, FlextResult
 
     FLEXT_CORE_AVAILABLE = True
 except (ImportError, AttributeError, SyntaxError) as e:
@@ -56,8 +56,8 @@ except (ImportError, AttributeError, SyntaxError) as e:
         def fail(cls, error: str) -> FlextResult:
             return cls(value=None, error=error)
 
-    # Minimal FlextEntity when flext-core is not available
-    class FlextEntity:
+    # Minimal FlextModels.Entity when flext-core is not available
+    class FlextModels.Entity:
         def __init__(self, **kwargs) -> None:
             for key, value in kwargs.items():
                 setattr(self, key, value)
@@ -65,8 +65,8 @@ except (ImportError, AttributeError, SyntaxError) as e:
         def validate_business_rules(self) -> FlextResult:
             return FlextResult.ok(None)
 
-    # Minimal FlextEntityId when flext-core is not available
-    class FlextEntityId:
+    # Minimal FlextModels.EntityId when flext-core is not available
+    class FlextModels.EntityId:
         def __init__(self, id_value: str) -> None:
             self._id = id_value
 
@@ -74,12 +74,12 @@ except (ImportError, AttributeError, SyntaxError) as e:
             return self._id
 
         def __eq__(self, other: object) -> bool:
-            if isinstance(other, FlextEntityId):
+            if isinstance(other, FlextModels.EntityId):
                 return self._id == other._id
             return self._id == str(other)
 
 
-def get_logger(name: str):
+def FlextLogger(name: str):
     """Get logger - use flext-core if available, otherwise standard logging."""
     if FLEXT_CORE_AVAILABLE:
         try:
@@ -98,8 +98,8 @@ def get_logger(name: str):
 # Re-export what we have available
 __all__ = [
     "FLEXT_CORE_AVAILABLE",
-    "FlextEntity",
-    "FlextEntityId",
+    "FlextModels.Entity",
+    "FlextModels.EntityId",
     "FlextResult",
-    "get_logger",
+    "FlextLogger",
 ]
