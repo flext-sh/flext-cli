@@ -7,13 +7,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import logging
 import sys
 
 import click
 from flext_core import (
-    FlextLogger,
     __version__ as core_version,
+    get_logger,
 )
 from rich.console import Console
 
@@ -110,7 +109,7 @@ def cli(
 
 def _register_commands() -> None:
     """Register subcommand groups lazily to avoid import-time side effects."""
-    logger = logging.getLogger(__name__)
+    logger = get_logger(__name__)
 
     try:
         cli.add_command(auth)
@@ -204,7 +203,7 @@ def main() -> None:
     try:
         cli()
     except Exception:
-        logger = FlextLogger(__name__)
+        logger = get_logger(__name__)
         logger.exception("CLI execution failed")
         sys.exit(1)
 
