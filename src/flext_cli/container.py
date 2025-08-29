@@ -9,10 +9,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import logging
-
 # Import centralized container from flext-core
 from flext_core.container import FlextContainer
+from flext_core import get_logger
 
 # CLI-specific container instance
 _cli_container_initialized = False
@@ -38,7 +37,7 @@ def _register_cli_services(container: FlextContainer) -> None:
     # Register logger service for CLI
     container.register(
         "cli_logger",
-        lambda: logging.getLogger("flext_cli")
+        lambda: get_logger("flext_cli")
     )
 
     # Register CLI configuration factories (when available)
@@ -59,7 +58,7 @@ def flext_service(service_name: str, singleton: bool = False):
         container = get_flext_container()
         result = container.register(service_name, cls)
         if result.is_failure:
-            logging.getLogger(__name__).error(f"Failed to register service: {result.error}")
+            get_logger(__name__).error(f"Failed to register service: {result.error}")
         return cls
     return decorator
 
