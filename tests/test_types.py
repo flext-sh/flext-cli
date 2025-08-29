@@ -258,7 +258,9 @@ class TestFlextCliCommand:
             msg = f"Expected True, got {result}"
             raise AssertionError(msg)
         if command.command_status != FlextCliCommandStatus.FAILED:
-            msg = f"Expected {FlextCliCommandStatus.FAILED}, got {command.command_status}"
+            msg = (
+                f"Expected {FlextCliCommandStatus.FAILED}, got {command.command_status}"
+            )
             raise AssertionError(
                 msg,
             )
@@ -622,8 +624,8 @@ class TestFlextCliPlugin:
             msg = f"Expected {[]}, got {plugin.dependencies}"
             raise AssertionError(msg)
         assert plugin.commands == []
-        # FlextEntity provides automatic timestamps
-        assert hasattr(plugin, "id")  # FlextEntity provides automatic ID
+        # FlextModels.Entity provides automatic timestamps
+        assert hasattr(plugin, "id")  # FlextModels.Entity provides automatic ID
 
     def test_plugin_full_creation(self) -> None:
         """Test creating plugin with all parameters."""
@@ -718,7 +720,9 @@ class TestFlextCliSession:
         session = FlextCliSession(id="test-session-102", session_id="test-session-102")
 
         if not (session.flext_cli_record_command("test-command")):
-            msg = f"Expected True, got {session.flext_cli_record_command('test-command')}"
+            msg = (
+                f"Expected True, got {session.flext_cli_record_command('test-command')}"
+            )
             raise AssertionError(
                 msg,
             )

@@ -31,7 +31,7 @@ from enum import Enum
 
 object
 
-from flext_core import FlextResult, get_logger
+from flext_core import FlextLogger, FlextResult
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
@@ -533,7 +533,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     # Register various services
     services_to_register = [
         ("console", Console()),
-        ("logger", get_logger("demo")),
+        ("logger", FlextLogger("demo")),
         ("config", get_cli_config()),
         ("api_client", FlextApiClient()),
     ]

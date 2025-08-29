@@ -200,7 +200,7 @@ class TestCliLoggingMixin(unittest.TestCase):
     def test_logging_mixin_inheritance(self) -> None:
         """Test CliLoggingMixin properly inherits from FlextLoggableMixin."""
         # Should inherit logging capabilities from flext-core
-        assert hasattr(self.mixin, "get_logger") or hasattr(self.mixin, "logger")
+        assert hasattr(self.mixin, "FlextLogger") or hasattr(self.mixin, "logger")
 
     def test_logging_mixin_logger_access(self) -> None:
         """Test logging mixin provides logger access."""
@@ -208,8 +208,8 @@ class TestCliLoggingMixin(unittest.TestCase):
         if hasattr(self.mixin, "logger"):
             logger = self.mixin.logger
             assert logger is not None
-        elif hasattr(self.mixin, "get_logger"):
-            logger = self.mixin.get_logger()
+        elif hasattr(self.mixin, "FlextLogger"):
+            logger = self.mixin.FlextLogger()
             assert logger is not None
 
     def test_logging_multiple_messages(self) -> None:
@@ -624,9 +624,11 @@ class TestMixinIntegration(unittest.TestCase):
 
         # Step 1: Validate input (if validation method exists)
         if hasattr(complete_cli, "validate_cli_arguments"):
-            validation_result = complete_cli.validate_cli_arguments(
-                ["command", "--flag", "value"]
-            )
+            validation_result = complete_cli.validate_cli_arguments([
+                "command",
+                "--flag",
+                "value",
+            ])
             assert isinstance(validation_result, FlextResult)
 
         # Step 2: Log action (if logging method exists)

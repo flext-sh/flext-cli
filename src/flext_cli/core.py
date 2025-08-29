@@ -16,7 +16,7 @@ from typing import cast
 
 import yaml
 from flext_core import (
-    FlextEntityId,
+    FlextModels.EntityId,
     FlextLogger,
     FlextResult,
     FlextUtilities,
@@ -389,7 +389,7 @@ class FlextCliService(FlextService):
         def create_command() -> str:
             entity_id = FlextUtilities.generate_entity_id()
             command = FlextCliCommand(
-                id=FlextEntityId(str(entity_id)),  # Convert to FlextEntityId
+                id=FlextModels.EntityId(str(entity_id)),  # Convert to FlextModels.EntityId
                 name=name,
                 command_line=command_line,
             )
@@ -413,7 +413,7 @@ class FlextCliService(FlextService):
             entity_id = FlextUtilities.generate_entity_id()
             effective_user_id = user_id or f"user_{entity_id}"
             session = FlextCliSession(
-                id=FlextEntityId(str(entity_id)),  # Convert to FlextEntityId
+                id=FlextModels.EntityId(str(entity_id)),  # Convert to FlextModels.EntityId
                 user_id=effective_user_id,
             )
             self._sessions[str(session.id)] = session

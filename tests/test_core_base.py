@@ -57,8 +57,8 @@ class TestCLIContext:
         assert context.no_color is False
 
     def test_context_immutability(self, cli_context: FlextCliContext) -> None:
-        """Test CLI context immutability (FlextValue pattern)."""
-        # Should be immutable as FlextValue - expect ValueError for frozen instance
+        """Test CLI context immutability (FlextModels.Value pattern)."""
+        # Should be immutable as FlextModels.Value - expect ValueError for frozen instance
         with pytest.raises(ValueError, match="Cannot modify immutable FlextCliContext"):
             cli_context.profile = "new-profile"
 
@@ -143,7 +143,9 @@ class TestHandleServiceResult:
             return "result"
 
         if documented_function.__name__ != "documented_function":
-            msg = f"Expected {'documented_function'}, got {documented_function.__name__}"
+            msg = (
+                f"Expected {'documented_function'}, got {documented_function.__name__}"
+            )
             raise AssertionError(
                 msg,
             )

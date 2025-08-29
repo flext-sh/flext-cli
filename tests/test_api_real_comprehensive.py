@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from flext_core import FlextEntityId, FlextResult
+from flext_core import FlextModels, FlextResult
 from rich.console import Console
 from rich.table import Table
 
@@ -907,7 +907,7 @@ class TestFlextCliApi:
     def test_flext_cli_register_plugin_with_cli_plugin(self) -> None:
         """Test API register_plugin method with FlextCliPlugin instance."""
         plugin = FlextCliPlugin(
-            id=FlextEntityId(str(uuid.uuid4())),
+            id=FlextModels.EntityId(str(uuid.uuid4())),
             name="test_plugin",
             entry_point="test.plugin",
         )
@@ -922,7 +922,7 @@ class TestFlextCliApi:
         """Test API register_plugin method with generic object."""
         # Create a proper FlextCliPlugin instance to avoid validation errors
         plugin = FlextCliPlugin(
-            id=FlextEntityId(str(uuid.uuid4())),
+            id=FlextModels.EntityId(str(uuid.uuid4())),
             name="generic_plugin",
             entry_point="flext_cli.plugins.generic_plugin:main",
         )

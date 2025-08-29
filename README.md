@@ -85,8 +85,8 @@ FLEXT CLI serves as the central command hub for:
 
 - **🏗️ flext-core Integration (60%)**: Good foundations, missing enterprise patterns
   - ✅ FlextResult (railway-oriented programming)
-  - ✅ FlextEntity (domain modeling)
-  - ✅ FlextValue (immutable value objects)
+  - ✅ FlextModels.Entity (domain modeling)
+  - ✅ FlextModels.Value (immutable value objects)
   - ✅ FlextConfig (configuration)
   - ❌ FlextContainer (dependency injection)
   - ❌ CQRS (command/query separation)
@@ -198,7 +198,7 @@ FLEXT CLI follows Clean Architecture principles with full flext-core integration
 
 ```
 src/flext_cli/
-├── domain/                    # ✅ GOOD: FlextEntity domain modeling
+├── domain/                    # ✅ GOOD: FlextModels.Entity domain modeling
 │   ├── entities.py           # ✅ CLICommand, FlextCliSession, FlextCliPlugin entities
 │   ├── cli_context.py        # ✅ Value objects with validation
 │   └── cli_services.py       # ⚠️ BASIC: Services need FlextDomainService
@@ -444,7 +444,7 @@ from flext_cli.domain.entities import CLICommand, CommandStatus, CommandType
 from flext_core import FlextResult
 
 def test_command_lifecycle_with_flext_patterns():
-    # ✅ Good: Uses FlextEntity inheritance
+    # ✅ Good: Uses FlextModels.Entity inheritance
     command = CLICommand(
         name="test",
         command_line="echo hello",
@@ -502,8 +502,8 @@ pytest tests/test_integration.py -v
 - **flext-core**: Foundation library - **60% integration complete**
 
   - ✅ FlextResult (excellent railway-oriented programming)
-  - ✅ FlextEntity (good domain modeling with validation)
-  - ✅ FlextValue (proper immutable value objects)
+  - ✅ FlextModels.Entity (good domain modeling with validation)
+  - ✅ FlextModels.Value (proper immutable value objects)
   - ✅ FlextConfig (good configuration management)
   - ❌ FlextContainer (using custom SimpleDIContainer instead)
   - ❌ CQRS patterns (no command/query separation)
@@ -539,10 +539,10 @@ pytest tests/test_integration.py -v
 # commands/new_feature.py
 import click
 from rich.console import Console
-from flext_core import FlextResult, get_logger
+from flext_core import FlextResult, FlextLogger
 from flext_cli.core.base import handle_service_result
 
-logger = get_logger(__name__)
+logger = FlextLogger(__name__)
 
 @click.group()
 def new_feature():
@@ -632,11 +632,11 @@ ls -la src/flext_cli/
 
 ### ✅ **Implemented & Working**
 
-- **Clean Architecture Foundation**: Good domain layer with flext-core FlextEntity
+- **Clean Architecture Foundation**: Good domain layer with flext-core FlextModels.Entity
 - **Core Commands**: 3 command groups (auth, config, debug) functional
 - **Quality Gates**: Comprehensive validation pipeline with 90% coverage
 - **Testing**: Complete test suite with pytest framework
-- **flext-core Basics**: FlextResult, FlextEntity, FlextValue, FlextConfig
+- **flext-core Basics**: FlextResult, FlextModels.Entity, FlextModels.Value, FlextConfig
 
 ### ⚠️ **Partial Implementation**
 

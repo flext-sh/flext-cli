@@ -11,8 +11,8 @@ import sys
 
 import click
 from flext_core import (
+    FlextLogger,
     __version__ as core_version,
-    get_logger,
 )
 from rich.console import Console
 
@@ -109,7 +109,7 @@ def cli(
 
 def _register_commands() -> None:
     """Register subcommand groups lazily to avoid import-time side effects."""
-    logger = get_logger(__name__)
+    logger = FlextLogger(__name__)
 
     try:
         cli.add_command(auth)
@@ -203,7 +203,7 @@ def main() -> None:
     try:
         cli()
     except Exception:
-        logger = get_logger(__name__)
+        logger = FlextLogger(__name__)
         logger.exception("CLI execution failed")
         sys.exit(1)
 

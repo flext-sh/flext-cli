@@ -32,7 +32,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import click
-from flext_core import FlextResult, get_logger
+from flext_core import FlextLogger, FlextResult
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
@@ -58,7 +58,7 @@ class ComprehensiveCliApplication:
     def __init__(self) -> None:
         """Initialize comprehensive CLI application."""
         self.console = Console()
-        self.logger = get_logger(__name__)
+        self.logger = FlextLogger(__name__)
         self.config = get_cli_config()
         self.container = FlextContainer.get_global()
         self.api_client = FlextApiClient()

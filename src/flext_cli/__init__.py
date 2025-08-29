@@ -51,9 +51,9 @@ with contextlib.suppress(ImportError, AttributeError, SyntaxError):
 __all__ = [
     # From core_bridge
     "FlextResult",
-    "FlextEntity",
-    "FlextEntityId",
-    "get_logger",
+    "FlextModels.Entity",
+    "FlextModels.EntityId",
+    "FlextLogger",
     # From models_simple
     "FlextCliCommand",
     "FlextCliSession",
