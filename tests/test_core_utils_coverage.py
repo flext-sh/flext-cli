@@ -272,10 +272,12 @@ class TestAutoConfig:
         self, mock_load_file: MagicMock, mock_env: MagicMock
     ) -> None:
         """Test auto config with config file."""
-        mock_load_file.return_value = FlextResult[dict[str, object]].ok({
-            "debug": True,
-            "log_level": "info",
-        })
+        mock_load_file.return_value = FlextResult[dict[str, object]].ok(
+            {
+                "debug": True,
+                "log_level": "info",
+            }
+        )
         mock_env.return_value = {"timeout": 30}
 
         result = flext_cli_auto_config(profile="default", config_files=["config.json"])

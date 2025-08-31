@@ -23,34 +23,39 @@ from rich.table import Table
 from flext_cli.client import FlextApiClient
 
 
-class CliContextObj(TypedDict, total=False):
-    """Type definition for Click context object."""
+class FlextDebug:
+    """Debug utilities and commands for FLEXT CLI.
 
-    console: Console
-    config: object
-    profile: str
-    debug: bool
+    Consolidates debug functionality and type definitions.
+    """
+
+    class CliContextObj(TypedDict, total=False):
+        """Type definition for Click context object."""
+
+        console: Console
+        config: object
+        profile: str
+        debug: bool
+
+    class SystemStatus(TypedDict, total=False):
+        """Type definition for system status response."""
+
+        version: str
+        status: str
+        uptime: str
 
 
-class SystemStatus(TypedDict, total=False):
-    """Type definition for system status response."""
-
-    version: str
-    status: str
-    uptime: str
-
-
-def _get_cli_context_obj(ctx_obj: object) -> CliContextObj:
+def _get_cli_context_obj(ctx_obj: object) -> FlextDebug.CliContextObj:
     """Extract CLI context object with proper typing."""
     if isinstance(ctx_obj, dict):
-        return cast("CliContextObj", ctx_obj)
-    return CliContextObj()
+        return cast("FlextDebug.CliContextObj", ctx_obj)
+    return FlextDebug.CliContextObj()
 
 
-def _get_status_dict(status_obj: object) -> SystemStatus | None:
+def _get_status_dict(status_obj: object) -> FlextDebug.SystemStatus | None:
     """Extract system status with proper typing."""
     if isinstance(status_obj, dict):
-        return cast("SystemStatus", status_obj)
+        return cast("FlextDebug.SystemStatus", status_obj)
     return None
 
 
@@ -99,7 +104,7 @@ def connectivity(ctx: click.Context) -> None:
         error_console.print("[red]❌ CLI context not available[/red]")
         ctx.exit(1)
 
-    obj: CliContextObj = _get_cli_context_obj(ctx.obj)
+    obj: FlextDebug.CliContextObj = _get_cli_context_obj(ctx.obj)
     console_obj = obj.get("console", Console())
     console: Console = console_obj if isinstance(console_obj, Console) else Console()
 
@@ -281,7 +286,7 @@ def validate(ctx: click.Context) -> None:
         error_console.print("[red]❌ CLI context not available[/red]")
         ctx.exit(1)
 
-    obj: CliContextObj = _get_cli_context_obj(ctx.obj)
+    obj: FlextDebug.CliContextObj = _get_cli_context_obj(ctx.obj)
     console_obj = obj.get("console", Console())
     console: Console = console_obj if isinstance(console_obj, Console) else Console()
     cfg = get_config()
@@ -318,7 +323,7 @@ def trace(ctx: click.Context, args: tuple[str, ...]) -> None:
         error_console.print("[red]❌ CLI context not available[/red]")
         ctx.exit(1)
 
-    obj: CliContextObj = _get_cli_context_obj(ctx.obj)
+    obj: FlextDebug.CliContextObj = _get_cli_context_obj(ctx.obj)
     console_obj = obj.get("console", Console())
     console: Console = console_obj if isinstance(console_obj, Console) else Console()
     console.print(f"Tracing: {' '.join(args)}")
@@ -396,7 +401,7 @@ def check(ctx: click.Context) -> None:
         error_console.print("[red]❌ CLI context not available[/red]")
         ctx.exit(1)
 
-    obj: CliContextObj = _get_cli_context_obj(ctx.obj)
+    obj: FlextDebug.CliContextObj = _get_cli_context_obj(ctx.obj)
     console_obj = obj.get("console", Console())
     console: Console = console_obj if isinstance(console_obj, Console) else Console()
     console.print("[green]System OK[/green]")
@@ -411,3 +416,6 @@ def check(ctx: click.Context) -> None:
 # debug_cmd._validate_dependencies = _validate_dependencies
 # debug_cmd.Table = Table
 # debug_cmd.Path = Path
+
+
+__all__ = ["FlextDebug"]

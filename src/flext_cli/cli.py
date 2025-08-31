@@ -17,12 +17,12 @@ from flext_core import (
 from rich.console import Console
 
 from flext_cli.__version__ import __version__
-from flext_cli.commands_auth import auth
-from flext_cli.commands_config import config
-from flext_cli.commands_debug import debug_cmd as debug
-from flext_cli.config import get_config
+from flext_cli.auth import auth
+from flext_cli.cmd import config
+from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
+from flext_cli.debug import debug_cmd
 
 
 @click.group(
@@ -66,7 +66,7 @@ def cli(
 ) -> None:
     """FLEXT Command Line Interface."""
     # Load configuration and override with CLI options
-    base_config = get_config()
+    base_config = FlextCliConfig()
 
     # Create new config with CLI overrides using model_copy
     config = base_config.model_copy(
@@ -80,7 +80,9 @@ def cli(
     console = Console(quiet=quiet)
 
     # Create CLI context with correct fields (SOLID: Single Responsibility)
-    cli_context = FlextCliContext()
+    import uuid
+
+    cli_context = FlextCliContext(id=str(uuid.uuid4()), config=config, console=console)
 
     ctx.ensure_object(dict)
     ctx.obj["config"] = config
@@ -92,13 +94,13 @@ def cli(
     # Debug information
     if debug:
         console.print(
-            f"[dim]{FlextCliConstants.CliMessages.LABEL_PROFILE}: {profile}[/dim]",
+            f"[dim]{"Profile"}: {profile}[/dim]",
         )
         console.print(
-            f"[dim]{FlextCliConstants.CliMessages.LABEL_OUTPUT_FORMAT}: {output}[/dim]",
+            f"[dim]{"Output Format"}: {output}[/dim]",
         )
         console.print(
-            f"[dim]{FlextCliConstants.CliMessages.LABEL_DEBUG_MODE}: {debug}[/dim]",
+            f"[dim]{"Debug Mode"}: {debug}[/dim]",
         )
 
     # Show help if no command:
@@ -122,7 +124,7 @@ def _register_commands() -> None:
         logger.debug("Failed to register config command: %s", e, exc_info=True)
 
     try:
-        cli.add_command(debug)
+        cli.add_command(debug_cmd)
     except Exception as e:
         logger.debug("Failed to register debug command: %s", e, exc_info=True)
 
@@ -136,12 +138,12 @@ def interactive(ctx: click.Context) -> None:
     """Start interactive mode with REPL interface."""
     console = ctx.obj["console"]
     console.print(
-        f"[yellow]{FlextCliConstants.CliMessages.INTERACTIVE_COMING}[/yellow]",
+        f"[yellow]{"Interactive mode coming soon!"}[/yellow]",
     )
-    console.print(FlextCliConstants.CliMessages.INTERACTIVE_PLANNED)
-    console.print(f"   {FlextCliConstants.CliMessages.INTERACTIVE_FEATURE_REPL}")
-    console.print(f"   {FlextCliConstants.CliMessages.INTERACTIVE_FEATURE_COMPLETION}")
-    console.print(f"   {FlextCliConstants.CliMessages.INTERACTIVE_FEATURE_HISTORY}")
+    console.print("Planned features:")
+    console.print(f"   {"• REPL mode for live commands"}")
+    console.print(f"   {"• Tab completion"}")
+    console.print(f"   {"• Command history"}")
     console.print(f"   {FlextCliConstants.CliMessages.INTERACTIVE_FEATURE_HELP}")
     console.print("")
     console.print(FlextCliConstants.CliMessages.INFO_USE_HELP)

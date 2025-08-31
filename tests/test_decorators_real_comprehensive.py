@@ -354,7 +354,9 @@ class TestCliValidateInputs(unittest.TestCase):
         """Test input validation with complex types."""
 
         @cli_validate_inputs
-        def process_data(items: list[str], metadata: dict[str, int]) -> dict[str, object]:
+        def process_data(
+            items: list[str], metadata: dict[str, int]
+        ) -> dict[str, object]:
             return {"count": len(items), "items": items, "metadata": metadata}
 
         result = process_data(["a", "b", "c"], {"version": 1})

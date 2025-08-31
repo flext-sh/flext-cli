@@ -92,7 +92,9 @@ class AuthTokenProvider:
         return FlextResult.ok("refreshed_token")
 
 
-def refresh_auth_token(_refresh_token_path: Path, _token_path: Path) -> FlextResult[str]:
+def refresh_auth_token(
+    _refresh_token_path: Path, _token_path: Path
+) -> FlextResult[str]:
     """Refresh authentication token."""
     try:
         # Placeholder implementation

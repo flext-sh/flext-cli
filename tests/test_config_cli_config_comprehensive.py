@@ -342,7 +342,9 @@ class TestCLIConfig:
 
             # Paths should be under user home by default
             if config.config_dir.parts[0] != Path.home().parts[0]:
-                msg = f"Expected {Path.home().parts[0]}, got {config.config_dir.parts[0]}"
+                msg = (
+                    f"Expected {Path.home().parts[0]}, got {config.config_dir.parts[0]}"
+                )
                 raise AssertionError(
                     msg,
                 )

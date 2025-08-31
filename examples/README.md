@@ -22,7 +22,7 @@ The examples are organized in a sequential learning path from foundational patte
 
 ### flext-core Foundation Patterns
 - **FlextResult[T]**: Railway-oriented programming for error handling
-- **FlextModel**: Pydantic-based domain models with validation
+- **FlextModels**: Pydantic-based domain models with validation
 - **FlextContainer**: Dependency injection container for service composition
 - **FlextFactory**: Entity creation patterns with validation
 
@@ -33,7 +33,7 @@ The examples are organized in a sequential learning path from foundational patte
 
 **Key Patterns**:
 - FlextResult railway-oriented programming
-- FlextModel with Pydantic validation
+- FlextModels with Pydantic validation
 - FlextContainer dependency injection
 - CLI domain entities with business rules
 - Entity lifecycle management

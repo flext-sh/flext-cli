@@ -234,7 +234,10 @@ class TestFlextCliService:
         try:
             result = service.flext_cli_export(data, temp_path, "invalid_format")
             assert not result.is_success
-            if "Formatting failed:" not in result.error and "Unsupported format:" not in result.error:
+            if (
+                "Formatting failed:" not in result.error
+                and "Unsupported format:" not in result.error
+            ):
                 msg = f"Expected 'Formatting failed:' or 'Unsupported format:' in {result.error}"
                 raise AssertionError(
                     msg,

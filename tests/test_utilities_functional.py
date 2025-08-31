@@ -47,6 +47,7 @@ class TestFlextCliValidationUtilities:
 
     def test_validate_config_valid(self) -> None:
         """Test config validation with valid configuration."""
+
         # Test with a dict that has model_config attribute (like Pydantic models)
         class MockConfig:
             model_config = {}

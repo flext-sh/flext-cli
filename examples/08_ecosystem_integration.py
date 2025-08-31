@@ -4,7 +4,7 @@
 This example demonstrates how flext-cli integrates with other FLEXT ecosystem projects:
 
 Key Integrations Demonstrated:
-- flext-core: Foundation patterns (FlextResult, FlextModel, FlextContainer)
+- flext-core: Foundation patterns (FlextResult, FlextModels, FlextContainer)
 - flext-api: Service integration and REST API patterns
 - flext-auth: Authentication and authorization with CLI
 - flext-observability: Metrics, logging, and monitoring integration

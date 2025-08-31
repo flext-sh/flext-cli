@@ -30,11 +30,11 @@ from rich.console import Console
 from rich.panel import Panel
 
 from flext_cli import (
-    CLIHelper,
-    FlextCliCommand,
-    get_cli_config,
+    CLICommand,
+    FlextCliHelper,
     setup_cli,
 )
+from flext_cli.auth import get_cli_config
 
 
 # CLI Mixins for reusable functionality
@@ -43,13 +43,13 @@ class DemoCommandMixin:
 
     def __init__(self) -> None:
         self.console = Console()
-        self.helper = CLIHelper()
+        self.helper = FlextCliHelper()
 
     def log_operation(self, operation: str) -> None:
         """Log operation using Rich console."""
         self.console.print(f"[green]→[/green] {operation}")
 
-    def show_result[T](self, result: FlextResult[T]) -> None:
+    def show_result(self, result: FlextResult[str]) -> None:
         """Display operation result."""
         if result.is_success:
             self.console.print(f"[green]✅ Success:[/green] {result.value}")
@@ -186,7 +186,7 @@ def status(ctx: click.Context, workspace: Path | None) -> None:
         Panel(
             f"Profile: {config.profile}\n"
             f"Debug: {config.debug}\n"
-            f"Output Format: {config.output.format}\n"
+            f"Output Format: {config.output_format}\n"
             f"Workspace: {workspace or Path.cwd()}",
             title="CLI Status",
         )
@@ -195,25 +195,22 @@ def status(ctx: click.Context, workspace: Path | None) -> None:
 
 def create_connection_command(
     url: str, timeout: int, retries: int
-) -> FlextResult[FlextCliCommand]:
+) -> FlextResult[CLICommand]:
     """Create connection command using flext-cli domain patterns."""
     try:
-        command = FlextCliCommand(
-            name="connection-test",
+        command = CLICommand(
             command_line=f"curl --connect-timeout {timeout} --retry {retries} {url}",
-            description=f"Test connection to {url}",
-            working_directory=Path.cwd(),  # type: ignore[call-arg]
         )
 
-        return FlextResult[FlextCliCommand].ok(command)
+        return FlextResult[CLICommand].ok(command)
 
     except Exception as e:
-        return FlextResult[FlextCliCommand].fail(
+        return FlextResult[CLICommand].fail(
             f"Failed to create connection command: {e}"
         )
 
 
-def execute_connection_test(command: FlextCliCommand) -> FlextResult[str]:
+def execute_connection_test(command: CLICommand) -> FlextResult[str]:
     """Execute connection test with FlextResult pattern."""
     try:
         # Simulate connection test

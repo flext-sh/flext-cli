@@ -1,0 +1,85 @@
+src/flext_cli/context.py: note: In member "validate_business_rules" of class "FlextCliContext":
+src/flext_cli/context.py:154:13: error: Statement is unreachable  [unreachable]
+                return FlextResult[None].fail("Invalid configuration type"...
+                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/flext_cli/client.py: note: In member "create_pipeline" of class "FlextApiClient":
+src/flext_cli/client.py:256:23: error: "PipelineConfig" has no attribute
+"model_dump"  [attr-defined]
+                json_data=config.model_dump(),
+                          ^~~~~~~~~~~~~~~~~
+src/flext_cli/client.py: note: In member "update_pipeline" of class "FlextApiClient":
+src/flext_cli/client.py:278:23: error: "PipelineConfig" has no attribute
+"model_dump"  [attr-defined]
+                json_data=config.model_dump(),
+                          ^~~~~~~~~~~~~~~~~
+src/flext_cli/api.py: note: In member "transform_data" of class "FlextCliApi":
+src/flext_cli/api.py:263:17: error: Statement is unreachable  [unreachable]
+                    return FlextResult[list[dict[str, object]]].fail("Data...
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src/flext_cli/api.py: note: In member "aggregate_data" of class "FlextCliApi":
+src/flext_cli/api.py:310:17: error: Statement is unreachable  [unreachable]
+                    return FlextResult[list[dict[str, object]]].fail("Data...
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src/flext_cli/api.py:317:21: error: Statement is unreachable  [unreachable]
+                        continue
+                        ^~~~~~~~
+src/flext_cli/api.py: note: In member "configure" of class "FlextCliApi":
+src/flext_cli/api.py:649:17: error: Statement is unreachable  [unreachable]
+                    return FlextResult[None].fail("Configuration must be a...
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src/flext_cli/auth.py: note: In function "_async_logout_impl":
+src/flext_cli/auth.py:392:27: error: "type[CliMessages]" has no attribute
+"STATUS_NOT_LOGGED_IN"  [attr-defined]
+                    f"[yellow]{FlextCliConstants.CliMessages.STATUS_NOT_LO...
+                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+src/flext_cli/auth.py: note: In function "status":
+src/flext_cli/auth.py:515:27: error: "type[CliMessages]" has no attribute
+"LABEL_USER"  [attr-defined]
+                            f"{FlextCliConstants.CliMessages.LABEL_USER}: ...
+                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/flext_cli/auth.py:515:93: error: "type[CliMessages]" has no attribute
+"UNKNOWN"  [attr-defined]
+    ...s.CliMessages.LABEL_USER}: {user.get('username', FlextCliConstants.Cli...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src/flext_cli/auth.py:518:27: error: "type[CliMessages]" has no attribute
+"LABEL_EMAIL"  [attr-defined]
+                            f"{FlextCliConstants.CliMessages.LABEL_EMAIL}:...
+                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/flext_cli/auth.py:518:91: error: "type[CliMessages]" has no attribute
+"UNKNOWN"  [attr-defined]
+    ...nts.CliMessages.LABEL_EMAIL}: {user.get('email', FlextCliConstants.Cli...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src/flext_cli/auth.py:521:27: error: "type[CliMessages]" has no attribute
+"LABEL_ROLE"  [attr-defined]
+                            f"{FlextCliConstants.CliMessages.LABEL_ROLE}: ...
+                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/flext_cli/auth.py:521:89: error: "type[CliMessages]" has no attribute
+"UNKNOWN"  [attr-defined]
+    ...tants.CliMessages.LABEL_ROLE}: {user.get('role', FlextCliConstants.Cli...
+                                                        ^~~~~~~~~~~~~~~~~~~~~...
+src/flext_cli/cli.py: note: In function "cli":
+src/flext_cli/cli.py:96:20: error: "type[CliMessages]" has no attribute
+"LABEL_PROFILE"  [attr-defined]
+                f"[dim]{FlextCliConstants.CliMessages.LABEL_PROFILE}: {pro...
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/flext_cli/cli.py:99:20: error: "type[CliMessages]" has no attribute
+"LABEL_OUTPUT_FORMAT"  [attr-defined]
+                f"[dim]{FlextCliConstants.CliMessages.LABEL_OUTPUT_FORMAT}...
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/flext_cli/cli.py:102:20: error: "type[CliMessages]" has no attribute
+"LABEL_DEBUG_MODE"  [attr-defined]
+                f"[dim]{FlextCliConstants.CliMessages.LABEL_DEBUG_MODE}: {...
+                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/flext_cli/__init__.py:86:13: error: Incompatible types in assignment
+(expression has type "None", variable has type Module)  [assignment]
+        _auth = None
+                ^~~~
+src/flext_cli/__init__.py:92:12: error: Incompatible types in assignment
+(expression has type "None", variable has type Module)  [assignment]
+        _cmd = None
+               ^~~~
+src/flext_cli/__init__.py:98:14: error: Incompatible types in assignment
+(expression has type "None", variable has type Module)  [assignment]
+        _debug = None
+                 ^~~~
+Found 20 errors in 6 files (checked 19 source files)

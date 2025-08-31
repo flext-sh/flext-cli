@@ -1,78 +1,59 @@
-"""FLEXT CLI - CLI Foundation Library.
-
-Simplified CLI library extending flext-core with minimal dependencies.
-Focus on what works, avoid reinventing the wheel.
+"""FLEXT CLI - CLI-specific functionality extending flext-core.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
 
-# Core functionality - use bridge for safe imports
-from flext_cli.core_bridge import *
+# Import all from each module following flext-core patterns
+from flext_cli.api import *  # type: ignore[import-untyped] # noqa: F403
+from flext_cli.auth import *  # type: ignore[import-untyped] # noqa: F403
+from flext_cli.client import *  # type: ignore[import-untyped] # noqa: F403
+from flext_cli.cmd import *  # type: ignore[import-untyped] # noqa: F403
+from flext_cli.config import *  # type: ignore[import-untyped] # noqa: F403
+from flext_cli.constants import *  # type: ignore[import-untyped] # noqa: F403
+from flext_cli.context import *  # type: ignore[import-untyped] # noqa: F403
+from flext_cli.debug import *  # type: ignore[import-untyped] # noqa: F403
+from flext_cli.decorators import *  # type: ignore[import-untyped] # noqa: F403
+from flext_cli.mixins import *  # type: ignore[import-untyped] # noqa: F403
+from flext_cli.models import *  # type: ignore[import-untyped] # noqa: F403
+from flext_cli.services import *  # type: ignore[import-untyped] # noqa: F403
+from flext_cli.typings import *  # type: ignore[import-untyped] # noqa: F403
+from flext_cli.utilities import *  # type: ignore[import-untyped] # noqa: F403
 
-# Simplified models that work
-from flext_cli.models_simple import *
+# Combine all __all__ from all modules following flext-core pattern
+import flext_cli.api as _api
+import flext_cli.auth as _auth
+import flext_cli.client as _client
+import flext_cli.cmd as _cmd
+import flext_cli.config as _config
+import flext_cli.constants as _constants
+import flext_cli.context as _context
+import flext_cli.debug as _debug
+import flext_cli.decorators as _decorators
+import flext_cli.mixins as _mixins
+import flext_cli.models as _models
+import flext_cli.services as _services
+import flext_cli.typings as _typings
+import flext_cli.utilities as _utilities
 
-# Dependency injection container
-from flext_cli.container import *
+# Build __all__ list - PyRight compatible approach
+_all_exports: list[str] = []
 
-# Clean Architecture base classes
-from flext_cli.architecture import *
-
-# Essential CLI functionality only
-from flext_cli.__version__ import __version__
-import contextlib
-
-# Only import what exists and works - handle all types of errors gracefully
-with contextlib.suppress(ImportError, AttributeError, SyntaxError):
-    from flext_cli.config import *
-
-with contextlib.suppress(ImportError, AttributeError, SyntaxError):
-    from flext_cli.constants import *
-
-with contextlib.suppress(ImportError, AttributeError, SyntaxError):
-    from flext_cli.typings import *
-
-with contextlib.suppress(ImportError, AttributeError, SyntaxError):
-    from flext_cli.decorators import *
-
-with contextlib.suppress(ImportError, AttributeError, SyntaxError):
-    from flext_cli.utils_core import flext_cli_output_data
-
-with contextlib.suppress(ImportError, AttributeError, SyntaxError):
-    from flext_cli.config import get_cli_config
-
-with contextlib.suppress(ImportError, AttributeError, SyntaxError):
-    from flext_cli.simple_api import setup_cli
-
-# CLI-specific exports
-__all__ = [
-    # From core_bridge
-    "FlextResult",
-    "FlextModels.Entity",
-    "FlextModels.EntityId",
-    "FlextLogger",
-    # From models_simple
-    "FlextCliCommand",
-    "FlextCliSession",
-    "CommandStatus",
-    "FlextCliOutputFormat",
-    # From container
-    "FlextContainer",
-    "get_flext_container",
-    "flext_service",
-    # From decorators
-    "cli_handle_keyboard_interrupt",
-    "flext_cli_handle_keyboard_interrupt",
-    "cli_measure_time",
-    # From utils_core
-    "flext_cli_output_data",
-    # From config
-    "get_cli_config",
-    # From simple_api
-    "setup_cli",
-    # Version
-    "__version__",
+# Module exports collection
+_modules_to_check = [
+    _api, _auth, _client, _cmd, _config, _constants,
+    _context, _debug, _decorators, _mixins, _models,
+    _services, _typings, _utilities
 ]
+
+for module in _modules_to_check:
+    if hasattr(module, "__all__"):
+        module_all = module.__all__
+        if isinstance(module_all, (list, tuple)):
+            _all_exports += list(module_all)
+
+# Remove duplicates and sort
+__all__ = tuple(sorted(set(_all_exports)))
