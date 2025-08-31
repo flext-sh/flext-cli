@@ -41,7 +41,9 @@ class TestCLICommand:
             )
         assert sample_command.command_line == "echo hello"
         if sample_command.command_status != CommandStatus.PENDING:
-            msg = f"Expected {CommandStatus.PENDING}, got {sample_command.command_status}"
+            msg = (
+                f"Expected {CommandStatus.PENDING}, got {sample_command.command_status}"
+            )
             raise AssertionError(
                 msg,
             )
@@ -114,7 +116,9 @@ class TestCLICommand:
         assert failed_command is not None
 
         if failed_command.command_status != CommandStatus.FAILED:
-            msg = f"Expected {CommandStatus.FAILED}, got {failed_command.command_status}"
+            msg = (
+                f"Expected {CommandStatus.FAILED}, got {failed_command.command_status}"
+            )
             raise AssertionError(
                 msg,
             )

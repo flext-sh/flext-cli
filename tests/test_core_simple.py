@@ -114,12 +114,15 @@ class TestFlextCliServiceReal:
         service = FlextCliService()
 
         # Create temporary file for testing
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".json"
+        ) as f:
             f.write('{"test": "data"}')
             file_path = Path(f.name)
 
         def cleanup() -> None:
             return file_path.unlink(missing_ok=True)
+
         assert isinstance(file_path, Path)
         assert callable(cleanup)
 
@@ -226,12 +229,15 @@ class TestFlextCliServiceReal:
         service = FlextCliService()
 
         # Create and cleanup real resources
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".txt") as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".txt"
+        ) as f:
             f.write("test content")
             file_path = Path(f.name)
 
         def cleanup() -> None:
             return file_path.unlink(missing_ok=True)
+
         assert isinstance(file_path, Path)
         assert callable(cleanup)
 
@@ -256,12 +262,15 @@ class TestFlextCliServiceReal:
 
         # Create temporary config file
         config_data = '{"profile": "test", "debug": true}'
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".json"
+        ) as f:
             f.write(config_data)
             config_path = Path(f.name)
 
         def cleanup() -> None:
             return config_path.unlink(missing_ok=True)
+
         assert isinstance(config_path, Path)
         assert callable(cleanup)
 
@@ -382,6 +391,7 @@ class TestFlextCliServiceAdvanced:
         # Test format validation with large data
         # Large data validation is inherent in JSON serialization
         import json
+
         json.dumps(large_data)  # Will raise if invalid
 
     def test_complex_data_structures_real(self) -> None:
@@ -410,4 +420,5 @@ class TestFlextCliServiceAdvanced:
         # Test validation with complex data
         # Complex data validation is inherent in YAML serialization
         import yaml
+
         yaml.dump(complex_data)  # Will raise if invalid

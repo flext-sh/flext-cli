@@ -8,7 +8,7 @@ This directory contains organized examples demonstrating flext-cli and flext-cor
 ## Example Organization:
 
 ### Core Patterns (01-05)
-- 01_foundation_patterns: FlextResult, FlextModel, FlextContainer basics
+- 01_foundation_patterns: FlextResult, FlextModels, FlextContainer basics
 - 02_cli_commands_integration: Click framework + flext-cli decorators
 - 03_data_processing_and_output: Data transformation and Rich output
 - 04_authentication_and_authorization: Security patterns and token management

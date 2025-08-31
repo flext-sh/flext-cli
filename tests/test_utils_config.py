@@ -82,9 +82,7 @@ class TestCLIConfig:
         assert config.directories.cache_dir == expected_cache_dir
         if config.directories.log_dir != expected_log_dir:
             msg = f"Expected {expected_log_dir}, got {config.directories.log_dir}"
-            raise AssertionError(
-                msg
-            )
+            raise AssertionError(msg)
 
     def test_config_custom_directories(self) -> None:
         """Test configuration with custom directories."""
@@ -108,9 +106,7 @@ class TestCLIConfig:
         assert config.directories.cache_dir == custom_cache_dir
         if config.directories.log_dir != custom_log_dir:
             msg = f"Expected {custom_log_dir}, got {config.directories.log_dir}"
-            raise AssertionError(
-                msg
-            )
+            raise AssertionError(msg)
 
     def test_config_validation(self) -> None:
         """Test config field validation."""
@@ -178,7 +174,9 @@ class TestCLISettings:
             )
         assert cli_settings.project_version == "0.9.0"
         if cli_settings.project_description != "Test CLI Library":
-            msg = f"Expected {'Test CLI Library'}, got {cli_settings.project_description}"
+            msg = (
+                f"Expected {'Test CLI Library'}, got {cli_settings.project_description}"
+            )
             raise AssertionError(
                 msg,
             )

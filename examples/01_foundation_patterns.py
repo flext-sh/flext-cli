@@ -5,13 +5,13 @@ Demonstrates core foundation patterns of flext-cli built on flext-core:
 
 🎯 **Key Patterns Demonstrated:**
 - FlextResult[T] railway-oriented programming for CLI error handling
-- FlextModel integration with Pydantic for type-safe CLI models
+- FlextModels integration with Pydantic for type-safe CLI models
 - FlextContainer dependency injection for CLI services
 - Foundation CLI entities (CLICommand, FlextCliSession, FlextCliPlugin)
 - Basic CLI configuration and setup patterns
 
 🏗️ **Architecture Layers:**
-- Foundation: flext-core (FlextResult, FlextModel, FlextContainer)
+- Foundation: flext-core (FlextResult, FlextModels, FlextContainer)
 - Domain: CLI entities with validation and business rules
 - Infrastructure: Configuration and basic service patterns
 
@@ -29,15 +29,13 @@ from rich.panel import Panel
 from rich.table import Table
 
 from flext_cli import (
-    CLIHelper,
+    CLICommand,
     FlextCliApi,
-    FlextCliCommand,
-    FlextCliEntityFactory,
+    FlextCliConfig,
+    FlextCliHelper,
     FlextCliSession,
-    get_cli_config,
     setup_cli,
 )
-from flext_cli.config import FlextCliConfig
 
 
 def _setup_cli_demo(console: Console) -> FlextResult[None]:
@@ -55,11 +53,11 @@ def _setup_cli_demo(console: Console) -> FlextResult[None]:
 
 
 def _config_demo(console: Console) -> FlextResult[FlextCliConfig]:
-    """Demo FlextModel configuration."""
-    console.print("\\n[green]2. 🏗️ FlextModel Configuration System[/green]")
-    config = get_cli_config()
+    """Demo FlextModels configuration."""
+    console.print("\\n[green]2. 🏗️ FlextModels Configuration System[/green]")
+    config = FlextCliConfig()
 
-    config_table = Table(title="CLI Configuration (FlextModel Integration)")
+    config_table = Table(title="CLI Configuration (FlextModels Integration)")
     config_table.add_column("Property", style="cyan")
     config_table.add_column("Value", style="yellow")
     config_table.add_column("Type", style="dim")
@@ -81,7 +79,7 @@ def _container_demo(console: Console, config: FlextCliConfig) -> FlextResult[Non
     container.register("console", console)
     container.register("config", config)
     container.register("cli_api", FlextCliApi())
-    container.register("cli_helper", CLIHelper())
+    container.register("cli_helper", FlextCliHelper())
 
     services_table = Table(title="Registered Services (FlextContainer)")
     services_table.add_column("Service", style="cyan")
@@ -104,42 +102,36 @@ def _container_demo(console: Console, config: FlextCliConfig) -> FlextResult[Non
 
 def _entities_demo(
     console: Console, config: FlextCliConfig
-) -> FlextResult[tuple[FlextCliCommand, FlextCliSession]]:
+) -> FlextResult[tuple[CLICommand, FlextCliSession]]:
     """Demo CLI domain entities."""
-    console.print("\\n[green]4. 🎯 CLI Domain Entities (Factory Pattern)[/green]")
+    console.print("\\n[green]4. 🎯 CLI Domain Entities (Direct Creation)[/green]")
 
-    entity_factory = FlextCliEntityFactory()
-
-    command_result = create_sample_command_with_factory(entity_factory)
+    command_result = create_sample_command()
     if command_result.is_failure:
-        return FlextResult[tuple[FlextCliCommand, FlextCliSession]].fail(
+        return FlextResult[tuple[CLICommand, FlextCliSession]].fail(
             f"Command creation failed: {command_result.error}"
         )
 
     command = command_result.value
-    console.print(f"✅ CLI Command: [cyan]{command.name}[/cyan]")
-    console.print(f"   Status: [yellow]{command.command_status}[/yellow]")
+    console.print(f"✅ CLI Command: [cyan]{command.id}[/cyan]")
+    console.print(f"   Status: [yellow]{command.status}[/yellow]")
     console.print(f"   Type: [dim]{type(command).__name__}[/dim]")
 
-    # Use config as FlextCliConfig (already properly typed)
-    cli_config = config
-    session_result = create_sample_session_with_factory(cli_config, entity_factory)
+    session_result = create_sample_session(config)
     if session_result.is_failure:
-        return FlextResult[tuple[FlextCliCommand, FlextCliSession]].fail(
+        return FlextResult[tuple[CLICommand, FlextCliSession]].fail(
             f"Session creation failed: {session_result.error}"
         )
 
     session = session_result.value
-    console.print(f"✅ CLI Session: [cyan]{session.session_id}[/cyan]")
-    console.print(
-        f"   State: [yellow]{getattr(session, 'session_status', 'active')}[/yellow]"
-    )
+    console.print(f"✅ CLI Session: [cyan]{session.id}[/cyan]")
+    console.print(f"   State: [yellow]{session.state}[/yellow]")
     console.print(f"   Type: [dim]{type(session).__name__}[/dim]")
 
-    return FlextResult[tuple[FlextCliCommand, FlextCliSession]].ok((command, session))
+    return FlextResult[tuple[CLICommand, FlextCliSession]].ok((command, session))
 
 
-def _validation_demo(console: Console, command: FlextCliCommand) -> FlextResult[None]:
+def _validation_demo(console: Console, command: CLICommand) -> FlextResult[None]:
     """Demo validation and lifecycle."""
     console.print("\\n[green]5. ✅ Domain Business Rules & Validation[/green]")
 
@@ -181,7 +173,7 @@ def _summary_demo(console: Console) -> None:
             "Zero exception handling boilerplate",
         ),
         (
-            "FlextModel",
+            "FlextModels",
             "Pydantic-based configuration",
             "Type-safe settings with validation",
         ),
@@ -239,100 +231,29 @@ def demonstrate_foundation_patterns() -> FlextResult[None]:
     return FlextResult[None].ok(None)
 
 
-def create_sample_command_with_factory(
-    _factory: FlextCliEntityFactory,
-) -> FlextResult[FlextCliCommand]:
-    """Create a sample CLI command using domain factory patterns."""
+def create_sample_command() -> FlextResult[CLICommand]:
+    """Create a sample CLI command using REAL domain patterns."""
     try:
-        # Use entity factory to create domain objects (demonstrates factory pattern)
-        command_name = "demo-foundation-command"
-        command_line = "echo 'Hello FLEXT-CLI Foundation Patterns!'"
-
-        # Factory pattern creates validated domain entities
-        # Use simple factory method call
-        try:
-            # Use string for id field compatibility
-            command = FlextCliCommand(
-                id=command_name,
-                command_line=command_line,
-            )
-            command_result = FlextResult[FlextCliCommand].ok(command)
-        except Exception as e:
-            command_result = FlextResult[FlextCliCommand].fail(
-                f"Command creation failed: {e}"
-            )
-        if command_result.is_failure:
-            return FlextResult[FlextCliCommand].fail(
-                f"Factory command creation failed: {command_result.error}"
-            )
-
-        return command_result
-
-    except Exception as e:
-        return FlextResult[FlextCliCommand].fail(
-            f"Failed to create command with factory: {e}"
+        # Create command with REAL validation and parameters
+        command = CLICommand(
+            command_line="echo 'Hello FLEXT CLI Foundation Patterns!'",
         )
 
-
-def create_sample_command() -> FlextResult[FlextCliCommand]:
-    """Create a sample CLI command using basic domain patterns."""
-    try:
-        # Create command with validation and basic parameters
-        command = FlextCliCommand(
-            id="demo-command",
-            command_line="echo 'Hello FLEXT CLI'",
-        )
-
-        return FlextResult[FlextCliCommand].ok(command)
+        return FlextResult[CLICommand].ok(command)
 
     except Exception as e:
-        return FlextResult[FlextCliCommand].fail(f"Failed to create command: {e}")
+        return FlextResult[CLICommand].fail(f"Failed to create command: {e}")
 
 
-def create_sample_session_with_factory(
-    config: FlextCliConfig, _factory: FlextCliEntityFactory
-) -> FlextResult[FlextCliSession]:
-    """Create a sample CLI session using factory pattern with extensive configuration."""
+def create_sample_session(config: FlextCliConfig) -> FlextResult[FlextCliSession]:
+    """Create a sample CLI session with REAL configuration."""
     try:
-        # Factory creates validated session entity
-        # Factory creates validated session entity using simplified API
-        try:
-            # FlextModels.EntityId already imported at top
-            session_id = (
-                f"foundation-demo-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}"
-            )
-            additional_session_data: dict[str, object] = {
-                "session_id": session_id,
-                "user_id": "demo-user",
-                "start_time": datetime.now(UTC),
-                "profile": getattr(config, "profile", "default"),
-            }
-            session = FlextCliSession(
-                id=session_id,
-                session_data=additional_session_data,
-            )
-            return FlextResult[FlextCliSession].ok(session)
-        except Exception as e:
-            return FlextResult[FlextCliSession].fail(f"Session creation failed: {e}")
+        # Create session with REAL required parameters using actual FlextCliSession structure
+        session_id = f"foundation-demo-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}"
 
-    except Exception as e:
-        return FlextResult[FlextCliSession].fail(
-            f"Failed to create session with factory: {e}"
-        )
-
-
-def create_sample_session(_config: FlextCliConfig) -> FlextResult[FlextCliSession]:
-    """Create a sample CLI session with configuration."""
-    try:
-        # Create session with required parameters
-        session_data: dict[str, object] = {
-            "session_id": "demo-session-001",
-            "user_id": "demo-user",
-            "start_time": datetime.now(UTC),
-        }
         session = FlextCliSession(
-            id="demo-session-001",
-            session_data=session_data,
+            id=session_id,
+            user_id=f"demo-user-{config.profile}",
         )
 
         return FlextResult[FlextCliSession].ok(session)
@@ -357,7 +278,7 @@ def main() -> None:
                         "[bold green]✅ Foundation patterns demonstration completed successfully![/bold green]\\n\\n"
                         "[cyan]Key Achievements:[/cyan]\\n"
                         "• FlextResult railway-oriented programming demonstrated\\n"
-                        "• FlextModel configuration system showcased\\n"
+                        "• FlextModels configuration system showcased\\n"
                         "• FlextContainer dependency injection implemented\\n"
                         "• Domain entities with factory patterns created\\n"
                         "• Service decorators and error handling demonstrated\\n\\n"

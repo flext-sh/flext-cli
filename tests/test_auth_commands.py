@@ -20,7 +20,7 @@ from flext_cli import (
     get_auth_token,
     save_auth_token,
 )
-from flext_cli.cli_auth import auth
+from flext_cli.auth import auth
 
 
 class TestAuthCommands:
@@ -40,7 +40,7 @@ class TestAuthCommands:
 
         # Verify commands exist and are callable
         commands = auth.commands
-        expected_commands = ["status"]  # Only test commands that actually exist
+        expected_commands = ["login", "logout", "status", "whoami"]  # Real commands that exist
         for cmd_name in expected_commands:
             assert cmd_name in commands, (
                 f"Command '{cmd_name}' not found in auth group. "

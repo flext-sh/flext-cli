@@ -146,9 +146,7 @@ class TestFlextCliConfigFactory:
         """Test config creation with validation."""
         # Test that the factory creates valid configurations
         result = FlextCliConfigFactory.create_project_config(
-            "validation-test",
-            debug=False,
-            profile="test"
+            "validation-test", debug=False, profile="test"
         )
 
         assert result.is_success

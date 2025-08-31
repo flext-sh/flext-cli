@@ -42,7 +42,9 @@ class TestFlextCliExportReal:
     def test_export_success_real(self) -> None:
         """Test successful data export with real file I/O."""
         # Create temporary file for real export
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".json"
+        ) as f:
             temp_path = Path(f.name)
 
         def cleanup() -> None:
@@ -74,7 +76,9 @@ class TestFlextCliExportReal:
 
     def test_export_yaml_format_real(self) -> None:
         """Test export with YAML format using real functionality."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".json"
+        ) as f:
             temp_path = Path(f.name)
 
         def cleanup() -> None:
@@ -97,7 +101,9 @@ class TestFlextCliExportReal:
 
     def test_export_default_format_real(self) -> None:
         """Test export with default format (JSON)."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".json"
+        ) as f:
             temp_path = Path(f.name)
 
         def cleanup() -> None:
@@ -121,7 +127,9 @@ class TestFlextCliExportReal:
 
     def test_export_string_path_real(self) -> None:
         """Test export with string path instead of Path object."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".json"
+        ) as f:
             temp_path = Path(f.name)
 
         def cleanup() -> None:
@@ -486,7 +494,9 @@ class TestFlextCliIntegrationReal:
 
     def test_export_and_format_integration_real(self) -> None:
         """Test export and format integration."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False, suffix=".json") as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False, suffix=".json"
+        ) as f:
             temp_path = Path(f.name)
 
         def cleanup() -> None:

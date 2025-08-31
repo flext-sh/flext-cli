@@ -12,10 +12,10 @@ from typing import Self, cast
 from urllib.parse import urljoin
 
 import httpx
-from flext_core import FlextLogger, FlextModel, FlextResult
+from flext_core import FlextLogger, FlextModels, FlextResult
 from pydantic import Field
 
-from flext_cli.config import get_config as get_cli_config
+from flext_cli.config import FlextCliConfig
 
 
 def _compute_default_base_url() -> str | None:
@@ -37,43 +37,45 @@ def _compute_default_base_url() -> str | None:
         return None
 
 
-class PipelineConfig(FlextModel):
-    """Pipeline configuration model for Singer/Meltano workflows."""
-
-    name: str = Field(description="Pipeline name")
-    schedule: str | None = Field(None, description="Cron schedule")
-    tap: str = Field(description="Source tap plugin")
-    target: str = Field(description="Target plugin")
-    transform: str | None = Field(None, description="Transform plugin")
-    state: dict[str, object] | None = Field(None, description="Pipeline state")
-    config: dict[str, object] | None = Field(None, description="Additional config")
-
-
-class Pipeline(FlextModel):
-    """Pipeline model for API responses."""
-
-    id: str = Field(description="Pipeline ID")
-    name: str = Field(description="Pipeline name")
-    status: str = Field(description="Pipeline status")
-    created_at: str = Field(description="Creation timestamp")
-    updated_at: str = Field(description="Update timestamp")
-    config: PipelineConfig = Field(description="Pipeline configuration")
-
-
-class PipelineList(FlextModel):
-    """Pipeline list response."""
-
-    pipelines: list[Pipeline] = Field(description="List of pipelines")
-    total: int = Field(description="Total count")
-    page: int = Field(1, description="Current page")
-    page_size: int = Field(20, description="Page size")
-
-
 class FlextApiClient:
     """Client for FLEXT API operations.
 
     Provides async methods for interacting with the FLEXT API.
     """
+
+    class PipelineConfig(FlextModels.BaseConfig):
+        """Pipeline configuration model for Singer/Meltano workflows."""
+
+        name: str = Field(description="Pipeline name")
+        schedule: str | None = Field(None, description="Cron schedule")
+        tap: str = Field(description="Source tap plugin")
+        target: str = Field(description="Target plugin")
+        transform: str | None = Field(None, description="Transform plugin")
+        state: dict[str, object] | None = Field(None, description="Pipeline state")
+        config: dict[str, object] | None = Field(None, description="Additional config")
+
+    class Pipeline(FlextModels.Entity):
+        """Pipeline model for API responses."""
+
+        name: str = Field(description="Pipeline name")
+        status: str = Field(description="Pipeline status")
+        config: FlextApiClient.PipelineConfig = Field(description="Pipeline configuration")
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate pipeline business rules."""
+            if not self.name or not self.name.strip():
+                return FlextResult[None].fail("Pipeline name cannot be empty")
+            if self.status not in {"active", "inactive", "pending"}:
+                return FlextResult[None].fail(f"Invalid pipeline status: {self.status}")
+            return FlextResult[None].ok(None)
+
+    class PipelineList(FlextModels.BaseConfig):
+        """Pipeline list response."""
+
+        pipelines: list[FlextApiClient.Pipeline] = Field(description="List of pipelines")
+        total: int = Field(description="Total count")
+        page: int = Field(1, description="Current page")
+        page_size: int = Field(20, description="Page size")
 
     def __init__(
         self,
@@ -92,11 +94,11 @@ class FlextApiClient:
             verify_ssl: Whether to verify SSL certificates
 
         """
-        config = get_cli_config()
+        config = FlextCliConfig()
         if base_url:
             self.base_url = base_url
-        elif config.api.url:
-            self.base_url = config.api.url
+        elif config.api_url:
+            self.base_url = config.api_url
         else:
             computed = _compute_default_base_url()
             self.base_url = computed or "http://localhost:8000"
@@ -205,7 +207,7 @@ class FlextApiClient:
         page: int = 1,
         page_size: int = 20,
         status: str | None = None,
-    ) -> PipelineList:
+    ) -> FlextApiClient.PipelineList:
         """List pipelines with pagination.
 
         Args:
@@ -225,9 +227,9 @@ class FlextApiClient:
             params["status"] = status
 
         response = await self._request("GET", "/api/v1/pipelines", params=params)
-        return PipelineList.model_validate(response.json())
+        return FlextApiClient.PipelineList(**response.json())
 
-    async def get_pipeline(self, pipeline_id: str) -> Pipeline:
+    async def get_pipeline(self, pipeline_id: str) -> FlextApiClient.Pipeline:
         """Get pipeline by ID.
 
         Args:
@@ -238,9 +240,9 @@ class FlextApiClient:
 
         """
         response = await self._request("GET", f"/api/v1/pipelines/{pipeline_id}")
-        return Pipeline.model_validate(response.json())
+        return FlextApiClient.Pipeline(**response.json())
 
-    async def create_pipeline(self, config: PipelineConfig) -> Pipeline:
+    async def create_pipeline(self, config: FlextApiClient.PipelineConfig) -> FlextApiClient.Pipeline:
         """Create new pipeline.
 
         Args:
@@ -255,13 +257,13 @@ class FlextApiClient:
             "/api/v1/pipelines",
             json_data=config.model_dump(),
         )
-        return Pipeline.model_validate(response.json())
+        return FlextApiClient.Pipeline(**response.json())
 
     async def update_pipeline(
         self,
         pipeline_id: str,
-        config: PipelineConfig,
-    ) -> Pipeline:
+        config: FlextApiClient.PipelineConfig,
+    ) -> FlextApiClient.Pipeline:
         """Update existing pipeline.
 
         Args:
@@ -277,7 +279,7 @@ class FlextApiClient:
             f"/api/v1/pipelines/{pipeline_id}",
             json_data=config.model_dump(),
         )
-        return Pipeline.model_validate(response.json())
+        return FlextApiClient.Pipeline(**response.json())
 
     async def delete_pipeline(self, pipeline_id: str) -> None:
         """Delete pipeline.
@@ -490,3 +492,6 @@ class FlextApiClient:
             return False
         else:
             return True
+
+
+__all__ = ["FlextApiClient"]

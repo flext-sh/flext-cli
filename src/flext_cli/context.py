@@ -10,16 +10,16 @@ from __future__ import annotations
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import cast
+from typing import ClassVar, cast
 
-from flext_core import FlextModel
+from flext_core import FlextContext, FlextResult
 from pydantic import ConfigDict, Field
 from rich.console import Console
 
 from flext_cli.config import FlextCliConfig
 
 
-class FlextCliContext(FlextModel):
+class FlextCliContext(FlextContext):
     """CLI execution context extending FlextContext with CLI-specific functionality.
 
     Immutable context containing execution environment, user information,
@@ -30,6 +30,9 @@ class FlextCliContext(FlextModel):
       - Environment variables must be valid strings
       - User ID must be non-empty if provided
     """
+
+    # Reference to flext-core context for inheritance
+    Core: ClassVar = FlextContext
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -93,15 +96,17 @@ class FlextCliContext(FlextModel):
     @property
     def is_quiet(self) -> bool:
         """Check if quiet mode is enabled."""
-        if hasattr(self.config, "output") and hasattr(self.config.output, "quiet"):
-            return bool(self.config.output.quiet)
+        # Check if config has quiet mode directly
+        if hasattr(self.config, "quiet"):
+            return bool(self.config.quiet)
         return bool(self.quiet)
 
     @property
     def is_verbose(self) -> bool:
         """Check if verbose mode is enabled."""
-        if hasattr(self.config, "output") and hasattr(self.config.output, "verbose"):
-            return bool(self.config.output.verbose)
+        # Check if config has verbose mode directly
+        if hasattr(self.config, "verbose"):
+            return bool(self.config.verbose)
         return bool(self.verbose)
 
     # Printing helpers expected by tests
@@ -147,28 +152,33 @@ class FlextCliContext(FlextModel):
             else:
                 self.console.print(f"[dim][VERBOSE][/dim] {message}")
 
+    def validate_business_rules(self) -> FlextResult[None]:
+        """Validate CLI context business rules."""
+        # CLI context is valid by construction due to Pydantic validation
+        # Additional business validations can be added here if needed
+        return FlextResult[None].ok(None)
 
-@dataclass
-class FlextCliExecutionContext:
-    """Extended context for command execution (lightweight dataclass)."""
+    @dataclass
+    class ExecutionContext:
+        """Extended context for command execution (lightweight dataclass)."""
 
-    command_name: str | None = None
-    command_args: dict[str, object] = field(
-        default_factory=lambda: cast("dict[str, object]", {})
-    )
-    execution_id: str | None = None
-    start_time: float | None = None
-    session_id: str | None = None
-    user_id: str | None = None
+        command_name: str | None = None
+        command_args: dict[str, object] = field(
+            default_factory=lambda: cast("dict[str, object]", {})
+        )
+        execution_id: str | None = None
+        start_time: float | None = None
+        session_id: str | None = None
+        user_id: str | None = None
 
-    def get_execution_info(self) -> dict[str, object]:
-        """Get execution information."""
-        return {
-            "command_name": self.command_name,
-            "execution_id": self.execution_id,
-            "start_time": self.start_time,
-            "session_id": self.session_id,
-        }
+        def get_execution_info(self) -> dict[str, object]:
+            """Get execution information."""
+            return {
+                "command_name": self.command_name,
+                "execution_id": self.execution_id,
+                "start_time": self.start_time,
+                "session_id": self.session_id,
+            }
 
 
 # Factory functions
@@ -184,23 +194,23 @@ def create_cli_context(**kwargs: object) -> FlextCliContext:
     # Use provided config or create new one
     cli_config = config if isinstance(config, FlextCliConfig) else FlextCliConfig()
 
-    # Create context using model_copy to properly set fields
-    context = FlextCliContext()
-    return context.model_copy(
-        update={
-            "config": cli_config,
-            "console": console,
-            "debug": debug,
-            "quiet": quiet,
-            "verbose": verbose,
-        }
+    # Create context with proper initialization
+    import uuid
+
+    return FlextCliContext(
+        id=str(uuid.uuid4()),
+        config=cli_config,
+        console=console,
+        debug=debug,
+        quiet=quiet,
+        verbose=verbose,
     )
 
 
 def create_execution_context(
     command_name: str,
     **kwargs: object,
-) -> FlextCliExecutionContext:
+) -> FlextCliContext.ExecutionContext:
     """Create an execution context for a specific command."""
     # Extract and cast specific fields with correct types
     kwargs.get("config", {})
@@ -220,7 +230,7 @@ def create_execution_context(
         else {}
     )
 
-    return FlextCliExecutionContext(
+    return FlextCliContext.ExecutionContext(
         command_name=command_name,
         command_args=command_args,
         execution_id=str(execution_id) if execution_id is not None else None,
@@ -234,7 +244,6 @@ def create_execution_context(
 
 __all__ = [
     "FlextCliContext",
-    "FlextCliExecutionContext",
     "create_cli_context",
     "create_execution_context",
 ]

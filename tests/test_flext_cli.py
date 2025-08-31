@@ -419,10 +419,12 @@ class TestFlextCliHelpers:
                 setup_result = setup_cli(settings)
 
                 if setup_result.is_success:
-                    return FlextResult[tuple[FlextCliSettings, bool]].ok((
-                        settings,
-                        setup_result.value,
-                    ))
+                    return FlextResult[tuple[FlextCliSettings, bool]].ok(
+                        (
+                            settings,
+                            setup_result.value,
+                        )
+                    )
                 error_msg = setup_result.error or "Setup failed"
                 return FlextResult[tuple[FlextCliSettings, bool]].fail(error_msg)
             except Exception as e:

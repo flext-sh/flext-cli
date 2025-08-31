@@ -35,12 +35,9 @@ from rich.console import Console
 from rich.panel import Panel
 
 from flext_cli import (
-    FormatterFactory,
-    PlainFormatter,
-    cli_create_table,
     flext_cli_aggregate_data,
     flext_cli_format,
-    flext_cli_transform_data,
+    flext_cli_table,
 )
 
 
@@ -90,10 +87,14 @@ def demonstrate_data_transformation() -> FlextResult[None]:
 
     console.print("\n[green]1. Basic Data Transformation[/green]")
 
-    # Transform data - filter only running services
-    filter_result = flext_cli_transform_data(
-        raw_data, filter_func=lambda service: service["status"] == "running"
-    )
+    # Transform data - filter only running services (manual filtering since flext_cli_transform_data has different signature)
+    def filter_running_services(data: object) -> list[dict[str, object]]:
+        if isinstance(data, list):
+            return [service for service in data if isinstance(service, dict) and service.get("status") == "running"]
+        return []
+
+    running_services = filter_running_services(raw_data)
+    filter_result = FlextResult[list[dict[str, object]]].ok(running_services)
 
     if filter_result.is_success:
         running_services = filter_result.value
@@ -255,21 +256,23 @@ def demonstrate_output_formatting() -> FlextResult[None]:
             console.print(f"   {line}")
         console.print("   ... (truncated)")
 
-    # 2. Using FormatterFactory
-    formatter_factory = FormatterFactory()
+    # 2. YAML formatting
+    yaml_result = flext_cli_format(sample_data, format_type="yaml")
+    if yaml_result.is_success:
+        console.print("✅ YAML format generated")
+        # Show first few lines of YAML
+        yaml_lines = yaml_result.value.split("\n")[:3]
+        for line in yaml_lines:
+            console.print(f"   {line}")
+        console.print("   ... (truncated)")
 
-    # Get JSON formatter
-    json_formatter = formatter_factory.create("json")
-    json_formatter.format(sample_data, console)
-    console.print("✅ FormatterFactory JSON formatting successful")
+    # 3. Plain text formatting (simple string representation)
+    plain_result = flext_cli_format(sample_data, format_type="plain")
+    if plain_result.is_success:
+        console.print("✅ Plain text formatting successful")
 
-    # Get plain text formatter
-    plain_formatter = PlainFormatter()
-    plain_formatter.format(sample_data, console)
-    console.print("✅ Plain text formatting successful")
-
-    # 3. Rich table creation for services
-    services_table_result = cli_create_table(
+    # 4. Rich table creation for services
+    services_table_result = flext_cli_table(
         data=sample_data["services"], title="Application Services"
     )
 
@@ -317,7 +320,7 @@ def demonstrate_file_operations() -> FlextResult[None]:
         # Simple JSON save implementation
         try:
             temp_path.write_text(json.dumps(config_data, indent=2), encoding="utf-8")
-            save_result = FlextResult[bool].ok(data=True)
+            save_result = FlextResult[bool].ok(True)
         except Exception as e:
             save_result = FlextResult[bool].fail(f"Save failed: {e}")
 
@@ -341,19 +344,16 @@ def demonstrate_file_operations() -> FlextResult[None]:
                 if load_result.is_success:
                     loaded_data = load_result.value
                     console.print("✅ Configuration loaded successfully")
-                    # Type cast for dict access
-                    if isinstance(loaded_data, dict):
-                        database = loaded_data.get("database", {})
-                        api = loaded_data.get("api", {})
-                        if isinstance(database, dict) and isinstance(api, dict):
-                            console.print(
-                                f"   Database host: {database.get('host', 'N/A')}"
-                            )
-                            console.print(f"   API port: {api.get('port', 'N/A')}")
-                        else:
-                            console.print("   Configuration structure unexpected")
+                    # Access loaded data (guaranteed to be dict[str, object])
+                    database = loaded_data.get("database", {})
+                    api = loaded_data.get("api", {})
+                    if isinstance(database, dict) and isinstance(api, dict):
+                        console.print(
+                            f"   Database host: {database.get('host', 'N/A')}"
+                        )
+                        console.print(f"   API port: {api.get('port', 'N/A')}")
                     else:
-                        console.print("   Loaded data is not a dictionary")
+                        console.print("   Configuration structure unexpected")
 
         # 3. Demonstrate directory operations
         current_dir = Path()

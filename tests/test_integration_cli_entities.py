@@ -311,9 +311,7 @@ class TestCLISessionEntityIntegration:
             debug=True,
         )
 
-        context = FlextCliContext(
-            config=settings, console=Console()
-        )
+        context = FlextCliContext(config=settings, console=Console())
 
         # Session should be able to track context
         assert session.session_id == "test-context"
@@ -536,9 +534,7 @@ class TestCLIContextIntegration:
             debug=True,
         )
 
-        context = FlextCliContext(
-            config=settings, console=Console()
-        )
+        context = FlextCliContext(config=settings, console=Console())
 
         runner = CliRunner()
 

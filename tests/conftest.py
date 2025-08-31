@@ -20,9 +20,7 @@ import pytest
 from flext_core import FlextContainer
 from rich.console import Console
 
-from flext_cli import (
-    FlextCliCommand,
-)
+from flext_cli import FlextCliModels
 
 # Import specific classes that exist
 try:
@@ -87,12 +85,11 @@ def console() -> Console:
 
 
 @pytest.fixture
-def sample_command() -> FlextCliCommand:
+def sample_command() -> FlextCliModels.Command:
     """Create REAL sample CLI command for testing actual execution."""
-    return FlextCliCommand(
-        name="test-command",
-        description="A test command",
+    return FlextCliModels.Command(
         command_line="echo hello",
+        id="test-command",
     )
 
 

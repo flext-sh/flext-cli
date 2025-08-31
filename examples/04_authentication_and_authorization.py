@@ -26,8 +26,6 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime, timedelta
 
-object
-
 from flext_core import FlextResult
 from rich.console import Console
 from rich.panel import Panel
@@ -35,11 +33,10 @@ from rich.table import Table
 
 from flext_cli import (
     FlextApiClient,
-    get_auth_headers,
-    get_cli_config,
-    require_auth,
     save_auth_token,
 )
+from flext_cli.auth import get_auth_headers, get_cli_config
+from flext_cli.decorators import require_auth
 
 
 def demonstrate_basic_authentication() -> FlextResult[None]:
@@ -110,8 +107,10 @@ def demonstrate_api_authentication() -> FlextResult[None]:
                 console.print("✅ Authenticated API request successful")
                 console.print(f"   User: {profile_data.get('username', 'demo_user')}")
                 console.print(f"   Role: {profile_data.get('role', 'user')}")
+                permissions = profile_data.get("permissions", [])
+                perm_count = len(permissions) if isinstance(permissions, list) else 0
                 console.print(
-                    f"   Permissions: {len(profile_data.get('permissions', []))} permissions"
+                    f"   Permissions: {perm_count} permissions"
                 )
             else:
                 console.print("❌ Invalid profile data returned")
@@ -152,7 +151,7 @@ def demonstrate_role_based_access() -> FlextResult[None]:
     console.print("\n[green]5. Role-Based Access Control[/green]")
 
     # Simulate different user roles and permissions
-    demo_roles = [
+    demo_roles: list[dict[str, object]] = [
         {
             "name": "REDACTED_LDAP_BIND_PASSWORD",
             "permissions": ["read", "write", "delete", "manage_users", "system_config"],
@@ -168,16 +167,22 @@ def demonstrate_role_based_access() -> FlextResult[None]:
     permissions_table.add_column("Access Level", style="yellow")
 
     for role in demo_roles:
-        permissions_str = ", ".join(role["permissions"])
-        access_level = (
-            "Full"
-            if "delete" in role["permissions"]
-            else "Limited"
-            if "write" in role["permissions"]
-            else "Read-Only"
-        )
+        permissions = role["permissions"]
+        if isinstance(permissions, list):
+            permissions_str = ", ".join(str(perm) for perm in permissions)
+            access_level = (
+                "Full"
+                if "delete" in permissions
+                else "Limited"
+                if "write" in permissions
+                else "Read-Only"
+            )
+        else:
+            permissions_str = "Invalid permissions data"
+            access_level = "Unknown"
 
-        permissions_table.add_row(role["name"], permissions_str, access_level)
+        role_name = str(role["name"])
+        permissions_table.add_row(role_name, permissions_str, access_level)
 
     console.print(permissions_table)
 
@@ -202,12 +207,13 @@ def demonstrate_session_management() -> FlextResult[None]:
     console.print("\n[green]6. Session Management[/green]")
 
     # Simulate session data
-    session_data = {
-        "session_id": f"sess_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+    now = datetime.now(UTC)
+    session_data: dict[str, object] = {
+        "session_id": f"sess_{now.strftime('%Y%m%d_%H%M%S')}",
         "user_id": "demo_user_123",
-        "created_at": datetime.now(UTC),
-        "expires_at": datetime.now(UTC) + timedelta(hours=8),
-        "last_activity": datetime.now(UTC),
+        "created_at": now,
+        "expires_at": now + timedelta(hours=8),
+        "last_activity": now,
         "permissions": ["read", "write", "deploy"],
         "ip_address": "127.0.0.1",
         "user_agent": "flext-cli/1.0.0",
@@ -216,12 +222,18 @@ def demonstrate_session_management() -> FlextResult[None]:
     console.print("✅ Session created with the following details:")
     console.print(f"   Session ID: {session_data['session_id']}")
     console.print(f"   User ID: {session_data['user_id']}")
-    console.print(
-        f"   Created: {session_data['created_at'].strftime('%Y-%m-%d %H:%M:%S UTC')}"
-    )
-    console.print(
-        f"   Expires: {session_data['expires_at'].strftime('%Y-%m-%d %H:%M:%S UTC')}"
-    )
+    created_at = session_data["created_at"]
+    expires_at = session_data["expires_at"]
+    if isinstance(created_at, datetime) and isinstance(expires_at, datetime):
+        console.print(
+            f"   Created: {created_at.strftime('%Y-%m-%d %H:%M:%S UTC')}"
+        )
+        console.print(
+            f"   Expires: {expires_at.strftime('%Y-%m-%d %H:%M:%S UTC')}"
+        )
+    else:
+        console.print("   Created: Session data formatted incorrectly")
+        console.print("   Expires: Session data formatted incorrectly")
 
     # Check session validity
     validity_result = validate_session(session_data)
@@ -364,7 +376,8 @@ def check_permission(
             return FlextResult[bool].fail(f"Role '{user_role}' not found")
 
         # Check if role has required permission
-        if required_permission in role_config["permissions"]:
+        permissions = role_config["permissions"]
+        if isinstance(permissions, list) and required_permission in permissions:
             is_authorized = True
             return FlextResult[bool].ok(is_authorized)
         return FlextResult[bool].fail(
@@ -384,12 +397,12 @@ def validate_session(session_data: dict[str, object]) -> FlextResult[bool]:
         if not expires_at:
             return FlextResult[bool].fail("Session has no expiration time")
 
-        if current_time > expires_at:
+        if isinstance(expires_at, datetime) and current_time > expires_at:
             return FlextResult[bool].fail("Session has expired")
 
         # Check if session is too old (example: max 24 hours)
         created_at = session_data.get("created_at")
-        if created_at and (current_time - created_at) > timedelta(days=1):
+        if isinstance(created_at, datetime) and (current_time - created_at) > timedelta(days=1):
             return FlextResult[bool].fail("Session is too old")
 
         is_valid = True

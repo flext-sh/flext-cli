@@ -234,7 +234,10 @@ class TestFlextCliService:
         try:
             result = service.flext_cli_export(data, temp_path, "invalid_format")
             assert not result.is_success
-            if "Formatting failed:" not in result.error and "Unsupported format:" not in result.error:
+            if (
+                "Formatting failed:" not in result.error
+                and "Unsupported format:" not in result.error
+            ):
                 msg = f"Expected 'Formatting failed:' or 'Unsupported format:' in {result.error}"
                 raise AssertionError(
                     msg,
@@ -615,8 +618,7 @@ class TestFlextCliService:
 
         # Mock FlextCliCommand where it's used in the imported module
         with patch.object(
-            core_module, "FlextCliCommand",
-            side_effect=Exception("Command error")
+            core_module, "FlextCliCommand", side_effect=Exception("Command error")
         ):
             result = service.flext_cli_create_command("test-cmd", "echo hello")
             assert not result.is_success, f"Expected failure but got success: {result}"

@@ -624,11 +624,13 @@ class TestMixinIntegration(unittest.TestCase):
 
         # Step 1: Validate input (if validation method exists)
         if hasattr(complete_cli, "validate_cli_arguments"):
-            validation_result = complete_cli.validate_cli_arguments([
-                "command",
-                "--flag",
-                "value",
-            ])
+            validation_result = complete_cli.validate_cli_arguments(
+                [
+                    "command",
+                    "--flag",
+                    "value",
+                ]
+            )
             assert isinstance(validation_result, FlextResult)
 
         # Step 2: Log action (if logging method exists)

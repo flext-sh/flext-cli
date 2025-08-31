@@ -431,7 +431,9 @@ class TestFlextCliBatchValidate(unittest.TestCase):
 
     def test_batch_validate_single_email_item(self) -> None:
         """Test batch validate with single email item."""
-        inputs: dict[str, tuple[object, str]] = {"user_email": ("test@example.com", "email")}
+        inputs: dict[str, tuple[object, str]] = {
+            "user_email": ("test@example.com", "email")
+        }
 
         result = flext_cli_batch_validate(inputs)
 
@@ -440,7 +442,9 @@ class TestFlextCliBatchValidate(unittest.TestCase):
 
     def test_batch_validate_single_invalid_email(self) -> None:
         """Test batch validate with invalid email."""
-        inputs: dict[str, tuple[object, str]] = {"user_email": ("not-an-email", "email")}
+        inputs: dict[str, tuple[object, str]] = {
+            "user_email": ("not-an-email", "email")
+        }
 
         result = flext_cli_batch_validate(inputs)
 
@@ -477,7 +481,9 @@ class TestFlextCliBatchValidate(unittest.TestCase):
 
     def test_batch_validate_filename_sanitization(self) -> None:
         """Test batch validate with filename sanitization."""
-        inputs: dict[str, tuple[object, str]] = {"filename": ("test_file.txt", "filename")}
+        inputs: dict[str, tuple[object, str]] = {
+            "filename": ("test_file.txt", "filename")
+        }
 
         result = flext_cli_batch_validate(inputs)
 
@@ -486,7 +492,9 @@ class TestFlextCliBatchValidate(unittest.TestCase):
 
     def test_batch_validate_unknown_validator_type(self) -> None:
         """Test batch validate with unknown validator type."""
-        inputs: dict[str, tuple[object, str]] = {"unknown_field": ("some_value", "unknown_type")}
+        inputs: dict[str, tuple[object, str]] = {
+            "unknown_field": ("some_value", "unknown_type")
+        }
 
         result = flext_cli_batch_validate(inputs)
 
