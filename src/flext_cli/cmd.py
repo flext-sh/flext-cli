@@ -54,10 +54,12 @@ def _get_all_config(cli_context: object) -> None:
     fmt = getattr(getattr(cli_context, "config", object()), "output_format", "table")
     if fmt == "json":
         console.print(
-            FlextUtilities.safe_json_stringify({
-                "config": cfg_dict,
-                "settings": stg_dict,
-            })
+            FlextUtilities.safe_json_stringify(
+                {
+                    "config": cfg_dict,
+                    "settings": stg_dict,
+                }
+            )
         )
         return
     if fmt == "yaml":

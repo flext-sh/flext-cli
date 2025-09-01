@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import sys
+import uuid
 
 import click
 from flext_core import (
@@ -80,7 +81,6 @@ def cli(
     console = Console(quiet=quiet)
 
     # Create CLI context with correct fields (SOLID: Single Responsibility)
-    import uuid
 
     cli_context = FlextCliContext(id=str(uuid.uuid4()), config=config, console=console)
 
@@ -94,13 +94,13 @@ def cli(
     # Debug information
     if debug:
         console.print(
-            f"[dim]{"Profile"}: {profile}[/dim]",
+            f"[dim]{'Profile'}: {profile}[/dim]",
         )
         console.print(
-            f"[dim]{"Output Format"}: {output}[/dim]",
+            f"[dim]{'Output Format'}: {output}[/dim]",
         )
         console.print(
-            f"[dim]{"Debug Mode"}: {debug}[/dim]",
+            f"[dim]{'Debug Mode'}: {debug}[/dim]",
         )
 
     # Show help if no command:
@@ -138,12 +138,12 @@ def interactive(ctx: click.Context) -> None:
     """Start interactive mode with REPL interface."""
     console = ctx.obj["console"]
     console.print(
-        f"[yellow]{"Interactive mode coming soon!"}[/yellow]",
+        f"[yellow]{'Interactive mode coming soon!'}[/yellow]",
     )
     console.print("Planned features:")
-    console.print(f"   {"• REPL mode for live commands"}")
-    console.print(f"   {"• Tab completion"}")
-    console.print(f"   {"• Command history"}")
+    console.print(f"   {'• REPL mode for live commands'}")
+    console.print(f"   {'• Tab completion'}")
+    console.print(f"   {'• Command history'}")
     console.print(f"   {FlextCliConstants.CliMessages.INTERACTIVE_FEATURE_HELP}")
     console.print("")
     console.print(FlextCliConstants.CliMessages.INFO_USE_HELP)

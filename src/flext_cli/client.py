@@ -7,34 +7,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import importlib
 from typing import Self, cast
 from urllib.parse import urljoin
 
 import httpx
-from flext_core import FlextLogger, FlextModels, FlextResult
+from flext_core import FlextConstants, FlextLogger, FlextModels, FlextResult
 from pydantic import Field
 
 from flext_cli.config import FlextCliConfig
-
-
-def _compute_default_base_url() -> str | None:
-    """Return default base URL from flext_core constants if available."""
-    try:
-        mod = importlib.import_module("flext_core.constants")
-        constants = getattr(mod, "FlextConstants", None)
-        platform = (
-            getattr(constants, "Platform", None) if constants is not None else None
-        )
-        host = getattr(platform, "DEFAULT_HOST", None) if platform is not None else None
-        port = (
-            getattr(platform, "FLEXT_API_PORT", None) if platform is not None else None
-        )
-        if host and port:
-            return f"http://{host}:{port}"
-        return None
-    except Exception:
-        return None
 
 
 class FlextApiClient:
@@ -59,7 +39,9 @@ class FlextApiClient:
 
         name: str = Field(description="Pipeline name")
         status: str = Field(description="Pipeline status")
-        config: FlextApiClient.PipelineConfig = Field(description="Pipeline configuration")
+        config: FlextApiClient.PipelineConfig = Field(
+            description="Pipeline configuration"
+        )
 
         def validate_business_rules(self) -> FlextResult[None]:
             """Validate pipeline business rules."""
@@ -72,7 +54,9 @@ class FlextApiClient:
     class PipelineList(FlextModels.BaseConfig):
         """Pipeline list response."""
 
-        pipelines: list[FlextApiClient.Pipeline] = Field(description="List of pipelines")
+        pipelines: list[FlextApiClient.Pipeline] = Field(
+            description="List of pipelines"
+        )
         total: int = Field(description="Total count")
         page: int = Field(1, description="Current page")
         page_size: int = Field(20, description="Page size")
@@ -100,7 +84,7 @@ class FlextApiClient:
         elif config.api_url:
             self.base_url = config.api_url
         else:
-            computed = _compute_default_base_url()
+            computed = self._compute_default_base_url()
             self.base_url = computed or "http://localhost:8000"
         self.token = token
         self.timeout = timeout
@@ -159,6 +143,27 @@ class FlextApiClient:
         )
         response.raise_for_status()
         return response
+
+    @classmethod
+    def _compute_default_base_url(cls) -> str | None:
+        """Return default base URL using flext_core root exports."""
+        try:
+            base = getattr(FlextConstants.Platform, "DEFAULT_BASE_URL", None)
+            host = getattr(FlextConstants.Platform, "DEFAULT_HOST", None)
+            port = getattr(FlextConstants.Platform, "FLEXT_API_PORT", None)
+
+            # Prefer explicit DEFAULT_BASE_URL, fallback to http://{host}
+            if not base and host:
+                base = f"http://{host}"
+
+            if base and port:
+                # Avoid duplicating port if already present
+                return (
+                    base if str(port) in base.rsplit(":", 1)[-1] else f"{base}:{port}"
+                )
+            return base
+        except Exception:
+            return None
 
     # Authentication methods
     async def login(
@@ -242,7 +247,9 @@ class FlextApiClient:
         response = await self._request("GET", f"/api/v1/pipelines/{pipeline_id}")
         return FlextApiClient.Pipeline(**response.json())
 
-    async def create_pipeline(self, config: FlextApiClient.PipelineConfig) -> FlextApiClient.Pipeline:
+    async def create_pipeline(
+        self, config: FlextApiClient.PipelineConfig
+    ) -> FlextApiClient.Pipeline:
         """Create new pipeline.
 
         Args:
