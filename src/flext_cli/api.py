@@ -72,8 +72,6 @@ from typing import override
 from flext_core import FlextModels, FlextResult, FlextUtilities
 from pydantic import ConfigDict, Field
 
-from flext_cli.context import FlextCliContext
-from flext_cli.models import FlextCliModels
 from flext_cli.services import FlextCliServices
 
 
@@ -194,18 +192,18 @@ class FlextCliApi(FlextModels.BaseConfig):
         try:
             # Simple inline formatting
             import json
-            
+
             if format_type == "json":
                 try:
                     json_str = json.dumps(data, indent=2, default=str)
                     return FlextResult[str].ok(json_str)
                 except Exception as e:
                     return FlextResult[str].fail(f"JSON formatting failed: {e}")
-            
+
             if format_type == "yaml":
                 # Simple YAML-like formatting without pyyaml dependency
                 return FlextResult[str].ok(str(data))
-            
+
             if format_type in ("table", "plain"):
                 return FlextResult[str].ok(str(data))
 
@@ -764,5 +762,4 @@ class FlextCliApi(FlextModels.BaseConfig):
 # Re-export ONLY the consolidated class - following FLEXT pattern
 __all__ = [
     "FlextCliApi",
-    "FlextCliContext",  # Re-export for convenience
 ]

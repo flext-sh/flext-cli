@@ -1,8 +1,7 @@
-"""FLEXT CLI Mixins - Single unique CLI mixins class.
+"""FLEXT CLI Mixins - Thin alias to flext-core mixins.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
+Prefer importing FlextMixins from flext_core directly when possible.
+This wrapper exists only to keep CLI’s public API stable when required.
 """
 
 from __future__ import annotations
@@ -13,20 +12,9 @@ from flext_core import FlextMixins
 
 
 class FlextCliMixins(FlextMixins):
-    """CLI-specific mixins extending flext-core FlextMixins.
+    """CLI-specific mixins extending flext-core FlextMixins (no extra behavior)."""
 
-    Single unique class for the module following flext-core inheritance patterns.
-    All functionality should be available through FlextMixins base class.
-    """
-
-    # Reference to flext-core mixins for inheritance
     Core: ClassVar = FlextMixins
 
 
-# =============================================================================
-# EXPORTS - Single unique class following user requirements
-# =============================================================================
-
-__all__ = [
-    "FlextCliMixins",
-]
+__all__ = ["FlextCliMixins"]

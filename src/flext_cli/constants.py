@@ -22,6 +22,26 @@ class FlextCliConstants(FlextConstants):
     # Reference to flext-core constants for inheritance
     Core: ClassVar = FlextConstants
 
+    class CliMessages:
+        """Docstring for CliMessages."""
+
+        # Interactive section
+        INTERACTIVE_FEATURE_HELP = "Interactive commands: REPL, completion, history"
+        INFO_USE_HELP = "Use --help for more information"
+
+        # Version info
+        VERSION_CLI = "FLEXT CLI"
+        VERSION_PYTHON = "Python"
+        VERSION_FLEXT_CORE = "FLEXT Core"
+
+        # Debug/diagnostics
+        DEBUG_FLEXT_CORE_NOT_DETECTED = "FLEXT Core version not detected"
+        DEBUG_INFORMATION = "Debug Information"
+        DEBUG_CONFIGURATION = "Configuration"
+        DEBUG_PYTHON_EXECUTABLE = "Python Executable"
+        DEBUG_PLATFORM = "Platform"
+        DEBUG_SERVICE_CONNECTIVITY = "Service connectivity check"
+
 
 # =============================================================================
 # EXPORTS - Single unique class following user requirements

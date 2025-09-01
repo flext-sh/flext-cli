@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import sys
+import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import ClassVar, cast
@@ -180,70 +181,68 @@ class FlextCliContext(FlextContext):
                 "session_id": self.session_id,
             }
 
+    # Factory functions
+    @classmethod
+    def create(**kwargs: object) -> FlextCliContext:
+        """Create a CLI context with optional parameters."""
+        config = kwargs.get("config")
+        console_param = kwargs.get("console")
+        console = console_param if isinstance(console_param, Console) else Console()
+        debug = bool(kwargs.get("debug"))
+        quiet = bool(kwargs.get("quiet"))
+        verbose = bool(kwargs.get("verbose"))
 
-# Factory functions
-def create_cli_context(**kwargs: object) -> FlextCliContext:
-    """Create a CLI context with optional parameters."""
-    config = kwargs.get("config")
-    console_param = kwargs.get("console")
-    console = console_param if isinstance(console_param, Console) else Console()
-    debug = bool(kwargs.get("debug"))
-    quiet = bool(kwargs.get("quiet"))
-    verbose = bool(kwargs.get("verbose"))
+        # Use provided config or create new one
+        cli_config = config if isinstance(config, FlextCliConfig) else FlextCliConfig()
 
-    # Use provided config or create new one
-    cli_config = config if isinstance(config, FlextCliConfig) else FlextCliConfig()
+        # Create context with proper initialization
 
-    # Create context with proper initialization
-    import uuid
+        return FlextCliContext(
+            id=str(uuid.uuid4()),
+            config=cli_config,
+            console=console,
+            debug=debug,
+            quiet=quiet,
+            verbose=verbose,
+        )
 
-    return FlextCliContext(
-        id=str(uuid.uuid4()),
-        config=cli_config,
-        console=console,
-        debug=debug,
-        quiet=quiet,
-        verbose=verbose,
-    )
+    @classmethod
+    def create_execution(
+        cls: str,
+        command_name: str,
+        **kwargs: object,
+    ) -> FlextCliContext.ExecutionContext:
+        """Create an execution context for a specific command."""
+        # Extract and cast specific fields with correct types
+        kwargs.get("config", {})
+        kwargs.get("environment", {})
+        session_id = kwargs.get("session_id")
+        user_id = kwargs.get("user_id")
+        kwargs.get("debug", False)
+        kwargs.get("verbose", False)
+        command_args_raw = kwargs.get("command_args", {})
+        execution_id = kwargs.get("execution_id")
+        start_time = kwargs.get("start_time")
 
+        # Properly type command_args
+        command_args = (
+            cast("dict[str, object]", command_args_raw)
+            if isinstance(command_args_raw, dict)
+            else {}
+        )
 
-def create_execution_context(
-    command_name: str,
-    **kwargs: object,
-) -> FlextCliContext.ExecutionContext:
-    """Create an execution context for a specific command."""
-    # Extract and cast specific fields with correct types
-    kwargs.get("config", {})
-    kwargs.get("environment", {})
-    session_id = kwargs.get("session_id")
-    user_id = kwargs.get("user_id")
-    kwargs.get("debug", False)
-    kwargs.get("verbose", False)
-    command_args_raw = kwargs.get("command_args", {})
-    execution_id = kwargs.get("execution_id")
-    start_time = kwargs.get("start_time")
-
-    # Properly type command_args
-    command_args = (
-        cast("dict[str, object]", command_args_raw)
-        if isinstance(command_args_raw, dict)
-        else {}
-    )
-
-    return FlextCliContext.ExecutionContext(
-        command_name=command_name,
-        command_args=command_args,
-        execution_id=str(execution_id) if execution_id is not None else None,
-        start_time=float(start_time)
-        if start_time is not None and (isinstance(start_time, (int, float, str)))
-        else None,
-        session_id=str(session_id) if session_id is not None else None,
-        user_id=str(user_id) if user_id is not None else None,
-    )
+        return FlextCliContext.ExecutionContext(
+            command_name=command_name,
+            command_args=command_args,
+            execution_id=str(execution_id) if execution_id is not None else None,
+            start_time=float(start_time)
+            if start_time is not None and (isinstance(start_time, (int, float, str)))
+            else None,
+            session_id=str(session_id) if session_id is not None else None,
+            user_id=str(user_id) if user_id is not None else None,
+        )
 
 
 __all__ = [
     "FlextCliContext",
-    "create_cli_context",
-    "create_execution_context",
 ]

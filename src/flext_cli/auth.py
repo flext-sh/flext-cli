@@ -141,7 +141,7 @@ def save_auth_token(token: str, *, token_path: Path | None = None) -> FlextResul
         return FlextResult[None].ok(None)
     except (OSError, PermissionError, ValueError) as e:
         return FlextResult[None].fail(
-            f"{"Authentication save failed"}: {e}",
+            f"{'Authentication save failed'}: {e}",
         )
 
 
@@ -169,7 +169,7 @@ def save_refresh_token(
         return FlextResult[None].ok(None)
     except (OSError, PermissionError, ValueError) as e:
         return FlextResult[None].fail(
-            f"{"Refresh token save failed"}: {e}",
+            f"{'Refresh token save failed'}: {e}",
         )
 
 
@@ -241,7 +241,7 @@ def clear_auth_tokens() -> FlextResult[None]:
         return FlextResult[None].ok(None)
     except (OSError, PermissionError) as e:
         return FlextResult[None].fail(
-            f"{"Authentication clear failed"}: {e}",
+            f"{'Authentication clear failed'}: {e}",
         )
 
 
@@ -294,12 +294,12 @@ async def _async_login_impl(
     try:
         async with FlextApiClient() as client:
             console.print(
-                f"[yellow]{"Logging in user:"} {username}...[/yellow]",
+                f"[yellow]{'Logging in user:'} {username}...[/yellow]",
             )
 
             if not password or len(password) < 1:
                 console.print(
-                    f"[red]{"✗"} {"Credentials are empty"}[/red]",
+                    f"[red]{'✗'} {'Credentials are empty'}[/red]",
                 )
                 ctx.exit(1)
 
@@ -307,7 +307,7 @@ async def _async_login_impl(
 
             if login_result.is_failure:
                 console.print(
-                    f"[red]{"✗"} {"Login failed"}: {login_result.error}[/red]",
+                    f"[red]{'✗'} {'Login failed'}: {login_result.error}[/red]",
                 )
                 ctx.exit(1)
 
@@ -318,11 +318,11 @@ async def _async_login_impl(
                     save_result = save_auth_token(token_value)
                     if save_result.is_success:
                         console.print(
-                            f"[green]{"✓"} {"Successfully logged in"}[/green]",
+                            f"[green]{'✓'} {'Successfully logged in'}[/green]",
                         )
                     else:
                         console.print(
-                            f"[red]{"✗"} {"Authentication save failed"}: {save_result.error}[/red]",
+                            f"[red]{'✗'} {'Authentication save failed'}: {save_result.error}[/red]",
                         )
                         ctx.exit(1)
 
@@ -333,17 +333,17 @@ async def _async_login_impl(
                         console.print(f"Welcome, {user_name}!")
             else:
                 console.print(
-                    f"[red]{"✗"} {"Invalid authentication response"}[/red]",
+                    f"[red]{'✗'} {'Invalid authentication response'}[/red]",
                 )
                 ctx.exit(1)
     except (ConnectionError, TimeoutError, ValueError, KeyError) as e:
         console.print(
-            f"[red]{"✗"} {"Login failed"}: {e}[/red]",
+            f"[red]{'✗'} {'Login failed'}: {e}[/red]",
         )
         ctx.exit(1)
     except OSError as e:
         console.print(
-            f"[red]{"✗"} {"Network error"}: {e}[/red]",
+            f"[red]{'✗'} {'Network error'}: {e}[/red]",
         )
         ctx.exit(1)
 
@@ -388,7 +388,7 @@ async def _async_logout_impl(_ctx: click.Context, console: Console) -> None:
         token = _get_auth_token_bridge()
         if not token:
             console.print(
-                f"[yellow]{"Not logged in"}[/yellow]",
+                f"[yellow]{'Not logged in'}[/yellow]",
             )
             return
         # Proactively clear tokens; tests expect token cleanup even on early failures
@@ -403,33 +403,33 @@ async def _async_logout_impl(_ctx: click.Context, console: Console) -> None:
 
         async with client_manager as client:
             console.print(
-                f"[yellow]{"Logging out..."}[/yellow]",
+                f"[yellow]{'Logging out...'}[/yellow]",
             )
             try:
                 await client.logout()
             except Exception as e:
                 console.print(
-                    f"[red]{"✗"} {"Logout failed"}: {e}[/red]",
+                    f"[red]{'✗'} {'Logout failed'}: {e}[/red]",
                 )
 
             clear_result = FlextResult[None].ok(None)  # already cleared proactively
             if clear_result.is_success:
                 console.print(
-                    f"[green]{"✓"} {"Successfully logged out"}[/green]",
+                    f"[green]{'✓'} {'Successfully logged out'}[/green]",
                 )
             else:
                 console.print(
-                    f"[yellow]{"⚠"} {"Warning: Failed to clear authentication tokens"}: {clear_result.error}[/yellow]",
+                    f"[yellow]{'⚠'} {'Warning: Failed to clear authentication tokens'}: {clear_result.error}[/yellow]",
                 )
     except KeyError:
         clear_result = _clear_tokens_bridge()
         if clear_result.is_success:
             console.print(
-                f"[green]{"✓"} {"Successfully logged out"}[/green]",
+                f"[green]{'✓'} {'Successfully logged out'}[/green]",
             )
         else:
             console.print(
-                f"[yellow]{"⚠"} {"Warning: Failed to clear authentication tokens"}: {clear_result.error}[/yellow]",
+                f"[yellow]{'⚠'} {'Warning: Failed to clear authentication tokens'}: {clear_result.error}[/yellow]",
             )
     except (
         ConnectionError,
@@ -493,14 +493,14 @@ def status(ctx: click.Context) -> None:
             token = _get_auth_token_bridge()
             if not token:
                 console.print(
-                    f"[red]{"✗"} {"Not authenticated"}[/red]",
+                    f"[red]{'✗'} {'Not authenticated'}[/red]",
                 )
                 console.print("Run 'flext auth login' to authenticate")
                 ctx.exit(1)
 
             async with FlextApiClient() as client:
                 console.print(
-                    f"[yellow]{"Checking authentication status..."}[/yellow]",
+                    f"[yellow]{'Checking authentication status...'}[/yellow]",
                 )
                 user_result = await client.get_current_user()
 
@@ -508,16 +508,16 @@ def status(ctx: click.Context) -> None:
                 user = user_result
                 if user:
                     console.print(
-                        f"[green]{"✓"} {"Authenticated"}[/green]",
+                        f"[green]{'✓'} {'Authenticated'}[/green]",
                     )
                     console.print(
-                        f"{"User"}: {user.get('username', "Unknown")}",
+                        f"{'User'}: {user.get('username', 'Unknown')}",
                     )
                     console.print(
-                        f"{"Email"}: {user.get('email', "Unknown")}",
+                        f"{'Email'}: {user.get('email', 'Unknown')}",
                     )
                     console.print(
-                        f"{"Role"}: {user.get('role', "Unknown")}",
+                        f"{'Role'}: {user.get('role', 'Unknown')}",
                     )
                 else:
                     error_msg = "No user data returned"

@@ -174,45 +174,30 @@ class FlextCliConfig(FlextConfig):
 
     # Directory configuration
     config_dir: Path = Field(
-        default_factory=lambda: Path.home()
-        / ".flext",
+        default_factory=lambda: Path.home() / ".flext",
         description="Configuration directory",
     )
     cache_dir: Path = Field(
-        default_factory=lambda: Path.home()
-        / ".flext"
-        / "cache",
+        default_factory=lambda: Path.home() / ".flext" / "cache",
         description="Cache directory",
     )
     log_dir: Path = Field(
-        default_factory=lambda: Path.home()
-        / ".flext"
-        / "logs",
+        default_factory=lambda: Path.home() / ".flext" / "logs",
         description="Log directory",
     )
     data_dir: Path = Field(
-        default_factory=lambda: Path.home()
-        / ".flext"
-        / "data",
+        default_factory=lambda: Path.home() / ".flext" / "data",
         description="Data directory",
     )
 
     # Authentication configuration
     token_file: Path = Field(
-        default_factory=lambda: (
-            Path.home()
-            / ".flext"
-            / "auth"
-            / "token.json"
-        ),
+        default_factory=lambda: (Path.home() / ".flext" / "auth" / "token.json"),
         description="Authentication token file",
     )
     refresh_token_file: Path = Field(
         default_factory=lambda: (
-            Path.home()
-            / ".flext"
-            / "auth"
-            / "refresh_token.json"
+            Path.home() / ".flext" / "auth" / "refresh_token.json"
         ),
         description="Refresh token file",
     )
@@ -258,24 +243,16 @@ class FlextCliConfig(FlextConfig):
 
             token_expiry_hours: int = 24
             refresh_expiry_days: int = 30
-            session_timeout_minutes: int = (
-                60
-            )
+            session_timeout_minutes: int = 60
             min_token_length: int = 10
             max_login_attempts: int = 3
 
         class Config:
             """Configuration management defaults."""
 
-            max_profile_name_length: int = (
-                50
-            )
-            max_config_key_length: int = (
-                100
-            )
-            max_config_value_length: int = (
-                1000
-            )
+            max_profile_name_length: int = 50
+            max_config_key_length: int = 100
+            max_config_value_length: int = 1000
 
         class Validation:
             """Input validation defaults."""
@@ -284,11 +261,13 @@ class FlextCliConfig(FlextConfig):
             max_command_length: int = 1000
             min_profile_length: int = 1
             max_profile_length: int = 50
-            valid_output_formats: tuple[str, ...] = (
-                "table", "json", "yaml", "csv"
-            )
+            valid_output_formats: tuple[str, ...] = ("table", "json", "yaml", "csv")
             valid_log_levels: tuple[str, ...] = (
-                "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
+                "DEBUG",
+                "INFO",
+                "WARNING",
+                "ERROR",
+                "CRITICAL",
             )
 
     class CliDirectories:
@@ -450,9 +429,7 @@ class FlextCliConfig(FlextConfig):
             return FlextResult[None].fail("Timeout values must be positive")
 
         if self.command_timeout > 300:
-            return FlextResult[None].fail(
-                f"Command timeout exceeds maximum: {300}s"
-            )
+            return FlextResult[None].fail(f"Command timeout exceeds maximum: {300}s")
         return FlextResult[None].ok(None)
 
     def _validate_retries(self) -> FlextResult[None]:
@@ -463,13 +440,10 @@ class FlextCliConfig(FlextConfig):
 
     def _validate_output_format(self) -> FlextResult[None]:
         """Validate output format against CLI constants."""
-        if (
-            self.output_format
-            not in {"table", "json", "yaml", "csv"}
-        ):
+        if self.output_format not in {"table", "json", "yaml", "csv"}:
             return FlextResult[None].fail(
                 f"Invalid output format '{self.output_format}'. "
-                f"Valid options: {["table", "json", "yaml", "csv"]}"
+                f"Valid options: {['table', 'json', 'yaml', 'csv']}"
             )
         return FlextResult[None].ok(None)
 
@@ -498,7 +472,7 @@ class FlextCliConfig(FlextConfig):
         if self.log_level not in {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}:
             return FlextResult[None].fail(
                 f"Invalid log level '{self.log_level}'. "
-                f"Valid options: {["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]}"
+                f"Valid options: {['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']}"
             )
         return FlextResult[None].ok(None)
 
