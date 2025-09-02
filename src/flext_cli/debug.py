@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import importlib
 import os
-import platform as _platform
+import platform
 import sys
 from contextlib import suppress
 from pathlib import Path
@@ -315,7 +315,7 @@ def validate(ctx: click.Context) -> None:
     __import__("rich")
     # Environment info
     # Access via top-level imported platform module so tests can patch platform.*
-    _ = _platform.system(), _platform.release(), _platform.machine()
+    _ = platform.system(), platform.release(), platform.machine()
 
 
 @debug_cmd.command(help="Trace a command execution")

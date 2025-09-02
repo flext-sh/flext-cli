@@ -15,12 +15,12 @@ from pydantic import Field, computed_field, field_validator
 from .constants import FlextCliConstants
 
 
-class FlextCliModels(FlextModels):
+class FlextCliModels:
     """CLI-specific models extending flext_core FlextModels."""
 
     Core: ClassVar[type[FlextModels]] = FlextModels
 
-    class CliCommand(FlextModels):
+    class CliCommand(FlextModels.Entity):
         """CLI command model."""
 
         if TYPE_CHECKING:
@@ -132,7 +132,7 @@ class FlextCliModels(FlextModels):
                     )
             return FlextResult[None].ok(None)
 
-    class CliConfig(FlextModels):
+    class CliConfig(FlextModels.Value):
         """CLI configuration model."""
 
         profile: str = Field(default=FlextCliConstants.DEFAULT_PROFILE)

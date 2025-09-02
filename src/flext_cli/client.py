@@ -24,7 +24,7 @@ class FlextApiClient:
     Provides async methods for interacting with the FLEXT API.
     """
 
-    class PipelineConfig(FlextModels):
+    class PipelineConfig(FlextModels.BaseConfig):
         """Pipeline configuration model for Singer/Meltano workflows."""
 
         name: str = Field(description="Pipeline name")

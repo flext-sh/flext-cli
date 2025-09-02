@@ -41,9 +41,10 @@ class FlextCliUtilsCore:
             _ = _options
             config = FlextCliConfig()
             console = Console()
-            return FlextResult[QuickSetupContext].ok(
-                {"console": console, "config": config}
-            )
+            return FlextResult[QuickSetupContext].ok({
+                "console": console,
+                "config": config,
+            })
         except Exception as e:
             return FlextResult[QuickSetupContext].fail(f"CLI setup failed: {e}")
 
@@ -232,7 +233,7 @@ class FlextCliUtilsCore:
             "table": O.TABLE,
         }.get(hint, O.JSON)
         # Cast to FlextCliData for type compatibility
-        typed_data: FlextCliData = data  # type: ignore[assignment]
+        typed_data: FlextCliData = data
         return FlextCliUtils.save_data_file(typed_data, p, fmt_enum)
 
     @classmethod
