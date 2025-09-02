@@ -72,10 +72,11 @@ from typing import override
 from flext_core import FlextModels, FlextResult, FlextUtilities
 from pydantic import ConfigDict, Field
 
+from flext_cli.models import FlextCliModels
 from flext_cli.services import FlextCliServices
 
 
-class FlextCliApi(FlextModels.BaseConfig):
+class FlextCliApi(FlextModels):
     """Consolidated CLI API extending flext-core patterns.
 
     Following exact semantic pattern from flext-core:
@@ -162,7 +163,7 @@ class FlextCliApi(FlextModels.BaseConfig):
         self,
         data: object,
         format_type: str = "table",
-        **options: object,
+        **_options: object,
     ) -> FlextResult[str]:
         """Format data using specified output format.
 
@@ -184,7 +185,7 @@ class FlextCliApi(FlextModels.BaseConfig):
             # Use basic formatting
             return self._basic_format(data, format_type)
 
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             return FlextResult[str].fail(f"Data formatting failed: {e}")
 
     def _basic_format(self, data: object, format_type: str) -> FlextResult[str]:
@@ -204,13 +205,13 @@ class FlextCliApi(FlextModels.BaseConfig):
                 # Simple YAML-like formatting without pyyaml dependency
                 return FlextResult[str].ok(str(data))
 
-            if format_type in ("table", "plain"):
+            if format_type in {"table", "plain"}:
                 return FlextResult[str].ok(str(data))
 
             # For other formats, use simple string representation
             return FlextResult[str].ok(str(data))
 
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             return FlextResult[str].fail(f"Basic formatting failed: {e}")
 
     def export_data(
@@ -244,7 +245,7 @@ class FlextCliApi(FlextModels.BaseConfig):
 
             return FlextResult[str].ok(f"Data exported to {path}")
 
-        except Exception as e:
+        except (OSError, ValueError, TypeError) as e:
             return FlextResult[str].fail(f"Export failed: {e}")
 
     def transform_data(
@@ -291,7 +292,7 @@ class FlextCliApi(FlextModels.BaseConfig):
 
             return FlextResult[list[dict[str, object]]].ok(result)
 
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             return FlextResult[list[dict[str, object]]].fail(f"Transform failed: {e}")
 
     def aggregate_data(
@@ -355,7 +356,7 @@ class FlextCliApi(FlextModels.BaseConfig):
             result = list(groups.values())
             return FlextResult[list[dict[str, object]]].ok(result)
 
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             return FlextResult[list[dict[str, object]]].fail(f"Aggregation failed: {e}")
 
     # =========================================================================
@@ -365,7 +366,7 @@ class FlextCliApi(FlextModels.BaseConfig):
     def create_command(
         self,
         command_line: str,
-        **options: object,
+        **_options: object,
     ) -> FlextResult[FlextCliModels.CliCommand]:
         """Create a new CLI command.
 
@@ -396,7 +397,7 @@ class FlextCliApi(FlextModels.BaseConfig):
 
             return FlextResult[FlextCliModels.CliCommand].ok(command)
 
-        except Exception as e:
+        except (ValueError, RuntimeError, TypeError) as e:
             return FlextResult[FlextCliModels.CliCommand].fail(
                 f"Command creation failed: {e}"
             )
@@ -428,10 +429,13 @@ class FlextCliApi(FlextModels.BaseConfig):
             else:
                 command_obj = command
 
-            # Basic execution simulation
-            return FlextResult[str].ok(f"Command executed: {command_obj.command_line}")
+            # Basic execution simulation, include timeout info when provided
+            timeout_info = f" (timeout={timeout}s)" if timeout else ""
+            return FlextResult[str].ok(
+                f"Command executed: {command_obj.command_line}{timeout_info}"
+            )
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             return FlextResult[str].fail(f"Command execution failed: {e}")
 
     def get_command_history(self) -> list[FlextCliModels.CliCommand]:
@@ -485,7 +489,7 @@ class FlextCliApi(FlextModels.BaseConfig):
 
             return FlextResult[str].ok(session_id)
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             return FlextResult[str].fail(f"Session creation failed: {e}")
 
     def get_session(self, session_id: str) -> FlextResult[dict[str, object]]:
@@ -511,7 +515,7 @@ class FlextCliApi(FlextModels.BaseConfig):
             session_data = sessions[session_id]
             return FlextResult[dict[str, object]].ok(session_data)
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             return FlextResult[dict[str, object]].fail(f"Session retrieval failed: {e}")
 
     def end_session(self, session_id: str) -> FlextResult[None]:
@@ -537,7 +541,7 @@ class FlextCliApi(FlextModels.BaseConfig):
 
             return FlextResult[None].ok(None)
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             return FlextResult[None].fail(f"Session termination failed: {e}")
 
     def get_active_sessions(self) -> list[dict[str, object]]:
@@ -649,7 +653,7 @@ class FlextCliApi(FlextModels.BaseConfig):
 
             return FlextResult[None].ok(None)
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             return FlextResult[None].fail(f"Configuration failed: {e}")
 
     def _validate_configuration(self, config: dict[str, object]) -> FlextResult[None]:
@@ -710,7 +714,7 @@ class FlextCliApi(FlextModels.BaseConfig):
 
             return metrics
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             return {"error": f"Metrics collection failed: {e}"}
 
     # =========================================================================

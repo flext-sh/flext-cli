@@ -547,13 +547,13 @@ class TestFlextCliDataProcessor:
 
         assert isinstance(result, FlextResult)
 
-    def test_flext_cli_transform_data_pipeline_basic(self) -> None:
+    def test_transform_data_pipeline_basic(self) -> None:
         """Test transform_data_pipeline with basic pipeline."""
         processor = FlextCliDataProcessor()
         data = [{"value": 1}, {"value": 2}]
         pipeline_config = {"steps": []}
 
-        result = processor.flext_cli_transform_data_pipeline(data, pipeline_config)
+        result = processor.transform_data_pipeline(data, pipeline_config)
 
         assert isinstance(result, FlextResult)
 
@@ -574,7 +574,7 @@ class TestFlextCliFileManager:
 
         assert manager is not None
 
-    def test_flext_cli_backup_and_process_basic(self) -> None:
+    def test_backup_and_process_basic(self) -> None:
         """Test backup_and_process with basic operation."""
         manager = FlextCliFileManager()
 
@@ -589,14 +589,14 @@ class TestFlextCliFileManager:
             def process_func(content: str) -> FlextResult[str]:
                 return FlextResult[str].ok(content.upper())
 
-            result = manager.flext_cli_backup_and_process(temp_file_path, process_func)
+            result = manager.backup_and_process(temp_file_path, process_func)
 
             # Should succeed or fail gracefully
             assert isinstance(result, FlextResult)
         finally:
             Path(temp_file_path).unlink()
 
-    def test_flext_cli_safe_write_success(self) -> None:
+    def test_safe_write_success(self) -> None:
         """Test safe_write with successful write."""
         manager = FlextCliFileManager()
 
@@ -604,7 +604,7 @@ class TestFlextCliFileManager:
             temp_file_path = temp_file.name
 
         try:
-            result = manager.flext_cli_safe_write("test content", temp_file_path)
+            result = manager.safe_write("test content", temp_file_path)
 
             # Should succeed
             assert isinstance(result, FlextResult)
@@ -765,9 +765,7 @@ class TestEdgeCases:
         manager = FlextCliFileManager()
 
         # Test with invalid path
-        result = manager.flext_cli_backup_and_process(
-            "/nonexistent/file.txt", lambda x: x
-        )
+        result = manager.backup_and_process("/nonexistent/file.txt", lambda x: x)
         assert isinstance(result, FlextResult)
         assert not result.is_success
 

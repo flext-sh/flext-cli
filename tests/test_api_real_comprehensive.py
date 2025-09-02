@@ -26,15 +26,8 @@ from flext_cli.api import (
     FlextCliApi,
     FlextCliContext,
     PluginLike,
-    flext_cli_aggregate_data,
-    flext_cli_batch_export,
-    flext_cli_export,
-    flext_cli_format,
-    flext_cli_table,
-    flext_cli_transform_data,
-    flext_cli_unwrap_or_default,
-    flext_cli_unwrap_or_none,
 )
+from flext_cli import FlextCliApiFunctions as A
 from flext_cli.config import FlextCliSettings
 from flext_cli.models import (
     FlextCliCommand as CLICommand,
@@ -49,7 +42,7 @@ class TestFlextCliFormat:
         """Test JSON formatting with simple dictionary."""
         test_data = {"name": "John", "age": 30, "city": "New York"}
 
-        result = flext_cli_format(test_data, "json")
+        result = A.format(test_data, "json")
 
         assert result.is_success
         formatted_output = result.value
@@ -62,7 +55,7 @@ class TestFlextCliFormat:
         """Test YAML formatting with simple dictionary."""
         test_data = {"name": "Jane", "age": 25, "active": True}
 
-        result = flext_cli_format(test_data, "yaml")
+        result = A.format(test_data, "yaml")
 
         assert result.is_success
         formatted_output = result.value
@@ -78,7 +71,7 @@ class TestFlextCliFormat:
             {"name": "Bob", "age": 32, "department": "Marketing"},
         ]
 
-        result = flext_cli_format(test_data, "table")
+        result = A.format(test_data, "table")
 
         assert result.is_success
         formatted_output = result.value
@@ -91,7 +84,7 @@ class TestFlextCliFormat:
         """Test table formatting with single dictionary."""
         test_data = {"username": "REDACTED_LDAP_BIND_PASSWORD", "role": "REDACTED_LDAP_BIND_PASSWORDistrator", "active": True}
 
-        result = flext_cli_format(test_data, "table")
+        result = A.format(test_data, "table")
 
         assert result.is_success
         formatted_output = result.value
@@ -103,7 +96,7 @@ class TestFlextCliFormat:
         """Test CSV formatting (falls back to string representation)."""
         test_data = ["item1", "item2", "item3"]
 
-        result = flext_cli_format(test_data, "csv")
+        result = A.format(test_data, "csv")
 
         assert result.is_success
         formatted_output = result.value
@@ -113,7 +106,7 @@ class TestFlextCliFormat:
         """Test plain formatting with simple string."""
         test_data = "Hello, World!"
 
-        result = flext_cli_format(test_data, "plain")
+        result = A.format(test_data, "plain")
 
         assert result.is_success
         formatted_output = result.value
@@ -123,7 +116,7 @@ class TestFlextCliFormat:
         """Test formatting with invalid format type."""
         test_data = {"test": "data"}
 
-        result = flext_cli_format(test_data, "invalid_format")
+        result = A.format(test_data, "invalid_format")
 
         assert not result.is_success
         assert "Invalid format 'invalid_format'" in (result.error or "")
@@ -146,7 +139,7 @@ class TestFlextCliFormat:
             "metadata": {"total": 2, "created": datetime.now(UTC).isoformat()},
         }
 
-        result = flext_cli_format(test_data, "json")
+        result = A.format(test_data, "json")
 
         assert result.is_success
         formatted_output = result.value
@@ -167,7 +160,7 @@ class TestFlextCliTable:
             {"product": "Tablet", "price": 400, "stock": 8},
         ]
 
-        result = flext_cli_table(test_data, title="Products")
+        result = A.table(test_data, title="Products")
 
         assert result.is_success
         table = result.value
@@ -178,7 +171,7 @@ class TestFlextCliTable:
         """Test table creation from simple list."""
         test_data = ["apple", "banana", "cherry", "date"]
 
-        result = flext_cli_table(test_data)
+        result = A.table(test_data)
 
         assert result.is_success
         table = result.value
@@ -193,7 +186,7 @@ class TestFlextCliTable:
             "cpu_usage": "45%",
         }
 
-        result = flext_cli_table(test_data, title="Server Status")
+        result = A.table(test_data, title="Server Status")
 
         assert result.is_success
         table = result.value
@@ -204,7 +197,7 @@ class TestFlextCliTable:
         """Test table creation from single value."""
         test_data = "Single text value"
 
-        result = flext_cli_table(test_data)
+        result = A.table(test_data)
 
         assert result.is_success
         table = result.value
@@ -214,7 +207,7 @@ class TestFlextCliTable:
         """Test table creation from empty list."""
         test_data: list[dict[str, object]] = []
 
-        result = flext_cli_table(test_data)
+        result = A.table(test_data)
 
         assert result.is_success
         table = result.value
@@ -227,7 +220,7 @@ class TestFlextCliTable:
             {"name": "Item2", "count": 18, "active": False, "score": 87.2},
         ]
 
-        result = flext_cli_table(test_data, title="Mixed Data")
+        result = A.table(test_data, title="Mixed Data")
 
         assert result.is_success
         table = result.value
@@ -250,7 +243,7 @@ class TestFlextCliTransformData:
         def filter_engineering(item: dict[str, object]) -> bool:
             return item.get("department") == "Engineering"
 
-        result = flext_cli_transform_data(test_data, filter_func=filter_engineering)
+        result = A.transform_data(test_data, filter_engineering)
 
         assert result.is_success
         filtered_data = result.value
@@ -265,7 +258,7 @@ class TestFlextCliTransformData:
             {"name": "Bob", "age": 30},
         ]
 
-        result = flext_cli_transform_data(test_data, sort_key="age")
+        result = A.transform_data(test_data, sort_key="age")
 
         assert result.is_success
         sorted_data = result.value
@@ -280,7 +273,7 @@ class TestFlextCliTransformData:
             {"name": "Carol", "score": 78},
         ]
 
-        result = flext_cli_transform_data(test_data, sort_key="score", reverse=True)
+        result = A.transform_data(test_data, sort_key="score", reverse=True)
 
         assert result.is_success
         sorted_data = result.value
@@ -300,7 +293,7 @@ class TestFlextCliTransformData:
         def filter_active(item: dict[str, object]) -> bool:
             return item.get("active") is True
 
-        result = flext_cli_transform_data(
+        result = A.transform_data(
             test_data, filter_func=filter_active, sort_key="age"
         )
 
@@ -314,7 +307,7 @@ class TestFlextCliTransformData:
         """Test data transformation with non-list input."""
         test_data = {"not": "a list"}
 
-        result = flext_cli_transform_data(test_data)
+        result = A.transform_data(test_data)
 
         assert not result.is_success
         assert "Data must be a list" in (result.error or "")
@@ -327,7 +320,7 @@ class TestFlextCliTransformData:
             {"name": "Banana", "category": "Fruit"},
         ]
 
-        result = flext_cli_transform_data(test_data, sort_key="name")
+        result = A.transform_data(test_data, sort_key="name")
 
         assert result.is_success
         sorted_data = result.value
@@ -347,7 +340,7 @@ class TestFlextCliAggregateData:
             {"department": "Marketing", "salary": 75000},
         ]
 
-        result = flext_cli_aggregate_data(
+        result = A.aggregate_data(
             test_data, group_by="department", sum_fields=["salary"]
         )
 
@@ -370,7 +363,7 @@ class TestFlextCliAggregateData:
             {"city": "Los Angeles", "population": 4000000},
         ]
 
-        result = flext_cli_aggregate_data(
+        result = A.aggregate_data(
             test_data, group_by="city", count_field="entries"
         )
 
@@ -392,7 +385,7 @@ class TestFlextCliAggregateData:
             {"product": "Gadget", "sold": 75, "revenue": 750, "cost": 450},
         ]
 
-        result = flext_cli_aggregate_data(
+        result = A.aggregate_data(
             test_data, group_by="product", sum_fields=["sold", "revenue", "cost"]
         )
 
@@ -412,7 +405,7 @@ class TestFlextCliAggregateData:
         """Test data aggregation with non-list input."""
         test_data = {"not": "a list"}
 
-        result = flext_cli_aggregate_data(test_data, group_by="field")
+        result = A.aggregate_data(test_data, group_by="field")
 
         assert not result.is_success
         assert "Data must be a list" in (result.error or "")
@@ -425,7 +418,7 @@ class TestFlextCliAggregateData:
             {"department": "Marketing", "salary": 75000},
         ]
 
-        result = flext_cli_aggregate_data(
+        result = A.aggregate_data(
             test_data, group_by="department", sum_fields=["salary"]
         )
 
@@ -448,7 +441,7 @@ class TestFlextCliExport:
             tmp_path = Path(tmp_file.name)
 
         try:
-            result = flext_cli_export(test_data, tmp_path, "json")
+            result = A.export(test_data, tmp_path, "json")
 
             assert result.is_success
             assert tmp_path.exists()
@@ -475,7 +468,7 @@ class TestFlextCliExport:
             tmp_path = Path(tmp_file.name)
 
         try:
-            result = flext_cli_export(test_data, tmp_path, "yaml")
+            result = A.export(test_data, tmp_path, "yaml")
 
             assert result.is_success
             assert tmp_path.exists()
@@ -501,7 +494,7 @@ class TestFlextCliExport:
             tmp_path = Path(tmp_file.name)
 
         try:
-            result = flext_cli_export(test_data, tmp_path, "csv")
+            result = A.export(test_data, tmp_path, "csv")
 
             assert result.is_success
             assert tmp_path.exists()
@@ -525,7 +518,7 @@ class TestFlextCliExport:
             tmp_path = Path(tmp_file.name)
 
         try:
-            result = flext_cli_export(test_data, tmp_path, "csv")
+            result = A.export(test_data, tmp_path, "csv")
 
             assert not result.is_success
             assert "CSV export requires list of dictionaries" in (result.error or "")
@@ -542,7 +535,7 @@ class TestFlextCliExport:
             tmp_path = Path(tmp_file.name)
 
         try:
-            result = flext_cli_export(test_data, tmp_path, "unsupported")
+            result = A.export(test_data, tmp_path, "unsupported")
 
             assert not result.is_success
             assert "Unsupported export format: unsupported" in (result.error or "")
@@ -554,7 +547,7 @@ class TestFlextCliExport:
         test_data = {"test": "data"}
         non_existent_path = Path("/tmp/nonexistent_dir_123456/test.json")
 
-        result = flext_cli_export(test_data, non_existent_path, "json")
+        result = A.export(test_data, non_existent_path, "json")
 
         assert not result.is_success
         assert "Export error:" in (result.error or "")
@@ -576,7 +569,7 @@ class TestFlextCliBatchExport:
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_path = Path(tmp_dir)
 
-            result = flext_cli_batch_export(datasets, tmp_path, "json")
+            result = A.batch_export(datasets, tmp_path, "json")
 
             assert result.is_success
             created_files = result.value
@@ -603,7 +596,7 @@ class TestFlextCliBatchExport:
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_path = Path(tmp_dir)
 
-            result = flext_cli_batch_export(datasets, tmp_path, "yaml")
+            result = A.batch_export(datasets, tmp_path, "yaml")
 
             assert result.is_success
             created_files = result.value
@@ -623,7 +616,7 @@ class TestFlextCliBatchExport:
             tmp_path = Path(tmp_dir) / "new_directory"
             assert not tmp_path.exists()
 
-            result = flext_cli_batch_export(datasets, tmp_path, "json")
+            result = A.batch_export(datasets, tmp_path, "json")
 
             assert result.is_success
             assert tmp_path.exists()
@@ -636,7 +629,7 @@ class TestFlextCliBatchExport:
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_path = Path(tmp_dir)
 
-            result = flext_cli_batch_export(datasets, tmp_path, "csv")
+            result = A.batch_export(datasets, tmp_path, "csv")
 
             assert not result.is_success
             assert "Failed to export invalid_csv" in (result.error or "")
@@ -650,7 +643,7 @@ class TestFlextCliUnwrapFunctions:
         success_result = FlextResult[str].ok("success value")
         default_value = "default value"
 
-        result = flext_cli_unwrap_or_default(success_result, default_value)
+        result = A.unwrap_or_default(success_result, default_value)
 
         assert result == "success value"
 
@@ -659,7 +652,7 @@ class TestFlextCliUnwrapFunctions:
         failed_result = FlextResult[str].fail("operation failed")
         default_value = "default value"
 
-        result = flext_cli_unwrap_or_default(failed_result, default_value)
+        result = A.unwrap_or_default(failed_result, default_value)
 
         assert result == default_value
 
@@ -667,7 +660,7 @@ class TestFlextCliUnwrapFunctions:
         """Test unwrap_or_none with successful result."""
         success_result = FlextResult[int].ok(42)
 
-        result = flext_cli_unwrap_or_none(success_result)
+        result = A.unwrap_or_none(success_result)
 
         assert result == 42
 
@@ -675,7 +668,7 @@ class TestFlextCliUnwrapFunctions:
         """Test unwrap_or_none with failed result."""
         failed_result = FlextResult[int].fail("operation failed")
 
-        result = flext_cli_unwrap_or_none(failed_result)
+        result = A.unwrap_or_none(failed_result)
 
         assert result is None
 
@@ -685,7 +678,7 @@ class TestFlextCliUnwrapFunctions:
         success_result = FlextResult[dict[str, object]].ok(complex_data)
         default_value = {}
 
-        result = flext_cli_unwrap_or_default(success_result, default_value)
+        result = A.unwrap_or_default(success_result, default_value)
 
         assert result == complex_data
         assert isinstance(result, dict)
@@ -694,7 +687,7 @@ class TestFlextCliUnwrapFunctions:
         """Test unwrap_or_none with different data types."""
         # Test with list
         list_result = FlextResult[list[str]].ok(["a", "b", "c"])
-        assert flext_cli_unwrap_or_none(list_result) == ["a", "b", "c"]
+        assert A.unwrap_or_none(list_result) == ["a", "b", "c"]
 
         # Test with boolean
         bool_result = FlextResult[bool].ok(data=True)
@@ -907,7 +900,7 @@ class TestFlextCliApi:
     def test_flext_cli_register_plugin_with_cli_plugin(self) -> None:
         """Test API register_plugin method with FlextCliPlugin instance."""
         plugin = FlextCliPlugin(
-            id=FlextModels.EntityId(str(uuid.uuid4())),
+            id=FlextModels(str(uuid.uuid4())),
             name="test_plugin",
             entry_point="test.plugin",
         )
@@ -922,7 +915,7 @@ class TestFlextCliApi:
         """Test API register_plugin method with generic object."""
         # Create a proper FlextCliPlugin instance to avoid validation errors
         plugin = FlextCliPlugin(
-            id=FlextModels.EntityId(str(uuid.uuid4())),
+            id=FlextModels(str(uuid.uuid4())),
             name="generic_plugin",
             entry_point="flext_cli.plugins.generic_plugin:main",
         )
@@ -1382,14 +1375,14 @@ class TestApiIntegration:
         assert len(active_employees) == 4
 
         # 2. Aggregate by department
-        aggregated_result = flext_cli_aggregate_data(
+        aggregated_result = A.aggregate_data(
             active_employees, group_by="department", sum_fields=["salary"]
         )
         assert aggregated_result.is_success
         dept_stats = aggregated_result.value
 
         # 3. Format as table
-        table_result = flext_cli_table(dept_stats, title="Department Statistics")
+        table_result = A.table(dept_stats, title="Department Statistics")
         assert table_result.is_success
         table = table_result.value
         assert isinstance(table, Table)
@@ -1402,7 +1395,7 @@ class TestApiIntegration:
             export_path = Path(tmp_file.name)
 
         try:
-            export_result = flext_cli_export(dept_stats, export_path, "json")
+            export_result = A.export(dept_stats, export_path, "json")
             assert export_result.is_success
             assert export_path.exists()
 
@@ -1476,7 +1469,7 @@ class TestApiIntegration:
         ]
 
         # Process sales data - aggregate by region
-        sales_aggregated = flext_cli_aggregate_data(
+        sales_aggregated = A.aggregate_data(
             sales_data, group_by="region", sum_fields=["sales"]
         ).value
 
@@ -1484,7 +1477,7 @@ class TestApiIntegration:
         def filter_active(item: dict[str, object]) -> bool:
             return item.get("active") is True
 
-        users_active = flext_cli_transform_data(
+        users_active = A.transform_data(
             user_data, filter_func=filter_active
         ).value
 
@@ -1493,7 +1486,7 @@ class TestApiIntegration:
 
         # Batch export
         with tempfile.TemporaryDirectory() as tmp_dir:
-            export_result = flext_cli_batch_export(datasets, tmp_dir, "json")
+            export_result = A.batch_export(datasets, tmp_dir, "json")
 
             assert export_result.is_success
             files = export_result.value

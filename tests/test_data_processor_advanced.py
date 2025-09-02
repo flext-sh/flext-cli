@@ -256,7 +256,7 @@ class TestFlextCliDataProcessorAdvanced:
         assert not result.is_success
         assert "Source orders failed: Orders service unavailable" in result.error
 
-    def test_flext_cli_transform_data_pipeline_success(self) -> None:
+    def test_transform_data_pipeline_success(self) -> None:
         """Test successful data transformation pipeline."""
         initial_data = {"items": [1, 2, 3, 4, 5]}
 
@@ -303,7 +303,7 @@ class TestFlextCliDataProcessorAdvanced:
             data: object,
             transformers: list[Callable[[object], FlextResult[object]]],
         ) -> FlextResult[object]:
-            """Mock implementation of flext_cli_transform_data_pipeline."""
+            """Mock implementation of transform_data_pipeline."""
             current_data = data
 
             for i, transformer in enumerate(transformers):
@@ -321,10 +321,10 @@ class TestFlextCliDataProcessorAdvanced:
 
         with patch.object(
             self.processor,
-            "flext_cli_transform_data_pipeline",
+            "transform_data_pipeline",
             side_effect=mock_transform_pipeline,
         ):
-            result = self.processor.flext_cli_transform_data_pipeline(
+            result = self.processor.transform_data_pipeline(
                 initial_data,
                 transformers,
             )
@@ -337,7 +337,7 @@ class TestFlextCliDataProcessorAdvanced:
         assert result.value["summary"]["total"] == 30  # Sum of doubled items
         assert result.value["summary"]["count"] == 5
 
-    def test_flext_cli_transform_data_pipeline_transformer_failure(self) -> None:
+    def test_transform_data_pipeline_transformer_failure(self) -> None:
         """Test data transformation pipeline with transformer failure."""
         initial_data = {"items": [1, 2, 3]}
 
@@ -363,7 +363,7 @@ class TestFlextCliDataProcessorAdvanced:
             data: object,
             transformers: list[Callable[[object], FlextResult[object]]],
         ) -> FlextResult[object]:
-            """Mock implementation of flext_cli_transform_data_pipeline."""
+            """Mock implementation of transform_data_pipeline."""
             current_data = data
 
             for i, transformer in enumerate(transformers):
@@ -381,10 +381,10 @@ class TestFlextCliDataProcessorAdvanced:
 
         with patch.object(
             self.processor,
-            "flext_cli_transform_data_pipeline",
+            "transform_data_pipeline",
             side_effect=mock_transform_pipeline,
         ):
-            result = self.processor.flext_cli_transform_data_pipeline(
+            result = self.processor.transform_data_pipeline(
                 initial_data,
                 transformers,
             )
@@ -392,7 +392,7 @@ class TestFlextCliDataProcessorAdvanced:
         assert not result.is_success
         assert "Transformer 1 failed: Transformation logic error" in result.error
 
-    def test_flext_cli_transform_data_pipeline_transformer_exception(self) -> None:
+    def test_transform_data_pipeline_transformer_exception(self) -> None:
         """Test data transformation pipeline with transformer exception."""
         initial_data = {"items": [1, 2, 3]}
 
@@ -414,7 +414,7 @@ class TestFlextCliDataProcessorAdvanced:
             data: object,
             transformers: list[Callable[[object], FlextResult[object]]],
         ) -> FlextResult[object]:
-            """Mock implementation of flext_cli_transform_data_pipeline."""
+            """Mock implementation of transform_data_pipeline."""
             current_data = data
 
             for i, transformer in enumerate(transformers):
@@ -432,10 +432,10 @@ class TestFlextCliDataProcessorAdvanced:
 
         with patch.object(
             self.processor,
-            "flext_cli_transform_data_pipeline",
+            "transform_data_pipeline",
             side_effect=mock_transform_pipeline,
         ):
-            result = self.processor.flext_cli_transform_data_pipeline(
+            result = self.processor.transform_data_pipeline(
                 initial_data,
                 transformers,
             )
@@ -573,7 +573,7 @@ class TestComplexDataProcessingWorkflows:
             ),
             patch.object(
                 self.processor,
-                "flext_cli_transform_data_pipeline",
+                "transform_data_pipeline",
                 side_effect=mock_transform,
             ),
         ):
@@ -584,7 +584,7 @@ class TestComplexDataProcessingWorkflows:
             assert extraction_result.is_success
 
             # Step 2: Transform data
-            transformation_result = self.processor.flext_cli_transform_data_pipeline(
+            transformation_result = self.processor.transform_data_pipeline(
                 extraction_result.value,
                 transformation_pipeline,
             )

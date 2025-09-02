@@ -28,15 +28,8 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 from flext_core import FlextResult
 
-from flext_cli import (
-    FlextCliDataProcessor,
-    FlextCliFileManager,
-    FlextCliHelper,
-    flext_cli_batch_validate,
-    flext_cli_create_data_processor,
-    flext_cli_create_file_manager,
-    flext_cli_create_helper,
-)
+from flext_cli import FlextCliDataProcessor, FlextCliFileManager, FlextCliHelper
+from flext_cli.helpers import FlextCliHelpers as H
 
 
 class TestFlextCliHelper:
@@ -435,7 +428,7 @@ class TestFlextCliFileManager:
         manager = FlextCliFileManager(helper=custom_helper)
         assert manager.helper is custom_helper
 
-    def test_flext_cli_backup_and_process(self) -> None:
+    def test_backup_and_process(self) -> None:
         """Test backup and process functionality."""
         manager = FlextCliFileManager(helper=FlextCliHelper(quiet=True))
 
@@ -449,7 +442,7 @@ class TestFlextCliFileManager:
                 return FlextResult[None].ok(content.replace("original", "processed"))
 
             # Process file
-            result = manager.flext_cli_backup_and_process(
+            result = manager.backup_and_process(
                 str(test_file),
                 processor,
                 require_confirmation=False,
@@ -464,7 +457,7 @@ class TestFlextCliFileManager:
             assert backup_file.exists()
             assert backup_file.read_text() == "original content"
 
-    def test_flext_cli_safe_write(self) -> None:
+    def test_safe_write(self) -> None:
         """Test safe file writing functionality."""
         manager = FlextCliFileManager(helper=FlextCliHelper(quiet=True))
 
@@ -473,14 +466,14 @@ class TestFlextCliFileManager:
             content = "test content"
 
             # Write file with directory creation
-            result = manager.flext_cli_safe_write(content, str(test_file))
+            result = manager.safe_write(content, str(test_file))
             assert result.is_success
             assert test_file.exists()
             assert test_file.read_text() == content
 
             # Test backup functionality
             new_content = "updated content"
-            result = manager.flext_cli_safe_write(
+            result = manager.safe_write(
                 new_content,
                 str(test_file),
                 backup=True,
@@ -500,36 +493,36 @@ class TestFactoryFunctions:
     def test_flext_cli_create_helper(self) -> None:
         """Test helper factory function."""
         # Default helper
-        helper = flext_cli_create_helper()
+        helper = H.create_helper()
         assert isinstance(helper, FlextCliHelper)
         assert not helper.quiet
 
         # Custom helper
-        helper = flext_cli_create_helper(quiet=True)
+        helper = H.create_helper(quiet=True)
         assert helper.quiet
 
     def test_flext_cli_create_data_processor(self) -> None:
         """Test data processor factory function."""
         # Default processor
-        processor = flext_cli_create_data_processor()
+        processor = H.create_data_processor()
         assert isinstance(processor, FlextCliDataProcessor)
         assert isinstance(processor.helper, FlextCliHelper)
 
         # Custom helper
         custom_helper = FlextCliHelper(quiet=True)
-        processor = flext_cli_create_data_processor(helper=custom_helper)
+        processor = H.create_data_processor(helper=custom_helper)
         assert processor.helper is custom_helper
 
     def test_flext_cli_create_file_manager(self) -> None:
         """Test file manager factory function."""
         # Default manager
-        manager = flext_cli_create_file_manager()
+        manager = H.create_file_manager()
         assert isinstance(manager, FlextCliFileManager)
         assert isinstance(manager.helper, FlextCliHelper)
 
         # Custom helper
         custom_helper = FlextCliHelper(quiet=True)
-        manager = flext_cli_create_file_manager(helper=custom_helper)
+        manager = H.create_file_manager(helper=custom_helper)
         assert manager.helper is custom_helper
 
 
@@ -544,7 +537,7 @@ class TestBatchOperations:
             "url": ("https://example.com", "url"),
         }
 
-        result = flext_cli_batch_validate(inputs)
+        result = H.batch_validate(inputs)
         assert result.is_success
         assert "email" in result.value
         assert "url" in result.value
@@ -554,7 +547,7 @@ class TestBatchOperations:
             "email": ("invalid-email", "email"),
         }
 
-        result = flext_cli_batch_validate(invalid_inputs)
+        result = H.batch_validate(invalid_inputs)
         assert not result.is_success
 
 
@@ -603,7 +596,7 @@ class TestErrorConditions:
         manager = FlextCliFileManager(helper=FlextCliHelper(quiet=True))
 
         # Try to process non-existent file
-        result = manager.flext_cli_backup_and_process(
+        result = manager.backup_and_process(
             "/nonexistent/file.txt",
             FlextResult[str].ok,
             require_confirmation=False,

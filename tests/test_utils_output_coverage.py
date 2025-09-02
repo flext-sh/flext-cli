@@ -14,19 +14,7 @@ from unittest.mock import MagicMock, patch
 
 from rich.console import Console
 
-from flext_cli.utils_output import (
-    format_json,
-    format_pipeline,
-    format_pipeline_list,
-    format_plugin_list,
-    format_yaml,
-    print_error,
-    print_info,
-    print_success,
-    print_warning,
-    setup_console,
-    show_flext_cli_paths,
-)
+from flext_cli.utils_output import FlextCliOutput as Out
 
 
 def create_test_console() -> Console:
@@ -39,7 +27,7 @@ class TestSetupConsole:
 
     def test_setup_console_default(self) -> None:
         """Test setting up console with default settings."""
-        console = setup_console()
+        console = Out.setup_console()
 
         assert isinstance(console, Console)
         assert console.is_terminal or not console.is_terminal  # object boolean is fine
@@ -47,21 +35,21 @@ class TestSetupConsole:
 
     def test_setup_console_no_color(self) -> None:
         """Test setting up console with no color."""
-        console = setup_console(no_color=True)
+        console = Out.setup_console(no_color=True)
 
         assert isinstance(console, Console)
         assert console._color_system is None
 
     def test_setup_console_quiet(self) -> None:
         """Test setting up console in quiet mode."""
-        console = setup_console(quiet=True)
+        console = Out.setup_console(quiet=True)
 
         assert isinstance(console, Console)
         assert console.quiet
 
     def test_setup_console_both_flags(self) -> None:
         """Test setting up console with both no_color and quiet."""
-        console = setup_console(no_color=True, quiet=True)
+        console = Out.setup_console(no_color=True, quiet=True)
 
         assert isinstance(console, Console)
         assert console._color_system is None
@@ -76,7 +64,7 @@ class TestPrintFunctions:
         output = StringIO()
         console = Console(file=output, force_terminal=True, width=80)
 
-        print_success(console, "Operation completed successfully")
+        Out.print_success(console, "Operation completed successfully")
 
         result = output.getvalue()
         assert "✓" in result
@@ -87,7 +75,7 @@ class TestPrintFunctions:
         output = StringIO()
         console = Console(file=output, force_terminal=True, width=80)
 
-        print_error(console, "Something went wrong")
+        Out.print_error(console, "Something went wrong")
 
         result = output.getvalue()
         assert "Error:" in result
@@ -99,7 +87,7 @@ class TestPrintFunctions:
         # Use no_color to avoid ANSI codes in assertions
         console = Console(file=output, force_terminal=False, no_color=True, width=80)
 
-        print_error(console, "Connection failed", "Network timeout after 30 seconds")
+        Out.print_error(console, "Connection failed", "Network timeout after 30 seconds")
 
         result = output.getvalue()
         assert "Error:" in result
@@ -111,7 +99,7 @@ class TestPrintFunctions:
         output = StringIO()
         console = Console(file=output, force_terminal=True, width=80)
 
-        print_warning(console, "This is a warning message")
+        Out.print_warning(console, "This is a warning message")
 
         result = output.getvalue()
         assert "⚠" in result
@@ -122,7 +110,7 @@ class TestPrintFunctions:
         output = StringIO()
         console = Console(file=output, force_terminal=True, width=80)
 
-        print_info(console, "Information message here")
+        Out.print_info(console, "Information message here")
 
         result = output.getvalue()
         assert "i" in result
@@ -132,7 +120,7 @@ class TestPrintFunctions:
 class TestShowFlextCliPaths:
     """Test show_flext_cli_paths function."""
 
-    @patch("flext_cli.utils_output.get_config")
+    @patch("flext_cli.utils_output.FlextCliOutput.get_config")
     def test_show_flext_cli_paths(self, mock_get_config: MagicMock) -> None:
         """Test displaying FLEXT CLI paths."""
         # Mock config object
@@ -145,7 +133,7 @@ class TestShowFlextCliPaths:
         output = StringIO()
         console = Console(file=output, force_terminal=False, no_color=True, width=80)
 
-        show_flext_cli_paths(console)
+        Out.show_flext_cli_paths(console)
 
         result = output.getvalue()
         assert "FLEXT CLI Paths:" in result
@@ -162,7 +150,7 @@ class TestFormatPluginList:
         output = StringIO()
         console = Console(file=output, force_terminal=True, width=80)
 
-        format_plugin_list(console, [], "table")
+        Out.format_plugin_list(console, [], "table")
 
         result = output.getvalue()
         assert "No plugins found" in result
@@ -187,7 +175,7 @@ class TestFormatPluginList:
         output = StringIO()
         console = Console(file=output, force_terminal=False, no_color=True, width=80)
 
-        format_plugin_list(console, plugins, "json")
+        Out.format_plugin_list(console, plugins, "json")
 
         result = output.getvalue()
         # Parse the JSON without color codes
@@ -216,7 +204,7 @@ class TestFormatPluginList:
         output = StringIO()
         console = Console(file=output, force_terminal=True, width=120)
 
-        format_plugin_list(console, plugins, "table")
+        Out.format_plugin_list(console, plugins, "table")
 
         result = output.getvalue()
         assert "Available Plugins" in result
@@ -254,7 +242,7 @@ class TestFormatPipelineList:
         output = StringIO()
         console = Console(file=output, force_terminal=True, width=80)
 
-        format_pipeline_list(console, mock_pipeline_list)
+        Out.format_pipeline_list(console, mock_pipeline_list)
 
         result = output.getvalue()
         assert "No pipelines found" in result
@@ -282,7 +270,7 @@ class TestFormatPipelineList:
         output = StringIO()
         console = Console(file=output, force_terminal=False, no_color=True, width=120)
 
-        format_pipeline_list(console, mock_pipeline_list)
+        Out.format_pipeline_list(console, mock_pipeline_list)
 
         result = output.getvalue()
         assert "Pipelines" in result
@@ -310,7 +298,7 @@ class TestFormatPipelineList:
             output = StringIO()
             console = Console(file=output, force_terminal=True, width=120)
 
-            format_pipeline_list(console, mock_pipeline_list)
+            Out.format_pipeline_list(console, mock_pipeline_list)
 
             result = output.getvalue()
             assert f"{status.title()} Pipeline" in result
@@ -333,7 +321,7 @@ class TestFormatPipelineList:
         output = StringIO()
         console = Console(file=output, force_terminal=False, no_color=True, width=80)
 
-        format_pipeline_list(console, mock_pipeline_list)
+        Out.format_pipeline_list(console, mock_pipeline_list)
 
         result = output.getvalue()
         assert "Page 2 of 3" in result  # 25 total / 10 per page = 3 pages
@@ -356,7 +344,7 @@ class TestFormatPipeline:
         output = StringIO()
         console = Console(file=output, force_terminal=False, no_color=True, width=120)
 
-        format_pipeline(console, mock_pipeline)
+        Out.format_pipeline(console, mock_pipeline)
 
         result = output.getvalue()
         assert "My Pipeline" in result
@@ -385,7 +373,7 @@ class TestFormatPipeline:
         output = StringIO()
         console = Console(file=output, force_terminal=False, no_color=True, width=120)
 
-        format_pipeline(console, mock_pipeline)
+        Out.format_pipeline(console, mock_pipeline)
 
         result = output.getvalue()
         assert "DB Pipeline" in result
@@ -410,7 +398,7 @@ class TestFormatPipeline:
         output = StringIO()
         console = Console(file=output, force_terminal=True, width=80)
 
-        format_pipeline(console, mock_pipeline)
+        Out.format_pipeline(console, mock_pipeline)
 
         result = output.getvalue()
         # Should handle empty values gracefully
@@ -425,7 +413,7 @@ class TestFormatJson:
         """Test formatting dictionary as JSON."""
         data = {"name": "test", "value": 123, "active": True}
 
-        result = format_json(data)
+        result = Out.format_json(data)
 
         parsed = json.loads(result)
         assert parsed["name"] == "test"
@@ -437,7 +425,7 @@ class TestFormatJson:
         """Test formatting list as JSON."""
         data = [{"id": 1}, {"id": 2}, {"id": 3}]
 
-        result = format_json(data)
+        result = Out.format_json(data)
 
         parsed = json.loads(result)
         assert len(parsed) == 3
@@ -447,14 +435,14 @@ class TestFormatJson:
         """Test formatting data with non-JSON-serializable objects."""
         data = {"timestamp": datetime(2025, 1, 1, 12, 0, 0)}
 
-        result = format_json(data)
+        result = Out.format_json(data)
 
         # Should use default=str to handle datetime
         assert "2025-01-01 12:00:00" in result
 
     def test_format_json_none(self) -> None:
         """Test formatting None as JSON."""
-        result = format_json(None)
+        result = Out.format_json(None)
 
         assert result == "null"
 
@@ -466,7 +454,7 @@ class TestFormatYaml:
         """Test formatting dictionary as YAML."""
         data = {"name": "test", "value": 123, "nested": {"key": "value"}}
 
-        result = format_yaml(data)
+        result = Out.format_yaml(data)
 
         assert "name: test" in result
         assert "value: 123" in result
@@ -477,7 +465,7 @@ class TestFormatYaml:
         """Test formatting list as YAML."""
         data = ["item1", "item2", "item3"]
 
-        result = format_yaml(data)
+        result = Out.format_yaml(data)
 
         assert "- item1" in result
         assert "- item2" in result
@@ -485,7 +473,7 @@ class TestFormatYaml:
 
     def test_format_yaml_none(self) -> None:
         """Test formatting None as YAML."""
-        result = format_yaml(None)
+        result = Out.format_yaml(None)
 
         assert result == "null"
 
@@ -493,7 +481,7 @@ class TestFormatYaml:
         """Test that YAML document end markers are stripped."""
         data = {"simple": "data"}
 
-        result = format_yaml(data)
+        result = Out.format_yaml(data)
 
         # Should not contain document end marker
         assert "..." not in result
@@ -509,7 +497,7 @@ class TestFormatYaml:
             }
         }
 
-        result = format_yaml(data)
+        result = Out.format_yaml(data)
 
         assert "database:" in result
         assert "host: localhost" in result

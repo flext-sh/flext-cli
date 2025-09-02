@@ -32,7 +32,7 @@ from uuid import UUID, uuid4
 import click
 from flext_core import (
     FlextDomainService,
-    FlextModels.Entity,
+    FlextModels,
     FlextResult,
 )
 from rich.console import Console
@@ -75,7 +75,7 @@ class ProjectStatus(StrEnum):
     ARCHIVED = "archived"
 
 
-class Project(FlextModels.Entity):
+class Project(FlextModels):
     """Project aggregate root with business logic."""
 
     project_id: UUID
@@ -83,7 +83,7 @@ class Project(FlextModels.Entity):
     description: str
     owner_id: str
     status: ProjectStatus
-    # created_at and updated_at are inherited from FlextModels.Entity as FlextModels.Timestamp
+    # created_at and updated_at are inherited from FlextModels as FlextModels
 
     def change_status(
         self, new_status: ProjectStatus, _reason: str
@@ -129,13 +129,13 @@ class Project(FlextModels.Entity):
         project_id = uuid4()
 
         project = cls(
-            id=str(project_id),  # FlextModels.Entity requires 'id' as string
+            id=str(project_id),  # FlextModels requires 'id' as string
             project_id=project_id,
             name=name.strip(),
             description=description.strip(),
             owner_id=owner_id,
             status=ProjectStatus.ACTIVE,
-            # FlextModels.Entity will handle created_at automatically
+            # FlextModels will handle created_at automatically
         )
 
         # Validate business rules

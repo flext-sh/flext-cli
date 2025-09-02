@@ -14,7 +14,6 @@ from pathlib import Path
 
 from flext_core import FlextResult
 
-from flext_cli.cli_types import FlextCliOutputFormat
 from flext_cli.config import FlextCliConfig
 from flext_cli.flext_cli import (
     flext_cli_configure,
@@ -33,7 +32,8 @@ from flext_cli.flext_cli import (
     flext_cli_register_plugin,
     flext_cli_render_with_context,
 )
-from flext_cli.utils_core import flext_cli_quick_setup
+from flext_cli.typings import FlextCliOutputFormat
+from flext_cli.utils_core import FlextCliUtilsCore
 
 
 class TestFlextCliExportReal:
@@ -252,7 +252,7 @@ class TestFlextCliConfigureReal:
 
     def test_configure_with_config_object_real(self) -> None:
         """Test configuring with FlextCliContext object."""
-        context_result = flext_cli_quick_setup({})
+        context_result = FlextCliUtilsCore.quick_setup({})
         test_context = context_result.value if context_result.is_success else {}
         test_context["console"]
         config_dict = test_context["config"]
@@ -443,7 +443,7 @@ class TestFlextCliRenderReal:
             "test": "render_data",
             "timestamp": "2023-01-01",
         }
-        context_result = flext_cli_quick_setup({})
+        context_result = FlextCliUtilsCore.quick_setup({})
         context = context_result.value if context_result.is_success else {}
 
         try:

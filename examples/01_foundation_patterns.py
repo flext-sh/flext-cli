@@ -178,7 +178,7 @@ def _summary_demo(console: Console) -> None:
             "Type-safe settings with validation",
         ),
         ("FlextContainer", "Dependency injection", "Service management & testing"),
-        ("FlextModels.Entity", "Domain entity factories", "Business rule validation"),
+        ("FlextModels", "Domain entity factories", "Business rule validation"),
         ("Decorators", "Service result handling", "Automatic error management"),
     ]
 

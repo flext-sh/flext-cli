@@ -174,14 +174,14 @@ class TestFlextCliCommand(unittest.TestCase):
         """Test creating FlextCliCommand with minimal required fields."""
         command = FlextCliCommand(command_line="echo 'test'")
 
-        assert isinstance(command.id, FlextModels.EntityId)
+        assert isinstance(command.id, FlextModels)
         assert command.command_line == "echo 'test'"
         assert hasattr(command, "created_at")
         assert command.status == FlextCliCommandStatus.PENDING
 
     def test_command_creation_with_all_fields(self) -> None:
         """Test creating FlextCliCommand with all fields populated."""
-        command_id = FlextModels.EntityId("test-command-123")
+        command_id = FlextModels("test-command-123")
         test_time = datetime.now(UTC)
 
         command = FlextCliCommand(
@@ -255,7 +255,7 @@ class TestFlextCliCommand(unittest.TestCase):
 
     def test_command_business_rules_validation(self) -> None:
         """Test command business rules validation with real scenarios."""
-        command_id = FlextModels.EntityId("business-rules-test")
+        command_id = FlextModels("business-rules-test")
 
         # Test valid command passes business rules
         valid_command = FlextCliCommand(
@@ -294,14 +294,14 @@ class TestFlextCliSession(unittest.TestCase):
         """Test creating session with minimal required fields."""
         session = FlextCliSession(user_id="test-user-123")
 
-        assert isinstance(session.id, FlextModels.EntityId)
+        assert isinstance(session.id, FlextModels)
         assert session.user_id == "test-user-123"
         assert session.state == FlextCliSessionState.ACTIVE
         assert isinstance(session.started_at, datetime)
 
     def test_session_creation_all_fields(self) -> None:
         """Test creating session with all fields populated."""
-        FlextModels.EntityId("full-session-test")
+        FlextModels("full-session-test")
         test_time = datetime.now(UTC)
 
         session = FlextCliSession(
@@ -313,7 +313,7 @@ class TestFlextCliSession(unittest.TestCase):
             },
         )
 
-        assert isinstance(session.id, FlextModels.EntityId)
+        assert isinstance(session.id, FlextModels)
         assert session.user_id == "user-456"
         assert session.session_data["name"] == "Full Test Session"
         assert session.session_data["description"] == "Complete session for testing"
@@ -366,7 +366,7 @@ class TestFlextCliPlugin(unittest.TestCase):
 
     def test_plugin_creation_minimal_fields(self) -> None:
         """Test creating plugin with minimal required fields."""
-        plugin_id = FlextModels.EntityId("minimal-plugin")
+        plugin_id = FlextModels("minimal-plugin")
 
         plugin = FlextCliPlugin(
             id=plugin_id, name="minimal-plugin", entry_point="minimal.plugin:main"
@@ -379,7 +379,7 @@ class TestFlextCliPlugin(unittest.TestCase):
 
     def test_plugin_creation_full_fields(self) -> None:
         """Test creating plugin with all fields populated."""
-        plugin_id = FlextModels.EntityId("full-plugin-123")
+        plugin_id = FlextModels("full-plugin-123")
 
         plugin = FlextCliPlugin(
             id=plugin_id,
@@ -408,7 +408,7 @@ class TestFlextCliPlugin(unittest.TestCase):
         assert plugin.name == "state-test"
         assert plugin.entry_point == "state.test:main"
         assert hasattr(plugin, "state")
-        assert isinstance(plugin.id, FlextModels.EntityId)
+        assert isinstance(plugin.id, FlextModels)
 
     def test_plugin_with_metadata(self) -> None:
         """Test plugin with additional metadata."""

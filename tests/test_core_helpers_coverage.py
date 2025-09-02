@@ -336,10 +336,10 @@ class TestFlextCliFileManager:
 
         assert manager is not None
         # Test that it has expected methods
-        assert hasattr(manager, "flext_cli_backup_and_process")
-        assert hasattr(manager, "flext_cli_safe_write")
+        assert hasattr(manager, "backup_and_process")
+        assert hasattr(manager, "safe_write")
 
-    def test_flext_cli_backup_and_process_existing_file(self) -> None:
+    def test_backup_and_process_existing_file(self) -> None:
         """Test backup_and_process with existing file."""
         manager = FlextCliFileManager()
 
@@ -353,7 +353,7 @@ class TestFlextCliFileManager:
             def process_fn(content: str) -> FlextResult[str]:
                 return FlextResult[str].ok(content.upper())
 
-            result = manager.flext_cli_backup_and_process(str(file_path), process_fn)
+            result = manager.backup_and_process(str(file_path), process_fn)
 
             assert result.is_success
             # Verify processed content
@@ -367,21 +367,19 @@ class TestFlextCliFileManager:
             if backup_path.exists():
                 backup_path.unlink()
 
-    def test_flext_cli_backup_and_process_nonexistent_file(self) -> None:
+    def test_backup_and_process_nonexistent_file(self) -> None:
         """Test backup_and_process with nonexistent file."""
         manager = FlextCliFileManager()
 
         def process_fn(content: str) -> FlextResult[str]:
             return FlextResult[str].ok(content.upper())
 
-        result = manager.flext_cli_backup_and_process(
-            "/nonexistent/file.txt", process_fn
-        )
+        result = manager.backup_and_process("/nonexistent/file.txt", process_fn)
 
         assert not result.is_success
         assert "not found" in result.error.lower() or "File not found" in result.error
 
-    def test_flext_cli_safe_write_success(self) -> None:
+    def test_safe_write_success(self) -> None:
         """Test safe_write with valid content."""
         manager = FlextCliFileManager()
         content = "test safe write content"
@@ -389,7 +387,7 @@ class TestFlextCliFileManager:
         with tempfile.TemporaryDirectory() as temp_dir:
             file_path = Path(temp_dir) / "test_safe_write.txt"
 
-            result = manager.flext_cli_safe_write(content, str(file_path))
+            result = manager.safe_write(content, str(file_path))
 
             assert result.is_success
             # Verify content was written
@@ -409,7 +407,7 @@ class TestFlextCliDataProcessor:
         assert hasattr(processor, "flext_cli_process_workflow")
         assert hasattr(processor, "flext_cli_validate_and_transform")
         assert hasattr(processor, "flext_cli_aggregate_data")
-        assert hasattr(processor, "flext_cli_transform_data_pipeline")
+        assert hasattr(processor, "transform_data_pipeline")
 
     def test_processor_workflow_simple_case(self) -> None:
         """Test processor workflow with simple data."""
@@ -503,7 +501,7 @@ class TestFlextCliDataProcessor:
 
         pipeline_stages = [double_stage, filter_stage]
 
-        result = processor.flext_cli_transform_data_pipeline(data, pipeline_stages)
+        result = processor.transform_data_pipeline(data, pipeline_stages)
 
         assert result.is_success
         final_result = result.value

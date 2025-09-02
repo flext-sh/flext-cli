@@ -11,16 +11,17 @@ import sys
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import ClassVar, cast
+from typing import TYPE_CHECKING, ClassVar, cast
 
-from flext_core import FlextContext, FlextResult
+from flext_core import FlextModels, FlextResult
 from pydantic import ConfigDict, Field
 from rich.console import Console
 
 from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
 
 
-class FlextCliContext(FlextContext):
+class FlextCliContext(FlextModels):
     """CLI execution context extending FlextContext with CLI-specific functionality.
 
     Immutable context containing execution environment, user information,
@@ -32,12 +33,27 @@ class FlextCliContext(FlextContext):
       - User ID must be non-empty if provided
     """
 
-    # Reference to flext-core context for inheritance
-    Core: ClassVar = FlextContext
+    # Reference to flext-core models for inheritance
+    Core: ClassVar[type[FlextModels]] = FlextModels
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
 
     # CLI-specific fields
+    if TYPE_CHECKING:
+        # Typing-only constructor signature for static analyzers
+        def __init__(
+            self,
+            *,
+            id_: str | None = None,
+            config: FlextCliConfig | None = None,
+            console: Console | None = None,
+            debug: bool = False,
+            quiet: bool = False,
+            verbose: bool = False,
+            **kwargs: object,
+        ) -> None: ...
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Context id")
     config: FlextCliConfig = Field(
         default_factory=FlextCliConfig,
         description="CLI configuration instance",
@@ -69,7 +85,7 @@ class FlextCliContext(FlextContext):
         description="Context-specific configuration",
     )
     timeout_seconds: int = Field(
-        default=300,
+        default=FlextCliConstants.MAX_COMMAND_TIMEOUT,
         ge=1,
         description="Default timeout for operations in this context",
     )
@@ -159,6 +175,31 @@ class FlextCliContext(FlextContext):
         # Additional business validations can be added here if needed
         return FlextResult[None].ok(None)
 
+    # Convenience immutability helpers expected by some tests
+    def with_environment(self, **env: str) -> FlextCliContext:
+        merged = {**(self.environment_variables or {}), **env}
+        if hasattr(self, "model_copy"):
+            return self.model_copy(update={"environment_variables": merged})
+        # Fallback creation path
+        return FlextCliContext.create(
+            config=self.config,
+            console=self.console,
+            debug=self.debug,
+            quiet=self.quiet,
+            verbose=self.verbose,
+        )
+
+    def with_working_directory(self, path: Path) -> FlextCliContext:
+        if hasattr(self, "model_copy"):
+            return self.model_copy(update={"working_directory": path})
+        return FlextCliContext.create(
+            config=self.config,
+            console=self.console,
+            debug=self.debug,
+            quiet=self.quiet,
+            verbose=self.verbose,
+        )
+
     @dataclass
     class ExecutionContext:
         """Extended context for command execution (lightweight dataclass)."""
@@ -183,7 +224,7 @@ class FlextCliContext(FlextContext):
 
     # Factory functions
     @classmethod
-    def create(**kwargs: object) -> FlextCliContext:
+    def create(cls, **kwargs: object) -> FlextCliContext:
         """Create a CLI context with optional parameters."""
         config = kwargs.get("config")
         console_param = kwargs.get("console")
@@ -197,7 +238,7 @@ class FlextCliContext(FlextContext):
 
         # Create context with proper initialization
 
-        return FlextCliContext(
+        return cls(
             id=str(uuid.uuid4()),
             config=cli_config,
             console=console,
@@ -208,7 +249,7 @@ class FlextCliContext(FlextContext):
 
     @classmethod
     def create_execution(
-        cls: str,
+        cls: type[FlextCliContext],
         command_name: str,
         **kwargs: object,
     ) -> FlextCliContext.ExecutionContext:
@@ -243,6 +284,11 @@ class FlextCliContext(FlextContext):
         )
 
 
+# Backward-compatibility alias expected by tests
+FlextCliExecutionContext = FlextCliContext.ExecutionContext
+
+
 __all__ = [
     "FlextCliContext",
+    "FlextCliExecutionContext",
 ]

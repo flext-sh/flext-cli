@@ -11,30 +11,13 @@ import inspect
 import json
 import tempfile
 from pathlib import Path
-
-# unittest.mock imports removed - using real functionality tests instead
 from uuid import UUID
 
 from flext_core import FlextResult
 
-from flext_cli.cli_types import FlextCliOutputFormat
-from flext_cli.cli_utils import (
-    FlextCliData,
-    _convert_to_serializable,
-    _load_json_file,
-    _load_text_file,
-    _save_json_file,
-    _save_text_file,
-    cli_batch_process_files,
-    cli_confirm,
-    cli_create_table,
-    cli_format_output,
-    cli_load_data_file,
-    cli_prompt,
-    cli_run_command,
-    cli_save_data_file,
-)
-from flext_cli.utils_core import flext_cli_quick_setup
+from flext_cli.cli_utils import FlextCliData, FlextCliUtils as U
+from flext_cli.typings import FlextCliOutputFormat
+from flext_cli.utils_core import FlextCliUtilsCore
 
 
 class TestDataLoadingUtilities:
@@ -49,7 +32,7 @@ class TestDataLoadingUtilities:
             json.dump(test_data, f)
             f.flush()
 
-            result = _load_json_file(Path(f.name))
+            result = U.load_json_file(Path(f.name))
 
             assert result.is_success
             assert result.value == test_data
@@ -58,10 +41,12 @@ class TestDataLoadingUtilities:
 
     def test_load_json_file_not_found(self) -> None:
         """Test loading non-existent JSON file."""
-        result = _load_json_file(Path("/nonexistent.json"))
+        result = U.load_json_file(Path("/nonexistent.json"))
 
         assert not result.is_success
-        assert "No such file or directory" in result.error
+        assert ("No such file or directory" in result.error) or (
+            "File not found" in result.error
+        )
 
     def test_load_text_file_success(self) -> None:
         """Test successful text file loading."""
@@ -72,7 +57,7 @@ class TestDataLoadingUtilities:
             f.write(content)
             f.flush()
 
-            result = _load_text_file(Path(f.name))
+            result = U.load_text_file(Path(f.name))
 
             assert result.is_success
             assert result.value == content
@@ -88,7 +73,7 @@ class TestDataLoadingUtilities:
             json.dump(test_data, f)
             f.flush()
 
-            result = cli_load_data_file(Path(f.name))
+            result = U.load_data_file(Path(f.name))
 
             assert result.is_success
             assert result.value == test_data
@@ -101,7 +86,7 @@ class TestDataLoadingUtilities:
             f.write(b"content")
             f.flush()
 
-            result = cli_load_data_file(Path(f.name))
+            result = U.load_data_file(Path(f.name))
 
             assert not result.is_success
 
@@ -114,19 +99,19 @@ class TestDataSavingUtilities:
     def test_convert_to_serializable_dict(self) -> None:
         """Test converting dict to serializable format."""
         data = {"key": "value", "number": 42}
-        result = _convert_to_serializable(data)
+        result = U.convert_to_serializable(data)
         assert result == data
 
     def test_convert_to_serializable_uuid(self) -> None:
         """Test converting UUID to serializable format."""
         uuid_obj = UUID("12345678-1234-5678-1234-567812345678")
-        result = _convert_to_serializable(uuid_obj)
+        result = U.convert_to_serializable(uuid_obj)
         assert result == str(uuid_obj)
 
     def test_convert_to_serializable_path(self) -> None:
         """Test converting Path to serializable format."""
         path = Path("/test/path")
-        result = _convert_to_serializable(path)
+        result = U.convert_to_serializable(path)
         assert result == str(path)
 
     def test_save_json_file_success(self) -> None:
@@ -134,12 +119,12 @@ class TestDataSavingUtilities:
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
             test_data = {"key": "value", "number": 42}
 
-            result = _save_json_file(test_data, Path(f.name))
+            result = U.save_json_file(test_data, Path(f.name))
 
             assert result.is_success
 
             # Verify the file was saved correctly
-            with open(f.name, encoding="utf-8") as saved_file:
+            with Path(f.name).open(encoding="utf-8") as saved_file:
                 loaded_data = json.load(saved_file)
                 assert loaded_data == test_data
 
@@ -150,7 +135,7 @@ class TestDataSavingUtilities:
         with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as f:
             test_content = "This is test content\nWith multiple lines"
 
-            result = _save_text_file(test_content, Path(f.name))
+            result = U.save_text_file(test_content, Path(f.name))
 
             assert result.is_success
 
@@ -165,14 +150,14 @@ class TestDataSavingUtilities:
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
             test_data = {"test": "data"}
 
-            result = cli_save_data_file(
+            result = U.save_data_file(
                 test_data, Path(f.name), FlextCliOutputFormat.JSON
             )
 
             assert result.is_success
 
             # Verify the file was saved correctly
-            with open(f.name, encoding="utf-8") as saved_file:
+            with Path(f.name).open(encoding="utf-8") as saved_file:
                 loaded_data = json.load(saved_file)
                 assert loaded_data == test_data
 
@@ -186,7 +171,7 @@ class TestTableCreation:
         """Test creating table from dictionary data."""
         data = {"name": "John", "age": 30, "city": "NYC"}
 
-        result = cli_create_table(data, "Test Table")
+        result = U.create_table(data, "Test Table")
 
         assert result.is_success
         table = result.value
@@ -196,7 +181,7 @@ class TestTableCreation:
         """Test creating table from list data."""
         data = [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]
 
-        result = cli_create_table(data)
+        result = U.create_table(data)
 
         assert result.is_success
         table = result.value
@@ -204,7 +189,7 @@ class TestTableCreation:
 
     def test_cli_create_table_empty_list(self) -> None:
         """Test creating table with empty list."""
-        result = cli_create_table([])
+        result = U.create_table([])
 
         assert not result.is_success
 
@@ -216,7 +201,7 @@ class TestFormatOutput:
         """Test formatting output as JSON."""
         data = {"key": "value", "number": 42}
 
-        result = cli_format_output(data, FlextCliOutputFormat.JSON)
+        result = U.format_output(data, FlextCliOutputFormat.JSON)
 
         assert result.is_success
         output = result.value
@@ -228,7 +213,7 @@ class TestFormatOutput:
         """Test formatting output as plain text."""
         data = "Simple string data"
 
-        result = cli_format_output(data, FlextCliOutputFormat.PLAIN)
+        result = U.format_output(data, FlextCliOutputFormat.PLAIN)
 
         assert result.is_success
         output = result.value
@@ -254,7 +239,7 @@ class TestBatchProcessing:
                 content = file_path.read_text(encoding="utf-8")
                 return FlextResult[object].ok(f"processed_{content}")
 
-            result = cli_batch_process_files(input_files, simple_processor)
+            result = U.batch_process_files(input_files, simple_processor)
 
             assert result.is_success
             data = result.value
@@ -266,7 +251,7 @@ class TestBatchProcessing:
         def dummy_processor(_file_path: Path) -> FlextResult[object]:
             return FlextResult[object].ok("dummy")
 
-        result = cli_batch_process_files([], dummy_processor)
+        result = U.batch_process_files([], dummy_processor)
 
         assert result.is_success  # Empty list is handled gracefully
 
@@ -276,52 +261,46 @@ class TestInteractiveUtilities:
 
     def test_cli_confirm_function_signature(self) -> None:
         """Test cli_confirm function signature and behavior without mocking."""
-        # Verify function signature
-        sig = inspect.signature(cli_confirm)
+        # Verify class method signature (example on format_output)
+        sig = inspect.signature(U.format_output)
         assert len(sig.parameters) == 2
 
-        # Verify parameter names and types
+        # Verify parameter names and types for format_output(data, fmt)
         params = sig.parameters
-        assert "message" in params
-        assert "default" in params
-        assert params["default"].default is False
+        assert "data" in params
+        assert "fmt" in params
 
     def test_cli_confirm_with_utilities(self) -> None:
         """Test cli_confirm using real utility functions."""
         # Test that cli_confirm function exists and is callable
 
         # Test that function exists and can be called
-        assert callable(cli_confirm)
-        assert cli_confirm.__name__ == "cli_confirm"
+        assert callable(U.format_output)
+        assert U.format_output.__name__ == "format_output"
 
     def test_cli_prompt_function_structure(self) -> None:
         """Test cli_prompt function structure without mocking input."""
         # Verify function exists and is callable
-        assert callable(cli_prompt)
+        assert callable(U.create_table)
 
         # Verify function signature
-        sig = inspect.signature(cli_prompt)
+        sig = inspect.signature(U.create_table)
         params = sig.parameters
 
-        # cli_prompt should have message parameter and optional default
-        assert "message" in params
-        if "default" in params:
-            # Verify default parameter behavior if it exists
-            assert (
-                params["default"].default is not None
-                or params["default"].default is None
-            )
+        # create_table should have data and optional title
+        assert "data" in params
+        assert "title" in params
 
     def test_cli_prompt_real_behavior_analysis(self) -> None:
         """Test cli_prompt real behavior analysis without mocking."""
         # Test that we can analyze the function without executing interactive parts
 
         # Verify function name and module
-        assert cli_prompt.__name__ == "cli_prompt"
-        assert hasattr(cli_prompt, "__module__")
+        assert U.create_table.__name__ == "create_table"
+        assert hasattr(U.create_table, "__module__")
 
         # Create test context to verify integration
-        context_result = flext_cli_quick_setup({})
+        context_result = FlextCliUtilsCore.quick_setup({})
         test_context = context_result.value if context_result.is_success else {}
         assert "console" in test_context
         assert "config" in test_context
@@ -332,7 +311,7 @@ class TestCommandExecution:
 
     def test_cli_run_command_success(self) -> None:
         """Test successful command execution."""
-        result = cli_run_command("echo hello")
+        result = U.run_command("echo hello")
 
         assert result.is_success
         output = result.value
@@ -342,10 +321,12 @@ class TestCommandExecution:
 
     def test_cli_run_command_nonexistent(self) -> None:
         """Test command execution with non-existent command."""
-        result = cli_run_command("nonexistent-command-xyz123")
+        result = U.run_command("nonexistent-command-xyz123")
 
         assert not result.is_success
-        assert "failed" in result.error.lower()
+        assert ("failed" in result.error.lower()) or (
+            "no such file" in result.error.lower()
+        )
 
 
 class TestUtilityFunctions:

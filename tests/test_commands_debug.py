@@ -29,7 +29,7 @@ from flext_cli.commands_debug import (
     validate,
 )
 from flext_cli.config import get_config
-from flext_cli.utils_core import flext_cli_quick_setup
+from flext_cli.utils_core import FlextCliUtilsCore
 
 
 class TestDebugCommandReal:
@@ -92,7 +92,7 @@ class TestConnectivityCommandReal:
     def test_connectivity_execution_real(self) -> None:
         """Test connectivity command execution with real implementation."""
         # Create real context object
-        context_result = flext_cli_quick_setup({})
+        context_result = FlextCliUtilsCore.quick_setup({})
         context = context_result.value if context_result.is_success else {}
         console = context["console"]
 
@@ -129,7 +129,7 @@ class TestPerformanceCommandReal:
     def test_performance_execution_real(self) -> None:
         """Test performance command execution with real implementation."""
         # Create real context
-        context_result = flext_cli_quick_setup({})
+        context_result = FlextCliUtilsCore.quick_setup({})
         context = context_result.value if context_result.is_success else {}
         console = context["console"]
 
@@ -161,7 +161,7 @@ class TestValidateCommandReal:
     def test_validate_execution_real(self) -> None:
         """Test validate command execution with real system validation."""
         # Create real context
-        context_result = flext_cli_quick_setup({})
+        context_result = FlextCliUtilsCore.quick_setup({})
         context = context_result.value if context_result.is_success else {}
         console = context["console"]
 

@@ -7,90 +7,107 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import importlib
 from pathlib import Path
 
 import click
-import yaml
 from flext_core import FlextUtilities
 from rich.console import Console
 from rich.table import Table
 
-
-def _find_config_value(cli_context: object, key: str) -> object:
-    cfg = getattr(cli_context, "config", None)
-    if cfg and hasattr(cfg, key):
-        return getattr(cfg, key)
-    settings = getattr(cli_context, "settings", None)
-    if settings and hasattr(settings, key):
-        return getattr(settings, key)
-    return None
+from flext_cli.constants import FlextCliConstants
 
 
-def _print_config_value(cli_context: object, key: str, value: object) -> None:
-    console: Console = getattr(cli_context, "console", Console())
-    fmt = getattr(getattr(cli_context, "config", object()), "output_format", "table")
-    if fmt == "json":
-        # Use FlextUtilities for consistent JSON formatting
-        formatted = FlextUtilities.safe_json_stringify({key: value})
-        console.print(formatted)
-    elif fmt == "yaml":
-        console.print(yaml.dump({key: value}, default_flow_style=False))
-    else:
-        console.print(f"{key}: {value}")
+class FlextCliCmd:
+    """Class-based command utilities (no module-level helpers)."""
 
+    @staticmethod
+    def find_config_value(cli_context: object, key: str) -> object:
+        cfg = getattr(cli_context, "config", None)
+        if cfg and hasattr(cfg, key):
+            return getattr(cfg, key)
+        settings = getattr(cli_context, "settings", None)
+        if settings and hasattr(settings, key):
+            return getattr(settings, key)
+        return None
 
-def _get_all_config(cli_context: object) -> None:
-    console: Console = getattr(cli_context, "console", Console())
-    cfg_dict: dict[str, object] = getattr(
-        getattr(cli_context, "config", object()),
-        "model_dump",
-        dict,
-    )()
-    stg_dict: dict[str, object] = getattr(
-        getattr(cli_context, "settings", object()),
-        "model_dump",
-        dict,
-    )()
-    fmt = getattr(getattr(cli_context, "config", object()), "output_format", "table")
-    if fmt == "json":
-        console.print(
-            FlextUtilities.safe_json_stringify(
-                {
-                    "config": cfg_dict,
-                    "settings": stg_dict,
-                }
+    @staticmethod
+    def print_config_value(cli_context: object, key: str, value: object) -> None:
+        console: Console = getattr(cli_context, "console", Console())
+        fmt = getattr(
+            getattr(cli_context, "config", object()), "output_format", "table"
+        )
+        if fmt == "json":
+            formatted = FlextUtilities.safe_json_stringify({key: value})
+            console.print(formatted)
+        elif fmt == "yaml":
+            try:
+                yaml_mod = importlib.import_module("yaml")
+                console.print(yaml_mod.dump({key: value}, default_flow_style=False))
+            except Exception:
+                console.print(str({key: value}))
+        else:
+            console.print(f"{key}: {value}")
+
+    @staticmethod
+    def get_all_config(cli_context: object) -> None:
+        console: Console = getattr(cli_context, "console", Console())
+        cfg_dict: dict[str, object] = getattr(
+            getattr(cli_context, "config", object()),
+            "model_dump",
+            dict,
+        )()
+        stg_dict: dict[str, object] = getattr(
+            getattr(cli_context, "settings", object()),
+            "model_dump",
+            dict,
+        )()
+        fmt = getattr(
+            getattr(cli_context, "config", object()), "output_format", "table"
+        )
+        if fmt == "json":
+            console.print(
+                FlextUtilities.safe_json_stringify(
+                    {
+                        "config": cfg_dict,
+                        "settings": stg_dict,
+                    }
+                )
             )
-        )
-        return
-    if fmt == "yaml":
-        console.print(
-            yaml.dump(
-                {"config": cfg_dict, "settings": stg_dict},
-                default_flow_style=False,
-            ),
-        )
-        return
-    table = Table(title="FLEXT Configuration v0.7.0")
-    table.add_column("Key", style="cyan")
-    table.add_column("Value", style="white")
-    table.add_column("Source", style="dim")
-    for k, v in cfg_dict.items():
-        table.add_row(k, str(v), "config")
-    for k, v in stg_dict.items():
-        table.add_row(k, str(v), "settings")
-    console.print(table)
+            return
+        if fmt == "yaml":
+            try:
+                yaml_mod = importlib.import_module("yaml")
+                console.print(
+                    yaml_mod.dump(
+                        {"config": cfg_dict, "settings": stg_dict},
+                        default_flow_style=False,
+                    ),
+                )
+            except Exception:
+                console.print(str({"config": cfg_dict, "settings": stg_dict}))
+            return
+        table = Table(title="FLEXT Configuration v0.7.0")
+        table.add_column("Key", style="cyan")
+        table.add_column("Value", style="white")
+        table.add_column("Source", style="dim")
+        for k, v in cfg_dict.items():
+            table.add_row(k, str(v), "config")
+        for k, v in stg_dict.items():
+            table.add_row(k, str(v), "settings")
+        console.print(table)
 
-
-def print_config_table(cli_context: object, config_data: dict[str, object]) -> None:
-    """Helper: print given config dict as table."""
-    console: Console = getattr(cli_context, "console", Console())
-    table = Table(title="FLEXT Configuration v0.7.0")
-    table.add_column("Key", style="cyan")
-    table.add_column("Value", style="white")
-    table.add_column("Source", style="dim")
-    for k, v in config_data.items():
-        table.add_row(str(k), str(v), "config")
-    console.print(table)
+    @staticmethod
+    def print_config_table(cli_context: object, config_data: dict[str, object]) -> None:
+        """Print given config dict as table."""
+        console: Console = getattr(cli_context, "console", Console())
+        table = Table(title="FLEXT Configuration v0.7.0")
+        table.add_column("Key", style="cyan")
+        table.add_column("Value", style="white")
+        table.add_column("Source", style="dim")
+        for k, v in config_data.items():
+            table.add_row(str(k), str(v), "config")
+        console.print(table)
 
 
 @click.group()
@@ -127,9 +144,10 @@ def show(ctx: click.Context) -> None:
         console.print(FlextUtilities.safe_json_stringify(config_data))
     elif output_format == "yaml":
         try:
-            console.print(yaml.safe_dump(config_data, default_flow_style=False))
-        except ImportError:
-            console.print(str(config_data))  # Fallback if yaml not available
+            yaml_mod = importlib.import_module("yaml")
+            console.print(yaml_mod.safe_dump(config_data, default_flow_style=False))
+        except Exception:
+            console.print(str(config_data))
     # Table format (default) or plain text
     elif config_data:
         for key, value in config_data.items():
@@ -147,10 +165,10 @@ def get_cmd(ctx: click.Context, key: str | None) -> None:
     if not cli_context:
         ctx.exit(1)
     if key is None:
-        _get_all_config(cli_context)
+        FlextCliCmd.get_all_config(cli_context)
         return
-    value = _find_config_value(cli_context, key)
-    _print_config_value(cli_context, key, value)
+    value = FlextCliCmd.find_config_value(cli_context, key)
+    FlextCliCmd.print_config_value(cli_context, key, value)
 
 
 @config.command(name="set-value")
@@ -189,7 +207,7 @@ def path(ctx: click.Context) -> None:
     console: Console = ctx.obj.get("console", Console())
     if not cli_context:
         ctx.exit(1)
-    if hasattr(cli_context, "print_info"):
+    if cli_context is not None and hasattr(cli_context, "print_info"):
         cli_context.print_info("Paths shown")
     else:
         console.print("Paths shown")
@@ -204,12 +222,30 @@ def edit(ctx: click.Context) -> None:
     cfg = getattr(cli_context, "config", None)
     if not cfg:
         ctx.exit(1)
-    cfg_path = getattr(cfg, "config_file", Path.home() / ".flext" / "config.yaml")
+    cfg_path = getattr(
+        cfg,
+        "config_file",
+        Path.home()
+        / FlextCliConstants.FLEXT_DIR_NAME
+        / FlextCliConstants.CONFIG_FILE_NAME,
+    )
     # Create parent directory if it doesn't exist (tests can patch this instance method)
     cfg_path.parent.mkdir(parents=True, exist_ok=True)
     if not cfg_path.exists():
-        with cfg_path.open("w", encoding="utf-8") as f:
-            f.write(yaml.dump({"debug": False, "timeout": 30}))
+        with cfg_path.open("w", encoding=FlextCliConstants.DEFAULT_ENCODING) as f:
+            try:
+                yaml_mod = importlib.import_module("yaml")
+                f.write(
+                    yaml_mod.dump(
+                        {
+                            "debug": False,
+                            "timeout": FlextCliConstants.DEFAULT_COMMAND_TIMEOUT,
+                        }
+                    )
+                )
+            except Exception:
+                f.write("debug: false\n")
+                f.write(f"timeout: {FlextCliConstants.DEFAULT_COMMAND_TIMEOUT}\n")
 
     # Em ambiente controlado de exemplo, evite abrir editor; informe caminho
     console.print(f"Config file ready at: {cfg_path}")

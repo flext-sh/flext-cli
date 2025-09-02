@@ -7,11 +7,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-object
-
 import pytest
 
-from flext_cli import cli_types as types
+from flext_cli import typings as types
 
 
 class TestTypeImports:
@@ -28,9 +26,10 @@ class TestTypeImports:
         assert types.CommandType is not None
 
     def test_output_format_import(self) -> None:
-        """Test FlextCliOutputFormat import."""
-        assert hasattr(types, "FlextCliOutputFormat")
-        assert types.FlextCliOutputFormat is not None
+        """Test FlextCliOutputFormat import from flext_cli.typings."""
+        from flext_cli.typings import FlextCliOutputFormat as _Fmt
+
+        assert _Fmt is not None
 
     def test_plugin_status_import(self) -> None:
         """Test PluginStatus import."""
@@ -216,7 +215,7 @@ class TestModuleStructure:
             "Protocol",  # from typing import Protocol
             "Table",  # from rich.table import Table
             "Literal",  # from typing import Literal
-            "FlextModels.EntityId",  # from flext_core import FlextModels
+            "FlextModels",  # from flext_core import FlextModels
             "CoreFlextTypes",  # from flext_core.typings import FlextTypes as CoreFlextTypes
             "TypeVar",  # from typing import TypeVar
             "Path",  # from pathlib import Path

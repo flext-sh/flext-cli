@@ -26,7 +26,7 @@ from flext_cli.cli_mixins import (
     CliUIMixin,
     CliValidationMixin,
 )
-from flext_cli.cli_types import FlextCliOutputFormat
+from flext_cli.typings import FlextCliOutputFormat
 
 
 class _TestMixinConcrete(CliCompleteMixin):

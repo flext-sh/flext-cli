@@ -108,7 +108,7 @@ class ComprehensiveCliApplication:
         ]
 
         for service_name, service_instance in services:
-            self.container.register(service_name, service_instance)  # type: ignore[attr-defined]
+            self.container.register(service_name, service_instance)
 
     def _load_user_preferences(self) -> None:
         """Load user preferences from configuration."""
@@ -169,11 +169,11 @@ def cli(
     # Configure context - use basic FlextCliContext
     cli_context = FlextCliContext()
     # Store context values in object for access
-    cli_context._profile = profile  # type: ignore[attr-defined]
-    cli_context._output = FlextCliOutputFormat(output.upper())  # type: ignore[attr-defined]
-    cli_context._debug = debug  # type: ignore[attr-defined]
-    cli_context._quiet = not verbose  # type: ignore[attr-defined]
-    cli_context._verbose = verbose  # type: ignore[attr-defined]
+    cli_context._profile = profile
+    cli_context._output = FlextCliOutputFormat(output.upper())
+    cli_context._debug = debug
+    cli_context._quiet = not verbose
+    cli_context._verbose = verbose
     ctx.obj["cli_context"] = cli_context
 
 
@@ -441,11 +441,11 @@ def show(ctx: click.Context) -> None:
     config_table.add_column("Setting", style="cyan")
     config_table.add_column("Value", style="green")
 
-    config_table.add_row("Profile", cli_context._profile)  # type: ignore[attr-defined]
-    config_table.add_row("Output Format", cli_context._output.value)  # type: ignore[attr-defined]
-    config_table.add_row("Debug Mode", str(cli_context._debug))  # type: ignore[attr-defined]
-    config_table.add_row("Verbose Mode", str(cli_context._verbose))  # type: ignore[attr-defined]
-    config_table.add_row("Quiet Mode", str(cli_context._quiet))  # type: ignore[attr-defined]
+    config_table.add_row("Profile", cli_context._profile)
+    config_table.add_row("Output Format", cli_context._output.value)
+    config_table.add_row("Debug Mode", str(cli_context._debug))
+    config_table.add_row("Verbose Mode", str(cli_context._verbose))
+    config_table.add_row("Quiet Mode", str(cli_context._quiet))
 
     app.console.print(config_table)
 

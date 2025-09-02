@@ -57,8 +57,8 @@ class TestCLIContext:
         assert context.no_color is False
 
     def test_context_immutability(self, cli_context: FlextCliContext) -> None:
-        """Test CLI context immutability (FlextModels.Value pattern)."""
-        # Should be immutable as FlextModels.Value - expect ValueError for frozen instance
+        """Test CLI context immutability (FlextModels pattern)."""
+        # Should be immutable as FlextModels - expect ValueError for frozen instance
         with pytest.raises(ValueError, match="Cannot modify immutable FlextCliContext"):
             cli_context.profile = "new-profile"
 

@@ -15,6 +15,7 @@ from flext_core import FlextConstants, FlextLogger, FlextModels, FlextResult
 from pydantic import Field
 
 from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
 
 
 class FlextApiClient:
@@ -23,7 +24,7 @@ class FlextApiClient:
     Provides async methods for interacting with the FLEXT API.
     """
 
-    class PipelineConfig(FlextModels.BaseConfig):
+    class PipelineConfig(FlextModels):
         """Pipeline configuration model for Singer/Meltano workflows."""
 
         name: str = Field(description="Pipeline name")
@@ -34,7 +35,7 @@ class FlextApiClient:
         state: dict[str, object] | None = Field(None, description="Pipeline state")
         config: dict[str, object] | None = Field(None, description="Additional config")
 
-    class Pipeline(FlextModels.Entity):
+    class Pipeline(FlextModels):
         """Pipeline model for API responses."""
 
         name: str = Field(description="Pipeline name")
@@ -47,11 +48,11 @@ class FlextApiClient:
             """Validate pipeline business rules."""
             if not self.name or not self.name.strip():
                 return FlextResult[None].fail("Pipeline name cannot be empty")
-            if self.status not in {"active", "inactive", "pending"}:
+            if self.status not in FlextCliConstants.VALID_PIPELINE_STATUSES:
                 return FlextResult[None].fail(f"Invalid pipeline status: {self.status}")
             return FlextResult[None].ok(None)
 
-    class PipelineList(FlextModels.BaseConfig):
+    class PipelineList(FlextModels):
         """Pipeline list response."""
 
         pipelines: list[FlextApiClient.Pipeline] = Field(
@@ -65,7 +66,7 @@ class FlextApiClient:
         self,
         base_url: str | None = None,
         token: str | None = None,
-        timeout: float = 30.0,
+        timeout: float = FlextCliConstants.DEFAULT_API_TIMEOUT,
         *,
         verify_ssl: bool = True,
     ) -> None:
@@ -85,7 +86,7 @@ class FlextApiClient:
             self.base_url = config.api_url
         else:
             computed = self._compute_default_base_url()
-            self.base_url = computed or "http://localhost:8000"
+            self.base_url = computed or FlextCliConstants.FALLBACK_API_URL
         self.token = token
         self.timeout = timeout
         self.verify_ssl = verify_ssl
@@ -94,12 +95,14 @@ class FlextApiClient:
     def _get_headers(self) -> dict[str, str]:
         """Get request headers with authentication."""
         headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
+            FlextCliConstants.HEADER_CONTENT_TYPE: FlextCliConstants.CONTENT_TYPE_JSON,
+            FlextCliConstants.HEADER_ACCEPT: FlextCliConstants.CONTENT_TYPE_JSON,
         }
 
         if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
+            headers[FlextCliConstants.HEADER_AUTHORIZATION] = (
+                f"{FlextCliConstants.AUTH_BEARER_PREFIX} {self.token}"
+            )
 
         return headers
 
@@ -128,13 +131,15 @@ class FlextApiClient:
         params: dict[str, str | int | float | bool | None] | None = None,
     ) -> httpx.Response:
         """Make HTTP request to API."""
-        if not self._session:
+        if self._session is None:
             self._session = httpx.AsyncClient(
                 timeout=self.timeout,
                 verify=self.verify_ssl,
             )
 
-        response = await self._session.request(
+        session: httpx.AsyncClient = self._session
+
+        response = await session.request(
             method,
             self._url(path),
             headers=self._get_headers(),
@@ -154,7 +159,7 @@ class FlextApiClient:
 
             # Prefer explicit DEFAULT_BASE_URL, fallback to http://{host}
             if not base and host:
-                base = f"http://{host}"
+                base = f"{FlextCliConstants.HTTP_SCHEME}://{host}"
 
             if base and port:
                 # Avoid duplicating port if already present
@@ -162,7 +167,7 @@ class FlextApiClient:
                     base if str(port) in base.rsplit(":", 1)[-1] else f"{base}:{port}"
                 )
             return base
-        except Exception:
+        except (RuntimeError, ValueError, OSError):
             return None
 
     # Authentication methods
@@ -177,7 +182,7 @@ class FlextApiClient:
         """
         try:
             response = await self._request(
-                "POST",
+                FlextCliConstants.HTTP_POST,
                 "/api/v1/auth/login",
                 json_data={"username": username, "password": password},
             )
@@ -189,12 +194,12 @@ class FlextApiClient:
             return FlextResult[dict[str, object]].fail(
                 f"Login failed: {response.status_code} {response.text}"
             )
-        except Exception as e:
+        except (httpx.HTTPError, RuntimeError, ValueError, OSError) as e:
             return FlextResult[dict[str, object]].fail(f"Login error: {e}")
 
     async def logout(self) -> None:
         """Logout the current user and invalidate token."""
-        await self._request("POST", "/api/v1/auth/logout")
+        await self._request(FlextCliConstants.HTTP_POST, "/api/v1/auth/logout")
 
     async def get_current_user(self) -> dict[str, object]:
         """Get current authenticated user information.
@@ -203,7 +208,7 @@ class FlextApiClient:
             User information dictionary
 
         """
-        response = await self._request("GET", "/api/v1/auth/user")
+        response = await self._request(FlextCliConstants.HTTP_GET, "/api/v1/auth/user")
         return cast("dict[str, object]", response.json())
 
     # Pipeline methods
@@ -231,7 +236,9 @@ class FlextApiClient:
         if status:
             params["status"] = status
 
-        response = await self._request("GET", "/api/v1/pipelines", params=params)
+        response = await self._request(
+            FlextCliConstants.HTTP_GET, "/api/v1/pipelines", params=params
+        )
         return FlextApiClient.PipelineList(**response.json())
 
     async def get_pipeline(self, pipeline_id: str) -> FlextApiClient.Pipeline:
@@ -244,7 +251,9 @@ class FlextApiClient:
             Pipeline information
 
         """
-        response = await self._request("GET", f"/api/v1/pipelines/{pipeline_id}")
+        response = await self._request(
+            FlextCliConstants.HTTP_GET, f"/api/v1/pipelines/{pipeline_id}"
+        )
         return FlextApiClient.Pipeline(**response.json())
 
     async def create_pipeline(
@@ -260,7 +269,7 @@ class FlextApiClient:
 
         """
         response = await self._request(
-            "POST",
+            FlextCliConstants.HTTP_POST,
             "/api/v1/pipelines",
             json_data=config.model_dump(),
         )
@@ -282,7 +291,7 @@ class FlextApiClient:
 
         """
         response = await self._request(
-            "PUT",
+            FlextCliConstants.HTTP_PUT,
             f"/api/v1/pipelines/{pipeline_id}",
             json_data=config.model_dump(),
         )
@@ -295,7 +304,9 @@ class FlextApiClient:
             pipeline_id: Pipeline ID to delete
 
         """
-        await self._request("DELETE", f"/api/v1/pipelines/{pipeline_id}")
+        await self._request(
+            FlextCliConstants.HTTP_DELETE, f"/api/v1/pipelines/{pipeline_id}"
+        )
 
     async def run_pipeline(
         self,
@@ -314,7 +325,7 @@ class FlextApiClient:
 
         """
         response = await self._request(
-            "POST",
+            FlextCliConstants.HTTP_POST,
             f"/api/v1/pipelines/{pipeline_id}/run",
             json_data={"full_refresh": full_refresh},
         )
@@ -330,7 +341,9 @@ class FlextApiClient:
             Pipeline status information
 
         """
-        response = await self._request("GET", f"/api/v1/pipelines/{pipeline_id}/status")
+        response = await self._request(
+            FlextCliConstants.HTTP_GET, f"/api/v1/pipelines/{pipeline_id}/status"
+        )
         return cast("dict[str, object]", response.json())
 
     async def get_pipeline_logs(
@@ -355,7 +368,7 @@ class FlextApiClient:
             params["execution_id"] = execution_id
 
         response = await self._request(
-            "GET",
+            FlextCliConstants.HTTP_GET,
             f"/api/v1/pipelines/{pipeline_id}/logs",
             params=params,
         )
@@ -385,7 +398,9 @@ class FlextApiClient:
         if plugin_type:
             params["type"] = plugin_type
 
-        response = await self._request("GET", "/api/v1/plugins", params=params)
+        response = await self._request(
+            FlextCliConstants.HTTP_GET, "/api/v1/plugins", params=params
+        )
         result = cast("dict[str, object]", response.json())
         return cast("list[dict[str, object]]", result["plugins"])
 
@@ -399,7 +414,9 @@ class FlextApiClient:
             Plugin information dictionary
 
         """
-        response = await self._request("GET", f"/api/v1/plugins/{plugin_id}")
+        response = await self._request(
+            FlextCliConstants.HTTP_GET, f"/api/v1/plugins/{plugin_id}"
+        )
         return cast("dict[str, object]", response.json())
 
     async def install_plugin(
@@ -422,7 +439,7 @@ class FlextApiClient:
             json_data["version"] = version
 
         response = await self._request(
-            "POST",
+            FlextCliConstants.HTTP_POST,
             "/api/v1/plugins/install",
             json_data=json_data,
         )
@@ -435,7 +452,9 @@ class FlextApiClient:
             plugin_id: Plugin ID to uninstall
 
         """
-        await self._request("DELETE", f"/api/v1/plugins/{plugin_id}")
+        await self._request(
+            FlextCliConstants.HTTP_DELETE, f"/api/v1/plugins/{plugin_id}"
+        )
 
     async def update_plugin(
         self,
@@ -457,7 +476,7 @@ class FlextApiClient:
             json_data["version"] = version
 
         response = await self._request(
-            "PUT",
+            FlextCliConstants.HTTP_PUT,
             f"/api/v1/plugins/{plugin_id}",
             json_data=json_data,
         )
@@ -471,7 +490,9 @@ class FlextApiClient:
             System status dictionary
 
         """
-        response = await self._request("GET", "/api/v1/system/status")
+        response = await self._request(
+            FlextCliConstants.HTTP_GET, "/api/v1/system/status"
+        )
         return cast("dict[str, object]", response.json())
 
     async def get_system_metrics(self) -> dict[str, object]:
@@ -481,7 +502,9 @@ class FlextApiClient:
             System metrics dictionary
 
         """
-        response = await self._request("GET", "/api/v1/system/metrics")
+        response = await self._request(
+            FlextCliConstants.HTTP_GET, "/api/v1/system/metrics"
+        )
         return cast("dict[str, object]", response.json())
 
     async def test_connection(self) -> bool:
@@ -492,7 +515,7 @@ class FlextApiClient:
 
         """
         try:
-            await self._request("GET", "/api/v1/health")
+            await self._request(FlextCliConstants.HTTP_GET, "/api/v1/health")
         except (RuntimeError, ValueError, TypeError) as e:
             logger = FlextLogger(__name__)
             logger.warning(f"Connection test failed: {e}")
