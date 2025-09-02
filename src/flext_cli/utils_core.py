@@ -41,10 +41,12 @@ class FlextCliUtilsCore:
             _ = _options
             config = FlextCliConfig()
             console = Console()
-            return FlextResult[QuickSetupContext].ok({
-                "console": console,
-                "config": config,
-            })
+            return FlextResult[QuickSetupContext].ok(
+                {
+                    "console": console,
+                    "config": config,
+                }
+            )
         except Exception as e:
             return FlextResult[QuickSetupContext].fail(f"CLI setup failed: {e}")
 

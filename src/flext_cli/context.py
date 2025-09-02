@@ -7,7 +7,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -58,7 +57,7 @@ class FlextCliContext(FlextModels.Value):
         default_factory=FlextCliConfig,
         description="CLI configuration instance",
     )
-    console: Console | None = Field(
+    console: Console = Field(
         default_factory=Console,
         description="Rich console for output",
     )
@@ -97,10 +96,7 @@ class FlextCliContext(FlextModels.Value):
 
     def model_post_init(self, __context: object, /) -> None:
         """Initialize context after model creation."""
-        # Provide sensible defaults instead of failing hard. Tests construct this
-        # context without explicitly providing config/console.
-        if self.console is None:
-            self.console = Console()
+        # Context initialization - no need to set console since it has default_factory
 
     # Properties based on config if present, otherwise fall back to fields
     @property
@@ -129,45 +125,25 @@ class FlextCliContext(FlextModels.Value):
     # Printing helpers expected by tests
     def print_success(self, message: str) -> None:
         """Print success message."""
-        if self.console is None:
-            sys.stdout.write(f"[SUCCESS] {message}\n")
-            sys.stdout.flush()
-        else:
-            self.console.print(f"[green][SUCCESS][/green] {message}")
+        self.console.print(f"[green][SUCCESS][/green] {message}")
 
     def print_error(self, message: str) -> None:
         """Print error message."""
-        if self.console is None:
-            sys.stderr.write(f"[ERROR] {message}\n")
-            sys.stderr.flush()
-        else:
-            self.console.print(f"[red][ERROR][/red] {message}")
+        self.console.print(f"[red][ERROR][/red] {message}")
 
     def print_warning(self, message: str) -> None:
         """Print warning message."""
-        if self.console is None:
-            sys.stderr.write(f"[WARNING] {message}\n")
-            sys.stderr.flush()
-        else:
-            self.console.print(f"[yellow][WARNING][/yellow] {message}")
+        self.console.print(f"[yellow][WARNING][/yellow] {message}")
 
     def print_info(self, message: str) -> None:
         """Print info message."""
         if not self.is_quiet:
-            if self.console is None:
-                sys.stdout.write(f"[INFO] {message}\n")
-                sys.stdout.flush()
-            else:
-                self.console.print(f"[blue][INFO][/blue] {message}")
+            self.console.print(f"[blue][INFO][/blue] {message}")
 
     def print_verbose(self, message: str) -> None:
         """Print verbose message."""
         if self.is_verbose:
-            if self.console is None:
-                sys.stdout.write(f"[VERBOSE] {message}\n")
-                sys.stdout.flush()
-            else:
-                self.console.print(f"[dim][VERBOSE][/dim] {message}")
+            self.console.print(f"[dim][VERBOSE][/dim] {message}")
 
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI context business rules."""

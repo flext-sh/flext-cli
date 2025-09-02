@@ -59,9 +59,9 @@ def cli_config() -> FlextCliConfig:
 
 
 @pytest.fixture
-def cli_settings() -> FlextCliSettings:
+def cli_settings() -> FlextCliConfig.CliSettings:
     """Create REAL CLI settings for testing actual functionality."""
-    return FlextCliSettings(
+    return FlextCliConfig.CliSettings(
         debug=True,
         project_name="test-cli",
         project_description="Test CLI Library",
