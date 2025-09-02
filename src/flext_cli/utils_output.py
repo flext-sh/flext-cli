@@ -6,6 +6,7 @@ import importlib
 import json
 from typing import cast
 
+from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table
 
@@ -31,21 +32,21 @@ class FlextCliOutput:
         return Console(no_color=no_color, quiet=quiet)
 
     @staticmethod
-    def print_success(console: Console, message: str) -> None:
+    def print_success_static(console: Console, message: str) -> None:
         console.print(f"[bold green]✓[/bold green] {message}")
 
     @staticmethod
-    def print_error(console: Console, message: str, details: str | None = None) -> None:
+    def print_error_static(console: Console, message: str, details: str | None = None) -> None:
         console.print(f"[bold red]Error:[/bold red] {message}")
         if details:
             console.print(details)
 
     @staticmethod
-    def print_warning(console: Console, message: str) -> None:
+    def print_warning_static(console: Console, message: str) -> None:
         console.print(f"[bold yellow]⚠[/bold yellow] {message}")
 
     @staticmethod
-    def print_info(console: Console, message: str) -> None:
+    def print_info_static(console: Console, message: str) -> None:
         console.print(f"[bold blue]i[/bold blue] {message}")
 
     @staticmethod
@@ -127,6 +128,64 @@ class FlextCliOutput:
     @staticmethod
     def get_config() -> FlextCliConfig:
         return FlextCliConfig()
+
+    # Protocol implementation methods
+    def print_data(self, data: object, format_type: str = "table") -> FlextResult[None]:
+        """Print data to terminal in specified format."""
+        try:
+            console = self.setup_console()
+            if format_type == "json":
+                console.print(json.dumps(data, indent=2))
+            elif format_type == "yaml":
+                console.print(self._yaml_dump(data))
+            else:  # default to table or plain
+                console.print(str(data))
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Print failed: {e}")
+
+    def print_success(self, message: str) -> FlextResult[None]:
+        """Print success message with styling."""
+        try:
+            console = self.setup_console()
+            console.print(f"[bold green]✓[/bold green] {message}")
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Print success failed: {e}")
+
+    def print_error(self, message: str) -> FlextResult[None]:
+        """Print error message with styling."""
+        try:
+            console = self.setup_console()
+            console.print(f"[bold red]Error:[/bold red] {message}")
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Print error failed: {e}")
+
+    def print_warning(self, message: str) -> FlextResult[None]:
+        """Print warning message with styling."""
+        try:
+            console = self.setup_console()
+            console.print(f"[bold yellow]⚠[/bold yellow] {message}")
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Print warning failed: {e}")
+
+    def print_info(self, message: str) -> FlextResult[None]:
+        """Print info message with styling."""
+        try:
+            console = self.setup_console()
+            console.print(f"[bold blue]i[/bold blue] {message}")
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Print info failed: {e}")
+
+    def show_progress(self, description: str, total: int | None = None) -> object:
+        """Show progress indicator."""
+        console = self.setup_console()
+        if total:
+            return console.status(f"{description} (0/{total})")
+        return console.status(description)
 
 
 __all__ = ["FlextCliOutput"]

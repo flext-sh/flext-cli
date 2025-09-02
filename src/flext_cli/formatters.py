@@ -7,6 +7,7 @@ import json
 from io import StringIO
 from typing import ClassVar, Protocol
 
+from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table
 
@@ -137,6 +138,86 @@ class FlextCliFormatters:
     @classmethod
     def format_output(cls, data: object, fmt: str, console: Console) -> None:
         cls.create(fmt).format(data, console)
+
+    # Protocol implementation methods
+    @classmethod
+    def format_data(cls, data: object, format_type: str) -> FlextResult[str]:
+        """Format data to specified output format."""
+        try:
+            from io import StringIO
+
+            from rich.console import Console
+
+            console = Console(file=StringIO(), width=120)
+            cls.format_output(data, format_type, console)
+            output = console.file.getvalue() if hasattr(console.file, "getvalue") else str(data)
+            return FlextResult[str].ok(output)
+        except Exception as e:
+            return FlextResult[str].fail(f"Format failed: {e}")
+
+    @classmethod
+    def format_table(cls, data: object, title: str | None = None) -> FlextResult[Table]:
+        """Format data as a table representation."""
+        try:
+            table = Table(title=title or "Data")
+            if isinstance(data, list) and data and isinstance(data[0], dict):
+                for key in data[0]:
+                    table.add_column(str(key))
+                for row in data:
+                    table.add_row(*[str(row.get(k, "")) for k in data[0]])
+            elif isinstance(data, dict):
+                table.add_column("Key")
+                table.add_column("Value")
+                for k, v in data.items():
+                    table.add_row(str(k), str(v))
+            else:
+                table.add_column("Value")
+                if isinstance(data, list):
+                    for item in data:
+                        table.add_row(str(item))
+                else:
+                    table.add_row(str(data))
+            return FlextResult[Table].ok(table)
+        except Exception as e:
+            return FlextResult[Table].fail(f"Table creation failed: {e}")
+
+    @classmethod
+    def format_json(cls, data: object, indent: int = 2) -> FlextResult[str]:
+        """Format data as JSON string."""
+        try:
+            json_str = json.dumps(data, ensure_ascii=False, default=str, indent=indent)
+            return FlextResult[str].ok(json_str)
+        except Exception as e:
+            return FlextResult[str].fail(f"JSON formatting failed: {e}")
+
+    @classmethod
+    def format_yaml(cls, data: object) -> FlextResult[str]:
+        """Format data as YAML string."""
+        try:
+            yaml_mod = importlib.import_module("yaml")
+            yaml_str = yaml_mod.safe_dump(data)
+            return FlextResult[str].ok(yaml_str)
+        except Exception as e:
+            return FlextResult[str].fail(f"YAML formatting failed: {e}")
+
+    @classmethod
+    def format_csv(cls, data: object) -> FlextResult[str]:
+        """Format data as CSV string."""
+        try:
+            if isinstance(data, list) and data and isinstance(data[0], dict):
+                keys = list(data[0].keys())
+                csv_lines = [",".join(keys)]
+                csv_lines.extend(",".join(str(row.get(k, "")) for k in keys) for row in data)
+                return FlextResult[str].ok("\n".join(csv_lines))
+            if isinstance(data, dict):
+                keys = list(data.keys())
+                csv_lines = [",".join(keys), ",".join(str(data.get(k, "")) for k in keys)]
+                return FlextResult[str].ok("\n".join(csv_lines))
+            if isinstance(data, list):
+                return FlextResult[str].ok(",".join(str(v) for v in data))
+            return FlextResult[str].ok(str(data))
+        except Exception as e:
+            return FlextResult[str].fail(f"CSV formatting failed: {e}")
 
 
 __all__ = [

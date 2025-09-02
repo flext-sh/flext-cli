@@ -21,6 +21,9 @@ from .services import *
 from .typings import *
 from .cli_utils import *
 from .formatters import *
+from .protocols import *
+from .formatter_adapter import *
+from .output_adapter import *
 from .api_functions import FlextCliApiFunctions
 from .helpers import (
     FlextCliDataProcessor,
