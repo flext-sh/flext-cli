@@ -15,15 +15,16 @@ from unittest.mock import Mock, patch
 import pytest
 from flext_core import FlextConstants
 
-from flext_cli import (
-    async_command,
-    confirm_action,
-    measure_time,
-    require_auth,
-    retry,
-    validate_config,
-    with_spinner,
-)
+from flext_cli.decorators import FlextCliDecorators as D
+
+# Map class methods to local names for decorator usage in tests
+async_command = D.async_command
+confirm_action = D.confirm_action
+measure_time = D.measure_time
+require_auth = D.require_auth
+retry = D.retry
+validate_config = D.validate_config
+with_spinner = D.with_spinner
 
 # Constants
 EXPECTED_BULK_SIZE = 2

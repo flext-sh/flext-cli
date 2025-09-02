@@ -60,9 +60,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import ClassVar, override
 
-from flext_core import FlextConfig, FlextResult
+from flext_core.config import FlextConfig
+from flext_core.result import FlextResult
 from pydantic import Field
 from pydantic_settings import BaseSettings as PydanticBaseSettings, SettingsConfigDict
+
+from .constants import FlextCliConstants
 
 
 class FlextCliConfig(FlextConfig):
@@ -81,7 +84,7 @@ class FlextCliConfig(FlextConfig):
     """
 
     # Reference to flext-core config for inheritance
-    Core: ClassVar = FlextConfig
+    Core: ClassVar[type[FlextConfig]] = FlextConfig
 
     # =========================================================================
     # CLI-SPECIFIC CONFIGURATION FIELDS
@@ -105,7 +108,7 @@ class FlextCliConfig(FlextConfig):
         description="Logging level",
     )
     command_timeout: int = Field(
-        default=30,
+        default=FlextCliConstants.DEFAULT_COMMAND_TIMEOUT,
         description="Command execution timeout in seconds",
     )
 
@@ -125,24 +128,24 @@ class FlextCliConfig(FlextConfig):
 
     # API configuration
     api_url: str = Field(
-        default="http://localhost:8080",
+        default=FlextCliConstants.DEFAULT_API_URL,
         description="API base URL",
     )
     api_timeout: int = Field(
-        default=30,
-        le=300,
+        default=FlextCliConstants.DEFAULT_API_TIMEOUT,
+        le=FlextCliConstants.MAX_COMMAND_TIMEOUT,
         description="API request timeout in seconds",
     )
     connect_timeout: int = Field(
-        default=30,
+        default=FlextCliConstants.DEFAULT_API_TIMEOUT,
         description="Connection timeout in seconds",
     )
     read_timeout: int = Field(
-        default=60,
+        default=FlextCliConstants.DEFAULT_READ_TIMEOUT,
         description="Read timeout in seconds",
     )
     retries: int = Field(
-        default=3,
+        default=FlextCliConstants.DEFAULT_RETRIES,
         description="Maximum retry attempts",
     )
     verify_ssl: bool = Field(
@@ -174,30 +177,44 @@ class FlextCliConfig(FlextConfig):
 
     # Directory configuration
     config_dir: Path = Field(
-        default_factory=lambda: Path.home() / ".flext",
+        default_factory=lambda: Path.home() / FlextCliConstants.FLEXT_DIR_NAME,
         description="Configuration directory",
     )
     cache_dir: Path = Field(
-        default_factory=lambda: Path.home() / ".flext" / "cache",
+        default_factory=lambda: Path.home()
+        / FlextCliConstants.FLEXT_DIR_NAME
+        / FlextCliConstants.CACHE_DIR_NAME,
         description="Cache directory",
     )
     log_dir: Path = Field(
-        default_factory=lambda: Path.home() / ".flext" / "logs",
+        default_factory=lambda: Path.home()
+        / FlextCliConstants.FLEXT_DIR_NAME
+        / FlextCliConstants.LOGS_DIR_NAME,
         description="Log directory",
     )
     data_dir: Path = Field(
-        default_factory=lambda: Path.home() / ".flext" / "data",
+        default_factory=lambda: Path.home()
+        / FlextCliConstants.FLEXT_DIR_NAME
+        / FlextCliConstants.DATA_DIR_NAME,
         description="Data directory",
     )
 
     # Authentication configuration
     token_file: Path = Field(
-        default_factory=lambda: (Path.home() / ".flext" / "auth" / "token.json"),
+        default_factory=lambda: (
+            Path.home()
+            / FlextCliConstants.FLEXT_DIR_NAME
+            / FlextCliConstants.AUTH_DIR_NAME
+            / FlextCliConstants.TOKEN_FILE_NAME
+        ),
         description="Authentication token file",
     )
     refresh_token_file: Path = Field(
         default_factory=lambda: (
-            Path.home() / ".flext" / "auth" / "refresh_token.json"
+            Path.home()
+            / FlextCliConstants.FLEXT_DIR_NAME
+            / FlextCliConstants.AUTH_DIR_NAME
+            / FlextCliConstants.REFRESH_TOKEN_FILE_NAME
         ),
         description="Refresh token file",
     )
@@ -220,55 +237,51 @@ class FlextCliConfig(FlextConfig):
         class Command:
             """Command execution defaults."""
 
-            timeout_seconds: int = 30
-            max_timeout_seconds: int = 300
-            min_timeout_seconds: int = 1
-            max_retries: int = 3
-            retry_delay_seconds: int = 1
-            max_history_size: int = 1000
+            timeout_seconds: int = FlextCliConstants.DEFAULT_COMMAND_TIMEOUT
+            max_timeout_seconds: int = FlextCliConstants.MAX_COMMAND_TIMEOUT
+            min_timeout_seconds: int = FlextCliConstants.MIN_LENGTH
+            max_retries: int = FlextCliConstants.DEFAULT_RETRIES
+            retry_delay_seconds: int = FlextCliConstants.MIN_LENGTH
+            max_history_size: int = FlextCliConstants.MAX_HISTORY_SIZE
             max_output_size: int = 1048576
 
         class Output:
             """Output formatting defaults."""
 
             default_format: str = "table"
-            default_width: int = 120
-            max_table_rows: int = 1000
-            table_padding: int = 1
-            max_cell_width: int = 50
-            progress_bar_width: int = 40
+            default_width: int = FlextCliConstants.DEFAULT_OUTPUT_WIDTH
+            max_table_rows: int = FlextCliConstants.MAX_TABLE_ROWS
+            table_padding: int = FlextCliConstants.DEFAULT_TABLE_PADDING
+            max_cell_width: int = FlextCliConstants.MAX_PROFILE_NAME_LENGTH
+            progress_bar_width: int = FlextCliConstants.DEFAULT_PROGRESS_BAR_WIDTH
 
         class Auth:
             """Authentication defaults."""
 
-            token_expiry_hours: int = 24
-            refresh_expiry_days: int = 30
-            session_timeout_minutes: int = 60
-            min_token_length: int = 10
-            max_login_attempts: int = 3
+            token_expiry_hours: int = FlextCliConstants.TOKEN_EXPIRY_HOURS
+            refresh_expiry_days: int = FlextCliConstants.REFRESH_EXPIRY_DAYS
+            session_timeout_minutes: int = FlextCliConstants.SESSION_TIMEOUT_MINUTES
+            min_token_length: int = FlextCliConstants.DEFAULT_TOKEN_MIN_LENGTH
+            max_login_attempts: int = FlextCliConstants.DEFAULT_RETRIES
 
         class Config:
             """Configuration management defaults."""
 
-            max_profile_name_length: int = 50
+            max_profile_name_length: int = FlextCliConstants.MAX_PROFILE_NAME_LENGTH
             max_config_key_length: int = 100
-            max_config_value_length: int = 1000
+            max_config_value_length: int = FlextCliConstants.MAX_CONFIG_VALUE_LENGTH
 
         class Validation:
             """Input validation defaults."""
 
-            min_command_length: int = 1
-            max_command_length: int = 1000
-            min_profile_length: int = 1
-            max_profile_length: int = 50
-            valid_output_formats: tuple[str, ...] = ("table", "json", "yaml", "csv")
-            valid_log_levels: tuple[str, ...] = (
-                "DEBUG",
-                "INFO",
-                "WARNING",
-                "ERROR",
-                "CRITICAL",
+            min_command_length: int = FlextCliConstants.MIN_LENGTH
+            max_command_length: int = FlextCliConstants.MAX_CONFIG_VALUE_LENGTH
+            min_profile_length: int = FlextCliConstants.MIN_LENGTH
+            max_profile_length: int = FlextCliConstants.MAX_PROFILE_NAME_LENGTH
+            valid_output_formats: tuple[str, ...] = (
+                FlextCliConstants.VALID_OUTPUT_FORMATS
             )
+            valid_log_levels: tuple[str, ...] = FlextCliConstants.VALID_LOG_LEVELS
 
     class CliDirectories:
         """CLI directory structure management.
@@ -303,7 +316,7 @@ class FlextCliConfig(FlextConfig):
 
                 return FlextResult[None].ok(None)
 
-            except Exception as e:
+            except (OSError, PermissionError, RuntimeError, ValueError, TypeError) as e:
                 return FlextResult[None].fail(f"Failed to create directories: {e}")
 
         def validate_directories(self) -> FlextResult[None]:
@@ -335,7 +348,7 @@ class FlextCliConfig(FlextConfig):
                         )
 
                     # Test write access
-                    test_file = directory / ".flext_test_write"
+                    test_file = directory / FlextCliConstants.TEST_WRITE_FILE_NAME
                     try:
                         test_file.touch()
                         test_file.unlink()
@@ -346,7 +359,7 @@ class FlextCliConfig(FlextConfig):
 
                 return FlextResult[None].ok(None)
 
-            except Exception as e:
+            except (OSError, PermissionError, RuntimeError, ValueError) as e:
                 return FlextResult[None].fail(f"Directory validation failed: {e}")
 
     class CliSettings(PydanticBaseSettings):
@@ -378,11 +391,11 @@ class FlextCliConfig(FlextConfig):
             description="Default output format",
         )
         api_url: str = Field(
-            default="http://localhost:8080",
+            default=FlextCliConstants.DEFAULT_API_URL,
             description="API base URL",
         )
         log_level: str = Field(
-            default="INFO",
+            default=FlextCliConstants.LOG_LEVEL_INFO,
             description="Logging level",
         )
 
@@ -428,8 +441,10 @@ class FlextCliConfig(FlextConfig):
         if self.api_timeout <= 0 or self.command_timeout <= 0:
             return FlextResult[None].fail("Timeout values must be positive")
 
-        if self.command_timeout > 300:
-            return FlextResult[None].fail(f"Command timeout exceeds maximum: {300}s")
+        if self.command_timeout > FlextCliConstants.MAX_COMMAND_TIMEOUT:
+            return FlextResult[None].fail(
+                f"Command timeout exceeds maximum: {FlextCliConstants.MAX_COMMAND_TIMEOUT}s"
+            )
         return FlextResult[None].ok(None)
 
     def _validate_retries(self) -> FlextResult[None]:
@@ -449,14 +464,14 @@ class FlextCliConfig(FlextConfig):
 
     def _validate_profile_name(self) -> FlextResult[None]:
         """Validate profile name length and format."""
-        if len(self.profile) < 1:
+        if len(self.profile) < FlextCliConstants.MIN_LENGTH:
             return FlextResult[None].fail(
-                f"Profile name too short. Minimum length: {1}"
+                f"Profile name too short. Minimum length: {FlextCliConstants.MIN_LENGTH}"
             )
 
-        if len(self.profile) > 50:
+        if len(self.profile) > FlextCliConstants.MAX_PROFILE_NAME_LENGTH:
             return FlextResult[None].fail(
-                f"Profile name too long. Maximum length: {50}"
+                f"Profile name too long. Maximum length: {FlextCliConstants.MAX_PROFILE_NAME_LENGTH}"
             )
 
         # Basic pattern validation
@@ -469,10 +484,10 @@ class FlextCliConfig(FlextConfig):
 
     def _validate_log_level(self) -> FlextResult[None]:
         """Validate log level against CLI constants."""
-        if self.log_level not in {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}:
+        if self.log_level not in FlextCliConstants.VALID_LOG_LEVELS:
             return FlextResult[None].fail(
                 f"Invalid log level '{self.log_level}'. "
-                f"Valid options: {['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']}"
+                f"Valid options: {list(FlextCliConstants.VALID_LOG_LEVELS)}"
             )
         return FlextResult[None].ok(None)
 
@@ -534,7 +549,7 @@ class FlextCliConfig(FlextConfig):
 
             return FlextResult[FlextCliConfig].ok(config)
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             return FlextResult[FlextCliConfig].fail(
                 f"Failed to create CLI configuration: {e}"
             )
@@ -562,7 +577,7 @@ class FlextCliConfig(FlextConfig):
             config_data: dict[str, object] = {"profile": profile_name.strip()}
             return cls.create_with_directories(config_data)
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             return FlextResult[FlextCliConfig].fail(
                 f"Failed to load profile '{profile_name}': {e}"
             )
@@ -577,19 +592,19 @@ class FlextCliConfig(FlextConfig):
         """
         try:
             config_data = {
-                "profile": "development",
+                "profile": FlextCliConstants.DEVELOPMENT_PROFILE,
                 "debug": True,
                 "trace": True,
-                "log_level": "DEBUG",
-                "output_format": "table",
+                "log_level": FlextCliConstants.LOG_LEVEL_DEBUG,
+                "output_format": FlextCliConstants.DEFAULT_OUTPUT_FORMAT,
                 "verbose": True,
-                "command_timeout": 60,  # Shorter timeout for development
-                "api_timeout": 30,
+                "command_timeout": FlextCliConstants.DEFAULT_DEV_TIMEOUT,  # Shorter timeout for development
+                "api_timeout": FlextCliConstants.DEFAULT_API_TIMEOUT,
             }
 
             return cls.create_with_directories(config_data)
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             return FlextResult[FlextCliConfig].fail(
                 f"Failed to create development configuration: {e}"
             )
@@ -604,20 +619,20 @@ class FlextCliConfig(FlextConfig):
         """
         try:
             config_data = {
-                "profile": "production",
+                "profile": FlextCliConstants.PRODUCTION_PROFILE,
                 "debug": False,
                 "trace": False,
-                "log_level": "INFO",
+                "log_level": FlextCliConstants.LOG_LEVEL_INFO,
                 "output_format": "json",
                 "quiet": True,
-                "command_timeout": 30,
-                "api_timeout": 120,  # Longer timeout for production
+                "command_timeout": FlextCliConstants.DEFAULT_COMMAND_TIMEOUT,
+                "api_timeout": FlextCliConstants.PRODUCTION_API_TIMEOUT,  # Longer timeout for production
                 "verify_ssl": True,
             }
 
             return cls.create_with_directories(config_data)
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             return FlextResult[FlextCliConfig].fail(
                 f"Failed to create production configuration: {e}"
             )
@@ -659,7 +674,7 @@ class FlextCliConfig(FlextConfig):
 
         def get_priority(self) -> int:
             """Get provider priority."""
-            return 1000  # Highest priority
+            return FlextCliConstants.HIGH_PRIORITY_VALUE  # Highest priority
 
         def get_all(self) -> dict[str, object]:
             """Get all CLI arguments."""
@@ -710,12 +725,9 @@ class FlextCliConfig(FlextConfig):
         This maintains backwards compatibility with tests.
         """
         # Check if this instance was created with explicit config_path
-        if hasattr(self, "_explicit_config_path"):
-            return (
-                str(self._explicit_config_path)
-                if self._explicit_config_path is not None
-                else None
-            )
+        explicit = getattr(self, "_explicit_config_path", None)
+        if explicit is not None:
+            return str(explicit)
         # Return None by default for backwards compatibility
         return None
 

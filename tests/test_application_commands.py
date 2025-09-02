@@ -141,4 +141,7 @@ class TestFlextCliSession:
         # REAL BEHAVIOR: Current implementation has a railway pattern bug with None data transformation
         # This test reflects the ACTUAL behavior, not the intended behavior
         assert not validation_result.is_success
-        assert "Transformation failed: Success result has None data" in validation_result.error
+        assert (
+            "Transformation failed: Success result has None data"
+            in validation_result.error
+        )

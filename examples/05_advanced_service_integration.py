@@ -192,8 +192,8 @@ class AdvancedCliService(FlextCliService):
     ) -> FlextResult[bool]:
         """Implement circuit breaker pattern for service resilience."""
         try:
-            if service_name not in self.circuit_breakers:  # type: ignore[attr-defined]
-                self.circuit_breakers[service_name] = {  # type: ignore[attr-defined]
+            if service_name not in self.circuit_breakers:
+                self.circuit_breakers[service_name] = {
                     "state": CircuitBreakerState.CLOSED,
                     "failure_count": 0,
                     "last_failure": None,
@@ -201,7 +201,7 @@ class AdvancedCliService(FlextCliService):
                     "timeout_duration": 60,  # seconds
                 }
 
-            breaker = self.circuit_breakers[service_name]  # type: ignore[attr-defined]
+            breaker = self.circuit_breakers[service_name]
             current_time = datetime.now(UTC)
 
             # Check if circuit should be half-open
@@ -416,10 +416,10 @@ def demonstrate_circuit_breaker_pattern() -> FlextResult[None]:
     for attempt in range(8):
         result = service.implement_circuit_breaker(test_service, failure_threshold=3)
 
-        breaker_state = service.circuit_breakers.get(test_service, {}).get(  # type: ignore[attr-defined]
+        breaker_state = service.circuit_breakers.get(test_service, {}).get(
             "state", "unknown"
         )
-        failure_count = service.circuit_breakers.get(test_service, {}).get(  # type: ignore[attr-defined]
+        failure_count = service.circuit_breakers.get(test_service, {}).get(
             "failure_count", 0
         )
 
@@ -441,8 +441,8 @@ def demonstrate_circuit_breaker_pattern() -> FlextResult[None]:
             break
 
     # Display circuit breaker status
-    if test_service in service.circuit_breakers:  # type: ignore[attr-defined]
-        breaker_info = service.circuit_breakers[test_service]  # type: ignore[attr-defined]
+    if test_service in service.circuit_breakers:
+        breaker_info = service.circuit_breakers[test_service]
 
         breaker_table = Table(title=f"Circuit Breaker Status: {test_service}")
         breaker_table.add_column("Property", style="cyan")
@@ -540,13 +540,13 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
 
     console.print("📦 Registering services in container:")
     for service_name, service_instance in services_to_register:
-        container.register(service_name, service_instance)  # type: ignore[attr-defined]
+        container.register(service_name, service_instance)
         console.print(f"   ✅ {service_name}: {type(service_instance).__name__}")
 
     # Demonstrate service retrieval
     console.print("\n🔍 Retrieving services from container:")
     for service_name, _ in services_to_register:
-        retrieval_result = container.get(service_name)  # type: ignore[attr-defined]
+        retrieval_result = container.get(service_name)
         if retrieval_result.is_success:
             retrieved_service = retrieval_result.value
             console.print(f"   ✅ {service_name}: {type(retrieved_service).__name__}")
@@ -557,9 +557,9 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     console.print("\n🏗️ Service composition example:")
 
     # Create a composite service using retrieved dependencies
-    logger_result = container.get("logger")  # type: ignore[attr-defined]
-    config_result = container.get("config")  # type: ignore[attr-defined]
-    api_client_result = container.get("api_client")  # type: ignore[attr-defined]
+    logger_result = container.get("logger")
+    config_result = container.get("config")
+    api_client_result = container.get("api_client")
 
     if all(
         result.is_success
@@ -575,7 +575,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
         console.print(f"   🌐 API Client: {type(api_client).__name__}")
 
         # Demonstrate using composed services
-        logger.info("Dependency injection demonstration completed")  # type: ignore[attr-defined]
+        logger.info("Dependency injection demonstration completed")
         console.print("   ✅ Services working together successfully")
 
     return FlextResult[None].ok(None)

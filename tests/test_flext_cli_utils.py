@@ -29,26 +29,10 @@ from rich.console import Console
 from rich.table import Table
 
 # Import public API functions from main package
-from flext_cli import (
-    flext_cli_auto_config,
-    flext_cli_batch_execute,
-    flext_cli_create_table,
-    flext_cli_load_file,
-    flext_cli_output_data,
-    flext_cli_quick_setup,
-    flext_cli_require_all,
-    flext_cli_save_file,
-    flext_cli_validate_all,
-)
+from flext_cli.utils_core import FlextCliUtilsCore as U
 
 # Import private functions from their actual module location
-from flext_cli.utils_core import (
-    _current_timestamp,
-    _generate_session_id,
-    # _get_version,  # Function removed - not available in new API
-    _load_config_file,
-    _load_env_overrides,
-)
+from flext_cli.utils_core import FlextCliUtilsCore as UC
 
 
 class TestFlextCliQuickSetup:
@@ -58,7 +42,7 @@ class TestFlextCliQuickSetup:
         """Test quick setup with minimal configuration."""
         config = {"profile": "test"}
 
-        result = flext_cli_quick_setup(config)
+        result = U.quick_setup(config)
 
         assert result.is_success
         cli_context = result.value
@@ -80,7 +64,7 @@ class TestFlextCliQuickSetup:
             "console_width": 120,
         }
 
-        result = flext_cli_quick_setup(config)
+        result = U.quick_setup(config)
 
         assert result.is_success
         cli_context = result.value
@@ -95,7 +79,7 @@ class TestFlextCliQuickSetup:
         """Test that user config overrides defaults."""
         config = {"debug": True, "retry_count": 5}
 
-        result = flext_cli_quick_setup(config)
+        result = U.quick_setup(config)
 
         assert result.is_success
         cli_context = result.value
@@ -107,7 +91,7 @@ class TestFlextCliQuickSetup:
         """Test console configuration in quick setup."""
         config = {"console_width": 100, "color_system": "256", "debug": True}
 
-        result = flext_cli_quick_setup(config)
+        result = U.quick_setup(config)
 
         assert result.is_success
         console = result.value["console"]
@@ -120,7 +104,7 @@ class TestFlextCliQuickSetup:
             "flext_cli.utils_core.Console",
             side_effect=Exception("Console init failed"),
         ):
-            result = flext_cli_quick_setup({})
+            result = U.quick_setup({})
 
             assert not result.is_success
             assert "CLI setup failed" in result.error
@@ -137,8 +121,8 @@ class TestFlextCliAutoConfig:
         config_data = {"profile": "test", "debug": True}
         config_file.write_text(yaml.dump(config_data))
 
-        with patch("flext_cli.utils_core._load_env_overrides", return_value={}):
-            result = flext_cli_auto_config("default", [str(config_file)])
+        with patch("flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides", return_value={}):
+            result = U.auto_config("default", [str(config_file)])
 
         assert result.is_success
         loaded_config = result.value
@@ -152,8 +136,8 @@ class TestFlextCliAutoConfig:
         config_data = {"api_url": "https://prod.api.flext.sh", "timeout": 30}
         config_file.write_text(yaml.dump(config_data))
 
-        with patch("flext_cli.utils_core._load_env_overrides", return_value={}):
-            result = flext_cli_auto_config("production", [str(config_file)])
+        with patch("flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides", return_value={}):
+            result = U.auto_config("production", [str(config_file)])
 
         assert result.is_success
         loaded_config = result.value
@@ -169,10 +153,10 @@ class TestFlextCliAutoConfig:
         env_overrides = {"debug": True, "api_url": "https://override.api.flext.sh"}
 
         with patch(
-            "flext_cli.utils_core._load_env_overrides",
+            "flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides",
             return_value=env_overrides,
         ):
-            result = flext_cli_auto_config("default", [str(config_file)])
+            result = U.auto_config("default", [str(config_file)])
 
         assert result.is_success
         loaded_config = result.value
@@ -182,8 +166,8 @@ class TestFlextCliAutoConfig:
 
     def test_auto_config_no_files_found(self) -> None:
         """Test auto config when no config files are found."""
-        with patch("flext_cli.utils_core._load_env_overrides", return_value={}):
-            result = flext_cli_auto_config("default", ["/nonexistent/config.yml"])
+        with patch("flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides", return_value={}):
+            result = U.auto_config("default", ["/nonexistent/config.yml"])
 
         assert result.is_success
         loaded_config = result.value
@@ -197,8 +181,8 @@ class TestFlextCliAutoConfig:
         config_data = {"profile": "json_test", "features": ["auth", "config"]}
         config_file.write_text(json.dumps(config_data))
 
-        with patch("flext_cli.utils_core._load_env_overrides", return_value={}):
-            result = flext_cli_auto_config("default", [str(config_file)])
+        with patch("flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides", return_value={}):
+            result = U.auto_config("default", [str(config_file)])
 
         assert result.is_success
         loaded_config = result.value
@@ -215,7 +199,7 @@ class TestFlextCliValidateAll:
             "url": ("https://api.flext.sh", "url"),
         }
 
-        result = flext_cli_validate_all(validations)
+        result = U.validate_all(validations)
 
         assert result.is_success
         assert "email" in result.value
@@ -229,7 +213,7 @@ class TestFlextCliValidateAll:
             "url": ("https://api.flext.sh", "url"),
         }
 
-        result = flext_cli_validate_all(validations)
+        result = U.validate_all(validations)
 
         assert not result.is_success
         assert "Validation failed for email" in result.error
@@ -248,7 +232,7 @@ class TestFlextCliValidateAll:
             "new_filename": ("test<>file.txt", "filename"),
         }
 
-        result = flext_cli_validate_all(validations)
+        result = U.validate_all(validations)
 
         assert result.is_success
         assert len(result.value) == 4
@@ -261,7 +245,7 @@ class TestFlextCliValidateAll:
             "test": ("value", "unknown_type"),
         }
 
-        result = flext_cli_validate_all(validations)
+        result = U.validate_all(validations)
 
         assert not result.is_success
         assert "Unknown validation type" in result.error
@@ -286,7 +270,7 @@ class TestFlextCliRequireAll:
             ("This cannot be undone", False),
         ]
 
-        result = flext_cli_require_all(confirmations)
+        result = U.require_all(confirmations)
 
         assert result.is_success
         assert result.value is True
@@ -307,7 +291,7 @@ class TestFlextCliRequireAll:
             ("This should not be asked", False),
         ]
 
-        result = flext_cli_require_all(confirmations)
+        result = U.require_all(confirmations)
 
         assert result.is_success
         assert result.value is False  # User cancelled
@@ -326,7 +310,7 @@ class TestFlextCliRequireAll:
 
         confirmations = [("Test?", True)]
 
-        result = flext_cli_require_all(confirmations)
+        result = U.require_all(confirmations)
 
         assert not result.is_success
         assert "Confirmation failed" in result.error
@@ -343,7 +327,7 @@ class TestFlextCliOutputData:
         """Test JSON output format."""
         data = {"name": "test", "value": 123}
 
-        result = flext_cli_output_data(data, "json", console=self.console_mock)
+        result = U.output_data(data, "json", console=self.console_mock)
 
         assert result.is_success
         self.console_mock.print.assert_called_once()
@@ -355,7 +339,7 @@ class TestFlextCliOutputData:
         """Test YAML output format."""
         data = {"name": "test", "items": ["a", "b", "c"]}
 
-        result = flext_cli_output_data(data, "yaml", console=self.console_mock)
+        result = U.output_data(data, "yaml", console=self.console_mock)
 
         assert result.is_success
         self.console_mock.print.assert_called_once()
@@ -366,7 +350,7 @@ class TestFlextCliOutputData:
         """Test table output format."""
         data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
 
-        result = flext_cli_output_data(data, "table", console=self.console_mock)
+        result = U.output_data(data, "table", console=self.console_mock)
 
         assert result.is_success
         self.console_mock.print.assert_called_once()
@@ -378,7 +362,7 @@ class TestFlextCliOutputData:
         """Test CSV output format."""
         data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
 
-        result = flext_cli_output_data(data, "csv", console=self.console_mock)
+        result = U.output_data(data, "csv", console=self.console_mock)
 
         assert result.is_success
         self.console_mock.print.assert_called_once()
@@ -390,7 +374,7 @@ class TestFlextCliOutputData:
         """Test text output format."""
         data = ["item1", "item2", "item3"]
 
-        result = flext_cli_output_data(data, "text", console=self.console_mock)
+        result = U.output_data(data, "text", console=self.console_mock)
 
         assert result.is_success
         # Should call print for each item
@@ -400,7 +384,7 @@ class TestFlextCliOutputData:
         """Test fallback output format."""
         data = {"test": "data"}
 
-        result = flext_cli_output_data(
+        result = U.output_data(
             data,
             "unknown_format",
             console=self.console_mock,
@@ -413,7 +397,7 @@ class TestFlextCliOutputData:
         """Test output with format-specific options."""
         data = {"test": "data"}
 
-        result = flext_cli_output_data(
+        result = U.output_data(
             data,
             "json",
             console=self.console_mock,
@@ -431,7 +415,7 @@ class TestFlextCliCreateTable:
         """Test basic table creation."""
         data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
 
-        table = flext_cli_create_table(data, title="Users")
+        table = U.create_table(data, title="Users")
 
         assert isinstance(table, Table)
         assert table.title == "Users"
@@ -443,14 +427,14 @@ class TestFlextCliCreateTable:
             {"name": "Bob", "age": 25, "email": "bob@example.com"},
         ]
 
-        table = flext_cli_create_table(data, columns=["name", "email"])
+        table = U.create_table(data, columns=["name", "email"])
 
         assert isinstance(table, Table)
         # Table should only have the specified columns
 
     def test_create_table_empty_data(self) -> None:
         """Test table creation with empty data."""
-        table = flext_cli_create_table([])
+        table = U.create_table([])
 
         assert isinstance(table, Table)
         # Should have a "No Data" column
@@ -459,7 +443,7 @@ class TestFlextCliCreateTable:
         """Test table creation with non-dictionary data."""
         data = ["item1", "item2", "item3"]
 
-        table = flext_cli_create_table(data)
+        table = U.create_table(data)
 
         assert isinstance(table, Table)
 
@@ -473,7 +457,7 @@ class TestFlextCliFileOperations:
         test_data = {"name": "test", "value": 123}
         test_file.write_text(json.dumps(test_data))
 
-        result = flext_cli_load_file(test_file)
+        result = U.load_file(test_file)
 
         assert result.is_success
         assert result.value == test_data
@@ -484,7 +468,7 @@ class TestFlextCliFileOperations:
         test_data = {"name": "test", "items": ["a", "b", "c"]}
         test_file.write_text(yaml.dump(test_data))
 
-        result = flext_cli_load_file(test_file)
+        result = U.load_file(test_file)
 
         assert result.is_success
         assert result.value == test_data
@@ -495,14 +479,14 @@ class TestFlextCliFileOperations:
         test_content = "This is test content"
         test_file.write_text(test_content)
 
-        result = flext_cli_load_file(test_file, format_type="text")
+        result = U.load_file(test_file, format_type="text")
 
         assert result.is_success
         assert result.value == test_content
 
     def test_load_file_nonexistent(self) -> None:
         """Test loading nonexistent file."""
-        result = flext_cli_load_file("/nonexistent/file.txt")
+        result = U.load_file("/nonexistent/file.txt")
 
         assert not result.is_success
         assert "File not found" in result.error
@@ -512,7 +496,7 @@ class TestFlextCliFileOperations:
         test_file = tmp_path / "output.json"
         test_data = {"name": "test", "value": 456}
 
-        result = flext_cli_save_file(test_data, test_file)
+        result = U.save_file(test_data, test_file)
 
         assert result.is_success
         assert test_file.exists()
@@ -527,7 +511,7 @@ class TestFlextCliFileOperations:
         test_file = tmp_path / "output.yml"
         test_data = {"name": "test", "config": {"debug": True}}
 
-        result = flext_cli_save_file(test_data, test_file)
+        result = U.save_file(test_data, test_file)
 
         assert result.is_success
         assert test_file.exists()
@@ -542,7 +526,7 @@ class TestFlextCliFileOperations:
         test_file = tmp_path / "subdir" / "nested" / "file.json"
         test_data = {"test": "data"}
 
-        result = flext_cli_save_file(test_data, test_file)
+        result = U.save_file(test_data, test_file)
 
         assert result.is_success
         assert test_file.exists()
@@ -552,7 +536,7 @@ class TestFlextCliFileOperations:
 class TestFlextCliBatchExecute:
     """Test suite for flext_cli_batch_execute function."""
 
-    @patch("flext_cli.utils_core.track")
+    @patch("flext_cli.utils_core.FlextCliUtilsCore.track")
     def test_batch_execute_success(self, mock_track: MagicMock) -> None:
         """Test successful batch execution."""
         items = ["item1", "item2", "item3"]
@@ -562,7 +546,7 @@ class TestFlextCliBatchExecute:
 
         mock_track.return_value = items
 
-        result = flext_cli_batch_execute(items, operation)
+        result = U.batch_execute(items, operation)
 
         assert result.is_success
         results = result.value
@@ -571,7 +555,7 @@ class TestFlextCliBatchExecute:
         assert results[1] == "result_item2"
         assert results[2] == "result_item3"
 
-    @patch("flext_cli.utils_core.track")
+    @patch("flext_cli.utils_core.FlextCliUtilsCore.track")
     def test_batch_execute_with_failure_stop(self, mock_track: MagicMock) -> None:
         """Test batch execution with failure and stop_on_error=True."""
         operations = [
@@ -581,12 +565,12 @@ class TestFlextCliBatchExecute:
         ]
         mock_track.return_value = operations
 
-        result = flext_cli_batch_execute(operations, stop_on_error=True)
+        result = U.batch_execute(operations, stop_on_error=True)
 
         assert not result.is_success
         assert "Operation op2 failed" in result.error
 
-    @patch("flext_cli.utils_core.track")
+    @patch("flext_cli.utils_core.FlextCliUtilsCore.track")
     def test_batch_execute_with_failure_continue(self, mock_track: MagicMock) -> None:
         """Test batch execution with failure and stop_on_error=False."""
         operations = [
@@ -596,7 +580,7 @@ class TestFlextCliBatchExecute:
         ]
         mock_track.return_value = operations
 
-        result = flext_cli_batch_execute(operations, stop_on_error=False)
+        result = U.batch_execute(operations, stop_on_error=False)
 
         assert result.is_success
         results = result.value
@@ -605,7 +589,7 @@ class TestFlextCliBatchExecute:
         assert results["op2"]["error"] == "operation failed"
         assert results["op3"]["success"] is True
 
-    @patch("flext_cli.utils_core.track")
+    @patch("flext_cli.utils_core.FlextCliUtilsCore.track")
     def test_batch_execute_with_exception(self, mock_track: MagicMock) -> None:
         """Test batch execution with raised exception."""
 
@@ -619,7 +603,7 @@ class TestFlextCliBatchExecute:
         ]
         mock_track.return_value = operations
 
-        result = flext_cli_batch_execute(operations, stop_on_error=True)
+        result = U.batch_execute(operations, stop_on_error=True)
 
         assert not result.is_success
         assert "Operation op2 raised exception" in result.error
@@ -631,7 +615,7 @@ class TestPrivateHelperFunctions:
 
     def test_generate_session_id(self) -> None:
         """Test session ID generation."""
-        session_id = _generate_session_id()
+        session_id = UC._generate_session_id()
 
         assert isinstance(session_id, str)
         assert len(session_id) == 8  # UUID first 8 characters
@@ -642,7 +626,7 @@ class TestPrivateHelperFunctions:
 
     def test_current_timestamp(self) -> None:
         """Test timestamp generation."""
-        timestamp = _current_timestamp()
+        timestamp = UC._current_timestamp()
 
         assert isinstance(timestamp, str)
         # Should be ISO format
@@ -657,7 +641,7 @@ class TestPrivateHelperFunctions:
         }
 
         with patch.dict(os.environ, test_env):
-            overrides = _load_env_overrides()
+            overrides = UC._load_env_overrides()
 
         assert overrides["profile"] == "test_profile"
         assert overrides["debug"] is True
@@ -669,7 +653,7 @@ class TestPrivateHelperFunctions:
         test_data = {"test": "value"}
         config_file.write_text(yaml.dump(test_data))
 
-        result = _load_config_file(config_file)
+        result = UC._load_config_file(config_file)
 
         assert result.is_success
         assert result.value == test_data
@@ -680,7 +664,7 @@ class TestPrivateHelperFunctions:
         test_data = {"test": "value"}
         config_file.write_text(json.dumps(test_data))
 
-        result = _load_config_file(config_file)
+        result = UC._load_config_file(config_file)
 
         assert result.is_success
         assert result.value == test_data
@@ -690,7 +674,7 @@ class TestPrivateHelperFunctions:
         config_file = tmp_path / "test.xml"
         config_file.write_text("<config></config>")
 
-        result = _load_config_file(config_file)
+        result = UC._load_config_file(config_file)
 
         assert not result.is_success
         assert "Unsupported config format" in result.error

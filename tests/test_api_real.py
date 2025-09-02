@@ -15,14 +15,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from flext_cli import (
-    FlextCliApi,
-    flext_cli_aggregate_data,
-    flext_cli_export,
-    flext_cli_format,
-    flext_cli_table,
-    flext_cli_transform_data,
-)
+from flext_cli import FlextCliApi, FlextCliApiFunctions as A
 
 
 class TestFlextCliApiReal:
@@ -97,7 +90,7 @@ class TestFlextCliFormattingReal:
         }
 
         # Call REAL formatting function
-        result = flext_cli_format(test_data, "json")
+        result = A.format(test_data, "json")
 
         # Should succeed
         assert result.is_success, f"JSON formatting should succeed: {result.error}"
@@ -119,7 +112,7 @@ class TestFlextCliFormattingReal:
         ]
 
         # Call REAL table formatting function
-        result = flext_cli_table(test_data, "Team Roster")
+        result = A.table(test_data, "Team Roster")
 
         # Should succeed
         assert result.is_success, f"Table formatting should succeed: {result.error}"
@@ -140,7 +133,7 @@ class TestFlextCliFormattingReal:
         ]
 
         # Call REAL aggregation function
-        result = flext_cli_aggregate_data(
+        result = A.aggregate_data(
             sales_data, group_by="region", sum_fields=["sales", "units"]
         )
 
@@ -169,7 +162,7 @@ class TestFlextCliFormattingReal:
         ]
 
         # Test REAL filtering for engineers over 30
-        result = flext_cli_transform_data(
+        result = A.transform_data(
             employee_data,
             filter_func=lambda x: x["department"] == "Engineering" and x["age"] > 30,
         )
@@ -203,7 +196,7 @@ class TestFlextCliFormattingReal:
             export_path = Path(temp_dir) / "test_results.json"
 
             # Call REAL export function
-            result = flext_cli_export(export_data, str(export_path), "json")
+            result = A.export(export_data, str(export_path), "json")
 
             # Should succeed
             assert result.is_success, f"Export should succeed: {result.error}"
@@ -269,7 +262,7 @@ class TestFlextCliRealWorldScenarios:
         ]
 
         # Step 2: Transform - filter recent actions (REAL processing)
-        transform_result = flext_cli_transform_data(
+        transform_result = A.transform_data(
             raw_data,
             filter_func=lambda x: x["action"] in {"edit", "save"},
             sort_key="duration",
@@ -285,7 +278,7 @@ class TestFlextCliRealWorldScenarios:
         assert durations == [5.4, 3.2, 1.1], "Should be sorted by duration desc"
 
         # Step 3: Aggregate by user (REAL aggregation)
-        aggregate_result = flext_cli_aggregate_data(
+        aggregate_result = A.aggregate_data(
             filtered_data, group_by="user", sum_fields=["duration"]
         )
 
@@ -294,7 +287,7 @@ class TestFlextCliRealWorldScenarios:
         assert len(user_stats) == 2, "Should have 2 users with edit/save actions"
 
         # Step 4: Format as table (REAL formatting)
-        table_result = flext_cli_table(user_stats, "User Activity Summary")
+        table_result = A.table(user_stats, "User Activity Summary")
 
         assert table_result.is_success, "Table formatting should succeed"
         table = table_result.value
@@ -305,7 +298,7 @@ class TestFlextCliRealWorldScenarios:
         # Step 5: Export to file (REAL file I/O)
         with tempfile.TemporaryDirectory() as temp_dir:
             export_path = Path(temp_dir) / "user_activity.json"
-            export_result = flext_cli_export(user_stats, str(export_path), "json")
+            export_result = A.export(user_stats, str(export_path), "json")
 
             assert export_result.is_success, "Export should succeed"
             assert export_path.exists(), "Export file should exist"
@@ -317,20 +310,20 @@ class TestFlextCliRealWorldScenarios:
     def test_error_handling_real_scenarios(self) -> None:
         """Test REAL error handling without mocking errors."""
         # Test invalid data format
-        invalid_result = flext_cli_format(
+        invalid_result = A.format(
             "not a valid data structure", "invalid_format"
         )
         assert not invalid_result.is_success, "Should fail with invalid format"
         assert "error" in invalid_result.error.lower(), "Should have error message"
 
         # Test invalid export path
-        invalid_export = flext_cli_export(
+        invalid_export = A.export(
             {"test": "data"}, "/invalid/path/file.json", "json"
         )
         assert not invalid_export.success, "Should fail with invalid path"
 
         # Test invalid aggregation
-        invalid_agg = flext_cli_aggregate_data("not a list", group_by="field")
+        invalid_agg = A.aggregate_data("not a list", group_by="field")
         assert not invalid_agg.success, "Should fail with non-list data"
         assert "list" in invalid_agg.error.lower(), "Should mention list requirement"
 
@@ -348,7 +341,7 @@ class TestFlextCliRealWorldScenarios:
         ]
 
         # Test aggregation performance (REAL processing)
-        agg_result = flext_cli_aggregate_data(
+        agg_result = A.aggregate_data(
             large_data, group_by="category", sum_fields=["value"]
         )
 
@@ -357,7 +350,7 @@ class TestFlextCliRealWorldScenarios:
         assert len(aggregated) == 10, "Should have 10 categories"
 
         # Test formatting performance (REAL formatting)
-        format_result = flext_cli_format(aggregated, "json")
+        format_result = A.format(aggregated, "json")
         assert format_result.is_success, "Large data formatting should succeed"
 
         json_output = format_result.value

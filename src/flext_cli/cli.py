@@ -69,19 +69,30 @@ def cli(
     # Load configuration and override with CLI options
     base_config = FlextCliConfig()
 
-    # Create new config with CLI overrides using model_copy
-    config = base_config.model_copy(
-        update={
-            "output_format": output or base_config.output_format,
-            "debug": debug or base_config.debug,
-        }
-    )
+    # Create new config with CLI overrides using model_copy when available
+    if hasattr(base_config, "model_copy"):
+        config = base_config.model_copy(
+            update={
+                "output_format": output
+                or getattr(base_config, "output_format", "table"),
+                "debug": bool(debug or getattr(base_config, "debug", False)),
+            }
+        )
+    else:
+        # Fallback path for static analysis stubs
+        config = FlextCliConfig()
+        try:
+            setattr(config, "output_format", output or "table")
+            setattr(config, "debug", bool(debug))
+        except Exception as e:
+            FlextLogger(__name__).debug("Config override failed: %s", e)
 
     # Setup click context with components
     console = Console(quiet=quiet)
 
     # Create CLI context with correct fields (SOLID: Single Responsibility)
 
+    # config is already properly typed as FlextCliConfig
     cli_context = FlextCliContext(id=str(uuid.uuid4()), config=config, console=console)
 
     ctx.ensure_object(dict)
@@ -93,15 +104,9 @@ def cli(
 
     # Debug information
     if debug:
-        console.print(
-            f"[dim]{'Profile'}: {profile}[/dim]",
-        )
-        console.print(
-            f"[dim]{'Output Format'}: {output}[/dim]",
-        )
-        console.print(
-            f"[dim]{'Debug Mode'}: {debug}[/dim]",
-        )
+        console.print(f"[dim]Profile: {profile}[/dim]")
+        console.print(f"[dim]Output Format: {output}[/dim]")
+        console.print(f"[dim]Debug Mode: {debug}[/dim]")
 
     # Show help if no command:
     if ctx.invoked_subcommand is None:
@@ -115,17 +120,17 @@ def _register_commands() -> None:
 
     try:
         cli.add_command(auth)
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.debug("Failed to register auth command: %s", e, exc_info=True)
 
     try:
         cli.add_command(config)
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.debug("Failed to register config command: %s", e, exc_info=True)
 
     try:
         cli.add_command(debug_cmd)
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.debug("Failed to register debug command: %s", e, exc_info=True)
 
 
@@ -137,13 +142,11 @@ _register_commands()
 def interactive(ctx: click.Context) -> None:
     """Start interactive mode with REPL interface."""
     console = ctx.obj["console"]
-    console.print(
-        f"[yellow]{'Interactive mode coming soon!'}[/yellow]",
-    )
+    console.print("[yellow]Interactive mode coming soon![/yellow]")
     console.print("Planned features:")
-    console.print(f"   {'• REPL mode for live commands'}")
-    console.print(f"   {'• Tab completion'}")
-    console.print(f"   {'• Command history'}")
+    console.print("   • REPL mode for live commands")
+    console.print("   • Tab completion")
+    console.print("   • Command history")
     console.print(f"   {FlextCliConstants.CliMessages.INTERACTIVE_FEATURE_HELP}")
     console.print("")
     console.print(FlextCliConstants.CliMessages.INFO_USE_HELP)
@@ -204,7 +207,7 @@ def main() -> None:
     # Direct CLI execution - FlextUtilities has issues in current flext-core
     try:
         cli()
-    except Exception:
+    except (RuntimeError, ValueError, TypeError):
         logger = FlextLogger(__name__)
         logger.exception("CLI execution failed")
         sys.exit(1)

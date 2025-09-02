@@ -624,8 +624,8 @@ class TestFlextCliPlugin:
             msg = f"Expected {[]}, got {plugin.dependencies}"
             raise AssertionError(msg)
         assert plugin.commands == []
-        # FlextModels.Entity provides automatic timestamps
-        assert hasattr(plugin, "id")  # FlextModels.Entity provides automatic ID
+        # FlextModels provides automatic timestamps
+        assert hasattr(plugin, "id")  # FlextModels provides automatic ID
 
     def test_plugin_full_creation(self) -> None:
         """Test creating plugin with all parameters."""

@@ -21,22 +21,7 @@ from flext_core import FlextResult
 from rich.console import Console
 from rich.table import Table
 
-from flext_cli.utils_core import (
-    _current_timestamp,
-    _generate_session_id,
-    _load_config_file,
-    _load_env_overrides,
-    flext_cli_auto_config,
-    flext_cli_batch_execute,
-    flext_cli_create_table,
-    flext_cli_load_file,
-    flext_cli_output_data,
-    flext_cli_quick_setup,
-    flext_cli_require_all,
-    flext_cli_save_file,
-    flext_cli_validate_all,
-    track,
-)
+from flext_cli.utils_core import FlextCliUtilsCore as U
 
 
 class TestUtilityFunctions:
@@ -44,7 +29,7 @@ class TestUtilityFunctions:
 
     def test_generate_session_id(self) -> None:
         """Test session ID generation."""
-        session_id = _generate_session_id()
+        session_id = U._generate_session_id()
 
         assert isinstance(session_id, str)
         assert len(session_id) > 0
@@ -59,7 +44,7 @@ class TestUtilityFunctions:
 
     def test_current_timestamp(self) -> None:
         """Test timestamp generation."""
-        timestamp = _current_timestamp()
+        timestamp = U._current_timestamp()
 
         assert isinstance(timestamp, str)
         assert len(timestamp) > 0
@@ -85,7 +70,7 @@ class TestEnvironmentOverrides:
     @patch.dict("os.environ", {"FLEXT_TEST_VAR": "test_value"})
     def test_load_env_overrides_with_flext_vars(self) -> None:
         """Test loading environment overrides with FLEXT_ variables."""
-        overrides = _load_env_overrides()
+        overrides = U._load_env_overrides()
 
         assert isinstance(overrides, dict)
         # Should find FLEXT_ prefixed variables
@@ -133,7 +118,7 @@ class TestConfigFileLoading:
             temp_file.flush()
             temp_path = Path(temp_file.name)
 
-            result = _load_config_file(str(temp_path))
+        result = U._load_config_file(Path(str(temp_path)))
 
             assert result.is_success
             loaded_config = result.value
@@ -221,7 +206,7 @@ class TestQuickSetup:
             "features": ["cli", "auth"],
         }
 
-        result = flext_cli_quick_setup(config)
+        result = U.quick_setup(config)
 
         assert result.is_success
         setup_info = result.value
@@ -232,7 +217,7 @@ class TestQuickSetup:
         """Test quick setup with minimal config."""
         config: dict[str, object] = {"project_name": "minimal"}
 
-        result = flext_cli_quick_setup(config)
+        result = U.quick_setup(config)
 
         assert result.is_success
         setup_info = result.value
@@ -242,7 +227,7 @@ class TestQuickSetup:
         """Test quick setup with empty config."""
         config: dict[str, object] = {}
 
-        result = flext_cli_quick_setup(config)
+        result = U.quick_setup(config)
 
         # May succeed with defaults or fail due to missing required fields
         assert isinstance(result, FlextResult)
@@ -256,7 +241,7 @@ class TestQuickSetup:
             "dependencies": ["requests", "click"],
         }
 
-        result = flext_cli_quick_setup(config)
+        result = U.quick_setup(config)
 
         assert result.is_success
         setup_info = result.value
@@ -266,8 +251,8 @@ class TestQuickSetup:
 class TestAutoConfig:
     """Test automatic configuration functionality."""
 
-    @patch("flext_cli.utils_core._load_env_overrides")
-    @patch("flext_cli.utils_core._load_config_file")
+    @patch("flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides")
+    @patch("flext_cli.utils_core.FlextCliUtilsCore._load_config_file")
     def test_flext_cli_auto_config_with_file(
         self, mock_load_file: MagicMock, mock_env: MagicMock
     ) -> None:
@@ -280,7 +265,7 @@ class TestAutoConfig:
         )
         mock_env.return_value = {"timeout": 30}
 
-        result = flext_cli_auto_config(profile="default", config_files=["config.json"])
+        result = U.auto_config("default", ["config.json"])
 
         assert result.is_success
         config = result.value
@@ -288,19 +273,19 @@ class TestAutoConfig:
         assert "debug" in config
         mock_load_file.assert_called_once()
 
-    @patch("flext_cli.utils_core._load_env_overrides")
+    @patch("flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides")
     def test_flext_cli_auto_config_env_only(self, mock_env: MagicMock) -> None:
         """Test auto config with environment variables only."""
         mock_env.return_value = {"debug": "false", "timeout": "45"}
 
-        result = flext_cli_auto_config(profile="default", config_files=[])
+        result = U.auto_config("default", [])
 
         assert result.is_success
         config = result.value
         assert isinstance(config, dict)
 
-    @patch("flext_cli.utils_core._load_env_overrides")
-    @patch("flext_cli.utils_core._load_config_file")
+    @patch("flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides")
+    @patch("flext_cli.utils_core.FlextCliUtilsCore._load_config_file")
     def test_flext_cli_auto_config_file_error(
         self, mock_load_file: MagicMock, mock_env: MagicMock
     ) -> None:
@@ -310,7 +295,7 @@ class TestAutoConfig:
         )
         mock_env.return_value = {"fallback": "true"}
 
-        result = flext_cli_auto_config(profile="default", config_files=["missing.json"])
+        result = U.auto_config("default", ["missing.json"])
 
         # Should fallback to env vars or return error
         assert isinstance(result, FlextResult)
@@ -327,14 +312,14 @@ class TestValidation:
             "name": ("valid_name", "name"),
         }
 
-        result = flext_cli_validate_all(validations)
+        result = U.validate_all(validations)
 
         # Validation may succeed or fail based on implementation
         assert isinstance(result, FlextResult)
 
     def test_flext_cli_validate_all_empty_lists(self) -> None:
         """Test validation with empty lists."""
-        result = flext_cli_validate_all({})
+        result = U.validate_all({})
 
         assert result.is_success
         validated = result.value
@@ -347,7 +332,7 @@ class TestValidation:
             "test2": ("data", "invalid_validator"),
         }
 
-        result = flext_cli_validate_all(validations)
+        result = U.validate_all(validations)
 
         assert not result.is_success
         assert result.error is not None
@@ -393,7 +378,7 @@ class TestRequireAll:
             ("Continue with operation?", False),
         ]
 
-        result = flext_cli_require_all(confirmations)
+        result = U.require_all(confirmations)
 
         assert result.is_success
         assert result.value is True
@@ -412,7 +397,7 @@ class TestRequireAll:
             ("Proceed with step 2?", False),
         ]
 
-        result = flext_cli_require_all(confirmations)
+        result = U.require_all(confirmations)
 
         assert not result.is_success
         assert result.error is not None
@@ -421,7 +406,7 @@ class TestRequireAll:
     @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
     def test_flext_cli_require_all_empty_list(self, mock_confirm: MagicMock) -> None:
         """Test require all with empty confirmation list."""
-        result = flext_cli_require_all([])
+        result = U.require_all([])
 
         assert result.is_success
         assert result.value is True
@@ -436,7 +421,7 @@ class TestRequireAll:
 
         confirmations = [("Confirm action?", False)]
 
-        result = flext_cli_require_all(confirmations)
+        result = U.require_all(confirmations)
 
         assert not result.is_success
         assert result.error is not None
@@ -451,7 +436,7 @@ class TestOutputData:
         data = {"message": "Hello, World!", "status": "success"}
         console = Console()
 
-        result = flext_cli_output_data(data, format_type="json", console=console)
+        result = U.output_data(data, fmt="json", console=console)
 
         assert result.is_success
 
@@ -460,7 +445,7 @@ class TestOutputData:
         data = [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]
         console = Console()
 
-        result = flext_cli_output_data(data, format_type="table", console=console)
+        result = U.output_data(data, fmt="table", console=console)
 
         assert result.is_success
 
@@ -469,7 +454,7 @@ class TestOutputData:
         data = {"key": "value", "number": 42}
         console = Console()
 
-        result = flext_cli_output_data(data, format_type="json", console=console)
+        result = U.output_data(data, fmt="json", console=console)
 
         assert result.is_success
 
@@ -478,21 +463,21 @@ class TestOutputData:
         data = {"info": "test data"}
         console = Console()
 
-        result = flext_cli_output_data(data, format_type="json", console=console)
+        result = U.output_data(data, fmt="json", console=console)
 
         assert result.is_success
 
     def test_flext_cli_output_data_empty_data(self) -> None:
         """Test outputting empty data."""
         console = Console()
-        result = flext_cli_output_data({}, format_type="json", console=console)
+        result = U.output_data({}, fmt="json", console=console)
 
         assert result.is_success
 
     def test_flext_cli_output_data_none_data(self) -> None:
         """Test outputting None data."""
         console = Console()
-        result = flext_cli_output_data(None, format_type="json", console=console)
+        result = U.output_data(None, fmt="json", console=console)
 
         # Should handle None gracefully
         assert result.is_success or not result.is_success  # Either is acceptable
@@ -505,7 +490,7 @@ class TestCreateTable:
         """Test creating table from dictionary data."""
         data = {"name": "John", "age": 30, "city": "NYC"}
 
-        result = flext_cli_create_table(data)
+        table = U.create_table(data)
 
         assert isinstance(result, Table)
 
@@ -513,7 +498,7 @@ class TestCreateTable:
         """Test creating table from list data."""
         data = [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]
 
-        result = flext_cli_create_table(data)
+        table = U.create_table(data)
 
         assert isinstance(result, Table)
 
@@ -521,21 +506,21 @@ class TestCreateTable:
         """Test creating table with title."""
         data = {"status": "active", "count": 5}
 
-        result = flext_cli_create_table(data, title="System Status")
+        table = U.create_table(data, title="System Status")
 
         assert isinstance(result, Table)
         assert result.title == "System Status"
 
     def test_flext_cli_create_table_empty_data(self) -> None:
         """Test creating table with empty data."""
-        result = flext_cli_create_table([])
+        table = U.create_table([])
 
         # Empty data may fail table creation
         assert isinstance(result, Table)
 
     def test_flext_cli_create_table_invalid_data(self) -> None:
         """Test creating table with invalid data."""
-        result = flext_cli_create_table("not_table_data")
+        table = U.create_table("not_table_data")
 
         # Should handle invalid data gracefully
         assert isinstance(result, Table)
@@ -555,7 +540,7 @@ class TestFileOperations:
             temp_file.flush()
             temp_path = Path(temp_file.name)
 
-            result = flext_cli_load_file(str(temp_path))
+            result = U.load_file(str(temp_path))
 
             assert result.is_success
             loaded_data = result.value
@@ -576,7 +561,7 @@ class TestFileOperations:
             temp_file.flush()
             temp_path = Path(temp_file.name)
 
-            result = flext_cli_load_file(str(temp_path))
+            result = U.load_file(str(temp_path))
 
             assert result.is_success
             loaded_data = result.value
@@ -591,7 +576,7 @@ class TestFileOperations:
 
     def test_flext_cli_load_file_not_found(self) -> None:
         """Test loading non-existent file."""
-        result = flext_cli_load_file("/nonexistent/file.json")
+        result = U.load_file("/nonexistent/file.json")
 
         assert not result.is_success
         assert result.error is not None
@@ -607,7 +592,7 @@ class TestFileOperations:
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp_file:
             temp_path = Path(temp_file.name)
 
-            result = flext_cli_save_file(data, str(temp_path))
+            result = U.save_file(data, str(temp_path))
 
             assert result.is_success
 
@@ -625,7 +610,7 @@ class TestFileOperations:
         with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as temp_file:
             temp_path = Path(temp_file.name)
 
-            result = flext_cli_save_file(data, str(temp_path))
+            result = U.save_file(data, str(temp_path))
 
             assert result.is_success
 
@@ -640,7 +625,7 @@ class TestFileOperations:
         """Test saving file with permission error."""
         data = {"test": "data"}
 
-        result = flext_cli_save_file(data, "/protected/path/file.json")
+        result = U.save_file(data, "/protected/path/file.json")
 
         assert not result.is_success
         assert result.error is not None
@@ -658,7 +643,7 @@ class TestBatchExecute:
 
         items: list[object] = ["a", "b", "c"]
 
-        result = flext_cli_batch_execute(items, simple_operation)
+        result = U.batch_execute(items, simple_operation)
 
         assert result.is_success
         results = result.value
@@ -672,7 +657,7 @@ class TestBatchExecute:
             return FlextResult[str].ok(str(item))
 
         empty_items: list[object] = []
-        result = flext_cli_batch_execute(empty_items, dummy_operation)
+        result = U.batch_execute(empty_items, dummy_operation)
 
         assert result.is_success
         results = result.value
@@ -688,7 +673,7 @@ class TestBatchExecute:
 
         items: list[object] = ["a", "fail", "c"]
 
-        result = flext_cli_batch_execute(items, failing_operation)
+        result = U.batch_execute(items, failing_operation)
 
         # Batch execution may continue on failures or stop
         assert isinstance(result, FlextResult)
@@ -704,7 +689,7 @@ class TestBatchExecute:
 
         items: list[object] = ["a", "error", "c"]
 
-        result = flext_cli_batch_execute(items, exception_operation)
+        result = U.batch_execute(items, exception_operation)
 
         # Should handle exceptions gracefully
         assert isinstance(result, FlextResult)
@@ -718,7 +703,7 @@ class TestBatchExecute:
 
         items: list[object] = ["1", "2", "3"]
 
-        result = flext_cli_batch_execute(items, slow_operation, show_progress=True)
+        result = U.batch_execute(items, slow_operation, stop_on_error=True)
 
         assert result.is_success
         results = result.value
@@ -732,7 +717,7 @@ class TestTrackFunction:
         """Test tracking basic list."""
         items = [1, 2, 3, 4, 5]
 
-        result = list(track(items, description="Processing items"))
+        result = list(U.track(items))
 
         assert result == items
         assert len(result) == 5
@@ -741,7 +726,7 @@ class TestTrackFunction:
         """Test tracking empty list."""
         items: list[object] = []
 
-        result = list(track(items, description="Processing empty"))
+        result = list(U.track(items))
 
         assert result == []
         assert len(result) == 0
@@ -753,7 +738,7 @@ class TestTrackFunction:
             for i in range(3):
                 yield f"item_{i}"
 
-        result = list(track(item_generator(), description="Processing generator"))
+        result = list(U.track(list(item_generator())))
 
         assert len(result) == 3
         assert result[0] == "item_0"
@@ -763,7 +748,7 @@ class TestTrackFunction:
         """Test tracking with explicit total."""
         items = ["a", "b", "c"]
 
-        result = list(track(items, total=3, description="Processing with total"))
+        result = list(U.track(items))
 
         assert result == items
         assert len(result) == 3
@@ -772,7 +757,7 @@ class TestTrackFunction:
         """Test tracking without description."""
         items = [10, 20, 30]
 
-        result = list(track(items))
+        result = list(U.track(items))
 
         assert result == items
         assert len(result) == 3
@@ -854,16 +839,16 @@ class TestIntegrationScenarios:
         with tempfile.TemporaryDirectory() as temp_dir:
             for i, data in enumerate(test_data):
                 file_path = Path(temp_dir) / f"test_{i}.json"
-                save_result = flext_cli_save_file(data, str(file_path))
+                save_result = U.save_file(data, str(file_path))
                 if save_result.is_success:
                     test_files.append(str(file_path))
 
             # Batch load all files
             def load_operation(file_path: object) -> FlextResult[object]:
-                return flext_cli_load_file(str(file_path))
+                return U.load_file(str(file_path))
 
             test_files_objects: list[object] = cast("list[object]", test_files)
-            batch_result = flext_cli_batch_execute(test_files_objects, load_operation)
+            batch_result = U.batch_execute(test_files_objects, load_operation)
 
             if batch_result.is_success:
                 loaded_data = batch_result.value
@@ -939,7 +924,7 @@ class TestEdgeCasesAndBoundaries:
 
         # Test through quick setup
         nested_data_typed = cast("dict[str, object]", nested_data)
-        result = flext_cli_quick_setup(nested_data_typed)
+        result = U.quick_setup(nested_data_typed)
 
         # Should handle nested structures
         assert result.is_success
@@ -950,8 +935,8 @@ class TestEdgeCasesAndBoundaries:
 
         def concurrent_operation(thread_id: int) -> None:
             # Simulate work with utilities
-            session_id = _generate_session_id()
-            timestamp = _current_timestamp()
+            session_id = U._generate_session_id()
+            timestamp = U._current_timestamp()
 
             result: dict[str, object] = {
                 "thread_id": thread_id,

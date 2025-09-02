@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import cli_types as typings
+from flext_cli import typings
 
 
 class TestTypingsImports:

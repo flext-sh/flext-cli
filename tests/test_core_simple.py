@@ -18,7 +18,7 @@ from flext_core import FlextResult
 from flext_cli import cli
 from flext_cli.config import FlextCliConfig
 from flext_cli.core import FlextCliService
-from flext_cli.utils_core import flext_cli_quick_setup
+from flext_cli.utils_core import FlextCliUtilsCore
 
 
 class TestFlextCliServiceReal:
@@ -144,7 +144,7 @@ class TestFlextCliServiceReal:
         service = FlextCliService()
 
         # Create real test context
-        context_result = flext_cli_quick_setup({})
+        context_result = FlextCliUtilsCore.quick_setup({})
         context = context_result.value if context_result.is_success else {}
 
         # Verify context has expected structure
@@ -211,7 +211,7 @@ class TestFlextCliServiceReal:
 
         # Test integration with FlextCliConfig
         test_config = FlextCliConfig().model_dump()
-        context_result = flext_cli_quick_setup({})
+        context_result = FlextCliUtilsCore.quick_setup({})
         test_context = context_result.value if context_result.is_success else {}
 
         # Verify integration points work
@@ -342,7 +342,7 @@ class TestFlextCliServiceReal:
 
         # Test complete workflow with real components
         config = FlextCliConfig().model_dump()
-        context_result = flext_cli_quick_setup({})
+        context_result = FlextCliUtilsCore.quick_setup({})
         context = context_result.value if context_result.is_success else {}
 
         # Verify all components work together

@@ -40,7 +40,12 @@ class TestAuthCommands:
 
         # Verify commands exist and are callable
         commands = auth.commands
-        expected_commands = ["login", "logout", "status", "whoami"]  # Real commands that exist
+        expected_commands = [
+            "login",
+            "logout",
+            "status",
+            "whoami",
+        ]  # Real commands that exist
         for cmd_name in expected_commands:
             assert cmd_name in commands, (
                 f"Command '{cmd_name}' not found in auth group. "

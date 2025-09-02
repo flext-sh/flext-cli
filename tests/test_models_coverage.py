@@ -15,7 +15,6 @@ from pathlib import Path
 import pytest
 from pydantic_core import ValidationError
 
-from flext_cli.cli_types import FlextCliOutputFormat
 from flext_cli.context import FlextCliContext
 from flext_cli.models import (
     MAX_EXIT_CODE,
@@ -36,6 +35,7 @@ from flext_cli.models import (
     SessionStatus,
     _now_utc,
 )
+from flext_cli.typings import FlextCliOutputFormat
 
 
 class TestUtilityFunctions:
@@ -484,7 +484,7 @@ class TestFlextCliCommand:
 
         assert command.command_line == "echo hello"
         assert command.status == FlextCliCommandStatus.PENDING
-        assert str(command.id) == "test-cmd"  # id is FlextModels.EntityId type
+        assert str(command.id) == "test-cmd"  # id is FlextModels type
         assert command.name is None
         assert command.description is None
         assert isinstance(command.arguments, (list, dict))
@@ -814,7 +814,7 @@ class TestFlextCliSession:
         """Test creating session with minimal fields."""
         session = FlextCliSession(id="test-session")
 
-        assert str(session.id) == "test-session"  # id is FlextModels.EntityId type
+        assert str(session.id) == "test-session"  # id is FlextModels type
         assert session.user_id is None
         assert session.state == FlextCliSessionState.ACTIVE
         assert isinstance(session.context, FlextCliContext)
@@ -1040,7 +1040,7 @@ class TestFlextCliPlugin:
         """Test creating plugin with minimal fields."""
         plugin = FlextCliPlugin(name="test-plugin", entry_point="test_plugin:main")
 
-        assert str(plugin.id) == "test-plugin"  # id is FlextModels.EntityId type
+        assert str(plugin.id) == "test-plugin"  # id is FlextModels type
         assert plugin.name == "test-plugin"
         assert plugin.entry_point == "test_plugin:main"
         assert plugin.state == FlextCliPluginState.UNLOADED

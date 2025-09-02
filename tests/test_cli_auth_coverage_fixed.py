@@ -13,22 +13,8 @@ from unittest.mock import MagicMock, patch
 
 from flext_core import FlextResult
 
-from flext_cli.cli_auth import (
-    _clear_tokens_bridge,
-    _get_auth_token_bridge,
-    _get_client_class,
-    clear_auth_tokens,
-    get_auth_headers,
-    get_auth_token,
-    get_cli_config,
-    get_refresh_token,
-    get_refresh_token_path,
-    get_token_path,
-    is_authenticated,
-    save_auth_token,
-    save_refresh_token,
-    should_auto_refresh,
-)
+from flext_cli.cli_auth import FlextCliAuthBridge as Auth
+from flext_cli import auth as _auth
 
 
 class TestAuthPaths:
@@ -39,7 +25,7 @@ class TestAuthPaths:
         """Test getting token file path."""
         mock_token_file.return_value = Path("/home/user/.flext/token")
 
-        path = get_token_path()
+        path = Auth.get_token_path()
 
         assert isinstance(path, Path)
         assert "token" in str(path)
@@ -49,7 +35,7 @@ class TestAuthPaths:
         """Test getting refresh token file path."""
         mock_refresh_file.return_value = Path("/home/user/.flext/refresh_token")
 
-        path = get_refresh_token_path()
+        path = Auth.get_refresh_token_path()
 
         assert isinstance(path, Path)
         assert "token" in str(path)
@@ -58,14 +44,14 @@ class TestAuthPaths:
 class TestTokenManagement:
     """Test token management functions."""
 
-    @patch("flext_cli.cli_auth.get_token_path")
+    @patch("flext_cli.cli_auth.FlextCliAuthBridge.get_token_path")
     def test_save_auth_token_success(self, mock_get_path: MagicMock) -> None:
         """Test successful auth token saving."""
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
             temp_path = Path(temp_file.name)
             mock_get_path.return_value = temp_path
 
-            result = save_auth_token("test_token")
+            result = Auth.save_auth_token("test_token")
 
             assert result.is_success
             assert temp_path.exists()
@@ -74,24 +60,24 @@ class TestTokenManagement:
 
             temp_path.unlink()
 
-    @patch("flext_cli.cli_auth.get_token_path")
+    @patch("flext_cli.cli_auth.FlextCliAuthBridge.get_token_path")
     def test_save_auth_token_permission_error(self, mock_get_path: MagicMock) -> None:
         """Test auth token saving with permission error."""
         mock_get_path.return_value = Path("/protected/path/token")
 
-        result = save_auth_token("test_token")
+        result = Auth.save_auth_token("test_token")
 
         assert not result.is_success
         assert "error" in result.error.lower()
 
-    @patch("flext_cli.cli_auth.get_refresh_token_path")
+    @patch("flext_cli.cli_auth.FlextCliAuthBridge.get_refresh_token_path")
     def test_save_refresh_token_success(self, mock_get_path: MagicMock) -> None:
         """Test successful refresh token saving."""
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
             temp_path = Path(temp_file.name)
             mock_get_path.return_value = temp_path
 
-            result = save_refresh_token("refresh_token")
+            result = Auth.save_refresh_token("refresh_token")
 
             assert result.is_success
             assert temp_path.exists()
@@ -100,7 +86,7 @@ class TestTokenManagement:
 
             temp_path.unlink()
 
-    @patch("flext_cli.cli_auth.get_token_path")
+    @patch("flext_cli.cli_auth.FlextCliAuthBridge.get_token_path")
     def test_get_auth_token_success(self, mock_get_path: MagicMock) -> None:
         """Test successful auth token retrieval."""
         with tempfile.NamedTemporaryFile(
@@ -111,22 +97,22 @@ class TestTokenManagement:
             temp_path = Path(temp_file.name)
             mock_get_path.return_value = temp_path
 
-            token = get_auth_token()
+            token = Auth.get_auth_token()
 
             assert token == "test_auth_token"
 
             temp_path.unlink()
 
-    @patch("flext_cli.cli_auth.get_token_path")
+    @patch("flext_cli.cli_auth.FlextCliAuthBridge.get_token_path")
     def test_get_auth_token_file_not_found(self, mock_get_path: MagicMock) -> None:
         """Test auth token retrieval with missing file."""
         mock_get_path.return_value = Path("/nonexistent/token")
 
-        token = get_auth_token()
+        token = Auth.get_auth_token()
 
         assert token is None
 
-    @patch("flext_cli.cli_auth.get_refresh_token_path")
+    @patch("flext_cli.cli_auth.FlextCliAuthBridge.get_refresh_token_path")
     def test_get_refresh_token_success(self, mock_get_path: MagicMock) -> None:
         """Test successful refresh token retrieval."""
         with tempfile.NamedTemporaryFile(
@@ -137,18 +123,18 @@ class TestTokenManagement:
             temp_path = Path(temp_file.name)
             mock_get_path.return_value = temp_path
 
-            token = get_refresh_token()
+            token = Auth.get_refresh_token()
 
             assert token == "refresh_token_value"
 
             temp_path.unlink()
 
-    @patch("flext_cli.cli_auth.get_refresh_token_path")
+    @patch("flext_cli.cli_auth.FlextCliAuthBridge.get_refresh_token_path")
     def test_get_refresh_token_file_not_found(self, mock_get_path: MagicMock) -> None:
         """Test refresh token retrieval with missing file."""
         mock_get_path.return_value = Path("/nonexistent/refresh_token")
 
-        token = get_refresh_token()
+        token = Auth.get_refresh_token()
 
         assert token is None
 
@@ -156,50 +142,50 @@ class TestTokenManagement:
 class TestAuthUtilities:
     """Test authentication utility functions."""
 
-    @patch("flext_cli.cli_auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextCliAuthBridge.get_auth_token")
     def test_is_authenticated_true(self, mock_get_token: MagicMock) -> None:
         """Test is_authenticated when token exists."""
         mock_get_token.return_value = "valid_token"
 
-        result = is_authenticated()
+        result = Auth.is_authenticated()
 
         assert result is True
 
-    @patch("flext_cli.cli_auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextCliAuthBridge.get_auth_token")
     def test_is_authenticated_false_no_token(self, mock_get_token: MagicMock) -> None:
         """Test is_authenticated when no token."""
         mock_get_token.return_value = None
 
-        result = is_authenticated()
+        result = Auth.is_authenticated()
 
         assert result is False
 
-    @patch("flext_cli.cli_auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextCliAuthBridge.get_auth_token")
     def test_is_authenticated_false_empty_token(
         self, mock_get_token: MagicMock
     ) -> None:
         """Test is_authenticated when token is empty."""
         mock_get_token.return_value = ""
 
-        result = is_authenticated()
+        result = Auth.is_authenticated()
 
         assert result is False
 
-    @patch("flext_cli.cli_auth.get_refresh_token")
+    @patch("flext_cli.auth.get_refresh_token")
     def test_should_auto_refresh_true(self, mock_get_refresh: MagicMock) -> None:
         """Test should_auto_refresh when refresh token exists."""
         mock_get_refresh.return_value = "refresh_token"
 
-        result = should_auto_refresh()
+        result = _auth.should_auto_refresh()
 
         assert result is True
 
-    @patch("flext_cli.cli_auth.get_refresh_token")
+    @patch("flext_cli.auth.get_refresh_token")
     def test_should_auto_refresh_false(self, mock_get_refresh: MagicMock) -> None:
         """Test should_auto_refresh when no refresh token."""
         mock_get_refresh.return_value = None
 
-        result = should_auto_refresh()
+        result = _auth.should_auto_refresh()
 
         assert result is False
 
@@ -213,32 +199,32 @@ class TestAuthUtilities:
             token_file.write_text("token")
             refresh_file.write_text("refresh")
 
-            with patch("flext_cli.cli_auth.get_token_path", return_value=token_file):
+            with patch("flext_cli.cli_auth.FlextCliAuthBridge.get_token_path", return_value=token_file):
                 with patch(
-                    "flext_cli.cli_auth.get_refresh_token_path",
+                    "flext_cli.cli_auth.FlextCliAuthBridge.get_refresh_token_path",
                     return_value=refresh_file,
                 ):
-                    result = clear_auth_tokens()
+                    result = _auth.clear_auth_tokens()
 
                     assert result.is_success
 
-    @patch("flext_cli.cli_auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextCliAuthBridge.get_auth_token")
     def test_get_auth_headers_with_token(self, mock_get_token: MagicMock) -> None:
         """Test getting auth headers with token."""
         mock_get_token.return_value = "test_token"
 
-        headers = get_auth_headers()
+        headers = _auth.get_auth_headers()
 
         assert isinstance(headers, dict)
         assert "Authorization" in headers
         assert "Bearer test_token" in headers["Authorization"]
 
-    @patch("flext_cli.cli_auth.get_auth_token")
+    @patch("flext_cli.cli_auth.FlextCliAuthBridge.get_auth_token")
     def test_get_auth_headers_without_token(self, mock_get_token: MagicMock) -> None:
         """Test getting auth headers without token."""
         mock_get_token.return_value = None
 
-        headers = get_auth_headers()
+        headers = _auth.get_auth_headers()
 
         assert isinstance(headers, dict)
         # Should return empty dict or headers without auth
@@ -249,19 +235,19 @@ class TestCliConfig:
 
     def test_get_cli_config_success(self) -> None:
         """Test successful CLI config retrieval."""
-        config = get_cli_config()
+        config = _auth.get_cli_config()
 
         assert config is not None
         # Config should have expected attributes
         assert hasattr(config, "__dict__") or hasattr(config, "__class__")
 
-    @patch("flext_cli.cli_auth._get_config")
+    @patch("flext_cli.auth._get_config")
     def test_get_cli_config_with_mock(self, mock_get_config: MagicMock) -> None:
         """Test CLI config retrieval with mock."""
         mock_config = MagicMock()
         mock_get_config.return_value = mock_config
 
-        config = get_cli_config()
+        config = _auth.get_cli_config()
 
         assert config is mock_config
         mock_get_config.assert_called_once()
@@ -275,8 +261,8 @@ class TestTokenOperations:
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
             temp_path = Path(temp_file.name)
 
-            with patch("flext_cli.cli_auth.get_token_path", return_value=temp_path):
-                result = save_auth_token("")
+            with patch("flext_cli.cli_auth.FlextCliAuthBridge.get_token_path", return_value=temp_path):
+                result = Auth.save_auth_token("")
 
                 # Empty token saving should work
                 assert result.is_success or not result.is_success
@@ -290,8 +276,8 @@ class TestTokenOperations:
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
             temp_path = Path(temp_file.name)
 
-            with patch("flext_cli.cli_auth.get_token_path", return_value=temp_path):
-                result = save_auth_token(long_token)
+            with patch("flext_cli.cli_auth.FlextCliAuthBridge.get_token_path", return_value=temp_path):
+                result = Auth.save_auth_token(long_token)
 
                 if result.is_success:
                     retrieved_token = get_auth_token()
@@ -307,8 +293,8 @@ class TestTokenOperations:
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
             temp_path = Path(temp_file.name)
 
-            with patch("flext_cli.cli_auth.get_token_path", return_value=temp_path):
-                result = save_auth_token(special_token)
+            with patch("flext_cli.cli_auth.FlextCliAuthBridge.get_token_path", return_value=temp_path):
+                result = Auth.save_auth_token(special_token)
 
                 if result.is_success:
                     retrieved_token = get_auth_token()
@@ -321,7 +307,7 @@ class TestTokenOperations:
 class TestErrorHandling:
     """Test error handling in authentication functions."""
 
-    @patch("flext_cli.cli_auth.get_token_path")
+    @patch("flext_cli.cli_auth.FlextCliAuthBridge.get_token_path")
     def test_save_token_directory_creation_error(
         self, mock_get_path: MagicMock
     ) -> None:
@@ -333,7 +319,7 @@ class TestErrorHandling:
         # Should handle directory creation errors gracefully
         assert not result.is_success
 
-    @patch("flext_cli.cli_auth.get_token_path")
+    @patch("flext_cli.cli_auth.FlextCliAuthBridge.get_token_path")
     def test_get_token_read_permission_error(self, mock_get_path: MagicMock) -> None:
         """Test token reading with permission error."""
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
@@ -357,7 +343,7 @@ class TestErrorHandling:
                     pass
 
     @patch("flext_cli.cli_auth.get_token_path")
-    @patch("flext_cli.cli_auth.get_refresh_token_path")
+    @patch("flext_cli.cli_auth.FlextCliAuthBridge.get_refresh_token_path")
     def test_clear_tokens_partial_failure(
         self, mock_refresh_path: MagicMock, mock_token_path: MagicMock
     ) -> None:

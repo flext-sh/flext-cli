@@ -19,7 +19,6 @@ from uuid import UUID
 import yaml
 from flext_core import FlextResult
 
-from flext_cli.cli_types import FlextCliOutputFormat
 from flext_cli.cli_utils import (
     FlextCliData,
     _convert_to_serializable,
@@ -47,6 +46,7 @@ from flext_cli.cli_utils import (
     cli_run_command,
     cli_save_data_file,
 )
+from flext_cli.typings import FlextCliOutputFormat
 
 # Type variable for testing
 T = TypeVar("T")

@@ -7,53 +7,108 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-# Import all from each module following flext-core patterns
-from flext_cli.api import *  # type: ignore[import-untyped] # noqa: F403
-from flext_cli.auth import *  # type: ignore[import-untyped] # noqa: F403
-from flext_cli.client import *  # type: ignore[import-untyped] # noqa: F403
-from flext_cli.cmd import *  # type: ignore[import-untyped] # noqa: F403
-from flext_cli.config import *  # type: ignore[import-untyped] # noqa: F403
-from flext_cli.constants import *  # type: ignore[import-untyped] # noqa: F403
-from flext_cli.context import *  # type: ignore[import-untyped] # noqa: F403
-from flext_cli.debug import *  # type: ignore[import-untyped] # noqa: F403
-from flext_cli.decorators import *  # type: ignore[import-untyped] # noqa: F403
-from flext_cli.mixins import *  # type: ignore[import-untyped] # noqa: F403
-from flext_cli.models import *  # type: ignore[import-untyped] # noqa: F403
-from flext_cli.services import *  # type: ignore[import-untyped] # noqa: F403
-from flext_cli.typings import *  # type: ignore[import-untyped] # noqa: F403
-from flext_cli.utilities import *  # type: ignore[import-untyped] # noqa: F403
+from .api import *
+from .auth import *
+from .client import *
+from .cmd import *
+from .config import *
+from .constants import *
+from .context import *
+from .debug import *
+from .decorators import *
+from .models import *
+from .services import *
+from .typings import *
+from .cli_utils import *
+from .formatters import *
+from .api_functions import FlextCliApiFunctions
+from .helpers import (
+    FlextCliDataProcessor,
+    FlextCliFileManager,
+    FlextCliHelper,
+    FlextCliHelpers,
+)
+from flext_core.result import FlextResult
+from typing import Any, TypeVar
+from rich.console import Console
+from rich.table import Table
 
-# Combine all __all__ from all modules following flext-core pattern
-import flext_cli.api as _api
-import flext_cli.auth as _auth
-import flext_cli.client as _client
-import flext_cli.cmd as _cmd
-import flext_cli.config as _config
-import flext_cli.constants as _constants
-import flext_cli.context as _context
-import flext_cli.debug as _debug
-import flext_cli.decorators as _decorators
-import flext_cli.mixins as _mixins
-import flext_cli.models as _models
-import flext_cli.services as _services
-import flext_cli.typings as _typings
-import flext_cli.utilities as _utilities
+T = TypeVar("T")
 
-# Build __all__ list - PyRight compatible approach
-_all_exports: list[str] = []
 
-# Module exports collection
-_modules_to_check = [
-    _api, _auth, _client, _cmd, _config, _constants,
-    _context, _debug, _decorators, _mixins, _models,
-    _services, _typings, _utilities
+# Thin functional wrappers for the class-based API (new API underneath)
+def flext_cli_format(data: object, format_type: str) -> FlextResult[str]:
+    """Format data using the consolidated class-based API.
+
+    Kept as a thin wrapper to maintain test compatibility while using
+    the new class-based API under the hood.
+    """
+    return FlextCliApiFunctions.format(data, format_type)
+
+
+def flext_cli_table(data: object, title: str | None = None) -> FlextResult[Table]:
+    """Create a table representation for the given data (via new API)."""
+    return FlextCliApiFunctions.table(data, title)
+
+
+def flext_cli_export(
+    data: object, file_path: str, format_type: str
+) -> FlextResult[str]:
+    """Export data to a file path using the selected format (via new API)."""
+    return FlextCliApiFunctions.export(data, file_path, format_type)
+
+
+def flext_cli_batch_export(
+    datasets: dict[str, object], directory: str, format_type: str
+) -> FlextResult[list[str]]:
+    """Export multiple datasets into a directory (via new API)."""
+    return FlextCliApiFunctions.batch_export(datasets, directory, format_type)
+
+
+def flext_cli_unwrap_or_default[T](result: FlextResult[T], default: T) -> T:
+    """Unwrap result value or return the provided default (via new API)."""
+    return FlextCliApiFunctions.unwrap_or_default(result, default)
+
+
+def flext_cli_unwrap_or_none[T](result: FlextResult[T]) -> T | None:
+    """Unwrap result value or return None (via new API)."""
+    return FlextCliApiFunctions.unwrap_or_none(result)
+
+
+# Helper factories
+def flext_cli_create_helper(
+    *, console: Console | None = None, quiet: bool = False
+) -> FlextCliHelper:
+    """Create a Flext CLI helper using the new helper factories."""
+    return FlextCliHelpers.create_helper(console=console, quiet=quiet)
+
+
+def flext_cli_create_data_processor(
+    *, helper: FlextCliHelper | None = None
+) -> FlextCliDataProcessor:
+    """Create a Flext CLI data processor (new API)."""
+    return FlextCliHelpers.create_data_processor(helper=helper)
+
+
+def flext_cli_create_file_manager(
+    *, helper: FlextCliHelper | None = None
+) -> FlextCliFileManager:
+    """Create a Flext CLI file manager (new API)."""
+    return FlextCliHelpers.create_file_manager(helper=helper)
+
+
+__all__: list[str] = [
+    # Class facades
+    "FlextCliApiFunctions",
+    "FlextCliHelpers",
+    # Functional wrappers
+    "flext_cli_format",
+    "flext_cli_table",
+    "flext_cli_export",
+    "flext_cli_batch_export",
+    "flext_cli_unwrap_or_default",
+    "flext_cli_unwrap_or_none",
+    "flext_cli_create_helper",
+    "flext_cli_create_data_processor",
+    "flext_cli_create_file_manager",
 ]
-
-for module in _modules_to_check:
-    if hasattr(module, "__all__"):
-        module_all = module.__all__
-        if isinstance(module_all, (list, tuple)):
-            _all_exports += list(module_all)
-
-# Remove duplicates and sort
-__all__ = tuple(sorted(set(_all_exports)))

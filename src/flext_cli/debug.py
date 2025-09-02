@@ -21,9 +21,10 @@ from rich.console import Console
 from rich.table import Table
 
 from flext_cli.client import FlextApiClient
+from flext_cli.constants import FlextCliConstants
 
 
-class FlextDebug:
+class FlextCliDebug:
     """Debug utilities and commands for FLEXT CLI.
 
     Consolidates debug functionality and type definitions.
@@ -44,19 +45,19 @@ class FlextDebug:
         status: str
         uptime: str
 
+    @staticmethod
+    def get_cli_context_obj(ctx_obj: object) -> FlextCliDebug.CliContextObj:
+        """Extract CLI context object with proper typing."""
+        if isinstance(ctx_obj, dict):
+            return cast("FlextCliDebug.CliContextObj", ctx_obj)
+        return FlextCliDebug.CliContextObj()
 
-def _get_cli_context_obj(ctx_obj: object) -> FlextDebug.CliContextObj:
-    """Extract CLI context object with proper typing."""
-    if isinstance(ctx_obj, dict):
-        return cast("FlextDebug.CliContextObj", ctx_obj)
-    return FlextDebug.CliContextObj()
-
-
-def _get_status_dict(status_obj: object) -> FlextDebug.SystemStatus | None:
-    """Extract system status with proper typing."""
-    if isinstance(status_obj, dict):
-        return cast("FlextDebug.SystemStatus", status_obj)
-    return None
+    @staticmethod
+    def get_status_dict(status_obj: object) -> FlextCliDebug.SystemStatus | None:
+        """Extract system status with proper typing."""
+        if isinstance(status_obj, dict):
+            return cast("FlextCliDebug.SystemStatus", status_obj)
+        return None
 
 
 # Flags patchable by tests
@@ -77,9 +78,9 @@ def get_config() -> object:  # patched in tests
         "Cfg",
         (),
         {
-            "api_url": "http://localhost:8000",
-            "timeout": 30,
-            "config_dir": Path.home() / ".flext",
+            "api_url": FlextCliConstants.FALLBACK_API_URL,
+            "timeout": FlextCliConstants.DEFAULT_COMMAND_TIMEOUT,
+            "config_dir": Path.home() / FlextCliConstants.FLEXT_DIR_NAME,
         },
     )()
 
@@ -104,14 +105,14 @@ def connectivity(ctx: click.Context) -> None:
         error_console.print("[red]❌ CLI context not available[/red]")
         ctx.exit(1)
 
-    obj: FlextDebug.CliContextObj = _get_cli_context_obj(ctx.obj)
+    obj: FlextCliDebug.CliContextObj = FlextCliDebug.get_cli_context_obj(ctx.obj)
     console_obj = obj.get("console", Console())
     console: Console = console_obj if isinstance(console_obj, Console) else Console()
 
     # Resolve patchable module-level hooks from flext_cli.commands.debug
     try:
         debug_mod = importlib.import_module("flext_cli.commands.debug")
-    except Exception:  # pragma: no cover
+    except (ImportError, RuntimeError, ValueError, OSError):  # pragma: no cover
         debug_mod = None
 
     async def _run() -> None:
@@ -119,7 +120,7 @@ def connectivity(ctx: click.Context) -> None:
             client = _get_client(debug_mod, console, ctx)
             await _test_connection(client, console, ctx)
             await _get_system_status(client, console)
-        except Exception as e:
+        except (RuntimeError, ValueError, OSError) as e:
             console.print(f"[red]❌ Connection test failed: {e}[/red]")
             # Raise SystemExit to satisfy tests that run captured coroutine
             raise SystemExit(1) from e
@@ -139,6 +140,7 @@ def _get_client(
     ctx: click.Context,
 ) -> FlextApiClient:
     """Get client provider for testing."""
+    _ = ctx  # used for consistent signature in tests
     provider = None
     if debug_mod and hasattr(debug_mod, "get_default_cli_client"):
         provider = getattr(debug_mod, "get_default_cli_client", None)
@@ -161,7 +163,7 @@ def _get_client(
         return FlextApiClient()
     except Exception as e:
         console.print(f"[red]❌ Failed to create API client: {e}[/red]")
-        ctx.exit(1)
+        raise SystemExit(1) from e
 
 
 async def _test_connection(
@@ -175,7 +177,7 @@ async def _test_connection(
     # Test connection using async client
     try:
         test_result = await client.test_connection()
-    except Exception:
+    except (RuntimeError, ValueError, OSError):
         test_result = False
 
     if hasattr(test_result, "success") and hasattr(test_result, "error"):
@@ -206,7 +208,7 @@ async def _get_system_status(client: FlextApiClient, console: Console) -> None:
     try:
         status_result = await client.get_system_status()
 
-        status_data = _get_status_dict(status_result)
+        status_data = FlextCliDebug.get_status_dict(status_result)
         if status_data:
             console.print("\nSystem Status:")
             console.print(f"  Version: {status_data.get('version', 'Unknown')}")
@@ -228,7 +230,7 @@ def performance(ctx: click.Context) -> None:
     console: Console = obj.get("console", Console())
     try:
         debug_mod = importlib.import_module("flext_cli.commands.debug")
-    except Exception:  # pragma: no cover
+    except (ImportError, RuntimeError, ValueError, OSError):  # pragma: no cover
         debug_mod = None
     try:
         provider = (debug_mod.get_default_cli_client if debug_mod else None) or getattr(
@@ -254,13 +256,13 @@ def performance(ctx: click.Context) -> None:
             try:
                 status_result = await client.get_system_status()
                 return status_result if isinstance(status_result, dict) else None
-            except Exception:
+            except (RuntimeError, ValueError, OSError):
                 return None
 
         # Get metrics using consistent async approach
         try:
             metrics = asyncio.run(_fetch_metrics())
-        except Exception:
+        except (RuntimeError, ValueError):
             metrics = None
 
         # Fill table even if partial/empty
@@ -272,7 +274,7 @@ def performance(ctx: click.Context) -> None:
                 value = (metrics or {}).get(key, "Unknown")
                 table.add_row(key.replace("_", " ").title(), str(value))
             console.print(table)
-    except Exception:
+    except (RuntimeError, ValueError):
         # Graceful failure: exit with error per tests
         ctx.exit(1)
 
@@ -286,12 +288,15 @@ def validate(ctx: click.Context) -> None:
         error_console.print("[red]❌ CLI context not available[/red]")
         ctx.exit(1)
 
-    obj: FlextDebug.CliContextObj = _get_cli_context_obj(ctx.obj)
+    obj: FlextCliDebug.CliContextObj = FlextCliDebug.get_cli_context_obj(ctx.obj)
     console_obj = obj.get("console", Console())
     console: Console = console_obj if isinstance(console_obj, Console) else Console()
     cfg = get_config()
 
-    cfg_path = Path(getattr(cfg, "config_dir", Path.home() / ".flext")) / "config.yaml"
+    cfg_path = (
+        Path(getattr(cfg, "config_dir", Path.home() / FlextCliConstants.FLEXT_DIR_NAME))
+        / FlextCliConstants.CONFIG_FILE_NAME
+    )
     if not Path(cfg_path).exists():
         console.print(
             "[yellow]Config file not found, continuing with defaults[/yellow]",
@@ -323,7 +328,7 @@ def trace(ctx: click.Context, args: tuple[str, ...]) -> None:
         error_console.print("[red]❌ CLI context not available[/red]")
         ctx.exit(1)
 
-    obj: FlextDebug.CliContextObj = _get_cli_context_obj(ctx.obj)
+    obj: FlextCliDebug.CliContextObj = FlextCliDebug.get_cli_context_obj(ctx.obj)
     console_obj = obj.get("console", Console())
     console: Console = console_obj if isinstance(console_obj, Console) else Console()
     console.print(f"Tracing: {' '.join(args)}")
@@ -381,10 +386,16 @@ def paths(ctx: click.Context) -> None:
     home = path_cls.home()
     path_items = {
         "Home": home,
-        "Config": getattr(cfg, "config_dir", home / ".flext"),
-        "Cache": home / ".flext" / "cache",
-        "Logs": home / ".flext" / "logs",
-        "Data": home / ".flext" / "data",
+        "Config": getattr(cfg, "config_dir", home / FlextCliConstants.FLEXT_DIR_NAME),
+        "Cache": home
+        / FlextCliConstants.FLEXT_DIR_NAME
+        / FlextCliConstants.CACHE_DIR_NAME,
+        "Logs": home
+        / FlextCliConstants.FLEXT_DIR_NAME
+        / FlextCliConstants.LOGS_DIR_NAME,
+        "Data": home
+        / FlextCliConstants.FLEXT_DIR_NAME
+        / FlextCliConstants.DATA_DIR_NAME,
     }
     for label, p in path_items.items():
         exists = "✅" if Path(str(p)).exists() else "❌"
@@ -401,7 +412,7 @@ def check(ctx: click.Context) -> None:
         error_console.print("[red]❌ CLI context not available[/red]")
         ctx.exit(1)
 
-    obj: FlextDebug.CliContextObj = _get_cli_context_obj(ctx.obj)
+    obj: FlextCliDebug.CliContextObj = FlextCliDebug.get_cli_context_obj(ctx.obj)
     console_obj = obj.get("console", Console())
     console: Console = console_obj if isinstance(console_obj, Console) else Console()
     console.print("[green]System OK[/green]")
@@ -418,4 +429,4 @@ def check(ctx: click.Context) -> None:
 # debug_cmd.Path = Path
 
 
-__all__ = ["FlextDebug"]
+__all__ = ["FlextCliDebug"]

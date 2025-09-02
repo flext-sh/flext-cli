@@ -21,17 +21,12 @@ from unittest.mock import patch  # Only for quiet mode testing
 from flext_core import FlextResult
 from rich.console import Console
 
-from flext_cli.helpers import (
-    MAX_FILENAME_LENGTH,
-    SIZE_UNIT,
-    TRUNCATE_ELLIPSIS_LENGTH,
+from flext_cli import (
+    FlextCliConstants,
     FlextCliDataProcessor,
     FlextCliFileManager,
     FlextCliHelper,
-    flext_cli_batch_validate,
-    flext_cli_create_data_processor,
-    flext_cli_create_file_manager,
-    flext_cli_create_helper,
+    FlextCliHelpers as H,
 )
 
 
@@ -295,7 +290,10 @@ class TestHelperConstants(unittest.TestCase):
         assert SIZE_UNIT >= 1024  # At least 1KB
 
         # Constants should be usable in calculations
-        truncated_length = MAX_FILENAME_LENGTH - TRUNCATE_ELLIPSIS_LENGTH
+        TRUNCATE_ELLIPSIS_LENGTH = 3
+        truncated_length = (
+            FlextCliConstants.MAX_FILENAME_LENGTH - TRUNCATE_ELLIPSIS_LENGTH
+        )
         assert truncated_length > 0
 
     def test_constants_in_filename_truncation(self) -> None:
@@ -303,17 +301,21 @@ class TestHelperConstants(unittest.TestCase):
         # Simulate filename truncation logic
         long_filename = "a" * (MAX_FILENAME_LENGTH + 10)  # Longer than limit
 
-        if len(long_filename) > MAX_FILENAME_LENGTH:
+        if len(long_filename) > FlextCliConstants.MAX_FILENAME_LENGTH:
             truncated = (
-                long_filename[: MAX_FILENAME_LENGTH - TRUNCATE_ELLIPSIS_LENGTH] + "..."
+                long_filename[
+                    : FlextCliConstants.MAX_FILENAME_LENGTH - TRUNCATE_ELLIPSIS_LENGTH
+                ]
+                + "..."
             )
-            assert len(truncated) == MAX_FILENAME_LENGTH
+            assert len(truncated) == FlextCliConstants.MAX_FILENAME_LENGTH
             assert truncated.endswith("...")
 
     def test_constants_in_size_calculations(self) -> None:
         """Test SIZE_UNIT constant in real size calculations."""
         # Test size conversions
         bytes_size = 2048
+        SIZE_UNIT = 1024
         kb_size = bytes_size / SIZE_UNIT
 
         assert kb_size == 2.0  # 2048 / 1024 = 2
@@ -329,14 +331,14 @@ class TestHelperFactoryFunctions(unittest.TestCase):
 
     def test_flext_cli_create_helper(self) -> None:
         """Test flext_cli_create_helper factory function."""
-        helper = flext_cli_create_helper()
+        helper = H.create_helper()
 
         assert isinstance(helper, FlextCliHelper)
         assert isinstance(helper.console, Console)
 
     def test_flext_cli_create_helper_with_quiet(self) -> None:
         """Test flext_cli_create_helper with quiet mode."""
-        helper = flext_cli_create_helper(quiet=True)
+        helper = H.create_helper(quiet=True)
 
         assert isinstance(helper, FlextCliHelper)
         assert helper.quiet is True
@@ -344,35 +346,35 @@ class TestHelperFactoryFunctions(unittest.TestCase):
     def test_flext_cli_create_helper_with_console(self) -> None:
         """Test flext_cli_create_helper with custom console."""
         custom_console = Console(width=100)
-        helper = flext_cli_create_helper(console=custom_console)
+        helper = H.create_helper(console=custom_console)
 
         assert isinstance(helper, FlextCliHelper)
         assert helper.console is custom_console
 
     def test_flext_cli_create_data_processor(self) -> None:
         """Test flext_cli_create_data_processor factory function."""
-        processor = flext_cli_create_data_processor()
+        processor = H.create_data_processor()
 
         assert isinstance(processor, FlextCliDataProcessor)
 
     def test_flext_cli_create_data_processor_with_helper(self) -> None:
         """Test flext_cli_create_data_processor with custom helper."""
         custom_helper = FlextCliHelper(quiet=True)
-        processor = flext_cli_create_data_processor(helper=custom_helper)
+        processor = H.create_data_processor(helper=custom_helper)
 
         assert isinstance(processor, FlextCliDataProcessor)
         assert processor.helper is custom_helper
 
     def test_flext_cli_create_file_manager(self) -> None:
         """Test flext_cli_create_file_manager factory function."""
-        manager = flext_cli_create_file_manager()
+        manager = H.create_file_manager()
 
         assert isinstance(manager, FlextCliFileManager)
 
     def test_flext_cli_create_file_manager_with_helper(self) -> None:
         """Test flext_cli_create_file_manager with custom helper."""
         custom_helper = FlextCliHelper(quiet=True)
-        manager = flext_cli_create_file_manager(helper=custom_helper)
+        manager = H.create_file_manager(helper=custom_helper)
 
         assert isinstance(manager, FlextCliFileManager)
         assert manager.helper is custom_helper
@@ -423,7 +425,7 @@ class TestFlextCliBatchValidate(unittest.TestCase):
 
     def test_batch_validate_empty_dict(self) -> None:
         """Test batch validate with empty dict."""
-        result = flext_cli_batch_validate({})
+        result = H.batch_validate({})
 
         assert isinstance(result, FlextResult)
         # Empty dict should be considered valid
@@ -435,7 +437,7 @@ class TestFlextCliBatchValidate(unittest.TestCase):
             "user_email": ("test@example.com", "email")
         }
 
-        result = flext_cli_batch_validate(inputs)
+        result = H.batch_validate(inputs)
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -446,7 +448,7 @@ class TestFlextCliBatchValidate(unittest.TestCase):
             "user_email": ("not-an-email", "email")
         }
 
-        result = flext_cli_batch_validate(inputs)
+        result = H.batch_validate(inputs)
 
         assert isinstance(result, FlextResult)
         # Should handle invalid email gracefully
@@ -459,7 +461,7 @@ class TestFlextCliBatchValidate(unittest.TestCase):
             "website": ("https://example.com", "url"),
         }
 
-        result = flext_cli_batch_validate(inputs)
+        result = H.batch_validate(inputs)
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -475,7 +477,7 @@ class TestFlextCliBatchValidate(unittest.TestCase):
                 "dir_path": (str(Path(temp_dir)), "dir"),
             }
 
-            result = flext_cli_batch_validate(inputs)
+            result = H.batch_validate(inputs)
 
             assert isinstance(result, FlextResult)
 
@@ -485,7 +487,7 @@ class TestFlextCliBatchValidate(unittest.TestCase):
             "filename": ("test_file.txt", "filename")
         }
 
-        result = flext_cli_batch_validate(inputs)
+        result = H.batch_validate(inputs)
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -496,7 +498,7 @@ class TestFlextCliBatchValidate(unittest.TestCase):
             "unknown_field": ("some_value", "unknown_type")
         }
 
-        result = flext_cli_batch_validate(inputs)
+        result = H.batch_validate(inputs)
 
         assert isinstance(result, FlextResult)
         # Should handle unknown types gracefully
@@ -509,7 +511,7 @@ class TestFlextCliBatchValidate(unittest.TestCase):
             "filename": ("document.pdf", "filename"),
         }
 
-        result = flext_cli_batch_validate(inputs)
+        result = H.batch_validate(inputs)
 
         assert isinstance(result, FlextResult)
         assert result.is_success
@@ -518,7 +520,7 @@ class TestFlextCliBatchValidate(unittest.TestCase):
         """Test batch validate return type structure."""
         inputs: dict[str, tuple[object, str]] = {"test_field": ("test_value", "email")}
 
-        result = flext_cli_batch_validate(inputs)
+        result = H.batch_validate(inputs)
 
         assert isinstance(result, FlextResult)
         assert hasattr(result, "success")
