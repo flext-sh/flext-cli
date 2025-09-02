@@ -21,7 +21,7 @@ from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 
 
-class FlextCliContext(FlextModels):
+class FlextCliContext(FlextModels.Value):
     """CLI execution context extending FlextContext with CLI-specific functionality.
 
     Immutable context containing execution environment, user information,

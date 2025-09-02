@@ -75,7 +75,7 @@ class ProjectStatus(StrEnum):
     ARCHIVED = "archived"
 
 
-class Project(FlextModels):
+class Project(FlextModels.AggregateRoot):
     """Project aggregate root with business logic."""
 
     project_id: UUID

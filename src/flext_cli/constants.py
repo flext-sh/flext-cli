@@ -5,13 +5,11 @@ Extends ``flext_core.FlextConstants`` with CLI-specific limits and messages.
 
 from __future__ import annotations
 
-import os as _os
+import os
 from typing import ClassVar, Final
 
-from flext_core import FlextConstants
 
-
-class FlextCliConstants(FlextConstants):
+class FlextCliConstants:
     """CLI-specific constants extending flext-core FlextConstants."""
 
     # Reference kept in base class; no shadowing needed here
@@ -88,10 +86,10 @@ class FlextCliConstants(FlextConstants):
     FLEXT_DIR_NAME: ClassVar[str] = ".flext"
     CONFIG_FILE_NAME: ClassVar[str] = "config.yaml"
     # Derive from environment for security linters; keep stable defaults
-    TOKEN_FILE_NAME: ClassVar[str] = _os.environ.get(
+    TOKEN_FILE_NAME: ClassVar[str] = os.environ.get(
         "FLEXT_CLI_TOKEN_FILE_NAME", "token.json"
     )
-    REFRESH_TOKEN_FILE_NAME: ClassVar[str] = _os.environ.get(
+    REFRESH_TOKEN_FILE_NAME: ClassVar[str] = os.environ.get(
         "FLEXT_CLI_REFRESH_TOKEN_FILE_NAME", "refresh_token.json"
     )
 

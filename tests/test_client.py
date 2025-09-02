@@ -1,405 +1,637 @@
-"""Tests for client stub module in FLEXT CLI Library.
+"""Comprehensive real functionality tests for client.py - NO MOCKING.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
+Following user requirement: "melhore bem os tests para executar codigo de verdade e validar
+a funcionalidade requerida, pare de ficar mockando tudo!"
+
+These tests execute REAL HTTP client functionality and validate actual API behavior.
+Coverage target: Increase client.py from current to 90%+
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import asyncio
+import json
+import threading
+import unittest
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import parse_qs, urlparse
 
-from flext_cli import FlextApiClient
-
-
-@dataclass
-class PipelineConfig:
-    """Real pipeline configuration class."""
-
-    name: str
-    tap: str
-    target: str
+from flext_cli import FlextApiClient, Pipeline, PipelineConfig, PipelineList
+from flext_cli.client import _compute_default_base_url
 
 
-@dataclass
-class Pipeline:
-    """Real pipeline class."""
+class MockHTTPHandler(BaseHTTPRequestHandler):
+    """Simple test HTTP server for real client testing."""
 
-    id: str
-    name: str
-    status: str
-    created_at: str
-    updated_at: str
-    config: PipelineConfig
+    def do_GET(self) -> None:
+        """Handle GET requests."""
+        parsed_url = urlparse(self.path)
+        path = parsed_url.path
+        params = parse_qs(parsed_url.query)
+
+        if path == "/api/v1/auth/user":
+            self._send_json_response(
+                {
+                    "id": "user-123",
+                    "username": "testuser",
+                    "email": "test@example.com",
+                }
+            )
+        elif path == "/api/v1/pipelines":
+            page = int(params.get("page", ["1"])[0])
+            page_size = int(params.get("page_size", ["20"])[0])
+            status = params.get("status", [None])[0]
+
+            # Mock pipeline data
+            all_pipelines = [
+                {
+                    "id": f"pipeline-{i}",
+                    "name": f"Test Pipeline {i}",
+                    "status": "active" if i % 2 == 0 else "inactive",
+                    "created_at": "2025-01-01T00:00:00Z",
+                    "updated_at": "2025-01-01T00:00:00Z",
+                    "config": {
+                        "name": f"Test Pipeline {i}",
+                        "tap": "tap-csv",
+                        "target": "target-json",
+                        "schedule": "0 0 * * *",
+                    },
+                }
+                for i in range(1, 6)  # 5 pipelines
+            ]
+
+            # Filter by status if provided
+            if status:
+                filtered_pipelines = [p for p in all_pipelines if p["status"] == status]
+            else:
+                filtered_pipelines = all_pipelines
+
+            # Paginate
+            start = (page - 1) * page_size
+            end = start + page_size
+            pipelines_page = filtered_pipelines[start:end]
+
+            self._send_json_response(
+                {
+                    "pipelines": pipelines_page,
+                    "total": len(filtered_pipelines),
+                    "page": page,
+                    "page_size": page_size,
+                }
+            )
+        elif path.startswith("/api/v1/pipelines/"):
+            pipeline_id = path.split("/")[-1]
+            self._send_json_response(
+                {
+                    "id": pipeline_id,
+                    "name": f"Pipeline {pipeline_id}",
+                    "status": "active",
+                    "created_at": "2025-01-01T00:00:00Z",
+                    "updated_at": "2025-01-01T00:00:00Z",
+                    "config": {
+                        "name": f"Pipeline {pipeline_id}",
+                        "tap": "tap-csv",
+                        "target": "target-json",
+                        "schedule": "0 0 * * *",
+                    },
+                }
+            )
+        else:
+            self._send_error_response(404, "Not Found")
+
+    def do_POST(self) -> None:
+        """Handle POST requests."""
+        content_length = int(self.headers.get("Content-Length", 0))
+        post_data = self.rfile.read(content_length)
+
+        try:
+            request_data = json.loads(post_data.decode("utf-8")) if post_data else {}
+        except json.JSONDecodeError:
+            request_data = {}
+
+        parsed_url = urlparse(self.path)
+        path = parsed_url.path
+
+        if path == "/api/v1/auth/login":
+            username = request_data.get("username")
+            password = request_data.get("password")
+
+            if username == "testuser" and password == "testpass":
+                self._send_json_response(
+                    {
+                        "access_token": "test-token-12345",
+                        "token_type": "bearer",
+                        "user": {"id": "user-123", "username": "testuser"},
+                    }
+                )
+            else:
+                self._send_error_response(401, "Invalid credentials")
+        elif path == "/api/v1/auth/logout":
+            self._send_json_response({"message": "Logged out successfully"})
+        elif path == "/api/v1/pipelines":
+            # Create pipeline
+            pipeline_id = f"pipeline-{len(request_data) + 100}"
+            created_pipeline = {
+                "id": pipeline_id,
+                "name": request_data.get("name", "New Pipeline"),
+                "status": "pending",
+                "created_at": "2025-01-01T00:00:00Z",
+                "updated_at": "2025-01-01T00:00:00Z",
+                "config": request_data,
+            }
+            self._send_json_response(created_pipeline, status_code=201)
+        elif path.startswith("/api/v1/pipelines/") and path.endswith("/run"):
+            pipeline_id = path.split("/")[-2]
+            self._send_json_response(
+                {
+                    "id": f"run-{pipeline_id}-001",
+                    "pipeline_id": pipeline_id,
+                    "status": "running",
+                    "started_at": "2025-01-01T00:00:00Z",
+                }
+            )
+        else:
+            self._send_error_response(404, "Not Found")
+
+    def do_PUT(self) -> None:
+        """Handle PUT requests."""
+        content_length = int(self.headers.get("Content-Length", 0))
+        post_data = self.rfile.read(content_length)
+
+        try:
+            request_data = json.loads(post_data.decode("utf-8")) if post_data else {}
+        except json.JSONDecodeError:
+            request_data = {}
+
+        parsed_url = urlparse(self.path)
+        path = parsed_url.path
+
+        if path.startswith("/api/v1/pipelines/"):
+            pipeline_id = path.split("/")[-1]
+            updated_pipeline = {
+                "id": pipeline_id,
+                "name": request_data.get("name", f"Updated Pipeline {pipeline_id}"),
+                "status": "active",
+                "created_at": "2025-01-01T00:00:00Z",
+                "updated_at": "2025-01-01T12:00:00Z",
+                "config": request_data,
+            }
+            self._send_json_response(updated_pipeline)
+        else:
+            self._send_error_response(404, "Not Found")
+
+    def do_DELETE(self) -> None:
+        """Handle DELETE requests."""
+        parsed_url = urlparse(self.path)
+        path = parsed_url.path
+
+        if path.startswith("/api/v1/pipelines/"):
+            # Return 204 No Content for successful deletion
+            self.send_response(204)
+            self.end_headers()
+        else:
+            self._send_error_response(404, "Not Found")
+
+    def _send_json_response(self, data: dict | list, status_code: int = 200) -> None:
+        """Send JSON response."""
+        self.send_response(status_code)
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
+        response_data = json.dumps(data).encode("utf-8")
+        self.wfile.write(response_data)
+
+    def _send_error_response(self, status_code: int, message: str) -> None:
+        """Send error response."""
+        self.send_response(status_code)
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
+        error_data = json.dumps({"error": message}).encode("utf-8")
+        self.wfile.write(error_data)
+
+    def log_message(self, format: str, *args) -> None:
+        """Override to suppress request logging."""
 
 
-@dataclass
-class PipelineList:
-    """Real pipeline list class."""
+class TestClientModels(unittest.TestCase):
+    """Real functionality tests for client models."""
 
-    pipelines: list[Pipeline]
-    total: int
-    page: int = 1
-    page_size: int = 20
+    def test_pipeline_config_creation(self) -> None:
+        """Test creating PipelineConfig with real data."""
+        config = PipelineConfig(
+            name="test-pipeline",
+            tap="tap-csv",
+            target="target-json",
+            schedule="0 * * * *",
+            transform="dbt-transform",
+            state={"last_run": "2025-01-01T00:00:00Z"},
+            config={"batch_size": 1000},
+        )
+
+        assert config.name == "test-pipeline"
+        assert config.tap == "tap-csv"
+        assert config.target == "target-json"
+        assert config.schedule == "0 * * * *"
+        assert config.transform == "dbt-transform"
+        assert config.state["last_run"] == "2025-01-01T00:00:00Z"
+        assert config.config["batch_size"] == 1000
+
+    def test_pipeline_config_minimal(self) -> None:
+        """Test creating PipelineConfig with minimal required fields."""
+        config = PipelineConfig(
+            name="minimal-pipeline", tap="tap-source", target="target-dest"
+        )
+
+        assert config.name == "minimal-pipeline"
+        assert config.tap == "tap-source"
+        assert config.target == "target-dest"
+        assert config.schedule is None
+        assert config.transform is None
+        assert config.state is None
+        assert config.config is None
+
+    def test_pipeline_model_creation(self) -> None:
+        """Test creating Pipeline model with real data."""
+        config = PipelineConfig(name="test", tap="tap", target="target")
+        pipeline = Pipeline(
+            id="pipeline-123",
+            name="Test Pipeline",
+            status="active",
+            created_at="2025-01-01T00:00:00Z",
+            updated_at="2025-01-01T12:00:00Z",
+            config=config,
+        )
+
+        assert pipeline.id == "pipeline-123"
+        assert pipeline.name == "Test Pipeline"
+        assert pipeline.status == "active"
+        assert pipeline.config.name == "test"
+
+    def test_pipeline_list_creation(self) -> None:
+        """Test creating PipelineList with real data."""
+        config = PipelineConfig(name="test", tap="tap", target="target")
+        pipeline = Pipeline(
+            id="pipeline-1",
+            name="Pipeline 1",
+            status="active",
+            created_at="2025-01-01T00:00:00Z",
+            updated_at="2025-01-01T00:00:00Z",
+            config=config,
+        )
+
+        pipeline_list = PipelineList(
+            pipelines=[pipeline], total=1, page=1, page_size=20
+        )
+
+        assert len(pipeline_list.pipelines) == 1
+        assert pipeline_list.total == 1
+        assert pipeline_list.page == 1
+        assert pipeline_list.page_size == 20
+
+    def test_pipeline_config_serialization(self) -> None:
+        """Test PipelineConfig serialization to dict."""
+        config = PipelineConfig(
+            name="serialize-test",
+            tap="tap-test",
+            target="target-test",
+            config={"key": "value"},
+        )
+
+        config_dict = config.model_dump()
+        assert config_dict["name"] == "serialize-test"
+        assert config_dict["tap"] == "tap-test"
+        assert config_dict["target"] == "target-test"
+        assert config_dict["config"]["key"] == "value"
 
 
-class TestFlextApiClient:
-    """Test cases for FlextApiClient stub class."""
+class TestComputeDefaultBaseUrl(unittest.TestCase):
+    """Real functionality tests for default base URL computation."""
 
-    def test_client_initialization_without_args(self) -> None:
-        """Test client initialization without arguments."""
-        client = FlextApiClient()
-        assert isinstance(client, FlextApiClient)
+    def test_compute_default_base_url_function_exists(self) -> None:
+        """Test _compute_default_base_url function exists and returns result."""
+        result = _compute_default_base_url()
+        # Should return None or a valid URL string
+        assert result is None or isinstance(result, str)
 
-    def test_client_initialization_with_args(self) -> None:
-        """Test client initialization with arguments."""
+    def test_compute_default_base_url_handles_missing_module(self) -> None:
+        """Test _compute_default_base_url handles missing modules gracefully."""
+        # Function should not raise exceptions even if modules don't exist
+        result = _compute_default_base_url()
+        assert result is None or isinstance(result, str)
+
+
+class AsyncTestCase(unittest.TestCase):
+    """Base class for async test cases."""
+
+    def setUp(self) -> None:
+        """Set up test server."""
+        self.server = HTTPServer(("localhost", 0), MockHTTPHandler)
+        self.server_thread = threading.Thread(target=self.server.serve_forever)
+        self.server_thread.daemon = True
+        self.server_thread.start()
+
+        # Get the actual port the server is using
+        self.server_port = self.server.server_address[1]
+        self.base_url = f"http://localhost:{self.server_port}"
+
+    def tearDown(self) -> None:
+        """Tear down test server."""
+        self.server.shutdown()
+        self.server_thread.join(timeout=1)
+
+    def run_async(self, coro):
+        """Run async coroutine in test."""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            return loop.run_until_complete(coro)
+        finally:
+            loop.close()
+
+
+class TestFlextApiClientInitialization(AsyncTestCase):
+    """Real functionality tests for FlextApiClient initialization."""
+
+    def test_client_initialization_with_all_params(self) -> None:
+        """Test client initialization with all parameters."""
         client = FlextApiClient(
-            base_url="http://test.com",
+            base_url="http://test.example.com",
             token="test-token",
             timeout=60.0,
-        )
-        assert isinstance(client, FlextApiClient)
-
-    def test_client_initialization_with_mixed_args(self) -> None:
-        """Test client initialization with mixed arguments."""
-        client = FlextApiClient(
-            base_url="http://example.com",
-            timeout=30.0,
             verify_ssl=False,
         )
-        assert isinstance(client, FlextApiClient)
 
-    def test_client_initialization_empty_kwargs(self) -> None:
-        """Test client initialization with empty kwargs."""
-        client = FlextApiClient()
-        assert isinstance(client, FlextApiClient)
+        assert client.base_url == "http://test.example.com"
+        assert client.token == "test-token"
+        assert client.timeout == 60.0
+        assert client.verify_ssl is False
 
-    def test_client_multiple_instances(self) -> None:
-        """Test creating multiple client instances."""
-        client1 = FlextApiClient("arg1")
-        client2 = FlextApiClient("arg2")
-
-        assert isinstance(client1, FlextApiClient)
-        assert isinstance(client2, FlextApiClient)
-        assert client1 is not client2
-
-
-class TestPipeline:
-    """Test cases for Pipeline stub class."""
-
-    def test_pipeline_initialization_without_args(self) -> None:
-        """Test pipeline initialization without arguments."""
-        config = PipelineConfig(
-            name="default-config",
-            tap="default-tap",
-            target="default-target",
-        )
-        pipeline = Pipeline(
-            id="default-id",
-            name="default-pipeline",
-            status="initialized",
-            created_at="2025-01-01T00:00:00Z",
-            updated_at="2025-01-01T00:00:00Z",
-            config=config,
-        )
-        assert isinstance(pipeline, Pipeline)
-        assert pipeline.name == "default-pipeline"
-        assert pipeline.id == "default-id"
-        assert pipeline.status == "initialized"
-
-    def test_pipeline_initialization_with_args(self) -> None:
-        """Test pipeline initialization with arguments."""
-        config = PipelineConfig(
-            name="test-config",
-            tap="test-tap",
-            target="test-target",
-        )
-        pipeline = Pipeline(
-            id="test-id",
-            name="test-pipeline",
-            status="running",
-            created_at="2025-01-01T00:00:00Z",
-            updated_at="2025-01-01T00:00:00Z",
-            config=config,
-        )
-        assert isinstance(pipeline, Pipeline)
-        assert pipeline.name == "test-pipeline"
-        assert pipeline.id == "test-id"
-        assert pipeline.status == "running"
-
-    def test_pipeline_initialization_with_mixed_args(self) -> None:
-        """Test pipeline initialization with mixed arguments."""
-        config = PipelineConfig(
-            name="mixed-config",
-            tap="test-tap",
-            target="test-target",
-        )
-        pipeline = Pipeline(
-            id="mixed-id",
-            name="mixed-pipeline",
-            status="pending",
-            created_at="2025-01-01T00:00:00Z",
-            updated_at="2025-01-01T00:00:00Z",
-            config=config,
-        )
-        assert isinstance(pipeline, Pipeline)
-        assert pipeline.name == "mixed-pipeline"
-        assert pipeline.id == "mixed-id"
-        assert pipeline.status == "pending"
-
-    def test_pipeline_attributes_are_strings(self) -> None:
-        """Test that pipeline attributes are strings."""
-        config = PipelineConfig(name="attr-test", tap="test-tap", target="test-target")
-        pipeline = Pipeline(
-            id="attr-id",
-            name="attr-pipeline",
-            status="active",
-            created_at="2025-01-01T00:00:00Z",
-            updated_at="2025-01-01T00:00:00Z",
-            config=config,
-        )
-
-        assert isinstance(pipeline.name, str)
-        assert isinstance(pipeline.id, str)
-        assert isinstance(pipeline.status, str)
-
-    def test_pipeline_multiple_instances(self) -> None:
-        """Test creating multiple pipeline instances."""
-        config1 = PipelineConfig(name="multi-1", tap="tap1", target="target1")
-        config2 = PipelineConfig(name="multi-2", tap="tap2", target="target2")
-
-        pipeline1 = Pipeline(
-            id="multi-1",
-            name="pipeline-1",
-            status="active",
-            created_at="2025-01-01T00:00:00Z",
-            updated_at="2025-01-01T00:00:00Z",
-            config=config1,
-        )
-        pipeline2 = Pipeline(
-            id="multi-2",
-            name="pipeline-2",
-            status="inactive",
-            created_at="2025-01-01T00:00:00Z",
-            updated_at="2025-01-01T00:00:00Z",
-            config=config2,
-        )
-
-        assert isinstance(pipeline1, Pipeline)
-        assert isinstance(pipeline2, Pipeline)
-        assert pipeline1 is not pipeline2
-
-        # Verify they have different attributes as expected
-        assert pipeline1.name != pipeline2.name  # "pipeline-1" != "pipeline-2"
-        assert pipeline1.id != pipeline2.id  # "multi-1" != "multi-2"
-        assert pipeline1.status != pipeline2.status  # "active" != "inactive"
-
-        # But they should both be Pipeline instances
-        assert pipeline1.name == "pipeline-1"
-        assert pipeline2.name == "pipeline-2"
-
-    def test_pipeline_attributes_not_modifiable(self) -> None:
-        """Test that pipeline attributes are set during initialization."""
-        pipeline = Pipeline(
-            id="stub-id",
-            name="stub-pipeline",
-            status="stub-status",
-            created_at="2025-01-01T12:00:00Z",
-            updated_at="2025-01-01T12:00:00Z",
-            config=PipelineConfig(
-                name="stub-pipeline",
-                tap="tap-csv",
-                target="target-jsonl",
-            ),
-        )
-
-        # Attributes exist and have expected values
-        assert hasattr(pipeline, "name")
-        assert hasattr(pipeline, "id")
-        assert hasattr(pipeline, "status")
-
-        # Values are as expected
-        if pipeline.name != "stub-pipeline":
-            msg: str = f"Expected {'stub-pipeline'}, got {pipeline.name}"
-            raise AssertionError(msg)
-        assert pipeline.id == "stub-id"
-        if pipeline.status != "stub-status":
-            attr_status_msg: str = f"Expected {'stub-status'}, got {pipeline.status}"
-            raise AssertionError(attr_status_msg)
-
-
-class TestClientModule:
-    """Test cases for client module functionality."""
-
-    def test_module_imports(self) -> None:
-        """Test that all expected classes can be imported."""
-        assert FlextApiClient is not None
-        assert Pipeline is not None
-        assert PipelineList is not None
-        assert callable(FlextApiClient)
-        assert callable(Pipeline)
-        assert callable(PipelineList)
-
-    def test_classes_are_independent(self) -> None:
-        """Test that the classes are independent."""
+    def test_client_initialization_defaults(self) -> None:
+        """Test client initialization with default values."""
         client = FlextApiClient()
 
-        # Create proper Pipeline with required fields
-        config = PipelineConfig(name="test", tap="test-tap", target="test-target")
-        pipeline = Pipeline(
-            id="test",
-            name="test",
-            status="active",
-            created_at="2025-01-01T00:00:00Z",
-            updated_at="2025-01-01T00:00:00Z",
-            config=config,
-        )
+        # Should have some default base_url
+        assert isinstance(client.base_url, str)
+        assert client.token is None
+        assert client.timeout == 30.0
+        assert client.verify_ssl is True
 
-        pipeline_list = PipelineList(pipelines=[], total=0)
+    def test_client_headers_without_token(self) -> None:
+        """Test client headers when no token is provided."""
+        client = FlextApiClient(base_url=self.base_url)
+        headers = client._get_headers()
 
-        # Verify classes are independent (different types)
-        assert not isinstance(client, type(pipeline))
-        assert not isinstance(client, type(pipeline_list))
-        assert not isinstance(pipeline, type(pipeline_list))
-        assert isinstance(client, FlextApiClient)
-        assert isinstance(pipeline, Pipeline)
+        assert headers["Content-Type"] == "application/json"
+        assert headers["Accept"] == "application/json"
+        assert "Authorization" not in headers
+
+    def test_client_headers_with_token(self) -> None:
+        """Test client headers when token is provided."""
+        client = FlextApiClient(base_url=self.base_url, token="test-auth-token")
+        headers = client._get_headers()
+
+        assert headers["Content-Type"] == "application/json"
+        assert headers["Accept"] == "application/json"
+        assert headers["Authorization"] == "Bearer test-auth-token"
+
+    def test_client_url_building(self) -> None:
+        """Test client URL building functionality."""
+        client = FlextApiClient(base_url="http://api.example.com")
+
+        url = client._url("/api/v1/test")
+        assert url == "http://api.example.com/api/v1/test"
+
+        url = client._url("health")
+        assert url == "http://api.example.com/health"
+
+
+class TestFlextApiClientAuthMethods(AsyncTestCase):
+    """Real functionality tests for authentication methods."""
+
+    def test_login_success(self) -> None:
+        """Test successful login with valid credentials."""
+        client = FlextApiClient(base_url=self.base_url)
+
+        async def test_login() -> None:
+            result = await client.login("testuser", "testpass")
+            await client.close()
+            return result
+
+        result = self.run_async(test_login())
+
+        assert result["access_token"] == "test-token-12345"
+        assert result["token_type"] == "bearer"
+        assert result["user"]["username"] == "testuser"
+
+    def test_login_failure(self) -> None:
+        """Test login failure with invalid credentials."""
+        client = FlextApiClient(base_url=self.base_url)
+
+        async def test_login() -> None:
+            try:
+                await client.login("wronguser", "wrongpass")
+                return None
+            except Exception as e:
+                await client.close()
+                return str(e)
+
+        result = self.run_async(test_login())
+        assert result is not None  # Should have raised an exception
+
+    def test_logout(self) -> None:
+        """Test logout functionality."""
+        client = FlextApiClient(base_url=self.base_url, token="test-token")
+
+        async def test_logout() -> bool:
+            await client.logout()
+            await client.close()
+            return True
+
+        result = self.run_async(test_logout())
+        assert result is True
+
+    def test_get_current_user(self) -> None:
+        """Test getting current user information."""
+        client = FlextApiClient(base_url=self.base_url, token="test-token")
+
+        async def test_get_user() -> None:
+            user = await client.get_current_user()
+            await client.close()
+            return user
+
+        result = self.run_async(test_get_user())
+
+        assert result["id"] == "user-123"
+        assert result["username"] == "testuser"
+        assert result["email"] == "test@example.com"
+
+
+class TestFlextApiClientPipelineMethods(AsyncTestCase):
+    """Real functionality tests for pipeline methods."""
+
+    def test_list_pipelines_default(self) -> None:
+        """Test listing pipelines with default parameters."""
+        client = FlextApiClient(base_url=self.base_url, token="test-token")
+
+        async def test_list() -> None:
+            result = await client.list_pipelines()
+            await client.close()
+            return result
+
+        pipeline_list = self.run_async(test_list())
+
         assert isinstance(pipeline_list, PipelineList)
-        assert not isinstance(client, Pipeline)
-        assert not isinstance(pipeline, FlextApiClient)
-        assert not isinstance(client, PipelineList)
-        assert not isinstance(pipeline_list, FlextApiClient)
+        assert len(pipeline_list.pipelines) == 5
+        assert pipeline_list.total == 5
+        assert pipeline_list.page == 1
+        assert pipeline_list.page_size == 20
 
-    def test_backward_compatibility_interface(self) -> None:
-        """Test that the stub maintains expected interface."""
-        # Should be able to create instances without errors
-        client = FlextApiClient(
-            base_url="http://example.com",
-            timeout=30,
-            token="Bearer token",
-        )
+    def test_list_pipelines_with_pagination(self) -> None:
+        """Test listing pipelines with pagination parameters."""
+        client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-        # Create proper Pipeline with required fields
-        config = PipelineConfig(
-            name="test-pipeline",
-            tap="test-tap",
-            target="test-target",
-        )
-        pipeline = Pipeline(
-            id="test-id",
-            name="test-pipeline",
-            status="active",
-            created_at="2025-01-01T00:00:00Z",
-            updated_at="2025-01-01T00:00:00Z",
-            config=config,
-        )
+        async def test_list() -> None:
+            result = await client.list_pipelines(page=2, page_size=2)
+            await client.close()
+            return result
 
-        assert isinstance(client, FlextApiClient)
+        pipeline_list = self.run_async(test_list())
+
+        assert isinstance(pipeline_list, PipelineList)
+        assert pipeline_list.page == 2
+        assert pipeline_list.page_size == 2
+
+    def test_list_pipelines_with_status_filter(self) -> None:
+        """Test listing pipelines with status filter."""
+        client = FlextApiClient(base_url=self.base_url, token="test-token")
+
+        async def test_list() -> None:
+            result = await client.list_pipelines(status="active")
+            await client.close()
+            return result
+
+        pipeline_list = self.run_async(test_list())
+
+        assert isinstance(pipeline_list, PipelineList)
+        # All returned pipelines should be active
+        for pipeline in pipeline_list.pipelines:
+            assert pipeline.status == "active"
+
+    def test_get_pipeline(self) -> None:
+        """Test getting a specific pipeline."""
+        client = FlextApiClient(base_url=self.base_url, token="test-token")
+
+        async def test_get() -> None:
+            result = await client.get_pipeline("test-pipeline-123")
+            await client.close()
+            return result
+
+        pipeline = self.run_async(test_get())
+
         assert isinstance(pipeline, Pipeline)
-
-        # Pipeline should have the attributes we set
-        assert pipeline.name == "test-pipeline"
-        assert pipeline.id == "test-id"
+        assert pipeline.id == "test-pipeline-123"
+        assert pipeline.name == "Pipeline test-pipeline-123"
         assert pipeline.status == "active"
 
+    def test_create_pipeline(self) -> None:
+        """Test creating a new pipeline."""
+        client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-class TestPipelineList:
-    """Test cases for PipelineList stub class."""
-
-    def test_pipeline_list_initialization_without_args(self) -> None:
-        """Test pipeline list initialization without arguments."""
-        pipeline_list = PipelineList(pipelines=[], total=0)
-        assert isinstance(pipeline_list, PipelineList)
-
-        # Check attributes
-        assert pipeline_list.pipelines == []
-        assert pipeline_list.total == 0
-        assert pipeline_list.page == 1  # default value
-        assert pipeline_list.page_size == 20  # default value
-
-    def test_pipeline_list_initialization_with_args(self) -> None:
-        """Test pipeline list initialization with arguments."""
-        # Create sample pipelines for the list
-        config = PipelineConfig(name="sample", tap="sample-tap", target="sample-target")
-        pipeline = Pipeline(
-            id="sample-1",
-            name="sample-pipeline",
-            status="active",
-            created_at="2025-01-01T00:00:00Z",
-            updated_at="2025-01-01T00:00:00Z",
-            config=config,
+        config = PipelineConfig(
+            name="new-test-pipeline",
+            tap="tap-csv",
+            target="target-json",
+            schedule="0 0 * * *",
         )
 
-        pipeline_list = PipelineList(
-            pipelines=[pipeline],
-            total=1,
-            page=2,
-            page_size=10,
-        )
-        assert isinstance(pipeline_list, PipelineList)
+        async def test_create() -> None:
+            result = await client.create_pipeline(config)
+            await client.close()
+            return result
 
-        # Check attributes
-        assert len(pipeline_list.pipelines) == 1
-        assert pipeline_list.total == 1
-        assert pipeline_list.page == 2
-        assert pipeline_list.page_size == 10
+        pipeline = self.run_async(test_create())
 
-    def test_pipeline_list_initialization_with_mixed_args(self) -> None:
-        """Test pipeline list initialization with mixed arguments."""
-        # Create sample pipeline for mixed args test
-        config = PipelineConfig(name="mixed", tap="tap-mixed", target="target-mixed")
-        pipeline = Pipeline(
-            id="mixed-id",
-            name="mixed-pipeline",
-            status="pending",
-            created_at="2025-01-01T00:00:00Z",
-            updated_at="2025-01-01T00:00:00Z",
-            config=config,
+        assert isinstance(pipeline, Pipeline)
+        assert pipeline.name == "new-test-pipeline"
+        assert pipeline.status == "pending"
+        assert pipeline.config.tap == "tap-csv"
+
+    def test_update_pipeline(self) -> None:
+        """Test updating an existing pipeline."""
+        client = FlextApiClient(base_url=self.base_url, token="test-token")
+
+        config = PipelineConfig(
+            name="updated-pipeline", tap="tap-updated", target="target-updated"
         )
 
-        pipeline_list = PipelineList(
-            pipelines=[pipeline],
-            total=1,
-            page=2,
-            page_size=10,
-        )
-        assert isinstance(pipeline_list, PipelineList)
+        async def test_update() -> None:
+            result = await client.update_pipeline("pipeline-123", config)
+            await client.close()
+            return result
 
-        # Check that values are properly set (not stub values)
-        assert len(pipeline_list.pipelines) == 1
-        assert pipeline_list.total == 1
-        assert pipeline_list.page == 2
-        assert pipeline_list.page_size == 10
+        pipeline = self.run_async(test_update())
 
-    def test_pipeline_list_attributes_types(self) -> None:
-        """Test that pipeline list attributes have correct types."""
-        pipeline_list = PipelineList(pipelines=[], total=0)
+        assert isinstance(pipeline, Pipeline)
+        assert pipeline.id == "pipeline-123"
+        assert pipeline.name == "updated-pipeline"
+        assert pipeline.config.tap == "tap-updated"
 
-        assert isinstance(pipeline_list.pipelines, list)
-        assert isinstance(pipeline_list.total, int)
-        assert isinstance(pipeline_list.page, int)
-        assert isinstance(pipeline_list.page_size, int)
+    def test_delete_pipeline(self) -> None:
+        """Test deleting a pipeline."""
+        client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-    def test_pipeline_list_multiple_instances(self) -> None:
-        """Test creating multiple pipeline list instances."""
-        list1 = PipelineList(pipelines=[], total=0, page=1, page_size=10)
-        list2 = PipelineList(pipelines=[], total=5, page=2, page_size=15)
+        async def test_delete() -> bool:
+            await client.delete_pipeline("pipeline-to-delete")
+            await client.close()
+            return True
 
-        assert isinstance(list1, PipelineList)
-        assert isinstance(list2, PipelineList)
-        assert list1 is not list2
+        result = self.run_async(test_delete())
+        assert result is True
 
-        # They should have different attributes as specified
-        assert list1.pipelines == list2.pipelines  # Both empty
-        assert list1.total != list2.total  # 0 vs 5
-        assert list1.page != list2.page  # 1 vs 2
-        assert list1.page_size != list2.page_size  # 10 vs 15
+    def test_run_pipeline(self) -> None:
+        """Test running a pipeline manually."""
+        client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-    def test_pipeline_list_empty_pipelines(self) -> None:
-        """Test that pipelines list is empty by default."""
-        pipeline_list = PipelineList(pipelines=[], total=0)
+        async def test_run() -> None:
+            result = await client.run_pipeline("pipeline-123", full_refresh=True)
+            await client.close()
+            return result
 
-        if len(pipeline_list.pipelines) != 0:
-            length_msg: str = f"Expected {0}, got {len(pipeline_list.pipelines)}"
-            raise AssertionError(length_msg)
-        assert pipeline_list.pipelines == []
-        assert not pipeline_list.pipelines  # Should be falsy
+        run_result = self.run_async(test_run())
+
+        assert run_result["pipeline_id"] == "pipeline-123"
+        assert run_result["status"] == "running"
+        assert "id" in run_result
+
+
+class TestFlextApiClientContextManager(AsyncTestCase):
+    """Real functionality tests for async context manager."""
+
+    def test_context_manager_usage(self) -> None:
+        """Test using client as async context manager."""
+
+        async def test_context() -> None:
+            async with FlextApiClient(base_url=self.base_url, token="test") as client:
+                user = await client.get_current_user()
+                return user["username"]
+
+        result = self.run_async(test_context())
+        assert result == "testuser"
+
+    def test_manual_close(self) -> None:
+        """Test manually closing client."""
+
+        async def test_close() -> bool:
+            client = FlextApiClient(base_url=self.base_url, token="test")
+            await client.get_current_user()
+            await client.close()
+            return True
+
+        result = self.run_async(test_close())
+        assert result is True
+
+
+if __name__ == "__main__":
+    unittest.main()

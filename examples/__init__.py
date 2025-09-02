@@ -16,7 +16,7 @@ This directory contains organized examples demonstrating flext-cli and flext-cor
 
 ### Complete Applications (06-10)
 - 06_comprehensive_cli_application: Full real-world CLI application
-- 07_enterprise_patterns: Clean Architecture, CQRS, DDD patterns
+- 07_patterns: Clean Architecture, CQRS, DDD patterns
 - 08_ecosystem_integration: Integration with flext-* projects
 - 09_performance_optimization: Advanced patterns for performance
 - 10_production_ready: Production deployment patterns

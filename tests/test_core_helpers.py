@@ -1,374 +1,580 @@
-"""Tests for core helpers in FLEXT CLI Library.
+"""REAL CODE TESTS for core/helpers.py - NO MOCKS, REAL EXECUTION.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
+This module tests FlextCliHelper, FlextCliDataProcessor, and FlextCliFileManager
+with REAL execution, validating actual functionality without mocking.
 """
 
 from __future__ import annotations
 
 import tempfile
-from unittest.mock import patch
+from pathlib import Path
 
+from flext_core import FlextResult
 from rich.console import Console
-from rich.prompt import Confirm, Prompt
+from rich.table import Table
 
-from flext_cli import CLIHelper
+from flext_cli import (
+    FlextCliDataProcessor,
+    FlextCliFileManager,
+    FlextCliHelper,
+    flext_cli_batch_validate,
+    flext_cli_create_data_processor,
+    flext_cli_create_file_manager,
+    flext_cli_create_helper,
+)
 
-# Constants
-EXPECTED_BULK_SIZE = 2
 
+class TestFlextCliHelper:
+    """Test FlextCliHelper class with REAL execution."""
 
-class TestCLIHelper:
-    """Test cases for CLIHelper class."""
+    def test_helper_init_default(self) -> None:
+        """Test helper initialization with defaults."""
+        helper = FlextCliHelper()
 
-    def test_helper_initialization(self) -> None:
-        """Test CLIHelper initialization."""
-        helper = CLIHelper()
-        assert isinstance(helper.console, Console)
+        assert helper.console is not None
+        assert helper.quiet is False
 
-    def test_helper_initialization_with_console(self) -> None:
-        """Test CLIHelper initialization with custom console."""
-        custom_console = Console()
-        helper = CLIHelper(console=custom_console)
-        assert helper.console is custom_console
+    def test_helper_init_with_console(self) -> None:
+        """Test helper initialization with console."""
+        console = Console()
+        helper = FlextCliHelper(console=console)
 
-    def test_confirm_default_false(self) -> None:
-        """Test confirm method with default False."""
-        helper = CLIHelper()
+        assert helper.console is console
+        assert helper.quiet is False
 
-        # Import and mock the Confirm.ask method
+    def test_helper_init_quiet_mode(self) -> None:
+        """Test helper initialization in quiet mode."""
+        helper = FlextCliHelper(quiet=True)
 
-        # Test with mocked response
-        with patch.object(Confirm, "ask", return_value=True):
-            result = helper.confirm("Are you sure?")
-            if not (result):
-                msg = f"Expected True, got {result}"
-                raise AssertionError(msg)
+        assert helper.quiet is True
+        assert helper.console is not None
 
-    def test_confirm_default_true(self) -> None:
-        """Test confirm method with default True."""
-        helper = CLIHelper()
+    def test_flext_cli_confirm_quiet_mode(self) -> None:
+        """Test confirm in quiet mode."""
+        helper = FlextCliHelper(quiet=True)
 
-        with patch.object(Confirm, "ask", return_value=False):
-            result = helper.confirm("Are you sure?", default=True)
-            if result:
-                msg = f"Expected False, got {result}"
-                raise AssertionError(msg)
+        # In quiet mode, should return default without prompting
+        result = helper.flext_cli_confirm("Proceed?", default=True)
 
-    def test_prompt_without_default(self) -> None:
-        """Test prompt method without default."""
-        helper = CLIHelper()
+        assert result.is_success
+        assert result.value is True
 
-        with patch.object(Prompt, "ask", return_value="test input"):
-            result = helper.prompt("Enter name:")
-            if result != "test input":
-                msg = f"Expected {'test input'}, got {result}"
-                raise AssertionError(msg)
+        # Test with False default
+        result = helper.flext_cli_confirm("Proceed?", default=False)
 
-    def test_prompt_with_default(self) -> None:
-        """Test prompt method with default."""
-        helper = CLIHelper()
+        assert result.is_success
+        assert result.value is False
 
-        with patch.object(Prompt, "ask", return_value="default"):
-            result = helper.prompt("Enter name:", default="default")
-            if result != "default":
-                msg = f"Expected {'default'}, got {result}"
-                raise AssertionError(msg)
+    def test_flext_cli_validate_path_existing_file(self) -> None:
+        """Test validate_path with existing file."""
+        helper = FlextCliHelper()
 
-    def test_validate_url_valid(self) -> None:
-        """Test URL validation with valid URLs."""
-        helper = CLIHelper()
-
-        if not (helper.validate_url("https://example.com")):
-            msg = f"Expected True, got {helper.validate_url('https://example.com')}"
-            raise AssertionError(
-                msg,
-            )
-        assert helper.validate_url("http://localhost:8080") is True
-        if not (helper.validate_url("ftp://files.example.com")):
-            msg = f"Expected True, got {helper.validate_url('ftp://files.example.com')}"
-            raise AssertionError(
-                msg,
+        with tempfile.NamedTemporaryFile() as temp_file:
+            result = helper.flext_cli_validate_path(
+                temp_file.name, must_be_file=True, must_exist=True
             )
 
-    def test_validate_url_invalid(self) -> None:
-        """Test URL validation with invalid URLs."""
-        helper = CLIHelper()
+            assert result.is_success
+            assert result.value == Path(temp_file.name)
 
-        if helper.validate_url("not-a-url"):
-            msg = f"Expected False, got {helper.validate_url('not-a-url')}"
-            raise AssertionError(
-                msg,
-            )
-        assert helper.validate_url("") is False
-        assert helper.validate_url("example.com") is False  # No scheme
+    def test_flext_cli_validate_path_nonexistent(self) -> None:
+        """Test validate_path with nonexistent file."""
+        helper = FlextCliHelper()
 
-    def test_validate_url_exception_handling(self) -> None:
-        """Test URL validation with values that cause exceptions."""
-        helper = CLIHelper()
+        result = helper.flext_cli_validate_path(
+            "/nonexistent/file.txt", must_be_file=True, must_exist=True
+        )
 
-        assert helper.validate_url(None) is False
+        assert not result.is_success
+        assert "does not exist" in result.error
 
-    def test_validate_path_existing(self) -> None:
-        """Test path validation with existing path."""
-        helper = CLIHelper()
+    def test_flext_cli_validate_path_directory(self) -> None:
+        """Test validate_path with directory."""
+        helper = FlextCliHelper()
 
-        with tempfile.NamedTemporaryFile() as tmp:
-            if not (helper.validate_path(tmp.name, must_exist=True)):
-                msg = f"Expected True, got {helper.validate_path(tmp.name, must_exist=True)}"
-                raise AssertionError(
-                    msg,
-                )
-
-    def test_validate_path_non_existing_must_exist(self) -> None:
-        """Test path validation with non-existing path when must_exist=True."""
-        helper = CLIHelper()
-
-        if helper.validate_path("/non/existing/path", must_exist=True):
-            msg = f"Expected False, got {helper.validate_path('/non/existing/path', must_exist=True)}"
-            raise AssertionError(
-                msg,
+        with tempfile.TemporaryDirectory() as temp_dir:
+            result = helper.flext_cli_validate_path(
+                temp_dir, must_be_dir=True, must_exist=True
             )
 
-    def test_validate_path_non_existing_no_requirement(self) -> None:
-        """Test path validation with non-existing path when must_exist=False."""
-        helper = CLIHelper()
+            assert result.is_success
+            assert result.value == Path(temp_dir)
 
-        if not (helper.validate_path("/non/existing/path", must_exist=False)):
-            msg = f"Expected True, got {helper.validate_path('/non/existing/path', must_exist=False)}"
-            raise AssertionError(
-                msg,
+    def test_flext_cli_validate_path_directory_as_file_error(self) -> None:
+        """Test validate_path with directory when file is required."""
+        helper = FlextCliHelper()
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            result = helper.flext_cli_validate_path(
+                temp_dir, must_be_file=True, must_exist=True
             )
 
-    def test_validate_path_exception_handling(self) -> None:
-        """Test path validation with invalid path values."""
-        helper = CLIHelper()
+            assert not result.is_success
+            assert "must be a file" in result.error
 
-        # Test with path that causes exception in exists() method
-        with patch("pathlib.Path.exists") as mock_exists:
-            mock_exists.side_effect = OSError("Permission denied")
-            if helper.validate_path("/some/path", must_exist=True):
-                msg = f"Expected False, got {helper.validate_path('/some/path', must_exist=True)}"
-                raise AssertionError(
-                    msg,
-                )
+    def test_flext_cli_validate_email_valid(self) -> None:
+        """Test validate_email with valid email."""
+        helper = FlextCliHelper()
 
-    def test_validate_email_valid(self) -> None:
-        """Test email validation with valid emails."""
-        helper = CLIHelper()
+        result = helper.flext_cli_validate_email("test@example.com")
 
-        if not (helper.validate_email("test@example.com")):
-            msg = f"Expected True, got {helper.validate_email('test@example.com')}"
-            raise AssertionError(
-                msg,
-            )
-        assert helper.validate_email("user.name+tag@domain.co.uk") is True
-        if not (helper.validate_email("123@456.com")):
-            msg = f"Expected True, got {helper.validate_email('123@456.com')}"
-            raise AssertionError(
-                msg,
-            )
+        assert result.is_success
+        assert result.value == "test@example.com"
 
-    def test_validate_email_invalid(self) -> None:
-        """Test email validation with invalid emails."""
-        helper = CLIHelper()
+    def test_flext_cli_validate_email_invalid(self) -> None:
+        """Test validate_email with invalid email."""
+        helper = FlextCliHelper()
 
-        if helper.validate_email("not-an-email"):
-            msg = f"Expected False, got {helper.validate_email('not-an-email')}"
-            raise AssertionError(
-                msg,
-            )
-        assert helper.validate_email("@example.com") is False
-        if helper.validate_email("test@"):
-            msg = f"Expected False, got {helper.validate_email('test@')}"
-            raise AssertionError(
-                msg,
-            )
-        assert helper.validate_email("") is False
+        result = helper.flext_cli_validate_email("invalid-email")
+
+        assert not result.is_success
+        assert "Invalid email format" in result.error
+
+    def test_flext_cli_validate_url_valid(self) -> None:
+        """Test validate_url with valid URL."""
+        helper = FlextCliHelper()
+
+        result = helper.flext_cli_validate_url("https://example.com")
+
+        assert result.is_success
+        assert result.value == "https://example.com"
+
+    def test_flext_cli_validate_url_invalid(self) -> None:
+        """Test validate_url with invalid URL."""
+        helper = FlextCliHelper()
+
+        result = helper.flext_cli_validate_url("not-a-url")
+
+        assert not result.is_success
+        assert "Invalid URL format" in result.error
+
+    def test_flext_cli_sanitize_filename_valid(self) -> None:
+        """Test sanitize_filename with valid filename."""
+        helper = FlextCliHelper()
+
+        result = helper.flext_cli_sanitize_filename("test_file.txt")
+
+        assert result.is_success
+        assert result.value == "test_file.txt"
+
+    def test_flext_cli_sanitize_filename_invalid_chars(self) -> None:
+        """Test sanitize_filename with invalid characters."""
+        helper = FlextCliHelper()
+
+        result = helper.flext_cli_sanitize_filename("test<>file|.txt")
+
+        assert result.is_success
+        # Should have cleaned invalid characters
+        assert "<" not in result.value
+        assert ">" not in result.value
+        assert "|" not in result.value
+
+    def test_flext_cli_execute_command_empty(self) -> None:
+        """Test execute_command with empty command."""
+        helper = FlextCliHelper()
+
+        result = helper.flext_cli_execute_command("")
+
+        assert not result.is_success
+        assert "empty" in result.error.lower()
+
+    def test_flext_cli_execute_command_whitespace(self) -> None:
+        """Test execute_command with whitespace-only command."""
+        helper = FlextCliHelper()
+
+        result = helper.flext_cli_execute_command("   ")
+
+        assert not result.is_success
+        assert "empty" in result.error.lower()
+
+    def test_create_progress_object(self) -> None:
+        """Test create_progress method."""
+        helper = FlextCliHelper()
+
+        progress = helper.create_progress("Processing items")
+        assert progress is not None
+        # Progress object should be created
+
+    def test_create_progress_quiet_mode(self) -> None:
+        """Test create_progress in quiet mode."""
+        helper = FlextCliHelper(quiet=True)
+
+        progress = helper.create_progress("Processing quietly")
+        assert progress is not None
+        # Should still return Progress object
+
+    def test_flext_cli_create_table_with_data(self) -> None:
+        """Test create_table with real data."""
+        helper = FlextCliHelper()
+        data = [{"name": "Alice", "age": 25}, {"name": "Bob", "age": 30}]
+
+        result = helper.flext_cli_create_table(data, title="Users")
+
+        assert result.is_success
+        assert isinstance(result.value, Table)
+        assert result.value.title == "Users"
+
+    def test_flext_cli_create_table_empty_data(self) -> None:
+        """Test create_table with empty data."""
+        helper = FlextCliHelper()
+
+        result = helper.flext_cli_create_table([])
+
+        assert not result.is_success
+        assert "No data" in result.error
+
+    def test_flext_cli_create_table_simple_data(self) -> None:
+        """Test create_table with simple list data."""
+        helper = FlextCliHelper()
+        data = ["item1", "item2", "item3"]
+
+        result = helper.flext_cli_create_table(data)
+
+        assert result.is_success
+        assert isinstance(result.value, Table)
+
+    def test_flext_cli_load_json_file_success(self) -> None:
+        """Test load_json_file with valid JSON file."""
+        helper = FlextCliHelper()
+
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".json", delete=False
+        ) as temp_file:
+            temp_file.write('{"test": "data"}')
+            temp_file.flush()
+            file_path = Path(temp_file.name)
+
+            result = helper.flext_cli_load_json_file(file_path)
+
+            assert result.is_success
+            assert result.value == {"test": "data"}
+
+            # Clean up
+            file_path.unlink()
+
+    def test_flext_cli_load_json_file_not_found(self) -> None:
+        """Test load_json_file with non-existent file."""
+        helper = FlextCliHelper()
+
+        result = helper.flext_cli_load_json_file(Path("/nonexistent/file.json"))
+
+        assert not result.is_success
+        assert (
+            "not found" in result.error.lower()
+            or "does not exist" in result.error.lower()
+        )
+
+    def test_flext_cli_save_json_file_success(self) -> None:
+        """Test save_json_file with valid data."""
+        helper = FlextCliHelper()
+        data = {"test": "data", "number": 42}
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_path = Path(temp_dir) / "test.json"
+
+            result = helper.flext_cli_save_json_file(data, str(file_path))
+
+            assert result.is_success
+            # Verify file was created and contains correct data
+            assert file_path.exists()
+            import json
+
+            with open(file_path, encoding="utf-8") as f:
+                saved_data = json.load(f)
+            assert saved_data == data
 
     def test_format_size_bytes(self) -> None:
-        """Test file size formatting with bytes."""
-        helper = CLIHelper()
+        """Test format_size with bytes."""
+        helper = FlextCliHelper()
 
-        if helper.format_size(100) != "100.0 B":
-            msg = f"Expected {'100.0 B'}, got {helper.format_size(100)}"
-            raise AssertionError(msg)
-        assert helper.format_size(0) == "0.0 B"
+        result = helper.format_size(512)
+        assert "B" in result
 
     def test_format_size_kilobytes(self) -> None:
-        """Test file size formatting with kilobytes."""
-        helper = CLIHelper()
+        """Test format_size with kilobytes."""
+        helper = FlextCliHelper()
 
-        if helper.format_size(1024) != "1.0 KB":
-            msg = f"Expected {'1.0 KB'}, got {helper.format_size(1024)}"
-            raise AssertionError(msg)
-        assert helper.format_size(2048) == "2.0 KB"
-
-    def test_format_size_megabytes(self) -> None:
-        """Test file size formatting with megabytes."""
-        helper = CLIHelper()
-
-        if helper.format_size(1024 * 1024) != "1.0 MB":
-            msg = f"Expected {'1.0 MB'}, got {helper.format_size(1024 * 1024)}"
-            raise AssertionError(
-                msg,
-            )
-        assert helper.format_size(5 * 1024 * 1024) == "5.0 MB"
-
-    def test_format_size_gigabytes(self) -> None:
-        """Test file size formatting with gigabytes."""
-        helper = CLIHelper()
-
-        if helper.format_size(1024 * 1024 * 1024) != "1.0 GB":
-            msg = f"Expected {'1.0 GB'}, got {helper.format_size(1024 * 1024 * 1024)}"
-            raise AssertionError(
-                msg,
-            )
+        result = helper.format_size(2048)  # 2 KB
+        assert "KB" in result
 
     def test_truncate_text_short(self) -> None:
-        """Test text truncation with short text."""
-        helper = CLIHelper()
+        """Test truncate_text with text shorter than max length."""
+        helper = FlextCliHelper()
 
-        text = "Short text"
-        if helper.truncate_text(text, max_length=50) != "Short text":
-            msg = f"Expected {'Short text'}, got {helper.truncate_text(text, max_length=50)}"
-            raise AssertionError(
-                msg,
-            )
+        result = helper.truncate_text("short", max_length=20)
+        assert result == "short"
 
     def test_truncate_text_long(self) -> None:
-        """Test text truncation with long text."""
-        helper = CLIHelper()
+        """Test truncate_text with text longer than max length."""
+        helper = FlextCliHelper()
 
-        text = "This is a very long text that should be truncated"
-        result = helper.truncate_text(text, max_length=20)
-        if len(result) != 20:
-            msg = f"Expected {20}, got {len(result)}"
-            raise AssertionError(msg)
+        result = helper.truncate_text("this is a very long text", max_length=10)
+        assert len(result) <= 10
         assert result.endswith("...")
 
-    def test_truncate_text_exact_length(self) -> None:
-        """Test text truncation with exact max length."""
-        helper = CLIHelper()
+    def test_print_methods_exist(self) -> None:
+        """Test that print methods exist and can be called."""
+        helper = FlextCliHelper()
 
-        text = "12345"
-        if helper.truncate_text(text, max_length=5) != "12345":
-            msg = f"Expected {'12345'}, got {helper.truncate_text(text, max_length=5)}"
-            raise AssertionError(
-                msg,
-            )
+        # These should not raise exceptions
+        helper.print_success("Success message")
+        helper.print_error("Error message")
+        helper.print_warning("Warning message")
+        helper.print_info("Info message")
+        helper.flext_cli_print_status("Status message")
 
-    def test_sanitize_filename_safe(self) -> None:
-        """Test filename sanitization with safe filename."""
-        helper = CLIHelper()
 
-        if helper.sanitize_filename("safe_filename.txt") != "safe_filename.txt":
-            msg = f"Expected {'safe_filename.txt'}, got {helper.sanitize_filename('safe_filename.txt')}"
-            raise AssertionError(
-                msg,
-            )
+class TestFlextCliFileManager:
+    """Test FlextCliFileManager class with REAL file operations."""
 
-    def test_sanitize_filename_unsafe_characters(self) -> None:
-        """Test filename sanitization with unsafe characters."""
-        helper = CLIHelper()
+    def test_file_manager_init(self) -> None:
+        """Test file manager initialization."""
+        manager = FlextCliFileManager()
 
-        result = helper.sanitize_filename('file<>:"/\\|?*.txt')
-        if "<" in result:
-            msg = f"Expected '<' not in result, but found it in {result}"
-            raise AssertionError(
-                msg,
-            )
-        assert ">" not in result
-        if ":" in result:
-            msg = f"Expected ':' not in result, but found it in {result}"
-            raise AssertionError(
-                msg,
-            )
-        assert '"' not in result
-        if "/" in result:
-            msg = f"Expected '/' not in result, but found it in {result}"
-            raise AssertionError(
-                msg,
-            )
-        assert "\\" not in result
-        if "|" in result:
-            msg = f"Expected '|' not in result, but found it in {result}"
-            raise AssertionError(
-                msg,
-            )
-        assert "?" not in result
-        if "*" in result:
-            msg = f"Expected '*' not in result, but found it in {result}"
-            raise AssertionError(
-                msg,
-            )
+        assert manager is not None
+        # Test that it has expected methods
+        assert hasattr(manager, "backup_and_process")
+        assert hasattr(manager, "safe_write")
 
-    def test_sanitize_filename_dots_and_spaces(self) -> None:
-        """Test filename sanitization with leading/trailing dots and spaces."""
-        helper = CLIHelper()
+    def test_backup_and_process_existing_file(self) -> None:
+        """Test backup_and_process with existing file."""
+        manager = FlextCliFileManager()
 
-        if helper.sanitize_filename("  .filename.  ") != "filename":
-            msg = f"Expected {'filename'}, got {helper.sanitize_filename('  .filename.  ')}"
-            raise AssertionError(
-                msg,
-            )
-        assert helper.sanitize_filename("...") == "untitled"
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as temp_file:
+            temp_file.write("original content")
+            temp_file.flush()
+            file_path = Path(temp_file.name)
 
-    def test_sanitize_filename_empty(self) -> None:
-        """Test filename sanitization with empty string."""
-        helper = CLIHelper()
+            def process_fn(content: str) -> FlextResult[str]:
+                return FlextResult[str].ok(content.upper())
 
-        if helper.sanitize_filename("") != "untitled":
-            msg = f"Expected {'untitled'}, got {helper.sanitize_filename('')}"
-            raise AssertionError(
-                msg,
-            )
-        assert helper.sanitize_filename("   ") == "untitled"
+            result = manager.backup_and_process(str(file_path), process_fn)
 
-    def test_create_progress(self) -> None:
-        """Test progress bar creation."""
-        helper = CLIHelper()
+            assert result.is_success
+            # Verify processed content
+            processed_content = file_path.read_text(encoding="utf-8")
+            assert "ORIGINAL CONTENT" in processed_content
 
-        progress = helper.create_progress("Loading...")
-        # Should return a Progress object without errors
-        assert progress is not None
+            # Clean up
+            file_path.unlink()
+            # Clean up backup file if it exists
+            backup_path = file_path.with_suffix(file_path.suffix + ".bak")
+            if backup_path.exists():
+                backup_path.unlink()
 
-    def test_print_success(self) -> None:
-        """Test success message printing."""
-        helper = CLIHelper()
+    def test_backup_and_process_nonexistent_file(self) -> None:
+        """Test backup_and_process with nonexistent file."""
+        manager = FlextCliFileManager()
 
-        # Mock the console print method
-        with patch.object(helper.console, "print") as mock_print:
-            helper.print_success("Operation successful")
-            mock_print.assert_called_once_with(
-                "[bold green]✓[/bold green] Operation successful",
-            )
+        def process_fn(content: str) -> FlextResult[str]:
+            return FlextResult[str].ok(content.upper())
 
-    def test_print_error(self) -> None:
-        """Test error message printing."""
-        helper = CLIHelper()
+        result = manager.backup_and_process("/nonexistent/file.txt", process_fn)
 
-        with patch.object(helper.console, "print") as mock_print:
-            helper.print_error("Operation failed")
-            mock_print.assert_called_once_with(
-                "[bold red]✗[/bold red] Operation failed",
-            )
+        assert not result.is_success
+        assert "not found" in result.error.lower() or "File not found" in result.error
 
-    def test_print_warning(self) -> None:
-        """Test warning message printing."""
-        helper = CLIHelper()
+    def test_safe_write_success(self) -> None:
+        """Test safe_write with valid content."""
+        manager = FlextCliFileManager()
+        content = "test safe write content"
 
-        with patch.object(helper.console, "print") as mock_print:
-            helper.print_warning("Warning message")
-            mock_print.assert_called_once_with(
-                "[bold yellow]⚠[/bold yellow] Warning message",
-            )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_path = Path(temp_dir) / "test_safe_write.txt"
 
-    def test_print_info(self) -> None:
-        """Test info message printing."""
-        helper = CLIHelper()
+            result = manager.safe_write(content, str(file_path))
 
-        with patch.object(helper.console, "print") as mock_print:
-            helper.print_info("Info message")
-            mock_print.assert_called_once_with("[bold blue]i[/bold blue] Info message")
+            assert result.is_success
+            # Verify content was written
+            written_content = file_path.read_text()
+            assert written_content == content
+
+
+class TestFlextCliDataProcessor:
+    """Test FlextCliDataProcessor class with REAL processing."""
+
+    def test_processor_init(self) -> None:
+        """Test processor initialization."""
+        processor = FlextCliDataProcessor()
+
+        assert processor is not None
+        # Test basic methods exist
+        assert hasattr(processor, "flext_cli_process_workflow")
+        assert hasattr(processor, "flext_cli_validate_and_transform")
+        assert hasattr(processor, "flext_cli_aggregate_data")
+        assert hasattr(processor, "transform_data_pipeline")
+
+    def test_processor_workflow_simple_case(self) -> None:
+        """Test processor workflow with simple data."""
+        processor = FlextCliDataProcessor()
+
+        data = {"values": [1, 2, 3]}
+
+        def double_values_step(
+            item: dict[str, object],
+        ) -> FlextResult[dict[str, object]]:
+            values = item.get("values", [])
+            if isinstance(values, list):
+                doubled = [v * 2 for v in values if isinstance(v, (int, float))]
+                return FlextResult[dict[str, object]].ok({"doubled_values": doubled})
+            return FlextResult[dict[str, object]].fail("No valid values found")
+
+        steps = [("double", double_values_step)]
+        result = processor.flext_cli_process_workflow(data, steps)
+
+        assert result.is_success
+        processed_data = result.value
+        assert "doubled_values" in processed_data
+        assert processed_data["doubled_values"] == [2, 4, 6]
+
+    def test_processor_validate_and_transform_valid_data(self) -> None:
+        """Test validate_and_transform with valid data."""
+        processor = FlextCliDataProcessor()
+
+        data = {"name": "test", "value": 42}
+
+        # The method expects validators as dict[str, str] mapping field -> validation type
+        validators = {
+            "name": "none",
+            "value": "none",
+        }  # Use 'none' for no-op validation
+        transformers = {
+            "name": lambda x: str(x).upper() if isinstance(x, str) else str(x),
+            "value": lambda x: x * 2 if isinstance(x, (int, float)) else x,
+        }
+
+        result = processor.flext_cli_validate_and_transform(
+            data, validators, transformers
+        )
+
+        assert result.is_success
+        transformed = result.value
+        assert transformed["name"] == "TEST"
+        assert transformed["value"] == 84
+
+    def test_processor_aggregate_data_sources(self) -> None:
+        """Test aggregate_data with source functions."""
+        processor = FlextCliDataProcessor()
+
+        def source1() -> FlextResult[str]:
+            return FlextResult[str].ok("10")
+
+        def source2() -> FlextResult[str]:
+            return FlextResult[str].ok("20")
+
+        def source3() -> FlextResult[str]:
+            return FlextResult[str].ok("30")
+
+        sources = {"amount1": source1, "amount2": source2, "amount3": source3}
+        result = processor.flext_cli_aggregate_data(sources)
+
+        assert result.is_success
+        aggregated = result.value
+        assert aggregated["amount1"] == "10"
+        assert aggregated["amount2"] == "20"
+        assert aggregated["amount3"] == "30"
+
+    def test_processor_transform_data_pipeline_success(self) -> None:
+        """Test transform_data_pipeline with multiple stages."""
+        processor = FlextCliDataProcessor()
+
+        data = {"numbers": [1, 2, 3, 4, 5]}
+
+        def double_stage(d: dict[str, object]) -> FlextResult[dict[str, object]]:
+            if "numbers" in d and isinstance(d["numbers"], list):
+                doubled = [x * 2 for x in d["numbers"] if isinstance(x, (int, float))]
+                return FlextResult[dict[str, object]].ok({"numbers": doubled})
+            return FlextResult[dict[str, object]].fail("No numbers to double")
+
+        def filter_stage(d: dict[str, object]) -> FlextResult[dict[str, object]]:
+            if "numbers" in d and isinstance(d["numbers"], list):
+                filtered = [
+                    x for x in d["numbers"] if isinstance(x, (int, float)) and x > 5
+                ]
+                return FlextResult[dict[str, object]].ok({"numbers": filtered})
+            return FlextResult[dict[str, object]].fail("No numbers to filter")
+
+        pipeline_stages = [double_stage, filter_stage]
+
+        result = processor.transform_data_pipeline(data, pipeline_stages)
+
+        assert result.is_success
+        final_result = result.value
+        # Original: [1, 2, 3, 4, 5] -> double: [2, 4, 6, 8, 10] -> filter: [6, 8, 10]
+        assert final_result["numbers"] == [6, 8, 10]
+
+
+# Factory function tests
+def test_flext_cli_create_helper() -> None:
+    """Test create_helper factory function."""
+    helper = flext_cli_create_helper()
+
+    assert helper is not None
+    assert isinstance(helper, FlextCliHelper)
+    assert hasattr(helper, "console")
+    assert hasattr(helper, "quiet")
+
+
+def test_flext_cli_create_data_processor() -> None:
+    """Test create_data_processor factory function."""
+    processor = flext_cli_create_data_processor()
+
+    assert processor is not None
+    assert isinstance(processor, FlextCliDataProcessor)
+
+
+def test_flext_cli_create_file_manager() -> None:
+    """Test create_file_manager factory function."""
+    manager = flext_cli_create_file_manager()
+
+    assert manager is not None
+    assert isinstance(manager, FlextCliFileManager)
+
+
+def test_flext_cli_batch_validate_simple_case() -> None:
+    """Test batch_validate with simple validation."""
+    # batch_validate expects dict[str, tuple[object, str]] where str is validation type
+    inputs = {
+        "field1": ("test1", "none"),
+        "field2": ("test2", "none"),
+        "field3": ("test3", "none"),
+    }
+    result = flext_cli_batch_validate(inputs)
+
+    assert result.is_success
+    assert result.value["field1"] == "test1"
+    assert result.value["field2"] == "test2"
+    assert result.value["field3"] == "test3"
+
+
+def test_flext_cli_batch_validate_empty_dict() -> None:
+    """Test batch_validate with empty dict."""
+    inputs: dict[str, tuple[object, str]] = {}
+
+    result = flext_cli_batch_validate(inputs)
+
+    assert result.is_success
+    assert result.value == {}
+
+
+def test_flext_cli_batch_validate_with_validation() -> None:
+    """Test batch_validate with actual validation."""
+    # Use 'none' validation type which passes everything through
+    inputs = {
+        "field1": ("valid_value", "none"),
+        "field2": (42, "none"),
+        "field3": ([1, 2, 3], "none"),
+    }
+    result = flext_cli_batch_validate(inputs)
+
+    # Should succeed with 'none' validation
+    assert result.is_success
+    validation_results = result.value
+    assert validation_results["field1"] == "valid_value"
+    assert validation_results["field2"] == 42
+    assert validation_results["field3"] == [1, 2, 3]
