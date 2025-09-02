@@ -547,7 +547,7 @@ class TestFlextCliService(unittest.TestCase):
     def test_flext_cli_register_plugin_with_real_entity(self) -> None:
         """Test registering plugins with real FlextCliPlugin entities."""
         plugin = FlextCliPlugin(
-            id=FlextModels("test-plugin-123"),
+            id="test-plugin-123",
             name="test-plugin",
             entry_point="test.plugin:main",
             plugin_version="1.0.0",
@@ -567,12 +567,12 @@ class TestFlextCliService(unittest.TestCase):
     def test_flext_cli_register_duplicate_plugin_fails(self) -> None:
         """Test registering duplicate plugin names fails."""
         plugin1 = FlextCliPlugin(
-            id=FlextModels("plugin1"),
+            id="plugin1",
             name="duplicate-plugin",
             entry_point="test1:main",
         )
         plugin2 = FlextCliPlugin(
-            id=FlextModels("plugin2"),
+            id="plugin2",
             name="duplicate-plugin",
             entry_point="test2:main",
         )
@@ -666,7 +666,7 @@ class TestFlextCliService(unittest.TestCase):
         """Test get_plugins returns copy to prevent external modification."""
         # Create a plugin first
         plugin = FlextCliPlugin(
-            id=FlextModels("test"), name="test", entry_point="test:main"
+            id="test", name="test", entry_point="test:main"
         )
         self.service.flext_cli_register_plugin("test", plugin)
 
