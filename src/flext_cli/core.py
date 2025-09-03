@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from flext_core import FlextResult
+from flext_core import FlextDomainService, FlextResult
 
 
-class FlextCliService:
+class FlextCliService(FlextDomainService[FlextResult[str]]):
     """Lightweight service exposing health check as FlextResult."""
 
     def flext_cli_health(self) -> FlextResult[str]:

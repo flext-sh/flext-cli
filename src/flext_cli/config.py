@@ -60,10 +60,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import ClassVar, override
 
-from flext_core.config import FlextConfig
-from flext_core.result import FlextResult
+from flext_core import FlextConfig, FlextResult
 from pydantic import Field
-from pydantic_settings import BaseSettings as PydanticBaseSettings, SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
 
@@ -362,20 +360,14 @@ class FlextCliConfig(FlextConfig):
             except (OSError, PermissionError, RuntimeError, ValueError) as e:
                 return FlextResult[None].fail(f"Directory validation failed: {e}")
 
-    class CliSettings(PydanticBaseSettings):
-        """Environment-aware CLI settings extending BaseSettings.
+    class CliSettings(FlextConfig.Settings):
+        """Environment-aware CLI settings extending FlextConfig.Settings.
 
         Automatically loads configuration from environment variables
         with FLEXT_CLI_ prefix following pydantic-settings patterns.
         """
 
-        model_config = SettingsConfigDict(
-            env_prefix="FLEXT_CLI_",
-            env_file=".env",
-            env_file_encoding="utf-8",
-            case_sensitive=False,
-            extra="ignore",
-        )
+        # FlextConfig.Settings already provides proper configuration
 
         # Core CLI settings with environment variable mapping
         profile: str = Field(
@@ -731,6 +723,44 @@ class FlextCliConfig(FlextConfig):
         # Return None by default for backwards compatibility
         return None
 
+    @classmethod
+    def setup_cli(
+        cls, config: FlextCliConfig | None = None
+    ) -> FlextResult[FlextCliConfig]:
+        """Set up CLI with configuration.
+
+        Args:
+            config: Optional configuration instance
+
+        Returns:
+            FlextResult[FlextCliConfig]: Setup result with config
+
+        """
+        try:
+            if config is None:
+                config = cls()
+
+            # Validate configuration
+            validation_result = config.validate_business_rules()
+            if validation_result.is_failure:
+                return FlextResult[FlextCliConfig].fail(
+                    f"Configuration validation failed: {validation_result.error}"
+                )
+
+            return FlextResult[FlextCliConfig].ok(config)
+        except Exception as e:
+            return FlextResult[FlextCliConfig].fail(f"CLI setup failed: {e}")
+
+    @classmethod
+    def get_current(cls) -> FlextCliConfig:
+        """Get default CLI configuration instance.
+
+        Returns:
+            FlextCliConfig: Default configuration instance
+
+        """
+        return cls()
+
 
 # =============================================================================
 # LEGACY API COMPATIBILITY LAYER (for tests and backwards compatibility)
@@ -740,35 +770,20 @@ class FlextCliConfig(FlextConfig):
 FlextCliSettings = FlextCliConfig
 
 
+# Backward compatibility functions
 def setup_cli(config: FlextCliConfig | None = None) -> FlextResult[FlextCliConfig]:
-    """Set up CLI with configuration.
-
-    Args:
-        config: Optional configuration instance
-
-    Returns:
-        FlextResult[FlextCliConfig]: Setup result with config
-
-    """
-    try:
-        if config is None:
-            config = FlextCliConfig()
-
-        # Validate configuration
-        validation_result = config.validate_business_rules()
-        if validation_result.is_failure:
-            return FlextResult[FlextCliConfig].fail(
-                f"Configuration validation failed: {validation_result.error}"
-            )
-
-        return FlextResult[FlextCliConfig].ok(config)
-    except Exception as e:
-        return FlextResult[FlextCliConfig].fail(f"CLI setup failed: {e}")
+    """Set up CLI with configuration."""
+    return FlextCliConfig.setup_cli(config)
 
 
-# Re-export consolidated class and compatibility layers
+def get_config() -> FlextCliConfig:
+    """Get default CLI configuration instance."""
+    return FlextCliConfig.get_current()
+
+
 __all__ = [
     "FlextCliConfig",
     "FlextCliSettings",  # Legacy alias
+    "get_config",  # Factory function
     "setup_cli",  # Setup function
 ]

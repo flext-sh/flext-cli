@@ -26,8 +26,8 @@ class TestTypeImports:
         assert types.CommandType is not None
 
     def test_output_format_import(self) -> None:
-        """Test FlextCliOutputFormat import from flext_cli.typings."""
-        from flext_cli.typings import FlextCliOutputFormat as _Fmt
+        """Test FlextCliTypes.OutputFormat import from flext_cli.typings."""
+        from flext_cli.typings import FlextCliTypes
 
         assert _Fmt is not None
 
@@ -66,7 +66,7 @@ class TestTypeImports:
         """Test modern type aliases."""
         # Updated aliases after flext-core refactoring
         modern_aliases = [
-            "FlextCliOutputFormat",
+            "FlextCliTypes.OutputFormat",
             "CommandType",
             "FlextCliLogLevel",  # Changed from LogLevel
             "FlextCliDataType",
@@ -137,7 +137,7 @@ class TestTypeCompatibility:
         """Test that modern aliases are available after flext-core refactoring."""
         # Updated to only test types that actually exist
         assert types.FlextCliDataType is not None
-        assert types.FlextCliOutputFormat is not None
+        assert types.FlextCliTypes.OutputFormat is not None
         assert types.FlextCliFileHandler is not None
         assert types.CommandArgs is not None
         # Note: TCliPath and TCliConfig removed in flext-core refactoring
@@ -146,7 +146,7 @@ class TestTypeCompatibility:
         """Test that modern aliases can be used for type checking."""
         # Updated to only use types that exist after flext-core refactoring
         data: types.FlextCliDataType = {"key": "value"}
-        format_str: types.FlextCliOutputFormat = "json"
+        format_str: types.FlextCliTypes.OutputFormat = "json"
         args: types.CommandArgs = ["arg1", "arg2"]
 
         def handler(x: object) -> object:
@@ -177,7 +177,7 @@ class TestTypeCompatibility:
         # These should be enum classes using actual exported names
         assert hasattr(types.CommandStatus, "__members__")
         assert hasattr(types.CommandType, "__members__")
-        assert hasattr(types.FlextCliOutputFormat, "__members__")
+        assert hasattr(types.FlextCliTypes.OutputFormat, "__members__")
         assert hasattr(types.PluginStatus, "__members__")
 
 

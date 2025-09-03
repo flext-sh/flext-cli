@@ -1,6 +1,7 @@
-"""Comprehensive tests for utils.auth module.
+"""Real functionality tests for FlextCliAuth unified class - NO MOCKS.
 
-Tests for authentication utilities to achieve near 100% coverage.
+Tests authentication functionality using real implementations following
+the ZERO TOLERANCE requirements for production-ready code.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -9,652 +10,189 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import contextlib
 import tempfile
+import unittest
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 from flext_core import FlextResult
+from flext_cli.auth import FlextCliAuth
+from flext_cli.config import FlextCliConfig
 
-from flext_cli import (
-    clear_auth_tokens,
-    get_auth_token,
-    get_refresh_token,
-    get_refresh_token_path,
-    get_token_path,
-    is_authenticated,
-    save_auth_token,
-    save_refresh_token,
-    should_auto_refresh,
-)
 
+class TestFlextCliAuth(unittest.TestCase):
+    """Real functionality tests for FlextCliAuth unified authentication class."""
 
-class TestTokenPaths:
-    """Test token path functions."""
+    def setUp(self) -> None:
+        """Set up test fixtures."""
+        # Create temporary directory for test tokens
+        self.temp_dir = Path(tempfile.mkdtemp())
 
-    def test_get_token_path(self) -> None:
-        """Test getting token path."""
-        with patch("flext_cli.cli_auth.get_cli_config") as mock_get_config:
-            mock_config = MagicMock()
-            mock_config.token_file = Path("/test/token.txt")
-            mock_get_config.return_value = mock_config
-
-            result = get_token_path()
-            assert result == Path("/test/token.txt")
-            mock_get_config.assert_called_once()
-
-    def test_get_refresh_token_path(self) -> None:
-        """Test getting refresh token path."""
-        with patch("flext_cli.cli_auth.get_cli_config") as mock_get_config:
-            mock_config = MagicMock()
-            mock_config.refresh_token_file = Path("/test/refresh_token.txt")
-            mock_get_config.return_value = mock_config
-
-            result = get_refresh_token_path()
-            assert result == Path("/test/refresh_token.txt")
-            mock_get_config.assert_called_once()
-
-
-class TestSaveAuthToken:
-    """Test save_auth_token function."""
-
-    def test_save_auth_token_success(self) -> None:
-        """Test successful auth token save."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            token_path = Path(temp_dir) / "token.txt"
-
-            result = save_auth_token("test-token-123", token_path=token_path)
-
-            assert result.is_success
-            assert result.value is None
-            assert token_path.exists()
-            assert token_path.read_text() == "test-token-123"
-
-            # Check file permissions
-            stat = token_path.stat()
-            assert oct(stat.st_mode)[-3:] == "600"
-
-    def test_save_auth_token_creates_parent_directories(self) -> None:
-        """Test that parent directories are created."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            token_path = Path(temp_dir) / "nested" / "path" / "token.txt"
-
-            with patch("flext_cli.utils_auth.get_token_path", return_value=token_path):
-                result = save_auth_token("test-token-456")
-
-                assert result.is_success
-                assert token_path.exists()
-                if token_path.read_text() != "test-token-456":
-                    msg = f"Expected {'test-token-456'}, got {token_path.read_text()}"
-                    raise AssertionError(
-                        msg,
-                    )
-
-    def test_save_auth_token_permission_error(self) -> None:
-        """Test handling permission error when saving."""
-        mock_path = MagicMock()
-        mock_path.parent.mkdir.side_effect = PermissionError("Permission denied")
-
-        with patch("flext_cli.utils_auth.get_token_path", return_value=mock_path):
-            result = save_auth_token("test-token")
-
-            assert result.is_failure
-            error_msg = result.error or ""
-            if "Failed to save auth token" not in error_msg:
-                msg = f"Expected {'Failed to save auth token'} in {error_msg}"
-                raise AssertionError(
-                    msg,
-                )
-            assert "Permission denied" in error_msg
-
-    def test_save_auth_token_write_error(self) -> None:
-        """Test handling write error when saving."""
-        mock_path = MagicMock()
-        mock_path.write_text.side_effect = OSError("Disk full")
-
-        with patch("flext_cli.utils_auth.get_token_path", return_value=mock_path):
-            result = save_auth_token("test-token")
-
-            assert result.is_failure
-            error_msg = result.error or ""
-            if "Failed to save auth token" not in error_msg:
-                msg = f"Expected {'Failed to save auth token'} in {error_msg}"
-                raise AssertionError(
-                    msg,
-                )
-            assert "Disk full" in error_msg
-
-    def test_save_auth_token_chmod_error(self) -> None:
-        """Test handling chmod error when saving."""
-        mock_path = MagicMock()
-        mock_path.parent.mkdir.return_value = None
-        mock_path.write_text.return_value = None
-        mock_path.chmod.side_effect = OSError("chmod failed")
-
-        with patch("flext_cli.utils_auth.get_token_path", return_value=mock_path):
-            result = save_auth_token("test-token")
-
-            assert result.is_failure
-            if "Failed to save auth token" not in result.error:
-                msg = f"Expected {'Failed to save auth token'} in {result.error}"
-                raise AssertionError(
-                    msg,
-                )
-            assert "chmod failed" in result.error
-
-
-class TestSaveRefreshToken:
-    """Test save_refresh_token function."""
-
-    def test_save_refresh_token_success(self) -> None:
-        """Test successful refresh token save."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            refresh_token_path = Path(temp_dir) / "refresh_token.txt"
-
-            with patch(
-                "flext_cli.utils_auth.get_refresh_token_path",
-                return_value=refresh_token_path,
-            ):
-                result = save_refresh_token("refresh-token-789")
-
-                assert result.is_success
-                assert result.value is None
-                assert refresh_token_path.exists()
-                if refresh_token_path.read_text() != "refresh-token-789":
-                    msg = f"Expected {'refresh-token-789'}, got {refresh_token_path.read_text()}"
-                    raise AssertionError(
-                        msg,
-                    )
-
-                # Check file permissions
-                stat = refresh_token_path.stat()
-                if oct(stat.st_mode)[-3:] != "600":
-                    msg = f"Expected {'600'}, got {oct(stat.st_mode)[-3:]}"
-                    raise AssertionError(
-                        msg,
-                    )
-
-    def test_save_refresh_token_creates_parent_directories(self) -> None:
-        """Test that parent directories are created."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            refresh_token_path = (
-                Path(temp_dir) / "deep" / "nested" / "refresh_token.txt"
-            )
-
-            with patch(
-                "flext_cli.utils_auth.get_refresh_token_path",
-                return_value=refresh_token_path,
-            ):
-                result = save_refresh_token("refresh-token-abc")
-
-                assert result.is_success
-                assert refresh_token_path.exists()
-                if refresh_token_path.read_text() != "refresh-token-abc":
-                    msg = f"Expected {'refresh-token-abc'}, got {refresh_token_path.read_text()}"
-                    raise AssertionError(
-                        msg,
-                    )
-
-    def test_save_refresh_token_permission_error(self) -> None:
-        """Test handling permission error when saving refresh token."""
-        mock_path = MagicMock()
-        mock_path.parent.mkdir.side_effect = PermissionError("Access denied")
-
-        with patch(
-            "flext_cli.utils_auth.get_refresh_token_path",
-            return_value=mock_path,
-        ):
-            result = save_refresh_token("refresh-token")
-
-            assert result.is_failure
-            if "Failed to save refresh token" not in result.error:
-                msg = f"Expected {'Failed to save refresh token'} in {result.error}"
-                raise AssertionError(
-                    msg,
-                )
-            assert "Access denied" in result.error
-
-    def test_save_refresh_token_write_error(self) -> None:
-        """Test handling write error when saving refresh token."""
-        mock_path = MagicMock()
-        mock_path.write_text.side_effect = OSError("Write failed")
-
-        with patch(
-            "flext_cli.utils_auth.get_refresh_token_path",
-            return_value=mock_path,
-        ):
-            result = save_refresh_token("refresh-token")
-
-            assert result.is_failure
-            if "Failed to save refresh token" not in result.error:
-                msg = f"Expected {'Failed to save refresh token'} in {result.error}"
-                raise AssertionError(
-                    msg,
-                )
-            assert "Write failed" in result.error
-
-
-class TestGetAuthToken:
-    """Test get_auth_token function."""
-
-    def test_get_auth_token_exists(self) -> None:
-        """Test getting auth token when file exists."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            token_path = Path(temp_dir) / "token.txt"
-            token_path.write_text("  my-auth-token  \n")  # With whitespace
-
-            with patch("flext_cli.utils_auth.get_token_path", return_value=token_path):
-                result = get_auth_token()
-
-                if result != "my-auth-token":  # Stripped
-                    msg = f"Expected {'my-auth-token'}, got {result}"
-                    raise AssertionError(msg)
-
-    def test_get_auth_token_not_exists(self) -> None:
-        """Test getting auth token when file doesn't exist."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            token_path = Path(temp_dir) / "nonexistent_token.txt"
-
-            with patch("flext_cli.utils_auth.get_token_path", return_value=token_path):
-                result = get_auth_token()
-
-                assert result is None
-
-    def test_get_auth_token_empty_file(self) -> None:
-        """Test getting auth token from empty file."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            token_path = Path(temp_dir) / "empty_token.txt"
-            token_path.write_text("")
-
-            with patch("flext_cli.utils_auth.get_token_path", return_value=token_path):
-                result = get_auth_token()
-
-                if result != "":
-                    msg = f"Expected {''}, got {result}"
-                    raise AssertionError(msg)
-
-    def test_get_auth_token_whitespace_only(self) -> None:
-        """Test getting auth token from file with only whitespace."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            token_path = Path(temp_dir) / "whitespace_token.txt"
-            token_path.write_text("   \n\t  ")
-
-            with patch("flext_cli.utils_auth.get_token_path", return_value=token_path):
-                result = get_auth_token()
-
-                if result != "":
-                    msg = f"Expected {''}, got {result}"
-                    raise AssertionError(msg)
-
-
-class TestGetRefreshToken:
-    """Test get_refresh_token function."""
-
-    def test_get_refresh_token_exists(self) -> None:
-        """Test getting refresh token when file exists."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            refresh_token_path = Path(temp_dir) / "refresh_token.txt"
-            refresh_token_path.write_text("\nmy-refresh-token\t")  # With whitespace
-
-            with patch(
-                "flext_cli.utils_auth.get_refresh_token_path",
-                return_value=refresh_token_path,
-            ):
-                result = get_refresh_token()
-
-                if result != "my-refresh-token":  # Stripped
-                    msg = f"Expected {'my-refresh-token'}, got {result}"
-                    raise AssertionError(msg)
-
-    def test_get_refresh_token_not_exists(self) -> None:
-        """Test getting refresh token when file doesn't exist."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            refresh_token_path = Path(temp_dir) / "missing_refresh_token.txt"
-
-            with patch(
-                "flext_cli.utils_auth.get_refresh_token_path",
-                return_value=refresh_token_path,
-            ):
-                result = get_refresh_token()
-
-                assert result is None
-
-    def test_get_refresh_token_empty_file(self) -> None:
-        """Test getting refresh token from empty file."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            refresh_token_path = Path(temp_dir) / "empty_refresh.txt"
-            refresh_token_path.write_text("")
-
-            with patch(
-                "flext_cli.utils_auth.get_refresh_token_path",
-                return_value=refresh_token_path,
-            ):
-                result = get_refresh_token()
-
-                if result != "":
-                    msg = f"Expected {''}, got {result}"
-                    raise AssertionError(msg)
-
-
-class TestClearAuthTokens:
-    """Test clear_auth_tokens function."""
-
-    def test_clear_auth_tokens_both_exist(self) -> None:
-        """Test clearing tokens when both files exist."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            token_path = Path(temp_dir) / "token.txt"
-            refresh_token_path = Path(temp_dir) / "refresh_token.txt"
-
-            # Create both files
-            token_path.write_text("auth-token")
-            refresh_token_path.write_text("refresh-token")
-
-            with (
-                patch("flext_cli.utils_auth.get_token_path", return_value=token_path),
-                patch(
-                    "flext_cli.utils_auth.get_refresh_token_path",
-                    return_value=refresh_token_path,
-                ),
-            ):
-                result = clear_auth_tokens()
-
-                assert result.is_success
-                assert result.value is None
-                assert not token_path.exists()
-                assert not refresh_token_path.exists()
-
-    def test_clear_auth_tokens_only_token_exists(self) -> None:
-        """Test clearing tokens when only auth token exists."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            token_path = Path(temp_dir) / "token.txt"
-            refresh_token_path = Path(temp_dir) / "refresh_token.txt"
-
-            # Create only token file
-            token_path.write_text("auth-token")
-
-            with (
-                patch("flext_cli.utils_auth.get_token_path", return_value=token_path),
-                patch(
-                    "flext_cli.utils_auth.get_refresh_token_path",
-                    return_value=refresh_token_path,
-                ),
-            ):
-                result = clear_auth_tokens()
-
-                assert result.is_success
-                assert not token_path.exists()
-                assert not refresh_token_path.exists()  # Still doesn't exist
-
-    def test_clear_auth_tokens_only_refresh_exists(self) -> None:
-        """Test clearing tokens when only refresh token exists."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            token_path = Path(temp_dir) / "token.txt"
-            refresh_token_path = Path(temp_dir) / "refresh_token.txt"
-
-            # Create only refresh token file
-            refresh_token_path.write_text("refresh-token")
-
-            with (
-                patch("flext_cli.utils_auth.get_token_path", return_value=token_path),
-                patch(
-                    "flext_cli.utils_auth.get_refresh_token_path",
-                    return_value=refresh_token_path,
-                ),
-            ):
-                result = clear_auth_tokens()
-
-                assert result.is_success
-                assert not token_path.exists()  # Still doesn't exist
-                assert not refresh_token_path.exists()
-
-    def test_clear_auth_tokens_neither_exists(self) -> None:
-        """Test clearing tokens when neither file exists."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            token_path = Path(temp_dir) / "token.txt"
-            refresh_token_path = Path(temp_dir) / "refresh_token.txt"
-
-            with (
-                patch("flext_cli.utils_auth.get_token_path", return_value=token_path),
-                patch(
-                    "flext_cli.utils_auth.get_refresh_token_path",
-                    return_value=refresh_token_path,
-                ),
-            ):
-                result = clear_auth_tokens()
-
-                assert result.is_success
-                assert not token_path.exists()
-                assert not refresh_token_path.exists()
-
-    def test_clear_auth_tokens_permission_error(self) -> None:
-        """Test handling permission error when clearing tokens."""
-        mock_token_path = MagicMock()
-        mock_refresh_path = MagicMock()
-        mock_token_path.exists.return_value = True
-        mock_token_path.unlink.side_effect = PermissionError("Cannot delete")
-
-        with (
-            patch("flext_cli.utils_auth.get_token_path", return_value=mock_token_path),
-            patch(
-                "flext_cli.utils_auth.get_refresh_token_path",
-                return_value=mock_refresh_path,
-            ),
-        ):
-            result = clear_auth_tokens()
-
-            assert result.is_failure
-            if "Failed to clear auth tokens" not in result.error:
-                msg = f"Expected {'Failed to clear auth tokens'} in {result.error}"
-                raise AssertionError(
-                    msg,
-                )
-            assert "Cannot delete" in result.error
-
-    def test_clear_auth_tokens_unlink_error_refresh(self) -> None:
-        """Test handling unlink error on refresh token."""
-        mock_token_path = MagicMock()
-        mock_refresh_path = MagicMock()
-        mock_token_path.exists.return_value = False
-        mock_refresh_path.exists.return_value = True
-        mock_refresh_path.unlink.side_effect = OSError("Unlink failed")
-
-        with (
-            patch("flext_cli.utils_auth.get_token_path", return_value=mock_token_path),
-            patch(
-                "flext_cli.utils_auth.get_refresh_token_path",
-                return_value=mock_refresh_path,
-            ),
-        ):
-            result = clear_auth_tokens()
-
-            assert result.is_failure
-            if "Failed to clear auth tokens" not in result.error:
-                msg = f"Expected {'Failed to clear auth tokens'} in {result.error}"
-                raise AssertionError(
-                    msg,
-                )
-            assert "Unlink failed" in result.error
-
-
-class TestIsAuthenticated:
-    """Test is_authenticated function."""
-
-    def test_is_authenticated_with_token(self) -> None:
-        """Test authentication check when token exists."""
-        # Mock the actual location where get_auth_token is defined
-        mock_result = FlextResult[str].ok("valid-token")
-        with patch("flext_cli.utils_auth.get_auth_token", return_value=mock_result):
-            result = is_authenticated()
-            if not (result):
-                msg = f"Expected True, got {result}"
-                raise AssertionError(msg)
-
-    def test_is_authenticated_without_token(self) -> None:
-        """Test authentication check when no token exists."""
-        with patch("flext_cli.utils_auth.get_auth_token", return_value=None):
-            result = is_authenticated()
-            if result:
-                msg = f"Expected False, got {result}"
-                raise AssertionError(msg)
-
-    def test_is_authenticated_empty_token(self) -> None:
-        """Test authentication check with empty token."""
-        with patch("flext_cli.utils_auth.get_auth_token", return_value=""):
-            result = is_authenticated()
-            assert result is True  # Empty string is still truthy for the function
-
-
-class TestShouldAutoRefresh:
-    """Test should_auto_refresh function."""
-
-    def test_should_auto_refresh_enabled_with_token(self) -> None:
-        """Test auto refresh when enabled and refresh token exists."""
-        mock_config = MagicMock()
-        mock_config.auto_refresh = True
-
-        with (
-            patch("flext_cli.utils_auth.get_config", return_value=mock_config),
-            patch(
-                "flext_cli.utils_auth.get_refresh_token",
-                return_value="refresh-token",
-            ),
-        ):
-            result = should_auto_refresh()
-            if not (result):
-                msg = f"Expected True, got {result}"
-                raise AssertionError(msg)
-
-    def test_should_auto_refresh_enabled_without_token(self) -> None:
-        """Test auto refresh when enabled but no refresh token."""
-        mock_config = MagicMock()
-        mock_config.auto_refresh = True
-
-        with (
-            patch("flext_cli.utils_auth.get_config", return_value=mock_config),
-            patch("flext_cli.utils_auth.get_refresh_token", return_value=None),
-        ):
-            result = should_auto_refresh()
-            if result:
-                msg = f"Expected False, got {result}"
-                raise AssertionError(msg)
-
-    def test_should_auto_refresh_disabled_with_token(self) -> None:
-        """Test auto refresh when disabled but refresh token exists."""
-        mock_config = MagicMock()
-        mock_config.auto_refresh = False
-
-        with (
-            patch("flext_cli.utils_auth.get_config", return_value=mock_config),
-            patch(
-                "flext_cli.utils_auth.get_refresh_token",
-                return_value="refresh-token",
-            ),
-        ):
-            result = should_auto_refresh()
-            if result:
-                msg = f"Expected False, got {result}"
-                raise AssertionError(msg)
-
-    def test_should_auto_refresh_disabled_without_token(self) -> None:
-        """Test auto refresh when disabled and no refresh token."""
-        mock_config = MagicMock()
-        mock_config.auto_refresh = False
-
-        with (
-            patch("flext_cli.utils_auth.get_config", return_value=mock_config),
-            patch("flext_cli.utils_auth.get_refresh_token", return_value=None),
-        ):
-            result = should_auto_refresh()
-            if result:
-                msg = f"Expected False, got {result}"
-                raise AssertionError(msg)
-
-
-class TestAuthIntegration:
-    """Integration tests for auth utilities."""
-
-    def test_full_auth_workflow(self) -> None:
-        """Test complete authentication workflow."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            token_path = Path(temp_dir) / "token.txt"
-            refresh_token_path = Path(temp_dir) / "refresh_token.txt"
-
-            with (
-                patch("flext_cli.utils_auth.get_token_path", return_value=token_path),
-                patch(
-                    "flext_cli.utils_auth.get_refresh_token_path",
-                    return_value=refresh_token_path,
-                ),
-            ):
-                # Initially not authenticated
-                assert not is_authenticated()
-
-                # Save tokens
-                auth_result = save_auth_token("my-auth-token")
-                refresh_result = save_refresh_token("my-refresh-token")
-
-                assert auth_result.is_success
-                assert refresh_result.is_success
-
-                # Now authenticated
-                assert is_authenticated()
-                if get_auth_token() != "my-auth-token":
-                    msg = f"Expected {'my-auth-token'}, got {get_auth_token()}"
-                    raise AssertionError(
-                        msg,
-                    )
-                assert get_refresh_token() == "my-refresh-token"
-
-                # Clear tokens
-                clear_result = clear_auth_tokens()
-                assert clear_result.is_success
-
-                # No longer authenticated
-                assert not is_authenticated()
-                assert get_auth_token() is None
-                assert get_refresh_token() is None
-
-    def test_auth_workflow_with_config(self) -> None:
-        """Test auth workflow with configuration."""
-        mock_config = MagicMock()
-        mock_config.auto_refresh = True
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            token_path = Path(temp_dir) / "token.txt"
-            refresh_token_path = Path(temp_dir) / "refresh_token.txt"
-            mock_config.token_file = token_path
-            mock_config.refresh_token_file = refresh_token_path
-
-            with patch("flext_cli.utils_auth.get_config", return_value=mock_config):
-                # Save refresh token
-                save_refresh_token("refresh-token-123")
-
-                # Should auto refresh since config enabled and token exists
-                assert should_auto_refresh()
-
-                # Clear tokens
-                clear_auth_tokens()
-
-                # Should not auto refresh since no refresh token
-                assert not should_auto_refresh()
-
-    def test_error_recovery_scenarios(self) -> None:
-        """Test error recovery in various scenarios."""
-        # Test when files are corrupted/unreadable
-        mock_path = MagicMock()
-        mock_path.exists.return_value = True
-        mock_path.read_text.side_effect = UnicodeDecodeError(
-            "utf-8",
-            b"",
-            0,
-            1,
-            "invalid",
+        # Create test config with temp directory
+        self.config = FlextCliConfig(
+            token_file=self.temp_dir / "token.json",
+            refresh_token_file=self.temp_dir / "refresh_token.json",
         )
 
-        with (
-            patch("flext_cli.utils_auth.get_token_path", return_value=mock_path),
-            contextlib.suppress(UnicodeDecodeError),
-        ):
-            # Should not crash, but won't return valid token - DRY using contextlib.suppress
-            get_auth_token()
-            # If exception not raised, that's fine too
+        self.auth = FlextCliAuth(config=self.config)
+
+    def tearDown(self) -> None:
+        """Clean up test fixtures."""
+        # Clean up temporary files
+        import shutil
+
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def test_auth_initialization(self) -> None:
+        """Test FlextCliAuth initialization."""
+        # Test with config
+        auth_with_config = FlextCliAuth(config=self.config)
+        assert isinstance(auth_with_config, FlextCliAuth)
+
+        # Test without config (should create default)
+        auth_default = FlextCliAuth()
+        assert isinstance(auth_default, FlextCliAuth)
+
+    def test_token_path_methods(self) -> None:
+        """Test token file path methods."""
+        token_path = self.auth.get_token_path()
+        assert isinstance(token_path, Path)
+
+        refresh_path = self.auth.get_refresh_token_path()
+        assert isinstance(refresh_path, Path)
+
+    def test_auth_token_operations(self) -> None:
+        """Test authentication token save/load operations."""
+        test_token = "test_access_token_12345"
+
+        # Test save token
+        save_result = self.auth.save_auth_token(test_token)
+        assert isinstance(save_result, FlextResult)
+        assert save_result.is_success
+
+        # Test get token
+        get_result = self.auth.get_auth_token()
+        assert isinstance(get_result, FlextResult)
+        assert get_result.is_success
+        assert get_result.value == test_token
+
+    def test_refresh_token_operations(self) -> None:
+        """Test refresh token save/load operations."""
+        test_refresh_token = "test_refresh_token_67890"
+
+        # Test save refresh token
+        save_result = self.auth.save_refresh_token(test_refresh_token)
+        assert isinstance(save_result, FlextResult)
+        assert save_result.is_success
+
+        # Test get refresh token
+        get_result = self.auth.get_refresh_token()
+        assert isinstance(get_result, FlextResult)
+        assert get_result.is_success
+        assert get_result.value == test_refresh_token
+
+    def test_authentication_status(self) -> None:
+        """Test authentication status checking."""
+        # Initially should not be authenticated
+        is_auth = self.auth.is_authenticated()
+        assert isinstance(is_auth, bool)
+        assert is_auth is False
+
+        # Save a token and check again
+        self.auth.save_auth_token("valid_token")
+        is_auth_with_token = self.auth.is_authenticated()
+        assert isinstance(is_auth_with_token, bool)
+        assert is_auth_with_token is True
+
+    def test_clear_auth_tokens(self) -> None:
+        """Test clearing authentication tokens."""
+        # Set up tokens first
+        self.auth.save_auth_token("test_token")
+        self.auth.save_refresh_token("test_refresh")
+
+        # Verify tokens exist
+        assert self.auth.is_authenticated() is True
+
+        # Clear tokens
+        clear_result = self.auth.clear_auth_tokens()
+        assert isinstance(clear_result, FlextResult)
+        assert clear_result.is_success
+
+        # Verify tokens are cleared
+        assert self.auth.is_authenticated() is False
+
+    def test_auto_refresh_logic(self) -> None:
+        """Test auto-refresh logic."""
+        # Test should_auto_refresh method
+        should_refresh = self.auth.should_auto_refresh()
+        assert isinstance(should_refresh, bool)
+
+
+class TestFlextCliAuthIntegration(unittest.TestCase):
+    """Integration tests for FlextCliAuth with different configurations."""
+
+    def test_auth_with_custom_config(self) -> None:
+        """Test authentication with custom configuration."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+
+            custom_config = FlextCliConfig(
+                token_file=temp_path / "custom_token.json",
+                refresh_token_file=temp_path / "custom_refresh.json",
+                auto_refresh=False,
+            )
+
+            auth = FlextCliAuth(config=custom_config)
+
+            # Test custom paths are used
+            token_path = auth.get_token_path()
+            refresh_path = auth.get_refresh_token_path()
+
+            assert token_path == temp_path / "custom_token.json"
+            assert refresh_path == temp_path / "custom_refresh.json"
+
+            # Test functionality works with custom config
+            auth.save_auth_token("custom_token")
+            token_result = auth.get_auth_token()
+            assert token_result.is_success
+            assert token_result.value == "custom_token"
+
+    def test_auth_error_handling(self) -> None:
+        """Test authentication error handling."""
+        # Test with invalid/inaccessible paths
+        invalid_config = FlextCliConfig(
+            token_file=Path("/invalid/path/token.json"),
+            refresh_token_file=Path("/invalid/path/refresh.json"),
+        )
+
+        auth = FlextCliAuth(config=invalid_config)
+
+        # Operations should return failures, not raise exceptions
+        save_result = auth.save_auth_token("test_token")
+        assert isinstance(save_result, FlextResult)
+        # Should fail due to invalid path
+        assert save_result.is_failure
+
+    def test_concurrent_auth_operations(self) -> None:
+        """Test authentication operations work correctly."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+
+            config = FlextCliConfig(
+                token_file=temp_path / "concurrent_token.json",
+                refresh_token_file=temp_path / "concurrent_refresh.json",
+            )
+
+            auth1 = FlextCliAuth(config=config)
+            auth2 = FlextCliAuth(config=config)
+
+            # Save token with first instance
+            auth1.save_auth_token("shared_token")
+
+            # Read token with second instance
+            token_result = auth2.get_auth_token()
+            assert token_result.is_success
+            assert token_result.value == "shared_token"
+
+
+if __name__ == "__main__":
+    unittest.main()

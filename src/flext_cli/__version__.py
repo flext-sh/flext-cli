@@ -57,3 +57,28 @@ __classifiers__ = [
     "Topic :: System :: Systems Administration",
     "Topic :: Utilities",
 ]
+
+# Foundation Layer exports
+__all__ = [
+    "__author__",
+    "__author_email__",
+    "__build__",
+    "__classifiers__",
+    "__description__",
+    "__documentation_url__",
+    "__download_url__",
+    "__issues_url__",
+    "__keywords__",
+    "__license__",
+    "__long_description__",
+    "__maintainer__",
+    "__maintainer_email__",
+    "__platforms__",
+    "__python_requires__",
+    "__release_date__",
+    "__repository_url__",
+    "__status__",
+    "__url__",
+    "__version__",
+    "__version_info__",
+]

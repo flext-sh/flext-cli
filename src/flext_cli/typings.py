@@ -13,14 +13,28 @@ from pathlib import Path
 from typing import Literal, Protocol, TypedDict
 from uuid import UUID
 
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult
 
 
 class FlextCliTypes:
     """Direct CLI type system using FlextTypes as foundation.
 
     Uses FlextTypes directly without aliases, prioritizing local library types.
+    Unified class containing ALL CLI types including output formats.
     """
+
+    # =============================================================================
+    # CLI OUTPUT FORMATS - String enum for type safety
+    # =============================================================================
+
+    class OutputFormat(StrEnum):
+        """Supported CLI output formats (string enum for type safety in tests)."""
+
+        JSON = "json"
+        YAML = "yaml"
+        CSV = "csv"
+        TABLE = "table"
+        PLAIN = "plain"
 
     # =============================================================================
     # CLI COMMAND TYPES - Direct usage of FlextTypes.Commands
@@ -28,13 +42,6 @@ class FlextCliTypes:
 
     class Commands:
         """CLI command types using FlextTypes.Commands directly."""
-
-        # Direct usage from flext-core - no aliases
-        CommandId = FlextTypes.Commands.CommandId
-        CommandName = FlextTypes.Commands.CommandName
-        CommandResult = FlextTypes.Commands.CommandResult
-        CommandStatus = FlextTypes.Commands.CommandStatus
-        CommandHandler = FlextTypes.Commands.CommandHandler
 
         # CLI-specific command types - direct definitions
         CliCommandStatus = Literal[
@@ -58,13 +65,6 @@ class FlextCliTypes:
 
     class Config:
         """CLI configuration types extending FlextTypes.Config."""
-
-        # Base config types from flext-core - direct usage
-        ConfigDict = FlextTypes.Config.ConfigDict
-        ConfigValue = FlextTypes.Config.ConfigValue
-        ConfigSource = FlextTypes.Config.ConfigSource
-        ConfigPriority = FlextTypes.Config.ConfigPriority
-        Environment = FlextTypes.Config.Environment
 
         # CLI-specific config types - direct definitions
         CliProfile = str
@@ -90,13 +90,6 @@ class FlextCliTypes:
 
     class Auth:
         """CLI authentication types extending FlextTypes.Auth."""
-
-        # Base auth types from flext-core - direct usage
-        AccessToken = FlextTypes.Auth.AccessToken
-        RefreshToken = FlextTypes.Auth.RefreshToken
-        Permission = FlextTypes.Auth.Permission
-        Role = FlextTypes.Auth.Role
-        Scope = FlextTypes.Auth.Scope
 
         # CLI-specific auth types - direct definitions
         CliUsername = str
@@ -125,11 +118,6 @@ class FlextCliTypes:
     class Session:
         """CLI session types extending FlextTypes.Core."""
 
-        # Base core types from flext-core - direct usage
-        Boolean = FlextTypes.Core.Boolean
-        Dict = FlextTypes.Core.Dict
-        ErrorMessage = FlextTypes.Core.ErrorMessage
-
         # CLI-specific session types - direct definitions
         CliSessionId = UUID
         CliUserId = str | None
@@ -155,12 +143,6 @@ class FlextCliTypes:
 
     class Services:
         """CLI service types extending FlextTypes.Container."""
-
-        # Base container types from flext-core - direct usage
-        ServiceKey = FlextTypes.Container.ServiceKey
-        ServiceInstance = FlextTypes.Container.ServiceInstance
-        ServiceRegistration = FlextTypes.Container.ServiceRegistration
-        FactoryFunction = FlextTypes.Container.FactoryFunction
 
         # CLI-specific service types - direct definitions
         CliServiceName = str
@@ -240,20 +222,9 @@ class FlextCliTypes:
 
 
 # =============================================================================
-# EXPORTS - Single unique class following user requirements
+# EXPORTS - Single unified class following user requirements
 # =============================================================================
 
 __all__ = [
-    "FlextCliOutputFormat",
     "FlextCliTypes",
 ]
-
-
-class FlextCliOutputFormat(StrEnum):
-    """Supported CLI output formats (string enum for type safety in tests)."""
-
-    JSON = "json"
-    YAML = "yaml"
-    CSV = "csv"
-    TABLE = "table"
-    PLAIN = "plain"

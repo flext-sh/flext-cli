@@ -12,7 +12,7 @@ import uuid
 
 import click
 from flext_core import (
-    FlextLogger,
+    FlextCore,
     __version__ as core_version,
 )
 from rich.console import Console
@@ -85,7 +85,7 @@ def cli(
             setattr(config, "output_format", output or "table")
             setattr(config, "debug", bool(debug))
         except Exception as e:
-            FlextLogger(__name__).debug("Config override failed: %s", e)
+            FlextCore.get_logger(__name__).debug("Config override failed: %s", e)
 
     # Setup click context with components
     console = Console(quiet=quiet)
@@ -116,7 +116,7 @@ def cli(
 
 def _register_commands() -> None:
     """Register subcommand groups lazily to avoid import-time side effects."""
-    logger = FlextLogger(__name__)
+    logger = FlextCore.get_logger(__name__)
 
     try:
         cli.add_command(auth)
@@ -208,7 +208,7 @@ def main() -> None:
     try:
         cli()
     except (RuntimeError, ValueError, TypeError):
-        logger = FlextLogger(__name__)
+        logger = FlextCore.get_logger(__name__)
         logger.exception("CLI execution failed")
         sys.exit(1)
 

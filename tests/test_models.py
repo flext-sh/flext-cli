@@ -35,7 +35,7 @@ from flext_cli.models import (
     SessionStatus,
     _now_utc,
 )
-from flext_cli.typings import FlextCliOutputFormat
+from flext_cli.typings import FlextCliTypes
 
 
 class TestUtilityFunctions:
@@ -112,11 +112,11 @@ class TestEnumerations:
 
     def test_flext_cli_output_format_values(self) -> None:
         """Test all output format values."""
-        assert FlextCliOutputFormat.JSON == "json"
-        assert FlextCliOutputFormat.CSV == "csv"
-        assert FlextCliOutputFormat.YAML == "yaml"
-        assert FlextCliOutputFormat.TABLE == "table"
-        assert FlextCliOutputFormat.PLAIN == "plain"
+        assert FlextCliTypes.OutputFormat.JSON == "json"
+        assert FlextCliTypes.OutputFormat.CSV == "csv"
+        assert FlextCliTypes.OutputFormat.YAML == "yaml"
+        assert FlextCliTypes.OutputFormat.TABLE == "table"
+        assert FlextCliTypes.OutputFormat.PLAIN == "plain"
 
     def test_status_aliases(self) -> None:
         """Test status enumeration aliases."""
@@ -235,7 +235,7 @@ class TestFlextCliOutput:
         assert output.stderr == ""
         assert output.exit_code is None
         assert output.execution_time_seconds is None
-        assert output.output_format == FlextCliOutputFormat.PLAIN
+        assert output.output_format == FlextCliTypes.OutputFormat.PLAIN
         assert isinstance(output.metadata, dict)
         assert isinstance(output.captured_at, datetime)
 
@@ -248,7 +248,7 @@ class TestFlextCliOutput:
             stderr="test error",
             exit_code=0,
             execution_time_seconds=1.5,
-            output_format=FlextCliOutputFormat.JSON,
+            output_format=FlextCliTypes.OutputFormat.JSON,
             metadata={"key": "value"},
             captured_at=now,
         )
@@ -257,7 +257,7 @@ class TestFlextCliOutput:
         assert output.stderr == "test error"
         assert output.exit_code == 0
         assert output.execution_time_seconds == 1.5
-        assert output.output_format == FlextCliOutputFormat.JSON
+        assert output.output_format == FlextCliTypes.OutputFormat.JSON
         assert output.metadata == {"key": "value"}
         assert output.captured_at == now
 
@@ -316,7 +316,7 @@ class TestFlextCliOutput:
             stderr="test error",
             exit_code=0,
             execution_time_seconds=1.5,
-            output_format=FlextCliOutputFormat.JSON,
+            output_format=FlextCliTypes.OutputFormat.JSON,
         )
 
         formatted = output.format_output()
@@ -332,7 +332,7 @@ class TestFlextCliOutput:
             stdout="test output",
             stderr="test error",
             exit_code=0,
-            output_format=FlextCliOutputFormat.PLAIN,
+            output_format=FlextCliTypes.OutputFormat.PLAIN,
         )
 
         formatted = output.format_output()
@@ -362,7 +362,7 @@ class TestFlextCliConfiguration:
         assert config.profile_name == "default"
         assert config.log_level == "INFO"
         assert config.default_timeout == 300
-        assert config.output_format == FlextCliOutputFormat.TABLE
+        assert config.output_format == FlextCliTypes.OutputFormat.TABLE
         assert config.config_file_path is None
         assert config.cache_directory is None
         assert isinstance(config.plugin_directories, list)
@@ -376,7 +376,7 @@ class TestFlextCliConfiguration:
                 profile_name="production",
                 log_level="DEBUG",
                 default_timeout=600,
-                output_format=FlextCliOutputFormat.JSON,
+                output_format=FlextCliTypes.OutputFormat.JSON,
                 config_file_path=Path(temp_dir) / "config.yaml",
                 cache_directory=Path(temp_dir) / "cache",
                 plugin_directories=[Path(temp_dir)],
@@ -387,7 +387,7 @@ class TestFlextCliConfiguration:
             assert config.profile_name == "production"
             assert config.log_level == "DEBUG"
             assert config.default_timeout == 600
-            assert config.output_format == FlextCliOutputFormat.JSON
+            assert config.output_format == FlextCliTypes.OutputFormat.JSON
             assert config.config_file_path == Path(temp_dir) / "config.yaml"
             assert config.cache_directory == Path(temp_dir) / "cache"
             assert config.plugin_directories == [Path(temp_dir)]

@@ -16,11 +16,13 @@ The examples are organized in a sequential learning path from foundational patte
 ## 🏗️ Architecture Patterns Demonstrated
 
 ### Clean Architecture Integration
+
 - **Domain Layer**: CLI entities (CLICommand, FlextCliSession, FlextCliPlugin) with business rules
 - **Application Layer**: Command handlers and service orchestration
 - **Infrastructure Layer**: External service integration, file I/O, API clients
 
 ### flext-core Foundation Patterns
+
 - **FlextResult[T]**: Railway-oriented programming for error handling
 - **FlextModels**: Pydantic-based domain models with validation
 - **FlextContainer**: Dependency injection container for service composition
@@ -29,9 +31,11 @@ The examples are organized in a sequential learning path from foundational patte
 ## 📖 Example Details
 
 ### 01 - Foundation Patterns
+
 **File**: `01_foundation_patterns.py`
 
 **Key Patterns**:
+
 - FlextResult railway-oriented programming
 - FlextModels with Pydantic validation
 - FlextContainer dependency injection
@@ -39,15 +43,18 @@ The examples are organized in a sequential learning path from foundational patte
 - Entity lifecycle management
 
 **What You'll Learn**:
+
 - How to use FlextResult for error handling
 - Creating domain entities with validation
 - Service composition with dependency injection
 - CLI-specific domain modeling
 
 ### 02 - CLI Commands Integration
+
 **File**: `02_cli_commands_integration.py`
 
 **Key Patterns**:
+
 - Click framework integration with flext-cli decorators
 - Type-safe CLI options (URL, PositiveInt, ExistingFile)
 - CLI decorators (@cli_enhanced, @cli_measure_time, @cli_confirm)
@@ -55,15 +62,18 @@ The examples are organized in a sequential learning path from foundational patte
 - Command lifecycle with validation and execution
 
 **What You'll Learn**:
+
 - Building type-safe CLI commands
 - Using flext-cli decorators for enhanced functionality
 - Interactive CLI patterns with Rich UI
 - Command parameter validation and transformation
 
 ### 03 - Data Processing and Output
+
 **File**: `03_data_processing_and_output.py`
 
 **Key Patterns**:
+
 - Data transformation and aggregation utilities
 - Multiple output formats (JSON, YAML, CSV, Rich tables)
 - Type-safe file operations (ExistingFile, NewFile, ExistingDir)
@@ -71,15 +81,18 @@ The examples are organized in a sequential learning path from foundational patte
 - Batch processing workflows
 
 **What You'll Learn**:
+
 - Processing and transforming data in CLI applications
 - Creating beautiful terminal output with Rich
 - Type-safe file handling patterns
 - Implementing flexible output formatting
 
 ### 04 - Authentication and Authorization
+
 **File**: `04_authentication_and_authorization.py`
 
 **Key Patterns**:
+
 - Token management (save, retrieve, validate)
 - Authorization headers and API authentication
 - Protected operations with @require_auth decorator
@@ -87,15 +100,18 @@ The examples are organized in a sequential learning path from foundational patte
 - Session management and token refresh
 
 **What You'll Learn**:
+
 - Implementing secure authentication in CLI apps
 - Token-based authentication patterns
 - Role-based permission systems
 - Secure credential handling
 
 ### 05 - Advanced Service Integration
+
 **File**: `05_advanced_service_integration.py`
 
 **Key Patterns**:
+
 - FlextCliService with comprehensive mixins
 - Async command execution with @async_command
 - Circuit breaker pattern for service resilience
@@ -103,15 +119,18 @@ The examples are organized in a sequential learning path from foundational patte
 - Health monitoring and performance tracking
 
 **What You'll Learn**:
+
 - Building resilient service integrations
 - Implementing async operations in CLI apps
 - Circuit breaker patterns for fault tolerance
 - Service health monitoring and orchestration
 
 ### 06 - Comprehensive CLI Application
+
 **File**: `06_comprehensive_cli_application.py`
 
 **Key Patterns**:
+
 - Multi-command CLI with nested command groups
 - Plugin architecture for extensibility
 - Configuration management with profiles
@@ -119,6 +138,7 @@ The examples are organized in a sequential learning path from foundational patte
 - Rich terminal UI with progress tracking
 
 **What You'll Learn**:
+
 - Building complete, production-ready CLI applications
 - Implementing plugin architectures
 - Advanced configuration management

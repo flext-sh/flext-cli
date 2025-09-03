@@ -16,7 +16,7 @@ import yaml
 from flext_core import FlextResult
 from rich.console import Console
 
-from flext_cli import FlextCliApiFunctions as A, FlextCliConfig, FlextCliContext
+from flext_cli import FlextCliApi, FlextCliConfig, FlextCliContext
 
 
 class TestFlextCliContext:
@@ -40,8 +40,9 @@ class TestFormatting:
     def test_flext_cli_format_json(self) -> None:
         """Test JSON formatting."""
         data = {"key": "value", "number": 42}
+        api = FlextCliApi()
 
-        result = A.format(data, "json")
+        result = api.format_data(data, "json")
 
         assert result.is_success
         formatted = result.value
@@ -52,7 +53,8 @@ class TestFormatting:
         """Test YAML formatting."""
         data = {"key": "value", "list": [1, 2, 3]}
 
-        result = A.format(data, "yaml")
+        api = FlextCliApi()
+        result = api.format_data(data, "yaml")
 
         assert result.is_success
         formatted = result.value
@@ -63,7 +65,8 @@ class TestFormatting:
         """Test table formatting."""
         data = {"name": "John", "age": 30}
 
-        result = A.format(data, "table")
+        api = FlextCliApi()
+        result = api.format_data(data, "table")
 
         assert result.is_success
         formatted = result.value
@@ -74,7 +77,8 @@ class TestFormatting:
         """Test plain formatting."""
         data = "Simple text"
 
-        result = A.format(data, "plain")
+        api = FlextCliApi()
+        result = api.format_data(data, "plain")
 
         assert result.is_success
         formatted = result.value
@@ -84,7 +88,8 @@ class TestFormatting:
         """Test CSV formatting."""
         data = [{"name": "John", "age": 30}]
 
-        result = A.format(data, "csv")
+        api = FlextCliApi()
+        result = api.format_data(data, "csv")
 
         assert result.is_success
         formatted = result.value
@@ -95,7 +100,8 @@ class TestFormatting:
         """Test formatting with invalid format."""
         data = {"key": "value"}
 
-        result = A.format(data, "invalid")
+        api = FlextCliApi()
+        result = api.format_data(data, "invalid")
 
         assert not result.is_success
         assert "Unsupported format" in result.error
@@ -108,7 +114,8 @@ class TestTableCreation:
         """Test table creation from dictionary."""
         data = {"name": "John", "age": 30, "city": "NYC"}
 
-        result = A.table(data, "Test Table")
+        api = FlextCliApi()
+        result = api.create_table(data, "Test Table")
 
         assert result.is_success
         table = result.value
@@ -125,7 +132,8 @@ class TestTableCreation:
         """Test table creation from list of dictionaries."""
         data = [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]
 
-        result = A.table(data)
+        api = FlextCliApi()
+        result = api.create_table(data)
 
         assert result.is_success
         assert result.value is not None
@@ -134,7 +142,8 @@ class TestTableCreation:
         """Test table creation from simple list."""
         data = ["item1", "item2", "item3"]
 
-        result = A.table(data)
+        api = FlextCliApi()
+        result = api.create_table(data)
 
         assert result.is_success
         assert result.value is not None
@@ -143,7 +152,8 @@ class TestTableCreation:
         """Test table creation from single value."""
         data = "Single value"
 
-        result = A.table(data)
+        api = FlextCliApi()
+        result = api.create_table(data)
 
         assert result.is_success
         assert result.value is not None
@@ -151,7 +161,8 @@ class TestTableCreation:
     def test_table_creation_dict_list(self) -> None:
         """Test flext_cli_table with list of dictionaries."""
         data = [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]
-        result = A.table(data)
+        api = FlextCliApi()
+        result = api.create_table(data)
 
         assert result.is_success
         assert result.value is not None
@@ -159,7 +170,8 @@ class TestTableCreation:
     def test_table_creation_simple_list(self) -> None:
         """Test flext_cli_table with simple list."""
         data = ["item1", "item2", "item3"]
-        result = A.table(data)
+        api = FlextCliApi()
+        result = api.create_table(data)
 
         assert result.is_success
         assert result.value is not None
@@ -167,7 +179,8 @@ class TestTableCreation:
     def test_table_creation_dict(self) -> None:
         """Test flext_cli_table with dictionary."""
         data = {"name": "John", "age": 30}
-        result = A.table(data)
+        api = FlextCliApi()
+        result = api.create_table(data)
 
         assert result.is_success
         table = result.value
@@ -176,7 +189,8 @@ class TestTableCreation:
     def test_table_creation_single_value(self) -> None:
         """Test flext_cli_table with single value."""
         data = "Single value"
-        result = A.table(data)
+        api = FlextCliApi()
+        result = api.create_table(data)
 
         assert result.is_success
         table = result.value
@@ -194,7 +208,8 @@ class TestDataTransformation:
         def transform_fn(x: int) -> int:
             return x * 2
 
-        result = A.transform_data(data, transform_fn)
+        api = FlextCliApi()
+        result = api.transform_data(data, transform_fn)
 
         # Function should return a result
         assert isinstance(result, FlextResult)
@@ -206,7 +221,8 @@ class TestDataTransformation:
         def transform_fn(x: object) -> object:
             return x
 
-        result = A.transform_data(data, transform_fn)
+        api = FlextCliApi()
+        result = api.transform_data(data, transform_fn)
 
         assert isinstance(result, FlextResult)
 
@@ -222,9 +238,8 @@ class TestDataAggregation:
             {"category": "B", "value": 20},
         ]
 
-        result = A.aggregate_data(
-            data, group_by="category", sum_fields=["value"]
-        )
+        api = FlextCliApi()
+        result = api.aggregate_data(data, group_by="category", sum_fields=["value"])
 
         # Function should return a result
         assert isinstance(result, FlextResult)
@@ -233,7 +248,8 @@ class TestDataAggregation:
         """Test data aggregation with empty data."""
         data: list[dict[str, object]] = []
 
-        result = A.aggregate_data(data, group_by="field")
+        api = FlextCliApi()
+        result = api.aggregate_data(data, group_by="field")
 
         assert isinstance(result, FlextResult)
         if result.is_success:
@@ -251,7 +267,8 @@ class TestDataExport:
         with tempfile.NamedTemporaryFile(
             encoding="utf-8", mode="w", suffix=".json", delete=False
         ) as f:
-            result = A.export(data, Path(f.name), "json")
+            api = FlextCliApi()
+            result = api.export_data(data, Path(f.name), "json")
 
             assert result.is_success
 
@@ -269,7 +286,8 @@ class TestDataExport:
         with tempfile.NamedTemporaryFile(
             encoding="utf-8", mode="w", suffix=".yaml", delete=False
         ) as f:
-            result = A.export(data, Path(f.name), "yaml")
+            api = FlextCliApi()
+            result = api.export_data(data, Path(f.name), "yaml")
 
             assert result.is_success
 
@@ -285,7 +303,8 @@ class TestDataExport:
         data = {"key": "value"}
 
         with tempfile.NamedTemporaryFile(delete=False) as f:
-            result = A.export(data, Path(f.name), "invalid")
+            api = FlextCliApi()
+            result = api.export_data(data, Path(f.name), "invalid")
 
             assert not result.is_success
             assert "Unsupported export format" in result.error
@@ -297,7 +316,8 @@ class TestDataExport:
         datasets = {"data1": {"key1": "value1"}, "data2": {"key2": "value2"}}
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            result = A.batch_export(datasets, Path(temp_dir), "json")
+            api = FlextCliApi()
+            result = api.batch_export(datasets, Path(temp_dir), "json")
 
             assert result.is_success
             summary = result.value
@@ -312,7 +332,8 @@ class TestDataExport:
         datasets: dict[str, object] = {}
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            result = A.batch_export(datasets, Path(temp_dir), "json")
+            api = FlextCliApi()
+            result = api.batch_export(datasets, Path(temp_dir), "json")
 
             assert result.is_success
             summary = result.value
@@ -324,7 +345,8 @@ class TestDataExport:
         datasets = {"data": {"key": "value"}}
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            result = A.batch_export(datasets, Path(temp_dir), "invalid")
+            api = FlextCliApi()
+            result = api.batch_export(datasets, Path(temp_dir), "invalid")
 
             assert not result.is_success
             assert "Unsupported export format" in result.error
@@ -337,7 +359,8 @@ class TestUtilityFunctions:
         """Test unwrap_or_default with successful result."""
         result = FlextResult[str].ok("success")
 
-        value = A.unwrap_or_default(result, "default")
+        api = FlextCliApi()
+        value = api.unwrap_or_default(result, "default")
 
         assert value == "success"
 
@@ -345,7 +368,8 @@ class TestUtilityFunctions:
         """Test unwrap_or_default with failed result."""
         result = FlextResult[str].fail("error")
 
-        value = A.unwrap_or_default(result, "default")
+        api = FlextCliApi()
+        value = api.unwrap_or_default(result, "default")
 
         assert value == "default"
 
@@ -353,7 +377,8 @@ class TestUtilityFunctions:
         """Test unwrap_or_none with successful result."""
         result = FlextResult[str].ok("success")
 
-        value = A.unwrap_or_none(result)
+        api = FlextCliApi()
+        value = api.unwrap_or_none(result)
 
         assert value == "success"
 
@@ -361,7 +386,8 @@ class TestUtilityFunctions:
         """Test unwrap_or_none with failed result."""
         result = FlextResult[str].fail("error")
 
-        value = A.unwrap_or_none(result)
+        api = FlextCliApi()
+        value = api.unwrap_or_none(result)
 
         assert value is None
 
@@ -369,7 +395,8 @@ class TestUtilityFunctions:
         """Test unwrap_or_none with None result."""
         result = FlextResult[None].ok(None)
 
-        value = A.unwrap_or_none(result)
+        api = FlextCliApi()
+        value = api.unwrap_or_none(result)
 
         assert value is None
 
@@ -379,7 +406,8 @@ class TestEdgeCases:
 
     def test_format_with_none_data(self) -> None:
         """Test formatting with None data."""
-        result = A.format(None, "json")
+        api = FlextCliApi()
+        result = api.format_data(None, "json")
 
         assert result.is_success
         formatted = result.value
@@ -389,7 +417,8 @@ class TestEdgeCases:
         """Test table creation with complex nested data."""
         data = {"simple": "value", "nested": {"inner": "data"}, "list": [1, 2, 3]}
 
-        result = A.table(data)
+        api = FlextCliApi()
+        result = api.create_table(data)
 
         assert result.is_success
         table = result.value
@@ -400,7 +429,8 @@ class TestEdgeCases:
         data = {"test": "data"}
         readonly_path = Path("/nonexistent/readonly/file.json")
 
-        result = A.export(data, readonly_path, "json")
+        api = FlextCliApi()
+        result = api.export_data(data, readonly_path, "json")
 
         assert not result.is_success
         # Should handle permission/path errors gracefully
@@ -410,7 +440,8 @@ class TestEdgeCases:
         # Create data that might cause formatting issues
         data = {"date": datetime.datetime.now(tz=datetime.UTC)}
 
-        result = A.format(data, "json")
+        api = FlextCliApi()
+        result = api.format_data(data, "json")
 
         # May fail if datetime serialization is not handled - this is expected
         # Different implementations may handle this differently
@@ -424,7 +455,8 @@ class TestSpecialCases:
         """Test table creation handles empty list."""
         data: list[object] = []
 
-        result = A.table(data)
+        api = FlextCliApi()
+        result = api.create_table(data)
 
         # The implementation might handle empty lists differently
         assert isinstance(result, FlextResult)
@@ -433,7 +465,8 @@ class TestSpecialCases:
         """Test table creation handles list with empty dict."""
         data = [{}]
 
-        result = A.table(data)
+        api = FlextCliApi()
+        result = api.create_table(data)
 
         # The implementation might handle this case
         assert isinstance(result, FlextResult)
@@ -442,7 +475,8 @@ class TestSpecialCases:
         """Test aggregation with non-list data."""
         data = {"not": "a list"}
 
-        result = A.aggregate_data(data, group_by="field")
+        api = FlextCliApi()
+        result = api.aggregate_data(data, group_by="field")
 
         # Should handle type errors gracefully
         assert isinstance(result, FlextResult)
@@ -454,7 +488,8 @@ class TestSpecialCases:
         def transform_fn(x: object) -> object:
             return x
 
-        result = A.transform_data(data, transform_fn)
+        api = FlextCliApi()
+        result = api.transform_data(data, transform_fn)
 
         # Should handle type errors gracefully
         assert isinstance(result, FlextResult)

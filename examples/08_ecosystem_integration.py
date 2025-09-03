@@ -99,10 +99,12 @@ class EcosystemService(FlextCliService):
 
     def execute(self) -> FlextResult[dict[str, object]]:
         """Execute ecosystem service operations."""
-        return FlextResult[dict[str, object]].ok({
-            "service": "ecosystem_integration",
-            "status": "running",
-        })
+        return FlextResult[dict[str, object]].ok(
+            {
+                "service": "ecosystem_integration",
+                "status": "running",
+            }
+        )
 
     def check_service_health(
         self, service_name: str, _url: str
@@ -178,10 +180,12 @@ class EcosystemService(FlextCliService):
         try:
             # api_auth_result = self.api_client.authenticate(username, password)
             # FlextApiClient doesn't have authenticate method - simulate it
-            api_auth_result = FlextResult[dict[str, str]].ok({
-                "token": "demo_token",
-                "status": "authenticated",
-            })
+            api_auth_result = FlextResult[dict[str, str]].ok(
+                {
+                    "token": "demo_token",
+                    "status": "authenticated",
+                }
+            )
         except Exception:
             api_auth_result = FlextResult[dict[str, str]].fail(
                 "Authentication simulation failed"

@@ -64,6 +64,7 @@ from flext_cli.protocols import *
 # =============================================================================
 
 from flext_cli.models import *
+from flext_cli.domain_services import *
 from flext_cli.core import *
 from flext_cli.context import *
 from flext_cli.config import *
@@ -74,8 +75,9 @@ from flext_cli.config import *
 
 from flext_cli.cmd import *
 from flext_cli.auth import *
-from flext_cli.api_functions import *
-from flext_cli.commands_debug import *
+
+# api_functions.py removed - functionality integrated into api.py
+from flext_cli.debug_commands import *
 from flext_cli.debug import *
 
 # =============================================================================
@@ -85,8 +87,9 @@ from flext_cli.debug import *
 from flext_cli.client import *
 from flext_cli.api import *
 from flext_cli.formatters import *
-from flext_cli.formatter_adapter import *
-from flext_cli.output_adapter import *
+
+# from flext_cli.formatter_adapter import *  # Module not found
+# from flext_cli.output_adapter import *  # Module not found
 from flext_cli.services import *
 
 # =============================================================================
@@ -94,10 +97,12 @@ from flext_cli.services import *
 # =============================================================================
 
 from flext_cli.decorators import *
-from flext_cli.helpers import *
-from flext_cli.cli_utils import *
-from flext_cli.utils_core import *
-from flext_cli.utils_output import *
+
+# helpers.py split into specific modules following single-class pattern
+from flext_cli.interactions import *
+from flext_cli.validation import *
+from flext_cli.file_operations import *
+from flext_cli.data_processing import *
 
 # =============================================================================
 # CLI ENTRY POINT - Main CLI functionality
@@ -112,14 +117,13 @@ from flext_cli.cli import *
 # Combine all __all__ exports from imported modules
 import flext_cli.__version__ as _version
 import flext_cli.api as _api
-import flext_cli.api_functions as _api_functions
+
+# api_functions module removed - integrated into api.py
 import flext_cli.auth as _auth
 import flext_cli.cli as _cli
-import flext_cli.cli_auth as _cli_auth
-import flext_cli.cli_utils as _cli_utils
 import flext_cli.client as _client
 import flext_cli.cmd as _cmd
-import flext_cli.commands_debug as _commands_debug
+import flext_cli.debug_commands as _debug_commands
 import flext_cli.config as _config
 import flext_cli.constants as _constants
 import flext_cli.context as _context
@@ -127,16 +131,22 @@ import flext_cli.core as _core
 import flext_cli.debug as _debug
 import flext_cli.decorators as _decorators
 import flext_cli.exceptions as _exceptions
-import flext_cli.formatter_adapter as _formatter_adapter
+
+# import flext_cli.formatter_adapter as _formatter_adapter  # Module not found
 import flext_cli.formatters as _formatters
-import flext_cli.helpers as _helpers
+
+# helpers.py split into specific single-class modules
+import flext_cli.interactions as _interactions
+import flext_cli.validation as _validation
+import flext_cli.file_operations as _file_operations
+import flext_cli.data_processing as _data_processing
 import flext_cli.models as _models
-import flext_cli.output_adapter as _output_adapter
+import flext_cli.domain_services as _domain_services
+
+# import flext_cli.output_adapter as _output_adapter  # Module not found
 import flext_cli.protocols as _protocols
 import flext_cli.services as _services
 import flext_cli.typings as _typings
-import flext_cli.utils_core as _utils_core
-import flext_cli.utils_output as _utils_output
 
 # Collect all __all__ exports from imported modules
 _temp_exports: list[str] = []
@@ -148,26 +158,26 @@ for module in [
     _exceptions,
     _protocols,
     _models,
+    _domain_services,
     _core,
     _context,
     _config,
     _cmd,
     _auth,
-    _cli_auth,
-    _api_functions,
+    # _api_functions removed - integrated into api.py
     _debug,
-    _commands_debug,
+    _debug_commands,
     _client,
     _api,
     _formatters,
-    _formatter_adapter,
-    _output_adapter,
+    # _formatter_adapter,  # Module not found
+    # _output_adapter,  # Module not found
     _services,
     _decorators,
-    _helpers,
-    _cli_utils,
-    _utils_core,
-    _utils_output,
+    _interactions,
+    _validation,
+    _file_operations,
+    _data_processing,
     _cli,
 ]:
     if hasattr(module, "__all__"):

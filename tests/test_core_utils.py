@@ -120,12 +120,12 @@ class TestConfigFileLoading:
 
         result = U._load_config_file(Path(str(temp_path)))
 
-            assert result.is_success
-            loaded_config = result.value
-            assert loaded_config["debug"] == config_data["debug"]
-            assert loaded_config["timeout"] == config_data["timeout"]
+        assert result.is_success
+        loaded_config = result.value
+        assert loaded_config["debug"] == config_data["debug"]
+        assert loaded_config["timeout"] == config_data["timeout"]
 
-            temp_path.unlink()
+        temp_path.unlink()
 
     def test_load_config_file_yaml_success(self) -> None:
         """Test successful YAML config file loading."""
