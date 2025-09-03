@@ -329,14 +329,14 @@ class TestProvidersEdgeCases:
         args_provider = FlextCliArgsProvider(complex_args)
         constants_provider = FlextConstantsProvider(complex_args.copy())
 
-        for key in complex_args:
+        for key, expected_value in complex_args.items():
             args_result = args_provider.get_config(key)
             constants_result = constants_provider.get_config(key)
 
             assert args_result.is_success
             assert constants_result.is_success
-            assert args_result.value == complex_args[key]
-            assert constants_result.value == complex_args[key]
+            assert args_result.value == expected_value
+            assert constants_result.value == expected_value
 
 
 class TestModuleExports:

@@ -16,6 +16,7 @@ import asyncio
 import json
 import threading
 import unittest
+from collections.abc import Coroutine
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs, urlparse
 
@@ -211,7 +212,7 @@ class MockHTTPHandler(BaseHTTPRequestHandler):
         error_data = json.dumps({"error": message}).encode("utf-8")
         self.wfile.write(error_data)
 
-    def log_message(self, format: str, *args) -> None:
+    def log_message(self, format_str: str, *args: object) -> None:
         """Override to suppress request logging."""
 
 
@@ -341,7 +342,7 @@ class AsyncTestCase(unittest.TestCase):
         self.server.shutdown()
         self.server_thread.join(timeout=1)
 
-    def run_async(self, coro):
+    def run_async(self, coro: Coroutine[None, None, object]) -> object:
         """Run async coroutine in test."""
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)

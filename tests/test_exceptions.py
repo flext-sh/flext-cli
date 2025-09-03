@@ -7,6 +7,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import tempfile
+
 import pytest
 
 from flext_cli.exceptions import (
@@ -17,7 +19,7 @@ from flext_cli.exceptions import (
     FlextCliConnectionError,
     FlextCliContextError,
     FlextCliError,
-    FlextCliErrorCodes,
+    FlextCliException,
     FlextCliFormatError,
     FlextCliOutputError,
     FlextCliProcessingError,
@@ -47,8 +49,8 @@ class TestFlextCliErrorCodes:
         ]
 
         for code_name in expected_codes:
-            assert hasattr(FlextCliErrorCodes, code_name)
-            assert FlextCliErrorCodes[code_name].value == code_name
+            assert hasattr(FlextCliException.ErrorCode, code_name)
+            assert FlextCliException.ErrorCode[code_name].value == code_name
 
 
 class TestFlextCliError:
@@ -149,7 +151,7 @@ class TestFlextCliCommandError:
             "Command failed",
             command="ls -la",
             exit_code=2,
-            context={"user": "test", "directory": "/tmp"},
+            context={"user": "test", "directory": tempfile.gettempdir()},
         )
         assert "Command failed" in str(error)
 
@@ -231,7 +233,7 @@ class TestFlextCliOutputError:
         error = FlextCliOutputError(
             "Output processing failed",
             output_format="csv",
-            output_path="/tmp/export.csv",
+            output_path=f"{tempfile.gettempdir()}/export.csv",
             context={"permissions": "read-only", "disk_space": "0MB"},
         )
         assert "Output processing failed" in str(error)
@@ -271,8 +273,8 @@ class TestExceptionRaising:
 
     def test_raise_and_catch_command_error(self) -> None:
         """Test raising and catching command errors."""
+        msg = "Test command failed"
         with pytest.raises(FlextCliCommandError) as exc_info:
-            msg = "Test command failed"
             raise FlextCliCommandError(msg, command="test_cmd")
 
         assert "Test command failed" in str(exc_info.value)
@@ -280,14 +282,14 @@ class TestExceptionRaising:
 
     def test_raise_and_catch_base_error(self) -> None:
         """Test raising and catching base CLI error."""
+        msg = "Base CLI error"
         with pytest.raises(FlextCliError) as exc_info:
-            msg = "Base CLI error"
             raise FlextCliError(msg)
 
         assert "Base CLI error" in str(exc_info.value)
 
     def test_catch_specific_with_base(self) -> None:
         """Test that specific errors can be caught as base CLI error."""
+        msg = "Specific error"
         with pytest.raises(FlextCliError):  # Should catch the specific error
-            msg = "Specific error"
             raise FlextCliArgumentError(msg)

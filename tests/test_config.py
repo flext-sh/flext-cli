@@ -17,6 +17,7 @@ import unittest
 from pathlib import Path
 
 from flext_core import FlextResult
+
 from flext_cli.config import FlextCliConfig, FlextCliSettings, get_config, setup_cli
 
 

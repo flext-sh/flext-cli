@@ -16,11 +16,13 @@ import click
 from click.testing import CliRunner
 from rich.console import Console
 
-from flext_cli import FlextCliConfig, config, get_cli_config
-from flext_cli.commands_config import (
+from flext_cli import (
+    FlextCliConfig,
     _find_config_value,
     _get_all_config,
     _print_config_value,
+    config,
+    get_cli_config,
 )
 
 
@@ -130,7 +132,7 @@ class TestConfigHelperFunctionsReal:
 
         # Create test context object with real config
         class TestContext:
-            def __init__(self, console) -> None:
+            def __init__(self, console: object) -> None:
                 self.config = real_config
                 self.settings = real_config
                 self.console = console

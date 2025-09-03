@@ -30,7 +30,7 @@ from rich.table import Table
 
 # Import public API functions from main package
 # Import private functions from their actual module location
-from flext_cli.utils_core import FlextCliUtilsCore as U, FlextCliUtilsCore as UC
+from flext_cli.utils_core import FlextCliUtilsCore as U
 
 
 class TestFlextCliQuickSetup:
@@ -625,7 +625,7 @@ class TestPrivateHelperFunctions:
 
     def test_generate_session_id(self) -> None:
         """Test session ID generation."""
-        session_id = UC._generate_session_id()
+        session_id = U._generate_session_id()
 
         assert isinstance(session_id, str)
         assert len(session_id) == 8  # UUID first 8 characters
@@ -636,7 +636,7 @@ class TestPrivateHelperFunctions:
 
     def test_current_timestamp(self) -> None:
         """Test timestamp generation."""
-        timestamp = UC._current_timestamp()
+        timestamp = U._current_timestamp()
 
         assert isinstance(timestamp, str)
         # Should be ISO format
@@ -651,7 +651,7 @@ class TestPrivateHelperFunctions:
         }
 
         with patch.dict(os.environ, test_env):
-            overrides = UC._load_env_overrides()
+            overrides = U._load_env_overrides()
 
         assert overrides["profile"] == "test_profile"
         assert overrides["debug"] is True
@@ -663,7 +663,7 @@ class TestPrivateHelperFunctions:
         test_data = {"test": "value"}
         config_file.write_text(yaml.dump(test_data))
 
-        result = UC._load_config_file(config_file)
+        result = U._load_config_file(config_file)
 
         assert result.is_success
         assert result.value == test_data
@@ -674,7 +674,7 @@ class TestPrivateHelperFunctions:
         test_data = {"test": "value"}
         config_file.write_text(json.dumps(test_data))
 
-        result = UC._load_config_file(config_file)
+        result = U._load_config_file(config_file)
 
         assert result.is_success
         assert result.value == test_data
@@ -684,7 +684,7 @@ class TestPrivateHelperFunctions:
         config_file = tmp_path / "test.xml"
         config_file.write_text("<config></config>")
 
-        result = UC._load_config_file(config_file)
+        result = U._load_config_file(config_file)
 
         assert not result.is_success
         assert "Unsupported config format" in result.error

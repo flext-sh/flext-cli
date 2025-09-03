@@ -244,7 +244,7 @@ class TestFlextCliCommandService:
 # =============================================================================
 
 
-class TestFlextCliCommandService:
+class TestFlextCliCommandServiceIntegration:
     """Test FlextCliCommandService with real command execution."""
 
     def setup_method(self) -> None:

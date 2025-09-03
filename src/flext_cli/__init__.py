@@ -25,16 +25,17 @@ Key Components:
 
 Examples:
     CLI configuration:
-    >>> from flext_cli import FlextCliConfig
+    >>> from flext_cli.config import FlextCliConfig
     >>> config = FlextCliConfig()
     >>> config.setup_cli()
 
     Authentication:
-    >>> from flext_cli import auth_login
-    >>> result = auth_login("username", "password")
+    >>> from flext_cli.auth import FlextCliAuth
+    >>> auth = FlextCliAuth()
+    >>> result = auth.login("username", "password")
 
     API operations:
-    >>> from flext_cli import FlextApiClient
+    >>> from flext_cli.client import FlextApiClient
     >>> client = FlextApiClient()
     >>> response = client.get("/api/status")
 
@@ -44,154 +45,135 @@ Notes:
     - Authentication state is maintained in FlextCliContext
     - Follow Clean Architecture patterns with layered imports
     - Leverage flext-core foundation for common functionality
+    - NO wildcard imports - use explicit imports from specific modules
 
 """
 
 from __future__ import annotations
 
 # =============================================================================
-# FOUNDATION LAYER - Import first, no dependencies on other modules
+# VERSION INFORMATION
 # =============================================================================
 
-from flext_cli.__version__ import *
-from flext_cli.constants import *
-from flext_cli.typings import *
-from flext_cli.exceptions import *
-from flext_cli.protocols import *
+from flext_cli.__version__ import __version__, __version_info__
 
 # =============================================================================
-# CORE LAYER - Depends only on Foundation layer
+# CORE CLI CLASSES - Primary API surface
 # =============================================================================
 
-from flext_cli.models import *
-from flext_cli.domain_services import *
-from flext_cli.core import *
-from flext_cli.context import *
-from flext_cli.config import *
+from flext_cli.api import FlextCliApi
+from flext_cli.auth import FlextCliAuth
+from flext_cli.config import FlextCliConfig
+from flext_cli.client import FlextApiClient
+from flext_cli.core import FlextCliService
+from flext_cli.context import FlextCliContext
+from flext_cli.debug import FlextCliDebug
+from flext_cli.formatters import FlextCliFormatters
+from flext_cli.models import FlextCliModels
+from flext_cli.services import FlextCliServices
 
 # =============================================================================
-# APPLICATION LAYER - Depends on Core + Foundation layers
+# UTILITY CLASSES
 # =============================================================================
 
-from flext_cli.cmd import *
-from flext_cli.auth import *
-
-# api_functions.py removed - functionality integrated into api.py
-from flext_cli.debug_commands import *
-from flext_cli.debug import *
-
-# =============================================================================
-# INFRASTRUCTURE LAYER - Depends on Application + Core + Foundation
-# =============================================================================
-
-from flext_cli.client import *
-from flext_cli.api import *
-from flext_cli.formatters import *
-
-# from flext_cli.formatter_adapter import *  # Module not found
-# from flext_cli.output_adapter import *  # Module not found
-from flext_cli.services import *
+from flext_cli.constants import FlextCliConstants
+from flext_cli.data_processing import FlextCliDataProcessing
+from flext_cli.decorators import FlextCliDecorators
+from flext_cli.domain_services import FlextCliDomainServices
+from flext_cli.file_operations import FlextCliFileOperations
+from flext_cli.interactions import FlextCliInteractions
+from flext_cli.validation import FlextCliValidation
 
 # =============================================================================
-# SUPPORT LAYER - Depends on layers as needed, imported last
+# TYPE SYSTEM AND PROTOCOLS
 # =============================================================================
 
-from flext_cli.decorators import *
-
-# helpers.py split into specific modules following single-class pattern
-from flext_cli.interactions import *
-from flext_cli.validation import *
-from flext_cli.file_operations import *
-from flext_cli.data_processing import *
-
-# =============================================================================
-# CLI ENTRY POINT - Main CLI functionality
-# =============================================================================
-
-from flext_cli.cli import *
+from flext_cli.typings import FlextCliTypes
+from flext_cli.protocols import (
+    create_flext_cli_data_processor,
+    create_flext_cli_formatter,
+    create_flext_cli_manager,
+    flext_cli_export_data,
+    flext_cli_format_data,
+)
 
 # =============================================================================
-# CONSOLIDATED EXPORTS - Combine all __all__ from modules
+# EXCEPTIONS
 # =============================================================================
 
-# Combine all __all__ exports from imported modules
-import flext_cli.__version__ as _version
-import flext_cli.api as _api
+from flext_cli.exceptions import (
+    FlextCliError,
+    FlextCliArgumentError,
+    FlextCliAuthenticationError,
+    FlextCliCommandError,
+    FlextCliConfigurationError,
+    FlextCliConnectionError,
+    FlextCliContextError,
+    FlextCliFormatError,
+    FlextCliOutputError,
+    FlextCliProcessingError,
+    FlextCliTimeoutError,
+    FlextCliValidationError,
+)
 
-# api_functions module removed - integrated into api.py
-import flext_cli.auth as _auth
-import flext_cli.cli as _cli
-import flext_cli.client as _client
-import flext_cli.cmd as _cmd
-import flext_cli.debug_commands as _debug_commands
-import flext_cli.config as _config
-import flext_cli.constants as _constants
-import flext_cli.context as _context
-import flext_cli.core as _core
-import flext_cli.debug as _debug
-import flext_cli.decorators as _decorators
-import flext_cli.exceptions as _exceptions
+# =============================================================================
+# CLI ENTRY POINT
+# =============================================================================
 
-# import flext_cli.formatter_adapter as _formatter_adapter  # Module not found
-import flext_cli.formatters as _formatters
+from flext_cli.cli import main
 
-# helpers.py split into specific single-class modules
-import flext_cli.interactions as _interactions
-import flext_cli.validation as _validation
-import flext_cli.file_operations as _file_operations
-import flext_cli.data_processing as _data_processing
-import flext_cli.models as _models
-import flext_cli.domain_services as _domain_services
+# =============================================================================
+# EXPLICIT EXPORTS - NO AGGREGATION LOGIC
+# =============================================================================
 
-# import flext_cli.output_adapter as _output_adapter  # Module not found
-import flext_cli.protocols as _protocols
-import flext_cli.services as _services
-import flext_cli.typings as _typings
+__all__ = [
+    # Version information
+    "__version__",
+    "__version_info__",
 
-# Collect all __all__ exports from imported modules
-_temp_exports: list[str] = []
+    # Core CLI classes
+    "FlextApiClient",
+    "FlextCliApi",
+    "FlextCliAuth",
+    "FlextCliConfig",
+    "FlextCliContext",
+    "FlextCliDebug",
+    "FlextCliFormatters",
+    "FlextCliModels",
+    "FlextCliService",
+    "FlextCliServices",
 
-for module in [
-    _version,
-    _constants,
-    _typings,
-    _exceptions,
-    _protocols,
-    _models,
-    _domain_services,
-    _core,
-    _context,
-    _config,
-    _cmd,
-    _auth,
-    # _api_functions removed - integrated into api.py
-    _debug,
-    _debug_commands,
-    _client,
-    _api,
-    _formatters,
-    # _formatter_adapter,  # Module not found
-    # _output_adapter,  # Module not found
-    _services,
-    _decorators,
-    _interactions,
-    _validation,
-    _file_operations,
-    _data_processing,
-    _cli,
-]:
-    if hasattr(module, "__all__"):
-        _temp_exports.extend(module.__all__)
+    # Utility classes
+    "FlextCliConstants",
+    "FlextCliDataProcessing",
+    "FlextCliDecorators",
+    "FlextCliDomainServices",
+    "FlextCliFileOperations",
+    "FlextCliInteractions",
+    "FlextCliValidation",
 
-# Remove duplicates and sort for consistent exports - build complete list first
-_seen: set[str] = set()
-_final_exports: list[str] = []
-for item in _temp_exports:
-    if item not in _seen:
-        _seen.add(item)
-        _final_exports.append(item)
-_final_exports.sort()
+    # Type system and protocols
+    "FlextCliTypes",
+    "create_flext_cli_data_processor",
+    "create_flext_cli_formatter",
+    "create_flext_cli_manager",
+    "flext_cli_export_data",
+    "flext_cli_format_data",
 
-# Define __all__ as literal list for linter compatibility
-# This dynamic assignment is necessary for aggregating module exports
-__all__: list[str] = _final_exports  # pyright: ignore[reportUnsupportedDunderAll] # noqa: PLE0605
+    # Exceptions
+    "FlextCliArgumentError",
+    "FlextCliAuthenticationError",
+    "FlextCliCommandError",
+    "FlextCliConfigurationError",
+    "FlextCliConnectionError",
+    "FlextCliContextError",
+    "FlextCliError",
+    "FlextCliFormatError",
+    "FlextCliOutputError",
+    "FlextCliProcessingError",
+    "FlextCliTimeoutError",
+    "FlextCliValidationError",
+
+    # CLI entry point
+    "main",
+]

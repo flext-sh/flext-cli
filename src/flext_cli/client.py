@@ -11,7 +11,8 @@ from typing import Self, cast
 from urllib.parse import urljoin
 
 import httpx
-from flext_core import FlextConstants, FlextCore, FlextModels, FlextResult
+from flext_core import FlextConstants, FlextCore, FlextResult
+from flext_core.models import FlextModels
 from pydantic import Field
 
 from flext_cli.config import FlextCliConfig
@@ -24,7 +25,7 @@ class FlextApiClient:
     Provides async methods for interacting with the FLEXT API.
     """
 
-    class PipelineConfig(FlextModels.BaseConfig):
+    class PipelineConfig(FlextModels.Config):
         """Pipeline configuration model for Singer/Meltano workflows."""
 
         name: str = Field(description="Pipeline name")
@@ -35,7 +36,7 @@ class FlextApiClient:
         state: dict[str, object] | None = Field(None, description="Pipeline state")
         config: dict[str, object] | None = Field(None, description="Additional config")
 
-    class Pipeline(FlextModels.BaseConfig):
+    class Pipeline(FlextModels.Config):
         """Pipeline model for API responses."""
 
         name: str = Field(description="Pipeline name")
@@ -52,7 +53,7 @@ class FlextApiClient:
                 return FlextResult[None].fail(f"Invalid pipeline status: {self.status}")
             return FlextResult[None].ok(None)
 
-    class PipelineList(FlextModels.BaseConfig):
+    class PipelineList(FlextModels.Config):
         """Pipeline list response."""
 
         pipelines: list[FlextApiClient.Pipeline] = Field(

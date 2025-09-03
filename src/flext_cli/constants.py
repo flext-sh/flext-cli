@@ -1,174 +1,303 @@
-"""FLEXT CLI Constants - Single source of truth for CLI values.
+"""FLEXT CLI Constants - Structured configuration using Pydantic models.
 
-Extends ``flext_core.FlextConstants`` with CLI-specific limits and messages.
+Replaces loose constants with structured Pydantic models following flext-core patterns.
+Eliminates loose constants in favor of type-safe, validated configuration structures.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
 
 import os
+from enum import StrEnum
 from typing import ClassVar, Final
+
+from flext_core import FlextConfig
+from pydantic import Field
 
 
 class FlextCliConstants:
-    """CLI-specific constants extending flext-core FlextConstants."""
+    """CLI constants structured as Pydantic models extending flext-core patterns."""
 
-    # Reference kept in base class; no shadowing needed here
+    class TimeoutConfig(FlextConfig.BaseModel):
+        """Timeout and duration configuration with validation."""
 
-    # Timeouts / durations (seconds)
-    DEFAULT_COMMAND_TIMEOUT: Final[int] = 30
-    MAX_COMMAND_TIMEOUT: Final[int] = 300
-    MIN_COMMAND_TIMEOUT: Final[int] = 1
-    DEFAULT_API_TIMEOUT: Final[int] = 30
-    DEFAULT_READ_TIMEOUT: Final[int] = 60
-    DEFAULT_DEV_TIMEOUT: Final[int] = 60
-    MILLISECONDS_PER_SECOND: Final[float] = 1000.0
+        default_command_timeout: int = Field(default=30, ge=1, le=3600)
+        max_command_timeout: int = Field(default=300, ge=1, le=3600)
+        min_command_timeout: int = Field(default=1, ge=1, le=60)
+        default_api_timeout: int = Field(default=30, ge=1, le=300)
+        default_read_timeout: int = Field(default=60, ge=1, le=300)
+        default_dev_timeout: int = Field(default=60, ge=1, le=300)
+        production_api_timeout: int = Field(default=120, ge=30, le=600)
+        session_timeout_minutes: int = Field(default=60, ge=1, le=1440)
+        token_expiry_hours: int = Field(default=24, ge=1, le=168)
+        refresh_expiry_days: int = Field(default=30, ge=1, le=365)
+        milliseconds_per_second: float = Field(default=1000.0, frozen=True)
 
-    # Sizes / limits
-    MAX_HISTORY_SIZE: Final[int] = 1000
-    MAX_OUTPUT_SIZE: Final[int] = 1_048_576
-    MAX_TABLE_ROWS: Final[int] = 1000
-    MAX_FILENAME_LENGTH: Final[int] = 255
+    class LimitsConfig(FlextConfig.BaseModel):
+        """Size and validation limits with constraints."""
 
-    # Validation limits
-    MAX_PROFILE_NAME_LENGTH: Final[int] = 50
-    MAX_CONFIG_KEY_LENGTH: Final[int] = 100
-    MAX_CONFIG_VALUE_LENGTH: Final[int] = 1000
-    MAX_COMMANDS_PER_SESSION: Final[int] = 10_000
-    MAX_ENV_VAR_DISPLAY_LENGTH: Final[int] = 60
+        max_history_size: int = Field(default=1000, ge=1, le=100000)
+        max_output_size: int = Field(default=1_048_576, ge=1024, le=10_485_760)
+        max_table_rows: int = Field(default=1000, ge=1, le=10000)
+        max_filename_length: int = Field(default=255, ge=1, le=255)
+        max_profile_name_length: int = Field(default=50, ge=1, le=100)
+        max_config_key_length: int = Field(default=100, ge=1, le=200)
+        max_config_value_length: int = Field(default=1000, ge=1, le=10000)
+        max_commands_per_session: int = Field(default=10_000, ge=1, le=100_000)
+        max_env_var_display_length: int = Field(default=60, ge=1, le=200)
+        max_timeout_seconds: int = Field(default=3600, ge=1, le=86400)
 
-    # Authentication / sessions
-    TOKEN_EXPIRY_HOURS: Final[int] = 24
-    REFRESH_EXPIRY_DAYS: Final[int] = 30
-    SESSION_TIMEOUT_MINUTES: Final[int] = 60
+    class OutputConfig(FlextConfig.BaseModel):
+        """Output formatting configuration."""
 
-    # Defaults
-    DEFAULT_OUTPUT_FORMAT: ClassVar[str] = "table"
-    DEFAULT_OUTPUT_WIDTH: ClassVar[int] = 120
-    HIGH_PRIORITY_VALUE: ClassVar[int] = 1000
-    DEFAULT_RETRIES: ClassVar[int] = 3
-    MIN_LENGTH: ClassVar[int] = 1
-    DEFAULT_TOKEN_MIN_LENGTH: ClassVar[int] = 10
-    PRODUCTION_API_TIMEOUT: ClassVar[int] = 120
-    DEFAULT_PROGRESS_BAR_WIDTH: ClassVar[int] = 40
-    DEFAULT_TABLE_PADDING: ClassVar[int] = 1
+        default_output_format: str = Field(default="table", pattern=r"^(table|json|yaml|csv)$")
+        default_output_width: int = Field(default=120, ge=40, le=400)
+        default_progress_bar_width: int = Field(default=40, ge=10, le=100)
+        default_table_padding: int = Field(default=1, ge=0, le=10)
+        high_priority_value: int = Field(default=1000, ge=1, le=10000)
+        default_retries: int = Field(default=3, ge=0, le=10)
+        min_length: int = Field(default=1, ge=1, le=10)
+        default_token_min_length: int = Field(default=10, ge=1, le=100)
 
-    # Timeout limits for validation
-    MAX_TIMEOUT_SECONDS: ClassVar[int] = 3600
+    class HttpConfig(FlextConfig.BaseModel):
+        """HTTP client configuration with security defaults."""
 
-    # HTTP constants
-    HTTP_SCHEME: ClassVar[str] = "http"
-    HTTPS_SCHEME: ClassVar[str] = "https"
-    DEFAULT_HOST: ClassVar[str] = "localhost"
-    DEFAULT_PORT: ClassVar[int] = 8081
-    CONTENT_TYPE_JSON: ClassVar[str] = "application/json"
-    HEADER_CONTENT_TYPE: ClassVar[str] = "Content-Type"
-    HEADER_ACCEPT: ClassVar[str] = "Accept"
-    HEADER_AUTHORIZATION: ClassVar[str] = "Authorization"
-    AUTH_BEARER_PREFIX: ClassVar[str] = "Bearer"
+        http_scheme: str = Field(default="http", frozen=True)
+        https_scheme: str = Field(default="https", frozen=True)
+        default_host: str = Field(default="localhost", min_length=1)
+        default_port: int = Field(default=8081, ge=1, le=65535)
+        default_api_port: int = Field(default=8080, ge=1, le=65535)
+        fallback_api_port: int = Field(default=8000, ge=1, le=65535)
+        content_type_json: str = Field(default="application/json", frozen=True)
+        header_content_type: str = Field(default="Content-Type", frozen=True)
+        header_accept: str = Field(default="Accept", frozen=True)
+        header_authorization: str = Field(default="Authorization", frozen=True)
+        auth_bearer_prefix: str = Field(default="Bearer", frozen=True)
 
-    # HTTP methods
-    HTTP_GET: ClassVar[str] = "GET"
-    HTTP_POST: ClassVar[str] = "POST"
-    HTTP_PUT: ClassVar[str] = "PUT"
-    HTTP_DELETE: ClassVar[str] = "DELETE"
-    HTTP_PATCH: ClassVar[str] = "PATCH"
+        @property
+        def default_api_url(self) -> str:
+            """Generate default API URL from configuration."""
+            return f"{self.http_scheme}://{self.default_host}:{self.default_api_port}"
 
-    # Default URLs and hosts
-    DEFAULT_API_PORT: ClassVar[int] = 8080
-    FALLBACK_API_PORT: ClassVar[int] = 8000
-    DEFAULT_API_URL: ClassVar[str] = (
-        f"{HTTP_SCHEME}://{DEFAULT_HOST}:{DEFAULT_API_PORT}"
-    )
-    FALLBACK_API_URL: ClassVar[str] = (
-        f"{HTTP_SCHEME}://{DEFAULT_HOST}:{FALLBACK_API_PORT}"
-    )
+        @property
+        def fallback_api_url(self) -> str:
+            """Generate fallback API URL from configuration."""
+            return f"{self.http_scheme}://{self.default_host}:{self.fallback_api_port}"
 
-    # File/directory constants
-    FLEXT_DIR_NAME: ClassVar[str] = ".flext"
-    CONFIG_FILE_NAME: ClassVar[str] = "config.yaml"
-    # Derive from environment for security linters; keep stable defaults
-    TOKEN_FILE_NAME: ClassVar[str] = os.environ.get(
-        "FLEXT_CLI_TOKEN_FILE_NAME", "token.json"
-    )
-    REFRESH_TOKEN_FILE_NAME: ClassVar[str] = os.environ.get(
-        "FLEXT_CLI_REFRESH_TOKEN_FILE_NAME", "refresh_token.json"
-    )
+    class FileConfig(FlextConfig.BaseModel):
+        """File and directory configuration with security."""
 
-    # File encoding
-    DEFAULT_ENCODING: ClassVar[str] = "utf-8"
-    TEST_WRITE_FILE_NAME: ClassVar[str] = ".flext_test_write"
+        flext_dir_name: str = Field(default=".flext", min_length=1)
+        config_file_name: str = Field(default="config.yaml", min_length=1)
+        default_encoding: str = Field(default="utf-8", frozen=True)
+        test_write_file_name: str = Field(default=".flext_test_write", min_length=1)
+        cache_dir_name: str = Field(default="cache", min_length=1)
+        logs_dir_name: str = Field(default="logs", min_length=1)
+        data_dir_name: str = Field(default="data", min_length=1)
+        auth_dir_name: str = Field(default="auth", min_length=1)
 
-    # Subdirectory names
-    CACHE_DIR_NAME: ClassVar[str] = "cache"
-    LOGS_DIR_NAME: ClassVar[str] = "logs"
-    DATA_DIR_NAME: ClassVar[str] = "data"
-    AUTH_DIR_NAME: ClassVar[str] = "auth"
+        @property
+        def token_file_name(self) -> str:
+            """Get token file name from environment or default."""
+            return os.environ.get("FLEXT_CLI_TOKEN_FILE_NAME", "token.json")
 
-    # Profile names
-    DEFAULT_PROFILE: ClassVar[str] = "default"
-    DEVELOPMENT_PROFILE: ClassVar[str] = "development"
-    PRODUCTION_PROFILE: ClassVar[str] = "production"
+        @property
+        def refresh_token_file_name(self) -> str:
+            """Get refresh token file name from environment or default."""
+            return os.environ.get("FLEXT_CLI_REFRESH_TOKEN_FILE_NAME", "refresh_token.json")
 
-    # Log levels
-    LOG_LEVEL_DEBUG: ClassVar[str] = "DEBUG"
-    LOG_LEVEL_INFO: ClassVar[str] = "INFO"
-    LOG_LEVEL_WARNING: ClassVar[str] = "WARNING"
-    LOG_LEVEL_ERROR: ClassVar[str] = "ERROR"
-    LOG_LEVEL_CRITICAL: ClassVar[str] = "CRITICAL"
+    class OutputFormat(StrEnum):
+        """Valid output formats."""
 
-    # Valid output formats enum
-    VALID_OUTPUT_FORMATS: ClassVar[tuple[str, ...]] = ("table", "json", "yaml", "csv")
-    VALID_LOG_LEVELS: ClassVar[tuple[str, ...]] = (
-        LOG_LEVEL_DEBUG,
-        LOG_LEVEL_INFO,
-        LOG_LEVEL_WARNING,
-        LOG_LEVEL_ERROR,
-        LOG_LEVEL_CRITICAL,
-    )
+        TABLE = "table"
+        JSON = "json"
+        YAML = "yaml"
+        CSV = "csv"
 
-    # Command status enum
-    STATUS_PENDING: ClassVar[str] = "PENDING"
-    STATUS_RUNNING: ClassVar[str] = "RUNNING"
-    STATUS_COMPLETED: ClassVar[str] = "COMPLETED"
-    STATUS_FAILED: ClassVar[str] = "FAILED"
-    STATUS_CANCELLED: ClassVar[str] = "CANCELLED"
-    VALID_COMMAND_STATUSES: ClassVar[tuple[str, ...]] = (
-        STATUS_PENDING,
-        STATUS_RUNNING,
-        STATUS_COMPLETED,
-        STATUS_FAILED,
-        STATUS_CANCELLED,
-    )
+    class LogLevel(StrEnum):
+        """Valid log levels."""
 
-    # Pipeline status enum
-    PIPELINE_STATUS_ACTIVE: ClassVar[str] = "active"
-    PIPELINE_STATUS_INACTIVE: ClassVar[str] = "inactive"
-    PIPELINE_STATUS_PENDING: ClassVar[str] = "pending"
-    VALID_PIPELINE_STATUSES: ClassVar[tuple[str, ...]] = (
-        PIPELINE_STATUS_ACTIVE,
-        PIPELINE_STATUS_INACTIVE,
-        PIPELINE_STATUS_PENDING,
-    )
+        DEBUG = "DEBUG"
+        INFO = "INFO"
+        WARNING = "WARNING"
+        ERROR = "ERROR"
+        CRITICAL = "CRITICAL"
 
-    class CliMessages:
-        """User‑facing CLI message labels used by commands and tests."""
+    class CommandStatus(StrEnum):
+        """Valid command statuses."""
 
-        # Interactive section
-        INTERACTIVE_FEATURE_HELP = "Interactive commands: REPL, completion, history"
-        INFO_USE_HELP = "Use --help for more information"
+        PENDING = "PENDING"
+        RUNNING = "RUNNING"
+        COMPLETED = "COMPLETED"
+        FAILED = "FAILED"
+        CANCELLED = "CANCELLED"
 
-        # Version info
-        VERSION_CLI = "FLEXT CLI"
-        VERSION_PYTHON = "Python"
-        VERSION_FLEXT_CORE = "FLEXT Core"
+    class PipelineStatus(StrEnum):
+        """Valid pipeline statuses."""
 
-        # Debug/diagnostics
-        DEBUG_FLEXT_CORE_NOT_DETECTED = "FLEXT Core version not detected"
-        DEBUG_INFORMATION = "Debug Information"
-        DEBUG_CONFIGURATION = "Configuration"
-        DEBUG_PYTHON_EXECUTABLE = "Python Executable"
-        DEBUG_PLATFORM = "Platform"
-        DEBUG_SERVICE_CONNECTIVITY = "Service connectivity check"
+        ACTIVE = "active"
+        INACTIVE = "inactive"
+        PENDING = "pending"
+
+    class ProfileName(StrEnum):
+        """Valid profile names."""
+
+        DEFAULT = "default"
+        DEVELOPMENT = "development"
+        PRODUCTION = "production"
+
+    class HttpMethod(StrEnum):
+        """Valid HTTP methods."""
+
+        GET = "GET"
+        POST = "POST"
+        PUT = "PUT"
+        DELETE = "DELETE"
+        PATCH = "PATCH"
+
+    class MessageConfig(FlextConfig.BaseModel):
+        """User-facing CLI message configuration."""
+
+        interactive_feature_help: str = Field(
+            default="Interactive commands: REPL, completion, history",
+            min_length=1
+        )
+        info_use_help: str = Field(
+            default="Use --help for more information",
+            min_length=1
+        )
+        version_cli: str = Field(default="FLEXT CLI", min_length=1)
+        version_python: str = Field(default="Python", min_length=1)
+        version_flext_core: str = Field(default="FLEXT Core", min_length=1)
+        debug_flext_core_not_detected: str = Field(
+            default="FLEXT Core version not detected",
+            min_length=1
+        )
+        debug_information: str = Field(default="Debug Information", min_length=1)
+        debug_configuration: str = Field(default="Configuration", min_length=1)
+        debug_python_executable: str = Field(default="Python Executable", min_length=1)
+        debug_platform: str = Field(default="Platform", min_length=1)
+        debug_service_connectivity: str = Field(
+            default="Service connectivity check",
+            min_length=1
+        )
+
+    # =============================================================================
+    # DEFAULT INSTANCES - Ready-to-use configurations
+    # =============================================================================
+
+    # Pre-configured instances for immediate use
+    TIMEOUTS: ClassVar[TimeoutConfig] = TimeoutConfig()
+    LIMITS: ClassVar[LimitsConfig] = LimitsConfig()
+    OUTPUT: ClassVar[OutputConfig] = OutputConfig()
+    HTTP: ClassVar[HttpConfig] = HttpConfig()
+    FILES: ClassVar[FileConfig] = FileConfig()
+    MESSAGES: ClassVar[MessageConfig] = MessageConfig()
+
+    # =============================================================================
+    # BACKWARD COMPATIBILITY - Deprecated, use structured configs above
+    # =============================================================================
+
+    # Timeouts (DEPRECATED: Use TIMEOUTS.field_name instead)
+    DEFAULT_COMMAND_TIMEOUT: Final[int] = TIMEOUTS.default_command_timeout
+    MAX_COMMAND_TIMEOUT: Final[int] = TIMEOUTS.max_command_timeout
+    MIN_COMMAND_TIMEOUT: Final[int] = TIMEOUTS.min_command_timeout
+    DEFAULT_API_TIMEOUT: Final[int] = TIMEOUTS.default_api_timeout
+
+    # Limits (DEPRECATED: Use LIMITS.field_name instead)
+    MAX_HISTORY_SIZE: Final[int] = LIMITS.max_history_size
+    MAX_OUTPUT_SIZE: Final[int] = LIMITS.max_output_size
+
+    # Output (DEPRECATED: Use OUTPUT.field_name instead)
+    DEFAULT_OUTPUT_FORMAT: Final[str] = OUTPUT.default_output_format
+    DEFAULT_OUTPUT_WIDTH: Final[int] = OUTPUT.default_output_width
+
+    # HTTP (DEPRECATED: Use HTTP.field_name instead)
+    DEFAULT_HOST: Final[str] = HTTP.default_host
+    DEFAULT_PORT: Final[int] = HTTP.default_port
+    DEFAULT_API_URL: Final[str] = HTTP.default_api_url
+    FALLBACK_API_URL: Final[str] = HTTP.fallback_api_url
+    CONTENT_TYPE_JSON: Final[str] = HTTP.content_type_json
+    HEADER_CONTENT_TYPE: Final[str] = HTTP.header_content_type
+    HEADER_ACCEPT: Final[str] = HTTP.header_accept
+    HEADER_AUTHORIZATION: Final[str] = HTTP.header_authorization
+    AUTH_BEARER_PREFIX: Final[str] = HTTP.auth_bearer_prefix
+    HTTP_SCHEME: Final[str] = HTTP.http_scheme
+    HTTPS_SCHEME: Final[str] = HTTP.https_scheme
+    DEFAULT_API_PORT: Final[int] = HTTP.default_api_port
+    FALLBACK_API_PORT: Final[int] = HTTP.fallback_api_port
+
+    # Files (DEPRECATED: Use FILES.field_name instead)
+    FLEXT_DIR_NAME: Final[str] = FILES.flext_dir_name
+    CONFIG_FILE_NAME: Final[str] = FILES.config_file_name
+    DEFAULT_ENCODING: Final[str] = FILES.default_encoding
+    TEST_WRITE_FILE_NAME: Final[str] = FILES.test_write_file_name
+    CACHE_DIR_NAME: Final[str] = FILES.cache_dir_name
+    LOGS_DIR_NAME: Final[str] = FILES.logs_dir_name
+    DATA_DIR_NAME: Final[str] = FILES.data_dir_name
+    AUTH_DIR_NAME: Final[str] = FILES.auth_dir_name
+    TOKEN_FILE_NAME: Final[str] = FILES.token_file_name
+    REFRESH_TOKEN_FILE_NAME: Final[str] = FILES.refresh_token_file_name
+
+    # More timeouts and limits
+    DEFAULT_READ_TIMEOUT: Final[int] = TIMEOUTS.default_read_timeout
+    DEFAULT_DEV_TIMEOUT: Final[int] = TIMEOUTS.default_dev_timeout
+    PRODUCTION_API_TIMEOUT: Final[int] = TIMEOUTS.production_api_timeout
+    SESSION_TIMEOUT_MINUTES: Final[int] = TIMEOUTS.session_timeout_minutes
+    TOKEN_EXPIRY_HOURS: Final[int] = TIMEOUTS.token_expiry_hours
+    REFRESH_EXPIRY_DAYS: Final[int] = TIMEOUTS.refresh_expiry_days
+    MILLISECONDS_PER_SECOND: Final[float] = TIMEOUTS.milliseconds_per_second
+
+    MAX_TABLE_ROWS: Final[int] = LIMITS.max_table_rows
+    MAX_FILENAME_LENGTH: Final[int] = LIMITS.max_filename_length
+    MAX_PROFILE_NAME_LENGTH: Final[int] = LIMITS.max_profile_name_length
+    MAX_CONFIG_KEY_LENGTH: Final[int] = LIMITS.max_config_key_length
+    MAX_CONFIG_VALUE_LENGTH: Final[int] = LIMITS.max_config_value_length
+    MAX_COMMANDS_PER_SESSION: Final[int] = LIMITS.max_commands_per_session
+    MAX_ENV_VAR_DISPLAY_LENGTH: Final[int] = LIMITS.max_env_var_display_length
+    MAX_TIMEOUT_SECONDS: Final[int] = LIMITS.max_timeout_seconds
+
+    # More output config
+    HIGH_PRIORITY_VALUE: Final[int] = OUTPUT.high_priority_value
+    DEFAULT_RETRIES: Final[int] = OUTPUT.default_retries
+    MIN_LENGTH: Final[int] = OUTPUT.min_length
+    DEFAULT_TOKEN_MIN_LENGTH: Final[int] = OUTPUT.default_token_min_length
+    DEFAULT_PROGRESS_BAR_WIDTH: Final[int] = OUTPUT.default_progress_bar_width
+    DEFAULT_TABLE_PADDING: Final[int] = OUTPUT.default_table_padding
+
+    # Status constants (DEPRECATED: Use StrEnum classes instead)
+    STATUS_PENDING: Final[str] = CommandStatus.PENDING
+    STATUS_RUNNING: Final[str] = CommandStatus.RUNNING
+    STATUS_COMPLETED: Final[str] = CommandStatus.COMPLETED
+    STATUS_FAILED: Final[str] = CommandStatus.FAILED
+    STATUS_CANCELLED: Final[str] = CommandStatus.CANCELLED
+
+    # Log level constants (DEPRECATED: Use LogLevel enum instead)
+    LOG_LEVEL_DEBUG: Final[str] = LogLevel.DEBUG
+    LOG_LEVEL_INFO: Final[str] = LogLevel.INFO
+    LOG_LEVEL_WARNING: Final[str] = LogLevel.WARNING
+    LOG_LEVEL_ERROR: Final[str] = LogLevel.ERROR
+    LOG_LEVEL_CRITICAL: Final[str] = LogLevel.CRITICAL
+
+    # Profile constants (DEPRECATED: Use ProfileName enum instead)
+    DEFAULT_PROFILE: Final[str] = ProfileName.DEFAULT
+    DEVELOPMENT_PROFILE: Final[str] = ProfileName.DEVELOPMENT
+    PRODUCTION_PROFILE: Final[str] = ProfileName.PRODUCTION
+
+    # HTTP method constants (DEPRECATED: Use HttpMethod enum instead)
+    HTTP_GET: Final[str] = HttpMethod.GET
+    HTTP_POST: Final[str] = HttpMethod.POST
+    HTTP_PUT: Final[str] = HttpMethod.PUT
+    HTTP_DELETE: Final[str] = HttpMethod.DELETE
+    HTTP_PATCH: Final[str] = HttpMethod.PATCH
+
+    # Enums (DEPRECATED: Use StrEnum classes instead)
+    VALID_OUTPUT_FORMATS: Final[tuple[str, ...]] = tuple(OutputFormat)
+    VALID_LOG_LEVELS: Final[tuple[str, ...]] = tuple(LogLevel)
+    VALID_COMMAND_STATUSES: Final[tuple[str, ...]] = tuple(CommandStatus)
+    VALID_PIPELINE_STATUSES: Final[tuple[str, ...]] = tuple(PipelineStatus)
 
 
 __all__ = ["FlextCliConstants"]

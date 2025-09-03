@@ -181,7 +181,7 @@ class TestValidateCommandReal:
 
         # Verify we can access real Python version
         assert sys.version_info.major >= 3
-        assert sys.version_info.minor >= 11  # FLEXT requires Python 3.11+
+        assert sys.version_info >= (3, 11)  # FLEXT requires Python 3.11+
 
     def test_validate_config_access_real(self) -> None:
         """Test validation accesses real configuration."""

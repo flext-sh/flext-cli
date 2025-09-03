@@ -282,7 +282,7 @@ class TestFlextCliHelper:
             assert file_path.exists()
             import json
 
-            with open(file_path, encoding="utf-8") as f:
+            with file_path.open(encoding="utf-8") as f:
                 saved_data = json.load(f)
             assert saved_data == data
 
