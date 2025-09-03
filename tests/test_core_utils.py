@@ -1,4 +1,4 @@
-"""Comprehensive tests for core/utils.py to maximize coverage.
+"""Comprehensive tests for core functionality to maximize coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -9,962 +9,214 @@ from __future__ import annotations
 
 import json
 import tempfile
-import threading
-import time
-from collections.abc import Iterable
 from pathlib import Path
-from typing import cast
-from unittest.mock import MagicMock, patch
 
-import yaml
 from flext_core import FlextResult
-from rich.console import Console
-from rich.table import Table
 
-from flext_cli.utils_core import FlextCliUtilsCore as U
-
-
-class TestUtilityFunctions:
-    """Test basic utility functions."""
-
-    def test_generate_session_id(self) -> None:
-        """Test session ID generation."""
-        session_id = U._generate_session_id()
-
-        assert isinstance(session_id, str)
-        assert len(session_id) > 0
-
-        # Generate another to ensure uniqueness
-        session_id2 = _generate_session_id()
-        assert session_id != session_id2
-
-    # def test_get_version(self) -> None:
-    #     """Test version retrieval - REMOVED: _get_version function not available in new API."""
-    #     pass
-
-    def test_current_timestamp(self) -> None:
-        """Test timestamp generation."""
-        timestamp = U._current_timestamp()
-
-        assert isinstance(timestamp, str)
-        assert len(timestamp) > 0
-        # Should contain date-like format
-        assert "-" in timestamp
-        assert ":" in timestamp
-
-    def test_current_timestamp_consistency(self) -> None:
-        """Test timestamp format consistency."""
-        timestamp1 = _current_timestamp()
-        time.sleep(0.1)
-        timestamp2 = _current_timestamp()
-
-        # Should have same format
-        assert len(timestamp1) == len(timestamp2)
-        # Should be different (time has passed)
-        assert timestamp1 != timestamp2
+from flext_cli.config import FlextCliConfig
+from flext_cli.core import FlextCliService
 
 
-class TestEnvironmentOverrides:
-    """Test environment variable override handling."""
+class TestFlextCliService:
+    """Test core service functionality."""
 
-    @patch.dict("os.environ", {"FLEXT_TEST_VAR": "test_value"})
-    def test_load_env_overrides_with_flext_vars(self) -> None:
-        """Test loading environment overrides with FLEXT_ variables."""
-        overrides = U._load_env_overrides()
+    def test_flext_cli_health_returns_success(self) -> None:
+        """Test health check returns success."""
+        service = FlextCliService()
+        result = service.flext_cli_health()
 
-        assert isinstance(overrides, dict)
-        # Should find FLEXT_ prefixed variables
-        if "test_var" in overrides or "FLEXT_TEST_VAR" in overrides:
-            assert (
-                overrides.get("test_var") == "test_value"
-                or overrides.get("FLEXT_TEST_VAR") == "test_value"
-            )
-
-    @patch.dict("os.environ", {}, clear=True)
-    def test_load_env_overrides_empty(self) -> None:
-        """Test loading environment overrides with no FLEXT variables."""
-        overrides = _load_env_overrides()
-
-        assert isinstance(overrides, dict)
-        # Should return empty dict or dict without FLEXT vars
-
-    @patch.dict(
-        "os.environ",
-        {"FLEXT_DEBUG": "true", "FLEXT_LOG_LEVEL": "debug", "OTHER_VAR": "ignored"},
-    )
-    def test_load_env_overrides_multiple(self) -> None:
-        """Test loading multiple environment overrides."""
-        overrides = _load_env_overrides()
-
-        assert isinstance(overrides, dict)
-        # Should have FLEXT vars but not OTHER_VAR
-        flext_keys = [
-            k for k in overrides if "debug" in k.lower() or "log" in k.lower()
-        ]
-        assert len(flext_keys) >= 0  # Should find some FLEXT vars
-
-
-class TestConfigFileLoading:
-    """Test configuration file loading."""
-
-    def test_load_config_file_json_success(self) -> None:
-        """Test successful JSON config file loading."""
-        config_data = {"debug": True, "log_level": "info", "timeout": 30}
-
-        with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", suffix=".json", delete=False
-        ) as temp_file:
-            json.dump(config_data, temp_file)
-            temp_file.flush()
-            temp_path = Path(temp_file.name)
-
-        result = U._load_config_file(Path(str(temp_path)))
-
+        assert isinstance(result, FlextResult)
         assert result.is_success
-        loaded_config = result.value
-        assert loaded_config["debug"] == config_data["debug"]
-        assert loaded_config["timeout"] == config_data["timeout"]
+        assert result.value == "healthy"
 
-        temp_path.unlink()
+    def test_service_inherits_from_domain_service(self) -> None:
+        """Test service inherits from FlextDomainService."""
+        from flext_core.domain_services import FlextDomainService
+        service = FlextCliService()
+        assert isinstance(service, FlextDomainService)
 
-    def test_load_config_file_yaml_success(self) -> None:
-        """Test successful YAML config file loading."""
-        config_data = {"debug": False, "features": ["auth", "cli"], "version": "1.0"}
 
-        with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", suffix=".yaml", delete=False
-        ) as temp_file:
-            yaml.dump(config_data, temp_file)
-            temp_file.flush()
-            temp_path = Path(temp_file.name)
+class TestFlextCliConfig:
+    """Test configuration functionality."""
 
-            result = _load_config_file(str(temp_path))
+    def test_config_creation_with_defaults(self) -> None:
+        """Test config creation with default values."""
+        config = FlextCliConfig()
 
-            assert result.is_success
-            loaded_config = result.value
-            assert loaded_config["debug"] == config_data["debug"]
-            assert loaded_config["features"] == config_data["features"]
+        # Test default values
+        assert config.profile == "default"
+        assert config.debug is False
+        assert config.output_format == "table"
 
-            temp_path.unlink()
-
-    def test_load_config_file_not_found(self) -> None:
-        """Test config file loading with missing file."""
-        result = _load_config_file("/nonexistent/config.json")
-
-        assert not result.is_success
-        assert result.error is not None
-        assert (
-            "not found" in result.error.lower()
-            or "no such file" in result.error.lower()
+    def test_config_creation_with_custom_values(self) -> None:
+        """Test config creation with custom values."""
+        config = FlextCliConfig(
+            profile="test",
+            debug=True,
+            output_format="json"
         )
 
-    def test_load_config_file_invalid_json(self) -> None:
-        """Test config file loading with invalid JSON."""
-        with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", suffix=".json", delete=False
-        ) as temp_file:
-            temp_file.write("invalid json {")
-            temp_file.flush()
-            temp_path = Path(temp_file.name)
+        assert config.profile == "test"
+        assert config.debug is True
+        assert config.output_format == "json"
 
-            result = _load_config_file(str(temp_path))
+    def test_config_directories_creation(self) -> None:
+        """Test directory creation functionality."""
+        config = FlextCliConfig()
+        directories = config.CliDirectories(config=config)
 
-            assert not result.is_success
-            assert result.error is not None
-            assert "json" in result.error.lower() or "parse" in result.error.lower()
+        # Test that directories can be created
+        result = directories.create_directories()
+        assert isinstance(result, FlextResult)
+        # Directory creation may succeed or fail based on permissions
+        # but should return a FlextResult
 
-            temp_path.unlink()
+    def test_config_directories_validation(self) -> None:
+        """Test directory validation functionality."""
+        config = FlextCliConfig()
+        directories = config.CliDirectories(config=config)
 
-    def test_load_config_file_unsupported_format(self) -> None:
-        """Test config file loading with unsupported format."""
-        with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", suffix=".txt", delete=False
-        ) as temp_file:
-            temp_file.write("some config content")
-            temp_file.flush()
-            temp_path = Path(temp_file.name)
+        # Create directories first
+        directories.create_directories()
 
-            result = _load_config_file(str(temp_path))
-
-            assert not result.is_success
-            assert result.error is not None
-            assert (
-                "unsupported" in result.error.lower()
-                or "format" in result.error.lower()
-            )
-
-            temp_path.unlink()
-
-
-class TestQuickSetup:
-    """Test quick setup functionality."""
-
-    def test_flext_cli_quick_setup_basic(self) -> None:
-        """Test basic quick setup."""
-        config: dict[str, object] = {
-            "project_name": "test_project",
-            "features": ["cli", "auth"],
-        }
-
-        result = U.quick_setup(config)
-
-        assert result.is_success
-        setup_info = result.value
-        assert isinstance(setup_info, dict)
-        assert "project_name" in setup_info or "status" in setup_info
-
-    def test_flext_cli_quick_setup_minimal(self) -> None:
-        """Test quick setup with minimal config."""
-        config: dict[str, object] = {"project_name": "minimal"}
-
-        result = U.quick_setup(config)
-
-        assert result.is_success
-        setup_info = result.value
-        assert isinstance(setup_info, dict)
-
-    def test_flext_cli_quick_setup_empty_config(self) -> None:
-        """Test quick setup with empty config."""
-        config: dict[str, object] = {}
-
-        result = U.quick_setup(config)
-
-        # May succeed with defaults or fail due to missing required fields
+        # Test validation
+        result = directories.validate_directories()
         assert isinstance(result, FlextResult)
 
-    def test_flext_cli_quick_setup_complex(self) -> None:
-        """Test quick setup with complex configuration."""
-        config: dict[str, object] = {
-            "project_name": "complex_project",
-            "features": ["cli", "auth", "api"],
-            "settings": {"debug": True, "timeout": 60},
-            "dependencies": ["requests", "click"],
-        }
+    def test_config_settings_with_environment_variables(self) -> None:
+        """Test settings loading from environment."""
+        settings = FlextCliConfig.CliSettings()
 
-        result = U.quick_setup(config)
+        # Settings should be created successfully
+        assert hasattr(settings, "profile")
+        assert hasattr(settings, "debug")
+        assert hasattr(settings, "output_format")
+        assert hasattr(settings, "api_url")
+        assert hasattr(settings, "log_level")
 
-        assert result.is_success
-        setup_info = result.value
-        assert isinstance(setup_info, dict)
+    def test_config_ensure_setup_runs_successfully(self) -> None:
+        """Test ensure setup method."""
+        config = FlextCliConfig()
+        result = config.ensure_setup()
 
+        assert isinstance(result, FlextResult)
 
-class TestAutoConfig:
-    """Test automatic configuration functionality."""
+    def test_config_validate_cli_rules(self) -> None:
+        """Test CLI rules validation."""
+        config = FlextCliConfig()
+        result = config.validate_business_rules()
 
-    @patch("flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides")
-    @patch("flext_cli.utils_core.FlextCliUtilsCore._load_config_file")
-    def test_flext_cli_auto_config_with_file(
-        self, mock_load_file: MagicMock, mock_env: MagicMock
-    ) -> None:
-        """Test auto config with config file."""
-        mock_load_file.return_value = FlextResult[dict[str, object]].ok(
-            {
-                "debug": True,
-                "log_level": "info",
-            }
-        )
-        mock_env.return_value = {"timeout": 30}
+        assert isinstance(result, FlextResult)
 
-        result = U.auto_config("default", ["config.json"])
+    def test_config_factory_methods(self) -> None:
+        """Test configuration factory methods."""
+        # Test development config creation
+        dev_result = FlextCliConfig.create_development_config()
+        assert isinstance(dev_result, FlextResult)
+        assert dev_result.is_success
+        dev_config = dev_result.value
+        assert isinstance(dev_config, FlextCliConfig)
+        assert dev_config.debug is True
 
+        # Test production config creation
+        prod_result = FlextCliConfig.create_production_config()
+        assert isinstance(prod_result, FlextResult)
+        assert prod_result.is_success
+        prod_config = prod_result.value
+        assert isinstance(prod_config, FlextCliConfig)
+        assert prod_config.debug is False
+
+    def test_config_load_from_profile(self) -> None:
+        """Test loading configuration from profile."""
+        result = FlextCliConfig.load_from_profile("development")
+        assert isinstance(result, FlextResult)
         assert result.is_success
         config = result.value
-        assert isinstance(config, dict)
-        assert "debug" in config
-        mock_load_file.assert_called_once()
-
-    @patch("flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides")
-    def test_flext_cli_auto_config_env_only(self, mock_env: MagicMock) -> None:
-        """Test auto config with environment variables only."""
-        mock_env.return_value = {"debug": "false", "timeout": "45"}
-
-        result = U.auto_config("default", [])
-
-        assert result.is_success
-        config = result.value
-        assert isinstance(config, dict)
-
-    @patch("flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides")
-    @patch("flext_cli.utils_core.FlextCliUtilsCore._load_config_file")
-    def test_flext_cli_auto_config_file_error(
-        self, mock_load_file: MagicMock, mock_env: MagicMock
-    ) -> None:
-        """Test auto config when config file fails to load."""
-        mock_load_file.return_value = FlextResult[dict[str, object]].fail(
-            "File not found"
-        )
-        mock_env.return_value = {"fallback": "true"}
-
-        result = U.auto_config("default", ["missing.json"])
-
-        # Should fallback to env vars or return error
-        assert isinstance(result, FlextResult)
-
-
-class TestValidation:
-    """Test validation functionality."""
-
-    def test_flext_cli_validate_all_basic(self) -> None:
-        """Test basic validation of multiple items."""
-        validations: dict[str, tuple[object, str]] = {
-            "email": ("test@example.com", "email"),
-            "url": ("https://example.com", "url"),
-            "name": ("valid_name", "name"),
-        }
-
-        result = U.validate_all(validations)
-
-        # Validation may succeed or fail based on implementation
-        assert isinstance(result, FlextResult)
-
-    def test_flext_cli_validate_all_empty_lists(self) -> None:
-        """Test validation with empty lists."""
-        result = U.validate_all({})
-
-        assert result.is_success
-        validated = result.value
-        assert validated == {}
-
-    def test_flext_cli_validate_all_mismatched_lengths(self) -> None:
-        """Test validation with mismatched item/validator lengths."""
-        validations: dict[str, tuple[object, str]] = {
-            "test1": ("test", "email"),
-            "test2": ("data", "invalid_validator"),
-        }
-
-        result = U.validate_all(validations)
-
-        assert not result.is_success
-        assert result.error is not None
-        assert "validation" in result.error.lower() or "invalid" in result.error.lower()
-
-    def test_flext_cli_validate_all_invalid_items(self) -> None:
-        """Test validation with invalid items."""
-        validations: dict[str, tuple[object, str]] = {
-            "email": ("not_an_email", "email"),
-            "url": ("not_a_url", "url"),
-        }
-
-        result = flext_cli_validate_all(validations)
-
-        assert not result.is_success
-        assert result.error is not None
-        assert "validation" in result.error.lower() or "invalid" in result.error.lower()
-
-    def test_flext_cli_validate_all_mixed_valid_invalid(self) -> None:
-        """Test validation with mix of valid and invalid items."""
-        validations: dict[str, tuple[object, str]] = {
-            "email": ("test@example.com", "email"),
-            "url": ("not_a_url", "url"),
-            "name": ("valid_name", "name"),
-        }
-
-        result = flext_cli_validate_all(validations)
-
-        # Should fail on the invalid URL
-        assert not result.is_success
-
-
-class TestRequireAll:
-    """Test require all confirmations functionality."""
-
-    @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
-    def test_flext_cli_require_all_all_confirmed(self, mock_confirm: MagicMock) -> None:
-        """Test require all with all confirmations accepted."""
-        mock_confirm.return_value = FlextResult[bool].ok(data=True)
-
-        confirmations = [
-            ("Delete all files?", True),
-            ("Continue with operation?", False),
-        ]
-
-        result = U.require_all(confirmations)
-
-        assert result.is_success
-        assert result.value is True
-        assert mock_confirm.call_count == len(confirmations)
-
-    @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
-    def test_flext_cli_require_all_one_declined(self, mock_confirm: MagicMock) -> None:
-        """Test require all with one confirmation declined."""
-        mock_confirm.side_effect = [
-            FlextResult[bool].ok(data=True),  # First confirmation accepted
-            FlextResult[bool].ok(False),  # Second confirmation declined
-        ]
-
-        confirmations = [
-            ("Proceed with step 1?", False),
-            ("Proceed with step 2?", False),
-        ]
-
-        result = U.require_all(confirmations)
-
-        assert not result.is_success
-        assert result.error is not None
-        assert "declined" in result.error.lower() or "cancelled" in result.error.lower()
-
-    @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
-    def test_flext_cli_require_all_empty_list(self, mock_confirm: MagicMock) -> None:
-        """Test require all with empty confirmation list."""
-        result = U.require_all([])
-
-        assert result.is_success
-        assert result.value is True
-        mock_confirm.assert_not_called()
-
-    @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
-    def test_flext_cli_require_all_confirmation_error(
-        self, mock_confirm: MagicMock
-    ) -> None:
-        """Test require all with confirmation error."""
-        mock_confirm.return_value = FlextResult[bool].fail("Input error")
-
-        confirmations = [("Confirm action?", False)]
-
-        result = U.require_all(confirmations)
-
-        assert not result.is_success
-        assert result.error is not None
-        assert "input error" in result.error.lower()
-
-
-class TestOutputData:
-    """Test output data functionality."""
-
-    def test_flext_cli_output_data_simple(self) -> None:
-        """Test outputting simple data."""
-        data = {"message": "Hello, World!", "status": "success"}
-        console = Console()
-
-        result = U.output_data(data, fmt="json", console=console)
-
-        assert result.is_success
-
-    def test_flext_cli_output_data_with_format(self) -> None:
-        """Test outputting data with specific format."""
-        data = [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]
-        console = Console()
-
-        result = U.output_data(data, fmt="table", console=console)
-
-        assert result.is_success
-
-    def test_flext_cli_output_data_json_format(self) -> None:
-        """Test outputting data in JSON format."""
-        data = {"key": "value", "number": 42}
-        console = Console()
-
-        result = U.output_data(data, fmt="json", console=console)
-
-        assert result.is_success
-
-    def test_flext_cli_output_data_with_title(self) -> None:
-        """Test outputting data with title."""
-        data = {"info": "test data"}
-        console = Console()
-
-        result = U.output_data(data, fmt="json", console=console)
-
-        assert result.is_success
-
-    def test_flext_cli_output_data_empty_data(self) -> None:
-        """Test outputting empty data."""
-        console = Console()
-        result = U.output_data({}, fmt="json", console=console)
-
-        assert result.is_success
-
-    def test_flext_cli_output_data_none_data(self) -> None:
-        """Test outputting None data."""
-        console = Console()
-        result = U.output_data(None, fmt="json", console=console)
-
-        # Should handle None gracefully
-        assert result.is_success or not result.is_success  # Either is acceptable
-
-
-class TestCreateTable:
-    """Test table creation functionality."""
-
-    def test_flext_cli_create_table_dict_data(self) -> None:
-        """Test creating table from dictionary data."""
-        data = {"name": "John", "age": 30, "city": "NYC"}
-
-        table = U.create_table(data)
-
-        assert isinstance(result, Table)
-
-    def test_flext_cli_create_table_list_data(self) -> None:
-        """Test creating table from list data."""
-        data = [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]
-
-        table = U.create_table(data)
-
-        assert isinstance(result, Table)
-
-    def test_flext_cli_create_table_with_title(self) -> None:
-        """Test creating table with title."""
-        data = {"status": "active", "count": 5}
-
-        table = U.create_table(data, title="System Status")
-
-        assert isinstance(result, Table)
-        assert result.title == "System Status"
-
-    def test_flext_cli_create_table_empty_data(self) -> None:
-        """Test creating table with empty data."""
-        table = U.create_table([])
-
-        # Empty data may fail table creation
-        assert isinstance(result, Table)
-
-    def test_flext_cli_create_table_invalid_data(self) -> None:
-        """Test creating table with invalid data."""
-        table = U.create_table("not_table_data")
-
-        # Should handle invalid data gracefully
-        assert isinstance(result, Table)
-
-
-class TestFileOperations:
-    """Test file loading and saving operations."""
-
-    def test_flext_cli_load_file_json(self) -> None:
-        """Test loading JSON file."""
-        data = {"test": "data", "number": 123}
-
-        with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", suffix=".json", delete=False
-        ) as temp_file:
-            json.dump(data, temp_file)
-            temp_file.flush()
-            temp_path = Path(temp_file.name)
-
-            result = U.load_file(str(temp_path))
-
-            assert result.is_success
-            loaded_data = result.value
-            assert isinstance(loaded_data, dict)
-            assert loaded_data["test"] == data["test"]
-            assert loaded_data["number"] == data["number"]
-
-            temp_path.unlink()
-
-    def test_flext_cli_load_file_yaml(self) -> None:
-        """Test loading YAML file."""
-        data = {"config": {"debug": True, "features": ["a", "b"]}}
-
-        with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", suffix=".yaml", delete=False
-        ) as temp_file:
-            yaml.dump(data, temp_file)
-            temp_file.flush()
-            temp_path = Path(temp_file.name)
-
-            result = U.load_file(str(temp_path))
-
-            assert result.is_success
-            loaded_data = result.value
-            assert isinstance(loaded_data, dict)
-            config_data: dict[str, object] = cast(
-                "dict[str, object]", loaded_data["config"]
-            )
-            assert isinstance(config_data, dict)
-            assert config_data["debug"] == data["config"]["debug"]
-
-            temp_path.unlink()
-
-    def test_flext_cli_load_file_not_found(self) -> None:
-        """Test loading non-existent file."""
-        result = U.load_file("/nonexistent/file.json")
-
-        assert not result.is_success
-        assert result.error is not None
-        assert (
-            "not found" in result.error.lower()
-            or "no such file" in result.error.lower()
-        )
-
-    def test_flext_cli_save_file_json(self) -> None:
-        """Test saving data to JSON file."""
-        data = {"save_test": "data", "timestamp": "2025-01-15"}
-
-        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp_file:
-            temp_path = Path(temp_file.name)
-
-            result = U.save_file(data, str(temp_path))
-
-            assert result.is_success
-
-            # Verify file was saved correctly
-            with temp_path.open(encoding="utf-8") as saved_file:
-                loaded_data = json.load(saved_file)
-                assert loaded_data["save_test"] == data["save_test"]
-
-            temp_path.unlink()
-
-    def test_flext_cli_save_file_yaml(self) -> None:
-        """Test saving data to YAML file."""
-        data = {"save_test": {"nested": "value"}}
-
-        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as temp_file:
-            temp_path = Path(temp_file.name)
-
-            result = U.save_file(data, str(temp_path))
-
-            assert result.is_success
-
-            # Verify file was saved correctly
-            with temp_path.open(encoding="utf-8") as saved_file:
-                loaded_data = yaml.safe_load(saved_file)
-                assert loaded_data["save_test"]["nested"] == data["save_test"]["nested"]
-
-            temp_path.unlink()
-
-    def test_flext_cli_save_file_permission_error(self) -> None:
-        """Test saving file with permission error."""
-        data = {"test": "data"}
-
-        result = U.save_file(data, "/protected/path/file.json")
-
-        assert not result.is_success
-        assert result.error is not None
-        assert "permission" in result.error.lower() or "error" in result.error.lower()
-
-
-class TestBatchExecute:
-    """Test batch execution functionality."""
-
-    def test_flext_cli_batch_execute_simple(self) -> None:
-        """Test simple batch execution."""
-
-        def simple_operation(item: object) -> FlextResult[str]:
-            return FlextResult[str].ok(f"processed_{item}")
-
-        items: list[object] = ["a", "b", "c"]
-
-        result = U.batch_execute(items, simple_operation)
-
-        assert result.is_success
-        results = result.value
-        assert len(results) == 3
-        assert all("processed_" in str(r) for r in results)
-
-    def test_flext_cli_batch_execute_empty_list(self) -> None:
-        """Test batch execution with empty list."""
-
-        def dummy_operation(item: object) -> FlextResult[str]:
-            return FlextResult[str].ok(str(item))
-
-        empty_items: list[object] = []
-        result = U.batch_execute(empty_items, dummy_operation)
-
-        assert result.is_success
-        results = result.value
-        assert len(results) == 0
-
-    def test_flext_cli_batch_execute_with_failures(self) -> None:
-        """Test batch execution with some failures."""
-
-        def failing_operation(item: object) -> FlextResult[str]:
-            if str(item) == "fail":
-                return FlextResult[str].fail("Operation failed")
-            return FlextResult[str].ok(f"success_{item}")
-
-        items: list[object] = ["a", "fail", "c"]
-
-        result = U.batch_execute(items, failing_operation)
-
-        # Batch execution may continue on failures or stop
-        assert isinstance(result, FlextResult)
-
-    def test_flext_cli_batch_execute_with_exception(self) -> None:
-        """Test batch execution with operation that raises exception."""
-
-        def exception_operation(item: object) -> FlextResult[str]:
-            if str(item) == "error":
-                msg = "Operation exception"
-                raise ValueError(msg)
-            return FlextResult[str].ok(f"ok_{item}")
-
-        items: list[object] = ["a", "error", "c"]
-
-        result = U.batch_execute(items, exception_operation)
-
-        # Should handle exceptions gracefully
-        assert isinstance(result, FlextResult)
-
-    def test_flext_cli_batch_execute_with_progress(self) -> None:
-        """Test batch execution with progress tracking."""
-
-        def slow_operation(item: object) -> FlextResult[str]:
-            time.sleep(0.001)  # Small delay
-            return FlextResult[str].ok(f"done_{item}")
-
-        items: list[object] = ["1", "2", "3"]
-
-        result = U.batch_execute(items, slow_operation, stop_on_error=True)
-
-        assert result.is_success
-        results = result.value
-        assert len(results) == 3
-
-
-class TestTrackFunction:
-    """Test track function functionality."""
-
-    def test_track_basic_list(self) -> None:
-        """Test tracking basic list."""
-        items = [1, 2, 3, 4, 5]
-
-        result = list(U.track(items))
-
-        assert result == items
-        assert len(result) == 5
-
-    def test_track_empty_list(self) -> None:
-        """Test tracking empty list."""
-        items: list[object] = []
-
-        result = list(U.track(items))
-
-        assert result == []
-        assert len(result) == 0
-
-    def test_track_generator(self) -> None:
-        """Test tracking generator."""
-
-        def item_generator() -> Iterable[str]:
-            for i in range(3):
-                yield f"item_{i}"
-
-        result = list(U.track(list(item_generator())))
-
-        assert len(result) == 3
-        assert result[0] == "item_0"
-        assert result[2] == "item_2"
-
-    def test_track_with_total(self) -> None:
-        """Test tracking with explicit total."""
-        items = ["a", "b", "c"]
-
-        result = list(U.track(items))
-
-        assert result == items
-        assert len(result) == 3
-
-    def test_track_without_description(self) -> None:
-        """Test tracking without description."""
-        items = [10, 20, 30]
-
-        result = list(U.track(items))
-
-        assert result == items
-        assert len(result) == 3
-
-
-class TestErrorHandling:
-    """Test error handling across utilities."""
-
-    def test_generate_session_id_consistency(self) -> None:
-        """Test session ID generation consistency."""
-        ids = [_generate_session_id() for _ in range(100)]
-
-        # All should be unique
-        assert len(set(ids)) == 100
-        # All should be strings
-        assert all(isinstance(id_str, str) for id_str in ids)
-        # All should have reasonable length
-        assert all(len(id_str) > 8 for id_str in ids)
-
-    # @patch("flext_cli.utils_core.importlib.metadata.version")
-    # def test_get_version_fallback(self, mock_version: MagicMock) -> None:
-    #     """Test version retrieval with fallback - REMOVED: _get_version function not available in new API."""
-    #     pass
-
-    def test_current_timestamp_format(self) -> None:
-        """Test timestamp format consistency."""
-        timestamps = [_current_timestamp() for _ in range(5)]
-
-        # All should be strings with consistent format
-        for ts in timestamps:
-            assert isinstance(ts, str)
-            assert len(ts) > 10  # Should be reasonable length
-            # Should contain date/time separators
-            assert any(char in ts for char in ["-", ":", "T", " "])
-
-
-class TestIntegrationScenarios:
-    """Test integration scenarios combining multiple utilities."""
-
-    def test_config_and_validation_workflow(self) -> None:
-        """Test workflow combining config loading and validation."""
-        # Create config file
+        assert isinstance(config, FlextCliConfig)
+        assert config.profile == "development"
+
+    def test_config_with_file_loading(self) -> None:
+        """Test config loading from file."""
         config_data = {
-            "email": "test@example.com",
-            "url": "https://api.example.com",
+            "profile": "test_profile",
             "debug": True,
+            "output_format": "yaml",
+            "api_url": "https://test.example.com",
+            "log_level": "debug"
         }
 
-        with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", suffix=".json", delete=False
-        ) as temp_file:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as temp_file:
             json.dump(config_data, temp_file)
-            temp_file.flush()
             temp_path = Path(temp_file.name)
 
-            # Load config
-            load_result = _load_config_file(str(temp_path))
-            assert load_result.is_success
+            try:
+                # Test that config can be created with file data
+                result = FlextCliConfig.create_with_directories(config_data)
+                assert isinstance(result, FlextResult)
+                assert result.is_success
+                config = result.value
+                assert isinstance(config, FlextCliConfig)
+                assert config.profile == "test_profile"
+                assert config.debug is True
+            finally:
+                temp_path.unlink()
 
-            loaded_config = load_result.value
+    def test_config_constants_integration(self) -> None:
+        """Test integration with FlextCliConstants."""
+        from flext_cli.constants import FlextCliConstants
 
-            # Validate loaded values
-            validations: dict[str, tuple[object, str]] = {
-                "email": (loaded_config["email"], "email"),
-                "url": (loaded_config["url"], "url"),
-            }
-            validation_result = flext_cli_validate_all(validations)
-            # Validation may succeed or fail based on implementation
-            assert isinstance(validation_result, FlextResult)
+        # Verify constants are properly integrated
+        assert hasattr(FlextCliConstants, "DEFAULT_API_URL")
+        assert hasattr(FlextCliConstants, "LOG_LEVEL_INFO")
 
-            temp_path.unlink()
-
-    def test_batch_file_operations(self) -> None:
-        """Test batch file operations workflow."""
-        # Create test files
-        test_files: list[str] = []
-        test_data = [{"file1": "data1"}, {"file2": "data2"}, {"file3": "data3"}]
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            for i, data in enumerate(test_data):
-                file_path = Path(temp_dir) / f"test_{i}.json"
-                save_result = U.save_file(data, str(file_path))
-                if save_result.is_success:
-                    test_files.append(str(file_path))
-
-            # Batch load all files
-            def load_operation(file_path: object) -> FlextResult[object]:
-                return U.load_file(str(file_path))
-
-            test_files_objects: list[object] = cast("list[object]", test_files)
-            batch_result = U.batch_execute(test_files_objects, load_operation)
-
-            if batch_result.is_success:
-                loaded_data = batch_result.value
-                assert len(loaded_data) == len(test_files)
+        # Verify defaults match constants
+        settings = FlextCliConfig.CliSettings()
+        assert settings.api_url == FlextCliConstants.DEFAULT_API_URL
+        assert settings.log_level == FlextCliConstants.LOG_LEVEL_INFO
 
 
-class TestEdgeCasesAndBoundaries:
-    """Test edge cases and boundary conditions."""
+class TestConfigIntegration:
+    """Test configuration integration with other components."""
 
-    def test_large_data_handling(self) -> None:
-        """Test handling of large data structures."""
-        # Create large config
-        items_list: list[object] = [f"item_{i}" for i in range(1000)]
-        large_config: dict[str, object] = {"items": items_list}
+    def test_config_and_service_integration(self) -> None:
+        """Test configuration works with service."""
+        config = FlextCliConfig(debug=True)
+        service = FlextCliService()
 
-        with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", suffix=".json", delete=False
-        ) as temp_file:
-            json.dump(large_config, temp_file)
-            temp_file.flush()
-            temp_path = Path(temp_file.name)
+        # Both should be independent but usable together
+        health_result = service.flext_cli_health()
+        setup_result = config.ensure_setup()
 
-            load_result = _load_config_file(str(temp_path))
+        assert isinstance(health_result, FlextResult)
+        assert isinstance(setup_result, FlextResult)
 
-            if load_result.is_success:
-                loaded_config = load_result.value
-                assert isinstance(loaded_config, dict)
-                items: list[object] = cast("list[object]", loaded_config["items"])
-                assert isinstance(items, list)
-                assert len(items) == 1000
+    def test_config_file_operations(self) -> None:
+        """Test config file-related operations."""
+        config = FlextCliConfig()
 
-            temp_path.unlink()
+        # Test that file paths are accessible
+        assert hasattr(config, "config_dir")
+        assert hasattr(config, "cache_dir")
+        assert hasattr(config, "log_dir")
+        assert hasattr(config, "data_dir")
 
-    def test_unicode_content_handling(self) -> None:
-        """Test handling of Unicode content."""
-        unicode_data = {
-            "message": "Hello 世界! 🌍",
-            "emoji": "🚀✨🎉",
-            "chinese": "中文测试",
-            "korean": "한국어 테스트",
-        }
+        # Paths should be Path objects
+        assert isinstance(config.config_dir, Path)
+        assert isinstance(config.cache_dir, Path)
+        assert isinstance(config.log_dir, Path)
+        assert isinstance(config.data_dir, Path)
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False, encoding="utf-8"
-        ) as temp_file:
-            json.dump(unicode_data, temp_file, ensure_ascii=False)
-            temp_file.flush()
-            temp_path = Path(temp_file.name)
+    def test_config_business_rules_validation(self) -> None:
+        """Test configuration business rules validation."""
+        # Test valid configuration
+        valid_config = FlextCliConfig(
+            profile="development",
+            output_format="json",
+            debug=True
+        )
+        result = valid_config.validate_business_rules()
+        assert isinstance(result, FlextResult)
 
-            load_result = _load_config_file(str(temp_path))
+        # Test configuration validation doesn't crash
+        assert callable(getattr(valid_config, "validate_business_rules", None))
 
-            if load_result.is_success:
-                loaded_data = load_result.value
-                assert loaded_data["emoji"] == unicode_data["emoji"]
-                assert loaded_data["chinese"] == unicode_data["chinese"]
-
-            temp_path.unlink()
-
-    def test_nested_data_structures(self) -> None:
-        """Test handling of deeply nested data."""
-        nested_data = {
-            "level1": {
-                "level2": {
-                    "level3": {
-                        "level4": {
-                            "deep_value": "found_it",
-                            "array": [1, 2, {"nested_in_array": True}],
-                        }
-                    }
-                }
-            }
-        }
-
-        # Test through quick setup
-        nested_data_typed = cast("dict[str, object]", nested_data)
-        result = U.quick_setup(nested_data_typed)
-
-        # Should handle nested structures
-        assert result.is_success
-
-    def test_concurrent_operations_simulation(self) -> None:
-        """Test simulation of concurrent operations."""
-        results: list[dict[str, object]] = []
-
-        def concurrent_operation(thread_id: int) -> None:
-            # Simulate work with utilities
-            session_id = U._generate_session_id()
-            timestamp = U._current_timestamp()
-
-            result: dict[str, object] = {
-                "thread_id": thread_id,
-                "session_id": session_id,
-                "timestamp": timestamp,
-            }
-            results.append(result)
-            time.sleep(0.001)  # Small delay
-
-        # Create and start threads
-        threads: list[threading.Thread] = []
-        for i in range(5):
-            thread = threading.Thread(target=concurrent_operation, args=[i])
-            threads.append(thread)
-            thread.start()
-
-        # Wait for completion
-        for thread in threads:
-            thread.join()
-
-        # Verify results
-        assert len(results) == 5
-
-        # All session IDs should be unique
-        session_ids = [r["session_id"] for r in results]
-        assert len(set(session_ids)) == 5
-
-        # All should have different timestamps (mostly)
-        timestamps = [r["timestamp"] for r in results]
-        # Most should be different due to timing
-        assert len(set(timestamps)) >= 3

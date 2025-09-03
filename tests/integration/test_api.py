@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from flext_core import FlextResult
 
-from flext_cli import CLICommand, FlextCliApi, FlextCliCommandType, FlextCliPlugin
+from flext_cli import FlextCliApi, FlextCliModels
 
 
 class TestFlextCliApiIntegration:
@@ -67,24 +67,14 @@ class TestFlextCliApiIntegration:
         """Test command creation with valid data."""
         api = FlextCliApi()
 
-        result = api.flext_cli_create_command(
-            "test-command",
-            "echo hello",
-            description="Test command",
-            command_type="system",
-            timeout_seconds=60,
-        )
+        result = api.create_command("echo hello")
 
         assert isinstance(result, FlextResult)
         assert result.is_success
 
         command = result.value
-        assert isinstance(command, CLICommand)
-        assert command.name == "test-command"
+        assert isinstance(command, FlextCliModels.CliCommand)
         assert command.command_line == "echo hello"
-        assert command.command_type == FlextCliCommandType.SYSTEM
-        assert command.description == "Test command"
-        assert command.timeout == 60
 
     def test_api_create_command_with_invalid_type(self) -> None:
         """Test command creation with invalid command type."""
@@ -233,12 +223,13 @@ class TestFlextCliApiIntegration:
         """Test plugin registration integration with flext-plugin."""
         api = FlextCliApi()
 
-        # Create a real plugin instance
-        real_plugin = FlextCliPlugin(
-            name="test-plugin",
-            version="1.0.0",
-            description="Test plugin for integration tests",
-        )
+        # Create a simple plugin dict for testing
+        # Using dict since FlextCliPlugin doesn't exist yet
+        real_plugin = {
+            "name": "test-plugin",
+            "version": "1.0.0",
+            "description": "Test plugin for integration tests"
+        }
 
         # Register plugin - this should work with real flext-plugin integration
         result = api.flext_cli_register_plugin("test-plugin", real_plugin)

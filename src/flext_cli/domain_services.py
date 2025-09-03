@@ -13,7 +13,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from flext_core import FlextDomainService, FlextResult
+from flext_core import FlextResult
+from flext_core.domain_services import FlextDomainService
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels

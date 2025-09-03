@@ -8,12 +8,15 @@ import functools
 import time
 from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import cast
+from typing import ParamSpec, TypeVar, cast
 
-from flext_core import FlextDecorators, FlextResult, P, T
+from flext_core import FlextDecorators, FlextResult
 from rich.console import Console
 
 from flext_cli.constants import FlextCliConstants
+
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
 class FlextCliDecorators(FlextDecorators):

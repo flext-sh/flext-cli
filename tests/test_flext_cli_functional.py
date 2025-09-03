@@ -147,8 +147,8 @@ class TestFlextCliIntegration:
         assert hasattr(FlextCliConstants, "CliErrors")
 
         # All should be single point of access
-        Command = FlextCliModels.Command
-        command = Command(command_line="test")
+        command_cls = FlextCliModels.Command
+        command = command_cls(command_line="test")
         assert command.command_line == "test"
 
 
@@ -187,12 +187,12 @@ class TestFlextCliExportsReal:
         from flext_cli import FlextCliModels
 
         # Correct way to access
-        Command = FlextCliModels.Command
-        OutputFormat = FlextCliModels.OutputFormat
-        CommandStatus = FlextCliModels.CommandStatus
+        command_cls = FlextCliModels.Command
+        output_format = FlextCliModels.OutputFormat
+        command_status = FlextCliModels.CommandStatus
 
         # Test they work
-        cmd = Command(command_line="test")
+        cmd = command_cls(command_line="test")
         assert cmd.command_line == "test"
-        assert OutputFormat.JSON == "json"
-        assert CommandStatus.PENDING == "pending"
+        assert output_format.JSON == "json"
+        assert command_status.PENDING == "pending"

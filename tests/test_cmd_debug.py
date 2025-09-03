@@ -243,10 +243,10 @@ class TestPathsCommand(unittest.TestCase):
                 },
             )()
 
-            with patch("flext_cli.cmd_debug.get_config", return_value=test_config):
-                with patch("flext_cli.cmd_debug.Path.home", return_value=base_dir):
-                    result = self.runner.invoke(paths, [], obj={"console": Console()})
-                    assert result.exit_code == 0
+            with patch("flext_cli.cmd_debug.get_config", return_value=test_config), \
+                 patch("flext_cli.cmd_debug.Path.home", return_value=base_dir):
+                result = self.runner.invoke(paths, [], obj={"console": Console()})
+                assert result.exit_code == 0
 
 
 class TestValidateCommand(unittest.TestCase):

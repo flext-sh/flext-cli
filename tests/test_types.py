@@ -28,8 +28,8 @@ class TestTypeImports:
     def test_output_format_import(self) -> None:
         """Test FlextCliTypes.OutputFormat import from flext_cli.typings."""
         from flext_cli.typings import FlextCliTypes
-
-        assert _Fmt is not None
+        assert FlextCliTypes.OutputFormat is not None
+        assert hasattr(FlextCliTypes.OutputFormat, "JSON")
 
     def test_plugin_status_import(self) -> None:
         """Test PluginStatus import."""

@@ -21,7 +21,7 @@ from __future__ import annotations
 import tempfile
 from collections.abc import Callable
 from pathlib import Path
-from typing import Never, object
+from typing import Any, Never
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -47,7 +47,7 @@ from flext_cli import (
 
 
 # Placeholder implementation for testing
-def flext_cli_auto_retry(max_attempts: int = 3, delay: float = 0.1):
+def flext_cli_auto_retry(max_attempts: int = 3, delay: float = 0.1) -> Callable[..., Any]:
     """Auto-retry decorator placeholder implementation."""
     import time
     from functools import wraps

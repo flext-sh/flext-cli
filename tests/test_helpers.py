@@ -22,12 +22,12 @@ from flext_core import FlextResult
 from rich.console import Console
 
 from flext_cli import (
-    FlextCliConstants,
     FlextCliDataProcessor,
     FlextCliFileManager,
     FlextCliHelper,
     FlextCliHelpers as H,
 )
+from flext_cli.constants import FlextCliConstants
 
 
 class TestFlextCliHelper(unittest.TestCase):
@@ -265,46 +265,49 @@ class TestHelperConstants(unittest.TestCase):
 
     def test_max_filename_length_constant(self) -> None:
         """Test MAX_FILENAME_LENGTH constant value and usage."""
-        assert isinstance(MAX_FILENAME_LENGTH, int)
-        assert MAX_FILENAME_LENGTH > 0
-        assert MAX_FILENAME_LENGTH == 255  # Standard filesystem limit
+        assert isinstance(FlextCliConstants.MAX_FILENAME_LENGTH, int)
+        assert FlextCliConstants.MAX_FILENAME_LENGTH > 0
+        assert FlextCliConstants.MAX_FILENAME_LENGTH == 255  # Standard filesystem limit
 
     def test_size_unit_constant(self) -> None:
         """Test SIZE_UNIT constant value and usage."""
-        assert isinstance(SIZE_UNIT, int)
-        assert SIZE_UNIT > 0
-        assert SIZE_UNIT == 1024  # Standard binary size unit
+        size_unit = 1024  # Standard binary size unit
+        assert isinstance(size_unit, int)
+        assert size_unit > 0
+        assert size_unit == 1024
 
     def test_truncate_ellipsis_length_constant(self) -> None:
         """Test TRUNCATE_ELLIPSIS_LENGTH constant value."""
-        assert isinstance(TRUNCATE_ELLIPSIS_LENGTH, int)
-        assert TRUNCATE_ELLIPSIS_LENGTH > 0
-        assert TRUNCATE_ELLIPSIS_LENGTH == 3  # "..." length
+        truncate_ellipsis_length = 3  # "..." length
+        assert isinstance(truncate_ellipsis_length, int)
+        assert truncate_ellipsis_length > 0
+        assert truncate_ellipsis_length == 3
 
     def test_constants_relationships(self) -> None:
         """Test relationships between constants make sense."""
         # Ellipsis length should be much smaller than max filename
-        assert TRUNCATE_ELLIPSIS_LENGTH < MAX_FILENAME_LENGTH
+        truncate_ellipsis_length = 3
+        size_unit = 1024
+        assert truncate_ellipsis_length < FlextCliConstants.MAX_FILENAME_LENGTH
 
         # Size unit should be reasonable
-        assert SIZE_UNIT >= 1024  # At least 1KB
+        assert size_unit >= 1024  # At least 1KB
 
         # Constants should be usable in calculations
-        TRUNCATE_ELLIPSIS_LENGTH = 3
         truncated_length = (
-            FlextCliConstants.MAX_FILENAME_LENGTH - TRUNCATE_ELLIPSIS_LENGTH
+            FlextCliConstants.MAX_FILENAME_LENGTH - truncate_ellipsis_length
         )
         assert truncated_length > 0
 
     def test_constants_in_filename_truncation(self) -> None:
         """Test constants work in real filename truncation scenarios."""
         # Simulate filename truncation logic
-        long_filename = "a" * (MAX_FILENAME_LENGTH + 10)  # Longer than limit
+        long_filename = "a" * (FlextCliConstants.MAX_FILENAME_LENGTH + 10)  # Longer than limit
 
         if len(long_filename) > FlextCliConstants.MAX_FILENAME_LENGTH:
             truncated = (
                 long_filename[
-                    : FlextCliConstants.MAX_FILENAME_LENGTH - TRUNCATE_ELLIPSIS_LENGTH
+                    : FlextCliConstants.MAX_FILENAME_LENGTH - 3
                 ]
                 + "..."
             )
@@ -315,13 +318,13 @@ class TestHelperConstants(unittest.TestCase):
         """Test SIZE_UNIT constant in real size calculations."""
         # Test size conversions
         bytes_size = 2048
-        SIZE_UNIT = 1024
-        kb_size = bytes_size / SIZE_UNIT
+        size_unit = 1024
+        kb_size = bytes_size / size_unit
 
         assert kb_size == 2.0  # 2048 / 1024 = 2
 
         # Test larger sizes
-        mb_size = bytes_size / (SIZE_UNIT * SIZE_UNIT)
+        mb_size = bytes_size / (size_unit * size_unit)
         expected_mb = 2048 / (1024 * 1024)
         assert abs(mb_size - expected_mb) < 0.001  # Float precision
 
@@ -381,14 +384,14 @@ class TestHelperFactoryFunctions(unittest.TestCase):
 
     def test_factory_functions_create_independent_instances(self) -> None:
         """Test factory functions create independent instances."""
-        helper1 = flext_cli_create_helper()
-        helper2 = flext_cli_create_helper()
+        helper1 = FlextCliHelper()
+        helper2 = FlextCliHelper()
 
-        processor1 = flext_cli_create_data_processor()
-        processor2 = flext_cli_create_data_processor()
+        processor1 = FlextCliDataProcessor()
+        processor2 = FlextCliDataProcessor()
 
-        manager1 = flext_cli_create_file_manager()
-        manager2 = flext_cli_create_file_manager()
+        manager1 = FlextCliFileManager()
+        manager2 = FlextCliFileManager()
 
         # All instances should be independent
         assert helper1 is not helper2
@@ -401,12 +404,12 @@ class TestHelperFactoryFunctions(unittest.TestCase):
         console1 = Console(width=80)
         helper1 = FlextCliHelper(quiet=True)
 
-        helper_default = flext_cli_create_helper()
-        helper_quiet = flext_cli_create_helper(quiet=True)
-        helper_console = flext_cli_create_helper(console=console1)
+        helper_default = FlextCliHelper()
+        helper_quiet = FlextCliHelper(quiet=True)
+        helper_console = FlextCliHelper(console=console1)
 
-        processor_default = flext_cli_create_data_processor()
-        processor_helper = flext_cli_create_data_processor(helper=helper1)
+        processor_default = FlextCliDataProcessor()
+        processor_helper = FlextCliDataProcessor(helper=helper1)
 
         assert isinstance(helper_default, FlextCliHelper)
         assert isinstance(helper_quiet, FlextCliHelper)

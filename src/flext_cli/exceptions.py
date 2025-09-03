@@ -13,7 +13,7 @@ from __future__ import annotations
 from enum import StrEnum
 
 
-class FlextCliException(Exception):  # noqa: N818
+class FlextCliError(Exception):
     """Consolidated CLI exception following flext-core patterns.
 
     Single comprehensive exception class that handles all CLI error scenarios
@@ -87,14 +87,14 @@ class FlextCliException(Exception):  # noqa: N818
     def __repr__(self) -> str:
         """Return detailed representation for debugging."""
         return (
-            f"FlextCliException("
+            f"FlextCliError("
             f"message='{self.message}', "
             f"error_code='{self.error_code}', "
             f"context={self.context})"
         )
 
     @classmethod
-    def validation_error(cls, message: str, **context: object) -> FlextCliException:
+    def validation_error(cls, message: str, **context: object) -> FlextCliError:
         """Create validation error exception.
 
         Args:
@@ -102,13 +102,13 @@ class FlextCliException(Exception):  # noqa: N818
             **context: Additional validation context
 
         Returns:
-            FlextCliException with validation error code
+            FlextCliError with validation error code
 
         """
         return cls(message, error_code=cls.ErrorCode.VALIDATION_ERROR, **context)
 
     @classmethod
-    def configuration_error(cls, message: str, **context: object) -> FlextCliException:
+    def configuration_error(cls, message: str, **context: object) -> FlextCliError:
         """Create configuration error exception.
 
         Args:
@@ -116,13 +116,13 @@ class FlextCliException(Exception):  # noqa: N818
             **context: Additional configuration context
 
         Returns:
-            FlextCliException with configuration error code
+            FlextCliError with configuration error code
 
         """
         return cls(message, error_code=cls.ErrorCode.CONFIGURATION_ERROR, **context)
 
     @classmethod
-    def connection_error(cls, message: str, **context: object) -> FlextCliException:
+    def connection_error(cls, message: str, **context: object) -> FlextCliError:
         """Create connection error exception.
 
         Args:
@@ -130,13 +130,13 @@ class FlextCliException(Exception):  # noqa: N818
             **context: Additional connection context
 
         Returns:
-            FlextCliException with connection error code
+            FlextCliError with connection error code
 
         """
         return cls(message, error_code=cls.ErrorCode.CONNECTION_ERROR, **context)
 
     @classmethod
-    def authentication_error(cls, message: str, **context: object) -> FlextCliException:
+    def authentication_error(cls, message: str, **context: object) -> FlextCliError:
         """Create authentication error exception.
 
         Args:
@@ -144,13 +144,13 @@ class FlextCliException(Exception):  # noqa: N818
             **context: Additional authentication context
 
         Returns:
-            FlextCliException with authentication error code
+            FlextCliError with authentication error code
 
         """
         return cls(message, error_code=cls.ErrorCode.AUTHENTICATION_ERROR, **context)
 
     @classmethod
-    def command_error(cls, message: str, **context: object) -> FlextCliException:
+    def command_error(cls, message: str, **context: object) -> FlextCliError:
         """Create command error exception.
 
         Args:
@@ -158,13 +158,13 @@ class FlextCliException(Exception):  # noqa: N818
             **context: Additional command context
 
         Returns:
-            FlextCliException with command error code
+            FlextCliError with command error code
 
         """
         return cls(message, error_code=cls.ErrorCode.COMMAND_ERROR, **context)
 
     @classmethod
-    def timeout_error(cls, message: str, **context: object) -> FlextCliException:
+    def timeout_error(cls, message: str, **context: object) -> FlextCliError:
         """Create timeout error exception.
 
         Args:
@@ -172,13 +172,13 @@ class FlextCliException(Exception):  # noqa: N818
             **context: Additional timeout context
 
         Returns:
-            FlextCliException with timeout error code
+            FlextCliError with timeout error code
 
         """
         return cls(message, error_code=cls.ErrorCode.TIMEOUT_ERROR, **context)
 
     @classmethod
-    def format_error(cls, message: str, **context: object) -> FlextCliException:
+    def format_error(cls, message: str, **context: object) -> FlextCliError:
         """Create format error exception.
 
         Args:
@@ -186,7 +186,7 @@ class FlextCliException(Exception):  # noqa: N818
             **context: Additional format context
 
         Returns:
-            FlextCliException with format error code
+            FlextCliError with format error code
 
         """
         return cls(message, error_code=cls.ErrorCode.FORMAT_ERROR, **context)
@@ -218,18 +218,18 @@ class FlextCliException(Exception):  # noqa: N818
 
 
 # Backward compatibility aliases for existing code
-FlextCliError = FlextCliException
-FlextCliValidationError = FlextCliException
-FlextCliConfigurationError = FlextCliException
-FlextCliConnectionError = FlextCliException
-FlextCliProcessingError = FlextCliException
-FlextCliAuthenticationError = FlextCliException
-FlextCliTimeoutError = FlextCliException
-FlextCliCommandError = FlextCliException
-FlextCliArgumentError = FlextCliException
-FlextCliFormatError = FlextCliException
-FlextCliOutputError = FlextCliException
-FlextCliContextError = FlextCliException
+FlextCliException = FlextCliError  # Backward compatibility
+FlextCliValidationError = FlextCliError
+FlextCliConfigurationError = FlextCliError
+FlextCliConnectionError = FlextCliError
+FlextCliProcessingError = FlextCliError
+FlextCliAuthenticationError = FlextCliError
+FlextCliTimeoutError = FlextCliError
+FlextCliCommandError = FlextCliError
+FlextCliArgumentError = FlextCliError
+FlextCliFormatError = FlextCliError
+FlextCliOutputError = FlextCliError
+FlextCliContextError = FlextCliError
 
 
 __all__ = [

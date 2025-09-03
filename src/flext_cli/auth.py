@@ -375,12 +375,10 @@ class FlextCliAuth:
         try:
             # In a real implementation, this would decode the JWT token
             # or make an API call to get user information
-            return FlextResult[dict[str, object]].ok(
-                {
-                    "authenticated": True,
-                    "note": "User information retrieval not yet implemented",
-                }
-            )
+            return FlextResult[dict[str, object]].ok({
+                "authenticated": True,
+                "note": "User information retrieval not yet implemented",
+            })
         except (ValueError, KeyError) as e:
             return FlextResult[dict[str, object]].fail(
                 f"Error retrieving user information: {e}"

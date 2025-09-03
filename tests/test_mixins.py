@@ -111,10 +111,11 @@ class TestFlextCliValidationMixin:
 
     def test_validate_path_input_valid(self) -> None:
         """Test path validation with valid path."""
-        result = self.mixin._validate_path_input("path", "/tmp")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            result = self.mixin._validate_path_input("path", temp_dir)
 
-        assert result.is_success
-        assert "/tmp" in result.value
+            assert result.is_success
+            assert temp_dir in result.value
 
     def test_validate_dir_input_valid(self) -> None:
         """Test directory validation with existing directory."""
@@ -142,7 +143,7 @@ class TestFlextCliValidationMixin:
                 "email": ("test@example.com", "email"),
                 "website": ("https://example.com", "url"),
                 "config_file": (str(temp_file), "file"),
-                "data_path": ("/tmp", "path"),
+                "data_path": (temp_dir, "path"),
                 "output_dir": (temp_dir, "dir"),
             }
 
@@ -422,18 +423,17 @@ class TestFlextCliProgressMixin:
         # Mock the Console creation to cause exception, forcing fallback
         with mock.patch(
             "flext_cli.mixins.Progress", side_effect=Exception("Console error")
-        ):
-            with mock.patch("rich.console.Console") as mock_console:
-                mock_console.return_value = Console()  # Default console
+        ), mock.patch("rich.console.Console") as mock_console:
+            mock_console.return_value = Console()  # Default console
 
-                try:
-                    progress = self.mixin.flext_cli_with_progress("Test message")
-                    # If exception handling works, we should get a Progress instance
-                    assert isinstance(progress, Progress)
-                except Exception:
-                    # The method handles exceptions by creating a Progress with default Console
-                    # If this fails, at least verify the method tries to handle it
-                    assert True
+            try:
+                progress = self.mixin.flext_cli_with_progress("Test message")
+                # If exception handling works, we should get a Progress instance
+                assert isinstance(progress, Progress)
+            except Exception:
+                # The method handles exceptions by creating a Progress with default Console
+                # If this fails, at least verify the method tries to handle it
+                assert True
 
 
 # =============================================================================

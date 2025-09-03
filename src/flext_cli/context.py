@@ -12,7 +12,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import ClassVar, cast
 
-from flext_core import FlextModels, FlextResult
+from flext_core import FlextResult
+from flext_core.models import FlextModels
 from pydantic import ConfigDict, Field
 from rich.console import Console
 
@@ -47,7 +48,18 @@ class FlextCliContext(FlextModels.Value):
         quiet: bool = False,
         verbose: bool = False,
         **kwargs: object,
-    ) -> None: ...
+    ) -> None:
+        """Initialize CLI context with provided parameters."""
+        init_data = {"debug": debug, "quiet": quiet, "verbose": verbose, **kwargs}
+
+        if id_:
+            init_data["id"] = id_
+        if config is not None:
+            init_data["config"] = config
+        if console is not None:
+            init_data["console"] = console
+
+        super().__init__(**init_data)
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Context id")
     config: FlextCliConfig = Field(

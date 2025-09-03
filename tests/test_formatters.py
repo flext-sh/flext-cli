@@ -68,7 +68,7 @@ class TestOutputFormatter(unittest.TestCase):
             assert True
         except NotImplementedError:
             msg = "Custom formatter should not raise NotImplementedError"
-            raise AssertionError(msg)
+            raise AssertionError(msg) from None
 
 
 class TestTableFormatter(unittest.TestCase):
@@ -739,7 +739,8 @@ class TestFormatterIntegration(unittest.TestCase):
                     except Exception as e:
                         # Some edge cases might legitimately fail
                         # But we shouldn't get unhandled exceptions
-                        assert isinstance(e, (TypeError, ValueError, AttributeError))
+                        if not isinstance(e, (TypeError, ValueError, AttributeError)):
+                            raise
 
     def test_formatter_factory_integration(self) -> None:
         """Test FormatterFactory integration with all formatter types."""

@@ -7,12 +7,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
 
-import click
 import pytest
+from click.testing import CliRunner
 from rich.console import Console
-
 
 # =============================================================================
 # PYTEST CONFIGURATION - MINIMAL SETUP
@@ -34,7 +34,7 @@ def pytest_configure(config: pytest.Config) -> None:
 
 
 @pytest.fixture
-def temp_dir() -> Path:
+def temp_dir() -> Generator[Path]:
     """Provide temporary directory for tests."""
     with tempfile.TemporaryDirectory() as temp:
         yield Path(temp)
@@ -47,6 +47,6 @@ def console() -> Console:
 
 
 @pytest.fixture
-def cli_runner() -> click.testing.CliRunner:
+def cli_runner() -> CliRunner:
     """Provide Click CLI runner for testing."""
-    return click.testing.CliRunner()
+    return CliRunner()

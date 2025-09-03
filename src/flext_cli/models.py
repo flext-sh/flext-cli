@@ -9,7 +9,8 @@ from datetime import UTC, datetime
 from typing import ClassVar
 from uuid import uuid4
 
-from flext_core import FlextModels, FlextResult
+from flext_core import FlextResult
+from flext_core.models import FlextModels
 from pydantic import Field, computed_field, field_validator
 
 from flext_cli.constants import FlextCliConstants
@@ -81,7 +82,7 @@ class FlextCliModels:
                 )
             return FlextResult[None].ok(None)
 
-    class CliSession(FlextModels.BaseConfig):
+    class CliSession(FlextModels.Config):
         """CLI session model."""
 
         id: str = Field(default_factory=lambda: str(uuid4()))

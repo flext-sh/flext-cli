@@ -149,14 +149,11 @@ class FlextCliDataProcessing:
             for name, provider in sources.items():
                 try:
                     provider_result = provider()
-                    if isinstance(provider_result, FlextResult):
-                        if provider_result.is_success:
-                            result[name] = provider_result.value
-                        else:
-                            errors.append(f"{name}: {provider_result.error}")
-                            result[name] = None
+                    if provider_result.is_success:
+                        result[name] = provider_result.value
                     else:
-                        result[name] = provider_result
+                        errors.append(f"{name}: {provider_result.error}")
+                        result[name] = None
                 except Exception as e:
                     errors.append(f"{name}: {e}")
                     result[name] = None

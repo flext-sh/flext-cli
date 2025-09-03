@@ -69,8 +69,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import override
 
-from flext_core import FlextModels, FlextResult, FlextUtilities
+from flext_core import FlextResult, FlextUtilities
+from flext_core.models import FlextModels
 from pydantic import ConfigDict, Field
+from rich.table import Table
 
 from flext_cli.models import FlextCliModels
 from flext_cli.services import FlextCliServices
@@ -178,7 +180,7 @@ class FlextCliApi(FlextModels):
         """
         try:
             # Validate format type
-            valid_formats = {"table", "json", "yaml", "csv"}
+            valid_formats = {"table", "json", "yaml", "csv", "plain"}
             if format_type not in valid_formats:
                 return FlextResult[str].fail(f"Invalid format: {format_type}")
 
@@ -205,7 +207,26 @@ class FlextCliApi(FlextModels):
                 # Simple YAML-like formatting without pyyaml dependency
                 return FlextResult[str].ok(str(data))
 
-            if format_type in {"table", "plain"}:
+            if format_type == "plain":
+                return FlextResult[str].ok(str(data))
+
+            if format_type == "csv":
+                # Simple CSV formatting for list of dicts
+                if isinstance(data, list) and data and isinstance(data[0], dict):
+                    import csv
+                    import io
+
+                    output = io.StringIO()
+                    writer = csv.writer(output)
+                    # Write header
+                    writer.writerow(data[0].keys())
+                    # Write rows
+                    for row in data:
+                        writer.writerow(row.values())
+                    return FlextResult[str].ok(output.getvalue().strip())
+                return FlextResult[str].ok(str(data))
+
+            if format_type == "table":
                 return FlextResult[str].ok(str(data))
 
             # For other formats, use simple string representation
@@ -269,7 +290,11 @@ class FlextCliApi(FlextModels):
 
         """
         try:
-            # Data is already guaranteed to be list by type annotation
+            # Validate input data type
+            if not isinstance(data, list):
+                return FlextResult[list[dict[str, object]]].fail(
+                    f"Expected list, got {type(data).__name__}"
+                )
 
             result = data.copy()
 
@@ -315,13 +340,19 @@ class FlextCliApi(FlextModels):
 
         """
         try:
-            # Data is already guaranteed to be list by type annotation
+            # Validate input data type
+            if not isinstance(data, list):
+                return FlextResult[list[dict[str, object]]].fail(
+                    f"Expected list, got {type(data).__name__}"
+                )
 
             groups: dict[str, dict[str, object]] = {}
             sum_fields = sum_fields or []
 
             for item in data:
-                # Item is guaranteed to be dict by type annotation
+                # Validate item type
+                if not isinstance(item, dict):
+                    continue  # Skip non-dict items
 
                 group_value = item.get(group_by)
                 if group_value is None:
@@ -782,29 +813,29 @@ class FlextCliApi(FlextModels):
             return FlextResult[object].fail(f"Table creation failed: {e}")
 
     def _add_dict_list_to_table(
-        self, table: object, data: list[dict[str, object]]
+        self, table: Table, data: list[dict[str, object]]
     ) -> None:
         """Add list of dictionaries to table."""
         for key in data[0]:
-            table.add_column(str(key))  # type: ignore[attr-defined]
+            table.add_column(str(key))
         for row in data:
-            table.add_row(*[str(row.get(k, "")) for k in data[0]])  # type: ignore[attr-defined]
+            table.add_row(*[str(row.get(k, "")) for k in data[0]])
 
-    def _add_dict_to_table(self, table: object, data: dict[str, object]) -> None:
+    def _add_dict_to_table(self, table: Table, data: dict[str, object]) -> None:
         """Add dictionary to table."""
-        table.add_column("Key")  # type: ignore[attr-defined]
-        table.add_column("Value")  # type: ignore[attr-defined]
+        table.add_column("Key")
+        table.add_column("Value")
         for k, v in data.items():
-            table.add_row(str(k), str(v))  # type: ignore[attr-defined]
+            table.add_row(str(k), str(v))
 
-    def _add_simple_data_to_table(self, table: object, data: object) -> None:
+    def _add_simple_data_to_table(self, table: Table, data: object) -> None:
         """Add simple data to table."""
-        table.add_column("Value")  # type: ignore[attr-defined]
+        table.add_column("Value")
         if isinstance(data, list):
             for v in data:
-                table.add_row(str(v))  # type: ignore[attr-defined]
+                table.add_row(str(v))
         else:
-            table.add_row(str(data))  # type: ignore[attr-defined]
+            table.add_row(str(data))
 
     def batch_export(
         self, datasets: dict[str, object], directory: str | Path, format_type: str

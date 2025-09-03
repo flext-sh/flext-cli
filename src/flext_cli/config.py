@@ -60,7 +60,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import ClassVar, override
 
-from flext_core import FlextConfig, FlextResult
+from flext_core import FlextResult
+from flext_core.config import FlextConfig
 from pydantic import Field
 
 from flext_cli.constants import FlextCliConstants
@@ -639,12 +640,12 @@ class FlextCliConfig(FlextConfig):
         return self.api_url.rstrip("/")
 
     @property
-    def is_development(self) -> bool:
+    def is_development_mode(self) -> bool:
         """Check if configuration is for development environment."""
         return self.profile == "development" or self.debug
 
     @property
-    def is_production(self) -> bool:
+    def is_production_mode(self) -> bool:
         """Check if configuration is for production environment."""
         return self.profile == "production" and not self.debug
 
