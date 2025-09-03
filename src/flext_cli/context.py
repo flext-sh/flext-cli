@@ -10,7 +10,7 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, cast
+from typing import ClassVar, cast
 
 from flext_core import FlextModels, FlextResult
 from pydantic import ConfigDict, Field
@@ -37,20 +37,17 @@ class FlextCliContext(FlextModels.Value):
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
 
-    # CLI-specific fields
-    if TYPE_CHECKING:
-        # Typing-only constructor signature for static analyzers
-        def __init__(
-            self,
-            *,
-            id_: str | None = None,
-            config: FlextCliConfig | None = None,
-            console: Console | None = None,
-            debug: bool = False,
-            quiet: bool = False,
-            verbose: bool = False,
-            **kwargs: object,
-        ) -> None: ...
+    def __init__(
+        self,
+        *,
+        id_: str | None = None,
+        config: FlextCliConfig | None = None,
+        console: Console | None = None,
+        debug: bool = False,
+        quiet: bool = False,
+        verbose: bool = False,
+        **kwargs: object,
+    ) -> None: ...
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Context id")
     config: FlextCliConfig = Field(

@@ -3,115 +3,185 @@
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
+CLI-specific functionality extending flext-core with command-line interface patterns,
+authentication, configuration management, and CLI-specific utilities.
+
+Architecture:
+    Foundation: Constants, types, exceptions, protocols
+    Core: Models, services, context, configuration
+    Application: Commands, API functions, authentication, debug
+    Infrastructure: Client, formatters, adapters, utilities
+    Support: Decorators, helpers, output management
+
+Key Components:
+    FlextCliConfig: CLI configuration management with environment variables
+    FlextCliContext: Execution context and session management
+    FlextCliModels: CLI-specific domain models
+    FlextCliServices: CLI service layer with health checks
+    FlextCliApi: API client for CLI operations
+    FlextCliAuth: Authentication and session management
+    FlextCliFormatters: Output formatting and display utilities
+    FlextCliDebug: Debug utilities and diagnostics
+
+Examples:
+    CLI configuration:
+    >>> from flext_cli import FlextCliConfig
+    >>> config = FlextCliConfig()
+    >>> config.setup_cli()
+
+    Authentication:
+    >>> from flext_cli import auth_login
+    >>> result = auth_login("username", "password")
+
+    API operations:
+    >>> from flext_cli import FlextApiClient
+    >>> client = FlextApiClient()
+    >>> response = client.get("/api/status")
+
+Notes:
+    - All CLI operations should use FlextResult[T] for error handling
+    - Configuration is managed through FlextCliConfig
+    - Authentication state is maintained in FlextCliContext
+    - Follow Clean Architecture patterns with layered imports
+    - Leverage flext-core foundation for common functionality
+
 """
 
 from __future__ import annotations
 
-from .api import *
-from .auth import *
-from .client import *
-from .cmd import *
-from .config import *
-from .constants import *
-from .context import *
-from .debug import *
-from .decorators import *
-from .models import *
-from .services import *
-from .typings import *
-from .cli_utils import *
-from .formatters import *
-from .protocols import *
-from .formatter_adapter import *
-from .output_adapter import *
-from .api_functions import FlextCliApiFunctions
-from .helpers import (
-    FlextCliDataProcessor,
-    FlextCliFileManager,
-    FlextCliHelper,
-    FlextCliHelpers,
-)
-from flext_core.result import FlextResult
-from typing import Any, TypeVar
-from rich.console import Console
-from rich.table import Table
+# =============================================================================
+# FOUNDATION LAYER - Import first, no dependencies on other modules
+# =============================================================================
 
-T = TypeVar("T")
+from flext_cli.__version__ import *
+from flext_cli.constants import *
+from flext_cli.typings import *
+from flext_cli.exceptions import *
+from flext_cli.protocols import *
 
+# =============================================================================
+# CORE LAYER - Depends only on Foundation layer
+# =============================================================================
 
-# Thin functional wrappers for the class-based API (new API underneath)
-def flext_cli_format(data: object, format_type: str) -> FlextResult[str]:
-    """Format data using the consolidated class-based API.
+from flext_cli.models import *
+from flext_cli.core import *
+from flext_cli.context import *
+from flext_cli.config import *
 
-    Kept as a thin wrapper to maintain test compatibility while using
-    the new class-based API under the hood.
-    """
-    return FlextCliApiFunctions.format(data, format_type)
+# =============================================================================
+# APPLICATION LAYER - Depends on Core + Foundation layers
+# =============================================================================
 
+from flext_cli.cmd import *
+from flext_cli.auth import *
+from flext_cli.api_functions import *
+from flext_cli.commands_debug import *
+from flext_cli.debug import *
 
-def flext_cli_table(data: object, title: str | None = None) -> FlextResult[Table]:
-    """Create a table representation for the given data (via new API)."""
-    return FlextCliApiFunctions.table(data, title)
+# =============================================================================
+# INFRASTRUCTURE LAYER - Depends on Application + Core + Foundation
+# =============================================================================
 
+from flext_cli.client import *
+from flext_cli.api import *
+from flext_cli.formatters import *
+from flext_cli.formatter_adapter import *
+from flext_cli.output_adapter import *
+from flext_cli.services import *
 
-def flext_cli_export(
-    data: object, file_path: str, format_type: str
-) -> FlextResult[str]:
-    """Export data to a file path using the selected format (via new API)."""
-    return FlextCliApiFunctions.export(data, file_path, format_type)
+# =============================================================================
+# SUPPORT LAYER - Depends on layers as needed, imported last
+# =============================================================================
 
+from flext_cli.decorators import *
+from flext_cli.helpers import *
+from flext_cli.cli_utils import *
+from flext_cli.utils_core import *
+from flext_cli.utils_output import *
 
-def flext_cli_batch_export(
-    datasets: dict[str, object], directory: str, format_type: str
-) -> FlextResult[list[str]]:
-    """Export multiple datasets into a directory (via new API)."""
-    return FlextCliApiFunctions.batch_export(datasets, directory, format_type)
+# =============================================================================
+# CLI ENTRY POINT - Main CLI functionality
+# =============================================================================
 
+from flext_cli.cli import *
 
-def flext_cli_unwrap_or_default[T](result: FlextResult[T], default: T) -> T:
-    """Unwrap result value or return the provided default (via new API)."""
-    return FlextCliApiFunctions.unwrap_or_default(result, default)
+# =============================================================================
+# CONSOLIDATED EXPORTS - Combine all __all__ from modules
+# =============================================================================
 
+# Combine all __all__ exports from imported modules
+import flext_cli.__version__ as _version
+import flext_cli.api as _api
+import flext_cli.api_functions as _api_functions
+import flext_cli.auth as _auth
+import flext_cli.cli as _cli
+import flext_cli.cli_auth as _cli_auth
+import flext_cli.cli_utils as _cli_utils
+import flext_cli.client as _client
+import flext_cli.cmd as _cmd
+import flext_cli.commands_debug as _commands_debug
+import flext_cli.config as _config
+import flext_cli.constants as _constants
+import flext_cli.context as _context
+import flext_cli.core as _core
+import flext_cli.debug as _debug
+import flext_cli.decorators as _decorators
+import flext_cli.exceptions as _exceptions
+import flext_cli.formatter_adapter as _formatter_adapter
+import flext_cli.formatters as _formatters
+import flext_cli.helpers as _helpers
+import flext_cli.models as _models
+import flext_cli.output_adapter as _output_adapter
+import flext_cli.protocols as _protocols
+import flext_cli.services as _services
+import flext_cli.typings as _typings
+import flext_cli.utils_core as _utils_core
+import flext_cli.utils_output as _utils_output
 
-def flext_cli_unwrap_or_none[T](result: FlextResult[T]) -> T | None:
-    """Unwrap result value or return None (via new API)."""
-    return FlextCliApiFunctions.unwrap_or_none(result)
+# Collect all __all__ exports from imported modules
+_temp_exports: list[str] = []
 
+for module in [
+    _version,
+    _constants,
+    _typings,
+    _exceptions,
+    _protocols,
+    _models,
+    _core,
+    _context,
+    _config,
+    _cmd,
+    _auth,
+    _cli_auth,
+    _api_functions,
+    _debug,
+    _commands_debug,
+    _client,
+    _api,
+    _formatters,
+    _formatter_adapter,
+    _output_adapter,
+    _services,
+    _decorators,
+    _helpers,
+    _cli_utils,
+    _utils_core,
+    _utils_output,
+    _cli,
+]:
+    if hasattr(module, "__all__"):
+        _temp_exports.extend(module.__all__)
 
-# Helper factories
-def flext_cli_create_helper(
-    *, console: Console | None = None, quiet: bool = False
-) -> FlextCliHelper:
-    """Create a Flext CLI helper using the new helper factories."""
-    return FlextCliHelpers.create_helper(console=console, quiet=quiet)
+# Remove duplicates and sort for consistent exports - build complete list first
+_seen: set[str] = set()
+_final_exports: list[str] = []
+for item in _temp_exports:
+    if item not in _seen:
+        _seen.add(item)
+        _final_exports.append(item)
+_final_exports.sort()
 
-
-def flext_cli_create_data_processor(
-    *, helper: FlextCliHelper | None = None
-) -> FlextCliDataProcessor:
-    """Create a Flext CLI data processor (new API)."""
-    return FlextCliHelpers.create_data_processor(helper=helper)
-
-
-def flext_cli_create_file_manager(
-    *, helper: FlextCliHelper | None = None
-) -> FlextCliFileManager:
-    """Create a Flext CLI file manager (new API)."""
-    return FlextCliHelpers.create_file_manager(helper=helper)
-
-
-__all__: list[str] = [
-    # Class facades
-    "FlextCliApiFunctions",
-    "FlextCliHelpers",
-    # Functional wrappers
-    "flext_cli_format",
-    "flext_cli_table",
-    "flext_cli_export",
-    "flext_cli_batch_export",
-    "flext_cli_unwrap_or_default",
-    "flext_cli_unwrap_or_none",
-    "flext_cli_create_helper",
-    "flext_cli_create_data_processor",
-    "flext_cli_create_file_manager",
-]
+# Define __all__ as literal list for linter compatibility
+# This dynamic assignment is necessary for aggregating module exports
+__all__: list[str] = _final_exports  # pyright: ignore[reportUnsupportedDunderAll] # noqa: PLE0605

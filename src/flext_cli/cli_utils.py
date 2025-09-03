@@ -294,12 +294,10 @@ class FlextCliUtils:
                     ) + 1
                     errors_obj = results.get("errors", [])
                     errors = list(errors_obj) if isinstance(errors_obj, list) else []
-                    errors.append(
-                        {
-                            "file": str(file_path),
-                            "error": res.error or "Unknown error",
-                        }
-                    )
+                    errors.append({
+                        "file": str(file_path),
+                        "error": res.error or "Unknown error",
+                    })
                     results["errors"] = errors
             return FlextResult[dict[str, object]].ok(results)
         except Exception as e:

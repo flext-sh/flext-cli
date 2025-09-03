@@ -36,7 +36,9 @@ class FlextCliOutput:
         console.print(f"[bold green]✓[/bold green] {message}")
 
     @staticmethod
-    def print_error_static(console: Console, message: str, details: str | None = None) -> None:
+    def print_error_static(
+        console: Console, message: str, details: str | None = None
+    ) -> None:
         console.print(f"[bold red]Error:[/bold red] {message}")
         if details:
             console.print(details)

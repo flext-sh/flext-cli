@@ -12,7 +12,7 @@ from uuid import uuid4
 from flext_core import FlextModels, FlextResult
 from pydantic import Field, computed_field, field_validator
 
-from .constants import FlextCliConstants
+from flext_cli.constants import FlextCliConstants
 
 
 class FlextCliModels:

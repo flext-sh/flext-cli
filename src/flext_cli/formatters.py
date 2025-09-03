@@ -150,7 +150,11 @@ class FlextCliFormatters:
 
             console = Console(file=StringIO(), width=120)
             cls.format_output(data, format_type, console)
-            output = console.file.getvalue() if hasattr(console.file, "getvalue") else str(data)
+            output = (
+                console.file.getvalue()
+                if hasattr(console.file, "getvalue")
+                else str(data)
+            )
             return FlextResult[str].ok(output)
         except Exception as e:
             return FlextResult[str].fail(f"Format failed: {e}")
@@ -207,11 +211,16 @@ class FlextCliFormatters:
             if isinstance(data, list) and data and isinstance(data[0], dict):
                 keys = list(data[0].keys())
                 csv_lines = [",".join(keys)]
-                csv_lines.extend(",".join(str(row.get(k, "")) for k in keys) for row in data)
+                csv_lines.extend(
+                    ",".join(str(row.get(k, "")) for k in keys) for row in data
+                )
                 return FlextResult[str].ok("\n".join(csv_lines))
             if isinstance(data, dict):
                 keys = list(data.keys())
-                csv_lines = [",".join(keys), ",".join(str(data.get(k, "")) for k in keys)]
+                csv_lines = [
+                    ",".join(keys),
+                    ",".join(str(data.get(k, "")) for k in keys),
+                ]
                 return FlextResult[str].ok("\n".join(csv_lines))
             if isinstance(data, list):
                 return FlextResult[str].ok(",".join(str(v) for v in data))
