@@ -22,6 +22,7 @@ class FlextCliOutputAdapter:
             elif format_type == "yaml":
                 try:
                     import yaml
+
                     self.console.print(yaml.safe_dump(data))
                 except ImportError:
                     self.console.print(str(data))

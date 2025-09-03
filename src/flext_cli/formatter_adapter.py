@@ -28,7 +28,9 @@ class FlextCliFormatterAdapter:
         except Exception as e:
             return FlextResult[str].fail(f"Format failed: {e}")
 
-    def format_table(self, data: object, title: str | None = None) -> FlextResult[Table]:
+    def format_table(
+        self, data: object, title: str | None = None
+    ) -> FlextResult[Table]:
         """Format data as a table representation."""
         try:
             table = Table(title=title or "Data")
@@ -65,6 +67,7 @@ class FlextCliFormatterAdapter:
         """Format data as YAML string."""
         try:
             import yaml
+
             yaml_str = yaml.safe_dump(data)
             return FlextResult[str].ok(yaml_str)
         except ImportError:
@@ -78,7 +81,9 @@ class FlextCliFormatterAdapter:
             if isinstance(data, list) and data and isinstance(data[0], dict):
                 keys = list(data[0].keys())
                 lines = [",".join(keys)]
-                lines.extend(",".join(str(row.get(k, "")) for k in keys) for row in data)
+                lines.extend(
+                    ",".join(str(row.get(k, "")) for k in keys) for row in data
+                )
                 return FlextResult[str].ok("\n".join(lines))
             if isinstance(data, dict):
                 keys = list(data.keys())

@@ -65,7 +65,7 @@ from flext_core.result import FlextResult
 from pydantic import Field
 from pydantic_settings import BaseSettings as PydanticBaseSettings, SettingsConfigDict
 
-from .constants import FlextCliConstants
+from flext_cli.constants import FlextCliConstants
 
 
 class FlextCliConfig(FlextConfig):

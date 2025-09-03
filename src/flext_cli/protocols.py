@@ -15,13 +15,13 @@ from typing import Protocol, TypeVar, runtime_checkable
 from flext_core import FlextResult
 
 # Type variables for generic protocols
-T = TypeVar("T")
 TData = TypeVar("TData")
 
 
 # =============================================================================
 # FLEXT CLI PROTOCOLS - Modern CLI abstraction patterns
 # =============================================================================
+
 
 @runtime_checkable
 class FlextCliFormatterProtocol(Protocol):
@@ -32,45 +32,29 @@ class FlextCliFormatterProtocol(Protocol):
     """
 
     @abstractmethod
-    def format_data(
-        self,
-        data: object,
-        format_type: str
-    ) -> FlextResult[str]:
+    def format_data(self, data: object, format_type: str) -> FlextResult[str]:
         """Format data to specified output format."""
         ...
 
     @abstractmethod
     def format_table(
-        self,
-        data: object,
-        title: str | None = None
+        self, data: object, title: str | None = None
     ) -> FlextResult[object]:
         """Format data as a table representation."""
         ...
 
     @abstractmethod
-    def format_json(
-        self,
-        data: object,
-        indent: int = 2
-    ) -> FlextResult[str]:
+    def format_json(self, data: object, indent: int = 2) -> FlextResult[str]:
         """Format data as JSON string."""
         ...
 
     @abstractmethod
-    def format_yaml(
-        self,
-        data: object
-    ) -> FlextResult[str]:
+    def format_yaml(self, data: object) -> FlextResult[str]:
         """Format data as YAML string."""
         ...
 
     @abstractmethod
-    def format_csv(
-        self,
-        data: object
-    ) -> FlextResult[str]:
+    def format_csv(self, data: object) -> FlextResult[str]:
         """Format data as CSV string."""
         ...
 
@@ -84,52 +68,32 @@ class FlextCliOutputProtocol(Protocol):
     """
 
     @abstractmethod
-    def print_data(
-        self,
-        data: object,
-        format_type: str = "table"
-    ) -> FlextResult[None]:
+    def print_data(self, data: object, format_type: str = "table") -> FlextResult[None]:
         """Print data to terminal in specified format."""
         ...
 
     @abstractmethod
-    def print_success(
-        self,
-        message: str
-    ) -> FlextResult[None]:
+    def print_success(self, message: str) -> FlextResult[None]:
         """Print success message with styling."""
         ...
 
     @abstractmethod
-    def print_error(
-        self,
-        message: str
-    ) -> FlextResult[None]:
+    def print_error(self, message: str) -> FlextResult[None]:
         """Print error message with styling."""
         ...
 
     @abstractmethod
-    def print_warning(
-        self,
-        message: str
-    ) -> FlextResult[None]:
+    def print_warning(self, message: str) -> FlextResult[None]:
         """Print warning message with styling."""
         ...
 
     @abstractmethod
-    def print_info(
-        self,
-        message: str
-    ) -> FlextResult[None]:
+    def print_info(self, message: str) -> FlextResult[None]:
         """Print info message with styling."""
         ...
 
     @abstractmethod
-    def show_progress(
-        self,
-        description: str,
-        total: int | None = None
-    ) -> object:
+    def show_progress(self, description: str, total: int | None = None) -> object:
         """Show progress indicator."""
         ...
 
@@ -147,17 +111,14 @@ class FlextCliCommandProtocol(Protocol):
         self,
         command: str,
         args: list[str] | None = None,
-        options: dict[str, object] | None = None
+        options: dict[str, object] | None = None,
     ) -> FlextResult[str]:
         """Execute CLI command with arguments and options."""
         ...
 
     @abstractmethod
     def create_command(
-        self,
-        name: str,
-        description: str,
-        handler: object
+        self, name: str, description: str, handler: object
     ) -> FlextResult[object]:
         """Create a new CLI command."""
         ...
@@ -169,9 +130,7 @@ class FlextCliCommandProtocol(Protocol):
 
     @abstractmethod
     def validate_command(
-        self,
-        command: str,
-        args: list[str] | None = None
+        self, command: str, args: list[str] | None = None
     ) -> FlextResult[bool]:
         """Validate command and arguments."""
         ...
@@ -187,43 +146,30 @@ class FlextCliSessionProtocol(Protocol):
 
     @abstractmethod
     def create_session(
-        self,
-        user_id: str,
-        config: dict[str, object] | None = None
+        self, user_id: str, config: dict[str, object] | None = None
     ) -> FlextResult[str]:
         """Create new CLI session."""
         ...
 
     @abstractmethod
-    def get_session(
-        self,
-        session_id: str
-    ) -> FlextResult[dict[str, object]]:
+    def get_session(self, session_id: str) -> FlextResult[dict[str, object]]:
         """Get session information."""
         ...
 
     @abstractmethod
     def update_session(
-        self,
-        session_id: str,
-        updates: dict[str, object]
+        self, session_id: str, updates: dict[str, object]
     ) -> FlextResult[None]:
         """Update session data."""
         ...
 
     @abstractmethod
-    def end_session(
-        self,
-        session_id: str
-    ) -> FlextResult[None]:
+    def end_session(self, session_id: str) -> FlextResult[None]:
         """End CLI session."""
         ...
 
     @abstractmethod
-    def is_session_active(
-        self,
-        session_id: str
-    ) -> bool:
+    def is_session_active(self, session_id: str) -> bool:
         """Check if session is active."""
         ...
 
@@ -238,38 +184,28 @@ class FlextCliDataProcessorProtocol(Protocol):
 
     @abstractmethod
     def transform_data(
-        self,
-        data: object,
-        filters: dict[str, object] | None = None
+        self, data: object, filters: dict[str, object] | None = None
     ) -> FlextResult[list[object]]:
         """Transform data with optional filters."""
         ...
 
     @abstractmethod
     def aggregate_data(
-        self,
-        data: object,
-        group_by: str,
-        aggregations: dict[str, str] | None = None
+        self, data: object, group_by: str, aggregations: dict[str, str] | None = None
     ) -> FlextResult[list[object]]:
         """Aggregate data by field with aggregation functions."""
         ...
 
     @abstractmethod
     def export_data(
-        self,
-        data: object,
-        output_path: str,
-        format_type: str = "json"
+        self, data: object, output_path: str, format_type: str = "json"
     ) -> FlextResult[str]:
         """Export data to file in specified format."""
         ...
 
     @abstractmethod
     def import_data(
-        self,
-        input_path: str,
-        format_type: str | None = None
+        self, input_path: str, format_type: str | None = None
     ) -> FlextResult[object]:
         """Import data from file with auto format detection."""
         ...
@@ -284,10 +220,7 @@ class FlextCliManagerProtocol(Protocol):
     """
 
     @abstractmethod
-    def configure(
-        self,
-        config: dict[str, object]
-    ) -> FlextResult[None]:
+    def configure(self, config: dict[str, object]) -> FlextResult[None]:
         """Configure CLI manager with settings."""
         ...
 
@@ -326,8 +259,9 @@ class FlextCliManagerProtocol(Protocol):
 # FACTORY FUNCTIONS - Modern CLI creation patterns
 # =============================================================================
 
+
 def create_flext_cli_formatter(
-    default_format: str = "table"
+    default_format: str = "table",
 ) -> FlextResult[FlextCliFormatterProtocol]:
     """Factory function to create FlextCliFormatter implementation.
 
@@ -349,7 +283,9 @@ def create_flext_cli_formatter(
         )
 
     except Exception as e:
-        return FlextResult[FlextCliFormatterProtocol].fail(f"Failed to create formatter: {e}")
+        return FlextResult[FlextCliFormatterProtocol].fail(
+            f"Failed to create formatter: {e}"
+        )
 
 
 def create_flext_cli_output_handler() -> FlextResult[FlextCliOutputProtocol]:
@@ -370,11 +306,13 @@ def create_flext_cli_output_handler() -> FlextResult[FlextCliOutputProtocol]:
         )
 
     except Exception as e:
-        return FlextResult[FlextCliOutputProtocol].fail(f"Failed to create output handler: {e}")
+        return FlextResult[FlextCliOutputProtocol].fail(
+            f"Failed to create output handler: {e}"
+        )
 
 
 def create_flext_cli_manager(
-    config: dict[str, object] | None = None
+    config: dict[str, object] | None = None,
 ) -> FlextResult[FlextCliManagerProtocol]:
     """Factory function to create FlextCliManager implementation.
 
@@ -403,7 +341,9 @@ def create_flext_cli_manager(
         )
 
     except Exception as e:
-        return FlextResult[FlextCliManagerProtocol].fail(f"Failed to create manager: {e}")
+        return FlextResult[FlextCliManagerProtocol].fail(
+            f"Failed to create manager: {e}"
+        )
 
 
 def create_flext_cli_data_processor() -> FlextResult[FlextCliDataProcessorProtocol]:
@@ -424,17 +364,17 @@ def create_flext_cli_data_processor() -> FlextResult[FlextCliDataProcessorProtoc
         )
 
     except Exception as e:
-        return FlextResult[FlextCliDataProcessorProtocol].fail(f"Failed to create data processor: {e}")
+        return FlextResult[FlextCliDataProcessorProtocol].fail(
+            f"Failed to create data processor: {e}"
+        )
 
 
 # =============================================================================
 # CONVENIENCE FUNCTIONS - Simplified CLI operations
 # =============================================================================
 
-def flext_cli_format_data(
-    data: object,
-    format_type: str = "table"
-) -> FlextResult[str]:
+
+def flext_cli_format_data(data: object, format_type: str = "table") -> FlextResult[str]:
     """Convenience function to format data using modern protocols.
 
     Args:
@@ -447,16 +387,15 @@ def flext_cli_format_data(
     """
     formatter_result = create_flext_cli_formatter()
     if not formatter_result.success:
-        return FlextResult[str].fail(f"Failed to create formatter: {formatter_result.error}")
+        return FlextResult[str].fail(
+            f"Failed to create formatter: {formatter_result.error}"
+        )
 
     formatter = formatter_result.value
     return formatter.format_data(data, format_type)
 
 
-def flext_cli_print_data(
-    data: object,
-    format_type: str = "table"
-) -> FlextResult[None]:
+def flext_cli_print_data(data: object, format_type: str = "table") -> FlextResult[None]:
     """Convenience function to print data using modern protocols.
 
     Args:
@@ -469,16 +408,16 @@ def flext_cli_print_data(
     """
     output_result = create_flext_cli_output_handler()
     if not output_result.success:
-        return FlextResult[None].fail(f"Failed to create output handler: {output_result.error}")
+        return FlextResult[None].fail(
+            f"Failed to create output handler: {output_result.error}"
+        )
 
     output_handler = output_result.value
     return output_handler.print_data(data, format_type)
 
 
 def flext_cli_export_data(
-    data: object,
-    output_path: str,
-    format_type: str = "json"
+    data: object, output_path: str, format_type: str = "json"
 ) -> FlextResult[str]:
     """Convenience function to export data using modern protocols.
 
@@ -493,7 +432,9 @@ def flext_cli_export_data(
     """
     processor_result = create_flext_cli_data_processor()
     if not processor_result.success:
-        return FlextResult[str].fail(f"Failed to create data processor: {processor_result.error}")
+        return FlextResult[str].fail(
+            f"Failed to create data processor: {processor_result.error}"
+        )
 
     processor = processor_result.value
     return processor.export_data(data, output_path, format_type)
