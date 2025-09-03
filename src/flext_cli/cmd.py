@@ -67,10 +67,12 @@ class FlextCliCmd:
         )
         if fmt == "json":
             console.print(
-                FlextUtilities.safe_json_stringify({
-                    "config": cfg_dict,
-                    "settings": stg_dict,
-                })
+                FlextUtilities.safe_json_stringify(
+                    {
+                        "config": cfg_dict,
+                        "settings": stg_dict,
+                    }
+                )
             )
             return
         if fmt == "yaml":
@@ -234,10 +236,12 @@ def edit(ctx: click.Context) -> None:
             try:
                 yaml_mod = importlib.import_module("yaml")
                 f.write(
-                    yaml_mod.dump({
-                        "debug": False,
-                        "timeout": FlextCliConstants.DEFAULT_COMMAND_TIMEOUT,
-                    })
+                    yaml_mod.dump(
+                        {
+                            "debug": False,
+                            "timeout": FlextCliConstants.DEFAULT_COMMAND_TIMEOUT,
+                        }
+                    )
                 )
             except Exception:
                 f.write("debug: false\n")

@@ -750,6 +750,117 @@ class FlextCliApi(FlextModels):
             "supported_formats": ["table", "json", "yaml", "csv"],
         }
 
+    # ============================================================================
+    # CONSOLIDATED API FUNCTIONS - Integrated from api_functions.py
+    # ============================================================================
+
+    def create_table(
+        self, data: object, title: str | None = None
+    ) -> FlextResult[object]:
+        """Create a Rich Table from provided data.
+
+        Args:
+            data: Data to format as table
+            title: Optional table title
+
+        Returns:
+            FlextResult containing Rich Table object or error
+
+        """
+        try:
+            from rich.table import Table
+
+            table = Table(title=title or "Data")
+            if isinstance(data, list) and data and isinstance(data[0], dict):
+                self._add_dict_list_to_table(table, data)
+            elif isinstance(data, dict):
+                self._add_dict_to_table(table, data)
+            else:
+                self._add_simple_data_to_table(table, data)
+            return FlextResult[object].ok(table)
+        except Exception as e:
+            return FlextResult[object].fail(f"Table creation failed: {e}")
+
+    def _add_dict_list_to_table(
+        self, table: object, data: list[dict[str, object]]
+    ) -> None:
+        """Add list of dictionaries to table."""
+        for key in data[0]:
+            table.add_column(str(key))  # type: ignore[attr-defined]
+        for row in data:
+            table.add_row(*[str(row.get(k, "")) for k in data[0]])  # type: ignore[attr-defined]
+
+    def _add_dict_to_table(self, table: object, data: dict[str, object]) -> None:
+        """Add dictionary to table."""
+        table.add_column("Key")  # type: ignore[attr-defined]
+        table.add_column("Value")  # type: ignore[attr-defined]
+        for k, v in data.items():
+            table.add_row(str(k), str(v))  # type: ignore[attr-defined]
+
+    def _add_simple_data_to_table(self, table: object, data: object) -> None:
+        """Add simple data to table."""
+        table.add_column("Value")  # type: ignore[attr-defined]
+        if isinstance(data, list):
+            for v in data:
+                table.add_row(str(v))  # type: ignore[attr-defined]
+        else:
+            table.add_row(str(data))  # type: ignore[attr-defined]
+
+    def batch_export(
+        self, datasets: dict[str, object], directory: str | Path, format_type: str
+    ) -> FlextResult[list[str]]:
+        """Export multiple datasets to files in specified directory.
+
+        Args:
+            datasets: Dictionary mapping names to datasets
+            directory: Target directory for exports
+            format_type: Export format (csv, json, etc.)
+
+        Returns:
+            FlextResult containing list of exported file paths
+
+        """
+        try:
+            out_files: list[str] = []
+            base = Path(directory)
+            base.mkdir(parents=True, exist_ok=True)
+            for name, dataset in datasets.items():
+                target = base / f"{name}.{format_type}"
+                res = self.export_data(dataset, str(target), format_type)
+                if res.is_failure:
+                    return FlextResult[list[str]].fail(
+                        f"Failed to export {name}: {res.error}"
+                    )
+                out_files.append(str(target))
+            return FlextResult[list[str]].ok(out_files)
+        except Exception as e:
+            return FlextResult[list[str]].fail(str(e))
+
+    def unwrap_or_default[T](self, result: FlextResult[T], default: T) -> T:
+        """Unwrap FlextResult or return default value.
+
+        Args:
+            result: FlextResult to unwrap
+            default: Default value if result is failure
+
+        Returns:
+            Result value or default
+
+        """
+        return result.value if result.is_success else default
+
+    def unwrap_or_none[T](self, result: FlextResult[T]) -> T | None:
+        """Unwrap FlextResult or return None.
+
+        Args:
+            result: FlextResult to unwrap
+
+        Returns:
+            Result value or None
+
+        """
+        return result.value if result.is_success else None
+
     @override
     def __repr__(self) -> str:
         """Return string representation of FlextCliApi."""

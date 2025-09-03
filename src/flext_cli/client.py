@@ -11,7 +11,7 @@ from typing import Self, cast
 from urllib.parse import urljoin
 
 import httpx
-from flext_core import FlextConstants, FlextLogger, FlextModels, FlextResult
+from flext_core import FlextConstants, FlextCore, FlextModels, FlextResult
 from pydantic import Field
 
 from flext_cli.config import FlextCliConfig
@@ -35,7 +35,7 @@ class FlextApiClient:
         state: dict[str, object] | None = Field(None, description="Pipeline state")
         config: dict[str, object] | None = Field(None, description="Additional config")
 
-    class Pipeline(FlextModels):
+    class Pipeline(FlextModels.BaseConfig):
         """Pipeline model for API responses."""
 
         name: str = Field(description="Pipeline name")
@@ -52,7 +52,7 @@ class FlextApiClient:
                 return FlextResult[None].fail(f"Invalid pipeline status: {self.status}")
             return FlextResult[None].ok(None)
 
-    class PipelineList(FlextModels):
+    class PipelineList(FlextModels.BaseConfig):
         """Pipeline list response."""
 
         pipelines: list[FlextApiClient.Pipeline] = Field(
@@ -517,7 +517,7 @@ class FlextApiClient:
         try:
             await self._request(FlextCliConstants.HTTP_GET, "/api/v1/health")
         except (RuntimeError, ValueError, TypeError) as e:
-            logger = FlextLogger(__name__)
+            logger = FlextCore.get_logger(__name__)
             logger.warning(f"Connection test failed: {e}")
             return False
         else:

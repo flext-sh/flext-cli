@@ -34,6 +34,7 @@ class FlextCliConstants:
     MAX_CONFIG_KEY_LENGTH: Final[int] = 100
     MAX_CONFIG_VALUE_LENGTH: Final[int] = 1000
     MAX_COMMANDS_PER_SESSION: Final[int] = 10_000
+    MAX_ENV_VAR_DISPLAY_LENGTH: Final[int] = 60
 
     # Authentication / sessions
     TOKEN_EXPIRY_HOURS: Final[int] = 24

@@ -66,7 +66,7 @@ class TestCliMain:
         result = self.runner.invoke(cli, ["--output", "json", "--debug"])
         assert result.exit_code == 0
         # Should show json format
-        assert "Output format: json" in result.output
+        assert "Output Format: json" in result.output
 
     def test_cli_quiet_option(self) -> None:
         """Test CLI quiet option suppresses output."""
@@ -254,7 +254,7 @@ class TestCliConfiguration:
 
         # Verify configuration is loaded by checking debug output
         assert "Profile:" in result.output
-        assert "Output format:" in result.output
+        assert "Output Format:" in result.output
 
         # Test configuration with different values
         result = self.runner.invoke(
@@ -262,7 +262,7 @@ class TestCliConfiguration:
         )
         assert result.exit_code == 0
         assert "Profile: test" in result.output
-        assert "Output format: json" in result.output
+        assert "Output Format: json" in result.output
 
     def test_cli_context_creation_real(self) -> None:
         """Test CLI creates proper CLI context with real implementation."""
@@ -285,7 +285,7 @@ class TestCliConfiguration:
         for fmt in valid_formats:
             result = self.runner.invoke(cli, ["--output", fmt, "--debug"])
             assert result.exit_code == 0
-            assert f"Output format: {fmt}" in result.output
+            assert f"Output Format: {fmt}" in result.output
 
         # Test that CLI configuration can be inspected
         test_config = FlextCliConfig().model_dump()

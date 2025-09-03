@@ -79,11 +79,13 @@ class AdvancedCliService(FlextCliService):
 
     def execute(self) -> FlextResult[object]:
         """Execute advanced CLI service operations."""
-        return FlextResult[object].ok({
-            "service": "AdvancedCliService",
-            "status": "operational",
-            "features": ["health_check", "circuit_breaker", "async_operations"],
-        })
+        return FlextResult[object].ok(
+            {
+                "service": "AdvancedCliService",
+                "status": "operational",
+                "features": ["health_check", "circuit_breaker", "async_operations"],
+            }
+        )
 
     # Removed problematic decorators - @cli_enhanced, @cli_measure_time, @cli_retry
     # These decorators cause type inference issues with PyRight
@@ -295,13 +297,15 @@ class AdvancedCliService(FlextCliService):
             success = True  # Always succeed for demo
 
             if success:
-                return FlextResult[dict[str, object]].ok({
-                    "service": service_name,
-                    "operation": operation,
-                    "status": "success",
-                    "execution_time_ms": 150,
-                    "result": f"Operation {operation} completed successfully",
-                })
+                return FlextResult[dict[str, object]].ok(
+                    {
+                        "service": service_name,
+                        "operation": operation,
+                        "status": "success",
+                        "execution_time_ms": 150,
+                        "result": f"Operation {operation} completed successfully",
+                    }
+                )
             return FlextResult[dict[str, object]].fail(f"Operation {operation} failed")
 
         except Exception as e:

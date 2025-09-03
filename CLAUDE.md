@@ -11,6 +11,7 @@ FLEXT CLI is a command-line interface foundation library for the FLEXT ecosystem
 ## Development Commands
 
 ### Essential Commands
+
 ```bash
 # Complete validation pipeline (run before commits)
 make validate                 # lint + type-check + security + test (90% coverage)
@@ -25,6 +26,7 @@ make security               # Bandit security scan
 ```
 
 ### Setup Commands
+
 ```bash
 make setup                   # Complete setup with pre-commit hooks
 make install                 # Install dependencies with Poetry
@@ -34,6 +36,7 @@ make reset                   # Complete reset (clean + setup)
 ```
 
 ### Testing Commands
+
 ```bash
 make test                    # Full test suite with 90% coverage requirement
 make test-unit               # Unit tests only
@@ -47,6 +50,7 @@ pytest tests/test_commands_auth.py -v
 ```
 
 ### CLI Testing
+
 ```bash
 # Test CLI functionality
 make cli-test                # Basic CLI import test
@@ -59,11 +63,12 @@ poetry run flext debug --help  # Test debug commands
 ## Architecture
 
 ### High-Level Structure
+
 ```
 src/flext_cli/
 ├── cli.py                   # Main CLI entry point with Click
 ├── commands_*.py            # Command implementations (auth, config, debug)
-├── api.py                   # High-level API for library consumers  
+├── api.py                   # High-level API for library consumers
 ├── simple_api.py            # Zero-boilerplate setup functions
 ├── core.py                  # Core service implementation
 ├── entities.py              # Domain entities (CLI commands, sessions)
@@ -76,6 +81,7 @@ src/flext_cli/
 ### Key Patterns
 
 **FlextResult Pattern**: Railway-oriented programming for error handling
+
 ```python
 from flext_core import FlextResult
 
@@ -88,17 +94,20 @@ def save_config() -> FlextResult[None]:
 ```
 
 **Clean Architecture**: Domain-driven design with flext-core integration
+
 - Domain entities inherit from `FlextEntity`
 - Use `FlextBaseSettings` for configuration
 - Commands use `@handle_service_result` decorator
 
 **Rich UI**: Consistent terminal output using Rich library
+
 - Tables, progress bars, panels for output
-- Multiple output formats: table, json, yaml, csv
+- Multiple output formats: table, JSON, YAML, csv
 
 ## Dependencies
 
 ### Core Dependencies
+
 - **flext-core**: Foundation library (FlextResult, FlextEntity, etc.)
 - **Click 8.2+**: CLI framework
 - **Rich 14.0+**: Terminal UI components
@@ -106,6 +115,7 @@ def save_config() -> FlextResult[None]:
 - **httpx**: HTTP client
 
 ### Local Workspace Dependencies
+
 - **flext-api**: REST API services integration
 - **flext-observability**: Monitoring integration
 - **flext-meltano**: Meltano orchestration
@@ -115,6 +125,7 @@ def save_config() -> FlextResult[None]:
 ## Quality Standards
 
 ### Requirements
+
 - **Test Coverage**: Minimum 90% for core modules
 - **Type Safety**: MyPy strict mode enabled
 - **Linting**: Ruff with comprehensive rules
@@ -122,6 +133,7 @@ def save_config() -> FlextResult[None]:
 - **Documentation**: All public APIs documented
 
 ### Pre-commit Workflow
+
 1. Run `make validate` before any commit
 2. All quality gates must pass
 3. Tests must have real functionality, not excessive mocking
@@ -132,6 +144,7 @@ def save_config() -> FlextResult[None]:
 **Real Functionality Tests**: Tests should execute actual code paths, not just mock everything.
 
 Key test files:
+
 - `tests/test_core.py` - Core service functionality
 - `tests/test_commands_auth.py` - Authentication commands
 - `tests/test_api.py` - API functionality
@@ -147,6 +160,7 @@ Key test files:
 6. Run `make validate` before committing
 
 Example structure:
+
 ```python
 # commands_newfeature.py
 import click
@@ -170,6 +184,7 @@ def action(ctx: click.Context):
 ## Known Issues & Current State
 
 ### Working (✅)
+
 - Authentication commands (`flext auth`)
 - Configuration management (`flext config`)
 - Debug/diagnostic tools (`flext debug`)
@@ -177,11 +192,13 @@ def action(ctx: click.Context):
 - Rich terminal output
 
 ### Partially Working (⚠️)
+
 - flext-core integration (60% complete)
 - Test coverage (~45% actual)
 - Type safety (some MyPy errors remain)
 
 ### Missing/Planned (❌)
+
 - Pipeline management commands
 - Service orchestration
 - Interactive mode (placeholder only)
@@ -192,6 +209,7 @@ def action(ctx: click.Context):
 ## Configuration
 
 ### Environment Variables
+
 ```bash
 export FLX_PROFILE=development    # Configuration profile
 export FLX_DEBUG=true            # Enable debug mode
@@ -199,6 +217,7 @@ export FLEXT_CLI_LOG_LEVEL=debug # Logging level
 ```
 
 ### CLI Options
+
 ```bash
 flext --profile production --output json --debug command
 ```
@@ -208,21 +227,25 @@ flext --profile production --output json --debug command
 ### Common Issues
 
 1. **Import Errors**
+
    ```bash
    rm -rf .venv && poetry install --all-extras
    ```
 
 2. **Type Check Failures**
+
    ```bash
    poetry run mypy src/flext_cli --show-error-codes
    ```
 
 3. **Test Failures**
+
    ```bash
    poetry run pytest tests/ -v --tb=short
    ```
 
 ### Entry Points
+
 - Main CLI: `src/flext_cli/cli.py:29` - Main CLI group definition
 - Commands: `src/flext_cli/commands_*.py` - Individual command implementations
 - API: `src/flext_cli/api.py` - Programmatic access

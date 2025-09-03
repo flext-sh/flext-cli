@@ -180,33 +180,39 @@ class FlextCliServices(FlextServices):
         """Factory method to create CLI command processor."""
         processor = cls.CliCommandProcessor(**config)
         # Register minimal service info for discovery/observability
-        cls.registry.register({
-            "name": "cli_command_processor",
-            "type": "processor",
-            "version": "1.0",
-        })
+        cls.registry.register(
+            {
+                "name": "cli_command_processor",
+                "type": "processor",
+                "version": "1.0",
+            }
+        )
         return processor
 
     @classmethod
     def create_session_processor(cls, **config: object) -> CliSessionProcessor:
         """Factory method to create CLI session processor."""
         processor = cls.CliSessionProcessor(**config)
-        cls.registry.register({
-            "name": "cli_session_processor",
-            "type": "processor",
-            "version": "1.0",
-        })
+        cls.registry.register(
+            {
+                "name": "cli_session_processor",
+                "type": "processor",
+                "version": "1.0",
+            }
+        )
         return processor
 
     @classmethod
     def create_config_processor(cls, **config: object) -> CliConfigProcessor:
         """Factory method to create CLI config processor."""
         processor = cls.CliConfigProcessor(**config)
-        cls.registry.register({
-            "name": "cli_config_processor",
-            "type": "processor",
-            "version": "1.0",
-        })
+        cls.registry.register(
+            {
+                "name": "cli_config_processor",
+                "type": "processor",
+                "version": "1.0",
+            }
+        )
         return processor
 
     @classmethod

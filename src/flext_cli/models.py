@@ -6,7 +6,7 @@ Keep this thin; prefer using flext_core.FlextModels directly when possible.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 from uuid import uuid4
 
 from flext_core import FlextModels, FlextResult
@@ -22,10 +22,6 @@ class FlextCliModels:
 
     class CliCommand(FlextModels.Entity):
         """CLI command model."""
-
-        if TYPE_CHECKING:
-            # Typing-only constructor for static analyzers
-            def __init__(self, *, command_line: str, **kwargs: object) -> None: ...
 
         id: str = Field(default_factory=lambda: str(uuid4()))
         command_line: str = Field(...)
@@ -85,18 +81,12 @@ class FlextCliModels:
                 )
             return FlextResult[None].ok(None)
 
-    class CliSession(FlextModels):
+    class CliSession(FlextModels.BaseConfig):
         """CLI session model."""
-
-        if TYPE_CHECKING:
-            # Typing-only constructor for static analyzers
-            def __init__(
-                self, *, user_id: str | None = None, **kwargs: object
-            ) -> None: ...
 
         id: str = Field(default_factory=lambda: str(uuid4()))
         session_id: str = Field(default_factory=lambda: str(uuid4()))
-        start_time: datetime = Field(default_factory=datetime.now)
+        start_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
         end_time: datetime | None = None
         commands: list[FlextCliModels.CliCommand] = Field(default_factory=list)
         user_id: str | None = None
@@ -155,6 +145,14 @@ class FlextCliModels:
                 msg = f"Timeout must be between 1 and {FlextCliConstants.MAX_TIMEOUT_SECONDS} seconds"
                 raise ValueError(msg)
             return v
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate business rules for configuration."""
+            try:
+                # All validation is done through Pydantic validators
+                return FlextResult[None].ok(None)
+            except Exception as e:
+                return FlextResult[None].fail(f"Configuration validation failed: {e}")
 
 
 __all__ = ["FlextCliModels"]

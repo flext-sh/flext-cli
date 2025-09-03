@@ -29,10 +29,8 @@ from rich.console import Console
 from rich.table import Table
 
 # Import public API functions from main package
-from flext_cli.utils_core import FlextCliUtilsCore as U
-
 # Import private functions from their actual module location
-from flext_cli.utils_core import FlextCliUtilsCore as UC
+from flext_cli.utils_core import FlextCliUtilsCore as U, FlextCliUtilsCore as UC
 
 
 class TestFlextCliQuickSetup:
@@ -121,7 +119,10 @@ class TestFlextCliAutoConfig:
         config_data = {"profile": "test", "debug": True}
         config_file.write_text(yaml.dump(config_data))
 
-        with patch("flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides", return_value={}):
+        with patch(
+            "flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides",
+            return_value={},
+        ):
             result = U.auto_config("default", [str(config_file)])
 
         assert result.is_success
@@ -136,7 +137,10 @@ class TestFlextCliAutoConfig:
         config_data = {"api_url": "https://prod.api.flext.sh", "timeout": 30}
         config_file.write_text(yaml.dump(config_data))
 
-        with patch("flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides", return_value={}):
+        with patch(
+            "flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides",
+            return_value={},
+        ):
             result = U.auto_config("production", [str(config_file)])
 
         assert result.is_success
@@ -166,7 +170,10 @@ class TestFlextCliAutoConfig:
 
     def test_auto_config_no_files_found(self) -> None:
         """Test auto config when no config files are found."""
-        with patch("flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides", return_value={}):
+        with patch(
+            "flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides",
+            return_value={},
+        ):
             result = U.auto_config("default", ["/nonexistent/config.yml"])
 
         assert result.is_success
@@ -181,7 +188,10 @@ class TestFlextCliAutoConfig:
         config_data = {"profile": "json_test", "features": ["auth", "config"]}
         config_file.write_text(json.dumps(config_data))
 
-        with patch("flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides", return_value={}):
+        with patch(
+            "flext_cli.utils_core.FlextCliUtilsCore._load_env_overrides",
+            return_value={},
+        ):
             result = U.auto_config("default", [str(config_file)])
 
         assert result.is_success

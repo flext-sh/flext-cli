@@ -1,167 +1,258 @@
-"""FlextCliFormatters - Class-based formatting utilities and factory."""
+"""FLEXT CLI Formatters - Consolidated output formatting and display.
+
+Provides FlextCliFormatters class for comprehensive output formatting operations
+including table, JSON, YAML, CSV, and plain text formats following flext-core patterns.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
 
 from __future__ import annotations
 
-import importlib
-import json
+import csv
 from io import StringIO
 from typing import ClassVar, Protocol
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextUtilities
 from rich.console import Console
 from rich.table import Table
 
 
-class OutputFormatter(Protocol):
-    """Protocol for formatter classes used by the CLI."""
-
-    def format(self, data: object, console: Console) -> None: ...
-
-
-class TableFormatter:
-    """Render data in a Rich Table with best-effort heuristics."""
-
-    def format(self, data: object, console: Console) -> None:
-        table = Table(title="Data")
-        if isinstance(data, list) and data and isinstance(data[0], dict):
-            # Add columns from dict keys
-            for key in data[0]:
-                table.add_column(str(key))
-            for row in data:
-                table.add_row(*[str(row.get(k, "")) for k in data[0]])
-        elif isinstance(data, dict):
-            table.add_column("Key")
-            table.add_column("Value")
-            for k, v in data.items():
-                table.add_row(str(k), str(v))
-        else:
-            table.add_column("Value")
-            if isinstance(data, list):
-                for item in data:
-                    table.add_row(str(item))
-            else:
-                table.add_row(str(data))
-        console.print(table)
-
-
-class JSONFormatter:
-    """Pretty-print data as JSON using safe defaults."""
-
-    def format(self, data: object, console: Console) -> None:
-        console.print(json.dumps(data, ensure_ascii=False, default=str, indent=2))
-
-
-class YAMLFormatter:
-    """Render data as YAML; falls back to str on failure."""
-
-    def format(self, data: object, console: Console) -> None:
-        try:
-            yaml_mod = importlib.import_module("yaml")
-            buf = StringIO()
-            yaml_mod.safe_dump(data, buf)
-            # Avoid misleading multi-character strip: use removesuffix for '...'
-            text = buf.getvalue().rstrip("\n").removesuffix("...").strip()
-            console.print(text)
-        except Exception:
-            console.print(str(data))
-
-
-class CSVFormatter:
-    """Render tabular-like data as CSV text."""
-
-    def format(self, data: object, console: Console) -> None:
-        # Very small CSV: header from first row keys
-        if isinstance(data, list) and data and isinstance(data[0], dict):
-            keys = list(data[0].keys())
-            console.print(",".join(keys))
-            for row in data:
-                console.print(",".join(str(row.get(k, "")) for k in keys))
-        elif isinstance(data, dict):
-            keys = list(data.keys())
-            console.print(",".join(keys))
-            console.print(",".join(str(data.get(k, "")) for k in keys))
-        elif isinstance(data, list):
-            # print as a line of values
-            console.print(",".join(str(v) for v in data))
-        else:
-            console.print(str(data))
-
-
-class PlainFormatter:
-    """Render data as human-friendly plain text."""
-
-    def format(self, data: object, console: Console) -> None:
-        if isinstance(data, list) and data and isinstance(data[0], dict):
-            for row in data:
-                for k, v in row.items():
-                    console.print(f"{k}: {v}")
-        elif isinstance(data, dict):
-            for k, v in data.items():
-                console.print(f"{k}: {v}")
-        elif isinstance(data, list):
-            for v in data:
-                console.print(str(v))
-        else:
-            console.print(str(data))
-
-
-type FormatterCtor = type[OutputFormatter]
-
-
 class FlextCliFormatters:
-    """Factory and registry for output formatters used by the CLI."""
+    """Consolidated output formatting following flext-core patterns.
 
-    _registry: ClassVar[dict[str, FormatterCtor]] = {
-        "table": TableFormatter,
-        "json": JSONFormatter,
-        "yaml": YAMLFormatter,
-        "csv": CSVFormatter,
-        "plain": PlainFormatter,
-    }
+    Provides comprehensive formatting operations including table, JSON, YAML, CSV,
+    and plain text formats with FlextResult error handling and Rich integration.
+    Unified class containing ALL formatter functionality including protocols.
 
-    @classmethod
-    def create(cls, name: str) -> OutputFormatter:
-        ctor = cls._registry.get(name)
-        if not ctor:
-            msg = "Unknown formatter type"
+    Features:
+        - Multiple output formats (table, JSON, YAML, CSV, plain)
+        - Rich table formatting with auto-detection
+        - Type-safe formatting with FlextResult
+        - Protocol-based formatter registry
+        - Console output management
+        - Error handling and validation
+    """
+
+    class OutputFormatter(Protocol):
+        """Protocol for formatter classes used by the CLI."""
+
+        def format(self, data: object, console: Console) -> None: ...
+
+    # Registry of available formatters
+    _registry: ClassVar[dict[str, type[FlextCliFormatters.OutputFormatter]]] = {}
+
+    def __init__(
+        self, *, console: Console | None = None, default_format: str = "table"
+    ) -> None:
+        """Initialize formatters with console and default format.
+
+        Args:
+            console: Rich console instance for output
+            default_format: Default output format to use
+
+        """
+        self.console = console or Console()
+        self.default_format = default_format
+        self._setup_registry()
+
+    def _setup_registry(self) -> None:
+        """Setup the formatter registry with built-in formatters."""
+        # Update class variable by accessing it directly
+        FlextCliFormatters._registry = {
+            "table": self._TableFormatter,
+            "json": self._JSONFormatter,
+            "yaml": self._YAMLFormatter,
+            "csv": self._CSVFormatter,
+            "plain": self._PlainFormatter,
+        }
+
+    class _TableFormatter:
+        """Internal table formatter implementation."""
+
+        def format(self, data: object, console: Console) -> None:
+            table = Table(title="Data")
+            if isinstance(data, list) and data and isinstance(data[0], dict):
+                # Add columns from dict keys
+                for key in data[0]:
+                    table.add_column(str(key))
+                for row in data:
+                    table.add_row(*[str(row.get(k, "")) for k in data[0]])
+            elif isinstance(data, dict):
+                table.add_column("Key")
+                table.add_column("Value")
+                for k, v in data.items():
+                    table.add_row(str(k), str(v))
+            else:
+                table.add_column("Value")
+                if isinstance(data, list):
+                    for item in data:
+                        table.add_row(str(item))
+                else:
+                    table.add_row(str(data))
+            console.print(table)
+
+    class _JSONFormatter:
+        """Internal JSON formatter implementation."""
+
+        def format(self, data: object, console: Console) -> None:
+            try:
+                formatted = FlextUtilities.safe_json_stringify(data)
+                console.print(formatted)
+            except Exception:
+                console.print(str(data))
+
+    class _YAMLFormatter:
+        """Internal YAML formatter implementation."""
+
+        def format(self, data: object, console: Console) -> None:
+            try:
+                import yaml
+
+                formatted = yaml.safe_dump(data, default_flow_style=False)
+                console.print(formatted)
+            except ImportError:
+                # Fallback to JSON using flext-core
+                formatted = FlextUtilities.safe_json_stringify(data)
+                console.print(formatted)
+
+    class _CSVFormatter:
+        """Internal CSV formatter implementation."""
+
+        def format(self, data: object, console: Console) -> None:
+            output = StringIO()
+            try:
+                if isinstance(data, list) and data and isinstance(data[0], dict):
+                    dict_writer = csv.DictWriter(output, fieldnames=data[0].keys())
+                    dict_writer.writeheader()
+                    dict_writer.writerows(data)
+                elif isinstance(data, dict):
+                    dict_writer = csv.DictWriter(output, fieldnames=data.keys())
+                    dict_writer.writeheader()
+                    dict_writer.writerow(data)
+                else:
+                    plain_writer = csv.writer(output)
+                    if isinstance(data, list):
+                        for item in data:
+                            plain_writer.writerow([str(item)])
+                    else:
+                        plain_writer.writerow([str(data)])
+                console.print(output.getvalue())
+            except (ValueError, TypeError):
+                console.print(str(data))
+            finally:
+                output.close()
+
+    class _PlainFormatter:
+        """Internal plain text formatter implementation."""
+
+        def format(self, data: object, console: Console) -> None:
+            if isinstance(data, dict):
+                for k, v in data.items():
+                    console.print(f"{k}: {v}")
+            elif isinstance(data, list):
+                for v in data:
+                    console.print(str(v))
+            else:
+                console.print(str(data))
+
+    def create_formatter(self, name: str) -> FlextCliFormatters.OutputFormatter:
+        """Create formatter instance by name.
+
+        Args:
+            name: Formatter name from registry
+
+        Returns:
+            FlextCliFormatters.OutputFormatter: Formatter instance
+
+        Raises:
+            ValueError: If formatter name is unknown
+
+        """
+        formatter_class = self._registry.get(name)
+        if not formatter_class:
+            msg = f"Unknown formatter type: {name}"
             raise ValueError(msg)
-        return ctor()
+        return formatter_class()
 
-    @classmethod
-    def register(cls, name: str, ctor: FormatterCtor) -> None:
-        cls._registry[name] = ctor
+    def register_formatter(
+        self, name: str, formatter_class: type[FlextCliFormatters.OutputFormatter]
+    ) -> None:
+        """Register custom formatter.
 
-    @classmethod
-    def list_formats(cls) -> list[str]:
-        return sorted(cls._registry.keys())
+        Args:
+            name: Formatter name for registry
+            formatter_class: Formatter class implementing FlextCliFormatters.OutputFormatter protocol
 
-    @classmethod
-    def format_output(cls, data: object, fmt: str, console: Console) -> None:
-        cls.create(fmt).format(data, console)
+        """
+        self._registry[name] = formatter_class
 
-    # Protocol implementation methods
-    @classmethod
-    def format_data(cls, data: object, format_type: str) -> FlextResult[str]:
-        """Format data to specified output format."""
+    def list_formats(self) -> list[str]:
+        """List all available formatter names.
+
+        Returns:
+            List of available formatter names
+
+        """
+        return sorted(self._registry.keys())
+
+    def format_output(self, data: object, fmt: str | None = None) -> FlextResult[None]:
+        """Format and output data to console.
+
+        Args:
+            data: Data to format and output
+            fmt: Format type to use (defaults to default_format)
+
+        Returns:
+            FlextResult[None]: Success or failure result
+
+        """
         try:
-            from io import StringIO
-
-            from rich.console import Console
-
-            console = Console(file=StringIO(), width=120)
-            cls.format_output(data, format_type, console)
-            output = (
-                console.file.getvalue()
-                if hasattr(console.file, "getvalue")
-                else str(data)
-            )
-            return FlextResult[str].ok(output)
+            format_type = fmt or self.default_format
+            formatter = self.create_formatter(format_type)
+            formatter.format(data, self.console)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextResult[str].fail(f"Format failed: {e}")
+            return FlextResult[None].fail(f"Format output failed: {e}")
 
-    @classmethod
-    def format_table(cls, data: object, title: str | None = None) -> FlextResult[Table]:
-        """Format data as a table representation."""
+    def format_data(self, data: object, format_type: str) -> FlextResult[str]:
+        """Format data to string without outputting to console.
+
+        Args:
+            data: Data to format
+            format_type: Format type to use
+
+        Returns:
+            FlextResult[str]: Formatted string or error
+
+        """
+        try:
+            # Capture output using StringIO
+            temp_console = Console(file=StringIO(), width=120)
+            formatter = self.create_formatter(format_type)
+            formatter.format(data, temp_console)
+
+            if hasattr(temp_console.file, "getvalue"):
+                result = temp_console.file.getvalue()  # type: ignore[attr-defined]
+                return FlextResult[str].ok(result)
+            return FlextResult[str].fail("Unable to capture formatted output")
+        except Exception as e:
+            return FlextResult[str].fail(f"Format data failed: {e}")
+
+    def format_table(
+        self, data: object, title: str | None = None
+    ) -> FlextResult[Table]:
+        """Format data as Rich Table object.
+
+        Args:
+            data: Data to format as table
+            title: Optional table title
+
+        Returns:
+            FlextResult[Table]: Rich Table object or error
+
+        """
         try:
             table = Table(title=title or "Data")
             if isinstance(data, list) and data and isinstance(data[0], dict):
@@ -183,53 +274,129 @@ class FlextCliFormatters:
                     table.add_row(str(data))
             return FlextResult[Table].ok(table)
         except Exception as e:
-            return FlextResult[Table].fail(f"Table creation failed: {e}")
+            return FlextResult[Table].fail(f"Format table failed: {e}")
 
-    @classmethod
-    def format_json(cls, data: object, indent: int = 2) -> FlextResult[str]:
-        """Format data as JSON string."""
-        try:
-            json_str = json.dumps(data, ensure_ascii=False, default=str, indent=indent)
-            return FlextResult[str].ok(json_str)
-        except Exception as e:
-            return FlextResult[str].fail(f"JSON formatting failed: {e}")
+    def format_json(self, data: object) -> FlextResult[str]:
+        """Format data as JSON string.
 
-    @classmethod
-    def format_yaml(cls, data: object) -> FlextResult[str]:
-        """Format data as YAML string."""
-        try:
-            yaml_mod = importlib.import_module("yaml")
-            yaml_str = yaml_mod.safe_dump(data)
-            return FlextResult[str].ok(yaml_str)
-        except Exception as e:
-            return FlextResult[str].fail(f"YAML formatting failed: {e}")
+        Args:
+            data: Data to format as JSON
+            indent: JSON indentation level
 
-    @classmethod
-    def format_csv(cls, data: object) -> FlextResult[str]:
-        """Format data as CSV string."""
+        Returns:
+            FlextResult[str]: JSON string or error
+
+        """
         try:
-            if isinstance(data, list) and data and isinstance(data[0], dict):
-                keys = list(data[0].keys())
-                csv_lines = [",".join(keys)]
-                csv_lines.extend(
-                    ",".join(str(row.get(k, "")) for k in keys) for row in data
-                )
-                return FlextResult[str].ok("\n".join(csv_lines))
-            if isinstance(data, dict):
-                keys = list(data.keys())
-                csv_lines = [
-                    ",".join(keys),
-                    ",".join(str(data.get(k, "")) for k in keys),
-                ]
-                return FlextResult[str].ok("\n".join(csv_lines))
-            if isinstance(data, list):
-                return FlextResult[str].ok(",".join(str(v) for v in data))
-            return FlextResult[str].ok(str(data))
+            result = FlextUtilities.safe_json_stringify(data)
+            return FlextResult[str].ok(result)
         except Exception as e:
-            return FlextResult[str].fail(f"CSV formatting failed: {e}")
+            return FlextResult[str].fail(f"JSON format failed: {e}")
+
+    def format_yaml(self, data: object) -> FlextResult[str]:
+        """Format data as YAML string.
+
+        Args:
+            data: Data to format as YAML
+
+        Returns:
+            FlextResult[str]: YAML string or error
+
+        """
+        try:
+            import yaml
+
+            result = yaml.safe_dump(data, default_flow_style=False)
+            return FlextResult[str].ok(result)
+        except ImportError:
+            return FlextResult[str].fail("YAML library not available")
+        except Exception as e:
+            return FlextResult[str].fail(f"YAML format failed: {e}")
+
+    def format_csv(self, data: object) -> FlextResult[str]:
+        """Format data as CSV string.
+
+        Args:
+            data: Data to format as CSV
+
+        Returns:
+            FlextResult[str]: CSV string or error
+
+        """
+        try:
+            output = StringIO()
+            try:
+                if isinstance(data, list) and data and isinstance(data[0], dict):
+                    dict_writer = csv.DictWriter(output, fieldnames=data[0].keys())
+                    dict_writer.writeheader()
+                    dict_writer.writerows(data)
+                elif isinstance(data, dict):
+                    dict_writer = csv.DictWriter(output, fieldnames=data.keys())
+                    dict_writer.writeheader()
+                    dict_writer.writerow(data)
+                else:
+                    plain_writer = csv.writer(output)
+                    if isinstance(data, list):
+                        for item in data:
+                            plain_writer.writerow([str(item)])
+                    else:
+                        plain_writer.writerow([str(data)])
+                result = output.getvalue()
+                return FlextResult[str].ok(result)
+            finally:
+                output.close()
+        except Exception as e:
+            return FlextResult[str].fail(f"CSV format failed: {e}")
+
+    def print_success(self, message: str) -> FlextResult[None]:
+        """Print success message with styling.
+
+        Args:
+            message: Success message to display
+
+        Returns:
+            FlextResult[None]: Success or failure result
+
+        """
+        try:
+            self.console.print(f"[bold green]✓[/bold green] {message}")
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Print success failed: {e}")
+
+    def print_error(self, message: str) -> FlextResult[None]:
+        """Print error message with styling.
+
+        Args:
+            message: Error message to display
+
+        Returns:
+            FlextResult[None]: Success or failure result
+
+        """
+        try:
+            self.console.print(f"[bold red]✗[/bold red] {message}")
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Print error failed: {e}")
+
+    def print_warning(self, message: str) -> FlextResult[None]:
+        """Print warning message with styling.
+
+        Args:
+            message: Warning message to display
+
+        Returns:
+            FlextResult[None]: Success or failure result
+
+        """
+        try:
+            self.console.print(f"[bold yellow]⚠[/bold yellow] {message}")
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Print warning failed: {e}")
 
 
 __all__ = [
     "FlextCliFormatters",
-    "OutputFormatter",
 ]

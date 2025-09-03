@@ -16,7 +16,7 @@ from uuid import UUID
 from flext_core import FlextResult
 
 from flext_cli.cli_utils import FlextCliData, FlextCliUtils as U
-from flext_cli.typings import FlextCliOutputFormat
+from flext_cli.typings import FlextCliTypes
 from flext_cli.utils_core import FlextCliUtilsCore
 
 
@@ -151,7 +151,7 @@ class TestDataSavingUtilities:
             test_data = {"test": "data"}
 
             result = U.save_data_file(
-                test_data, Path(f.name), FlextCliOutputFormat.JSON
+                test_data, Path(f.name), FlextCliTypes.OutputFormat.JSON
             )
 
             assert result.is_success
@@ -201,7 +201,7 @@ class TestFormatOutput:
         """Test formatting output as JSON."""
         data = {"key": "value", "number": 42}
 
-        result = U.format_output(data, FlextCliOutputFormat.JSON)
+        result = U.format_output(data, FlextCliTypes.OutputFormat.JSON)
 
         assert result.is_success
         output = result.value
@@ -213,7 +213,7 @@ class TestFormatOutput:
         """Test formatting output as plain text."""
         data = "Simple string data"
 
-        result = U.format_output(data, FlextCliOutputFormat.PLAIN)
+        result = U.format_output(data, FlextCliTypes.OutputFormat.PLAIN)
 
         assert result.is_success
         output = result.value

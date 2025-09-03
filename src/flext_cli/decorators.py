@@ -1,4 +1,5 @@
 """FLEXT CLI Decorators - Class-only decorator utilities (no free helpers)."""
+# type: ignore[valid-type]  # ParamSpec compatibility issues with MyPy
 
 from __future__ import annotations
 
@@ -180,39 +181,46 @@ class FlextCliDecorators(FlextDecorators):
 
         return _decorator
 
+    @staticmethod
+    def handle_exceptions(
+        message: str,
+    ) -> Callable[[Callable[P, T]], Callable[P, FlextResult[T]]]:
+        """Wrap exceptions into FlextResult failures; pass-through successes."""
+
+        def _decorator(func: Callable[P, T]) -> Callable[P, FlextResult[T]]:
+            @functools.wraps(func)
+            def _wrapped(*args: P.args, **kwargs: P.kwargs) -> FlextResult[T]:
+                try:
+                    result = func(*args, **kwargs)
+                    if isinstance(result, FlextResult):
+                        return cast("FlextResult[T]", result)
+                    return FlextResult.ok(result)
+                except (RuntimeError, ValueError, TypeError, OSError) as e:
+                    return FlextResult.fail(f"{message}: {e}")
+
+            return _wrapped
+
+        return _decorator
+
+    @staticmethod
+    def require_confirmation(
+        _action: str,
+    ) -> Callable[[Callable[P, T]], Callable[P, T]]:
+        """Compatibility no-op confirmation decorator (non-interactive)."""
+
+        def _decorator(func: Callable[P, T]) -> Callable[P, T]:
+            return functools.wraps(func)(func)
+
+        return _decorator
+
+
+# Backward compatibility - expose static methods as module functions
+flext_cli_handle_exceptions = FlextCliDecorators.handle_exceptions
+flext_cli_require_confirmation = FlextCliDecorators.require_confirmation
+
 
 __all__ = [
     "FlextCliDecorators",
+    "flext_cli_handle_exceptions",
+    "flext_cli_require_confirmation",
 ]
-
-
-def flext_cli_handle_exceptions(
-    message: str,
-) -> Callable[[Callable[P, T]], Callable[P, FlextResult[T]]]:
-    """Wrap exceptions into FlextResult failures; pass-through successes."""
-
-    def _decorator(func: Callable[P, T]) -> Callable[P, FlextResult[T]]:
-        @functools.wraps(func)
-        def _wrapped(*args: P.args, **kwargs: P.kwargs) -> FlextResult[T]:
-            try:
-                result = func(*args, **kwargs)
-                if isinstance(result, FlextResult):
-                    return cast("FlextResult[T]", result)
-                return FlextResult.ok(result)
-            except (RuntimeError, ValueError, TypeError, OSError) as e:
-                return FlextResult.fail(f"{message}: {e}")
-
-        return _wrapped
-
-    return _decorator
-
-
-def flext_cli_require_confirmation(
-    _action: str,
-) -> Callable[[Callable[P, T]], Callable[P, T]]:
-    """Compatibility no-op confirmation decorator (non-interactive)."""
-
-    def _decorator(func: Callable[P, T]) -> Callable[P, T]:
-        return functools.wraps(func)(func)
-
-    return _decorator

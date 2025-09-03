@@ -90,7 +90,11 @@ def demonstrate_data_transformation() -> FlextResult[None]:
     # Transform data - filter only running services (manual filtering since flext_cli_transform_data has different signature)
     def filter_running_services(data: object) -> list[dict[str, object]]:
         if isinstance(data, list):
-            return [service for service in data if isinstance(service, dict) and service.get("status") == "running"]
+            return [
+                service
+                for service in data
+                if isinstance(service, dict) and service.get("status") == "running"
+            ]
         return []
 
     running_services = filter_running_services(raw_data)

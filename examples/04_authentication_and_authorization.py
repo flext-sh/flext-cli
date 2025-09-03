@@ -109,9 +109,7 @@ def demonstrate_api_authentication() -> FlextResult[None]:
                 console.print(f"   Role: {profile_data.get('role', 'user')}")
                 permissions = profile_data.get("permissions", [])
                 perm_count = len(permissions) if isinstance(permissions, list) else 0
-                console.print(
-                    f"   Permissions: {perm_count} permissions"
-                )
+                console.print(f"   Permissions: {perm_count} permissions")
             else:
                 console.print("❌ Invalid profile data returned")
         else:
@@ -225,12 +223,8 @@ def demonstrate_session_management() -> FlextResult[None]:
     created_at = session_data["created_at"]
     expires_at = session_data["expires_at"]
     if isinstance(created_at, datetime) and isinstance(expires_at, datetime):
-        console.print(
-            f"   Created: {created_at.strftime('%Y-%m-%d %H:%M:%S UTC')}"
-        )
-        console.print(
-            f"   Expires: {expires_at.strftime('%Y-%m-%d %H:%M:%S UTC')}"
-        )
+        console.print(f"   Created: {created_at.strftime('%Y-%m-%d %H:%M:%S UTC')}")
+        console.print(f"   Expires: {expires_at.strftime('%Y-%m-%d %H:%M:%S UTC')}")
     else:
         console.print("   Created: Session data formatted incorrectly")
         console.print("   Expires: Session data formatted incorrectly")
@@ -402,7 +396,9 @@ def validate_session(session_data: dict[str, object]) -> FlextResult[bool]:
 
         # Check if session is too old (example: max 24 hours)
         created_at = session_data.get("created_at")
-        if isinstance(created_at, datetime) and (current_time - created_at) > timedelta(days=1):
+        if isinstance(created_at, datetime) and (current_time - created_at) > timedelta(
+            days=1
+        ):
             return FlextResult[bool].fail("Session is too old")
 
         is_valid = True
@@ -419,11 +415,13 @@ def refresh_session(session_data: dict[str, object]) -> FlextResult[dict[str, ob
 
         # Create refreshed session data
         refreshed_session = session_data.copy()
-        refreshed_session.update({
-            "expires_at": current_time + timedelta(hours=8),
-            "last_activity": current_time,
-            "refreshed_at": current_time,
-        })
+        refreshed_session.update(
+            {
+                "expires_at": current_time + timedelta(hours=8),
+                "last_activity": current_time,
+                "refreshed_at": current_time,
+            }
+        )
 
         return FlextResult[dict[str, object]].ok(refreshed_session)
 

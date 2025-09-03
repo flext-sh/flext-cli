@@ -30,6 +30,10 @@ class FlextCliDebug:
     Consolidates debug functionality and type definitions.
     """
 
+    # Constants moved from module level for unified architecture
+    FLEXT_API_AVAILABLE: bool = False
+    SENSITIVE_VALUE_PREVIEW_LENGTH: int = 4
+
     class CliContextObj(TypedDict, total=False):
         """Type definition for Click context object."""
 
@@ -59,36 +63,30 @@ class FlextCliDebug:
             return cast("FlextCliDebug.SystemStatus", status_obj)
         return None
 
+    @staticmethod
+    def get_default_cli_client() -> object:
+        """Return default CLI client (tests override this)."""
+        msg = "CLI client provider not available. This function is intended to be patched during testing."
+        raise RuntimeError(msg)
 
-# Flags patchable by tests
-FLEXT_API_AVAILABLE = False
-SENSITIVE_VALUE_PREVIEW_LENGTH = 4
+    @staticmethod
+    def get_config() -> object:
+        """Return minimal config shape used by tests."""
+        # Provide minimal attributes used by tests
+        return type(
+            "Cfg",
+            (),
+            {
+                "api_url": FlextCliConstants.FALLBACK_API_URL,
+                "timeout": FlextCliConstants.DEFAULT_COMMAND_TIMEOUT,
+                "config_dir": Path.home() / FlextCliConstants.FLEXT_DIR_NAME,
+            },
+        )()
 
-
-def get_default_cli_client() -> object:  # patched in tests
-    """Return default CLI client (tests override this)."""
-    msg = "CLI client provider not available. This function is intended to be patched during testing."
-    raise RuntimeError(msg)
-
-
-def get_config() -> object:  # patched in tests
-    """Return minimal config shape used by tests."""
-    # Provide minimal attributes used by tests
-    return type(
-        "Cfg",
-        (),
-        {
-            "api_url": FlextCliConstants.FALLBACK_API_URL,
-            "timeout": FlextCliConstants.DEFAULT_COMMAND_TIMEOUT,
-            "config_dir": Path.home() / FlextCliConstants.FLEXT_DIR_NAME,
-        },
-    )()
-
-
-# Dependency validation hook (tests patch this symbol)
-def validate_dependencies(_console: Console) -> None:  # pragma: no cover - shim
-    """Validate dependencies (shim function for testing)."""
-    return
+    @staticmethod
+    def validate_dependencies(_console: Console) -> None:
+        """Validate dependencies (shim function for testing)."""
+        return
 
 
 @click.group(help="Debug commands for FLEXT CLI.")
@@ -147,7 +145,7 @@ def _get_client(
     elif hasattr(debug_cmd, "get_default_cli_client"):
         provider = getattr(debug_cmd, "get_default_cli_client", None)
     else:
-        provider = get_default_cli_client
+        provider = FlextCliDebug.get_default_cli_client
 
     # Try the provider first
     if callable(provider):
@@ -236,7 +234,7 @@ def performance(ctx: click.Context) -> None:
         provider = (debug_mod.get_default_cli_client if debug_mod else None) or getattr(
             debug_cmd,
             "get_default_cli_client",
-            get_default_cli_client,
+            FlextCliDebug.get_default_cli_client,
         )
         client = provider() if callable(provider) else None
         if client is None:
@@ -291,7 +289,7 @@ def validate(ctx: click.Context) -> None:
     obj: FlextCliDebug.CliContextObj = FlextCliDebug.get_cli_context_obj(ctx.obj)
     console_obj = obj.get("console", Console())
     console: Console = console_obj if isinstance(console_obj, Console) else Console()
-    cfg = get_config()
+    cfg = FlextCliDebug.get_config()
 
     cfg_path = (
         Path(getattr(cfg, "config_dir", Path.home() / FlextCliConstants.FLEXT_DIR_NAME))
@@ -308,7 +306,9 @@ def validate(ctx: click.Context) -> None:
         ctx.exit(1)
     # Allow tests to patch dependency validation function
     with suppress(NameError):
-        getattr(debug_cmd, "validate_dependencies", validate_dependencies)(console)
+        getattr(
+            debug_cmd, "validate_dependencies", FlextCliDebug.validate_dependencies
+        )(console)
 
     # Minimal required packages check (tests patch builtins.__import__)
     __import__("click")
@@ -355,7 +355,7 @@ def env(ctx: click.Context) -> None:
             continue
         masked = value
         if any(s in key for s in ("TOKEN", "KEY", "SECRET")):
-            prefix = value[:SENSITIVE_VALUE_PREVIEW_LENGTH]
+            prefix = value[: FlextCliDebug.SENSITIVE_VALUE_PREVIEW_LENGTH]
             masked = f"{prefix}****"
         table.add_row(key, masked)
         count += 1
@@ -371,7 +371,7 @@ def paths(ctx: click.Context) -> None:
     """Display common FLEXT paths and whether they exist."""
     obj = getattr(ctx, "obj", {}) or {}
     console: Console = obj.get("console", Console())
-    cfg = get_config()
+    cfg = FlextCliDebug.get_config()
     try:
         debug_mod = importlib.import_module("flext_cli.commands.debug")
     except Exception:  # pragma: no cover

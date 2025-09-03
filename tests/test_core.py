@@ -18,12 +18,11 @@ import unittest
 from pathlib import Path
 
 import yaml
-from flext_core import FlextModels
 
 from flext_cli.cli_config import FlextCliConfig
 from flext_cli.core import FlextCliService, FlextService
 from flext_cli.models import FlextCliCommand, FlextCliPlugin, FlextCliSession
-from flext_cli.typings import FlextCliOutputFormat
+from flext_cli.typings import FlextCliTypes
 
 
 class TestFlextService(unittest.TestCase):
@@ -188,7 +187,7 @@ class TestFlextCliService(unittest.TestCase):
         """Test JSON formatting with simple data."""
         data = {"name": "test", "value": 123, "active": True}
 
-        result = self.service.flext_cli_format(data, FlextCliOutputFormat.JSON)
+        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.JSON)
         assert result.is_success
         formatted = result.value
 
@@ -208,7 +207,7 @@ class TestFlextCliService(unittest.TestCase):
             "metadata": {"total": 2, "created_at": "2025-01-01T00:00:00Z"},
         }
 
-        result = self.service.flext_cli_format(data, FlextCliOutputFormat.JSON)
+        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.JSON)
         assert result.is_success
         formatted = result.value
 
@@ -226,7 +225,7 @@ class TestFlextCliService(unittest.TestCase):
             "features": ["feature1", "feature2", "feature3"],
         }
 
-        result = self.service.flext_cli_format(data, FlextCliOutputFormat.YAML)
+        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.YAML)
         assert result.is_success
         formatted = result.value
 
@@ -244,7 +243,7 @@ class TestFlextCliService(unittest.TestCase):
             {"name": "Carol", "age": 35, "city": "Chicago"},
         ]
 
-        result = self.service.flext_cli_format(data, FlextCliOutputFormat.CSV)
+        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.CSV)
         assert result.is_success
         formatted = result.value
 
@@ -263,7 +262,7 @@ class TestFlextCliService(unittest.TestCase):
             "uptime": "99.9%",
         }
 
-        result = self.service.flext_cli_format(data, FlextCliOutputFormat.TABLE)
+        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.TABLE)
         assert result.is_success
         formatted = result.value
 
@@ -281,7 +280,7 @@ class TestFlextCliService(unittest.TestCase):
             {"id": 3, "product": "keyboard", "price": 75},
         ]
 
-        result = self.service.flext_cli_format(data, FlextCliOutputFormat.TABLE)
+        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.TABLE)
         assert result.is_success
         formatted = result.value
 
@@ -295,7 +294,7 @@ class TestFlextCliService(unittest.TestCase):
         """Test plain text formatting."""
         data = "Simple plain text message for testing"
 
-        result = self.service.flext_cli_format(data, FlextCliOutputFormat.PLAIN)
+        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.PLAIN)
         assert result.is_success
         formatted = result.value
         assert formatted == "Simple plain text message for testing"
@@ -317,7 +316,7 @@ class TestFlextCliService(unittest.TestCase):
             output_file = Path(temp_dir) / "test_export.json"
 
             result = self.service.flext_cli_export(
-                data, output_file, FlextCliOutputFormat.JSON
+                data, output_file, FlextCliTypes.OutputFormat.JSON
             )
             assert result.is_success
             assert output_file.exists()
@@ -339,7 +338,7 @@ class TestFlextCliService(unittest.TestCase):
             output_file = Path(temp_dir) / "config.yaml"
 
             result = self.service.flext_cli_export(
-                data, output_file, FlextCliOutputFormat.YAML
+                data, output_file, FlextCliTypes.OutputFormat.YAML
             )
             assert result.is_success
             assert output_file.exists()
@@ -362,7 +361,7 @@ class TestFlextCliService(unittest.TestCase):
             output_file = Path(temp_dir) / "products.csv"
 
             result = self.service.flext_cli_export(
-                data, output_file, FlextCliOutputFormat.CSV
+                data, output_file, FlextCliTypes.OutputFormat.CSV
             )
             assert result.is_success
             assert output_file.exists()
@@ -381,7 +380,7 @@ class TestFlextCliService(unittest.TestCase):
             nested_path = Path(temp_dir) / "level1" / "level2" / "test.json"
 
             result = self.service.flext_cli_export(
-                data, nested_path, FlextCliOutputFormat.JSON
+                data, nested_path, FlextCliTypes.OutputFormat.JSON
             )
             assert result.is_success
             assert nested_path.exists()
@@ -665,9 +664,7 @@ class TestFlextCliService(unittest.TestCase):
     def test_flext_cli_get_plugins_returns_copy(self) -> None:
         """Test get_plugins returns copy to prevent external modification."""
         # Create a plugin first
-        plugin = FlextCliPlugin(
-            id="test", name="test", entry_point="test:main"
-        )
+        plugin = FlextCliPlugin(id="test", name="test", entry_point="test:main")
         self.service.flext_cli_register_plugin("test", plugin)
 
         result1 = self.service.flext_cli_get_plugins()

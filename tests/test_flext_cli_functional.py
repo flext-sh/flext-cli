@@ -41,10 +41,7 @@ class TestFlextCliModelsReal:
 
     def test_command_execution_workflow(self) -> None:
         """Test REAL command execution workflow."""
-        command = FlextCliModels.Command(
-            command_line="test command",
-            id="test-123"
-        )
+        command = FlextCliModels.Command(command_line="test command", id="test-123")
 
         # Test starting execution
         start_result = command.start_execution()
@@ -158,6 +155,7 @@ class TestFlextCliIntegration:
 # =============================================================================
 # IMPORT AND EXPORT VALIDATION TESTS
 # =============================================================================
+
 
 class TestFlextCliExportsReal:
     """Test that ALL CLI exports work correctly."""
