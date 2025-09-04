@@ -15,6 +15,7 @@ from pathlib import Path
 import yaml
 from flext_core import FlextResult
 from rich.console import Console
+from rich.table import Table as RichTable
 
 from flext_cli import FlextCliApi, FlextCliConfig, FlextCliContext
 
@@ -120,7 +121,6 @@ class TestTableCreation:
         assert result.is_success
         table = result.value
         # Accept Rich Table output (the actual implementation)
-        from rich.table import Table as RichTable
         assert isinstance(table, RichTable)
 
     def test_flext_cli_table_list_dict_data(self) -> None:
@@ -179,7 +179,6 @@ class TestTableCreation:
 
         assert result.is_success
         table = result.value
-        from rich.table import Table as RichTable
         assert isinstance(table, RichTable)
 
     def test_table_creation_single_value(self) -> None:
@@ -190,7 +189,6 @@ class TestTableCreation:
 
         assert result.is_success
         table = result.value
-        from rich.table import Table as RichTable
         assert isinstance(table, RichTable)
 
 
@@ -419,7 +417,6 @@ class TestEdgeCases:
 
         assert result.is_success
         table = result.value
-        from rich.table import Table as RichTable
         assert isinstance(table, RichTable)
 
     def test_export_to_readonly_directory(self) -> None:

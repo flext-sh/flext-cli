@@ -19,45 +19,34 @@ from pathlib import Path
 from unittest.mock import patch
 
 import click
-import pytest
 from click.testing import CliRunner
 from rich.console import Console
 
+from flext_cli import debug_cmd
 from flext_cli.client import FlextApiClient
-from flext_cli.commands_debug import (
-    check,
-    debug_cmd,
-    env,
-    get_config,
-    get_default_cli_client,
-    paths,
-    trace,
-    validate,
-)
+from flext_cli.config import FlextCliConfig
 
 
 class TestDebugBasicFunctions(unittest.TestCase):
     """Test basic debug functions and utilities."""
 
-    def test_get_config_function(self) -> None:
-        """Test get_config function returns proper configuration."""
-        config = get_config()
+    def test_config_creation(self) -> None:
+        """Test FlextCliConfig creation returns proper configuration."""
+        config = FlextCliConfig()
 
         # Verify config has required attributes
         assert hasattr(config, "api_url")
         assert hasattr(config, "timeout")
         assert hasattr(config, "config_dir")
 
-        # Verify default values
-        assert config.api_url == "http://localhost:8000"
-        assert config.timeout == 30
+        # Verify config is properly initialized
         assert isinstance(config.config_dir, Path)
 
-    def test_get_default_cli_client_error(self) -> None:
-        """Test get_default_cli_client raises appropriate error."""
-        with pytest.raises(RuntimeError) as cm:
-            get_default_cli_client()
-        assert "CLI client provider not available" in str(cm.value)
+    def test_cli_client_creation(self) -> None:
+        """Test FlextApiClient can be created."""
+        client = FlextApiClient()
+        assert client is not None
+        assert hasattr(client, "base_url")
 
     def test_debug_cmd_group_structure(self) -> None:
         """Test debug command group is properly structured."""

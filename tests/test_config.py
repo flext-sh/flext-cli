@@ -171,8 +171,8 @@ class TestFlextCliConfig(unittest.TestCase):
         assert config_dict["api_timeout"] == 45
 
         # Test properties
-        assert config.is_development is True
-        assert config.is_production is False
+        assert config.is_development_mode is True
+        assert config.is_production_mode is False
         assert config.base_url == config.api_url.rstrip("/")
 
 

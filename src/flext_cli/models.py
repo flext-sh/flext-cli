@@ -155,9 +155,9 @@ class FlextCliModels:
         def validate_business_rules(self) -> FlextResult[None]:
             if self.end_time is not None and self.end_time < self.start_time:
                 return FlextResult[None].fail("End time cannot be before start time")
-            if len(self.commands) > FlextCliConstants.MAX_COMMANDS_PER_SESSION:
+            if len(self.commands) > FlextCliConstants.LIMITS.max_commands_per_session:
                 return FlextResult[None].fail(
-                    f"Session has too many commands (limit: {FlextCliConstants.MAX_COMMANDS_PER_SESSION})"
+                    f"Session has too many commands (limit: {FlextCliConstants.LIMITS.max_commands_per_session})"
                 )
             for cmd in self.commands:
                 validation_result = cmd.validate_business_rules()
@@ -170,10 +170,10 @@ class FlextCliModels:
     class CliConfig(FlextModels.Value):
         """CLI configuration model."""
 
-        profile: str = Field(default=FlextCliConstants.DEFAULT_PROFILE)
-        output_format: str = Field(default=FlextCliConstants.DEFAULT_OUTPUT_FORMAT)
+        profile: str = Field(default=FlextCliConstants.ProfileName.DEFAULT)
+        output_format: str = Field(default=FlextCliConstants.OUTPUT.default_output_format)
         debug_mode: bool = Field(default=False)
-        timeout_seconds: int = Field(default=FlextCliConstants.DEFAULT_COMMAND_TIMEOUT)
+        timeout_seconds: int = Field(default=FlextCliConstants.TIMEOUTS.default_command_timeout)
 
         @field_validator("output_format")
         @classmethod
@@ -186,8 +186,8 @@ class FlextCliModels:
         @field_validator("timeout_seconds")
         @classmethod
         def validate_timeout(cls, v: int) -> int:
-            if v <= 0 or v > FlextCliConstants.MAX_TIMEOUT_SECONDS:
-                msg = f"Timeout must be between 1 and {FlextCliConstants.MAX_TIMEOUT_SECONDS} seconds"
+            if v <= 0 or v > FlextCliConstants.LIMITS.max_timeout_seconds:
+                msg = f"Timeout must be between 1 and {FlextCliConstants.LIMITS.max_timeout_seconds} seconds"
                 raise ValueError(msg)
             return v
 

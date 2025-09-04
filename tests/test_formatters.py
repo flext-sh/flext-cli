@@ -633,9 +633,8 @@ class TestFormatterFactory(unittest.TestCase):
                 formatter = self.factory.create_formatter(format_type)
                 assert hasattr(formatter, "format")
                 assert callable(formatter.format)
-            except Exception:
-                # Some formats might not be implemented yet
-                pass
+            except Exception as e:
+                pytest.fail(f"Failed to create formatter for {format_type}: {e}")
 
     def test_formatter_factory_formatters_are_different_instances(self) -> None:
         """Test factory creates different instances for multiple calls."""
@@ -743,9 +742,8 @@ class TestFormatterIntegration(unittest.TestCase):
                     assert len(output) > 0
                     assert "Hello, World!" in output
 
-                except Exception:
-                    # Some format types might not be fully implemented
-                    pass
+                except Exception as e:
+                    pytest.fail(f"Format {format_type} failed with data 'Hello, World!': {e}")
 
     def test_formatters_preserve_data_integrity(self) -> None:
         """Test that formatters preserve data integrity where possible."""

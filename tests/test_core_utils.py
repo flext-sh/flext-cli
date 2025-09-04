@@ -11,9 +11,10 @@ import json
 import tempfile
 from pathlib import Path
 
-from flext_core import FlextResult
+from flext_core import FlextDomainService, FlextResult
 
 from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
 from flext_cli.core import FlextCliService
 
 
@@ -31,7 +32,6 @@ class TestFlextCliService:
 
     def test_service_inherits_from_domain_service(self) -> None:
         """Test service inherits from FlextDomainService."""
-        from flext_core.domain_services import FlextDomainService
         service = FlextCliService()
         assert isinstance(service, FlextDomainService)
 
@@ -163,8 +163,6 @@ class TestFlextCliConfig:
 
     def test_config_constants_integration(self) -> None:
         """Test integration with FlextCliConstants."""
-        from flext_cli.constants import FlextCliConstants
-
         # Verify constants are properly integrated
         assert hasattr(FlextCliConstants, "DEFAULT_API_URL")
         assert hasattr(FlextCliConstants, "LOG_LEVEL_INFO")

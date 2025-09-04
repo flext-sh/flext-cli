@@ -171,6 +171,7 @@ exclude = [
 known_first_party = ["flext_cli"]
 # package_module_name_map.flext_tools = "flext_tools"
 pep621_dev_dependency_groups = ["dev", "security", "test", "typings"]
+
 [tool.mypy]
 # Relaxed defaults for CLI package to accommodate optional deps in this env
 strict = false
@@ -186,23 +187,6 @@ explicit_package_bases = true
 namespace_packages = true
 mypy_path = ["src"]
 files = ["src"]
-exclude = ["src/flext_cli/decorators.py"]
-
-[[tool.mypy.overrides]]
-module = [
-    "pydantic",
-    "pydantic.*",
-    "pydantic_settings",
-    "pydantic_settings.*",
-    "click",
-    "click.*",
-    "httpx",
-    "httpx.*",
-    "rich",
-    "rich.*",
-]
-ignore_missing_imports = true
-follow_imports = "skip"
 
 # Cache
 # sqlite_cache = true
@@ -233,6 +217,23 @@ exclude = [
     "node_modules/",
     "vendor/",
 ]
+
+
+[[tool.mypy.overrides]]
+module = [
+    "pydantic",
+    "pydantic.*",
+    "pydantic_settings",
+    "pydantic_settings.*",
+    "click",
+    "click.*",
+    "httpx",
+    "httpx.*",
+    "rich",
+    "rich.*",
+]
+ignore_missing_imports = true
+follow_imports = "skip"
 
 [tool.pydantic-mypy]
 init_forbid_extra = true

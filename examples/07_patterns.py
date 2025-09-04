@@ -312,7 +312,7 @@ class CreateProjectHandler:
         for event in events:
             if isinstance(event, dict) and event.get("type") == "ProjectCreated":
                 # In real app: publish to event bus, update read models, etc.
-                pass
+                print(f"Processing domain event: {event.get('type')} for project {event.get('project_id')}")
 
 
 class ChangeProjectStatusHandler:
@@ -546,7 +546,7 @@ def enterprise_cli(ctx: click.Context) -> None:
 def create_project(ctx: click.Context, name: str, description: str, owner: str) -> None:
     """Create a new project using enterprise patterns."""
     from .example_utils import handle_command_result
-    
+
     console: Console = ctx.obj["console"]
     service: ProjectManagementService = ctx.obj["service"]
 
@@ -572,7 +572,7 @@ def change_status(
 ) -> None:
     """Change project status using CQRS command."""
     from .example_utils import handle_command_result
-    
+
     console: Console = ctx.obj["console"]
     service: ProjectManagementService = ctx.obj["service"]
 

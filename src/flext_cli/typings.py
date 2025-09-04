@@ -1,4 +1,4 @@
-"""FLEXT CLI Types - Direct CLI type system using FlextTypes foundation.
+"""FLEXT CLI Types - Centralized typings following flext-core patterns.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,11 +10,21 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Literal, Protocol, TypedDict
+from typing import Literal, Protocol, TypedDict, TypeVar
 from uuid import UUID
 
 from flext_core import FlextResult
+from flext_core.typings import FlextTypes as CoreFlextTypes
 from pydantic import BaseModel, Field
+
+# Type variables for compatibility with existing tests
+E = TypeVar("E")
+F = TypeVar("F")
+P = TypeVar("P")
+R = TypeVar("R")
+T = TypeVar("T")
+U = TypeVar("U")
+V = TypeVar("V")
 
 
 class FlextCliTypes:
@@ -290,9 +300,28 @@ class FlextCliTypes:
 
 
 # =============================================================================
-# EXPORTS - Single unified class following user requirements
+# BACKWARD COMPATIBILITY AND ALIASES
 # =============================================================================
 
+# FlextTypes alias that inherits from CoreFlextTypes for compatibility
+class FlextTypes(CoreFlextTypes):
+    """CLI FlextTypes extending core FlextTypes for backward compatibility."""
+
+    # Inherit all from core and add CLI-specific extensions
+    CLI = FlextCliTypes
+
+# =============================================================================
+# EXPORTS - Type variables and main classes for test compatibility
+# =============================================================================
+
+
 __all__ = [
-    "FlextCliTypes",
+    "E",  # Type variables
+    "F",
+    "FlextTypes",                        # Main compatibility alias
+    "P",
+    "R",
+    "T",
+    "U",
+    "V",
 ]

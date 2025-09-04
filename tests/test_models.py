@@ -10,6 +10,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
+from flext_core import FlextModels, FlextResult
 from pydantic_core import ValidationError
 
 from flext_cli.constants import FlextCliConstants
@@ -98,7 +99,6 @@ class TestFlextCliModelsCliCommand:
         result = command.start_execution()
 
         # Should return FlextResult
-        from flext_core import FlextResult
         assert isinstance(result, FlextResult)
 
     def test_cli_command_validate_business_rules_method(self) -> None:
@@ -107,7 +107,6 @@ class TestFlextCliModelsCliCommand:
         result = command.validate_business_rules()
 
         # Should return FlextResult
-        from flext_core import FlextResult
         assert isinstance(result, FlextResult)
 
 
@@ -138,7 +137,6 @@ class TestFlextCliModelsCliSession:
         result = session.validate_business_rules()
 
         # Should return FlextResult
-        from flext_core import FlextResult
         assert isinstance(result, FlextResult)
 
 
@@ -236,8 +234,6 @@ class TestFlextCliModelsIntegration:
 
     def test_models_inherit_from_flext_core(self) -> None:
         """Test that models properly inherit from flext-core."""
-        from flext_core.models import FlextModels
-
         # Commands should inherit from FlextModels.Entity
         command = FlextCliModels.CliCommand(command_line="test")
         assert isinstance(command, FlextModels.Entity)

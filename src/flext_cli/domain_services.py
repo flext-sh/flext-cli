@@ -310,49 +310,6 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
                 f"Session ending failed: {e}"
             )
 
-    def validate_configuration(
-        self, config_data: dict[str, object]
-    ) -> FlextResult[FlextCliModels.CliConfig]:
-        """Validate CLI configuration data.
-
-        Args:
-            config_data: Configuration dictionary to validate
-
-        Returns:
-            FlextResult containing validated configuration entity
-
-        """
-        try:
-            # Extract and validate required fields
-            profile = config_data.get("profile", FlextCliConstants.DEFAULT_PROFILE)
-            output_format = config_data.get(
-                "output_format", FlextCliConstants.DEFAULT_OUTPUT_FORMAT
-            )
-            debug_mode = bool(config_data.get("debug_mode"))
-            timeout_raw = config_data.get(
-                "timeout_seconds", FlextCliConstants.DEFAULT_COMMAND_TIMEOUT
-            )
-            timeout_seconds = (
-                int(timeout_raw)
-                if isinstance(timeout_raw, (int, str))
-                else FlextCliConstants.DEFAULT_COMMAND_TIMEOUT
-            )
-
-            config = FlextCliModels.CliConfig(
-                profile=str(profile),
-                output_format=str(output_format),
-                debug_mode=debug_mode,
-                timeout_seconds=timeout_seconds,
-            )
-
-            logger.debug("Validated configuration: profile=%s", config.profile)
-            return FlextResult[FlextCliModels.CliConfig].ok(config)
-        except Exception as e:
-            logger.exception("Configuration validation failed")
-            return FlextResult[FlextCliModels.CliConfig].fail(
-                f"Configuration validation failed: {e}"
-            )
-
     def execute_command_workflow(
         self, command_line: str, user_id: str | None = None
     ) -> FlextResult[dict[str, object]]:

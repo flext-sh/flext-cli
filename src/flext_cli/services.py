@@ -9,10 +9,9 @@ from __future__ import annotations
 
 import time
 from datetime import UTC, datetime
-from typing import ClassVar
+from typing import ClassVar, cast
 
 from flext_core import FlextResult, FlextServices
-from pydantic import Field
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
@@ -33,14 +32,11 @@ class FlextCliServices(FlextServices):
     ):
         """CLI command processor using FlextServices.ServiceProcessor pattern."""
 
-        timeout_seconds: int = Field(
-            default=FlextCliConstants.DEFAULT_COMMAND_TIMEOUT,
-            description="Command execution timeout",
-        )
-        max_retries: int = Field(
-            default=FlextCliConstants.DEFAULT_RETRIES,
-            description="Maximum retry attempts",
-        )
+        def __init__(self) -> None:
+            """Initialize CLI command processor."""
+            super().__init__()
+            self.timeout_seconds: int = FlextCliConstants.TIMEOUTS.default_command_timeout
+            self.max_retries: int = FlextCliConstants.OUTPUT.default_retries
 
         def process(self, request: str) -> FlextResult[FlextCliModels.CliCommand]:
             """Process command string into CLI command domain object."""
@@ -83,14 +79,13 @@ class FlextCliServices(FlextServices):
     ):
         """CLI session processor using FlextServices.ServiceProcessor pattern."""
 
-        max_commands: int = Field(
-            default=FlextCliConstants.MAX_HISTORY_SIZE,
-            description="Maximum commands per session",
-        )
-        auto_end_timeout: int = Field(
-            default=FlextCliConstants.MAX_TIMEOUT_SECONDS,
-            description="Auto-end session timeout in seconds",
-        )
+        def __init__(self) -> None:
+            """Initialize CLI session processor."""
+            super().__init__()
+            self.max_commands: int = FlextCliConstants.LIMITS.max_history_size
+            self.auto_end_timeout: int = FlextCliConstants.LIMITS.max_timeout_seconds
+            self.enable_tracking: bool = True
+            self.max_sessions: int = FlextCliConstants.LIMITS.max_commands_per_session
 
         def process(
             self, request: dict[str, object]
@@ -138,6 +133,10 @@ class FlextCliServices(FlextServices):
         ]
     ):
         """CLI configuration processor using FlextServices.ServiceProcessor pattern."""
+
+        def __init__(self) -> None:
+            """Initialize CLI config processor."""
+            super().__init__()
 
         def process(
             self, request: dict[str, object]
@@ -199,8 +198,8 @@ class FlextCliServices(FlextServices):
         # Advanced dependency injection with defaults
         resolved_config = {
             "timeout_seconds": timeout_seconds
-            or FlextCliConstants.DEFAULT_COMMAND_TIMEOUT,
-            "max_retries": max_retries or FlextCliConstants.DEFAULT_RETRIES,
+            or FlextCliConstants.TIMEOUTS.default_command_timeout,
+            "max_retries": max_retries or FlextCliConstants.OUTPUT.default_retries,
             **config,
         }
 
@@ -208,7 +207,13 @@ class FlextCliServices(FlextServices):
         if dependencies:
             resolved_config.update(dependencies)
 
-        processor = cls.CliCommandProcessor(**resolved_config)
+        processor = cls.CliCommandProcessor()
+
+        # Configure processor with resolved config
+        if "timeout_seconds" in resolved_config:
+            processor.timeout_seconds = int(cast("int", resolved_config["timeout_seconds"]))
+        if "max_retries" in resolved_config:
+            processor.max_retries = int(cast("int", resolved_config["max_retries"]))
 
         # Register with enhanced metadata for advanced service discovery
         cls.registry.register(
@@ -247,14 +252,20 @@ class FlextCliServices(FlextServices):
         """
         resolved_config = {
             "enable_tracking": enable_tracking,
-            "max_sessions": max_sessions or FlextCliConstants.MAX_COMMANDS_PER_SESSION,
+            "max_sessions": max_sessions or FlextCliConstants.LIMITS.max_commands_per_session,
             **config,
         }
 
         if dependencies:
             resolved_config.update(dependencies)
 
-        processor = cls.CliSessionProcessor(**resolved_config)
+        processor = cls.CliSessionProcessor()
+
+        # Configure processor with resolved config
+        if "enable_tracking" in resolved_config:
+            processor.enable_tracking = bool(resolved_config["enable_tracking"])
+        if "max_sessions" in resolved_config:
+            processor.max_sessions = int(cast("int", resolved_config["max_sessions"]))
 
         cls.registry.register(
             {
@@ -299,7 +310,12 @@ class FlextCliServices(FlextServices):
         if dependencies:
             resolved_config.update(dependencies)
 
-        processor = cls.CliConfigProcessor(**resolved_config)
+        processor = cls.CliConfigProcessor()
+
+        # Configure processor with resolved config
+        for key, value in resolved_config.items():
+            if hasattr(processor, key):
+                setattr(processor, key, value)
 
         cls.registry.register(
             {
@@ -353,7 +369,6 @@ class FlextCliServices(FlextServices):
 
         def build_command_processor(self) -> FlextCliServices.CliCommandProcessor:
             """Build command processor with accumulated configuration."""
-            from typing import cast
             timeout_val = self._config.get("timeout_seconds")
             max_retries_val = self._config.get("max_retries")
             return FlextCliServices.create_command_processor(
@@ -364,7 +379,6 @@ class FlextCliServices(FlextServices):
 
         def build_session_processor(self) -> FlextCliServices.CliSessionProcessor:
             """Build session processor with accumulated configuration."""
-            from typing import cast
             max_sessions_val = self._config.get("max_sessions")
             return FlextCliServices.create_session_processor(
                 dependencies=self._dependencies,
@@ -416,11 +430,34 @@ class FlextCliServices(FlextServices):
             """
             match service_type:
                 case "command":
-                    return FlextCliServices.create_command_processor(**kwargs)  # type: ignore[arg-type]
+                    # Extract and validate command-specific parameters
+                    dependencies = cast("dict[str, object] | None", kwargs.get("dependencies"))
+                    timeout_seconds = cast("int | None", kwargs.get("timeout_seconds"))
+                    max_retries = cast("int | None", kwargs.get("max_retries"))
+                    return FlextCliServices.create_command_processor(
+                        dependencies=dependencies,
+                        timeout_seconds=timeout_seconds,
+                        max_retries=max_retries
+                    )
                 case "session":
-                    return FlextCliServices.create_session_processor(**kwargs)  # type: ignore[arg-type]
+                    # Extract and validate session-specific parameters
+                    dependencies = cast("dict[str, object] | None", kwargs.get("dependencies"))
+                    enable_tracking_raw = cast("bool | None", kwargs.get("enable_tracking"))
+                    enable_tracking = enable_tracking_raw if enable_tracking_raw is not None else True
+                    max_sessions = cast("int | None", kwargs.get("max_sessions"))
+                    return FlextCliServices.create_session_processor(
+                        dependencies=dependencies,
+                        enable_tracking=enable_tracking,
+                        max_sessions=max_sessions
+                    )
                 case "config":
-                    return FlextCliServices.create_config_processor(**kwargs)  # type: ignore[arg-type]
+                    # Extract and validate config-specific parameters
+                    dependencies = cast("dict[str, object] | None", kwargs.get("dependencies"))
+                    config_profile = cast("str | None", kwargs.get("config_profile"))
+                    return FlextCliServices.create_config_processor(
+                        dependencies=dependencies,
+                        config_profile=config_profile
+                    )
                 case _:
                     valid_types = ", ".join(cls._service_types.keys())
                     msg = f"Unknown service type: {service_type}. Valid types: {valid_types}"
@@ -444,7 +481,7 @@ class FlextCliServices(FlextServices):
 
     @classmethod
     def process_command(
-        cls, command: str, timeout: int = FlextCliConstants.DEFAULT_COMMAND_TIMEOUT
+        cls, command: str, timeout: int = FlextCliConstants.TIMEOUTS.default_command_timeout
     ) -> FlextResult[FlextCliModels.CliCommand]:
         """High-level method to process CLI command."""
         processor = cls.create_command_processor(timeout_seconds=timeout)

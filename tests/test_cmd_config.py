@@ -21,15 +21,12 @@ import yaml
 from click.testing import CliRunner
 from rich.console import Console
 
-from flext_cli.commands_config import (
-    _find_config_value,
-    _get_all_config,
-    _print_config_value,
+from flext_cli.cmd import (
+    FlextCliCmd,
     config,
     edit,
     get_cmd,
     path,
-    print_config_table,
     set_value,
     show,
     validate,
@@ -132,35 +129,35 @@ class TestConfigHelperFunctions(unittest.TestCase):
 
     def test_find_config_value_from_config(self) -> None:
         """Test finding config value from config object."""
-        result = _find_config_value(self.cli_context, "api_url")
+        result = FlextCliCmd.find_config_value(self.cli_context, "api_url")
         assert result == "http://real.test:9000"
 
-        result = _find_config_value(self.cli_context, "timeout")
+        result = FlextCliCmd.find_config_value(self.cli_context, "timeout")
         assert result == 45
 
-        result = _find_config_value(self.cli_context, "debug")
+        result = FlextCliCmd.find_config_value(self.cli_context, "debug")
         assert result is True
 
     def test_find_config_value_from_settings(self) -> None:
         """Test finding config value from settings object."""
-        result = _find_config_value(self.cli_context, "project_name")
+        result = FlextCliCmd.find_config_value(self.cli_context, "project_name")
         assert result == "real-test-project"
 
-        result = _find_config_value(self.cli_context, "log_level")
+        result = FlextCliCmd.find_config_value(self.cli_context, "log_level")
         assert result == "DEBUG"
 
-        result = _find_config_value(self.cli_context, "profile")
+        result = FlextCliCmd.find_config_value(self.cli_context, "profile")
         assert result == "production"
 
     def test_find_config_value_not_found(self) -> None:
         """Test finding non-existent config value."""
-        result = _find_config_value(self.cli_context, "nonexistent_key")
+        result = FlextCliCmd.find_config_value(self.cli_context, "nonexistent_key")
         assert result is None
 
     def test_find_config_value_no_config(self) -> None:
         """Test finding config value when no config exists."""
         context_no_config = type("Context", (), {})()
-        result = _find_config_value(context_no_config, "any_key")
+        result = FlextCliCmd.find_config_value(context_no_config, "any_key")
         assert result is None
 
     def test_print_config_value_json_format(self) -> None:
@@ -169,7 +166,7 @@ class TestConfigHelperFunctions(unittest.TestCase):
         self.test_config.output_format = "json"
 
         # This function prints to console, so we test it doesn't crash
-        _print_config_value(self.cli_context, "api_url", "http://test.example.com")
+        FlextCliCmd.print_config_value(self.cli_context, "api_url", "http://test.example.com")
         # Function should complete without exceptions
 
     def test_print_config_value_yaml_format(self) -> None:
@@ -178,7 +175,7 @@ class TestConfigHelperFunctions(unittest.TestCase):
         self.test_config.output_format = "yaml"
 
         # This function prints to console, so we test it doesn't crash
-        _print_config_value(self.cli_context, "timeout", 60)
+        FlextCliCmd.print_config_value(self.cli_context, "timeout", 60)
         # Function should complete without exceptions
 
     def test_print_config_value_table_format(self) -> None:
@@ -187,7 +184,7 @@ class TestConfigHelperFunctions(unittest.TestCase):
         self.test_config.output_format = "table"
 
         # This function prints to console, so we test it doesn't crash
-        _print_config_value(self.cli_context, "debug", True)
+        FlextCliCmd.print_config_value(self.cli_context, "debug", True)
         # Function should complete without exceptions
 
     def test_get_all_config_json_format(self) -> None:
@@ -195,7 +192,7 @@ class TestConfigHelperFunctions(unittest.TestCase):
         self.test_config.output_format = "json"
 
         # This function prints to console, so we test it doesn't crash
-        _get_all_config(self.cli_context)
+        FlextCliCmd.get_all_config(self.cli_context)
         # Function should complete without exceptions
 
     def test_get_all_config_yaml_format(self) -> None:
@@ -203,7 +200,7 @@ class TestConfigHelperFunctions(unittest.TestCase):
         self.test_config.output_format = "yaml"
 
         # This function prints to console, so we test it doesn't crash
-        _get_all_config(self.cli_context)
+        FlextCliCmd.get_all_config(self.cli_context)
         # Function should complete without exceptions
 
     def test_get_all_config_table_format(self) -> None:
@@ -211,7 +208,7 @@ class TestConfigHelperFunctions(unittest.TestCase):
         self.test_config.output_format = "table"
 
         # This function prints to console, so we test it doesn't crash
-        _get_all_config(self.cli_context)
+        FlextCliCmd.get_all_config(self.cli_context)
         # Function should complete without exceptions
 
     def test_print_config_table_function(self) -> None:
@@ -224,7 +221,7 @@ class TestConfigHelperFunctions(unittest.TestCase):
         }
 
         # This function prints to console, so we test it doesn't crash
-        print_config_table(self.cli_context, config_data)
+        FlextCliCmd.print_config_table(self.cli_context, config_data)
         # Function should complete without exceptions
 
 
@@ -271,12 +268,17 @@ class TestConfigCommands(unittest.TestCase):
             obj={"console": Console(), "cli_context": self.cli_context},
         )
         assert result.exit_code == 0
-        assert "config shown" in result.output
+        # Verify actual config data is shown, not placeholder
+        assert "profile: default" in result.output
+        assert "debug: False" in result.output
+        assert "output_format: table" in result.output
 
     def test_show_command_no_console(self) -> None:
         """Test config show command without console in context."""
         result = self.runner.invoke(show, [], obj={})
-        assert result.exit_code == 0
+        # Should exit with error when no CLI context is provided
+        assert result.exit_code == 1
+        assert "CLI context not available" in result.output
 
     def test_get_command_single_value(self) -> None:
         """Test config get command for single value."""
@@ -354,7 +356,7 @@ class TestConfigCommands(unittest.TestCase):
             obj={"console": Console(), "cli_context": self.cli_context},
         )
         assert result.exit_code == 0
-        assert "Validation OK" in result.output
+        assert "Configuration validation passed" in result.output
 
     def test_validate_command_no_context(self) -> None:
         """Test config validate command without CLI context."""
@@ -383,7 +385,11 @@ class TestConfigCommands(unittest.TestCase):
             obj={"console": Console(), "cli_context": self.cli_context},
         )
         assert result.exit_code == 0
-        assert "Paths shown" in result.output
+        # Verify actual configuration paths are shown, not placeholder
+        assert "FLEXT Configuration Paths" in result.output
+        assert "Config File" in result.output
+        assert "Log Directory" in result.output
+        assert "Cache Directory" in result.output
 
     def test_path_command_with_print_info(self) -> None:
         """Test config path command with CLI context that has print_info."""
@@ -664,9 +670,9 @@ class TestConfigIntegration(unittest.TestCase):
         result = self.runner.invoke(get_cmd, ["output_format"], obj=obj)
         assert result.exit_code == 0
 
-        # Test with empty context
+        # Test with empty context - show requires cli_context so should exit with code 1
         result = self.runner.invoke(show, [], obj={"console": Console()})
-        assert result.exit_code == 0  # show doesn't require cli_context
+        assert result.exit_code == 1  # show requires cli_context
 
 
 if __name__ == "__main__":

@@ -29,8 +29,6 @@ import time
 from datetime import UTC, datetime
 from enum import Enum
 
-object
-
 from flext_core import FlextLogger, FlextResult
 from rich.console import Console
 from rich.panel import Panel
@@ -42,6 +40,7 @@ from flext_cli import (
     FlextCliService,
     get_cli_config,
 )
+from example_utils import print_demo_completion
 
 
 class ServiceStatus(Enum):
@@ -517,7 +516,8 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     container = FlextContainer.get_global()
     # Container has register/get methods available
     if container:
-        pass  # Container is ready to use
+        console.print("[green]✓[/green] Container is ready to use")
+        console.print(f"Container type: {type(container).__name__}")
     else:
         # Create mock container for demonstration
         class MockContainer:
@@ -638,8 +638,7 @@ def main() -> None:
             )
 
         # Final summary using shared utility
-        from example_utils import print_demo_completion
-        
+
         features = [
             "🏗️ FlextCliService with comprehensive mixin composition",
             "🔄 Async operations with concurrent health checking",
@@ -649,7 +648,7 @@ def main() -> None:
             "📊 Real-time monitoring and health tracking",
             "🔧 Advanced error handling and resilience patterns"
         ]
-        
+
         print_demo_completion(console, "Advanced Service Integration Demo", features)
 
     except Exception as e:
