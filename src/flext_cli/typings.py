@@ -7,13 +7,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import Literal, Protocol, TypedDict
 from uuid import UUID
 
 from flext_core import FlextResult
+from pydantic import BaseModel, Field
 
 
 class FlextCliTypes:
@@ -48,6 +49,41 @@ class FlextCliTypes:
             "PENDING", "RUNNING", "COMPLETED", "FAILED", "CANCELLED"
         ]
 
+        # Advanced Pydantic v2 discriminated union for command states
+        # Imports moved to top level to fix F821 errors
+
+        class PendingState(BaseModel):
+            """Command in pending state."""
+
+            status: Literal["PENDING"] = "PENDING"
+            queued_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+        class RunningState(BaseModel):
+            """Command in running state."""
+
+            status: Literal["RUNNING"] = "RUNNING"
+            started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+            process_id: int | None = None
+
+        class CompletedState(BaseModel):
+            """Command completed successfully."""
+
+            status: Literal["COMPLETED"] = "COMPLETED"
+            completed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+            exit_code: int = 0
+            output: str = ""
+
+        class FailedState(BaseModel):
+            """Command failed with error."""
+
+            status: Literal["FAILED"] = "FAILED"
+            failed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+            exit_code: int
+            error_output: str
+
+        # Discriminated union for type-safe command state management
+        CommandState = PendingState | RunningState | CompletedState | FailedState
+
         # CLI command execution context
         class CliCommandContext(TypedDict):
             """CLI command execution context."""
@@ -72,6 +108,38 @@ class FlextCliTypes:
         CliLogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         CliTimeout = int
         CliConfigPath = Path
+
+        # Advanced Pydantic v2 discriminated union for configuration profiles
+        class DevelopmentProfile(BaseModel):
+            """Development environment configuration."""
+
+            profile: Literal["development"] = "development"
+            debug: bool = True
+            log_level: Literal["DEBUG"] = "DEBUG"
+            output_format: Literal["table", "json"] = "table"
+            auto_refresh: bool = True
+
+        class ProductionProfile(BaseModel):
+            """Production environment configuration."""
+
+            profile: Literal["production"] = "production"
+            debug: bool = False
+            log_level: Literal["INFO", "WARNING", "ERROR"] = "INFO"
+            output_format: Literal["json", "yaml"] = "json"
+            auto_refresh: bool = False
+            timeout_seconds: int = Field(ge=30, le=300, default=60)
+
+        class TestingProfile(BaseModel):
+            """Testing environment configuration."""
+
+            profile: Literal["testing"] = "testing"
+            debug: bool = False
+            log_level: Literal["WARNING", "ERROR"] = "WARNING"
+            output_format: Literal["json"] = "json"
+            mock_services: bool = True
+
+        # Discriminated union for type-safe configuration management
+        ConfigProfile = DevelopmentProfile | ProductionProfile | TestingProfile
 
         # CLI configuration context
         class CliConfigContext(TypedDict):

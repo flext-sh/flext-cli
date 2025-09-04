@@ -52,7 +52,9 @@ class FlextCliConstants:
     class OutputConfig(FlextConfig.BaseModel):
         """Output formatting configuration."""
 
-        default_output_format: str = Field(default="table", pattern=r"^(table|json|yaml|csv)$")
+        default_output_format: str = Field(
+            default="table", pattern=r"^(table|json|yaml|csv)$"
+        )
         default_output_width: int = Field(default=120, ge=40, le=400)
         default_progress_bar_width: int = Field(default=40, ge=10, le=100)
         default_table_padding: int = Field(default=1, ge=0, le=10)
@@ -106,7 +108,9 @@ class FlextCliConstants:
         @property
         def refresh_token_file_name(self) -> str:
             """Get refresh token file name from environment or default."""
-            return os.environ.get("FLEXT_CLI_REFRESH_TOKEN_FILE_NAME", "refresh_token.json")
+            return os.environ.get(
+                "FLEXT_CLI_REFRESH_TOKEN_FILE_NAME", "refresh_token.json"
+            )
 
     class OutputFormat(StrEnum):
         """Valid output formats."""
@@ -161,27 +165,23 @@ class FlextCliConstants:
         """User-facing CLI message configuration."""
 
         interactive_feature_help: str = Field(
-            default="Interactive commands: REPL, completion, history",
-            min_length=1
+            default="Interactive commands: REPL, completion, history", min_length=1
         )
         info_use_help: str = Field(
-            default="Use --help for more information",
-            min_length=1
+            default="Use --help for more information", min_length=1
         )
         version_cli: str = Field(default="FLEXT CLI", min_length=1)
         version_python: str = Field(default="Python", min_length=1)
         version_flext_core: str = Field(default="FLEXT Core", min_length=1)
         debug_flext_core_not_detected: str = Field(
-            default="FLEXT Core version not detected",
-            min_length=1
+            default="FLEXT Core version not detected", min_length=1
         )
         debug_information: str = Field(default="Debug Information", min_length=1)
         debug_configuration: str = Field(default="Configuration", min_length=1)
         debug_python_executable: str = Field(default="Python Executable", min_length=1)
         debug_platform: str = Field(default="Platform", min_length=1)
         debug_service_connectivity: str = Field(
-            default="Service connectivity check",
-            min_length=1
+            default="Service connectivity check", min_length=1
         )
 
     # =============================================================================

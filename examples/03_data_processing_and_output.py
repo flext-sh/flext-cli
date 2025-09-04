@@ -324,7 +324,7 @@ def demonstrate_file_operations() -> FlextResult[None]:
         # Simple JSON save implementation
         try:
             temp_path.write_text(json.dumps(config_data, indent=2), encoding="utf-8")
-            save_result = FlextResult[bool].ok(True)
+            save_result = FlextResult[bool].ok(data=True)
         except Exception as e:
             save_result = FlextResult[bool].fail(f"Save failed: {e}")
 
@@ -549,22 +549,20 @@ def main() -> None:
         if export_result.is_failure:
             console.print(f"[red]Data export demo failed: {export_result.error}[/red]")
 
-        # Final summary
-        console.print(
-            Panel(
-                "[bold green]✅ Data Processing and Output Demo Completed![/bold green]\n\n"
-                "[cyan]Key Features Demonstrated:[/cyan]\n"
-                "🔄 Data transformation with flext_cli_transform_data\n"
-                "📊 Aggregation patterns with flext_cli_aggregate_data\n"
-                "🎨 Multiple output formats (JSON, CSV, Rich tables)\n"
-                "📁 Type-safe file operations (ExistingFile, NewFile, ExistingDir)\n"
-                "⚡ Batch processing with cli_batch_process_files\n"
-                "📤 Data export with flext_cli_export\n"
-                "🏭 FormatterFactory pattern for consistent formatting\n\n"
-                "[yellow]All operations used FlextResult pattern for error handling![/yellow]",
-                expand=False,
-            )
-        )
+        # Final summary using shared utility
+        from example_utils import print_demo_completion
+        
+        features = [
+            "🔄 Data transformation with flext_cli_transform_data",
+            "📊 Aggregation patterns with flext_cli_aggregate_data", 
+            "🎨 Multiple output formats (JSON, CSV, Rich tables)",
+            "📁 Type-safe file operations (ExistingFile, NewFile, ExistingDir)",
+            "⚡ Batch processing with cli_batch_process_files",
+            "📤 Data export with flext_cli_export",
+            "🏭 FormatterFactory pattern for consistent formatting"
+        ]
+        
+        print_demo_completion(console, "Data Processing and Output Demo", features)
 
     except Exception as e:
         console.print(f"[bold red]❌ Demo error: {e}[/bold red]")

@@ -11,7 +11,7 @@ from uuid import uuid4
 
 from flext_core import FlextResult
 from flext_core.models import FlextModels
-from pydantic import Field, computed_field, field_validator
+from pydantic import Field, computed_field, field_validator, model_validator
 
 from flext_cli.constants import FlextCliConstants
 
@@ -47,6 +47,50 @@ class FlextCliModels:
                 )
                 raise ValueError(msg)
             return v
+
+        @field_validator("command_line")
+        @classmethod
+        def validate_command_line(cls, v: str) -> str:
+            """Advanced command line validation with security checks."""
+            if not v or not v.strip():
+                msg = "Command line cannot be empty"
+                raise ValueError(msg)
+
+            # Security: Basic check for potentially dangerous commands
+            dangerous_patterns = ["rm -rf", "format", "del /", "sudo rm"]
+            command_lower = v.lower()
+            if any(pattern in command_lower for pattern in dangerous_patterns):
+                msg = "Potentially dangerous command detected"
+                raise ValueError(msg)
+
+            return v.strip()
+
+        @model_validator(mode="after")
+        def validate_command_state_consistency(self) -> FlextCliModels.CliCommand:
+            """Advanced model validation ensuring state consistency across fields."""
+            # Validate completed/failed commands have exit codes
+            if (
+                self.status
+                in {FlextCliConstants.STATUS_COMPLETED, FlextCliConstants.STATUS_FAILED}
+                and self.exit_code is None
+            ):
+                msg = f"Commands with status {self.status} must have an exit code"
+                raise ValueError(msg)
+
+            # Validate successful completion
+            if (
+                self.status == FlextCliConstants.STATUS_COMPLETED
+                and self.exit_code != 0
+            ):
+                msg = "Completed commands should have exit code 0"
+                raise ValueError(msg)
+
+            # Validate failed commands have error output when exit code > 0
+            if self.status == FlextCliConstants.STATUS_FAILED and self.exit_code == 0:
+                msg = "Failed commands should have non-zero exit code"
+                raise ValueError(msg)
+
+            return self
 
         def start_execution(self) -> FlextResult[None]:
             """Start the execution of the command."""

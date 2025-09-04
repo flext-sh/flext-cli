@@ -637,22 +637,20 @@ def main() -> None:
                 f"[red]Dependency injection demo failed: {di_result.error}[/red]"
             )
 
-        # Final summary
-        console.print(
-            Panel(
-                "[bold green]✅ Advanced Service Integration Demo Completed![/bold green]\n\n"
-                "[cyan]Advanced Patterns Demonstrated:[/cyan]\n"
-                "🏗️ FlextCliService with comprehensive mixin composition\n"
-                "🔄 Async operations with concurrent health checking\n"
-                "🛡️ Circuit breaker pattern for fault tolerance\n"
-                "🎼 Multi-service orchestration with rollback capability\n"
-                "💉 Dependency injection container with service composition\n"
-                "📊 Real-time monitoring and health tracking\n"
-                "🔧 Advanced error handling and resilience patterns\n\n"
-                "[yellow]All patterns integrated with flext-core FlextResult![/yellow]",
-                expand=False,
-            )
-        )
+        # Final summary using shared utility
+        from example_utils import print_demo_completion
+        
+        features = [
+            "🏗️ FlextCliService with comprehensive mixin composition",
+            "🔄 Async operations with concurrent health checking",
+            "🛡️ Circuit breaker pattern for fault tolerance",
+            "🎼 Multi-service orchestration with rollback capability",
+            "💉 Dependency injection container with service composition",
+            "📊 Real-time monitoring and health tracking",
+            "🔧 Advanced error handling and resilience patterns"
+        ]
+        
+        print_demo_completion(console, "Advanced Service Integration Demo", features)
 
     except Exception as e:
         console.print(

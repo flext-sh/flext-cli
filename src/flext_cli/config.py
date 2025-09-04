@@ -62,7 +62,7 @@ from typing import ClassVar, override
 
 from flext_core import FlextResult
 from flext_core.config import FlextConfig
-from pydantic import Field
+from pydantic import ConfigDict, Field, field_serializer
 
 from flext_cli.constants import FlextCliConstants
 
@@ -84,6 +84,21 @@ class FlextCliConfig(FlextConfig):
 
     # Reference to flext-core config for inheritance
     Core: ClassVar[type[FlextConfig]] = FlextConfig
+
+    # Advanced Pydantic v2 configuration
+    model_config = ConfigDict(
+        # Enable advanced features for flext-core integration
+        validate_assignment=True,
+        arbitrary_types_allowed=True,
+        extra="forbid",
+        # JSON schema configuration
+        json_schema_extra={
+            "examples": [
+                {"profile": "development", "debug": True, "output_format": "table"},
+                {"profile": "production", "debug": False, "output_format": "json"},
+            ]
+        },
+    )
 
     # =========================================================================
     # CLI-SPECIFIC CONFIGURATION FIELDS
@@ -221,6 +236,38 @@ class FlextCliConfig(FlextConfig):
         default=True,
         description="Enable automatic token refresh",
     )
+
+    # =========================================================================
+    # ADVANCED PYDANTIC V2 SERIALIZERS AND VALIDATORS
+    # =========================================================================
+
+    @field_serializer("api_url")
+    def serialize_api_url(self, value: str) -> str:
+        """Serialize API URL with masking for security in logs."""
+        if not value:
+            return value
+        # Keep protocol and domain, mask path for security
+        from urllib.parse import urlparse  # noqa: PLC0415
+
+        try:
+            parsed = urlparse(value)
+            # URL path masking length for security
+            min_path_length_for_masking = 4
+            if parsed.path and len(parsed.path) > min_path_length_for_masking:
+                masked_path = parsed.path[:min_path_length_for_masking] + "***"
+                return f"{parsed.scheme}://{parsed.netloc}{masked_path}"
+            return value
+        except Exception:
+            return value
+
+    @field_serializer("token_file", "refresh_token_file")
+    def serialize_token_paths(self, value: Path) -> str:
+        """Serialize token file paths with home directory masking."""
+        try:
+            # Replace home directory with ~ for privacy
+            return str(value).replace(str(Path.home()), "~")
+        except Exception:
+            return str(value)
 
     # =========================================================================
     # NESTED CONFIGURATION CLASSES
@@ -764,27 +811,9 @@ class FlextCliConfig(FlextConfig):
 
 
 # =============================================================================
-# LEGACY API COMPATIBILITY LAYER (for tests and backwards compatibility)
+# EXPORTS - Single unified class only
 # =============================================================================
-
-# Alias for backwards compatibility
-FlextCliSettings = FlextCliConfig
-
-
-# Backward compatibility functions
-def setup_cli(config: FlextCliConfig | None = None) -> FlextResult[FlextCliConfig]:
-    """Set up CLI with configuration."""
-    return FlextCliConfig.setup_cli(config)
-
-
-def get_config() -> FlextCliConfig:
-    """Get default CLI configuration instance."""
-    return FlextCliConfig.get_current()
-
 
 __all__ = [
     "FlextCliConfig",
-    "FlextCliSettings",  # Legacy alias
-    "get_config",  # Factory function
-    "setup_cli",  # Setup function
 ]

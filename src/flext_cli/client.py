@@ -11,7 +11,7 @@ from typing import Self, cast
 from urllib.parse import urljoin
 
 import httpx
-from flext_core import FlextConstants, FlextCore, FlextResult
+from flext_core import FlextConstants, FlextResult
 from flext_core.models import FlextModels
 from pydantic import Field
 
@@ -518,7 +518,9 @@ class FlextApiClient:
         try:
             await self._request(FlextCliConstants.HTTP_GET, "/api/v1/health")
         except (RuntimeError, ValueError, TypeError) as e:
-            logger = FlextCore.get_logger(__name__)
+            from flext_core import FlextLogger  # noqa: PLC0415
+
+            logger = FlextLogger(__name__)
             logger.warning(f"Connection test failed: {e}")
             return False
         else:

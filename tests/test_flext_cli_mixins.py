@@ -21,7 +21,7 @@ from __future__ import annotations
 import tempfile
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Never
+from typing import object, Never
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -47,7 +47,7 @@ from flext_cli import (
 
 
 # Placeholder implementation for testing
-def flext_cli_auto_retry(max_attempts: int = 3, delay: float = 0.1) -> Callable[..., Any]:
+def flext_cli_auto_retry(max_attempts: int = 3, delay: float = 0.1) -> Callable[..., object]:
     """Auto-retry decorator placeholder implementation."""
     import time
     from functools import wraps
@@ -140,7 +140,7 @@ class TestFlextCliValidationMixin:
         assert result.value is True
 
         # User cancels
-        mock_confirm.return_value = FlextResult[None].ok(False)
+        mock_confirm.return_value = FlextResult[None].ok(data=False)
         result = obj.flext_cli_require_confirmation("Test operation")
         assert not result.is_success
 
@@ -542,7 +542,7 @@ class TestAdvancedDecorators:
         assert result.is_success
 
         # User cancels
-        mock_confirm.return_value = FlextResult[None].ok(False)
+        mock_confirm.return_value = FlextResult[None].ok(data=False)
         result = test_function()
         assert result.is_success
         assert "cancelled" in result.value

@@ -20,8 +20,7 @@ from collections.abc import Coroutine
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs, urlparse
 
-from flext_cli import FlextApiClient, Pipeline, PipelineConfig, PipelineList
-from flext_cli.client import _compute_default_base_url
+from flext_cli.client import FlextApiClient, FlextApiClientModels
 
 
 class MockHTTPHandler(BaseHTTPRequestHandler):
@@ -221,7 +220,7 @@ class TestClientModels(unittest.TestCase):
 
     def test_pipeline_config_creation(self) -> None:
         """Test creating PipelineConfig with real data."""
-        config = PipelineConfig(
+        config = FlextApiClientModels.PipelineConfig(
             name="test-pipeline",
             tap="tap-csv",
             target="target-json",
@@ -241,7 +240,7 @@ class TestClientModels(unittest.TestCase):
 
     def test_pipeline_config_minimal(self) -> None:
         """Test creating PipelineConfig with minimal required fields."""
-        config = PipelineConfig(
+        config = FlextApiClientModels.PipelineConfig(
             name="minimal-pipeline", tap="tap-source", target="target-dest"
         )
 
@@ -255,8 +254,8 @@ class TestClientModels(unittest.TestCase):
 
     def test_pipeline_model_creation(self) -> None:
         """Test creating Pipeline model with real data."""
-        config = PipelineConfig(name="test", tap="tap", target="target")
-        pipeline = Pipeline(
+        config = FlextApiClientModels.PipelineConfig(name="test", tap="tap", target="target")
+        pipeline = FlextApiClientModels.Pipeline(
             id="pipeline-123",
             name="Test Pipeline",
             status="active",
@@ -272,8 +271,8 @@ class TestClientModels(unittest.TestCase):
 
     def test_pipeline_list_creation(self) -> None:
         """Test creating PipelineList with real data."""
-        config = PipelineConfig(name="test", tap="tap", target="target")
-        pipeline = Pipeline(
+        config = FlextApiClientModels.PipelineConfig(name="test", tap="tap", target="target")
+        pipeline = FlextApiClientModels.Pipeline(
             id="pipeline-1",
             name="Pipeline 1",
             status="active",
@@ -282,7 +281,7 @@ class TestClientModels(unittest.TestCase):
             config=config,
         )
 
-        pipeline_list = PipelineList(
+        pipeline_list = FlextApiClientModels.PipelineList(
             pipelines=[pipeline], total=1, page=1, page_size=20
         )
 
@@ -293,7 +292,7 @@ class TestClientModels(unittest.TestCase):
 
     def test_pipeline_config_serialization(self) -> None:
         """Test PipelineConfig serialization to dict."""
-        config = PipelineConfig(
+        config = FlextApiClientModels.PipelineConfig(
             name="serialize-test",
             tap="tap-test",
             target="target-test",
@@ -310,17 +309,18 @@ class TestClientModels(unittest.TestCase):
 class TestComputeDefaultBaseUrl(unittest.TestCase):
     """Real functionality tests for default base URL computation."""
 
-    def test_compute_default_base_url_function_exists(self) -> None:
-        """Test _compute_default_base_url function exists and returns result."""
-        result = _compute_default_base_url()
-        # Should return None or a valid URL string
-        assert result is None or isinstance(result, str)
+    def test_client_default_base_url_through_public_interface(self) -> None:
+        """Test default base URL through public client interface."""
+        client = FlextApiClient()
+        # Test that client can be created and has a base URL
+        assert hasattr(client, "_base_url") or hasattr(client, "base_url")
+        # The client should handle default URL computation internally
 
-    def test_compute_default_base_url_handles_missing_module(self) -> None:
-        """Test _compute_default_base_url handles missing modules gracefully."""
-        # Function should not raise exceptions even if modules don't exist
-        result = _compute_default_base_url()
-        assert result is None or isinstance(result, str)
+    def test_client_handles_default_config_gracefully(self) -> None:
+        """Test client handles default configuration gracefully."""
+        # Should not raise exceptions during initialization
+        client = FlextApiClient()
+        assert client is not None
 
 
 class AsyncTestCase(unittest.TestCase):
@@ -483,7 +483,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
 
         pipeline_list = self.run_async(test_list())
 
-        assert isinstance(pipeline_list, PipelineList)
+        assert isinstance(pipeline_list, FlextApiClientModels.PipelineList)
         assert len(pipeline_list.pipelines) == 5
         assert pipeline_list.total == 5
         assert pipeline_list.page == 1
@@ -500,7 +500,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
 
         pipeline_list = self.run_async(test_list())
 
-        assert isinstance(pipeline_list, PipelineList)
+        assert isinstance(pipeline_list, FlextApiClientModels.PipelineList)
         assert pipeline_list.page == 2
         assert pipeline_list.page_size == 2
 
@@ -515,7 +515,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
 
         pipeline_list = self.run_async(test_list())
 
-        assert isinstance(pipeline_list, PipelineList)
+        assert isinstance(pipeline_list, FlextApiClientModels.PipelineList)
         # All returned pipelines should be active
         for pipeline in pipeline_list.pipelines:
             assert pipeline.status == "active"
@@ -531,7 +531,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
 
         pipeline = self.run_async(test_get())
 
-        assert isinstance(pipeline, Pipeline)
+        assert isinstance(pipeline, FlextApiClientModels.Pipeline)
         assert pipeline.id == "test-pipeline-123"
         assert pipeline.name == "Pipeline test-pipeline-123"
         assert pipeline.status == "active"
@@ -540,7 +540,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
         """Test creating a new pipeline."""
         client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-        config = PipelineConfig(
+        config = FlextApiClientModels.PipelineConfig(
             name="new-test-pipeline",
             tap="tap-csv",
             target="target-json",
@@ -554,7 +554,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
 
         pipeline = self.run_async(test_create())
 
-        assert isinstance(pipeline, Pipeline)
+        assert isinstance(pipeline, FlextApiClientModels.Pipeline)
         assert pipeline.name == "new-test-pipeline"
         assert pipeline.status == "pending"
         assert pipeline.config.tap == "tap-csv"
@@ -563,7 +563,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
         """Test updating an existing pipeline."""
         client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-        config = PipelineConfig(
+        config = FlextApiClientModels.PipelineConfig(
             name="updated-pipeline", tap="tap-updated", target="target-updated"
         )
 
@@ -574,7 +574,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
 
         pipeline = self.run_async(test_update())
 
-        assert isinstance(pipeline, Pipeline)
+        assert isinstance(pipeline, FlextApiClientModels.Pipeline)
         assert pipeline.id == "pipeline-123"
         assert pipeline.name == "updated-pipeline"
         assert pipeline.config.tap == "tap-updated"

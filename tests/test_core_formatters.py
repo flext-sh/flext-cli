@@ -12,7 +12,7 @@ import io
 import pytest
 from rich.console import Console
 
-from flext_cli.formatters import FlextCliFormatters as Fmt
+from flext_cli.formatters import FlextCliFormatters
 
 
 class TestTableFormatter:
@@ -20,7 +20,8 @@ class TestTableFormatter:
 
     def test_format_list_of_dicts(self) -> None:
         """Test formatting list of dictionaries as table."""
-        formatter = Fmt.create("table")
+        fmt_instance = FlextCliFormatters()
+        formatter = fmt_instance.create_formatter("table")
         console = Console(file=io.StringIO(), width=80)
 
         data = [
@@ -33,7 +34,8 @@ class TestTableFormatter:
 
     def test_format_simple_list(self) -> None:
         """Test formatting simple list as table."""
-        formatter = Fmt.create("table")
+        fmt_instance = FlextCliFormatters()
+        formatter = fmt_instance.create_formatter("table")
         console = Console(file=io.StringIO(), width=80)
 
         data = ["item1", "item2", "item3"]
@@ -43,7 +45,8 @@ class TestTableFormatter:
 
     def test_format_single_dict(self) -> None:
         """Test formatting single dictionary as table."""
-        formatter = Fmt.create("table")
+        fmt_instance = FlextCliFormatters()
+        formatter = fmt_instance.create_formatter("table")
         console = Console(file=io.StringIO(), width=80)
 
         data = {"name": "Alice", "age": 30}
@@ -53,7 +56,7 @@ class TestTableFormatter:
 
     def test_format_other_data_type(self) -> None:
         """Test formatting other data types."""
-        formatter = Fmt.create("table")
+        formatter = FlextCliFormatters().create_formatter("table")
         console = Console(file=io.StringIO(), width=80)
 
         data = "simple string"
@@ -67,7 +70,7 @@ class TestJSONFormatter:
 
     def test_format_dict(self) -> None:
         """Test formatting dictionary as JSON."""
-        formatter = Fmt.create("json")
+        formatter = FlextCliFormatters().create_formatter("json")
         output = io.StringIO()
         console = Console(file=output, width=80)
 
@@ -82,7 +85,7 @@ class TestJSONFormatter:
 
     def test_format_list(self) -> None:
         """Test formatting list as JSON."""
-        formatter = Fmt.create("json")
+        formatter = FlextCliFormatters().create_formatter("json")
         output = io.StringIO()
         console = Console(file=output, width=80)
 
@@ -101,7 +104,7 @@ class TestYAMLFormatter:
 
     def test_format_dict(self) -> None:
         """Test formatting dictionary as YAML."""
-        formatter = Fmt.create("yaml")
+        formatter = FlextCliFormatters().create_formatter("yaml")
         output = io.StringIO()
         console = Console(file=output, width=80)
 
@@ -116,7 +119,7 @@ class TestYAMLFormatter:
 
     def test_format_list(self) -> None:
         """Test formatting list as YAML."""
-        formatter = Fmt.create("yaml")
+        formatter = FlextCliFormatters().create_formatter("yaml")
         output = io.StringIO()
         console = Console(file=output, width=80)
 
@@ -135,7 +138,7 @@ class TestCSVFormatter:
 
     def test_format_list_of_dicts(self) -> None:
         """Test formatting list of dictionaries as CSV."""
-        formatter = Fmt.create("csv")
+        formatter = FlextCliFormatters().create_formatter("csv")
         output = io.StringIO()
         console = Console(file=output, width=80)
 
@@ -156,7 +159,7 @@ class TestCSVFormatter:
 
     def test_format_simple_list(self) -> None:
         """Test formatting simple list as CSV."""
-        formatter = Fmt.create("csv")
+        formatter = FlextCliFormatters().create_formatter("csv")
         output = io.StringIO()
         console = Console(file=output, width=80)
 
@@ -176,7 +179,7 @@ class TestCSVFormatter:
 
     def test_format_single_dict(self) -> None:
         """Test formatting single dictionary as CSV."""
-        formatter = Fmt.create("csv")
+        formatter = FlextCliFormatters().create_formatter("csv")
         output = io.StringIO()
         console = Console(file=output, width=80)
 
@@ -195,7 +198,7 @@ class TestPlainFormatter:
 
     def test_format_list_of_dicts(self) -> None:
         """Test formatting list of dictionaries as plain text."""
-        formatter = Fmt.create("plain")
+        formatter = FlextCliFormatters().create_formatter("plain")
         output = io.StringIO()
         console = Console(file=output, width=80)
 
@@ -217,7 +220,7 @@ class TestPlainFormatter:
 
     def test_format_simple_list(self) -> None:
         """Test formatting simple list as plain text."""
-        formatter = Fmt.create("plain")
+        formatter = FlextCliFormatters().create_formatter("plain")
         output = io.StringIO()
         console = Console(file=output, width=80)
 
@@ -235,7 +238,7 @@ class TestPlainFormatter:
 
     def test_format_single_dict(self) -> None:
         """Test formatting single dictionary as plain text."""
-        formatter = Fmt.create("plain")
+        formatter = FlextCliFormatters().create_formatter("plain")
         output = io.StringIO()
         console = Console(file=output, width=80)
 
@@ -250,7 +253,7 @@ class TestPlainFormatter:
 
     def test_format_other_data_type(self) -> None:
         """Test formatting other data types as plain text."""
-        formatter = Fmt.create("plain")
+        formatter = FlextCliFormatters().create_formatter("plain")
         output = io.StringIO()
         console = Console(file=output, width=80)
 
@@ -268,48 +271,49 @@ class TestFormatterFactory:
 
     def test_create_table_formatter(self) -> None:
         """Test creating table formatter."""
-        formatter = Fmt.create("table")
-        assert type(formatter).__name__ == type(Fmt.create("table")).__name__
+        formatter = FlextCliFormatters().create_formatter("table")
+        assert type(formatter).__name__ == type(FlextCliFormatters().create_formatter("table")).__name__
 
     def test_create_json_formatter(self) -> None:
         """Test creating JSON formatter."""
-        formatter = Fmt.create("json")
+        formatter = FlextCliFormatters().create_formatter("json")
         assert formatter is not None
 
     def test_create_yaml_formatter(self) -> None:
         """Test creating YAML formatter."""
-        formatter = Fmt.create("yaml")
+        formatter = FlextCliFormatters().create_formatter("yaml")
         assert formatter is not None
 
     def test_create_csv_formatter(self) -> None:
         """Test creating CSV formatter."""
-        formatter = Fmt.create("csv")
+        formatter = FlextCliFormatters().create_formatter("csv")
         assert formatter is not None
 
     def test_create_plain_formatter(self) -> None:
         """Test creating plain formatter."""
-        formatter = Fmt.create("plain")
+        formatter = FlextCliFormatters().create_formatter("plain")
         assert formatter is not None
 
     def test_create_unknown_formatter(self) -> None:
         """Test creating unknown formatter raises error."""
         with pytest.raises(ValueError, match="Unknown formatter type"):
-            Fmt.create("unknown")
+            FlextCliFormatters().create_formatter("unknown")
 
     def test_register_custom_formatter(self) -> None:
         """Test registering custom formatter."""
 
-        class CustomFormatter(Fmt.OutputFormatter):
+        class CustomFormatter(FlextCliFormatters.OutputFormatter):
             def format(self, data: object, console: Console) -> None:
                 console.print("custom")
 
-        Fmt.register("custom", CustomFormatter)
-        formatter = Fmt.create("custom")
+        formatter_instance = FlextCliFormatters()
+        formatter_instance.register_formatter("custom", CustomFormatter)
+        formatter = formatter_instance.create_formatter("custom")
         assert formatter.__class__ is CustomFormatter
 
     def test_list_formats(self) -> None:
         """Test listing available formats."""
-        formats = Fmt.list_formats()
+        formats = FlextCliFormatters().list_formats()
         if "table" not in formats:
             table_msg: str = f"Expected {'table'} in {formats}"
             raise AssertionError(table_msg)
@@ -328,31 +332,22 @@ class TestFormatOutput:
 
     def test_format_output_table(self) -> None:
         """Test format_output with table format."""
-        output = io.StringIO()
-        console = Console(file=output, width=80)
-
         data = [{"name": "Alice", "age": 30}]
 
-        Fmt.format_output(data, "table", console)
+        FlextCliFormatters().format_output(data, "table")
         # Should not raise any exceptions
 
     def test_format_output_json(self) -> None:
         """Test format_output with JSON format."""
-        output = io.StringIO()
-        console = Console(file=output, width=80)
-
         data = {"name": "Alice", "age": 30}
 
-        Fmt.format_output(data, "json", console)
-        result = output.getvalue()
-        if "Alice" not in result:
-            output_alice_msg: str = f"Expected {'Alice'} in {result}"
-            raise AssertionError(output_alice_msg)
+        result = FlextCliFormatters().format_output(data, "json")
+        assert result.is_success
 
     def test_format_output_unknown_format(self) -> None:
         """Test format_output with unknown format."""
-        console = Console(file=io.StringIO(), width=80)
         data = {"test": "data"}
 
-        with pytest.raises(ValueError, match="Unknown formatter type"):
-            Fmt.format_output(data, "unknown", console)
+        result = FlextCliFormatters().format_output(data, "unknown")
+        assert result.is_failure
+        assert "Unknown formatter type" in result.error

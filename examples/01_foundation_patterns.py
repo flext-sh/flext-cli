@@ -192,7 +192,7 @@ def _summary_demo(console: Console) -> None:
 def demonstrate_foundation_patterns() -> FlextResult[None]:
     """Demonstrate the foundation patterns of flext-cli with extensive flext-core integration."""
     console = Console()
-
+    
     # Rich UI presentation
     console.print(
         Panel(
@@ -203,32 +203,18 @@ def demonstrate_foundation_patterns() -> FlextResult[None]:
         )
     )
 
-    # Execute demo sections
-    setup_result = _setup_cli_demo(console)
-    if setup_result.is_failure:
-        return setup_result
-
-    config_result = _config_demo(console)
-    if config_result.is_failure:
-        return FlextResult[None].fail(config_result.error or "Config failed")
-    config = config_result.value
-
-    container_result = _container_demo(console, config)
-    if container_result.is_failure:
-        return container_result
-
-    entities_result = _entities_demo(console, config)
-    if entities_result.is_failure:
-        return FlextResult[None].fail(entities_result.error or "Entity creation failed")
-    command, _session = entities_result.value
-
-    validation_result = _validation_demo(console, command)
-    if validation_result.is_failure:
-        return validation_result
-
-    _summary_demo(console)
-
-    return FlextResult[None].ok(None)
+    # Use flext-core pipeline pattern for sequential operations
+    from flext_core import FlextPipeline
+    
+    pipeline = FlextPipeline[None]()
+    return pipeline.execute([
+        lambda: _setup_cli_demo(console),
+        lambda: _config_demo(console).bind(lambda config: _container_demo(console, config)),
+        lambda: _config_demo(console).bind(lambda config: _entities_demo(console, config)).bind(
+            lambda data: _validation_demo(console, data[0])
+        ),
+        lambda: FlextResult[None].ok(_summary_demo(console))
+    ])
 
 
 def create_sample_command() -> FlextResult[CLICommand]:

@@ -398,46 +398,110 @@ def meltano(ctx: click.Context, operation: str, project: str) -> None:
 )
 @click.pass_context
 @require_auth()
-def oracle_query(
-    ctx: click.Context, query: str, schema: str, output_format: str
-) -> None:
-    """Query Oracle database through flext-db-oracle integration."""
-    console: Console = ctx.obj["console"]
+def oracle_query(ctx: click.Context, query: str, schema: str, output_format: str) -> None:
+    """Query Oracle database through flext-db-oracle integration using advanced patterns."""
+    from flext_core import FlextPipeline
+    
+    console: Console = ctx.obj["console"] 
     service: EcosystemService = ctx.obj["service"]
+    
+    # Use FlextPipeline pattern to reduce complexity and eliminate multiple returns
+    def execute_query_pipeline() -> FlextResult[None]:
+        """Execute Oracle query using pipeline pattern."""
+        
+        # Step 1: Announce execution
+        console.print(f"[blue]Executing Oracle query in schema {schema}...[/blue]")
+        
+        # Step 2: Execute query
+        query_result = service.query_oracle_database(query, schema)
+        if query_result.is_failure:
+            console.print(f"[red]❌ Oracle query failed: {query_result.error}[/red]")
+            return FlextResult[None].fail(query_result.error)
+        
+        # Step 3: Format output using Python 3.13+ match-case
+        format_result = _format_oracle_output(console, query_result.value, output_format)
+        return format_result.map(lambda _: None)  # Convert to None for consistent return
+    
+    # Execute pipeline
+    execute_query_pipeline()
 
-    console.print(f"[blue]Executing Oracle query in schema {schema}...[/blue]")
 
-    result = service.query_oracle_database(query, schema)
+def _format_oracle_output(console: Console, data: object, output_format: str) -> FlextResult[str]:
+    """Format Oracle query output using Python 3.13+ match-case patterns."""
+    
+    # Python 3.13+ pattern matching for cleaner control flow
+    match output_format:
+        case "table":
+            return _handle_table_format(console, data)
+        case "json" | "csv":
+            return _handle_structured_format(console, data, output_format)
+        case _:
+            error_msg = f"Unsupported output format: {output_format}"
+            console.print(f"[red]❌ {error_msg}[/red]")
+            return FlextResult[str].fail(error_msg)
 
-    if result.is_success:
-        data = result.value
 
-        if output_format == "table":
-            # Convert list[dict[str, object]] to compatible format for cli_create_table
-            if isinstance(data, list) and data:
-                # Convert to string representation for display
-                table_data = str(data)
-            else:
-                table_data = str(data)
-            table = cli_create_table(
-                table_data,
-                title=f"Query Results ({len(data) if hasattr(data, '__len__') else 0} rows)",
-            )
-            console.print(table)
-        else:
-            # Convert list[dict[str, object]] to compatible format for cli_format_output
-            if isinstance(data, list) and data:
-                # Convert to string representation for formatting
-                format_data = str(data)
-            else:
-                format_data = str(data)
-            formatted_result = cli_format_output(format_data, output_format)
-            if formatted_result.is_success:
-                console.print(formatted_result.value)
-            else:
-                console.print(f"[red]❌ Format error: {formatted_result.error}[/red]")
-    else:
-        console.print(f"[red]❌ Oracle query failed: {result.error}[/red]")
+def _handle_table_format(console: Console, data: object) -> FlextResult[str]:
+    """Handle table output format with functional patterns."""
+    from functools import partial
+    
+    # Use functional programming patterns
+    prepare_data = partial(_prepare_display_data, data)
+    calculate_rows = partial(_calculate_row_count, data)
+    
+    table_data = prepare_data()
+    row_count = calculate_rows()
+    
+    table = cli_create_table(table_data, title=f"Query Results ({row_count} rows)")
+    console.print(table)
+    return FlextResult[str].ok(table_data)
+
+
+def _handle_structured_format(console: Console, data: object, format_type: str) -> FlextResult[str]:
+    """Handle JSON/CSV formats with error handling."""
+    format_data = _prepare_display_data(data)
+    formatted_result = cli_format_output(format_data, format_type)
+    
+    # Use functional error handling pattern
+    return (
+        _display_formatted_success(console, formatted_result.value)
+        if formatted_result.is_success
+        else _display_format_error(console, formatted_result.error)
+    )
+
+
+def _prepare_display_data(data: object) -> str:
+    """Prepare data for display using functional approach."""
+    match data:
+        case list() | dict() if data:
+            return str(data)
+        case _:
+            return str(data)
+
+
+def _calculate_row_count(data: object) -> int:
+    """Calculate row count using safe pattern matching."""
+    match data:
+        case list() as items:
+            return len(items)
+        case dict() as mapping:
+            return len(mapping)
+        case _ if hasattr(data, '__len__'):
+            return len(data)
+        case _:
+            return 0
+
+
+def _display_formatted_success(console: Console, value: str) -> FlextResult[str]:
+    """Display successful formatted output."""
+    console.print(value)
+    return FlextResult[str].ok(value)
+
+
+def _display_format_error(console: Console, error: str) -> FlextResult[str]:
+    """Display formatting error."""
+    console.print(f"[red]❌ Format error: {error}[/red]")
+    return FlextResult[str].fail(error)
 
 
 @ecosystem_cli.command()

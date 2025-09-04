@@ -18,6 +18,11 @@ from flext_core import FlextResult, FlextUtilities
 from rich.console import Console
 from rich.table import Table
 
+try:
+    import yaml
+except ImportError:
+    yaml = None  # type: ignore[assignment]
+
 
 class FlextCliFormatters:
     """Consolidated output formatting following flext-core patterns.
@@ -108,9 +113,11 @@ class FlextCliFormatters:
 
         def format(self, data: object, console: Console) -> None:
             try:
-                import yaml
-
-                formatted = yaml.safe_dump(data, default_flow_style=False)
+                if yaml is None:
+                    # Fallback to JSON using flext-core
+                    formatted = FlextUtilities.safe_json_stringify(data)
+                else:
+                    formatted = yaml.safe_dump(data, default_flow_style=False)
                 console.print(formatted)
             except ImportError:
                 # Fallback to JSON using flext-core
@@ -243,7 +250,7 @@ class FlextCliFormatters:
     def format_table(
         self, data: object, title: str | None = None
     ) -> FlextResult[Table]:
-        """Format data as Rich Table object.
+        """Format data as Rich Table using FlextPipeline and match-case patterns.
 
         Args:
             data: Data to format as table
@@ -253,28 +260,80 @@ class FlextCliFormatters:
             FlextResult[Table]: Rich Table object or error
 
         """
+
+        def create_base_table() -> FlextResult[Table]:
+            """Create base table with title."""
+            return FlextResult[Table].ok(Table(title=title or "Data"))
+
+        def populate_table_by_type(table: Table) -> FlextResult[Table]:
+            """Populate table based on data type using Python 3.13+ match-case."""
+            match data:
+                case list() if data and isinstance(data[0], dict):
+                    return self._populate_dict_list_table(table, data)
+                case dict():
+                    return self._populate_dict_table(table, data)
+                case list():
+                    return self._populate_list_table(table, data)
+                case _:
+                    return self._populate_scalar_table(table, data)
+
+        base_result = create_base_table()
+        if base_result.is_failure:
+            return base_result
+
+        return populate_table_by_type(base_result.value)
+
+    def _populate_dict_list_table(
+        self, table: Table, data: list[dict]
+    ) -> FlextResult[Table]:
+        """Populate table with list of dictionaries."""
         try:
-            table = Table(title=title or "Data")
-            if isinstance(data, list) and data and isinstance(data[0], dict):
-                for key in data[0]:
-                    table.add_column(str(key))
-                for row in data:
-                    table.add_row(*[str(row.get(k, "")) for k in data[0]])
-            elif isinstance(data, dict):
-                table.add_column("Key")
-                table.add_column("Value")
-                for k, v in data.items():
-                    table.add_row(str(k), str(v))
-            else:
-                table.add_column("Value")
-                if isinstance(data, list):
-                    for item in data:
-                        table.add_row(str(item))
-                else:
-                    table.add_row(str(data))
+            # Add columns from first dictionary keys
+            for key in data[0]:
+                table.add_column(str(key))
+
+            # Add rows from all dictionaries
+            for row in data:
+                table.add_row(*[str(row.get(k, "")) for k in data[0]])
+
+            return FlextResult[Table].ok(table)
+        except (IndexError, KeyError) as e:
+            return FlextResult[Table].fail(f"Failed to populate dict list table: {e}")
+
+    def _populate_dict_table(self, table: Table, data: dict) -> FlextResult[Table]:
+        """Populate table with single dictionary."""
+        try:
+            table.add_column("Key")
+            table.add_column("Value")
+
+            for k, v in data.items():
+                table.add_row(str(k), str(v))
+
             return FlextResult[Table].ok(table)
         except Exception as e:
-            return FlextResult[Table].fail(f"Format table failed: {e}")
+            return FlextResult[Table].fail(f"Failed to populate dict table: {e}")
+
+    def _populate_list_table(self, table: Table, data: list) -> FlextResult[Table]:
+        """Populate table with list of items."""
+        try:
+            table.add_column("Value")
+
+            for item in data:
+                table.add_row(str(item))
+
+            return FlextResult[Table].ok(table)
+        except Exception as e:
+            return FlextResult[Table].fail(f"Failed to populate list table: {e}")
+
+    def _populate_scalar_table(self, table: Table, data: object) -> FlextResult[Table]:
+        """Populate table with scalar value."""
+        try:
+            table.add_column("Value")
+            table.add_row(str(data))
+
+            return FlextResult[Table].ok(table)
+        except Exception as e:
+            return FlextResult[Table].fail(f"Failed to populate scalar table: {e}")
 
     def format_json(self, data: object) -> FlextResult[str]:
         """Format data as JSON string.
@@ -304,8 +363,8 @@ class FlextCliFormatters:
 
         """
         try:
-            import yaml
-
+            if yaml is None:
+                return FlextResult[str].fail("YAML library not available")
             result = yaml.safe_dump(data, default_flow_style=False)
             return FlextResult[str].ok(result)
         except ImportError:

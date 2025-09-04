@@ -10,7 +10,7 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import ParamSpec, TypeVar, cast
 
-from flext_core import FlextDecorators, FlextResult
+from flext_core import FlextDecorators
 from rich.console import Console
 
 from flext_cli.constants import FlextCliConstants
@@ -107,18 +107,6 @@ class FlextCliDecorators(FlextDecorators):
         return _decorator
 
     @staticmethod
-    def retry(
-        *, max_attempts: int = 3, delay: float = 0.0
-    ) -> Callable[[Callable[P, T]], Callable[P, T]]:
-        def _decorator(func: Callable[P, T]) -> Callable[P, T]:
-            decorated = FlextDecorators.Reliability.retry(
-                max_attempts=max_attempts, backoff_factor=delay if delay > 0 else 0.0
-            )(func)
-            return functools.wraps(func)(decorated)
-
-        return _decorator
-
-    @staticmethod
     def validate_config(
         required_keys: list[str],
     ) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
@@ -185,27 +173,6 @@ class FlextCliDecorators(FlextDecorators):
         return _decorator
 
     @staticmethod
-    def handle_exceptions(
-        message: str,
-    ) -> Callable[[Callable[P, T]], Callable[P, FlextResult[T]]]:
-        """Wrap exceptions into FlextResult failures; pass-through successes."""
-
-        def _decorator(func: Callable[P, T]) -> Callable[P, FlextResult[T]]:
-            @functools.wraps(func)
-            def _wrapped(*args: P.args, **kwargs: P.kwargs) -> FlextResult[T]:
-                try:
-                    result = func(*args, **kwargs)
-                    if isinstance(result, FlextResult):
-                        return cast("FlextResult[T]", result)
-                    return FlextResult.ok(result)
-                except (RuntimeError, ValueError, TypeError, OSError) as e:
-                    return FlextResult.fail(f"{message}: {e}")
-
-            return _wrapped
-
-        return _decorator
-
-    @staticmethod
     def require_confirmation(
         _action: str,
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
@@ -218,12 +185,10 @@ class FlextCliDecorators(FlextDecorators):
 
 
 # Backward compatibility - expose static methods as module functions
-flext_cli_handle_exceptions = FlextCliDecorators.handle_exceptions
 flext_cli_require_confirmation = FlextCliDecorators.require_confirmation
 
 
 __all__ = [
     "FlextCliDecorators",
-    "flext_cli_handle_exceptions",
     "flext_cli_require_confirmation",
 ]

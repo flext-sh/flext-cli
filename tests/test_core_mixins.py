@@ -160,7 +160,7 @@ class TestFlextCliValidationMixin:
     @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
     def test_require_confirmation_no(self, mock_confirm: MagicMock) -> None:
         """Test require confirmation returning no."""
-        mock_confirm.return_value = FlextResult[bool].ok(False)
+        mock_confirm.return_value = FlextResult[bool].ok(data=False)
         mixin = FlextCliValidationMixin()
 
         result = mixin.flext_cli_require_confirmation("Are you sure?")
@@ -270,7 +270,7 @@ class TestFlextCliInteractiveMixin:
     @patch("flext_cli.helpers.FlextCliHelper.flext_cli_confirm")
     def test_confirm_operation_no(self, mock_confirm: MagicMock) -> None:
         """Test confirm operation returning no."""
-        mock_confirm.return_value = FlextResult[bool].ok(False)
+        mock_confirm.return_value = FlextResult[bool].ok(data=False)
         mixin = FlextCliInteractiveMixin()
 
         result = mixin.flext_cli_confirm_operation("Proceed?")
