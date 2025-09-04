@@ -12,7 +12,7 @@ import io
 import pytest
 from rich.console import Console
 
-from flext_cli import FlextCliConfig, FlextCliContext, FlextCliSettings
+from flext_cli import FlextCliConfig, FlextCliContext
 
 
 class TestCLIContext:
@@ -35,11 +35,10 @@ class TestCLIContext:
         )
 
     @pytest.fixture
-    def cli_settings(self) -> FlextCliSettings:
-        """Create real CLI settings for testing."""
-        return FlextCliSettings(
+    def cli_settings(self) -> FlextCliConfig:
+        """Create real CLI config for testing."""
+        return FlextCliConfig(
             debug=True,
-            log_level="DEBUG",
             project_name="test-project",
         )
 

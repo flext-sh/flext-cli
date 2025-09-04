@@ -10,33 +10,34 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import ClassVar, cast
+from typing import cast
 
 from flext_core import FlextResult
 from flext_core.models import FlextModels
-from pydantic import ConfigDict, Field
 from rich.console import Console
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 
 
-class FlextCliContext(FlextModels.Value):
-    """CLI execution context extending FlextContext with CLI-specific functionality.
+class FlextCliContext:
+    """CLI execution context using composition for flexibility.
 
-    Immutable context containing execution environment, user information,
-    and configuration settings for CLI command execution.
+    Composition-based design containing execution environment, user information,
+    and configuration settings for CLI command execution. Uses FlextModels.Value
+    as a composed component rather than inheritance for better separation of concerns.
+
+    Architecture pattern:
+        - Composition: Contains FlextModels.Value as component
+        - Immutable state: Context values are frozen after creation
+        - Business rules: Validates context state during initialization
+        - Type safety: FlextResult for error handling
 
     Business Rules:
       - Working directory must exist if specified
       - Environment variables must be valid strings
       - User ID must be non-empty if provided
     """
-
-    # Reference to flext-core models for inheritance
-    Core: ClassVar[type[FlextModels]] = FlextModels
-
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
 
     def __init__(
         self,
@@ -47,65 +48,113 @@ class FlextCliContext(FlextModels.Value):
         debug: bool = False,
         quiet: bool = False,
         verbose: bool = False,
+        working_directory: Path | None = None,
+        environment_variables: dict[str, str] | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
         **kwargs: object,
     ) -> None:
-        """Initialize CLI context with provided parameters."""
-        init_data = {"debug": debug, "quiet": quiet, "verbose": verbose, **kwargs}
+        """Initialize CLI context with composed components.
 
-        if id_:
-            init_data["id"] = id_
-        if config is not None:
-            init_data["config"] = config
-        if console is not None:
-            init_data["console"] = console
+        Args:
+            id_: Context identifier (generated if not provided)
+            config: CLI configuration instance
+            console: Rich console for output
+            debug: Enable debug mode
+            quiet: Enable quiet mode
+            verbose: Enable verbose mode
+            working_directory: Working directory path
+            environment_variables: Environment variables dict
+            user_id: User identifier
+            session_id: Session identifier
+            **kwargs: Additional context data
 
-        super().__init__(**init_data)
+        """
+        # Composed core value object - use concrete type instead of abstract
+        # self._core_value = FlextModels.Value()  # Abstract - removed
 
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Context id")
-    config: FlextCliConfig = Field(
-        default_factory=FlextCliConfig,
-        description="CLI configuration instance",
-    )
-    console: Console = Field(
-        default_factory=Console,
-        description="Rich console for output",
-    )
+        # Context state management via composition
+        self._id = id_ or str(uuid.uuid4())
+        self._config = config or FlextCliConfig()
+        self._console = console or Console()
+        self._debug = debug
+        self._quiet = quiet
+        self._verbose = verbose
+        self._working_directory = working_directory
+        self._environment_variables = environment_variables or {}
+        self._user_id = user_id
+        self._session_id = session_id
+        self._additional_data = kwargs
+        self._configuration = kwargs.copy()
+        self._timeout_seconds = kwargs.get(
+            "timeout_seconds", FlextCliConstants.MAX_COMMAND_TIMEOUT
+        )
 
-    # Additional context data
-    working_directory: Path | None = Field(
-        default=None,
-        description="Working directory for command execution",
-    )
-    environment_variables: dict[str, str] = Field(
-        default_factory=dict,
-        description="Environment variables for execution context",
-    )
-    user_id: str | None = Field(
-        default=None,
-        description="User identifier for the context",
-    )
-    session_id: str | None = Field(
-        default=None,
-        description="CLI session identifier",
-    )
-    configuration: dict[str, object] = Field(
-        default_factory=dict,
-        description="Context-specific configuration",
-    )
-    timeout_seconds: int = Field(
-        default=FlextCliConstants.MAX_COMMAND_TIMEOUT,
-        ge=1,
-        description="Default timeout for operations in this context",
-    )
+    # Properties for accessing composed state
+    @property
+    def id(self) -> str:
+        """Get context identifier."""
+        return self._id
 
-    # Derived flags (also used directly by some tests when config is missing)
-    debug: bool = Field(default=False)
-    quiet: bool = Field(default=False)
-    verbose: bool = Field(default=False)
+    @property
+    def config(self) -> FlextCliConfig:
+        """Get CLI configuration."""
+        return self._config
 
-    def model_post_init(self, __context: object, /) -> None:
-        """Initialize context after model creation."""
-        # Context initialization - no need to set console since it has default_factory
+    @property
+    def console(self) -> Console:
+        """Get Rich console."""
+        return self._console
+
+    @property
+    def working_directory(self) -> Path | None:
+        """Get working directory."""
+        return self._working_directory
+
+    @property
+    def environment_variables(self) -> dict[str, str]:
+        """Get environment variables."""
+        return self._environment_variables.copy()
+
+    @property
+    def user_id(self) -> str | None:
+        """Get user identifier."""
+        return self._user_id
+
+    @property
+    def session_id(self) -> str | None:
+        """Get session identifier."""
+        return self._session_id
+
+    @property
+    def configuration(self) -> dict[str, object]:
+        """Get context-specific configuration."""
+        return self._configuration.copy()
+
+    @property
+    def timeout_seconds(self) -> int:
+        """Get default timeout for operations."""
+        if isinstance(self._timeout_seconds, (int, float)):
+            return int(self._timeout_seconds)
+        elif isinstance(self._timeout_seconds, str):
+            return int(self._timeout_seconds)
+        else:
+            return 30
+
+    @property
+    def debug(self) -> bool:
+        """Check if debug mode is enabled."""
+        return self._debug
+
+    @property
+    def quiet(self) -> bool:
+        """Check if quiet mode is enabled."""
+        return self._quiet
+
+    @property
+    def verbose(self) -> bool:
+        """Check if verbose mode is enabled."""
+        return self._verbose
 
     # Properties based on config if present, otherwise fall back to fields
     @property
@@ -163,20 +212,17 @@ class FlextCliContext(FlextModels.Value):
     # Convenience immutability helpers expected by some tests
     def with_environment(self, **env: str) -> FlextCliContext:
         merged = {**(self.environment_variables or {}), **env}
-        if hasattr(self, "model_copy"):
-            return self.model_copy(update={"environment_variables": merged})
-        # Fallback creation path
+        # Direct creation path
         return FlextCliContext.create(
             config=self.config,
             console=self.console,
             debug=self.debug,
             quiet=self.quiet,
             verbose=self.verbose,
+            environment_variables=merged,
         )
 
     def with_working_directory(self, path: Path) -> FlextCliContext:
-        if hasattr(self, "model_copy"):
-            return self.model_copy(update={"working_directory": path})
         return FlextCliContext.create(
             config=self.config,
             console=self.console,

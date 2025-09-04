@@ -484,22 +484,20 @@ def main() -> None:
                 f"[red]Secure configuration demo failed: {config_result.error}[/red]"
             )
 
-        # Final summary
-        console.print(
-            Panel(
-                "[bold green]✅ Authentication and Authorization Demo Completed![/bold green]\n\n"
-                "[cyan]Security Features Demonstrated:[/cyan]\n"
-                "🔐 Token-based authentication with save_auth_token()\n"
-                "🛡️ Authorization headers via get_auth_headers()\n"
-                "🔒 Protected operations using @require_auth() decorator\n"
-                "👥 Role-based permissions and access control\n"
-                "⏰ Session lifecycle management and validation\n"
-                "🔑 Environment-based secure configuration\n"
-                "🌐 FlextApiClient authentication patterns\n\n"
-                "[yellow]All security operations used FlextResult for error handling![/yellow]",
-                expand=False,
-            )
-        )
+        # Final summary using shared utility
+        from example_utils import print_demo_completion
+        
+        features = [
+            "🔐 Token-based authentication with save_auth_token()",
+            "🛡️ Authorization headers via get_auth_headers()",
+            "🔒 Protected operations using @require_auth() decorator",
+            "👥 Role-based permissions and access control",
+            "⏰ Session lifecycle management and validation",
+            "🔑 Environment-based secure configuration",
+            "🌐 FlextApiClient authentication patterns"
+        ]
+        
+        print_demo_completion(console, "Authentication and Authorization Demo", features)
 
     except Exception as e:
         console.print(f"[bold red]❌ Authentication demo error: {e}[/bold red]")

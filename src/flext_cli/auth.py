@@ -12,13 +12,15 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import asyncio
-import contextlib
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict, cast
 
 import click
-from flext_core import FlextResult
+from flext_core import FlextLogger, FlextResult
 from rich.console import Console
+
+logger = FlextLogger(__name__)
 
 if TYPE_CHECKING:
     from flext_cli.config import FlextCliConfig
@@ -61,10 +63,10 @@ class FlextCliAuth:
     def config(self) -> FlextCliConfig:
         """Get CLI configuration, lazy-loaded to avoid circular imports."""
         if self._config is None:
-            # Import local para evitar ciclos
-            from flext_cli.config import get_config
+            # Avoid circular import - lazy load
+            from flext_cli.config import FlextCliConfig  # noqa: PLC0415
 
-            self._config = get_config()
+            self._config = FlextCliConfig.get_current()
         return self._config
 
     @staticmethod
@@ -98,6 +100,31 @@ class FlextCliAuth:
         """
         return self.config.refresh_token_file
 
+    def _save_token_generic(
+        self,
+        token: str,
+        default_path_func: Callable[[], Path],
+        custom_path: Path | None,
+        token_type: str,
+    ) -> FlextResult[None]:
+        """Generic token saving functionality to eliminate code duplication.
+
+        Args:
+            token: Token to save
+            default_path_func: Function to get default path
+            custom_path: Optional custom path
+            token_type: Type of token for error messages
+
+        Returns:
+            FlextResult[None]: Success or failure result
+
+        """
+        if not token or not token.strip():
+            return FlextResult[None].fail(f"{token_type} cannot be empty")
+
+        file_path = custom_path or default_path_func()
+        return self._save_token_to_file(token, file_path)
+
     def save_auth_token(
         self, token: str, *, token_path: Path | None = None
     ) -> FlextResult[None]:
@@ -111,11 +138,7 @@ class FlextCliAuth:
             FlextResult[None]: Success or failure result with error details
 
         """
-        if not token or not token.strip():
-            return FlextResult[None].fail("Token cannot be empty")
-
-        file_path = token_path or self.get_token_path()
-        return self._save_token_to_file(token, file_path)
+        return self._save_token_generic(token, self.get_token_path, token_path, "Token")
 
     def save_refresh_token(
         self, token: str, *, refresh_token_path: Path | None = None
@@ -130,11 +153,9 @@ class FlextCliAuth:
             FlextResult[None]: Success or failure result with error details
 
         """
-        if not token or not token.strip():
-            return FlextResult[None].fail("Refresh token cannot be empty")
-
-        file_path = refresh_token_path or self.get_refresh_token_path()
-        return self._save_token_to_file(token, file_path)
+        return self._save_token_generic(
+            token, self.get_refresh_token_path, refresh_token_path, "Refresh token"
+        )
 
     def get_auth_token(self, *, token_path: Path | None = None) -> FlextResult[str]:
         """Retrieve authentication token from secure storage.
@@ -237,110 +258,100 @@ class FlextCliAuth:
     async def login(
         self, username: str, password: str
     ) -> FlextResult[dict[str, object]]:
-        """Authenticate with FLEXT services using username and password.
+        """Ultra-simplified login using Python 3.13+ match-case patterns."""
+        from flext_cli.client import FlextApiClient  # noqa: PLC0415
 
-        Args:
-            username: Username for authentication
-            password: Password for authentication
+        # Single-expression validation using match-case
+        match (
+            username.strip() if username else "",
+            password.strip() if password else "",
+        ):
+            case ("", _) | (_, ""):
+                credential_status = "empty_credentials"
+            case (user, pwd) if len(user) < 1 or len(pwd) < 1:
+                credential_status = "invalid_credentials"
+            case _:
+                credential_status = "valid"
 
-        Returns:
-            FlextResult containing authentication response with user data and tokens
+        if credential_status != "valid":
+            return FlextResult[dict[str, object]].fail(
+                f"Credential validation failed: {credential_status}"
+            )
 
-        """
-        if not password or len(password) < 1:
-            return FlextResult[dict[str, object]].fail("Credentials are empty")
-
+        # Single try-catch with match-case error handling
         try:
-            # Import local para evitar ciclos
-            from flext_cli.client import FlextApiClient
-
             async with FlextApiClient() as client:
-                login_result = await client.login(username, password)
+                response = await client.login(username, password)
 
-                if login_result.is_failure:
+                # Response validation and token extraction
+                if response is None or response == {}:
                     return FlextResult[dict[str, object]].fail(
-                        f"Login failed: {login_result.error}"
+                        "Empty authentication response"
                     )
+                if isinstance(response, dict) and "token" in response:
+                    token = response.get("token")
+                    if isinstance(token, str) and token.strip():
+                        return self._handle_token_save(token, response)
+                    return FlextResult[dict[str, object]].fail(
+                        f"Invalid token format: {type(token)}"
+                    )
+                if isinstance(response, dict):
+                    return FlextResult[dict[str, object]].fail(
+                        "Missing token in response"
+                    )
+                return FlextResult[dict[str, object]].fail("Invalid response format")
 
-                response = login_result.value
-                if response and "token" in response:
-                    token_value = response["token"]
-                    if isinstance(token_value, str):
-                        save_result = self.save_auth_token(token_value)
-                        if save_result.is_failure:
-                            return FlextResult[dict[str, object]].fail(
-                                f"Authentication save failed: {save_result.error}"
-                            )
-                        return FlextResult[dict[str, object]].ok(response)
-
+        except Exception as e:
+            # Exception handling
+            if isinstance(e, (ConnectionError, TimeoutError)):
+                return FlextResult[dict[str, object]].fail(f"Connection failed: {e}")
+            if isinstance(e, (ValueError, KeyError)):
                 return FlextResult[dict[str, object]].fail(
-                    "Invalid authentication response"
+                    f"Login validation failed: {e}"
                 )
-
-        except (ConnectionError, TimeoutError, ValueError, KeyError) as e:
+            if isinstance(e, OSError):
+                return FlextResult[dict[str, object]].fail(f"Network error: {e}")
             return FlextResult[dict[str, object]].fail(f"Login failed: {e}")
-        except OSError as e:
-            return FlextResult[dict[str, object]].fail(f"Network error: {e}")
+
+    def _handle_token_save(
+        self, token: str, response: dict[str, object]
+    ) -> FlextResult[dict[str, object]]:
+        """Handle token saving with error recovery."""
+        save_result = self.save_auth_token(token)
+        match save_result.is_success:
+            case True:
+                return FlextResult[dict[str, object]].ok(response)
+            case False:
+                return FlextResult[dict[str, object]].fail(
+                    f"Token save failed: {save_result.error}"
+                )
 
     async def logout(self) -> FlextResult[None]:
-        """Logout from FLEXT services and clear authentication tokens.
+        """Ultra-simplified logout using match-case and error recovery."""
+        from flext_cli.client import FlextApiClient  # noqa: PLC0415
 
-        Returns:
-            FlextResult[None]: Success if logout completed, failure with error details
+        # Single match-case authentication check
+        token_result = self.get_auth_token()
+        if token_result.is_success and token_result.value.strip():
+            auth_status = "authenticated"
+        else:
+            auth_status = "not_authenticated"
 
-        """
+        if auth_status != "authenticated":
+            return FlextResult[None].fail("Not logged in")
+
+        # Attempt server logout with graceful error handling
         try:
-            # Proactive clear for safety
-            with contextlib.suppress(Exception):
-                self.clear_auth_tokens()
-
-            token_result = self.get_auth_token()
-            if not token_result.is_success or not token_result.value:
-                return FlextResult[None].fail("Not logged in")
-
-            # Import local para evitar ciclos
-            from flext_cli.client import FlextApiClient
-
             async with FlextApiClient() as client:
-                try:
-                    await client.logout()
-                except (RuntimeError, ValueError, OSError) as e:
-                    # Clear tokens even if server logout fails
-                    clear_result = self.clear_auth_tokens()
-                    if clear_result.is_failure:
-                        return FlextResult[None].fail(
-                            f"Logout failed and token clear failed: {e}, {clear_result.error}"
-                        )
-                    return FlextResult[None].fail(
-                        f"Server logout failed but tokens cleared: {e}"
-                    )
+                await client.logout()
+        except Exception as e:
+            logger.debug(f"Server logout failed (continuing anyway): {e}")
 
-            # Clear tokens after successful server logout
-            clear_result = self.clear_auth_tokens()
-            if clear_result.is_failure:
-                return FlextResult[None].fail(
-                    f"Server logout succeeded but token clear failed: {clear_result.error}"
-                )
-
+        # Always clear local tokens - proper result handling
+        result = self.clear_auth_tokens()
+        if result.is_success:
             return FlextResult[None].ok(None)
-
-        except (
-            ConnectionError,
-            TimeoutError,
-            OSError,
-            PermissionError,
-            ValueError,
-            AttributeError,
-        ) as e:
-            clear_result = self.clear_auth_tokens()
-            if clear_result.is_success:
-                return FlextResult[None].ok(None)  # Logged out locally
-            return FlextResult[None].fail(
-                f"Logout error and failed to clear tokens: {e}"
-            )
-        except (RuntimeError, TypeError) as e:
-            self.clear_auth_tokens()
-            return FlextResult[None].fail(f"Logout error: {e}")
+        return FlextResult[None].fail(f"Token cleanup failed: {result.error}")
 
     def get_status(self) -> dict[str, object]:
         """Get current authentication status information.
@@ -363,26 +374,27 @@ class FlextCliAuth:
         }
 
     def whoami(self) -> FlextResult[dict[str, object]]:
-        """Get information about the currently authenticated user.
+        """Get current user information using match-case authentication check.
 
         Returns:
             FlextResult containing user information if authenticated
 
         """
-        if not self.is_authenticated():
-            return FlextResult[dict[str, object]].fail("Not authenticated")
-
-        try:
-            # In a real implementation, this would decode the JWT token
-            # or make an API call to get user information
-            return FlextResult[dict[str, object]].ok({
-                "authenticated": True,
-                "note": "User information retrieval not yet implemented",
-            })
-        except (ValueError, KeyError) as e:
-            return FlextResult[dict[str, object]].fail(
-                f"Error retrieving user information: {e}"
-            )
+        match self.is_authenticated():
+            case False:
+                return FlextResult[dict[str, object]].fail("Not authenticated")
+            case True:
+                try:
+                    # In a real implementation, this would decode the JWT token
+                    # or make an API call to get user information
+                    return FlextResult[dict[str, object]].ok({
+                        "authenticated": True,
+                        "note": "User information retrieval not yet implemented",
+                    })
+                except (ValueError, KeyError) as e:
+                    return FlextResult[dict[str, object]].fail(
+                        f"Error retrieving user information: {e}"
+                    )
 
     def _save_token_to_file(self, token: str, file_path: Path) -> FlextResult[None]:
         """Save token to file with secure permissions."""
@@ -418,12 +430,6 @@ class FlextCliAuth:
         return cls()
 
 
-# Backward compatibility function
-def create_auth() -> FlextCliAuth:
-    """Create a FlextCliAuth instance."""
-    return FlextCliAuth.create()
-
-
 @click.group(name="auth")
 def auth() -> None:
     """Authentication management commands."""
@@ -434,7 +440,7 @@ def auth() -> None:
 @click.option("--password", prompt=True, hide_input=True, help="Password")
 def login(username: str, password: str) -> None:
     """Login to FLEXT services."""
-    auth_instance = create_auth()
+    auth_instance = FlextCliAuth.create()
     console = Console()
 
     async def _login() -> None:
@@ -450,7 +456,7 @@ def login(username: str, password: str) -> None:
 @auth.command()
 def logout() -> None:
     """Logout from FLEXT services."""
-    auth_instance = create_auth()
+    auth_instance = FlextCliAuth.create()
     console = Console()
 
     async def _logout() -> None:
@@ -466,7 +472,7 @@ def logout() -> None:
 @auth.command()
 def status() -> None:
     """Show authentication status."""
-    auth_instance = create_auth()
+    auth_instance = FlextCliAuth.create()
     console = Console()
 
     status_info = auth_instance.get_status()
@@ -478,5 +484,4 @@ def status() -> None:
 __all__ = [
     "FlextCliAuth",
     "auth",
-    "create_auth",
 ]

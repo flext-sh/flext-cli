@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
+from urllib.parse import urlparse
 
 from flext_core import FlextResult, FlextUtilities, FlextValidations
 
@@ -69,8 +70,6 @@ class FlextCliValidation:
 
         # Basic domain validation - must have at least one dot after protocol
         try:
-            from urllib.parse import urlparse
-
             parsed = urlparse(url_stripped)
             if not parsed.netloc or "." not in parsed.netloc:
                 return FlextResult[str].fail("URL must have a valid domain")

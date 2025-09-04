@@ -292,7 +292,7 @@ class TestFlextCliRequireAll:
         mock_helper = mock_helper_class.return_value
         mock_helper.flext_cli_confirm.side_effect = [
             FlextResult[None].ok(data=True),
-            FlextResult[None].ok(False),  # User denies second confirmation
+            FlextResult[None].ok(data=False),  # User denies second confirmation
         ]
 
         confirmations = [

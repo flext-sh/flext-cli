@@ -19,35 +19,35 @@ from pathlib import Path
 
 import yaml
 
-from flext_cli.cli_config import FlextCliConfig
-from flext_cli.core import FlextCliService, FlextService
-from flext_cli.models import FlextCliCommand, FlextCliPlugin, FlextCliSession
+from flext_cli.config import FlextCliConfig
+from flext_cli.core import FlextCliService
+from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
 
 
-class TestFlextService(unittest.TestCase):
-    """Real functionality tests for FlextService base class."""
+class TestFlextCliService(unittest.TestCase):
+    """Real functionality tests for FlextCliService class."""
 
     def test_service_creation_and_start(self) -> None:
-        """Test FlextService can be created and started."""
-        service = FlextService()
-        assert isinstance(service, FlextService)
+        """Test FlextCliService can be created and started."""
+        service = FlextCliService()
+        assert isinstance(service, FlextCliService)
 
         start_result = service.start()
         assert start_result.is_success
         assert start_result.value is None
 
     def test_service_stop_functionality(self) -> None:
-        """Test FlextService stop functionality."""
-        service = FlextService()
+        """Test FlextCliService stop functionality."""
+        service = FlextCliService()
 
         stop_result = service.stop()
         assert stop_result.is_success
         assert stop_result.value is None
 
     def test_service_health_check(self) -> None:
-        """Test FlextService health check functionality."""
-        service = FlextService()
+        """Test FlextCliService health check functionality."""
+        service = FlextCliService()
 
         health_result = service.health_check()
         assert health_result.is_success
@@ -56,7 +56,7 @@ class TestFlextService(unittest.TestCase):
 
     def test_service_lifecycle_complete(self) -> None:
         """Test complete service lifecycle: start -> health -> stop."""
-        service = FlextService()
+        service = FlextCliService()
 
         # Start service
         start_result = service.start()
@@ -72,7 +72,7 @@ class TestFlextService(unittest.TestCase):
         assert stop_result.is_success
 
 
-class TestFlextCliService(unittest.TestCase):
+class TestFlextCliServiceImplementation(unittest.TestCase):
     """Real functionality tests for FlextCliService implementation."""
 
     def setUp(self) -> None:
@@ -459,7 +459,7 @@ class TestFlextCliService(unittest.TestCase):
         assert commands_result.is_success
         commands = commands_result.value
         assert "test-command" in commands
-        assert isinstance(commands["test-command"], FlextCliCommand)
+        assert isinstance(commands["test-command"], FlextCliModels.CliCommand)
         assert commands["test-command"].command_line == "echo 'hello world'"
 
     def test_flext_cli_create_session_with_user_id(self) -> None:
@@ -479,7 +479,7 @@ class TestFlextCliService(unittest.TestCase):
 
         # Get the session and verify user_id
         session = next(iter(sessions.values()))
-        assert isinstance(session, FlextCliSession)
+        assert isinstance(session, FlextCliModels.CliSession)
         assert session.user_id == "test-user-123"
 
     def test_flext_cli_create_session_auto_user_id(self) -> None:
@@ -545,7 +545,7 @@ class TestFlextCliService(unittest.TestCase):
 
     def test_flext_cli_register_plugin_with_real_entity(self) -> None:
         """Test registering plugins with real FlextCliPlugin entities."""
-        plugin = FlextCliPlugin(
+        plugin = FlextCliModels.CliCommand(
             id="test-plugin-123",
             name="test-plugin",
             entry_point="test.plugin:main",
@@ -560,17 +560,17 @@ class TestFlextCliService(unittest.TestCase):
         assert plugins_result.is_success
         plugins = plugins_result.value
         assert "test-plugin" in plugins
-        assert isinstance(plugins["test-plugin"], FlextCliPlugin)
+        assert isinstance(plugins["test-plugin"], dict)
         assert plugins["test-plugin"].name == "test-plugin"
 
     def test_flext_cli_register_duplicate_plugin_fails(self) -> None:
         """Test registering duplicate plugin names fails."""
-        plugin1 = FlextCliPlugin(
+        plugin1 = FlextCliModels.CliCommand(
             id="plugin1",
             name="duplicate-plugin",
             entry_point="test1:main",
         )
-        plugin2 = FlextCliPlugin(
+        plugin2 = FlextCliModels.CliCommand(
             id="plugin2",
             name="duplicate-plugin",
             entry_point="test2:main",
@@ -664,7 +664,7 @@ class TestFlextCliService(unittest.TestCase):
     def test_flext_cli_get_plugins_returns_copy(self) -> None:
         """Test get_plugins returns copy to prevent external modification."""
         # Create a plugin first
-        plugin = FlextCliPlugin(id="test", name="test", entry_point="test:main")
+        plugin = FlextCliModels.CliCommand(id="test", name="test", entry_point="test:main")
         self.service.flext_cli_register_plugin("test", plugin)
 
         result1 = self.service.flext_cli_get_plugins()

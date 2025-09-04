@@ -216,7 +216,7 @@ class TestFlextCliValidationMixin:
         with mock.patch.object(
             self.mixin._flext_cli_helper, "flext_cli_confirm"
         ) as mock_confirm:
-            mock_confirm.return_value = FlextResult[bool].ok(False)
+            mock_confirm.return_value = FlextResult[bool].ok(data=False)
 
             result = self.mixin.flext_cli_require_confirmation("Continue?")
 
@@ -317,7 +317,7 @@ class TestFlextCliInteractiveMixin:
     def test_confirm_operation_declined(self) -> None:
         """Test operation confirmation when declined."""
         with mock.patch.object(FlextCliHelper, "flext_cli_confirm") as mock_confirm:
-            mock_confirm.return_value = FlextResult[bool].ok(False)
+            mock_confirm.return_value = FlextResult[bool].ok(data=False)
 
             result = self.mixin.flext_cli_confirm_operation("Delete files?")
 
@@ -775,7 +775,7 @@ class TestFlextCliAdvancedMixin:
         with mock.patch.object(
             self.mixin._flext_cli_helper, "flext_cli_confirm"
         ) as mock_confirm:
-            mock_confirm.return_value = FlextResult[bool].ok(False)
+            mock_confirm.return_value = FlextResult[bool].ok(data=False)
 
             result = self.mixin.flext_cli_execute_with_full_validation(
                 {}, test_operation, operation_name="dangerous operation", dangerous=True
@@ -999,7 +999,7 @@ class TestDecorators:
 
         with mock.patch("flext_cli.mixins.FlextCliHelper") as mock_helper_class:
             mock_helper = mock_helper_class.return_value
-            mock_helper.flext_cli_confirm.return_value = FlextResult[bool].ok(False)
+            mock_helper.flext_cli_confirm.return_value = FlextResult[bool].ok(data=False)
 
             result = test_func()
 
@@ -1215,7 +1215,7 @@ class TestDecorators:
 
         with mock.patch("flext_cli.mixins.FlextCliHelper") as mock_helper_class:
             mock_helper = mock_helper_class.return_value
-            mock_helper.flext_cli_confirm.return_value = FlextResult[bool].ok(False)
+            mock_helper.flext_cli_confirm.return_value = FlextResult[bool].ok(data=False)
 
             result = test_func()
 

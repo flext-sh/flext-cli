@@ -6,7 +6,7 @@ from flext_core import FlextResult
 from flext_core.domain_services import FlextDomainService
 
 
-class FlextCliService(FlextDomainService[FlextResult[str]]):
+class FlextCliService(FlextDomainService[str]):
     """Lightweight service exposing health check as FlextResult."""
 
     def execute(self) -> FlextResult[str]:

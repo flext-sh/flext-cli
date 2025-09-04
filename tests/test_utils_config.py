@@ -15,7 +15,7 @@ from pathlib import Path
 
 from flext_core import FlextResult
 
-from flext_cli.config import FlextCliConfig, FlextCliSettings, get_config
+from flext_cli.config import FlextCliConfig, get_config
 
 
 class TestFlextCliConfigUtilities(unittest.TestCase):
@@ -122,12 +122,12 @@ class TestFlextCliConfigUtilities(unittest.TestCase):
         assert config.base_url == "https://api.example.com"  # Without trailing slash
 
 
-class TestFlextCliSettingsAlias(unittest.TestCase):
-    """Test FlextCliSettings backward compatibility alias."""
+class TestFlextCliConfigAlias(unittest.TestCase):
+    """Test FlextCliConfig backward compatibility alias."""
 
     def test_settings_is_config_alias(self) -> None:
-        """Test FlextCliSettings is proper alias for FlextCliConfig."""
-        settings = FlextCliSettings()
+        """Test FlextCliConfig is proper alias for FlextCliConfig."""
+        settings = FlextCliConfig()
 
         assert isinstance(settings, FlextCliConfig)
         assert hasattr(settings, "output_format")
@@ -135,8 +135,8 @@ class TestFlextCliSettingsAlias(unittest.TestCase):
         assert hasattr(settings, "debug")
 
     def test_settings_functionality(self) -> None:
-        """Test FlextCliSettings has same functionality as FlextCliConfig."""
-        settings = FlextCliSettings(debug=True, output_format="json", api_timeout=90)
+        """Test FlextCliConfig has same functionality as FlextCliConfig."""
+        settings = FlextCliConfig(debug=True, output_format="json", api_timeout=90)
 
         assert settings.debug is True
         assert settings.output_format == "json"

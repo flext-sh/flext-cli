@@ -18,7 +18,7 @@ from pathlib import Path
 
 from flext_core import FlextResult
 
-from flext_cli.config import FlextCliConfig, FlextCliSettings, get_config, setup_cli
+from flext_cli.config import FlextCliConfig
 
 
 class TestFlextCliConfig(unittest.TestCase):
@@ -176,41 +176,6 @@ class TestFlextCliConfig(unittest.TestCase):
         assert config.base_url == config.api_url.rstrip("/")
 
 
-class TestFlextCliSettings(unittest.TestCase):
-    """Real functionality tests for FlextCliSettings (backward compatibility alias)."""
-
-    def test_settings_alias(self) -> None:
-        """Test FlextCliSettings is proper alias for FlextCliConfig."""
-        settings = FlextCliSettings()
-        assert isinstance(settings, FlextCliConfig)
-
-        # Should have same interface as FlextCliConfig
-        assert hasattr(settings, "output_format")
-        assert hasattr(settings, "api_url")
-        assert hasattr(settings, "project_name")
-
-
-class TestConfigFactoryFunctions(unittest.TestCase):
-    """Real functionality tests for configuration factory functions."""
-
-    def test_get_config(self) -> None:
-        """Test get_config factory function."""
-        config = get_config()
-        assert isinstance(config, FlextCliConfig)
-
-    def test_setup_cli(self) -> None:
-        """Test setup_cli function."""
-        result = setup_cli()
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-        assert isinstance(result.value, FlextCliConfig)
-
-        # Test with custom config
-        custom_config = FlextCliConfig(debug=True)
-        result2 = setup_cli(custom_config)
-        assert isinstance(result2, FlextResult)
-        assert result2.is_success
-        assert result2.value.debug is True
 
 
 class TestConfigIntegration(unittest.TestCase):

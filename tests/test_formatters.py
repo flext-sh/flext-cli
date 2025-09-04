@@ -22,69 +22,56 @@ import pytest
 import yaml
 from rich.console import Console
 
-from flext_cli.formatters import (
-    CSVFormatter,
-    FormatterFactory,
-    JSONFormatter,
-    OutputFormatter,
-    PlainFormatter,
-    TableFormatter,
-    YAMLFormatter,
-)
+from flext_cli.formatters import FlextCliFormatters
 
 
 class TestOutputFormatter(unittest.TestCase):
-    """Real functionality tests for OutputFormatter base class."""
+    """Real functionality tests for FlextCliFormatters.OutputFormatter protocol."""
 
-    def test_output_formatter_base_class(self) -> None:
-        """Test OutputFormatter is a proper base class."""
-        formatter = OutputFormatter()
-        assert isinstance(formatter, OutputFormatter)
+    def test_output_formatter_protocol(self) -> None:
+        """Test OutputFormatter protocol exists and can be used."""
+        formatters = FlextCliFormatters()
+        # Test that we can create formatters using the protocol
+        table_formatter = formatters.create_formatter("table")
+        assert hasattr(table_formatter, "format")
 
-    def test_output_formatter_format_not_implemented(self) -> None:
-        """Test OutputFormatter.format raises NotImplementedError."""
-        formatter = OutputFormatter()
-        console = Console()
+    def test_custom_formatter_implementation(self) -> None:
+        """Test custom formatter can implement the protocol."""
+        formatters = FlextCliFormatters()
 
-        with pytest.raises(NotImplementedError):
-            formatter.format("test data", console)
-
-    def test_output_formatter_inheritance(self) -> None:
-        """Test OutputFormatter can be inherited from."""
-
-        class CustomFormatter(OutputFormatter):
+        class CustomFormatter:
             def format(self, data: object, console: Console) -> None:
                 console.print(f"Custom: {data}")
 
-        custom = CustomFormatter()
-        assert isinstance(custom, OutputFormatter)
-        assert isinstance(custom, CustomFormatter)
+        # Register custom formatter
+        formatters.register_formatter("custom", CustomFormatter)
 
-        # Should not raise NotImplementedError
+        # Test it works
+        custom_formatter = formatters.create_formatter("custom")
         console = Console()
         try:
-            custom.format("test", console)
-            # If no exception, the override worked
+            custom_formatter.format("test", console)
             assert True
-        except NotImplementedError:
-            msg = "Custom formatter should not raise NotImplementedError"
+        except Exception as e:
+            msg = f"Custom formatter should work: {e}"
             raise AssertionError(msg) from None
 
 
 class TestTableFormatter(unittest.TestCase):
-    """Real functionality tests for TableFormatter class."""
+    """Real functionality tests for table formatting using FlextCliFormatters."""
 
     def setUp(self) -> None:
         """Set up test environment with table formatter."""
-        self.formatter = TableFormatter()
+        self.formatters = FlextCliFormatters()
+        self.formatter = self.formatters.create_formatter("table")
         # Use console with string buffer to capture output
         self.output_buffer = io.StringIO()
         self.console = Console(file=self.output_buffer, force_terminal=False, width=80)
 
-    def test_table_formatter_inheritance(self) -> None:
-        """Test TableFormatter properly inherits from OutputFormatter."""
-        assert isinstance(self.formatter, OutputFormatter)
-        assert isinstance(self.formatter, TableFormatter)
+    def test_table_formatter_protocol(self) -> None:
+        """Test table formatter implements the OutputFormatter protocol."""
+        assert hasattr(self.formatter, "format")
+        assert callable(self.formatter.format)
 
     def test_table_formatter_list_of_dicts(self) -> None:
         """Test table formatting with list of dictionaries."""
@@ -194,18 +181,19 @@ class TestTableFormatter(unittest.TestCase):
 
 
 class TestJSONFormatter(unittest.TestCase):
-    """Real functionality tests for JSONFormatter class."""
+    """Real functionality tests for JSON formatting using FlextCliFormatters."""
 
     def setUp(self) -> None:
         """Set up test environment with JSON formatter."""
-        self.formatter = JSONFormatter()
+        self.formatters = FlextCliFormatters()
+        self.formatter = self.formatters.create_formatter("json")
         self.output_buffer = io.StringIO()
         self.console = Console(file=self.output_buffer, force_terminal=False)
 
-    def test_json_formatter_inheritance(self) -> None:
-        """Test JSONFormatter properly inherits from OutputFormatter."""
-        assert isinstance(self.formatter, OutputFormatter)
-        assert isinstance(self.formatter, JSONFormatter)
+    def test_json_formatter_protocol(self) -> None:
+        """Test JSON formatter implements the OutputFormatter protocol."""
+        assert hasattr(self.formatter, "format")
+        assert callable(self.formatter.format)
 
     def test_json_formatter_dict_data(self) -> None:
         """Test JSON formatting with dictionary data."""
@@ -296,18 +284,19 @@ class TestJSONFormatter(unittest.TestCase):
 
 
 class TestYAMLFormatter(unittest.TestCase):
-    """Real functionality tests for YAMLFormatter class."""
+    """Real functionality tests for YAML formatting using FlextCliFormatters."""
 
     def setUp(self) -> None:
         """Set up test environment with YAML formatter."""
-        self.formatter = YAMLFormatter()
+        self.formatters = FlextCliFormatters()
+        self.formatter = self.formatters.create_formatter("yaml")
         self.output_buffer = io.StringIO()
         self.console = Console(file=self.output_buffer, force_terminal=False)
 
-    def test_yaml_formatter_inheritance(self) -> None:
-        """Test YAMLFormatter properly inherits from OutputFormatter."""
-        assert isinstance(self.formatter, OutputFormatter)
-        assert isinstance(self.formatter, YAMLFormatter)
+    def test_yaml_formatter_protocol(self) -> None:
+        """Test YAML formatter implements the OutputFormatter protocol."""
+        assert hasattr(self.formatter, "format")
+        assert callable(self.formatter.format)
 
     def test_yaml_formatter_dict_data(self) -> None:
         """Test YAML formatting with dictionary data."""
@@ -385,18 +374,19 @@ class TestYAMLFormatter(unittest.TestCase):
 
 
 class TestCSVFormatter(unittest.TestCase):
-    """Real functionality tests for CSVFormatter class."""
+    """Real functionality tests for CSV formatting using FlextCliFormatters."""
 
     def setUp(self) -> None:
         """Set up test environment with CSV formatter."""
-        self.formatter = CSVFormatter()
+        self.formatters = FlextCliFormatters()
+        self.formatter = self.formatters.create_formatter("csv")
         self.output_buffer = io.StringIO()
         self.console = Console(file=self.output_buffer, force_terminal=False)
 
-    def test_csv_formatter_inheritance(self) -> None:
-        """Test CSVFormatter properly inherits from OutputFormatter."""
-        assert isinstance(self.formatter, OutputFormatter)
-        assert isinstance(self.formatter, CSVFormatter)
+    def test_csv_formatter_protocol(self) -> None:
+        """Test CSV formatter implements the OutputFormatter protocol."""
+        assert hasattr(self.formatter, "format")
+        assert callable(self.formatter.format)
 
     def test_csv_formatter_list_of_dicts(self) -> None:
         """Test CSV formatting with list of dictionaries."""
@@ -482,18 +472,19 @@ class TestCSVFormatter(unittest.TestCase):
 
 
 class TestPlainFormatter(unittest.TestCase):
-    """Real functionality tests for PlainFormatter class."""
+    """Real functionality tests for plain formatting using FlextCliFormatters."""
 
     def setUp(self) -> None:
         """Set up test environment with plain formatter."""
-        self.formatter = PlainFormatter()
+        self.formatters = FlextCliFormatters()
+        self.formatter = self.formatters.create_formatter("plain")
         self.output_buffer = io.StringIO()
         self.console = Console(file=self.output_buffer, force_terminal=False)
 
-    def test_plain_formatter_inheritance(self) -> None:
-        """Test PlainFormatter properly inherits from OutputFormatter."""
-        assert isinstance(self.formatter, OutputFormatter)
-        assert isinstance(self.formatter, PlainFormatter)
+    def test_plain_formatter_protocol(self) -> None:
+        """Test plain formatter implements the OutputFormatter protocol."""
+        assert hasattr(self.formatter, "format")
+        assert callable(self.formatter.format)
 
     def test_plain_formatter_string_data(self) -> None:
         """Test plain formatting with string data."""
@@ -582,95 +573,78 @@ class TestPlainFormatter(unittest.TestCase):
 
 
 class TestFormatterFactory(unittest.TestCase):
-    """Real functionality tests for FormatterFactory class."""
+    """Real functionality tests for FlextCliFormatters factory methods."""
 
     def setUp(self) -> None:
         """Set up test environment with formatter factory."""
-        self.factory = FormatterFactory()
+        self.factory = FlextCliFormatters()
 
     def test_formatter_factory_instantiation(self) -> None:
-        """Test FormatterFactory can be instantiated."""
-        factory = FormatterFactory()
-        assert isinstance(factory, FormatterFactory)
+        """Test FlextCliFormatters can be instantiated."""
+        factory = FlextCliFormatters()
+        assert isinstance(factory, FlextCliFormatters)
 
     def test_formatter_factory_get_table_formatter(self) -> None:
         """Test factory can create table formatter."""
-        if hasattr(self.factory, "get_formatter"):
-            formatter = self.factory.get_formatter("table")
-            assert isinstance(formatter, TableFormatter)
-        elif hasattr(FormatterFactory, "get_table_formatter"):
-            formatter = FormatterFactory.get_table_formatter()
-            assert isinstance(formatter, TableFormatter)
+        formatter = self.factory.create_formatter("table")
+        assert hasattr(formatter, "format")
+        assert callable(formatter.format)
 
     def test_formatter_factory_get_json_formatter(self) -> None:
         """Test factory can create JSON formatter."""
-        if hasattr(self.factory, "get_formatter"):
-            formatter = self.factory.get_formatter("json")
-            assert isinstance(formatter, JSONFormatter)
-        elif hasattr(FormatterFactory, "get_json_formatter"):
-            formatter = FormatterFactory.get_json_formatter()
-            assert isinstance(formatter, JSONFormatter)
+        formatter = self.factory.create_formatter("json")
+        assert hasattr(formatter, "format")
+        assert callable(formatter.format)
 
     def test_formatter_factory_get_yaml_formatter(self) -> None:
         """Test factory can create YAML formatter."""
-        if hasattr(self.factory, "get_formatter"):
-            formatter = self.factory.get_formatter("yaml")
-            assert isinstance(formatter, YAMLFormatter)
-        elif hasattr(FormatterFactory, "get_yaml_formatter"):
-            formatter = FormatterFactory.get_yaml_formatter()
-            assert isinstance(formatter, YAMLFormatter)
+        formatter = self.factory.create_formatter("yaml")
+        assert hasattr(formatter, "format")
+        assert callable(formatter.format)
 
     def test_formatter_factory_get_csv_formatter(self) -> None:
         """Test factory can create CSV formatter."""
-        if hasattr(self.factory, "get_formatter"):
-            formatter = self.factory.get_formatter("csv")
-            assert isinstance(formatter, CSVFormatter)
-        elif hasattr(FormatterFactory, "get_csv_formatter"):
-            formatter = FormatterFactory.get_csv_formatter()
-            assert isinstance(formatter, CSVFormatter)
+        formatter = self.factory.create_formatter("csv")
+        assert hasattr(formatter, "format")
+        assert callable(formatter.format)
 
     def test_formatter_factory_get_plain_formatter(self) -> None:
         """Test factory can create plain formatter."""
-        if hasattr(self.factory, "get_formatter"):
-            formatter = self.factory.get_formatter("plain")
-            assert isinstance(formatter, PlainFormatter)
-        elif hasattr(FormatterFactory, "get_plain_formatter"):
-            formatter = FormatterFactory.get_plain_formatter()
-            assert isinstance(formatter, PlainFormatter)
+        formatter = self.factory.create_formatter("plain")
+        assert hasattr(formatter, "format")
+        assert callable(formatter.format)
 
     def test_formatter_factory_invalid_format(self) -> None:
         """Test factory handles invalid format names."""
-        if hasattr(self.factory, "get_formatter"):
-            try:
-                formatter = self.factory.get_formatter("invalid")
-                # Should either return default or raise exception
-                assert formatter is not None or formatter is None
-            except (ValueError, KeyError):
-                # Acceptable to raise exception for invalid formats
-                assert True
+        try:
+            formatter = self.factory.create_formatter("invalid")
+            # Should either return default or raise exception
+            assert formatter is not None or formatter is None
+        except (ValueError, KeyError):
+            # Acceptable to raise exception for invalid formats
+            assert True
 
     def test_formatter_factory_all_supported_formats(self) -> None:
         """Test factory supports all expected formatter types."""
         expected_formats = ["table", "json", "yaml", "csv", "plain"]
 
-        if hasattr(self.factory, "get_formatter"):
-            for format_type in expected_formats:
-                try:
-                    formatter = self.factory.get_formatter(format_type)
-                    assert isinstance(formatter, OutputFormatter)
-                except Exception:
-                    # Some formats might not be implemented yet
-                    pass
+        for format_type in expected_formats:
+            try:
+                formatter = self.factory.create_formatter(format_type)
+                assert hasattr(formatter, "format")
+                assert callable(formatter.format)
+            except Exception:
+                # Some formats might not be implemented yet
+                pass
 
     def test_formatter_factory_formatters_are_different_instances(self) -> None:
         """Test factory creates different instances for multiple calls."""
-        if hasattr(self.factory, "get_formatter"):
-            formatter1 = self.factory.get_formatter("json")
-            formatter2 = self.factory.get_formatter("json")
+        formatter1 = self.factory.create_formatter("json")
+        formatter2 = self.factory.create_formatter("json")
 
-            # Should create separate instances
-            assert formatter1 is not formatter2
-            assert type(formatter1) is type(formatter2)
+        # Should create separate instances
+        assert formatter1 is not formatter2
+        assert type(formatter1) is type(formatter2)
 
 
 class TestFormatterIntegration(unittest.TestCase):
@@ -683,12 +657,13 @@ class TestFormatterIntegration(unittest.TestCase):
             {"name": "Bob", "age": 25, "active": False},
         ]
 
+        factory = FlextCliFormatters()
         formatters = [
-            TableFormatter(),
-            JSONFormatter(),
-            YAMLFormatter(),
-            CSVFormatter(),
-            PlainFormatter(),
+            factory.create_formatter("table"),
+            factory.create_formatter("json"),
+            factory.create_formatter("yaml"),
+            factory.create_formatter("csv"),
+            factory.create_formatter("plain"),
         ]
 
         for formatter in formatters:
@@ -718,12 +693,13 @@ class TestFormatterIntegration(unittest.TestCase):
             {"empty_value": "", "null_value": None},
         ]
 
+        factory = FlextCliFormatters()
         formatters = [
-            TableFormatter(),
-            JSONFormatter(),
-            YAMLFormatter(),
-            CSVFormatter(),
-            PlainFormatter(),
+            factory.create_formatter("table"),
+            factory.create_formatter("json"),
+            factory.create_formatter("yaml"),
+            factory.create_formatter("csv"),
+            factory.create_formatter("plain"),
         ]
 
         for formatter in formatters:
@@ -743,33 +719,33 @@ class TestFormatterIntegration(unittest.TestCase):
                             raise
 
     def test_formatter_factory_integration(self) -> None:
-        """Test FormatterFactory integration with all formatter types."""
-        factory = FormatterFactory()
+        """Test FlextCliFormatters integration with all formatter types."""
+        factory = FlextCliFormatters()
 
         # Test data that should work with all formatters
         test_data = {"message": "Hello, World!", "timestamp": "2025-01-01T00:00:00Z"}
 
-        if hasattr(factory, "get_formatter"):
-            format_types = ["table", "json", "yaml", "csv", "plain"]
+        format_types = ["table", "json", "yaml", "csv", "plain"]
 
-            for format_type in format_types:
-                with self.subTest(format=format_type):
-                    try:
-                        formatter = factory.get_formatter(format_type)
-                        assert isinstance(formatter, OutputFormatter)
+        for format_type in format_types:
+            with self.subTest(format=format_type):
+                try:
+                    formatter = factory.create_formatter(format_type)
+                    assert hasattr(formatter, "format")
+                    assert callable(formatter.format)
 
-                        # Test the formatter works
-                        output_buffer = io.StringIO()
-                        console = Console(file=output_buffer, force_terminal=False)
-                        formatter.format(test_data, console)
+                    # Test the formatter works
+                    output_buffer = io.StringIO()
+                    console = Console(file=output_buffer, force_terminal=False)
+                    formatter.format(test_data, console)
 
-                        output = output_buffer.getvalue()
-                        assert len(output) > 0
-                        assert "Hello, World!" in output
+                    output = output_buffer.getvalue()
+                    assert len(output) > 0
+                    assert "Hello, World!" in output
 
-                    except Exception:
-                        # Some format types might not be fully implemented
-                        pass
+                except Exception:
+                    # Some format types might not be fully implemented
+                    pass
 
     def test_formatters_preserve_data_integrity(self) -> None:
         """Test that formatters preserve data integrity where possible."""
@@ -784,9 +760,10 @@ class TestFormatterIntegration(unittest.TestCase):
         }
 
         # JSON and YAML should preserve exact data structure
+        factory = FlextCliFormatters()
         reversible_formatters = [
-            (JSONFormatter(), json.loads),
-            (YAMLFormatter(), yaml.safe_load),
+            (factory.create_formatter("json"), json.loads),
+            (factory.create_formatter("yaml"), yaml.safe_load),
         ]
 
         for formatter, parser in reversible_formatters:

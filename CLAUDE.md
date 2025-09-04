@@ -8,6 +8,14 @@ FLEXT CLI is a command-line interface foundation library for the FLEXT ecosystem
 
 **Current Status**: ~30% functional - 3 working command groups (auth, config, debug) out of planned 10+ groups.
 
+## Key Architecture Insights
+
+**Modern Python 3.13+ Patterns**: The codebase utilizes advanced Python features including pattern matching (match-case), functional programming patterns, and comprehensive type annotations.
+
+**flext-core Integration**: Heavy integration with the foundation library provides FlextResult railway-oriented programming, FlextPipeline for sequential operations, and FlextUtilities for safe operations.
+
+**Code Quality Focus**: Zero-tolerance quality approach with comprehensive linting (Ruff), type checking (MyPy strict mode), and 90% test coverage requirements.
+
 ## Development Commands
 
 ### Essential Commands
@@ -66,16 +74,20 @@ poetry run flext debug --help  # Test debug commands
 
 ```
 src/flext_cli/
-├── cli.py                   # Main CLI entry point with Click
-├── commands_*.py            # Command implementations (auth, config, debug)
+├── cli.py                   # Main CLI entry point with Click framework
+├── auth.py                  # Authentication command group
+├── cmd.py                   # Configuration commands 
+├── debug.py                 # Debug/diagnostic commands
 ├── api.py                   # High-level API for library consumers
-├── simple_api.py            # Zero-boilerplate setup functions
 ├── core.py                  # Core service implementation
-├── entities.py              # Domain entities (CLI commands, sessions)
-├── config.py                # Configuration management
 ├── client.py                # HTTP client for FLEXT services
+├── config.py                # Configuration management (FlextCliConfig)
+├── models.py                # Domain models and entities
+├── constants.py             # Project constants (FlextCliConstants)
 ├── exceptions.py            # Custom exception classes
-└── utils_*.py               # Utilities (auth, output, core)
+├── formatters.py            # Output formatting utilities
+├── data_processing.py       # Data processing operations
+└── services.py              # Business logic services
 ```
 
 ### Key Patterns
@@ -93,16 +105,45 @@ def save_config() -> FlextResult[None]:
         return FlextResult[None].fail(f"Failed: {e}")
 ```
 
+**Python 3.13+ Pattern Matching**: Modern conditional logic using match-case
+
+```python
+def format_data(data: object, format_type: str) -> FlextResult[str]:
+    match format_type.lower():
+        case "json":
+            return FlextUtilities.safe_json_stringify(data, indent=2)
+        case "yaml":
+            return FlextUtilities.safe_yaml_stringify(data)
+        case "table" | "plain":
+            return FlextResult[str].ok(str(data))
+        case _:
+            return FlextResult[str].ok(str(data))
+```
+
+**FlextPipeline Pattern**: Sequential operation execution
+
+```python
+from flext_core import FlextPipeline
+
+pipeline = FlextPipeline[None]()
+return pipeline.execute([
+    lambda: step_one(),
+    lambda: step_two(),
+    lambda: step_three()
+])
+```
+
 **Clean Architecture**: Domain-driven design with flext-core integration
 
-- Domain entities inherit from `FlextEntity`
-- Use `FlextBaseSettings` for configuration
-- Commands use `@handle_service_result` decorator
+- Configuration inherits from `FlextCliConfig`
+- Models use Pydantic v2 with comprehensive validation
+- Services implement functional patterns with reduce/filter operations
+- Commands integrate with Click framework for CLI interfaces
 
 **Rich UI**: Consistent terminal output using Rich library
 
 - Tables, progress bars, panels for output
-- Multiple output formats: table, JSON, YAML, csv
+- Multiple output formats: table, JSON, YAML, CSV
 
 ## Dependencies
 
@@ -152,33 +193,49 @@ Key test files:
 
 ## Adding New Commands
 
-1. Create command module in `commands/` (e.g., `commands_pipeline.py`)
-2. Use Click decorators with Rich output
-3. Follow existing auth/config/debug patterns
-4. Register command in `cli.py`
-5. Add comprehensive tests
-6. Run `make validate` before committing
+1. Create command module (e.g., `pipeline.py`) in `src/flext_cli/`
+2. Use Click decorators with Rich output following existing patterns
+3. Follow auth/config/debug patterns for consistency
+4. Register command in `cli.py` via `FlextCliMain.register_commands()`
+5. Add comprehensive tests with 90%+ coverage
+6. Run `make validate` to ensure quality gates pass
 
 Example structure:
 
 ```python
-# commands_newfeature.py
+# pipeline.py
 import click
 from rich.console import Console
-from flext_cli.core.base import handle_service_result
+from flext_core import FlextResult
+from flext_cli.constants import FlextCliConstants
 
 @click.group()
-def newfeature():
-    """New feature commands."""
+def pipeline():
+    """Pipeline management commands."""
     pass
 
-@newfeature.command()
+@pipeline.command()
 @click.pass_context
-@handle_service_result
-def action(ctx: click.Context):
-    """Perform action with proper error handling."""
+def list_pipelines(ctx: click.Context):
+    """List all data pipelines."""
     console: Console = ctx.obj["console"]
+    # Use FlextResult pattern for error handling
+    result = _get_pipelines()
+    if result.is_success:
+        console.print_json(result.value)
+    else:
+        console.print(f"[red]Error: {result.error}[/red]")
+
+def _get_pipelines() -> FlextResult[dict]:
     # Implementation here
+    return FlextResult[dict].ok({"pipelines": []})
+```
+
+**Registration in cli.py**:
+```python
+# Add to FlextCliMain.register_commands()
+from flext_cli.pipeline import pipeline
+cli.add_command(pipeline)
 ```
 
 ## Known Issues & Current State
@@ -246,10 +303,24 @@ flext --profile production --output json --debug command
 
 ### Entry Points
 
-- Main CLI: `src/flext_cli/cli.py:29` - Main CLI group definition
-- Commands: `src/flext_cli/commands_*.py` - Individual command implementations
-- API: `src/flext_cli/api.py` - Programmatic access
+- Main CLI: `src/flext_cli/cli.py` - Main CLI group definition with FlextCliMain
+- Commands: `src/flext_cli/{auth,cmd,debug}.py` - Individual command implementations
+- API: `src/flext_cli/api.py` - Programmatic access with FlextCliApi class
+- Configuration: `src/flext_cli/config.py` - FlextCliConfig settings management
+- Client: `src/flext_cli/client.py` - FlextApiClient for HTTP operations
 - Entry script: Configured in `pyproject.toml:101` as `flext = "flext_cli.cli:main"`
+
+### Important Implementation Details
+
+**Code Quality Tools Integration**:
+- Use `qlty smells --all` for code smell detection and advanced refactoring guidance
+- Apply functional programming patterns (reduce, filter, map) for complex operations
+- Prefer flext-core utilities over custom implementations
+
+**Error Handling Strategy**:
+- All functions should return `FlextResult[T]` for consistent error handling
+- Use pattern matching for cleaner conditional logic
+- Implement FlextPipeline for sequential operations that may fail
 
 ## Development Workflow
 

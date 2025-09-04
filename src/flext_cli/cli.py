@@ -12,8 +12,9 @@ import uuid
 
 import click
 from flext_core import (
-    FlextCore,
+    FlextLogger,
     __version__ as core_version,
+    get_flext_container,
 )
 from rich.console import Console
 
@@ -24,6 +25,30 @@ from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
 from flext_cli.debug import debug_cmd
+
+
+class FlextCliMain:
+    """Main CLI utilities and command registration."""
+
+    @staticmethod
+    def register_commands() -> None:
+        """Register subcommand groups lazily to avoid import-time side effects."""
+        logger = FlextLogger(__name__)
+
+        try:
+            cli.add_command(auth)
+        except (RuntimeError, ValueError, TypeError) as e:
+            logger.debug("Failed to register auth command: %s", e, exc_info=True)
+
+        try:
+            cli.add_command(config)
+        except (RuntimeError, ValueError, TypeError) as e:
+            logger.debug("Failed to register config command: %s", e, exc_info=True)
+
+        try:
+            cli.add_command(debug_cmd)
+        except (RuntimeError, ValueError, TypeError) as e:
+            logger.debug("Failed to register debug command: %s", e, exc_info=True)
 
 
 @click.group(
@@ -85,15 +110,20 @@ def cli(
             setattr(config, "output_format", output or "table")
             setattr(config, "debug", bool(debug))
         except Exception as e:
-            FlextCore.get_logger(__name__).debug("Config override failed: %s", e)
+            FlextLogger(__name__).debug("Config override failed: %s", e)
 
-    # Setup click context with components
+    # Setup click context with components using flext-core container
     console = Console(quiet=quiet)
 
     # Create CLI context with correct fields (SOLID: Single Responsibility)
-
-    # config is already properly typed as FlextCliConfig
     cli_context = FlextCliContext(id=str(uuid.uuid4()), config=config, console=console)
+
+    # Register components in flext-core container for DI
+    container = get_flext_container()
+    container.register("cli_config", config)
+    container.register("console", console)
+    container.register("cli_context", cli_context)
+    container.register("logger", FlextLogger(__name__))
 
     ctx.ensure_object(dict)
     ctx.obj["config"] = config
@@ -101,6 +131,7 @@ def cli(
     ctx.obj["console"] = console
     ctx.obj["settings"] = config
     ctx.obj["debug"] = debug
+    ctx.obj["container"] = container
 
     # Debug information
     if debug:
@@ -114,27 +145,7 @@ def cli(
         click.echo(ctx.get_help())
 
 
-def _register_commands() -> None:
-    """Register subcommand groups lazily to avoid import-time side effects."""
-    logger = FlextCore.get_logger(__name__)
-
-    try:
-        cli.add_command(auth)
-    except (RuntimeError, ValueError, TypeError) as e:
-        logger.debug("Failed to register auth command: %s", e, exc_info=True)
-
-    try:
-        cli.add_command(config)
-    except (RuntimeError, ValueError, TypeError) as e:
-        logger.debug("Failed to register config command: %s", e, exc_info=True)
-
-    try:
-        cli.add_command(debug_cmd)
-    except (RuntimeError, ValueError, TypeError) as e:
-        logger.debug("Failed to register debug command: %s", e, exc_info=True)
-
-
-_register_commands()
+FlextCliMain.register_commands()
 
 
 @cli.command()
@@ -147,9 +158,9 @@ def interactive(ctx: click.Context) -> None:
     console.print("   • REPL mode for live commands")
     console.print("   • Tab completion")
     console.print("   • Command history")
-    console.print(f"   {FlextCliConstants.CliMessages.INTERACTIVE_FEATURE_HELP}")
+    console.print(f"   {FlextCliConstants.MESSAGES.interactive_feature_help}")
     console.print("")
-    console.print(FlextCliConstants.CliMessages.INFO_USE_HELP)
+    console.print(FlextCliConstants.MESSAGES.info_use_help)
 
 
 @cli.command()
@@ -159,46 +170,46 @@ def version(ctx: click.Context) -> None:
     console = ctx.obj["console"]
 
     # Basic version information
-    console.print(f"{FlextCliConstants.CliMessages.VERSION_CLI} {__version__}")
+    console.print(f"{FlextCliConstants.MESSAGES.version_cli} {__version__}")
     console.print(
-        f"{FlextCliConstants.CliMessages.VERSION_PYTHON} {sys.version.split()[0]} ({sys.platform})",
+        f"{FlextCliConstants.MESSAGES.version_python} {sys.version.split()[0]} ({sys.platform})",
     )
 
     # Issue #1: Add flext-core version detection (Sprint 1)
     if core_version:
         console.print(
-            f"{FlextCliConstants.CliMessages.VERSION_FLEXT_CORE} {core_version}",
+            f"{FlextCliConstants.MESSAGES.version_flext_core} {core_version}",
         )
     else:
         console.print(
-            f"[dim]{FlextCliConstants.CliMessages.DEBUG_FLEXT_CORE_NOT_DETECTED}[/dim]",
+            f"[dim]{FlextCliConstants.MESSAGES.debug_flext_core_not_detected}[/dim]",
         )
 
     # Debug mode information
     if ctx.obj.get("debug"):
         config = ctx.obj["config"]
         console.print("")
-        console.print(f"[bold]{FlextCliConstants.CliMessages.DEBUG_INFORMATION}[/bold]")
+        console.print(f"[bold]{FlextCliConstants.MESSAGES.debug_information}[/bold]")
 
         # Configuration details
         config_display = (
             config.model_dump() if hasattr(config, "model_dump") else str(config)
         )
         console.print(
-            f"[dim]{FlextCliConstants.CliMessages.DEBUG_CONFIGURATION}: {config_display}[/dim]",
+            f"[dim]{FlextCliConstants.MESSAGES.debug_configuration}: {config_display}[/dim]",
         )
 
         # System information
         console.print(
-            f"[dim]{FlextCliConstants.CliMessages.DEBUG_PYTHON_EXECUTABLE}: {sys.executable}[/dim]",
+            f"[dim]{FlextCliConstants.MESSAGES.debug_python_executable}: {sys.executable}[/dim]",
         )
         console.print(
-            f"[dim]{FlextCliConstants.CliMessages.DEBUG_PLATFORM}: {sys.platform}[/dim]",
+            f"[dim]{FlextCliConstants.MESSAGES.debug_platform}: {sys.platform}[/dim]",
         )
 
         # Issue #2: Add ecosystem service connectivity check (Sprint 1)
         console.print(
-            f"[dim]{FlextCliConstants.CliMessages.DEBUG_SERVICE_CONNECTIVITY}[/dim]",
+            f"[dim]{FlextCliConstants.MESSAGES.debug_service_connectivity}[/dim]",
         )
 
 
@@ -208,7 +219,7 @@ def main() -> None:
     try:
         cli()
     except (RuntimeError, ValueError, TypeError):
-        logger = FlextCore.get_logger(__name__)
+        logger = FlextLogger(__name__)
         logger.exception("CLI execution failed")
         sys.exit(1)
 
@@ -217,4 +228,4 @@ if __name__ == "__main__":
     main()
 
 
-__all__ = ["cli", "main"]
+__all__ = ["FlextCliMain", "cli", "main"]

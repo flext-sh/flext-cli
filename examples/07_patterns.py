@@ -545,20 +545,14 @@ def enterprise_cli(ctx: click.Context) -> None:
 @click.pass_context
 def create_project(ctx: click.Context, name: str, description: str, owner: str) -> None:
     """Create a new project using enterprise patterns."""
+    from .example_utils import handle_command_result
+    
     console: Console = ctx.obj["console"]
     service: ProjectManagementService = ctx.obj["service"]
 
     console.print(f"[blue]Creating project:[/blue] {name}")
-
     result = service.create_project(name, description, owner)
-
-    if result.is_success:
-        data = result.value
-        console.print("[green]✅ Project created successfully[/green]")
-        console.print(f"ID: {data['id']}")
-        console.print(f"Status: {data['status']}")
-    else:
-        console.print(f"[red]❌ Failed to create project: {result.error}[/red]")
+    handle_command_result(console, result, "create project")
 
 
 @enterprise_cli.command()
@@ -577,20 +571,14 @@ def change_status(
     ctx: click.Context, project_id: str, status: str, reason: str
 ) -> None:
     """Change project status using CQRS command."""
+    from .example_utils import handle_command_result
+    
     console: Console = ctx.obj["console"]
     service: ProjectManagementService = ctx.obj["service"]
 
     console.print(f"[blue]Changing project status to:[/blue] {status}")
-
     result = service.change_project_status(project_id, status, reason)
-
-    if result.is_success:
-        data = result.value
-        console.print("[green]✅ Status changed successfully[/green]")
-        console.print(f"Project: {data['id']}")
-        console.print(f"New Status: {data['status']}")
-    else:
-        console.print(f"[red]❌ Failed to change status: {result.error}[/red]")
+    handle_command_result(console, result, "change status", success_fields=["id", "status"])
 
 
 @enterprise_cli.command()

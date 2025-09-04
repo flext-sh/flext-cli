@@ -85,17 +85,10 @@ from flext_cli.interactions import FlextCliInteractions
 from flext_cli.validation import FlextCliValidation
 
 # =============================================================================
-# TYPE SYSTEM AND PROTOCOLS
+# TYPE SYSTEM
 # =============================================================================
 
 from flext_cli.typings import FlextCliTypes
-from flext_cli.protocols import (
-    create_flext_cli_data_processor,
-    create_flext_cli_formatter,
-    create_flext_cli_manager,
-    flext_cli_export_data,
-    flext_cli_format_data,
-)
 
 # =============================================================================
 # EXCEPTIONS
@@ -120,7 +113,7 @@ from flext_cli.exceptions import (
 # CLI ENTRY POINT
 # =============================================================================
 
-from flext_cli.cli import main
+from flext_cli.cli import FlextCliMain, main
 
 # =============================================================================
 # EXPLICIT EXPORTS - NO AGGREGATION LOGIC
@@ -130,7 +123,6 @@ __all__ = [
     # Version information
     "__version__",
     "__version_info__",
-
     # Core CLI classes
     "FlextApiClient",
     "FlextCliApi",
@@ -142,7 +134,6 @@ __all__ = [
     "FlextCliModels",
     "FlextCliService",
     "FlextCliServices",
-
     # Utility classes
     "FlextCliConstants",
     "FlextCliDataProcessing",
@@ -151,15 +142,8 @@ __all__ = [
     "FlextCliFileOperations",
     "FlextCliInteractions",
     "FlextCliValidation",
-
-    # Type system and protocols
+    # Type system
     "FlextCliTypes",
-    "create_flext_cli_data_processor",
-    "create_flext_cli_formatter",
-    "create_flext_cli_manager",
-    "flext_cli_export_data",
-    "flext_cli_format_data",
-
     # Exceptions
     "FlextCliArgumentError",
     "FlextCliAuthenticationError",
@@ -173,7 +157,7 @@ __all__ = [
     "FlextCliProcessingError",
     "FlextCliTimeoutError",
     "FlextCliValidationError",
-
     # CLI entry point
+    "FlextCliMain",
     "main",
 ]

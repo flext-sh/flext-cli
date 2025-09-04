@@ -10,10 +10,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
-from flext_core import FlextResult
+from flext_core import FlextLogger, FlextResult
 from flext_core.domain_services import FlextDomainService
 
 from flext_cli.constants import FlextCliConstants
@@ -24,7 +23,7 @@ if TYPE_CHECKING:
     SessionContext = dict[str, object]
 
 
-logger = logging.getLogger(__name__)
+logger = FlextLogger(__name__)
 
 
 class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):

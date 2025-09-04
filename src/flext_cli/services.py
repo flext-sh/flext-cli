@@ -176,44 +176,271 @@ class FlextCliServices(FlextServices):
     metrics = FlextServices.ServiceMetrics()
 
     @classmethod
-    def create_command_processor(cls, **config: object) -> CliCommandProcessor:
-        """Factory method to create CLI command processor."""
-        processor = cls.CliCommandProcessor(**config)
-        # Register minimal service info for discovery/observability
+    def create_command_processor(
+        cls,
+        *,
+        timeout_seconds: int | None = None,
+        max_retries: int | None = None,
+        dependencies: dict[str, object] | None = None,
+        **config: object,
+    ) -> CliCommandProcessor:
+        """Advanced factory method with dependency injection for command processor.
+
+        Args:
+            timeout_seconds: Command execution timeout (injected)
+            max_retries: Maximum retry attempts (injected)
+            dependencies: External dependencies to inject
+            **config: Additional configuration
+
+        Returns:
+            Configured CliCommandProcessor with dependencies injected
+
+        """
+        # Advanced dependency injection with defaults
+        resolved_config = {
+            "timeout_seconds": timeout_seconds
+            or FlextCliConstants.DEFAULT_COMMAND_TIMEOUT,
+            "max_retries": max_retries or FlextCliConstants.DEFAULT_RETRIES,
+            **config,
+        }
+
+        # Inject external dependencies if provided
+        if dependencies:
+            resolved_config.update(dependencies)
+
+        processor = cls.CliCommandProcessor(**resolved_config)
+
+        # Register with enhanced metadata for advanced service discovery
         cls.registry.register(
             {
                 "name": "cli_command_processor",
                 "type": "processor",
                 "version": "1.0",
+                "capabilities": [
+                    "command_execution",
+                    "timeout_handling",
+                    "retry_logic",
+                ],
+                "dependencies": list(dependencies.keys()) if dependencies else [],
+                "config": resolved_config,
             }
         )
         return processor
 
     @classmethod
-    def create_session_processor(cls, **config: object) -> CliSessionProcessor:
-        """Factory method to create CLI session processor."""
-        processor = cls.CliSessionProcessor(**config)
+    def create_session_processor(
+        cls,
+        *,
+        enable_tracking: bool = True,
+        max_sessions: int | None = None,
+        dependencies: dict[str, object] | None = None,
+        **config: object,
+    ) -> CliSessionProcessor:
+        """Advanced factory method with dependency injection for session processor.
+
+        Args:
+            enable_tracking: Enable session tracking
+            max_sessions: Maximum concurrent sessions
+            dependencies: External dependencies to inject
+            **config: Additional configuration
+
+        """
+        resolved_config = {
+            "enable_tracking": enable_tracking,
+            "max_sessions": max_sessions or FlextCliConstants.MAX_COMMANDS_PER_SESSION,
+            **config,
+        }
+
+        if dependencies:
+            resolved_config.update(dependencies)
+
+        processor = cls.CliSessionProcessor(**resolved_config)
+
         cls.registry.register(
             {
                 "name": "cli_session_processor",
                 "type": "processor",
                 "version": "1.0",
+                "capabilities": [
+                    "session_management",
+                    "concurrent_sessions",
+                    "tracking",
+                ],
+                "dependencies": list(dependencies.keys()) if dependencies else [],
+                "config": resolved_config,
             }
         )
         return processor
 
     @classmethod
-    def create_config_processor(cls, **config: object) -> CliConfigProcessor:
-        """Factory method to create CLI config processor."""
-        processor = cls.CliConfigProcessor(**config)
+    def create_config_processor(
+        cls,
+        *,
+        config_validation: bool = True,
+        auto_reload: bool = False,
+        dependencies: dict[str, object] | None = None,
+        **config: object,
+    ) -> CliConfigProcessor:
+        """Advanced factory method with dependency injection for config processor.
+
+        Args:
+            config_validation: Enable configuration validation
+            auto_reload: Enable automatic configuration reloading
+            dependencies: External dependencies to inject
+            **config: Additional configuration
+
+        """
+        resolved_config = {
+            "config_validation": config_validation,
+            "auto_reload": auto_reload,
+            **config,
+        }
+
+        if dependencies:
+            resolved_config.update(dependencies)
+
+        processor = cls.CliConfigProcessor(**resolved_config)
+
         cls.registry.register(
             {
                 "name": "cli_config_processor",
                 "type": "processor",
                 "version": "1.0",
+                "capabilities": ["config_processing", "validation", "hot_reload"],
+                "dependencies": list(dependencies.keys()) if dependencies else [],
+                "config": resolved_config,
             }
         )
         return processor
+
+    # =========================================================================
+    # ADVANCED FACTORY PATTERNS WITH BUILDER AND REGISTRY
+    # =========================================================================
+
+    class ServiceBuilder:
+        """Advanced builder pattern for complex service configuration.
+
+        Enables fluent interface for building services with complex dependencies
+        and configuration. Follows builder pattern from Gang of Four.
+        """
+
+        def __init__(self) -> None:
+            self._config: dict[str, object] = {}
+            self._dependencies: dict[str, object] = {}
+            self._capabilities: list[str] = []
+
+        def with_timeout(self, seconds: int) -> FlextCliServices.ServiceBuilder:
+            """Configure timeout settings (fluent interface)."""
+            self._config["timeout_seconds"] = seconds
+            return self
+
+        def with_retries(self, count: int) -> FlextCliServices.ServiceBuilder:
+            """Configure retry settings (fluent interface)."""
+            self._config["max_retries"] = count
+            return self
+
+        def with_dependency(
+            self, name: str, service: object
+        ) -> FlextCliServices.ServiceBuilder:
+            """Inject external dependency (fluent interface)."""
+            self._dependencies[name] = service
+            return self
+
+        def with_capability(self, capability: str) -> FlextCliServices.ServiceBuilder:
+            """Add service capability (fluent interface)."""
+            self._capabilities.append(capability)
+            return self
+
+        def build_command_processor(self) -> FlextCliServices.CliCommandProcessor:
+            """Build command processor with accumulated configuration."""
+            from typing import cast
+            timeout_val = self._config.get("timeout_seconds")
+            max_retries_val = self._config.get("max_retries")
+            return FlextCliServices.create_command_processor(
+                dependencies=self._dependencies,
+                timeout_seconds=int(cast("int | str", timeout_val)) if timeout_val is not None else None,
+                max_retries=int(cast("int | str", max_retries_val)) if max_retries_val is not None else None,
+            )
+
+        def build_session_processor(self) -> FlextCliServices.CliSessionProcessor:
+            """Build session processor with accumulated configuration."""
+            from typing import cast
+            max_sessions_val = self._config.get("max_sessions")
+            return FlextCliServices.create_session_processor(
+                dependencies=self._dependencies,
+                enable_tracking=bool(self._config.get("enable_tracking", True)),
+                max_sessions=int(cast("int | str", max_sessions_val)) if max_sessions_val is not None else None,
+            )
+
+    @classmethod
+    def builder(cls) -> ServiceBuilder:
+        r"""Create service builder for fluent configuration.
+
+        Example:
+            processor = FlextCliServices.builder()\\
+                .with_timeout(60)\\
+                .with_retries(3)\\
+                .with_dependency("logger", custom_logger)\\
+                .build_command_processor()
+
+        """
+        return cls.ServiceBuilder()
+
+    class ServiceFactory:
+        """Advanced factory registry with service discovery and lifecycle.
+
+        Implements factory method pattern with service registry for
+        dependency injection and service discovery capabilities.
+        """
+
+        _service_types: ClassVar[dict[str, str]] = {
+            "command": "CliCommandProcessor",
+            "session": "CliSessionProcessor",
+            "config": "CliConfigProcessor",
+        }
+
+        @classmethod
+        def create_service(cls, service_type: str, **kwargs: object) -> object:
+            """Create service by type with factory method pattern.
+
+            Args:
+                service_type: Type of service ("command", "session", "config")
+                **kwargs: Service-specific configuration
+
+            Returns:
+                Configured service instance
+
+            Raises:
+                ValueError: If service type is unknown
+
+            """
+            match service_type:
+                case "command":
+                    return FlextCliServices.create_command_processor(**kwargs)  # type: ignore[arg-type]
+                case "session":
+                    return FlextCliServices.create_session_processor(**kwargs)  # type: ignore[arg-type]
+                case "config":
+                    return FlextCliServices.create_config_processor(**kwargs)  # type: ignore[arg-type]
+                case _:
+                    valid_types = ", ".join(cls._service_types.keys())
+                    msg = f"Unknown service type: {service_type}. Valid types: {valid_types}"
+                    raise ValueError(msg)
+
+        @classmethod
+        def get_service_capabilities(cls, service_type: str) -> list[str]:
+            """Get capabilities for a service type."""
+            # This would typically query the registry, simplified for demo
+            capabilities_map = {
+                "command": ["command_execution", "timeout_handling", "retry_logic"],
+                "session": ["session_management", "concurrent_sessions", "tracking"],
+                "config": ["config_processing", "validation", "hot_reload"],
+            }
+            return capabilities_map.get(service_type, [])
+
+    @classmethod
+    def factory(cls) -> ServiceFactory:
+        """Get service factory for advanced service creation."""
+        return cls.ServiceFactory()
 
     @classmethod
     def process_command(
