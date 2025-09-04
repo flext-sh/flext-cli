@@ -18,11 +18,7 @@ from rich.console import Console
 
 from flext_cli import (
     FlextCliConfig,
-    _find_config_value,
-    _get_all_config,
-    _print_config_value,
     config,
-    get_cli_config,
 )
 
 

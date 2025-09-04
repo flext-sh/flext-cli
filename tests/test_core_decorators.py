@@ -22,7 +22,6 @@ async_command = D.async_command
 confirm_action = D.confirm_action
 measure_time = D.measure_time
 require_auth = D.require_auth
-retry = D.retry
 validate_config = D.validate_config
 with_spinner = D.with_spinner
 

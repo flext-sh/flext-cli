@@ -14,14 +14,10 @@ import csv
 from io import StringIO
 from typing import ClassVar, Protocol
 
+import yaml
 from flext_core import FlextResult, FlextUtilities
 from rich.console import Console
 from rich.table import Table
-
-try:
-    import yaml
-except ImportError:
-    yaml = None  # type: ignore[assignment]
 
 
 class FlextCliFormatters:
@@ -105,24 +101,16 @@ class FlextCliFormatters:
             try:
                 formatted = FlextUtilities.safe_json_stringify(data)
                 console.print(formatted)
-            except Exception:
-                console.print(str(data))
+            except (TypeError, ValueError, RuntimeError) as e:
+                console.print(f"[red]JSON formatting failed:[/red] {e}")
+                console.print(f"Data (as string): {data}")
 
     class _YAMLFormatter:
         """Internal YAML formatter implementation."""
 
         def format(self, data: object, console: Console) -> None:
-            try:
-                if yaml is None:
-                    # Fallback to JSON using flext-core
-                    formatted = FlextUtilities.safe_json_stringify(data)
-                else:
-                    formatted = yaml.safe_dump(data, default_flow_style=False)
-                console.print(formatted)
-            except ImportError:
-                # Fallback to JSON using flext-core
-                formatted = FlextUtilities.safe_json_stringify(data)
-                console.print(formatted)
+            formatted = yaml.safe_dump(data, default_flow_style=False)
+            console.print(formatted)
 
     class _CSVFormatter:
         """Internal CSV formatter implementation."""
@@ -236,14 +224,13 @@ class FlextCliFormatters:
         """
         try:
             # Capture output using StringIO
-            temp_console = Console(file=StringIO(), width=120)
+            string_buffer = StringIO()
+            temp_console = Console(file=string_buffer, width=120)
             formatter = self.create_formatter(format_type)
             formatter.format(data, temp_console)
 
-            if hasattr(temp_console.file, "getvalue"):
-                result = temp_console.file.getvalue()  # type: ignore[attr-defined]
-                return FlextResult[str].ok(result)
-            return FlextResult[str].fail("Unable to capture formatted output")
+            result = string_buffer.getvalue()
+            return FlextResult[str].ok(result)
         except Exception as e:
             return FlextResult[str].fail(f"Format data failed: {e}")
 
@@ -284,7 +271,7 @@ class FlextCliFormatters:
         return populate_table_by_type(base_result.value)
 
     def _populate_dict_list_table(
-        self, table: Table, data: list[dict]
+        self, table: Table, data: list[dict[str, object]]
     ) -> FlextResult[Table]:
         """Populate table with list of dictionaries."""
         try:
@@ -300,7 +287,7 @@ class FlextCliFormatters:
         except (IndexError, KeyError) as e:
             return FlextResult[Table].fail(f"Failed to populate dict list table: {e}")
 
-    def _populate_dict_table(self, table: Table, data: dict) -> FlextResult[Table]:
+    def _populate_dict_table(self, table: Table, data: dict[str, object]) -> FlextResult[Table]:
         """Populate table with single dictionary."""
         try:
             table.add_column("Key")
@@ -313,7 +300,7 @@ class FlextCliFormatters:
         except Exception as e:
             return FlextResult[Table].fail(f"Failed to populate dict table: {e}")
 
-    def _populate_list_table(self, table: Table, data: list) -> FlextResult[Table]:
+    def _populate_list_table(self, table: Table, data: list[object]) -> FlextResult[Table]:
         """Populate table with list of items."""
         try:
             table.add_column("Value")
@@ -363,12 +350,8 @@ class FlextCliFormatters:
 
         """
         try:
-            if yaml is None:
-                return FlextResult[str].fail("YAML library not available")
             result = yaml.safe_dump(data, default_flow_style=False)
             return FlextResult[str].ok(result)
-        except ImportError:
-            return FlextResult[str].fail("YAML library not available")
         except Exception as e:
             return FlextResult[str].fail(f"YAML format failed: {e}")
 

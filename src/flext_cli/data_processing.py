@@ -87,6 +87,8 @@ class FlextCliDataProcessing:
                 cast("list[object] | None", params.get("values"))
             )
             return cast("FlextResult[object]", result)
+
+        # Default case - operation not recognized
         return FlextResult[object].fail(f"Unknown operation: {operation}")
 
     def _execute_workflow(
@@ -216,9 +218,9 @@ class FlextCliDataProcessing:
             return FlextResult[object].ok(data=value)
         if isinstance(value, str):
             s = value.lower().strip()
-            if s in ("true", "1", "yes", "on"):
+            if s in {"true", "1", "yes", "on"}:
                 return FlextResult[object].ok(data=True)
-            if s in ("false", "0", "no", "off", ""):
+            if s in {"false", "0", "no", "off", ""}:
                 return FlextResult[object].ok(data=False)
             return FlextResult[object].fail(
                 f"Invalid boolean for field '{field}': {value}"
@@ -363,37 +365,6 @@ class FlextCliDataProcessing:
             return FlextResult[list[object]].ok(values)
         except Exception as e:
             return FlextResult[list[object]].fail(f"Batch validation failed: {e}")
-
-    # =========================================================================
-    # CONVENIENCE METHODS - Backward compatibility with simplified interface
-    # =========================================================================
-
-    def process_workflow(
-        self,
-        data: dict[str, object],
-        steps: list[tuple[str, Callable[[object], FlextResult[object]]]],
-    ) -> FlextResult[object]:
-        """Convenience method for workflow processing."""
-        return self.execute("workflow", data=data, steps=steps)
-
-    def validate_and_transform(
-        self,
-        data: dict[str, object],
-        validators: dict[str, str],
-        transforms: dict[str, Callable[[object], object]] | None = None,
-    ) -> FlextResult[dict[str, object]]:
-        """Convenience method for validation and transformation."""
-        result = self.execute(
-            "validate", data=data, validators=validators, transforms=transforms
-        )
-        return cast("FlextResult[dict[str, object]]", result)
-
-    def aggregate_data(
-        self, sources: dict[str, Callable[[], FlextResult[object]]]
-    ) -> FlextResult[dict[str, object]]:
-        """Convenience method for data aggregation."""
-        result = self.execute("aggregate", sources=sources)
-        return cast("FlextResult[dict[str, object]]", result)
 
     def transform_data_pipeline(
         self, data: list[dict[str, object]], pipeline_config: dict[str, object]

@@ -486,7 +486,7 @@ def main() -> None:
 
         # Final summary using shared utility
         from example_utils import print_demo_completion
-        
+
         features = [
             "🔐 Token-based authentication with save_auth_token()",
             "🛡️ Authorization headers via get_auth_headers()",
@@ -496,7 +496,7 @@ def main() -> None:
             "🔑 Environment-based secure configuration",
             "🌐 FlextApiClient authentication patterns"
         ]
-        
+
         print_demo_completion(console, "Authentication and Authorization Demo", features)
 
     except Exception as e:

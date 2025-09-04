@@ -14,7 +14,7 @@ import pytest
 from flext_core import FlextResult
 
 from flext_cli import handle_service_result
-from flext_cli.base_core import FlextCliContext
+from flext_cli.context import FlextCliContext
 
 # Constants
 EXPECTED_DATA_COUNT = 3

@@ -39,6 +39,7 @@ from flext_cli import (
     flext_cli_format,
     flext_cli_table,
 )
+from example_utils import print_demo_completion
 
 
 def demonstrate_data_transformation() -> FlextResult[None]:
@@ -550,18 +551,17 @@ def main() -> None:
             console.print(f"[red]Data export demo failed: {export_result.error}[/red]")
 
         # Final summary using shared utility
-        from example_utils import print_demo_completion
-        
+
         features = [
             "🔄 Data transformation with flext_cli_transform_data",
-            "📊 Aggregation patterns with flext_cli_aggregate_data", 
+            "📊 Aggregation patterns with flext_cli_aggregate_data",
             "🎨 Multiple output formats (JSON, CSV, Rich tables)",
             "📁 Type-safe file operations (ExistingFile, NewFile, ExistingDir)",
             "⚡ Batch processing with cli_batch_process_files",
             "📤 Data export with flext_cli_export",
             "🏭 FormatterFactory pattern for consistent formatting"
         ]
-        
+
         print_demo_completion(console, "Data Processing and Output Demo", features)
 
     except Exception as e:

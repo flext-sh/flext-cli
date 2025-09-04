@@ -15,7 +15,6 @@ from flext_core import FlextResult
 from flext_cli import (
     FlextCliConstants,
     FlextCliModels,
-    FlextCliTypes,
 )
 
 
@@ -86,8 +85,6 @@ class TestFlextCliTypesReal:
 
     def test_type_aliases_work(self) -> None:
         """Test that type aliases are properly defined."""
-        from flext_cli.typings import ConfigDict, FlextCliDataType, OutputData
-
         # Test imports work (validates type aliases exist)
         assert ConfigDict is not None
         assert FlextCliDataType is not None
@@ -163,8 +160,6 @@ class TestFlextCliExportsReal:
     def test_main_imports_work(self) -> None:
         """Test that main flext_cli imports work without errors."""
         # Test consolidated classes import
-        from flext_cli import FlextCliConstants, FlextCliModels, FlextCliTypes
-
         # Test they're actually the consolidated classes
         assert hasattr(FlextCliModels, "Command")
         assert hasattr(FlextCliTypes, "Command")
@@ -184,8 +179,6 @@ class TestFlextCliExportsReal:
 
     def test_correct_consolidated_access(self) -> None:
         """Test that consolidated access pattern works correctly."""
-        from flext_cli import FlextCliModels
-
         # Correct way to access
         command_cls = FlextCliModels.Command
         output_format = FlextCliModels.OutputFormat

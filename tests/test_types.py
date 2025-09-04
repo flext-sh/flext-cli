@@ -27,7 +27,6 @@ class TestTypeImports:
 
     def test_output_format_import(self) -> None:
         """Test FlextCliTypes.OutputFormat import from flext_cli.typings."""
-        from flext_cli.typings import FlextCliTypes
         assert FlextCliTypes.OutputFormat is not None
         assert hasattr(FlextCliTypes.OutputFormat, "JSON")
 

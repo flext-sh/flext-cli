@@ -55,19 +55,41 @@ from __future__ import annotations
 # VERSION INFORMATION
 # =============================================================================
 
-from flext_cli.__version__ import __version__, __version_info__
+from flext_cli.__version__ import (
+    __version__,
+    __version_info__,
+    __author__,
+    __author_email__,
+    __build__,
+    __classifiers__,
+    __description__,
+    __documentation_url__,
+    __download_url__,
+    __issues_url__,
+    __keywords__,
+    __license__,
+    __long_description__,
+    __maintainer__,
+    __maintainer_email__,
+    __platforms__,
+    __python_requires__,
+    __release_date__,
+    __repository_url__,
+    __status__,
+    __url__,
+)
 
 # =============================================================================
 # CORE CLI CLASSES - Primary API surface
 # =============================================================================
 
 from flext_cli.api import FlextCliApi
-from flext_cli.auth import FlextCliAuth
+from flext_cli.auth import FlextCliAuth, auth
 from flext_cli.config import FlextCliConfig
 from flext_cli.client import FlextApiClient
 from flext_cli.core import FlextCliService
-from flext_cli.context import FlextCliContext
-from flext_cli.debug import FlextCliDebug
+from flext_cli.context import FlextCliContext, FlextCliExecutionContext
+from flext_cli.debug import FlextCliDebug, debug_cmd
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
 from flext_cli.services import FlextCliServices
@@ -78,20 +100,44 @@ from flext_cli.services import FlextCliServices
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.data_processing import FlextCliDataProcessing
-from flext_cli.decorators import FlextCliDecorators
+from flext_cli.decorators import FlextCliDecorators, flext_cli_require_confirmation, handle_service_result
 from flext_cli.domain_services import FlextCliDomainServices
 from flext_cli.file_operations import FlextCliFileOperations
 from flext_cli.interactions import FlextCliInteractions
 from flext_cli.validation import FlextCliValidation
 
 # =============================================================================
-# TYPE SYSTEM
+# COMMAND MODULES AND FUNCTIONS
 # =============================================================================
 
-from flext_cli.typings import FlextCliTypes
+from flext_cli.cmd import (
+    FlextCliCmd,
+    config,
+    edit,
+    get_cmd,
+    path,
+    set_value,
+    show,
+    validate,
+)
 
 # =============================================================================
-# EXCEPTIONS
+# TYPE SYSTEM AND TYPE VARIABLES
+# =============================================================================
+
+from flext_cli.typings import (
+    FlextTypes,
+    E,
+    F,
+    P,
+    R,
+    T,
+    U,
+    V,
+)
+
+# =============================================================================
+# EXCEPTIONS - Complete hierarchy
 # =============================================================================
 
 from flext_cli.exceptions import (
@@ -107,34 +153,64 @@ from flext_cli.exceptions import (
     FlextCliProcessingError,
     FlextCliTimeoutError,
     FlextCliValidationError,
+    # Backward compatibility aliases
+    FlextCliException,
 )
 
 # =============================================================================
-# CLI ENTRY POINT
+# CLI ENTRY POINT AND MAIN FUNCTIONS
 # =============================================================================
 
-from flext_cli.cli import FlextCliMain, main
+from flext_cli.cli import FlextCliMain, cli, main
 
 # =============================================================================
 # EXPLICIT EXPORTS - NO AGGREGATION LOGIC
 # =============================================================================
 
 __all__ = [
-    # Version information
+    # =============================================================================
+    # VERSION INFORMATION
+    # =============================================================================
     "__version__",
     "__version_info__",
-    # Core CLI classes
+    "__author__",
+    "__author_email__",
+    "__build__",
+    "__classifiers__",
+    "__description__",
+    "__documentation_url__",
+    "__download_url__",
+    "__issues_url__",
+    "__keywords__",
+    "__license__",
+    "__long_description__",
+    "__maintainer__",
+    "__maintainer_email__",
+    "__platforms__",
+    "__python_requires__",
+    "__release_date__",
+    "__repository_url__",
+    "__status__",
+    "__url__",
+
+    # =============================================================================
+    # CORE CLI CLASSES - Primary API surface
+    # =============================================================================
     "FlextApiClient",
     "FlextCliApi",
     "FlextCliAuth",
     "FlextCliConfig",
     "FlextCliContext",
     "FlextCliDebug",
+    "FlextCliExecutionContext",
     "FlextCliFormatters",
     "FlextCliModels",
     "FlextCliService",
     "FlextCliServices",
-    # Utility classes
+
+    # =============================================================================
+    # UTILITY CLASSES
+    # =============================================================================
     "FlextCliConstants",
     "FlextCliDataProcessing",
     "FlextCliDecorators",
@@ -142,9 +218,38 @@ __all__ = [
     "FlextCliFileOperations",
     "FlextCliInteractions",
     "FlextCliValidation",
-    # Type system
-    "FlextCliTypes",
-    # Exceptions
+
+    # =============================================================================
+    # COMMAND MODULES AND FUNCTIONS
+    # =============================================================================
+    "FlextCliCmd",
+    "auth",
+    "config",
+    "debug_cmd",
+    "edit",
+    "flext_cli_require_confirmation",
+    "handle_service_result",
+    "get_cmd",
+    "path",
+    "set_value",
+    "show",
+    "validate",
+
+    # =============================================================================
+    # TYPE SYSTEM AND TYPE VARIABLES
+    # =============================================================================
+    "FlextTypes",
+    "E",
+    "F",
+    "P",
+    "R",
+    "T",
+    "U",
+    "V",
+
+    # =============================================================================
+    # EXCEPTIONS - Complete hierarchy
+    # =============================================================================
     "FlextCliArgumentError",
     "FlextCliAuthenticationError",
     "FlextCliCommandError",
@@ -152,12 +257,17 @@ __all__ = [
     "FlextCliConnectionError",
     "FlextCliContextError",
     "FlextCliError",
+    "FlextCliException",
     "FlextCliFormatError",
     "FlextCliOutputError",
     "FlextCliProcessingError",
     "FlextCliTimeoutError",
     "FlextCliValidationError",
-    # CLI entry point
+
+    # =============================================================================
+    # CLI ENTRY POINT AND MAIN FUNCTIONS
+    # =============================================================================
     "FlextCliMain",
+    "cli",
     "main",
 ]

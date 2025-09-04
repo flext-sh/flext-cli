@@ -63,6 +63,14 @@ class FlextCliConstants:
         min_length: int = Field(default=1, ge=1, le=10)
         default_token_min_length: int = Field(default=10, ge=1, le=100)
 
+    class SecurityConfig(FlextConfig.BaseModel):
+        """Security and privacy configuration."""
+
+        sensitive_value_preview_length: int = Field(default=4, ge=1, le=10)
+        min_path_length_for_masking: int = Field(default=4, ge=1, le=20)
+        max_config_key_length: int = Field(default=100, ge=10, le=1000)
+        max_output_size: int = Field(default=1048576, ge=1024, le=10485760)  # 1MB
+
     class HttpConfig(FlextConfig.BaseModel):
         """HTTP client configuration with security defaults."""
 
@@ -173,6 +181,12 @@ class FlextCliConstants:
         version_cli: str = Field(default="FLEXT CLI", min_length=1)
         version_python: str = Field(default="Python", min_length=1)
         version_flext_core: str = Field(default="FLEXT Core", min_length=1)
+        service_name_api: str = Field(default="FLEXT CLI API", min_length=1)
+        table_title_config: str = Field(default="FLEXT Configuration v0.7.0", min_length=1)
+        table_title_paths: str = Field(default="FLEXT Configuration Paths", min_length=1)
+        table_title_metrics: str = Field(default="System Performance Metrics", min_length=1)
+        table_title_env_vars: str = Field(default="FLEXT Environment Variables", min_length=1)
+        table_title_cli_paths: str = Field(default="FLEXT CLI Paths", min_length=1)
         debug_flext_core_not_detected: str = Field(
             default="FLEXT Core version not detected", min_length=1
         )
@@ -192,6 +206,7 @@ class FlextCliConstants:
     TIMEOUTS: ClassVar[TimeoutConfig] = TimeoutConfig()
     LIMITS: ClassVar[LimitsConfig] = LimitsConfig()
     OUTPUT: ClassVar[OutputConfig] = OutputConfig()
+    SECURITY: ClassVar[SecurityConfig] = SecurityConfig()
     HTTP: ClassVar[HttpConfig] = HttpConfig()
     FILES: ClassVar[FileConfig] = FileConfig()
     MESSAGES: ClassVar[MessageConfig] = MessageConfig()
@@ -208,7 +223,6 @@ class FlextCliConstants:
 
     # Limits (DEPRECATED: Use LIMITS.field_name instead)
     MAX_HISTORY_SIZE: Final[int] = LIMITS.max_history_size
-    MAX_OUTPUT_SIZE: Final[int] = LIMITS.max_output_size
 
     # Output (DEPRECATED: Use OUTPUT.field_name instead)
     DEFAULT_OUTPUT_FORMAT: Final[str] = OUTPUT.default_output_format
@@ -229,6 +243,12 @@ class FlextCliConstants:
     DEFAULT_API_PORT: Final[int] = HTTP.default_api_port
     FALLBACK_API_PORT: Final[int] = HTTP.fallback_api_port
 
+    # Security (DEPRECATED: Use SECURITY.field_name instead)
+    SENSITIVE_VALUE_PREVIEW_LENGTH: Final[int] = SECURITY.sensitive_value_preview_length
+    MIN_PATH_LENGTH_FOR_MASKING: Final[int] = SECURITY.min_path_length_for_masking
+    MAX_CONFIG_KEY_LENGTH: Final[int] = SECURITY.max_config_key_length
+    MAX_OUTPUT_SIZE: Final[int] = SECURITY.max_output_size
+
     # Files (DEPRECATED: Use FILES.field_name instead)
     FLEXT_DIR_NAME: Final[str] = FILES.flext_dir_name
     CONFIG_FILE_NAME: Final[str] = FILES.config_file_name
@@ -240,6 +260,14 @@ class FlextCliConstants:
     AUTH_DIR_NAME: Final[str] = FILES.auth_dir_name
     TOKEN_FILE_NAME: Final[str] = FILES.token_file_name
     REFRESH_TOKEN_FILE_NAME: Final[str] = FILES.refresh_token_file_name
+
+    # Messages (DEPRECATED: Use MESSAGES.field_name instead)
+    SERVICE_NAME_API: Final[str] = MESSAGES.service_name_api
+    TABLE_TITLE_CONFIG: Final[str] = MESSAGES.table_title_config
+    TABLE_TITLE_PATHS: Final[str] = MESSAGES.table_title_paths
+    TABLE_TITLE_METRICS: Final[str] = MESSAGES.table_title_metrics
+    TABLE_TITLE_ENV_VARS: Final[str] = MESSAGES.table_title_env_vars
+    TABLE_TITLE_CLI_PATHS: Final[str] = MESSAGES.table_title_cli_paths
 
     # More timeouts and limits
     DEFAULT_READ_TIMEOUT: Final[int] = TIMEOUTS.default_read_timeout
@@ -253,7 +281,6 @@ class FlextCliConstants:
     MAX_TABLE_ROWS: Final[int] = LIMITS.max_table_rows
     MAX_FILENAME_LENGTH: Final[int] = LIMITS.max_filename_length
     MAX_PROFILE_NAME_LENGTH: Final[int] = LIMITS.max_profile_name_length
-    MAX_CONFIG_KEY_LENGTH: Final[int] = LIMITS.max_config_key_length
     MAX_CONFIG_VALUE_LENGTH: Final[int] = LIMITS.max_config_value_length
     MAX_COMMANDS_PER_SESSION: Final[int] = LIMITS.max_commands_per_session
     MAX_ENV_VAR_DISPLAY_LENGTH: Final[int] = LIMITS.max_env_var_display_length

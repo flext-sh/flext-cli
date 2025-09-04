@@ -224,7 +224,8 @@ class FlextCliFileOperations:
         """
         try:
             return Path(file_path).exists()
-        except Exception:
+        except (OSError, ValueError, TypeError):
+            # Path creation or access failed (invalid path, permission denied, etc.)
             return False
 
     def get_file_size(self, file_path: str | Path) -> FlextResult[int]:

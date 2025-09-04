@@ -13,7 +13,6 @@ from pathlib import Path
 from typing import cast
 
 from flext_core import FlextResult
-from flext_core.models import FlextModels
 from rich.console import Console
 
 from flext_cli.config import FlextCliConfig
@@ -134,12 +133,9 @@ class FlextCliContext:
     @property
     def timeout_seconds(self) -> int:
         """Get default timeout for operations."""
-        if isinstance(self._timeout_seconds, (int, float)):
+        if isinstance(self._timeout_seconds, (int, float, str)):
             return int(self._timeout_seconds)
-        elif isinstance(self._timeout_seconds, str):
-            return int(self._timeout_seconds)
-        else:
-            return 30
+        return 30
 
     @property
     def debug(self) -> bool:
@@ -155,6 +151,21 @@ class FlextCliContext:
     def verbose(self) -> bool:
         """Check if verbose mode is enabled."""
         return self._verbose
+
+    @property
+    def profile(self) -> str:
+        """Get context profile from config."""
+        return getattr(self._config, "profile", "default")
+
+    @property
+    def output_format(self) -> str:
+        """Get output format from config."""
+        return getattr(self._config, "output_format", "table")
+
+    @property
+    def no_color(self) -> bool:
+        """Check if no color output is enabled."""
+        return getattr(self._config, "no_color", True)
 
     # Properties based on config if present, otherwise fall back to fields
     @property
@@ -229,6 +240,7 @@ class FlextCliContext:
             debug=self.debug,
             quiet=self.quiet,
             verbose=self.verbose,
+            working_directory=path,
         )
 
     @dataclass
@@ -312,6 +324,43 @@ class FlextCliContext:
             else None,
             session_id=str(session_id) if session_id is not None else None,
             user_id=str(user_id) if user_id is not None else None,
+        )
+
+
+    @classmethod
+    def create_with_params(cls, **params: object) -> FlextCliContext:
+        """Create CLI context with parameters."""
+        # Extract known parameters
+        profile = params.get("profile", "default")
+        output_format = params.get("output_format", "table")
+        debug = params.get("debug", False)
+        quiet = params.get("quiet", False)
+        verbose = params.get("verbose", False)
+        no_color = params.get("no_color", False)
+
+        # Validate parameters
+        if profile == "":
+            raise ValueError("Profile cannot be empty")
+
+        if output_format not in ["table", "json", "yaml", "csv"]:
+            raise ValueError(f"Invalid output format: {output_format}")
+
+        if quiet and verbose:
+            raise ValueError("Cannot be both quiet and verbose")
+
+        # Create config with parameters
+        config = FlextCliConfig(
+            profile=str(profile),
+            debug_mode=bool(debug),
+            output_format=str(output_format),
+            no_color=bool(no_color)
+        )
+
+        return cls(
+            config=config,
+            debug=bool(debug),
+            quiet=bool(quiet),
+            verbose=bool(verbose)
         )
 
 

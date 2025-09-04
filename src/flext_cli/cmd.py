@@ -44,8 +44,10 @@ class FlextCliCmd:
             try:
                 yaml_mod = importlib.import_module("yaml")
                 console.print(yaml_mod.dump({key: value}, default_flow_style=False))
-            except Exception:
-                console.print(str({key: value}))
+            except ImportError:
+                console.print(f"[yellow]YAML not available, showing as string:[/yellow] {key}: {value}")
+            except Exception as e:
+                console.print(f"[red]YAML formatting failed:[/red] {key}: {value} (Error: {e})")
         else:
             console.print(f"{key}: {value}")
 
@@ -84,10 +86,14 @@ class FlextCliCmd:
                         default_flow_style=False,
                     ),
                 )
-            except Exception:
+            except ImportError:
+                console.print("[yellow]YAML not available, showing as string:[/yellow]")
+                console.print(str({"config": cfg_dict, "settings": stg_dict}))
+            except Exception as e:
+                console.print(f"[red]YAML formatting failed:[/red] Error: {e}")
                 console.print(str({"config": cfg_dict, "settings": stg_dict}))
             return
-        table = Table(title="FLEXT Configuration v0.7.0")
+        table = Table(title=FlextCliConstants.TABLE_TITLE_CONFIG)
         table.add_column("Key", style="cyan")
         table.add_column("Value", style="white")
         table.add_column("Source", style="dim")
@@ -101,7 +107,7 @@ class FlextCliCmd:
     def print_config_table(cli_context: object, config_data: dict[str, object]) -> None:
         """Print given config dict as table."""
         console: Console = getattr(cli_context, "console", Console())
-        table = Table(title="FLEXT Configuration v0.7.0")
+        table = Table(title=FlextCliConstants.TABLE_TITLE_CONFIG)
         table.add_column("Key", style="cyan")
         table.add_column("Value", style="white")
         table.add_column("Source", style="dim")
@@ -123,11 +129,11 @@ def show(ctx: click.Context) -> None:
     console: Console = ctx.obj.get("console", Console())
 
     if not cli_context:
-        console.print("config shown")  # Fallback for missing context
-        return
+        console.print("[red]Error: CLI context not available[/red]")
+        ctx.exit(1)
 
-    # Get output format from Click context (config object)
-    config = ctx.obj.get("config")
+    # Get config from Click context or cli_context
+    config = ctx.obj.get("config") or getattr(cli_context, "config", None)
     output_format = getattr(config, "output_format", "table") if config else "table"
 
     # Get actual config data from the config object
@@ -146,14 +152,18 @@ def show(ctx: click.Context) -> None:
         try:
             yaml_mod = importlib.import_module("yaml")
             console.print(yaml_mod.safe_dump(config_data, default_flow_style=False))
-        except Exception:
+        except ImportError:
+            console.print("[yellow]YAML not available, showing as string:[/yellow]")
+            console.print(str(config_data))
+        except Exception as e:
+            console.print(f"[red]YAML formatting failed:[/red] Error: {e}")
             console.print(str(config_data))
     # Table format (default) or plain text
     elif config_data:
         for key, value in config_data.items():
             console.print(f"{key}: {value}")
     else:
-        console.print("config shown")
+        console.print("[red]Error: No configuration data available[/red]")
 
 
 @config.command(name="get")
@@ -182,7 +192,27 @@ def set_value(ctx: click.Context, key: str, value: str) -> None:
         ctx.exit(1)
     cfg = getattr(cli_context, "config", None)
     if cfg is not None:
-        setattr(cfg, key, value)
+        # Try to preserve the original type of the value
+        old_value = getattr(cfg, key, None)
+        converted_value: object
+        if old_value is not None:
+            try:
+                # Convert to the same type as the original value
+                if isinstance(old_value, bool):
+                    # Handle boolean conversion carefully
+                    converted_value = value.lower() in {"true", "yes", "1", "on"}
+                elif isinstance(old_value, int):
+                    converted_value = int(value)
+                elif isinstance(old_value, float):
+                    converted_value = float(value)
+                else:
+                    converted_value = value
+            except (ValueError, TypeError):
+                # If conversion fails, use string value
+                converted_value = value
+        else:
+            converted_value = value
+        setattr(cfg, key, converted_value)
     console: Console = ctx.obj.get("console", Console())
     console.print(f"Set {key} = {value}")
 
@@ -195,8 +225,36 @@ def validate(ctx: click.Context) -> None:
     console: Console = ctx.obj.get("console", Console())
     if not cli_context or getattr(cli_context, "config", None) is None:
         ctx.exit(1)
-    # Pretend to validate current profile and log level; always succeed
-    console.print("Validation OK")
+    cfg = getattr(cli_context, "config", None)
+    if not cfg:
+        console.print("[red]Error: No configuration found[/red]")
+        ctx.exit(1)
+
+    # Validate configuration fields
+    validation_errors = []
+
+    # Check profile field (allow default if not present)
+    profile = getattr(cfg, "profile", "default")
+    if not profile:
+        validation_errors.append("Missing or empty profile")
+
+    if hasattr(cfg, "api_url"):
+        api_url = getattr(cfg, "api_url", "")
+        if api_url and not api_url.startswith(("http://", "https://")):
+            validation_errors.append("Invalid API URL format")
+
+    if hasattr(cfg, "timeout"):
+        timeout = getattr(cfg, "timeout", 0)
+        if timeout <= 0:
+            validation_errors.append("Invalid timeout value (must be > 0)")
+
+    if validation_errors:
+        console.print("[red]Configuration validation failed:[/red]")
+        for error in validation_errors:
+            console.print(f"  • {error}")
+        ctx.exit(1)
+    else:
+        console.print("[green]Configuration validation passed[/green]")
 
 
 @config.command()
@@ -207,10 +265,40 @@ def path(ctx: click.Context) -> None:
     console: Console = ctx.obj.get("console", Console())
     if not cli_context:
         ctx.exit(1)
-    if cli_context is not None and hasattr(cli_context, "print_info"):
-        cli_context.print_info("Paths shown")
-    else:
-        console.print("Paths shown")
+    cfg = getattr(cli_context, "config", None)
+    if not cfg:
+        console.print("[red]Error: No configuration found[/red]")
+        ctx.exit(1)
+
+    # Show actual configuration paths
+    table = Table(title=FlextCliConstants.TABLE_TITLE_PATHS)
+    table.add_column("Path Type", style="cyan")
+    table.add_column("Location", style="white")
+
+    # Add configuration file path
+    config_file = getattr(cfg, "config_file", Path.home() / FlextCliConstants.FLEXT_DIR_NAME / FlextCliConstants.CONFIG_FILE_NAME)
+    table.add_row("Config File", str(config_file))
+
+    # Add token paths if they exist
+    if hasattr(cfg, "token_file"):
+        token_file = getattr(cfg, "token_file")
+        if token_file:
+            table.add_row("Token File", str(token_file))
+
+    if hasattr(cfg, "refresh_token_file"):
+        refresh_token_file = getattr(cfg, "refresh_token_file")
+        if refresh_token_file:
+            table.add_row("Refresh Token File", str(refresh_token_file))
+
+    # Add log directory
+    log_dir = Path.home() / FlextCliConstants.FLEXT_DIR_NAME / "logs"
+    table.add_row("Log Directory", str(log_dir))
+
+    # Add cache directory
+    cache_dir = Path.home() / FlextCliConstants.FLEXT_DIR_NAME / "cache"
+    table.add_row("Cache Directory", str(cache_dir))
+
+    console.print(table)
 
 
 @config.command()
@@ -243,7 +331,12 @@ def edit(ctx: click.Context) -> None:
                         }
                     )
                 )
-            except Exception:
+            except ImportError:
+                f.write("# YAML not available, using basic format\n")
+                f.write("debug: false\n")
+                f.write(f"timeout: {FlextCliConstants.DEFAULT_COMMAND_TIMEOUT}\n")
+            except Exception as e:
+                f.write(f"# YAML formatting failed ({e}), using basic format\n")
                 f.write("debug: false\n")
                 f.write(f"timeout: {FlextCliConstants.DEFAULT_COMMAND_TIMEOUT}\n")
 
@@ -251,4 +344,4 @@ def edit(ctx: click.Context) -> None:
     console.print(f"Config file ready at: {cfg_path}")
 
 
-__all__ = ["FlextCliCmd", "config"]
+__all__ = ["FlextCliCmd", "config", "edit", "get_cmd", "path", "set_value", "show", "validate"]

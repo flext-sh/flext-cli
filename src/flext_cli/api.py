@@ -4,56 +4,6 @@ Provides CLI-specific API functionality extending flext-core patterns with
 command execution, data formatting, export capabilities, and session management.
 Follows consolidated class pattern with domain-specific operations.
 
-Module Role in Architecture:
-    FlextCliApi serves as the main API entry point for CLI operations, providing
-    a unified interface for command execution, data formatting, export operations,
-    and session management following flext-core service patterns.
-
-Classes and Methods:
-    FlextCliApi:                           # Consolidated CLI API
-        # Data Operations:
-        format_data(data, format) -> FlextResult[str]
-        export_data(data, path) -> FlextResult[str]
-        transform_data(data, filters) -> FlextResult[list]
-        aggregate_data(data, group_by) -> FlextResult[list]
-
-        # Command Operations:
-        create_command(name, command_line) -> FlextResult[Command]
-        execute_command(command) -> FlextResult[str]
-        get_command_history() -> list[Command]
-
-        # Session Operations:
-        create_session(user_id) -> FlextResult[str]
-        get_session(session_id) -> FlextResult[dict]
-        end_session(session_id) -> FlextResult[None]
-
-        # System Operations:
-        health_check() -> dict[str, object]
-        configure(config) -> FlextResult[None]
-
-Usage Examples:
-    Basic API usage:
-        api = FlextCliApi()
-
-        # Data formatting
-        format_result = api.format_data(data, "table")
-        if format_result.is_success:
-            print(format_result.value)
-
-        # Command creation and execution
-        cmd_result = api.create_command("test", "echo hello")
-        if cmd_result.is_success:
-            exec_result = api.execute_command(cmd_result.value)
-
-        # Session management
-        session_result = api.create_session("user123")
-        if session_result.is_success:
-            session_id = session_result.value
-
-Integration:
-    FlextCliApi integrates with FlextCliServices for service layer operations,
-    FlextCliModels for domain entities, and FlextResult for error handling
-    following railway-oriented programming patterns.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -66,11 +16,14 @@ import platform
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import override
+from typing import cast, override
+from uuid import UUID
 
+import yaml
 from flext_core import FlextResult, FlextUtilities
 from flext_core.models import FlextModels
 
+from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.services import FlextCliServices
 
@@ -109,7 +62,7 @@ class FlextCliApi:
         self._models = models or FlextModels()
         self._services = services or FlextCliServices()
         self._version = version
-        self._service_name = "FLEXT CLI API"
+        self._service_name = FlextCliConstants.SERVICE_NAME_API
 
         # Simplified processors - no complex factory patterns needed
         # This ultra-simplified version doesn't need complex processors
@@ -232,47 +185,42 @@ class FlextCliApi:
         match operation:
             # Data Operations
             case "format":
-                from typing import cast
                 result = self._execute_format(
                     params.get("data"), str(params.get("format_type", "table"))
                 )
                 return cast("FlextResult[object]", result)
             case "export":
-                from typing import cast
-                result = self._execute_export(params.get("data"), params.get("file_path"))
+                result = self._execute_export(
+                    params.get("data"), params.get("file_path")
+                )
                 return cast("FlextResult[object]", result)
             case "transform":
-                from typing import cast
-                result = self._execute_transform(params.get("data"), params.get("filters"))
+                result = self._execute_transform(
+                    params.get("data"), params.get("filters")
+                )
                 return cast("FlextResult[object]", result)
 
             # Command Operations
             case "create_command":
-                from typing import cast
                 result = self._execute_create_command(params.get("command_line"))
                 return cast("FlextResult[object]", result)
             case "execute_command":
-                from typing import cast
                 result = self._execute_command_run(params.get("command"))
                 return cast("FlextResult[object]", result)
 
             # Session Operations
             case "create_session":
-                from typing import cast
                 result = self._execute_create_session(params.get("user_id"))
                 return cast("FlextResult[object]", result)
             case "end_session":
-                from typing import cast
                 result = self._execute_end_session(params.get("session_id"))
                 return cast("FlextResult[object]", result)
 
             # System Operations
             case "health":
-                from typing import cast
                 result = self._execute_health_check()
                 return cast("FlextResult[object]", result)
             case "configure":
-                from typing import cast
                 result = self._execute_configure(params.get("config"))
                 return cast("FlextResult[object]", result)
 
@@ -288,12 +236,10 @@ class FlextCliApi:
                     result = FlextUtilities.safe_json_stringify(data)
                     return FlextResult[str].ok(result)
                 case "yaml":
-                    try:
-                        import yaml
-                        result = yaml.dump(data, default_flow_style=False, allow_unicode=True)
-                        return FlextResult[str].ok(result)
-                    except ImportError:
-                        return FlextResult[str].fail("PyYAML not available for YAML formatting")
+                    result = yaml.dump(
+                        data, default_flow_style=False, allow_unicode=True
+                    )
+                    return FlextResult[str].ok(result)
                 case _:
                     return FlextResult[str].ok(str(data))
         except Exception as e:
@@ -314,12 +260,42 @@ class FlextCliApi:
     def _execute_transform(
         self,
         data: object,
-        filters: object,  # noqa: ARG002
+        filters: object,
     ) -> FlextResult[list[object]]:
-        """Execute transform operation with functional approach."""
-        if not isinstance(data, list):
-            return FlextResult[list[object]].fail("Data must be list")
-        return FlextResult[list[object]].ok(data)  # Simplified transform
+        """Execute transform operation with functional approach and real filtering."""
+        try:
+            # Convert data to list format with explicit typing
+            working_data: list[object]
+            if isinstance(data, list):
+                working_data = list(data)  # Copy to avoid mutation
+            elif isinstance(data, dict):
+                working_data = [data]
+            else:
+                working_data = [data]
+
+            # Apply real filtering if provided
+            if isinstance(filters, dict) and filters:
+                filtered_data: list[object] = []
+                for item in working_data:
+                    if isinstance(item, dict):
+                        # Match all filter criteria
+                        matches = True
+                        for filter_key, filter_value in filters.items():
+                            item_value = item.get(str(filter_key))
+                            # Type-aware comparison
+                            if item_value != filter_value:
+                                matches = False
+                                break
+                        if matches:
+                            filtered_data.append(item)
+                    # For non-dict items, convert to string and filter
+                    elif str(item) == str(filters.get("value", "")):
+                        filtered_data.append(item)
+                working_data = filtered_data
+
+            return FlextResult[list[object]].ok(working_data)
+        except Exception as e:
+            return FlextResult[list[object]].fail(f"Transform operation failed: {e}")
 
     def _execute_create_command(
         self, command_line: object
@@ -344,98 +320,74 @@ class FlextCliApi:
         session = FlextCliModels.CliSession(user_id=str(user_id) if user_id else None)
         return FlextResult[FlextCliModels.CliSession].ok(session)
 
-    def _execute_end_session(self, session_id: object) -> FlextResult[None]:  # noqa: ARG002
-        """Execute session end operation."""
-        return FlextResult[None].ok(None)  # Simplified
+    def _execute_end_session(self, session_id: object) -> FlextResult[None]:
+        """Execute session end operation with real validation."""
+        if not isinstance(session_id, str) or not session_id.strip():
+            return FlextResult[None].fail("Session ID must be a non-empty string")
+
+        # Validate session ID format (basic UUID check)
+        try:
+            UUID(session_id)
+        except ValueError:
+            return FlextResult[None].fail(f"Invalid session ID format: {session_id}")
+
+        # In a real implementation, this would cleanup session resources
+        # For now, return success after validation
+        return FlextResult[None].ok(None)
 
     def _execute_health_check(self) -> FlextResult[dict[str, object]]:
         """Execute health check operation."""
-        return FlextResult[dict[str, object]].ok({
-            "status": "healthy",
-            "version": self._version,
-            "service": self._service_name,
-            "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
-            "platform": platform.system(),
-            "timestamp": datetime.now(UTC).isoformat(),
-        })
+        return FlextResult[dict[str, object]].ok(
+            {
+                "status": "healthy",
+                "version": self._version,
+                "service": self._service_name,
+                "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
+                "platform": platform.system(),
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
+        )
 
-    def _execute_configure(self, config: object) -> FlextResult[None]:  # noqa: ARG002
-        """Execute configuration operation."""
-        return FlextResult[None].ok(None)  # Simplified
+    def _execute_configure(self, config: object) -> FlextResult[None]:
+        """Execute configuration operation with real validation and application."""
+        try:
+            if not isinstance(config, dict):
+                return FlextResult[None].fail("Configuration must be a dictionary")
+
+            # Validate required configuration keys
+            if not config:
+                return FlextResult[None].fail("Configuration cannot be empty")
+
+            # Apply configuration settings to internal state
+            if "enable_session_tracking" in config:
+                self._enable_session_tracking = bool(config["enable_session_tracking"])
+
+            if "enable_command_history" in config:
+                self._enable_command_history = bool(config["enable_command_history"])
+
+            # Update version if provided
+            if "version" in config:
+                version_str = str(config["version"])
+                if version_str:
+                    self._version = version_str
+
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Configuration failed: {e}")
 
     # =========================================================================
     # CONVENIENCE METHODS - Backward compatibility with simplified interface
     # =========================================================================
 
-    def format_data(self, data: object, format_type: str = "table") -> FlextResult[str]:
-        """Convenience method for data formatting."""
-        from typing import cast
-        result = self.execute("format", data=data, format_type=format_type)
-        return cast("FlextResult[str]", result)
-
-    def export_data(self, data: object, file_path: str | Path) -> FlextResult[str]:
-        """Convenience method for data export."""
-        from typing import cast
-        result = self.execute("export", data=data, file_path=file_path)
-        return cast("FlextResult[str]", result)
-
-    def create_command(
-        self, command_line: str
-    ) -> FlextResult[FlextCliModels.CliCommand]:
-        """Convenience method for command creation."""
-        from typing import cast
-        result = self.execute("create_command", command_line=command_line)
-        return cast("FlextResult[FlextCliModels.CliCommand]", result)
-
-    def execute_command(self, command: FlextCliModels.CliCommand) -> FlextResult[str]:
-        """Convenience method for command execution."""
-        from typing import cast
-        result = self.execute("execute_command", command=command)
-        return cast("FlextResult[str]", result)
-
-    def create_session(
-        self, user_id: str | None = None
-    ) -> FlextResult[FlextCliModels.CliSession]:
-        """Convenience method for session creation."""
-        from typing import cast
-        result = self.execute("create_session", user_id=user_id)
-        return cast("FlextResult[FlextCliModels.CliSession]", result)
-
-    def health_check(self) -> FlextResult[dict[str, object]]:
-        """Convenience method for health check."""
-        from typing import cast
-        result = self.execute("health")
-        return cast("FlextResult[dict[str, object]]", result)
-
     # =========================================================================
     # Additional convenience methods for specific operations
     # =========================================================================
 
-    def transform_data(
-        self, data: object, filters: object = None
-    ) -> FlextResult[list[object]]:
-        """Convenience method for data transformation."""
-        from typing import cast
-        result = self.execute("transform", data=data, filters=filters)
-        return cast("FlextResult[list[object]]", result)
-
     def get_command_history(self) -> list[FlextCliModels.CliCommand]:
-        """Convenience method for getting command history."""
+        """Get command history if tracking is enabled."""
         if not self.enable_command_history:
             return []
         return getattr(self, "_command_history", []).copy()
-
-    def end_session(self, session_id: str) -> FlextResult[None]:
-        """Convenience method for ending sessions."""
-        from typing import cast
-        result = self.execute("end_session", session_id=session_id)
-        return cast("FlextResult[None]", result)
-
-    def configure(self, config: dict[str, object]) -> FlextResult[None]:
-        """Convenience method for configuration."""
-        from typing import cast
-        result = self.execute("configure", config=config)
-        return cast("FlextResult[None]", result)
 
     @override
     def __repr__(self) -> str:

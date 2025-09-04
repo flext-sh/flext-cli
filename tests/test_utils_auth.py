@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -39,8 +40,6 @@ class TestFlextCliAuth(unittest.TestCase):
     def tearDown(self) -> None:
         """Clean up test fixtures."""
         # Clean up temporary files
-        import shutil
-
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_auth_initialization(self) -> None:

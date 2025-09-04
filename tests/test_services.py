@@ -9,10 +9,10 @@ Tests execute REAL service functionality.
 
 from __future__ import annotations
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextServices
 
-from flext_cli.models import FlextCliModels
-from flext_cli.services import FlextCliServices
+import flext_cli
+from flext_cli import FlextCliModels, FlextCliServices
 
 
 class TestFlextCliServices:
@@ -136,8 +136,6 @@ class TestServicesModule:
         """Test services module can be imported without errors."""
         # This test ensures the module imports without circular dependencies
         # or other import issues
-        import flext_cli.services
-
         # Verify the module has the expected classes
         assert hasattr(flext_cli.services, "FlextCliServices")
 
@@ -166,7 +164,6 @@ class TestServicesModule:
         assert hasattr(FlextCliServices, "metrics")
 
         # Verify they are instances from flext-core
-        from flext_core import FlextServices
         assert isinstance(FlextCliServices.registry, FlextServices.ServiceRegistry)
         assert isinstance(FlextCliServices.orchestrator, FlextServices.ServiceOrchestrator)
         assert isinstance(FlextCliServices.metrics, FlextServices.ServiceMetrics)

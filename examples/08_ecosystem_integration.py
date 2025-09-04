@@ -401,34 +401,32 @@ def meltano(ctx: click.Context, operation: str, project: str) -> None:
 def oracle_query(ctx: click.Context, query: str, schema: str, output_format: str) -> None:
     """Query Oracle database through flext-db-oracle integration using advanced patterns."""
     from flext_core import FlextPipeline
-    
-    console: Console = ctx.obj["console"] 
+
+    console: Console = ctx.obj["console"]
     service: EcosystemService = ctx.obj["service"]
-    
+
     # Use FlextPipeline pattern to reduce complexity and eliminate multiple returns
     def execute_query_pipeline() -> FlextResult[None]:
         """Execute Oracle query using pipeline pattern."""
-        
         # Step 1: Announce execution
         console.print(f"[blue]Executing Oracle query in schema {schema}...[/blue]")
-        
+
         # Step 2: Execute query
         query_result = service.query_oracle_database(query, schema)
         if query_result.is_failure:
             console.print(f"[red]❌ Oracle query failed: {query_result.error}[/red]")
             return FlextResult[None].fail(query_result.error)
-        
+
         # Step 3: Format output using Python 3.13+ match-case
         format_result = _format_oracle_output(console, query_result.value, output_format)
         return format_result.map(lambda _: None)  # Convert to None for consistent return
-    
+
     # Execute pipeline
     execute_query_pipeline()
 
 
 def _format_oracle_output(console: Console, data: object, output_format: str) -> FlextResult[str]:
     """Format Oracle query output using Python 3.13+ match-case patterns."""
-    
     # Python 3.13+ pattern matching for cleaner control flow
     match output_format:
         case "table":
@@ -444,14 +442,14 @@ def _format_oracle_output(console: Console, data: object, output_format: str) ->
 def _handle_table_format(console: Console, data: object) -> FlextResult[str]:
     """Handle table output format with functional patterns."""
     from functools import partial
-    
+
     # Use functional programming patterns
     prepare_data = partial(_prepare_display_data, data)
     calculate_rows = partial(_calculate_row_count, data)
-    
+
     table_data = prepare_data()
     row_count = calculate_rows()
-    
+
     table = cli_create_table(table_data, title=f"Query Results ({row_count} rows)")
     console.print(table)
     return FlextResult[str].ok(table_data)
@@ -461,7 +459,7 @@ def _handle_structured_format(console: Console, data: object, format_type: str) 
     """Handle JSON/CSV formats with error handling."""
     format_data = _prepare_display_data(data)
     formatted_result = cli_format_output(format_data, format_type)
-    
+
     # Use functional error handling pattern
     return (
         _display_formatted_success(console, formatted_result.value)
@@ -486,7 +484,7 @@ def _calculate_row_count(data: object) -> int:
             return len(items)
         case dict() as mapping:
             return len(mapping)
-        case _ if hasattr(data, '__len__'):
+        case _ if hasattr(data, "__len__"):
             return len(data)
         case _:
             return 0

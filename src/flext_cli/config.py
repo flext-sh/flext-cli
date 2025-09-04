@@ -59,6 +59,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import ClassVar, override
+from urllib.parse import urlparse
 
 from flext_core import FlextResult
 from flext_core.config import FlextConfig
@@ -122,7 +123,7 @@ class FlextCliConfig(FlextConfig):
         description="Logging level",
     )
     command_timeout: int = Field(
-        default=FlextCliConstants.DEFAULT_COMMAND_TIMEOUT,
+        default=FlextCliConstants.TIMEOUTS.default_command_timeout,
         description="Command execution timeout in seconds",
     )
 
@@ -142,24 +143,24 @@ class FlextCliConfig(FlextConfig):
 
     # API configuration
     api_url: str = Field(
-        default=FlextCliConstants.DEFAULT_API_URL,
+        default=FlextCliConstants.HTTP.default_api_url,
         description="API base URL",
     )
     api_timeout: int = Field(
-        default=FlextCliConstants.DEFAULT_API_TIMEOUT,
-        le=FlextCliConstants.MAX_COMMAND_TIMEOUT,
+        default=FlextCliConstants.TIMEOUTS.default_api_timeout,
+        le=FlextCliConstants.TIMEOUTS.max_command_timeout,
         description="API request timeout in seconds",
     )
     connect_timeout: int = Field(
-        default=FlextCliConstants.DEFAULT_API_TIMEOUT,
+        default=FlextCliConstants.TIMEOUTS.default_api_timeout,
         description="Connection timeout in seconds",
     )
     read_timeout: int = Field(
-        default=FlextCliConstants.DEFAULT_READ_TIMEOUT,
+        default=FlextCliConstants.TIMEOUTS.default_read_timeout,
         description="Read timeout in seconds",
     )
     retries: int = Field(
-        default=FlextCliConstants.DEFAULT_RETRIES,
+        default=FlextCliConstants.OUTPUT.default_retries,
         description="Maximum retry attempts",
     )
     verify_ssl: bool = Field(
@@ -247,17 +248,18 @@ class FlextCliConfig(FlextConfig):
         if not value:
             return value
         # Keep protocol and domain, mask path for security
-        from urllib.parse import urlparse  # noqa: PLC0415
 
         try:
             parsed = urlparse(value)
             # URL path masking length for security
-            min_path_length_for_masking = 4
+            min_path_length_for_masking = FlextCliConstants.MIN_PATH_LENGTH_FOR_MASKING
             if parsed.path and len(parsed.path) > min_path_length_for_masking:
                 masked_path = parsed.path[:min_path_length_for_masking] + "***"
                 return f"{parsed.scheme}://{parsed.netloc}{masked_path}"
             return value
-        except Exception:
+        except (ValueError, AttributeError):
+            # URL parsing failed, return original value
+            # Log the error if debug is enabled (would need logging context here)
             return value
 
     @field_serializer("token_file", "refresh_token_file")
@@ -266,7 +268,8 @@ class FlextCliConfig(FlextConfig):
         try:
             # Replace home directory with ~ for privacy
             return str(value).replace(str(Path.home()), "~")
-        except Exception:
+        except (OSError, AttributeError):
+            # Path handling failed, return string representation of value
             return str(value)
 
     # =========================================================================
@@ -283,23 +286,23 @@ class FlextCliConfig(FlextConfig):
         class Command:
             """Command execution defaults."""
 
-            timeout_seconds: int = FlextCliConstants.DEFAULT_COMMAND_TIMEOUT
-            max_timeout_seconds: int = FlextCliConstants.MAX_COMMAND_TIMEOUT
-            min_timeout_seconds: int = FlextCliConstants.MIN_LENGTH
-            max_retries: int = FlextCliConstants.DEFAULT_RETRIES
-            retry_delay_seconds: int = FlextCliConstants.MIN_LENGTH
-            max_history_size: int = FlextCliConstants.MAX_HISTORY_SIZE
-            max_output_size: int = 1048576
+            timeout_seconds: int = FlextCliConstants.TIMEOUTS.default_command_timeout
+            max_timeout_seconds: int = FlextCliConstants.TIMEOUTS.max_command_timeout
+            min_timeout_seconds: int = FlextCliConstants.OUTPUT.min_length
+            max_retries: int = FlextCliConstants.OUTPUT.default_retries
+            retry_delay_seconds: int = FlextCliConstants.OUTPUT.min_length
+            max_history_size: int = FlextCliConstants.LIMITS.max_history_size
+            max_output_size: int = FlextCliConstants.MAX_OUTPUT_SIZE
 
         class Output:
             """Output formatting defaults."""
 
             default_format: str = "table"
-            default_width: int = FlextCliConstants.DEFAULT_OUTPUT_WIDTH
-            max_table_rows: int = FlextCliConstants.MAX_TABLE_ROWS
-            table_padding: int = FlextCliConstants.DEFAULT_TABLE_PADDING
-            max_cell_width: int = FlextCliConstants.MAX_PROFILE_NAME_LENGTH
-            progress_bar_width: int = FlextCliConstants.DEFAULT_PROGRESS_BAR_WIDTH
+            default_width: int = FlextCliConstants.OUTPUT.default_output_width
+            max_table_rows: int = FlextCliConstants.LIMITS.max_table_rows
+            table_padding: int = FlextCliConstants.OUTPUT.default_table_padding
+            max_cell_width: int = FlextCliConstants.LIMITS.max_profile_name_length
+            progress_bar_width: int = FlextCliConstants.OUTPUT.default_progress_bar_width
 
         class Auth:
             """Authentication defaults."""
@@ -307,23 +310,23 @@ class FlextCliConfig(FlextConfig):
             token_expiry_hours: int = FlextCliConstants.TOKEN_EXPIRY_HOURS
             refresh_expiry_days: int = FlextCliConstants.REFRESH_EXPIRY_DAYS
             session_timeout_minutes: int = FlextCliConstants.SESSION_TIMEOUT_MINUTES
-            min_token_length: int = FlextCliConstants.DEFAULT_TOKEN_MIN_LENGTH
-            max_login_attempts: int = FlextCliConstants.DEFAULT_RETRIES
+            min_token_length: int = FlextCliConstants.OUTPUT.default_token_min_length
+            max_login_attempts: int = FlextCliConstants.OUTPUT.default_retries
 
         class Config:
             """Configuration management defaults."""
 
-            max_profile_name_length: int = FlextCliConstants.MAX_PROFILE_NAME_LENGTH
-            max_config_key_length: int = 100
-            max_config_value_length: int = FlextCliConstants.MAX_CONFIG_VALUE_LENGTH
+            max_profile_name_length: int = FlextCliConstants.LIMITS.max_profile_name_length
+            max_config_key_length: int = FlextCliConstants.MAX_CONFIG_KEY_LENGTH
+            max_config_value_length: int = FlextCliConstants.LIMITS.max_config_value_length
 
         class Validation:
             """Input validation defaults."""
 
-            min_command_length: int = FlextCliConstants.MIN_LENGTH
-            max_command_length: int = FlextCliConstants.MAX_CONFIG_VALUE_LENGTH
-            min_profile_length: int = FlextCliConstants.MIN_LENGTH
-            max_profile_length: int = FlextCliConstants.MAX_PROFILE_NAME_LENGTH
+            min_command_length: int = FlextCliConstants.OUTPUT.min_length
+            max_command_length: int = FlextCliConstants.LIMITS.max_config_value_length
+            min_profile_length: int = FlextCliConstants.OUTPUT.min_length
+            max_profile_length: int = FlextCliConstants.LIMITS.max_profile_name_length
             valid_output_formats: tuple[str, ...] = (
                 FlextCliConstants.VALID_OUTPUT_FORMATS
             )
@@ -431,7 +434,7 @@ class FlextCliConfig(FlextConfig):
             description="Default output format",
         )
         api_url: str = Field(
-            default=FlextCliConstants.DEFAULT_API_URL,
+            default=FlextCliConstants.HTTP.default_api_url,
             description="API base URL",
         )
         log_level: str = Field(
@@ -481,9 +484,9 @@ class FlextCliConfig(FlextConfig):
         if self.api_timeout <= 0 or self.command_timeout <= 0:
             return FlextResult[None].fail("Timeout values must be positive")
 
-        if self.command_timeout > FlextCliConstants.MAX_COMMAND_TIMEOUT:
+        if self.command_timeout > FlextCliConstants.TIMEOUTS.max_command_timeout:
             return FlextResult[None].fail(
-                f"Command timeout exceeds maximum: {FlextCliConstants.MAX_COMMAND_TIMEOUT}s"
+                f"Command timeout exceeds maximum: {FlextCliConstants.TIMEOUTS.max_command_timeout}s"
             )
         return FlextResult[None].ok(None)
 
@@ -504,14 +507,14 @@ class FlextCliConfig(FlextConfig):
 
     def _validate_profile_name(self) -> FlextResult[None]:
         """Validate profile name length and format."""
-        if len(self.profile) < FlextCliConstants.MIN_LENGTH:
+        if len(self.profile) < FlextCliConstants.OUTPUT.min_length:
             return FlextResult[None].fail(
-                f"Profile name too short. Minimum length: {FlextCliConstants.MIN_LENGTH}"
+                f"Profile name too short. Minimum length: {FlextCliConstants.OUTPUT.min_length}"
             )
 
-        if len(self.profile) > FlextCliConstants.MAX_PROFILE_NAME_LENGTH:
+        if len(self.profile) > FlextCliConstants.LIMITS.max_profile_name_length:
             return FlextResult[None].fail(
-                f"Profile name too long. Maximum length: {FlextCliConstants.MAX_PROFILE_NAME_LENGTH}"
+                f"Profile name too long. Maximum length: {FlextCliConstants.LIMITS.max_profile_name_length}"
             )
 
         # Basic pattern validation
@@ -636,10 +639,10 @@ class FlextCliConfig(FlextConfig):
                 "debug": True,
                 "trace": True,
                 "log_level": FlextCliConstants.LOG_LEVEL_DEBUG,
-                "output_format": FlextCliConstants.DEFAULT_OUTPUT_FORMAT,
+                "output_format": FlextCliConstants.OUTPUT.default_output_format,
                 "verbose": True,
-                "command_timeout": FlextCliConstants.DEFAULT_DEV_TIMEOUT,  # Shorter timeout for development
-                "api_timeout": FlextCliConstants.DEFAULT_API_TIMEOUT,
+                "command_timeout": FlextCliConstants.TIMEOUTS.default_dev_timeout,  # Shorter timeout for development
+                "api_timeout": FlextCliConstants.TIMEOUTS.default_api_timeout,
             }
 
             return cls.create_with_directories(config_data)
@@ -665,7 +668,7 @@ class FlextCliConfig(FlextConfig):
                 "log_level": FlextCliConstants.LOG_LEVEL_INFO,
                 "output_format": "json",
                 "quiet": True,
-                "command_timeout": FlextCliConstants.DEFAULT_COMMAND_TIMEOUT,
+                "command_timeout": FlextCliConstants.TIMEOUTS.default_command_timeout,
                 "api_timeout": FlextCliConstants.PRODUCTION_API_TIMEOUT,  # Longer timeout for production
                 "verify_ssl": True,
             }
@@ -692,7 +695,17 @@ class FlextCliConfig(FlextConfig):
         return self.profile == "development" or self.debug
 
     @property
+    def is_development_env(self) -> bool:
+        """Check if configuration is for development environment."""
+        return self.profile == "development" or self.debug
+
+    @property
     def is_production_mode(self) -> bool:
+        """Check if configuration is for production environment."""
+        return self.profile == "production" and not self.debug
+
+    @property
+    def is_production_env(self) -> bool:
         """Check if configuration is for production environment."""
         return self.profile == "production" and not self.debug
 

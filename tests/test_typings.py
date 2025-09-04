@@ -7,6 +7,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core.typings import FlextTypes as CoreFlextTypes
+
 from flext_cli import typings
 
 
@@ -29,8 +31,6 @@ class TestTypingsImports:
 
     def test_flext_types_inheritance(self) -> None:
         """Test that FlextTypes inherits from CoreFlextTypes."""
-        from flext_core.typings import FlextTypes as CoreFlextTypes
-
         assert issubclass(typings.FlextTypes, CoreFlextTypes)
 
     def test_flext_types_instantiation(self) -> None:

@@ -173,23 +173,20 @@ class FlextCliValidation:
             FlextResult containing validated timeout
 
         """
-        try:
-            if not isinstance(timeout, int):
-                return FlextResult[int].fail("Timeout must be an integer")
+        if not isinstance(timeout, int):
+            return FlextResult[int].fail("Timeout must be an integer")
 
-            if timeout < FlextCliConstants.MIN_COMMAND_TIMEOUT:
-                return FlextResult[int].fail(
-                    f"Timeout must be at least {FlextCliConstants.MIN_COMMAND_TIMEOUT} seconds"
-                )
+        if timeout < FlextCliConstants.MIN_COMMAND_TIMEOUT:
+            return FlextResult[int].fail(
+                f"Timeout must be at least {FlextCliConstants.MIN_COMMAND_TIMEOUT} seconds"
+            )
 
-            if timeout > FlextCliConstants.MAX_TIMEOUT_SECONDS:
-                return FlextResult[int].fail(
-                    f"Timeout cannot exceed {FlextCliConstants.MAX_TIMEOUT_SECONDS} seconds"
-                )
+        if timeout > FlextCliConstants.MAX_TIMEOUT_SECONDS:
+            return FlextResult[int].fail(
+                f"Timeout cannot exceed {FlextCliConstants.MAX_TIMEOUT_SECONDS} seconds"
+            )
 
-            return FlextResult[int].ok(timeout)
-        except Exception as e:
-            return FlextResult[int].fail(f"Timeout validation failed: {e}")
+        return FlextResult[int].ok(timeout)
 
 
 __all__ = ["FlextCliValidation"]

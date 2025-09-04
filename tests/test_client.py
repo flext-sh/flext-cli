@@ -20,7 +20,10 @@ from collections.abc import Coroutine
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs, urlparse
 
-from flext_cli.client import FlextApiClient, FlextApiClientModels
+from flext_cli.client import FlextApiClient
+
+# Alias for easier testing access
+FlextApiClientModels = FlextApiClient
 
 
 class MockHTTPHandler(BaseHTTPRequestHandler):

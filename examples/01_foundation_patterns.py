@@ -23,7 +23,7 @@ SPDX-License-Identifier: MIT
 
 from datetime import UTC, datetime
 
-from flext_core import FlextContainer, FlextResult
+from flext_core import FlextContainer, FlextPipeline, FlextResult
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -192,7 +192,7 @@ def _summary_demo(console: Console) -> None:
 def demonstrate_foundation_patterns() -> FlextResult[None]:
     """Demonstrate the foundation patterns of flext-cli with extensive flext-core integration."""
     console = Console()
-    
+
     # Rich UI presentation
     console.print(
         Panel(
@@ -204,8 +204,7 @@ def demonstrate_foundation_patterns() -> FlextResult[None]:
     )
 
     # Use flext-core pipeline pattern for sequential operations
-    from flext_core import FlextPipeline
-    
+
     pipeline = FlextPipeline[None]()
     return pipeline.execute([
         lambda: _setup_cli_demo(console),

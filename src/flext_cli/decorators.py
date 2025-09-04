@@ -1,5 +1,4 @@
 """FLEXT CLI Decorators - Class-only decorator utilities (no free helpers)."""
-# type: ignore[valid-type]  # ParamSpec compatibility issues with MyPy
 
 from __future__ import annotations
 
@@ -17,6 +16,47 @@ from flext_cli.constants import FlextCliConstants
 
 P = ParamSpec("P")
 T = TypeVar("T")
+
+
+def handle_service_result[**P, T](func: Callable[P, T]) -> Callable[P, T | None]:
+    """Decorator for handling FlextResult values - extracts success data or returns None on failure."""
+    if asyncio.iscoroutinefunction(func):
+        @functools.wraps(func)
+        async def _async_wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
+            result = await func(*args, **kwargs)
+
+            # Check if result is FlextResult
+            if hasattr(result, "is_success"):
+                if result.is_success:
+                    return result.data  # Extract success data
+                # For failures, print error and return None
+                if hasattr(result, "error"):
+                    console = Console()
+                    console.print(f"[red]Error: {result.error}[/red]")
+                return None
+
+            # Pass through non-FlextResult values
+            return result
+
+        return _async_wrapper
+    @functools.wraps(func)
+    def _wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
+        result = func(*args, **kwargs)
+
+        # Check if result is FlextResult
+        if hasattr(result, "is_success"):
+            if result.is_success:
+                return result.data  # Extract success data
+            # For failures, print error and return None
+            if hasattr(result, "error"):
+                console = Console()
+                console.print(f"[red]Error: {result.error}[/red]")
+            return None
+
+        # Pass through non-FlextResult values
+        return result
+
+    return _wrapper
 
 
 class FlextCliDecorators(FlextDecorators):

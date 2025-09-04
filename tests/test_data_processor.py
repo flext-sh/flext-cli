@@ -14,15 +14,15 @@ from unittest.mock import patch
 import pytest
 from flext_core import FlextResult
 
-from flext_cli import FlextCliDataProcessor
+from flext_cli import FlextCliDataProcessing
 
 
-class TestFlextCliDataProcessorAdvanced:
+class TestFlextCliDataProcessingAdvanced:
     """Test suite for advanced FlextCliDataProcessor methods."""
 
     def setup_method(self) -> None:
         """Setup test environment."""
-        self.processor = FlextCliDataProcessor()
+        self.processor = FlextCliDataProcessing()
 
     def test_flext_cli_aggregate_data_success_all_sources(self) -> None:
         """Test successful data aggregation from all sources."""
@@ -449,7 +449,7 @@ class TestComplexDataProcessingWorkflows:
 
     def setup_method(self) -> None:
         """Setup test environment."""
-        self.processor = FlextCliDataProcessor()
+        self.processor = FlextCliDataProcessing()
 
     def test_complete_etl_pipeline_simulation(self) -> None:
         """Test a complete ETL pipeline simulation using multiple methods."""
