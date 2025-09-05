@@ -20,6 +20,15 @@ from flext_core import FlextConstants
 from rich.console import Console
 
 from flext_cli import debug_cmd
+from flext_cli.config import FlextCliConfig
+from flext_cli.debug import (
+    connectivity,
+    env,
+    paths,
+    performance,
+    trace,
+    validate,
+)
 
 
 class TestDebugCommandReal:
@@ -82,9 +91,7 @@ class TestConnectivityCommandReal:
     def test_connectivity_execution_real(self) -> None:
         """Test connectivity command execution with real implementation."""
         # Create real context object
-        context_result = FlextCliUtilsCore.quick_setup({})
-        context = context_result.value if context_result.is_success else {}
-        console = context["console"]
+        console = Console()
 
         # Run connectivity command with real console
         result = self.runner.invoke(connectivity, [], obj={"console": console})
@@ -119,9 +126,7 @@ class TestPerformanceCommandReal:
     def test_performance_execution_real(self) -> None:
         """Test performance command execution with real implementation."""
         # Create real context
-        context_result = FlextCliUtilsCore.quick_setup({})
-        context = context_result.value if context_result.is_success else {}
-        console = context["console"]
+        console = Console()
 
         # Run performance command with real console
         result = self.runner.invoke(performance, [], obj={"console": console})
@@ -151,9 +156,7 @@ class TestValidateCommandReal:
     def test_validate_execution_real(self) -> None:
         """Test validate command execution with real system validation."""
         # Create real context
-        context_result = FlextCliUtilsCore.quick_setup({})
-        context = context_result.value if context_result.is_success else {}
-        console = context["console"]
+        console = Console()
 
         # Run validate command with real console
         result = self.runner.invoke(validate, [], obj={"console": console})
@@ -176,7 +179,7 @@ class TestValidateCommandReal:
     def test_validate_config_access_real(self) -> None:
         """Test validation accesses real configuration."""
         # Test that get_config() works
-        config = get_config()
+        config = FlextCliConfig.get_current()
         assert config is not None
         assert hasattr(config, "config_dir")
 
@@ -305,7 +308,7 @@ class TestPathsCommandReal:
     def test_paths_shows_real_directories_real(self) -> None:
         """Test paths command shows real directory information."""
         # Get actual config for real paths
-        config = get_config()
+        config = FlextCliConfig.get_current()
         assert config is not None
 
         # Verify config has real path information
@@ -382,7 +385,7 @@ class TestDebugIntegrationReal:
     def test_config_integration_real(self) -> None:
         """Test that commands properly integrate with real config system."""
         # Test that get_config() returns real config
-        config = get_config()
+        config = FlextCliConfig.get_current()
         assert config is not None
         assert hasattr(config, "config_dir")
         assert isinstance(config.config_dir, Path)

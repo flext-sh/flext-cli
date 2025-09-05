@@ -137,7 +137,7 @@ class TestServicesModule:
         # This test ensures the module imports without circular dependencies
         # or other import issues
         # Verify the module has the expected classes
-        assert hasattr(flext_cli.services, "FlextCliServices")
+        assert hasattr(flext_cli, "FlextCliServices")
 
     def test_services_instantiation_and_basic_functionality(self) -> None:
         """Test services can be instantiated and have basic functionality."""

@@ -190,7 +190,7 @@ class TestFlextCliFileOperations:
 
     def test_file_exists_check(self) -> None:
         """Test file existence checking functionality."""
-        file_ops = FlextCliFileOperations()
+        FlextCliFileOperations()
 
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
             file_path = Path(temp_file.name)

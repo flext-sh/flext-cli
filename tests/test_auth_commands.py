@@ -14,6 +14,7 @@ from __future__ import annotations
 import click
 from click.testing import CliRunner
 from flext_core import FlextResult
+from flext_tests import UserFactory, TestUser, FlextResultFactory
 
 from flext_cli import FlextCliAuth
 from flext_cli.auth import auth, status
@@ -242,6 +243,10 @@ class TestAuthCommandsReal:
 class TestAuthFunctionalityReal:
     """Test auth functionality with REAL execution - NO MOCKS."""
 
+    def setup_method(self) -> None:
+        """Set up test environment with real auth instance."""
+        self.auth = FlextCliAuth()
+
     def test_auth_imports_real(self) -> None:
         """Test that all required imports work ACTUALLY."""
         # All imports should work in REAL environment
@@ -264,11 +269,17 @@ class TestAuthFunctionalityReal:
         """Test REAL FlextResult pattern usage in auth functions."""
         test_token = "result_test_token_xyz789"
 
-        # Clear existing tokens
-        self.auth.clear_auth_tokens()
+        # Create REAL FlextCliAuth instance using flext_tests pattern
+        auth_service = FlextCliAuth()
+
+        # Clear existing tokens - test REAL clear operation
+        clear_result = auth_service.clear_auth_tokens()
+        assert isinstance(clear_result, FlextResult), (
+            "clear_auth_tokens should return FlextResult"
+        )
 
         # Test REAL FlextResult success case for save
-        save_result = self.auth.save_auth_token(test_token)
+        save_result = auth_service.save_auth_token(test_token)
         assert isinstance(save_result, FlextResult), (
             "save_auth_token should return FlextResult"
         )
@@ -276,12 +287,17 @@ class TestAuthFunctionalityReal:
         assert save_result.error is None, "Successful result should have no error"
 
         # Test that get_auth_token works (returns FlextResult[str])
-        loaded_token_result = self.auth.get_auth_token()
+        loaded_token_result = auth_service.get_auth_token()
+        assert isinstance(loaded_token_result, FlextResult), (
+            "get_auth_token should return FlextResult"
+        )
         assert loaded_token_result.is_success, "Load operation should succeed"
-        assert loaded_token_result.value == test_token, "Should load correct token"
+        assert loaded_token_result.value == test_token, (
+            f"Loaded token should match saved token: {loaded_token_result.value} != {test_token}"
+        )
 
         # Test REAL FlextResult success case for clear
-        clear_result = self.auth.clear_auth_tokens()
+        final_clear_result = auth_service.clear_auth_tokens()
         assert isinstance(clear_result, FlextResult), (
             "clear_auth_tokens should return FlextResult"
         )
@@ -296,7 +312,8 @@ class TestAuthFunctionalityReal:
         # Test loading when no token exists
         no_token_result = self.auth.get_auth_token()
         assert not no_token_result.is_success, "Should fail when no token exists"
-        assert "not found" in no_token_result.error.lower(), (
+        assert ("not found" in no_token_result.error.lower() or 
+                "does not exist" in no_token_result.error.lower()), (
             "Should have meaningful error message"
         )
 

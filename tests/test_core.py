@@ -561,7 +561,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         plugins = plugins_result.value
         assert "test-plugin" in plugins
         assert isinstance(plugins["test-plugin"], dict)
-        assert plugins["test-plugin"].name == "test-plugin"
+        assert plugins["test-plugin"]["name"] == "test-plugin"
 
     def test_flext_cli_register_duplicate_plugin_fails(self) -> None:
         """Test registering duplicate plugin names fails."""

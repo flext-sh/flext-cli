@@ -17,6 +17,10 @@ from flext_core import FlextResult
 from flext_core.typings import FlextTypes as CoreFlextTypes
 from pydantic import BaseModel, Field
 
+# Import types from constants and models for compatibility
+from flext_cli.constants import FlextCliConstants
+from flext_cli.models import FlextCliModels
+
 # Type variables for compatibility with existing tests
 E = TypeVar("E")
 F = TypeVar("F")
@@ -303,12 +307,54 @@ class FlextCliTypes:
 # BACKWARD COMPATIBILITY AND ALIASES
 # =============================================================================
 
-# FlextTypes alias that inherits from CoreFlextTypes for compatibility
-class FlextTypes(CoreFlextTypes):
-    """CLI FlextTypes extending core FlextTypes for backward compatibility."""
 
-    # Inherit all from core and add CLI-specific extensions
+# FlextTypes alias for test compatibility
+class FlextTypes:
+    """CLI FlextTypes with direct access to all type classes."""
+
+    # Core types from flext_core
+    Core = CoreFlextTypes
+
+    # CLI-specific types
     CLI = FlextCliTypes
+
+    # Direct access to commonly used types
+    Commands = FlextCliTypes.Commands
+    Config = FlextCliTypes.Config
+    Auth = FlextCliTypes.Auth
+    Session = FlextCliTypes.Session
+    Services = FlextCliTypes.Services
+    Results = FlextCliTypes.Results
+    Protocols = FlextCliTypes.Protocols
+    OutputFormat = FlextCliTypes.OutputFormat
+
+
+# =============================================================================
+# TYPE ALIASES FOR BACKWARD COMPATIBILITY
+# =============================================================================
+
+# Command-related types
+CommandStatus = FlextCliConstants.CommandStatus
+CommandType = str  # Generic command type
+PluginStatus = str  # Generic plugin status
+
+# Utility types
+PositiveIntType = int
+URL = str
+URLType = str
+
+# Data types
+FlextCliDataType = dict[str, object]
+FlextCliFileHandler = object  # Generic file handler
+CommandArgs = list[str]
+FlextCliLogLevel = FlextCliConstants.LogLevel
+
+# Model types
+FlextCliCommand = FlextCliModels.CliCommand
+FlextCliConfigDict = dict[str, object]
+ContextParams = dict[str, object]
+PluginResult = dict[str, object]
+SessionData = dict[str, object]
 
 # =============================================================================
 # EXPORTS - Type variables and main classes for test compatibility
@@ -316,12 +362,28 @@ class FlextTypes(CoreFlextTypes):
 
 
 __all__ = [
+    "URL",
+    "CommandArgs",
+    # Backward compatibility aliases
+    "CommandStatus",
+    "CommandType",
+    "ContextParams",
     "E",  # Type variables
     "F",
-    "FlextTypes",                        # Main compatibility alias
+    "FlextCliCommand",
+    "FlextCliConfigDict",
+    "FlextCliDataType",
+    "FlextCliFileHandler",
+    "FlextCliLogLevel",
+    "FlextTypes",  # Main compatibility alias
     "P",
+    "PluginResult",
+    "PluginStatus",
+    "PositiveIntType",
     "R",
+    "SessionData",
     "T",
     "U",
+    "URLType",
     "V",
 ]

@@ -326,7 +326,6 @@ class FlextCliContext:
             user_id=str(user_id) if user_id is not None else None,
         )
 
-
     @classmethod
     def create_with_params(cls, **params: object) -> FlextCliContext:
         """Create CLI context with parameters."""
@@ -340,27 +339,27 @@ class FlextCliContext:
 
         # Validate parameters
         if profile == "":
-            raise ValueError("Profile cannot be empty")
+            message = "Profile cannot be empty"
+            raise ValueError(message)
 
-        if output_format not in ["table", "json", "yaml", "csv"]:
-            raise ValueError(f"Invalid output format: {output_format}")
+        if output_format not in {"table", "json", "yaml", "csv"}:
+            message = f"Invalid output format: {output_format}"
+            raise ValueError(message)
 
         if quiet and verbose:
-            raise ValueError("Cannot be both quiet and verbose")
+            message = "Cannot be both quiet and verbose"
+            raise ValueError(message)
 
         # Create config with parameters
         config = FlextCliConfig(
             profile=str(profile),
             debug_mode=bool(debug),
             output_format=str(output_format),
-            no_color=bool(no_color)
+            no_color=bool(no_color),
         )
 
         return cls(
-            config=config,
-            debug=bool(debug),
-            quiet=bool(quiet),
-            verbose=bool(verbose)
+            config=config, debug=bool(debug), quiet=bool(quiet), verbose=bool(verbose)
         )
 
 

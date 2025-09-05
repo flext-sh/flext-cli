@@ -100,7 +100,11 @@ from flext_cli.services import FlextCliServices
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.data_processing import FlextCliDataProcessing
-from flext_cli.decorators import FlextCliDecorators, flext_cli_require_confirmation, handle_service_result
+from flext_cli.decorators import (
+    FlextCliDecorators,
+    flext_cli_require_confirmation,
+    handle_service_result,
+)
 from flext_cli.domain_services import FlextCliDomainServices
 from flext_cli.file_operations import FlextCliFileOperations
 from flext_cli.interactions import FlextCliInteractions
@@ -164,6 +168,21 @@ from flext_cli.exceptions import (
 from flext_cli.cli import FlextCliMain, cli, main
 
 # =============================================================================
+# CONVENIENCE FUNCTIONS
+# =============================================================================
+
+
+def get_cli_config() -> FlextCliConfig:
+    """Get current CLI configuration instance.
+
+    Returns:
+        FlextCliConfig: Current configuration instance
+
+    """
+    return FlextCliConfig.get_current()
+
+
+# =============================================================================
 # EXPLICIT EXPORTS - NO AGGREGATION LOGIC
 # =============================================================================
 
@@ -192,7 +211,6 @@ __all__ = [
     "__repository_url__",
     "__status__",
     "__url__",
-
     # =============================================================================
     # CORE CLI CLASSES - Primary API surface
     # =============================================================================
@@ -207,7 +225,6 @@ __all__ = [
     "FlextCliModels",
     "FlextCliService",
     "FlextCliServices",
-
     # =============================================================================
     # UTILITY CLASSES
     # =============================================================================
@@ -218,7 +235,6 @@ __all__ = [
     "FlextCliFileOperations",
     "FlextCliInteractions",
     "FlextCliValidation",
-
     # =============================================================================
     # COMMAND MODULES AND FUNCTIONS
     # =============================================================================
@@ -234,7 +250,6 @@ __all__ = [
     "set_value",
     "show",
     "validate",
-
     # =============================================================================
     # TYPE SYSTEM AND TYPE VARIABLES
     # =============================================================================
@@ -246,7 +261,6 @@ __all__ = [
     "T",
     "U",
     "V",
-
     # =============================================================================
     # EXCEPTIONS - Complete hierarchy
     # =============================================================================
@@ -263,11 +277,14 @@ __all__ = [
     "FlextCliProcessingError",
     "FlextCliTimeoutError",
     "FlextCliValidationError",
-
     # =============================================================================
     # CLI ENTRY POINT AND MAIN FUNCTIONS
     # =============================================================================
     "FlextCliMain",
     "cli",
     "main",
+    # =============================================================================
+    # CONVENIENCE FUNCTIONS
+    # =============================================================================
+    "get_cli_config",
 ]

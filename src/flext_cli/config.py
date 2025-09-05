@@ -302,7 +302,9 @@ class FlextCliConfig(FlextConfig):
             max_table_rows: int = FlextCliConstants.LIMITS.max_table_rows
             table_padding: int = FlextCliConstants.OUTPUT.default_table_padding
             max_cell_width: int = FlextCliConstants.LIMITS.max_profile_name_length
-            progress_bar_width: int = FlextCliConstants.OUTPUT.default_progress_bar_width
+            progress_bar_width: int = (
+                FlextCliConstants.OUTPUT.default_progress_bar_width
+            )
 
         class Auth:
             """Authentication defaults."""
@@ -316,9 +318,13 @@ class FlextCliConfig(FlextConfig):
         class Config:
             """Configuration management defaults."""
 
-            max_profile_name_length: int = FlextCliConstants.LIMITS.max_profile_name_length
+            max_profile_name_length: int = (
+                FlextCliConstants.LIMITS.max_profile_name_length
+            )
             max_config_key_length: int = FlextCliConstants.MAX_CONFIG_KEY_LENGTH
-            max_config_value_length: int = FlextCliConstants.LIMITS.max_config_value_length
+            max_config_value_length: int = (
+                FlextCliConstants.LIMITS.max_config_value_length
+            )
 
         class Validation:
             """Input validation defaults."""
@@ -446,7 +452,6 @@ class FlextCliConfig(FlextConfig):
     # VALIDATION METHODS - CLI-specific business rules
     # =========================================================================
 
-    @override
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI-specific business rules extending base validation.
 

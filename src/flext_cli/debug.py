@@ -40,7 +40,9 @@ class FlextCliDebug:
 
     # Simplified constants
     # Use centralized constant from FlextCliConstants
-    SENSITIVE_VALUE_PREVIEW_LENGTH: int = FlextCliConstants.SENSITIVE_VALUE_PREVIEW_LENGTH
+    SENSITIVE_VALUE_PREVIEW_LENGTH: int = (
+        FlextCliConstants.SENSITIVE_VALUE_PREVIEW_LENGTH
+    )
 
     class CliContextObj(TypedDict, total=False):
         """Type definition for Click context object."""

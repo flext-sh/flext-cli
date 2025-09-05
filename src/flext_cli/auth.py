@@ -14,16 +14,16 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, TypedDict, cast
+from typing import TypedDict, cast
 
 import click
 from flext_core import FlextLogger, FlextResult
 from rich.console import Console
 
-logger = FlextLogger(__name__)
+from flext_cli.client import FlextApiClient
+from flext_cli.config import FlextCliConfig
 
-if TYPE_CHECKING:
-    from flext_cli.config import FlextCliConfig
+logger = FlextLogger(__name__)
 
 
 class FlextCliAuth:
@@ -64,7 +64,6 @@ class FlextCliAuth:
         """Get CLI configuration, lazy-loaded to avoid circular imports."""
         if self._config is None:
             # Avoid circular import - lazy load
-            from flext_cli.config import FlextCliConfig  # noqa: PLC0415
 
             self._config = FlextCliConfig.get_current()
         return self._config
@@ -259,8 +258,6 @@ class FlextCliAuth:
         self, username: str, password: str
     ) -> FlextResult[dict[str, object]]:
         """Ultra-simplified login using Python 3.13+ match-case patterns."""
-        from flext_cli.client import FlextApiClient  # noqa: PLC0415
-
         # Single-expression validation using match-case
         match (
             username.strip() if username else "",
@@ -283,23 +280,27 @@ class FlextCliAuth:
             async with FlextApiClient() as client:
                 response = await client.login(username, password)
 
-                # Response validation and token extraction
-                if response is None or response == {}:
+                # Check if login was successful
+                if not response.is_success:
+                    return response  # Return the error result directly
+
+                # Extract the response data
+                response_data = response.data
+                if response_data is None or response_data == {}:
                     return FlextResult[dict[str, object]].fail(
                         "Empty authentication response"
                     )
-                if isinstance(response, dict) and "token" in response:
-                    token = response.get("token")
+
+                # Token extraction and validation
+                if "token" in response_data:
+                    token = response_data.get("token")
                     if isinstance(token, str) and token.strip():
-                        return self._handle_token_save(token, response)
+                        return self._handle_token_save(token, response_data)
                     return FlextResult[dict[str, object]].fail(
                         f"Invalid token format: {type(token)}"
                     )
-                if isinstance(response, dict):
-                    return FlextResult[dict[str, object]].fail(
-                        "Missing token in response"
-                    )
-                return FlextResult[dict[str, object]].fail("Invalid response format")
+
+                return FlextResult[dict[str, object]].fail("Missing token in response")
 
         except Exception as e:
             # Exception handling
@@ -328,8 +329,6 @@ class FlextCliAuth:
 
     async def logout(self) -> FlextResult[None]:
         """Ultra-simplified logout using match-case and error recovery."""
-        from flext_cli.client import FlextApiClient  # noqa: PLC0415
-
         # Single match-case authentication check
         token_result = self.get_auth_token()
         if token_result.is_success and token_result.value.strip():
@@ -387,10 +386,12 @@ class FlextCliAuth:
                 try:
                     # In a real implementation, this would decode the JWT token
                     # or make an API call to get user information
-                    return FlextResult[dict[str, object]].ok({
-                        "authenticated": True,
-                        "note": "User information retrieval not yet implemented",
-                    })
+                    return FlextResult[dict[str, object]].ok(
+                        {
+                            "authenticated": True,
+                            "note": "User information retrieval not yet implemented",
+                        }
+                    )
                 except (ValueError, KeyError) as e:
                     return FlextResult[dict[str, object]].fail(
                         f"Error retrieving user information: {e}"
