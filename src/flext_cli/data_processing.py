@@ -13,9 +13,10 @@ from __future__ import annotations
 import contextlib
 from collections.abc import Callable
 from functools import reduce
+from pathlib import Path
 from typing import cast
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextUtilities
 
 
 class FlextCliDataProcessing:
@@ -377,6 +378,80 @@ class FlextCliDataProcessing:
         """Convenience method for batch validation."""
         result = self.execute("batch_validate", values=values)
         return cast("FlextResult[list[object]]", result)
+
+    def transform_data(
+        self,
+        data: list[dict[str, object]] | dict[str, object] | None,
+        filters: dict[str, object] | None = None,
+    ) -> FlextResult[list[dict[str, object]]]:
+        """Transform data with optional filters - convenience method for backward compatibility."""
+        if data is None:
+            return FlextResult[list[dict[str, object]]].fail("No data provided")
+
+        # Convert single dict to list
+        if isinstance(data, dict):
+            data_list = [data]
+        elif isinstance(data, list):
+            data_list = data
+        else:
+            return FlextResult[list[dict[str, object]]].fail(
+                "Data must be dict or list of dicts"
+            )
+
+        # Use the internal transform method
+        config: dict[str, object] = {"filter_field": None, "filter_value": None}
+        if filters:
+            # Apply filters by extracting first filter key-value pair
+            for key, value in filters.items():
+                config["filter_field"] = str(key)
+                config["filter_value"] = value
+                break  # Use only first filter
+
+        return self._execute_transform(data_list, config)
+
+    def aggregate_data(
+        self, data: list[dict[str, object]] | None
+    ) -> FlextResult[dict[str, object]]:
+        """Aggregate data - convenience method for backward compatibility."""
+        if not data:
+            return FlextResult[dict[str, object]].ok({})
+
+        # Simple aggregation: count items and extract common fields
+        try:
+            result = {"total_count": len(data), "items": data}
+
+            # Extract unique keys across all items
+            all_keys: set[str] = set()
+            for item in data:
+                if isinstance(item, dict):
+                    all_keys.update(item.keys())
+            result["unique_fields"] = sorted(all_keys)
+
+            return FlextResult[dict[str, object]].ok(result)
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(f"Aggregation failed: {e}")
+
+    def export_to_file(
+        self, data: list[dict[str, object]] | dict[str, object], file_path: str
+    ) -> FlextResult[str]:
+        """Export data to file - convenience method for backward compatibility."""
+        try:
+            path = Path(file_path)
+
+            # Check if parent directory exists and is writable
+            if not path.parent.exists():
+                return FlextResult[str].fail(f"Directory does not exist: {path.parent}")
+
+            # Format data as JSON
+            json_result = FlextUtilities.safe_json_stringify(data)
+
+            # Write to file
+            path.write_text(json_result, encoding="utf-8")
+
+            return FlextResult[str].ok(f"Exported data to {file_path}")
+
+        except Exception as e:
+            return FlextResult[str].fail(f"Export failed: {e}")
 
 
 __all__ = ["FlextCliDataProcessing"]

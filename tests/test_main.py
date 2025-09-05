@@ -11,6 +11,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+import flext_cli.__main__
+from flext_cli.cli import main
+
 
 class TestMainModule:
     """Test __main__.py entry point functionality."""
@@ -18,8 +21,6 @@ class TestMainModule:
     def test_main_module_import(self) -> None:
         """Test that __main__ module can be imported."""
         # Import should work without errors
-        import flext_cli.__main__
-
         assert flext_cli.__main__ is not None
 
     def test_main_module_execution(self) -> None:
@@ -40,11 +41,8 @@ class TestMainModule:
 
     def test_main_module_has_correct_imports(self) -> None:
         """Test that __main__ has correct imports."""
-        import flext_cli.__main__
-
         # Should have access to main function
         assert hasattr(flext_cli.__main__, "main")
 
         # main should be callable
-        from flext_cli.cli import main
         assert callable(main)

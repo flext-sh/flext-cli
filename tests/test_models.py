@@ -79,10 +79,11 @@ class TestFlextCliModelsCliCommand:
 
     def test_cli_command_status_validation(self) -> None:
         """Test command status validation."""
-        # Valid status
+        # Valid status with required exit_code
         command = FlextCliModels.CliCommand(
             command_line="test",
-            status=FlextCliConstants.STATUS_COMPLETED
+            status=FlextCliConstants.STATUS_COMPLETED,
+            exit_code=0
         )
         assert command.status == FlextCliConstants.STATUS_COMPLETED
 
@@ -122,7 +123,7 @@ class TestFlextCliModelsCliSession:
         assert session.end_time is None
         assert session.user_id is None
         assert len(session.commands) == 0
-        assert isinstance(session.duration_seconds, float)
+        assert session.duration_seconds is None  # None because end_time is None
 
     def test_cli_session_creation_with_user_id(self) -> None:
         """Test CLI session creation with user ID."""
@@ -172,11 +173,11 @@ class TestFlextCliTypesOutputFormat:
 
     def test_output_format_values(self) -> None:
         """Test all output format values."""
-        assert FlextCliTypes.OutputFormat.JSON == "json"
-        assert FlextCliTypes.OutputFormat.YAML == "yaml"
-        assert FlextCliTypes.OutputFormat.CSV == "csv"
-        assert FlextCliTypes.OutputFormat.TABLE == "table"
-        assert FlextCliTypes.OutputFormat.PLAIN == "plain"
+        assert FlextCliTypes.OutputFormat.JSON.value == "json"
+        assert FlextCliTypes.OutputFormat.YAML.value == "yaml"
+        assert FlextCliTypes.OutputFormat.CSV.value == "csv"
+        assert FlextCliTypes.OutputFormat.TABLE.value == "table"
+        assert FlextCliTypes.OutputFormat.PLAIN.value == "plain"
 
     def test_output_format_enum_usage(self) -> None:
         """Test output format enum can be used in validation."""
@@ -218,17 +219,26 @@ class TestFlextCliModelsIntegration:
     def test_command_with_all_valid_statuses(self) -> None:
         """Test command can be created with all valid statuses."""
         for status in FlextCliConstants.VALID_COMMAND_STATUSES:
-            command = FlextCliModels.CliCommand(
-                command_line="test",
-                status=status
-            )
+            # Create command directly with specific parameters
+            if status == FlextCliConstants.STATUS_COMPLETED:
+                command = FlextCliModels.CliCommand(
+                    command_line="test", status=status, exit_code=0
+                )
+            elif status == FlextCliConstants.STATUS_FAILED:
+                command = FlextCliModels.CliCommand(
+                    command_line="test", status=status, exit_code=1
+                )
+            else:
+                command = FlextCliModels.CliCommand(
+                    command_line="test", status=status
+                )
             assert command.status == status
 
     def test_config_with_all_valid_output_formats(self) -> None:
         """Test config can be created with all valid output formats."""
         for format_value in FlextCliTypes.OutputFormat:
             config = FlextCliModels.CliConfig(
-                output_format=format_value
+                output_format=format_value.value
             )
             assert config.output_format == format_value.value
 

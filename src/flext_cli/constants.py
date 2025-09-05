@@ -13,14 +13,13 @@ import os
 from enum import StrEnum
 from typing import ClassVar, Final
 
-from flext_core import FlextConfig
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 
 class FlextCliConstants:
     """CLI constants structured as Pydantic models extending flext-core patterns."""
 
-    class TimeoutConfig(FlextConfig.BaseModel):
+    class TimeoutConfig(BaseModel):
         """Timeout and duration configuration with validation."""
 
         default_command_timeout: int = Field(default=30, ge=1, le=3600)
@@ -35,7 +34,7 @@ class FlextCliConstants:
         refresh_expiry_days: int = Field(default=30, ge=1, le=365)
         milliseconds_per_second: float = Field(default=1000.0, frozen=True)
 
-    class LimitsConfig(FlextConfig.BaseModel):
+    class LimitsConfig(BaseModel):
         """Size and validation limits with constraints."""
 
         max_history_size: int = Field(default=1000, ge=1, le=100000)
@@ -49,7 +48,7 @@ class FlextCliConstants:
         max_env_var_display_length: int = Field(default=60, ge=1, le=200)
         max_timeout_seconds: int = Field(default=3600, ge=1, le=86400)
 
-    class OutputConfig(FlextConfig.BaseModel):
+    class OutputConfig(BaseModel):
         """Output formatting configuration."""
 
         default_output_format: str = Field(
@@ -63,7 +62,7 @@ class FlextCliConstants:
         min_length: int = Field(default=1, ge=1, le=10)
         default_token_min_length: int = Field(default=10, ge=1, le=100)
 
-    class SecurityConfig(FlextConfig.BaseModel):
+    class SecurityConfig(BaseModel):
         """Security and privacy configuration."""
 
         sensitive_value_preview_length: int = Field(default=4, ge=1, le=10)
@@ -71,7 +70,7 @@ class FlextCliConstants:
         max_config_key_length: int = Field(default=100, ge=10, le=1000)
         max_output_size: int = Field(default=1048576, ge=1024, le=10485760)  # 1MB
 
-    class HttpConfig(FlextConfig.BaseModel):
+    class HttpConfig(BaseModel):
         """HTTP client configuration with security defaults."""
 
         http_scheme: str = Field(default="http", frozen=True)
@@ -96,7 +95,7 @@ class FlextCliConstants:
             """Generate fallback API URL from configuration."""
             return f"{self.http_scheme}://{self.default_host}:{self.fallback_api_port}"
 
-    class FileConfig(FlextConfig.BaseModel):
+    class FileConfig(BaseModel):
         """File and directory configuration with security."""
 
         flext_dir_name: str = Field(default=".flext", min_length=1)
@@ -127,6 +126,7 @@ class FlextCliConstants:
         JSON = "json"
         YAML = "yaml"
         CSV = "csv"
+        PLAIN = "plain"
 
     class LogLevel(StrEnum):
         """Valid log levels."""
@@ -169,7 +169,7 @@ class FlextCliConstants:
         DELETE = "DELETE"
         PATCH = "PATCH"
 
-    class MessageConfig(FlextConfig.BaseModel):
+    class MessageConfig(BaseModel):
         """User-facing CLI message configuration."""
 
         interactive_feature_help: str = Field(
@@ -182,10 +182,18 @@ class FlextCliConstants:
         version_python: str = Field(default="Python", min_length=1)
         version_flext_core: str = Field(default="FLEXT Core", min_length=1)
         service_name_api: str = Field(default="FLEXT CLI API", min_length=1)
-        table_title_config: str = Field(default="FLEXT Configuration v0.7.0", min_length=1)
-        table_title_paths: str = Field(default="FLEXT Configuration Paths", min_length=1)
-        table_title_metrics: str = Field(default="System Performance Metrics", min_length=1)
-        table_title_env_vars: str = Field(default="FLEXT Environment Variables", min_length=1)
+        table_title_config: str = Field(
+            default="FLEXT Configuration v0.7.0", min_length=1
+        )
+        table_title_paths: str = Field(
+            default="FLEXT Configuration Paths", min_length=1
+        )
+        table_title_metrics: str = Field(
+            default="System Performance Metrics", min_length=1
+        )
+        table_title_env_vars: str = Field(
+            default="FLEXT Environment Variables", min_length=1
+        )
         table_title_cli_paths: str = Field(default="FLEXT CLI Paths", min_length=1)
         debug_flext_core_not_detected: str = Field(
             default="FLEXT Core version not detected", min_length=1
@@ -321,10 +329,14 @@ class FlextCliConstants:
     HTTP_PATCH: Final[str] = HttpMethod.PATCH
 
     # Enums (DEPRECATED: Use StrEnum classes instead)
-    VALID_OUTPUT_FORMATS: Final[tuple[str, ...]] = tuple(OutputFormat)
-    VALID_LOG_LEVELS: Final[tuple[str, ...]] = tuple(LogLevel)
-    VALID_COMMAND_STATUSES: Final[tuple[str, ...]] = tuple(CommandStatus)
-    VALID_PIPELINE_STATUSES: Final[tuple[str, ...]] = tuple(PipelineStatus)
+    VALID_OUTPUT_FORMATS: Final[tuple[str, ...]] = tuple(f.value for f in OutputFormat)
+    VALID_LOG_LEVELS: Final[tuple[str, ...]] = tuple(f.value for f in LogLevel)
+    VALID_COMMAND_STATUSES: Final[tuple[str, ...]] = tuple(
+        f.value for f in CommandStatus
+    )
+    VALID_PIPELINE_STATUSES: Final[tuple[str, ...]] = tuple(
+        f.value for f in PipelineStatus
+    )
 
 
 __all__ = ["FlextCliConstants"]

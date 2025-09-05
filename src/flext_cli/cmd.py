@@ -45,9 +45,13 @@ class FlextCliCmd:
                 yaml_mod = importlib.import_module("yaml")
                 console.print(yaml_mod.dump({key: value}, default_flow_style=False))
             except ImportError:
-                console.print(f"[yellow]YAML not available, showing as string:[/yellow] {key}: {value}")
+                console.print(
+                    f"[yellow]YAML not available, showing as string:[/yellow] {key}: {value}"
+                )
             except Exception as e:
-                console.print(f"[red]YAML formatting failed:[/red] {key}: {value} (Error: {e})")
+                console.print(
+                    f"[red]YAML formatting failed:[/red] {key}: {value} (Error: {e})"
+                )
         else:
             console.print(f"{key}: {value}")
 
@@ -276,7 +280,13 @@ def path(ctx: click.Context) -> None:
     table.add_column("Location", style="white")
 
     # Add configuration file path
-    config_file = getattr(cfg, "config_file", Path.home() / FlextCliConstants.FLEXT_DIR_NAME / FlextCliConstants.CONFIG_FILE_NAME)
+    config_file = getattr(
+        cfg,
+        "config_file",
+        Path.home()
+        / FlextCliConstants.FLEXT_DIR_NAME
+        / FlextCliConstants.CONFIG_FILE_NAME,
+    )
     table.add_row("Config File", str(config_file))
 
     # Add token paths if they exist
@@ -344,4 +354,13 @@ def edit(ctx: click.Context) -> None:
     console.print(f"Config file ready at: {cfg_path}")
 
 
-__all__ = ["FlextCliCmd", "config", "edit", "get_cmd", "path", "set_value", "show", "validate"]
+__all__ = [
+    "FlextCliCmd",
+    "config",
+    "edit",
+    "get_cmd",
+    "path",
+    "set_value",
+    "show",
+    "validate",
+]

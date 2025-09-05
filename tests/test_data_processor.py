@@ -1,682 +1,245 @@
-"""Tests for FlextCliDataProcessor Advanced Methods.
+"""Functional tests for FlextCliDataProcessor using flext_tests patterns.
 
-This module provides comprehensive tests for the advanced methods added to
-FlextCliDataProcessor that weren't covered in the main helpers test file.
+Real functionality tests without mocks, using flext_tests library for
+advanced testing patterns and comprehensive coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
 """
 
-from collections.abc import Callable
-from unittest.mock import patch
+from __future__ import annotations
 
-import pytest
+import json
+import tempfile
+from pathlib import Path
+
 from flext_core import FlextResult
+from flext_tests import (
+    FlextMatchers,
+    FlextTestUtilities,
+    PerformanceProfiler,
+    RealisticData,
+    ValidationTestCases,
+)
 
 from flext_cli import FlextCliDataProcessing
 
 
-class TestFlextCliDataProcessingAdvanced:
-    """Test suite for advanced FlextCliDataProcessor methods."""
+class TestFlextCliDataProcessingFunctional:
+    """Functional tests for FlextCliDataProcessing using real execution."""
 
     def setup_method(self) -> None:
-        """Setup test environment."""
+        """Setup test environment with real processor instance."""
         self.processor = FlextCliDataProcessing()
-
-    def test_flext_cli_aggregate_data_success_all_sources(self) -> None:
-        """Test successful data aggregation from all sources."""
-
-        def fetch_users() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult[None].ok(
-                [
-                    {"id": 1, "name": "Alice", "type": "user"},
-                    {"id": 2, "name": "Bob", "type": "user"},
-                ],
-            )
-
-        def fetch_orders() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult[None].ok(
-                [
-                    {"id": 101, "user_id": 1, "amount": 99.99},
-                    {"id": 102, "user_id": 2, "amount": 149.99},
-                ],
-            )
-
-        def fetch_products() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult[None].ok(
-                [
-                    {"id": 201, "name": "Widget", "price": 29.99},
-                    {"id": 202, "name": "Gadget", "price": 49.99},
-                ],
-            )
-
-        data_sources = {
-            "users": fetch_users,
-            "orders": fetch_orders,
-            "products": fetch_products,
-        }
-
-        # Mock the method that doesn't exist yet
-        def mock_aggregate_data(
-            sources: dict[str, Callable[[], FlextResult[object]]],
-            *,
-            fail_fast: bool = True,
-        ) -> FlextResult[dict[str, object]]:
-            """Mock implementation of flext_cli_aggregate_data."""
-            aggregated_data: dict[str, object] = {}
-            errors: list[str] = []
-
-            for source_name, source_func in sources.items():
-                try:
-                    result = source_func()
-                    if result.is_success:
-                        aggregated_data[source_name] = result.value
-                    else:
-                        errors.append(f"{source_name}: {result.error}")
-                        if fail_fast:
-                            return FlextResult[None].fail(
-                                f"Source {source_name} failed: {result.error}",
-                            )
-                except Exception as e:
-                    errors.append(f"{source_name}: {e!s}")
-                    if fail_fast:
-                        return FlextResult[None].fail(
-                            f"Source {source_name} exception: {e!s}",
-                        )
-
-            if errors and not aggregated_data:
-                return FlextResult[None].fail(
-                    f"All sources failed: {'; '.join(errors)}"
-                )
-
-            if errors:
-                aggregated_data["_errors"] = errors
-
-            return FlextResult[None].ok(aggregated_data)
-
-        # Patch the method temporarily
-        with patch.object(
-            self.processor,
-            "flext_cli_aggregate_data",
-            side_effect=mock_aggregate_data,
-        ):
-            result = self.processor.flext_cli_aggregate_data(
-                data_sources,
-                fail_fast=False,
-            )
-
-        assert result.is_success
-        assert "users" in result.value
-        assert "orders" in result.value
-        assert "products" in result.value
-        assert len(result.value["users"]) == 2
-        assert len(result.value["orders"]) == 2
-        assert len(result.value["products"]) == 2
-
-    def test_flext_cli_aggregate_data_partial_failure_continue(self) -> None:
-        """Test data aggregation with partial failures and continue processing."""
-
-        def fetch_users() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult[None].ok([{"id": 1, "name": "Alice"}])
-
-        def fetch_orders() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult[None].fail("Orders service unavailable")
-
-        def fetch_products() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult[None].ok([{"id": 201, "name": "Widget"}])
-
-        data_sources = {
-            "users": fetch_users,
-            "orders": fetch_orders,
-            "products": fetch_products,
-        }
-
-        # Mock the method
-        def mock_aggregate_data(
-            sources: dict[str, Callable[[], FlextResult[object]]],
-            *,
-            fail_fast: bool = True,
-        ) -> FlextResult[dict[str, object]]:
-            """Mock implementation of flext_cli_aggregate_data."""
-            aggregated_data: dict[str, object] = {}
-            errors: list[str] = []
-
-            for source_name, source_func in sources.items():
-                try:
-                    result = source_func()
-                    if result.is_success:
-                        aggregated_data[source_name] = result.value
-                    else:
-                        errors.append(f"{source_name}: {result.error}")
-                        if fail_fast:
-                            return FlextResult[None].fail(
-                                f"Source {source_name} failed: {result.error}",
-                            )
-                except Exception as e:
-                    errors.append(f"{source_name}: {e!s}")
-                    if fail_fast:
-                        return FlextResult[None].fail(
-                            f"Source {source_name} exception: {e!s}",
-                        )
-
-            if errors and not aggregated_data:
-                return FlextResult[None].fail(
-                    f"All sources failed: {'; '.join(errors)}"
-                )
-
-            if errors:
-                aggregated_data["_errors"] = errors
-
-            return FlextResult[None].ok(aggregated_data)
-
-        with patch.object(
-            self.processor,
-            "flext_cli_aggregate_data",
-            side_effect=mock_aggregate_data,
-        ):
-            result = self.processor.flext_cli_aggregate_data(
-                data_sources,
-                fail_fast=False,
-            )
-
-        assert result.is_success
-        assert "users" in result.value
-        assert "products" in result.value
-        assert "orders" not in result.value  # Failed source not included
-        assert "_errors" in result.value
-        assert "orders: Orders service unavailable" in result.value["_errors"]
-
-    def test_flext_cli_aggregate_data_fail_fast_mode(self) -> None:
-        """Test data aggregation with fail_fast=True."""
-
-        def fetch_users() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult[None].ok([{"id": 1, "name": "Alice"}])
-
-        def fetch_orders() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult[None].fail("Orders service unavailable")
-
-        def fetch_products() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult[None].ok([{"id": 201, "name": "Widget"}])
-
-        data_sources = {
-            "users": fetch_users,
-            "orders": fetch_orders,
-            "products": fetch_products,
-        }
-
-        # Mock implementation with fail_fast behavior
-        def mock_aggregate_data(
-            sources: dict[str, Callable[[], FlextResult[object]]],
-            *,
-            fail_fast: bool = True,
-        ) -> FlextResult[dict[str, object]]:
-            """Mock implementation of flext_cli_aggregate_data."""
-            aggregated_data: dict[str, object] = {}
-            errors: list[str] = []
-
-            for source_name, source_func in sources.items():
-                try:
-                    result = source_func()
-                    if result.is_success:
-                        aggregated_data[source_name] = result.value
-                    else:
-                        errors.append(f"{source_name}: {result.error}")
-                        if fail_fast:
-                            return FlextResult[None].fail(
-                                f"Source {source_name} failed: {result.error}",
-                            )
-                except Exception as e:
-                    errors.append(f"{source_name}: {e!s}")
-                    if fail_fast:
-                        return FlextResult[None].fail(
-                            f"Source {source_name} exception: {e!s}",
-                        )
-
-            if errors and not aggregated_data:
-                return FlextResult[None].fail(
-                    f"All sources failed: {'; '.join(errors)}"
-                )
-
-            if errors:
-                aggregated_data["_errors"] = errors
-
-            return FlextResult[None].ok(aggregated_data)
-
-        with patch.object(
-            self.processor,
-            "flext_cli_aggregate_data",
-            side_effect=mock_aggregate_data,
-        ):
-            result = self.processor.flext_cli_aggregate_data(
-                data_sources,
-                fail_fast=True,
-            )
-
-        assert not result.is_success
-        assert "Source orders failed: Orders service unavailable" in result.error
-
-    def test_transform_data_pipeline_success(self) -> None:
-        """Test successful data transformation pipeline."""
-        initial_data = {"items": [1, 2, 3, 4, 5]}
-
-        def normalize_data(
-            data: dict[str, object],
-        ) -> FlextResult[dict[str, object]]:
-            # Add metadata
-            return FlextResult[None].ok(
-                {**data, "normalized": True, "item_count": len(data["items"])},
-            )
-
-        def double_items(
-            data: dict[str, object],
-        ) -> FlextResult[dict[str, object]]:
-            # Double all items
-            doubled_items = [item * 2 for item in data["items"]]
-            return FlextResult[None].ok(
-                {
-                    **data,
-                    "items": doubled_items,
-                    "doubled": True,
-                }
-            )
-
-        def add_summary(
-            data: dict[str, object],
-        ) -> FlextResult[dict[str, object]]:
-            # Add summary statistics
-            return FlextResult[None].ok(
-                {
-                    **data,
-                    "summary": {
-                        "total": sum(data["items"]),
-                        "count": len(data["items"]),
-                        "average": sum(data["items"]) / len(data["items"]),
-                    },
-                },
-            )
-
-        transformers = [normalize_data, double_items, add_summary]
-
-        # Mock the method
-        def mock_transform_pipeline(
-            data: object,
-            transformers: list[Callable[[object], FlextResult[object]]],
-        ) -> FlextResult[object]:
-            """Mock implementation of transform_data_pipeline."""
-            current_data = data
-
-            for i, transformer in enumerate(transformers):
-                try:
-                    result = transformer(current_data)
-                    if not result.is_success:
-                        return FlextResult[None].fail(
-                            f"Transformer {i} failed: {result.error}",
-                        )
-                    current_data = result.value
-                except Exception as e:
-                    return FlextResult[None].fail(f"Transformer {i} exception: {e!s}")
-
-            return FlextResult[None].ok(current_data)
-
-        with patch.object(
-            self.processor,
-            "transform_data_pipeline",
-            side_effect=mock_transform_pipeline,
-        ):
-            result = self.processor.transform_data_pipeline(
-                initial_data,
-                transformers,
-            )
-
-        assert result.is_success
-        assert result.value["normalized"] is True
-        assert result.value["doubled"] is True
-        assert result.value["items"] == [2, 4, 6, 8, 10]  # Doubled
-        assert "summary" in result.value
-        assert result.value["summary"]["total"] == 30  # Sum of doubled items
-        assert result.value["summary"]["count"] == 5
-
-    def test_transform_data_pipeline_transformer_failure(self) -> None:
-        """Test data transformation pipeline with transformer failure."""
-        initial_data = {"items": [1, 2, 3]}
-
-        def working_transformer(
-            data: dict[str, object],
-        ) -> FlextResult[dict[str, object]]:
-            return FlextResult[None].ok({**data, "processed": True})
-
-        def failing_transformer(
-            data: dict[str, object],
-        ) -> FlextResult[dict[str, object]]:
-            return FlextResult[None].fail("Transformation logic error")
-
-        def should_not_execute(
-            data: dict[str, object],
-        ) -> FlextResult[dict[str, object]]:
-            return FlextResult[None].ok({**data, "should_not_be_here": True})
-
-        transformers = [working_transformer, failing_transformer, should_not_execute]
-
-        # Mock the method
-        def mock_transform_pipeline(
-            data: object,
-            transformers: list[Callable[[object], FlextResult[object]]],
-        ) -> FlextResult[object]:
-            """Mock implementation of transform_data_pipeline."""
-            current_data = data
-
-            for i, transformer in enumerate(transformers):
-                try:
-                    result = transformer(current_data)
-                    if not result.is_success:
-                        return FlextResult[None].fail(
-                            f"Transformer {i} failed: {result.error}",
-                        )
-                    current_data = result.value
-                except Exception as e:
-                    return FlextResult[None].fail(f"Transformer {i} exception: {e!s}")
-
-            return FlextResult[None].ok(current_data)
-
-        with patch.object(
-            self.processor,
-            "transform_data_pipeline",
-            side_effect=mock_transform_pipeline,
-        ):
-            result = self.processor.transform_data_pipeline(
-                initial_data,
-                transformers,
-            )
-
-        assert not result.is_success
-        assert "Transformer 1 failed: Transformation logic error" in result.error
-
-    def test_transform_data_pipeline_transformer_exception(self) -> None:
-        """Test data transformation pipeline with transformer exception."""
-        initial_data = {"items": [1, 2, 3]}
-
-        def working_transformer(
-            data: dict[str, object],
-        ) -> FlextResult[dict[str, object]]:
-            return FlextResult[None].ok({**data, "processed": True})
-
-        def exception_transformer(
-            data: dict[str, object],
-        ) -> FlextResult[dict[str, object]]:
-            msg = "Unexpected transformer error"
-            raise ValueError(msg)
-
-        transformers = [working_transformer, exception_transformer]
-
-        # Mock the method
-        def mock_transform_pipeline(
-            data: object,
-            transformers: list[Callable[[object], FlextResult[object]]],
-        ) -> FlextResult[object]:
-            """Mock implementation of transform_data_pipeline."""
-            current_data = data
-
-            for i, transformer in enumerate(transformers):
-                try:
-                    result = transformer(current_data)
-                    if not result.is_success:
-                        return FlextResult[None].fail(
-                            f"Transformer {i} failed: {result.error}",
-                        )
-                    current_data = result.value
-                except Exception as e:
-                    return FlextResult[None].fail(f"Transformer {i} exception: {e!s}")
-
-            return FlextResult[None].ok(current_data)
-
-        with patch.object(
-            self.processor,
-            "transform_data_pipeline",
-            side_effect=mock_transform_pipeline,
-        ):
-            result = self.processor.transform_data_pipeline(
-                initial_data,
-                transformers,
-            )
-
-        assert not result.is_success
-        assert "Transformer 1 exception: Unexpected transformer error" in result.error
-
-
-class TestComplexDataProcessingWorkflows:
-    """Test suite for complex data processing workflow combinations."""
-
-    def setup_method(self) -> None:
-        """Setup test environment."""
-        self.processor = FlextCliDataProcessing()
-
-    def test_complete_etl_pipeline_simulation(self) -> None:
-        """Test a complete ETL pipeline simulation using multiple methods."""
-
-        # Step 1: Data extraction (aggregation)
-        def extract_users() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult[None].ok(
-                [
-                    {
-                        "id": 1,
-                        "name": "Alice",
-                        "email": "alice@example.com",
-                        "active": True,
-                    },
-                    {
-                        "id": 2,
-                        "name": "Bob",
-                        "email": "bob@example.com",
-                        "active": False,
-                    },
-                    {
-                        "id": 3,
-                        "name": "Charlie",
-                        "email": "charlie@example.com",
-                        "active": True,
-                    },
-                ],
-            )
-
-        def extract_user_metrics() -> FlextResult[list[dict[str, object]]]:
-            return FlextResult[None].ok(
-                [
-                    {"user_id": 1, "login_count": 15, "last_login": "2024-01-15"},
-                    {"user_id": 2, "login_count": 3, "last_login": "2024-01-10"},
-                    {"user_id": 3, "login_count": 22, "last_login": "2024-01-16"},
-                ],
-            )
-
-        extraction_sources = {"users": extract_users, "metrics": extract_user_metrics}
-
-        # Mock aggregation
-        def mock_aggregate(
-            sources: dict[str, Callable[[], FlextResult[object]]],
-            *,
-            fail_fast: bool = True,
-        ) -> FlextResult[dict[str, object]]:
-            result_data = {}
-            for name, func in sources.items():
-                data_result = func()
-                if data_result.is_success:
-                    result_data[name] = data_result.value
-                else:
-                    return data_result
-            return FlextResult[None].ok(result_data)
-
-        # Step 2: Data transformation
-        def merge_user_data(
-            data: dict[str, object],
-        ) -> FlextResult[dict[str, object]]:
-            """Merge users with their metrics."""
-            users = {user["id"]: user for user in data["users"]}
-            metrics = {metric["user_id"]: metric for metric in data["metrics"]}
-
-            merged_users = []
-            for user_id, user in users.items():
-                user_metrics = metrics.get(user_id, {})
-                merged_user = {
-                    **user,
-                    "login_count": user_metrics.get("login_count", 0),
-                    "last_login": user_metrics.get("last_login", None),
-                }
-                merged_users.append(merged_user)
-
-            return FlextResult[None].ok({"merged_users": merged_users})
-
-        def filter_active_users(
-            data: dict[str, object],
-        ) -> FlextResult[dict[str, object]]:
-            """Filter only active users."""
-            active_users = [user for user in data["merged_users"] if user["active"]]
-            return FlextResult[None].ok({"active_users": active_users})
-
-        def calculate_engagement_score(
-            data: dict[str, object],
-        ) -> FlextResult[dict[str, object]]:
-            """Calculate engagement scores."""
-            scored_users = []
-            for user in data["active_users"]:
-                # Simple engagement score based on login count
-                engagement_score = min(user["login_count"] * 5, 100)  # Max 100
-                scored_user = {**user, "engagement_score": engagement_score}
-                scored_users.append(scored_user)
-
-            return FlextResult[None].ok({"scored_users": scored_users})
-
-        transformation_pipeline = [
-            merge_user_data,
-            filter_active_users,
-            calculate_engagement_score,
+        self.test_utils = FlextTestUtilities()
+        self.realistic_data = RealisticData()
+        self.validation_cases = ValidationTestCases()
+
+    def test_data_processing_workflow_success(self) -> None:
+        """Test complete data processing workflow with real data."""
+        # Generate realistic test data using flext_tests
+        test_data = [self.realistic_data.user_registration_data() for _ in range(3)]
+
+        # Execute real data transformation (use existing method)
+        result = self.processor.transform_data(test_data)
+
+        # Validate using flext_tests matchers
+        assert FlextMatchers.is_successful_result(result)
+        processed_data = result.unwrap()
+        assert isinstance(processed_data, list)
+        assert len(processed_data) == 3
+
+    def test_field_validation_with_realistic_data(self) -> None:
+        """Test field validation using realistic validation cases."""
+        # Test valid emails
+        for valid_email in self.validation_cases.valid_email_cases():
+            result = self.processor.execute("validate", field="email", value=valid_email)
+            assert FlextMatchers.is_successful_result(result)
+
+        # Test invalid emails
+        for invalid_email in self.validation_cases.invalid_email_cases():
+            result = self.processor.execute("validate", field="email", value=invalid_email)
+            assert FlextMatchers.is_failed_result(result)
+
+        # Test valid ages
+        for valid_age in self.validation_cases.valid_ages():
+            result = self.processor.execute("validate", field="age", value=valid_age)
+            assert FlextMatchers.is_successful_result(result)
+
+    def test_data_transformation_pipeline(self) -> None:
+        """Test data transformation pipeline with real transformations."""
+        # Create realistic data that needs transformation
+        raw_data = [
+            {"name": " Alice ", "age": "25", "active": "true"},
+            {"name": " Bob ", "age": "30", "active": "false"},
+            {"name": " Charlie ", "age": "35", "active": "true"},
         ]
 
-        # Mock transformation pipeline
-        def mock_transform(
-            data: object,
-            transformers: list[Callable[[object], FlextResult[object]]],
-        ) -> FlextResult[object]:
-            current = data
-            for transformer in transformers:
-                result = transformer(current)
-                if not result.is_success:
-                    return result
-                current = result.value
-            return FlextResult[None].ok(current)
-
-        # Execute the complete pipeline
-        with (
-            patch.object(
-                self.processor,
-                "flext_cli_aggregate_data",
-                side_effect=mock_aggregate,
-            ),
-            patch.object(
-                self.processor,
-                "transform_data_pipeline",
-                side_effect=mock_transform,
-            ),
-        ):
-            # Step 1: Extract data
-            extraction_result = self.processor.flext_cli_aggregate_data(
-                extraction_sources,
-            )
-            assert extraction_result.is_success
-
-            # Step 2: Transform data
-            transformation_result = self.processor.transform_data_pipeline(
-                extraction_result.value,
-                transformation_pipeline,
-            )
-            assert transformation_result.is_success
-
-        final_data = transformation_result.value
-
-        # Validate final results
-        assert "scored_users" in final_data
-        scored_users = final_data["scored_users"]
-
-        # Should have 2 active users (Alice and Charlie)
-        assert len(scored_users) == 2
-
-        # Check engagement scores
-        alice = next(user for user in scored_users if user["name"] == "Alice")
-        charlie = next(user for user in scored_users if user["name"] == "Charlie")
-
-        assert alice["engagement_score"] == 75  # 15 * 5
-        assert charlie["engagement_score"] == 100  # 22 * 5, capped at 100
-
-    def test_error_handling_in_complex_pipeline(self) -> None:
-        """Test error handling in complex multi-step pipeline."""
-
-        # Step 1: Aggregation with one failing source
-        def working_source() -> FlextResult[list[str]]:
-            return FlextResult[None].ok(["data1", "data2"])
-
-        def failing_source() -> FlextResult[list[str]]:
-            return FlextResult[None].fail("Source system unavailable")
-
-        sources = {"working": working_source, "failing": failing_source}
-
-        # Mock with fail_fast=True
-        def mock_aggregate_fail_fast(
-            sources: dict[str, Callable[[], FlextResult[object]]],
-            *,
-            fail_fast: bool = True,
-        ) -> FlextResult[dict[str, object]]:
-            for name, func in sources.items():
-                result = func()
-                if not result.is_success and fail_fast:
-                    return FlextResult[None].fail(
-                        f"Source {name} failed: {result.error}"
-                    )
-            return FlextResult[None].ok({"working": ["data1", "data2"]})
-
-        with patch.object(
-            self.processor,
-            "flext_cli_aggregate_data",
-            side_effect=mock_aggregate_fail_fast,
-        ):
-            result = self.processor.flext_cli_aggregate_data(sources, fail_fast=True)
-
-        assert not result.is_success
-        assert "Source failing failed: Source system unavailable" in result.error
-
-    def test_validation_and_transformation_integration(self) -> None:
-        """Test integration of validation and transformation methods."""
-        input_data = {
-            "user_email": "USER@EXAMPLE.COM",  # Needs normalization
-            "api_url": "https://api.flext.sh/v1",
-            "batch_size": "25",  # String that needs conversion
-            "active_only": "true",  # String boolean
-        }
-
-        validators = {
-            "user_email": "email",
-            "api_url": "url",
-        }
-
-        transformers = {
-            "user_email": lambda x: x.lower(),
-            "batch_size": int,
-            "active_only": lambda x: x.lower() == "true",
-        }
-
-        # Test validation and transformation
-        result = self.processor.flext_cli_validate_and_transform(
-            input_data,
-            validators,
-            transformers,
+        # Execute real transformation
+        result = self.processor.transform_data_pipeline(
+            data=raw_data,
+            transformations=["strip_strings", "convert_types", "normalize"]
         )
 
-        assert result.is_success
-        assert (
-            result.value["user_email"] == "user@example.com"
-        )  # Validated and lowercased
-        assert result.value["api_url"] == "https://api.flext.sh/v1"  # Validated
-        assert result.value["batch_size"] == 25  # Converted to int
-        assert result.value["active_only"] is True  # Converted to boolean
+        # Verify transformations worked
+        assert FlextMatchers.is_successful_result(result)
+        transformed_data = result.unwrap()
+
+        assert transformed_data[0]["name"] == "Alice"  # Stripped
+        assert isinstance(transformed_data[0]["age"], int)  # Converted
+        assert isinstance(transformed_data[0]["active"], bool)  # Converted
+
+    def test_batch_validation_performance(self) -> None:
+        """Test batch validation performance using flext_tests profiler."""
+        # Generate large dataset for performance testing
+        large_dataset = [self.realistic_data.user_registration_data() for _ in range(100)]
+
+        # Profile the batch validation with memory profiling
+        profiler = PerformanceProfiler()
+        profiler.profile_memory()
+
+        result = self.processor.batch_validate(large_dataset)
+
+        # Verify performance and functionality
+        assert FlextMatchers.is_successful_result(result)
+        profiler.assert_memory_efficient()  # Check memory usage
+
+        validated_data = result.unwrap()
+        assert len(validated_data) == 100
+
+    def test_data_aggregation_real_sources(self) -> None:
+        """Test data aggregation with real data sources."""
+        # Create multiple data sources
+        users_data = [
+            {"id": 1, "name": "Alice", "department": "Engineering"},
+            {"id": 2, "name": "Bob", "department": "Sales"},
+        ]
+
+        orders_data = [
+            {"user_id": 1, "amount": 100.0, "product": "Widget"},
+            {"user_id": 2, "amount": 150.0, "product": "Gadget"},
+        ]
+
+        # Execute real aggregation
+        result = self.processor.aggregate_data(
+            sources={"users": users_data, "orders": orders_data},
+            join_key="user_id",
+            strategy="inner_join"
+        )
+
+        # Validate aggregation results
+        assert FlextMatchers.is_successful_result(result)
+        aggregated_data = result.unwrap()
+
+        assert len(aggregated_data) == 2
+        assert aggregated_data[0]["name"] == "Alice"
+        assert aggregated_data[0]["amount"] == 100.0
+
+    def test_export_functionality_real_files(self) -> None:
+        """Test export functionality with real file operations."""
+        # Create test data
+        test_data = [
+            {"name": "Test User", "email": "test@example.com"},
+            {"name": "Another User", "email": "another@example.com"},
+        ]
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            export_path = Path(temp_dir) / "test_export.json"
+
+            # Execute real export
+            result = self.processor.export_to_file(
+                data=test_data,
+                file_path=str(export_path),
+                format="json"
+            )
+
+            # Verify export worked
+            assert FlextMatchers.is_successful_result(result)
+            assert export_path.exists()
+
+            # Verify file contents
+            with export_path.open() as f:
+                exported_data = json.load(f)
+            assert len(exported_data) == 2
+            assert exported_data[0]["name"] == "Test User"
+
+    def test_error_handling_real_scenarios(self) -> None:
+        """Test error handling with real error scenarios."""
+        # Test with invalid data types
+        result = self.processor.execute("validate", field="age", value="not_a_number")
+        assert FlextMatchers.is_failed_result(result)
+
+        # Test with empty data
+        result = self.processor.execute("transform", data=[])
+        assert FlextMatchers.is_successful_result(result)  # Should handle empty data gracefully
+
+        # Test with malformed data
+        malformed_data = [{"incomplete": True}, None, {"malformed": "data"}]
+        result = self.processor.transform_data_pipeline(malformed_data, ["validate"])
+        # Should either succeed with filtered data or fail gracefully
+        assert isinstance(result, FlextResult)
+
+    def test_complex_workflow_integration(self) -> None:
+        """Test complex workflow integration with multiple steps."""
+        # Create complex test scenario using available methods
+        complex_data = [
+            self.realistic_data.user_registration_data(),
+            self.realistic_data.order_data(),
+            self.realistic_data.api_response_data()
+        ]
+
+        # Execute multi-step workflow
+        result = self.processor.execute(
+            "workflow",
+            data=complex_data,
+            steps=["validate", "transform"],
+            config={
+                "transformations": ["normalize", "clean"],
+                "export_format": "json"
+            }
+        )
+
+        # Verify complex workflow
+        assert FlextMatchers.is_successful_result(result)
+        final_result = result.unwrap()
+        assert isinstance(final_result, (list, dict))
 
 
-if __name__ == "__main__":
-    pytest.main([__file__])
+class TestFlextCliDataProcessingEdgeCases:
+    """Test edge cases and boundary conditions."""
+
+    def setup_method(self) -> None:
+        """Setup for edge case testing."""
+        self.processor = FlextCliDataProcessing()
+
+    def test_empty_data_handling(self) -> None:
+        """Test handling of empty data structures."""
+        # Test empty list
+        result = self.processor.transform_data([])
+        assert FlextMatchers.is_successful_result(result)
+        assert result.unwrap() == []
+
+    def test_large_dataset_handling(self) -> None:
+        """Test handling of large datasets."""
+        # Create large dataset
+        large_data = [{"id": i, "value": f"item_{i}"} for i in range(10000)]
+
+        # Should handle large datasets without crashing
+        result = self.processor.batch_validate(large_data)
+        assert isinstance(result, FlextResult)
+
+    def test_malformed_data_resilience(self) -> None:
+        """Test resilience against malformed data."""
+        malformed_data = [
+            None,
+            {"valid": "data"},
+            "not_a_dict",
+            {"missing_required": True},
+            {"extra_field": "unexpected"}
+        ]
+
+        # Should handle malformed data gracefully
+        result = self.processor.transform_data_pipeline(malformed_data, ["clean", "validate"])
+        assert isinstance(result, FlextResult)
+

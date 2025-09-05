@@ -9,6 +9,7 @@ from __future__ import annotations
 import tempfile
 from collections.abc import Generator
 from pathlib import Path
+from typing import cast
 
 import pytest
 from click.testing import CliRunner
@@ -89,7 +90,7 @@ def test_config() -> FlextCliConfig:
     """Provide test configuration using flext_tests."""
     return FlextCliConfig(
         profile="test",
-        debug_mode=True,
+        debug=True,
         timeout_seconds=30,
         output_format="table"
     )
@@ -110,7 +111,9 @@ def real_email_service() -> RealEmailService:
 @pytest.fixture
 def test_user() -> TestUser:
     """Provide real test user using factory."""
-    return UserFactory()
+    user_instance = UserFactory()
+    assert isinstance(user_instance, TestUser)
+    return user_instance
 
 
 @pytest.fixture
@@ -128,13 +131,18 @@ def real_test_user() -> User:
 @pytest.fixture
 def test_flext_result_success() -> FlextResult[str]:
     """Provide successful FlextResult for testing."""
-    return FlextResultFactory.success("test_success")
+    result = FlextResultFactory.success("test_success")
+    # Cast to correct generic type since we know it's str
+    assert isinstance(result.value, str)
+    return cast(FlextResult[str], result)
 
 
 @pytest.fixture
 def test_flext_result_failure() -> FlextResult[str]:
     """Provide failed FlextResult for testing."""
-    return FlextResultFactory.failure("test_failure")
+    result = FlextResultFactory.failure("test_failure")
+    # FlextResult failure has None value, so cast is appropriate
+    return cast(FlextResult[str], result)
 
 
 @pytest.fixture
@@ -149,10 +157,13 @@ def real_repositories() -> dict[str, object]:
 @pytest.fixture
 def success_result() -> FlextResult[str]:
     """Provide successful FlextResult."""
-    return FlextResultFactory.success("test_data")
+    result = FlextResultFactory.success("test_data")
+    assert isinstance(result.value, str)
+    return cast(FlextResult[str], result)
 
 
 @pytest.fixture
 def failure_result() -> FlextResult[str]:
     """Provide failed FlextResult."""
-    return FlextResultFactory.failure("test_error")
+    result = FlextResultFactory.failure("test_error")
+    return cast(FlextResult[str], result)

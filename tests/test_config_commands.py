@@ -17,8 +17,10 @@ from click.testing import CliRunner
 from rich.console import Console
 
 from flext_cli import (
+    FlextCliCmd,
     FlextCliConfig,
     config,
+    get_cli_config,
 )
 
 
@@ -136,11 +138,11 @@ class TestConfigHelperFunctionsReal:
         cli_context = TestContext(self.console)
 
         # Test finding a real config value
-        value = _find_config_value(cli_context, "debug")
+        value = FlextCliCmd.find_config_value(cli_context, "debug")
         assert isinstance(value, bool)  # debug should be boolean
 
         # Test finding a non-existent value
-        value = _find_config_value(cli_context, "non_existent_key")
+        value = FlextCliCmd.find_config_value(cli_context, "non_existent_key")
         assert value is None
 
     def test_print_config_value_real(self) -> None:
@@ -157,17 +159,17 @@ class TestConfigHelperFunctionsReal:
         cli_context = TestContext()
 
         # Test printing a real config value (should not raise exception)
-        _print_config_value(cli_context, "debug", True)
+        FlextCliCmd.print_config_value(cli_context, "debug", True)
 
         # Test printing with different formats - create mock config object
         class MockConfigWithFormat:
             output_format = "json"
 
         cli_context.config = MockConfigWithFormat()
-        _print_config_value(cli_context, "timeout", 30)
+        FlextCliCmd.print_config_value(cli_context, "timeout", 30)
 
         cli_context.config.output_format = "yaml"
-        _print_config_value(cli_context, "project_name", "test")
+        FlextCliCmd.print_config_value(cli_context, "project_name", "test")
 
     def test_get_all_config_real(self) -> None:
         """Test _get_all_config with real configuration data."""
@@ -183,7 +185,7 @@ class TestConfigHelperFunctionsReal:
         cli_context = TestContext()
 
         # Test getting all config (should not raise exception)
-        _get_all_config(cli_context)
+        FlextCliCmd.get_all_config(cli_context)
 
         # Verify console output was generated
         output = cli_context.console.file.getvalue()
@@ -282,8 +284,8 @@ class TestConfigIntegration:
                 "settings": test_config,
             }
 
-            # Test that _get_all_config works with this format
-            _get_all_config(ctx_obj)
+            # Test that get_all_config works with this format
+            FlextCliCmd.get_all_config(ctx_obj)
 
             # Verify output was generated
             output = ctx_obj["console"].file.getvalue()

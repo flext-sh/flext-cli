@@ -148,7 +148,12 @@ class FlextCliFormatters:
                     console.print(f"{k}: {v}")
             elif isinstance(data, list):
                 for v in data:
-                    console.print(str(v))
+                    if isinstance(v, dict):
+                        for k, val in v.items():
+                            console.print(f"{k}: {val}")
+                        console.print()  # Empty line between dict entries
+                    else:
+                        console.print(str(v))
             else:
                 console.print(str(data))
 
@@ -287,7 +292,9 @@ class FlextCliFormatters:
         except (IndexError, KeyError) as e:
             return FlextResult[Table].fail(f"Failed to populate dict list table: {e}")
 
-    def _populate_dict_table(self, table: Table, data: dict[str, object]) -> FlextResult[Table]:
+    def _populate_dict_table(
+        self, table: Table, data: dict[str, object]
+    ) -> FlextResult[Table]:
         """Populate table with single dictionary."""
         try:
             table.add_column("Key")
@@ -300,7 +307,9 @@ class FlextCliFormatters:
         except Exception as e:
             return FlextResult[Table].fail(f"Failed to populate dict table: {e}")
 
-    def _populate_list_table(self, table: Table, data: list[object]) -> FlextResult[Table]:
+    def _populate_list_table(
+        self, table: Table, data: list[object]
+    ) -> FlextResult[Table]:
         """Populate table with list of items."""
         try:
             table.add_column("Value")

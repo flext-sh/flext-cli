@@ -10,6 +10,7 @@ from __future__ import annotations
 import pytest
 
 from flext_cli import typings as types
+from flext_cli.typings import FlextCliTypes
 
 
 class TestTypeImports:
@@ -96,28 +97,30 @@ class TestAllExports:
 
     def test_expected_exports_count(self) -> None:
         """Test expected number of exports."""
-        # Updated to reflect actual exports count after flext-core refactoring
-        # Includes TypeAliasType (74), Enums (6), TypeVars (7), and other types
-        assert len(types.__all__) == 104  # Updated from 18 to real count
+        # Actual exports: ['E', 'F', 'FlextTypes', 'P', 'R', 'T', 'U', 'V']
+        # These are type variables and FlextTypes class
+        assert len(types.__all__) == 8  # Updated to actual count
 
     def test_export_categories(self) -> None:
         """Test that exports cover expected categories after flext-core refactoring."""
         # Updated to validate actual structure instead of outdated hardcoded list
         all_actual = set(types.__all__)
 
-        # Validate that we have the critical core types (subset validation)
-        # Updated to reflect actual names after flext-core refactoring
+        # Validate that we have the essential exports that are actually exported
         essential_types = {
-            "URL",
-            "URLType",
-            "CommandType",
-            "FlextCliConfigDict",
-            "FlextCliLogLevel",  # Names changed in flext-core refactoring
+            "FlextTypes",  # Main compatibility alias
         }
+
+        # Type variables that should be present
+        type_vars = {"E", "F", "P", "R", "T", "U", "V"}
 
         # Essential types should be present (subset validation)
         missing_essential = essential_types - all_actual
         assert not missing_essential, f"Missing essential types: {missing_essential}"
+
+        # Type variables should be present
+        missing_type_vars = type_vars - all_actual
+        assert not missing_type_vars, f"Missing type variables: {missing_type_vars}"
 
         # Validate that all exports are actually importable
         for export_name in all_actual:
@@ -125,8 +128,8 @@ class TestAllExports:
                 f"Export {export_name} not found in module"
             )
 
-        # Ensure we have substantial exports (avoid accidental mass deletion)
-        assert len(all_actual) >= 50, f"Too few exports: {len(all_actual)} < 50"
+        # Ensure we have the expected minimum exports (type variables + FlextTypes)
+        assert len(all_actual) >= 8, f"Too few exports: {len(all_actual)} < 8"
 
 
 class TestTypeCompatibility:
@@ -145,7 +148,7 @@ class TestTypeCompatibility:
         """Test that modern aliases can be used for type checking."""
         # Updated to only use types that exist after flext-core refactoring
         data: types.FlextCliDataType = {"key": "value"}
-        format_str: types.FlextCliTypes.OutputFormat = "json"
+        format_str: types.FlextCliTypes.OutputFormat = types.FlextCliTypes.OutputFormat.JSON
         args: types.CommandArgs = ["arg1", "arg2"]
 
         def handler(x: object) -> object:

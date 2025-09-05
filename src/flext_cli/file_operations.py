@@ -212,6 +212,22 @@ class FlextCliFileOperations:
         except Exception as e:
             return FlextResult[Path].fail(f"Directory creation failed: {e}")
 
+    def create_directory_structure(
+        self, directory_path: str | Path
+    ) -> FlextResult[Path]:
+        """Create directory structure with nested paths.
+
+        Alias for ensure_directory to match test expectations.
+
+        Args:
+            directory_path: Directory path to create
+
+        Returns:
+            FlextResult containing created directory Path
+
+        """
+        return self.ensure_directory(directory_path)
+
     def file_exists(self, file_path: str | Path) -> bool:
         """Check if file exists.
 

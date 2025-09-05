@@ -22,6 +22,7 @@ async_command = D.async_command
 confirm_action = D.confirm_action
 measure_time = D.measure_time
 require_auth = D.require_auth
+retry = D.retry
 validate_config = D.validate_config
 with_spinner = D.with_spinner
 
@@ -365,7 +366,7 @@ class TestValidateConfig:
         def function_requiring_config(_config: MockConfig) -> str:
             return "config validated"
 
-        result = function_requiring_config(config=MockConfig())
+        result = function_requiring_config(MockConfig())
         if result != "config validated":
             msg: str = f"Expected {'config validated'}, got {result}"
             raise AssertionError(msg)
@@ -382,7 +383,7 @@ class TestValidateConfig:
             def function_requiring_config(_config: MockConfig) -> str:
                 return "config validated"
 
-            result = function_requiring_config(config=MockConfig())
+            result = function_requiring_config(MockConfig())
             # Validate that function returned None when validation failed
             validation_passed = result is None
             if not validation_passed:

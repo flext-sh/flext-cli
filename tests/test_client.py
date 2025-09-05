@@ -20,6 +20,9 @@ from collections.abc import Coroutine
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs, urlparse
 
+from typing import cast
+
+from flext_core import FlextResult
 from flext_cli.client import FlextApiClient
 
 # Alias for easier testing access
@@ -270,6 +273,8 @@ class TestClientModels(unittest.TestCase):
         assert pipeline.id == "pipeline-123"
         assert pipeline.name == "Test Pipeline"
         assert pipeline.status == "active"
+        assert pipeline.created_at == "2025-01-01T00:00:00Z"
+        assert pipeline.updated_at == "2025-01-01T12:00:00Z"
         assert pipeline.config.name == "test"
 
     def test_pipeline_list_creation(self) -> None:
@@ -418,22 +423,27 @@ class TestFlextApiClientAuthMethods(AsyncTestCase):
         """Test successful login with valid credentials."""
         client = FlextApiClient(base_url=self.base_url)
 
-        async def test_login() -> None:
+        async def test_login() -> FlextResult[dict[str, object]]:
             result = await client.login("testuser", "testpass")
             await client.close()
             return result
 
-        result = self.run_async(test_login())
-
-        assert result["access_token"] == "test-token-12345"
-        assert result["token_type"] == "bearer"
-        assert result["user"]["username"] == "testuser"
+        result = cast(FlextResult[dict[str, object]], self.run_async(test_login()))
+        
+        # Extract value from FlextResult
+        assert result.is_success, f"Login should succeed: {result.error}"
+        login_data = result.value
+        assert isinstance(login_data, dict)
+        
+        assert login_data["access_token"] == "test-token-12345"
+        assert login_data["token_type"] == "bearer"
+        assert login_data["user"]["username"] == "testuser"
 
     def test_login_failure(self) -> None:
         """Test login failure with invalid credentials."""
         client = FlextApiClient(base_url=self.base_url)
 
-        async def test_login() -> None:
+        async def test_login() -> str | None:
             try:
                 await client.login("wronguser", "wrongpass")
                 return None
@@ -460,12 +470,12 @@ class TestFlextApiClientAuthMethods(AsyncTestCase):
         """Test getting current user information."""
         client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-        async def test_get_user() -> None:
+        async def test_get_user() -> dict[str, object]:
             user = await client.get_current_user()
             await client.close()
             return user
 
-        result = self.run_async(test_get_user())
+        result = cast(dict[str, object], self.run_async(test_get_user()))
 
         assert result["id"] == "user-123"
         assert result["username"] == "testuser"
@@ -598,12 +608,12 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
         """Test running a pipeline manually."""
         client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-        async def test_run() -> None:
+        async def test_run() -> dict[str, object]:
             result = await client.run_pipeline("pipeline-123", full_refresh=True)
             await client.close()
             return result
 
-        run_result = self.run_async(test_run())
+        run_result = cast(dict[str, object], self.run_async(test_run()))
 
         assert run_result["pipeline_id"] == "pipeline-123"
         assert run_result["status"] == "running"

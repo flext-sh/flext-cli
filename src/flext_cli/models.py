@@ -6,7 +6,7 @@ Keep this thin; prefer using flext_core.FlextModels directly when possible.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 from uuid import uuid4
 
 from flext_core import FlextResult
@@ -15,13 +15,20 @@ from pydantic import Field, computed_field, field_validator, model_validator
 
 from flext_cli.constants import FlextCliConstants
 
+if TYPE_CHECKING:
+    # For type checking, use the direct type
+    from flext_core.models import Entity as FlextEntity
+else:
+    # For runtime, use the alias
+    FlextEntity = FlextModels.Entity
+
 
 class FlextCliModels:
     """CLI-specific models extending flext_core FlextModels."""
 
     Core: ClassVar[type[FlextModels]] = FlextModels
 
-    class CliCommand(FlextModels.Entity):
+    class CliCommand(FlextEntity):
         """CLI command model."""
 
         id: str = Field(default_factory=lambda: str(uuid4()))
@@ -126,7 +133,7 @@ class FlextCliModels:
                 )
             return FlextResult[None].ok(None)
 
-    class CliSession(FlextModels.Config):
+    class CliSession(FlextEntity):
         """CLI session model."""
 
         id: str = Field(default_factory=lambda: str(uuid4()))
@@ -167,13 +174,18 @@ class FlextCliModels:
                     )
             return FlextResult[None].ok(None)
 
-    class CliConfig(FlextModels.Value):
+    class CliConfig(FlextEntity):
         """CLI configuration model."""
 
+        id: str = Field(default_factory=lambda: str(uuid4()))
         profile: str = Field(default=FlextCliConstants.ProfileName.DEFAULT)
-        output_format: str = Field(default=FlextCliConstants.OUTPUT.default_output_format)
+        output_format: str = Field(
+            default=FlextCliConstants.OUTPUT.default_output_format
+        )
         debug_mode: bool = Field(default=False)
-        timeout_seconds: int = Field(default=FlextCliConstants.TIMEOUTS.default_command_timeout)
+        timeout_seconds: int = Field(
+            default=FlextCliConstants.TIMEOUTS.default_command_timeout
+        )
 
         @field_validator("output_format")
         @classmethod

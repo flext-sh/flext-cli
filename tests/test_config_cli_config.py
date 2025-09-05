@@ -36,17 +36,17 @@ class TestCLIConfig:
         if config.debug:
             msg = f"Expected False, got {config.debug}"
             raise AssertionError(msg)
-        assert hasattr(config, "output")
-        assert hasattr(config, "api")
-        assert hasattr(config, "auth")
-        assert hasattr(config, "directories")
+        assert hasattr(config, "output_format")
+        assert hasattr(config, "api_url")
+        assert hasattr(config, "api_timeout")
+        assert hasattr(config, "config_dir")
 
     def test_config_initialization_with_values(self) -> None:
         """Test config initialization with custom values."""
         config = FlextCliConfig(
             api_url="https://custom.api.com",
             timeout=60,
-            max_retries=5,
+            retries=5,
             log_level="DEBUG",
             auto_refresh=False,
         )
@@ -57,8 +57,8 @@ class TestCLIConfig:
                 msg,
             )
         assert config.timeout == 60
-        if config.max_retries != 5:
-            msg = f"Expected {5}, got {config.max_retries}"
+        if config.retries != 5:
+            msg = f"Expected {5}, got {config.retries}"
             raise AssertionError(msg)
         assert config.log_level == "DEBUG"
         if config.auto_refresh:

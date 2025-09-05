@@ -17,11 +17,12 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast, override
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import yaml
 from flext_core import FlextResult, FlextUtilities
 from flext_core.models import FlextModels
+from rich.table import Table
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
@@ -104,7 +105,6 @@ class FlextCliApi:
         *,
         models: FlextModels | None = None,
         services: FlextCliServices | None = None,
-        processors: dict[str, object] | None = None,  # noqa: ARG003
         config_override: dict[str, object] | None = None,
     ) -> FlextCliApi:
         """Abstract factory method for creating API with full dependency injection.
@@ -115,7 +115,6 @@ class FlextCliApi:
         Args:
             models: Custom FlextModels instance
             services: Custom FlextCliServices instance
-            processors: Pre-configured processors to inject
             config_override: Configuration overrides
 
         Returns:
@@ -124,9 +123,6 @@ class FlextCliApi:
         """
         # Create base instance
         api = cls(models=models, services=services)
-
-        # Simplified version - processors not used in ultra-simplified implementation
-        # processors parameter kept for API compatibility but not used
 
         # Apply configuration overrides
         if config_override:
@@ -229,9 +225,9 @@ class FlextCliApi:
 
     # Strategy implementations - ultra-simplified single-purpose functions
     def _execute_format(self, data: object, format_type: str) -> FlextResult[str]:
-        """Execute format operation using FlextUtilities."""
+        """Execute format operation using FlextUtilities with comprehensive format support."""
         try:
-            match format_type:
+            match format_type.lower():
                 case "json":
                     result = FlextUtilities.safe_json_stringify(data)
                     return FlextResult[str].ok(result)
@@ -240,10 +236,74 @@ class FlextCliApi:
                         data, default_flow_style=False, allow_unicode=True
                     )
                     return FlextResult[str].ok(result)
-                case _:
+                case "csv":
+                    return self._format_as_csv(data)
+                case "table":
+                    return self._format_as_table(data)
+                case "plain":
                     return FlextResult[str].ok(str(data))
+                case _:
+                    return FlextResult[str].fail(f"Unsupported format type: {format_type}")
         except Exception as e:
             return FlextResult[str].fail(f"Format failed: {e}")
+
+    def _format_as_csv(self, data: object) -> FlextResult[str]:
+        """Format data as CSV string."""
+        try:
+            if isinstance(data, list) and data:
+                # Handle list of dictionaries
+                if isinstance(data[0], dict):
+                    headers = list(data[0].keys())
+                    csv_lines = [",".join(headers)]
+                    for item in data:
+                        if isinstance(item, dict):
+                            values = [str(item.get(key, "")) for key in headers]
+                            csv_lines.append(",".join(values))
+                    return FlextResult[str].ok("\n".join(csv_lines))
+                # Handle list of simple values
+                return FlextResult[str].ok(",".join(str(item) for item in data))
+            if isinstance(data, dict):
+                # Single dictionary as CSV row
+                headers = list(data.keys())
+                values = [str(data[key]) for key in headers]
+                return FlextResult[str].ok(",".join(headers) + "\n" + ",".join(values))
+            return FlextResult[str].ok(str(data))
+        except Exception as e:
+            return FlextResult[str].fail(f"CSV formatting failed: {e}")
+
+    def _format_as_table(self, data: object) -> FlextResult[str]:
+        """Format data as simple table string."""
+        try:
+            if isinstance(data, list) and data:
+                # Handle list of dictionaries as table
+                if isinstance(data[0], dict):
+                    headers = list(data[0].keys())
+                    # Calculate column widths
+                    widths = {h: len(h) for h in headers}
+                    for item in data:
+                        if isinstance(item, dict):
+                            for key in headers:
+                                widths[key] = max(widths[key], len(str(item.get(key, ""))))
+
+                    # Create table
+                    lines = []
+                    # Header row
+                    header_line = " | ".join(h.ljust(widths[h]) for h in headers)
+                    lines.append(header_line)
+                    lines.append("-" * len(header_line))
+
+                    # Data rows
+                    for item in data:
+                        if isinstance(item, dict):
+                            data_line = " | ".join(str(item.get(key, "")).ljust(widths[key]) for key in headers)
+                            lines.append(data_line)
+
+                    return FlextResult[str].ok("\n".join(lines))
+
+            # Fallback to string representation
+            return FlextResult[str].ok(str(data))
+        except Exception as e:
+            return FlextResult[str].fail(f"Table formatting failed: {e}")
 
     def _execute_export(self, data: object, file_path: object) -> FlextResult[str]:
         """Execute export operation with error handling."""
@@ -388,6 +448,232 @@ class FlextCliApi:
         if not self.enable_command_history:
             return []
         return getattr(self, "_command_history", []).copy()
+
+    # =========================================================================
+    # COMPATIBILITY METHODS - Backward compatibility for existing tests
+    # =========================================================================
+
+    def flext_cli_configure(self, config: dict[str, object]) -> FlextResult[None]:
+        """Configure CLI API - convenience method."""
+        return self._execute_configure(config)
+
+    def flext_cli_health(self) -> FlextResult[dict[str, object]]:
+        """Health check - convenience method."""
+        return self._execute_health_check()
+
+    def create_command(
+        self, command_line: str
+    ) -> FlextResult[FlextCliModels.CliCommand]:
+        """Create command - convenience method."""
+        return self._execute_create_command(command_line)
+
+    def flext_cli_create_command(
+        self, command_line: str, **_kwargs: object
+    ) -> FlextResult[FlextCliModels.CliCommand]:
+        """Create CLI command - convenience method."""
+        return self._execute_create_command(command_line)
+
+    def flext_cli_create_session(
+        self, user_id: str | None = None
+    ) -> FlextResult[FlextCliModels.CliSession]:
+        """Create CLI session - convenience method.
+
+        Args:
+            user_id: Optional user ID. If not provided, auto-generates one.
+
+        """
+        if user_id is None:
+            user_id = str(uuid4())
+        return self._execute_create_session(user_id)
+
+    def flext_cli_register_handler(
+        self, name: str, handler: object
+    ) -> FlextResult[None]:
+        """Register handler - convenience method."""
+        if not isinstance(name, str) or not name.strip():
+            return FlextResult[None].fail("Handler name must be a non-empty string")
+
+        if not callable(handler):
+            return FlextResult[None].fail("Handler must be callable")
+
+        # Store handler in internal registry
+        if not hasattr(self, "_handlers"):
+            self._handlers: dict[str, object] = {}
+        self._handlers[name] = handler
+
+        return FlextResult[None].ok(None)
+
+    def flext_cli_execute_handler(
+        self, name: str, *args: object, **kwargs: object
+    ) -> FlextResult[object]:
+        """Execute registered handler - convenience method."""
+        if not hasattr(self, "_handlers"):
+            return FlextResult[object].fail("No handlers registered")
+
+        handlers: dict[str, object] = self._handlers
+        if name not in handlers:
+            return FlextResult[object].fail(f"Handler '{name}' not found")
+
+        handler = handlers[name]
+        if not callable(handler):
+            return FlextResult[object].fail(f"Handler '{name}' is not callable")
+
+        try:
+            result = handler(*args, **kwargs)
+            return FlextResult[object].ok(result)
+        except Exception as e:
+            return FlextResult[object].fail(f"Handler '{name}' execution failed: {e}")
+
+    def flext_cli_render_with_context(
+        self, data: object, context: dict[str, object] | None = None
+    ) -> FlextResult[str]:
+        """Render data with context - convenience method."""
+        try:
+            rendered = f"Data: {data}\nContext: {context}" if context else str(data)
+            return FlextResult[str].ok(rendered)
+        except Exception as e:
+            return FlextResult[str].fail(f"Rendering failed: {e}")
+
+    def flext_cli_get_commands(self) -> FlextResult[list[FlextCliModels.CliCommand]]:
+        """Get commands - convenience method."""
+        return FlextResult[list[FlextCliModels.CliCommand]].ok(
+            self.get_command_history()
+        )
+
+    def flext_cli_get_sessions(self) -> FlextResult[list[object]]:
+        """Get sessions - convenience method."""
+        sessions = list(self._sessions.values()) if hasattr(self, "_sessions") else []
+        return FlextResult[list[object]].ok(sessions)
+
+    def flext_cli_get_plugins(self) -> FlextResult[list[object]]:
+        """Get plugins - convenience method."""
+        return FlextResult[list[object]].ok([])  # Simplified implementation
+
+    def flext_cli_get_handlers(self) -> FlextResult[dict[str, object]]:
+        """Get handlers - convenience method."""
+        handlers = getattr(self, "_handlers", {})
+        return FlextResult[dict[str, object]].ok(dict(handlers))
+
+    def flext_cli_register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
+        """Register plugin - convenience method."""
+        if not isinstance(name, str) or not name.strip():
+            return FlextResult[None].fail("Plugin name must be a non-empty string")
+
+        # Store plugin in internal registry
+        if not hasattr(self, "_plugins"):
+            self._plugins: dict[str, object] = {}
+        self._plugins[name] = plugin
+
+        return FlextResult[None].ok(None)
+
+    def transform_data(
+        self, data: object, transform_fn: object, group_by: str | None = None
+    ) -> FlextResult[object]:
+        """Transform data with function - convenience method."""
+        try:
+            if not callable(transform_fn):
+                return FlextResult[object].fail("Transform function must be callable")
+
+            # Apply transformation
+            result = transform_fn(data)
+
+            # Apply grouping if specified
+            if group_by and isinstance(result, list):
+                # Simple grouping by field
+                grouped: dict[str, list[object]] = {}
+                for item in result:
+                    if isinstance(item, dict):
+                        key = str(item.get(group_by, "unknown"))
+                        if key not in grouped:
+                            grouped[key] = []
+                        grouped[key].append(item)
+                return FlextResult[object].ok(grouped)
+
+            return FlextResult[object].ok(result)
+        except Exception as e:
+            return FlextResult[object].fail(f"Data transformation failed: {e}")
+
+    # =========================================================================
+    # PUBLIC CONVENIENCE METHODS - Direct access to common operations
+    # =========================================================================
+
+    def format_data(self, data: object, format_type: str) -> FlextResult[str]:
+        """Format data to specified format type.
+
+        Args:
+            data: Data to format
+            format_type: Format type (json, yaml, table, csv, plain)
+
+        Returns:
+            FlextResult with formatted string or error
+
+        """
+        return self._execute_format(data, format_type)
+
+    def create_table(self, data: object, title: str | None = None) -> FlextResult[Table]:
+        """Create Rich Table representation of data.
+
+        Args:
+            data: Data to convert to table format
+            title: Optional table title
+
+        Returns:
+            FlextResult with Rich Table object or error
+
+        """
+        try:
+            table = Table(title=title)
+            
+            if isinstance(data, list) and data:
+                # Handle list of dictionaries as table
+                if isinstance(data[0], dict):
+                    headers = list(data[0].keys())
+                    # Add columns
+                    for header in headers:
+                        table.add_column(str(header))
+                    
+                    # Add rows
+                    for item in data:
+                        if isinstance(item, dict):
+                            row_values = [str(item.get(key, "")) for key in headers]
+                            table.add_row(*row_values)
+                    
+                    return FlextResult[Table].ok(table)
+                else:
+                    # Handle list of simple values
+                    table.add_column("Value")
+                    for item in data:
+                        table.add_row(str(item))
+                    return FlextResult[Table].ok(table)
+                    
+            elif isinstance(data, dict):
+                # Single dictionary as table
+                table.add_column("Key")
+                table.add_column("Value")
+                for key, value in data.items():
+                    table.add_row(str(key), str(value))
+                return FlextResult[Table].ok(table)
+            else:
+                # Single value
+                table.add_column("Data")
+                table.add_row(str(data))
+                return FlextResult[Table].ok(table)
+                
+        except Exception as e:
+            return FlextResult[Table].fail(f"Table creation failed: {e}")
+
+    def export_data(self, data: object, file_path: str | Path) -> FlextResult[str]:
+        """Export data to file.
+
+        Args:
+            data: Data to export
+            file_path: Path to export file
+
+        Returns:
+            FlextResult with success message or error
+
+        """
+        return self._execute_export(data, file_path)
 
     @override
     def __repr__(self) -> str:

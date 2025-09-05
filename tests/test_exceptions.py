@@ -33,24 +33,25 @@ class TestFlextCliErrorCodes:
 
     def test_error_codes_exist(self) -> None:
         """Test all error codes are defined."""
-        expected_codes = [
-            "CLI_ERROR",
-            "CLI_VALIDATION_ERROR",
-            "CLI_CONFIGURATION_ERROR",
-            "CLI_CONNECTION_ERROR",
-            "CLI_PROCESSING_ERROR",
-            "CLI_AUTHENTICATION_ERROR",
-            "CLI_TIMEOUT_ERROR",
-            "CLI_COMMAND_ERROR",
-            "CLI_ARGUMENT_ERROR",
-            "CLI_FORMAT_ERROR",
-            "CLI_OUTPUT_ERROR",
-            "CLI_CONTEXT_ERROR",
-        ]
+        # Map expected values to actual attribute names
+        expected_codes = {
+            "CLI_ERROR": "CLI_ERROR",
+            "CLI_VALIDATION_ERROR": "VALIDATION_ERROR",
+            "CLI_CONFIGURATION_ERROR": "CONFIGURATION_ERROR",
+            "CLI_CONNECTION_ERROR": "CONNECTION_ERROR",
+            "CLI_PROCESSING_ERROR": "PROCESSING_ERROR",
+            "CLI_AUTHENTICATION_ERROR": "AUTHENTICATION_ERROR",
+            "CLI_TIMEOUT_ERROR": "TIMEOUT_ERROR",
+            "CLI_COMMAND_ERROR": "COMMAND_ERROR",
+            "CLI_ARGUMENT_ERROR": "ARGUMENT_ERROR",
+            "CLI_FORMAT_ERROR": "FORMAT_ERROR",
+            "CLI_OUTPUT_ERROR": "OUTPUT_ERROR",
+            "CLI_CONTEXT_ERROR": "CONTEXT_ERROR",
+        }
 
-        for code_name in expected_codes:
-            assert hasattr(FlextCliException.ErrorCode, code_name)
-            assert FlextCliException.ErrorCode[code_name].value == code_name
+        for expected_value, attr_name in expected_codes.items():
+            assert hasattr(FlextCliException.ErrorCode, attr_name)
+            assert getattr(FlextCliException.ErrorCode, attr_name).value == expected_value
 
 
 class TestFlextCliError:

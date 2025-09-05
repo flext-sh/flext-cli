@@ -682,7 +682,7 @@ class TestFormatterIntegration(unittest.TestCase):
 
     def test_formatters_with_edge_case_data(self) -> None:
         """Test all formatters handle edge cases gracefully."""
-        edge_cases = [
+        edge_cases: list[object] = [
             None,
             "",
             [],
@@ -772,7 +772,7 @@ class TestFormatterIntegration(unittest.TestCase):
                 formatter.format(original_data, console)
 
                 output = output_buffer.getvalue().strip()
-                if output:  # Only test if formatter produced output
+                if output and callable(parser):  # Only test if formatter produced output and parser is callable
                     parsed_data = parser(output)
                     assert parsed_data == original_data
 

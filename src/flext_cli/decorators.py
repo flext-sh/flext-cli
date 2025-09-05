@@ -9,7 +9,7 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import ParamSpec, TypeVar, cast
 
-from flext_core import FlextDecorators
+from flext_core import FlextDecorators, FlextResult
 from rich.console import Console
 
 from flext_cli.constants import FlextCliConstants
@@ -21,40 +21,40 @@ T = TypeVar("T")
 def handle_service_result[**P, T](func: Callable[P, T]) -> Callable[P, T | None]:
     """Decorator for handling FlextResult values - extracts success data or returns None on failure."""
     if asyncio.iscoroutinefunction(func):
+
         @functools.wraps(func)
         async def _async_wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
             result = await func(*args, **kwargs)
 
             # Check if result is FlextResult
-            if hasattr(result, "is_success"):
+            if isinstance(result, FlextResult):
                 if result.is_success:
-                    return result.data  # Extract success data
+                    return cast("T | None", result.data)
                 # For failures, print error and return None
-                if hasattr(result, "error"):
-                    console = Console()
-                    console.print(f"[red]Error: {result.error}[/red]")
+                console = Console()
+                console.print(f"[red]Error: {result.error}[/red]")
                 return None
 
             # Pass through non-FlextResult values
-            return result
+            return cast("T | None", result)
 
-        return _async_wrapper
+        return cast("Callable[P, T | None]", _async_wrapper)
+
     @functools.wraps(func)
     def _wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
         result = func(*args, **kwargs)
 
         # Check if result is FlextResult
-        if hasattr(result, "is_success"):
+        if isinstance(result, FlextResult):
             if result.is_success:
-                return result.data  # Extract success data
+                return cast("T | None", result.data)
             # For failures, print error and return None
-            if hasattr(result, "error"):
-                console = Console()
-                console.print(f"[red]Error: {result.error}[/red]")
+            console = Console()
+            console.print(f"[red]Error: {result.error}[/red]")
             return None
 
         # Pass through non-FlextResult values
-        return result
+        return cast("T | None", result)
 
     return _wrapper
 
@@ -66,7 +66,7 @@ class FlextCliDecorators(FlextDecorators):
     """
 
     @staticmethod
-    def async_command[**P, T](func: Callable[P, T]) -> Callable[P, T]:
+    def async_command(func: Callable[P, T]) -> Callable[P, T]:
         if asyncio.iscoroutinefunction(func):
 
             @functools.wraps(func)
@@ -220,6 +220,51 @@ class FlextCliDecorators(FlextDecorators):
 
         def _decorator(func: Callable[P, T]) -> Callable[P, T]:
             return functools.wraps(func)(func)
+
+        return _decorator
+
+    @staticmethod
+    def retry(
+        *,
+        max_attempts: int = 3,
+        delay: float = 0.1,
+        exceptions: tuple[type[Exception], ...] = (Exception,),
+    ) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
+        """Retry decorator for handling transient failures.
+
+        Args:
+            max_attempts: Maximum number of attempts (default: 3)
+            delay: Delay between attempts in seconds (default: 0.1)
+            exceptions: Tuple of exceptions to catch and retry (default: Exception)
+
+        Returns:
+            Decorated function with retry logic
+
+        """
+
+        def _decorator(func: Callable[P, T]) -> Callable[P, T | None]:
+            @functools.wraps(func)
+            def _wrapped(*args: P.args, **kwargs: P.kwargs) -> T | None:
+                last_exception = None
+
+                for attempt in range(max_attempts):
+                    try:
+                        return func(*args, **kwargs)
+                    except exceptions as e:
+                        last_exception = e
+                        if attempt < max_attempts - 1:  # Not last attempt
+                            time.sleep(delay)
+                            continue
+                        break
+
+                # All attempts failed
+                console = Console()
+                console.print(
+                    f"[red]Retry failed after {max_attempts} attempts: {last_exception}[/red]"
+                )
+                return None
+
+            return _wrapped
 
         return _decorator
 
