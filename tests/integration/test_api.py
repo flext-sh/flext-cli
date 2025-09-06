@@ -169,7 +169,7 @@ class TestFlextCliApiIntegration:
         api = FlextCliApi()
 
         data = {"name": "test", "value": 42}
-        context = {"format": "json", "title": "Test Data"}
+        context: dict[str, object] = {"format": "json", "title": "Test Data"}
         result = api.flext_cli_render_with_context(data, context)
 
         assert isinstance(result, FlextResult)

@@ -24,20 +24,23 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 
 import click
-from flext_core import FlextConfig, FlextResult
+from flext_core import FlextConfig, FlextPipeline, FlextResult
 from rich.console import Console
 from rich.table import Table
 
 from flext_cli import (
     FlextApiClient,
     FlextCliService,
+    FlextCliApi,
+    FlextCliAuth,
+    save_auth_token,
     cli_create_table,
     cli_format_output,
     require_auth,
-    save_auth_token,
 )
 
 # =============================================================================
@@ -400,8 +403,6 @@ def meltano(ctx: click.Context, operation: str, project: str) -> None:
 @require_auth()
 def oracle_query(ctx: click.Context, query: str, schema: str, output_format: str) -> None:
     """Query Oracle database through flext-db-oracle integration using advanced patterns."""
-    from flext_core import FlextPipeline
-
     console: Console = ctx.obj["console"]
     service: EcosystemService = ctx.obj["service"]
 
@@ -441,18 +442,20 @@ def _format_oracle_output(console: Console, data: object, output_format: str) ->
 
 def _handle_table_format(console: Console, data: object) -> FlextResult[str]:
     """Handle table output format with functional patterns."""
-    from functools import partial
-
-    # Use functional programming patterns
-    prepare_data = partial(_prepare_display_data, data)
-    calculate_rows = partial(_calculate_row_count, data)
-
-    table_data = prepare_data()
-    row_count = calculate_rows()
-
+    # Convert data to list of dicts for table display
+    table_data: list[dict[str, object]]
+    if isinstance(data, list) and all(isinstance(item, dict) for item in data):
+        table_data = data
+    elif isinstance(data, dict):
+        table_data = [data]
+    else:
+        # Fallback: create a single-column table
+        table_data = [{"value": str(data)}]
+    
+    row_count = len(table_data)
     table = cli_create_table(table_data, title=f"Query Results ({row_count} rows)")
     console.print(table)
-    return FlextResult[str].ok(table_data)
+    return FlextResult[str].ok(str(data))
 
 
 def _handle_structured_format(console: Console, data: object, format_type: str) -> FlextResult[str]:
@@ -460,12 +463,9 @@ def _handle_structured_format(console: Console, data: object, format_type: str) 
     format_data = _prepare_display_data(data)
     formatted_result = cli_format_output(format_data, format_type)
 
-    # Use functional error handling pattern
-    return (
-        _display_formatted_success(console, formatted_result.value)
-        if formatted_result.is_success
-        else _display_format_error(console, formatted_result.error)
-    )
+    # cli_format_output returns a string, not FlextResult
+    console.print(formatted_result)
+    return FlextResult[str].ok(formatted_result)
 
 
 def _prepare_display_data(data: object) -> str:
@@ -540,10 +540,8 @@ def metrics(ctx: click.Context, output_format: str) -> None:
             console.print(table)
         else:
             formatted_result = cli_format_output(metrics_data, output_format)
-            if formatted_result.is_success:
-                console.print(formatted_result.value)
-            else:
-                console.print(f"[red]❌ Format error: {formatted_result.error}[/red]")
+            # cli_format_output returns a string directly
+            console.print(formatted_result)
     else:
         console.print(f"[red]❌ Failed to get metrics: {result.error}[/red]")
 

@@ -41,7 +41,7 @@ class TestFlextCliDataProcessing:
         """Test transform_data with list input."""
         processor = FlextCliDataProcessing()
 
-        data = [{"name": "test1"}, {"name": "test2"}]
+        data: list[dict[str, object]] = [{"name": "test1"}, {"name": "test2"}]
         result = processor.transform_data(data)
 
         assert result.is_success
@@ -101,7 +101,7 @@ class TestFlextCliDataProcessing:
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp_file:
             file_path = Path(tmp_file.name)
 
-            result = processor.export_to_file(data, file_path)
+            result = processor.export_to_file(data, str(file_path))
 
             assert result.is_success
             # File should be created
@@ -114,10 +114,10 @@ class TestFlextCliDataProcessing:
         """Test export_to_file with invalid path."""
         processor = FlextCliDataProcessing()
 
-        data = {"test": "data"}
+        data: dict[str, object] = {"test": "data"}
         invalid_path = Path("/invalid/nonexistent/path.json")
 
-        result = processor.export_to_file(data, invalid_path)
+        result = processor.export_to_file(data, str(invalid_path))
 
         # Should fail gracefully
         assert result.is_failure
@@ -160,7 +160,7 @@ class TestFlextCliDataProcessing:
         """Test processing with nested/complex data structures."""
         processor = FlextCliDataProcessing()
 
-        complex_data = {
+        complex_data: dict[str, object] = {
             "users": [
                 {"name": "Alice", "details": {"age": 30, "city": "NYC"}},
                 {"name": "Bob", "details": {"age": 25, "city": "LA"}}

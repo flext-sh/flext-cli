@@ -62,11 +62,11 @@ class TestFlextCliModelsReal:
     def test_output_format_enum(self) -> None:
         """Test REAL OutputFormat enum functionality."""
         # Test all enum values exist
-        assert FlextCliConstants.OutputFormat.JSON == "json"
-        assert FlextCliConstants.OutputFormat.CSV == "csv"
-        assert FlextCliConstants.OutputFormat.YAML == "yaml"
-        assert FlextCliConstants.OutputFormat.TABLE == "table"
-        assert FlextCliConstants.OutputFormat.PLAIN == "plain"
+        assert str(FlextCliConstants.OutputFormat.JSON) == "json"
+        assert str(FlextCliConstants.OutputFormat.CSV) == "csv"
+        assert str(FlextCliConstants.OutputFormat.YAML) == "yaml"
+        assert str(FlextCliConstants.OutputFormat.TABLE) == "table"
+        assert str(FlextCliConstants.OutputFormat.PLAIN) == "plain"
 
         # Test enum iteration
         formats = [fmt.value for fmt in FlextCliConstants.OutputFormat]
@@ -106,14 +106,14 @@ class TestFlextCliConstantsReal:
         """Test REAL error constants functionality."""
         # Test basic constants exist
         assert FlextCliConstants.FLEXT_DIR_NAME
-        assert FlextCliConstants.CONFIG_DIR_NAME
+        assert FlextCliConstants.CONFIG_FILE_NAME
         assert FlextCliConstants.AUTH_DIR_NAME
 
     def test_message_constants_work(self) -> None:
         """Test REAL message constants functionality."""
         # Test configuration classes exist
-        assert hasattr(FlextCliConstants, 'TimeoutConfig')
-        assert hasattr(FlextCliConstants, 'OutputConfig')
+        assert hasattr(FlextCliConstants, "TimeoutConfig")
+        assert hasattr(FlextCliConstants, "OutputConfig")
 
     def test_output_constants_work(self) -> None:
         """Test REAL output formatting constants."""

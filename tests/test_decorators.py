@@ -36,8 +36,14 @@ class TestFlextCliDecorators(unittest.TestCase):
 
         # The async_command decorator should handle the async execution
         result = async_test_func()
-        # Since the decorator should handle async execution, we expect the result
-        assert result == "async_result" or asyncio.iscoroutine(result)
+        # Check if it's a coroutine that needs to be awaited or the actual result
+        if asyncio.iscoroutine(result):
+            # If it's still a coroutine, run it
+            actual_result = asyncio.run(result)
+            assert actual_result == "async_result"
+        else:
+            # If the decorator already handled it
+            assert result == "async_result"
 
     def test_async_command_with_sync_function(self) -> None:
         """Test async_command decorator with a sync function."""

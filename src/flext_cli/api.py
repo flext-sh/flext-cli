@@ -274,31 +274,28 @@ class FlextCliApi:
     def _format_as_table(self, data: object) -> FlextResult[str]:
         """Format data as simple table string."""
         try:
-            if isinstance(data, list) and data:
-                # Handle list of dictionaries as table
-                if isinstance(data[0], dict):
-                    headers = list(data[0].keys())
-                    # Calculate column widths
-                    widths = {h: len(h) for h in headers}
-                    for item in data:
-                        if isinstance(item, dict):
-                            for key in headers:
-                                widths[key] = max(widths[key], len(str(item.get(key, ""))))
+            if isinstance(data, list) and data and isinstance(data[0], dict):
+                headers = list(data[0].keys())
+                # Calculate column widths
+                widths = {h: len(h) for h in headers}
+                for item in data:
+                    if isinstance(item, dict):
+                        for key in headers:
+                            widths[key] = max(widths[key], len(str(item.get(key, ""))))
 
-                    # Create table
-                    lines = []
-                    # Header row
-                    header_line = " | ".join(h.ljust(widths[h]) for h in headers)
-                    lines.append(header_line)
-                    lines.append("-" * len(header_line))
+                # Create table
+                lines = []
+                # Header row
+                header_line = " | ".join(h.ljust(widths[h]) for h in headers)
+                lines.extend((header_line, "-" * len(header_line)))
 
-                    # Data rows
-                    for item in data:
-                        if isinstance(item, dict):
-                            data_line = " | ".join(str(item.get(key, "")).ljust(widths[key]) for key in headers)
-                            lines.append(data_line)
+                # Data rows
+                for item in data:
+                    if isinstance(item, dict):
+                        data_line = " | ".join(str(item.get(key, "")).ljust(widths[key]) for key in headers)
+                        lines.append(data_line)
 
-                    return FlextResult[str].ok("\n".join(lines))
+                return FlextResult[str].ok("\n".join(lines))
 
             # Fallback to string representation
             return FlextResult[str].ok(str(data))
@@ -623,7 +620,7 @@ class FlextCliApi:
         """
         try:
             table = Table(title=title)
-            
+
             if isinstance(data, list) and data:
                 # Handle list of dictionaries as table
                 if isinstance(data[0], dict):
@@ -631,36 +628,158 @@ class FlextCliApi:
                     # Add columns
                     for header in headers:
                         table.add_column(str(header))
-                    
+
                     # Add rows
                     for item in data:
                         if isinstance(item, dict):
                             row_values = [str(item.get(key, "")) for key in headers]
                             table.add_row(*row_values)
-                    
+
                     return FlextResult[Table].ok(table)
-                else:
-                    # Handle list of simple values
-                    table.add_column("Value")
-                    for item in data:
-                        table.add_row(str(item))
-                    return FlextResult[Table].ok(table)
-                    
-            elif isinstance(data, dict):
+                # Handle list of simple values
+                table.add_column("Value")
+                for item in data:
+                    table.add_row(str(item))
+                return FlextResult[Table].ok(table)
+
+            if isinstance(data, dict):
                 # Single dictionary as table
                 table.add_column("Key")
                 table.add_column("Value")
                 for key, value in data.items():
                     table.add_row(str(key), str(value))
                 return FlextResult[Table].ok(table)
-            else:
-                # Single value
-                table.add_column("Data")
-                table.add_row(str(data))
-                return FlextResult[Table].ok(table)
-                
+            # Single value
+            table.add_column("Data")
+            table.add_row(str(data))
+            return FlextResult[Table].ok(table)
+
         except Exception as e:
             return FlextResult[Table].fail(f"Table creation failed: {e}")
+
+    def aggregate_data(
+        self,
+        data: list[dict[str, object]],
+        group_by: str,
+        sum_fields: list[str] | None = None,
+    ) -> FlextResult[dict[str, object]]:
+        """Aggregate data by grouping and summing fields.
+
+        Args:
+            data: List of dictionaries to aggregate
+            group_by: Field to group by
+            sum_fields: Fields to sum (optional)
+
+        Returns:
+            FlextResult with aggregated data or error
+
+        """
+        try:
+            if not data:
+                return FlextResult[dict[str, object]].ok({})
+
+            # Group data by the specified field
+            groups: dict[str, list[dict[str, object]]] = {}
+            for item in data:
+                if not isinstance(item, dict):
+                    continue
+                group_key = str(item.get(group_by, "unknown"))
+                groups.setdefault(group_key, []).append(item)
+
+            # Aggregate results
+            result: dict[str, object] = {}
+            for group_key, group_items in groups.items():
+                group_data: dict[str, object] = {
+                    "count": len(group_items),
+                    "items": group_items,
+                }
+
+                # Sum specified fields
+                if sum_fields:
+                    for field in sum_fields:
+                        total = sum(
+                            float(value)
+                            for item in group_items
+                            if (value := item.get(field, 0)) is not None
+                            and isinstance(value, (int, float))
+                        )
+                        group_data[f"sum_{field}"] = total
+
+                result[group_key] = group_data
+
+            return FlextResult[dict[str, object]].ok(result)
+
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(f"Data aggregation failed: {e}")
+
+    def batch_export(
+        self,
+        datasets: list[tuple[str, object]],
+        base_path: Path,
+        format_type: str,
+    ) -> FlextResult[list[str]]:
+        """Export multiple datasets to files.
+
+        Args:
+            datasets: List of (filename, data) tuples
+            base_path: Base directory for exports
+            format_type: Export format (json, yaml, csv)
+
+        Returns:
+            FlextResult with list of exported file paths or error
+
+        """
+        try:
+            if not datasets:
+                return FlextResult[list[str]].fail("No datasets provided")
+
+            # Ensure base directory exists
+            base_path.mkdir(parents=True, exist_ok=True)
+            exported_files: list[str] = []
+
+            for filename, data in datasets:
+                # Add extension based on format
+                final_filename = filename
+                if not final_filename.endswith(f".{format_type}"):
+                    final_filename = f"{final_filename}.{format_type}"
+
+                file_path = base_path / final_filename
+                export_result = self.export_data(data, file_path)
+
+                if export_result.is_failure:
+                    return FlextResult[list[str]].fail(f"Failed to export {filename}: {export_result.error}")
+
+                exported_files.append(str(file_path))
+
+            return FlextResult[list[str]].ok(exported_files)
+
+        except Exception as e:
+            return FlextResult[list[str]].fail(f"Batch export failed: {e}")
+
+    def unwrap_or_default(self, result: FlextResult[object], default: object) -> object:
+        """Unwrap FlextResult or return default value.
+
+        Args:
+            result: FlextResult to unwrap
+            default: Default value if result is failure
+
+        Returns:
+            Result value or default
+
+        """
+        return result.value if result.is_success else default
+
+    def unwrap_or_none(self, result: FlextResult[object]) -> object | None:
+        """Unwrap FlextResult or return None.
+
+        Args:
+            result: FlextResult to unwrap
+
+        Returns:
+            Result value or None if failure
+
+        """
+        return result.value if result.is_success else None
 
     def export_data(self, data: object, file_path: str | Path) -> FlextResult[str]:
         """Export data to file.

@@ -173,10 +173,10 @@ known_first_party = ["flext_cli"]
 pep621_dev_dependency_groups = ["dev", "security", "test", "typings"]
 
 [tool.mypy]
-# Relaxed defaults for CLI package to accommodate optional deps in this env
-strict = false
-ignore_missing_imports = true
-follow_imports = "skip"
+plugins = ["pydantic.mypy"]
+strict = true
+ignore_missing_imports = false
+follow_imports = "normal"
 no_implicit_optional = true
 strict_optional = true
 show_error_codes = true

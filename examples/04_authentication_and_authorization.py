@@ -31,6 +31,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from example_utils import print_demo_completion
 from flext_cli import (
     FlextApiClient,
     save_auth_token,
@@ -485,8 +486,6 @@ def main() -> None:
             )
 
         # Final summary using shared utility
-        from example_utils import print_demo_completion
-
         features = [
             "🔐 Token-based authentication with save_auth_token()",
             "🛡️ Authorization headers via get_auth_headers()",
