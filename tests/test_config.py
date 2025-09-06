@@ -223,7 +223,7 @@ class TestConfigIntegration(unittest.TestCase):
         assert debug_result.value is True
 
         # Test ConstantsProvider
-        constants = {"default_timeout": 30}
+        constants: dict[str, object] = {"default_timeout": 30}
         constants_provider = config.ConstantsProvider(constants)
         assert constants_provider.get_priority() == 0
 

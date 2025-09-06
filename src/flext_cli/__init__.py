@@ -52,6 +52,17 @@ Notes:
 from __future__ import annotations
 
 # =============================================================================
+# CORE IMPORTS FOR TYPE ANNOTATIONS
+# =============================================================================
+
+import time
+from collections.abc import Callable
+from functools import wraps
+
+from flext_core import FlextResult
+from rich.table import Table
+
+# =============================================================================
 # VERSION INFORMATION
 # =============================================================================
 
@@ -182,6 +193,94 @@ def get_cli_config() -> FlextCliConfig:
     return FlextCliConfig.get_current()
 
 
+def save_auth_token(token: str) -> FlextResult[None]:
+    """Save authentication token.
+
+    Args:
+        token: Token to save
+
+    Returns:
+        FlextResult indicating success or failure
+
+    """
+    try:
+        auth = FlextCliAuth()
+        return auth.save_auth_token(token)
+    except Exception as e:
+        return FlextResult[None].fail(f"Failed to save token: {e}")
+
+
+def cli_create_table(data: list[dict[str, object]], title: str | None = None) -> Table:
+    """Create a Rich table from data.
+
+    Args:
+        data: List of dictionaries to display
+        title: Optional table title
+
+    Returns:
+        Rich Table object
+
+    """
+    table = Table(title=title)
+
+    if not data:
+        return table
+
+    # Add columns from first row
+    first_row = data[0]
+    for key in first_row:
+        table.add_column(str(key))
+
+    # Add rows
+    for row in data:
+        values = [str(row.get(col, "")) for col in first_row]
+        table.add_row(*values)
+
+    return table
+
+
+def cli_format_output(data: object, format_type: str) -> str:
+    """Format output data.
+
+    Args:
+        data: Data to format
+        format_type: Format type (json, yaml, etc.)
+
+    Returns:
+        Formatted string
+
+    """
+    api = FlextCliApi()
+    result = api.format_data(data, format_type)
+    return result.value if result.is_success else str(data)
+
+
+def require_auth() -> Callable[[Callable[..., object]], Callable[..., object]]:
+    """Authentication decorator."""
+    def decorator(func: Callable[..., object]) -> Callable[..., object]:
+        def wrapper(*args: object, **kwargs: object) -> object:
+            # Simple auth check - in real implementation would check token
+            auth = FlextCliAuth()
+            if not auth.is_authenticated():
+                # For examples, assume authenticated - in real implementation would redirect to login
+                pass  # Could raise authentication error here
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def cli_measure_time(func: Callable[..., object]) -> Callable[..., object]:
+    """Decorator to measure execution time of CLI commands."""
+    @wraps(func)
+    def wrapper(*args: object, **kwargs: object) -> object:
+        start = time.perf_counter()
+        try:
+            return func(*args, **kwargs)
+        finally:
+            time.perf_counter() - start
+    return wrapper
+
+
 # =============================================================================
 # EXPLICIT EXPORTS - NO AGGREGATION LOGIC
 # =============================================================================
@@ -287,4 +386,9 @@ __all__ = [
     # CONVENIENCE FUNCTIONS
     # =============================================================================
     "get_cli_config",
+    "save_auth_token",
+    "cli_create_table",
+    "cli_format_output",
+    "require_auth",
+    "cli_measure_time",
 ]

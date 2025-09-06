@@ -14,7 +14,6 @@ from __future__ import annotations
 import click
 from click.testing import CliRunner
 from flext_core import FlextResult
-from flext_tests import UserFactory, TestUser, FlextResultFactory
 
 from flext_cli import FlextCliAuth
 from flext_cli.auth import auth, status
@@ -297,7 +296,7 @@ class TestAuthFunctionalityReal:
         )
 
         # Test REAL FlextResult success case for clear
-        final_clear_result = auth_service.clear_auth_tokens()
+        clear_result = auth_service.clear_auth_tokens()
         assert isinstance(clear_result, FlextResult), (
             "clear_auth_tokens should return FlextResult"
         )
@@ -312,7 +311,7 @@ class TestAuthFunctionalityReal:
         # Test loading when no token exists
         no_token_result = self.auth.get_auth_token()
         assert not no_token_result.is_success, "Should fail when no token exists"
-        assert ("not found" in no_token_result.error.lower() or 
+        assert ("not found" in no_token_result.error.lower() or
                 "does not exist" in no_token_result.error.lower()), (
             "Should have meaningful error message"
         )

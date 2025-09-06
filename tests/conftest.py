@@ -134,7 +134,7 @@ def test_flext_result_success() -> FlextResult[str]:
     result = FlextResultFactory.success("test_success")
     # Cast to correct generic type since we know it's str
     assert isinstance(result.value, str)
-    return cast(FlextResult[str], result)
+    return cast("FlextResult[str]", result)
 
 
 @pytest.fixture
@@ -142,7 +142,7 @@ def test_flext_result_failure() -> FlextResult[str]:
     """Provide failed FlextResult for testing."""
     result = FlextResultFactory.failure("test_failure")
     # FlextResult failure has None value, so cast is appropriate
-    return cast(FlextResult[str], result)
+    return cast("FlextResult[str]", result)
 
 
 @pytest.fixture
@@ -159,11 +159,11 @@ def success_result() -> FlextResult[str]:
     """Provide successful FlextResult."""
     result = FlextResultFactory.success("test_data")
     assert isinstance(result.value, str)
-    return cast(FlextResult[str], result)
+    return cast("FlextResult[str]", result)
 
 
 @pytest.fixture
 def failure_result() -> FlextResult[str]:
     """Provide failed FlextResult."""
     result = FlextResultFactory.failure("test_error")
-    return cast(FlextResult[str], result)
+    return cast("FlextResult[str]", result)

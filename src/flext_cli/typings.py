@@ -363,19 +363,25 @@ SessionData = dict[str, object]
 
 __all__ = [
     "URL",
+    "UTC",
+    "UUID",
+    "BaseModel",
     "CommandArgs",
-    # Backward compatibility aliases
     "CommandStatus",
     "CommandType",
     "ContextParams",
-    "E",  # Type variables
+    "E",
     "F",
+    "Field",
     "FlextCliCommand",
     "FlextCliConfigDict",
+    "FlextCliConstants",
     "FlextCliDataType",
     "FlextCliFileHandler",
     "FlextCliLogLevel",
-    "FlextTypes",  # Main compatibility alias
+    "FlextCliModels",
+    "FlextCliTypes",
+    "FlextTypes",
     "P",
     "PluginResult",
     "PluginStatus",
@@ -383,7 +389,9 @@ __all__ = [
     "R",
     "SessionData",
     "T",
+    "TypedDict",
     "U",
     "URLType",
     "V",
+    "datetime",
 ]

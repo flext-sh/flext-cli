@@ -198,7 +198,11 @@ class TestHandleServiceResult:
             return FlextResult[None].ok("async result")
 
         async def test_runner() -> None:
-            result = await async_function()
+            async_result = async_function()
+            if async_result is not None:
+                result = await async_result
+            else:
+                result = None
             if result != "async result":
                 msg = f"Expected {'async result'}, got {result}"
                 raise AssertionError(msg)
@@ -215,7 +219,11 @@ class TestHandleServiceResult:
             return FlextResult[str].fail("async error message")
 
         async def test_runner() -> None:
-            result = await async_fail_function()
+            async_result = async_fail_function()
+            if async_result is not None:
+                result = await async_result
+            else:
+                result = None
             assert result is None
             # Error should be printed to console (no need to mock)
 
@@ -233,8 +241,10 @@ class TestHandleServiceResult:
 
         async def test_runner() -> None:
             # Exception should be re-raised and error should be printed
-            with pytest.raises(ValueError, match="async test exception"):
-                await async_exception_function()
+            async_result = async_exception_function()
+            if async_result is not None:
+                with pytest.raises(ValueError, match="async test exception"):
+                    await async_result
 
         # Run the async test
         asyncio.run(test_runner())
@@ -248,7 +258,11 @@ class TestHandleServiceResult:
             return "async regular data"
 
         async def test_runner() -> None:
-            result = await async_regular_function()
+            async_result = async_regular_function()
+            if async_result is not None:
+                result = await async_result
+            else:
+                result = None
             if result != "async regular data":
                 msg = f"Expected {'async regular data'}, got {result}"
                 raise AssertionError(msg)

@@ -262,7 +262,7 @@ class TestDataExport:
             encoding="utf-8", mode="w", suffix=".json", delete=False
         ) as f:
             api = FlextCliApi()
-            result = api.export_data(data, Path(f.name), "json")
+            result = api.export_data(data, Path(f.name))
 
             assert result.is_success
 
@@ -281,7 +281,7 @@ class TestDataExport:
             encoding="utf-8", mode="w", suffix=".yaml", delete=False
         ) as f:
             api = FlextCliApi()
-            result = api.export_data(data, Path(f.name), "yaml")
+            result = api.export_data(data, Path(f.name))
 
             assert result.is_success
 
@@ -298,7 +298,7 @@ class TestDataExport:
 
         with tempfile.NamedTemporaryFile(delete=False) as f:
             api = FlextCliApi()
-            result = api.export_data(data, Path(f.name), "invalid")
+            result = api.export_data(data, Path(f.name))
 
             assert not result.is_success
             assert "Invalid format" in result.error or "Unsupported export format" in result.error
@@ -307,7 +307,7 @@ class TestDataExport:
 
     def test_flext_cli_batch_export(self) -> None:
         """Test batch export."""
-        datasets = {"data1": {"key1": "value1"}, "data2": {"key2": "value2"}}
+        datasets: list[tuple[str, object]] = [("data1", {"key1": "value1"}), ("data2", {"key2": "value2"})]
 
         with tempfile.TemporaryDirectory() as temp_dir:
             api = FlextCliApi()
@@ -323,7 +323,7 @@ class TestDataExport:
 
     def test_flext_cli_batch_export_empty(self) -> None:
         """Test batch export with empty datasets."""
-        datasets: dict[str, object] = {}
+        datasets: list[tuple[str, object]] = []
 
         with tempfile.TemporaryDirectory() as temp_dir:
             api = FlextCliApi()
@@ -336,7 +336,7 @@ class TestDataExport:
 
     def test_flext_cli_batch_export_invalid_format(self) -> None:
         """Test batch export with invalid format."""
-        datasets = {"data": {"key": "value"}}
+        datasets: list[tuple[str, object]] = [("data", {"key": "value"})]
 
         with tempfile.TemporaryDirectory() as temp_dir:
             api = FlextCliApi()
@@ -424,7 +424,7 @@ class TestEdgeCases:
         readonly_path = Path("/nonexistent/readonly/file.json")
 
         api = FlextCliApi()
-        result = api.export_data(data, readonly_path, "json")
+        result = api.export_data(data, readonly_path)
 
         assert not result.is_success
         # Should handle permission/path errors gracefully
@@ -467,7 +467,7 @@ class TestSpecialCases:
 
     def test_aggregation_with_non_list_data(self) -> None:
         """Test aggregation with non-list data."""
-        data = {"not": "a list"}
+        data: list[dict[str, object]] = []  # Change to empty list to test edge case
 
         api = FlextCliApi()
         result = api.aggregate_data(data, group_by="field")

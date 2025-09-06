@@ -6,7 +6,7 @@ Keep this thin; prefer using flext_core.FlextModels directly when possible.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 from uuid import uuid4
 
 from flext_core import FlextResult
@@ -15,20 +15,13 @@ from pydantic import Field, computed_field, field_validator, model_validator
 
 from flext_cli.constants import FlextCliConstants
 
-if TYPE_CHECKING:
-    # For type checking, use the direct type
-    from flext_core.models import Entity as FlextEntity
-else:
-    # For runtime, use the alias
-    FlextEntity = FlextModels.Entity
-
 
 class FlextCliModels:
     """CLI-specific models extending flext_core FlextModels."""
 
     Core: ClassVar[type[FlextModels]] = FlextModels
 
-    class CliCommand(FlextEntity):
+    class CliCommand(FlextModels.Entity):
         """CLI command model."""
 
         id: str = Field(default_factory=lambda: str(uuid4()))
@@ -133,7 +126,7 @@ class FlextCliModels:
                 )
             return FlextResult[None].ok(None)
 
-    class CliSession(FlextEntity):
+    class CliSession(FlextModels.Entity):
         """CLI session model."""
 
         id: str = Field(default_factory=lambda: str(uuid4()))
@@ -174,7 +167,7 @@ class FlextCliModels:
                     )
             return FlextResult[None].ok(None)
 
-    class CliConfig(FlextEntity):
+    class CliConfig(FlextModels.Entity):
         """CLI configuration model."""
 
         id: str = Field(default_factory=lambda: str(uuid4()))

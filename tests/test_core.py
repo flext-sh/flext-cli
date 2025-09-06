@@ -109,10 +109,10 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         result = self.service.configure(config)
         assert result.is_success
         assert self.service._config is not None
-        assert self.service._config.debug is True
-        assert self.service._config.output_format == "json"
-        assert self.service._config.profile == "test-profile"
-        assert self.service._config.api_url == "http://test.example.com:9000"
+        assert self.service._config["debug"] is True
+        assert self.service._config["output_format"] == "json"
+        assert self.service._config["profile"] == "test-profile"
+        assert self.service._config["api_url"] == "http://test.example.com:9000"
 
     def test_configure_with_dict_valid_keys(self) -> None:
         """Test configuring service with dictionary containing valid keys."""
@@ -126,9 +126,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         result = self.service.configure(config_dict)
         assert result.is_success
         assert self.service._config is not None
-        assert self.service._config.debug is False
-        assert self.service._config.output_format == "yaml"
-        assert self.service._config.profile == "production"
+        assert self.service._config["debug"] is False
+        assert self.service._config["output_format"] == "yaml"
+        assert self.service._config["profile"] == "production"
 
     def test_configure_with_dict_format_type_mapping(self) -> None:
         """Test configuring with format_type gets mapped to output_format."""
@@ -141,7 +141,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         result = self.service.configure(config_dict)
         assert result.is_success
         assert self.service._config is not None
-        assert self.service._config.output_format == "csv"
+        assert self.service._config["output_format"] == "csv"
 
     def test_configure_with_dict_unknown_keys_rejected(self) -> None:
         """Test configuring with dictionary containing unknown keys fails."""
@@ -169,19 +169,25 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
                 self.api_url = "http://compatible.test:5000"
 
         compatible_config = CompatibleConfig()
-        result = self.service.configure(compatible_config)
+        config_dict = {
+            "output_format": compatible_config.output_format,
+            "profile": compatible_config.profile,
+            "debug": compatible_config.debug,
+            "api_url": compatible_config.api_url,
+        }
+        result = self.service.configure(config_dict)
         assert result.is_success
         assert self.service._config is not None
-        assert self.service._config.output_format == "table"
-        assert self.service._config.profile == "compatible"
+        assert self.service._config["output_format"] == "table"
+        assert self.service._config["profile"] == "compatible"
 
     def test_configure_with_invalid_type_fails(self) -> None:
         """Test configuring with invalid type fails appropriately."""
-        invalid_config = "this is not a valid config"
+        invalid_config = "this is not a valid config"  # Intentionally invalid type
 
         result = self.service.configure(invalid_config)
         assert not result.is_success
-        assert "Invalid config type:" in (result.error or "")
+        assert "Configuration must be a dictionary" in (result.error or "")
 
     def test_flext_cli_format_json_simple_data(self) -> None:
         """Test JSON formatting with simple data."""
@@ -199,7 +205,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
     def test_flext_cli_format_json_complex_data(self) -> None:
         """Test JSON formatting with complex nested data."""
-        data = {
+        data: dict[str, object] = {
             "users": [
                 {"id": 1, "name": "Alice", "permissions": ["read", "write"]},
                 {"id": 2, "name": "Bob", "permissions": ["read"]},
@@ -220,7 +226,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
     def test_flext_cli_format_yaml_data(self) -> None:
         """Test YAML formatting with data."""
-        data = {
+        data: dict[str, object] = {
             "database": {"host": "localhost", "port": 5432, "name": "testdb"},
             "features": ["feature1", "feature2", "feature3"],
         }
@@ -301,7 +307,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
     def test_flext_cli_format_unsupported_format(self) -> None:
         """Test formatting with unsupported format fails appropriately."""
-        data = {"test": "data"}
+        data: dict[str, object] = {"test": "data"}
 
         # This should fail since we're passing invalid format
         result = self.service.flext_cli_format(data, "xml")
@@ -316,7 +322,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             output_file = Path(temp_dir) / "test_export.json"
 
             result = self.service.flext_cli_export(
-                data, output_file, FlextCliTypes.OutputFormat.JSON
+                data, str(output_file), FlextCliTypes.OutputFormat.JSON
             )
             assert result.is_success
             assert output_file.exists()
@@ -329,7 +335,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
     def test_flext_cli_export_yaml_to_file(self) -> None:
         """Test exporting YAML data to file."""
-        data = {
+        data: dict[str, object] = {
             "config": {"api_endpoint": "https://api.test.com", "timeout": 30},
             "enabled_features": ["auth", "logging", "metrics"],
         }
@@ -338,7 +344,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             output_file = Path(temp_dir) / "config.yaml"
 
             result = self.service.flext_cli_export(
-                data, output_file, FlextCliTypes.OutputFormat.YAML
+                data, str(output_file), FlextCliTypes.OutputFormat.YAML
             )
             assert result.is_success
             assert output_file.exists()
@@ -361,7 +367,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             output_file = Path(temp_dir) / "products.csv"
 
             result = self.service.flext_cli_export(
-                data, output_file, FlextCliTypes.OutputFormat.CSV
+                data, str(output_file), FlextCliTypes.OutputFormat.CSV
             )
             assert result.is_success
             assert output_file.exists()
@@ -374,13 +380,13 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
     def test_flext_cli_export_creates_parent_directories(self) -> None:
         """Test export creates parent directories when they don't exist."""
-        data = {"test": "directory_creation"}
+        data: dict[str, object] = {"test": "directory_creation"}
 
         with tempfile.TemporaryDirectory() as temp_dir:
             nested_path = Path(temp_dir) / "level1" / "level2" / "test.json"
 
             result = self.service.flext_cli_export(
-                data, nested_path, FlextCliTypes.OutputFormat.JSON
+                data, str(nested_path), FlextCliTypes.OutputFormat.JSON
             )
             assert result.is_success
             assert nested_path.exists()

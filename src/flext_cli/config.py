@@ -92,6 +92,7 @@ class FlextCliConfig(FlextConfig):
         validate_assignment=True,
         arbitrary_types_allowed=True,
         extra="forbid",
+        frozen=True,  # Make instances hashable for use in sets/dicts
         # JSON schema configuration
         json_schema_extra={
             "examples": [

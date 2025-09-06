@@ -37,6 +37,7 @@ from flext_core import (
 )
 from rich.console import Console
 
+from example_utils import handle_command_result
 from flext_cli import (
     FlextCliService,
     cli_measure_time,
@@ -545,8 +546,6 @@ def enterprise_cli(ctx: click.Context) -> None:
 @click.pass_context
 def create_project(ctx: click.Context, name: str, description: str, owner: str) -> None:
     """Create a new project using enterprise patterns."""
-    from .example_utils import handle_command_result
-
     console: Console = ctx.obj["console"]
     service: ProjectManagementService = ctx.obj["service"]
 
@@ -571,8 +570,6 @@ def change_status(
     ctx: click.Context, project_id: str, status: str, reason: str
 ) -> None:
     """Change project status using CQRS command."""
-    from .example_utils import handle_command_result
-
     console: Console = ctx.obj["console"]
     service: ProjectManagementService = ctx.obj["service"]
 
