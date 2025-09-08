@@ -3,11 +3,15 @@
 These tests execute REAL code functionality without excessive mocking,
 following the consolidated class patterns and demonstrating 100% working code.
 
+
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import pytest
 from flext_core import FlextResult

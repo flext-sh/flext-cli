@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 from rich.console import Console
 
 from flext_cli.config import FlextCliConfig
@@ -48,7 +48,7 @@ class FlextCliContext:
         quiet: bool = False,
         verbose: bool = False,
         working_directory: Path | None = None,
-        environment_variables: dict[str, str] | None = None,
+        environment_variables: FlextTypes.Core.Headers | None = None,
         user_id: str | None = None,
         session_id: str | None = None,
         **kwargs: object,
@@ -111,7 +111,7 @@ class FlextCliContext:
         return self._working_directory
 
     @property
-    def environment_variables(self) -> dict[str, str]:
+    def environment_variables(self) -> FlextTypes.Core.Headers:
         """Get environment variables."""
         return self._environment_variables.copy()
 
@@ -126,7 +126,7 @@ class FlextCliContext:
         return self._session_id
 
     @property
-    def configuration(self) -> dict[str, object]:
+    def configuration(self) -> FlextTypes.Core.Dict:
         """Get context-specific configuration."""
         return self._configuration.copy()
 
@@ -248,15 +248,15 @@ class FlextCliContext:
         """Extended context for command execution (lightweight dataclass)."""
 
         command_name: str | None = None
-        command_args: dict[str, object] = field(
-            default_factory=lambda: cast("dict[str, object]", {})
+        command_args: FlextTypes.Core.Dict = field(
+            default_factory=lambda: cast("FlextTypes.Core.Dict", {})
         )
         execution_id: str | None = None
         start_time: float | None = None
         session_id: str | None = None
         user_id: str | None = None
 
-        def get_execution_info(self) -> dict[str, object]:
+        def get_execution_info(self) -> FlextTypes.Core.Dict:
             """Get execution information."""
             return {
                 "command_name": self.command_name,
@@ -310,7 +310,7 @@ class FlextCliContext:
 
         # Properly type command_args
         command_args = (
-            cast("dict[str, object]", command_args_raw)
+            cast("FlextTypes.Core.Dict", command_args_raw)
             if isinstance(command_args_raw, dict)
             else {}
         )

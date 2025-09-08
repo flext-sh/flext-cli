@@ -4,12 +4,16 @@ Tests authentication command functionality with ACTUAL execution.
 Following user requirement: "melhore bem os tests para executar codigo de verdade
 e validar a funcionalidade requerida, pare de ficar mockando tudo!"
 
+
+
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import click
 from click.testing import CliRunner

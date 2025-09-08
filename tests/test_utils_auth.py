@@ -3,12 +3,16 @@
 Tests authentication functionality using real implementations following
 the ZERO TOLERANCE requirements for production-ready code.
 
+
+
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import shutil
 import tempfile

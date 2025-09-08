@@ -1,15 +1,19 @@
 """Comprehensive real functionality tests for decorators.py module.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
 
 NO MOCKING - All tests execute real functionality and validate actual business logic.
 Following user requirement: "pare de ficar mockando tudo!"
 
 These tests validate the FlextCliDecorators class and its methods.
+
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import asyncio
 import tempfile
@@ -117,7 +121,7 @@ class TestFlextCliDecorators(unittest.TestCase):
         """Test validate_config decorator with valid config."""
 
         @FlextCliDecorators.validate_config(["required_key"])
-        def test_func(config: dict[str, str]) -> str:
+        def test_func(config: FlextTypes.Core.Headers) -> str:
             return "validated"
 
         result = test_func(config={"required_key": "value"})

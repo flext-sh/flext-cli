@@ -11,7 +11,7 @@ import importlib
 from pathlib import Path
 
 import click
-from flext_core import FlextUtilities
+from flext_core import FlextTypes, FlextUtilities
 from rich.console import Console
 from rich.table import Table
 
@@ -58,12 +58,12 @@ class FlextCliCmd:
     @staticmethod
     def get_all_config(cli_context: object) -> None:
         console: Console = getattr(cli_context, "console", Console())
-        cfg_dict: dict[str, object] = getattr(
+        cfg_dict: FlextTypes.Core.Dict = getattr(
             getattr(cli_context, "config", object()),
             "model_dump",
             dict,
         )()
-        stg_dict: dict[str, object] = getattr(
+        stg_dict: FlextTypes.Core.Dict = getattr(
             getattr(cli_context, "settings", object()),
             "model_dump",
             dict,
@@ -108,7 +108,9 @@ class FlextCliCmd:
         console.print(table)
 
     @staticmethod
-    def print_config_table(cli_context: object, config_data: dict[str, object]) -> None:
+    def print_config_table(
+        cli_context: object, config_data: FlextTypes.Core.Dict
+    ) -> None:
         """Print given config dict as table."""
         console: Console = getattr(cli_context, "console", Console())
         table = Table(title=FlextCliConstants.TABLE_TITLE_CONFIG)

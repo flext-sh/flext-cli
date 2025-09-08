@@ -1,11 +1,15 @@
 """Comprehensive tests for core functionality to maximize coverage.
 
+
+
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import json
 import tempfile
@@ -217,4 +221,3 @@ class TestConfigIntegration:
 
         # Test configuration validation doesn't crash
         assert callable(getattr(valid_config, "validate_business_rules", None))
-

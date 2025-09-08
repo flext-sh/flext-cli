@@ -22,6 +22,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import csv
 import io
@@ -89,7 +90,7 @@ def demonstrate_data_transformation() -> FlextResult[None]:
     console.print("\n[green]1. Basic Data Transformation[/green]")
 
     # Transform data - filter only running services (manual filtering since flext_cli_transform_data has different signature)
-    def filter_running_services(data: object) -> list[dict[str, object]]:
+    def filter_running_services(data: object) -> list[FlextTypes.Core.Dict]:
         if isinstance(data, list):
             return [
                 service
@@ -99,7 +100,7 @@ def demonstrate_data_transformation() -> FlextResult[None]:
         return []
 
     running_services = filter_running_services(raw_data)
-    filter_result = FlextResult[list[dict[str, object]]].ok(running_services)
+    filter_result = FlextResult[list[FlextTypes.Core.Dict]].ok(running_services)
 
     if filter_result.is_success:
         running_services = filter_result.value
@@ -125,7 +126,7 @@ def demonstrate_data_transformation() -> FlextResult[None]:
                 "efficiency": round((100 - cpu_val) * memory_val / 1000, 2),
             }
             enriched_services.append(enriched_service)
-        enrich_result = FlextResult[list[dict[str, object]]].ok(enriched_services)
+        enrich_result = FlextResult[list[FlextTypes.Core.Dict]].ok(enriched_services)
 
         if enrich_result.is_success:
             enriched_services = enrich_result.value
@@ -340,16 +341,16 @@ def demonstrate_file_operations() -> FlextResult[None]:
                 # Load data back
                 try:
                     loaded_data = json.loads(temp_path.read_text(encoding="utf-8"))
-                    load_result = FlextResult[dict[str, object]].ok(loaded_data)
+                    load_result = FlextResult[FlextTypes.Core.Dict].ok(loaded_data)
                 except Exception as e:
-                    load_result = FlextResult[dict[str, object]].fail(
+                    load_result = FlextResult[FlextTypes.Core.Dict].fail(
                         f"Load failed: {e}"
                     )
 
                 if load_result.is_success:
                     loaded_data = load_result.value
                     console.print("✅ Configuration loaded successfully")
-                    # Access loaded data (guaranteed to be dict[str, object])
+                    # Access loaded data (guaranteed to be FlextTypes.Core.Dict)
                     database = loaded_data.get("database", {})
                     api = loaded_data.get("api", {})
                     if isinstance(database, dict) and isinstance(api, dict):
@@ -406,9 +407,9 @@ def demonstrate_batch_processing() -> FlextResult[None]:
                 for file in matching_files:
                     processed = f"Processed: {file.name} ({file.stat().st_size} bytes)"
                     results.append(processed)
-                batch_result = FlextResult[list[str]].ok(results)
+                batch_result = FlextResult[FlextTypes.Core.StringList].ok(results)
             except Exception as e:
-                batch_result = FlextResult[list[str]].fail(
+                batch_result = FlextResult[FlextTypes.Core.StringList].fail(
                     f"Batch processing failed: {e}"
                 )
 

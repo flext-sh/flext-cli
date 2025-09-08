@@ -1,11 +1,15 @@
 """Tests for data_processing.py module - Real functionality testing.
 
+
+
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import tempfile
 from pathlib import Path
@@ -41,7 +45,7 @@ class TestFlextCliDataProcessing:
         """Test transform_data with list input."""
         processor = FlextCliDataProcessing()
 
-        data: list[dict[str, object]] = [{"name": "test1"}, {"name": "test2"}]
+        data: list[FlextTypes.Core.Dict] = [{"name": "test1"}, {"name": "test2"}]
         result = processor.transform_data(data)
 
         assert result.is_success
@@ -114,7 +118,7 @@ class TestFlextCliDataProcessing:
         """Test export_to_file with invalid path."""
         processor = FlextCliDataProcessing()
 
-        data: dict[str, object] = {"test": "data"}
+        data: FlextTypes.Core.Dict = {"test": "data"}
         invalid_path = Path("/invalid/nonexistent/path.json")
 
         result = processor.export_to_file(data, str(invalid_path))
@@ -160,7 +164,7 @@ class TestFlextCliDataProcessing:
         """Test processing with nested/complex data structures."""
         processor = FlextCliDataProcessing()
 
-        complex_data: dict[str, object] = {
+        complex_data: FlextTypes.Core.Dict = {
             "users": [
                 {"name": "Alice", "details": {"age": 30, "city": "NYC"}},
                 {"name": "Bob", "details": {"age": 25, "city": "LA"}}

@@ -1,11 +1,15 @@
 """Tests for api.py to improve coverage (corrected version).
 
+
+
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import datetime
 import json
@@ -210,7 +214,7 @@ class TestDataTransformation:
 
     def test_flext_cli_transform_data_empty(self) -> None:
         """Test transformation with empty data."""
-        data: list[object] = []
+        data: FlextTypes.Core.List = []
 
         def transform_fn(x: object) -> object:
             return x
@@ -240,7 +244,7 @@ class TestDataAggregation:
 
     def test_flext_cli_aggregate_data_empty(self) -> None:
         """Test data aggregation with empty data."""
-        data: list[dict[str, object]] = []
+        data: list[FlextTypes.Core.Dict] = []
 
         api = FlextCliApi()
         result = api.aggregate_data(data, group_by="field")
@@ -447,7 +451,7 @@ class TestSpecialCases:
 
     def test_table_from_empty_list(self) -> None:
         """Test table creation handles empty list."""
-        data: list[object] = []
+        data: FlextTypes.Core.List = []
 
         api = FlextCliApi()
         result = api.create_table(data)
@@ -457,7 +461,7 @@ class TestSpecialCases:
 
     def test_table_from_list_with_empty_dict(self) -> None:
         """Test table creation handles list with empty dict."""
-        data: list[dict[str, object]] = [{}]
+        data: list[FlextTypes.Core.Dict] = [{}]
 
         api = FlextCliApi()
         result = api.create_table(data)
@@ -467,7 +471,7 @@ class TestSpecialCases:
 
     def test_aggregation_with_non_list_data(self) -> None:
         """Test aggregation with non-list data."""
-        data: list[dict[str, object]] = []  # Change to empty list to test edge case
+        data: list[FlextTypes.Core.Dict] = []  # Change to empty list to test edge case
 
         api = FlextCliApi()
         result = api.aggregate_data(data, group_by="field")

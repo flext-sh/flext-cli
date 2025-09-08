@@ -13,11 +13,10 @@ from pathlib import Path
 from typing import Literal, Protocol, TypedDict, TypeVar
 from uuid import UUID
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 from flext_core.typings import FlextTypes as CoreFlextTypes
 from pydantic import BaseModel, Field
 
-# Import types from constants and models for compatibility
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 
@@ -274,31 +273,33 @@ class FlextCliTypes:
             """Protocol for CLI processors."""
 
             def process(
-                self, request: str | dict[str, object]
+                self, request: str | FlextTypes.Core.Dict
             ) -> FlextResult[object]: ...
             def build(
                 self, domain: object, *, correlation_id: str
-            ) -> str | dict[str, object]: ...
+            ) -> str | FlextTypes.Core.Dict: ...
 
         class CliValidator(Protocol):
             """Protocol for CLI validators."""
 
             def validate(
-                self, data: dict[str, object] | str | float
+                self, data: FlextTypes.Core.Dict | str | float
             ) -> FlextResult[None]: ...
 
         class CliFormatter(Protocol):
             """Protocol for CLI formatters."""
 
             def format(
-                self, data: dict[str, object] | list[object] | str, format_type: str
+                self,
+                data: FlextTypes.Core.Dict | FlextTypes.Core.List | str,
+                format_type: str,
             ) -> FlextResult[str]: ...
 
         class CliAuthenticator(Protocol):
             """Protocol for CLI authenticators."""
 
             def authenticate(
-                self, credentials: dict[str, str]
+                self, credentials: FlextTypes.Core.Headers
             ) -> FlextResult[FlextCliTypes.Auth.CliAuthContext]: ...
             def is_authenticated(self) -> bool: ...
 
@@ -344,17 +345,17 @@ URL = str
 URLType = str
 
 # Data types
-FlextCliDataType = dict[str, object]
+FlextCliDataType = FlextTypes.Core.Dict
 FlextCliFileHandler = object  # Generic file handler
-CommandArgs = list[str]
+CommandArgs = FlextTypes.Core.StringList
 FlextCliLogLevel = FlextCliConstants.LogLevel
 
 # Model types
 FlextCliCommand = FlextCliModels.CliCommand
-FlextCliConfigDict = dict[str, object]
-ContextParams = dict[str, object]
-PluginResult = dict[str, object]
-SessionData = dict[str, object]
+FlextCliConfigDict = FlextTypes.Core.Dict
+ContextParams = FlextTypes.Core.Dict
+PluginResult = FlextTypes.Core.Dict
+SessionData = FlextTypes.Core.Dict
 
 # =============================================================================
 # EXPORTS - Type variables and main classes for test compatibility

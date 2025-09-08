@@ -1,10 +1,14 @@
 """Production-ready pytest configuration using flext_tests.
 
+
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import tempfile
 from collections.abc import Generator
@@ -146,7 +150,7 @@ def test_flext_result_failure() -> FlextResult[str]:
 
 
 @pytest.fixture
-def real_repositories() -> dict[str, object]:
+def real_repositories() -> FlextTypes.Core.Dict:
     """Provide collection of real repository implementations."""
     return {
         "user_repo": InMemoryUserRepository(),

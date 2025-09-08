@@ -50,6 +50,7 @@ Notes:
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes
 
 # =============================================================================
 # CORE IMPORTS FOR TYPE ANNOTATIONS
@@ -210,7 +211,9 @@ def save_auth_token(token: str) -> FlextResult[None]:
         return FlextResult[None].fail(f"Failed to save token: {e}")
 
 
-def cli_create_table(data: list[dict[str, object]], title: str | None = None) -> Table:
+def cli_create_table(
+    data: list[FlextTypes.Core.Dict], title: str | None = None
+) -> Table:
     """Create a Rich table from data.
 
     Args:
@@ -257,6 +260,7 @@ def cli_format_output(data: object, format_type: str) -> str:
 
 def require_auth() -> Callable[[Callable[..., object]], Callable[..., object]]:
     """Authentication decorator."""
+
     def decorator(func: Callable[..., object]) -> Callable[..., object]:
         def wrapper(*args: object, **kwargs: object) -> object:
             # Simple auth check - in real implementation would check token
@@ -265,12 +269,15 @@ def require_auth() -> Callable[[Callable[..., object]], Callable[..., object]]:
                 # For examples, assume authenticated - in real implementation would redirect to login
                 pass  # Could raise authentication error here
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
 def cli_measure_time(func: Callable[..., object]) -> Callable[..., object]:
     """Decorator to measure execution time of CLI commands."""
+
     @wraps(func)
     def wrapper(*args: object, **kwargs: object) -> object:
         start = time.perf_counter()
@@ -278,6 +285,7 @@ def cli_measure_time(func: Callable[..., object]) -> Callable[..., object]:
             return func(*args, **kwargs)
         finally:
             time.perf_counter() - start
+
     return wrapper
 
 

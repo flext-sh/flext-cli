@@ -1,16 +1,20 @@
 """Simple real functionality tests for CMD Debug - NO MOCKING.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
 
 Following user requirement: "melhore bem os tests para executar codigo de verdade e validar
 a funcionalidade requerida, pare de ficar mockando tudo!"
 
 These tests execute REAL debug command functionality with minimal mocking.
 Coverage target: Increase commands_debug.py from 24% to 90%+
+
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import os
 import tempfile

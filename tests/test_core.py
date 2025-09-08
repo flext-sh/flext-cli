@@ -1,22 +1,26 @@
 """Comprehensive real functionality tests for core.py - NO MOCKING.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
 
 Following user requirement: "melhore bem os tests para executar codigo de verdade e validar
 a funcionalidade requerida, pare de ficar mockando tudo!"
 
 These tests execute REAL core service functionality and validate actual business logic.
 Coverage target: Increase core.py from current to 90%+
+
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import json
 import tempfile
 import unittest
 from pathlib import Path
-
+from flext_core import FlextTypes
 import yaml
 
 from flext_cli.config import FlextCliConfig
@@ -24,7 +28,7 @@ from flext_cli.core import FlextCliService
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
 
-
+from flext_core import FlextTypes
 class TestFlextCliService(unittest.TestCase):
     """Real functionality tests for FlextCliService class."""
 
@@ -205,7 +209,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
     def test_flext_cli_format_json_complex_data(self) -> None:
         """Test JSON formatting with complex nested data."""
-        data: dict[str, object] = {
+        data: FlextTypes.Core.Dict = {
             "users": [
                 {"id": 1, "name": "Alice", "permissions": ["read", "write"]},
                 {"id": 2, "name": "Bob", "permissions": ["read"]},
@@ -226,7 +230,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
     def test_flext_cli_format_yaml_data(self) -> None:
         """Test YAML formatting with data."""
-        data: dict[str, object] = {
+        data: FlextTypes.Core.Dict = {
             "database": {"host": "localhost", "port": 5432, "name": "testdb"},
             "features": ["feature1", "feature2", "feature3"],
         }
@@ -307,7 +311,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
     def test_flext_cli_format_unsupported_format(self) -> None:
         """Test formatting with unsupported format fails appropriately."""
-        data: dict[str, object] = {"test": "data"}
+        data: FlextTypes.Core.Dict = {"test": "data"}
 
         # This should fail since we're passing invalid format
         result = self.service.flext_cli_format(data, "xml")
@@ -335,7 +339,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
     def test_flext_cli_export_yaml_to_file(self) -> None:
         """Test exporting YAML data to file."""
-        data: dict[str, object] = {
+        data: FlextTypes.Core.Dict = {
             "config": {"api_endpoint": "https://api.test.com", "timeout": 30},
             "enabled_features": ["auth", "logging", "metrics"],
         }
@@ -380,7 +384,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
     def test_flext_cli_export_creates_parent_directories(self) -> None:
         """Test export creates parent directories when they don't exist."""
-        data: dict[str, object] = {"test": "directory_creation"}
+        data: FlextTypes.Core.Dict = {"test": "directory_creation"}
 
         with tempfile.TemporaryDirectory() as temp_dir:
             nested_path = Path(temp_dir) / "level1" / "level2" / "test.json"

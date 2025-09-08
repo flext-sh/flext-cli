@@ -26,6 +26,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import sys
 from datetime import UTC, datetime
@@ -58,8 +59,8 @@ class ComprehensiveCliApplication:
 
         # Application state
         self.current_session = None
-        self.active_commands: list[str] = []
-        self.user_preferences: dict[str, object] = {}
+        self.active_commands: FlextTypes.Core.StringList = []
+        self.user_preferences: FlextTypes.Core.Dict = {}
 
     def initialize_application(self) -> FlextResult[None]:
         """Initialize the CLI application with setup and validation."""

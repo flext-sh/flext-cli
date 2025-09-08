@@ -14,7 +14,7 @@ import json
 from collections.abc import Callable
 from pathlib import Path
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.interactions import FlextCliInteractions
@@ -44,7 +44,7 @@ class FlextCliFileOperations:
         """
         self.interactions = interactions or FlextCliInteractions()
 
-    def load_json_file(self, path: str | Path) -> FlextResult[dict[str, object]]:
+    def load_json_file(self, path: str | Path) -> FlextResult[FlextTypes.Core.Dict]:
         """Load JSON data from file with error handling.
 
         Args:
@@ -57,24 +57,24 @@ class FlextCliFileOperations:
         try:
             file_path = Path(path)
             if not file_path.exists():
-                return FlextResult[dict[str, object]].fail(f"File not found: {path}")
+                return FlextResult[FlextTypes.Core.Dict].fail(f"File not found: {path}")
 
             content = file_path.read_text(encoding=FlextCliConstants.DEFAULT_ENCODING)
             data = json.loads(content)
 
             if not isinstance(data, dict):
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Core.Dict].fail(
                     f"JSON file must contain object, got {type(data).__name__}"
                 )
 
-            return FlextResult[dict[str, object]].ok(data)
+            return FlextResult[FlextTypes.Core.Dict].ok(data)
         except json.JSONDecodeError as e:
-            return FlextResult[dict[str, object]].fail(f"Invalid JSON: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(f"Invalid JSON: {e}")
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"JSON load failed: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(f"JSON load failed: {e}")
 
     def save_json_file(
-        self, data: dict[str, object], path: str | Path, *, indent: int = 2
+        self, data: FlextTypes.Core.Dict, path: str | Path, *, indent: int = 2
     ) -> FlextResult[None]:
         """Save data to JSON file with proper formatting.
 

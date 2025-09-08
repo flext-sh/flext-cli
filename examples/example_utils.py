@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes
 
 from flext_core import FlextResult
 from rich.console import Console
@@ -18,7 +19,7 @@ from rich.panel import Panel
 def print_demo_completion(
     console: Console,
     demo_name: str,
-    features: list[str],
+    features: FlextTypes.Core.StringList,
     *,
     border_style: str = "green"
 ) -> None:
@@ -48,9 +49,9 @@ def print_demo_completion(
 
 def handle_command_result(
     console: Console,
-    result: FlextResult[dict[str, object]],
+    result: FlextResult[FlextTypes.Core.Dict],
     action: str,
-    success_fields: list[str] | None = None
+    success_fields: FlextTypes.Core.StringList | None = None
 ) -> None:
     """Generic handler for CQRS command results to eliminate code duplication.
 
