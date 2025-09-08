@@ -2,12 +2,16 @@
 
 Tests command-related domain models and functionality.
 
+
+
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 from flext_cli import FlextCliConstants, FlextCliModels
 
@@ -68,7 +72,6 @@ class TestCommandStatus:
         status = FlextCliConstants.STATUS_RUNNING
         assert isinstance(status, str)
         assert str(status) == "RUNNING"
-
 
 
 class TestFlextCliSession:

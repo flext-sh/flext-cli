@@ -22,6 +22,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import os
 from datetime import UTC, datetime, timedelta
@@ -62,7 +63,7 @@ def demonstrate_basic_authentication() -> FlextResult[None]:
     # 2. Retrieve authentication headers
     console.print("\n[green]2. Authorization Headers[/green]")
 
-    # get_auth_headers returns dict[str, str] directly, not FlextResult
+    # get_auth_headers returns FlextTypes.Core.Headers directly, not FlextResult
     try:
         headers = get_auth_headers()
         if headers and isinstance(headers, dict):
@@ -150,7 +151,7 @@ def demonstrate_role_based_access() -> FlextResult[None]:
     console.print("\n[green]5. Role-Based Access Control[/green]")
 
     # Simulate different user roles and permissions
-    demo_roles: list[dict[str, object]] = [
+    demo_roles: list[FlextTypes.Core.Dict] = [
         {
             "name": "REDACTED_LDAP_BIND_PASSWORD",
             "permissions": ["read", "write", "delete", "manage_users", "system_config"],
@@ -207,7 +208,7 @@ def demonstrate_session_management() -> FlextResult[None]:
 
     # Simulate session data
     now = datetime.now(UTC)
-    session_data: dict[str, object] = {
+    session_data: FlextTypes.Core.Dict = {
         "session_id": f"sess_{now.strftime('%Y%m%d_%H%M%S')}",
         "user_id": "demo_user_123",
         "created_at": now,
@@ -299,7 +300,7 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
 
 def simulate_authenticated_request(
     _client: FlextApiClient, endpoint: str
-) -> FlextResult[dict[str, object]]:
+) -> FlextResult[FlextTypes.Core.Dict]:
     """Simulate an authenticated API request."""
     try:
         # In a real implementation, this would make an actual HTTP request
@@ -329,10 +330,10 @@ def simulate_authenticated_request(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        return FlextResult[dict[str, object]].ok(response_data)
+        return FlextResult[FlextTypes.Core.Dict].ok(response_data)
 
     except Exception as e:
-        return FlextResult[dict[str, object]].fail(f"API request failed: {e}")
+        return FlextResult[FlextTypes.Core.Dict].fail(f"API request failed: {e}")
 
 
 def perform_protected_business_logic() -> FlextResult[str]:
@@ -356,7 +357,7 @@ def perform_protected_business_logic() -> FlextResult[str]:
 
 
 def check_permission(
-    user_role: str, required_permission: str, roles_config: list[dict[str, object]]
+    user_role: str, required_permission: str, roles_config: list[FlextTypes.Core.Dict]
 ) -> FlextResult[bool]:
     """Check if user role has required permission."""
     try:
@@ -383,7 +384,7 @@ def check_permission(
         return FlextResult[bool].fail(f"Permission check failed: {e}")
 
 
-def validate_session(session_data: dict[str, object]) -> FlextResult[bool]:
+def validate_session(session_data: FlextTypes.Core.Dict) -> FlextResult[bool]:
     """Validate session data and expiration."""
     try:
         current_time = datetime.now(UTC)
@@ -409,7 +410,7 @@ def validate_session(session_data: dict[str, object]) -> FlextResult[bool]:
         return FlextResult[bool].fail(f"Session validation error: {e}")
 
 
-def refresh_session(session_data: dict[str, object]) -> FlextResult[dict[str, object]]:
+def refresh_session(session_data: FlextTypes.Core.Dict) -> FlextResult[FlextTypes.Core.Dict]:
     """Refresh session with new expiration time."""
     try:
         current_time = datetime.now(UTC)
@@ -424,10 +425,10 @@ def refresh_session(session_data: dict[str, object]) -> FlextResult[dict[str, ob
             }
         )
 
-        return FlextResult[dict[str, object]].ok(refreshed_session)
+        return FlextResult[FlextTypes.Core.Dict].ok(refreshed_session)
 
     except Exception as e:
-        return FlextResult[dict[str, object]].fail(f"Session refresh failed: {e}")
+        return FlextResult[FlextTypes.Core.Dict].fail(f"Session refresh failed: {e}")
 
 
 def main() -> None:

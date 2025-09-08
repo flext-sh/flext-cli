@@ -1,16 +1,20 @@
 """Real functionality tests for CMD Config - NO MOCKING.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
 
 Following user requirement: "melhore bem os tests para executar codigo de verdade e validar
 a funcionalidade requerida, pare de ficar mockando tudo!"
 
 These tests execute REAL config command functionality and validate actual business logic.
 Coverage target: Increase cmd_config.py from 57% to 90%+
+
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import tempfile
 import unittest
@@ -52,7 +56,7 @@ class _TestConfig:
         self.output_format = output_format
         self.config_file = config_file or Path.home() / ".flext" / "config.yaml"
 
-    def model_dump(self) -> dict[str, object]:
+    def model_dump(self) -> FlextTypes.Core.Dict:
         """Dump config as dict."""
         return {
             "api_url": self.api_url,
@@ -77,7 +81,7 @@ class _TestSettings:
         self.log_level = log_level
         self.profile = profile
 
-    def model_dump(self) -> dict[str, object]:
+    def model_dump(self) -> FlextTypes.Core.Dict:
         """Dump settings as dict."""
         return {
             "project_name": self.project_name,

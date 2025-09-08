@@ -22,6 +22,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -160,12 +161,12 @@ class Project(FlextModels.AggregateRoot):
 # =============================================================================
 
 
-class ProjectDomainService(FlextDomainService[dict[str, object]]):
+class ProjectDomainService(FlextDomainService[FlextTypes.Core.Dict]):
     """Domain service for cross-project operations."""
 
-    def execute(self) -> FlextResult[dict[str, object]]:
+    def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute method required by FlextDomainService base class."""
-        return FlextResult[dict[str, object]].ok({"service": "project_domain"})
+        return FlextResult[FlextTypes.Core.Dict].ok({"service": "project_domain"})
 
     def can_transfer_ownership(
         self, project: Project, new_owner_id: str
@@ -308,7 +309,7 @@ class CreateProjectHandler:
 
         return FlextResult[Project].ok(project)
 
-    def _process_domain_events(self, events: list[object]) -> None:
+    def _process_domain_events(self, events: FlextTypes.Core.List) -> None:
         """Process domain events."""
         for event in events:
             if isinstance(event, dict) and event.get("type") == "ProjectCreated":
@@ -366,17 +367,17 @@ class ProjectQueryHandler:
 
     def execute_get_project(
         self, query: GetProjectQuery
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute get project query."""
         find_result = self._repository.find_by_id(query.project_id)
         if find_result.is_failure:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Core.Dict].fail(
                 str(find_result.error) if find_result.error else "Find failed"
             )
 
         project = find_result.value
         if not project:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Core.Dict].fail(
                 f"Project not found: {query.project_id}"
             )
 
@@ -391,15 +392,15 @@ class ProjectQueryHandler:
             "updated_at": str(project.updated_at) if project.updated_at else None,
         }
 
-        return FlextResult[dict[str, object]].ok(dict(project_data))
+        return FlextResult[FlextTypes.Core.Dict].ok(dict(project_data))
 
     def execute_list_by_owner(
         self, query: ListProjectsByOwnerQuery
-    ) -> FlextResult[list[dict[str, object]]]:
+    ) -> FlextResult[list[FlextTypes.Core.Dict]]:
         """Execute list projects by owner query."""
         find_result = self._repository.find_by_owner(query.owner_id)
         if find_result.is_failure:
-            return FlextResult[list[dict[str, object]]].fail(
+            return FlextResult[list[FlextTypes.Core.Dict]].fail(
                 str(find_result.error) if find_result.error else "Find by owner failed"
             )
 
@@ -415,8 +416,8 @@ class ProjectQueryHandler:
         ]
 
         # Cast to fix variance issue
-        project_list_obj: list[dict[str, object]] = [{**p} for p in project_list]
-        return FlextResult[list[dict[str, object]]].ok(project_list_obj)
+        project_list_obj: list[FlextTypes.Core.Dict] = [{**p} for p in project_list]
+        return FlextResult[list[FlextTypes.Core.Dict]].ok(project_list_obj)
 
 
 # =============================================================================
@@ -444,9 +445,9 @@ class ProjectManagementService(FlextCliService):
         self._status_handler = ChangeProjectStatusHandler(repository=self._repository)
         self._query_handler = ProjectQueryHandler(repository=self._repository)
 
-    def execute(self) -> FlextResult[dict[str, object]]:
+    def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute method required by FlextService base class."""
-        return FlextResult[dict[str, object]].ok(
+        return FlextResult[FlextTypes.Core.Dict].ok(
             {
                 "service": "project_management",
                 "status": "active",
@@ -455,7 +456,7 @@ class ProjectManagementService(FlextCliService):
 
     def create_project(
         self, name: str, description: str, owner_id: str
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Create new project through CQRS."""
         command = CreateProjectCommand(
             name=name, description=description, owner_id=owner_id
@@ -463,12 +464,12 @@ class ProjectManagementService(FlextCliService):
 
         result = self._create_handler.handle(command)
         if result.is_failure:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Core.Dict].fail(
                 str(result.error) if result.error else "Create failed"
             )
 
         project = result.value
-        return FlextResult[dict[str, object]].ok(
+        return FlextResult[FlextTypes.Core.Dict].ok(
             {
                 "id": str(project.project_id),
                 "name": project.name,
@@ -479,13 +480,13 @@ class ProjectManagementService(FlextCliService):
 
     def change_project_status(
         self, project_id: str, new_status: str, reason: str
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Change project status through CQRS."""
         try:
             uuid_id = UUID(project_id)
             status_enum = ProjectStatus(new_status)
         except (ValueError, TypeError) as e:
-            return FlextResult[dict[str, object]].fail(f"Invalid input: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(f"Invalid input: {e}")
 
         command = ChangeProjectStatusCommand(
             project_id=uuid_id, new_status=status_enum, reason=reason
@@ -493,12 +494,12 @@ class ProjectManagementService(FlextCliService):
 
         result = self._status_handler.handle(command)
         if result.is_failure:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Core.Dict].fail(
                 str(result.error) if result.error else "Status change failed"
             )
 
         project = result.value
-        return FlextResult[dict[str, object]].ok(
+        return FlextResult[FlextTypes.Core.Dict].ok(
             {
                 "id": str(project.project_id),
                 "status": project.status.value,
@@ -506,19 +507,19 @@ class ProjectManagementService(FlextCliService):
             }
         )
 
-    def get_project(self, project_id: str) -> FlextResult[dict[str, object]]:
+    def get_project(self, project_id: str) -> FlextResult[FlextTypes.Core.Dict]:
         """Get project details through CQRS."""
         try:
             uuid_id = UUID(project_id)
         except (ValueError, TypeError) as e:
-            return FlextResult[dict[str, object]].fail(f"Invalid project ID: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(f"Invalid project ID: {e}")
 
         query = GetProjectQuery(project_id=uuid_id)
         return self._query_handler.execute_get_project(query)
 
     def list_projects_by_owner(
         self, owner_id: str
-    ) -> FlextResult[list[dict[str, object]]]:
+    ) -> FlextResult[list[FlextTypes.Core.Dict]]:
         """List projects by owner through CQRS."""
         query = ListProjectsByOwnerQuery(owner_id=owner_id)
         return self._query_handler.execute_list_by_owner(query)

@@ -17,7 +17,7 @@ from typing import TypedDict, cast
 
 import click
 import httpx
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 from rich.console import Console
 from rich.table import Table
 
@@ -176,7 +176,7 @@ class FlextCliDebug:
         """Execute performance metrics using match-case table generation."""
         console = self._get_console_from_ctx(ctx)
 
-        async def _fetch_metrics() -> dict[str, object] | None:
+        async def _fetch_metrics() -> FlextTypes.Core.Dict | None:
             try:
                 client = self._create_client()
                 status_result = await client.get_system_status()

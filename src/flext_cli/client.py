@@ -11,7 +11,7 @@ from typing import Self, cast
 from urllib.parse import urljoin
 
 import httpx
-from flext_core import FlextConstants, FlextLogger, FlextResult
+from flext_core import FlextConstants, FlextLogger, FlextResult, FlextTypes
 from flext_core.models import FlextModels
 from pydantic import Field
 
@@ -33,8 +33,10 @@ class FlextApiClient:
         tap: str = Field(description="Source tap plugin")
         target: str = Field(description="Target plugin")
         transform: str | None = Field(None, description="Transform plugin")
-        state: dict[str, object] | None = Field(None, description="Pipeline state")
-        config: dict[str, object] | None = Field(None, description="Additional config")
+        state: FlextTypes.Core.Dict | None = Field(None, description="Pipeline state")
+        config: FlextTypes.Core.Dict | None = Field(
+            None, description="Additional config"
+        )
 
     class Pipeline(FlextModels.Config):
         """Pipeline model for API responses."""
@@ -96,7 +98,7 @@ class FlextApiClient:
         self.verify_ssl = verify_ssl
         self._session: httpx.AsyncClient | None = None
 
-    def _get_headers(self) -> dict[str, str]:
+    def _get_headers(self) -> FlextTypes.Core.Headers:
         """Get request headers with authentication."""
         headers = {
             FlextCliConstants.HTTP.header_content_type: FlextCliConstants.HTTP.content_type_json,
@@ -131,7 +133,7 @@ class FlextApiClient:
         self,
         method: str,
         path: str,
-        json_data: dict[str, object] | None = None,
+        json_data: FlextTypes.Core.Dict | None = None,
         params: dict[str, str | int | float | bool | None] | None = None,
     ) -> httpx.Response:
         """Make HTTP request to API."""
@@ -177,7 +179,7 @@ class FlextApiClient:
     # Authentication methods
     async def login(
         self, username: str, password: str
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Login with username and password.
 
         Returns:
@@ -192,20 +194,20 @@ class FlextApiClient:
             )
             http_ok = 200
             if response.status_code == http_ok:
-                return FlextResult[dict[str, object]].ok(
-                    cast("dict[str, object]", response.json())
+                return FlextResult[FlextTypes.Core.Dict].ok(
+                    cast("FlextTypes.Core.Dict", response.json())
                 )
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Core.Dict].fail(
                 f"Login failed: {response.status_code} {response.text}"
             )
         except (httpx.HTTPError, RuntimeError, ValueError, OSError) as e:
-            return FlextResult[dict[str, object]].fail(f"Login error: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(f"Login error: {e}")
 
     async def logout(self) -> None:
         """Logout the current user and invalidate token."""
         await self._request(FlextCliConstants.HttpMethod.POST, "/api/v1/auth/logout")
 
-    async def get_current_user(self) -> dict[str, object]:
+    async def get_current_user(self) -> FlextTypes.Core.Dict:
         """Get current authenticated user information.
 
         Returns:
@@ -215,7 +217,7 @@ class FlextApiClient:
         response = await self._request(
             FlextCliConstants.HttpMethod.GET, "/api/v1/auth/user"
         )
-        return cast("dict[str, object]", response.json())
+        return cast("FlextTypes.Core.Dict", response.json())
 
     # Pipeline methods
     async def list_pipelines(
@@ -319,7 +321,7 @@ class FlextApiClient:
         pipeline_id: str,
         *,
         full_refresh: bool = False,
-    ) -> dict[str, object]:
+    ) -> FlextTypes.Core.Dict:
         """Run a pipeline manually.
 
         Args:
@@ -335,9 +337,9 @@ class FlextApiClient:
             f"/api/v1/pipelines/{pipeline_id}/run",
             json_data={"full_refresh": full_refresh},
         )
-        return cast("dict[str, object]", response.json())
+        return cast("FlextTypes.Core.Dict", response.json())
 
-    async def get_pipeline_status(self, pipeline_id: str) -> dict[str, object]:
+    async def get_pipeline_status(self, pipeline_id: str) -> FlextTypes.Core.Dict:
         """Get current pipeline status.
 
         Args:
@@ -350,14 +352,14 @@ class FlextApiClient:
         response = await self._request(
             FlextCliConstants.HttpMethod.GET, f"/api/v1/pipelines/{pipeline_id}/status"
         )
-        return cast("dict[str, object]", response.json())
+        return cast("FlextTypes.Core.Dict", response.json())
 
     async def get_pipeline_logs(
         self,
         pipeline_id: str,
         execution_id: str | None = None,
         tail: int = 100,
-    ) -> list[str]:
+    ) -> FlextTypes.Core.StringList:
         """Get pipeline execution logs.
 
         Args:
@@ -378,8 +380,8 @@ class FlextApiClient:
             f"/api/v1/pipelines/{pipeline_id}/logs",
             params=params,
         )
-        result = cast("dict[str, object]", response.json())
-        return cast("list[str]", result["logs"])
+        result = cast("FlextTypes.Core.Dict", response.json())
+        return cast("FlextTypes.Core.StringList", result["logs"])
 
     # Plugin methods
     async def list_plugins(
@@ -387,7 +389,7 @@ class FlextApiClient:
         plugin_type: str | None = None,
         *,
         installed_only: bool = False,
-    ) -> list[dict[str, object]]:
+    ) -> list[FlextTypes.Core.Dict]:
         """List available plugins.
 
         Args:
@@ -407,10 +409,10 @@ class FlextApiClient:
         response = await self._request(
             FlextCliConstants.HttpMethod.GET, "/api/v1/plugins", params=params
         )
-        result = cast("dict[str, object]", response.json())
-        return cast("list[dict[str, object]]", result["plugins"])
+        result = cast("FlextTypes.Core.Dict", response.json())
+        return cast("list[FlextTypes.Core.Dict]", result["plugins"])
 
-    async def get_plugin(self, plugin_id: str) -> dict[str, object]:
+    async def get_plugin(self, plugin_id: str) -> FlextTypes.Core.Dict:
         """Get detailed plugin information.
 
         Args:
@@ -423,13 +425,13 @@ class FlextApiClient:
         response = await self._request(
             FlextCliConstants.HttpMethod.GET, f"/api/v1/plugins/{plugin_id}"
         )
-        return cast("dict[str, object]", response.json())
+        return cast("FlextTypes.Core.Dict", response.json())
 
     async def install_plugin(
         self,
         plugin_id: str,
         version: str | None = None,
-    ) -> dict[str, object]:
+    ) -> FlextTypes.Core.Dict:
         """Install a plugin.
 
         Args:
@@ -440,7 +442,7 @@ class FlextApiClient:
             Installation response
 
         """
-        json_data: dict[str, object] = {"plugin_id": plugin_id}
+        json_data: FlextTypes.Core.Dict = {"plugin_id": plugin_id}
         if version:
             json_data["version"] = version
 
@@ -449,7 +451,7 @@ class FlextApiClient:
             "/api/v1/plugins/install",
             json_data=json_data,
         )
-        return cast("dict[str, object]", response.json())
+        return cast("FlextTypes.Core.Dict", response.json())
 
     async def uninstall_plugin(self, plugin_id: str) -> None:
         """Uninstall a plugin.
@@ -466,7 +468,7 @@ class FlextApiClient:
         self,
         plugin_id: str,
         version: str | None = None,
-    ) -> dict[str, object]:
+    ) -> FlextTypes.Core.Dict:
         """Update a plugin to newer version.
 
         Args:
@@ -477,7 +479,7 @@ class FlextApiClient:
             Update response
 
         """
-        json_data: dict[str, object] = {"plugin_id": plugin_id}
+        json_data: FlextTypes.Core.Dict = {"plugin_id": plugin_id}
         if version:
             json_data["version"] = version
 
@@ -486,10 +488,10 @@ class FlextApiClient:
             f"/api/v1/plugins/{plugin_id}",
             json_data=json_data,
         )
-        return cast("dict[str, object]", response.json())
+        return cast("FlextTypes.Core.Dict", response.json())
 
     # System methods
-    async def get_system_status(self) -> dict[str, object]:
+    async def get_system_status(self) -> FlextTypes.Core.Dict:
         """Get system status and health information.
 
         Returns:
@@ -499,9 +501,9 @@ class FlextApiClient:
         response = await self._request(
             FlextCliConstants.HttpMethod.GET, "/api/v1/system/status"
         )
-        return cast("dict[str, object]", response.json())
+        return cast("FlextTypes.Core.Dict", response.json())
 
-    async def get_system_metrics(self) -> dict[str, object]:
+    async def get_system_metrics(self) -> FlextTypes.Core.Dict:
         """Get system performance metrics.
 
         Returns:
@@ -511,7 +513,7 @@ class FlextApiClient:
         response = await self._request(
             FlextCliConstants.HttpMethod.GET, "/api/v1/system/metrics"
         )
-        return cast("dict[str, object]", response.json())
+        return cast("FlextTypes.Core.Dict", response.json())
 
     async def test_connection(self) -> bool:
         """Test API connection.

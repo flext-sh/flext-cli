@@ -20,8 +20,7 @@ from typing import cast, override
 from uuid import UUID, uuid4
 
 import yaml
-from flext_core import FlextResult, FlextUtilities
-from flext_core.models import FlextModels
+from flext_core import FlextModels, FlextResult, FlextTypes, FlextUtilities
 from rich.table import Table
 
 from flext_cli.constants import FlextCliConstants
@@ -69,7 +68,7 @@ class FlextCliApi:
         # This ultra-simplified version doesn't need complex processors
 
         # Session and command tracking - composed state management
-        self._sessions: dict[str, object] = {}
+        self._sessions: FlextTypes.Core.Dict = {}
         self._command_history: list[FlextCliModels.CliCommand] = []
         self._enable_session_tracking = True
         self._enable_command_history = True
@@ -105,7 +104,7 @@ class FlextCliApi:
         *,
         models: FlextModels | None = None,
         services: FlextCliServices | None = None,
-        config_override: dict[str, object] | None = None,
+        config_override: FlextTypes.Core.Dict | None = None,
     ) -> FlextCliApi:
         """Abstract factory method for creating API with full dependency injection.
 
@@ -243,7 +242,9 @@ class FlextCliApi:
                 case "plain":
                     return FlextResult[str].ok(str(data))
                 case _:
-                    return FlextResult[str].fail(f"Unsupported format type: {format_type}")
+                    return FlextResult[str].fail(
+                        f"Unsupported format type: {format_type}"
+                    )
         except Exception as e:
             return FlextResult[str].fail(f"Format failed: {e}")
 
@@ -292,7 +293,9 @@ class FlextCliApi:
                 # Data rows
                 for item in data:
                     if isinstance(item, dict):
-                        data_line = " | ".join(str(item.get(key, "")).ljust(widths[key]) for key in headers)
+                        data_line = " | ".join(
+                            str(item.get(key, "")).ljust(widths[key]) for key in headers
+                        )
                         lines.append(data_line)
 
                 return FlextResult[str].ok("\n".join(lines))
@@ -318,11 +321,11 @@ class FlextCliApi:
         self,
         data: object,
         filters: object,
-    ) -> FlextResult[list[object]]:
+    ) -> FlextResult[FlextTypes.Core.List]:
         """Execute transform operation with functional approach and real filtering."""
         try:
             # Convert data to list format with explicit typing
-            working_data: list[object]
+            working_data: FlextTypes.Core.List
             if isinstance(data, list):
                 working_data = list(data)  # Copy to avoid mutation
             elif isinstance(data, dict):
@@ -332,7 +335,7 @@ class FlextCliApi:
 
             # Apply real filtering if provided
             if isinstance(filters, dict) and filters:
-                filtered_data: list[object] = []
+                filtered_data: FlextTypes.Core.List = []
                 for item in working_data:
                     if isinstance(item, dict):
                         # Match all filter criteria
@@ -350,9 +353,11 @@ class FlextCliApi:
                         filtered_data.append(item)
                 working_data = filtered_data
 
-            return FlextResult[list[object]].ok(working_data)
+            return FlextResult[FlextTypes.Core.List].ok(working_data)
         except Exception as e:
-            return FlextResult[list[object]].fail(f"Transform operation failed: {e}")
+            return FlextResult[FlextTypes.Core.List].fail(
+                f"Transform operation failed: {e}"
+            )
 
     def _execute_create_command(
         self, command_line: object
@@ -392,9 +397,9 @@ class FlextCliApi:
         # For now, return success after validation
         return FlextResult[None].ok(None)
 
-    def _execute_health_check(self) -> FlextResult[dict[str, object]]:
+    def _execute_health_check(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute health check operation."""
-        return FlextResult[dict[str, object]].ok(
+        return FlextResult[FlextTypes.Core.Dict].ok(
             {
                 "status": "healthy",
                 "version": self._version,
@@ -450,11 +455,11 @@ class FlextCliApi:
     # COMPATIBILITY METHODS - Backward compatibility for existing tests
     # =========================================================================
 
-    def flext_cli_configure(self, config: dict[str, object]) -> FlextResult[None]:
+    def flext_cli_configure(self, config: FlextTypes.Core.Dict) -> FlextResult[None]:
         """Configure CLI API - convenience method."""
         return self._execute_configure(config)
 
-    def flext_cli_health(self) -> FlextResult[dict[str, object]]:
+    def flext_cli_health(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Health check - convenience method."""
         return self._execute_health_check()
 
@@ -495,7 +500,7 @@ class FlextCliApi:
 
         # Store handler in internal registry
         if not hasattr(self, "_handlers"):
-            self._handlers: dict[str, object] = {}
+            self._handlers: FlextTypes.Core.Dict = {}
         self._handlers[name] = handler
 
         return FlextResult[None].ok(None)
@@ -507,7 +512,7 @@ class FlextCliApi:
         if not hasattr(self, "_handlers"):
             return FlextResult[object].fail("No handlers registered")
 
-        handlers: dict[str, object] = self._handlers
+        handlers: FlextTypes.Core.Dict = self._handlers
         if name not in handlers:
             return FlextResult[object].fail(f"Handler '{name}' not found")
 
@@ -522,7 +527,7 @@ class FlextCliApi:
             return FlextResult[object].fail(f"Handler '{name}' execution failed: {e}")
 
     def flext_cli_render_with_context(
-        self, data: object, context: dict[str, object] | None = None
+        self, data: object, context: FlextTypes.Core.Dict | None = None
     ) -> FlextResult[str]:
         """Render data with context - convenience method."""
         try:
@@ -537,19 +542,19 @@ class FlextCliApi:
             self.get_command_history()
         )
 
-    def flext_cli_get_sessions(self) -> FlextResult[list[object]]:
+    def flext_cli_get_sessions(self) -> FlextResult[FlextTypes.Core.List]:
         """Get sessions - convenience method."""
         sessions = list(self._sessions.values()) if hasattr(self, "_sessions") else []
-        return FlextResult[list[object]].ok(sessions)
+        return FlextResult[FlextTypes.Core.List].ok(sessions)
 
-    def flext_cli_get_plugins(self) -> FlextResult[list[object]]:
+    def flext_cli_get_plugins(self) -> FlextResult[FlextTypes.Core.List]:
         """Get plugins - convenience method."""
-        return FlextResult[list[object]].ok([])  # Simplified implementation
+        return FlextResult[FlextTypes.Core.List].ok([])  # Simplified implementation
 
-    def flext_cli_get_handlers(self) -> FlextResult[dict[str, object]]:
+    def flext_cli_get_handlers(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Get handlers - convenience method."""
         handlers = getattr(self, "_handlers", {})
-        return FlextResult[dict[str, object]].ok(dict(handlers))
+        return FlextResult[FlextTypes.Core.Dict].ok(dict(handlers))
 
     def flext_cli_register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
         """Register plugin - convenience method."""
@@ -558,7 +563,7 @@ class FlextCliApi:
 
         # Store plugin in internal registry
         if not hasattr(self, "_plugins"):
-            self._plugins: dict[str, object] = {}
+            self._plugins: FlextTypes.Core.Dict = {}
         self._plugins[name] = plugin
 
         return FlextResult[None].ok(None)
@@ -577,7 +582,7 @@ class FlextCliApi:
             # Apply grouping if specified
             if group_by and isinstance(result, list):
                 # Simple grouping by field
-                grouped: dict[str, list[object]] = {}
+                grouped: dict[str, FlextTypes.Core.List] = {}
                 for item in result:
                     if isinstance(item, dict):
                         key = str(item.get(group_by, "unknown"))
@@ -607,7 +612,9 @@ class FlextCliApi:
         """
         return self._execute_format(data, format_type)
 
-    def create_table(self, data: object, title: str | None = None) -> FlextResult[Table]:
+    def create_table(
+        self, data: object, title: str | None = None
+    ) -> FlextResult[Table]:
         """Create Rich Table representation of data.
 
         Args:
@@ -659,10 +666,10 @@ class FlextCliApi:
 
     def aggregate_data(
         self,
-        data: list[dict[str, object]],
+        data: list[FlextTypes.Core.Dict],
         group_by: str,
-        sum_fields: list[str] | None = None,
-    ) -> FlextResult[dict[str, object]]:
+        sum_fields: FlextTypes.Core.StringList | None = None,
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Aggregate data by grouping and summing fields.
 
         Args:
@@ -676,10 +683,10 @@ class FlextCliApi:
         """
         try:
             if not data:
-                return FlextResult[dict[str, object]].ok({})
+                return FlextResult[FlextTypes.Core.Dict].ok({})
 
             # Group data by the specified field
-            groups: dict[str, list[dict[str, object]]] = {}
+            groups: dict[str, list[FlextTypes.Core.Dict]] = {}
             for item in data:
                 if not isinstance(item, dict):
                     continue
@@ -687,9 +694,9 @@ class FlextCliApi:
                 groups.setdefault(group_key, []).append(item)
 
             # Aggregate results
-            result: dict[str, object] = {}
+            result: FlextTypes.Core.Dict = {}
             for group_key, group_items in groups.items():
-                group_data: dict[str, object] = {
+                group_data: FlextTypes.Core.Dict = {
                     "count": len(group_items),
                     "items": group_items,
                 }
@@ -707,17 +714,19 @@ class FlextCliApi:
 
                 result[group_key] = group_data
 
-            return FlextResult[dict[str, object]].ok(result)
+            return FlextResult[FlextTypes.Core.Dict].ok(result)
 
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Data aggregation failed: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(
+                f"Data aggregation failed: {e}"
+            )
 
     def batch_export(
         self,
         datasets: list[tuple[str, object]],
         base_path: Path,
         format_type: str,
-    ) -> FlextResult[list[str]]:
+    ) -> FlextResult[FlextTypes.Core.StringList]:
         """Export multiple datasets to files.
 
         Args:
@@ -731,11 +740,13 @@ class FlextCliApi:
         """
         try:
             if not datasets:
-                return FlextResult[list[str]].fail("No datasets provided")
+                return FlextResult[FlextTypes.Core.StringList].fail(
+                    "No datasets provided"
+                )
 
             # Ensure base directory exists
             base_path.mkdir(parents=True, exist_ok=True)
-            exported_files: list[str] = []
+            exported_files: FlextTypes.Core.StringList = []
 
             for filename, data in datasets:
                 # Add extension based on format
@@ -747,14 +758,18 @@ class FlextCliApi:
                 export_result = self.export_data(data, file_path)
 
                 if export_result.is_failure:
-                    return FlextResult[list[str]].fail(f"Failed to export {filename}: {export_result.error}")
+                    return FlextResult[FlextTypes.Core.StringList].fail(
+                        f"Failed to export {filename}: {export_result.error}"
+                    )
 
                 exported_files.append(str(file_path))
 
-            return FlextResult[list[str]].ok(exported_files)
+            return FlextResult[FlextTypes.Core.StringList].ok(exported_files)
 
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Batch export failed: {e}")
+            return FlextResult[FlextTypes.Core.StringList].fail(
+                f"Batch export failed: {e}"
+            )
 
     def unwrap_or_default(self, result: FlextResult[object], default: object) -> object:
         """Unwrap FlextResult or return default value.

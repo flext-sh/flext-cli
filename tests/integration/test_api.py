@@ -2,12 +2,16 @@
 
 Tests for the real API functionality that was implemented.
 
+
+
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 from flext_core import FlextResult
 
@@ -169,7 +173,7 @@ class TestFlextCliApiIntegration:
         api = FlextCliApi()
 
         data = {"name": "test", "value": 42}
-        context: dict[str, object] = {"format": "json", "title": "Test Data"}
+        context: FlextTypes.Core.Dict = {"format": "json", "title": "Test Data"}
         result = api.flext_cli_render_with_context(data, context)
 
         assert isinstance(result, FlextResult)

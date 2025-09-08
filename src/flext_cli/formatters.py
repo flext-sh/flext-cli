@@ -15,7 +15,7 @@ from io import StringIO
 from typing import ClassVar, Protocol
 
 import yaml
-from flext_core import FlextResult, FlextUtilities
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 from rich.console import Console
 from rich.table import Table
 
@@ -188,7 +188,7 @@ class FlextCliFormatters:
         """
         self._registry[name] = formatter_class
 
-    def list_formats(self) -> list[str]:
+    def list_formats(self) -> FlextTypes.Core.StringList:
         """List all available formatter names.
 
         Returns:
@@ -276,7 +276,7 @@ class FlextCliFormatters:
         return populate_table_by_type(base_result.value)
 
     def _populate_dict_list_table(
-        self, table: Table, data: list[dict[str, object]]
+        self, table: Table, data: list[FlextTypes.Core.Dict]
     ) -> FlextResult[Table]:
         """Populate table with list of dictionaries."""
         try:
@@ -293,7 +293,7 @@ class FlextCliFormatters:
             return FlextResult[Table].fail(f"Failed to populate dict list table: {e}")
 
     def _populate_dict_table(
-        self, table: Table, data: dict[str, object]
+        self, table: Table, data: FlextTypes.Core.Dict
     ) -> FlextResult[Table]:
         """Populate table with single dictionary."""
         try:
@@ -308,7 +308,7 @@ class FlextCliFormatters:
             return FlextResult[Table].fail(f"Failed to populate dict table: {e}")
 
     def _populate_list_table(
-        self, table: Table, data: list[object]
+        self, table: Table, data: FlextTypes.Core.List
     ) -> FlextResult[Table]:
         """Populate table with list of items."""
         try:

@@ -16,7 +16,7 @@ from functools import reduce
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextResult, FlextUtilities
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 
 class FlextCliDataProcessing:
@@ -61,8 +61,8 @@ class FlextCliDataProcessing:
             )
         if operation == "validate":
             result = self._execute_validate(
-                cast("dict[str, object] | None", params.get("data")),
-                cast("dict[str, str] | None", params.get("validators")),
+                cast("FlextTypes.Core.Dict | None", params.get("data")),
+                cast("FlextTypes.Core.Headers | None", params.get("validators")),
                 cast(
                     "dict[str, Callable[[object], object]] | None",
                     params.get("transforms"),
@@ -79,13 +79,13 @@ class FlextCliDataProcessing:
             return cast("FlextResult[object]", result)
         if operation == "transform":
             result = self._execute_transform(
-                cast("list[dict[str, object]] | None", params.get("data")),
-                cast("dict[str, object] | None", params.get("config")),
+                cast("list[FlextTypes.Core.Dict] | None", params.get("data")),
+                cast("FlextTypes.Core.Dict | None", params.get("config")),
             )
             return cast("FlextResult[object]", result)
         if operation == "batch_validate":
             result = self._execute_batch_validate(
-                cast("list[object] | None", params.get("values"))
+                cast("FlextTypes.Core.List | None", params.get("values"))
             )
             return cast("FlextResult[object]", result)
 
@@ -126,13 +126,15 @@ class FlextCliDataProcessing:
 
     def _execute_validate(
         self,
-        data: dict[str, object] | None,
-        validators: dict[str, str] | None,
+        data: FlextTypes.Core.Dict | None,
+        validators: FlextTypes.Core.Headers | None,
         transforms: dict[str, Callable[[object], object]] | None = None,
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute validation using match-case pattern and FlextResult chains."""
         if not data or not validators:
-            return FlextResult[dict[str, object]].fail("Data and validators required")
+            return FlextResult[FlextTypes.Core.Dict].fail(
+                "Data and validators required"
+            )
 
         # Validation phase using functional composition
         validated_result = self._chain_validate_fields(data, validators)
@@ -145,13 +147,14 @@ class FlextCliDataProcessing:
         return self._apply_transformations(transforms, validated_result.value)
 
     def _chain_validate_fields(
-        self, data: dict[str, object], validators: dict[str, str]
-    ) -> FlextResult[dict[str, object]]:
+        self, data: FlextTypes.Core.Dict, validators: FlextTypes.Core.Headers
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Chain field validations using functional composition."""
 
         def validate_single_field(
-            acc_result: FlextResult[dict[str, object]], field_validator: tuple[str, str]
-        ) -> FlextResult[dict[str, object]]:
+            acc_result: FlextResult[FlextTypes.Core.Dict],
+            field_validator: tuple[str, str],
+        ) -> FlextResult[FlextTypes.Core.Dict]:
             """Validate single field and accumulate results."""
             if acc_result.is_failure:
                 return acc_result
@@ -168,15 +171,15 @@ class FlextCliDataProcessing:
             if field_result.is_success:
                 updated_data = dict(current_data)
                 updated_data[field] = field_result.value
-                return FlextResult[dict[str, object]].ok(updated_data)
-            return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Core.Dict].ok(updated_data)
+            return FlextResult[FlextTypes.Core.Dict].fail(
                 field_result.error or f"Validation failed for field {field}"
             )
 
         return reduce(
             validate_single_field,
             validators.items(),
-            FlextResult[dict[str, object]].ok(data),
+            FlextResult[FlextTypes.Core.Dict].ok(data),
         )
 
     def _validate_field(
@@ -233,15 +236,17 @@ class FlextCliDataProcessing:
         return FlextResult[object].fail(f"Invalid boolean for field '{field}': {value}")
 
     def _apply_transformations(
-        self, transforms: dict[str, Callable[[object], object]], data: dict[str, object]
-    ) -> FlextResult[dict[str, object]]:
+        self,
+        transforms: dict[str, Callable[[object], object]],
+        data: FlextTypes.Core.Dict,
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Apply transformations using match-case error recovery."""
         try:
 
             def transform_field(
-                acc_data: dict[str, object],
+                acc_data: FlextTypes.Core.Dict,
                 field_transform: tuple[str, Callable[[object], object]],
-            ) -> dict[str, object]:
+            ) -> FlextTypes.Core.Dict:
                 """Transform single field with error containment."""
                 field, transform_func = field_transform
                 if field in acc_data:
@@ -250,21 +255,21 @@ class FlextCliDataProcessing:
                 return acc_data
 
             transformed = reduce(transform_field, transforms.items(), dict(data))
-            return FlextResult[dict[str, object]].ok(transformed)
+            return FlextResult[FlextTypes.Core.Dict].ok(transformed)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Transformation failed: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(f"Transformation failed: {e}")
 
     def _execute_aggregate(
         self, sources: dict[str, Callable[[], FlextResult[object]]] | None
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute aggregation using match-case pattern for provider results."""
         if not sources:
-            return FlextResult[dict[str, object]].fail("No sources provided")
+            return FlextResult[FlextTypes.Core.Dict].fail("No sources provided")
 
         def aggregate_source(
-            acc_result: dict[str, object],
+            acc_result: FlextTypes.Core.Dict,
             name_provider: tuple[str, Callable[[], FlextResult[object]]],
-        ) -> dict[str, object]:
+        ) -> FlextTypes.Core.Dict:
             """Aggregate single source with graceful error handling."""
             name, provider = name_provider
 
@@ -290,17 +295,23 @@ class FlextCliDataProcessing:
             return acc_result
 
         try:
-            result: dict[str, object] = reduce(aggregate_source, sources.items(), {})
-            return FlextResult[dict[str, object]].ok(result)
+            result: FlextTypes.Core.Dict = reduce(aggregate_source, sources.items(), {})
+            return FlextResult[FlextTypes.Core.Dict].ok(result)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Data aggregation failed: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(
+                f"Data aggregation failed: {e}"
+            )
 
     def _execute_transform(
-        self, data: list[dict[str, object]] | None, config: dict[str, object] | None
-    ) -> FlextResult[list[dict[str, object]]]:
+        self,
+        data: list[FlextTypes.Core.Dict] | None,
+        config: FlextTypes.Core.Dict | None,
+    ) -> FlextResult[list[FlextTypes.Core.Dict]]:
         """Execute pipeline transform using match-case config extraction."""
         if not data or not config:
-            return FlextResult[list[dict[str, object]]].fail("Data and config required")
+            return FlextResult[list[FlextTypes.Core.Dict]].fail(
+                "Data and config required"
+            )
 
         # Ultra-simplified config extraction with proper type checking
         filter_field = (
@@ -337,18 +348,18 @@ class FlextCliDataProcessing:
                     reverse=sort_reverse,
                 )
             except Exception as e:
-                return FlextResult[list[dict[str, object]]].fail(
+                return FlextResult[list[FlextTypes.Core.Dict]].fail(
                     f"Sorting by '{sort_field}' failed: {e}"
                 )
 
-        return FlextResult[list[dict[str, object]]].ok(result)
+        return FlextResult[list[FlextTypes.Core.Dict]].ok(result)
 
     def _execute_batch_validate(
-        self, values: list[object] | None
-    ) -> FlextResult[list[object]]:
+        self, values: FlextTypes.Core.List | None
+    ) -> FlextResult[FlextTypes.Core.List]:
         """Execute batch validation using match-case pattern."""
         if not values:
-            return FlextResult[list[object]].fail("No values provided")
+            return FlextResult[FlextTypes.Core.List].fail("No values provided")
 
         # Functional validation using enumerate and proper type checking
         try:
@@ -359,34 +370,38 @@ class FlextCliDataProcessing:
                     validation_result = True
 
                 if not validation_result:
-                    return FlextResult[list[object]].fail(
+                    return FlextResult[FlextTypes.Core.List].fail(
                         f"Invalid empty value at index {i}"
                     )
 
-            return FlextResult[list[object]].ok(values)
+            return FlextResult[FlextTypes.Core.List].ok(values)
         except Exception as e:
-            return FlextResult[list[object]].fail(f"Batch validation failed: {e}")
+            return FlextResult[FlextTypes.Core.List].fail(
+                f"Batch validation failed: {e}"
+            )
 
     def transform_data_pipeline(
-        self, data: list[dict[str, object]], pipeline_config: dict[str, object]
-    ) -> FlextResult[list[dict[str, object]]]:
+        self, data: list[FlextTypes.Core.Dict], pipeline_config: FlextTypes.Core.Dict
+    ) -> FlextResult[list[FlextTypes.Core.Dict]]:
         """Convenience method for pipeline transformation."""
         result = self.execute("transform", data=data, config=pipeline_config)
-        return cast("FlextResult[list[dict[str, object]]]", result)
+        return cast("FlextResult[list[FlextTypes.Core.Dict]]", result)
 
-    def batch_validate(self, values: list[object]) -> FlextResult[list[object]]:
+    def batch_validate(
+        self, values: FlextTypes.Core.List
+    ) -> FlextResult[FlextTypes.Core.List]:
         """Convenience method for batch validation."""
         result = self.execute("batch_validate", values=values)
-        return cast("FlextResult[list[object]]", result)
+        return cast("FlextResult[FlextTypes.Core.List]", result)
 
     def transform_data(
         self,
-        data: list[dict[str, object]] | dict[str, object] | None,
-        filters: dict[str, object] | None = None,
-    ) -> FlextResult[list[dict[str, object]]]:
+        data: list[FlextTypes.Core.Dict] | FlextTypes.Core.Dict | None,
+        filters: FlextTypes.Core.Dict | None = None,
+    ) -> FlextResult[list[FlextTypes.Core.Dict]]:
         """Transform data with optional filters - convenience method for backward compatibility."""
         if data is None:
-            return FlextResult[list[dict[str, object]]].fail("No data provided")
+            return FlextResult[list[FlextTypes.Core.Dict]].fail("No data provided")
 
         # Convert single dict to list
         if isinstance(data, dict):
@@ -394,12 +409,12 @@ class FlextCliDataProcessing:
         elif isinstance(data, list):
             data_list = data
         else:
-            return FlextResult[list[dict[str, object]]].fail(
+            return FlextResult[list[FlextTypes.Core.Dict]].fail(
                 "Data must be dict or list of dicts"
             )
 
         # Use the internal transform method
-        config: dict[str, object] = {"filter_field": None, "filter_value": None}
+        config: FlextTypes.Core.Dict = {"filter_field": None, "filter_value": None}
         if filters:
             # Apply filters by extracting first filter key-value pair
             for key, value in filters.items():
@@ -410,11 +425,11 @@ class FlextCliDataProcessing:
         return self._execute_transform(data_list, config)
 
     def aggregate_data(
-        self, data: list[dict[str, object]] | None
-    ) -> FlextResult[dict[str, object]]:
+        self, data: list[FlextTypes.Core.Dict] | None
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Aggregate data - convenience method for backward compatibility."""
         if not data:
-            return FlextResult[dict[str, object]].ok({})
+            return FlextResult[FlextTypes.Core.Dict].ok({})
 
         # Simple aggregation: count items and extract common fields
         try:
@@ -427,12 +442,12 @@ class FlextCliDataProcessing:
                     all_keys.update(item.keys())
             result["unique_fields"] = sorted(all_keys)
 
-            return FlextResult[dict[str, object]].ok(result)
+            return FlextResult[FlextTypes.Core.Dict].ok(result)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Aggregation failed: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(f"Aggregation failed: {e}")
 
     def export_to_file(
-        self, data: list[dict[str, object]] | dict[str, object], file_path: str
+        self, data: list[FlextTypes.Core.Dict] | FlextTypes.Core.Dict, file_path: str
     ) -> FlextResult[str]:
         """Export data to file - convenience method for backward compatibility."""
         try:

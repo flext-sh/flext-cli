@@ -1,11 +1,15 @@
 """Tests for types.py compatibility re-exports to improve coverage.
 
+
+
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import pytest
 
@@ -212,6 +216,7 @@ class TestModuleStructure:
         # These are legitimate re-exports/imports used by the module
         legitimate_imports = {
             "annotations",  # from __future__ import annotations
+from flext_core import FlextTypes
             "override",  # from typing import override
             "FlextResult",  # from flext_core import FlextResult
             "Protocol",  # from typing import Protocol

@@ -11,7 +11,7 @@ import time
 from datetime import UTC, datetime
 from typing import ClassVar, cast
 
-from flext_core import FlextResult, FlextServices
+from flext_core import FlextResult, FlextServices, FlextTypes
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
@@ -76,7 +76,7 @@ class FlextCliServices(FlextServices):
 
     class CliSessionProcessor(
         FlextServices.ServiceProcessor[
-            dict[str, object], FlextCliModels.CliSession, dict[str, object]
+            FlextTypes.Core.Dict, FlextCliModels.CliSession, FlextTypes.Core.Dict
         ]
     ):
         """CLI session processor using FlextServices.ServiceProcessor pattern."""
@@ -90,7 +90,7 @@ class FlextCliServices(FlextServices):
             self.max_sessions: int = FlextCliConstants.LIMITS.max_commands_per_session
 
         def process(
-            self, request: dict[str, object]
+            self, request: FlextTypes.Core.Dict
         ) -> FlextResult[FlextCliModels.CliSession]:
             """Process session creation request."""
             try:
@@ -116,7 +116,7 @@ class FlextCliServices(FlextServices):
 
         def build(
             self, domain: FlextCliModels.CliSession, *, correlation_id: str
-        ) -> dict[str, object]:
+        ) -> FlextTypes.Core.Dict:
             """Build session information dictionary."""
             return {
                 "session_id": str(domain.session_id),
@@ -131,7 +131,7 @@ class FlextCliServices(FlextServices):
 
     class CliConfigProcessor(
         FlextServices.ServiceProcessor[
-            dict[str, object], FlextCliModels.CliConfig, dict[str, object]
+            FlextTypes.Core.Dict, FlextCliModels.CliConfig, FlextTypes.Core.Dict
         ]
     ):
         """CLI configuration processor using FlextServices.ServiceProcessor pattern."""
@@ -141,7 +141,7 @@ class FlextCliServices(FlextServices):
             super().__init__()
 
         def process(
-            self, request: dict[str, object]
+            self, request: FlextTypes.Core.Dict
         ) -> FlextResult[FlextCliModels.CliConfig]:
             """Process configuration request."""
             try:
@@ -156,7 +156,7 @@ class FlextCliServices(FlextServices):
 
         def build(
             self, domain: FlextCliModels.CliConfig, *, correlation_id: str
-        ) -> dict[str, object]:
+        ) -> FlextTypes.Core.Dict:
             """Build configuration dictionary."""
             return {
                 "profile": domain.profile,
@@ -182,7 +182,7 @@ class FlextCliServices(FlextServices):
         *,
         timeout_seconds: int | None = None,
         max_retries: int | None = None,
-        dependencies: dict[str, object] | None = None,
+        dependencies: FlextTypes.Core.Dict | None = None,
         **config: object,
     ) -> CliCommandProcessor:
         """Advanced factory method with dependency injection for command processor.
@@ -242,7 +242,7 @@ class FlextCliServices(FlextServices):
         *,
         enable_tracking: bool = True,
         max_sessions: int | None = None,
-        dependencies: dict[str, object] | None = None,
+        dependencies: FlextTypes.Core.Dict | None = None,
         **config: object,
     ) -> CliSessionProcessor:
         """Advanced factory method with dependency injection for session processor.
@@ -294,7 +294,7 @@ class FlextCliServices(FlextServices):
         *,
         config_validation: bool = True,
         auto_reload: bool = False,
-        dependencies: dict[str, object] | None = None,
+        dependencies: FlextTypes.Core.Dict | None = None,
         **config: object,
     ) -> CliConfigProcessor:
         """Advanced factory method with dependency injection for config processor.
@@ -346,9 +346,9 @@ class FlextCliServices(FlextServices):
         """
 
         def __init__(self) -> None:
-            self._config: dict[str, object] = {}
-            self._dependencies: dict[str, object] = {}
-            self._capabilities: list[str] = []
+            self._config: FlextTypes.Core.Dict = {}
+            self._dependencies: FlextTypes.Core.Dict = {}
+            self._capabilities: FlextTypes.Core.StringList = []
 
         def with_timeout(self, seconds: int) -> FlextCliServices.ServiceBuilder:
             """Configure timeout settings (fluent interface)."""
@@ -418,7 +418,7 @@ class FlextCliServices(FlextServices):
         dependency injection and service discovery capabilities.
         """
 
-        _service_types: ClassVar[dict[str, str]] = {
+        _service_types: ClassVar[FlextTypes.Core.Headers] = {
             "command": "CliCommandProcessor",
             "session": "CliSessionProcessor",
             "config": "CliConfigProcessor",
@@ -443,7 +443,7 @@ class FlextCliServices(FlextServices):
                 case "command":
                     # Extract and validate command-specific parameters
                     dependencies = cast(
-                        "dict[str, object] | None", kwargs.get("dependencies")
+                        "FlextTypes.Core.Dict | None", kwargs.get("dependencies")
                     )
                     timeout_seconds = cast("int | None", kwargs.get("timeout_seconds"))
                     max_retries = cast("int | None", kwargs.get("max_retries"))
@@ -455,7 +455,7 @@ class FlextCliServices(FlextServices):
                 case "session":
                     # Extract and validate session-specific parameters
                     dependencies = cast(
-                        "dict[str, object] | None", kwargs.get("dependencies")
+                        "FlextTypes.Core.Dict | None", kwargs.get("dependencies")
                     )
                     enable_tracking_raw = cast(
                         "bool | None", kwargs.get("enable_tracking")
@@ -472,7 +472,7 @@ class FlextCliServices(FlextServices):
                 case "config":
                     # Extract and validate config-specific parameters
                     dependencies = cast(
-                        "dict[str, object] | None", kwargs.get("dependencies")
+                        "FlextTypes.Core.Dict | None", kwargs.get("dependencies")
                     )
                     config_profile = cast("str | None", kwargs.get("config_profile"))
                     return FlextCliServices.create_config_processor(
@@ -484,7 +484,9 @@ class FlextCliServices(FlextServices):
                     raise ValueError(msg)
 
         @classmethod
-        def get_service_capabilities(cls, service_type: str) -> list[str]:
+        def get_service_capabilities(
+            cls, service_type: str
+        ) -> FlextTypes.Core.StringList:
             """Get capabilities for a service type."""
             # This would typically query the registry, simplified for demo
             capabilities_map = {
@@ -535,7 +537,7 @@ class FlextCliServices(FlextServices):
 
     @classmethod
     def validate_config(
-        cls, config_data: dict[str, object]
+        cls, config_data: FlextTypes.Core.Dict
     ) -> FlextResult[FlextCliModels.CliConfig]:
         """High-level method to validate configuration."""
         processor = cls.create_config_processor()

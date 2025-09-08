@@ -9,7 +9,7 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import ParamSpec, TypeVar, cast
 
-from flext_core import FlextDecorators, FlextResult
+from flext_core import FlextDecorators, FlextResult, FlextTypes
 from rich.console import Console
 
 from flext_cli.constants import FlextCliConstants
@@ -148,7 +148,7 @@ class FlextCliDecorators(FlextDecorators):
 
     @staticmethod
     def validate_config(
-        required_keys: list[str],
+        required_keys: FlextTypes.Core.StringList,
     ) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
         def _decorator(func: Callable[P, T]) -> Callable[P, T | None]:
             @functools.wraps(func)
@@ -205,7 +205,7 @@ class FlextCliDecorators(FlextDecorators):
 
     @staticmethod
     def flext_cli_auto_validate(
-        _validators: list[str],
+        _validators: FlextTypes.Core.StringList,
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
         def _decorator(func: Callable[P, T]) -> Callable[P, T]:
             return functools.wraps(func)(func)

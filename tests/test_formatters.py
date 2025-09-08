@@ -1,16 +1,20 @@
 """Comprehensive real functionality tests for formatters.py - NO MOCKING.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
 
 Following user requirement: "melhore bem os tests para executar codigo de verdade e validar
 a funcionalidade requerida, pare de ficar mockando tudo!"
 
 These tests execute REAL formatter functionality and validate actual output formatting.
 Coverage target: Increase formatters.py from current to 90%+
+
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import csv
 import io
@@ -128,7 +132,7 @@ class TestTableFormatter(unittest.TestCase):
 
     def test_table_formatter_empty_list(self) -> None:
         """Test table formatting with empty list."""
-        test_data: list[dict[str, object]] = []
+        test_data: list[FlextTypes.Core.Dict] = []
 
         # Should handle empty data gracefully
         self.formatter.format(test_data, self.console)
@@ -421,7 +425,7 @@ class TestCSVFormatter(unittest.TestCase):
 
     def test_csv_formatter_empty_data(self) -> None:
         """Test CSV formatting with empty data."""
-        test_data: list[dict[str, object]] = []
+        test_data: list[FlextTypes.Core.Dict] = []
 
         self.formatter.format(test_data, self.console)
 
@@ -682,7 +686,7 @@ class TestFormatterIntegration(unittest.TestCase):
 
     def test_formatters_with_edge_case_data(self) -> None:
         """Test all formatters handle edge cases gracefully."""
-        edge_cases: list[object] = [
+        edge_cases: FlextTypes.Core.List = [
             None,
             "",
             [],

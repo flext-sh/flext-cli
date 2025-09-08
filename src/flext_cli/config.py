@@ -3,53 +3,6 @@
 Provides CLI-specific configuration management extending flext-core FlextConfig
 with CLI domain-specific settings, directory management, and validation patterns.
 Follows consolidated class pattern with nested configuration domains.
-
-Module Role in Architecture:
-    FlextCliConfig serves as the CLI-specific configuration extending flext-core
-    FlextConfig with command execution, authentication, output formatting, and
-    directory management configuration for CLI applications.
-
-Classes and Methods:
-    FlextCliConfig:                        # Consolidated CLI configuration
-        # Nested Classes:
-        CliDefaults                       # CLI-specific default values
-        CliDirectories                    # Directory management configuration
-        CliSettings                       # Environment-aware settings
-
-        # Factory Methods:
-        create_with_directories(config_data) -> FlextCliConfig
-        load_from_profile(profile_name) -> FlextCliConfig
-        create_development_config() -> FlextCliConfig
-        create_production_config() -> FlextCliConfig
-
-        # Validation Methods:
-        validate_cli_rules() -> FlextResult[None]
-        validate_directories() -> FlextResult[None]
-        ensure_setup() -> FlextResult[None]
-
-Usage Examples:
-    Basic configuration creation:
-        config = FlextCliConfig(
-            profile="development",
-            debug=True,
-            output_format="table"
-        )
-
-    Environment-aware configuration:
-        settings = FlextCliConfig.CliSettings()
-        # Automatically loads from FLEXT_CLI_* environment variables
-
-    Directory setup:
-        config = FlextCliConfig()
-        setup_result = config.ensure_setup()
-        if setup_result.is_success:
-            print("Directories created successfully")
-
-Integration:
-    FlextCliConfig integrates with flext-core FlextConfig patterns,
-    CLI-specific constants from FlextCliConstants, and validation
-    through FlextResult for type safety and error handling.
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
@@ -61,8 +14,7 @@ from pathlib import Path
 from typing import ClassVar, override
 from urllib.parse import urlparse
 
-from flext_core import FlextResult
-from flext_core.config import FlextConfig
+from flext_core import FlextConfig, FlextResult, FlextTypes
 from pydantic import ConfigDict, Field, field_serializer
 
 from flext_cli.constants import FlextCliConstants
@@ -567,7 +519,7 @@ class FlextCliConfig(FlextConfig):
     @classmethod
     def create_with_directories(
         cls,
-        config_data: dict[str, object] | None = None,
+        config_data: FlextTypes.Core.Dict | None = None,
     ) -> FlextResult[FlextCliConfig]:
         """Create CLI configuration with automatic directory setup.
 
@@ -623,7 +575,7 @@ class FlextCliConfig(FlextConfig):
                 return FlextResult[FlextCliConfig].fail("Profile name cannot be empty")
 
             # Create configuration with profile
-            config_data: dict[str, object] = {"profile": profile_name.strip()}
+            config_data: FlextTypes.Core.Dict = {"profile": profile_name.strip()}
             return cls.create_with_directories(config_data)
 
         except (RuntimeError, ValueError, TypeError) as e:
@@ -722,7 +674,7 @@ class FlextCliConfig(FlextConfig):
     class ArgsProvider:
         """CLI arguments configuration provider (highest precedence)."""
 
-        def __init__(self, args: dict[str, object]) -> None:
+        def __init__(self, args: FlextTypes.Core.Dict) -> None:
             """Initialize provider with CLI args dict."""
             self.args = args
 
@@ -735,14 +687,14 @@ class FlextCliConfig(FlextConfig):
             """Get provider priority."""
             return FlextCliConstants.HIGH_PRIORITY_VALUE  # Highest priority
 
-        def get_all(self) -> dict[str, object]:
+        def get_all(self) -> FlextTypes.Core.Dict:
             """Get all CLI arguments."""
             return self.args.copy()
 
     class ConstantsProvider:
         """Constants configuration provider (lowest precedence)."""
 
-        def __init__(self, constants: dict[str, object]) -> None:
+        def __init__(self, constants: FlextTypes.Core.Dict) -> None:
             """Initialize provider with constants dict."""
             self.constants = constants
 
@@ -755,7 +707,7 @@ class FlextCliConfig(FlextConfig):
             """Get provider priority."""
             return 0  # Lowest priority
 
-        def get_all(self) -> dict[str, object]:
+        def get_all(self) -> FlextTypes.Core.Dict:
             """Get all constants."""
             return self.constants.copy()
 

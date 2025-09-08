@@ -22,13 +22,14 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes
 
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 
 import click
-from flext_core import FlextConfig, FlextPipeline, FlextResult
+from flext_core import FlextConfig, FlextResult
 from rich.console import Console
 from rich.table import Table
 
@@ -100,9 +101,9 @@ class EcosystemService(FlextCliService):
         self.settings = settings
         self.api_client = FlextApiClient(base_url=settings.flext_api_url)
 
-    def execute(self) -> FlextResult[dict[str, object]]:
+    def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute ecosystem service operations."""
-        return FlextResult[dict[str, object]].ok(
+        return FlextResult[FlextTypes.Core.Dict].ok(
             {
                 "service": "ecosystem_integration",
                 "status": "running",
@@ -171,7 +172,7 @@ class EcosystemService(FlextCliService):
 
     def authenticate_with_services(
         self, username: str, password: str
-    ) -> FlextResult[dict[str, str]]:
+    ) -> FlextResult[FlextTypes.Core.Headers]:
         """Authenticate with FLEXT services and get tokens."""
         # These parameters would be used for actual authentication
         # but are unused in this demo implementation
@@ -183,14 +184,14 @@ class EcosystemService(FlextCliService):
         try:
             # api_auth_result = self.api_client.authenticate(username, password)
             # FlextApiClient doesn't have authenticate method - simulate it
-            api_auth_result = FlextResult[dict[str, str]].ok(
+            api_auth_result = FlextResult[FlextTypes.Core.Headers].ok(
                 {
                     "token": "demo_token",
                     "status": "authenticated",
                 }
             )
         except Exception:
-            api_auth_result = FlextResult[dict[str, str]].fail(
+            api_auth_result = FlextResult[FlextTypes.Core.Headers].fail(
                 "Authentication simulation failed"
             )
         if api_auth_result.is_success:
@@ -199,7 +200,7 @@ class EcosystemService(FlextCliService):
             # Save token for CLI usage
             token_save_result = save_auth_token(api_auth_result.value.get("token", ""))
             if token_save_result.is_failure:
-                return FlextResult[dict[str, str]].fail(
+                return FlextResult[FlextTypes.Core.Headers].fail(
                     f"Failed to save auth token: {token_save_result.error}"
                 )
         else:
@@ -209,14 +210,14 @@ class EcosystemService(FlextCliService):
         auth_results["flexcore"] = "authenticated"
         auth_results["flext-observability"] = "authenticated"
 
-        return FlextResult[dict[str, str]].ok(auth_results)
+        return FlextResult[FlextTypes.Core.Headers].ok(auth_results)
 
     def execute_meltano_operation(
         self, operation: str, project: str
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute Meltano operation through flext-meltano integration."""
         if not self.settings.enable_meltano_integration:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Core.Dict].fail(
                 "Meltano integration is disabled"
             )
 
@@ -230,16 +231,16 @@ class EcosystemService(FlextCliService):
                 "records_processed": 1000 if operation == "run" else 0,
                 "message": f"Meltano {operation} completed successfully",
             }
-            return FlextResult[dict[str, object]].ok(result)
+            return FlextResult[FlextTypes.Core.Dict].ok(result)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Meltano operation failed: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(f"Meltano operation failed: {e}")
 
     def query_oracle_database(
         self, _query: str, _schema: str
-    ) -> FlextResult[list[dict[str, object]]]:
+    ) -> FlextResult[list[FlextTypes.Core.Dict]]:
         """Query Oracle database through flext-db-oracle integration."""
         if not self.settings.enable_oracle_integration:
-            return FlextResult[list[dict[str, object]]].fail(
+            return FlextResult[list[FlextTypes.Core.Dict]].fail(
                 "Oracle integration is disabled"
             )
 
@@ -250,16 +251,16 @@ class EcosystemService(FlextCliService):
                 {"id": 2, "name": "Project Beta", "status": "completed"},
                 {"id": 3, "name": "Project Gamma", "status": "pending"},
             ]
-            return FlextResult[list[dict[str, object]]].ok(mock_results)
+            return FlextResult[list[FlextTypes.Core.Dict]].ok(mock_results)
         except Exception as e:
-            return FlextResult[list[dict[str, object]]].fail(
+            return FlextResult[list[FlextTypes.Core.Dict]].fail(
                 f"Oracle query failed: {e}"
             )
 
-    def get_observability_metrics(self) -> FlextResult[dict[str, object]]:
+    def get_observability_metrics(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Get metrics from flext-observability."""
         if not self.settings.enable_observability:
-            return FlextResult[dict[str, object]].fail("Observability is disabled")
+            return FlextResult[FlextTypes.Core.Dict].fail("Observability is disabled")
 
         # Mock metrics (in real implementation, use flext-observability)
         try:
@@ -272,9 +273,9 @@ class EcosystemService(FlextCliService):
                 "memory_usage_mb": 256.8,
                 "cpu_usage_percent": 12.5,
             }
-            return FlextResult[dict[str, object]].ok(dict(metrics))
+            return FlextResult[FlextTypes.Core.Dict].ok(dict(metrics))
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Failed to get metrics: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(f"Failed to get metrics: {e}")
 
 
 # =============================================================================
@@ -443,7 +444,7 @@ def _format_oracle_output(console: Console, data: object, output_format: str) ->
 def _handle_table_format(console: Console, data: object) -> FlextResult[str]:
     """Handle table output format with functional patterns."""
     # Convert data to list of dicts for table display
-    table_data: list[dict[str, object]]
+    table_data: list[FlextTypes.Core.Dict]
     if isinstance(data, list) and all(isinstance(item, dict) for item in data):
         table_data = data
     elif isinstance(data, dict):

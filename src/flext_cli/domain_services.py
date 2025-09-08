@@ -12,15 +12,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_core import FlextLogger, FlextResult
+from flext_core import FlextLogger, FlextResult, FlextTypes
 from flext_core.domain_services import FlextDomainService
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 
 if TYPE_CHECKING:
-    CommandInput = dict[str, object]
-    SessionContext = dict[str, object]
+    CommandInput = FlextTypes.Core.Dict
+    SessionContext = FlextTypes.Core.Dict
 
 
 logger = FlextLogger(__name__)
@@ -312,7 +312,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
 
     def execute_command_workflow(
         self, command_line: str, user_id: str | None = None
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute complete command workflow from creation to completion.
 
         Args:
@@ -327,7 +327,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
             # Create session
             session_result = self.create_session(user_id)
             if session_result.is_failure:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Core.Dict].fail(
                     f"Failed to create session: {session_result.error}"
                 )
             session = session_result.value
@@ -335,7 +335,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
             # Create command
             command_result = self.create_command(command_line)
             if command_result.is_failure:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Core.Dict].fail(
                     f"Failed to create command: {command_result.error}"
                 )
             command = command_result.value
@@ -343,7 +343,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
             # Add command to session
             add_result = self.add_command_to_session(session, command)
             if add_result.is_failure:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Core.Dict].fail(
                     f"Failed to add command to session: {add_result.error}"
                 )
             session = add_result.value
@@ -351,14 +351,14 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
             # Start execution
             start_result = self.start_command_execution(command)
             if start_result.is_failure:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Core.Dict].fail(
                     f"Failed to start command execution: {start_result.error}"
                 )
             command = start_result.value
 
             # Simulate execution completion (in real implementation, this would be async)
             # For now, return success workflow result
-            workflow_result: dict[str, object] = {
+            workflow_result: FlextTypes.Core.Dict = {
                 "session_id": session.id,
                 "command_id": command.id,
                 "command_line": command.command_line,
@@ -367,10 +367,10 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
             }
 
             logger.debug("Executed command workflow: %s", command_line)
-            return FlextResult[dict[str, object]].ok(workflow_result)
+            return FlextResult[FlextTypes.Core.Dict].ok(workflow_result)
         except Exception as e:
             logger.exception("Command workflow execution failed")
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Core.Dict].fail(
                 f"Command workflow execution failed: {e}"
             )
 

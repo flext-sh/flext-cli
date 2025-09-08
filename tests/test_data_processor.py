@@ -3,12 +3,16 @@
 Real functionality tests without mocks, using flext_tests library for
 advanced testing patterns and comprehensive coverage.
 
+
+
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import json
 import tempfile
@@ -70,14 +74,14 @@ class TestFlextCliDataProcessingFunctional:
     def test_data_transformation_pipeline(self) -> None:
         """Test data transformation pipeline with real transformations."""
         # Create realistic data that needs transformation
-        raw_data: list[dict[str, object]] = [
+        raw_data: list[FlextTypes.Core.Dict] = [
             {"name": " Alice ", "age": "25", "active": "true"},
             {"name": " Bob ", "age": "30", "active": "false"},
             {"name": " Charlie ", "age": "35", "active": "true"},
         ]
 
         # Execute real transformation
-        config: dict[str, object] = {
+        config: FlextTypes.Core.Dict = {
             "filter_field": "active",
             "filter_value": "true"
         }
@@ -115,7 +119,7 @@ class TestFlextCliDataProcessingFunctional:
     def test_data_aggregation_real_sources(self) -> None:
         """Test data aggregation with real data sources."""
         # Create combined data list for aggregation
-        combined_data: list[dict[str, object]] = [
+        combined_data: list[FlextTypes.Core.Dict] = [
             {"id": 1, "name": "Alice", "department": "Engineering"},
             {"id": 2, "name": "Bob", "department": "Sales"},
             {"user_id": 1, "amount": 100.0, "product": "Widget"},
@@ -136,7 +140,7 @@ class TestFlextCliDataProcessingFunctional:
     def test_export_functionality_real_files(self) -> None:
         """Test export functionality with real file operations."""
         # Create test data
-        test_data: list[dict[str, object]] = [
+        test_data: list[FlextTypes.Core.Dict] = [
             {"name": "Test User", "email": "test@example.com"},
             {"name": "Another User", "email": "another@example.com"},
         ]
@@ -171,11 +175,11 @@ class TestFlextCliDataProcessingFunctional:
         assert FlextMatchers.is_successful_result(result)  # Should handle empty data gracefully
 
         # Test with malformed data
-        malformed_data: list[dict[str, object]] = [
+        malformed_data: list[FlextTypes.Core.Dict] = [
             {"incomplete": True},
             {"malformed": "data"}  # Remove None from list as it's not a dict
         ]
-        config: dict[str, object] = {"filter_field": "incomplete", "filter_value": True}
+        config: FlextTypes.Core.Dict = {"filter_field": "incomplete", "filter_value": True}
         result = self.processor.transform_data_pipeline(malformed_data, config)
         # Should either succeed with filtered data or fail gracefully
         assert isinstance(result, FlextResult)
@@ -223,7 +227,7 @@ class TestFlextCliDataProcessingEdgeCases:
     def test_large_dataset_handling(self) -> None:
         """Test handling of large datasets."""
         # Create large dataset for batch validation (list of simple objects)
-        large_data: list[object] = [f"item_{i}" for i in range(10000)]
+        large_data: FlextTypes.Core.List = [f"item_{i}" for i in range(10000)]
 
         # Should handle large datasets without crashing
         result = self.processor.batch_validate(large_data)
@@ -231,14 +235,13 @@ class TestFlextCliDataProcessingEdgeCases:
 
     def test_malformed_data_resilience(self) -> None:
         """Test resilience against malformed data."""
-        malformed_data: list[dict[str, object]] = [
+        malformed_data: list[FlextTypes.Core.Dict] = [
             {"valid": "data"},
             {"missing_required": True},
             {"extra_field": "unexpected"}
         ]
 
         # Should handle malformed data gracefully
-        config: dict[str, object] = {"filter_field": "valid", "filter_value": "data"}
+        config: FlextTypes.Core.Dict = {"filter_field": "valid", "filter_value": "data"}
         result = self.processor.transform_data_pipeline(malformed_data, config)
         assert isinstance(result, FlextResult)
-

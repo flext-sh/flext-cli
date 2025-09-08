@@ -1,16 +1,20 @@
 """Real functionality tests for FlextCliConfig unified class - NO MOCKING.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
 
 Following ZERO TOLERANCE requirements:
 - NO mocking whatsoever - real functionality testing only
 - 100% test coverage using actual code execution
 - Tests validate real business logic and configuration behavior
 - All tests use FlextCliConfig unified class following flext-core patterns
+
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import tempfile
 import unittest
@@ -176,8 +180,6 @@ class TestFlextCliConfig(unittest.TestCase):
         assert config.base_url == config.api_url.rstrip("/")
 
 
-
-
 class TestConfigIntegration(unittest.TestCase):
     """Real functionality integration tests for complete configuration system."""
 
@@ -223,7 +225,7 @@ class TestConfigIntegration(unittest.TestCase):
         assert debug_result.value is True
 
         # Test ConstantsProvider
-        constants: dict[str, object] = {"default_timeout": 30}
+        constants: FlextTypes.Core.Dict = {"default_timeout": 30}
         constants_provider = config.ConstantsProvider(constants)
         assert constants_provider.get_priority() == 0
 

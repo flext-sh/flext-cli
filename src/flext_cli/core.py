@@ -7,7 +7,7 @@ from types import SimpleNamespace
 from uuid import uuid4
 
 import yaml
-from flext_core import FlextResult, FlextUtilities
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 from flext_core.domain_services import FlextDomainService
 
 from flext_cli.formatters import FlextCliFormatters
@@ -18,9 +18,9 @@ DataType = (
     | int
     | float
     | bool
-    | list[dict[str, object]]
-    | dict[str, object]
-    | list[object]
+    | list[FlextTypes.Core.Dict]
+    | FlextTypes.Core.Dict
+    | FlextTypes.Core.List
     | None
 )
 
@@ -32,8 +32,8 @@ class FlextCliService(FlextDomainService[str]):
         """Initialize CLI service with formatters."""
         super().__init__()
         self._formatters = FlextCliFormatters()
-        self._config: dict[str, object] | None = None
-        self._handlers: dict[str, object] = {}
+        self._config: FlextTypes.Core.Dict | None = None
+        self._handlers: FlextTypes.Core.Dict = {}
 
     def execute(self) -> FlextResult[str]:
         """Execute service request - required by FlextDomainService."""
@@ -43,7 +43,7 @@ class FlextCliService(FlextDomainService[str]):
         """Health check returning service status."""
         return FlextResult[str].ok("healthy")
 
-    def configure(self, config: dict[str, object]) -> FlextResult[None]:
+    def configure(self, config: FlextTypes.Core.Dict) -> FlextResult[None]:
         """Configure service with settings dictionary."""
         if not isinstance(config, dict):
             return FlextResult[None].fail("Configuration must be a dictionary")
@@ -136,13 +136,13 @@ class FlextCliService(FlextDomainService[str]):
         message = f"Session created successfully with user ID: {user_id}"
         return FlextResult[str].ok(message)
 
-    def flext_cli_get_sessions(self) -> FlextResult[dict[str, object]]:
+    def flext_cli_get_sessions(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Get all CLI sessions - basic implementation for testing."""
         if not hasattr(self, "_sessions"):
             self._sessions = {}
 
         # Return a copy to prevent external modification
-        return FlextResult[dict[str, object]].ok(self._sessions.copy())
+        return FlextResult[FlextTypes.Core.Dict].ok(self._sessions.copy())
 
 
 __all__ = ["FlextCliService"]

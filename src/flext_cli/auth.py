@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import TypedDict, cast
 
 import click
-from flext_core import FlextLogger, FlextResult
+from flext_core import FlextLogger, FlextResult, FlextTypes
 from rich.console import Console
 
 from flext_cli.client import FlextApiClient
@@ -242,7 +242,7 @@ class FlextCliAuth:
             else ""
         )
 
-    def get_auth_headers(self) -> dict[str, str]:
+    def get_auth_headers(self) -> FlextTypes.Core.Headers:
         """Get authentication headers for API requests.
 
         Returns:
@@ -256,7 +256,7 @@ class FlextCliAuth:
 
     async def login(
         self, username: str, password: str
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Ultra-simplified login using Python 3.13+ match-case patterns."""
         # Single-expression validation using match-case
         match (
@@ -271,7 +271,7 @@ class FlextCliAuth:
                 credential_status = "valid"
 
         if credential_status != "valid":
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Core.Dict].fail(
                 f"Credential validation failed: {credential_status}"
             )
 
@@ -287,7 +287,7 @@ class FlextCliAuth:
                 # Extract the response data
                 response_data = response.data
                 if response_data is None or response_data == {}:
-                    return FlextResult[dict[str, object]].fail(
+                    return FlextResult[FlextTypes.Core.Dict].fail(
                         "Empty authentication response"
                     )
 
@@ -296,34 +296,36 @@ class FlextCliAuth:
                     token = response_data.get("token")
                     if isinstance(token, str) and token.strip():
                         return self._handle_token_save(token, response_data)
-                    return FlextResult[dict[str, object]].fail(
+                    return FlextResult[FlextTypes.Core.Dict].fail(
                         f"Invalid token format: {type(token)}"
                     )
 
-                return FlextResult[dict[str, object]].fail("Missing token in response")
+                return FlextResult[FlextTypes.Core.Dict].fail(
+                    "Missing token in response"
+                )
 
         except Exception as e:
             # Exception handling
             if isinstance(e, (ConnectionError, TimeoutError)):
-                return FlextResult[dict[str, object]].fail(f"Connection failed: {e}")
+                return FlextResult[FlextTypes.Core.Dict].fail(f"Connection failed: {e}")
             if isinstance(e, (ValueError, KeyError)):
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Core.Dict].fail(
                     f"Login validation failed: {e}"
                 )
             if isinstance(e, OSError):
-                return FlextResult[dict[str, object]].fail(f"Network error: {e}")
-            return FlextResult[dict[str, object]].fail(f"Login failed: {e}")
+                return FlextResult[FlextTypes.Core.Dict].fail(f"Network error: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(f"Login failed: {e}")
 
     def _handle_token_save(
-        self, token: str, response: dict[str, object]
-    ) -> FlextResult[dict[str, object]]:
+        self, token: str, response: FlextTypes.Core.Dict
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Handle token saving with error recovery."""
         save_result = self.save_auth_token(token)
         match save_result.is_success:
             case True:
-                return FlextResult[dict[str, object]].ok(response)
+                return FlextResult[FlextTypes.Core.Dict].ok(response)
             case False:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Core.Dict].fail(
                     f"Token save failed: {save_result.error}"
                 )
 
@@ -352,7 +354,7 @@ class FlextCliAuth:
             return FlextResult[None].ok(None)
         return FlextResult[None].fail(f"Token cleanup failed: {result.error}")
 
-    def get_status(self) -> dict[str, object]:
+    def get_status(self) -> FlextTypes.Core.Dict:
         """Get current authentication status information.
 
         Returns:
@@ -372,7 +374,7 @@ class FlextCliAuth:
             "auto_refresh": self.config.auto_refresh,
         }
 
-    def whoami(self) -> FlextResult[dict[str, object]]:
+    def whoami(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Get current user information using match-case authentication check.
 
         Returns:
@@ -381,19 +383,19 @@ class FlextCliAuth:
         """
         match self.is_authenticated():
             case False:
-                return FlextResult[dict[str, object]].fail("Not authenticated")
+                return FlextResult[FlextTypes.Core.Dict].fail("Not authenticated")
             case True:
                 try:
                     # In a real implementation, this would decode the JWT token
                     # or make an API call to get user information
-                    return FlextResult[dict[str, object]].ok(
+                    return FlextResult[FlextTypes.Core.Dict].ok(
                         {
                             "authenticated": True,
                             "note": "User information retrieval not yet implemented",
                         }
                     )
                 except (ValueError, KeyError) as e:
-                    return FlextResult[dict[str, object]].fail(
+                    return FlextResult[FlextTypes.Core.Dict].fail(
                         f"Error retrieving user information: {e}"
                     )
 

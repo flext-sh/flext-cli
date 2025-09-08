@@ -1,16 +1,20 @@
 """Comprehensive real functionality tests for client.py - NO MOCKING.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
 
 Following user requirement: "melhore bem os tests para executar codigo de verdade e validar
 a funcionalidade requerida, pare de ficar mockando tudo!"
 
 These tests execute REAL HTTP client functionality and validate actual API behavior.
 Coverage target: Increase client.py from current to 90%+
+
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import asyncio
 import json
@@ -21,7 +25,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import cast
 from urllib.parse import parse_qs, urlparse
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli.client import FlextApiClient
 
@@ -425,12 +429,12 @@ class TestFlextApiClientAuthMethods(AsyncTestCase):
         """Test successful login with valid credentials."""
         client = FlextApiClient(base_url=self.base_url)
 
-        async def test_login() -> FlextResult[dict[str, object]]:
+        async def test_login() -> FlextResult[FlextTypes.Core.Dict]:
             result = await client.login("testuser", "testpass")
             await client.close()
             return result
 
-        result = cast("FlextResult[dict[str, object]]", self.run_async(test_login()))
+        result = cast("FlextResult[FlextTypes.Core.Dict]", self.run_async(test_login()))
 
         # Extract value from FlextResult
         assert result.is_success, f"Login should succeed: {result.error}"
@@ -472,12 +476,12 @@ class TestFlextApiClientAuthMethods(AsyncTestCase):
         """Test getting current user information."""
         client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-        async def test_get_user() -> dict[str, object]:
+        async def test_get_user() -> FlextTypes.Core.Dict:
             user = await client.get_current_user()
             await client.close()
             return user
 
-        result = cast("dict[str, object]", self.run_async(test_get_user()))
+        result = cast("FlextTypes.Core.Dict", self.run_async(test_get_user()))
 
         assert result["id"] == "user-123"
         assert result["username"] == "testuser"
@@ -491,7 +495,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
         """Test listing pipelines with default parameters."""
         client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-        async def test_list() -> FlextResult[list[object]]:
+        async def test_list() -> FlextResult[FlextTypes.Core.List]:
             result = await client.list_pipelines()
             await client.close()
             return result
@@ -508,7 +512,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
         """Test listing pipelines with pagination parameters."""
         client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-        async def test_list() -> FlextResult[list[object]]:
+        async def test_list() -> FlextResult[FlextTypes.Core.List]:
             result = await client.list_pipelines(page=2, page_size=2)
             await client.close()
             return result
@@ -523,7 +527,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
         """Test listing pipelines with status filter."""
         client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-        async def test_list() -> FlextResult[list[object]]:
+        async def test_list() -> FlextResult[FlextTypes.Core.List]:
             result = await client.list_pipelines(status="active")
             await client.close()
             return result
@@ -610,12 +614,12 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
         """Test running a pipeline manually."""
         client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-        async def test_run() -> dict[str, object]:
+        async def test_run() -> FlextTypes.Core.Dict:
             result = await client.run_pipeline("pipeline-123", full_refresh=True)
             await client.close()
             return result
 
-        run_result = cast("dict[str, object]", self.run_async(test_run()))
+        run_result = cast("FlextTypes.Core.Dict", self.run_async(test_run()))
 
         assert run_result["pipeline_id"] == "pipeline-123"
         assert run_result["status"] == "running"

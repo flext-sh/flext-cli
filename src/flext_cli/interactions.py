@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 from rich.console import Console
 from rich.progress import Progress
 from rich.prompt import Confirm, Prompt
@@ -175,8 +175,8 @@ class FlextCliInteractions:
             return FlextResult[Progress].fail(f"Progress creation failed: {e}")
 
     def with_progress(
-        self, items: list[object], message: str
-    ) -> FlextResult[list[object]]:
+        self, items: FlextTypes.Core.List, message: str
+    ) -> FlextResult[FlextTypes.Core.List]:
         """Process items with progress indicator (minimal implementation).
 
         Args:
@@ -189,9 +189,11 @@ class FlextCliInteractions:
         """
         try:
             _ = message  # For future enhanced implementation
-            return FlextResult[list[object]].ok(items)
+            return FlextResult[FlextTypes.Core.List].ok(items)
         except Exception as e:
-            return FlextResult[list[object]].fail(f"Progress processing failed: {e}")
+            return FlextResult[FlextTypes.Core.List].fail(
+                f"Progress processing failed: {e}"
+            )
 
 
 __all__ = ["FlextCliInteractions"]

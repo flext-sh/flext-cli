@@ -1,13 +1,17 @@
 """Real functionality tests for services.py - NO MOCKING.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
 
 Following user requirement: "pare de ficar mockando tudo!"
 Tests execute REAL service functionality.
+
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
+
 from __future__ import annotations
+from flext_core import FlextTypes
 
 from flext_core import FlextResult, FlextServices
 
@@ -167,4 +171,3 @@ class TestServicesModule:
         assert isinstance(FlextCliServices.registry, FlextServices.ServiceRegistry)
         assert isinstance(FlextCliServices.orchestrator, FlextServices.ServiceOrchestrator)
         assert isinstance(FlextCliServices.metrics, FlextServices.ServiceMetrics)
-
