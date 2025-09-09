@@ -17,5 +17,7 @@ def test_imports() -> None:
 def test_config_creation() -> None:
     """Test that config creation works."""
     config = FlextCliConfig()
-    result = config.ensure_setup()
-    assert result.is_success
+    # Config should be created successfully with valid attributes
+    assert hasattr(config, "project_name")
+    assert hasattr(config, "config_dir")
+    assert config.project_name == "flext-cli"

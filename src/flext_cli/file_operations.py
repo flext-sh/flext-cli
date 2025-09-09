@@ -10,11 +10,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import json
 from collections.abc import Callable
 from pathlib import Path
 
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.interactions import FlextCliInteractions
@@ -60,21 +59,21 @@ class FlextCliFileOperations:
                 return FlextResult[FlextTypes.Core.Dict].fail(f"File not found: {path}")
 
             content = file_path.read_text(encoding=FlextCliConstants.DEFAULT_ENCODING)
-            data = json.loads(content)
+            # Use FlextUtilities instead of duplicating JSON parsing - ELIMINATES DUPLICATION
+            # safe_json_parse always returns a dict, so no type check needed
+            parse_result = FlextUtilities.safe_json_parse(content)
 
-            if not isinstance(data, dict):
-                return FlextResult[FlextTypes.Core.Dict].fail(
-                    f"JSON file must contain object, got {type(data).__name__}"
-                )
-
-            return FlextResult[FlextTypes.Core.Dict].ok(data)
-        except json.JSONDecodeError as e:
-            return FlextResult[FlextTypes.Core.Dict].fail(f"Invalid JSON: {e}")
+            # parse_result is guaranteed to be a dict from safe_json_parse
+            return FlextResult[FlextTypes.Core.Dict].ok(parse_result)
         except Exception as e:
             return FlextResult[FlextTypes.Core.Dict].fail(f"JSON load failed: {e}")
 
     def save_json_file(
-        self, data: FlextTypes.Core.Dict, path: str | Path, *, indent: int = 2
+        self,
+        data: FlextTypes.Core.Dict,
+        path: str | Path,
+        *,
+        indent: int = 2,  # noqa: ARG002
     ) -> FlextResult[None]:
         """Save data to JSON file with proper formatting.
 
@@ -91,7 +90,8 @@ class FlextCliFileOperations:
             file_path = Path(path)
             file_path.parent.mkdir(parents=True, exist_ok=True)
 
-            json_content = json.dumps(data, indent=indent, ensure_ascii=False)
+            # Use FlextUtilities instead of duplicating JSON serialization - ELIMINATES DUPLICATION
+            json_content = FlextUtilities.safe_json_stringify(data)
             file_path.write_text(
                 json_content, encoding=FlextCliConstants.DEFAULT_ENCODING
             )

@@ -15,8 +15,13 @@ from flext_core import FlextConstants, FlextLogger, FlextResult, FlextTypes
 from flext_core.models import FlextModels
 from pydantic import Field
 
+# Lazy import to avoid circular dependency
+# from flext_cli.auth import FlextCliAuth - moved to _get_auth()
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
+
+# HTTP status codes
+HTTP_OK = 200
 
 
 class FlextApiClient:
@@ -97,6 +102,7 @@ class FlextApiClient:
         self.timeout = timeout
         self.verify_ssl = verify_ssl
         self._session: httpx.AsyncClient | None = None
+        # No auth service composition to avoid circular dependency
 
     def _get_headers(self) -> FlextTypes.Core.Headers:
         """Get request headers with authentication."""
@@ -176,36 +182,55 @@ class FlextApiClient:
         except (RuntimeError, ValueError, OSError):
             return None
 
-    # Authentication methods
+    # Authentication methods - USING COMPOSITION TO ELIMINATE DUPLICATION
     async def login(
         self, username: str, password: str
     ) -> FlextResult[FlextTypes.Core.Dict]:
-        """Login with username and password.
+        """Login with username and password using auth service - ELIMINATES DUPLICATION.
 
         Returns:
             FlextResult with login response containing token and user info
 
         """
         try:
+            # Direct login implementation without circular dependency
+            login_data: dict[str, object] = {
+                "username": username,
+                "password": password,
+            }
+
             response = await self._request(
                 FlextCliConstants.HttpMethod.POST,
                 "/api/v1/auth/login",
-                json_data={"username": username, "password": password},
+                json_data=login_data
             )
-            http_ok = 200
-            if response.status_code == http_ok:
-                return FlextResult[FlextTypes.Core.Dict].ok(
-                    cast("FlextTypes.Core.Dict", response.json())
-                )
-            return FlextResult[FlextTypes.Core.Dict].fail(
-                f"Login failed: {response.status_code} {response.text}"
-            )
-        except (httpx.HTTPError, RuntimeError, ValueError, OSError) as e:
-            return FlextResult[FlextTypes.Core.Dict].fail(f"Login error: {e}")
 
-    async def logout(self) -> None:
-        """Logout the current user and invalidate token."""
-        await self._request(FlextCliConstants.HttpMethod.POST, "/api/v1/auth/logout")
+            if response.status_code == HTTP_OK:
+                auth_data = response.json()
+                if isinstance(auth_data, dict) and "access_token" in auth_data:
+                    self.token = str(auth_data["access_token"])
+                return FlextResult[dict[str, object]].ok(auth_data)
+            return FlextResult[dict[str, object]].fail(f"Login failed with status {response.status_code}")
+
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(f"Login to SOURCE OF TRUTH failed: {e}")
+
+    async def logout(self) -> FlextResult[None]:
+        """Logout the current user directly."""
+        try:
+            response = await self._request(
+                FlextCliConstants.HttpMethod.POST,
+                "/api/v1/auth/logout"
+            )
+
+            if response.status_code == HTTP_OK:
+                # Clear local token on successful logout
+                self.token = None
+                return FlextResult[None].ok(None)
+            return FlextResult[None].fail(f"Logout failed with status {response.status_code}")
+
+        except Exception as e:
+            return FlextResult[None].fail(f"Logout failed: {e}")
 
     async def get_current_user(self) -> FlextTypes.Core.Dict:
         """Get current authenticated user information.

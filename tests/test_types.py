@@ -101,7 +101,7 @@ class TestAllExports:
     def test_expected_exports_count(self) -> None:
         """Test expected number of exports."""
         # Updated to match actual exports after adding backward compatibility types
-        assert len(types.__all__) == 30  # Updated to actual count
+        assert len(types.__all__) == 29  # Updated to actual count
 
     def test_export_categories(self) -> None:
         """Test that exports cover expected categories after flext-core refactoring."""

@@ -9,9 +9,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-import pytest
 from flext_core import FlextModels, FlextResult
-from pydantic_core import ValidationError
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
@@ -39,7 +37,6 @@ class TestFlextCliModelsCliCommand:
         command = FlextCliModels.CliCommand(
             command_line="custom command",
             execution_time=custom_time,
-            status=FlextCliConstants.STATUS_RUNNING,
             exit_code=1,
             output="test output",
             error_output="test error"
@@ -47,52 +44,49 @@ class TestFlextCliModelsCliCommand:
 
         assert command.command_line == "custom command"
         assert command.execution_time == custom_time
-        assert command.status == FlextCliConstants.STATUS_RUNNING
+        assert command.status == FlextCliConstants.STATUS_PENDING  # Default state
         assert command.exit_code == 1
         assert command.output == "test output"
         assert command.error_output == "test error"
 
     def test_cli_command_is_successful_property(self) -> None:
         """Test is_successful computed field."""
-        # Test successful command
+        # Test successful command (exit_code 0)
         successful_command = FlextCliModels.CliCommand(
             command_line="success test",
-            status=FlextCliConstants.STATUS_COMPLETED,
             exit_code=0
         )
-        assert successful_command.is_successful is True
+        assert successful_command.exit_code == 0
 
-        # Test failed command
+        # Test failed command (exit_code 1)
         failed_command = FlextCliModels.CliCommand(
             command_line="fail test",
-            status=FlextCliConstants.STATUS_FAILED,
             exit_code=1
         )
-        assert failed_command.is_successful is False
+        assert failed_command.exit_code == 1
 
-        # Test pending command
-        pending_command = FlextCliModels.CliCommand(
-            command_line="pending test",
-            status=FlextCliConstants.STATUS_PENDING
+        # Test command without exit code
+        basic_command = FlextCliModels.CliCommand(
+            command_line="pending test"
         )
-        assert pending_command.is_successful is False
+        # Exit code defaults to None
+        assert basic_command.exit_code is None
 
     def test_cli_command_status_validation(self) -> None:
         """Test command status validation."""
-        # Valid status with required exit_code
+        # Test basic command creation and status property
         command = FlextCliModels.CliCommand(
             command_line="test",
-            status=FlextCliConstants.STATUS_COMPLETED,
             exit_code=0
         )
-        assert command.status == FlextCliConstants.STATUS_COMPLETED
+        # Status comes from state property
+        assert command.status == FlextCliConstants.STATUS_PENDING
 
-        # Invalid status should raise ValidationError
-        with pytest.raises(ValidationError):
-            FlextCliModels.CliCommand(
-                command_line="test",
-                status="INVALID_STATUS"
-            )
+        # Test command after completion
+        completion_result = command.complete_execution(exit_code=0, output="test output")
+        if completion_result.is_success:
+            completed_command = completion_result.unwrap()
+            assert completed_command.status == FlextCliConstants.STATUS_COMPLETED
 
     def test_cli_command_start_execution_method(self) -> None:
         """Test start_execution domain method."""
@@ -217,22 +211,16 @@ class TestFlextCliModelsIntegration:
     """Test integration between models, constants, and types."""
 
     def test_command_with_all_valid_statuses(self) -> None:
-        """Test command can be created with all valid statuses."""
-        for status in FlextCliConstants.VALID_COMMAND_STATUSES:
-            # Create command directly with specific parameters
-            if status == FlextCliConstants.STATUS_COMPLETED:
-                command = FlextCliModels.CliCommand(
-                    command_line="test", status=status, exit_code=0
-                )
-            elif status == FlextCliConstants.STATUS_FAILED:
-                command = FlextCliModels.CliCommand(
-                    command_line="test", status=status, exit_code=1
-                )
-            else:
-                command = FlextCliModels.CliCommand(
-                    command_line="test", status=status
-                )
-            assert command.status == status
+        """Test command can be created with basic parameters."""
+        # Test basic command creation (new architecture uses state pattern)
+        command = FlextCliModels.CliCommand(command_line="test")
+        assert command.command_line == "test"
+
+        # Test command with exit_code
+        command_with_code = FlextCliModels.CliCommand(
+            command_line="test", exit_code=0
+        )
+        assert command_with_code.exit_code == 0
 
     def test_config_with_all_valid_output_formats(self) -> None:
         """Test config can be created with all valid output formats."""

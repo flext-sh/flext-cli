@@ -73,11 +73,14 @@ class FlextCliValidation:
             parsed = urlparse(url_stripped)
             if not parsed.netloc:
                 return FlextResult[str].fail("URL must have a valid domain")
-            
+
             # Allow localhost or domains with dots
-            if parsed.netloc.split(":")[0].lower() not in ("localhost", "127.0.0.1") and "." not in parsed.netloc:
+            if (
+                parsed.netloc.split(":")[0].lower() not in {"localhost", "127.0.0.1"}
+                and "." not in parsed.netloc
+            ):
                 return FlextResult[str].fail("URL must have a valid domain")
-            
+
             return FlextResult[str].ok(url_stripped)
         except Exception as e:
             return FlextResult[str].fail(f"Invalid URL format: {e}")
@@ -178,9 +181,6 @@ class FlextCliValidation:
             FlextResult containing validated timeout
 
         """
-        if not isinstance(timeout, int):
-            return FlextResult[int].fail("Timeout must be an integer")
-
         if timeout < FlextCliConstants.MIN_COMMAND_TIMEOUT:
             return FlextResult[int].fail(
                 f"Timeout must be at least {FlextCliConstants.MIN_COMMAND_TIMEOUT} seconds"
