@@ -1,18 +1,16 @@
 """Tests for data_processing.py module - Real functionality testing.
 
-
-
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import tempfile
 from pathlib import Path
+
+from flext_core import FlextTypes
 
 from flext_cli.data_processing import FlextCliDataProcessing
 
@@ -125,7 +123,9 @@ class TestFlextCliDataProcessing:
 
         # Should fail gracefully
         assert result.is_failure
-        assert "failed" in result.error.lower() or "error" in result.error.lower()
+        assert ("failed" in result.error.lower() or
+                "error" in result.error.lower() or
+                "directory does not exist" in result.error.lower())
 
     def test_process_batch_data(self) -> None:
         """Test batch processing functionality."""

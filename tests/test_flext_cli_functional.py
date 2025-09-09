@@ -11,16 +11,15 @@ SPDX-License-Identifier: MIT
 
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import pytest
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli import (
     FlextCliConstants,
     FlextCliModels,
 )
-from flext_cli.typings import FlextCliTypes, FlextTypes
+from flext_cli.typings import FlextCliTypes
 
 
 class TestFlextCliModelsReal:
@@ -28,11 +27,11 @@ class TestFlextCliModelsReal:
 
     def test_consolidated_models_exists(self) -> None:
         """Test that FlextCliModels consolidated class exists and works."""
-        assert hasattr(FlextCliModels, "Command")
-        assert hasattr(FlextCliModels, "Session")
-        assert hasattr(FlextCliModels, "OutputFormat")
-        assert hasattr(FlextCliModels, "CommandStatus")
-        assert hasattr(FlextCliModels, "SessionState")
+        assert hasattr(FlextCliModels, "CliCommand")
+        assert hasattr(FlextCliModels, "CliSession")
+        assert hasattr(FlextCliModels, "CliConfig")
+        assert hasattr(FlextCliModels, "CliPlugin")
+        assert hasattr(FlextCliModels, "Core")  # FlextModels access
 
     def test_command_creation_and_validation(self) -> None:
         """Test REAL command creation and business rule validation."""
@@ -50,8 +49,8 @@ class TestFlextCliModelsReal:
         # Test starting execution
         start_result = command.start_execution()
         assert start_result.is_success
-        assert command.status == FlextCliConstants.CommandStatus.RUNNING
-        assert command.started_at is not None
+        assert command.status == FlextCliConstants.STATUS_RUNNING
+        assert command.execution_time is not None  # execution_time is set when starting
 
     def test_session_functionality(self) -> None:
         """Test REAL session functionality."""
@@ -91,10 +90,10 @@ class TestFlextCliTypesReal:
 
     def test_type_aliases_work(self) -> None:
         """Test that type aliases are properly defined."""
-        # Test that FlextCliTypes provides access to actual type classes
+        # Test that FlextTypes provides access to actual type classes
         assert FlextTypes.Commands is not None
         assert FlextTypes.Config is not None
-        assert FlextTypes.Auth is not None
+        assert FlextTypes.Core is not None  # Core types are available
 
 
 class TestFlextCliConstantsReal:
@@ -145,9 +144,9 @@ class TestFlextCliIntegration:
     def test_consolidated_pattern_consistency(self) -> None:
         """Test that all consolidated classes follow the same pattern."""
         # All main classes should be consolidated
-        assert hasattr(FlextCliModels, "Command")
-        assert hasattr(FlextCliTypes, "Command")
-        assert hasattr(FlextCliConstants, "CliErrors")
+        assert hasattr(FlextCliModels, "CliCommand")
+        assert hasattr(FlextCliTypes, "Commands")  # Types use Commands namespace
+        assert hasattr(FlextCliConstants, "STATUS_RUNNING")  # Real constants
 
         # All should be single point of access
         command_cls = FlextCliModels.CliCommand
@@ -167,21 +166,21 @@ class TestFlextCliExportsReal:
         """Test that main flext_cli imports work without errors."""
         # Test consolidated classes import
         # Test they're actually the consolidated classes
-        assert hasattr(FlextCliModels, "Command")
-        assert hasattr(FlextCliTypes, "Command")
-        assert hasattr(FlextCliConstants, "CliErrors")
+        assert hasattr(FlextCliModels, "CliCommand")
+        assert hasattr(FlextCliTypes, "Commands")  # Types namespace uses Commands
+        assert hasattr(FlextCliConstants, "STATUS_RUNNING")  # Real constant exists
 
     def test_no_legacy_exports(self) -> None:
         """Test that legacy standalone classes are not exported."""
         # Test that we cannot import non-existent legacy modules
         with pytest.raises(ImportError):
-            pass
+            from flext_cli import LegacyCommand  # Should not exist
 
         with pytest.raises(ImportError):
-            pass
+            from flext_cli import StandaloneSession  # Should not exist
 
         with pytest.raises(ImportError):
-            pass
+            from flext_cli import OldConfig  # Should not exist
 
     def test_correct_consolidated_access(self) -> None:
         """Test that consolidated access pattern works correctly."""

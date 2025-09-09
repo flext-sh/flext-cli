@@ -78,16 +78,16 @@ class FlextCliDataProcessing:
             )
             return cast("FlextResult[object]", result)
         if operation == "transform":
-            result = self._execute_transform(
+            transform_result = self._execute_transform(
                 cast("list[FlextTypes.Core.Dict] | None", params.get("data")),
                 cast("FlextTypes.Core.Dict | None", params.get("config")),
             )
-            return cast("FlextResult[object]", result)
+            return cast("FlextResult[object]", transform_result)
         if operation == "batch_validate":
-            result = self._execute_batch_validate(
+            validate_result = self._execute_batch_validate(
                 cast("FlextTypes.Core.List | None", params.get("values"))
             )
-            return cast("FlextResult[object]", result)
+            return cast("FlextResult[object]", validate_result)
 
         # Default case - operation not recognized
         return FlextResult[object].fail(f"Unknown operation: {operation}")
@@ -115,9 +115,8 @@ class FlextCliDataProcessing:
                 return FlextResult[object].fail(
                     f"Step '{step_name}' failed: {step_result.error}"
                 )
-            if isinstance(step_result, FlextResult):
-                return step_result
-            return FlextResult[object].ok(step_result)
+            # step_result is guaranteed to be FlextResult[object] by function signature
+            return step_result
 
         try:
             return reduce(apply_step, steps, FlextResult[object].ok(data))
@@ -404,14 +403,7 @@ class FlextCliDataProcessing:
             return FlextResult[list[FlextTypes.Core.Dict]].fail("No data provided")
 
         # Convert single dict to list
-        if isinstance(data, dict):
-            data_list = [data]
-        elif isinstance(data, list):
-            data_list = data
-        else:
-            return FlextResult[list[FlextTypes.Core.Dict]].fail(
-                "Data must be dict or list of dicts"
-            )
+        data_list = [data] if isinstance(data, dict) else data
 
         # Use the internal transform method
         config: FlextTypes.Core.Dict = {"filter_field": None, "filter_value": None}

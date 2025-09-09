@@ -68,11 +68,16 @@ class FlextCliValidation:
         if not (url_stripped.startswith(("http://", "https://"))):
             return FlextResult[str].fail("URL must start with http:// or https://")
 
-        # Basic domain validation - must have at least one dot after protocol
+        # Basic domain validation - must have valid domain or be localhost
         try:
             parsed = urlparse(url_stripped)
-            if not parsed.netloc or "." not in parsed.netloc:
+            if not parsed.netloc:
                 return FlextResult[str].fail("URL must have a valid domain")
+            
+            # Allow localhost or domains with dots
+            if parsed.netloc.split(":")[0].lower() not in ("localhost", "127.0.0.1") and "." not in parsed.netloc:
+                return FlextResult[str].fail("URL must have a valid domain")
+            
             return FlextResult[str].ok(url_stripped)
         except Exception as e:
             return FlextResult[str].fail(f"Invalid URL format: {e}")

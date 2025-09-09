@@ -1,6 +1,5 @@
 """Real functionality tests for CMD Config - NO MOCKING.
 
-
 Following user requirement: "melhore bem os tests para executar codigo de verdade e validar
 a funcionalidade requerida, pare de ficar mockando tudo!"
 
@@ -14,7 +13,6 @@ SPDX-License-Identifier: MIT
 
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import tempfile
 import unittest
@@ -23,6 +21,7 @@ from pathlib import Path
 import click
 import yaml
 from click.testing import CliRunner
+from flext_core import FlextTypes
 from rich.console import Console
 
 from flext_cli.cmd import (

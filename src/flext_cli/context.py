@@ -157,6 +157,12 @@ class FlextCliContext:
         """Get context profile from config."""
         return getattr(self._config, "profile", "default")
 
+    @profile.setter
+    def profile(self, _value: str) -> None:
+        """Setter to maintain immutability."""
+        msg = "Cannot modify immutable FlextCliContext"
+        raise ValueError(msg)
+
     @property
     def output_format(self) -> str:
         """Get output format from config."""
@@ -343,17 +349,17 @@ class FlextCliContext:
             raise ValueError(message)
 
         if output_format not in {"table", "json", "yaml", "csv"}:
-            message = f"Invalid output format: {output_format}"
+            message = f"Output format must be one of table, json, yaml, csv, got: {output_format}"
             raise ValueError(message)
 
         if quiet and verbose:
-            message = "Cannot be both quiet and verbose"
+            message = "Cannot have both quiet and verbose modes enabled"
             raise ValueError(message)
 
         # Create config with parameters
         config = FlextCliConfig(
             profile=str(profile),
-            debug_mode=bool(debug),
+            debug=bool(debug),
             output_format=str(output_format),
             no_color=bool(no_color),
         )

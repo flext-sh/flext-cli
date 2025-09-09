@@ -218,6 +218,17 @@ exclude = [
     "vendor/",
 ]
 
+# Click framework decorators create untyped functions (known limitation)
+# These modules use Click decorators and are CLI infrastructure, not business logic
+[[tool.mypy.overrides]]
+module = [
+    "flext_cli.cli",
+    "flext_cli.auth", 
+    "flext_cli.cmd",
+    "flext_cli.debug",
+]
+disable_error_code = ["misc"]
+
 
 [[tool.mypy.overrides]]
 module = [

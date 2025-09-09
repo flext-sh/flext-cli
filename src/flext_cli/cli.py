@@ -12,9 +12,9 @@ import uuid
 
 import click
 from flext_core import (
+    FlextContainer,
     FlextLogger,
     __version__ as core_version,
-    get_flext_container,
 )
 from rich.console import Console
 
@@ -25,6 +25,7 @@ from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
 from flext_cli.debug import debug_cmd
+from flext_cli.logging_setup import setup_cli_logging
 
 
 class FlextCliMain:
@@ -81,11 +82,19 @@ class FlextCliMain:
     default=False,
     help="Suppress non-error output",
 )
+@click.option(
+    "--log-level",
+    "-l",
+    type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False),
+    envvar="FLEXT_CLI_LOG_LEVEL",
+    help="Set logging level (also supports FLEXT_CLI_LOG_LEVEL env var or .env file)",
+)
 @click.pass_context
 def cli(
     ctx: click.Context,
     profile: str,
     output: str,
+    log_level: str | None,
     *,  # Force keyword-only arguments for booleans
     debug: bool,
     quiet: bool,
@@ -96,19 +105,30 @@ def cli(
 
     # Create new config with CLI overrides using model_copy when available
     if hasattr(base_config, "model_copy"):
-        config = base_config.model_copy(
-            update={
-                "output_format": output
-                or getattr(base_config, "output_format", "table"),
-                "debug": bool(debug or getattr(base_config, "debug", False)),
-            }
-        )
+        # Prepare config updates with automatic log level support
+        config_updates = {
+            "output_format": output
+            or getattr(base_config, "output_format", "table"),
+            "debug": bool(debug or getattr(base_config, "debug", False)),
+        }
+
+        # Add log level if provided via CLI (highest precedence)
+        if log_level is not None:
+            config_updates["log_level"] = log_level.upper()
+        # Otherwise, FlextCliConfig will automatically load from:
+        # 1. FLEXT_CLI_LOG_LEVEL environment variable
+        # 2. .env file with FLEXT_CLI_LOG_LEVEL=value
+        # 3. Default to "INFO"
+
+        config = base_config.model_copy(update=config_updates)
     else:
         # Fallback path for static analysis stubs
         config = FlextCliConfig()
         try:
             setattr(config, "output_format", output or "table")
             setattr(config, "debug", bool(debug))
+            if log_level is not None:
+                setattr(config, "log_level", log_level.upper())
         except Exception as e:
             FlextLogger(__name__).debug("Config override failed: %s", e)
 
@@ -118,8 +138,19 @@ def cli(
     # Create CLI context with correct fields (SOLID: Single Responsibility)
     cli_context = FlextCliContext(id=str(uuid.uuid4()), config=config, console=console)
 
+    # Setup automatic logging configuration with source detection
+    logging_setup_result = setup_cli_logging(
+        config=config,
+        log_file=config.log_dir / "flext-cli.log" if hasattr(config, "log_dir") else None
+    )
+
+    if logging_setup_result.is_success and debug:
+        console.print(f"[dim]Logging: {logging_setup_result.value}[/dim]")
+    elif logging_setup_result.is_failure:
+        console.print(f"[yellow]Warning: Logging setup failed: {logging_setup_result.error}[/yellow]")
+
     # Register components in flext-core container for DI
-    container = get_flext_container()
+    container = FlextContainer.get_global()
     container.register("cli_config", config)
     container.register("console", console)
     container.register("cli_context", cli_context)
@@ -138,6 +169,13 @@ def cli(
         console.print(f"[dim]Profile: {profile}[/dim]")
         console.print(f"[dim]Output Format: {output}[/dim]")
         console.print(f"[dim]Debug Mode: {debug}[/dim]")
+        console.print(f"[dim]Log Level: {config.log_level}[/dim]")
+
+        # Show log level source for debugging
+        if log_level is not None:
+            console.print("[dim]Log Level Source: CLI parameter[/dim]")
+        else:
+            console.print("[dim]Log Level Source: Environment/Config (.env automatically loaded)[/dim]")
 
     # Show help if no command:
     if ctx.invoked_subcommand is None:

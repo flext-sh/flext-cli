@@ -11,7 +11,9 @@ SPDX-License-Identifier: MIT
 
 
 from __future__ import annotations
-from flext_core import FlextTypes
+
+import pytest
+from pydantic import ValidationError
 
 from flext_cli import FlextCliConstants, FlextCliModels
 
@@ -48,12 +50,12 @@ class TestCLICommand:
 
     def test_empty_command_line_validation(self) -> None:
         """Test validation fails for empty command line."""
-        # Empty command line is allowed at model level but fails at business rules level
-        cmd = FlextCliModels.CliCommand(command_line="")
+        # Model now properly validates at creation time (improved defensive programming)
+        with pytest.raises(ValidationError) as exc_info:
+            FlextCliModels.CliCommand(command_line="")
 
-        validation_result = cmd.validate_business_rules()
-        assert validation_result.is_failure
-        assert "Command line cannot be empty" in str(validation_result.error)
+        # Verify the error message
+        assert "Command line cannot be empty" in str(exc_info.value)
 
 
 class TestCommandStatus:
@@ -97,19 +99,19 @@ class TestFlextCliSession:
         assert command in session.commands
 
     def test_add_empty_command_line_validation(self) -> None:
-        """Test adding command with empty command line."""
+        """Test validation prevents creating commands with empty command line."""
         session = FlextCliModels.CliSession(user_id="test_user")
-        command = FlextCliModels.CliCommand(command_line="")  # Empty command line
 
-        result = session.add_command(command)
+        # Model now properly validates at creation time (improved defensive programming)
+        with pytest.raises(ValidationError) as exc_info:
+            FlextCliModels.CliCommand(command_line="")  # Empty command line
 
-        # Adding the command succeeds, but the command itself has invalid business rules
-        assert result.is_success
-        assert command in session.commands
+        # Verify the validation error
+        assert "Command line cannot be empty" in str(exc_info.value)
 
-        # But session validation should fail due to invalid command
+        # Session remains valid since invalid command was never created
         validation_result = session.validate_business_rules()
-        assert validation_result.is_failure
+        assert validation_result.is_success
 
     def test_session_validation(self) -> None:
         """Test session business rule validation."""

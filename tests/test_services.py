@@ -1,6 +1,5 @@
 """Real functionality tests for services.py - NO MOCKING.
 
-
 Following user requirement: "pare de ficar mockando tudo!"
 Tests execute REAL service functionality.
 
@@ -11,7 +10,6 @@ SPDX-License-Identifier: MIT
 
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 from flext_core import FlextResult, FlextServices
 

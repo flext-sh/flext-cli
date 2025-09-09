@@ -1,15 +1,11 @@
 """Tests for domain CLI context with REAL code execution - no mocks.
 
-
-
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import io
 
@@ -59,17 +55,18 @@ class TestCLIContext:
         assert hasattr(context, "is_quiet")
 
     def test_context_model_validation(self) -> None:
-        """Test FlextCliContext Pydantic model validation works."""
+        """Test FlextCliContext business validation works."""
         # Create with explicit parameters
         context = FlextCliContext()
 
-        # Should be a valid Pydantic model
-        assert hasattr(context, "model_dump")
-        assert hasattr(context, "model_copy")
+        # Should be a valid CLI context with business rules validation
+        validation_result = context.validate_business_rules()
+        assert validation_result.is_success
 
-        # Model dump should work
-        data = context.model_dump()
-        assert isinstance(data, dict)
+        # Context should have essential properties
+        assert hasattr(context, "id")
+        assert hasattr(context, "config")
+        assert isinstance(context.config, FlextCliConfig)
 
     def test_context_arbitrary_types_allowed(self, real_console: Console) -> None:
         """Test FlextCliContext allows arbitrary types (like Console)."""

@@ -1,6 +1,5 @@
 """Comprehensive real functionality tests for decorators.py module.
 
-
 NO MOCKING - All tests execute real functionality and validate actual business logic.
 Following user requirement: "pare de ficar mockando tudo!"
 
@@ -13,13 +12,14 @@ SPDX-License-Identifier: MIT
 
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import asyncio
 import tempfile
 import time
 import unittest
 from pathlib import Path
+
+from flext_core import FlextTypes
 
 from flext_cli.decorators import (
     FlextCliDecorators,
