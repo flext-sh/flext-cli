@@ -1,6 +1,5 @@
 """Real functionality tests for FlextCliConfig unified class - NO MOCKING.
 
-
 Following ZERO TOLERANCE requirements:
 - NO mocking whatsoever - real functionality testing only
 - 100% test coverage using actual code execution
@@ -14,13 +13,12 @@ SPDX-License-Identifier: MIT
 
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import tempfile
 import unittest
 from pathlib import Path
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli.config import FlextCliConfig
 

@@ -1,14 +1,11 @@
 """Production-ready pytest configuration using flext_tests.
 
-
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import tempfile
 from collections.abc import Generator
@@ -17,14 +14,10 @@ from typing import cast
 
 import pytest
 from click.testing import CliRunner
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 from flext_tests import (
-    FlextResultFactory,
-    InMemoryUserRepository,
-    RealEmailService,
-    TestUser,
-    User,
-    UserFactory,
+    FlextTestsDomains,
+    FlextTestsFactories,
 )
 from rich.console import Console
 
@@ -101,29 +94,16 @@ def test_config() -> FlextCliConfig:
 
 
 @pytest.fixture
-def real_user_repository() -> InMemoryUserRepository:
-    """Provide real in-memory user repository - no mocks."""
-    return InMemoryUserRepository()
-
-
-@pytest.fixture
-def real_email_service() -> RealEmailService:
-    """Provide real email service - no mocks."""
-    return RealEmailService()
-
-
-@pytest.fixture
-def test_user() -> TestUser:
+def test_user() -> FlextTestsDomains.TestUser:
     """Provide real test user using factory."""
-    user_instance = UserFactory()
-    assert isinstance(user_instance, TestUser)
-    return user_instance
+    user_factory = FlextTestsFactories.UserFactory()
+    return cast("FlextTestsDomains.TestUser", user_factory)
 
 
 @pytest.fixture
-def real_test_user() -> User:
+def real_test_user() -> FlextTestsDomains.TestUser:
     """Provide real User instance from flext_tests."""
-    return User(
+    return FlextTestsDomains.TestUser(
         id="test_user_id",
         username="test_user",
         email="test@example.com",
@@ -135,39 +115,31 @@ def real_test_user() -> User:
 @pytest.fixture
 def test_flext_result_success() -> FlextResult[str]:
     """Provide successful FlextResult for testing."""
-    result = FlextResultFactory.success("test_success")
-    # Cast to correct generic type since we know it's str
-    assert isinstance(result.value, str)
-    return cast("FlextResult[str]", result)
+    return FlextResult[str].ok("test_success")
 
 
 @pytest.fixture
 def test_flext_result_failure() -> FlextResult[str]:
     """Provide failed FlextResult for testing."""
-    result = FlextResultFactory.failure("test_failure")
-    # FlextResult failure has None value, so cast is appropriate
-    return cast("FlextResult[str]", result)
+    return FlextResult[str].fail("test_failure")
 
 
 @pytest.fixture
 def real_repositories() -> FlextTypes.Core.Dict:
     """Provide collection of real repository implementations."""
     return {
-        "user_repo": InMemoryUserRepository(),
-        "email_service": RealEmailService()
+        "user_repo": FlextTestsDomains.TestUserRepository(),
+        "config": FlextCliConfig(profile="test")
     }
 
 
 @pytest.fixture
 def success_result() -> FlextResult[str]:
     """Provide successful FlextResult."""
-    result = FlextResultFactory.success("test_data")
-    assert isinstance(result.value, str)
-    return cast("FlextResult[str]", result)
+    return FlextResult[str].ok("test_data")
 
 
 @pytest.fixture
 def failure_result() -> FlextResult[str]:
     """Provide failed FlextResult."""
-    result = FlextResultFactory.failure("test_error")
-    return cast("FlextResult[str]", result)
+    return FlextResult[str].fail("test_error")

@@ -1,15 +1,11 @@
 """Comprehensive tests for core functionality to maximize coverage.
 
-
-
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import json
 import tempfile
@@ -26,13 +22,20 @@ class TestFlextCliService:
     """Test core service functionality."""
 
     def test_flext_cli_health_returns_success(self) -> None:
-        """Test health check returns success."""
+        """Test health check returns comprehensive status info."""
         service = FlextCliService()
         result = service.flext_cli_health()
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        assert result.value == "healthy"
+
+        health_data = result.value
+        assert isinstance(health_data, dict)
+        assert health_data["service"] == "FlextCliService"
+        assert health_data["status"] == "healthy"
+        assert "timestamp" in health_data
+        assert "flext_core_integration" in health_data
+        assert health_data["flext_core_integration"]["entities"] is True
 
     def test_service_inherits_from_domain_service(self) -> None:
         """Test service inherits from FlextDomainService."""

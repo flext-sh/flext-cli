@@ -1,19 +1,16 @@
 """Tests for core types in FLEXT CLI Library.
 
-
-
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import pytest
+from flext_core import FlextTypes
 
-from flext_cli import FlextTypes
+from flext_cli.typings import FlextCliTypes
 
 
 class TestFlextCliTypes:
@@ -21,7 +18,7 @@ class TestFlextCliTypes:
 
     def test_output_format_enum(self) -> None:
         """Test OutputFormat enum has expected values."""
-        formats = FlextTypes.OutputFormat
+        formats = FlextCliTypes.OutputFormat
 
         assert str(formats.JSON) == "json"
         assert str(formats.YAML) == "yaml"
@@ -31,7 +28,7 @@ class TestFlextCliTypes:
 
     def test_output_format_enum_membership(self) -> None:
         """Test OutputFormat enum membership."""
-        formats = FlextTypes.OutputFormat
+        formats = FlextCliTypes.OutputFormat
 
         # Valid formats
         assert "json" in formats
@@ -46,7 +43,7 @@ class TestFlextCliTypes:
 
     def test_commands_classes_exist(self) -> None:
         """Test Commands nested classes exist."""
-        commands = FlextTypes.Commands
+        commands = FlextCliTypes.Commands
 
         assert hasattr(commands, "PendingState")
         assert hasattr(commands, "RunningState")
@@ -56,7 +53,7 @@ class TestFlextCliTypes:
 
     def test_config_classes_exist(self) -> None:
         """Test Config nested classes exist."""
-        config = FlextTypes.Config
+        config = FlextCliTypes.Config
 
         assert hasattr(config, "DevelopmentProfile")
         assert hasattr(config, "ProductionProfile")
@@ -65,25 +62,25 @@ class TestFlextCliTypes:
 
     def test_auth_classes_exist(self) -> None:
         """Test Auth nested classes exist."""
-        auth = FlextTypes.Auth
+        auth = FlextCliTypes.Auth
 
         assert hasattr(auth, "CliAuthContext")
 
     def test_session_classes_exist(self) -> None:
         """Test Session nested classes exist."""
-        session = FlextTypes.Session
+        session = FlextCliTypes.Session
 
         assert hasattr(session, "CliSessionContext")
 
     def test_services_classes_exist(self) -> None:
         """Test Services nested classes exist."""
-        services = FlextTypes.Services
+        services = FlextCliTypes.Services
 
         assert hasattr(services, "CliServiceContext")
 
     def test_protocols_exist(self) -> None:
         """Test Protocol classes exist."""
-        protocols = FlextTypes.Protocols
+        protocols = FlextCliTypes.Protocols
 
         assert hasattr(protocols, "CliProcessor")
         assert hasattr(protocols, "CliValidator")

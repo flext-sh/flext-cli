@@ -1,6 +1,5 @@
 """Comprehensive real functionality tests for formatters.py - NO MOCKING.
 
-
 Following user requirement: "melhore bem os tests para executar codigo de verdade e validar
 a funcionalidade requerida, pare de ficar mockando tudo!"
 
@@ -14,7 +13,6 @@ SPDX-License-Identifier: MIT
 
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import csv
 import io
@@ -24,6 +22,7 @@ import unittest
 
 import pytest
 import yaml
+from flext_core import FlextTypes
 from rich.console import Console
 
 from flext_cli.formatters import FlextCliFormatters

@@ -103,6 +103,7 @@ from flext_cli.core import FlextCliService
 from flext_cli.context import FlextCliContext, FlextCliExecutionContext
 from flext_cli.debug import FlextCliDebug, debug_cmd
 from flext_cli.formatters import FlextCliFormatters
+from flext_cli.logging_setup import FlextCliLoggingSetup, setup_cli_logging, get_log_level_info
 from flext_cli.models import FlextCliModels
 from flext_cli.services import FlextCliServices
 
@@ -142,7 +143,6 @@ from flext_cli.cmd import (
 # =============================================================================
 
 from flext_cli.typings import (
-    FlextTypes,
     E,
     F,
     P,
@@ -280,11 +280,11 @@ def cli_measure_time(func: Callable[..., object]) -> Callable[..., object]:
 
     @wraps(func)
     def wrapper(*args: object, **kwargs: object) -> object:
-        start = time.perf_counter()
         try:
             return func(*args, **kwargs)
         finally:
-            time.perf_counter() - start
+            # Timer cleanup completed
+            pass
 
     return wrapper
 
@@ -329,6 +329,7 @@ __all__ = [
     "FlextCliDebug",
     "FlextCliExecutionContext",
     "FlextCliFormatters",
+    "FlextCliLoggingSetup",
     "FlextCliModels",
     "FlextCliService",
     "FlextCliServices",
@@ -360,7 +361,6 @@ __all__ = [
     # =============================================================================
     # TYPE SYSTEM AND TYPE VARIABLES
     # =============================================================================
-    "FlextTypes",
     "E",
     "F",
     "P",
@@ -399,4 +399,6 @@ __all__ = [
     "cli_format_output",
     "require_auth",
     "cli_measure_time",
+    "setup_cli_logging",
+    "get_log_level_info",
 ]

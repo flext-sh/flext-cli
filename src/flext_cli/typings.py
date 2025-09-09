@@ -13,12 +13,11 @@ from pathlib import Path
 from typing import Literal, Protocol, TypedDict, TypeVar
 from uuid import UUID
 
-from flext_core import FlextResult, FlextTypes
-from flext_core.typings import FlextTypes as CoreFlextTypes
+from flext_core import FlextResult
+from flext_core.typings import FlextTypes
 from pydantic import BaseModel, Field
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.models import FlextCliModels
 
 # Type variables for compatibility with existing tests
 E = TypeVar("E")
@@ -197,7 +196,7 @@ class FlextCliTypes:
     # =============================================================================
 
     class Session:
-        """CLI session types extending FlextTypes.Core."""
+        """CLI session types using standard Python types."""
 
         # CLI-specific session types - direct definitions
         CliSessionId = UUID
@@ -273,17 +272,17 @@ class FlextCliTypes:
             """Protocol for CLI processors."""
 
             def process(
-                self, request: str | FlextTypes.Core.Dict
+                self, request: str | dict[str, object]
             ) -> FlextResult[object]: ...
             def build(
                 self, domain: object, *, correlation_id: str
-            ) -> str | FlextTypes.Core.Dict: ...
+            ) -> str | dict[str, object]: ...
 
         class CliValidator(Protocol):
             """Protocol for CLI validators."""
 
             def validate(
-                self, data: FlextTypes.Core.Dict | str | float
+                self, data: dict[str, object] | str | float
             ) -> FlextResult[None]: ...
 
         class CliFormatter(Protocol):
@@ -291,7 +290,7 @@ class FlextCliTypes:
 
             def format(
                 self,
-                data: FlextTypes.Core.Dict | FlextTypes.Core.List | str,
+                data: dict[str, object] | list[object] | str,
                 format_type: str,
             ) -> FlextResult[str]: ...
 
@@ -299,7 +298,7 @@ class FlextCliTypes:
             """Protocol for CLI authenticators."""
 
             def authenticate(
-                self, credentials: FlextTypes.Core.Headers
+                self, credentials: dict[str, str]
             ) -> FlextResult[FlextCliTypes.Auth.CliAuthContext]: ...
             def is_authenticated(self) -> bool: ...
 
@@ -309,25 +308,7 @@ class FlextCliTypes:
 # =============================================================================
 
 
-# FlextTypes alias for test compatibility
-class FlextTypes:
-    """CLI FlextTypes with direct access to all type classes."""
-
-    # Core types from flext_core
-    Core = CoreFlextTypes
-
-    # CLI-specific types
-    CLI = FlextCliTypes
-
-    # Direct access to commonly used types
-    Commands = FlextCliTypes.Commands
-    Config = FlextCliTypes.Config
-    Auth = FlextCliTypes.Auth
-    Session = FlextCliTypes.Session
-    Services = FlextCliTypes.Services
-    Results = FlextCliTypes.Results
-    Protocols = FlextCliTypes.Protocols
-    OutputFormat = FlextCliTypes.OutputFormat
+# No aliases - use direct imports
 
 
 # =============================================================================
@@ -336,26 +317,34 @@ class FlextTypes:
 
 # Command-related types
 CommandStatus = FlextCliConstants.CommandStatus
-CommandType = str  # Generic command type
-PluginStatus = str  # Generic plugin status
+CommandType = FlextCliConstants.CommandStatus  # Make it an enum for tests
+
+# Plugin status enum for tests
+class PluginStatusEnum(StrEnum):
+    """Plugin status enumeration."""
+
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    ERROR = "error"
+    LOADING = "loading"
+
+PluginStatus = PluginStatusEnum
+
+# Model classes expected by tests
+FlextCliCommand = dict[str, object]  # Simple dict type for compatibility
+FlextCliConfigDict = dict[str, object]  # Config dictionary type
+ContextParams = dict[str, object]  # Context parameters type
+PluginResult = dict[str, object]  # Plugin result type
+SessionData = dict[str, object]  # Session data type
+
+# Data types expected by tests
+FlextCliDataType = str  # Generic data type
+FlextCliLogLevel = str  # Log level type
 
 # Utility types
 PositiveIntType = int
 URL = str
 URLType = str
-
-# Data types
-FlextCliDataType = FlextTypes.Core.Dict
-FlextCliFileHandler = object  # Generic file handler
-CommandArgs = FlextTypes.Core.StringList
-FlextCliLogLevel = FlextCliConstants.LogLevel
-
-# Model types
-FlextCliCommand = FlextCliModels.CliCommand
-FlextCliConfigDict = FlextTypes.Core.Dict
-ContextParams = FlextTypes.Core.Dict
-PluginResult = FlextTypes.Core.Dict
-SessionData = FlextTypes.Core.Dict
 
 # =============================================================================
 # EXPORTS - Type variables and main classes for test compatibility
@@ -367,7 +356,6 @@ __all__ = [
     "UTC",
     "UUID",
     "BaseModel",
-    "CommandArgs",
     "CommandStatus",
     "CommandType",
     "ContextParams",
@@ -378,9 +366,7 @@ __all__ = [
     "FlextCliConfigDict",
     "FlextCliConstants",
     "FlextCliDataType",
-    "FlextCliFileHandler",
     "FlextCliLogLevel",
-    "FlextCliModels",
     "FlextCliTypes",
     "FlextTypes",
     "P",

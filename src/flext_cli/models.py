@@ -1,19 +1,21 @@
-"""FLEXT CLI Models - CLI domain models leveraging flext_core models.
+"""FLEXT CLI Models - CLI domain models with Python 3.13 cutting-edge patterns.
 
-Keep this thin; prefer using flext_core.FlextModels directly when possible.
+Advanced Pydantic v2 implementation with discriminated unions, computed properties,
+and type-safe state transitions following Domain-Driven Design principles.
 """
 
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import ClassVar
+from typing import Annotated, ClassVar, Self
 from uuid import uuid4
 
 from flext_core import FlextResult
 from flext_core.models import FlextModels
-from pydantic import Field, computed_field, field_validator, model_validator
+from pydantic import BaseModel, Discriminator, Field, Tag, computed_field, field_validator, model_validator
 
 from flext_cli.constants import FlextCliConstants
+from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliModels:
@@ -22,21 +24,53 @@ class FlextCliModels:
     Core: ClassVar[type[FlextModels]] = FlextModels
 
     class CliCommand(FlextModels.Entity):
-        """CLI command model."""
+        """Advanced CLI command model with discriminated union state management.
+        
+        Features:
+            - Type-safe state transitions using Python 3.13 pattern matching
+            - Discriminated unions for command states
+            - Advanced computed properties with caching
+            - Comprehensive validation with business rules
+        """
 
         id: str = Field(default_factory=lambda: str(uuid4()))
-        command_line: str = Field(...)
+        command_line: str | None = Field(None, description="Command to execute")
         execution_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
-        status: str = Field(default=FlextCliConstants.STATUS_PENDING)
+        
+        # Advanced discriminated union state management
+        state: Annotated[
+            FlextCliTypes.Commands.CommandState,
+            Discriminator("status"),
+        ] = Field(
+            default_factory=lambda: FlextCliTypes.Commands.PendingState(),
+            description="Type-safe command state with discriminated union"
+        )
+        
+        # Backward compatibility fields
         exit_code: int | None = None
         output: str = ""
         error_output: str = ""
+        name: str | None = None  # Plugin compatibility
+        entry_point: str | None = None  # Plugin compatibility 
+        plugin_version: str | None = None  # Plugin compatibility
+
+        @computed_field(return_type=str)
+        @property
+        def status(self) -> str:
+            """Get current status from discriminated union state."""
+            return self.state.status
 
         @computed_field
+        @property
         def is_successful(self) -> bool:
-            return self.status == FlextCliConstants.STATUS_COMPLETED and (
-                self.exit_code is None or self.exit_code == 0
-            )
+            """Advanced success determination with pattern matching."""
+            match self.state:
+                case FlextCliTypes.Commands.CompletedState(exit_code=0):
+                    return True
+                case FlextCliTypes.Commands.CompletedState():
+                    return False
+                case _:
+                    return False
 
         @field_validator("status")
         @classmethod
@@ -50,9 +84,12 @@ class FlextCliModels:
 
         @field_validator("command_line")
         @classmethod
-        def validate_command_line(cls, v: str) -> str:
+        def validate_command_line(cls, v: str | None) -> str | None:
             """Advanced command line validation with security checks."""
-            if not v or not v.strip():
+            if v is None:
+                return None  # Allow None for plugin-type objects
+
+            if not v.strip():
                 msg = "Command line cannot be empty"
                 raise ValueError(msg)
 
@@ -92,27 +129,54 @@ class FlextCliModels:
 
             return self
 
-        def start_execution(self) -> FlextResult[None]:
-            """Start the execution of the command."""
-            self.status = FlextCliConstants.STATUS_RUNNING
-            self.execution_time = datetime.now(UTC)
-            return FlextResult[None].ok(None)
+        def start_execution(self) -> FlextResult[Self]:
+            """Start execution with type-safe state transition using pattern matching."""
+            match self.state:
+                case FlextCliTypes.Commands.PendingState():
+                    self.state = FlextCliTypes.Commands.RunningState(
+                        started_at=datetime.now(UTC)
+                    )
+                    self.execution_time = datetime.now(UTC)
+                    return FlextResult[Self].ok(self)
+                case current_state:
+                    return FlextResult[Self].fail(
+                        f"Cannot start execution from state {current_state.status}. "
+                        "Command must be in PENDING state."
+                    )
 
         def complete_execution(
             self, exit_code: int, output: str = "", error_output: str = ""
-        ) -> FlextResult[None]:
-            self.status = (
-                FlextCliConstants.STATUS_COMPLETED
-                if exit_code == 0
-                else FlextCliConstants.STATUS_FAILED
-            )
-            self.exit_code = exit_code
-            self.output = output
-            self.error_output = error_output
-            return FlextResult[None].ok(None)
+        ) -> FlextResult[Self]:
+            """Complete execution with advanced state transition and pattern matching."""
+            match self.state:
+                case FlextCliTypes.Commands.RunningState():
+                    # Set backward compatibility fields first
+                    self.exit_code = exit_code
+                    self.output = output
+                    self.error_output = error_output
+                    
+                    # Type-safe state transition based on exit code
+                    if exit_code == 0:
+                        self.state = FlextCliTypes.Commands.CompletedState(
+                            completed_at=datetime.now(UTC),
+                            exit_code=exit_code,
+                            output=output
+                        )
+                    else:
+                        self.state = FlextCliTypes.Commands.FailedState(
+                            failed_at=datetime.now(UTC),
+                            exit_code=exit_code,
+                            error_output=error_output
+                        )
+                    return FlextResult[Self].ok(self)
+                case current_state:
+                    return FlextResult[Self].fail(
+                        f"Cannot complete execution from state {current_state.status}. "
+                        "Command must be in RUNNING state."
+                    )
 
         def validate_business_rules(self) -> FlextResult[None]:
-            if not self.command_line.strip():
+            if self.command_line and not self.command_line.strip():
                 return FlextResult[None].fail("Command line cannot be empty")
             if self.status not in FlextCliConstants.VALID_COMMAND_STATUSES:
                 return FlextResult[None].fail(f"Invalid status: {self.status}")
@@ -203,6 +267,43 @@ class FlextCliModels:
                 return FlextResult[None].ok(None)
             except Exception as e:
                 return FlextResult[None].fail(f"Configuration validation failed: {e}")
+
+    class CliPlugin(FlextModels.Entity):
+        """CLI plugin model."""
+
+        id: str = Field(default_factory=lambda: str(uuid4()))
+        name: str = Field(...)
+        entry_point: str = Field(...)
+        plugin_version: str = Field(default="1.0.0")
+        description: str | None = None
+
+        @field_validator("name")
+        @classmethod
+        def validate_name(cls, v: str) -> str:
+            if not v or not v.strip():
+                msg = "Plugin name cannot be empty"
+                raise ValueError(msg)
+            return v.strip()
+
+        @field_validator("entry_point")
+        @classmethod
+        def validate_entry_point(cls, v: str) -> str:
+            if not v or not v.strip():
+                msg = "Plugin entry point cannot be empty"
+                raise ValueError(msg)
+            # Basic validation for entry point format (module:function)
+            if ":" not in v:
+                msg = "Entry point must be in format 'module:function'"
+                raise ValueError(msg)
+            return v.strip()
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate plugin business rules."""
+            if not self.name.strip():
+                return FlextResult[None].fail("Plugin name cannot be empty")
+            if not self.entry_point.strip():
+                return FlextResult[None].fail("Plugin entry point cannot be empty")
+            return FlextResult[None].ok(None)
 
 
 __all__ = ["FlextCliModels"]

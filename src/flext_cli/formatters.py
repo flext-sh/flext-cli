@@ -11,8 +11,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import csv
+from collections.abc import Callable
 from io import StringIO
-from typing import ClassVar, Protocol
+from typing import ClassVar, Protocol, runtime_checkable
 
 import yaml
 from flext_core import FlextResult, FlextTypes, FlextUtilities
@@ -36,13 +37,20 @@ class FlextCliFormatters:
         - Error handling and validation
     """
 
+    @runtime_checkable
     class OutputFormatter(Protocol):
         """Protocol for formatter classes used by the CLI."""
 
         def format(self, data: object, console: Console) -> None: ...
 
     # Registry of available formatters
-    _registry: ClassVar[dict[str, type[FlextCliFormatters.OutputFormatter]]] = {}
+    _registry: ClassVar[
+        dict[
+            str,
+            type[FlextCliFormatters.OutputFormatter]
+            | Callable[[], FlextCliFormatters.OutputFormatter],
+        ]
+    ] = {}
 
     def __init__(
         self, *, console: Console | None = None, default_format: str = "table"
@@ -65,7 +73,7 @@ class FlextCliFormatters:
             "table": self._TableFormatter,
             "json": self._JSONFormatter,
             "yaml": self._YAMLFormatter,
-            "csv": self._CSVFormatter,
+            "csv": lambda: self._CSVFormatter(self),
             "plain": self._PlainFormatter,
         }
 
@@ -115,29 +123,17 @@ class FlextCliFormatters:
     class _CSVFormatter:
         """Internal CSV formatter implementation."""
 
+        def __init__(self, formatters_instance: FlextCliFormatters) -> None:
+            """Initialize with reference to parent formatters instance."""
+            self._formatters = formatters_instance
+
         def format(self, data: object, console: Console) -> None:
-            output = StringIO()
-            try:
-                if isinstance(data, list) and data and isinstance(data[0], dict):
-                    dict_writer = csv.DictWriter(output, fieldnames=data[0].keys())
-                    dict_writer.writeheader()
-                    dict_writer.writerows(data)
-                elif isinstance(data, dict):
-                    dict_writer = csv.DictWriter(output, fieldnames=data.keys())
-                    dict_writer.writeheader()
-                    dict_writer.writerow(data)
-                else:
-                    plain_writer = csv.writer(output)
-                    if isinstance(data, list):
-                        for item in data:
-                            plain_writer.writerow([str(item)])
-                    else:
-                        plain_writer.writerow([str(data)])
-                console.print(output.getvalue())
-            except (ValueError, TypeError):
-                console.print(str(data))
-            finally:
-                output.close()
+            """Format data as CSV using the consolidated CSV implementation."""
+            result = self._formatters.format_csv(data)
+            if result.is_success:
+                console.print(result.value)
+            else:
+                raise ValueError(result.error)
 
     class _PlainFormatter:
         """Internal plain text formatter implementation."""
@@ -170,11 +166,12 @@ class FlextCliFormatters:
             ValueError: If formatter name is unknown
 
         """
-        formatter_class = self._registry.get(name)
-        if not formatter_class:
+        formatter_factory = self._registry.get(name)
+        if not formatter_factory:
             msg = f"Unknown formatter type: {name}"
             raise ValueError(msg)
-        return formatter_class()
+        # Handle both classes and lambda factories
+        return formatter_factory()
 
     def register_formatter(
         self, name: str, formatter_class: type[FlextCliFormatters.OutputFormatter]
@@ -378,6 +375,15 @@ class FlextCliFormatters:
             output = StringIO()
             try:
                 if isinstance(data, list) and data and isinstance(data[0], dict):
+                    # Validate that all dictionaries have consistent keys
+                    first_keys = set(data[0].keys())
+                    for _i, item in enumerate(data[1:], 1):
+                        if isinstance(item, dict):
+                            item_keys = set(item.keys())
+                            if item_keys != first_keys:
+                                msg = "dict contains fields not in fieldnames"
+                                raise ValueError(msg)
+
                     dict_writer = csv.DictWriter(output, fieldnames=data[0].keys())
                     dict_writer.writeheader()
                     dict_writer.writerows(data)

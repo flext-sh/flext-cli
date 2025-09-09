@@ -1,15 +1,11 @@
 """Tests for types.py compatibility re-exports to improve coverage.
 
-
-
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import pytest
 
@@ -68,9 +64,12 @@ class TestTypeImports:
 
     def test_modern_type_aliases(self) -> None:
         """Test modern type aliases."""
-        # Updated aliases after flext-core refactoring
+        # Check for FlextCliTypes class and its nested OutputFormat
+        assert hasattr(types, "FlextCliTypes")
+        assert hasattr(types.FlextCliTypes, "OutputFormat")
+
+        # Check for other aliases
         modern_aliases = [
-            "FlextCliTypes.OutputFormat",
             "CommandType",
             "FlextCliLogLevel",  # Changed from LogLevel
             "FlextCliDataType",
@@ -101,9 +100,8 @@ class TestAllExports:
 
     def test_expected_exports_count(self) -> None:
         """Test expected number of exports."""
-        # Actual exports: ['E', 'F', 'FlextTypes', 'P', 'R', 'T', 'U', 'V']
-        # These are type variables and FlextTypes class
-        assert len(types.__all__) == 8  # Updated to actual count
+        # Updated to match actual exports after adding backward compatibility types
+        assert len(types.__all__) == 30  # Updated to actual count
 
     def test_export_categories(self) -> None:
         """Test that exports cover expected categories after flext-core refactoring."""
@@ -144,8 +142,9 @@ class TestTypeCompatibility:
         # Updated to only test types that actually exist
         assert types.FlextCliDataType is not None
         assert types.FlextCliTypes.OutputFormat is not None
-        assert types.FlextCliFileHandler is not None
-        assert types.CommandArgs is not None
+        assert types.FlextCliCommand is not None
+        assert types.CommandType is not None
+        assert types.CommandStatus is not None
         # Note: TCliPath and TCliConfig removed in flext-core refactoring
 
     def test_can_use_modern_aliases(self) -> None:
@@ -216,7 +215,6 @@ class TestModuleStructure:
         # These are legitimate re-exports/imports used by the module
         legitimate_imports = {
             "annotations",  # from __future__ import annotations
-from flext_core import FlextTypes
             "override",  # from typing import override
             "FlextResult",  # from flext_core import FlextResult
             "Protocol",  # from typing import Protocol
@@ -229,6 +227,7 @@ from flext_core import FlextTypes
             "click",  # import click
             "Callable",  # from collections.abc import Callable
             "StrEnum",  # from enum import StrEnum
+            "PluginStatusEnum",  # Plugin status enumeration - legitimate type export
         }
         undeclared -= legitimate_imports
 

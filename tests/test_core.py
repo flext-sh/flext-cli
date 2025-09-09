@@ -1,6 +1,5 @@
 """Comprehensive real functionality tests for core.py - NO MOCKING.
 
-
 Following user requirement: "melhore bem os tests para executar codigo de verdade e validar
 a funcionalidade requerida, pare de ficar mockando tudo!"
 
@@ -14,21 +13,22 @@ SPDX-License-Identifier: MIT
 
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import json
 import tempfile
 import unittest
 from pathlib import Path
-from flext_core import FlextTypes
+from typing import cast
+
 import yaml
+from flext_core import FlextTypes
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.core import FlextCliService
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
 
-from flext_core import FlextTypes
+
 class TestFlextCliService(unittest.TestCase):
     """Real functionality tests for FlextCliService class."""
 
@@ -93,7 +93,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         assert isinstance(service._plugins, dict)
         assert isinstance(service._sessions, dict)
         assert isinstance(service._commands, dict)
-        assert service._formats == {"json", "yaml", "csv", "table", "plain"}
+        assert set(service._formatters.list_formats()) == {"json", "yaml", "csv", "table", "plain"}
 
         # Test all collections are empty
         assert len(service._handlers) == 0
@@ -418,10 +418,16 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         assert result.is_success
 
         health_data = result.value
-        assert health_data["configured"] is True
-        assert health_data["config"]["format"] == "json"
-        assert health_data["config"]["debug"] is True
-        assert health_data["config"]["profile"] == "test"
+        assert isinstance(health_data, dict)
+        # Type assertion for MyPy
+        health_dict: dict[str, object] = health_data
+        assert health_dict["configured"] is True
+        config_value = health_dict["config"]
+        assert isinstance(config_value, dict)
+        config_dict: dict[str, object] = config_value
+        assert config_dict["format"] == "json"
+        assert config_dict["debug"] is True
+        assert config_dict["profile"] == "test"
 
     def test_flext_cli_health_flext_core_integration(self) -> None:
         """Test health check shows flext-core integration status."""
@@ -429,7 +435,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         assert result.is_success
 
         health_data = result.value
+        assert isinstance(health_data, dict)
         integration = health_data["flext_core_integration"]
+        assert isinstance(integration, dict)
         assert integration["entities"] is True
         assert integration["value_objects"] is True
         assert integration["services"] is True
@@ -457,7 +465,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         result = self.service.flext_cli_create_command(
             "test-command",
             "echo 'hello world'",
-            description="Test command for validation",
+            _description="Test command for validation",
         )
 
         assert result.is_success
@@ -508,6 +516,8 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         assert len(sessions) == 1
 
         session = next(iter(sessions.values()))
+        assert isinstance(session, FlextCliModels.CliSession)
+        assert session.user_id is not None
         assert session.user_id.startswith("user_")
 
     def test_flext_cli_register_and_execute_handler(self) -> None:
@@ -557,6 +567,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         """Test registering plugins with real FlextCliPlugin entities."""
         plugin = FlextCliModels.CliCommand(
             id="test-plugin-123",
+            command_line="test-plugin --version",
             name="test-plugin",
             entry_point="test.plugin:main",
             plugin_version="1.0.0",
@@ -577,11 +588,13 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         """Test registering duplicate plugin names fails."""
         plugin1 = FlextCliModels.CliCommand(
             id="plugin1",
+            command_line="duplicate-plugin --test1",
             name="duplicate-plugin",
             entry_point="test1:main",
         )
         plugin2 = FlextCliModels.CliCommand(
             id="plugin2",
+            command_line="duplicate-plugin --test2",
             name="duplicate-plugin",
             entry_point="test2:main",
         )
@@ -599,7 +612,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         """Test rendering data with context using default format."""
         data = {"message": "Hello World", "status": "success"}
 
-        result = self.service.flext_cli_render_with_context(data)
+        result = self.service.flext_cli_render_with_context(cast("FlextTypes.Core.Dict", data))
         assert result.is_success
 
         rendered = result.value
@@ -612,7 +625,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         data = {"api": "test", "version": "1.0"}
         context_options = {"output_format": "json"}
 
-        result = self.service.flext_cli_render_with_context(data, context_options)
+        result = self.service.flext_cli_render_with_context(cast("FlextTypes.Core.Dict", data), cast("FlextTypes.Core.Dict", context_options))
         assert result.is_success
 
         rendered = result.value
@@ -674,7 +687,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
     def test_flext_cli_get_plugins_returns_copy(self) -> None:
         """Test get_plugins returns copy to prevent external modification."""
         # Create a plugin first
-        plugin = FlextCliModels.CliCommand(id="test", name="test", entry_point="test:main")
+        plugin = FlextCliModels.CliCommand(id="test", command_line="test --version", name="test", entry_point="test:main")
         self.service.flext_cli_register_plugin("test", plugin)
 
         result1 = self.service.flext_cli_get_plugins()

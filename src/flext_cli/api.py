@@ -16,7 +16,7 @@ import platform
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import cast, override
+from typing import override
 from uuid import UUID, uuid4
 
 import yaml
@@ -160,7 +160,7 @@ class FlextCliApi:
         )
 
     # =========================================================================
-    # ULTRA-SIMPLIFIED API - Strategy Pattern + Functional Dispatch
+    # API - Strategy Pattern + Functional Dispatch
     # =========================================================================
 
     def execute(self, operation: str, **params: object) -> FlextResult[object]:
@@ -177,50 +177,48 @@ class FlextCliApi:
             FlextResult with operation outcome or error
 
         """
+        result: FlextResult[object]
         match operation:
             # Data Operations
             case "format":
                 result = self._execute_format(
                     params.get("data"), str(params.get("format_type", "table"))
                 )
-                return cast("FlextResult[object]", result)
             case "export":
                 result = self._execute_export(
                     params.get("data"), params.get("file_path")
                 )
-                return cast("FlextResult[object]", result)
             case "transform":
                 result = self._execute_transform(
                     params.get("data"), params.get("filters")
                 )
-                return cast("FlextResult[object]", result)
 
             # Command Operations
             case "create_command":
                 result = self._execute_create_command(params.get("command_line"))
-                return cast("FlextResult[object]", result)
             case "execute_command":
                 result = self._execute_command_run(params.get("command"))
-                return cast("FlextResult[object]", result)
 
             # Session Operations
             case "create_session":
                 result = self._execute_create_session(params.get("user_id"))
-                return cast("FlextResult[object]", result)
             case "end_session":
                 result = self._execute_end_session(params.get("session_id"))
-                return cast("FlextResult[object]", result)
 
             # System Operations
             case "health":
                 result = self._execute_health_check()
-                return cast("FlextResult[object]", result)
             case "configure":
                 result = self._execute_configure(params.get("config"))
-                return cast("FlextResult[object]", result)
 
             case _:
-                return FlextResult[object].fail(f"Unknown operation: {operation}")
+                result = FlextResult[object].fail(f"Unknown operation: {operation}")
+
+        return (
+            FlextResult[object].ok(result.value)
+            if result.is_success
+            else FlextResult[object].fail(result.error or "Unknown error")
+        )
 
     # Strategy implementations - ultra-simplified single-purpose functions
     def _execute_format(self, data: object, format_type: str) -> FlextResult[str]:
@@ -285,7 +283,7 @@ class FlextCliApi:
                             widths[key] = max(widths[key], len(str(item.get(key, ""))))
 
                 # Create table
-                lines = []
+                lines: list[str] = []
                 # Header row
                 header_line = " | ".join(h.ljust(widths[h]) for h in headers)
                 lines.extend((header_line, "-" * len(header_line)))
@@ -380,6 +378,10 @@ class FlextCliApi:
     ) -> FlextResult[FlextCliModels.CliSession]:
         """Execute session creation."""
         session = FlextCliModels.CliSession(user_id=str(user_id) if user_id else None)
+
+        # Store session for tracking
+        self._sessions[session.session_id] = session
+
         return FlextResult[FlextCliModels.CliSession].ok(session)
 
     def _execute_end_session(self, session_id: object) -> FlextResult[None]:
@@ -688,8 +690,7 @@ class FlextCliApi:
             # Group data by the specified field
             groups: dict[str, list[FlextTypes.Core.Dict]] = {}
             for item in data:
-                if not isinstance(item, dict):
-                    continue
+                # item is already typed as FlextTypes.Core.Dict (which is dict[str, object])
                 group_key = str(item.get(group_by, "unknown"))
                 groups.setdefault(group_key, []).append(item)
 
