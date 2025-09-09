@@ -12,8 +12,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_core import FlextLogger, FlextResult, FlextTypes
-from flext_core.domain_services import FlextDomainService
+from flext_core import FlextDomainService, FlextLogger, FlextResult, FlextTypes
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels

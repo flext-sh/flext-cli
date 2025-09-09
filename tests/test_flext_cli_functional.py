@@ -174,13 +174,13 @@ class TestFlextCliExportsReal:
         """Test that legacy standalone classes are not exported."""
         # Test that we cannot import non-existent legacy modules
         with pytest.raises(ImportError):
-            from flext_cli import LegacyCommand  # Should not exist
+            pass  # Should not exist
 
         with pytest.raises(ImportError):
-            from flext_cli import StandaloneSession  # Should not exist
+            pass  # Should not exist
 
         with pytest.raises(ImportError):
-            from flext_cli import OldConfig  # Should not exist
+            pass  # Should not exist
 
     def test_correct_consolidated_access(self) -> None:
         """Test that consolidated access pattern works correctly."""

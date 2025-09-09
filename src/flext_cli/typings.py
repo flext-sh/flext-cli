@@ -13,8 +13,7 @@ from pathlib import Path
 from typing import Literal, Protocol, TypedDict, TypeVar
 from uuid import UUID
 
-from flext_core import FlextResult
-from flext_core.typings import FlextTypes
+from flext_core import FlextResult, FlextTypes
 from pydantic import BaseModel, Field
 
 from flext_cli.constants import FlextCliConstants
@@ -319,6 +318,7 @@ class FlextCliTypes:
 CommandStatus = FlextCliConstants.CommandStatus
 CommandType = FlextCliConstants.CommandStatus  # Make it an enum for tests
 
+
 # Plugin status enum for tests
 class PluginStatusEnum(StrEnum):
     """Plugin status enumeration."""
@@ -327,6 +327,7 @@ class PluginStatusEnum(StrEnum):
     INACTIVE = "inactive"
     ERROR = "error"
     LOADING = "loading"
+
 
 PluginStatus = PluginStatusEnum
 

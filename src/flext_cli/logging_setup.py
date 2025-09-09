@@ -264,42 +264,7 @@ class FlextCliLoggingSetup:
         return FlextCliLoggingSetup._setup_complete
 
 
-# Convenience functions for direct usage
-def setup_cli_logging(
-    config: FlextCliConfig | None = None, log_file: Path | None = None
-) -> FlextResult[str]:
-    """Setup CLI logging with automatic configuration detection.
-
-    Convenience function that handles the complete logging setup process
-    with automatic source detection and flext-core integration.
-
-    Args:
-        config: Optional FlextCliConfig with settings
-        log_file: Optional log file path
-
-    Returns:
-        FlextResult[str]: Setup result with configuration details
-
-    """
-    return FlextCliLoggingSetup.setup_for_cli(config, log_file)
-
-
-def get_log_level_info(config: FlextCliConfig | None = None) -> FlextResult[str]:
-    """Get information about the effective log level and its source.
-
-    Args:
-        config: Optional FlextCliConfig instance
-
-    Returns:
-        FlextResult[str]: Log level and source information
-
-    """
-    return FlextCliLoggingSetup.get_effective_log_level(config)
-
-
 __all__ = [
     "FlextCliLoggingConfig",
     "FlextCliLoggingSetup",
-    "get_log_level_info",
-    "setup_cli_logging",
 ]

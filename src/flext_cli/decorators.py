@@ -18,13 +18,38 @@ P = ParamSpec("P")
 T = TypeVar("T")
 
 
-def handle_service_result[**P, T](func: Callable[P, T]) -> Callable[P, T | None]:
-    """Decorator for handling FlextResult values - extracts success data or returns None on failure."""
-    if asyncio.iscoroutinefunction(func):
+class FlextCliDecorators(FlextDecorators):
+    """CLI-specific decorators extending flext-core FlextDecorators.
+
+    All decorators are exposed as class methods to avoid module-level helpers.
+    """
+
+    @staticmethod
+    def handle_service_result(func: Callable[P, T]) -> Callable[P, T | None]:
+        """Decorator for handling FlextResult values - extracts success data or returns None on failure."""
+        if asyncio.iscoroutinefunction(func):
+
+            @functools.wraps(func)
+            async def _async_wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
+                result = await func(*args, **kwargs)
+
+                # Check if result is FlextResult
+                if isinstance(result, FlextResult):
+                    if result.is_success:
+                        return cast("T | None", result.data)
+                    # For failures, print error and return None
+                    console = Console()
+                    console.print(f"[red]Error: {result.error}[/red]")
+                    return None
+
+                # Pass through non-FlextResult values
+                return cast("T | None", result)
+
+            return cast("Callable[P, T | None]", _async_wrapper)
 
         @functools.wraps(func)
-        async def _async_wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
-            result = await func(*args, **kwargs)
+        def _wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
+            result = func(*args, **kwargs)
 
             # Check if result is FlextResult
             if isinstance(result, FlextResult):
@@ -38,32 +63,7 @@ def handle_service_result[**P, T](func: Callable[P, T]) -> Callable[P, T | None]
             # Pass through non-FlextResult values
             return cast("T | None", result)
 
-        return cast("Callable[P, T | None]", _async_wrapper)
-
-    @functools.wraps(func)
-    def _wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
-        result = func(*args, **kwargs)
-
-        # Check if result is FlextResult
-        if isinstance(result, FlextResult):
-            if result.is_success:
-                return cast("T | None", result.data)
-            # For failures, print error and return None
-            console = Console()
-            console.print(f"[red]Error: {result.error}[/red]")
-            return None
-
-        # Pass through non-FlextResult values
-        return cast("T | None", result)
-
-    return _wrapper
-
-
-class FlextCliDecorators(FlextDecorators):
-    """CLI-specific decorators extending flext-core FlextDecorators.
-
-    All decorators are exposed as class methods to avoid module-level helpers.
-    """
+        return _wrapper
 
     @staticmethod
     def async_command(func: Callable[P, T]) -> Callable[P, T]:
@@ -270,10 +270,12 @@ class FlextCliDecorators(FlextDecorators):
 
 
 # Backward compatibility - expose static methods as module functions
+handle_service_result = FlextCliDecorators.handle_service_result
 flext_cli_require_confirmation = FlextCliDecorators.require_confirmation
 
 
 __all__ = [
     "FlextCliDecorators",
     "flext_cli_require_confirmation",
+    "handle_service_result",
 ]

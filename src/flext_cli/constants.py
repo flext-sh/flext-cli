@@ -48,6 +48,12 @@ class FlextCliConstants:
         max_env_var_display_length: int = Field(default=60, ge=1, le=200)
         max_timeout_seconds: int = Field(default=3600, ge=1, le=86400)
 
+    class DataStructureConfig(BaseModel):
+        """Data structure configuration for tuple processing."""
+
+        tuple_pair_length: int = Field(default=2, ge=2, le=10)
+        min_service_id_length: int = Field(default=10, ge=1, le=50)
+
     class OutputConfig(BaseModel):
         """Output formatting configuration."""
 
