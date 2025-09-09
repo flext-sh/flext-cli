@@ -176,18 +176,40 @@ class FlextCliModels:
                     )
 
         def validate_business_rules(self) -> FlextResult[None]:
+            """Advanced business rule validation using Python 3.13 pattern matching."""
+            # Basic validation
             if self.command_line and not self.command_line.strip():
                 return FlextResult[None].fail("Command line cannot be empty")
-            if self.status not in FlextCliConstants.VALID_COMMAND_STATUSES:
-                return FlextResult[None].fail(f"Invalid status: {self.status}")
-            if (
-                self.status
-                in {FlextCliConstants.STATUS_COMPLETED, FlextCliConstants.STATUS_FAILED}
-                and self.exit_code is None
-            ):
-                return FlextResult[None].fail(
-                    "Exit code required for completed/failed commands"
-                )
+
+            # State-specific validation using pattern matching
+            match self.state:
+                case FlextCliTypes.Commands.PendingState():
+                    # Pending commands should not have exit codes or outputs
+                    if self.exit_code is not None:
+                        return FlextResult[None].fail(
+                            "Pending commands should not have exit codes"
+                        )
+                case FlextCliTypes.Commands.RunningState():
+                    # Running commands should not have exit codes or outputs yet
+                    if self.exit_code is not None:
+                        return FlextResult[None].fail(
+                            "Running commands should not have exit codes until completion"
+                        )
+                case FlextCliTypes.Commands.CompletedState(exit_code=exit_code):
+                    # Completed commands must have exit codes
+                    if exit_code is None:
+                        return FlextResult[None].fail(
+                            "Completed commands must have exit codes"
+                        )
+                case FlextCliTypes.Commands.FailedState(exit_code=exit_code):
+                    # Failed commands must have non-zero exit codes
+                    if exit_code is None or exit_code == 0:
+                        return FlextResult[None].fail(
+                            "Failed commands must have non-zero exit codes"
+                        )
+                case _:
+                    return FlextResult[None].fail(f"Unknown command state: {self.state}")
+                    
             return FlextResult[None].ok(None)
 
     class CliSession(FlextModels.Entity):
