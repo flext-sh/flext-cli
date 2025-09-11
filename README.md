@@ -258,7 +258,7 @@ make validate                 # lint + type-check + security + test (90% coverag
 make check                   # lint + type-check + test
 
 # Individual quality gates
-make lint                    # Ruff linting (ALL rules enabled)
+make lint
 make type-check              # MyPy strict mode (working toward zero errors)
 make test                    # pytest with 90% coverage requirement
 make security                # Bandit + pip-audit + secrets scan

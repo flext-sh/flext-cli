@@ -145,7 +145,7 @@ class TestFlextCliIntegration:
         """Test that all consolidated classes follow the same pattern."""
         # All main classes should be consolidated
         assert hasattr(FlextCliModels, "CliCommand")
-        assert hasattr(FlextCliTypes, "Commands")  # Types use Commands namespace
+        assert hasattr(FlextCliTypes, "Commands")
         assert hasattr(FlextCliConstants, "STATUS_RUNNING")  # Real constants
 
         # All should be single point of access
@@ -154,9 +154,7 @@ class TestFlextCliIntegration:
         assert command.command_line == "test"
 
 
-# =============================================================================
-# IMPORT AND EXPORT VALIDATION TESTS
-# =============================================================================
+
 
 
 class TestFlextCliExportsReal:
@@ -167,20 +165,20 @@ class TestFlextCliExportsReal:
         # Test consolidated classes import
         # Test they're actually the consolidated classes
         assert hasattr(FlextCliModels, "CliCommand")
-        assert hasattr(FlextCliTypes, "Commands")  # Types namespace uses Commands
+        assert hasattr(FlextCliTypes, "Commands")
         assert hasattr(FlextCliConstants, "STATUS_RUNNING")  # Real constant exists
 
     def test_no_legacy_exports(self) -> None:
         """Test that legacy standalone classes are not exported."""
         # Test that we cannot import non-existent legacy modules
         with pytest.raises(ImportError):
-            pass  # Should not exist
+            __import__("flext_cli.legacy_module")  # Should not exist
 
         with pytest.raises(ImportError):
-            pass  # Should not exist
+            __import__("flext_cli.old_cli")  # Should not exist
 
         with pytest.raises(ImportError):
-            pass  # Should not exist
+            __import__("flext_cli.deprecated")  # Should not exist
 
     def test_correct_consolidated_access(self) -> None:
         """Test that consolidated access pattern works correctly."""

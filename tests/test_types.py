@@ -113,14 +113,14 @@ class TestAllExports:
             "FlextTypes",  # Main compatibility alias
         }
 
-        # Type variables that should be present
+
         type_vars = {"E", "F", "P", "R", "T", "U", "V"}
 
         # Essential types should be present (subset validation)
         missing_essential = essential_types - all_actual
         assert not missing_essential, f"Missing essential types: {missing_essential}"
 
-        # Type variables should be present
+
         missing_type_vars = type_vars - all_actual
         assert not missing_type_vars, f"Missing type variables: {missing_type_vars}"
 
@@ -152,7 +152,7 @@ class TestTypeCompatibility:
         # Updated to only use types that exist after flext-core refactoring
         data: types.FlextCliDataType = {"key": "value"}
         format_str: types.FlextCliTypes.OutputFormat = types.FlextCliTypes.OutputFormat.JSON
-        args: types.CommandArgs = ["arg1", "arg2"]
+        args: list[str] = ["arg1", "arg2"]
 
         def handler(x: object) -> object:
             return x
@@ -171,7 +171,7 @@ class TestTypeCompatibility:
         assert hasattr(types, "PluginResult")
         assert hasattr(types, "SessionData")
 
-        # Type aliases should not be callable, but should exist
+
         assert types.FlextCliCommand is not None
         assert types.ContextParams is not None
         assert types.PluginResult is not None

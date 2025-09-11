@@ -60,7 +60,7 @@ class TestFlextCliConfig:
         config = FlextCliConfig(
             profile="test",
             debug=True,
-            output_format="json"
+            output_format="json",
         )
 
         assert config.profile == "test"
@@ -149,7 +149,7 @@ class TestFlextCliConfig:
             "debug": True,
             "output_format": "yaml",
             "api_url": "https://test.example.com",
-            "log_level": "debug"
+            "log_level": "debug",
         }
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as temp_file:
@@ -217,7 +217,7 @@ class TestConfigIntegration:
         valid_config = FlextCliConfig(
             profile="development",
             output_format="json",
-            debug=True
+            debug=True,
         )
         result = valid_config.validate_business_rules()
         assert isinstance(result, FlextResult)

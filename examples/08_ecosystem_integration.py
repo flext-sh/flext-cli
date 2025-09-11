@@ -44,9 +44,7 @@ from flext_cli import (
     require_auth,
 )
 
-# =============================================================================
-# ECOSYSTEM CONFIGURATION - Multi-service configuration
-# =============================================================================
+
 
 
 class EcosystemSettings(FlextConfig):
@@ -88,9 +86,7 @@ class ServiceHealth:
     error: str | None = None
 
 
-# =============================================================================
-# ECOSYSTEM SERVICE INTEGRATION
-# =============================================================================
+
 
 
 class EcosystemService(FlextCliService):
@@ -278,9 +274,7 @@ class EcosystemService(FlextCliService):
             return FlextResult[FlextTypes.Core.Dict].fail(f"Failed to get metrics: {e}")
 
 
-# =============================================================================
-# CLI COMMANDS - Ecosystem integration interface
-# =============================================================================
+
 
 
 @click.group()

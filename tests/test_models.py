@@ -39,7 +39,7 @@ class TestFlextCliModelsCliCommand:
             execution_time=custom_time,
             exit_code=1,
             output="test output",
-            error_output="test error"
+            error_output="test error",
         )
 
         assert command.command_line == "custom command"
@@ -54,20 +54,20 @@ class TestFlextCliModelsCliCommand:
         # Test successful command (exit_code 0)
         successful_command = FlextCliModels.CliCommand(
             command_line="success test",
-            exit_code=0
+            exit_code=0,
         )
         assert successful_command.exit_code == 0
 
         # Test failed command (exit_code 1)
         failed_command = FlextCliModels.CliCommand(
             command_line="fail test",
-            exit_code=1
+            exit_code=1,
         )
         assert failed_command.exit_code == 1
 
         # Test command without exit code
         basic_command = FlextCliModels.CliCommand(
-            command_line="pending test"
+            command_line="pending test",
         )
         # Exit code defaults to None
         assert basic_command.exit_code is None
@@ -77,7 +77,7 @@ class TestFlextCliModelsCliCommand:
         # Test basic command creation and status property
         command = FlextCliModels.CliCommand(
             command_line="test",
-            exit_code=0
+            exit_code=0,
         )
         # Status comes from state property
         assert command.status == FlextCliConstants.STATUS_PENDING
@@ -153,7 +153,7 @@ class TestFlextCliModelsCliConfig:
             profile="development",
             output_format="json",
             debug_mode=True,
-            timeout_seconds=60
+            timeout_seconds=60,
         )
 
         assert config.profile == "development"
@@ -177,7 +177,7 @@ class TestFlextCliTypesOutputFormat:
         """Test output format enum can be used in validation."""
         # Should work with CLI config
         config = FlextCliModels.CliConfig(
-            output_format=FlextCliTypes.OutputFormat.JSON
+            output_format=FlextCliTypes.OutputFormat.JSON,
         )
         assert config.output_format == "json"
 
@@ -218,7 +218,7 @@ class TestFlextCliModelsIntegration:
 
         # Test command with exit_code
         command_with_code = FlextCliModels.CliCommand(
-            command_line="test", exit_code=0
+            command_line="test", exit_code=0,
         )
         assert command_with_code.exit_code == 0
 
@@ -226,7 +226,7 @@ class TestFlextCliModelsIntegration:
         """Test config can be created with all valid output formats."""
         for format_value in FlextCliTypes.OutputFormat:
             config = FlextCliModels.CliConfig(
-                output_format=format_value.value
+                output_format=format_value.value,
             )
             assert config.output_format == format_value.value
 

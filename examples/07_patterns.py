@@ -45,9 +45,7 @@ from flext_cli import (
     require_auth,
 )
 
-# =============================================================================
-# DOMAIN LAYER - Rich domain models with business logic
-# =============================================================================
+
 
 
 @dataclass(frozen=True)
@@ -156,9 +154,7 @@ class Project(FlextModels.AggregateRoot):
         return FlextResult[Project].ok(project)
 
 
-# =============================================================================
-# DOMAIN SERVICES
-# =============================================================================
+
 
 
 class ProjectDomainService(FlextDomainService[FlextTypes.Core.Dict]):
@@ -183,9 +179,7 @@ class ProjectDomainService(FlextDomainService[FlextTypes.Core.Dict]):
         return FlextResult[bool].ok(can_transfer)
 
 
-# =============================================================================
-# REPOSITORY PATTERN
-# =============================================================================
+
 
 
 class ProjectRepository(Protocol):
@@ -230,9 +224,7 @@ class InMemoryProjectRepository:
         return FlextResult[list[Project]].ok(projects)
 
 
-# =============================================================================
-# APPLICATION LAYER - CQRS Commands and Queries
-# =============================================================================
+
 
 
 @dataclass(frozen=True)
@@ -420,9 +412,7 @@ class ProjectQueryHandler:
         return FlextResult[list[FlextTypes.Core.Dict]].ok(project_list_obj)
 
 
-# =============================================================================
-# INFRASTRUCTURE LAYER - External services and configuration
-# =============================================================================
+
 
 
 class ProjectManagementService(FlextCliService):
@@ -525,9 +515,7 @@ class ProjectManagementService(FlextCliService):
         return self._query_handler.execute_list_by_owner(query)
 
 
-# =============================================================================
-# CLI COMMANDS LAYER - User interface
-# =============================================================================
+
 
 
 @click.group()

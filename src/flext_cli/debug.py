@@ -73,7 +73,7 @@ class FlextCliDebug(FlextDomainService[str]):
         masked_count: int
         total_count: int
 
-    def __init__(self, **data: object) -> None:  # noqa: ARG002
+    def __init__(self, **_data: object) -> None:
         """Initialize debug service with flext-core dependencies and SOURCE OF TRUTH."""
         super().__init__()
         self._container = FlextContainer.get_global()
@@ -90,9 +90,13 @@ class FlextCliDebug(FlextDomainService[str]):
         try:
             # Direct metadata loading - NO deduction or assumptions
             return FlextResult[FlextCliConstants].ok(FlextCliConstants())
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[FlextCliConstants].fail(
-                f"Constants metadata load failed: {e}"
+                f"Constants metadata load failed: {e}",
             )
 
     def test_connectivity(self) -> FlextResult[dict[str, str]]:
@@ -113,19 +117,25 @@ class FlextCliDebug(FlextDomainService[str]):
                     {
                         "status": "connected",
                         "url": getattr(client, "base_url", "unknown"),
-                        "timestamp": str(
-                            datetime.now(UTC).isoformat()
-                        ),
+                        "timestamp": str(datetime.now(UTC).isoformat()),
                         "client_type": client.__class__.__name__,
-                    }
+                    },
                 )
 
-            except Exception as e:
+            except (
+                ImportError,
+                AttributeError,
+                ValueError,
+            ) as e:
                 return FlextResult[dict[str, str]].fail(f"Connection test failed: {e}")
 
         try:
             return asyncio.run(_test())
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[dict[str, str]].fail(f"Async execution failed: {e}")
 
     def get_system_metrics(self) -> FlextResult[FlextCliDebug.SystemMetrics]:
@@ -139,7 +149,7 @@ class FlextCliDebug(FlextDomainService[str]):
 
                 if not isinstance(status_result, dict):
                     return FlextResult[FlextCliDebug.SystemMetrics].fail(
-                        "Invalid metrics response from SOURCE OF TRUTH"
+                        "Invalid metrics response from SOURCE OF TRUTH",
                     )
 
                 # Extract metrics from SOURCE OF TRUTH response - NO assumptions
@@ -152,16 +162,24 @@ class FlextCliDebug(FlextDomainService[str]):
 
                 return FlextResult[FlextCliDebug.SystemMetrics].ok(metrics)
 
-            except Exception as e:
+            except (
+                ImportError,
+                AttributeError,
+                ValueError,
+            ) as e:
                 return FlextResult[FlextCliDebug.SystemMetrics].fail(
-                    f"Metrics fetch from SOURCE OF TRUTH failed: {e}"
+                    f"Metrics fetch from SOURCE OF TRUTH failed: {e}",
                 )
 
         try:
             return asyncio.run(_fetch())
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[FlextCliDebug.SystemMetrics].fail(
-                f"Async execution failed: {e}"
+                f"Async execution failed: {e}",
             )
 
     def validate_environment_setup(self) -> FlextResult[list[str]]:
@@ -182,9 +200,13 @@ class FlextCliDebug(FlextDomainService[str]):
 
             return FlextResult[list[str]].ok(validation_results)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[list[str]].fail(
-                f"Environment validation using SOURCE OF TRUTH failed: {e}"
+                f"Environment validation using SOURCE OF TRUTH failed: {e}",
             )
 
     def get_environment_variables(self) -> FlextResult[FlextCliDebug.EnvironmentInfo]:
@@ -219,9 +241,13 @@ class FlextCliDebug(FlextDomainService[str]):
 
             return FlextResult[FlextCliDebug.EnvironmentInfo].ok(env_info)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[FlextCliDebug.EnvironmentInfo].fail(
-                f"Environment variables fetch from SOURCE OF TRUTH failed: {e}"
+                f"Environment variables fetch from SOURCE OF TRUTH failed: {e}",
             )
 
     def get_system_paths(self) -> FlextResult[list[FlextCliDebug.PathInfo]]:
@@ -255,15 +281,21 @@ class FlextCliDebug(FlextDomainService[str]):
                 path_info: FlextCliDebug.PathInfo = {
                     "label": str(path_metadata.get("label", "unknown")),
                     "path": Path(str(path_metadata.get("path", "/"))),
-                    "exists": Path(str(path_metadata.get("path", "/"))).exists(),  # Direct filesystem check
+                    "exists": Path(
+                        str(path_metadata.get("path", "/")),
+                    ).exists(),  # Direct filesystem check
                 }
                 paths_data.append(path_info)
 
             return FlextResult[list[FlextCliDebug.PathInfo]].ok(paths_data)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[list[FlextCliDebug.PathInfo]].fail(
-                f"System paths fetch from SOURCE OF TRUTH failed: {e}"
+                f"System paths fetch from SOURCE OF TRUTH failed: {e}",
             )
 
     def execute_trace(self, args: list[str]) -> FlextResult[dict[str, object]]:
@@ -280,9 +312,13 @@ class FlextCliDebug(FlextDomainService[str]):
 
             return FlextResult[dict[str, object]].ok(trace_metadata)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[dict[str, object]].fail(
-                f"Trace execution using SOURCE OF TRUTH failed: {e}"
+                f"Trace execution using SOURCE OF TRUTH failed: {e}",
             )
 
     def execute_health_check(self) -> FlextResult[dict[str, object]]:
@@ -299,9 +335,13 @@ class FlextCliDebug(FlextDomainService[str]):
 
             return FlextResult[dict[str, object]].ok(health_metadata)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[dict[str, object]].fail(
-                f"Health check using SOURCE OF TRUTH failed: {e}"
+                f"Health check using SOURCE OF TRUTH failed: {e}",
             )
 
     class CommandHandler:
@@ -382,25 +422,25 @@ class FlextCliDebug(FlextDomainService[str]):
 
             # Use SOURCE OF TRUTH health structure
 
-    def execute(self, request: str = "") -> FlextResult[str]:  # noqa: ARG002
+    def execute(self, _request: str = "") -> FlextResult[str]:
         """Execute debug service - required by FlextDomainService abstract method."""
         try:
             # Default execution returns debug system info from SOURCE OF TRUTH
             metrics_result = self.get_system_metrics()
             if metrics_result.is_failure:
                 return FlextResult[str].fail(
-                    f"System metrics collection failed: {metrics_result.error}"
+                    f"System metrics collection failed: {metrics_result.error}",
                 )
             return FlextResult[str].ok(
-                f"FlextCliDebug service ready: {metrics_result.value}"
+                f"FlextCliDebug service ready: {metrics_result.value}",
             )
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[str].fail(f"Debug service execution failed: {e}")
 
-
-# =============================================================================
-# LEGACY ALIASES FOR TESTS (SIMPLE AS POSSIBLE)
-# =============================================================================
 
 # Criar instância única para aliases
 _debug_instance = FlextCliDebug()

@@ -104,7 +104,7 @@ class TestFormatting:
         result = api.format_data(data, "invalid")
 
         assert not result.is_success
-        assert "Invalid format" in result.error or "Unsupported format" in result.error
+        assert "Invalid format" in str(result.error or "") or "Unsupported format" in str(result.error or "")
 
 
 class TestTableCreation:
@@ -233,7 +233,7 @@ class TestDataAggregation:
         ]
 
         api = FlextCliApi()
-        result = api.aggregate_data(data, group_by="category", sum_fields=["value"])
+        result = api.aggregate_data(data, _group_by="category", _sum_fields=["value"])
 
         # Function should return a result
         assert isinstance(result, FlextResult)
@@ -243,7 +243,7 @@ class TestDataAggregation:
         data: list[FlextTypes.Core.Dict] = []
 
         api = FlextCliApi()
-        result = api.aggregate_data(data, group_by="field")
+        result = api.aggregate_data(data, _group_by="field")
 
         assert isinstance(result, FlextResult)
         if result.is_success:
@@ -260,7 +260,7 @@ class TestDataExport:
         data = {"key": "value", "number": 42}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", suffix=".json", delete=False
+            encoding="utf-8", mode="w", suffix=".json", delete=False,
         ) as f:
             api = FlextCliApi()
             result = api.export_data(data, Path(f.name))
@@ -279,7 +279,7 @@ class TestDataExport:
         data = {"key": "value", "list": [1, 2, 3]}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False,
         ) as f:
             api = FlextCliApi()
             result = api.export_data(data, Path(f.name))
@@ -312,10 +312,10 @@ class TestDataExport:
                 invalid_path.unlink()
         else:
             # API rejects invalid format with error
-            assert ("Invalid format" in result.error or
-                    "Unsupported export format" in result.error or
-                    "format" in result.error.lower() or
-                    "extension" in result.error.lower())
+            assert ("Invalid format" in str(result.error or "") or
+                    "Unsupported export format" in str(result.error or "") or
+                    "format" in str(result.error or "").lower() or
+                    "extension" in str(result.error or "").lower())
 
     def test_flext_cli_batch_export(self) -> None:
         """Test batch export."""
@@ -349,7 +349,7 @@ class TestDataExport:
                 assert len(summary) == 0
             else:
                 # Expected: API rejects empty datasets
-                assert "No datasets" in result.error or "empty" in result.error.lower()
+                assert "No datasets" in str(result.error or "") or "empty" in str(result.error or "").lower()
 
     def test_flext_cli_batch_export_invalid_format(self) -> None:
         """Test batch export with invalid format."""
@@ -368,7 +368,7 @@ class TestDataExport:
                 assert str(exported_files[0]).endswith(".invalid")
             else:
                 # Alternative: API rejects invalid format
-                assert "Invalid format" in result.error or "Unsupported export format" in result.error
+                assert "Invalid format" in str(result.error or "") or "Unsupported export format" in str(result.error or "")
 
 
 class TestUtilityFunctions:
@@ -495,7 +495,7 @@ class TestSpecialCases:
         data: list[FlextTypes.Core.Dict] = []  # Change to empty list to test edge case
 
         api = FlextCliApi()
-        result = api.aggregate_data(data, group_by="field")
+        result = api.aggregate_data(data, _group_by="field")
 
         # Should handle type errors gracefully
         assert isinstance(result, FlextResult)

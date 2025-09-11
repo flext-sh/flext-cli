@@ -10,7 +10,6 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import cast
 
 from flext_core import FlextResult, FlextTypes
 from rich.console import Console
@@ -86,7 +85,8 @@ class FlextCliContext:
         self._additional_data = kwargs
         self._configuration = kwargs.copy()
         self._timeout_seconds = kwargs.get(
-            "timeout_seconds", FlextCliConstants.MAX_COMMAND_TIMEOUT
+            "timeout_seconds",
+            FlextCliConstants.MAX_COMMAND_TIMEOUT,
         )
 
     # Properties for accessing composed state
@@ -255,7 +255,7 @@ class FlextCliContext:
 
         command_name: str | None = None
         command_args: FlextTypes.Core.Dict = field(
-            default_factory=lambda: cast("FlextTypes.Core.Dict", {})
+            default_factory=dict,
         )
         execution_id: str | None = None
         start_time: float | None = None
@@ -315,11 +315,7 @@ class FlextCliContext:
         start_time = kwargs.get("start_time")
 
         # Properly type command_args
-        command_args = (
-            cast("FlextTypes.Core.Dict", command_args_raw)
-            if isinstance(command_args_raw, dict)
-            else {}
-        )
+        command_args = command_args_raw if isinstance(command_args_raw, dict) else {}
 
         return FlextCliContext.ExecutionContext(
             command_name=command_name,
@@ -365,7 +361,10 @@ class FlextCliContext:
         )
 
         return cls(
-            config=config, debug=bool(debug), quiet=bool(quiet), verbose=bool(verbose)
+            config=config,
+            debug=bool(debug),
+            quiet=bool(quiet),
+            verbose=bool(verbose),
         )
 
 

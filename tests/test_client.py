@@ -20,7 +20,6 @@ import threading
 import unittest
 from collections.abc import Coroutine
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from typing import cast
 from urllib.parse import parse_qs, urlparse
 
 from flext_core import FlextResult, FlextTypes
@@ -46,7 +45,7 @@ class MockHTTPHandler(BaseHTTPRequestHandler):
                     "id": "user-123",
                     "username": "testuser",
                     "email": "test@example.com",
-                }
+                },
             )
         elif path == "/api/v1/pipelines":
             page = int(params.get("page", ["1"])[0])
@@ -88,7 +87,7 @@ class MockHTTPHandler(BaseHTTPRequestHandler):
                     "total": len(filtered_pipelines),
                     "page": page,
                     "page_size": page_size,
-                }
+                },
             )
         elif path.startswith("/api/v1/pipelines/"):
             pipeline_id = path.split("/")[-1]
@@ -105,7 +104,7 @@ class MockHTTPHandler(BaseHTTPRequestHandler):
                         "target": "target-json",
                         "schedule": "0 0 * * *",
                     },
-                }
+                },
             )
         else:
             self._send_error_response(404, "Not Found")
@@ -133,7 +132,7 @@ class MockHTTPHandler(BaseHTTPRequestHandler):
                         "access_token": "test-token-12345",
                         "token_type": "bearer",
                         "user": {"id": "user-123", "username": "testuser"},
-                    }
+                    },
                 )
             else:
                 self._send_error_response(401, "Invalid credentials")
@@ -159,7 +158,7 @@ class MockHTTPHandler(BaseHTTPRequestHandler):
                     "pipeline_id": pipeline_id,
                     "status": "running",
                     "started_at": "2025-01-01T00:00:00Z",
-                }
+                },
             )
         else:
             self._send_error_response(404, "Not Found")
@@ -219,7 +218,7 @@ class MockHTTPHandler(BaseHTTPRequestHandler):
         error_data = json.dumps({"error": message}).encode("utf-8")
         self.wfile.write(error_data)
 
-    def log_message(self, format_str: str, *args: object) -> None:
+    def log_message(self, _format: str, *_args: object) -> None:
         """Override to suppress request logging."""
 
 
@@ -251,7 +250,7 @@ class TestClientModels(unittest.TestCase):
     def test_pipeline_config_minimal(self) -> None:
         """Test creating PipelineConfig with minimal required fields."""
         config = FlextApiClientModels.PipelineConfig(
-            name="minimal-pipeline", tap="tap-source", target="target-dest"
+            name="minimal-pipeline", tap="tap-source", target="target-dest",
         )
 
         assert config.name == "minimal-pipeline"
@@ -264,7 +263,9 @@ class TestClientModels(unittest.TestCase):
 
     def test_pipeline_model_creation(self) -> None:
         """Test creating Pipeline model with real data."""
-        config = FlextApiClientModels.PipelineConfig(name="test", tap="tap", target="target")
+        config = FlextApiClientModels.PipelineConfig(
+            name="test", tap="tap", target="target",
+        )
         pipeline = FlextApiClientModels.Pipeline(
             id="pipeline-123",
             name="Test Pipeline",
@@ -283,7 +284,9 @@ class TestClientModels(unittest.TestCase):
 
     def test_pipeline_list_creation(self) -> None:
         """Test creating PipelineList with real data."""
-        config = FlextApiClientModels.PipelineConfig(name="test", tap="tap", target="target")
+        config = FlextApiClientModels.PipelineConfig(
+            name="test", tap="tap", target="target",
+        )
         pipeline = FlextApiClientModels.Pipeline(
             id="pipeline-1",
             name="Pipeline 1",
@@ -294,7 +297,7 @@ class TestClientModels(unittest.TestCase):
         )
 
         pipeline_list = FlextApiClientModels.PipelineList(
-            pipelines=[pipeline], total=1, page=1, page_size=20
+            pipelines=[pipeline], total=1, page=1, page_size=20,
         )
 
         assert len(pipeline_list.pipelines) == 1
@@ -394,7 +397,8 @@ class TestFlextApiClientInitialization(AsyncTestCase):
     def test_client_headers_without_token(self) -> None:
         """Test client headers when no token is provided."""
         client = FlextApiClient(base_url=self.base_url)
-        headers = client._get_headers()
+        get_headers = client.get_headers
+        headers = get_headers()
 
         assert headers["Content-Type"] == "application/json"
         assert headers["Accept"] == "application/json"
@@ -403,7 +407,8 @@ class TestFlextApiClientInitialization(AsyncTestCase):
     def test_client_headers_with_token(self) -> None:
         """Test client headers when token is provided."""
         client = FlextApiClient(base_url=self.base_url, token="test-auth-token")
-        headers = client._get_headers()
+        get_headers = client.get_headers
+        headers = get_headers()
 
         assert headers["Content-Type"] == "application/json"
         assert headers["Accept"] == "application/json"
@@ -413,10 +418,11 @@ class TestFlextApiClientInitialization(AsyncTestCase):
         """Test client URL building functionality."""
         client = FlextApiClient(base_url="http://api.example.com")
 
-        url = client._url("/api/v1/test")
+        url_builder = client.build_url
+        url = url_builder("/api/v1/test")
         assert url == "http://api.example.com/api/v1/test"
 
-        url = client._url("health")
+        url = url_builder("health")
         assert url == "http://api.example.com/health"
 
 
@@ -432,7 +438,7 @@ class TestFlextApiClientAuthMethods(AsyncTestCase):
             await client.close()
             return result
 
-        result = cast("FlextResult[FlextTypes.Core.Dict]", self.run_async(test_login()))
+        result = self.run_async(test_login())
 
         # Extract value from FlextResult
         assert result.is_success, f"Login should succeed: {result.error}"
@@ -482,7 +488,7 @@ class TestFlextApiClientAuthMethods(AsyncTestCase):
             await client.close()
             return user
 
-        result = cast("FlextTypes.Core.Dict", self.run_async(test_get_user()))
+        result = self.run_async(test_get_user())
 
         assert result["id"] == "user-123"
         assert result["username"] == "testuser"
@@ -496,7 +502,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
         """Test listing pipelines with default parameters."""
         client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-        async def test_list() -> FlextResult[FlextTypes.Core.List]:
+        async def test_list() -> object:
             result = await client.list_pipelines()
             await client.close()
             return result
@@ -513,7 +519,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
         """Test listing pipelines with pagination parameters."""
         client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-        async def test_list() -> FlextResult[FlextTypes.Core.List]:
+        async def test_list() -> object:
             result = await client.list_pipelines(page=2, page_size=2)
             await client.close()
             return result
@@ -528,7 +534,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
         """Test listing pipelines with status filter."""
         client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-        async def test_list() -> FlextResult[FlextTypes.Core.List]:
+        async def test_list() -> object:
             result = await client.list_pipelines(status="active")
             await client.close()
             return result
@@ -544,7 +550,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
         """Test getting a specific pipeline."""
         client = FlextApiClient(base_url=self.base_url, token="test-token")
 
-        async def test_get() -> FlextResult[object]:
+        async def test_get() -> object:
             result = await client.get_pipeline("test-pipeline-123")
             await client.close()
             return result
@@ -560,6 +566,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
         """Test creating a new pipeline."""
         client = FlextApiClient(base_url=self.base_url, token="test-token")
 
+
         config = FlextApiClientModels.PipelineConfig(
             name="new-test-pipeline",
             tap="tap-csv",
@@ -567,7 +574,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
             schedule="0 0 * * *",
         )
 
-        async def test_create() -> FlextResult[object]:
+        async def test_create() -> object:
             result = await client.create_pipeline(config)
             await client.close()
             return result
@@ -583,11 +590,14 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
         """Test updating an existing pipeline."""
         client = FlextApiClient(base_url=self.base_url, token="test-token")
 
+
         config = FlextApiClientModels.PipelineConfig(
-            name="updated-pipeline", tap="tap-updated", target="target-updated"
+            name="updated-pipeline",
+            tap="tap-updated",
+            target="target-updated",
         )
 
-        async def test_update() -> FlextResult[object]:
+        async def test_update() -> object:
             result = await client.update_pipeline("pipeline-123", config)
             await client.close()
             return result
@@ -620,7 +630,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
             await client.close()
             return result
 
-        run_result = cast("FlextTypes.Core.Dict", self.run_async(test_run()))
+        run_result = self.run_async(test_run())
 
         assert run_result["pipeline_id"] == "pipeline-123"
         assert run_result["status"] == "running"

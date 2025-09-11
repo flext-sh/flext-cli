@@ -38,7 +38,7 @@ class TestAuthGroup:
         runner = CliRunner()
         result = runner.invoke(auth, ["--help"])
         assert result.exit_code == 0
-        assert "Authentication management commands" in result.output
+        assert "Authentication commands." in result.output
 
     def test_auth_group_commands(self) -> None:
         """Test that auth group has expected commands."""
@@ -114,7 +114,7 @@ class TestLogoutCommand:
             console = Console()
 
             result = runner.invoke(
-                auth, ["logout"], obj={"console": console}, catch_exceptions=False
+                auth, ["logout"], obj={"console": console}, catch_exceptions=False,
             )
 
             # Real functionality - logout should work even if API call fails
@@ -143,8 +143,11 @@ class TestStatusCommand:
 
             # Test status shows not authenticated
             auth_instance = FlextCliAuth(config=config)
-            status_info = auth_instance.get_status()
+            status_result = auth_instance.get_status()
 
+            # FlextResult has data as a dict, not direct dict access
+            assert status_result.is_success
+            status_info = status_result.data
             assert status_info["authenticated"] is False
             assert status_info["token_exists"] is False
 
@@ -166,8 +169,11 @@ class TestStatusCommand:
             assert save_result.is_success
 
             # Test status shows authenticated
-            status_info = auth_instance.get_status()
+            status_result = auth_instance.get_status()
 
+            # FlextResult has data as a dict, not direct dict access
+            assert status_result.is_success
+            status_info = status_result.data
             assert status_info["authenticated"] is True
             assert status_info["token_exists"] is True
 
@@ -177,12 +183,12 @@ class TestStatusCommand:
         console = Console()
 
         result = runner.invoke(
-            auth, ["status"], obj={"console": console}, catch_exceptions=False
+            auth, ["status"], obj={"console": console}, catch_exceptions=False,
         )
 
         # Status should always work and show authentication state
         assert result.exit_code == 0
-        assert "Authentication Status:" in result.output
+        assert "Authentication status:" in result.output
 
 
 class TestRealAuthIntegration:
@@ -235,13 +241,17 @@ class TestRealAuthIntegration:
 
             auth_instance = FlextCliAuth(config=config)
 
-            # No token - no headers
-            headers = auth_instance.get_auth_headers()
+            # No token - no headers - SIMPLE ALIAS for test compatibility
+            headers_result = auth_instance.get_auth_headers()
+            assert headers_result.is_success
+            headers = headers_result.value
             assert headers == {}
 
             # Save token - get headers
             auth_instance.save_auth_token("bearer_test_token")
-            headers = auth_instance.get_auth_headers()
+            headers_result = auth_instance.get_auth_headers()
+            assert headers_result.is_success
+            headers = headers_result.value
 
             assert "Authorization" in headers
             assert headers["Authorization"] == "Bearer bearer_test_token"

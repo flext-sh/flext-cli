@@ -71,7 +71,7 @@ class TestFlextCliServices:
             "profile": "development",
             "output_format": "json",
             "debug_mode": True,
-            "timeout_seconds": 30
+            "timeout_seconds": 30,
         }
         result = FlextCliServices.validate_config(config_data)
         assert isinstance(result, FlextResult)

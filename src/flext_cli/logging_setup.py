@@ -32,7 +32,8 @@ class FlextCliLoggingConfig(BaseModel):
     """
 
     log_level: str = Field(
-        default="INFO", description="Logging level from any supported source"
+        default="INFO",
+        description="Logging level from any supported source",
     )
     log_format: str = Field(
         default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -40,7 +41,8 @@ class FlextCliLoggingConfig(BaseModel):
     )
     log_file: Path | None = Field(default=None, description="Optional log file path")
     console_logging: bool = Field(
-        default=True, description="Enable console logging output"
+        default=True,
+        description="Enable console logging output",
     )
 
     # Configuration source tracking for debugging
@@ -96,7 +98,7 @@ class FlextCliLoggingSetup:
                 log_config_result = self._detect_log_configuration()
                 if log_config_result.is_success:
                     return FlextResult[FlextCliLoggingConfig].ok(
-                        log_config_result.value
+                        log_config_result.value,
                     )
                 return log_config_result
             # Detect log level and its source
@@ -136,7 +138,7 @@ class FlextCliLoggingSetup:
             FlextCliLoggingSetup._setup_complete = True
             return FlextResult[FlextCliLoggingConfig].ok(log_config)
 
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[FlextCliLoggingConfig].fail(f"Logging setup failed: {e}")
 
     def _detect_log_configuration(self) -> FlextResult[FlextCliLoggingConfig]:
@@ -180,14 +182,16 @@ class FlextCliLoggingSetup:
             log_config.log_level_source = "default"
             return FlextResult[FlextCliLoggingConfig].ok(log_config)
 
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[FlextCliLoggingConfig].fail(
-                f"Log configuration detection failed: {e}"
+                f"Log configuration detection failed: {e}",
             )
 
     @classmethod
     def setup_for_cli(
-        cls, config: FlextCliConfig | None = None, log_file: Path | None = None
+        cls,
+        config: FlextCliConfig | None = None,
+        log_file: Path | None = None,
     ) -> FlextResult[str]:
         """Setup logging specifically for CLI usage.
 
@@ -222,12 +226,13 @@ class FlextCliLoggingSetup:
 
             return FlextResult[str].ok(message)
 
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[str].fail(f"CLI logging setup failed: {e}")
 
     @classmethod
     def get_effective_log_level(
-        cls, config: FlextCliConfig | None = None
+        cls,
+        config: FlextCliConfig | None = None,
     ) -> FlextResult[str]:
         """Get the effective log level that would be used.
 
@@ -247,15 +252,15 @@ class FlextCliLoggingSetup:
 
             if detection_result.is_failure:
                 return FlextResult[str].fail(
-                    detection_result.error or "Log level detection failed"
+                    detection_result.error or "Log level detection failed",
                 )
 
             log_config = detection_result.value
             return FlextResult[str].ok(
-                f"{log_config.log_level} (from {log_config.log_level_source})"
+                f"{log_config.log_level} (from {log_config.log_level_source})",
             )
 
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[str].fail(f"Log level detection failed: {e}")
 
     @property

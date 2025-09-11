@@ -169,7 +169,7 @@ class TestFlextCliArgumentError:
     def test_argument_error_with_context(self) -> None:
         """Test argument error with argument details."""
         error = FlextCliArgumentError(
-            "Invalid value", argument_name="--output", argument_value="invalid_format"
+            "Invalid value", argument_name="--output", argument_value="invalid_format",
         )
         assert "Invalid value" in str(error)
 
@@ -196,7 +196,7 @@ class TestFlextCliFormatError:
     def test_format_error_with_context(self) -> None:
         """Test format error with format details."""
         error = FlextCliFormatError(
-            "Unsupported format", format_type="xml", data_type="dict"
+            "Unsupported format", format_type="xml", data_type="dict",
         )
         assert "Unsupported format" in str(error)
 

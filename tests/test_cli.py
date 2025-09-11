@@ -254,7 +254,7 @@ class TestCliConfiguration:
 
         # Test configuration with different values
         result = self.runner.invoke(
-            cli, ["--profile", "test", "--debug"]
+            cli, ["--profile", "test", "--debug"],
         )
         assert result.exit_code == 0
         assert "Profile: test" in result.output

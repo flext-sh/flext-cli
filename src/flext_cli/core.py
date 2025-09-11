@@ -48,7 +48,35 @@ class FlextCliService(FlextDomainService[str]):
         super().__init__()
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
+        self._initialize_services()
 
+    # Public accessor methods for test compatibility
+    def get_config(self) -> object:
+        """Get current configuration."""
+        return self._config
+
+    def get_handlers(self) -> dict[str, object]:
+        """Get registered handlers."""
+        return self._registered_handlers
+
+    def get_plugins(self) -> dict[str, object]:
+        """Get loaded plugins."""
+        return self._plugins
+
+    def get_sessions(self) -> dict[str, object]:
+        """Get active sessions."""
+        return self._sessions
+
+    def get_commands(self) -> dict[str, object]:
+        """Get registered commands."""
+        return self._commands
+
+    def get_formatters(self) -> object:
+        """Get formatters instance."""
+        return self._formatters
+
+    def _initialize_services(self) -> None:
+        """Initialize services using flext-core directly."""
         # Use flext-core services directly - NO duplication
         self._service_registry = FlextServices.ServiceRegistry()
         self._service_orchestrator = FlextServices.ServiceOrchestrator()
@@ -77,21 +105,24 @@ class FlextCliService(FlextDomainService[str]):
     def get_service_health(self) -> FlextResult[dict[str, object]]:
         """Get service health using flext-core patterns directly."""
         try:
-            # Simple health info using flext-core utilities
             health_info: dict[str, object] = {
                 "service": "FlextCliService",
                 "status": "healthy",
                 "domain": "cli",
                 "check_id": "cli_health_check",
-                "timestamp": str(id(self)),  # Simple unique identifier
+                "timestamp": str(id(self)),
                 "configured": self._config is not None,
-                "handlers": 0,  # Simple alias for test compatibility
-                "plugins": 0,  # Simple alias for test compatibility
+                "handlers": 0,
+                "plugins": 0,
             }
 
             return FlextResult[dict[str, object]].ok(health_info)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[dict[str, object]].fail(f"Health check failed: {e}")
 
     def format_data(self, data: object, format_type: str) -> FlextResult[str]:
@@ -107,7 +138,6 @@ class FlextCliService(FlextDomainService[str]):
                 formatted = FlextUtilities.safe_json_stringify(data)
                 return FlextResult[str].ok(formatted)
             if format_type == "csv":
-                # Simple CSV formatting for test compatibility
                 if isinstance(data, list) and data and isinstance(data[0], dict):
                     output = io.StringIO()
                     writer = csv.DictWriter(output, fieldnames=data[0].keys())
@@ -116,17 +146,19 @@ class FlextCliService(FlextDomainService[str]):
                     return FlextResult[str].ok(output.getvalue())
                 return FlextResult[str].ok(str(data))
             if format_type == "yaml":
-                # Simple YAML formatting
                 formatted = yaml.dump(data, default_flow_style=False)
                 return FlextResult[str].ok(formatted)
             if format_type in {"table", "plain"}:
-                # Simple string formatting for table/plain
                 return FlextResult[str].ok(str(data))
 
             # This should not be reached due to validation above
             return FlextResult[str].fail(f"Unsupported format: {format_type}")
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[str].fail(f"Data formatting failed: {e}")
 
     def validate_request(self, request_data: object) -> FlextResult[bool]:
@@ -139,7 +171,11 @@ class FlextCliService(FlextDomainService[str]):
             # Basic validation using flext-core patterns
             return FlextResult[bool].ok(data=True)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[bool].fail(f"Request validation failed: {e}")
 
     def execute(self) -> FlextResult[str]:
@@ -153,7 +189,11 @@ class FlextCliService(FlextDomainService[str]):
             # Default execution response
             return FlextResult[str].ok("CLI service executed successfully")
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[str].fail(f"CLI execution failed: {e}")
 
     # =========================================================================
@@ -177,7 +217,6 @@ class FlextCliService(FlextDomainService[str]):
 
     def configure(self, config: object) -> FlextResult[None]:
         """Configure service - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Salva a config como dict para compatibilidade de testes
         try:
             # Validate config type - simplified logic
             if isinstance(config, str):
@@ -185,7 +224,7 @@ class FlextCliService(FlextDomainService[str]):
 
             if hasattr(config, "model_dump"):
                 # Pydantic object - convert to dict
-                config_dict = config.model_dump()
+                config_dict: dict[str, object] = getattr(config, "model_dump", dict)()
                 self._config = config_dict
                 # Map output_format to format for test compatibility
                 if "output_format" in config_dict:
@@ -212,7 +251,7 @@ class FlextCliService(FlextDomainService[str]):
                 unknown_keys = set(config.keys()) - known_keys
                 if unknown_keys:
                     return FlextResult[None].fail(
-                        f"Unknown config keys: {', '.join(sorted(unknown_keys))}"
+                        f"Unknown config keys: {', '.join(sorted(unknown_keys))}",
                     )
 
                 # Handle format_type mapping
@@ -225,21 +264,27 @@ class FlextCliService(FlextDomainService[str]):
                     self._config["output_format"] = self._config["format_type"]
             # Other types - try to convert or fail
             elif hasattr(config, "to_dict"):
-                self._config = config.to_dict()
+                self._config = getattr(config, "to_dict", dict)()
             else:
                 return FlextResult[None].fail(
-                    f"Cannot configure with type: {type(config).__name__}"
+                    f"Cannot configure with type: {type(config).__name__}",
                 )
 
             return FlextResult[None].ok(None)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[None].fail(f"Configuration failed: {e}")
 
     def flext_cli_export(
-        self, data: object, file_path: str, format_type: object
+        self,
+        data: object,
+        file_path: str,
+        format_type: object,
     ) -> FlextResult[None]:
         """Export data to file - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Simula export de arquivo
         try:
             path = Path(file_path)
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -247,32 +292,35 @@ class FlextCliService(FlextDomainService[str]):
             # Convert format enum to string if needed
             format_str = str(format_type).lower()
             if "json" in format_str:
-                with path.open("w") as f:
+                with path.open("w", encoding="utf-8") as f:
                     json.dump(data, f, indent=2)
             elif "yaml" in format_str:
-                with path.open("w") as f:
+                with path.open("w", encoding="utf-8") as f:
                     yaml.dump(data, f)
             elif "csv" in format_str:
                 # Handle CSV formatting properly
                 if isinstance(data, list) and data and isinstance(data[0], dict):
-                    with path.open("w", newline="") as f:
+                    with path.open("w", encoding="utf-8", newline="") as f:
                         writer = csv.DictWriter(f, fieldnames=data[0].keys())
                         writer.writeheader()
                         writer.writerows(data)
                 else:
-                    with path.open("w") as f:
+                    with path.open("w", encoding="utf-8") as f:
                         f.write(str(data))
             else:
-                with path.open("w") as f:
+                with path.open("w", encoding="utf-8") as f:
                     f.write(str(data))
 
             return FlextResult[None].ok(None)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[None].fail(f"Export failed: {e}")
 
     def flext_cli_health(self) -> FlextResult[dict[str, object]]:
         """Health check - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Retorna health usando método existente + campos extras para testes
         try:
             base_health = self.get_service_health()
             if base_health.is_failure:
@@ -291,7 +339,7 @@ class FlextCliService(FlextDomainService[str]):
                 "entities": True,
                 "value_objects": True,
                 "utilities": True,
-                "chain_operations": True
+                "chain_operations": True,
             }
             health_info["handlers_count"] = len(self._registered_handlers)
             health_info["plugins_count"] = len(self._plugins)
@@ -304,17 +352,20 @@ class FlextCliService(FlextDomainService[str]):
             health_info["plugins"] = len(self._plugins)
 
             return FlextResult[dict[str, object]].ok(health_info)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[dict[str, object]].fail(f"Health check failed: {e}")
 
     def flext_cli_create_command(
         self,
         name: str,
         description: str = "",
-        **kwargs: object,  # noqa: ARG002
+        **_kwargs: object,
     ) -> FlextResult[str]:
         """Create command - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Simula criação de command
         try:
             # Create a simple command object for test compatibility
             command_obj = FlextCliModels.CliCommand(
@@ -328,28 +379,36 @@ class FlextCliService(FlextDomainService[str]):
             command_id = str(hash(name) % 10000)
             message = f"Command '{name}' created with ID {command_id}"
             return FlextResult[str].ok(message)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[str].fail(f"Command creation failed: {e}")
 
     def flext_cli_get_commands(self) -> FlextResult[dict[str, object]]:
         """Get commands - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Retorna comandos criados
         try:
             # Return copy of stored commands as dict
             return FlextResult[dict[str, object]].ok(self._commands.copy())
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[dict[str, object]].fail(f"Failed to get commands: {e}")
 
     def flext_cli_register_handler(
-        self, handler_name: str, handler_func: object
+        self,
+        handler_name: str,
+        handler_func: object,
     ) -> FlextResult[str]:
         """Register handler - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Simula registro de handler
         try:
             # Check for duplicates
             if handler_name in self._registered_handlers:
                 return FlextResult[str].fail(
-                    f"Handler '{handler_name}' already registered"
+                    f"Handler '{handler_name}' already registered",
                 )
 
             # Store handler function for execution
@@ -357,16 +416,22 @@ class FlextCliService(FlextDomainService[str]):
             # Also register with flext-core infrastructure
             self._handler_registry.register(handler_name, handler_func)
             return FlextResult[str].ok(
-                f"Handler '{handler_name}' registered successfully"
+                f"Handler '{handler_name}' registered successfully",
             )
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[str].fail(f"Handler registration failed: {e}")
 
     def flext_cli_execute_handler(
-        self, handler_name: str, *args: object, **kwargs: object
+        self,
+        handler_name: str,
+        *args: object,
+        **kwargs: object,
     ) -> FlextResult[object]:
         """Execute handler - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Executa handler registrado realmente
         try:
             # Get registered handler
             if handler_name not in self._registered_handlers:
@@ -379,14 +444,19 @@ class FlextCliService(FlextDomainService[str]):
                 result = handler_func(*args, **kwargs)
                 return FlextResult[object].ok(result)
             return FlextResult[object].fail(f"Handler '{handler_name}' is not callable")
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[object].fail(f"Handler execution failed: {e}")
 
     def flext_cli_render_with_context(
-        self, data: dict[str, object], context: dict[str, object] | str = "json"
+        self,
+        data: dict[str, object],
+        context: dict[str, object] | str = "json",
     ) -> FlextResult[str]:
         """Render with context - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Renderiza dados usando format_data existente
         try:
             # Extract format from context if it's a dict
             if isinstance(context, dict):
@@ -400,19 +470,23 @@ class FlextCliService(FlextDomainService[str]):
                 return FlextResult[str].fail(f"Rendering failed: {format_result.error}")
 
             return FlextResult[str].ok(format_result.unwrap())
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[str].fail(f"Render with context failed: {e}")
 
     def flext_cli_create_session(self, user_id: str | None = None) -> FlextResult[str]:
         """Create session - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Simula criação de sessão retornando mensagem
         try:
             session_id = str(uuid4())
             actual_user_id = user_id or f"user_{session_id[:8]}"
 
             # Create real CliSession object for test compatibility
             session_obj = FlextCliModels.CliSession(
-                session_id=session_id, user_id=actual_user_id
+                session_id=session_id,
+                user_id=actual_user_id,
             )
 
             # Store session object in _sessions for get_sessions
@@ -421,42 +495,51 @@ class FlextCliService(FlextDomainService[str]):
             # Return message for test compatibility
             message = f"Session created for user: {actual_user_id}"
             return FlextResult[str].ok(message)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[str].fail(f"Session creation failed: {e}")
 
     def flext_cli_format(
-        self, data: object, format_type: str = "json"
+        self,
+        data: object,
+        format_type: str = "json",
     ) -> FlextResult[str]:
         """Format data - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Usa método format_data existente
         return self.format_data(data, format_type)
 
     def flext_cli_register_plugin(
-        self, plugin_name: str, plugin_obj: object
+        self,
+        plugin_name: str,
+        plugin_obj: object,
     ) -> FlextResult[str]:
         """Register plugin - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Simula registro de plugin E armazena para get_plugins
         try:
             # Check for duplicates
             if plugin_name in self._plugins:
                 return FlextResult[str].fail(
-                    f"Plugin '{plugin_name}' already registered"
+                    f"Plugin '{plugin_name}' already registered",
                 )
 
             # Store plugin for retrieval - store as dict if it's a Pydantic model
             if hasattr(plugin_obj, "model_dump"):
-                self._plugins[plugin_name] = plugin_obj.model_dump()
+                self._plugins[plugin_name] = getattr(plugin_obj, "model_dump", dict)()
             else:
                 self._plugins[plugin_name] = plugin_obj
 
             message = f"Plugin '{plugin_name}' registered successfully"
             return FlextResult[str].ok(message)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[str].fail(f"Plugin registration failed: {e}")
 
     def flext_cli_get_formatters(self) -> FlextResult[object]:
         """Get formatters - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Retorna objeto com list_formats método
         try:
 
             class SimpleFormatters:
@@ -465,50 +548,65 @@ class FlextCliService(FlextDomainService[str]):
 
             self._formatters = SimpleFormatters()  # Store for direct access
             return FlextResult[object].ok(self._formatters)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[object].fail(f"Failed to get formatters: {e}")
 
     @property
     def _handlers(self) -> dict[str, object]:
         """Handlers property - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Retorna handlers registrados
         return self._registered_handlers
 
     def flext_cli_get_plugins(self) -> FlextResult[dict[str, object]]:
         """Get plugins - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Retorna CÓPIA dos plugins registrados
         try:
             return FlextResult[dict[str, object]].ok(self._plugins.copy())
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[dict[str, object]].fail(f"Failed to get plugins: {e}")
 
     def flext_cli_get_sessions(self) -> FlextResult[dict[str, object]]:
         """Get sessions - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Retorna CÓPIA do dict de sessões para evitar modificação externa
         try:
             return FlextResult[dict[str, object]].ok(self._sessions.copy())
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[dict[str, object]].fail(f"Failed to get sessions: {e}")
 
     def flext_cli_validate_format(self, format_type: str) -> FlextResult[str]:
         """Validate format - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Valida formatos básicos e retorna o formato se válido
         try:
             valid_formats = ["json", "yaml", "csv", "table", "plain"]
             if format_type.lower() in valid_formats:
                 return FlextResult[str].ok(format_type)
             return FlextResult[str].fail(
-                f"Unsupported format: {format_type}. Supported: {', '.join(sorted(valid_formats))}"
+                f"Unsupported format: {format_type}. Supported: {', '.join(sorted(valid_formats))}",
             )
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[str].fail(f"Format validation failed: {e}")
 
     def flext_cli_get_handlers(self) -> FlextResult[dict[str, object]]:
         """Get handlers - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Retorna handlers registrados
         try:
             return FlextResult[dict[str, object]].ok(self._registered_handlers)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[dict[str, object]].fail(f"Failed to get handlers: {e}")
 
 

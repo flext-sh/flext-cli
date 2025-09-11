@@ -19,7 +19,7 @@ from click.testing import CliRunner
 from flext_core import FlextResult
 
 from flext_cli import FlextCliAuth
-from flext_cli.auth import auth, status
+from flext_cli.cli import auth, status
 
 
 class TestAuthCommandsReal:
@@ -172,7 +172,7 @@ class TestAuthCommandsReal:
         assert not empty_result.is_success, (
             "Empty token should be rejected (validation working correctly)"
         )
-        assert "cannot be empty" in empty_result.error.lower(), (
+        assert "cannot be empty" in str(empty_result.error or "").lower(), (
             "Should have meaningful error message"
         )
 
@@ -314,8 +314,8 @@ class TestAuthFunctionalityReal:
         # Test loading when no token exists
         no_token_result = self.auth.get_auth_token()
         assert not no_token_result.is_success, "Should fail when no token exists"
-        assert ("not found" in no_token_result.error.lower() or
-                "does not exist" in no_token_result.error.lower()), (
+        assert ("not found" in str(no_token_result.error or "").lower() or
+                "does not exist" in str(no_token_result.error or "").lower()), (
             "Should have meaningful error message"
         )
 

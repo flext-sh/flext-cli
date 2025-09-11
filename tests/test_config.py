@@ -185,7 +185,7 @@ class TestConfigIntegration(unittest.TestCase):
         """Test complete configuration creation, setup, and usage workflow."""
         # Create configuration with directories
         config_result = FlextCliConfig.create_with_directories(
-            {"debug": True, "output_format": "json", "api_timeout": 60}
+            {"debug": True, "output_format": "json", "api_timeout": 60},
         )
 
         assert isinstance(config_result, FlextResult)

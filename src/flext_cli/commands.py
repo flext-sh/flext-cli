@@ -69,7 +69,7 @@ class FlextCliConfig(FlextDomainService[str]):
         supports_colors: bool
         requires_import: str | None
 
-    def __init__(self, **data: object) -> None:  # noqa: ARG002
+    def __init__(self, **_data: object) -> None:
         """Initialize configuration service with flext-core dependencies and SOURCE OF TRUTH."""
         super().__init__()
         self._container = FlextContainer.get_global()
@@ -94,9 +94,13 @@ class FlextCliConfig(FlextDomainService[str]):
             # Direct metadata loading - NO deduction or assumptions
             constants_instance = FlextCliConstants()
             return FlextResult[FlextCliConstants].ok(constants_instance)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[FlextCliConstants].fail(
-                f"Constants metadata load failed: {e}"
+                f"Constants metadata load failed: {e}",
             )
 
     def _load_format_metadata(
@@ -129,21 +133,26 @@ class FlextCliConfig(FlextDomainService[str]):
             }
 
             return FlextResult[dict[str, FlextCliConfig.FormatOptions]].ok(
-                format_metadata
+                format_metadata,
             )
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[dict[str, FlextCliConfig.FormatOptions]].fail(
-                f"Format metadata load failed: {e}"
+                f"Format metadata load failed: {e}",
             )
 
     def get_config_data(
-        self, config_object: object
+        self,
+        config_object: object,
     ) -> FlextResult[FlextCliConfig.ConfigData]:
         """Extract configuration data from config object using SOURCE OF TRUTH."""
         try:
             if not config_object:
                 return FlextResult[FlextCliConfig.ConfigData].fail(
-                    "Config object is None"
+                    "Config object is None",
                 )
 
             # Extract using SOURCE OF TRUTH attribute names
@@ -152,16 +161,22 @@ class FlextCliConfig(FlextDomainService[str]):
                 "debug": getattr(config_object, "debug", False),
                 "output_format": getattr(config_object, "output_format", "table"),
                 "timeout": getattr(
-                    config_object, "timeout", self._constants.DEFAULT_COMMAND_TIMEOUT
+                    config_object,
+                    "timeout",
+                    self._constants.DEFAULT_COMMAND_TIMEOUT,
                 ),
                 "api_url": getattr(config_object, "api_url", None),
             }
 
             return FlextResult[FlextCliConfig.ConfigData].ok(config_data)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[FlextCliConfig.ConfigData].fail(
-                f"Config data extraction from SOURCE OF TRUTH failed: {e}"
+                f"Config data extraction from SOURCE OF TRUTH failed: {e}",
             )
 
     def find_config_value(self, config_object: object, key: str) -> FlextResult[object]:
@@ -182,16 +197,22 @@ class FlextCliConfig(FlextDomainService[str]):
                 return FlextResult[object].ok(value)
 
             return FlextResult[object].fail(
-                f"Configuration key '{key}' not found in SOURCE OF TRUTH"
+                f"Configuration key '{key}' not found in SOURCE OF TRUTH",
             )
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[object].fail(
-                f"Config value lookup from SOURCE OF TRUTH failed: {e}"
+                f"Config value lookup from SOURCE OF TRUTH failed: {e}",
             )
 
     def format_config_output(
-        self, data: dict[str, object], format_type: str
+        self,
+        data: dict[str, object],
+        format_type: str,
     ) -> FlextResult[str]:
         """Format configuration output using SOURCE OF TRUTH format metadata."""
         try:
@@ -215,9 +236,12 @@ class FlextCliConfig(FlextDomainService[str]):
                         return FlextResult[str].ok(yaml_output)
                     except ImportError:
                         return FlextResult[str].fail(
-                            f"YAML module '{yaml_import}' not available"
+                            f"YAML module '{yaml_import}' not available",
                         )
-                    except Exception as e:
+                    except (
+                        AttributeError,
+                        ValueError,
+                    ) as e:
                         return FlextResult[str].fail(f"YAML formatting failed: {e}")
 
             # Handle plain text formatting
@@ -234,24 +258,29 @@ class FlextCliConfig(FlextDomainService[str]):
                     "rows": [[str(k), str(v), "config"] for k, v in data.items()],
                 }
                 return FlextResult[str].ok(
-                    FlextUtilities.safe_json_stringify(table_data)
+                    FlextUtilities.safe_json_stringify(table_data),
                 )
 
             return FlextResult[str].fail(f"Unknown format type: {format_type}")
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[str].fail(
-                f"Config output formatting using SOURCE OF TRUTH failed: {e}"
+                f"Config output formatting using SOURCE OF TRUTH failed: {e}",
             )
 
     def validate_config_object(
-        self, config_object: object
+        self,
+        config_object: object,
     ) -> FlextResult[FlextCliConfig.ValidationResult]:
         """Validate configuration using SOURCE OF TRUTH validation rules."""
         try:
             if not config_object:
                 return FlextResult[FlextCliConfig.ValidationResult].fail(
-                    "Config object is None"
+                    "Config object is None",
                 )
 
             validation_errors = []
@@ -261,7 +290,7 @@ class FlextCliConfig(FlextDomainService[str]):
             config_data_result = self.get_config_data(config_object)
             if config_data_result.is_failure:
                 return FlextResult[FlextCliConfig.ValidationResult].fail(
-                    f"Failed to get config data: {config_data_result.error}"
+                    f"Failed to get config data: {config_data_result.error}",
                 )
 
             config_data = config_data_result.value
@@ -271,9 +300,11 @@ class FlextCliConfig(FlextDomainService[str]):
                 validation_errors.append("Missing or empty profile")
 
             # Validate API URL using SOURCE OF TRUTH format rules
-            if config_data["api_url"] and not config_data["api_url"].startswith(("http://", "https://")):
+            if config_data["api_url"] and not config_data["api_url"].startswith(
+                ("http://", "https://")
+            ):
                 validation_errors.append(
-                    "Invalid API URL format (must start with http:// or https://)"
+                    "Invalid API URL format (must start with http:// or https://)",
                 )
 
             # Validate timeout using SOURCE OF TRUTH range rules
@@ -281,13 +312,13 @@ class FlextCliConfig(FlextDomainService[str]):
                 validation_errors.append("Invalid timeout value (must be > 0)")
             elif config_data["timeout"] < self._constants.MIN_COMMAND_TIMEOUT:
                 validation_warnings.append(
-                    f"Timeout below recommended minimum: {self._constants.MIN_COMMAND_TIMEOUT}"
+                    f"Timeout below recommended minimum: {self._constants.MIN_COMMAND_TIMEOUT}",
                 )
 
             # Validate output format using SOURCE OF TRUTH format metadata
             if config_data["output_format"] not in self._format_metadata:
                 validation_errors.append(
-                    f"Invalid output format: {config_data['output_format']}"
+                    f"Invalid output format: {config_data['output_format']}",
                 )
 
             validation_result: FlextCliConfig.ValidationResult = {
@@ -298,13 +329,18 @@ class FlextCliConfig(FlextDomainService[str]):
 
             return FlextResult[FlextCliConfig.ValidationResult].ok(validation_result)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[FlextCliConfig.ValidationResult].fail(
-                f"Config validation using SOURCE OF TRUTH failed: {e}"
+                f"Config validation using SOURCE OF TRUTH failed: {e}",
             )
 
     def get_config_paths(
-        self, config_object: object | None = None
+        self,
+        config_object: object | None = None,
     ) -> FlextResult[list[FlextCliConfig.PathInfo]]:
         """Get configuration paths using SOURCE OF TRUTH path metadata."""
         try:
@@ -325,20 +361,22 @@ class FlextCliConfig(FlextDomainService[str]):
             # Add config-specific paths if config object provided
             if config_object:
                 if hasattr(config_object, "token_file"):
-                    token_file = getattr(config_object, "token_file")
+                    token_file = getattr(config_object, "token_file", None)
                     if token_file:
                         paths_metadata.append(
-                            {"path_type": "Token File", "location": Path(token_file)}
+                            {"path_type": "Token File", "location": Path(token_file)},
                         )
 
                 if hasattr(config_object, "refresh_token_file"):
-                    refresh_token_file = getattr(config_object, "refresh_token_file")
+                    refresh_token_file = getattr(
+                        config_object, "refresh_token_file", None
+                    )
                     if refresh_token_file:
                         paths_metadata.append(
                             {
                                 "path_type": "Refresh Token File",
                                 "location": Path(refresh_token_file),
-                            }
+                            },
                         )
 
             # Check existence using direct filesystem calls - NO deduction
@@ -348,20 +386,27 @@ class FlextCliConfig(FlextDomainService[str]):
                     "path_type": str(path_metadata["path_type"]),
                     "location": Path(str(path_metadata["location"])),
                     "exists": Path(
-                        str(path_metadata["location"])
+                        str(path_metadata["location"]),
                     ).exists(),  # Direct filesystem check
                 }
                 paths_data.append(path_info)
 
             return FlextResult[list[FlextCliConfig.PathInfo]].ok(paths_data)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[list[FlextCliConfig.PathInfo]].fail(
-                f"Config paths fetch from SOURCE OF TRUTH failed: {e}"
+                f"Config paths fetch from SOURCE OF TRUTH failed: {e}",
             )
 
     def set_config_value(
-        self, config_object: object, key: str, value: str
+        self,
+        config_object: object,
+        key: str,
+        value: str,
     ) -> FlextResult[object]:
         """Set configuration value with type conversion using SOURCE OF TRUTH."""
         try:
@@ -372,7 +417,6 @@ class FlextCliConfig(FlextDomainService[str]):
             old_value = getattr(config_object, key, None)
             converted_value: object
 
-            # Type conversion using SOURCE OF TRUTH type rules
             if old_value is not None:
                 try:
                     if isinstance(old_value, bool):
@@ -394,9 +438,13 @@ class FlextCliConfig(FlextDomainService[str]):
             setattr(config_object, key, converted_value)
             return FlextResult[object].ok(converted_value)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[object].fail(
-                f"Config value setting using SOURCE OF TRUTH failed: {e}"
+                f"Config value setting using SOURCE OF TRUTH failed: {e}",
             )
 
     def create_default_config_file(self, config_path: Path) -> FlextResult[None]:
@@ -417,11 +465,13 @@ class FlextCliConfig(FlextDomainService[str]):
             try:
                 yaml_mod = importlib.import_module("yaml")
                 yaml_content = yaml_mod.safe_dump(
-                    default_config, default_flow_style=False
+                    default_config,
+                    default_flow_style=False,
                 )
 
                 with config_path.open(
-                    "w", encoding=self._constants.DEFAULT_ENCODING
+                    "w",
+                    encoding=self._constants.DEFAULT_ENCODING,
                 ) as f:
                     f.write("# FLEXT CLI Configuration (SOURCE OF TRUTH)\n")
                     f.write(yaml_content)
@@ -429,7 +479,8 @@ class FlextCliConfig(FlextDomainService[str]):
             except ImportError:
                 # Fallback to basic format using SOURCE OF TRUTH structure
                 with config_path.open(
-                    "w", encoding=self._constants.DEFAULT_ENCODING
+                    "w",
+                    encoding=self._constants.DEFAULT_ENCODING,
                 ) as f:
                     f.write("# FLEXT CLI Configuration (SOURCE OF TRUTH)\n")
                     f.write("# YAML not available, using basic format\n")
@@ -438,9 +489,13 @@ class FlextCliConfig(FlextDomainService[str]):
 
             return FlextResult[None].ok(None)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[None].fail(
-                f"Default config file creation using SOURCE OF TRUTH failed: {e}"
+                f"Default config file creation using SOURCE OF TRUTH failed: {e}",
             )
 
     class CommandHandler:
@@ -461,7 +516,8 @@ class FlextCliConfig(FlextDomainService[str]):
 
             # Format using SOURCE OF TRUTH
             format_result = self._config.format_config_output(
-                dict(config_data), output_format
+                dict(config_data),
+                output_format,
             )
             if format_result.is_failure:
                 return
@@ -537,7 +593,7 @@ class FlextCliConfig(FlextDomainService[str]):
             # Create default config if it doesn't exist
             if not config_file_path.exists():
                 create_result = self._config.create_default_config_file(
-                    config_file_path
+                    config_file_path,
                 )
                 if create_result.is_failure:
                     return

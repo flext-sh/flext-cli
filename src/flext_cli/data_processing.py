@@ -14,8 +14,8 @@ import contextlib
 from collections.abc import Callable
 from functools import reduce
 from pathlib import Path
-from typing import cast
 
+# Removed cast import - using direct typing instead
 from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 
@@ -54,40 +54,31 @@ class FlextCliDataProcessing:
         if operation == "workflow":
             return self._execute_workflow(
                 params.get("data"),
-                cast(
-                    "list[tuple[str, Callable[[object], FlextResult[object]]]] | None",
-                    params.get("steps"),
-                ),
+                self._extract_workflow_steps(params.get("steps")),
             )
         if operation == "validate":
             result = self._execute_validate(
-                cast("FlextTypes.Core.Dict | None", params.get("data")),
-                cast("FlextTypes.Core.Headers | None", params.get("validators")),
-                cast(
-                    "dict[str, Callable[[object], object]] | None",
-                    params.get("transforms"),
-                ),
+                self._extract_dict_param(params.get("data")),
+                self._extract_headers_param(params.get("validators")),
+                self._extract_transforms_param(params.get("transforms")),
             )
-            return cast("FlextResult[object]", result)
+            return self._convert_to_generic_result(result)
         if operation == "aggregate":
             result = self._execute_aggregate(
-                cast(
-                    "dict[str, Callable[[], FlextResult[object]]] | None",
-                    params.get("sources"),
-                )
+                self._extract_sources_param(params.get("sources")),
             )
-            return cast("FlextResult[object]", result)
+            return self._convert_to_generic_result(result)
         if operation == "transform":
             transform_result = self._execute_transform(
-                cast("list[FlextTypes.Core.Dict] | None", params.get("data")),
-                cast("FlextTypes.Core.Dict | None", params.get("config")),
+                self._extract_dict_list_param(params.get("data")),
+                self._extract_dict_param(params.get("config")),
             )
-            return cast("FlextResult[object]", transform_result)
+            return self._convert_to_generic_result(transform_result)
         if operation == "batch_validate":
             validate_result = self._execute_batch_validate(
-                cast("FlextTypes.Core.List | None", params.get("values"))
+                self._extract_list_param(params.get("values")),
             )
-            return cast("FlextResult[object]", validate_result)
+            return self._convert_to_generic_result(validate_result)
 
         # Default case - operation not recognized
         return FlextResult[object].fail(f"Unknown operation: {operation}")
@@ -113,14 +104,14 @@ class FlextCliDataProcessing:
             step_result = step_func(current_result.value)
             if isinstance(step_result, FlextResult) and step_result.is_failure:
                 return FlextResult[object].fail(
-                    f"Step '{step_name}' failed: {step_result.error}"
+                    f"Step '{step_name}' failed: {step_result.error}",
                 )
             # step_result is guaranteed to be FlextResult[object] by function signature
             return step_result
 
         try:
             return reduce(apply_step, steps, FlextResult[object].ok(data))
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[object].fail(f"Workflow processing failed: {e}")
 
     def _execute_validate(
@@ -132,7 +123,7 @@ class FlextCliDataProcessing:
         """Execute validation using match-case pattern and FlextResult chains."""
         if not data or not validators:
             return FlextResult[FlextTypes.Core.Dict].fail(
-                "Data and validators required"
+                "Data and validators required",
             )
 
         # Validation phase using functional composition
@@ -146,7 +137,9 @@ class FlextCliDataProcessing:
         return self._apply_transformations(transforms, validated_result.value)
 
     def _chain_validate_fields(
-        self, data: FlextTypes.Core.Dict, validators: FlextTypes.Core.Headers
+        self,
+        data: FlextTypes.Core.Dict,
+        validators: FlextTypes.Core.Headers,
     ) -> FlextResult[FlextTypes.Core.Dict]:
         """Chain field validations using functional composition."""
 
@@ -165,14 +158,16 @@ class FlextCliDataProcessing:
                 return acc_result  # Skip missing fields
 
             field_result = self._validate_field(
-                field, current_data[field], expected_type
+                field,
+                current_data[field],
+                expected_type,
             )
             if field_result.is_success:
                 updated_data = dict(current_data)
                 updated_data[field] = field_result.value
                 return FlextResult[FlextTypes.Core.Dict].ok(updated_data)
             return FlextResult[FlextTypes.Core.Dict].fail(
-                field_result.error or f"Validation failed for field {field}"
+                field_result.error or f"Validation failed for field {field}",
             )
 
         return reduce(
@@ -182,7 +177,10 @@ class FlextCliDataProcessing:
         )
 
     def _validate_field(
-        self, field: str, value: object, expected_type: str
+        self,
+        field: str,
+        value: object,
+        expected_type: str,
     ) -> FlextResult[object]:
         """Validate single field using proper if-elif-else pattern."""
         if expected_type == "int":
@@ -208,11 +206,11 @@ class FlextCliDataProcessing:
             if value == "" or value is None:
                 return FlextResult[object].ok(0)
             return FlextResult[object].fail(
-                f"Invalid integer for field '{field}': {value}"
+                f"Invalid integer for field '{field}': {value}",
             )
         except (ValueError, TypeError):
             return FlextResult[object].fail(
-                f"Invalid integer for field '{field}': {value}"
+                f"Invalid integer for field '{field}': {value}",
             )
 
     def _safe_convert_bool(self, field: str, value: object) -> FlextResult[object]:
@@ -226,7 +224,7 @@ class FlextCliDataProcessing:
             if s in {"false", "0", "no", "off", ""}:
                 return FlextResult[object].ok(data=False)
             return FlextResult[object].fail(
-                f"Invalid boolean for field '{field}': {value}"
+                f"Invalid boolean for field '{field}': {value}",
             )
         if isinstance(value, int):
             return FlextResult[object].ok(data=bool(value))
@@ -255,11 +253,12 @@ class FlextCliDataProcessing:
 
             transformed = reduce(transform_field, transforms.items(), dict(data))
             return FlextResult[FlextTypes.Core.Dict].ok(transformed)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[FlextTypes.Core.Dict].fail(f"Transformation failed: {e}")
 
     def _execute_aggregate(
-        self, sources: dict[str, Callable[[], FlextResult[object]]] | None
+        self,
+        sources: dict[str, Callable[[], FlextResult[object]]] | None,
     ) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute aggregation using match-case pattern for provider results."""
         if not sources:
@@ -285,7 +284,7 @@ class FlextCliDataProcessing:
                     if isinstance(errors, list):
                         errors.append(f"{name}: {provider_result.error}")
 
-            except Exception as e:
+            except (ImportError, AttributeError, ValueError) as e:
                 acc_result[name] = None
                 errors = acc_result.setdefault("_errors", [])
                 if isinstance(errors, list):
@@ -296,9 +295,9 @@ class FlextCliDataProcessing:
         try:
             result: FlextTypes.Core.Dict = reduce(aggregate_source, sources.items(), {})
             return FlextResult[FlextTypes.Core.Dict].ok(result)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[FlextTypes.Core.Dict].fail(
-                f"Data aggregation failed: {e}"
+                f"Data aggregation failed: {e}",
             )
 
     def _execute_transform(
@@ -309,7 +308,7 @@ class FlextCliDataProcessing:
         """Execute pipeline transform using match-case config extraction."""
         if not data or not config:
             return FlextResult[list[FlextTypes.Core.Dict]].fail(
-                "Data and config required"
+                "Data and config required",
             )
 
         # Ultra-simplified config extraction with proper type checking
@@ -342,19 +341,20 @@ class FlextCliDataProcessing:
             try:
                 result.sort(
                     key=lambda x: str(
-                        x.get(str(sort_field), "") if isinstance(x, dict) else x
+                        x.get(str(sort_field), "") if isinstance(x, dict) else x,
                     ),
                     reverse=sort_reverse,
                 )
-            except Exception as e:
+            except (ImportError, AttributeError, ValueError) as e:
                 return FlextResult[list[FlextTypes.Core.Dict]].fail(
-                    f"Sorting by '{sort_field}' failed: {e}"
+                    f"Sorting by '{sort_field}' failed: {e}",
                 )
 
         return FlextResult[list[FlextTypes.Core.Dict]].ok(result)
 
     def _execute_batch_validate(
-        self, values: FlextTypes.Core.List | None
+        self,
+        values: FlextTypes.Core.List | None,
     ) -> FlextResult[FlextTypes.Core.List]:
         """Execute batch validation using match-case pattern."""
         if not values:
@@ -370,28 +370,31 @@ class FlextCliDataProcessing:
 
                 if not validation_result:
                     return FlextResult[FlextTypes.Core.List].fail(
-                        f"Invalid empty value at index {i}"
+                        f"Invalid empty value at index {i}",
                     )
 
             return FlextResult[FlextTypes.Core.List].ok(values)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[FlextTypes.Core.List].fail(
-                f"Batch validation failed: {e}"
+                f"Batch validation failed: {e}",
             )
 
     def transform_data_pipeline(
-        self, data: list[FlextTypes.Core.Dict], pipeline_config: FlextTypes.Core.Dict
+        self,
+        data: list[FlextTypes.Core.Dict],
+        pipeline_config: FlextTypes.Core.Dict,
     ) -> FlextResult[list[FlextTypes.Core.Dict]]:
         """Convenience method for pipeline transformation."""
         result = self.execute("transform", data=data, config=pipeline_config)
-        return cast("FlextResult[list[FlextTypes.Core.Dict]]", result)
+        return self._convert_to_dict_list_result(result)
 
     def batch_validate(
-        self, values: FlextTypes.Core.List
+        self,
+        values: FlextTypes.Core.List,
     ) -> FlextResult[FlextTypes.Core.List]:
         """Convenience method for batch validation."""
         result = self.execute("batch_validate", values=values)
-        return cast("FlextResult[FlextTypes.Core.List]", result)
+        return self._convert_to_list_result(result)
 
     def transform_data(
         self,
@@ -417,13 +420,13 @@ class FlextCliDataProcessing:
         return self._execute_transform(data_list, config)
 
     def aggregate_data(
-        self, data: list[FlextTypes.Core.Dict] | None
+        self,
+        data: list[FlextTypes.Core.Dict] | None,
     ) -> FlextResult[FlextTypes.Core.Dict]:
         """Aggregate data - convenience method for backward compatibility."""
         if not data:
             return FlextResult[FlextTypes.Core.Dict].ok({})
 
-        # Simple aggregation: count items and extract common fields
         try:
             result = {"total_count": len(data), "items": data}
 
@@ -435,11 +438,13 @@ class FlextCliDataProcessing:
             result["unique_fields"] = sorted(all_keys)
 
             return FlextResult[FlextTypes.Core.Dict].ok(result)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[FlextTypes.Core.Dict].fail(f"Aggregation failed: {e}")
 
     def export_to_file(
-        self, data: list[FlextTypes.Core.Dict] | FlextTypes.Core.Dict, file_path: str
+        self,
+        data: list[FlextTypes.Core.Dict] | FlextTypes.Core.Dict,
+        file_path: str,
     ) -> FlextResult[str]:
         """Export data to file - convenience method for backward compatibility."""
         try:
@@ -457,8 +462,118 @@ class FlextCliDataProcessing:
 
             return FlextResult[str].ok(f"Exported data to {file_path}")
 
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[str].fail(f"Export failed: {e}")
+
+    def _extract_workflow_steps(
+        self, value: object
+    ) -> list[tuple[str, Callable[[object], FlextResult[object]]]] | None:
+        """Extract workflow steps with proper typing."""
+        if value is None:
+            return None
+        if not isinstance(value, list):
+            return None
+        return value  # Trust the caller for complex callable types
+
+    def _extract_dict_param(self, value: object) -> FlextTypes.Core.Dict | None:
+        """Extract dict parameter with proper typing."""
+        if value is None:
+            return None
+        if isinstance(value, dict):
+            return value
+        return None
+
+    def _extract_headers_param(self, value: object) -> FlextTypes.Core.Headers | None:
+        """Extract headers parameter with proper typing."""
+        if value is None:
+            return None
+        if isinstance(value, dict):
+            return value
+        return None
+
+    def _extract_transforms_param(
+        self, value: object
+    ) -> dict[str, Callable[[object], object]] | None:
+        """Extract transforms parameter with proper typing."""
+        if value is None:
+            return None
+        if isinstance(value, dict):
+            return value  # Trust the caller for callable values
+        return None
+
+    def _extract_sources_param(
+        self, value: object
+    ) -> dict[str, Callable[[], FlextResult[object]]] | None:
+        """Extract sources parameter with proper typing."""
+        if value is None:
+            return None
+        if isinstance(value, dict):
+            return value  # Trust the caller for callable values
+        return None
+
+    def _extract_dict_list_param(
+        self, value: object
+    ) -> list[FlextTypes.Core.Dict] | None:
+        """Extract dict list parameter with proper typing."""
+        if value is None:
+            return None
+        if isinstance(value, list):
+            return value
+        return None
+
+    def _extract_list_param(self, value: object) -> FlextTypes.Core.List | None:
+        """Extract list parameter with proper typing."""
+        if value is None:
+            return None
+        if isinstance(value, list):
+            return value
+        return None
+
+    def _convert_to_generic_result(
+        self,
+        result: FlextResult[object]
+        | FlextResult[dict[str, object]]
+        | FlextResult[list[dict[str, object]]]
+        | FlextResult[list[object]],
+    ) -> FlextResult[object]:
+        """Convert typed result to generic result - no casting needed."""
+        if result.is_failure:
+            return FlextResult[object].fail(result.error or "Unknown error")
+        return FlextResult[object].ok(result.value)
+
+    def _convert_to_list_result(
+        self, result: FlextResult[object]
+    ) -> FlextResult[FlextTypes.Core.List]:
+        """Convert generic result to list result with validation."""
+        if result.is_failure:
+            return FlextResult[FlextTypes.Core.List].fail(
+                result.error or "Unknown error"
+            )
+
+        value = result.value
+        if isinstance(value, list):
+            return FlextResult[FlextTypes.Core.List].ok(value)
+
+        return FlextResult[FlextTypes.Core.List].fail(
+            f"Expected list result, got {type(value)}"
+        )
+
+    def _convert_to_dict_list_result(
+        self, result: FlextResult[object]
+    ) -> FlextResult[list[FlextTypes.Core.Dict]]:
+        """Convert generic result to dict list result with validation."""
+        if result.is_failure:
+            return FlextResult[list[FlextTypes.Core.Dict]].fail(
+                result.error or "Unknown error"
+            )
+
+        value = result.value
+        if isinstance(value, list):
+            return FlextResult[list[FlextTypes.Core.Dict]].ok(value)
+
+        return FlextResult[list[FlextTypes.Core.Dict]].fail(
+            f"Expected list result, got {type(value)}"
+        )
 
 
 __all__ = ["FlextCliDataProcessing"]

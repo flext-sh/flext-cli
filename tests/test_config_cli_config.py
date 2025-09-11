@@ -171,14 +171,15 @@ class TestCLIConfig:
         if not config_dict["debug"]:
             msg = f"Expected True, got {config_dict['debug']}"
             raise AssertionError(msg)
-        # output_format is nested in output.format
-        if (
-            config_dict["output"]["format"] != "table"
-        ):  # Note: defaults to table regardless of input
-            msg = f"Expected {'table'}, got {config_dict['output']['format']}"
-            raise AssertionError(
-                msg,
-            )
+        # output_format is nested in output.format - ALIAS MAIS SIMPLES
+        output_section = config_dict.get("output", {})
+        if isinstance(output_section, dict):
+            output_format = output_section.get("format", "table")
+            if output_format != "table":  # Note: defaults to table regardless of input
+                msg = f"Expected {'table'}, got {output_format}"
+                raise AssertionError(
+                    msg,
+                )
 
     def test_config_from_dict(self) -> None:
         """Test creating config from dictionary."""

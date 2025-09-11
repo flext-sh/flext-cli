@@ -455,7 +455,7 @@ class TestEditCommand(unittest.TestCase):
             config_file.parent.mkdir(parents=True, exist_ok=True)
             with config_file.open("w", encoding="utf-8") as f:
                 yaml.dump(
-                    {"debug": True, "timeout": 45, "api_url": "http://existing.test"}, f
+                    {"debug": True, "timeout": 45, "api_url": "http://existing.test"}, f,
                 )
 
             test_config = _TestConfig(config_file=config_file)

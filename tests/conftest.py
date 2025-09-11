@@ -10,7 +10,6 @@ from __future__ import annotations
 import tempfile
 from collections.abc import Generator
 from pathlib import Path
-from typing import cast
 
 import pytest
 from click.testing import CliRunner
@@ -23,23 +22,19 @@ from rich.console import Console
 
 from flext_cli import FlextCliConfig, FlextCliContext
 
-# =============================================================================
-# PYTEST CONFIGURATION - MINIMAL SETUP
-# =============================================================================
+
 
 
 def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest with custom markers and settings."""
     config.addinivalue_line(
-        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     )
     config.addinivalue_line("markers", "integration: marks tests as integration tests")
     config.addinivalue_line("markers", "unit: marks tests as unit tests")
 
 
-# =============================================================================
-# BASIC FIXTURES - MINIMAL DEPENDENCIES
-# =============================================================================
+
 
 
 @pytest.fixture
@@ -70,7 +65,7 @@ def cli_context() -> FlextCliContext:
         debug=True,
         output_format="json",
         no_color=True,
-        timeout_seconds=30
+        timeout_seconds=30,
     )
     return FlextCliContext(
         config=config,
@@ -78,7 +73,7 @@ def cli_context() -> FlextCliContext:
         verbose=True,
         quiet=False,
         user_id="test_user",
-        session_id="test_session"
+        session_id="test_session",
     )
 
 
@@ -89,26 +84,27 @@ def test_config() -> FlextCliConfig:
         profile="test",
         debug=True,
         timeout_seconds=30,
-        output_format="table"
+        output_format="table",
     )
 
 
 @pytest.fixture
 def test_user() -> FlextTestsDomains.TestUser:
     """Provide real test user using factory."""
-    user_factory = FlextTestsFactories.UserFactory()
-    return cast("FlextTestsDomains.TestUser", user_factory)
+    return FlextTestsFactories.UserFactory()
 
 
 @pytest.fixture
 def real_test_user() -> FlextTestsDomains.TestUser:
     """Provide real User instance from flext_tests."""
     return FlextTestsDomains.TestUser(
-        id="test_user_id",
-        username="test_user",
-        email="test@example.com",
-        age=25,
-        is_admin=False
+        id="test_user_id",          # Required: id
+        name="test_user",           # Required: name
+        email="test@example.com",   # Required: email
+        age=25,                     # Required: age
+        is_active=True,             # Required: is_active
+        created_at="2024-01-01T00:00:00Z",
+        metadata={},                 # Required: metadata
     )
 
 
@@ -128,8 +124,8 @@ def test_flext_result_failure() -> FlextResult[str]:
 def real_repositories() -> FlextTypes.Core.Dict:
     """Provide collection of real repository implementations."""
     return {
-        "user_repo": FlextTestsDomains.TestUserRepository(),
-        "config": FlextCliConfig(profile="test")
+        "user_repo": FlextTestsDomains.create_user,  # Available factory function
+        "config": FlextCliConfig(profile="test"),
     }
 
 
