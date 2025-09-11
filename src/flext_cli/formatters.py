@@ -53,7 +53,10 @@ class FlextCliFormatters:
     ] = {}
 
     def __init__(
-        self, *, console: Console | None = None, default_format: str = "table"
+        self,
+        *,
+        console: Console | None = None,
+        default_format: str = "table",
     ) -> None:
         """Initialize formatters with console and default format.
 
@@ -174,7 +177,9 @@ class FlextCliFormatters:
         return formatter_factory()
 
     def register_formatter(
-        self, name: str, formatter_class: type[FlextCliFormatters.OutputFormatter]
+        self,
+        name: str,
+        formatter_class: type[FlextCliFormatters.OutputFormatter],
     ) -> None:
         """Register custom formatter.
 
@@ -210,7 +215,7 @@ class FlextCliFormatters:
             formatter = self.create_formatter(format_type)
             formatter.format(data, self.console)
             return FlextResult[None].ok(None)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[None].fail(f"Format output failed: {e}")
 
     def format_data(self, data: object, format_type: str) -> FlextResult[str]:
@@ -233,11 +238,13 @@ class FlextCliFormatters:
 
             result = string_buffer.getvalue()
             return FlextResult[str].ok(result)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[str].fail(f"Format data failed: {e}")
 
     def format_table(
-        self, data: object, title: str | None = None
+        self,
+        data: object,
+        title: str | None = None,
     ) -> FlextResult[Table]:
         """Format data as Rich Table using FlextPipeline and match-case patterns.
 
@@ -273,7 +280,9 @@ class FlextCliFormatters:
         return populate_table_by_type(base_result.value)
 
     def _populate_dict_list_table(
-        self, table: Table, data: list[FlextTypes.Core.Dict]
+        self,
+        table: Table,
+        data: list[FlextTypes.Core.Dict],
     ) -> FlextResult[Table]:
         """Populate table with list of dictionaries."""
         try:
@@ -290,7 +299,9 @@ class FlextCliFormatters:
             return FlextResult[Table].fail(f"Failed to populate dict list table: {e}")
 
     def _populate_dict_table(
-        self, table: Table, data: FlextTypes.Core.Dict
+        self,
+        table: Table,
+        data: FlextTypes.Core.Dict,
     ) -> FlextResult[Table]:
         """Populate table with single dictionary."""
         try:
@@ -301,11 +312,13 @@ class FlextCliFormatters:
                 table.add_row(str(k), str(v))
 
             return FlextResult[Table].ok(table)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[Table].fail(f"Failed to populate dict table: {e}")
 
     def _populate_list_table(
-        self, table: Table, data: FlextTypes.Core.List
+        self,
+        table: Table,
+        data: FlextTypes.Core.List,
     ) -> FlextResult[Table]:
         """Populate table with list of items."""
         try:
@@ -315,7 +328,7 @@ class FlextCliFormatters:
                 table.add_row(str(item))
 
             return FlextResult[Table].ok(table)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[Table].fail(f"Failed to populate list table: {e}")
 
     def _populate_scalar_table(self, table: Table, data: object) -> FlextResult[Table]:
@@ -325,7 +338,7 @@ class FlextCliFormatters:
             table.add_row(str(data))
 
             return FlextResult[Table].ok(table)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[Table].fail(f"Failed to populate scalar table: {e}")
 
     def format_json(self, data: object) -> FlextResult[str]:
@@ -342,7 +355,7 @@ class FlextCliFormatters:
         try:
             result = FlextUtilities.safe_json_stringify(data)
             return FlextResult[str].ok(result)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[str].fail(f"JSON format failed: {e}")
 
     def format_yaml(self, data: object) -> FlextResult[str]:
@@ -358,7 +371,7 @@ class FlextCliFormatters:
         try:
             result = yaml.safe_dump(data, default_flow_style=False)
             return FlextResult[str].ok(result)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[str].fail(f"YAML format failed: {e}")
 
     def format_csv(self, data: object) -> FlextResult[str]:
@@ -402,7 +415,7 @@ class FlextCliFormatters:
                 return FlextResult[str].ok(result)
             finally:
                 output.close()
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[str].fail(f"CSV format failed: {e}")
 
     def print_success(self, message: str) -> FlextResult[None]:
@@ -418,7 +431,7 @@ class FlextCliFormatters:
         try:
             self.console.print(f"[bold green]✓[/bold green] {message}")
             return FlextResult[None].ok(None)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[None].fail(f"Print success failed: {e}")
 
     def print_error(self, message: str) -> FlextResult[None]:
@@ -434,7 +447,7 @@ class FlextCliFormatters:
         try:
             self.console.print(f"[bold red]✗[/bold red] {message}")
             return FlextResult[None].ok(None)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[None].fail(f"Print error failed: {e}")
 
     def print_warning(self, message: str) -> FlextResult[None]:
@@ -450,7 +463,7 @@ class FlextCliFormatters:
         try:
             self.console.print(f"[bold yellow]⚠[/bold yellow] {message}")
             return FlextResult[None].ok(None)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[None].fail(f"Print warning failed: {e}")
 
 

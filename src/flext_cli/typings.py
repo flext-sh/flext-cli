@@ -57,7 +57,11 @@ class FlextCliTypes:
 
         # CLI-specific command types - direct definitions
         CliCommandStatus = Literal[
-            "PENDING", "RUNNING", "COMPLETED", "FAILED", "CANCELLED"
+            "PENDING",
+            "RUNNING",
+            "COMPLETED",
+            "FAILED",
+            "CANCELLED",
         ]
 
         # Advanced Pydantic v2 discriminated union for command states
@@ -176,7 +180,10 @@ class FlextCliTypes:
         CliAuthUrl = str
         CliTokenPath = Path
         CliAuthStatus = Literal[
-            "authenticated", "unauthenticated", "expired", "invalid"
+            "authenticated",
+            "unauthenticated",
+            "expired",
+            "invalid",
         ]
 
         # CLI authentication context
@@ -271,17 +278,22 @@ class FlextCliTypes:
             """Protocol for CLI processors."""
 
             def process(
-                self, request: str | dict[str, object]
+                self,
+                request: str | dict[str, object],
             ) -> FlextResult[object]: ...
             def build(
-                self, domain: object, *, correlation_id: str
+                self,
+                domain: object,
+                *,
+                correlation_id: str,
             ) -> str | dict[str, object]: ...
 
         class CliValidator(Protocol):
             """Protocol for CLI validators."""
 
             def validate(
-                self, data: dict[str, object] | str | float
+                self,
+                data: dict[str, object] | str | float,
             ) -> FlextResult[None]: ...
 
         class CliFormatter(Protocol):
@@ -297,22 +309,14 @@ class FlextCliTypes:
             """Protocol for CLI authenticators."""
 
             def authenticate(
-                self, credentials: dict[str, str]
+                self,
+                credentials: dict[str, str],
             ) -> FlextResult[FlextCliTypes.Auth.CliAuthContext]: ...
             def is_authenticated(self) -> bool: ...
 
 
-# =============================================================================
-# BACKWARD COMPATIBILITY AND ALIASES
-# =============================================================================
-
-
 # No aliases - use direct imports
 
-
-# =============================================================================
-# TYPE ALIASES FOR BACKWARD COMPATIBILITY
-# =============================================================================
 
 # Command-related types
 CommandStatus = FlextCliConstants.CommandStatus
@@ -332,7 +336,7 @@ class PluginStatusEnum(StrEnum):
 PluginStatus = PluginStatusEnum
 
 # Model classes expected by tests
-FlextCliCommand = dict[str, object]  # Simple dict type for compatibility
+FlextCliCommand = dict[str, object]
 FlextCliConfigDict = dict[str, object]  # Config dictionary type
 ContextParams = dict[str, object]  # Context parameters type
 PluginResult = dict[str, object]  # Plugin result type
@@ -346,10 +350,6 @@ FlextCliLogLevel = str  # Log level type
 PositiveIntType = int
 URL = str
 URLType = str
-
-# =============================================================================
-# EXPORTS - Type variables and main classes for test compatibility
-# =============================================================================
 
 
 __all__ = [

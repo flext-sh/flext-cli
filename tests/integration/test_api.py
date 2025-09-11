@@ -272,7 +272,7 @@ class TestFlextCliApiIntegration:
         real_plugin = {
             "name": "test-plugin",
             "version": "1.0.0",
-            "description": "Test plugin for integration tests"
+            "description": "Test plugin for integration tests",
         }
 
         # Register plugin - this should work with real flext-plugin integration

@@ -72,7 +72,9 @@ class FlextCliAuth(FlextDomainService[str]):
         token_path: Path
         refresh_token_path: Path
 
-    def __init__(self, *, config: FlextCliConfig | None = None, **data: object) -> None:  # noqa: ARG002
+    def __init__(
+        self, *, config: FlextCliConfig | None = None, **_data: object
+    ) -> None:
         """Initialize authentication service with flext-core dependencies and SOURCE OF TRUTH."""
         super().__init__()
         self._container = FlextContainer.get_global()
@@ -98,9 +100,13 @@ class FlextCliAuth(FlextDomainService[str]):
             else:
                 config = FlextCliConfig()
             return FlextResult[FlextCliConfig].ok(config)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[FlextCliConfig].fail(
-                f"Config loading from SOURCE OF TRUTH failed: {e}"
+                f"Config loading from SOURCE OF TRUTH failed: {e}",
             )
 
     @property
@@ -125,31 +131,33 @@ class FlextCliAuth(FlextDomainService[str]):
 
             return FlextResult[FlextCliAuth.TokenPaths].ok(paths)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[FlextCliAuth.TokenPaths].fail(
-                f"Token paths from SOURCE OF TRUTH failed: {e}"
+                f"Token paths from SOURCE OF TRUTH failed: {e}",
             )
 
     def get_token_path(self) -> Path:
         """Get token path - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Retorna apenas o token_path do config
         return self.config.token_file
 
     def get_refresh_token_path(self) -> Path:
         """Get refresh token path - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Retorna apenas o refresh_token_path do config
         return self.config.refresh_token_file
 
     def save_refresh_token(self, token: str) -> FlextResult[None]:
         """Save refresh token - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Usa o método de save genérico com path do refresh token
         return self.save_token_to_storage(
-            token, "refresh", self.config.refresh_token_file
+            token,
+            "refresh",
+            self.config.refresh_token_file,
         )
 
     def get_refresh_token(self) -> FlextResult[str]:
         """Get refresh token - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Carrega o refresh token do arquivo
         try:
             if not self.config.refresh_token_file.exists():
                 return FlextResult[str].fail("Refresh token file not found")
@@ -159,12 +167,15 @@ class FlextCliAuth(FlextDomainService[str]):
                 return FlextResult[str].fail("Refresh token file is empty")
 
             return FlextResult[str].ok(content.strip())
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[str].fail(f"Failed to read refresh token: {e}")
 
     def should_auto_refresh(self) -> bool:
         """Check if auto refresh is enabled - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Retorna o valor de auto_refresh do config
         return bool(getattr(self.config, "auto_refresh", False))
 
     def validate_credentials(self, credentials: LoginCredentials) -> FlextResult[None]:
@@ -183,18 +194,25 @@ class FlextCliAuth(FlextDomainService[str]):
 
             if len(username) < 1 or len(password) < 1:
                 return FlextResult[None].fail(
-                    "Username and password must be at least 1 character"
+                    "Username and password must be at least 1 character",
                 )
 
             return FlextResult[None].ok(None)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[None].fail(
-                f"Credential validation using SOURCE OF TRUTH failed: {e}"
+                f"Credential validation using SOURCE OF TRUTH failed: {e}",
             )
 
     def save_token_to_storage(
-        self, token: str, token_type: str, file_path: Path
+        self,
+        token: str,
+        token_type: str,
+        file_path: Path,
     ) -> FlextResult[None]:
         """Save token to secure storage using SOURCE OF TRUTH security patterns."""
         try:
@@ -212,42 +230,47 @@ class FlextCliAuth(FlextDomainService[str]):
 
         except (OSError, PermissionError) as e:
             return FlextResult[None].fail(
-                f"Failed to save {token_type} to SOURCE OF TRUTH storage: {e}"
+                f"Failed to save {token_type} to SOURCE OF TRUTH storage: {e}",
             )
 
     def load_token_from_storage(
-        self, file_path: Path, token_type: str
+        self,
+        file_path: Path,
+        token_type: str,
     ) -> FlextResult[str]:
         """Load token from secure storage using SOURCE OF TRUTH patterns."""
         try:
             if not file_path.exists():
                 return FlextResult[str].fail(
-                    f"{token_type} file does not exist in SOURCE OF TRUTH storage"
+                    f"{token_type} file does not exist in SOURCE OF TRUTH storage",
                 )
 
             # Load using SOURCE OF TRUTH encoding
             token = file_path.read_text(encoding="utf-8").strip()
             if not token:
                 return FlextResult[str].fail(
-                    f"{token_type} file is empty in SOURCE OF TRUTH storage"
+                    f"{token_type} file is empty in SOURCE OF TRUTH storage",
                 )
 
             return FlextResult[str].ok(token)
 
         except (OSError, PermissionError) as e:
             return FlextResult[str].fail(
-                f"Failed to load {token_type} from SOURCE OF TRUTH storage: {e}"
+                f"Failed to load {token_type} from SOURCE OF TRUTH storage: {e}",
             )
 
     def save_auth_token(
-        self, token: str, *, token_path: Path | None = None
+        self,
+        token: str,
+        *,
+        token_path: Path | None = None,
     ) -> FlextResult[None]:
         """Save authentication token using SOURCE OF TRUTH storage patterns."""
         try:
             paths_result = self.get_token_paths()
             if paths_result.is_failure:
                 return FlextResult[None].fail(
-                    f"Token paths from SOURCE OF TRUTH failed: {paths_result.error}"
+                    f"Token paths from SOURCE OF TRUTH failed: {paths_result.error}",
                 )
 
             paths = paths_result.value
@@ -255,9 +278,13 @@ class FlextCliAuth(FlextDomainService[str]):
 
             return self.save_token_to_storage(token, "Authentication token", file_path)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[None].fail(
-                f"Auth token save using SOURCE OF TRUTH failed: {e}"
+                f"Auth token save using SOURCE OF TRUTH failed: {e}",
             )
 
     def get_auth_token(self, *, token_path: Path | None = None) -> FlextResult[str]:
@@ -266,7 +293,7 @@ class FlextCliAuth(FlextDomainService[str]):
             paths_result = self.get_token_paths()
             if paths_result.is_failure:
                 return FlextResult[str].fail(
-                    f"Token paths from SOURCE OF TRUTH failed: {paths_result.error}"
+                    f"Token paths from SOURCE OF TRUTH failed: {paths_result.error}",
                 )
 
             paths = paths_result.value
@@ -274,9 +301,13 @@ class FlextCliAuth(FlextDomainService[str]):
 
             return self.load_token_from_storage(file_path, "Authentication token")
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[str].fail(
-                f"Auth token retrieval from SOURCE OF TRUTH failed: {e}"
+                f"Auth token retrieval from SOURCE OF TRUTH failed: {e}",
             )
 
     def clear_auth_tokens(self) -> FlextResult[None]:
@@ -285,7 +316,7 @@ class FlextCliAuth(FlextDomainService[str]):
             paths_result = self.get_token_paths()
             if paths_result.is_failure:
                 return FlextResult[None].fail(
-                    f"Token paths from SOURCE OF TRUTH failed: {paths_result.error}"
+                    f"Token paths from SOURCE OF TRUTH failed: {paths_result.error}",
                 )
 
             paths = paths_result.value
@@ -297,7 +328,7 @@ class FlextCliAuth(FlextDomainService[str]):
                     paths["token_path"].unlink()
                 except (OSError, PermissionError) as e:
                     errors.append(
-                        f"Failed to remove token file from SOURCE OF TRUTH storage: {e}"
+                        f"Failed to remove token file from SOURCE OF TRUTH storage: {e}",
                     )
 
             # Clear refresh token from SOURCE OF TRUTH storage
@@ -306,7 +337,7 @@ class FlextCliAuth(FlextDomainService[str]):
                     paths["refresh_token_path"].unlink()
                 except (OSError, PermissionError) as e:
                     errors.append(
-                        f"Failed to remove refresh token file from SOURCE OF TRUTH storage: {e}"
+                        f"Failed to remove refresh token file from SOURCE OF TRUTH storage: {e}",
                     )
 
             if errors:
@@ -314,26 +345,39 @@ class FlextCliAuth(FlextDomainService[str]):
 
             return FlextResult[None].ok(None)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[None].fail(
-                f"Token clearing from SOURCE OF TRUTH failed: {e}"
+                f"Token clearing from SOURCE OF TRUTH failed: {e}",
             )
 
     def is_authenticated(self, *, token_path: Path | None = None) -> bool:
         """Check authentication status - SIMPLE ALIAS for test compatibility."""
-        # ALIAS MAIS SIMPLES: Retorna diretamente o boolean sem FlextResult
         try:
             token_result = self.get_auth_token(token_path=token_path)
             return token_result.is_success and bool(token_result.value)
-        except Exception:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ):
             return False
 
-    def check_authentication_status(self, *, token_path: Path | None = None) -> FlextResult[bool]:
+    def check_authentication_status(
+        self, *, token_path: Path | None = None
+    ) -> FlextResult[bool]:
         """Check authentication status using SOURCE OF TRUTH - returns FlextResult for API compatibility."""
         try:
             authenticated = self.is_authenticated(token_path=token_path)
             return FlextResult[bool].ok(authenticated)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[bool].fail(f"Authentication check failed: {e}")
 
     def get_auth_headers(self) -> FlextResult[FlextTypes.Core.Headers]:
@@ -352,13 +396,19 @@ class FlextCliAuth(FlextDomainService[str]):
 
             return FlextResult[FlextTypes.Core.Headers].ok(headers)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[FlextTypes.Core.Headers].fail(
-                f"Auth headers from SOURCE OF TRUTH failed: {e}"
+                f"Auth headers from SOURCE OF TRUTH failed: {e}",
             )
 
     async def login(
-        self, username: str, password: str
+        self,
+        username: str,
+        password: str,
     ) -> FlextResult[FlextTypes.Core.Dict]:
         """Perform login using SOURCE OF TRUTH authentication flow."""
         try:
@@ -371,7 +421,7 @@ class FlextCliAuth(FlextDomainService[str]):
             validation_result = self.validate_credentials(credentials)
             if validation_result.is_failure:
                 return FlextResult[FlextTypes.Core.Dict].fail(
-                    f"Credential validation failed: {validation_result.error}"
+                    f"Credential validation failed: {validation_result.error}",
                 )
 
             # Perform login using SOURCE OF TRUTH client
@@ -381,53 +431,57 @@ class FlextCliAuth(FlextDomainService[str]):
                 # Check response using SOURCE OF TRUTH patterns
                 if not response.is_success:
                     return FlextResult[FlextTypes.Core.Dict].fail(
-                        f"Login failed: {response.error or 'Unknown error'}"
+                        f"Login failed: {response.error or 'Unknown error'}",
                     )
 
                 # Extract response data from SOURCE OF TRUTH
                 response_data = response.data
                 if not response_data or response_data == {}:
                     return FlextResult[FlextTypes.Core.Dict].fail(
-                        "Empty authentication response from SOURCE OF TRUTH"
+                        "Empty authentication response from SOURCE OF TRUTH",
                     )
 
                 # Token extraction using SOURCE OF TRUTH structure
                 if "token" not in response_data:
                     return FlextResult[FlextTypes.Core.Dict].fail(
-                        "Missing token in SOURCE OF TRUTH response"
+                        "Missing token in SOURCE OF TRUTH response",
                     )
 
                 token = response_data.get("token")
                 if not isinstance(token, str) or not token.strip():
                     return FlextResult[FlextTypes.Core.Dict].fail(
-                        f"Invalid token format from SOURCE OF TRUTH: {type(token)}"
+                        f"Invalid token format from SOURCE OF TRUTH: {type(token)}",
                     )
 
                 # Save token using SOURCE OF TRUTH storage
                 save_result = self.save_auth_token(token)
                 if save_result.is_failure:
                     return FlextResult[FlextTypes.Core.Dict].fail(
-                        f"Token save to SOURCE OF TRUTH failed: {save_result.error}"
+                        f"Token save to SOURCE OF TRUTH failed: {save_result.error}",
                     )
 
                 return FlextResult[FlextTypes.Core.Dict].ok(response_data)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             # Categorized exception handling using SOURCE OF TRUTH patterns
             if isinstance(e, (ConnectionError, TimeoutError)):
                 return FlextResult[FlextTypes.Core.Dict].fail(
-                    f"Connection to SOURCE OF TRUTH failed: {e}"
+                    f"Connection to SOURCE OF TRUTH failed: {e}",
                 )
             if isinstance(e, (ValueError, KeyError)):
                 return FlextResult[FlextTypes.Core.Dict].fail(
-                    f"Login validation from SOURCE OF TRUTH failed: {e}"
+                    f"Login validation from SOURCE OF TRUTH failed: {e}",
                 )
             if isinstance(e, OSError):
                 return FlextResult[FlextTypes.Core.Dict].fail(
-                    f"Network error to SOURCE OF TRUTH: {e}"
+                    f"Network error to SOURCE OF TRUTH: {e}",
                 )
             return FlextResult[FlextTypes.Core.Dict].fail(
-                f"Login to SOURCE OF TRUTH failed: {e}"
+                f"Login to SOURCE OF TRUTH failed: {e}",
             )
 
     async def logout(self) -> FlextResult[None]:
@@ -437,7 +491,7 @@ class FlextCliAuth(FlextDomainService[str]):
             auth_result = self.check_authentication_status()
             if auth_result.is_failure:
                 return FlextResult[None].fail(
-                    f"Authentication check failed: {auth_result.error}"
+                    f"Authentication check failed: {auth_result.error}",
                 )
 
             if not auth_result.value:
@@ -447,21 +501,28 @@ class FlextCliAuth(FlextDomainService[str]):
             try:
                 async with FlextApiClient() as client:
                     await client.logout()
-            except Exception as e:
-                self._logger.debug(
-                    f"Server logout from SOURCE OF TRUTH failed (continuing anyway): {e}"
-                )
+            except (
+                ImportError,
+                AttributeError,
+                ValueError,
+            ) as e:
+                logout_msg = f"Server logout from SOURCE OF TRUTH failed (continuing anyway): {e}"
+                self._logger.debug(logout_msg)
 
             # Always clear local tokens from SOURCE OF TRUTH storage
             clear_result = self.clear_auth_tokens()
             if clear_result.is_failure:
                 return FlextResult[None].fail(
-                    f"Token cleanup from SOURCE OF TRUTH failed: {clear_result.error}"
+                    f"Token cleanup from SOURCE OF TRUTH failed: {clear_result.error}",
                 )
 
             return FlextResult[None].ok(None)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[None].fail(f"Logout from SOURCE OF TRUTH failed: {e}")
 
     def get_status(self) -> FlextResult[FlextCliAuth.AuthStatus]:
@@ -471,7 +532,7 @@ class FlextCliAuth(FlextDomainService[str]):
             auth_result = self.check_authentication_status()
             if auth_result.is_failure:
                 return FlextResult[FlextCliAuth.AuthStatus].fail(
-                    f"Authentication check failed: {auth_result.error}"
+                    f"Authentication check failed: {auth_result.error}",
                 )
 
             authenticated = auth_result.value
@@ -480,7 +541,7 @@ class FlextCliAuth(FlextDomainService[str]):
             paths_result = self.get_token_paths()
             if paths_result.is_failure:
                 return FlextResult[FlextCliAuth.AuthStatus].fail(
-                    f"Token paths from SOURCE OF TRUTH failed: {paths_result.error}"
+                    f"Token paths from SOURCE OF TRUTH failed: {paths_result.error}",
                 )
 
             paths = paths_result.value
@@ -497,9 +558,13 @@ class FlextCliAuth(FlextDomainService[str]):
 
             return FlextResult[FlextCliAuth.AuthStatus].ok(status)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[FlextCliAuth.AuthStatus].fail(
-                f"Status retrieval from SOURCE OF TRUTH failed: {e}"
+                f"Status retrieval from SOURCE OF TRUTH failed: {e}",
             )
 
     def whoami(self) -> FlextResult[FlextTypes.Core.Dict]:
@@ -509,12 +574,12 @@ class FlextCliAuth(FlextDomainService[str]):
             auth_result = self.check_authentication_status()
             if auth_result.is_failure:
                 return FlextResult[FlextTypes.Core.Dict].fail(
-                    f"Authentication check failed: {auth_result.error}"
+                    f"Authentication check failed: {auth_result.error}",
                 )
 
             if not auth_result.value:
                 return FlextResult[FlextTypes.Core.Dict].fail(
-                    "Not authenticated to SOURCE OF TRUTH"
+                    "Not authenticated to SOURCE OF TRUTH",
                 )
 
             # In real implementation, would decode JWT from SOURCE OF TRUTH or make API call
@@ -526,9 +591,13 @@ class FlextCliAuth(FlextDomainService[str]):
 
             return FlextResult[FlextTypes.Core.Dict].ok(user_info)
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[FlextTypes.Core.Dict].fail(
-                f"User info retrieval from SOURCE OF TRUTH failed: {e}"
+                f"User info retrieval from SOURCE OF TRUTH failed: {e}",
             )
 
     def execute(self) -> FlextResult[str]:
@@ -538,12 +607,16 @@ class FlextCliAuth(FlextDomainService[str]):
             status_result = self.get_status()
             if status_result.is_failure:
                 return FlextResult[str].fail(
-                    f"Auth status check failed: {status_result.error}"
+                    f"Auth status check failed: {status_result.error}",
                 )
             return FlextResult[str].ok(
-                f"FlextCliAuth service ready: {status_result.value}"
+                f"FlextCliAuth service ready: {status_result.value}",
             )
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[str].fail(f"Auth service execution failed: {e}")
 
     @classmethod
@@ -602,11 +675,6 @@ class FlextCliAuth(FlextDomainService[str]):
             user_info = whoami_result.value
             for _key, _value in user_info.items():
                 pass
-
-
-# =============================================================================
-# LEGACY ALIASES FOR TESTS (SIMPLE AS POSSIBLE) - LAZY LOADING
-# =============================================================================
 
 
 # Lazy loading aliases para evitar instantiation durante import

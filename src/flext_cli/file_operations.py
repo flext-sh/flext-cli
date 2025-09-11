@@ -65,7 +65,14 @@ class FlextCliFileOperations:
 
             # parse_result is guaranteed to be a dict from safe_json_parse
             return FlextResult[FlextTypes.Core.Dict].ok(parse_result)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+            PermissionError,
+            FileNotFoundError,
+            OSError,
+        ) as e:
             return FlextResult[FlextTypes.Core.Dict].fail(f"JSON load failed: {e}")
 
     def save_json_file(
@@ -73,7 +80,7 @@ class FlextCliFileOperations:
         data: FlextTypes.Core.Dict,
         path: str | Path,
         *,
-        indent: int = 2,  # noqa: ARG002
+        _indent: int = 2,
     ) -> FlextResult[None]:
         """Save data to JSON file with proper formatting.
 
@@ -93,15 +100,27 @@ class FlextCliFileOperations:
             # Use FlextUtilities instead of duplicating JSON serialization - ELIMINATES DUPLICATION
             json_content = FlextUtilities.safe_json_stringify(data)
             file_path.write_text(
-                json_content, encoding=FlextCliConstants.DEFAULT_ENCODING
+                json_content,
+                encoding=FlextCliConstants.DEFAULT_ENCODING,
             )
 
             return FlextResult[None].ok(None)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+            PermissionError,
+            FileNotFoundError,
+            OSError,
+        ) as e:
             return FlextResult[None].fail(f"JSON save failed: {e}")
 
     def safe_write(
-        self, content: str, file_path: str | Path, *, backup: bool = False
+        self,
+        content: str,
+        file_path: str | Path,
+        *,
+        backup: bool = False,
     ) -> FlextResult[None]:
         """Write content to file with optional backup.
 
@@ -121,17 +140,25 @@ class FlextCliFileOperations:
             if backup and path.exists():
                 backup_path = path.with_suffix(path.suffix + ".bak")
                 existing_content = path.read_text(
-                    encoding=FlextCliConstants.DEFAULT_ENCODING
+                    encoding=FlextCliConstants.DEFAULT_ENCODING,
                 )
                 backup_path.write_text(
-                    existing_content, encoding=FlextCliConstants.DEFAULT_ENCODING
+                    existing_content,
+                    encoding=FlextCliConstants.DEFAULT_ENCODING,
                 )
 
             path.write_text(content, encoding=FlextCliConstants.DEFAULT_ENCODING)
             path.chmod(0o600)  # Secure permissions
 
             return FlextResult[None].ok(None)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+            PermissionError,
+            FileNotFoundError,
+            OSError,
+        ) as e:
             return FlextResult[None].fail(f"Safe write failed: {e}")
 
     def backup_and_process(
@@ -159,40 +186,50 @@ class FlextCliFileOperations:
 
             if require_confirmation:
                 confirmation = self.interactions.confirm(
-                    f"Process file {path.name}?", default=True
+                    f"Process file {path.name}?",
+                    default=True,
                 )
                 if confirmation.is_failure:
                     return FlextResult[str].fail(
-                        f"Confirmation failed: {confirmation.error}"
+                        f"Confirmation failed: {confirmation.error}",
                     )
                 if not confirmation.value:
                     return FlextResult[str].fail("Operation cancelled by user")
 
             # Read original content
             original_content = path.read_text(
-                encoding=FlextCliConstants.DEFAULT_ENCODING
+                encoding=FlextCliConstants.DEFAULT_ENCODING,
             )
 
             # Process content
             process_result = process_func(original_content)
             if process_result.is_failure:
                 return FlextResult[str].fail(
-                    f"Processing failed: {process_result.error}"
+                    f"Processing failed: {process_result.error}",
                 )
 
             # Create backup
             backup_path = path.with_suffix(path.suffix + ".bak")
             backup_path.write_text(
-                original_content, encoding=FlextCliConstants.DEFAULT_ENCODING
+                original_content,
+                encoding=FlextCliConstants.DEFAULT_ENCODING,
             )
 
             # Write processed content
             path.write_text(
-                process_result.value, encoding=FlextCliConstants.DEFAULT_ENCODING
+                process_result.value,
+                encoding=FlextCliConstants.DEFAULT_ENCODING,
             )
 
             return FlextResult[str].ok(process_result.value)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+            PermissionError,
+            FileNotFoundError,
+            OSError,
+        ) as e:
             return FlextResult[str].fail(f"Backup and process failed: {e}")
 
     def ensure_directory(self, directory_path: str | Path) -> FlextResult[Path]:
@@ -209,11 +246,19 @@ class FlextCliFileOperations:
             path = Path(directory_path)
             path.mkdir(parents=True, exist_ok=True, mode=0o700)
             return FlextResult[Path].ok(path)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+            PermissionError,
+            FileNotFoundError,
+            OSError,
+        ) as e:
             return FlextResult[Path].fail(f"Directory creation failed: {e}")
 
     def create_directory_structure(
-        self, directory_path: str | Path
+        self,
+        directory_path: str | Path,
     ) -> FlextResult[Path]:
         """Create directory structure with nested paths.
 
@@ -261,7 +306,14 @@ class FlextCliFileOperations:
 
             size = path.stat().st_size
             return FlextResult[int].ok(size)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+            PermissionError,
+            FileNotFoundError,
+            OSError,
+        ) as e:
             return FlextResult[int].fail(f"File size check failed: {e}")
 
 

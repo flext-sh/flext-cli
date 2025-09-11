@@ -59,7 +59,7 @@ class FlextCliInteractions:
             return FlextResult[bool].ok(answer)
         except KeyboardInterrupt:
             return FlextResult[bool].fail("User interrupted confirmation")
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[bool].fail(f"Confirmation failed: {e}")
 
     def prompt(self, message: str, *, default: str | None = None) -> FlextResult[str]:
@@ -82,7 +82,7 @@ class FlextCliInteractions:
             return FlextResult[str].ok(value or (default or ""))
         except KeyboardInterrupt:
             return FlextResult[str].fail("User interrupted prompt")
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[str].fail(f"Prompt failed: {e}")
 
     def print_status(self, message: str, *, status: str = "info") -> FlextResult[None]:
@@ -106,7 +106,7 @@ class FlextCliInteractions:
             prefix = styles.get(status, "")
             self.console.print(f"{prefix}{message}")
             return FlextResult[None].ok(None)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[None].fail(f"Print status failed: {e}")
 
     def print_success(self, message: str) -> FlextResult[None]:
@@ -171,11 +171,13 @@ class FlextCliInteractions:
             _ = message  # Keep signature for future use
             progress = Progress()
             return FlextResult[Progress].ok(progress)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[Progress].fail(f"Progress creation failed: {e}")
 
     def with_progress(
-        self, items: FlextTypes.Core.List, message: str
+        self,
+        items: FlextTypes.Core.List,
+        message: str,
     ) -> FlextResult[FlextTypes.Core.List]:
         """Process items with progress indicator (minimal implementation).
 
@@ -190,9 +192,9 @@ class FlextCliInteractions:
         try:
             _ = message  # For future enhanced implementation
             return FlextResult[FlextTypes.Core.List].ok(items)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[FlextTypes.Core.List].fail(
-                f"Progress processing failed: {e}"
+                f"Progress processing failed: {e}",
             )
 
 

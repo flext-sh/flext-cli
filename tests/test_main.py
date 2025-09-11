@@ -31,7 +31,7 @@ class TestMainModule:
             check=False, cwd=Path(__file__).parent.parent,
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10,
         )
 
         # Should exit successfully

@@ -109,7 +109,7 @@ def demonstrate_data_transformation() -> FlextResult[None]:
         # Transform data - add computed fields (custom transformation)
         enriched_services = []
         for service in running_services:
-            # Type cast for mathematical operations
+
             cpu_val = (
                 int(service["cpu"]) if isinstance(service["cpu"], (int, float)) else 0
             )
@@ -206,7 +206,7 @@ def demonstrate_data_aggregation() -> FlextResult[None]:
 
         for stats in service_stats:
             service = stats.get("service", "unknown")
-            # Type cast for mathematical operations
+
             requests_val = stats.get("requests", 0)
             errors_val = stats.get("errors", 0)
             total_requests = (
@@ -323,7 +323,7 @@ def demonstrate_file_operations() -> FlextResult[None]:
         ) as temp_file:
             temp_path = Path(temp_file.name)
 
-        # Simple JSON save implementation
+      
         try:
             temp_path.write_text(json.dumps(config_data, indent=2), encoding="utf-8")
             save_result = FlextResult[bool].ok(data=True)

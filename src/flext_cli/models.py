@@ -131,18 +131,21 @@ class FlextCliModels:
             match self.state:
                 case FlextCliTypes.Commands.PendingState():
                     self.state = FlextCliTypes.Commands.RunningState(
-                        started_at=datetime.now(UTC)
+                        started_at=datetime.now(UTC),
                     )
                     self.execution_time = datetime.now(UTC)
                     return FlextResult[Self].ok(self)
                 case current_state:
                     return FlextResult[Self].fail(
                         f"Cannot start execution from state {current_state.status}. "
-                        "Command must be in PENDING state."
+                        "Command must be in PENDING state.",
                     )
 
         def complete_execution(
-            self, exit_code: int, output: str = "", error_output: str = ""
+            self,
+            exit_code: int,
+            output: str = "",
+            error_output: str = "",
         ) -> FlextResult[Self]:
             """Complete execution with advanced state transition and pattern matching."""
             match self.state:
@@ -152,7 +155,6 @@ class FlextCliModels:
                     self.output = output
                     self.error_output = error_output
 
-                    # Type-safe state transition based on exit code
                     if exit_code == 0:
                         self.state = FlextCliTypes.Commands.CompletedState(
                             completed_at=datetime.now(UTC),
@@ -169,7 +171,7 @@ class FlextCliModels:
                 case current_state:
                     return FlextResult[Self].fail(
                         f"Cannot complete execution from state {current_state.status}. "
-                        "Command must be in RUNNING state."
+                        "Command must be in RUNNING state.",
                     )
 
         def validate_business_rules(self) -> FlextResult[None]:
@@ -186,11 +188,11 @@ class FlextCliModels:
             # Check for basic state validation rules
             if "Pending" in state_name and self.exit_code is not None:
                 return FlextResult[None].fail(
-                    "Pending commands should not have exit codes"
+                    "Pending commands should not have exit codes",
                 )
             if "Running" in state_name and self.exit_code is not None:
                 return FlextResult[None].fail(
-                    "Running commands should not have exit codes until completion"
+                    "Running commands should not have exit codes until completion",
                 )
 
             # Check exit code requirements for completed/failed states
@@ -198,11 +200,11 @@ class FlextCliModels:
                 exit_code = getattr(self.state, "exit_code", None)
                 if "Completed" in state_name and exit_code is None:
                     return FlextResult[None].fail(
-                        "Completed commands must have exit codes"
+                        "Completed commands must have exit codes",
                     )
                 if "Failed" in state_name and (exit_code is None or exit_code == 0):
                     return FlextResult[None].fail(
-                        "Failed commands must have non-zero exit codes"
+                        "Failed commands must have non-zero exit codes",
                     )
 
             # If we reach here, validation passed
@@ -239,13 +241,13 @@ class FlextCliModels:
                 return FlextResult[None].fail("End time cannot be before start time")
             if len(self.commands) > FlextCliConstants.LIMITS.max_commands_per_session:
                 return FlextResult[None].fail(
-                    f"Session has too many commands (limit: {FlextCliConstants.LIMITS.max_commands_per_session})"
+                    f"Session has too many commands (limit: {FlextCliConstants.LIMITS.max_commands_per_session})",
                 )
             for cmd in self.commands:
                 validation_result = cmd.validate_business_rules()
                 if validation_result.is_failure:
                     return FlextResult[None].fail(
-                        f"Invalid command in session: {validation_result.error}"
+                        f"Invalid command in session: {validation_result.error}",
                     )
             return FlextResult[None].ok(None)
 
@@ -255,11 +257,11 @@ class FlextCliModels:
         id: str = Field(default_factory=lambda: str(uuid4()))
         profile: str = Field(default=FlextCliConstants.ProfileName.DEFAULT)
         output_format: str = Field(
-            default=FlextCliConstants.OUTPUT.default_output_format
+            default=FlextCliConstants.OUTPUT.default_output_format,
         )
         debug_mode: bool = Field(default=False)
         timeout_seconds: int = Field(
-            default=FlextCliConstants.TIMEOUTS.default_command_timeout
+            default=FlextCliConstants.TIMEOUTS.default_command_timeout,
         )
 
         @field_validator("output_format")
@@ -283,7 +285,7 @@ class FlextCliModels:
             try:
                 # All validation is done through Pydantic validators
                 return FlextResult[None].ok(None)
-            except Exception as e:
+            except (ImportError, AttributeError, ValueError) as e:
                 return FlextResult[None].fail(f"Configuration validation failed: {e}")
 
     class CliPlugin(FlextModels.Entity):

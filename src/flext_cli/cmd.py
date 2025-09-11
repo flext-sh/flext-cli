@@ -17,40 +17,34 @@ from rich.console import Console
 
 from flext_cli.config import FlextCliConfig
 
-# =============================================================================
-# LEGACY ALIASES FOR TESTS (SIMPLE AS POSSIBLE)
-# =============================================================================
-
 
 # Criar classe wrapper que adiciona métodos que os testes esperam
 class FlextCliCmd(FlextCliConfig):
     """Wrapper class que adiciona métodos esperados pelos testes."""
 
     @staticmethod
-    def get_all_config(context: object = None) -> dict[str, object]:  # noqa: ARG004
-        """Mock method para compatibilidade com testes."""
-        return {"debug": False, "profile": "default"}
+    def get_all_config(cli_context: object) -> None:
+        """Mock method para compatibilidade com testes - SIMPLE ALIAS."""
+        # Call parent implementation
+        super(FlextCliCmd, FlextCliCmd).get_all_config(cli_context)
 
     @staticmethod
-    def print_config_value(context: object, key: str, value: object) -> str:  # noqa: ARG004
-        """Mock method para compatibilidade com testes."""
-        return f"{key}: {value}"
+    def print_config_value(cli_context: object, key: str, value: object) -> None:
+        """Mock method para compatibilidade com testes - SIMPLE ALIAS."""
+        # Call parent implementation
+        super(FlextCliCmd, FlextCliCmd).print_config_value(cli_context, key, value)
 
     @staticmethod
-    def find_config_value(context: object, key: str) -> object:
+    def find_config_value(cli_context: object, key: str) -> object:
         """Mock method para compatibilidade com testes - busca no context quando disponível."""
-        # Tenta buscar no context primeiro se disponível
-        if context and hasattr(context, "config"):
-            config = getattr(context, "config", None)
-            if config and hasattr(config, key):
-                return getattr(config, key)
+        # Try parent implementation first
+        parent_result = super(FlextCliCmd, FlextCliCmd).find_config_value(
+            cli_context, key
+        )
+        if parent_result is not None:
+            return parent_result
 
-        if context and hasattr(context, "settings"):
-            settings = getattr(context, "settings", None)
-            if settings and hasattr(settings, key):
-                return getattr(settings, key)
-
-        # Fallback para defaults se não encontrar no context
+        # Fallback para defaults se não encontrar no context - SIMPLE ALIAS for test compatibility
         defaults = {
             "debug": False,
             "profile": "production",
@@ -63,7 +57,7 @@ class FlextCliCmd(FlextCliConfig):
         return defaults.get(key)
 
     @staticmethod
-    def print_config_table(context: object, config_data: dict[str, object]) -> None:  # noqa: ARG004
+    def print_config_table(_context: object, config_data: dict[str, object]) -> None:
         """Mock method para imprimir tabela de config - compatibilidade com testes."""
         # Imprime os dados de config no formato de tabela simples
         for _key, _value in config_data.items():
@@ -103,7 +97,7 @@ def show(obj: dict[str, object] | None) -> None:
         click.echo(f"{key}: {value}")
 
     if hasattr(console, "print"):
-        console.print("Config shown successfully")
+        getattr(console, "print", lambda _: None)("Config shown successfully")
 
 
 @click.command()
@@ -123,7 +117,7 @@ def edit(obj: dict[str, object] | None) -> None:
         raise click.ClickException(msg)
 
     # Get config file path
-    config_file = getattr(cli_context.config, "config_file", None)  # type: ignore[attr-defined]
+    config_file = getattr(getattr(cli_context, "config", None), "config_file", None)
     if config_file:
         config_path = Path(config_file)
         # Create parent directory if it doesn't exist
@@ -131,7 +125,7 @@ def edit(obj: dict[str, object] | None) -> None:
 
         # Create config file with actual content from config object if it doesn't exist
         if not config_path.exists():
-            config = cli_context.config  # type: ignore[attr-defined]
+            config = getattr(cli_context, "config", None)
             config_data = {
                 "debug": getattr(config, "debug", False),
                 "timeout": getattr(config, "timeout", 30),

@@ -59,7 +59,7 @@ class TestDebugCommandsReal:
         ctx_obj = {"console": self.console}
 
         result = self.runner.invoke(
-            debug_cmd, ["connectivity"], obj=ctx_obj, catch_exceptions=False
+            debug_cmd, ["connectivity"], obj=ctx_obj, catch_exceptions=False,
         )
 
         # Command should handle connection failures gracefully
@@ -73,7 +73,7 @@ class TestDebugCommandsReal:
         ctx_obj = {"console": self.console}
 
         result = self.runner.invoke(
-            debug_cmd, ["performance"], obj=ctx_obj, catch_exceptions=False
+            debug_cmd, ["performance"], obj=ctx_obj, catch_exceptions=False,
         )
 
         # Command should handle API unavailability gracefully
@@ -90,14 +90,14 @@ class TestDebugCommandsReal:
                 "FLX_DEBUG": "true",
                 "FLX_PROFILE": "test",
                 "NON_FLX_VAR": "should_not_appear",
-            }
+            },
         )
 
         ctx_obj = {"console": self.console}
 
         with self.runner.isolated_filesystem():
             result = self.runner.invoke(
-                debug_cmd, ["env"], obj=ctx_obj, env=test_env, catch_exceptions=False
+                debug_cmd, ["env"], obj=ctx_obj, env=test_env, catch_exceptions=False,
             )
 
         assert result.exit_code == 0, f"Env command failed: {result.output}"
@@ -114,7 +114,7 @@ class TestDebugCommandsReal:
         ctx_obj = {"console": self.console}
 
         result = self.runner.invoke(
-            debug_cmd, ["paths"], obj=ctx_obj, catch_exceptions=False
+            debug_cmd, ["paths"], obj=ctx_obj, catch_exceptions=False,
         )
 
         assert result.exit_code == 0, f"Paths command failed: {result.output}"
@@ -127,7 +127,7 @@ class TestDebugCommandsReal:
         ctx_obj = {"console": self.console}
 
         result = self.runner.invoke(
-            debug_cmd, ["validate"], obj=ctx_obj, catch_exceptions=False
+            debug_cmd, ["validate"], obj=ctx_obj, catch_exceptions=False,
         )
 
         # Should complete successfully or with validation warnings
@@ -142,7 +142,7 @@ class TestDebugCommandsReal:
         ctx_obj = {"console": self.console}
 
         result = self.runner.invoke(
-            debug_cmd, ["trace", "test", "command"], obj=ctx_obj, catch_exceptions=False
+            debug_cmd, ["trace", "test", "command"], obj=ctx_obj, catch_exceptions=False,
         )
 
         # Trace command should execute (placeholder implementation)

@@ -102,7 +102,7 @@ class TestTraceCommand(unittest.TestCase):
     def test_trace_with_arguments(self) -> None:
         """Test trace command with various arguments."""
         result = self.runner.invoke(
-            trace, ["flext", "config", "show"], obj={"console": Console()}
+            trace, ["flext", "config", "show"], obj={"console": Console()},
         )
         # Trace should execute without errors
         assert result.exit_code == 0
@@ -351,7 +351,7 @@ class TestDebugCommandIntegration(unittest.TestCase):
         for command_func, args in working_commands:
             with self.subTest(command=command_func.name):
                 result = self.runner.invoke(
-                    command_func, args, obj={"console": Console()}
+                    command_func, args, obj={"console": Console()},
                 )
                 # These commands should execute without crashing
                 assert result.exit_code in {0, 1}  # Allow various exit codes

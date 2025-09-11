@@ -350,4 +350,4 @@ class TestFormatOutput:
 
         result = FlextCliFormatters().format_output(data, "unknown")
         assert result.is_failure
-        assert "Unknown formatter type" in result.error
+        assert "Unknown formatter type" in str(result.error or "")

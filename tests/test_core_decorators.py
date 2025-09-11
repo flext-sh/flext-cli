@@ -48,7 +48,7 @@ class TestAsyncCommand:
         assert not asyncio.iscoroutinefunction(sample_async_function)
         # Test execution (now sync)
         result = sample_async_function()
-        # Type guard: decorator converts async to sync
+
         if not isinstance(result, str) or result != "async result":
             msg: str = f"Expected {'async result'}, got {result}"
             raise AssertionError(msg)
@@ -65,7 +65,7 @@ class TestAsyncCommand:
         assert callable(async_function_with_args)
         # Decorator converts async to sync
         result = async_function_with_args("test", 42)
-        # Type guard: decorator converts async to sync
+
         if not isinstance(result, str) or result != "test-42":
             msg: str = f"Expected {'test-42'}, got {result}"
             raise AssertionError(msg)
@@ -104,7 +104,7 @@ class TestConfirmAction:
 
             # Apply decorator manually to avoid typing issues
             decorated_func = confirm_action("Are you sure?")(dangerous_action)
-            assert callable(decorated_func)  # Type assertion for MyPy
+            assert callable(decorated_func)
             result = decorated_func()
             if result != "action executed":
                 msg: str = f"Expected {'action executed'}, got {result}"
@@ -119,7 +119,7 @@ class TestConfirmAction:
                 return "action executed"
 
             decorated_func = confirm_action("Are you sure?")(dangerous_action)
-            assert callable(decorated_func)  # Type assertion for MyPy
+            assert callable(decorated_func)
             result = decorated_func()
             assert result is None  # Should return None when cancelled
 
@@ -132,7 +132,7 @@ class TestConfirmAction:
                 return "files deleted"
 
             decorated_func = confirm_action("Delete all files?")(delete_files)
-            assert callable(decorated_func)  # Type assertion for MyPy
+            assert callable(decorated_func)
             result = decorated_func()
             if result != "files deleted":
                 msg: str = f"Expected {'files deleted'}, got {result}"
@@ -147,7 +147,7 @@ class TestConfirmAction:
                 return f"processed {count} items for {name}"
 
             decorated_func = confirm_action("Proceed with action?")(action_with_args)
-            assert callable(decorated_func)  # Type assertion for MyPy
+            assert callable(decorated_func)
             result = decorated_func("test", 5)
             if result != "processed 5 items for test":
                 msg: str = f"Expected {'processed 5 items for test'}, got {result}"
@@ -166,7 +166,7 @@ class TestRequireAuth:
             return "access granted"
 
         decorated_func = require_auth(token_file=str(token_file))(protected_function)
-        assert callable(decorated_func)  # Type assertion for MyPy
+        assert callable(decorated_func)
         result = decorated_func()
         if result != "access granted":
             msg: str = f"Expected {'access granted'}, got {result}"
@@ -180,7 +180,7 @@ class TestRequireAuth:
             return "access granted"
 
         decorated_func = require_auth(token_file=str(token_file))(protected_function)
-        assert callable(decorated_func)  # Type assertion for MyPy
+        assert callable(decorated_func)
         result = decorated_func()
         assert result is None  # Should return None when auth fails
 
@@ -193,7 +193,7 @@ class TestRequireAuth:
             return "access granted"
 
         decorated_func = require_auth(token_file=str(token_file))(protected_function)
-        assert callable(decorated_func)  # Type assertion for MyPy
+        assert callable(decorated_func)
         result = decorated_func()
         assert result is None  # Should return None when token is empty
 

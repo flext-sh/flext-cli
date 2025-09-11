@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import time
 from datetime import UTC, datetime
-from typing import ClassVar, cast
+from typing import ClassVar
 
 from flext_core import FlextResult, FlextServices, FlextTypes
 
@@ -28,7 +28,7 @@ class FlextCliServices(FlextServices):
     Core: ClassVar[type[FlextServices]] = FlextServices
 
     class CliCommandProcessor(
-        FlextServices.ServiceProcessor[str, FlextCliModels.CliCommand, str]
+        FlextServices.ServiceProcessor[str, FlextCliModels.CliCommand, str],
     ):
         """CLI command processor using FlextServices.ServiceProcessor pattern."""
 
@@ -50,25 +50,28 @@ class FlextCliServices(FlextServices):
                 start_result = command.start_execution()
                 if start_result.is_failure:
                     return FlextResult[FlextCliModels.CliCommand].fail(
-                        f"Failed to start command execution: {start_result.error}"
+                        f"Failed to start command execution: {start_result.error}",
                     )
 
                 # Validate business rules
                 validation_result = command.validate_business_rules()
                 if validation_result.is_failure:
                     return FlextResult[FlextCliModels.CliCommand].fail(
-                        f"Command validation failed: {validation_result.error}"
+                        f"Command validation failed: {validation_result.error}",
                     )
 
                 return FlextResult[FlextCliModels.CliCommand].ok(command)
 
             except (RuntimeError, ValueError, TypeError) as e:
                 return FlextResult[FlextCliModels.CliCommand].fail(
-                    f"Command processing error: {e}"
+                    f"Command processing error: {e}",
                 )
 
         def build(
-            self, domain: FlextCliModels.CliCommand, *, correlation_id: str
+            self,
+            domain: FlextCliModels.CliCommand,
+            *,
+            correlation_id: str,
         ) -> str:
             """Build command execution result string."""
             status_icon = "✓" if bool(getattr(domain, "is_successful", False)) else "✗"
@@ -76,8 +79,10 @@ class FlextCliServices(FlextServices):
 
     class CliSessionProcessor(
         FlextServices.ServiceProcessor[
-            FlextTypes.Core.Dict, FlextCliModels.CliSession, FlextTypes.Core.Dict
-        ]
+            FlextTypes.Core.Dict,
+            FlextCliModels.CliSession,
+            FlextTypes.Core.Dict,
+        ],
     ):
         """CLI session processor using FlextServices.ServiceProcessor pattern."""
 
@@ -90,32 +95,36 @@ class FlextCliServices(FlextServices):
             self.max_sessions: int = FlextCliConstants.LIMITS.max_commands_per_session
 
         def process(
-            self, request: FlextTypes.Core.Dict
+            self,
+            request: FlextTypes.Core.Dict,
         ) -> FlextResult[FlextCliModels.CliSession]:
             """Process session creation request."""
             try:
                 # Create CLI session using our advanced models
                 user_id = request.get("user_id")
                 session = FlextCliModels.CliSession(
-                    user_id=str(user_id) if user_id is not None else None
+                    user_id=str(user_id) if user_id is not None else None,
                 )
 
                 # Validate business rules
                 validation_result = session.validate_business_rules()
                 if validation_result.is_failure:
                     return FlextResult[FlextCliModels.CliSession].fail(
-                        f"Session validation failed: {validation_result.error}"
+                        f"Session validation failed: {validation_result.error}",
                     )
 
                 return FlextResult[FlextCliModels.CliSession].ok(session)
 
             except (RuntimeError, ValueError, TypeError) as e:
                 return FlextResult[FlextCliModels.CliSession].fail(
-                    f"Session processing error: {e}"
+                    f"Session processing error: {e}",
                 )
 
         def build(
-            self, domain: FlextCliModels.CliSession, *, correlation_id: str
+            self,
+            domain: FlextCliModels.CliSession,
+            *,
+            correlation_id: str,
         ) -> FlextTypes.Core.Dict:
             """Build session information dictionary."""
             return {
@@ -131,8 +140,10 @@ class FlextCliServices(FlextServices):
 
     class CliConfigProcessor(
         FlextServices.ServiceProcessor[
-            FlextTypes.Core.Dict, FlextCliModels.CliConfig, FlextTypes.Core.Dict
-        ]
+            FlextTypes.Core.Dict,
+            FlextCliModels.CliConfig,
+            FlextTypes.Core.Dict,
+        ],
     ):
         """CLI configuration processor using FlextServices.ServiceProcessor pattern."""
 
@@ -141,7 +152,8 @@ class FlextCliServices(FlextServices):
             super().__init__()
 
         def process(
-            self, request: FlextTypes.Core.Dict
+            self,
+            request: FlextTypes.Core.Dict,
         ) -> FlextResult[FlextCliModels.CliConfig]:
             """Process configuration request."""
             try:
@@ -151,11 +163,14 @@ class FlextCliServices(FlextServices):
 
             except (RuntimeError, ValueError, TypeError) as e:
                 return FlextResult[FlextCliModels.CliConfig].fail(
-                    f"Config processing error: {e}"
+                    f"Config processing error: {e}",
                 )
 
         def build(
-            self, domain: FlextCliModels.CliConfig, *, correlation_id: str
+            self,
+            domain: FlextCliModels.CliConfig,
+            *,
+            correlation_id: str,
         ) -> FlextTypes.Core.Dict:
             """Build configuration dictionary."""
             return {
@@ -213,11 +228,13 @@ class FlextCliServices(FlextServices):
 
         # Configure processor with resolved config
         if "timeout_seconds" in resolved_config:
-            processor.timeout_seconds = int(
-                cast("int", resolved_config["timeout_seconds"])
+            processor.timeout_seconds = cls._safe_convert_to_int(
+                resolved_config["timeout_seconds"]
             )
         if "max_retries" in resolved_config:
-            processor.max_retries = int(cast("int", resolved_config["max_retries"]))
+            processor.max_retries = cls._safe_convert_to_int(
+                resolved_config["max_retries"]
+            )
 
         # Register with enhanced metadata for advanced service discovery
         cls.registry.register(
@@ -232,7 +249,7 @@ class FlextCliServices(FlextServices):
                 ],
                 "dependencies": list(dependencies.keys()) if dependencies else [],
                 "config": resolved_config,
-            }
+            },
         )
         return processor
 
@@ -270,7 +287,9 @@ class FlextCliServices(FlextServices):
         if "enable_tracking" in resolved_config:
             processor.enable_tracking = bool(resolved_config["enable_tracking"])
         if "max_sessions" in resolved_config:
-            processor.max_sessions = int(cast("int", resolved_config["max_sessions"]))
+            processor.max_sessions = cls._safe_convert_to_int(
+                resolved_config["max_sessions"]
+            )
 
         cls.registry.register(
             {
@@ -284,7 +303,7 @@ class FlextCliServices(FlextServices):
                 ],
                 "dependencies": list(dependencies.keys()) if dependencies else [],
                 "config": resolved_config,
-            }
+            },
         )
         return processor
 
@@ -330,7 +349,7 @@ class FlextCliServices(FlextServices):
                 "capabilities": ["config_processing", "validation", "hot_reload"],
                 "dependencies": list(dependencies.keys()) if dependencies else [],
                 "config": resolved_config,
-            }
+            },
         )
         return processor
 
@@ -361,7 +380,9 @@ class FlextCliServices(FlextServices):
             return self
 
         def with_dependency(
-            self, name: str, service: object
+            self,
+            name: str,
+            service: object,
         ) -> FlextCliServices.ServiceBuilder:
             """Inject external dependency (fluent interface)."""
             self._dependencies[name] = service
@@ -378,10 +399,10 @@ class FlextCliServices(FlextServices):
             max_retries_val = self._config.get("max_retries")
             return FlextCliServices.create_command_processor(
                 dependencies=self._dependencies,
-                timeout_seconds=int(cast("int | str", timeout_val))
+                timeout_seconds=FlextCliServices._safe_convert_to_int(timeout_val)
                 if timeout_val is not None
                 else None,
-                max_retries=int(cast("int | str", max_retries_val))
+                max_retries=FlextCliServices._safe_convert_to_int(max_retries_val)
                 if max_retries_val is not None
                 else None,
             )
@@ -392,7 +413,7 @@ class FlextCliServices(FlextServices):
             return FlextCliServices.create_session_processor(
                 dependencies=self._dependencies,
                 enable_tracking=bool(self._config.get("enable_tracking", True)),
-                max_sessions=int(cast("int | str", max_sessions_val))
+                max_sessions=FlextCliServices._safe_convert_to_int(max_sessions_val)
                 if max_sessions_val is not None
                 else None,
             )
@@ -442,11 +463,15 @@ class FlextCliServices(FlextServices):
             match service_type:
                 case "command":
                     # Extract and validate command-specific parameters
-                    dependencies = cast(
-                        "FlextTypes.Core.Dict | None", kwargs.get("dependencies")
+                    dependencies = FlextCliServices._extract_dict_param(
+                        kwargs.get("dependencies")
                     )
-                    timeout_seconds = cast("int | None", kwargs.get("timeout_seconds"))
-                    max_retries = cast("int | None", kwargs.get("max_retries"))
+                    timeout_seconds = FlextCliServices._extract_int_param(
+                        kwargs.get("timeout_seconds")
+                    )
+                    max_retries = FlextCliServices._extract_int_param(
+                        kwargs.get("max_retries")
+                    )
                     return FlextCliServices.create_command_processor(
                         dependencies=dependencies,
                         timeout_seconds=timeout_seconds,
@@ -454,16 +479,18 @@ class FlextCliServices(FlextServices):
                     )
                 case "session":
                     # Extract and validate session-specific parameters
-                    dependencies = cast(
-                        "FlextTypes.Core.Dict | None", kwargs.get("dependencies")
+                    dependencies = FlextCliServices._extract_dict_param(
+                        kwargs.get("dependencies")
                     )
-                    enable_tracking_raw = cast(
-                        "bool | None", kwargs.get("enable_tracking")
+                    enable_tracking_raw = FlextCliServices._extract_bool_param(
+                        kwargs.get("enable_tracking")
                     )
                     enable_tracking = (
                         enable_tracking_raw if enable_tracking_raw is not None else True
                     )
-                    max_sessions = cast("int | None", kwargs.get("max_sessions"))
+                    max_sessions = FlextCliServices._extract_int_param(
+                        kwargs.get("max_sessions")
+                    )
                     return FlextCliServices.create_session_processor(
                         dependencies=dependencies,
                         enable_tracking=enable_tracking,
@@ -471,12 +498,15 @@ class FlextCliServices(FlextServices):
                     )
                 case "config":
                     # Extract and validate config-specific parameters
-                    dependencies = cast(
-                        "FlextTypes.Core.Dict | None", kwargs.get("dependencies")
+                    dependencies = FlextCliServices._extract_dict_param(
+                        kwargs.get("dependencies")
                     )
-                    config_profile = cast("str | None", kwargs.get("config_profile"))
+                    config_profile = FlextCliServices._extract_str_param(
+                        kwargs.get("config_profile")
+                    )
                     return FlextCliServices.create_config_processor(
-                        dependencies=dependencies, config_profile=config_profile
+                        dependencies=dependencies,
+                        config_profile=config_profile,
                     )
                 case _:
                     valid_types = ", ".join(cls._service_types.keys())
@@ -485,7 +515,8 @@ class FlextCliServices(FlextServices):
 
         @classmethod
         def get_service_capabilities(
-            cls, service_type: str
+            cls,
+            service_type: str,
         ) -> FlextTypes.Core.StringList:
             """Get capabilities for a service type."""
             # This would typically query the registry, simplified for demo
@@ -515,13 +546,16 @@ class FlextCliServices(FlextServices):
             time.perf_counter() - start
         ) * FlextCliConstants.MILLISECONDS_PER_SECOND
         cls.metrics.track_service_call(
-            "FlextCliServices", "process_command", duration_ms
+            "FlextCliServices",
+            "process_command",
+            duration_ms,
         )
         return result
 
     @classmethod
     def create_session(
-        cls, user_id: str | None = None
+        cls,
+        user_id: str | None = None,
     ) -> FlextResult[FlextCliModels.CliSession]:
         """High-level method to create CLI session."""
         processor = cls.create_session_processor()
@@ -531,13 +565,16 @@ class FlextCliServices(FlextServices):
             time.perf_counter() - start
         ) * FlextCliConstants.MILLISECONDS_PER_SECOND
         cls.metrics.track_service_call(
-            "FlextCliServices", "create_session", duration_ms
+            "FlextCliServices",
+            "create_session",
+            duration_ms,
         )
         return result
 
     @classmethod
     def validate_config(
-        cls, config_data: FlextTypes.Core.Dict
+        cls,
+        config_data: FlextTypes.Core.Dict,
     ) -> FlextResult[FlextCliModels.CliConfig]:
         """High-level method to validate configuration."""
         processor = cls.create_config_processor()
@@ -547,14 +584,66 @@ class FlextCliServices(FlextServices):
             time.perf_counter() - start
         ) * FlextCliConstants.MILLISECONDS_PER_SECOND
         cls.metrics.track_service_call(
-            "FlextCliServices", "validate_config", duration_ms
+            "FlextCliServices",
+            "validate_config",
+            duration_ms,
         )
         return result
 
+    @staticmethod
+    def _safe_convert_to_int(value: object) -> int:
+        """Safely convert value to int without cast()."""
+        if isinstance(value, int):
+            return value
+        if isinstance(value, str):
+            return int(value)
+        if isinstance(value, (float, bool)):
+            return int(value)
+        return 0  # Default fallback
 
-# =============================================================================
-# EXPORTS - Single unique class following user requirements
-# =============================================================================
+    @staticmethod
+    def _extract_dict_param(value: object) -> FlextTypes.Core.Dict | None:
+        """Extract dict parameter with proper typing."""
+        if value is None:
+            return None
+        if isinstance(value, dict):
+            return value
+        return None
+
+    @staticmethod
+    def _extract_int_param(value: object) -> int | None:
+        """Extract int parameter with proper typing."""
+        if value is None:
+            return None
+        if isinstance(value, int):
+            return value
+        if isinstance(value, str):
+            try:
+                return int(value)
+            except ValueError:
+                return None
+        return None
+
+    @staticmethod
+    def _extract_bool_param(value: object) -> bool | None:
+        """Extract bool parameter with proper typing."""
+        if value is None:
+            return None
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.lower() in ("true", "1", "yes", "on")
+        return None
+
+    @staticmethod
+    def _extract_str_param(value: object) -> str | None:
+        """Extract str parameter with proper typing."""
+        if value is None:
+            return None
+        if isinstance(value, str):
+            return value
+        return str(value)  # Convert to string if not None
+
 
 __all__ = [
     "FlextCliServices",

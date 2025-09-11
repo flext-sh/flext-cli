@@ -212,7 +212,7 @@ class TestTraceCommandReal:
         """Test trace command execution with real implementation."""
         # Test trace with some arguments
         result = self.runner.invoke(
-            trace, ["echo", "hello", "world"], obj={"console": Console()}
+            trace, ["echo", "hello", "world"], obj={"console": Console()},
         )
 
         # Command should complete successfully

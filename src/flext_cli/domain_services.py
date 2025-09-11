@@ -56,12 +56,12 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
             health_result = self.health_check()
             if health_result.is_success:
                 return FlextResult[FlextResult[object]].ok(
-                    FlextResult[object].ok(health_result.value)
+                    FlextResult[object].ok(health_result.value),
                 )
             return FlextResult[FlextResult[object]].fail(
-                health_result.error or "Health check failed"
+                health_result.error or "Health check failed",
             )
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             logger.exception("Domain service execution failed")
             return FlextResult[FlextResult[object]].fail(f"Execution failed: {e}")
 
@@ -74,12 +74,13 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
         """
         try:
             return FlextResult[str].ok("FLEXT CLI Domain Services: healthy")
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             logger.exception("Health check failed")
             return FlextResult[str].fail(f"Health check failed: {e}")
 
     def create_command(
-        self, command_line: str
+        self,
+        command_line: str,
     ) -> FlextResult[FlextCliModels.CliCommand]:
         """Create new CLI command entity with validation.
 
@@ -93,7 +94,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
         try:
             if not command_line or not command_line.strip():
                 return FlextResult[FlextCliModels.CliCommand].fail(
-                    "Command line cannot be empty"
+                    "Command line cannot be empty",
                 )
 
             command = FlextCliModels.CliCommand(command_line=command_line.strip())
@@ -102,19 +103,20 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
             validation_result = command.validate_business_rules()
             if validation_result.is_failure:
                 return FlextResult[FlextCliModels.CliCommand].fail(
-                    f"Command validation failed: {validation_result.error}"
+                    f"Command validation failed: {validation_result.error}",
                 )
 
             logger.debug("Created command: %s", command.id)
             return FlextResult[FlextCliModels.CliCommand].ok(command)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             logger.exception("Failed to create command")
             return FlextResult[FlextCliModels.CliCommand].fail(
-                f"Command creation failed: {e}"
+                f"Command creation failed: {e}",
             )
 
     def start_command_execution(
-        self, command: FlextCliModels.CliCommand
+        self,
+        command: FlextCliModels.CliCommand,
     ) -> FlextResult[FlextCliModels.CliCommand]:
         """Start command execution with state transition.
 
@@ -128,21 +130,21 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
         try:
             if command.status != FlextCliConstants.STATUS_PENDING:
                 return FlextResult[FlextCliModels.CliCommand].fail(
-                    f"Command must be pending to start, current status: {command.status}"
+                    f"Command must be pending to start, current status: {command.status}",
                 )
 
             start_result = command.start_execution()
             if start_result.is_failure:
                 return FlextResult[FlextCliModels.CliCommand].fail(
-                    f"Failed to start execution: {start_result.error}"
+                    f"Failed to start execution: {start_result.error}",
                 )
 
             logger.debug("Started execution for command: %s", command.id)
             return FlextResult[FlextCliModels.CliCommand].ok(command)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             logger.exception("Failed to start command execution")
             return FlextResult[FlextCliModels.CliCommand].fail(
-                f"Command execution start failed: {e}"
+                f"Command execution start failed: {e}",
             )
 
     def complete_command_execution(
@@ -167,22 +169,24 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
         try:
             if command.status != FlextCliConstants.STATUS_RUNNING:
                 return FlextResult[FlextCliModels.CliCommand].fail(
-                    f"Command must be running to complete, current status: {command.status}"
+                    f"Command must be running to complete, current status: {command.status}",
                 )
 
             completion_result = command.complete_execution(
-                exit_code, output, error_output
+                exit_code,
+                output,
+                error_output,
             )
             if completion_result.is_failure:
                 return FlextResult[FlextCliModels.CliCommand].fail(
-                    f"Failed to complete execution: {completion_result.error}"
+                    f"Failed to complete execution: {completion_result.error}",
                 )
 
             # Validate final state
             validation_result = command.validate_business_rules()
             if validation_result.is_failure:
                 return FlextResult[FlextCliModels.CliCommand].fail(
-                    f"Command validation failed after completion: {validation_result.error}"
+                    f"Command validation failed after completion: {validation_result.error}",
                 )
 
             logger.debug(
@@ -191,14 +195,15 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
                 exit_code,
             )
             return FlextResult[FlextCliModels.CliCommand].ok(command)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             logger.exception("Failed to complete command execution")
             return FlextResult[FlextCliModels.CliCommand].fail(
-                f"Command execution completion failed: {e}"
+                f"Command execution completion failed: {e}",
             )
 
     def create_session(
-        self, user_id: str | None = None
+        self,
+        user_id: str | None = None,
     ) -> FlextResult[FlextCliModels.CliSession]:
         """Create new CLI session entity.
 
@@ -216,15 +221,15 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
             validation_result = session.validate_business_rules()
             if validation_result.is_failure:
                 return FlextResult[FlextCliModels.CliSession].fail(
-                    f"Session validation failed: {validation_result.error}"
+                    f"Session validation failed: {validation_result.error}",
                 )
 
             logger.debug("Created session: %s", session.id)
             return FlextResult[FlextCliModels.CliSession].ok(session)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             logger.exception("Failed to create session")
             return FlextResult[FlextCliModels.CliSession].fail(
-                f"Session creation failed: {e}"
+                f"Session creation failed: {e}",
             )
 
     def add_command_to_session(
@@ -246,32 +251,33 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
             # Check session limits
             if len(session.commands) >= FlextCliConstants.MAX_COMMANDS_PER_SESSION:
                 return FlextResult[FlextCliModels.CliSession].fail(
-                    f"Session command limit reached: {FlextCliConstants.MAX_COMMANDS_PER_SESSION}"
+                    f"Session command limit reached: {FlextCliConstants.MAX_COMMANDS_PER_SESSION}",
                 )
 
             add_result = session.add_command(command)
             if add_result.is_failure:
                 return FlextResult[FlextCliModels.CliSession].fail(
-                    f"Failed to add command to session: {add_result.error}"
+                    f"Failed to add command to session: {add_result.error}",
                 )
 
             # Validate updated session
             validation_result = session.validate_business_rules()
             if validation_result.is_failure:
                 return FlextResult[FlextCliModels.CliSession].fail(
-                    f"Session validation failed after adding command: {validation_result.error}"
+                    f"Session validation failed after adding command: {validation_result.error}",
                 )
 
             logger.debug("Added command %s to session %s", command.id, session.id)
             return FlextResult[FlextCliModels.CliSession].ok(session)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             logger.exception("Failed to add command to session")
             return FlextResult[FlextCliModels.CliSession].fail(
-                f"Command addition to session failed: {e}"
+                f"Command addition to session failed: {e}",
             )
 
     def end_session(
-        self, session: FlextCliModels.CliSession
+        self,
+        session: FlextCliModels.CliSession,
     ) -> FlextResult[FlextCliModels.CliSession]:
         """End CLI session with validation.
 
@@ -285,32 +291,34 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
         try:
             if session.end_time is not None:
                 return FlextResult[FlextCliModels.CliSession].fail(
-                    "Session is already ended"
+                    "Session is already ended",
                 )
 
             end_result = session.end_session()
             if end_result.is_failure:
                 return FlextResult[FlextCliModels.CliSession].fail(
-                    f"Failed to end session: {end_result.error}"
+                    f"Failed to end session: {end_result.error}",
                 )
 
             # Validate final state
             validation_result = session.validate_business_rules()
             if validation_result.is_failure:
                 return FlextResult[FlextCliModels.CliSession].fail(
-                    f"Session validation failed after ending: {validation_result.error}"
+                    f"Session validation failed after ending: {validation_result.error}",
                 )
 
             logger.debug("Ended session: %s", session.id)
             return FlextResult[FlextCliModels.CliSession].ok(session)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             logger.exception("Failed to end session")
             return FlextResult[FlextCliModels.CliSession].fail(
-                f"Session ending failed: {e}"
+                f"Session ending failed: {e}",
             )
 
     def execute_command_workflow(
-        self, command_line: str, user_id: str | None = None
+        self,
+        command_line: str,
+        user_id: str | None = None,
     ) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute complete command workflow from creation to completion.
 
@@ -327,7 +335,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
             session_result = self.create_session(user_id)
             if session_result.is_failure:
                 return FlextResult[FlextTypes.Core.Dict].fail(
-                    f"Failed to create session: {session_result.error}"
+                    f"Failed to create session: {session_result.error}",
                 )
             session = session_result.value
 
@@ -335,7 +343,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
             command_result = self.create_command(command_line)
             if command_result.is_failure:
                 return FlextResult[FlextTypes.Core.Dict].fail(
-                    f"Failed to create command: {command_result.error}"
+                    f"Failed to create command: {command_result.error}",
                 )
             command = command_result.value
 
@@ -343,7 +351,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
             add_result = self.add_command_to_session(session, command)
             if add_result.is_failure:
                 return FlextResult[FlextTypes.Core.Dict].fail(
-                    f"Failed to add command to session: {add_result.error}"
+                    f"Failed to add command to session: {add_result.error}",
                 )
             session = add_result.value
 
@@ -351,7 +359,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
             start_result = self.start_command_execution(command)
             if start_result.is_failure:
                 return FlextResult[FlextTypes.Core.Dict].fail(
-                    f"Failed to start command execution: {start_result.error}"
+                    f"Failed to start command execution: {start_result.error}",
                 )
             command = start_result.value
 
@@ -367,10 +375,10 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
 
             logger.debug("Executed command workflow: %s", command_line)
             return FlextResult[FlextTypes.Core.Dict].ok(workflow_result)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             logger.exception("Command workflow execution failed")
             return FlextResult[FlextTypes.Core.Dict].fail(
-                f"Command workflow execution failed: {e}"
+                f"Command workflow execution failed: {e}",
             )
 
 

@@ -85,20 +85,20 @@ class TestFlextCliDataProcessingFunctional:
         # Execute real transformation
         config: FlextTypes.Core.Dict = {
             "filter_field": "active",
-            "filter_value": "true"
+            "filter_value": "true",
         }
         result = self.processor.transform_data_pipeline(
             data=raw_data,
-            pipeline_config=config
+            pipeline_config=config,
         )
 
         # Verify transformations worked
         assert FlextTestsMatchers.is_successful_result(result)
         transformed_data = result.unwrap()
 
-        assert transformed_data[0]["name"].strip() == "Alice"  # Check trimming capability
-        assert int(transformed_data[0]["age"]) == 25  # Numeric conversion check
-        assert str(transformed_data[0]["active"]).lower() in ["true", "false"]  # Boolean conversion check
+        assert str(transformed_data[0]["name"]).strip() == "Alice"
+        assert int(str(transformed_data[0]["age"])) == 25
+        assert str(transformed_data[0]["active"]).lower() in ["true", "false"]
 
     def test_batch_validation_performance(self) -> None:
         """Test batch validation performance using flext_tests profiler."""
@@ -136,8 +136,9 @@ class TestFlextCliDataProcessingFunctional:
         # Check structured aggregation result
         assert "items" in aggregated_data
         assert "total_count" in aggregated_data
-        assert aggregated_data["total_count"] > 0
-        assert len(aggregated_data["items"]) >= 2  # At least 2 data items
+        assert int(str(aggregated_data["total_count"])) > 0
+        items = aggregated_data["items"]
+        assert len(items) >= 2
 
     def test_export_functionality_real_files(self) -> None:
         """Test export functionality with real file operations."""
@@ -153,7 +154,7 @@ class TestFlextCliDataProcessingFunctional:
             # Execute real export
             result = self.processor.export_to_file(
                 data=test_data,
-                file_path=str(export_path)
+                file_path=str(export_path),
             )
 
             # Verify export worked
@@ -178,12 +179,13 @@ class TestFlextCliDataProcessingFunctional:
         if result.is_success:
             assert result.unwrap() is not None
         else:
-            assert "required" in result.error.lower() or "data" in result.error.lower()
+            error_str = str(result.error or "").lower()
+            assert "required" in error_str or "data" in error_str
 
         # Test with malformed data
         malformed_data: list[FlextTypes.Core.Dict] = [
             {"incomplete": True},
-            {"malformed": "data"}  # Remove None from list as it's not a dict
+            {"malformed": "data"},  # Remove None from list as it's not a dict
         ]
         config: FlextTypes.Core.Dict = {"filter_field": "incomplete", "filter_value": True}
         result = self.processor.transform_data_pipeline(malformed_data, config)
@@ -196,7 +198,7 @@ class TestFlextCliDataProcessingFunctional:
         complex_data = [
             self.realistic_data.user_registration_data(),
             self.realistic_data.order_data(),
-            self.realistic_data.api_response_data()
+            self.realistic_data.api_response_data(),
         ]
 
         # Execute multi-step workflow using real available methods
@@ -231,7 +233,7 @@ class TestFlextCliDataProcessingEdgeCases:
             assert result.unwrap() == []
         else:
             # Defensive behavior: reject empty data with clear message
-            assert "required" in result.error.lower() or "empty" in result.error.lower()
+            assert "required" in str(result.error or "").lower() or "empty" in str(result.error or "").lower()
 
     def test_large_dataset_handling(self) -> None:
         """Test handling of large datasets."""
@@ -247,7 +249,7 @@ class TestFlextCliDataProcessingEdgeCases:
         malformed_data: list[FlextTypes.Core.Dict] = [
             {"valid": "data"},
             {"missing_required": True},
-            {"extra_field": "unexpected"}
+            {"extra_field": "unexpected"},
         ]
 
         # Should handle malformed data gracefully

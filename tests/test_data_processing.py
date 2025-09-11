@@ -57,7 +57,7 @@ class TestFlextCliDataProcessing:
         data = [
             {"name": "test1", "active": True},
             {"name": "test2", "active": False},
-            {"name": "test3", "active": True}
+            {"name": "test3", "active": True},
         ]
 
         # Test with filters (should filter based on active=True)
@@ -75,7 +75,7 @@ class TestFlextCliDataProcessing:
         data = [
             {"category": "A", "value": 10},
             {"category": "B", "value": 20},
-            {"category": "A", "value": 15}
+            {"category": "A", "value": 15},
         ]
 
         result = processor.aggregate_data(data)
@@ -123,9 +123,11 @@ class TestFlextCliDataProcessing:
 
         # Should fail gracefully
         assert result.is_failure
-        assert ("failed" in result.error.lower() or
-                "error" in result.error.lower() or
-                "directory does not exist" in result.error.lower())
+
+        error_str = str(result.error or "").lower()
+        assert ("failed" in error_str or
+                "error" in error_str or
+                "directory does not exist" in error_str)
 
     def test_process_batch_data(self) -> None:
         """Test batch processing functionality."""
@@ -134,7 +136,7 @@ class TestFlextCliDataProcessing:
         batch_data = [
             {"id": 1, "value": "a"},
             {"id": 2, "value": "b"},
-            {"id": 3, "value": "c"}
+            {"id": 3, "value": "c"},
         ]
 
         # Test batch processing (should process all items)
@@ -167,9 +169,9 @@ class TestFlextCliDataProcessing:
         complex_data: FlextTypes.Core.Dict = {
             "users": [
                 {"name": "Alice", "details": {"age": 30, "city": "NYC"}},
-                {"name": "Bob", "details": {"age": 25, "city": "LA"}}
+                {"name": "Bob", "details": {"age": 25, "city": "LA"}},
             ],
-            "metadata": {"count": 2, "source": "test"}
+            "metadata": {"count": 2, "source": "test"},
         }
 
         result = processor.transform_data(complex_data)
@@ -186,7 +188,7 @@ class TestFlextCliDataProcessing:
             {"department": "Engineering", "salary": 100000},
             {"department": "Engineering", "salary": 120000},
             {"department": "Sales", "salary": 80000},
-            {"department": "Sales", "salary": 85000}
+            {"department": "Sales", "salary": 85000},
         ]
 
         result = processor.aggregate_data(data)

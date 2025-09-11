@@ -14,9 +14,11 @@ import uuid
 from datetime import UTC, datetime
 
 import time
-from collections.abc import Callable
 from functools import wraps
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 from flext_core import (
     FlextContainer,
@@ -27,9 +29,6 @@ from flext_core import (
     FlextDomainService,
 )
 
-# =============================================================================
-# VERSION INFORMATION FROM SOURCE OF TRUTH
-# =============================================================================
 
 from flext_cli.__version__ import (
     __version__,
@@ -55,9 +54,6 @@ from flext_cli.__version__ import (
     __url__,
 )
 
-# =============================================================================
-# CORE CLI CLASSES - Primary API surface from SOURCE OF TRUTH
-# =============================================================================
 
 from flext_cli.api import FlextCliApi
 from flext_cli.auth import FlextCliAuth
@@ -71,9 +67,6 @@ from flext_cli.logging_setup import FlextCliLoggingSetup
 from flext_cli.models import FlextCliModels
 from flext_cli.services import FlextCliServices
 
-# =============================================================================
-# UTILITY CLASSES FROM SOURCE OF TRUTH
-# =============================================================================
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.data_processing import FlextCliDataProcessing
@@ -81,18 +74,12 @@ from flext_cli.decorators import FlextCliDecorators
 from flext_cli.domain_services import FlextCliDomainServices
 from flext_cli.file_operations import FlextCliFileOperations
 from flext_cli.interactions import FlextCliInteractions
-from flext_cli.validation import FlextCliValidation
+# FlextCliValidation removed - use FlextValidations from flext-core directly
 
-# =============================================================================
-# COMMAND MODULES FROM SOURCE OF TRUTH
-# =============================================================================
 
 # CMD módulo não existe mais - refatorado para config
-FlextCliConfigCommands = FlextCliConfig  # alias simples
+FlextCliConfigCommands = FlextCliConfig
 
-# =============================================================================
-# TYPE SYSTEM FROM SOURCE OF TRUTH
-# =============================================================================
 
 from flext_cli.typings import (
     E,
@@ -104,9 +91,6 @@ from flext_cli.typings import (
     V,
 )
 
-# =============================================================================
-# EXCEPTIONS FROM SOURCE OF TRUTH
-# =============================================================================
 
 from flext_cli.exceptions import (
     FlextCliError,
@@ -125,9 +109,6 @@ from flext_cli.exceptions import (
     FlextCliException,
 )
 
-# =============================================================================
-# CLI ENTRY POINT FROM SOURCE OF TRUTH
-# =============================================================================
 
 from flext_cli.cli import FlextCliMain
 
@@ -180,6 +161,10 @@ class FlextCliModule(FlextDomainService[str]):
             raise ValueError(msg)
         self._module_info = module_info_result.value
 
+    def get_logger(self) -> FlextLogger:
+        """Get logger instance (public access)."""
+        return self._logger
+
     def _load_module_info(self) -> FlextResult[FlextCliModule.ModuleInfo]:
         """Load module information from SOURCE OF TRUTH."""
         try:
@@ -192,9 +177,9 @@ class FlextCliModule(FlextDomainService[str]):
             }
 
             return FlextResult[FlextCliModule.ModuleInfo].ok(module_info)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[FlextCliModule.ModuleInfo].fail(
-                f"Module info loading from SOURCE OF TRUTH failed: {e}"
+                f"Module info loading from SOURCE OF TRUTH failed: {e}",
             )
 
     def get_cli_config(self) -> FlextResult[FlextCliConfig]:
@@ -207,9 +192,9 @@ class FlextCliModule(FlextDomainService[str]):
                 config = FlextCliConfig()
 
             return FlextResult[FlextCliConfig].ok(config)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[FlextCliConfig].fail(
-                f"CLI config retrieval from SOURCE OF TRUTH failed: {e}"
+                f"CLI config retrieval from SOURCE OF TRUTH failed: {e}",
             )
 
     def save_auth_token(self, token: str) -> FlextResult[None]:
@@ -218,13 +203,15 @@ class FlextCliModule(FlextDomainService[str]):
             # Use SOURCE OF TRUTH authentication service
             auth = FlextCliAuth()
             return auth.save_auth_token(token)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[None].fail(
-                f"Auth token save using SOURCE OF TRUTH failed: {e}"
+                f"Auth token save using SOURCE OF TRUTH failed: {e}",
             )
 
     def create_table(
-        self, data: list[FlextTypes.Core.Dict], title: str | None = None
+        self,
+        data: list[FlextTypes.Core.Dict],
+        title: str | None = None,
     ) -> FlextResult[str]:
         """Create formatted table using SOURCE OF TRUTH formatters."""
         try:
@@ -234,11 +221,11 @@ class FlextCliModule(FlextDomainService[str]):
             if table_result.is_success:
                 return FlextResult[str].ok(str(table_result.value))
             return FlextResult[str].fail(
-                table_result.error or "Table formatting failed"
+                table_result.error or "Table formatting failed",
             )
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[str].fail(
-                f"Table creation using SOURCE OF TRUTH failed: {e}"
+                f"Table creation using SOURCE OF TRUTH failed: {e}",
             )
 
     def format_output(self, data: object, format_type: str) -> FlextResult[str]:
@@ -251,9 +238,9 @@ class FlextCliModule(FlextDomainService[str]):
                 return FlextResult[str].ok(format_result.value)
             # Fallback to string representation from SOURCE OF TRUTH
             return FlextResult[str].ok(str(data))
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[str].fail(
-                f"Output formatting using SOURCE OF TRUTH failed: {e}"
+                f"Output formatting using SOURCE OF TRUTH failed: {e}",
             )
 
     def check_authentication(self) -> FlextResult[bool]:
@@ -262,13 +249,14 @@ class FlextCliModule(FlextDomainService[str]):
             # Use SOURCE OF TRUTH authentication service
             auth = FlextCliAuth()
             return auth.check_authentication_status()
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[bool].fail(
-                f"Authentication check using SOURCE OF TRUTH failed: {e}"
+                f"Authentication check using SOURCE OF TRUTH failed: {e}",
             )
 
     def measure_execution_time(
-        self, operation_name: str
+        self,
+        operation_name: str,
     ) -> FlextResult[dict[str, object]]:
         """Measure execution time using SOURCE OF TRUTH timing utilities."""
         try:
@@ -283,9 +271,9 @@ class FlextCliModule(FlextDomainService[str]):
             }
 
             return FlextResult[dict[str, object]].ok(execution_info)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[dict[str, object]].fail(
-                f"Execution time measurement using SOURCE OF TRUTH failed: {e}"
+                f"Execution time measurement using SOURCE OF TRUTH failed: {e}",
             )
 
     def get_available_operations(
@@ -319,9 +307,9 @@ class FlextCliModule(FlextDomainService[str]):
             }
 
             return FlextResult[FlextCliModule.ConvenienceOperations].ok(operations)
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[FlextCliModule.ConvenienceOperations].fail(
-                f"Operations catalog from SOURCE OF TRUTH failed: {e}"
+                f"Operations catalog from SOURCE OF TRUTH failed: {e}",
             )
 
     def execute(self) -> FlextResult[str]:
@@ -329,13 +317,16 @@ class FlextCliModule(FlextDomainService[str]):
         try:
             # Default execution returns module information from SOURCE OF TRUTH
             return FlextResult[str].ok(
-                f"FlextCliModule v{self._module_info['version']} initialized successfully"
+                f"FlextCliModule v{self._module_info['version']} initialized successfully",
             )
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[str].fail(f"CLI module execution failed: {e}")
 
     def execute_cli_operation(
-        self, operation_name: str, *args: object, **kwargs: object
+        self,
+        operation_name: str,
+        *args: object,
+        **kwargs: object,
     ) -> FlextResult[object]:
         """Execute specific CLI operation using operation name mapping."""
         operations_map = {
@@ -370,7 +361,9 @@ class FlextCliModule(FlextDomainService[str]):
             return self._module.save_auth_token(token)
 
         def create_data_table(
-            self, data: list[FlextTypes.Core.Dict], title: str | None = None
+            self,
+            data: list[FlextTypes.Core.Dict],
+            title: str | None = None,
         ) -> FlextResult[str]:
             """Create formatted table - convenience wrapper."""
             return self._module.create_table(data, title)
@@ -396,10 +389,10 @@ class FlextCliModule(FlextDomainService[str]):
 
         def require_authentication(
             self,
-        ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+        ) -> Callable[[Callable[..., object]], Callable[..., object]]:
             """Create authentication requirement decorator using SOURCE OF TRUTH."""
 
-            def decorator(func: Callable[..., Any]) -> Callable[..., Any]:  # type: ignore[explicit-any]
+            def decorator(func: Callable[..., object]) -> Callable[..., object]:
                 @wraps(func)
                 def wrapper(*args: object, **kwargs: object) -> object:
                     # Check authentication using SOURCE OF TRUTH
@@ -415,18 +408,19 @@ class FlextCliModule(FlextDomainService[str]):
 
         def measure_time(
             self,
-        ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+        ) -> Callable[[Callable[..., object]], Callable[..., object]]:
             """Create time measurement decorator using SOURCE OF TRUTH."""
 
-            def decorator(func: Callable[..., Any]) -> Callable[..., Any]:  # type: ignore[explicit-any]
+            def decorator(func: Callable[..., object]) -> Callable[..., object]:
                 @wraps(func)
                 def wrapper(*args: object, **kwargs: object) -> object:
                     # Measure execution using SOURCE OF TRUTH
                     timing_result = self._module.measure_execution_time(func.__name__)
                     if timing_result.is_success:
-                        self._module._logger.debug(
-                            f"Operation timing: {timing_result.value}"
-                        )
+                        timing_msg = f"Operation timing: {timing_result.value}"
+                        module = self._module
+                        logger = module.get_logger()
+                        logger.debug(timing_msg)
 
                     try:
                         return func(*args, **kwargs)
@@ -439,19 +433,11 @@ class FlextCliModule(FlextDomainService[str]):
             return decorator
 
 
-# =============================================================================
-# MODULE-LEVEL CONVENIENCE INSTANCE FROM SOURCE OF TRUTH
-# =============================================================================
-
 # Global module instance for convenience operations
 _cli_module = FlextCliModule()
 _convenience_api = FlextCliModule.ConvenienceAPI(_cli_module)
 _decorator_factory = FlextCliModule.DecoratorFactory(_cli_module)
 
-
-# =============================================================================
-# LEGACY ALIASES FOR TESTS (SIMPLE AS POSSIBLE)
-# =============================================================================
 
 # CLI aliases - testes esperam essas funções/objetos
 # CORREÇÃO ARQUITETURAL: Importar CLI do módulo dedicado
@@ -489,10 +475,6 @@ def get_cli_config() -> FlextCliConfig:
     """Get CLI config instance - test compatibility."""
     return FlextCliConfig()
 
-
-# =============================================================================
-# EXPLICIT EXPORTS FROM SOURCE OF TRUTH - NO AGGREGATION LOGIC
-# =============================================================================
 
 __all__ = [
     # =============================================================================
@@ -545,9 +527,8 @@ __all__ = [
     "FlextCliDomainServices",
     "FlextCliFileOperations",
     "FlextCliInteractions",
-    "FlextCliValidation",
+    # "FlextCliValidation", # removed - use FlextValidations from flext-core
     # =============================================================================
-    # TYPE SYSTEM FROM SOURCE OF TRUTH
     # =============================================================================
     "E",
     "F",

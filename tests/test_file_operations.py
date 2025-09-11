@@ -106,11 +106,11 @@ class TestFlextCliFileOperations:
             return FlextResult[str].ok(content.upper())
 
         result = file_ops.backup_and_process(
-            "/nonexistent/file.txt", process_function
+            "/nonexistent/file.txt", process_function,
         )
 
         assert result.is_failure
-        assert "not found" in result.error.lower() or "does not exist" in result.error.lower()
+        assert "not found" in str(result.error or "").lower() or "does not exist" in str(result.error or "").lower()
 
     def test_backup_and_process_with_failing_processor(self) -> None:
         """Test backup_and_process when processor fails."""
@@ -128,7 +128,7 @@ class TestFlextCliFileOperations:
             result = file_ops.backup_and_process(str(file_path), failing_processor)
 
             assert result.is_failure
-            assert "Processing failed" in result.error
+            assert "Processing failed" in str(result.error or "")
 
             # Original file should be preserved
             current_content = file_path.read_text()

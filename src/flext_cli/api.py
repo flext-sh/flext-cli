@@ -49,9 +49,9 @@ class FlextCliApi(FlextDomainService[str]):
         - Advanced Pydantic v2 optimizations with computed fields
     """
 
-    # Pydantic fields for state management - SIMPLE ALIAS: Use default_factory to avoid validation issues
-    state: FlextCliApi.ApiState = Field(default_factory=lambda: FlextCliApi.ApiState(), description="API state manager")
-    dispatcher: FlextCliApi.OperationDispatcher | None = Field(default=None, description="Operation dispatcher")
+    # State management attributes - SIMPLE ALIAS: Use optional fields with proper defaults
+    state: FlextCliApi.ApiState | None = Field(default=None)
+    dispatcher: FlextCliApi.OperationDispatcher | None = Field(default=None)
 
     # Private attributes for Pydantic
     _formatters: FlextCliFormatters = PrivateAttr()
@@ -90,91 +90,98 @@ class FlextCliApi(FlextDomainService[str]):
         """Nested operation dispatcher using Python 3.13 pattern matching."""
 
         def __init__(
-            self, state: FlextCliApi.ApiState, formatters: FlextCliFormatters
+            self,
+            state: FlextCliApi.ApiState,
+            formatters: FlextCliFormatters,
         ) -> None:
             self.state = state
             self.formatters = formatters
 
         def dispatch_operation(
-            self, operation: str, **params: object
+            self,
+            operation: str,
+            **params: object,
         ) -> FlextResult[object]:
             """Advanced operation dispatching using match-case patterns."""
             match operation.lower():
                 case "format":
                     format_result = self._handle_format_operation(
-                        params.get("data"), str(params.get("format_type", "table"))
+                        params.get("data"),
+                        str(params.get("format_type", "table")),
                     )
                     return (
                         FlextResult[object].ok(format_result.value)
                         if format_result.is_success
                         else FlextResult[object].fail(
-                            format_result.error or "Format failed"
+                            format_result.error or "Format failed",
                         )
                     )
                 case "export":
                     export_result = self._handle_export_operation(
-                        params.get("data"), params.get("file_path")
+                        params.get("data"),
+                        params.get("file_path"),
                     )
                     return (
                         FlextResult[object].ok(export_result.value)
                         if export_result.is_success
                         else FlextResult[object].fail(
-                            export_result.error or "Export failed"
+                            export_result.error or "Export failed",
                         )
                     )
                 case "transform":
                     transform_result = self._handle_transform_operation(
-                        params.get("data"), params.get("filters")
+                        params.get("data"),
+                        params.get("filters"),
                     )
                     return (
                         FlextResult[object].ok(transform_result.value)
                         if transform_result.is_success
                         else FlextResult[object].fail(
-                            transform_result.error or "Transform failed"
+                            transform_result.error or "Transform failed",
                         )
                     )
                 case "create_command":
                     cmd_result = self._handle_create_command_operation(
-                        params.get("command_line")
+                        params.get("command_line"),
                     )
                     return (
                         FlextResult[object].ok(cmd_result.value)
                         if cmd_result.is_success
                         else FlextResult[object].fail(
-                            cmd_result.error or "Create command failed"
+                            cmd_result.error or "Create command failed",
                         )
                     )
                 case "execute_command":
                     exec_result = self._handle_execute_command_operation(
-                        params.get("command")
+                        params.get("command"),
                     )
                     return (
                         FlextResult[object].ok(exec_result.value)
                         if exec_result.is_success
                         else FlextResult[object].fail(
-                            exec_result.error or "Execute command failed"
+                            exec_result.error or "Execute command failed",
                         )
                     )
                 case "create_session":
                     session_result = self._handle_create_session_operation(
-                        params.get("user_id")
+                        params.get("user_id"),
                     )
                     return (
                         FlextResult[object].ok(session_result.value)
                         if session_result.is_success
                         else FlextResult[object].fail(
-                            session_result.error or "Create session failed"
+                            session_result.error or "Create session failed",
                         )
                     )
                 case "end_session":
                     end_result = self._handle_end_session_operation(
-                        params.get("session_id")
+                        params.get("session_id"),
                     )
                     return (
                         FlextResult[object].ok(end_result.value)
                         if end_result.is_success
                         else FlextResult[object].fail(
-                            end_result.error or "End session failed"
+                            end_result.error or "End session failed",
                         )
                     )
                 case "health":
@@ -183,18 +190,18 @@ class FlextCliApi(FlextDomainService[str]):
                         FlextResult[object].ok(health_result.value)
                         if health_result.is_success
                         else FlextResult[object].fail(
-                            health_result.error or "Health check failed"
+                            health_result.error or "Health check failed",
                         )
                     )
                 case "configure":
                     config_result = self._handle_configure_operation(
-                        params.get("config")
+                        params.get("config"),
                     )
                     return (
                         FlextResult[object].ok(config_result.value)
                         if config_result.is_success
                         else FlextResult[object].fail(
-                            config_result.error or "Configure failed"
+                            config_result.error or "Configure failed",
                         )
                     )
                 case "aggregate":
@@ -207,7 +214,7 @@ class FlextCliApi(FlextDomainService[str]):
                         FlextResult[object].ok(agg_result.value)
                         if agg_result.is_success
                         else FlextResult[object].fail(
-                            agg_result.error or "Aggregate failed"
+                            agg_result.error or "Aggregate failed",
                         )
                     )
                 case "batch_export":
@@ -220,14 +227,16 @@ class FlextCliApi(FlextDomainService[str]):
                         FlextResult[object].ok(batch_result.value)
                         if batch_result.is_success
                         else FlextResult[object].fail(
-                            batch_result.error or "Batch export failed"
+                            batch_result.error or "Batch export failed",
                         )
                     )
                 case _:
                     return FlextResult[object].fail(f"Unknown operation: {operation}")
 
         def _handle_format_operation(
-            self, data: object, format_type: str
+            self,
+            data: object,
+            format_type: str,
         ) -> FlextResult[str]:
             """Handle format operations using advanced parameter validation."""
             try:
@@ -237,7 +246,9 @@ class FlextCliApi(FlextDomainService[str]):
                         return FlextResult[str].ok(result)
                     case "yaml":
                         result = yaml.dump(
-                            data, default_flow_style=False, allow_unicode=True
+                            data,
+                            default_flow_style=False,
+                            allow_unicode=True,
                         )
                         return FlextResult[str].ok(result)
                     case "csv":
@@ -248,15 +259,19 @@ class FlextCliApi(FlextDomainService[str]):
                             # Convert Table to string representation
                             return FlextResult[str].ok(str(table_result.value))
                         return FlextResult[str].fail(
-                            table_result.error or "Table formatting failed"
+                            table_result.error or "Table formatting failed",
                         )
                     case "plain":
                         return FlextResult[str].ok(str(data))
                     case _:
                         return FlextResult[str].fail(
-                            f"Unsupported format type: {format_type}"
+                            f"Unsupported format type: {format_type}",
                         )
-            except Exception as e:
+            except (
+                ImportError,
+                AttributeError,
+                ValueError,
+            ) as e:
                 return FlextResult[str].fail(f"Format failed: {e}")
 
         def _format_as_csv(self, data: object) -> FlextResult[str]:
@@ -268,20 +283,20 @@ class FlextCliApi(FlextDomainService[str]):
 
         def _handle_export_operation(
             self,
-            data: object,  # noqa: ARG002
-            file_path: object,  # noqa: ARG002
+            _data: object,
+            _file_path: object,
         ) -> FlextResult[str]:
             """ELIMINATED: File I/O violates API single responsibility principle."""
             # VIOLATION: CLI API should NOT handle file operations directly
             # SOLUTION: Delegate to proper file operations domain (FlextCliFileOperations)
             return FlextResult[str].fail(
-                "Export operations moved to FlextCliFileOperations domain"
+                "Export operations moved to FlextCliFileOperations domain",
             )
 
         def _handle_transform_operation(
             self,
-            data: object,  # noqa: ARG002
-            filters: object,  # noqa: ARG002
+            _data: object,
+            _filters: object,
         ) -> FlextResult[FlextTypes.Core.List]:
             """ELIMINATED: Data transformation violates API single responsibility principle."""
             # VIOLATION ANALYSIS:
@@ -292,23 +307,25 @@ class FlextCliApi(FlextDomainService[str]):
             #
             # SOLUTION: Use FlextUtilities from flext-core for data transformations
             return FlextResult[FlextTypes.Core.List].fail(
-                "Data transformation operations moved to FlextUtilities from flext-core - use existing utilities"
+                "Data transformation operations moved to FlextUtilities from flext-core - use existing utilities",
             )
 
         def _handle_create_command_operation(
-            self, command_line: object
+            self,
+            command_line: object,
         ) -> FlextResult[FlextCliModels.CliCommand]:
             """Handle command creation with advanced validation."""
             if not isinstance(command_line, str) or not command_line.strip():
                 return FlextResult[FlextCliModels.CliCommand].fail(
-                    "Invalid command line"
+                    "Invalid command line",
                 )
             command = FlextCliModels.CliCommand(command_line=command_line.strip())
             self.state.command_history.append(command)
             return FlextResult[FlextCliModels.CliCommand].ok(command)
 
         def _handle_execute_command_operation(
-            self, command: object
+            self,
+            command: object,
         ) -> FlextResult[str]:
             """Handle command execution with validation."""
             if not isinstance(command, FlextCliModels.CliCommand):
@@ -316,18 +333,20 @@ class FlextCliApi(FlextDomainService[str]):
             return FlextResult[str].ok(f"Executed: {command.command_line}")
 
         def _handle_create_session_operation(
-            self, user_id: object
+            self,
+            user_id: object,
         ) -> FlextResult[FlextCliModels.CliSession]:
             """Handle session creation with advanced state management."""
             session = FlextCliModels.CliSession(
-                user_id=str(user_id) if user_id else None
+                user_id=str(user_id) if user_id else None,
             )
             if self.state.enable_session_tracking:
                 self.state.sessions[session.session_id] = session
             return FlextResult[FlextCliModels.CliSession].ok(session)
 
         def _handle_end_session_operation(
-            self, session_id: object
+            self,
+            session_id: object,
         ) -> FlextResult[None]:
             """Handle session end with advanced validation."""
             if not isinstance(session_id, str) or not session_id.strip():
@@ -337,7 +356,7 @@ class FlextCliApi(FlextDomainService[str]):
                 UUID(session_id)
             except ValueError:
                 return FlextResult[None].fail(
-                    f"Invalid session ID format: {session_id}"
+                    f"Invalid session ID format: {session_id}",
                 )
 
             # Remove from tracking if exists
@@ -362,7 +381,7 @@ class FlextCliApi(FlextDomainService[str]):
                         "session_tracking": self.state.enable_session_tracking,
                         "command_history": self.state.enable_command_history,
                     },
-                }
+                },
             )
 
         def _handle_configure_operation(self, config: object) -> FlextResult[None]:
@@ -386,14 +405,18 @@ class FlextCliApi(FlextDomainService[str]):
                                 self.state.version = str(value)
 
                 return FlextResult[None].ok(None)
-            except Exception as e:
+            except (
+                ImportError,
+                AttributeError,
+                ValueError,
+            ) as e:
                 return FlextResult[None].fail(f"Configuration failed: {e}")
 
         def _handle_aggregate_operation(
             self,
-            data: object,  # noqa: ARG002
-            group_by: object,  # noqa: ARG002
-            sum_fields: object,  # noqa: ARG002
+            _data: object,
+            _group_by: object,
+            _sum_fields: object,
         ) -> FlextResult[FlextTypes.Core.Dict]:
             """ELIMINATED: Data aggregation violates API single responsibility principle."""
             # VIOLATION ANALYSIS:
@@ -405,28 +428,30 @@ class FlextCliApi(FlextDomainService[str]):
             #
             # SOLUTION: Use FlextDataProcessing service from flext-core for aggregations
             return FlextResult[FlextTypes.Core.Dict].fail(
-                "Data aggregation operations moved to FlextDataProcessing service - use dedicated analytics domain"
+                "Data aggregation operations moved to FlextDataProcessing service - use dedicated analytics domain",
             )
 
         def _handle_batch_export_operation(
-            self, datasets: object, base_path: object, format_type: object
+            self,
+            datasets: object,
+            base_path: object,
+            format_type: object,
         ) -> FlextResult[FlextTypes.Core.StringList]:
             """Handle batch export - SIMPLE ALIAS for test compatibility."""
             try:
-
                 if not isinstance(datasets, list):
                     return FlextResult[FlextTypes.Core.StringList].fail(
-                        "Datasets must be a list"
+                        "Datasets must be a list",
                     )
 
                 if not isinstance(base_path, (str, Path)):
                     return FlextResult[FlextTypes.Core.StringList].fail(
-                        "Base path must be string or Path"
+                        "Base path must be string or Path",
                     )
 
                 if not isinstance(format_type, str):
                     return FlextResult[FlextTypes.Core.StringList].fail(
-                        "Format type must be string"
+                        "Format type must be string",
                     )
 
                 base = Path(base_path)
@@ -440,7 +465,7 @@ class FlextCliApi(FlextDomainService[str]):
 
                     if format_type == "json":
                         content = json.dumps(data, indent=2)
-                    elif format_type in ("yaml", "yml"):
+                    elif format_type in {"yaml", "yml"}:
                         content = yaml.safe_dump(data, default_flow_style=False)
                     else:
                         content = str(data)
@@ -450,9 +475,13 @@ class FlextCliApi(FlextDomainService[str]):
 
                 return FlextResult[FlextTypes.Core.StringList].ok(exported_files)
 
-            except Exception as e:
+            except (
+                ImportError,
+                AttributeError,
+                ValueError,
+            ) as e:
                 return FlextResult[FlextTypes.Core.StringList].fail(
-                    f"Batch export failed: {e}"
+                    f"Batch export failed: {e}",
                 )
 
     # =========================================================================
@@ -464,7 +493,7 @@ class FlextCliApi(FlextDomainService[str]):
         *,
         models: FlextModels | None = None,
         services: FlextCliServices | None = None,
-        version: str = "0.9.1",  # noqa: ARG002
+        version: str = "0.9.1",
     ) -> None:
         """Initialize unified API with nested architecture and flext-core patterns."""
         # Initialize components needed for dispatcher (temporary)
@@ -473,15 +502,16 @@ class FlextCliApi(FlextDomainService[str]):
         # Initialize state and dispatcher BEFORE calling super() - SIMPLE ALIAS approach
         state = FlextCliApi.ApiState(version=version)
         dispatcher = FlextCliApi.OperationDispatcher(
-            state=state, formatters=temp_formatters
+            state=state,
+            formatters=temp_formatters,
         )
 
-        # Initialize FlextDomainService first - SIMPLE ALIAS approach
+        # Initialize FlextDomainService without extra data
         super().__init__()
-        
-        # Override default fields with our initialized objects
-        self.state = state
-        self.dispatcher = dispatcher
+
+        # Set state and dispatcher using object.__setattr__ to bypass frozen model
+        object.__setattr__(self, "state", state)
+        object.__setattr__(self, "dispatcher", dispatcher)
 
         # Set all private attributes after Pydantic initialization
         self._formatters = temp_formatters
@@ -495,23 +525,28 @@ class FlextCliApi(FlextDomainService[str]):
     # =========================================================================
 
     def execute(
-        self, operation: str | None = None, **kwargs: object
+        self,
+        operation: str | None = None,
+        **kwargs: object,
     ) -> FlextResult[str]:
         """Execute service request - required by FlextDomainService with simple alias support."""
         if operation is None:
             # Default execution for FlextDomainService
+            if self.dispatcher is None:
+                return FlextResult[str].fail("Dispatcher not initialized")
             health_result = self.dispatcher.dispatch_operation("health")
             if health_result.is_success:
                 return FlextResult[str].ok("CLI API executed successfully")
             return FlextResult[str].fail(f"API execution failed: {health_result.error}")
 
-        # SIMPLE ALIAS: Handle operation dispatch for test compatibility
         if operation == "format":
             format_type = kwargs.get("format_type", "plain")
             data = kwargs.get("data", {})
             return self.format_data(data, str(format_type))
 
         # Dispatch other operations through the dispatcher
+        if self.dispatcher is None:
+            return FlextResult[str].fail("Dispatcher not initialized")
         result = self.dispatcher.dispatch_operation(operation, **kwargs)
         return (
             FlextResult[str].ok(str(result.value))
@@ -531,6 +566,8 @@ class FlextCliApi(FlextDomainService[str]):
         all_params = dict(kwargs)
         if operation is not None:
             all_params["operation"] = operation
+        if self.dispatcher is None:
+            return FlextResult[object].fail("Dispatcher not initialized")
         return self.dispatcher.dispatch_operation(operation_name, **all_params)
 
     # =========================================================================
@@ -539,7 +576,6 @@ class FlextCliApi(FlextDomainService[str]):
 
     def format_data(self, data: object, format_type: str) -> FlextResult[str]:
         """Format data to specified format type."""
-        # SIMPLE ALIAS: Direct formatting for test compatibility - bypass complex dispatcher
         try:
             if format_type == "table":
                 table_result = self._formatters.format_table(data)
@@ -550,7 +586,7 @@ class FlextCliApi(FlextDomainService[str]):
                     console.print(table_result.value)
                     return FlextResult[str].ok(string_io.getvalue())
                 return FlextResult[str].fail(
-                    table_result.error or "Table formatting failed"
+                    table_result.error or "Table formatting failed",
                 )
             if format_type == "json":
                 return self._formatters.format_json(data)
@@ -563,21 +599,24 @@ class FlextCliApi(FlextDomainService[str]):
             # Invalid format should fail, not default to string
             valid_formats = ["table", "json", "yaml", "csv", "plain"]
             return FlextResult[str].fail(
-                f"Invalid format: {format_type}. Valid formats: {valid_formats}"
+                f"Invalid format: {format_type}. Valid formats: {valid_formats}",
             )
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[str].fail(f"Format failed: {e}")
 
     def export_data(self, data: object, file_path: str | Path) -> FlextResult[str]:
         """Export data to file - SIMPLE ALIAS for test compatibility."""
         try:
-
             path = Path(file_path)
             suffix = path.suffix.lower()
 
             if suffix == ".json":
                 content = json.dumps(data, indent=2)
-            elif suffix in (".yaml", ".yml"):
+            elif suffix in {".yaml", ".yml"}:
                 content = yaml.safe_dump(data, default_flow_style=False)
             else:
                 content = str(data)
@@ -585,31 +624,38 @@ class FlextCliApi(FlextDomainService[str]):
             path.write_text(content, encoding="utf-8")
             return FlextResult[str].ok(f"Data exported to {file_path}")
 
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+            FileNotFoundError,
+            PermissionError,
+        ) as e:
             return FlextResult[str].fail(f"Export failed: {e}")
 
     def create_table(
-        self, data: object, title: str | None = None
+        self,
+        data: object,
+        title: str | None = None,
     ) -> FlextResult[object]:
         """Create formatted table representation using flext-cli formatters."""
         table_result = self._formatters.format_table(data, title=title)
         if table_result.is_success:
-            # SIMPLE ALIAS: Return actual Rich Table for test compatibility
             return FlextResult[object].ok(table_result.value)
         return FlextResult[object].fail(table_result.error or "Table creation failed")
 
     def aggregate_data(
         self,
-        data: list[FlextTypes.Core.Dict],  # noqa: ARG002
-        group_by: str,  # noqa: ARG002
-        sum_fields: FlextTypes.Core.StringList | None = None,  # noqa: ARG002
+        _data: list[FlextTypes.Core.Dict],
+        _group_by: str,
+        _sum_fields: FlextTypes.Core.StringList | None = None,
     ) -> FlextResult[FlextTypes.Core.Dict]:
         """ELIMINATED: Data aggregation violates API single responsibility principle."""
         # VIOLATION: CLI API should not perform complex data analysis operations
         # SOLUTION: Use FlextDataProcessing service from flext-core for data aggregations
         # PATTERN: Separate data analytics from CLI API operations
         return FlextResult[FlextTypes.Core.Dict].fail(
-            "Data aggregation operations moved to FlextDataProcessing service - use dedicated analytics domain"
+            "Data aggregation operations moved to FlextDataProcessing service - use dedicated analytics domain",
         )
 
     def batch_export(
@@ -619,6 +665,10 @@ class FlextCliApi(FlextDomainService[str]):
         format_type: str,
     ) -> FlextResult[FlextTypes.Core.StringList]:
         """Export multiple datasets to files."""
+        if self.dispatcher is None:
+            return FlextResult[FlextTypes.Core.StringList].fail(
+                "Dispatcher not initialized",
+            )
         result = self.dispatcher.dispatch_operation(
             "batch_export",
             datasets=datasets,
@@ -629,14 +679,14 @@ class FlextCliApi(FlextDomainService[str]):
         if result.is_success and isinstance(result.value, list):
             return FlextResult[FlextTypes.Core.StringList].ok(result.value)
         return FlextResult[FlextTypes.Core.StringList].fail(
-            result.error or "Batch export failed"
+            result.error or "Batch export failed",
         )
 
     def transform_data(
         self,
-        data: object,  # noqa: ARG002
-        transform_fn: object,  # noqa: ARG002
-        group_by: str | None = None,  # noqa: ARG002
+        _data: object,
+        _transform_fn: object,
+        _group_by: str | None = None,
     ) -> FlextResult[object]:
         """ELIMINATED: Data transformation violates API single responsibility principle."""
         # VIOLATION ANALYSIS:
@@ -647,7 +697,7 @@ class FlextCliApi(FlextDomainService[str]):
         #
         # SOLUTION: Use FlextDataProcessing service from flext-core for transformations
         return FlextResult[object].fail(
-            "Data transformation operations moved to FlextUtilities/FlextDataProcessing - use existing services"
+            "Data transformation operations moved to FlextUtilities/FlextDataProcessing - use existing services",
         )
 
     # =========================================================================
@@ -656,6 +706,8 @@ class FlextCliApi(FlextDomainService[str]):
 
     def flext_cli_configure(self, config: FlextTypes.Core.Dict) -> FlextResult[None]:
         """Configure CLI API - convenience method."""
+        if self.dispatcher is None:
+            return FlextResult[None].fail("Dispatcher not initialized")
         result = self.dispatcher.dispatch_operation("configure", config=config)
         return (
             FlextResult[None].ok(None)
@@ -665,20 +717,28 @@ class FlextCliApi(FlextDomainService[str]):
 
     def flext_cli_health(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Health check - convenience method."""
+        if self.dispatcher is None:
+            return FlextResult[FlextTypes.Core.Dict].fail("Dispatcher not initialized")
         result = self.dispatcher.dispatch_operation("health")
         # Safe casting - we know health returns dict
         if result.is_success and isinstance(result.value, dict):
             return FlextResult[FlextTypes.Core.Dict].ok(result.value)
         return FlextResult[FlextTypes.Core.Dict].fail(
-            result.error or "Health check failed"
+            result.error or "Health check failed",
         )
 
     def create_command(
-        self, command_line: str
+        self,
+        command_line: str,
     ) -> FlextResult[FlextCliModels.CliCommand]:
         """Create command - convenience method."""
+        if self.dispatcher is None:
+            return FlextResult[FlextCliModels.CliCommand].fail(
+                "Dispatcher not initialized",
+            )
         result = self.dispatcher.dispatch_operation(
-            "create_command", command_line=command_line
+            "create_command",
+            command_line=command_line,
         )
         # Safe casting - we expect CliCommand object
         if result.is_success:
@@ -686,18 +746,25 @@ class FlextCliApi(FlextDomainService[str]):
             if isinstance(result.value, FlextCliModels.CliCommand):
                 return FlextResult[FlextCliModels.CliCommand].ok(result.value)
             return FlextResult[FlextCliModels.CliCommand].fail(
-                "Invalid command type returned"
+                "Invalid command type returned",
             )
         return FlextResult[FlextCliModels.CliCommand].fail(
-            result.error or "Create command failed"
+            result.error or "Create command failed",
         )
 
     def flext_cli_create_command(
-        self, command_line: str, **_kwargs: object
+        self,
+        command_line: str,
+        **_kwargs: object,
     ) -> FlextResult[FlextCliModels.CliCommand]:
         """Create CLI command - convenience method."""
+        if self.dispatcher is None:
+            return FlextResult[FlextCliModels.CliCommand].fail(
+                "Dispatcher not initialized",
+            )
         result = self.dispatcher.dispatch_operation(
-            "create_command", command_line=command_line
+            "create_command",
+            command_line=command_line,
         )
         # Safe casting - we expect CliCommand object
         if result.is_success:
@@ -705,18 +772,23 @@ class FlextCliApi(FlextDomainService[str]):
             if isinstance(result.value, FlextCliModels.CliCommand):
                 return FlextResult[FlextCliModels.CliCommand].ok(result.value)
             return FlextResult[FlextCliModels.CliCommand].fail(
-                "Invalid command type returned"
+                "Invalid command type returned",
             )
         return FlextResult[FlextCliModels.CliCommand].fail(
-            result.error or "Create command failed"
+            result.error or "Create command failed",
         )
 
     def flext_cli_create_session(
-        self, user_id: str | None = None
+        self,
+        user_id: str | None = None,
     ) -> FlextResult[FlextCliModels.CliSession]:
         """Create CLI session - convenience method."""
         if user_id is None:
             user_id = str(uuid4())
+        if self.dispatcher is None:
+            return FlextResult[FlextCliModels.CliSession].fail(
+                "Dispatcher not initialized",
+            )
         result = self.dispatcher.dispatch_operation("create_session", user_id=user_id)
         # Safe casting - we expect CliSession object
         if result.is_success:
@@ -724,14 +796,16 @@ class FlextCliApi(FlextDomainService[str]):
             if isinstance(result.value, FlextCliModels.CliSession):
                 return FlextResult[FlextCliModels.CliSession].ok(result.value)
             return FlextResult[FlextCliModels.CliSession].fail(
-                "Invalid session type returned"
+                "Invalid session type returned",
             )
         return FlextResult[FlextCliModels.CliSession].fail(
-            result.error or "Create session failed"
+            result.error or "Create session failed",
         )
 
     def flext_cli_register_handler(
-        self, name: str, handler: object
+        self,
+        name: str,
+        handler: object,
     ) -> FlextResult[None]:
         """Register handler - unified implementation."""
         if not isinstance(name, str) or not name.strip():
@@ -740,13 +814,20 @@ class FlextCliApi(FlextDomainService[str]):
         if not callable(handler):
             return FlextResult[None].fail("Handler must be callable")
 
+        if self.state is None:
+            return FlextResult[None].fail("State not initialized")
         self.state.handlers[name] = handler
         return FlextResult[None].ok(None)
 
     def flext_cli_execute_handler(
-        self, name: str, *args: object, **kwargs: object
+        self,
+        name: str,
+        *args: object,
+        **kwargs: object,
     ) -> FlextResult[object]:
         """Execute registered handler - unified implementation."""
+        if self.state is None:
+            return FlextResult[object].fail("State not initialized")
         if name not in self.state.handlers:
             return FlextResult[object].fail(f"Handler '{name}' not found")
 
@@ -757,38 +838,58 @@ class FlextCliApi(FlextDomainService[str]):
         try:
             result = handler(*args, **kwargs)
             return FlextResult[object].ok(result)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[object].fail(f"Handler '{name}' execution failed: {e}")
 
     def flext_cli_render_with_context(
-        self, data: object, context: FlextTypes.Core.Dict | None = None
+        self,
+        data: object,
+        context: FlextTypes.Core.Dict | None = None,
     ) -> FlextResult[str]:
         """Render data with context - unified implementation."""
         try:
             rendered = f"Data: {data}\nContext: {context}" if context else str(data)
             return FlextResult[str].ok(rendered)
-        except Exception as e:
+        except (
+            ImportError,
+            AttributeError,
+            ValueError,
+        ) as e:
             return FlextResult[str].fail(f"Rendering failed: {e}")
 
     def flext_cli_get_commands(self) -> FlextResult[list[FlextCliModels.CliCommand]]:
         """Get commands from unified state."""
+        if self.state is None:
+            return FlextResult[list[FlextCliModels.CliCommand]].fail(
+                "State not initialized",
+            )
         return FlextResult[list[FlextCliModels.CliCommand]].ok(
-            list(self.state.command_history)
+            list(self.state.command_history),
         )
 
     def flext_cli_get_sessions(self) -> FlextResult[FlextTypes.Core.List]:
         """Get sessions from unified state."""
+        if self.state is None:
+            return FlextResult[FlextTypes.Core.List].fail("State not initialized")
         sessions = list(self.state.sessions.values())
         return FlextResult[FlextTypes.Core.List].ok(
-            list(sessions)
+            list(sessions),
         )  # Cast to list[object]
 
     def flext_cli_get_plugins(self) -> FlextResult[FlextTypes.Core.List]:
         """Get plugins from unified state."""
+        if self.state is None:
+            return FlextResult[FlextTypes.Core.List].fail("State not initialized")
         return FlextResult[FlextTypes.Core.List].ok(list(self.state.plugins.values()))
 
     def flext_cli_get_handlers(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Get handlers from unified state."""
+        if self.state is None:
+            return FlextResult[FlextTypes.Core.Dict].fail("State not initialized")
         return FlextResult[FlextTypes.Core.Dict].ok(dict(self.state.handlers))
 
     def flext_cli_register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
@@ -796,6 +897,8 @@ class FlextCliApi(FlextDomainService[str]):
         if not isinstance(name, str) or not name.strip():
             return FlextResult[None].fail("Plugin name must be a non-empty string")
 
+        if self.state is None:
+            return FlextResult[None].fail("State not initialized")
         self.state.plugins[name] = plugin
         return FlextResult[None].ok(None)
 
@@ -814,26 +917,36 @@ class FlextCliApi(FlextDomainService[str]):
     @property
     def version(self) -> str:
         """Get API version from unified state."""
+        if self.state is None:
+            return "unknown"
         return self.state.version
 
     @property
     def service_name(self) -> str:
         """Get service name from unified state."""
+        if self.state is None:
+            return "flext-cli"
         return self.state.service_name
 
     @property
     def enable_session_tracking(self) -> bool:
         """Check if session tracking is enabled from unified state."""
+        if self.state is None:
+            return False
         return self.state.enable_session_tracking
 
     @property
     def enable_command_history(self) -> bool:
         """Check if command history is enabled from unified state."""
+        if self.state is None:
+            return False
         return self.state.enable_command_history
 
     def get_command_history(self) -> list[FlextCliModels.CliCommand]:
         """Get command history from unified state."""
         if not self.enable_command_history:
+            return []
+        if self.state is None:
             return []
         return list(self.state.command_history)
 
@@ -860,8 +973,8 @@ class FlextCliApi(FlextDomainService[str]):
                 and hasattr(api._logger, "warning")
             ):
                 # Log warning but continue - skip logging if no logger available
-                api._logger.warning(
-                    f"Configuration override failed: {configure_result.error}"
+                getattr(api._logger, "warning", lambda _: None)(
+                    f"Configuration override failed: {configure_result.error}",
                 )
 
         return api
@@ -873,20 +986,22 @@ class FlextCliApi(FlextDomainService[str]):
             config_override={
                 "enable_session_tracking": enable_tracking,
                 "enable_command_history": enable_tracking,
-            }
+            },
         )
 
     @override
     def __repr__(self) -> str:
         """Return string representation of unified FlextCliApi."""
+        session_count = self.state.session_count if self.state else 0
+        handler_count = self.state.handler_count if self.state else 0
         return (
             f"FlextCliApi("
             f"version='{self.version}', "
             f"service='{self.service_name}', "
             f"session_tracking={self.enable_session_tracking}, "
             f"command_history={self.enable_command_history}, "
-            f"sessions={self.state.session_count}, "
-            f"handlers={self.state.handler_count}"
+            f"sessions={session_count}, "
+            f"handlers={handler_count}"
             f")"
         )
 
