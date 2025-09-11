@@ -1,6 +1,6 @@
 """Comprehensive real functionality tests for decorators.py module.
 
-NO MOCKING - All tests execute real functionality and validate actual business logic.
+NO MOCKING - All tests Execute functionality and validate actual business logic.
 Following user requirement: "pare de ficar mockando tudo!"
 
 These tests validate the FlextCliDecorators class and its methods.
@@ -122,10 +122,10 @@ class TestFlextCliDecorators(unittest.TestCase):
 
         @FlextCliDecorators.validate_config(["required_key"])
         def test_func(config: FlextTypes.Core.Headers) -> str:
-            return "validated"
+            return f"validated: {config}"
 
         result = test_func(config={"required_key": "value"})
-        assert result == "validated"
+        assert result == "validated: {'required_key': 'value'}"
 
     def test_with_spinner_decorator(self) -> None:
         """Test with_spinner decorator with real execution."""

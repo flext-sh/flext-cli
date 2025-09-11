@@ -46,7 +46,7 @@ class TestFlextCliDataProcessingFunctional:
         # Generate realistic test data using flext_tests
         test_data = [self.realistic_data.user_registration_data() for _ in range(3)]
 
-        # Execute real data transformation (use existing method)
+        # Execute data transformation (use existing method)
         result = self.processor.transform_data(test_data)
 
         # Validate using flext_tests matchers
@@ -82,7 +82,7 @@ class TestFlextCliDataProcessingFunctional:
             {"name": " Charlie ", "age": "35", "active": "true"},
         ]
 
-        # Execute real transformation
+        # Execute transformation
         config: FlextTypes.Core.Dict = {
             "filter_field": "active",
             "filter_value": "true",
@@ -126,7 +126,7 @@ class TestFlextCliDataProcessingFunctional:
             {"user_id": 2, "amount": 150.0, "product": "Gadget"},
         ]
 
-        # Execute real aggregation
+        # Execute aggregation
         result = self.processor.aggregate_data(data=combined_data)
 
         # Validate aggregation results
@@ -151,7 +151,7 @@ class TestFlextCliDataProcessingFunctional:
         with tempfile.TemporaryDirectory() as temp_dir:
             export_path = Path(temp_dir) / "test_export.json"
 
-            # Execute real export
+            # Execute export
             result = self.processor.export_to_file(
                 data=test_data,
                 file_path=str(export_path),

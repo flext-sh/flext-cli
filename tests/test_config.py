@@ -1,4 +1,4 @@
-"""Real functionality tests for FlextCliConfig unified class - NO MOCKING.
+"""Real functionality tests for FlextCliConfig unified class.
 
 Following ZERO TOLERANCE requirements:
 - NO mocking whatsoever - real functionality testing only

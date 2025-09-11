@@ -17,41 +17,19 @@ from rich.prompt import Confirm, Prompt
 
 
 class FlextCliInteractions:
-    """Consolidated user interaction utilities following flext-core patterns.
+    """User interaction utilities following SOLID principles.
 
-    Provides comprehensive user interaction operations including prompts,
-    confirmations, and progress indicators with FlextResult error handling.
-
-    Features:
-        - Interactive prompts with validation
-        - Confirmation dialogs with defaults
-        - Progress indicators for long operations
-        - Status messages with styled output
-        - Quiet mode support for automation
+    Single responsibility: User interaction operations.
+    Uses Rich for output formatting with FlextResult error handling.
     """
 
     def __init__(self, *, console: Console | None = None, quiet: bool = False) -> None:
-        """Initialize interactions manager with console and quiet mode.
-
-        Args:
-            console: Rich console instance for output
-            quiet: Enable quiet mode for automation
-
-        """
+        """Initialize interactions manager."""
         self.console: Console = console or Console()
         self.quiet: bool = quiet
 
     def confirm(self, message: str, *, default: bool = False) -> FlextResult[bool]:
-        """Get user confirmation with styled prompt.
-
-        Args:
-            message: Confirmation message to display
-            default: Default value if user presses enter
-
-        Returns:
-            FlextResult containing user's boolean choice
-
-        """
+        """Get user confirmation."""
         if self.quiet:
             return FlextResult[bool].ok(default)
         try:
@@ -59,20 +37,11 @@ class FlextCliInteractions:
             return FlextResult[bool].ok(answer)
         except KeyboardInterrupt:
             return FlextResult[bool].fail("User interrupted confirmation")
-        except (ImportError, AttributeError, ValueError) as e:
+        except Exception as e:
             return FlextResult[bool].fail(f"Confirmation failed: {e}")
 
     def prompt(self, message: str, *, default: str | None = None) -> FlextResult[str]:
-        """Get user text input with validation.
-
-        Args:
-            message: Prompt message to display
-            default: Default value if user presses enter
-
-        Returns:
-            FlextResult containing user's input string
-
-        """
+        """Get user text input."""
         if self.quiet and default is not None:
             return FlextResult[str].ok(default)
         try:
@@ -82,20 +51,11 @@ class FlextCliInteractions:
             return FlextResult[str].ok(value or (default or ""))
         except KeyboardInterrupt:
             return FlextResult[str].fail("User interrupted prompt")
-        except (ImportError, AttributeError, ValueError) as e:
+        except Exception as e:
             return FlextResult[str].fail(f"Prompt failed: {e}")
 
     def print_status(self, message: str, *, status: str = "info") -> FlextResult[None]:
-        """Print status message with styled formatting.
-
-        Args:
-            message: Status message to display
-            status: Status type (info, success, warning, error)
-
-        Returns:
-            FlextResult indicating success or failure
-
-        """
+        """Print status message with styled formatting."""
         try:
             styles = {
                 "info": "[bold blue]i[/bold blue] ",
@@ -106,72 +66,32 @@ class FlextCliInteractions:
             prefix = styles.get(status, "")
             self.console.print(f"{prefix}{message}")
             return FlextResult[None].ok(None)
-        except (ImportError, AttributeError, ValueError) as e:
+        except Exception as e:
             return FlextResult[None].fail(f"Print status failed: {e}")
 
     def print_success(self, message: str) -> FlextResult[None]:
-        """Print success message with green styling.
-
-        Args:
-            message: Success message to display
-
-        Returns:
-            FlextResult indicating success or failure
-
-        """
+        """Print success message."""
         return self.print_status(message, status="success")
 
     def print_error(self, message: str) -> FlextResult[None]:
-        """Print error message with red styling.
-
-        Args:
-            message: Error message to display
-
-        Returns:
-            FlextResult indicating success or failure
-
-        """
+        """Print error message."""
         return self.print_status(message, status="error")
 
     def print_warning(self, message: str) -> FlextResult[None]:
-        """Print warning message with yellow styling.
-
-        Args:
-            message: Warning message to display
-
-        Returns:
-            FlextResult indicating success or failure
-
-        """
+        """Print warning message."""
         return self.print_status(message, status="warning")
 
     def print_info(self, message: str) -> FlextResult[None]:
-        """Print info message with blue styling.
-
-        Args:
-            message: Info message to display
-
-        Returns:
-            FlextResult indicating success or failure
-
-        """
+        """Print info message."""
         return self.print_status(message, status="info")
 
     def create_progress(self, message: str = "") -> FlextResult[Progress]:
-        """Create Rich progress indicator for long operations.
-
-        Args:
-            message: Progress description message
-
-        Returns:
-            FlextResult containing Progress instance
-
-        """
+        """Create Rich progress indicator."""
         try:
             _ = message  # Keep signature for future use
             progress = Progress()
             return FlextResult[Progress].ok(progress)
-        except (ImportError, AttributeError, ValueError) as e:
+        except Exception as e:
             return FlextResult[Progress].fail(f"Progress creation failed: {e}")
 
     def with_progress(
@@ -179,23 +99,12 @@ class FlextCliInteractions:
         items: FlextTypes.Core.List,
         message: str,
     ) -> FlextResult[FlextTypes.Core.List]:
-        """Process items with progress indicator (minimal implementation).
-
-        Args:
-            items: Items to process
-            message: Progress message
-
-        Returns:
-            FlextResult containing processed items
-
-        """
+        """Process items with progress indicator."""
         try:
             _ = message  # For future enhanced implementation
             return FlextResult[FlextTypes.Core.List].ok(items)
-        except (ImportError, AttributeError, ValueError) as e:
-            return FlextResult[FlextTypes.Core.List].fail(
-                f"Progress processing failed: {e}",
-            )
+        except Exception as e:
+            return FlextResult[FlextTypes.Core.List].fail(f"Progress processing failed: {e}")
 
 
 __all__ = ["FlextCliInteractions"]

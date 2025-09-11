@@ -1,9 +1,9 @@
-"""Comprehensive real functionality tests for client.py - NO MOCKING.
+"""Comprehensive real functionality tests for client.py.
 
 Following user requirement: "melhore bem os tests para executar codigo de verdade e validar
 a funcionalidade requerida, pare de ficar mockando tudo!"
 
-These tests execute REAL HTTP client functionality and validate actual API behavior.
+These tests Execute HTTP client functionality and validate actual API behavior.
 Coverage target: Increase client.py from current to 90%+
 
 
@@ -32,6 +32,10 @@ FlextApiClientModels = FlextApiClient
 
 class MockHTTPHandler(BaseHTTPRequestHandler):
     """Simple test HTTP server for real client testing."""
+
+    def log_message(self, fmt: str, *args: object) -> None:
+        """Override log_message to handle the correct number of arguments."""
+        # Suppress logging for tests
 
     def do_GET(self) -> None:
         """Handle GET requests."""
@@ -218,8 +222,6 @@ class MockHTTPHandler(BaseHTTPRequestHandler):
         error_data = json.dumps({"error": message}).encode("utf-8")
         self.wfile.write(error_data)
 
-    def log_message(self, _format: str, *_args: object) -> None:
-        """Override to suppress request logging."""
 
 
 class TestClientModels(unittest.TestCase):

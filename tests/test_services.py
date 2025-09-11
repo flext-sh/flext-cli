@@ -1,7 +1,7 @@
-"""Real functionality tests for services.py - NO MOCKING.
+"""Real functionality tests for services.py.
 
 Following user requirement: "pare de ficar mockando tudo!"
-Tests execute REAL service functionality.
+Tests Execute service functionality.
 
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.

@@ -7,7 +7,6 @@ Uses SOURCE OF TRUTH principle - no reimplementation of existing flext-core feat
 from __future__ import annotations
 
 import csv
-import io
 import json
 from pathlib import Path
 from uuid import uuid4
@@ -20,10 +19,10 @@ from flext_core import (
     FlextLogger,
     FlextResult,
     FlextServices,
-    FlextUtilities,
 )
 from pydantic import PrivateAttr
 
+from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
 
 
@@ -126,40 +125,9 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[dict[str, object]].fail(f"Health check failed: {e}")
 
     def format_data(self, data: object, format_type: str) -> FlextResult[str]:
-        """Format data using flext-core formatting utilities."""
-        try:
-            # Check if format is supported first
-            valid_formats = ["json", "yaml", "csv", "table", "plain"]
-            if format_type.lower() not in valid_formats:
-                return FlextResult[str].fail(f"Unsupported format: {format_type}")
-
-            # Use flext-core formatters directly - NO duplication
-            if format_type == "json":
-                formatted = FlextUtilities.safe_json_stringify(data)
-                return FlextResult[str].ok(formatted)
-            if format_type == "csv":
-                if isinstance(data, list) and data and isinstance(data[0], dict):
-                    output = io.StringIO()
-                    writer = csv.DictWriter(output, fieldnames=data[0].keys())
-                    writer.writeheader()
-                    writer.writerows(data)
-                    return FlextResult[str].ok(output.getvalue())
-                return FlextResult[str].ok(str(data))
-            if format_type == "yaml":
-                formatted = yaml.dump(data, default_flow_style=False)
-                return FlextResult[str].ok(formatted)
-            if format_type in {"table", "plain"}:
-                return FlextResult[str].ok(str(data))
-
-            # This should not be reached due to validation above
-            return FlextResult[str].fail(f"Unsupported format: {format_type}")
-
-        except (
-            ImportError,
-            AttributeError,
-            ValueError,
-        ) as e:
-            return FlextResult[str].fail(f"Data formatting failed: {e}")
+        """Format data using FlextCliFormatters to avoid duplication."""
+        formatters = FlextCliFormatters()
+        return formatters.format_data(data, format_type)
 
     def validate_request(self, request_data: object) -> FlextResult[bool]:
         """Validate request using flext-core validation."""

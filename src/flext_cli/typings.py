@@ -280,13 +280,15 @@ class FlextCliTypes:
             def process(
                 self,
                 request: str | dict[str, object],
-            ) -> FlextResult[object]: ...
+            ) -> FlextResult[object]:
+                """Process CLI request."""
             def build(
                 self,
                 domain: object,
                 *,
                 correlation_id: str,
-            ) -> str | dict[str, object]: ...
+            ) -> str | dict[str, object]:
+                """Build CLI response."""
 
         class CliValidator(Protocol):
             """Protocol for CLI validators."""
@@ -294,7 +296,8 @@ class FlextCliTypes:
             def validate(
                 self,
                 data: dict[str, object] | str | float,
-            ) -> FlextResult[None]: ...
+            ) -> FlextResult[None]:
+                """Validate CLI data."""
 
         class CliFormatter(Protocol):
             """Protocol for CLI formatters."""
@@ -303,7 +306,8 @@ class FlextCliTypes:
                 self,
                 data: dict[str, object] | list[object] | str,
                 format_type: str,
-            ) -> FlextResult[str]: ...
+            ) -> FlextResult[str]:
+                """Format CLI data with specified type."""
 
         class CliAuthenticator(Protocol):
             """Protocol for CLI authenticators."""
@@ -311,8 +315,10 @@ class FlextCliTypes:
             def authenticate(
                 self,
                 credentials: dict[str, str],
-            ) -> FlextResult[FlextCliTypes.Auth.CliAuthContext]: ...
-            def is_authenticated(self) -> bool: ...
+            ) -> FlextResult[FlextCliTypes.Auth.CliAuthContext]:
+                """Authenticate CLI user."""
+            def is_authenticated(self) -> bool:
+                """Check authentication status."""
 
 
 # No aliases - use direct imports

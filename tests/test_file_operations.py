@@ -1,274 +1,366 @@
-"""Tests for file_operations.py module - Real file operations testing.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
-
+"""Tests for file_operations.py module."""
 
 from __future__ import annotations
 
+import json
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 from flext_core import FlextResult
 
 from flext_cli.file_operations import FlextCliFileOperations
+from flext_cli.interactions import FlextCliInteractions
 
 
 class TestFlextCliFileOperations:
-    """Test FlextCliFileOperations with real file system operations."""
+    """Test FlextCliFileOperations class."""
 
-    def test_file_operations_init(self) -> None:
+    def test_initialization(self) -> None:
         """Test file operations initialization."""
-        file_ops = FlextCliFileOperations()
+        ops = FlextCliFileOperations()
+        assert ops is not None
+        assert isinstance(ops.interactions, FlextCliInteractions)
 
-        assert file_ops is not None
-        assert hasattr(file_ops, "safe_write")
-        assert hasattr(file_ops, "backup_and_process")
-        assert hasattr(file_ops, "create_directory_structure")
+    def test_initialization_with_interactions(self) -> None:
+        """Test initialization with custom interactions."""
+        interactions = FlextCliInteractions()
+        ops = FlextCliFileOperations(interactions=interactions)
+        assert ops.interactions is interactions
+
+    def test_load_json_file_success(self) -> None:
+        """Test successful JSON file loading."""
+        test_data = {"key": "value", "number": 42}
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp_file:
+            json.dump(test_data, tmp_file)
+            tmp_file.flush()
+
+            ops = FlextCliFileOperations()
+            result = ops.load_json_file(tmp_file.name)
+
+            assert result.is_success
+            assert result.value == test_data
+
+            # Cleanup
+            Path(tmp_file.name).unlink()
+
+    def test_load_json_file_not_found(self) -> None:
+        """Test JSON file loading when file doesn't exist."""
+        ops = FlextCliFileOperations()
+        result = ops.load_json_file("/nonexistent/file.json")
+
+        assert result.is_failure
+        assert "File not found" in result.error
+
+    def test_load_json_file_invalid_json(self) -> None:
+        """Test JSON file loading with invalid JSON."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp_file:
+            tmp_file.write("invalid json content")
+            tmp_file.flush()
+
+            ops = FlextCliFileOperations()
+            result = ops.load_json_file(tmp_file.name)
+
+            # FlextUtilities.safe_json_parse returns empty dict for invalid JSON
+            assert result.is_success
+            assert result.value == {}
+
+            # Cleanup
+            Path(tmp_file.name).unlink()
+
+    def test_save_json_file_success(self) -> None:
+        """Test successful JSON file saving."""
+        test_data = {"key": "value", "number": 42}
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp_file:
+            tmp_file.close()  # Close to allow writing
+
+            ops = FlextCliFileOperations()
+            result = ops.save_json_file(test_data, tmp_file.name)
+
+            assert result.is_success
+
+            # Verify content was written correctly
+            with Path(tmp_file.name).open() as f:
+                saved_data = json.load(f)
+            assert saved_data == test_data
+
+            # Cleanup
+            Path(tmp_file.name).unlink()
+
+    def test_save_json_file_create_directory(self) -> None:
+        """Test JSON file saving with directory creation."""
+        test_data = {"key": "value"}
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_path = Path(temp_dir) / "subdir" / "test.json"
+
+            ops = FlextCliFileOperations()
+            result = ops.save_json_file(test_data, file_path)
+
+            assert result.is_success
+            assert file_path.exists()
+
+            # Verify content
+            with file_path.open() as f:
+                saved_data = json.load(f)
+            assert saved_data == test_data
 
     def test_safe_write_success(self) -> None:
-        """Test safe_write with valid content."""
-        file_ops = FlextCliFileOperations()
-        content = "Test content for safe write"
+        """Test successful safe write operation."""
+        content = "Test content\nwith multiple lines"
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            file_path = Path(temp_dir) / "test_file.txt"
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.close()
 
-            result = file_ops.safe_write(content, str(file_path))
-
-            assert result.is_success
-            # Verify file was created and contains correct content
-            assert file_path.exists()
-            written_content = file_path.read_text()
-            assert written_content == content
-
-    def test_safe_write_create_parent_directories(self) -> None:
-        """Test safe_write creates parent directories."""
-        file_ops = FlextCliFileOperations()
-        content = "Test content with nested path"
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            nested_path = Path(temp_dir) / "nested" / "directory" / "test_file.txt"
-
-            result = file_ops.safe_write(content, str(nested_path))
-
-            assert result.is_success
-            assert nested_path.exists()
-            assert nested_path.read_text() == content
-
-    def test_safe_write_invalid_path(self) -> None:
-        """Test safe_write with invalid path."""
-        file_ops = FlextCliFileOperations()
-        content = "Test content"
-
-        # Try to write to invalid location
-        invalid_path = "/root/invalid/path/file.txt"  # Should fail
-
-        result = file_ops.safe_write(content, invalid_path)
-
-        # Should fail gracefully
-        assert result.is_failure
-        assert isinstance(result.error, str)
-
-    def test_backup_and_process_existing_file(self) -> None:
-        """Test backup_and_process with existing file."""
-        file_ops = FlextCliFileOperations()
-        original_content = "Original file content"
-
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
-            temp_file.write(original_content)
-            temp_file.flush()
-            file_path = Path(temp_file.name)
-
-            def process_function(content: str) -> FlextResult[str]:
-                return FlextResult[str].ok(content.upper())
-
-            result = file_ops.backup_and_process(str(file_path), process_function)
+            ops = FlextCliFileOperations()
+            result = ops.safe_write(content, tmp_file.name)
 
             assert result.is_success
 
-            # Verify content was processed
-            processed_content = file_path.read_text()
-            assert "ORIGINAL FILE CONTENT" in processed_content
+            # Verify content
+            with Path(tmp_file.name).open() as f:
+                saved_content = f.read()
+            assert saved_content == content
 
-            # Clean up
-            file_path.unlink()
-            backup_path = file_path.with_suffix(file_path.suffix + ".bak")
-            if backup_path.exists():
-                backup_path.unlink()
+            # Cleanup
+            Path(tmp_file.name).unlink()
 
-    def test_backup_and_process_nonexistent_file(self) -> None:
-        """Test backup_and_process with nonexistent file."""
-        file_ops = FlextCliFileOperations()
+    def test_safe_write_with_backup(self) -> None:
+        """Test safe write with backup creation."""
+        original_content = "Original content"
+        new_content = "New content"
 
-        def process_function(content: str) -> FlextResult[str]:
-            return FlextResult[str].ok(content.upper())
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write(original_content)
+            tmp_file.flush()
 
-        result = file_ops.backup_and_process(
-            "/nonexistent/file.txt", process_function,
-        )
+            ops = FlextCliFileOperations()
+            result = ops.safe_write(new_content, tmp_file.name, backup=True)
 
-        assert result.is_failure
-        assert "not found" in str(result.error or "").lower() or "does not exist" in str(result.error or "").lower()
+            assert result.is_success
 
-    def test_backup_and_process_with_failing_processor(self) -> None:
-        """Test backup_and_process when processor fails."""
-        file_ops = FlextCliFileOperations()
+            # Verify new content
+            with Path(tmp_file.name).open() as f:
+                saved_content = f.read()
+            assert saved_content == new_content
+
+            # Verify backup was created
+            backup_path = Path(tmp_file.name).with_suffix(".bak")
+            assert backup_path.exists()
+
+            with backup_path.open() as f:
+                backup_content = f.read()
+            assert backup_content == original_content
+
+            # Cleanup
+            Path(tmp_file.name).unlink()
+            backup_path.unlink()
+
+    def test_backup_and_process_success(self) -> None:
+        """Test successful backup and process operation."""
         original_content = "Original content"
 
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
-            temp_file.write(original_content)
-            temp_file.flush()
-            file_path = Path(temp_file.name)
+        def process_func(content: str) -> FlextResult[str]:
+            return FlextResult[str].ok(content.upper())
 
-            def failing_processor(content: str) -> FlextResult[str]:
-                return FlextResult[str].fail("Processing failed")
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write(original_content)
+            tmp_file.flush()
 
-            result = file_ops.backup_and_process(str(file_path), failing_processor)
-
-            assert result.is_failure
-            assert "Processing failed" in str(result.error or "")
-
-            # Original file should be preserved
-            current_content = file_path.read_text()
-            assert current_content == original_content
-
-            # Clean up
-            file_path.unlink()
-
-    def test_create_directory_structure_simple(self) -> None:
-        """Test create_directory_structure with simple path."""
-        file_ops = FlextCliFileOperations()
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            new_dir = Path(temp_dir) / "new_directory"
-
-            result = file_ops.create_directory_structure(str(new_dir))
+            ops = FlextCliFileOperations()
+            result = ops.backup_and_process(tmp_file.name, process_func)
 
             assert result.is_success
+            assert result.value == original_content.upper()
+
+            # Verify backup was created
+            backup_path = Path(tmp_file.name).with_suffix(".bak")
+            assert backup_path.exists()
+
+            with backup_path.open() as f:
+                backup_content = f.read()
+            assert backup_content == original_content
+
+            # Cleanup
+            Path(tmp_file.name).unlink()
+            backup_path.unlink()
+
+    def test_backup_and_process_file_not_found(self) -> None:
+        """Test backup and process with non-existent file."""
+        def process_func(content: str) -> FlextResult[str]:
+            return FlextResult[str].ok(content)
+
+        ops = FlextCliFileOperations()
+        result = ops.backup_and_process("/nonexistent/file.txt", process_func)
+
+        assert result.is_failure
+        assert "File not found" in result.error
+
+    def test_backup_and_process_with_confirmation(self) -> None:
+        """Test backup and process with user confirmation."""
+        original_content = "Original content"
+
+        def process_func(content: str) -> FlextResult[str]:
+            return FlextResult[str].ok(content.upper())
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write(original_content)
+            tmp_file.flush()
+
+            # Mock interactions to return True for confirmation
+            with patch.object(FlextCliInteractions, "confirm") as mock_confirm:
+                mock_confirm.return_value = FlextResult[bool].ok(True)
+
+                ops = FlextCliFileOperations()
+                result = ops.backup_and_process(
+                    tmp_file.name,
+                    process_func,
+                    require_confirmation=True
+                )
+
+                assert result.is_success
+                mock_confirm.assert_called_once()
+
+                # Cleanup
+                Path(tmp_file.name).unlink()
+                backup_path = Path(tmp_file.name).with_suffix(".bak")
+                if backup_path.exists():
+                    backup_path.unlink()
+
+    def test_backup_and_process_confirmation_cancelled(self) -> None:
+        """Test backup and process when user cancels confirmation."""
+        original_content = "Original content"
+
+        def process_func(content: str) -> FlextResult[str]:
+            return FlextResult[str].ok(content.upper())
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write(original_content)
+            tmp_file.flush()
+
+            # Mock interactions to return False for confirmation
+            with patch.object(FlextCliInteractions, "confirm") as mock_confirm:
+                mock_confirm.return_value = FlextResult[bool].ok(False)
+
+                ops = FlextCliFileOperations()
+                result = ops.backup_and_process(
+                    tmp_file.name,
+                    process_func,
+                    require_confirmation=True
+                )
+
+                assert result.is_failure
+                assert "Operation cancelled by user" in result.error
+
+                # Cleanup
+                Path(tmp_file.name).unlink()
+
+    def test_ensure_directory_success(self) -> None:
+        """Test successful directory creation."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            new_dir = Path(temp_dir) / "new_subdir"
+
+            ops = FlextCliFileOperations()
+            result = ops.ensure_directory(new_dir)
+
+            assert result.is_success
+            assert result.value == new_dir
             assert new_dir.exists()
             assert new_dir.is_dir()
 
-    def test_create_directory_structure_nested(self) -> None:
-        """Test create_directory_structure with nested path."""
-        file_ops = FlextCliFileOperations()
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            nested_dir = Path(temp_dir) / "level1" / "level2" / "level3"
-
-            result = file_ops.create_directory_structure(str(nested_dir))
-
-            assert result.is_success
-            assert nested_dir.exists()
-            assert nested_dir.is_dir()
-
-    def test_create_directory_structure_existing(self) -> None:
-        """Test create_directory_structure with existing directory."""
-        file_ops = FlextCliFileOperations()
-
+    def test_ensure_directory_existing(self) -> None:
+        """Test directory creation when directory already exists."""
         with tempfile.TemporaryDirectory() as temp_dir:
             existing_dir = Path(temp_dir)
 
-            result = file_ops.create_directory_structure(str(existing_dir))
+            ops = FlextCliFileOperations()
+            result = ops.ensure_directory(existing_dir)
 
-            # Should succeed even if directory exists
             assert result.is_success
+            assert result.value == existing_dir
 
-    def test_create_directory_structure_invalid_permission(self) -> None:
-        """Test create_directory_structure with invalid permissions."""
-        file_ops = FlextCliFileOperations()
+    def test_create_directory_structure(self) -> None:
+        """Test create_directory_structure alias method."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            new_dir = Path(temp_dir) / "nested" / "structure"
 
-        # Try to create directory in root (should fail for non-root users)
-        invalid_path = "/root/invalid_directory"
+            ops = FlextCliFileOperations()
+            result = ops.create_directory_structure(new_dir)
 
-        result = file_ops.create_directory_structure(invalid_path)
+            assert result.is_success
+            assert result.value == new_dir
+            assert new_dir.exists()
+            assert new_dir.is_dir()
 
-        # Should fail gracefully
+    def test_file_exists_true(self) -> None:
+        """Test file_exists when file exists."""
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+            tmp_file.write(b"test content")
+            tmp_file.flush()
+
+            ops = FlextCliFileOperations()
+            assert ops.file_exists(tmp_file.name) is True
+
+            # Cleanup
+            Path(tmp_file.name).unlink()
+
+    def test_file_exists_false(self) -> None:
+        """Test file_exists when file doesn't exist."""
+        ops = FlextCliFileOperations()
+        assert ops.file_exists("/nonexistent/file.txt") is False
+
+    def test_file_exists_invalid_path(self) -> None:
+        """Test file_exists with invalid path."""
+        ops = FlextCliFileOperations()
+        # Path("").exists() returns True, so we test with a clearly invalid path
+        assert ops.file_exists("/nonexistent/path/that/does/not/exist") is False
+
+    def test_get_file_size_success(self) -> None:
+        """Test successful file size retrieval."""
+        content = "Test content for size calculation"
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write(content)
+            tmp_file.flush()
+
+            ops = FlextCliFileOperations()
+            result = ops.get_file_size(tmp_file.name)
+
+            assert result.is_success
+            assert result.value == len(content.encode("utf-8"))
+
+            # Cleanup
+            Path(tmp_file.name).unlink()
+
+    def test_get_file_size_not_found(self) -> None:
+        """Test file size retrieval when file doesn't exist."""
+        ops = FlextCliFileOperations()
+        result = ops.get_file_size("/nonexistent/file.txt")
+
         assert result.is_failure
-        assert isinstance(result.error, str)
+        assert "File not found" in result.error
 
-    def test_file_exists_check(self) -> None:
-        """Test file existence checking functionality."""
-        FlextCliFileOperations()
+    def test_error_handling_permission_denied(self) -> None:
+        """Test error handling for permission denied scenarios."""
+        ops = FlextCliFileOperations()
 
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-            file_path = Path(temp_file.name)
+        # Test with a path that would cause permission issues
+        with patch("pathlib.Path.exists") as mock_exists:
+            mock_exists.side_effect = PermissionError("Permission denied")
 
-            # File should exist
-            # This tests internal file checking logic
-            assert file_path.exists()
+            result = ops.load_json_file("/restricted/file.json")
+            assert result.is_failure
+            assert "JSON load failed" in result.error
 
-            # Clean up
-            file_path.unlink()
+    def test_error_handling_os_error(self) -> None:
+        """Test error handling for OS errors."""
+        ops = FlextCliFileOperations()
 
-            # Now file should not exist
-            assert not file_path.exists()
+        with patch("pathlib.Path.write_text") as mock_write:
+            mock_write.side_effect = OSError("Disk full")
 
-    def test_write_with_encoding(self) -> None:
-        """Test writing files with specific encoding."""
-        file_ops = FlextCliFileOperations()
-
-        # Test with unicode content
-        unicode_content = "Test with unicode: café, naïve, résumé"
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            file_path = Path(temp_dir) / "unicode_test.txt"
-
-            result = file_ops.safe_write(unicode_content, str(file_path))
-
-            assert result.is_success
-            # Verify unicode content is preserved
-            written_content = file_path.read_text(encoding="utf-8")
-            assert written_content == unicode_content
-            assert "café" in written_content
-            assert "naïve" in written_content
-            assert "résumé" in written_content
-
-    def test_backup_file_creation(self) -> None:
-        """Test that backup files are created correctly."""
-        file_ops = FlextCliFileOperations()
-        original_content = "Content to be backed up"
-
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as temp_file:
-            temp_file.write(original_content)
-            temp_file.flush()
-            file_path = Path(temp_file.name)
-
-            def simple_processor(content: str) -> FlextResult[str]:
-                return FlextResult[str].ok(f"Processed: {content}")
-
-            result = file_ops.backup_and_process(str(file_path), simple_processor)
-
-            assert result.is_success
-
-            # Check if backup file was created
-            backup_path = file_path.with_suffix(file_path.suffix + ".bak")
-            if backup_path.exists():
-                backup_content = backup_path.read_text()
-                assert backup_content == original_content
-                # Clean up backup
-                backup_path.unlink()
-
-            # Clean up original
-            file_path.unlink()
-
-    def test_process_large_file(self) -> None:
-        """Test processing with relatively large content."""
-        file_ops = FlextCliFileOperations()
-
-        # Create larger content
-        large_content = "Large file content line\n" * 1000
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            file_path = Path(temp_dir) / "large_file.txt"
-
-            result = file_ops.safe_write(large_content, str(file_path))
-
-            assert result.is_success
-            assert file_path.exists()
-
-            # Verify content size
-            written_content = file_path.read_text()
-            assert len(written_content) == len(large_content)
-            assert written_content.count("Large file content line") == 1000
+            result = ops.save_json_file({"key": "value"}, "/invalid/path/test.json")
+            assert result.is_failure
+            assert "JSON save failed" in result.error

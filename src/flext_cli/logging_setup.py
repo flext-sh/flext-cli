@@ -53,54 +53,31 @@ class FlextCliLoggingConfig(BaseModel):
 
 
 class FlextCliLoggingSetup:
-    """Automatic logging setup with multiple source support.
+    """Logging setup following SOLID principles.
 
-    Provides unified logging configuration that automatically detects and uses
-    log level settings from multiple sources following the precedence order.
-
-    Features:
-        - Automatic .env file loading
-        - Environment variable detection
-        - CLI parameter integration
-        - FlextLogger integration
-        - Configuration source tracking
-        - SOLID single responsibility
+    Single responsibility: Logging configuration and setup.
+    Uses FlextLogger integration with multiple source support.
     """
 
-    # Class-level logger instances for reuse
+    # Class-level state for singleton behavior
     _loggers: ClassVar[dict[str, logging.Logger]] = {}
     _setup_complete: ClassVar[bool] = False
 
     def __init__(self, config: FlextCliConfig | None = None) -> None:
-        """Initialize logging setup with configuration.
-
-        Args:
-            config: Optional FlextCliConfig instance with log level settings
-
-        """
+        """Initialize logging setup."""
         self.config = config or FlextCliConfig()
-        # Use regular Python logging to avoid FlextLogger structured output duplication
         self._logger = logging.getLogger(__name__)
 
     def setup_logging(self) -> FlextResult[FlextCliLoggingConfig]:
-        """Setup logging with automatic source detection.
-
-        Configures Python logging system using the log level from the highest
-        precedence source available. Integrates with flext-core FlextLogger.
-
-        Returns:
-            FlextResult[FlextCliLoggingConfig]: Configuration result with source info
-
-        """
+        """Setup logging with automatic source detection."""
         try:
             # Prevent duplicate setup calls
             if FlextCliLoggingSetup._setup_complete:
                 log_config_result = self._detect_log_configuration()
                 if log_config_result.is_success:
-                    return FlextResult[FlextCliLoggingConfig].ok(
-                        log_config_result.value,
-                    )
+                    return FlextResult[FlextCliLoggingConfig].ok(log_config_result.value)
                 return log_config_result
+
             # Detect log level and its source
             log_config_result = self._detect_log_configuration()
             if log_config_result.is_failure:
@@ -109,15 +86,14 @@ class FlextCliLoggingSetup:
             log_config = log_config_result.value
 
             # Configure FlextLogger for entire CLI application
-            # This singleton configuration will be reused by all FlextLogger instances
             FlextLogger.configure(
                 log_level=log_config.log_level,
-                structured_output=False,  # Disable structured output for CLI
-                json_output=False,  # Disable JSON output
-                include_source=False,  # Disable source info for clean CLI output
+                structured_output=False,
+                json_output=False,
+                include_source=False,
             )
 
-            # Add custom file handler if specified (after FlextLogger configuration)
+            # Add custom file handler if specified
             if log_config.log_file:
                 logging_level = getattr(logging, log_config.log_level, logging.INFO)
                 log_config.log_file.parent.mkdir(parents=True, exist_ok=True)
@@ -127,7 +103,7 @@ class FlextCliLoggingSetup:
                 file_handler.setFormatter(formatter)
                 logging.getLogger().addHandler(file_handler)
 
-            # Now any FlextLogger instance will use the singleton configuration
+            # Log configuration success
             flext_logger = FlextLogger("flext_cli")
             flext_logger.info(
                 "Logging configured: level=%s, source=%s",
@@ -137,19 +113,12 @@ class FlextCliLoggingSetup:
 
             FlextCliLoggingSetup._setup_complete = True
             return FlextResult[FlextCliLoggingConfig].ok(log_config)
-
-        except (ImportError, AttributeError, ValueError) as e:
+        except Exception as e:
             return FlextResult[FlextCliLoggingConfig].fail(f"Logging setup failed: {e}")
 
     def _detect_log_configuration(self) -> FlextResult[FlextCliLoggingConfig]:
-        """Detect log configuration from multiple sources with precedence.
-
-        Returns:
-            FlextResult[FlextCliLoggingConfig]: Detected configuration with source info
-
-        """
+        """Detect log configuration from multiple sources with precedence."""
         try:
-            # Start with default configuration
             log_config = FlextCliLoggingConfig()
 
             # Source 1: Check CLI configuration (highest precedence)
@@ -165,7 +134,7 @@ class FlextCliLoggingSetup:
                 log_config.log_level_source = "environment_variable"
                 return FlextResult[FlextCliLoggingConfig].ok(log_config)
 
-            # Source 3: Check .env file (handled automatically by pydantic-settings)
+            # Source 3: Check .env file
             env_file_path = Path.cwd() / ".env"
             if env_file_path.exists():
                 env_content = env_file_path.read_text(encoding="utf-8")
@@ -181,11 +150,8 @@ class FlextCliLoggingSetup:
             # Source 4: Use default
             log_config.log_level_source = "default"
             return FlextResult[FlextCliLoggingConfig].ok(log_config)
-
-        except (ImportError, AttributeError, ValueError) as e:
-            return FlextResult[FlextCliLoggingConfig].fail(
-                f"Log configuration detection failed: {e}",
-            )
+        except Exception as e:
+            return FlextResult[FlextCliLoggingConfig].fail(f"Log configuration detection failed: {e}")
 
     @classmethod
     def setup_for_cli(
@@ -193,26 +159,13 @@ class FlextCliLoggingSetup:
         config: FlextCliConfig | None = None,
         log_file: Path | None = None,
     ) -> FlextResult[str]:
-        """Setup logging specifically for CLI usage.
-
-        Convenience method for CLI applications that need automatic logging
-        configuration with source detection and debugging information.
-
-        Args:
-            config: Optional FlextCliConfig with log level settings
-            log_file: Optional log file path for file output
-
-        Returns:
-            FlextResult[str]: Success message with configuration details
-
-        """
+        """Setup logging specifically for CLI usage."""
         try:
             setup_instance = cls(config)
 
             # Configure log file if specified
             if log_file:
-                # Update config would require rebuilding, so we handle it in setup_logging
-                pass
+                pass  # Handle in setup_logging
 
             result = setup_instance.setup_logging()
             if result.is_failure:
@@ -225,8 +178,7 @@ class FlextCliLoggingSetup:
             )
 
             return FlextResult[str].ok(message)
-
-        except (ImportError, AttributeError, ValueError) as e:
+        except Exception as e:
             return FlextResult[str].fail(f"CLI logging setup failed: {e}")
 
     @classmethod
@@ -234,33 +186,21 @@ class FlextCliLoggingSetup:
         cls,
         config: FlextCliConfig | None = None,
     ) -> FlextResult[str]:
-        """Get the effective log level that would be used.
-
-        Utility method to determine what log level would be used without
-        actually configuring the logging system. Useful for debugging.
-
-        Args:
-            config: Optional FlextCliConfig instance
-
-        Returns:
-            FlextResult[str]: Effective log level and source information
-
-        """
+        """Get the effective log level that would be used."""
         try:
             setup_instance = cls(config)
             detection_result = setup_instance._detect_log_configuration()
 
             if detection_result.is_failure:
                 return FlextResult[str].fail(
-                    detection_result.error or "Log level detection failed",
+                    detection_result.error or "Log level detection failed"
                 )
 
             log_config = detection_result.value
             return FlextResult[str].ok(
-                f"{log_config.log_level} (from {log_config.log_level_source})",
+                f"{log_config.log_level} (from {log_config.log_level_source})"
             )
-
-        except (ImportError, AttributeError, ValueError) as e:
+        except Exception as e:
             return FlextResult[str].fail(f"Log level detection failed: {e}")
 
     @property

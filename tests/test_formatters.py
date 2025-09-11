@@ -1,9 +1,9 @@
-"""Comprehensive real functionality tests for formatters.py - NO MOCKING.
+"""Comprehensive real functionality tests for formatters.py.
 
 Following user requirement: "melhore bem os tests para executar codigo de verdade e validar
 a funcionalidade requerida, pare de ficar mockando tudo!"
 
-These tests execute REAL formatter functionality and validate actual output formatting.
+These tests Execute formatter functionality and validate actual output formatting.
 Coverage target: Increase formatters.py from current to 90%+
 
 

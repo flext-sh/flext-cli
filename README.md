@@ -259,7 +259,7 @@ make check                   # lint + type-check + test
 
 # Individual quality gates
 make lint
-make type-check              # MyPy strict mode (working toward zero errors)
+make type-check            
 make test                    # pytest with 90% coverage requirement
 make security                # Bandit + pip-audit + secrets scan
 ```

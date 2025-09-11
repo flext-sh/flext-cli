@@ -228,6 +228,7 @@ class FlextCliContext:
 
     # Convenience immutability helpers expected by some tests
     def with_environment(self, **env: str) -> FlextCliContext:
+        """Create new context with additional environment variables."""
         merged = {**(self.environment_variables or {}), **env}
         # Direct creation path
         return FlextCliContext.create(
@@ -240,6 +241,7 @@ class FlextCliContext:
         )
 
     def with_working_directory(self, path: Path) -> FlextCliContext:
+        """Create new context with different working directory."""
         return FlextCliContext.create(
             config=self.config,
             console=self.console,

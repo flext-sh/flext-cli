@@ -365,6 +365,7 @@ class FlextCliServices(FlextServices):
         """
 
         def __init__(self) -> None:
+            """Initialize service builder with empty configuration."""
             self._config: FlextTypes.Core.Dict = {}
             self._dependencies: FlextTypes.Core.Dict = {}
             self._capabilities: FlextTypes.Core.StringList = []

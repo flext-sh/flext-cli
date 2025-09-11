@@ -7,8 +7,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
 import tempfile
 from collections.abc import Generator
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -16,13 +18,16 @@ from click.testing import CliRunner
 from flext_core import FlextResult, FlextTypes
 from flext_tests import (
     FlextTestsDomains,
-    FlextTestsFactories,
 )
 from rich.console import Console
 
+# Add src to Python path for imports
+src_path = Path(__file__).parent.parent / "src"
+if str(src_path) not in sys.path:
+    sys.path.insert(0, str(src_path))
+
+# Import after path modification
 from flext_cli import FlextCliConfig, FlextCliContext
-
-
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -91,7 +96,16 @@ def test_config() -> FlextCliConfig:
 @pytest.fixture
 def test_user() -> FlextTestsDomains.TestUser:
     """Provide real test user using factory."""
-    return FlextTestsFactories.UserFactory()
+    # Create directly - factory may have compatibility issues
+    return FlextTestsDomains.TestUser(
+        id="test_user_factory",
+        name="Test User",
+        email="test@example.com",
+        age=25,
+        is_active=True,
+        created_at=datetime.fromisoformat("2024-01-01T00:00:00"),
+        metadata={"source": "factory_fallback"},
+    )
 
 
 @pytest.fixture
@@ -103,7 +117,7 @@ def real_test_user() -> FlextTestsDomains.TestUser:
         email="test@example.com",   # Required: email
         age=25,                     # Required: age
         is_active=True,             # Required: is_active
-        created_at="2024-01-01T00:00:00Z",
+        created_at=datetime(2024, 1, 1, 0, 0, 0, tzinfo=UTC),
         metadata={},                 # Required: metadata
     )
 
