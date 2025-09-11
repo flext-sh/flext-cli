@@ -4,6 +4,8 @@ import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
+from flext_core import FlextResult
+
 from flext_cli.auth import FlextCliAuth
 from flext_cli.config import FlextCliConfig
 
@@ -70,6 +72,7 @@ class TestFlextCliAuthRealValidation:
 
         result = auth.validate_credentials(invalid_credentials)
         assert result.is_failure
+        assert result.error is not None
         assert "username" in result.error.lower()
 
     def test_auth_token_save_and_retrieve(self) -> None:
@@ -82,9 +85,9 @@ class TestFlextCliAuthRealValidation:
         assert result.is_success
 
         # Test retrieving token
-        result = auth.get_auth_token()
-        assert result.is_success
-        assert result.value == token
+        token_result: FlextResult[str] = auth.get_auth_token()
+        assert token_result.is_success
+        assert token_result.value == token
 
     def test_authentication_status_check(self) -> None:
         """Test authentication status checking."""
@@ -152,8 +155,8 @@ class TestFlextCliAuthRealValidation:
         assert result.value == token
 
         # Clear tokens
-        result = auth.clear_auth_tokens()
-        assert result.is_success
+        clear_result: FlextResult[None] = auth.clear_auth_tokens()
+        assert clear_result.is_success
 
         # Verify token is cleared
         result = auth.get_auth_token()
@@ -169,9 +172,9 @@ class TestFlextCliAuthRealValidation:
         assert result.is_success
 
         # Test retrieving refresh token
-        result = auth.get_refresh_token()
-        assert result.is_success
-        assert result.value == refresh_token
+        refresh_result: FlextResult[str] = auth.get_refresh_token()
+        assert refresh_result.is_success
+        assert refresh_result.value == refresh_token
 
     def test_auto_refresh_configuration(self) -> None:
         """Test auto refresh configuration."""
@@ -215,8 +218,7 @@ class TestFlextCliAuthRealValidation:
         user_data = auth.UserData(
             name="Test User",
             email="test@example.com",
-            id="user123",
-            role="admin"
+            id="user123"
         )
         assert user_data["name"] == "Test User"
         assert user_data["email"] == "test@example.com"
@@ -225,7 +227,10 @@ class TestFlextCliAuthRealValidation:
         auth_status = auth.AuthStatus(
             authenticated=True,
             token_file="/path/to/token",
-            token_exists=True
+            token_exists=True,
+            refresh_token_file="/path/to/refresh_token",
+            refresh_token_exists=True,
+            auto_refresh=True
         )
         assert auth_status["authenticated"] is True
         assert auth_status["token_exists"] is True
@@ -269,12 +274,13 @@ class TestFlextCliAuthRealValidation:
 
         result = auth.validate_credentials(invalid_credentials)
         assert result.is_failure
+        assert result.error is not None
         assert "username" in result.error.lower()
 
         # Test getting token when none exists
         auth.clear_auth_tokens()
-        result = auth.get_auth_token()
-        assert result.is_failure
+        token_result = auth.get_auth_token()
+        assert token_result.is_failure
 
     def test_file_operations(self) -> None:
         """Test file operations for config and tokens."""
@@ -292,9 +298,10 @@ class TestFlextCliAuthRealValidation:
             assert result.is_success
 
             # Test loading config
-            result = auth.load_auth_config(tmp_file.name)
-            assert result.is_success
-            assert result.value["api_key"] == "test_key"
+            config_result = auth.load_auth_config(tmp_file.name)
+            assert config_result.is_success
+            assert isinstance(config_result.value, dict)
+            assert config_result.value["api_key"] == "test_key"
 
             # Test clearing auth data
             result = auth.clear_auth_data(tmp_file.name)
@@ -308,7 +315,7 @@ class TestFlextCliAuthRealValidation:
         auth = FlextCliAuth()
 
         # Test user data validation
-        valid_user = {
+        valid_user: dict[str, object] = {
             "name": "Test User",
             "email": "test@example.com"
         }
@@ -317,7 +324,7 @@ class TestFlextCliAuthRealValidation:
         assert result.is_success
 
         # Test invalid user data
-        invalid_user = {
+        invalid_user: dict[str, object] = {
             "name": "",
             "email": "test@example.com"
         }
@@ -326,7 +333,7 @@ class TestFlextCliAuthRealValidation:
         assert result.is_failure
 
         # Test auth config validation
-        valid_config = {
+        valid_config: dict[str, object] = {
             "api_key": "test_key",
             "base_url": "https://api.example.com"
         }
@@ -335,7 +342,7 @@ class TestFlextCliAuthRealValidation:
         assert result.is_success
 
         # Test invalid auth config
-        invalid_config = {
+        invalid_config: dict[str, object] = {
             "api_key": "",
             "base_url": "https://api.example.com"
         }

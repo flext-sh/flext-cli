@@ -60,12 +60,10 @@ class TestEmailValidation:
 
     def test_validate_email_none(self) -> None:
         """Test None email value using flext-core."""
-        try:
-            result = FlextValidations.validate_email(None)
-            assert result.is_failure
-        except (TypeError, AttributeError):
-            # FlextValidations.validate_email may not handle None directly
-            pass
+        # validate_email expects str, not None
+        # Test with empty string instead
+        result = FlextValidations.validate_email("")
+        assert result.is_failure
 
     def test_validate_email_whitespace_only(self) -> None:
         """Test email with only whitespace."""
@@ -291,8 +289,8 @@ class TestIntegrationScenarios:
         }
 
         # Validate each value using flext-core directly
-        email_result = FlextValidations.validate_email(config_values["email"])
-        url_result = FlextValidations.validate_string(config_values["url"])
+        email_result = FlextValidations.validate_email(str(config_values["email"]))
+        url_result = FlextValidations.validate_string(str(config_values["url"]))
 
         validator = FlextValidations.Service.ApiRequestValidator()
         timeout_result = validator.validate_timeout(config_values["timeout"])

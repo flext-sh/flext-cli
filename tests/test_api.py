@@ -34,6 +34,30 @@ class TestFlextCliContext:
         assert context.console is console
         assert context.id == "test-context"  # Uses the id field, not id_ parameter
 
+    def test_api_state_session_count_property(self) -> None:
+        """Test ApiState session_count property."""
+        api = FlextCliApi()
+        state = api.ApiState()
+
+        # Initially no sessions
+        assert state.session_count == 0
+
+        # Add some sessions
+        state.sessions = {"session1": {}, "session2": {}, "session3": {}}
+        assert state.session_count == 3
+
+    def test_api_state_handler_count_property(self) -> None:
+        """Test ApiState handler_count property."""
+        api = FlextCliApi()
+        state = api.ApiState()
+
+        # Initially no handlers
+        assert state.handler_count == 0
+
+        # Add some handlers
+        state.handlers = {"handler1": {}, "handler2": {}}
+        assert state.handler_count == 2
+
 
 class TestFormatting:
     """Test formatting functions."""

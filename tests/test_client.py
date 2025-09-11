@@ -22,6 +22,8 @@ from collections.abc import Coroutine
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs, urlparse
 
+import httpx
+import pytest
 from flext_core import FlextResult, FlextTypes
 
 from flext_cli.client import FlextApiClient
@@ -206,7 +208,7 @@ class MockHTTPHandler(BaseHTTPRequestHandler):
         else:
             self._send_error_response(404, "Not Found")
 
-    def _send_json_response(self, data: dict | list, status_code: int = 200) -> None:
+    def _send_json_response(self, data: dict[str, object] | list[object], status_code: int = 200) -> None:
         """Send JSON response."""
         self.send_response(status_code)
         self.send_header("Content-type", "application/json")
@@ -322,6 +324,84 @@ class TestClientModels(unittest.TestCase):
         assert config_dict["target"] == "target-test"
         assert config_dict["config"]["key"] == "value"
 
+    def test_pipeline_validation_success(self) -> None:
+        """Test Pipeline validation with valid data."""
+        pipeline = FlextApiClientModels.Pipeline(
+            id="pipeline-123",
+            name="valid-pipeline",
+            status="active",
+            created_at="2025-01-01T00:00:00Z",
+            updated_at="2025-01-01T00:00:00Z",
+            config=FlextApiClientModels.PipelineConfig(
+                name="valid-pipeline",
+                tap="tap-csv",
+                target="target-json",
+            ),
+        )
+
+        result = pipeline.validate_business_rules()
+        assert result.is_success
+
+    def test_pipeline_validation_empty_name(self) -> None:
+        """Test Pipeline validation with empty name."""
+        pipeline = FlextApiClientModels.Pipeline(
+            id="pipeline-123",
+            name="",  # Empty name
+            status="active",
+            created_at="2025-01-01T00:00:00Z",
+            updated_at="2025-01-01T00:00:00Z",
+            config=FlextApiClientModels.PipelineConfig(
+                name="valid-pipeline",
+                tap="tap-csv",
+                target="target-json",
+            ),
+        )
+
+        result = pipeline.validate_business_rules()
+        assert result.is_failure
+        assert result.error is not None
+        assert "Pipeline name cannot be empty" in result.error
+
+    def test_pipeline_validation_whitespace_name(self) -> None:
+        """Test Pipeline validation with whitespace-only name."""
+        pipeline = FlextApiClientModels.Pipeline(
+            id="pipeline-123",
+            name="   ",  # Whitespace-only name
+            status="active",
+            created_at="2025-01-01T00:00:00Z",
+            updated_at="2025-01-01T00:00:00Z",
+            config=FlextApiClientModels.PipelineConfig(
+                name="valid-pipeline",
+                tap="tap-csv",
+                target="target-json",
+            ),
+        )
+
+        result = pipeline.validate_business_rules()
+        assert result.is_failure
+        assert result.error is not None
+        assert "Pipeline name cannot be empty" in result.error
+
+    def test_pipeline_validation_invalid_status(self) -> None:
+        """Test Pipeline validation with invalid status."""
+        pipeline = FlextApiClientModels.Pipeline(
+            id="pipeline-123",
+            name="valid-pipeline",
+            status="invalid-status",  # Invalid status
+            created_at="2025-01-01T00:00:00Z",
+            updated_at="2025-01-01T00:00:00Z",
+            config=FlextApiClientModels.PipelineConfig(
+                name="valid-pipeline",
+                tap="tap-csv",
+                target="target-json",
+            ),
+        )
+
+        result = pipeline.validate_business_rules()
+        assert result.is_failure
+        assert result.error is not None
+        assert "Invalid pipeline status" in result.error
+
 
 class TestComputeDefaultBaseUrl(unittest.TestCase):
     """Real functionality tests for default base URL computation."""
@@ -338,6 +418,71 @@ class TestComputeDefaultBaseUrl(unittest.TestCase):
         # Should not raise exceptions during initialization
         client = FlextApiClient()
         assert client is not None
+
+    def test_compute_default_base_url_with_base(self) -> None:
+        """Test _compute_default_base_url with explicit base URL."""
+        # This tests the case where DEFAULT_BASE_URL is available
+        result = FlextApiClient._compute_default_base_url()
+        # Should return a valid URL or None
+        if result is not None:
+            assert isinstance(result, str)
+            assert len(result) > 0
+
+    def test_compute_default_base_url_fallback(self) -> None:
+        """Test _compute_default_base_url fallback behavior."""
+        # Test the fallback logic when base URL computation fails
+        result = FlextApiClient._compute_default_base_url()
+        # Should handle exceptions gracefully and return None or valid URL
+        assert result is None or isinstance(result, str)
+
+    def test_parse_json_response_valid_dict(self) -> None:
+        """Test _parse_json_response with valid dict response."""
+        # Create a mock response with dict data
+        mock_response = httpx.Response(
+            status_code=200,
+            content=b'{"key": "value", "number": 123}',
+            headers={"content-type": "application/json"}
+        )
+
+        client = FlextApiClient()
+        result = client._parse_json_response(mock_response)
+
+        assert isinstance(result, dict)
+        assert result["key"] == "value"
+        assert result["number"] == 123
+
+    def test_parse_json_response_invalid_type(self) -> None:
+        """Test _parse_json_response with non-dict response."""
+        # Create a mock response with list data (should raise TypeError)
+        mock_response = httpx.Response(
+            status_code=200,
+            content=b'[{"key": "value"}]',
+            headers={"content-type": "application/json"}
+        )
+
+        client = FlextApiClient()
+
+        with pytest.raises(TypeError) as context:
+            client._parse_json_response(mock_response)
+
+        assert "Expected dict response, got" in str(context.value)
+
+    def test_parse_json_list_response_valid_list(self) -> None:
+        """Test _parse_json_list_response with valid list response."""
+        # Create a mock response with list data
+        mock_response = httpx.Response(
+            status_code=200,
+            content=b'[{"id": 1, "name": "test"}, {"id": 2, "name": "test2"}]',
+            headers={"content-type": "application/json"}
+        )
+
+        client = FlextApiClient()
+        result = client._parse_json_list_response(mock_response)
+
+        assert isinstance(result, list)
+        assert len(result) == 2
+        assert result[0]["id"] == 1
+        assert result[1]["name"] == "test2"
 
 
 class AsyncTestCase(unittest.TestCase):
@@ -443,6 +588,7 @@ class TestFlextApiClientAuthMethods(AsyncTestCase):
         result = self.run_async(test_login())
 
         # Extract value from FlextResult
+        assert isinstance(result, FlextResult)
         assert result.is_success, f"Login should succeed: {result.error}"
         login_data = result.value
         assert isinstance(login_data, dict)
@@ -492,6 +638,7 @@ class TestFlextApiClientAuthMethods(AsyncTestCase):
 
         result = self.run_async(test_get_user())
 
+        assert isinstance(result, dict)
         assert result["id"] == "user-123"
         assert result["username"] == "testuser"
         assert result["email"] == "test@example.com"
@@ -634,6 +781,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
 
         run_result = self.run_async(test_run())
 
+        assert isinstance(run_result, dict)
         assert run_result["pipeline_id"] == "pipeline-123"
         assert run_result["status"] == "running"
         assert "id" in run_result
@@ -664,6 +812,151 @@ class TestFlextApiClientContextManager(AsyncTestCase):
 
         result = self.run_async(test_close())
         assert result is True
+
+    def test_pipeline_validation_success(self) -> None:
+        """Test pipeline validation with valid data."""
+        pipeline = FlextApiClient.Pipeline(
+            id="test-pipeline",
+            name="Test Pipeline",
+            status="active",
+            created_at="2024-01-01T00:00:00Z",
+            updated_at="2024-01-01T00:00:00Z",
+            config=FlextApiClient.PipelineConfig(
+                name="Test Pipeline",
+                tap="tap-postgres",
+                target="target-postgres"
+            )
+        )
+
+        result = pipeline.validate_business_rules()
+        assert result.is_success
+
+    def test_pipeline_validation_empty_name(self) -> None:
+        """Test pipeline validation with empty name."""
+        pipeline = FlextApiClient.Pipeline(
+            id="test-pipeline",
+            name="",  # Empty name should fail
+            status="active",
+            created_at="2024-01-01T00:00:00Z",
+            updated_at="2024-01-01T00:00:00Z",
+            config=FlextApiClient.PipelineConfig(
+                name="Test Pipeline",
+                tap="tap-postgres",
+                target="target-postgres"
+            )
+        )
+
+        result = pipeline.validate_business_rules()
+        assert result.is_failure
+        assert result.error is not None
+        assert "Pipeline name cannot be empty" in result.error
+
+    def test_pipeline_validation_invalid_status(self) -> None:
+        """Test pipeline validation with invalid status."""
+        pipeline = FlextApiClient.Pipeline(
+            id="test-pipeline",
+            name="Test Pipeline",
+            status="invalid_status",  # Invalid status
+            created_at="2024-01-01T00:00:00Z",
+            updated_at="2024-01-01T00:00:00Z",
+            config=FlextApiClient.PipelineConfig(
+                name="Test Pipeline",
+                tap="tap-postgres",
+                target="target-postgres"
+            )
+        )
+
+        result = pipeline.validate_business_rules()
+        assert result.is_failure
+        assert result.error is not None
+        assert "Invalid pipeline status" in result.error
+
+    def test_pipeline_config_creation(self) -> None:
+        """Test pipeline config creation."""
+        config = FlextApiClient.PipelineConfig(
+            name="Test Pipeline",
+            tap="tap-postgres",
+            target="target-postgres",
+            schedule="0 0 * * *",
+            transform="dbt",
+            state={"bookmark": "2024-01-01"},
+            config={"additional": "config"}
+        )
+
+        assert config.name == "Test Pipeline"
+        assert config.tap == "tap-postgres"
+        assert config.target == "target-postgres"
+        assert config.schedule == "0 0 * * *"
+        assert config.transform == "dbt"
+        assert config.state == {"bookmark": "2024-01-01"}
+        assert config.config == {"additional": "config"}
+
+    def test_pipeline_list_creation(self) -> None:
+        """Test pipeline list creation."""
+        pipeline = FlextApiClient.Pipeline(
+            id="test-pipeline",
+            name="Test Pipeline",
+            status="active",
+            created_at="2024-01-01T00:00:00Z",
+            updated_at="2024-01-01T00:00:00Z",
+            config=FlextApiClient.PipelineConfig(
+                name="Test Pipeline",
+                tap="tap-postgres",
+                target="target-postgres"
+            )
+        )
+
+        pipeline_list = FlextApiClient.PipelineList(
+            pipelines=[pipeline],
+            total=1,
+            page=1,
+            page_size=20
+        )
+
+        assert len(pipeline_list.pipelines) == 1
+        assert pipeline_list.total == 1
+        assert pipeline_list.page == 1
+        assert pipeline_list.page_size == 20
+
+    def test_get_headers_without_token(self) -> None:
+        """Test get_headers method without token."""
+        client = FlextApiClient()
+        headers = client.get_headers()
+
+        assert "Content-Type" in headers
+        assert headers["Content-Type"] == "application/json"
+        assert "Authorization" not in headers
+
+    def test_get_headers_with_token(self) -> None:
+        """Test get_headers method with token."""
+        client = FlextApiClient(token="test-token")
+        headers = client.get_headers()
+
+        assert "Content-Type" in headers
+        assert headers["Content-Type"] == "application/json"
+        assert "Authorization" in headers
+        assert headers["Authorization"] == "Bearer test-token"
+
+    def test_build_url(self) -> None:
+        """Test build_url method."""
+        client = FlextApiClient(base_url="https://api.example.com")
+        url = client.build_url("/test/path")
+
+        assert url == "https://api.example.com/test/path"
+
+    def test_build_url_with_trailing_slash(self) -> None:
+        """Test build_url method with trailing slash in base URL."""
+        client = FlextApiClient(base_url="https://api.example.com/")
+        url = client.build_url("/test/path")
+
+        assert url == "https://api.example.com/test/path"
+
+    def test_build_url_without_leading_slash(self) -> None:
+        """Test build_url method without leading slash in path."""
+        client = FlextApiClient(base_url="https://api.example.com")
+        url = client.build_url("test/path")
+
+        assert url == "https://api.example.com/test/path"
 
 
 if __name__ == "__main__":

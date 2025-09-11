@@ -150,7 +150,7 @@ class TestTypeCompatibility:
     def test_can_use_modern_aliases(self) -> None:
         """Test that modern aliases can be used for type checking."""
         # Updated to only use types that exist after flext-core refactoring
-        data: types.FlextCliDataType = {"key": "value"}
+        data: types.FlextCliDataType = "test_data"
         format_str: types.FlextCliTypes.OutputFormat = types.FlextCliTypes.OutputFormat.JSON
         args: list[str] = ["arg1", "arg2"]
 

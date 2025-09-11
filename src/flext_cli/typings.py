@@ -282,6 +282,7 @@ class FlextCliTypes:
                 request: str | dict[str, object],
             ) -> FlextResult[object]:
                 """Process CLI request."""
+
             def build(
                 self,
                 domain: object,
@@ -317,6 +318,7 @@ class FlextCliTypes:
                 credentials: dict[str, str],
             ) -> FlextResult[FlextCliTypes.Auth.CliAuthContext]:
                 """Authenticate CLI user."""
+
             def is_authenticated(self) -> bool:
                 """Check authentication status."""
 

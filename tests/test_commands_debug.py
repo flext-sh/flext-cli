@@ -22,7 +22,7 @@ from click.testing import CliRunner
 from flext_core import FlextConstants
 from rich.console import Console
 
-from flext_cli import debug_cmd
+from flext_cli import debug
 from flext_cli.config import FlextCliConfig
 from flext_cli.debug import (
     connectivity,
@@ -37,20 +37,20 @@ from flext_cli.debug import (
 class TestDebugCommandReal:
     """Test debug command group with real functionality."""
 
-    def test_debug_cmd_creation_real(self) -> None:
+    def test_debug_creation_real(self) -> None:
         """Test debug command group creation with real implementation."""
         # Test actual Click group properties
-        assert isinstance(debug_cmd, click.Group)
-        assert debug_cmd.name == "debug"
-        assert debug_cmd.help == "Debug commands for FLEXT CLI."
+        assert isinstance(debug, click.Group)
+        assert debug.name == "debug"
+        assert debug.help == "Debug commands for FLEXT CLI."
 
         # Test that it has the click group attributes
-        assert hasattr(debug_cmd, "commands")
-        assert isinstance(debug_cmd.commands, dict)
+        assert hasattr(debug, "commands")
+        assert isinstance(debug.commands, dict)
 
-    def test_debug_cmd_has_all_subcommands_real(self) -> None:
+    def test_debug_has_all_subcommands_real(self) -> None:
         """Test that debug command has all expected subcommands with real verification."""
-        commands = list(debug_cmd.commands.keys())
+        commands = list(debug.commands.keys())
         expected_commands = [
             "connectivity",
             "performance",
@@ -65,7 +65,7 @@ class TestDebugCommandReal:
             assert cmd in commands, f"Missing command: {cmd}"
 
         # Verify commands are proper click commands
-        for cmd_name, cmd_obj in debug_cmd.commands.items():
+        for cmd_name, cmd_obj in debug.commands.items():
             assert isinstance(cmd_obj, click.Command), (
                 f"Command {cmd_name} is not a Click command"
             )
@@ -357,7 +357,7 @@ class TestDebugIntegrationReal:
             assert callable(func), f"Function {func_name} is not callable"
 
         # Verify they're all part of the debug group
-        registered_commands = debug_cmd.commands
+        registered_commands = debug.commands
         assert len(registered_commands) >= 6, "Missing commands in debug group"
 
         # Verify each expected command is registered
@@ -376,12 +376,12 @@ class TestDebugIntegrationReal:
 
     def test_debug_group_help_real(self) -> None:
         """Test debug group help text with real implementation."""
-        assert debug_cmd.help == "Debug commands for FLEXT CLI."
-        assert debug_cmd.name == "debug"
+        assert debug.help == "Debug commands for FLEXT CLI."
+        assert debug.name == "debug"
 
         # Test help invocation
         runner = CliRunner()
-        result = runner.invoke(debug_cmd, ["--help"])
+        result = runner.invoke(debug, ["--help"])
         assert result.exit_code == 0
         assert "debug" in result.output.lower()
 
@@ -449,7 +449,7 @@ class TestDebugIntegrationReal:
         ]
 
         for cmd_name, args in commands_to_test:
-            result = runner.invoke(debug_cmd.commands[cmd_name], args, obj=context)
+            result = runner.invoke(debug.commands[cmd_name], args, obj=context)
             # Commands should complete (may succeed or fail gracefully)
             assert result.exit_code in {0, 1}, f"Command {cmd_name} failed unexpectedly"
 
@@ -496,7 +496,7 @@ class TestDebugCommandsRealFunctionality:
         ]
 
         for cmd_name in command_names:
-            result = runner.invoke(debug_cmd.commands[cmd_name], ["--help"])
+            result = runner.invoke(debug.commands[cmd_name], ["--help"])
             assert result.exit_code == 0, f"Help failed for {cmd_name}"
             assert len(result.output) > 0, f"No help output for {cmd_name}"
             assert cmd_name in result.output.lower(), (
@@ -514,7 +514,7 @@ class TestDebugCommandsRealFunctionality:
         safe_commands = ["env", "paths", "trace"]
 
         for cmd_name in safe_commands:
-            result = runner.invoke(debug_cmd.commands[cmd_name], [], obj=proper_context)
+            result = runner.invoke(debug.commands[cmd_name], [], obj=proper_context)
             assert result.exit_code in {0, 1}, (
                 f"Command {cmd_name} failed with proper context"
             )
@@ -554,12 +554,12 @@ class TestDebugCommandTypeSafety:
 
     def test_debug_group_structure_real(self) -> None:
         """Test debug group has proper structure."""
-        assert isinstance(debug_cmd, click.Group)
-        assert hasattr(debug_cmd, "commands")
-        assert isinstance(debug_cmd.commands, dict)
+        assert isinstance(debug, click.Group)
+        assert hasattr(debug, "commands")
+        assert isinstance(debug.commands, dict)
 
         # Verify all registered commands are click objects
-        for cmd_name, cmd_obj in debug_cmd.commands.items():
+        for cmd_name, cmd_obj in debug.commands.items():
             assert callable(cmd_obj), f"Command {cmd_name} is not callable"
             assert isinstance(cmd_obj, click.Command), (
                 f"Command {cmd_name} is not a Click command"

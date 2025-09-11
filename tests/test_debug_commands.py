@@ -22,7 +22,7 @@ from click.testing import CliRunner
 from flext_core import FlextConstants
 from rich.console import Console
 
-from flext_cli import debug_cmd
+from flext_cli import debug
 
 
 class TestDebugCommandsReal:
@@ -35,19 +35,19 @@ class TestDebugCommandsReal:
 
     def test_debug_group_exists(self) -> None:
         """Test that debug command group exists and is properly structured."""
-        assert isinstance(debug_cmd, click.Group), (
-            f"Expected Group, got {type(debug_cmd)}"
+        assert isinstance(debug, click.Group), (
+            f"Expected Group, got {type(debug)}"
         )
-        assert debug_cmd.name == "debug"
+        assert debug.name == "debug"
 
         # Verify essential commands exist
         essential_commands = ["connectivity", "performance", "validate", "env", "paths"]
         for cmd_name in essential_commands:
-            assert cmd_name in debug_cmd.commands, f"Missing command: {cmd_name}"
+            assert cmd_name in debug.commands, f"Missing command: {cmd_name}"
 
     def test_debug_help_real(self) -> None:
         """Test debug help command with real execution."""
-        result = self.runner.invoke(debug_cmd, ["--help"])
+        result = self.runner.invoke(debug, ["--help"])
 
         assert result.exit_code == 0, f"Help failed: {result.output}"
         assert "debug" in result.output.lower()
@@ -59,7 +59,7 @@ class TestDebugCommandsReal:
         ctx_obj = {"console": self.console}
 
         result = self.runner.invoke(
-            debug_cmd, ["connectivity"], obj=ctx_obj, catch_exceptions=False,
+            debug, ["connectivity"], obj=ctx_obj, catch_exceptions=False,
         )
 
         # Command should handle connection failures gracefully
@@ -73,7 +73,7 @@ class TestDebugCommandsReal:
         ctx_obj = {"console": self.console}
 
         result = self.runner.invoke(
-            debug_cmd, ["performance"], obj=ctx_obj, catch_exceptions=False,
+            debug, ["performance"], obj=ctx_obj, catch_exceptions=False,
         )
 
         # Command should handle API unavailability gracefully
@@ -97,7 +97,7 @@ class TestDebugCommandsReal:
 
         with self.runner.isolated_filesystem():
             result = self.runner.invoke(
-                debug_cmd, ["env"], obj=ctx_obj, env=test_env, catch_exceptions=False,
+                debug, ["env"], obj=ctx_obj, env=test_env, catch_exceptions=False,
             )
 
         assert result.exit_code == 0, f"Env command failed: {result.output}"
@@ -114,7 +114,7 @@ class TestDebugCommandsReal:
         ctx_obj = {"console": self.console}
 
         result = self.runner.invoke(
-            debug_cmd, ["paths"], obj=ctx_obj, catch_exceptions=False,
+            debug, ["paths"], obj=ctx_obj, catch_exceptions=False,
         )
 
         assert result.exit_code == 0, f"Paths command failed: {result.output}"
@@ -127,7 +127,7 @@ class TestDebugCommandsReal:
         ctx_obj = {"console": self.console}
 
         result = self.runner.invoke(
-            debug_cmd, ["validate"], obj=ctx_obj, catch_exceptions=False,
+            debug, ["validate"], obj=ctx_obj, catch_exceptions=False,
         )
 
         # Should complete successfully or with validation warnings
@@ -142,7 +142,7 @@ class TestDebugCommandsReal:
         ctx_obj = {"console": self.console}
 
         result = self.runner.invoke(
-            debug_cmd, ["trace", "test", "command"], obj=ctx_obj, catch_exceptions=False,
+            debug, ["trace", "test", "command"], obj=ctx_obj, catch_exceptions=False,
         )
 
         # Trace command should execute (placeholder implementation)
@@ -229,7 +229,7 @@ class TestDebugErrorHandlingReal:
     def test_connectivity_without_context_real(self) -> None:
         """Test connectivity command without proper context - real error."""
         # Test with no context object (should fail gracefully)
-        result = self.runner.invoke(debug_cmd, ["connectivity"], obj=None)
+        result = self.runner.invoke(debug, ["connectivity"], obj=None)
 
         # Should fail gracefully with proper error message - testing real connectivity
         assert result.exit_code == 1
@@ -244,7 +244,7 @@ class TestDebugErrorHandlingReal:
         ctx_obj = {"console": self.console}
 
         # This tests real network behavior - may succeed or fail based on environment
-        result = self.runner.invoke(debug_cmd, ["connectivity"], obj=ctx_obj)
+        result = self.runner.invoke(debug, ["connectivity"], obj=ctx_obj)
 
         # Should handle network issues gracefully
         assert result.exit_code in {0, 1}
@@ -257,7 +257,7 @@ class TestDebugErrorHandlingReal:
         """Test performance command when API is unavailable."""
         ctx_obj = {"console": self.console}
 
-        result = self.runner.invoke(debug_cmd, ["performance"], obj=ctx_obj)
+        result = self.runner.invoke(debug, ["performance"], obj=ctx_obj)
 
         # Should handle API unavailability gracefully
         assert result.exit_code in {0, 1}
@@ -266,7 +266,7 @@ class TestDebugErrorHandlingReal:
         """Test validate command with actual system state."""
         ctx_obj = {"console": self.console}
 
-        result = self.runner.invoke(debug_cmd, ["validate"], obj=ctx_obj)
+        result = self.runner.invoke(debug, ["validate"], obj=ctx_obj)
 
         # Should validate actual system and provide meaningful results
         assert result.exit_code in {0, 1}  # Success or validation warnings
@@ -294,7 +294,7 @@ class TestDebugCommandFlow:
         ]
 
         for cmd_args in commands_to_test:
-            result = self.runner.invoke(debug_cmd, cmd_args, obj=ctx_obj)
+            result = self.runner.invoke(debug, cmd_args, obj=ctx_obj)
 
             assert result.exit_code in {0, 1}, (
                 f"Command {cmd_args} failed: {result.output}"
@@ -303,8 +303,8 @@ class TestDebugCommandFlow:
 
     def test_help_for_all_subcommands(self) -> None:
         """Test help output for all debug subcommands."""
-        for cmd_name in debug_cmd.commands:
-            result = self.runner.invoke(debug_cmd, [cmd_name, "--help"])
+        for cmd_name in debug.commands:
+            result = self.runner.invoke(debug, [cmd_name, "--help"])
 
             assert result.exit_code == 0, f"Help failed for {cmd_name}: {result.output}"
             assert cmd_name in result.output or "Usage" in result.output

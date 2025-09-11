@@ -104,12 +104,13 @@ class TestFlextCliLoggingSetup:
             config.log_level_source = "test"
             return FlextResult[FlextCliLoggingConfig].ok(config)
 
-        setup._detect_log_configuration = mock_detect_config
-        result = setup.setup_logging()
+        # Mock the method using patch instead of direct assignment
+        with patch.object(setup, "_detect_log_configuration", mock_detect_config):
+            result = setup.setup_logging()
 
-        # Should still succeed but fall back to default
-        assert result.is_success
-        assert result.value is not None
+            # Should still succeed but fall back to default
+            assert result.is_success
+            assert result.value is not None
 
     def test_setup_logging_file_error(self) -> None:
         """Test logging setup with file error."""
