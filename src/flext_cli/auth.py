@@ -25,6 +25,7 @@ from flext_core import (
     FlextResult,
     FlextTypes,
 )
+from flext_core.validations import FlextValidations
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.protocols import AuthenticationClient
@@ -89,11 +90,11 @@ class FlextCliAuth(FlextDomainService[str]):
         token_type: str
 
     def __init__(
-        self, 
-        *, 
-        config: FlextCliConfig | None = None, 
+        self,
+        *,
+        config: FlextCliConfig | None = None,
         auth_client: AuthenticationClient | None = None,
-        **_data: object
+        **_data: object,
     ) -> None:
         """Initialize authentication service with flext-core dependencies and SOURCE OF TRUTH."""
         super().__init__()
@@ -110,7 +111,7 @@ class FlextCliAuth(FlextDomainService[str]):
                 )
                 raise ValueError(msg)
             self._config = config_result.value
-            
+
         # Dependency injection for authentication client
         self._auth_client = auth_client
 
@@ -452,7 +453,7 @@ class FlextCliAuth(FlextDomainService[str]):
                 return FlextResult[FlextTypes.Core.Dict].fail(
                     "Authentication client not available"
                 )
-                
+
             response = await self._auth_client.login(username, password)
 
             # Check response using SOURCE OF TRUTH patterns
@@ -658,7 +659,9 @@ class FlextCliAuth(FlextDomainService[str]):
             credentials = self.LoginCredentials(username=username, password=password)
             validation_result = self.validate_credentials(credentials)
             if validation_result.is_failure:
-                return FlextResult[str].fail(f"Invalid credentials: {validation_result.error}")
+                return FlextResult[str].fail(
+                    f"Invalid credentials: {validation_result.error}"
+                )
 
             # Simulate authentication success
             return FlextResult[str].ok("access_token_123")
@@ -676,19 +679,21 @@ class FlextCliAuth(FlextDomainService[str]):
                 "id": "user123",
                 "name": "Test User",
                 "email": "test@example.com",
-                "role": "user"
+                "role": "user",
             }
             return FlextResult[dict[str, object]].ok(profile)
         except Exception as e:
             return FlextResult[dict[str, object]].fail(f"Profile retrieval failed: {e}")
 
-    def save_auth_config(self, config: dict[str, object], file_path: str) -> FlextResult[None]:
+    def save_auth_config(
+        self, config: dict[str, object], file_path: str
+    ) -> FlextResult[None]:
         """Save auth config - test compatibility method."""
         try:
             config_path = Path(file_path)
             config_path.parent.mkdir(parents=True, exist_ok=True)
 
-            with config_path.open("w") as f:
+            with config_path.open("w", encoding="utf-8") as f:
                 json.dump(config, f, indent=2)
 
             return FlextResult[None].ok(None)
@@ -702,12 +707,12 @@ class FlextCliAuth(FlextDomainService[str]):
             if not config_path.exists():
                 return FlextResult[dict[str, object]].fail("Config file not found")
 
-            with config_path.open() as f:
+            with config_path.open(encoding="utf-8") as f:
                 config = json.load(f)
 
             return FlextResult[dict[str, object]].ok(config)
         except json.JSONDecodeError as e:
-                return FlextResult[dict[str, object]].fail(f"Invalid JSON: {e}")
+            return FlextResult[dict[str, object]].fail(f"Invalid JSON: {e}")
         except Exception as e:
             return FlextResult[dict[str, object]].fail(f"Config load failed: {e}")
 
@@ -730,29 +735,29 @@ class FlextCliAuth(FlextDomainService[str]):
         except Exception:
             return True
 
-    def _validate_user_data(self, user_data: dict[str, object]) -> FlextResult[dict[str, object]]:
-        """Validate user data using flext-core validation patterns."""
-        try:
-            # Use flext-core validation pattern for required fields
-            required_fields = ["name", "email"]
-            for field in required_fields:
-                if field not in user_data or not user_data[field]:
-                    return FlextResult[dict[str, object]].fail(f"Missing required field: {field}")
-            return FlextResult[dict[str, object]].ok(user_data)
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"User data validation failed: {e}")
+    def _validate_user_data(
+        self, user_data: dict[str, object]
+    ) -> FlextResult[dict[str, object]]:
+        """Validate user data using flext-core validation directly."""
+        return FlextValidations.validate_user_data(user_data)
 
-    def _validate_auth_config(self, config: dict[str, object]) -> FlextResult[dict[str, object]]:
+    def _validate_auth_config(
+        self, config: dict[str, object]
+    ) -> FlextResult[dict[str, object]]:
         """Validate auth config using flext-core validation patterns."""
         try:
             # Use flext-core validation pattern for required fields
             required_fields = ["api_key", "base_url"]
             for field in required_fields:
                 if field not in config or not config[field]:
-                    return FlextResult[dict[str, object]].fail(f"Missing required field: {field}")
+                    return FlextResult[dict[str, object]].fail(
+                        f"Missing required field: {field}"
+                    )
             return FlextResult[dict[str, object]].ok(config)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Auth config validation failed: {e}")
+            return FlextResult[dict[str, object]].fail(
+                f"Auth config validation failed: {e}"
+            )
 
     class CommandHandler:
         """Unified command handler for authentication operations using SOURCE OF TRUTH."""

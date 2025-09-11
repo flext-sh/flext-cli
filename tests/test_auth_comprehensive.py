@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 from flext_core import FlextResult
@@ -160,6 +160,7 @@ class TestFlextCliAuth:
         )
         result = auth.validate_credentials(invalid_credentials)
         assert result.is_failure
+        assert result.error is not None
         assert "Username and password cannot be empty" in result.error
 
     def test_is_authenticated_with_token(self) -> None:
@@ -212,7 +213,7 @@ class TestFlextCliAuth:
 
         # Mock successful login
         with patch.object(FlextApiClient, "login") as mock_login:
-            mock_login.return_value = FlextResult[dict].ok({
+            mock_login.return_value = FlextResult[dict[str, object]].ok({
                 "access_token": "test_token",
                 "refresh_token": "refresh_token",
                 "token": "test_token"  # Add missing token field
@@ -227,16 +228,20 @@ class TestFlextCliAuth:
     @pytest.mark.asyncio
     async def test_login_failure(self) -> None:
         """Test login failure."""
-        auth = FlextCliAuth()
+        # Create mock authentication client
+        async def mock_login(_username: str, _password: str) -> FlextResult[dict[str, object]]:
+            return FlextResult[dict[str, object]].fail("Invalid credentials")
 
-        # Mock login failure
-        with patch.object(FlextApiClient, "login") as mock_login:
-            mock_login.return_value = FlextResult[dict].fail("Invalid credentials")
+        mock_auth_client = Mock()
+        mock_auth_client.login = mock_login
 
-            result = await auth.login("test@example.com", "wrong_password")
+        auth = FlextCliAuth(auth_client=mock_auth_client)
 
-            assert result.is_failure
-            assert "Invalid credentials" in result.error
+        result = await auth.login("test@example.com", "wrong_password")
+
+        assert result.is_failure
+        assert result.error is not None
+        assert "Invalid credentials" in result.error
 
     @pytest.mark.asyncio
     async def test_logout_success(self) -> None:
@@ -334,6 +339,7 @@ class TestFlextCliAuth:
             result = auth.load_token_from_storage(token_path, "access_token")
 
             assert result.is_failure
+            assert result.error is not None
             assert "access_token file does not exist in SOURCE OF TRUTH storage" in result.error
 
     def test_save_auth_token(self) -> None:

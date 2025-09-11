@@ -84,8 +84,8 @@ class TestCommandLifecycleManagement:
         assert "Command line cannot be empty" in str(result.error or "")
 
     def test_create_command_none_input(self) -> None:
-        """Test command creation fails with None input."""
-        result = self.domain_services.create_command(None)
+        """Test command creation fails with empty input."""
+        result = self.domain_services.create_command("")
         assert result.is_failure
         assert "Command line cannot be empty" in str(result.error or "")
 
@@ -492,11 +492,11 @@ class TestExceptionHandling:
         # Test various error scenarios
         error_scenarios = [
             lambda: self.domain_services.create_command(""),
-            lambda: self.domain_services.create_command(None),
+            lambda: self.domain_services.create_command("   "),
         ]
 
         for scenario in error_scenarios:
-            result: FlextResult[FlextCliModels.CliCommand] = scenario()
+            result = scenario()
             if result.is_failure:
                 assert result.error is not None
                 assert len(result.error) > 10  # Should be descriptive

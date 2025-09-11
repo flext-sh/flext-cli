@@ -258,6 +258,17 @@ markers = [
     "unit: marks tests as unit tests",
     "regression: marks tests as regression tests",
     "core: marks tests as core functionality tests",
+    "concurrency: marks tests as concurrency tests",
+    "race_condition: marks tests as race condition tests",
+    "performance: marks tests as performance tests",
+    "stress: marks tests as stress tests",
+    "load: marks tests as load tests",
+    "benchmark: marks tests as benchmark tests",
+    "memory: marks tests as memory tests",
+    "io: marks tests as I/O tests",
+    "network: marks tests as network tests",
+    "security: marks tests as security tests",
+    "compatibility: marks tests as compatibility tests",
 ]
 
 [tool.ruff]

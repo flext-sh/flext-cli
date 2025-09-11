@@ -91,12 +91,6 @@ class FlextCliDebug(FlextDomainService[str]):
         try:
             client = FlextApiClient()
             status_result = await client.get_system_status()
-
-            if not isinstance(status_result, dict):
-                return FlextResult[FlextCliDebug.SystemMetrics].fail(
-                    "Invalid metrics response"
-                )
-
             metrics: FlextCliDebug.SystemMetrics = {
                 "cpu_usage": str(status_result.get("cpu_usage", "Unknown")),
                 "memory_usage": str(status_result.get("memory_usage", "Unknown")),

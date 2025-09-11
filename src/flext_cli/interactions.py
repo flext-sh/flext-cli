@@ -104,7 +104,9 @@ class FlextCliInteractions:
             _ = message  # For future enhanced implementation
             return FlextResult[FlextTypes.Core.List].ok(items)
         except Exception as e:
-            return FlextResult[FlextTypes.Core.List].fail(f"Progress processing failed: {e}")
+            return FlextResult[FlextTypes.Core.List].fail(
+                f"Progress processing failed: {e}"
+            )
 
 
 __all__ = ["FlextCliInteractions"]

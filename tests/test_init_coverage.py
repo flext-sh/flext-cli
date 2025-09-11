@@ -1,135 +1,112 @@
-"""Tests for __init__.py module to increase coverage."""
+"""Tests for __init__.py module to increase coverage - DIRECT flext-core usage."""
 
 from __future__ import annotations
 
 from flext_cli import (
+    FlextApiClient,
+    FlextCliApi,
+    FlextCliAuth,
     FlextCliConfig,
-    FlextCliModule,
+    FlextCliConstants,
+    FlextCliContext,
+    FlextCliDataProcessing,
+    FlextCliDebug,
+    FlextCliDecorators,
+    FlextCliDomainServices,
+    FlextCliFactory,
+    FlextCliFileOperations,
+    FlextCliFormatters,
+    FlextCliInteractions,
+    FlextCliLoggingSetup,
+    FlextCliMain,
+    FlextCliModels,
+    FlextCliService,
+    FlextCliServices,
+    __author__,
+    __description__,
+    __version__,
+    auth,
+    cli,
+    config,
+    debug,
+    get_cli_config,
+    login,
+    logout,
+    main,
+    status,
 )
 
 
-class TestFlextCliModuleCoverage:
-    """Test FlextCliModule to increase coverage."""
+class TestFlextCliDirectCoverage:
+    """Test direct flext-core usage - NO WRAPPERS."""
 
-    def test_module_initialization(self) -> None:
-        """Test module initialization."""
-        module = FlextCliModule()
-        assert module is not None
-        assert hasattr(module, "get_logger")
-        assert hasattr(module, "get_cli_config")
+    def test_get_cli_config_function(self) -> None:
+        """Test get_cli_config function."""
+        config = get_cli_config()
+        assert config is not None
+        assert isinstance(config, FlextCliConfig)
 
-    def test_get_logger(self) -> None:
-        """Test get_logger method."""
-        module = FlextCliModule()
-        logger = module.get_logger()
-        assert logger is not None
+    def test_flext_cli_main_initialization(self) -> None:
+        """Test FlextCliMain initialization."""
+        cli_main = FlextCliMain()
+        assert cli_main is not None
+        assert hasattr(cli_main, "get_logger")
 
-    def test_get_cli_config_success(self) -> None:
-        """Test get_cli_config success case."""
-        module = FlextCliModule()
-        result = module.get_cli_config()
-        assert result.is_success
-        assert isinstance(result.value, FlextCliConfig)
+    def test_flext_cli_auth_initialization(self) -> None:
+        """Test FlextCliAuth initialization."""
+        auth = FlextCliAuth()
+        assert auth is not None
+        assert hasattr(auth, "execute")
 
-    def test_save_auth_token_success(self) -> None:
-        """Test save_auth_token success case."""
-        module = FlextCliModule()
-        result = module.save_auth_token("test_token")
-        # This may fail due to auth service, but we test the method exists
-        assert result is not None
-
-    def test_create_table_success(self) -> None:
-        """Test create_table success case."""
-        module = FlextCliModule()
-        data = [{"key": "value"}]
-        result = module.create_table(data, "Test Table")
-        # This may fail due to formatters, but we test the method exists
-        assert result is not None
-
-    def test_format_output_success(self) -> None:
-        """Test format_output success case."""
-        module = FlextCliModule()
-        data = {"key": "value"}
-        result = module.format_output(data, "json")
-        # This may fail due to API, but we test the method exists
-        assert result is not None
-
-    def test_check_authentication(self) -> None:
-        """Test check_authentication method."""
-        module = FlextCliModule()
-        result = module.check_authentication()
-        # This may fail due to auth service, but we test the method exists
-        assert result is not None
-
-    def test_measure_execution_time(self) -> None:
-        """Test measure_execution_time method."""
-        module = FlextCliModule()
-        result = module.measure_execution_time("test_operation")
-        assert result.is_success
-        assert "operation" in result.value
-        assert "timestamp" in result.value
-
-    def test_get_available_operations(self) -> None:
-        """Test get_available_operations method."""
-        module = FlextCliModule()
-        result = module.get_available_operations()
-        assert result.is_success
-        operations = result.value
-        assert "config_operations" in operations
-        assert "auth_operations" in operations
-        assert "format_operations" in operations
-        assert "utility_operations" in operations
-
-    def test_execute(self) -> None:
-        """Test execute method."""
-        module = FlextCliModule()
-        result = module.execute()
-        assert result.is_success
-        assert "FlextCliModule" in result.value
-
-    def test_execute_cli_operation_valid(self) -> None:
-        """Test execute_cli_operation with valid operation."""
-        module = FlextCliModule()
-        result = module.execute_cli_operation("measure_execution_time", "test_operation")
-        assert result.is_success
-
-    def test_execute_cli_operation_invalid(self) -> None:
-        """Test execute_cli_operation with invalid operation."""
-        module = FlextCliModule()
-        result = module.execute_cli_operation("invalid_operation")
-        assert result.is_failure
-        assert "Unknown CLI operation" in result.error
-
-    def test_convenience_api(self) -> None:
-        """Test ConvenienceAPI class."""
-        module = FlextCliModule()
-        api = FlextCliModule.ConvenienceAPI(module)
+    def test_flext_cli_api_initialization(self) -> None:
+        """Test FlextCliApi initialization."""
+        api = FlextCliApi()
         assert api is not None
-        assert hasattr(api, "get_config")
-        assert hasattr(api, "save_token")
-        assert hasattr(api, "create_data_table")
-        assert hasattr(api, "format_data")
-        assert hasattr(api, "is_authenticated")
-        assert hasattr(api, "time_operation")
+        assert hasattr(api, "execute")
 
-    def test_decorator_factory(self) -> None:
-        """Test DecoratorFactory class."""
-        module = FlextCliModule()
-        factory = FlextCliModule.DecoratorFactory(module)
-        assert factory is not None
-        assert hasattr(factory, "require_authentication")
-        assert hasattr(factory, "measure_time")
+    def test_flext_cli_formatters_initialization(self) -> None:
+        """Test FlextCliFormatters initialization."""
+        formatters = FlextCliFormatters()
+        assert formatters is not None
+        assert hasattr(formatters, "format_data")
 
-    def test_require_authentication_decorator(self) -> None:
-        """Test require_authentication decorator."""
-        module = FlextCliModule()
-        factory = FlextCliModule.DecoratorFactory(module)
-        decorator = factory.require_authentication()
-        assert callable(decorator)
+    def test_flext_cli_config_initialization(self) -> None:
+        """Test FlextCliConfig initialization."""
+        config = FlextCliConfig()
+        assert config is not None
+        assert hasattr(config, "validate_business_rules")
 
-    def test_measure_time_decorator(self) -> None:
-        """Test measure_time decorator."""
-        module = FlextCliModule()
-        factory = FlextCliModule.DecoratorFactory(module)
-        decorator = factory.measure_time()
-        assert callable(decorator)
+    def test_direct_import_access(self) -> None:
+        """Test that all direct imports are accessible."""
+        # Test that classes can be instantiated
+        assert FlextApiClient is not None
+        assert FlextCliConstants is not None
+        assert FlextCliContext is not None
+        assert FlextCliDataProcessing is not None
+        assert FlextCliDebug is not None
+        assert FlextCliDecorators is not None
+        assert FlextCliDomainServices is not None
+        assert FlextCliFactory is not None
+        assert FlextCliFileOperations is not None
+        assert FlextCliInteractions is not None
+        assert FlextCliLoggingSetup is not None
+        assert FlextCliModels is not None
+        assert FlextCliService is not None
+        assert FlextCliServices is not None
+
+    def test_command_aliases(self) -> None:
+        """Test command aliases work."""
+        assert auth is not None
+        assert cli is not None
+        assert config is not None
+        assert debug is not None
+        assert login is not None
+        assert logout is not None
+        assert main is not None
+        assert status is not None
+
+    def test_version_info_access(self) -> None:
+        """Test version info is accessible."""
+        assert __version__ is not None
+        assert __author__ is not None
+        assert __description__ is not None

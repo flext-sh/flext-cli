@@ -75,7 +75,9 @@ class FlextCliLoggingSetup:
             if FlextCliLoggingSetup._setup_complete:
                 log_config_result = self._detect_log_configuration()
                 if log_config_result.is_success:
-                    return FlextResult[FlextCliLoggingConfig].ok(log_config_result.value)
+                    return FlextResult[FlextCliLoggingConfig].ok(
+                        log_config_result.value
+                    )
                 return log_config_result
 
             # Detect log level and its source
@@ -151,7 +153,9 @@ class FlextCliLoggingSetup:
             log_config.log_level_source = "default"
             return FlextResult[FlextCliLoggingConfig].ok(log_config)
         except Exception as e:
-            return FlextResult[FlextCliLoggingConfig].fail(f"Log configuration detection failed: {e}")
+            return FlextResult[FlextCliLoggingConfig].fail(
+                f"Log configuration detection failed: {e}"
+            )
 
     @classmethod
     def setup_for_cli(

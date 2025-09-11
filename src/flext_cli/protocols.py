@@ -49,9 +49,7 @@ class TokenStorage(Protocol):
 class AuthenticationService(Protocol):
     """Protocol for authentication service operations."""
 
-    def validate_credentials(
-        self, username: str, password: str
-    ) -> FlextResult[None]:
+    def validate_credentials(self, username: str, password: str) -> FlextResult[None]:
         """Validate login credentials."""
         ...
 

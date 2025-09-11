@@ -35,6 +35,7 @@ class TestFlextCliService:
         assert health_data["status"] == "healthy"
         assert "timestamp" in health_data
         assert "flext_core_integration" in health_data
+        assert isinstance(health_data["flext_core_integration"], dict)
         assert health_data["flext_core_integration"]["entities"] is True
 
     def test_service_inherits_from_domain_service(self) -> None:

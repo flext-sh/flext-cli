@@ -23,7 +23,7 @@ import click
 from click.testing import CliRunner
 from rich.console import Console
 
-from flext_cli import debug_cmd
+from flext_cli import debug
 from flext_cli.client import FlextApiClient
 from flext_cli.config import FlextCliConfig
 from flext_cli.debug import check, env, paths, trace, validate
@@ -50,15 +50,15 @@ class TestDebugBasicFunctions(unittest.TestCase):
         assert client is not None
         assert hasattr(client, "base_url")
 
-    def test_debug_cmd_group_structure(self) -> None:
+    def test_debug_group_structure(self) -> None:
         """Test debug command group is properly structured."""
-        assert isinstance(debug_cmd, click.Group)
-        assert debug_cmd.name == "debug"
-        assert "Debug commands for FLEXT CLI" in (debug_cmd.help or "")
+        assert isinstance(debug, click.Group)
+        assert debug.name == "debug"
+        assert "Debug commands for FLEXT CLI" in (debug.help or "")
 
         # Verify commands are registered
-        ctx = click.Context(debug_cmd)
-        commands = debug_cmd.list_commands(ctx)
+        ctx = click.Context(debug)
+        commands = debug.list_commands(ctx)
         expected_commands = [
             "connectivity",
             "performance",
@@ -300,8 +300,8 @@ class TestDebugCommandIntegration(unittest.TestCase):
 
     def test_debug_group_command_registration(self) -> None:
         """Test that all debug commands are properly registered."""
-        ctx = click.Context(debug_cmd)
-        commands = debug_cmd.list_commands(ctx)
+        ctx = click.Context(debug)
+        commands = debug.list_commands(ctx)
 
         expected_commands = [
             "connectivity",
@@ -316,7 +316,7 @@ class TestDebugCommandIntegration(unittest.TestCase):
             assert expected_cmd in commands
 
             # Verify each command can be retrieved
-            cmd = debug_cmd.get_command(ctx, expected_cmd)
+            cmd = debug.get_command(ctx, expected_cmd)
             assert cmd is not None
             assert isinstance(cmd, click.Command)
 
@@ -332,9 +332,9 @@ class TestDebugCommandIntegration(unittest.TestCase):
             "check": "health",
         }
 
-        ctx = click.Context(debug_cmd)
+        ctx = click.Context(debug)
         for cmd_name, help_keyword in commands_with_help.items():
-            cmd = debug_cmd.get_command(ctx, cmd_name)
+            cmd = debug.get_command(ctx, cmd_name)
             assert cmd is not None
             if cmd.help:
                 assert help_keyword.lower() in cmd.help.lower()

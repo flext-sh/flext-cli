@@ -12,11 +12,8 @@ import os
 
 from click.testing import CliRunner
 
-from flext_cli import (
-    cli,
-    main,
-    main as imported_main,  # Import alias to avoid duplicate import
-)
+from flext_cli import cli, main
+from flext_cli.cli import FlextCliMain
 from flext_cli.config import FlextCliConfig
 
 
@@ -46,6 +43,65 @@ class TestCliMain:
         assert result.exit_code == 0
         # Should show help content
         assert "Usage:" in result.output
+
+    def test_cli_main_initialization(self) -> None:
+        """Test FlextCliMain initialization."""
+        # Test normal initialization
+        cli_main = FlextCliMain()
+        assert cli_main is not None
+        assert hasattr(cli_main, "_constants")
+        assert hasattr(cli_main, "_container")
+        assert hasattr(cli_main, "_logger")
+
+    def test_load_constants_metadata_success(self) -> None:
+        """Test _load_constants_metadata success case."""
+        cli_main = FlextCliMain()
+        result = cli_main._load_constants_metadata()
+
+        assert result.is_success
+        assert result.value is not None
+
+    def test_get_logger(self) -> None:
+        """Test get_logger method."""
+        cli_main = FlextCliMain()
+        logger = cli_main.get_logger()
+
+        assert logger is not None
+        assert hasattr(logger, "info")
+        assert hasattr(logger, "error")
+        assert hasattr(logger, "debug")
+
+    def test_create_cli_options_default(self) -> None:
+        """Test create_cli_options with default values."""
+        cli_main = FlextCliMain()
+        result = cli_main.create_cli_options()
+
+        assert result.is_success
+        options = result.value
+        assert options["profile"] == "default"
+        assert options["output_format"] == "table"
+        assert options["debug"] is False
+        assert options["quiet"] is False
+        assert options["log_level"] is None
+
+    def test_create_cli_options_custom(self) -> None:
+        """Test create_cli_options with custom values."""
+        cli_main = FlextCliMain()
+        result = cli_main.create_cli_options(
+            profile="test",
+            output="json",
+            debug=True,
+            quiet=True,
+            log_level="DEBUG"
+        )
+
+        assert result.is_success
+        options = result.value
+        assert options["profile"] == "test"
+        assert options["output_format"] == "json"
+        assert options["debug"] is True
+        assert options["quiet"] is True
+        assert options["log_level"] == "DEBUG"
 
     def test_cli_debug_option(self) -> None:
         """Test CLI debug option."""
@@ -123,7 +179,7 @@ class TestMainEntryPoint:
         assert len(sig.parameters) == 0  # main() takes no parameters
 
         # Verify main function is importable and accessible
-        assert main is imported_main
+        assert main is not None
 
     def test_main_cli_integration_real(self) -> None:
         """Test main() integration with real CLI functionality."""

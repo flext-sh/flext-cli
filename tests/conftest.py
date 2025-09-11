@@ -1,9 +1,8 @@
-"""Production-ready pytest configuration using flext_tests.
+"""Production-ready pytest configuration.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
-
 
 from __future__ import annotations
 
@@ -16,9 +15,6 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 from flext_core import FlextResult, FlextTypes
-from flext_tests import (
-    FlextTestsDomains,
-)
 from rich.console import Console
 
 # Add src to Python path for imports
@@ -26,8 +22,40 @@ src_path = Path(__file__).parent.parent / "src"
 if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
-# Import after path modification
-from flext_cli import FlextCliConfig, FlextCliContext
+# Import after path modification - this is necessary for pytest
+try:
+    from flext_cli import FlextCliConfig, FlextCliContext
+except ImportError:
+    # Fallback for when src is not in path
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("flext_cli", src_path / "flext_cli" / "__init__.py")
+    flext_cli = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(flext_cli)
+    FlextCliConfig = flext_cli.FlextCliConfig
+    FlextCliContext = flext_cli.FlextCliContext
+
+
+class TestUser:
+    """Simple test user class for testing purposes."""
+
+    def __init__(
+        self,
+        user_id: str,
+        name: str,
+        email: str,
+        age: int,
+        is_active: bool,
+        created_at: datetime,
+        metadata: dict[str, object],
+    ) -> None:
+        """Initialize test user."""
+        self.id = user_id
+        self.name = name
+        self.email = email
+        self.age = age
+        self.is_active = is_active
+        self.created_at = created_at
+        self.metadata = metadata
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -94,11 +122,10 @@ def test_config() -> FlextCliConfig:
 
 
 @pytest.fixture
-def test_user() -> FlextTestsDomains.TestUser:
+def test_user() -> TestUser:
     """Provide real test user using factory."""
-    # Create directly - factory may have compatibility issues
-    return FlextTestsDomains.TestUser(
-        id="test_user_factory",
+    return TestUser(
+        user_id="test_user_factory",
         name="Test User",
         email="test@example.com",
         age=25,
@@ -109,10 +136,10 @@ def test_user() -> FlextTestsDomains.TestUser:
 
 
 @pytest.fixture
-def real_test_user() -> FlextTestsDomains.TestUser:
-    """Provide real User instance from flext_tests."""
-    return FlextTestsDomains.TestUser(
-        id="test_user_id",          # Required: id
+def real_test_user() -> TestUser:
+    """Provide real User instance for testing."""
+    return TestUser(
+        user_id="test_user_id",          # Required: id
         name="test_user",           # Required: name
         email="test@example.com",   # Required: email
         age=25,                     # Required: age
@@ -138,7 +165,7 @@ def test_flext_result_failure() -> FlextResult[str]:
 def real_repositories() -> FlextTypes.Core.Dict:
     """Provide collection of real repository implementations."""
     return {
-        "user_repo": FlextTestsDomains.create_user,  # Available factory function
+        "user_repo": TestUser,  # Test user class
         "config": FlextCliConfig(profile="test"),
     }
 

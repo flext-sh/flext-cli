@@ -649,13 +649,15 @@ class FlextApiClient:
             return True
 
     # Test compatibility methods - real implementations
-    async def authenticate(self, _username: str, _password: str) -> FlextResult[dict[str, object]]:
+    async def authenticate(
+        self, _username: str, _password: str
+    ) -> FlextResult[dict[str, object]]:
         """Authenticate user - test compatibility method."""
         try:
             # Simulate authentication
             auth_data: dict[str, object] = {
                 "user": {"id": "123", "name": "Test User"},
-                "token": "access_token_123"
+                "token": "access_token_123",
             }
             return FlextResult[dict[str, object]].ok(auth_data)
         except Exception as e:
@@ -698,7 +700,7 @@ class FlextApiClient:
                 "id": "user123",
                 "name": "Test User",
                 "email": "test@example.com",
-                "role": "user"
+                "role": "user",
             }
             return FlextResult[dict[str, object]].ok(profile)
         except Exception as e:
@@ -710,7 +712,7 @@ class FlextApiClient:
             status = {
                 "authenticated": True,
                 "user_id": "user123",
-                "session_active": True
+                "session_active": True,
             }
             return FlextResult[dict[str, object]].ok(status)
         except Exception as e:
@@ -748,7 +750,7 @@ class FlextApiClient:
             status = {
                 "status": "active",
                 "authenticated": True,
-                "timestamp": datetime.now(UTC).isoformat()
+                "timestamp": datetime.now(UTC).isoformat(),
             }
             return FlextResult[dict[str, object]].ok(status)
         except Exception as e:
