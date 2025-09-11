@@ -95,6 +95,7 @@ class FlextCliDecorators(FlextDecorators):
     def confirm_action(
         message: str,
     ) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
+        """Create confirmation decorator for user actions."""
         def _decorator(func: Callable[P, T]) -> Callable[P, T | None]:
             @functools.wraps(func)
             def _wrapped(*args: P.args, **kwargs: P.kwargs) -> T | None:
@@ -115,6 +116,7 @@ class FlextCliDecorators(FlextDecorators):
     def require_auth(
         token_file: str | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
+        """Create authentication requirement decorator."""
         def _decorator(func: Callable[P, T]) -> Callable[P, T | None]:
             @functools.wraps(func)
             def _wrapped(*args: P.args, **kwargs: P.kwargs) -> T | None:
@@ -145,6 +147,7 @@ class FlextCliDecorators(FlextDecorators):
         *,
         show_in_output: bool = False,
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
+        """Create execution time measurement decorator."""
         def _decorator(func: Callable[P, T]) -> Callable[P, T]:
             @functools.wraps(func)
             def _wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
@@ -167,6 +170,7 @@ class FlextCliDecorators(FlextDecorators):
     def validate_config(
         required_keys: FlextTypes.Core.StringList,
     ) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
+        """Create configuration validation decorator."""
         def _decorator(func: Callable[P, T]) -> Callable[P, T | None]:
             @functools.wraps(func)
             def _wrapped(*args: P.args, **kwargs: P.kwargs) -> T | None:
@@ -210,6 +214,7 @@ class FlextCliDecorators(FlextDecorators):
     def with_spinner(
         message: str = "Processing...",
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
+        """Create spinner decorator for long operations."""
         def _decorator(func: Callable[P, T]) -> Callable[P, T]:
             @functools.wraps(func)
             def _wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
@@ -225,6 +230,7 @@ class FlextCliDecorators(FlextDecorators):
     def flext_cli_auto_validate(
         _validators: FlextTypes.Core.StringList,
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
+        """Create automatic validation decorator."""
         def _decorator(func: Callable[P, T]) -> Callable[P, T]:
             return functools.wraps(func)(func)
 

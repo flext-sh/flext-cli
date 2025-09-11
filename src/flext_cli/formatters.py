@@ -41,7 +41,8 @@ class FlextCliFormatters:
     class OutputFormatter(Protocol):
         """Protocol for formatter classes used by the CLI."""
 
-        def format(self, data: object, console: Console) -> None: ...
+        def format(self, data: object, console: Console) -> None:
+            """Format data using console output."""
 
     # Registry of available formatters
     _registry: ClassVar[
@@ -171,7 +172,7 @@ class FlextCliFormatters:
         """
         formatter_factory = self._registry.get(name)
         if not formatter_factory:
-            msg = f"Unknown formatter type: {name}"
+            msg = f"Unsupported format: {name}"
             raise ValueError(msg)
         # Handle both classes and lambda factories
         return formatter_factory()
@@ -230,13 +231,17 @@ class FlextCliFormatters:
 
         """
         try:
+            # Special handling for plain format to avoid newlines
+            if format_type == "plain":
+                return FlextResult[str].ok(str(data))
+
             # Capture output using StringIO
             string_buffer = StringIO()
             temp_console = Console(file=string_buffer, width=120)
             formatter = self.create_formatter(format_type)
             formatter.format(data, temp_console)
 
-            result = string_buffer.getvalue()
+            result = string_buffer.getvalue().rstrip("\n")
             return FlextResult[str].ok(result)
         except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[str].fail(f"Format data failed: {e}")

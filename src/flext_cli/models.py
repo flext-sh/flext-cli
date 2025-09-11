@@ -222,6 +222,7 @@ class FlextCliModels:
 
         @computed_field
         def duration_seconds(self) -> float | None:
+            """Calculate session duration in seconds."""
             if self.end_time is None:
                 return None
             return (self.end_time - self.start_time).total_seconds()
@@ -237,6 +238,7 @@ class FlextCliModels:
             return FlextResult[None].ok(None)
 
         def validate_business_rules(self) -> FlextResult[None]:
+            """Validate session business rules."""
             if self.end_time is not None and self.end_time < self.start_time:
                 return FlextResult[None].fail("End time cannot be before start time")
             if len(self.commands) > FlextCliConstants.LIMITS.max_commands_per_session:
@@ -267,6 +269,7 @@ class FlextCliModels:
         @field_validator("output_format")
         @classmethod
         def validate_output_format(cls, v: str) -> str:
+            """Validate output format is supported."""
             if v not in FlextCliConstants.VALID_OUTPUT_FORMATS:
                 msg = f"Output format must be one of: {FlextCliConstants.VALID_OUTPUT_FORMATS}"
                 raise ValueError(msg)
@@ -275,6 +278,7 @@ class FlextCliModels:
         @field_validator("timeout_seconds")
         @classmethod
         def validate_timeout(cls, v: int) -> int:
+            """Validate timeout is within limits."""
             if v <= 0 or v > FlextCliConstants.LIMITS.max_timeout_seconds:
                 msg = f"Timeout must be between 1 and {FlextCliConstants.LIMITS.max_timeout_seconds} seconds"
                 raise ValueError(msg)
@@ -300,6 +304,7 @@ class FlextCliModels:
         @field_validator("name")
         @classmethod
         def validate_name(cls, v: str) -> str:
+            """Validate plugin name is not empty."""
             if not v or not v.strip():
                 msg = "Plugin name cannot be empty"
                 raise ValueError(msg)
@@ -308,6 +313,7 @@ class FlextCliModels:
         @field_validator("entry_point")
         @classmethod
         def validate_entry_point(cls, v: str) -> str:
+            """Validate plugin entry point format."""
             if not v or not v.strip():
                 msg = "Plugin entry point cannot be empty"
                 raise ValueError(msg)

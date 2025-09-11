@@ -14,7 +14,6 @@ import json
 import platform
 import sys
 from datetime import UTC, datetime
-from io import StringIO
 from pathlib import Path
 from typing import override
 from uuid import UUID, uuid4
@@ -30,7 +29,6 @@ from flext_core import (
     FlextUtilities,
 )
 from pydantic import BaseModel, Field, PrivateAttr
-from rich.console import Console
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
@@ -94,6 +92,7 @@ class FlextCliApi(FlextDomainService[str]):
             state: FlextCliApi.ApiState,
             formatters: FlextCliFormatters,
         ) -> None:
+            """Initialize operation dispatcher with state and formatters."""
             self.state = state
             self.formatters = formatters
 
@@ -575,38 +574,8 @@ class FlextCliApi(FlextDomainService[str]):
     # =========================================================================
 
     def format_data(self, data: object, format_type: str) -> FlextResult[str]:
-        """Format data to specified format type."""
-        try:
-            if format_type == "table":
-                table_result = self._formatters.format_table(data)
-                if table_result.is_success:
-                    # Render Rich Table properly
-                    string_io = StringIO()
-                    console = Console(file=string_io)
-                    console.print(table_result.value)
-                    return FlextResult[str].ok(string_io.getvalue())
-                return FlextResult[str].fail(
-                    table_result.error or "Table formatting failed",
-                )
-            if format_type == "json":
-                return self._formatters.format_json(data)
-            if format_type == "yaml":
-                return self._formatters.format_yaml(data)
-            if format_type == "csv":
-                return self._formatters.format_csv(data)
-            if format_type == "plain":
-                return FlextResult[str].ok(str(data))
-            # Invalid format should fail, not default to string
-            valid_formats = ["table", "json", "yaml", "csv", "plain"]
-            return FlextResult[str].fail(
-                f"Invalid format: {format_type}. Valid formats: {valid_formats}",
-            )
-        except (
-            ImportError,
-            AttributeError,
-            ValueError,
-        ) as e:
-            return FlextResult[str].fail(f"Format failed: {e}")
+        """Format data to specified format type using FlextCliFormatters."""
+        return self._formatters.format_data(data, format_type)
 
     def export_data(self, data: object, file_path: str | Path) -> FlextResult[str]:
         """Export data to file - SIMPLE ALIAS for test compatibility."""

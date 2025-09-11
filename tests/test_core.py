@@ -1,11 +1,7 @@
-"""Comprehensive real functionality tests for core.py - NO MOCKING.
+"""Comprehensive real functionality tests for core.py.
 
-Following user requirement: "melhore bem os tests para executar codigo de verdade e validar
-a funcionalidade requerida, pare de ficar mockando tudo!"
-
-These tests execute REAL core service functionality and validate actual business logic.
+These tests Execute core service functionality and validate actual business logic.
 Coverage target: Increase core.py from current to 90%+
-
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT

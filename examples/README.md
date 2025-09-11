@@ -26,7 +26,7 @@ The examples are organized in a sequential learning path from foundational patte
 - **FlextResult[T]**: Railway-oriented programming for error handling
 - **FlextModels**: Pydantic-based domain models with validation
 - **FlextContainer**: Dependency injection container for service composition
-- **FlextFactory**: Entity creation patterns with validation
+- **FlextModels**: Entity creation patterns with validation
 
 ## 📖 Example Details
 

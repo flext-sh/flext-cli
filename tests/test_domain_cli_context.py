@@ -45,6 +45,7 @@ class TestCLIContext:
     def test_context_initialization(self, real_console: Console) -> None:
         """Test FlextCliContext can be initialized with real objects."""
         # Create FlextCliContext with real console
+        _ = real_console  # Use console to avoid unused argument warning
         context = FlextCliContext()
         assert isinstance(context, FlextCliContext)
 
@@ -71,6 +72,7 @@ class TestCLIContext:
     def test_context_arbitrary_types_allowed(self, real_console: Console) -> None:
         """Test FlextCliContext allows arbitrary types (like Console)."""
         # FlextCliContext should support arbitrary types through Pydantic config
+        _ = real_console  # Use console to avoid unused argument warning
         context = FlextCliContext()
 
         # Should not raise validation errors
@@ -85,6 +87,7 @@ class TestCLIContext:
     def test_context_with_real_console_output(self, real_console: Console) -> None:
         """Test FlextCliContext with real console output methods."""
         # Create context and test any methods that might exist
+        _ = real_console  # Use console to avoid unused argument warning
         context = FlextCliContext()
 
         # Check for common context methods (if they exist)
@@ -133,6 +136,7 @@ class TestCLIContext:
 
     def test_print_info_when_quiet(self, real_console: Console) -> None:
         """Test print_info method respects quiet mode."""
+        _ = real_console  # Use console to avoid unused argument warning
         context = FlextCliContext()
 
         # If print_info method exists, test it
@@ -148,6 +152,7 @@ class TestCLIContext:
 
     def test_print_debug_when_debug_disabled(self, real_console: Console) -> None:
         """Test print_debug method when debug is disabled."""
+        _ = real_console  # Use console to avoid unused argument warning
         context = FlextCliContext()
 
         # If print_debug method exists, test it
@@ -162,6 +167,7 @@ class TestCLIContext:
 
     def test_print_verbose_when_verbose_disabled(self, real_console: Console) -> None:
         """Test print_verbose method when verbose is disabled."""
+        _ = real_console  # Use console to avoid unused argument warning
         context = FlextCliContext()
 
         # If print_verbose method exists, test it

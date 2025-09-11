@@ -296,7 +296,7 @@ class TestFormatterFactory:
 
     def test_create_unknown_formatter(self) -> None:
         """Test creating unknown formatter raises error."""
-        with pytest.raises(ValueError, match="Unknown formatter type"):
+        with pytest.raises(ValueError, match="Unsupported format"):
             FlextCliFormatters().create_formatter("unknown")
 
     def test_register_custom_formatter(self) -> None:
@@ -304,7 +304,7 @@ class TestFormatterFactory:
 
         class CustomFormatter(FlextCliFormatters.OutputFormatter):
             def format(self, data: object, console: Console) -> None:
-                console.print("custom")
+                console.print(f"custom: {data}")
 
         formatter_instance = FlextCliFormatters()
         formatter_instance.register_formatter("custom", CustomFormatter)
@@ -350,4 +350,4 @@ class TestFormatOutput:
 
         result = FlextCliFormatters().format_output(data, "unknown")
         assert result.is_failure
-        assert "Unknown formatter type" in str(result.error or "")
+        assert "Unsupported format" in str(result.error or "")

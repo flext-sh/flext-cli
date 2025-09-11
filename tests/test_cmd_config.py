@@ -1,9 +1,9 @@
-"""Real functionality tests for CMD Config - NO MOCKING.
+"""Real functionality tests for CMD Config.
 
 Following user requirement: "melhore bem os tests para executar codigo de verdade e validar
 a funcionalidade requerida, pare de ficar mockando tudo!"
 
-These tests execute REAL config command functionality and validate actual business logic.
+These tests Execute config command functionality and validate actual business logic.
 Coverage target: Increase cmd_config.py from 57% to 90%+
 
 
