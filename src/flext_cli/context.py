@@ -370,11 +370,6 @@ class FlextCliContext:
         )
 
 
-# Backward-compatibility alias expected by tests
-FlextCliExecutionContext = FlextCliContext.ExecutionContext
-
-
 __all__ = [
     "FlextCliContext",
-    "FlextCliExecutionContext",
 ]

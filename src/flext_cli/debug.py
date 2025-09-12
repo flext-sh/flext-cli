@@ -273,7 +273,7 @@ class FlextCliDebug(FlextDomainService[str]):
 
 
 # Criar instância única para aliases
-_debug_instance = FlextCliDebug()
+# _debug_instance = FlextCliDebug()  # Temporarily disabled due to validation errors
 
 # Aliases moved to top-level imports for E402 compliance
 

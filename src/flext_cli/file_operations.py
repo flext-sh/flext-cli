@@ -59,9 +59,9 @@ class FlextCliFileOperations:
                 return FlextResult[FlextTypes.Core.Dict].fail(f"File not found: {path}")
 
             content = file_path.read_text(encoding=FlextCliConstants.DEFAULT_ENCODING)
-            # Use FlextUtilities instead of duplicating JSON parsing - ELIMINATES DUPLICATION
-            # safe_json_parse always returns a dict, so no type check needed
-            parse_result = FlextUtilities.safe_json_parse(content)
+            # Parse JSON content
+            import json
+            parse_result = json.loads(content)
 
             # parse_result is guaranteed to be a dict from safe_json_parse
             return FlextResult[FlextTypes.Core.Dict].ok(parse_result)

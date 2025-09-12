@@ -4,7 +4,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import asyncio
@@ -317,16 +316,16 @@ class TestRetry:
         """Test retry when max attempts are exceeded."""
         call_count = 0
 
-        @retry(max_attempts=2, delay=0.01)
+        @retry(max_attempts=2)
         def failing_function() -> str:
             nonlocal call_count
             call_count += 1
             msg = "persistent error"
             raise ValueError(msg)
 
-        # Retry decorator returns None after exhausting attempts
-        result = failing_function()
-        assert result is None  # Retry decorator returns None on failure
+        # Retry decorator re-raises exception after exhausting attempts
+        with pytest.raises(ValueError, match="persistent error"):
+            failing_function()
         if call_count != EXPECTED_BULK_SIZE:
             msg: str = f"Expected {2}, got {call_count}"
             raise AssertionError(msg)
@@ -492,7 +491,7 @@ class TestDecoratorCombinations:
 
             @confirm_action("Proceed?")
             @measure_time(show_in_output=False)
-            @retry(max_attempts=2, delay=0.01)
+            @retry(max_attempts=2)
             def complex_function() -> str:
                 return "all decorators applied"
 

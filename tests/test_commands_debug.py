@@ -9,7 +9,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import os
@@ -212,7 +211,9 @@ class TestTraceCommandReal:
         """Test trace command execution with real implementation."""
         # Test trace with some arguments
         result = self.runner.invoke(
-            trace, ["echo", "hello", "world"], obj={"console": Console()},
+            trace,
+            ["echo", "hello", "world"],
+            obj={"console": Console()},
         )
 
         # Command should complete successfully

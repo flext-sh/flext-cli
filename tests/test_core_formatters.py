@@ -4,7 +4,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import io
@@ -272,7 +271,10 @@ class TestFormatterFactory:
     def test_create_table_formatter(self) -> None:
         """Test creating table formatter."""
         formatter = FlextCliFormatters().create_formatter("table")
-        assert type(formatter).__name__ == type(FlextCliFormatters().create_formatter("table")).__name__
+        assert (
+            type(formatter).__name__
+            == type(FlextCliFormatters().create_formatter("table")).__name__
+        )
 
     def test_create_json_formatter(self) -> None:
         """Test creating JSON formatter."""

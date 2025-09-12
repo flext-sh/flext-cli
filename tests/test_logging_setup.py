@@ -21,7 +21,9 @@ class TestFlextCliLoggingConfig:
         config = FlextCliLoggingConfig()
 
         assert config.log_level == "INFO"
-        assert config.log_format == "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        assert (
+            config.log_format == "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
         assert config.log_file is None
         assert config.console_logging is True
         assert config.log_level_source == "default"
@@ -31,7 +33,7 @@ class TestFlextCliLoggingConfig:
         config = FlextCliLoggingConfig(
             log_level="DEBUG",
             log_format="%(levelname)s: %(message)s",
-            console_logging=False
+            console_logging=False,
         )
 
         assert config.log_level == "DEBUG"
@@ -136,7 +138,9 @@ class TestFlextCliLoggingSetup:
 
     def test_setup_logging_with_env_file(self) -> None:
         """Test logging setup with .env file."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".env", delete=False
+        ) as tmp_file:
             tmp_file.write("FLEXT_CLI_LOG_LEVEL=WARNING\n")
             tmp_file.flush()
 

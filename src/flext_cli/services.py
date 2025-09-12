@@ -19,8 +19,8 @@ class FlextCliServices(FlextServices):
     def create_command_processor() -> FlextResult[str]:
         """Create command processor using flext-core directly."""
         try:
-            # ServiceProcessor is abstract and requires type parameters
-            # Return a simple success result instead of trying to instantiate
+            # Use flext-core HandlerRegistry for command processing
+            FlextServices.create_handler_registry()
             return FlextResult[str].ok("Command processor created successfully")
         except Exception as e:
             return FlextResult[str].fail(f"Failed to create processor: {e}")
@@ -29,8 +29,8 @@ class FlextCliServices(FlextServices):
     def create_session_processor() -> FlextResult[str]:
         """Create session processor using flext-core directly."""
         try:
-            # ServiceProcessor is abstract and requires type parameters
-            # Return a simple success result instead of trying to instantiate
+            # Use flext-core Pipeline for session processing
+            FlextServices.create_pipeline()
             return FlextResult[str].ok("Session processor created successfully")
         except Exception as e:
             return FlextResult[str].fail(f"Failed to create processor: {e}")
@@ -39,16 +39,11 @@ class FlextCliServices(FlextServices):
     def create_config_processor() -> FlextResult[str]:
         """Create config processor using flext-core directly."""
         try:
-            # ServiceProcessor is abstract and requires type parameters
-            # Return a simple success result instead of trying to instantiate
+            # Use flext-core HandlerRegistry for config processing
+            FlextServices.create_handler_registry()
             return FlextResult[str].ok("Config processor created successfully")
         except Exception as e:
             return FlextResult[str].fail(f"Failed to create processor: {e}")
-
-    # Direct flext-core service instances - NO WRAPPERS
-    registry = FlextServices.ServiceRegistry()
-    orchestrator = FlextServices.ServiceOrchestrator()
-    metrics = FlextServices.ServiceMetrics()
 
 
 __all__ = [

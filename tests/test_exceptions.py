@@ -4,7 +4,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import tempfile
@@ -51,7 +50,9 @@ class TestFlextCliErrorCodes:
 
         for expected_value, attr_name in expected_codes.items():
             assert hasattr(FlextCliException.ErrorCode, attr_name)
-            assert getattr(FlextCliException.ErrorCode, attr_name).value == expected_value
+            assert (
+                getattr(FlextCliException.ErrorCode, attr_name).value == expected_value
+            )
 
 
 class TestFlextCliError:
@@ -169,7 +170,9 @@ class TestFlextCliArgumentError:
     def test_argument_error_with_context(self) -> None:
         """Test argument error with argument details."""
         error = FlextCliArgumentError(
-            "Invalid value", argument_name="--output", argument_value="invalid_format",
+            "Invalid value",
+            argument_name="--output",
+            argument_value="invalid_format",
         )
         assert "Invalid value" in str(error)
 
@@ -196,7 +199,9 @@ class TestFlextCliFormatError:
     def test_format_error_with_context(self) -> None:
         """Test format error with format details."""
         error = FlextCliFormatError(
-            "Unsupported format", format_type="xml", data_type="dict",
+            "Unsupported format",
+            format_type="xml",
+            data_type="dict",
         )
         assert "Unsupported format" in str(error)
 

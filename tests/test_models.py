@@ -4,7 +4,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -83,7 +82,9 @@ class TestFlextCliModelsCliCommand:
         assert command.status == FlextCliConstants.STATUS_PENDING
 
         # Test command after completion
-        completion_result = command.complete_execution(exit_code=0, output="test output")
+        completion_result = command.complete_execution(
+            exit_code=0, output="test output"
+        )
         if completion_result.is_success:
             completed_command = completion_result.unwrap()
             assert completed_command.status == FlextCliConstants.STATUS_COMPLETED
@@ -196,15 +197,23 @@ class TestFlextCliConstants:
     def test_valid_command_statuses(self) -> None:
         """Test valid command statuses tuple."""
         assert isinstance(FlextCliConstants.VALID_COMMAND_STATUSES, tuple)
-        assert FlextCliConstants.STATUS_PENDING in FlextCliConstants.VALID_COMMAND_STATUSES
-        assert FlextCliConstants.STATUS_COMPLETED in FlextCliConstants.VALID_COMMAND_STATUSES
+        assert (
+            FlextCliConstants.STATUS_PENDING in FlextCliConstants.VALID_COMMAND_STATUSES
+        )
+        assert (
+            FlextCliConstants.STATUS_COMPLETED
+            in FlextCliConstants.VALID_COMMAND_STATUSES
+        )
 
     def test_timeout_constants(self) -> None:
         """Test timeout constants are defined."""
         assert isinstance(FlextCliConstants.DEFAULT_COMMAND_TIMEOUT, int)
         assert isinstance(FlextCliConstants.MAX_COMMAND_TIMEOUT, int)
         assert FlextCliConstants.DEFAULT_COMMAND_TIMEOUT > 0
-        assert FlextCliConstants.MAX_COMMAND_TIMEOUT > FlextCliConstants.DEFAULT_COMMAND_TIMEOUT
+        assert (
+            FlextCliConstants.MAX_COMMAND_TIMEOUT
+            > FlextCliConstants.DEFAULT_COMMAND_TIMEOUT
+        )
 
 
 class TestFlextCliModelsIntegration:
@@ -218,7 +227,8 @@ class TestFlextCliModelsIntegration:
 
         # Test command with exit_code
         command_with_code = FlextCliModels.CliCommand(
-            command_line="test", exit_code=0,
+            command_line="test",
+            exit_code=0,
         )
         assert command_with_code.exit_code == 0
 

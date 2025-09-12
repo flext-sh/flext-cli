@@ -11,7 +11,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import csv
@@ -746,7 +745,9 @@ class TestFormatterIntegration(unittest.TestCase):
                     assert "Hello, World!" in output
 
                 except Exception as e:
-                    pytest.fail(f"Format {format_type} failed with data 'Hello, World!': {e}")
+                    pytest.fail(
+                        f"Format {format_type} failed with data 'Hello, World!': {e}"
+                    )
 
     def test_formatters_preserve_data_integrity(self) -> None:
         """Test that formatters preserve data integrity where possible."""
@@ -775,7 +776,9 @@ class TestFormatterIntegration(unittest.TestCase):
                 formatter.format(original_data, console)
 
                 output = output_buffer.getvalue().strip()
-                if output and callable(parser):  # Only test if formatter produced output and parser is callable
+                if output and callable(
+                    parser
+                ):  # Only test if formatter produced output and parser is callable
                     parsed_data = parser(output)
                     assert parsed_data == original_data
 

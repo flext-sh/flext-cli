@@ -57,18 +57,14 @@ class TestFlextCliAuthRealValidation:
 
         # Test valid credentials
         valid_credentials = auth.LoginCredentials(
-            username="testuser",
-            password="testpass123"
+            username="testuser", password="testpass123"
         )
 
         result = auth.validate_credentials(valid_credentials)
         assert result.is_success
 
         # Test invalid credentials (empty username)
-        invalid_credentials = auth.LoginCredentials(
-            username="",
-            password="testpass123"
-        )
+        invalid_credentials = auth.LoginCredentials(username="", password="testpass123")
 
         result = auth.validate_credentials(invalid_credentials)
         assert result.is_failure
@@ -216,9 +212,7 @@ class TestFlextCliAuthRealValidation:
 
         # Test UserData
         user_data = auth.UserData(
-            name="Test User",
-            email="test@example.com",
-            id="user123"
+            name="Test User", email="test@example.com", id="user123"
         )
         assert user_data["name"] == "Test User"
         assert user_data["email"] == "test@example.com"
@@ -230,24 +224,19 @@ class TestFlextCliAuthRealValidation:
             token_exists=True,
             refresh_token_file="/path/to/refresh_token",
             refresh_token_exists=True,
-            auto_refresh=True
+            auto_refresh=True,
         )
         assert auth_status["authenticated"] is True
         assert auth_status["token_exists"] is True
 
         # Test LoginCredentials
-        credentials = auth.LoginCredentials(
-            username="testuser",
-            password="testpass"
-        )
+        credentials = auth.LoginCredentials(username="testuser", password="testpass")
         assert credentials["username"] == "testuser"
         assert credentials["password"] == "testpass"
 
         # Test AuthConfig
         auth_config = auth.AuthConfig(
-            api_key="test_key",
-            base_url="https://api.example.com",
-            timeout=30
+            api_key="test_key", base_url="https://api.example.com", timeout=30
         )
         assert auth_config["api_key"] == "test_key"
         assert auth_config["base_url"] == "https://api.example.com"
@@ -257,7 +246,7 @@ class TestFlextCliAuthRealValidation:
             access_token="access123",
             refresh_token="refresh123",
             expires_at=datetime.now(UTC),
-            token_type="Bearer"
+            token_type="Bearer",
         )
         assert token_data["access_token"] == "access123"
         assert token_data["token_type"] == "Bearer"
@@ -267,10 +256,7 @@ class TestFlextCliAuthRealValidation:
         auth = FlextCliAuth()
 
         # Test invalid credentials validation
-        invalid_credentials = auth.LoginCredentials(
-            username="",
-            password=""
-        )
+        invalid_credentials = auth.LoginCredentials(username="", password="")
 
         result = auth.validate_credentials(invalid_credentials)
         assert result.is_failure
@@ -290,7 +276,7 @@ class TestFlextCliAuthRealValidation:
             config_data = {
                 "api_key": "test_key",
                 "base_url": "https://api.example.com",
-                "timeout": 30
+                "timeout": 30,
             }
 
             # Test saving config
@@ -317,17 +303,14 @@ class TestFlextCliAuthRealValidation:
         # Test user data validation
         valid_user: dict[str, object] = {
             "name": "Test User",
-            "email": "test@example.com"
+            "email": "test@example.com",
         }
 
         result = auth._validate_user_data(valid_user)
         assert result.is_success
 
         # Test invalid user data
-        invalid_user: dict[str, object] = {
-            "name": "",
-            "email": "test@example.com"
-        }
+        invalid_user: dict[str, object] = {"name": "", "email": "test@example.com"}
 
         result = auth._validate_user_data(invalid_user)
         assert result.is_failure
@@ -335,7 +318,7 @@ class TestFlextCliAuthRealValidation:
         # Test auth config validation
         valid_config: dict[str, object] = {
             "api_key": "test_key",
-            "base_url": "https://api.example.com"
+            "base_url": "https://api.example.com",
         }
 
         result = auth._validate_auth_config(valid_config)
@@ -344,7 +327,7 @@ class TestFlextCliAuthRealValidation:
         # Test invalid auth config
         invalid_config: dict[str, object] = {
             "api_key": "",
-            "base_url": "https://api.example.com"
+            "base_url": "https://api.example.com",
         }
 
         result = auth._validate_auth_config(invalid_config)

@@ -4,7 +4,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import subprocess
@@ -28,7 +27,8 @@ class TestMainModule:
         # Test that module can be executed (should show help and exit cleanly)
         result = subprocess.run(
             [sys.executable, "-m", "flext_cli", "--help"],
-            check=False, cwd=Path(__file__).parent.parent,
+            check=False,
+            cwd=Path(__file__).parent.parent,
             capture_output=True,
             text=True,
             timeout=10,

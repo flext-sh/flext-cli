@@ -4,7 +4,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 from flext_core.typings import FlextTypes as CoreFlextTypes
@@ -50,13 +49,17 @@ class TestAllExports:
 
     def test_all_exports_count(self) -> None:
         """Test minimum number of exports."""
-        assert len(typings.__all__) >= 8, f"Expected at least 8 exports, got {len(typings.__all__)}"
+        assert len(typings.__all__) >= 8, (
+            f"Expected at least 8 exports, got {len(typings.__all__)}"
+        )
 
     def test_expected_exports(self) -> None:
         """Test that expected exports are present."""
         expected_minimum = {"E", "F", "FlextTypes", "P", "R", "T", "U", "V"}
         actual = set(typings.__all__)
-        assert expected_minimum.issubset(actual), f"Missing exports: {expected_minimum - actual}"
+        assert expected_minimum.issubset(actual), (
+            f"Missing exports: {expected_minimum - actual}"
+        )
 
 
 class TestModuleStructure:

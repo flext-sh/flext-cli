@@ -115,7 +115,10 @@ class TestCommandLifecycleManagement:
             result = self.domain_services.create_command(dangerous_cmd)
             # Should either fail validation or handle gracefully
             if result.is_failure:
-                assert "dangerous" in str(result.error or "").lower() or "validation" in str(result.error or "").lower()
+                assert (
+                    "dangerous" in str(result.error or "").lower()
+                    or "validation" in str(result.error or "").lower()
+                )
 
     def test_start_command_execution_success(self) -> None:
         """Test successful command execution start."""
@@ -162,7 +165,10 @@ class TestCommandLifecycleManagement:
 
         # Complete execution
         result = self.domain_services.complete_command_execution(
-            command, exit_code=0, output="test", error_output="",
+            command,
+            exit_code=0,
+            output="test",
+            error_output="",
         )
         assert result.is_success
         assert result.value.status == FlextCliConstants.STATUS_COMPLETED
@@ -181,7 +187,10 @@ class TestCommandLifecycleManagement:
 
         # Complete execution with error
         result = self.domain_services.complete_command_execution(
-            command, exit_code=1, output="", error_output="Command failed",
+            command,
+            exit_code=1,
+            output="",
+            error_output="Command failed",
         )
         assert result.is_success
         assert result.value.status == FlextCliConstants.STATUS_FAILED
@@ -198,7 +207,9 @@ class TestCommandLifecycleManagement:
 
         # Try to complete execution
         result = self.domain_services.complete_command_execution(
-            command, exit_code=0, output="test",
+            command,
+            exit_code=0,
+            output="test",
         )
         assert result.is_failure
         assert "Command must be running to complete" in str(result.error or "")
@@ -261,7 +272,8 @@ class TestSessionManagement:
             assert command_result.is_success
 
             add_result = self.domain_services.add_command_to_session(
-                session, command_result.value,
+                session,
+                command_result.value,
             )
             assert add_result.is_success
 
@@ -332,11 +344,16 @@ class TestCommandWorkflow:
         """Test command workflow fails with empty command."""
         result = self.domain_services.execute_command_workflow("")
         assert result.is_failure
-        assert "empty" in str(result.error or "").lower() or "invalid" in str(result.error or "").lower()
+        assert (
+            "empty" in str(result.error or "").lower()
+            or "invalid" in str(result.error or "").lower()
+        )
 
     def test_execute_command_workflow_invalid_command(self) -> None:
         """Test command workflow with invalid command."""
-        result = self.domain_services.execute_command_workflow("invalid_command_that_does_not_exist_12345")
+        result = self.domain_services.execute_command_workflow(
+            "invalid_command_that_does_not_exist_12345"
+        )
 
         # Should handle gracefully - workflow method returns dict or fails
         if result.is_success:
@@ -371,7 +388,9 @@ class TestIntegrationScenarios:
             assert cmd_result.is_success
 
             # Add to session
-            add_result = self.domain_services.add_command_to_session(session, cmd_result.value)
+            add_result = self.domain_services.add_command_to_session(
+                session, cmd_result.value
+            )
             assert add_result.is_success
 
         assert len(session.commands) == 3
@@ -408,7 +427,10 @@ class TestIntegrationScenarios:
 
         # Complete execution
         complete_result = self.domain_services.complete_command_execution(
-            command, exit_code=0, output="lifecycle test", error_output="",
+            command,
+            exit_code=0,
+            output="lifecycle test",
+            error_output="",
         )
         assert complete_result.is_success
         assert command.status == FlextCliConstants.STATUS_COMPLETED
@@ -434,7 +456,10 @@ class TestIntegrationScenarios:
 
         # Complete with error
         error_complete = self.domain_services.complete_command_execution(
-            command, exit_code=1, output="", error_output="Simulated error",
+            command,
+            exit_code=1,
+            output="",
+            error_output="Simulated error",
         )
         assert error_complete.is_success
         assert command.status == FlextCliConstants.STATUS_FAILED
@@ -448,7 +473,9 @@ class TestIntegrationScenarios:
 
         # Try to complete without starting (should fail)
         complete_result = self.domain_services.complete_command_execution(
-            command, exit_code=0, output="test",
+            command,
+            exit_code=0,
+            output="test",
         )
         assert complete_result.is_failure
         assert "must be running" in str(complete_result.error or "").lower()
