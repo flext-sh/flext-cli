@@ -113,6 +113,7 @@ class TestFlextCliDataProcessing:
         # Test batch_process_items
         def identity_func(x: int) -> int:
             return x
+
         result2 = processor.batch_process_items([1, 2, 3], identity_func)
         assert isinstance(result2, FlextResult)
 
@@ -132,6 +133,7 @@ class TestFlextCliDataProcessing:
         # Test with empty data
         def identity_func(x: object) -> object:
             return x
+
         result = processor.batch_process_items([], identity_func)
         assert isinstance(result, FlextResult)
         # May succeed or fail depending on FlextUtilities implementation
@@ -140,8 +142,10 @@ class TestFlextCliDataProcessing:
         """Test that all methods are static."""
         # All methods should be static and work without instance
         result1 = FlextCliDataProcessing.validate_data({"test": "data"}, {"test": str})
+
         def identity_func(x: int) -> int:
             return x
+
         result2 = FlextCliDataProcessing.batch_process_items([1, 2, 3], identity_func)
         result3 = FlextCliDataProcessing.safe_json_stringify({"test": "data"})
 

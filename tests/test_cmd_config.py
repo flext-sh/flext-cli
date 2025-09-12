@@ -11,7 +11,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import tempfile
@@ -169,7 +168,9 @@ class TestConfigHelperFunctions(unittest.TestCase):
         self.test_config.output_format = "json"
 
         # This function prints to console, so we test it doesn't crash
-        FlextCliCmd.print_config_value(self.cli_context, "api_url", "http://test.example.com")
+        FlextCliCmd.print_config_value(
+            self.cli_context, "api_url", "http://test.example.com"
+        )
         # Function should complete without exceptions
 
     def test_print_config_value_yaml_format(self) -> None:
@@ -455,7 +456,8 @@ class TestEditCommand(unittest.TestCase):
             config_file.parent.mkdir(parents=True, exist_ok=True)
             with config_file.open("w", encoding="utf-8") as f:
                 yaml.dump(
-                    {"debug": True, "timeout": 45, "api_url": "http://existing.test"}, f,
+                    {"debug": True, "timeout": 45, "api_url": "http://existing.test"},
+                    f,
                 )
 
             test_config = _TestConfig(config_file=config_file)

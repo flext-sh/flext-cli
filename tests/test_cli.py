@@ -4,7 +4,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import inspect
@@ -88,11 +87,7 @@ class TestCliMain:
         """Test create_cli_options with custom values."""
         cli_main = FlextCliMain()
         result = cli_main.create_cli_options(
-            profile="test",
-            output="json",
-            debug=True,
-            quiet=True,
-            log_level="DEBUG"
+            profile="test", output="json", debug=True, quiet=True, log_level="DEBUG"
         )
 
         assert result.is_success
@@ -310,7 +305,8 @@ class TestCliConfiguration:
 
         # Test configuration with different values
         result = self.runner.invoke(
-            cli, ["--profile", "test", "--debug"],
+            cli,
+            ["--profile", "test", "--debug"],
         )
         assert result.exit_code == 0
         assert "Profile: test" in result.output

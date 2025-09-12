@@ -16,7 +16,7 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import override
-from uuid import UUID, uuid4
+from uuid import UUID
 
 import yaml
 from flext_core import (
@@ -30,14 +30,33 @@ from flext_core import (
 )
 from pydantic import BaseModel, Field, PrivateAttr
 
+from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
 from flext_cli.services import FlextCliServices
 
+# CLI API HELL: 811 LINES COM 48 MÉTODOS PARA API DE CLI!
+# BUZZWORD BINGO: "cutting-edge patterns", "advanced pattern matching"!
+# DOMAIN SERVICE ABUSE: API não é domain service, é client HTTP!
+# OVER-ENGINEERING SIN: "Operation dispatching" para CLI simples!
+# PYTHON 3.13 MARKETING: Using "cutting-edge" as justification for complexity!
+
 
 class FlextCliApi(FlextDomainService[str]):
-    """Unified CLI API with Python 3.13 cutting-edge patterns and nested specialized handlers.
+    """OVER-ENGINEERED CLI API: 811 lines for HTTP client!
+
+    BUZZWORD VIOLATIONS:
+    - "CUTTING-EDGE PATTERNS" - just over-complicated HTTP calls
+    - "ADVANCED PATTERN MATCHING" - unnecessary for simple API client
+    - "SPECIALIZED HANDLERS" - HTTP requests don't need handlers
+    - "OPERATION DISPATCHING" - overkill for REST API calls
+    - Python 3.13 features used as complexity justification
+
+    REALITY CHECK: This should be simple requests wrapper with error handling.
+    MIGRATE TO: httpx client with minimal abstraction layer.
+
+    Unified CLI API with Python 3.13 cutting-edge patterns and nested specialized handlers.
 
     Features:
         - Single class pattern with all functionality encapsulated
@@ -383,6 +402,10 @@ class FlextCliApi(FlextDomainService[str]):
                 },
             )
 
+        def configure(self, config: object) -> FlextResult[None]:
+            """Configure API with validation and state updates."""
+            return self._handle_configure_operation(config)
+
         def _handle_configure_operation(self, config: object) -> FlextResult[None]:
             """Handle configuration with advanced validation and state updates."""
             try:
@@ -436,7 +459,7 @@ class FlextCliApi(FlextDomainService[str]):
             base_path: object,
             format_type: object,
         ) -> FlextResult[FlextTypes.Core.StringList]:
-            """Handle batch export - SIMPLE ALIAS for test compatibility."""
+            """Handle batch export."""
             try:
                 if not isinstance(datasets, list):
                     return FlextResult[FlextTypes.Core.StringList].fail(
@@ -492,14 +515,23 @@ class FlextCliApi(FlextDomainService[str]):
         *,
         models: FlextModels | None = None,
         services: FlextCliServices | None = None,
-        version: str = "0.9.1",
+        version: str | None = None,
     ) -> None:
-        """Initialize unified API with nested architecture and flext-core patterns."""
+        """Initialize unified API with nested architecture and flext-core patterns.
+
+        Uses FlextConfig singleton as the single source of truth for all configuration.
+        """
+        # Get FlextConfig singleton as single source of truth
+        config = FlextCliConfig.get_global_instance()
+
+        # Use config values as defaults, allow overrides
+        api_version = str(version or getattr(config, "project_version", "0.9.1"))
+
         # Initialize components needed for dispatcher (temporary)
         temp_formatters = FlextCliFormatters()
 
         # Initialize state and dispatcher BEFORE calling super() - SIMPLE ALIAS approach
-        state = FlextCliApi.ApiState(version=version)
+        state = FlextCliApi.ApiState(version=api_version)
         dispatcher = FlextCliApi.OperationDispatcher(
             state=state,
             formatters=temp_formatters,
@@ -517,7 +549,32 @@ class FlextCliApi(FlextDomainService[str]):
         self._container = FlextContainer.get_global()
         self._logger = FlextLogger(__name__)
         self._models = models or FlextModels()
+
+        # Store reference to config for future use
+        self._config = config
         self._services = services or FlextCliServices()
+
+    def configure(self, config: object) -> FlextResult[None]:
+        """Configure API with validation and state updates."""
+        if self.dispatcher is None:
+            return FlextResult[None].fail("Dispatcher not initialized")
+        return self.dispatcher.configure(config)
+
+    def update_from_config(self) -> None:
+        """Update API configuration from FlextConfig singleton.
+
+        This method allows the API to refresh its configuration
+        from the FlextConfig singleton, ensuring it always uses
+        the latest configuration values.
+        """
+        # Update configuration from singleton
+        self._config = FlextCliConfig.get_global_instance()
+
+        # Update state with new configuration
+        if hasattr(self, "state") and self.state:
+            # Update version from config
+            config_version = getattr(self._config, "project_version", "0.9.1")
+            self.state.version = config_version
 
     # =========================================================================
     # PUBLIC API - Maintaining original signatures for backward compatibility
@@ -578,7 +635,7 @@ class FlextCliApi(FlextDomainService[str]):
         return self._formatters.format_data(data, format_type)
 
     def export_data(self, data: object, file_path: str | Path) -> FlextResult[str]:
-        """Export data to file - SIMPLE ALIAS for test compatibility."""
+        """Export data to file."""
         try:
             path = Path(file_path)
             suffix = path.suffix.lower()
@@ -670,208 +727,6 @@ class FlextCliApi(FlextDomainService[str]):
         )
 
     # =========================================================================
-    # COMPATIBILITY METHODS - Backward compatibility for existing tests
-    # =========================================================================
-
-    def flext_cli_configure(self, config: FlextTypes.Core.Dict) -> FlextResult[None]:
-        """Configure CLI API - convenience method."""
-        if self.dispatcher is None:
-            return FlextResult[None].fail("Dispatcher not initialized")
-        result = self.dispatcher.dispatch_operation("configure", config=config)
-        return (
-            FlextResult[None].ok(None)
-            if result.is_success
-            else FlextResult[None].fail(result.error or "Configure failed")
-        )
-
-    def flext_cli_health(self) -> FlextResult[FlextTypes.Core.Dict]:
-        """Health check - convenience method."""
-        if self.dispatcher is None:
-            return FlextResult[FlextTypes.Core.Dict].fail("Dispatcher not initialized")
-        result = self.dispatcher.dispatch_operation("health")
-        # Safe casting - we know health returns dict
-        if result.is_success and isinstance(result.value, dict):
-            return FlextResult[FlextTypes.Core.Dict].ok(result.value)
-        return FlextResult[FlextTypes.Core.Dict].fail(
-            result.error or "Health check failed",
-        )
-
-    def create_command(
-        self,
-        command_line: str,
-    ) -> FlextResult[FlextCliModels.CliCommand]:
-        """Create command - convenience method."""
-        if self.dispatcher is None:
-            return FlextResult[FlextCliModels.CliCommand].fail(
-                "Dispatcher not initialized",
-            )
-        result = self.dispatcher.dispatch_operation(
-            "create_command",
-            command_line=command_line,
-        )
-        # Safe casting - we expect CliCommand object
-        if result.is_success:
-            # Safe casting to CliCommand
-            if isinstance(result.value, FlextCliModels.CliCommand):
-                return FlextResult[FlextCliModels.CliCommand].ok(result.value)
-            return FlextResult[FlextCliModels.CliCommand].fail(
-                "Invalid command type returned",
-            )
-        return FlextResult[FlextCliModels.CliCommand].fail(
-            result.error or "Create command failed",
-        )
-
-    def flext_cli_create_command(
-        self,
-        command_line: str,
-        **_kwargs: object,
-    ) -> FlextResult[FlextCliModels.CliCommand]:
-        """Create CLI command - convenience method."""
-        if self.dispatcher is None:
-            return FlextResult[FlextCliModels.CliCommand].fail(
-                "Dispatcher not initialized",
-            )
-        result = self.dispatcher.dispatch_operation(
-            "create_command",
-            command_line=command_line,
-        )
-        # Safe casting - we expect CliCommand object
-        if result.is_success:
-            # Safe casting to CliCommand
-            if isinstance(result.value, FlextCliModels.CliCommand):
-                return FlextResult[FlextCliModels.CliCommand].ok(result.value)
-            return FlextResult[FlextCliModels.CliCommand].fail(
-                "Invalid command type returned",
-            )
-        return FlextResult[FlextCliModels.CliCommand].fail(
-            result.error or "Create command failed",
-        )
-
-    def flext_cli_create_session(
-        self,
-        user_id: str | None = None,
-    ) -> FlextResult[FlextCliModels.CliSession]:
-        """Create CLI session - convenience method."""
-        if user_id is None:
-            user_id = str(uuid4())
-        if self.dispatcher is None:
-            return FlextResult[FlextCliModels.CliSession].fail(
-                "Dispatcher not initialized",
-            )
-        result = self.dispatcher.dispatch_operation("create_session", user_id=user_id)
-        # Safe casting - we expect CliSession object
-        if result.is_success:
-            # Safe casting to CliSession
-            if isinstance(result.value, FlextCliModels.CliSession):
-                return FlextResult[FlextCliModels.CliSession].ok(result.value)
-            return FlextResult[FlextCliModels.CliSession].fail(
-                "Invalid session type returned",
-            )
-        return FlextResult[FlextCliModels.CliSession].fail(
-            result.error or "Create session failed",
-        )
-
-    def flext_cli_register_handler(
-        self,
-        name: str,
-        handler: object,
-    ) -> FlextResult[None]:
-        """Register handler - unified implementation."""
-        if not isinstance(name, str) or not name.strip():
-            return FlextResult[None].fail("Handler name must be a non-empty string")
-
-        if not callable(handler):
-            return FlextResult[None].fail("Handler must be callable")
-
-        if self.state is None:
-            return FlextResult[None].fail("State not initialized")
-        self.state.handlers[name] = handler
-        return FlextResult[None].ok(None)
-
-    def flext_cli_execute_handler(
-        self,
-        name: str,
-        *args: object,
-        **kwargs: object,
-    ) -> FlextResult[object]:
-        """Execute registered handler - unified implementation."""
-        if self.state is None:
-            return FlextResult[object].fail("State not initialized")
-        if name not in self.state.handlers:
-            return FlextResult[object].fail(f"Handler '{name}' not found")
-
-        handler = self.state.handlers[name]
-        if not callable(handler):
-            return FlextResult[object].fail(f"Handler '{name}' is not callable")
-
-        try:
-            result = handler(*args, **kwargs)
-            return FlextResult[object].ok(result)
-        except (
-            ImportError,
-            AttributeError,
-            ValueError,
-        ) as e:
-            return FlextResult[object].fail(f"Handler '{name}' execution failed: {e}")
-
-    def flext_cli_render_with_context(
-        self,
-        data: object,
-        context: FlextTypes.Core.Dict | None = None,
-    ) -> FlextResult[str]:
-        """Render data with context - unified implementation."""
-        try:
-            rendered = f"Data: {data}\nContext: {context}" if context else str(data)
-            return FlextResult[str].ok(rendered)
-        except (
-            ImportError,
-            AttributeError,
-            ValueError,
-        ) as e:
-            return FlextResult[str].fail(f"Rendering failed: {e}")
-
-    def flext_cli_get_commands(self) -> FlextResult[list[FlextCliModels.CliCommand]]:
-        """Get commands from unified state."""
-        if self.state is None:
-            return FlextResult[list[FlextCliModels.CliCommand]].fail(
-                "State not initialized",
-            )
-        return FlextResult[list[FlextCliModels.CliCommand]].ok(
-            list(self.state.command_history),
-        )
-
-    def flext_cli_get_sessions(self) -> FlextResult[FlextTypes.Core.List]:
-        """Get sessions from unified state."""
-        if self.state is None:
-            return FlextResult[FlextTypes.Core.List].fail("State not initialized")
-        sessions = list(self.state.sessions.values())
-        return FlextResult[FlextTypes.Core.List].ok(
-            list(sessions),
-        )  # Cast to list[object]
-
-    def flext_cli_get_plugins(self) -> FlextResult[FlextTypes.Core.List]:
-        """Get plugins from unified state."""
-        if self.state is None:
-            return FlextResult[FlextTypes.Core.List].fail("State not initialized")
-        return FlextResult[FlextTypes.Core.List].ok(list(self.state.plugins.values()))
-
-    def flext_cli_get_handlers(self) -> FlextResult[FlextTypes.Core.Dict]:
-        """Get handlers from unified state."""
-        if self.state is None:
-            return FlextResult[FlextTypes.Core.Dict].fail("State not initialized")
-        return FlextResult[FlextTypes.Core.Dict].ok(dict(self.state.handlers))
-
-    def flext_cli_register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
-        """Register plugin in unified state."""
-        if not isinstance(name, str) or not name.strip():
-            return FlextResult[None].fail("Plugin name must be a non-empty string")
-
-        if self.state is None:
-            return FlextResult[None].fail("State not initialized")
-        self.state.plugins[name] = plugin
-        return FlextResult[None].ok(None)
-
-    # =========================================================================
     # UTILITY METHODS - All functionality contained within unified class
     # =========================================================================
 
@@ -935,7 +790,7 @@ class FlextCliApi(FlextDomainService[str]):
         api = cls(models=models, services=services)
 
         if config_override:
-            configure_result = api.flext_cli_configure(config_override)
+            configure_result = api.configure(config_override)
             if (
                 configure_result.is_failure
                 and hasattr(api, "_logger")
@@ -947,16 +802,6 @@ class FlextCliApi(FlextDomainService[str]):
                 )
 
         return api
-
-    @classmethod
-    def create_for_testing(cls, *, enable_tracking: bool = False) -> FlextCliApi:
-        """Factory method specifically for testing scenarios."""
-        return cls.create_with_dependencies(
-            config_override={
-                "enable_session_tracking": enable_tracking,
-                "enable_command_history": enable_tracking,
-            },
-        )
 
     @override
     def __repr__(self) -> str:

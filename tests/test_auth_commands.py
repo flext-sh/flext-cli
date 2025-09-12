@@ -11,7 +11,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import click
@@ -314,10 +313,10 @@ class TestAuthFunctionalityReal:
         # Test loading when no token exists
         no_token_result = self.auth.get_auth_token()
         assert not no_token_result.is_success, "Should fail when no token exists"
-        assert ("not found" in str(no_token_result.error or "").lower() or
-                "does not exist" in str(no_token_result.error or "").lower()), (
-            "Should have meaningful error message"
-        )
+        assert (
+            "not found" in str(no_token_result.error or "").lower()
+            or "does not exist" in str(no_token_result.error or "").lower()
+        ), "Should have meaningful error message"
 
         # Test saving and loading work correctly
         test_token = "error_test_token"

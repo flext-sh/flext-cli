@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import json
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TypedDict
@@ -25,7 +24,6 @@ from flext_core import (
     FlextResult,
     FlextTypes,
 )
-from flext_core.validations import FlextValidations
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.protocols import AuthenticationClient
@@ -101,37 +99,24 @@ class FlextCliAuth(FlextDomainService[str]):
         self._container = FlextContainer.get_global()
         self._logger = FlextLogger(__name__)
 
-        # Load configuration from SOURCE OF TRUTH - NO deduction
-        self._config = config
+        # Load configuration from FlextConfig singleton as SINGLE SOURCE OF TRUTH
         if config is None:
-            config_result = self._load_config_from_source()
-            if config_result.is_failure:
-                msg = (
-                    f"Failed to load config from SOURCE OF TRUTH: {config_result.error}"
-                )
-                raise ValueError(msg)
-            self._config = config_result.value
+            self._config = FlextCliConfig.get_global_instance()
+        else:
+            self._config = config
 
         # Dependency injection for authentication client
         self._auth_client = auth_client
 
-    def _load_config_from_source(self) -> FlextResult[FlextCliConfig]:
-        """Load configuration from SOURCE OF TRUTH."""
-        try:
-            # Direct configuration loading - NO deduction or assumptions
-            if hasattr(FlextCliConfig, "get_current"):
-                config = FlextCliConfig.get_current()
-            else:
-                config = FlextCliConfig()
-            return FlextResult[FlextCliConfig].ok(config)
-        except (
-            ImportError,
-            AttributeError,
-            ValueError,
-        ) as e:
-            return FlextResult[FlextCliConfig].fail(
-                f"Config loading from SOURCE OF TRUTH failed: {e}",
-            )
+    def update_from_config(self) -> None:
+        """Update authentication configuration from FlextConfig singleton.
+
+        This method allows the authentication service to refresh its configuration
+        from the FlextConfig singleton, ensuring it always uses the latest
+        configuration values.
+        """
+        # Update configuration from singleton
+        self._config = FlextCliConfig.get_global_instance()
 
     @property
     def config(self) -> FlextCliConfig:
@@ -649,115 +634,11 @@ class FlextCliAuth(FlextDomainService[str]):
 
     @classmethod
     def create(cls, *, config: FlextCliConfig | None = None) -> FlextCliAuth:
-        """Create authentication instance using SOURCE OF TRUTH factory pattern."""
+        """Create authentication instance using FlextConfig singleton as SINGLE SOURCE OF TRUTH."""
+        # Use FlextConfig singleton if no config provided
+        if config is None:
+            config = FlextCliConfig.get_global_instance()
         return cls(config=config)
-
-    # Test compatibility methods - real implementations
-    def authenticate_user(self, username: str, password: str) -> FlextResult[str]:
-        """Authenticate user - test compatibility method."""
-        try:
-            credentials = self.LoginCredentials(username=username, password=password)
-            validation_result = self.validate_credentials(credentials)
-            if validation_result.is_failure:
-                return FlextResult[str].fail(
-                    f"Invalid credentials: {validation_result.error}"
-                )
-
-            # Simulate authentication success
-            return FlextResult[str].ok("access_token_123")
-        except Exception as e:
-            return FlextResult[str].fail(f"Authentication failed: {e}")
-
-    def get_user_profile(self, token: str) -> FlextResult[dict[str, object]]:
-        """Get user profile - test compatibility method."""
-        try:
-            if not token:
-                return FlextResult[dict[str, object]].fail("No token provided")
-
-            # Simulate user profile data
-            profile: dict[str, object] = {
-                "id": "user123",
-                "name": "Test User",
-                "email": "test@example.com",
-                "role": "user",
-            }
-            return FlextResult[dict[str, object]].ok(profile)
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Profile retrieval failed: {e}")
-
-    def save_auth_config(
-        self, config: dict[str, object], file_path: str
-    ) -> FlextResult[None]:
-        """Save auth config - test compatibility method."""
-        try:
-            config_path = Path(file_path)
-            config_path.parent.mkdir(parents=True, exist_ok=True)
-
-            with config_path.open("w", encoding="utf-8") as f:
-                json.dump(config, f, indent=2)
-
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Config save failed: {e}")
-
-    def load_auth_config(self, file_path: str) -> FlextResult[dict[str, object]]:
-        """Load auth config - test compatibility method."""
-        try:
-            config_path = Path(file_path)
-            if not config_path.exists():
-                return FlextResult[dict[str, object]].fail("Config file not found")
-
-            with config_path.open(encoding="utf-8") as f:
-                config = json.load(f)
-
-            return FlextResult[dict[str, object]].ok(config)
-        except json.JSONDecodeError as e:
-            return FlextResult[dict[str, object]].fail(f"Invalid JSON: {e}")
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Config load failed: {e}")
-
-    def clear_auth_data(self, file_path: str) -> FlextResult[None]:
-        """Clear auth data - test compatibility method."""
-        try:
-            config_path = Path(file_path)
-            if config_path.exists():
-                config_path.unlink()
-
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Clear auth data failed: {e}")
-
-    def _is_token_expired(self, timestamp: datetime) -> bool:
-        """Check if token is expired - test compatibility method."""
-        try:
-            now = datetime.now(UTC)
-            return timestamp < now
-        except Exception:
-            return True
-
-    def _validate_user_data(
-        self, user_data: dict[str, object]
-    ) -> FlextResult[dict[str, object]]:
-        """Validate user data using flext-core validation directly."""
-        return FlextValidations.validate_user_data(user_data)
-
-    def _validate_auth_config(
-        self, config: dict[str, object]
-    ) -> FlextResult[dict[str, object]]:
-        """Validate auth config using flext-core validation patterns."""
-        try:
-            # Use flext-core validation pattern for required fields
-            required_fields = ["api_key", "base_url"]
-            for field in required_fields:
-                if field not in config or not config[field]:
-                    return FlextResult[dict[str, object]].fail(
-                        f"Missing required field: {field}"
-                    )
-            return FlextResult[dict[str, object]].ok(config)
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(
-                f"Auth config validation failed: {e}"
-            )
 
     class CommandHandler:
         """Unified command handler for authentication operations using SOURCE OF TRUTH."""

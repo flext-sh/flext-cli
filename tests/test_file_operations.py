@@ -32,7 +32,9 @@ class TestFlextCliFileOperations:
         """Test successful JSON file loading."""
         test_data = {"key": "value", "number": 42}
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False
+        ) as tmp_file:
             json.dump(test_data, tmp_file)
             tmp_file.flush()
 
@@ -56,7 +58,9 @@ class TestFlextCliFileOperations:
 
     def test_load_json_file_invalid_json(self) -> None:
         """Test JSON file loading with invalid JSON."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False
+        ) as tmp_file:
             tmp_file.write("invalid json content")
             tmp_file.flush()
 
@@ -74,7 +78,9 @@ class TestFlextCliFileOperations:
         """Test successful JSON file saving."""
         test_data = {"key": "value", "number": 42}
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False
+        ) as tmp_file:
             tmp_file.close()  # Close to allow writing
 
             ops = FlextCliFileOperations()
@@ -190,6 +196,7 @@ class TestFlextCliFileOperations:
 
     def test_backup_and_process_file_not_found(self) -> None:
         """Test backup and process with non-existent file."""
+
         def process_func(content: str) -> FlextResult[str]:
             return FlextResult[str].ok(content)
 
@@ -217,9 +224,7 @@ class TestFlextCliFileOperations:
 
                 ops = FlextCliFileOperations()
                 result = ops.backup_and_process(
-                    tmp_file.name,
-                    process_func,
-                    require_confirmation=True
+                    tmp_file.name, process_func, require_confirmation=True
                 )
 
                 assert result.is_success
@@ -248,9 +253,7 @@ class TestFlextCliFileOperations:
 
                 ops = FlextCliFileOperations()
                 result = ops.backup_and_process(
-                    tmp_file.name,
-                    process_func,
-                    require_confirmation=True
+                    tmp_file.name, process_func, require_confirmation=True
                 )
 
                 assert result.is_failure

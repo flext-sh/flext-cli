@@ -4,7 +4,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import pytest
@@ -113,13 +112,11 @@ class TestAllExports:
             "FlextTypes",  # Main compatibility alias
         }
 
-
         type_vars = {"E", "F", "P", "R", "T", "U", "V"}
 
         # Essential types should be present (subset validation)
         missing_essential = essential_types - all_actual
         assert not missing_essential, f"Missing essential types: {missing_essential}"
-
 
         missing_type_vars = type_vars - all_actual
         assert not missing_type_vars, f"Missing type variables: {missing_type_vars}"
@@ -151,7 +148,9 @@ class TestTypeCompatibility:
         """Test that modern aliases can be used for type checking."""
         # Updated to only use types that exist after flext-core refactoring
         data: types.FlextCliDataType = "test_data"
-        format_str: types.FlextCliTypes.OutputFormat = types.FlextCliTypes.OutputFormat.JSON
+        format_str: types.FlextCliTypes.OutputFormat = (
+            types.FlextCliTypes.OutputFormat.JSON
+        )
         args: list[str] = ["arg1", "arg2"]
 
         def handler(x: object) -> object:
@@ -170,7 +169,6 @@ class TestTypeCompatibility:
         assert hasattr(types, "ContextParams")
         assert hasattr(types, "PluginResult")
         assert hasattr(types, "SessionData")
-
 
         assert types.FlextCliCommand is not None
         assert types.ContextParams is not None

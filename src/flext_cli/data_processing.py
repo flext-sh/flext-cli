@@ -19,11 +19,32 @@ class FlextCliDataProcessing:
     def validate_data(data: object, validator: object) -> FlextResult[object]:
         """Validate data using flext-core directly."""
         try:
+            # Handle dictionary of validators
+            if isinstance(validator, dict) and isinstance(data, dict):
+                for key, val_func in validator.items():
+                    if key not in data:
+                        return FlextResult[object].fail(f"Missing key: {key}")
+                    if not callable(val_func):
+                        return FlextResult[object].fail("Validator must be callable")
+                    try:
+                        val_func(data[key])
+                    except Exception as e:
+                        return FlextResult[object].fail(f"Validation failed for {key}: {e}")
+                return FlextResult[object].ok(data)
+
+            # Handle single validator
             if callable(validator):
-                result = FlextUtilities.ValidationUtils.validate_with_callable(data, validator)
+                result = FlextUtilities.ValidationUtils.validate_with_callable(
+                    data, validator
+                )
                 if result.is_success:
                     return FlextResult[object].ok(data)
                 return FlextResult[object].fail(result.error or "Validation failed")
+
+            # Handle invalid data format
+            if not isinstance(data, dict) and isinstance(validator, dict):
+                return FlextResult[object].fail("Invalid data or validators format")
+
             return FlextResult[object].fail("Validator must be callable")
         except Exception as e:
             return FlextResult[object].fail(f"Validation failed: {e}")
@@ -43,7 +64,9 @@ class FlextCliDataProcessing:
 
                 result = FlextUtilities.batch_process(items, wrapped_processor)
                 if result.is_failure:
-                    return FlextResult[object].fail(result.error or "Batch processing failed")
+                    return FlextResult[object].fail(
+                        result.error or "Batch processing failed"
+                    )
                 return FlextResult[object].ok(result.unwrap())
             return FlextResult[object].fail("Invalid items format")
         except Exception as e:

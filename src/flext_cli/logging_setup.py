@@ -64,8 +64,8 @@ class FlextCliLoggingSetup:
     _setup_complete: ClassVar[bool] = False
 
     def __init__(self, config: FlextCliConfig | None = None) -> None:
-        """Initialize logging setup."""
-        self.config = config or FlextCliConfig()
+        """Initialize logging setup using FlextConfig singleton as SINGLE SOURCE OF TRUTH."""
+        self.config = config or FlextCliConfig.get_global_instance()
         self._logger = logging.getLogger(__name__)
 
     def setup_logging(self) -> FlextResult[FlextCliLoggingConfig]:
@@ -163,8 +163,11 @@ class FlextCliLoggingSetup:
         config: FlextCliConfig | None = None,
         log_file: Path | None = None,
     ) -> FlextResult[str]:
-        """Setup logging specifically for CLI usage."""
+        """Setup logging specifically for CLI usage using FlextConfig singleton."""
         try:
+            # Use FlextConfig singleton if no config provided
+            if config is None:
+                config = FlextCliConfig.get_global_instance()
             setup_instance = cls(config)
 
             # Configure log file if specified
@@ -190,8 +193,11 @@ class FlextCliLoggingSetup:
         cls,
         config: FlextCliConfig | None = None,
     ) -> FlextResult[str]:
-        """Get the effective log level that would be used."""
+        """Get the effective log level that would be used using FlextConfig singleton."""
         try:
+            # Use FlextConfig singleton if no config provided
+            if config is None:
+                config = FlextCliConfig.get_global_instance()
             setup_instance = cls(config)
             detection_result = setup_instance._detect_log_configuration()
 

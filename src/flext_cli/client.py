@@ -7,13 +7,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from typing import Self
 from urllib.parse import urljoin
 
 import httpx
-from flext_core import FlextConstants, FlextLogger, FlextModels, FlextResult, FlextTypes
-from pydantic import Field
+from flext_core import FlextConstants, FlextLogger, FlextResult, FlextTypes
+from pydantic import BaseModel, Field
 
 # Removed circular import - FlextCliAuth will be injected when needed
 from flext_cli.config import FlextCliConfig
@@ -27,9 +26,10 @@ class FlextApiClient:
     """Client for FLEXT API operations.
 
     Provides async methods for interacting with the FLEXT API.
+    Uses FlextConfig singleton as the single source of truth for all configuration.
     """
 
-    class PipelineConfig(FlextModels.Config):
+    class PipelineConfig(BaseModel):
         """Pipeline configuration model for Singer/Meltano workflows."""
 
         name: str = Field(description="Pipeline name")
@@ -43,14 +43,12 @@ class FlextApiClient:
             description="Additional config",
         )
 
-    class Pipeline(FlextModels.Config):
+    class Pipeline(BaseModel):
         """Pipeline model for API responses."""
 
         id: str = Field(description="Pipeline unique identifier")
         name: str = Field(description="Pipeline name")
         status: str = Field(description="Pipeline status")
-        created_at: str = Field(description="Pipeline creation timestamp")
-        updated_at: str = Field(description="Pipeline last update timestamp")
         config: FlextApiClient.PipelineConfig = Field(
             description="Pipeline configuration",
         )
@@ -63,7 +61,7 @@ class FlextApiClient:
                 return FlextResult[None].fail(f"Invalid pipeline status: {self.status}")
             return FlextResult[None].ok(None)
 
-    class PipelineList(FlextModels.Config):
+    class PipelineList(BaseModel):
         """Pipeline list response."""
 
         pipelines: list[FlextApiClient.Pipeline] = Field(
@@ -77,20 +75,23 @@ class FlextApiClient:
         self,
         base_url: str | None = None,
         token: str | None = None,
-        timeout: float = FlextCliConstants.TIMEOUTS.default_api_timeout,
+        timeout: float | None = None,
         *,
-        verify_ssl: bool = True,
+        verify_ssl: bool | None = None,
     ) -> None:
-        """Initialize API client.
+        """Initialize API client using FlextConfig singleton as single source of truth.
 
         Args:
-            base_url: API base URL (defaults from config)
-            token: Authentication token (optional)
-            timeout: Request timeout in seconds
-            verify_ssl: Whether to verify SSL certificates
+            base_url: API base URL (overrides config if provided)
+            token: Authentication token (overrides config if provided)
+            timeout: Request timeout in seconds (overrides config if provided)
+            verify_ssl: Whether to verify SSL certificates (overrides config if provided)
 
         """
-        config = FlextCliConfig()
+        # Get FlextConfig singleton as single source of truth
+        config = FlextCliConfig.get_global_instance()
+
+        # Use config values as defaults, allow overrides
         if base_url:
             self.base_url = base_url
         elif config.api_url:
@@ -98,11 +99,33 @@ class FlextApiClient:
         else:
             computed = self._compute_default_base_url()
             self.base_url = computed or FlextCliConstants.FALLBACK_API_URL
-        self.token = token
-        self.timeout = timeout
-        self.verify_ssl = verify_ssl
+
+        self.token = token or getattr(config, "api_key", None)
+        self.timeout = timeout or config.api_timeout
+        self.verify_ssl = verify_ssl if verify_ssl is not None else config.verify_ssl
         self._session: httpx.AsyncClient | None = None
-        # No auth service composition to avoid circular dependency
+
+        # Store reference to config for future use
+        self._config = config
+
+    def update_from_config(self) -> None:
+        """Update client configuration from FlextConfig singleton.
+
+        This method allows the client to refresh its configuration
+        from the FlextConfig singleton, ensuring it always uses
+        the latest configuration values.
+        """
+        config = FlextCliConfig.get_global_instance()
+
+        # Update configuration values
+        if config.api_url:
+            self.base_url = config.api_url
+        self.token = getattr(config, "api_key", self.token)
+        self.timeout = config.api_timeout
+        self.verify_ssl = config.verify_ssl
+
+        # Update stored config reference
+        self._config = config
 
     def _get_headers(self) -> FlextTypes.Core.Headers:
         """Get request headers with authentication."""
@@ -135,13 +158,13 @@ class FlextApiClient:
         """Build full URL from path."""
         return urljoin(self.base_url, path)
 
-    # Public accessor methods for test compatibility
+    # Public accessor methods
     def get_headers(self) -> FlextTypes.Core.Headers:
-        """Get request headers with authentication (public access)."""
+        """Get request headers with authentication."""
         return self._get_headers()
 
     def build_url(self, path: str) -> str:
-        """Build full URL from path (public access)."""
+        """Build full URL from path."""
         return self._url(path)
 
     def _parse_json_response(self, response: httpx.Response) -> FlextTypes.Core.Dict:
@@ -647,114 +670,6 @@ class FlextApiClient:
             return False
         else:
             return True
-
-    # Test compatibility methods - real implementations
-    async def authenticate(
-        self, _username: str, _password: str
-    ) -> FlextResult[dict[str, object]]:
-        """Authenticate user - test compatibility method."""
-        try:
-            # Simulate authentication
-            auth_data: dict[str, object] = {
-                "user": {"id": "123", "name": "Test User"},
-                "token": "access_token_123",
-            }
-            return FlextResult[dict[str, object]].ok(auth_data)
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Authentication failed: {e}")
-
-    async def refresh_token(self, token: str) -> FlextResult[str]:
-        """Refresh token - test compatibility method."""
-        try:
-            if not token:
-                return FlextResult[str].fail("No token provided")
-
-            # Simulate token refresh
-            new_token = f"refreshed_{token}"
-            return FlextResult[str].ok(new_token)
-        except Exception as e:
-            return FlextResult[str].fail(f"Token refresh failed: {e}")
-
-    async def validate_token(self, token: str) -> FlextResult[bool]:
-        """Validate token - test compatibility method."""
-        try:
-            if not token:
-                false_value = False
-                return FlextResult[bool].ok(false_value)
-
-            # Simulate token validation
-            min_token_length = 10
-            is_valid = len(token) > min_token_length
-            return FlextResult[bool].ok(is_valid)
-        except Exception as e:
-            return FlextResult[bool].fail(f"Token validation failed: {e}")
-
-    async def get_user_profile(self, token: str) -> FlextResult[dict[str, object]]:
-        """Get user profile - test compatibility method."""
-        try:
-            if not token:
-                return FlextResult[dict[str, object]].fail("No token provided")
-
-            # Simulate user profile data
-            profile: dict[str, object] = {
-                "id": "user123",
-                "name": "Test User",
-                "email": "test@example.com",
-                "role": "user",
-            }
-            return FlextResult[dict[str, object]].ok(profile)
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Profile retrieval failed: {e}")
-
-    async def get_auth_status(self) -> FlextResult[dict[str, object]]:
-        """Get auth status - test compatibility method."""
-        try:
-            status = {
-                "authenticated": True,
-                "user_id": "user123",
-                "session_active": True,
-            }
-            return FlextResult[dict[str, object]].ok(status)
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Status retrieval failed: {e}")
-
-    async def get_refresh_token(self, token: str) -> FlextResult[str]:
-        """Get refresh token - test compatibility method."""
-        try:
-            if not token:
-                return FlextResult[str].fail("No token provided")
-
-            # Simulate refresh token retrieval
-            refresh_token = f"refresh_{token}"
-            return FlextResult[str].ok(refresh_token)
-        except Exception as e:
-            return FlextResult[str].fail(f"Refresh token retrieval failed: {e}")
-
-    async def is_authenticated(self, token: str) -> FlextResult[bool]:
-        """Check if authenticated - test compatibility method."""
-        try:
-            if not token:
-                false_value = False
-                return FlextResult[bool].ok(false_value)
-
-            # Simulate authentication check
-            min_token_length = 10
-            is_auth = len(token) > min_token_length
-            return FlextResult[bool].ok(is_auth)
-        except Exception as e:
-            return FlextResult[bool].fail(f"Authentication check failed: {e}")
-
-    async def get_status(self) -> FlextResult[dict[str, object]]:
-        """Get status - test compatibility method."""
-        try:
-            status = {
-                "status": "active",
-                "authenticated": True,
-                "timestamp": datetime.now(UTC).isoformat(),
-            }
-            return FlextResult[dict[str, object]].ok(status)
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Status retrieval failed: {e}")
 
 
 __all__ = ["FlextApiClient"]

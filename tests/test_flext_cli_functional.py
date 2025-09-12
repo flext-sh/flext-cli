@@ -9,7 +9,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import pytest
@@ -152,9 +151,6 @@ class TestFlextCliIntegration:
         command_cls = FlextCliModels.CliCommand
         command = command_cls(command_line="test")
         assert command.command_line == "test"
-
-
-
 
 
 class TestFlextCliExportsReal:

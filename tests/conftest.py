@@ -28,7 +28,10 @@ try:
 except ImportError:
     # Fallback for when src is not in path
     import importlib.util
-    spec = importlib.util.spec_from_file_location("flext_cli", src_path / "flext_cli" / "__init__.py")
+
+    spec = importlib.util.spec_from_file_location(
+        "flext_cli", src_path / "flext_cli" / "__init__.py"
+    )
     flext_cli = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(flext_cli)
     FlextCliConfig = flext_cli.FlextCliConfig
@@ -61,13 +64,11 @@ class TestUser:
 def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest with custom markers and settings."""
     config.addinivalue_line(
-        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+        "markers",
+        "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     )
     config.addinivalue_line("markers", "integration: marks tests as integration tests")
     config.addinivalue_line("markers", "unit: marks tests as unit tests")
-
-
-
 
 
 @pytest.fixture
@@ -139,13 +140,13 @@ def test_user() -> TestUser:
 def real_test_user() -> TestUser:
     """Provide real User instance for testing."""
     return TestUser(
-        user_id="test_user_id",          # Required: id
-        name="test_user",           # Required: name
-        email="test@example.com",   # Required: email
-        age=25,                     # Required: age
-        is_active=True,             # Required: is_active
+        user_id="test_user_id",  # Required: id
+        name="test_user",  # Required: name
+        email="test@example.com",  # Required: email
+        age=25,  # Required: age
+        is_active=True,  # Required: is_active
         created_at=datetime(2024, 1, 1, 0, 0, 0, tzinfo=UTC),
-        metadata={},                 # Required: metadata
+        metadata={},  # Required: metadata
     )
 
 

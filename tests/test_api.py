@@ -4,7 +4,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import datetime
@@ -128,7 +127,9 @@ class TestFormatting:
         result = api.format_data(data, "invalid")
 
         assert not result.is_success
-        assert "Invalid format" in str(result.error or "") or "Unsupported format" in str(result.error or "")
+        assert "Invalid format" in str(
+            result.error or ""
+        ) or "Unsupported format" in str(result.error or "")
 
 
 class TestTableCreation:
@@ -284,7 +285,10 @@ class TestDataExport:
         data = {"key": "value", "number": 42}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", suffix=".json", delete=False,
+            encoding="utf-8",
+            mode="w",
+            suffix=".json",
+            delete=False,
         ) as f:
             api = FlextCliApi()
             result = api.export_data(data, Path(f.name))
@@ -303,7 +307,10 @@ class TestDataExport:
         data = {"key": "value", "list": [1, 2, 3]}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w", suffix=".yaml", delete=False,
+            encoding="utf-8",
+            mode="w",
+            suffix=".yaml",
+            delete=False,
         ) as f:
             api = FlextCliApi()
             result = api.export_data(data, Path(f.name))
@@ -322,7 +329,9 @@ class TestDataExport:
         data = {"key": "value"}
 
         # Test with invalid file extension to trigger format detection failure
-        with tempfile.NamedTemporaryFile(suffix=".invalid_extension", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            suffix=".invalid_extension", delete=False
+        ) as f:
             invalid_path = Path(f.name)
 
         api = FlextCliApi()
@@ -336,14 +345,19 @@ class TestDataExport:
                 invalid_path.unlink()
         else:
             # API rejects invalid format with error
-            assert ("Invalid format" in str(result.error or "") or
-                    "Unsupported export format" in str(result.error or "") or
-                    "format" in str(result.error or "").lower() or
-                    "extension" in str(result.error or "").lower())
+            assert (
+                "Invalid format" in str(result.error or "")
+                or "Unsupported export format" in str(result.error or "")
+                or "format" in str(result.error or "").lower()
+                or "extension" in str(result.error or "").lower()
+            )
 
     def test_flext_cli_batch_export(self) -> None:
         """Test batch export."""
-        datasets: list[tuple[str, object]] = [("data1", {"key1": "value1"}), ("data2", {"key2": "value2"})]
+        datasets: list[tuple[str, object]] = [
+            ("data1", {"key1": "value1"}),
+            ("data2", {"key2": "value2"}),
+        ]
 
         with tempfile.TemporaryDirectory() as temp_dir:
             api = FlextCliApi()
@@ -373,7 +387,10 @@ class TestDataExport:
                 assert len(summary) == 0
             else:
                 # Expected: API rejects empty datasets
-                assert "No datasets" in str(result.error or "") or "empty" in str(result.error or "").lower()
+                assert (
+                    "No datasets" in str(result.error or "")
+                    or "empty" in str(result.error or "").lower()
+                )
 
     def test_flext_cli_batch_export_invalid_format(self) -> None:
         """Test batch export with invalid format."""
@@ -392,7 +409,9 @@ class TestDataExport:
                 assert str(exported_files[0]).endswith(".invalid")
             else:
                 # Alternative: API rejects invalid format
-                assert "Invalid format" in str(result.error or "") or "Unsupported export format" in str(result.error or "")
+                assert "Invalid format" in str(
+                    result.error or ""
+                ) or "Unsupported export format" in str(result.error or "")
 
 
 class TestUtilityFunctions:

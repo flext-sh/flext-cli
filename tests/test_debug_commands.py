@@ -9,7 +9,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import os
@@ -35,9 +34,7 @@ class TestDebugCommandsReal:
 
     def test_debug_group_exists(self) -> None:
         """Test that debug command group exists and is properly structured."""
-        assert isinstance(debug, click.Group), (
-            f"Expected Group, got {type(debug)}"
-        )
+        assert isinstance(debug, click.Group), f"Expected Group, got {type(debug)}"
         assert debug.name == "debug"
 
         # Verify essential commands exist
@@ -59,7 +56,10 @@ class TestDebugCommandsReal:
         ctx_obj = {"console": self.console}
 
         result = self.runner.invoke(
-            debug, ["connectivity"], obj=ctx_obj, catch_exceptions=False,
+            debug,
+            ["connectivity"],
+            obj=ctx_obj,
+            catch_exceptions=False,
         )
 
         # Command should handle connection failures gracefully
@@ -73,7 +73,10 @@ class TestDebugCommandsReal:
         ctx_obj = {"console": self.console}
 
         result = self.runner.invoke(
-            debug, ["performance"], obj=ctx_obj, catch_exceptions=False,
+            debug,
+            ["performance"],
+            obj=ctx_obj,
+            catch_exceptions=False,
         )
 
         # Command should handle API unavailability gracefully
@@ -97,7 +100,11 @@ class TestDebugCommandsReal:
 
         with self.runner.isolated_filesystem():
             result = self.runner.invoke(
-                debug, ["env"], obj=ctx_obj, env=test_env, catch_exceptions=False,
+                debug,
+                ["env"],
+                obj=ctx_obj,
+                env=test_env,
+                catch_exceptions=False,
             )
 
         assert result.exit_code == 0, f"Env command failed: {result.output}"
@@ -114,7 +121,10 @@ class TestDebugCommandsReal:
         ctx_obj = {"console": self.console}
 
         result = self.runner.invoke(
-            debug, ["paths"], obj=ctx_obj, catch_exceptions=False,
+            debug,
+            ["paths"],
+            obj=ctx_obj,
+            catch_exceptions=False,
         )
 
         assert result.exit_code == 0, f"Paths command failed: {result.output}"
@@ -127,7 +137,10 @@ class TestDebugCommandsReal:
         ctx_obj = {"console": self.console}
 
         result = self.runner.invoke(
-            debug, ["validate"], obj=ctx_obj, catch_exceptions=False,
+            debug,
+            ["validate"],
+            obj=ctx_obj,
+            catch_exceptions=False,
         )
 
         # Should complete successfully or with validation warnings
@@ -142,7 +155,10 @@ class TestDebugCommandsReal:
         ctx_obj = {"console": self.console}
 
         result = self.runner.invoke(
-            debug, ["trace", "test", "command"], obj=ctx_obj, catch_exceptions=False,
+            debug,
+            ["trace", "test", "command"],
+            obj=ctx_obj,
+            catch_exceptions=False,
         )
 
         # Trace command should execute (placeholder implementation)
@@ -234,9 +250,9 @@ class TestDebugErrorHandlingReal:
         # Should fail gracefully with proper error message - testing real connectivity
         assert result.exit_code == 1
         assert (
-            "connection" in result.output.lower() or
-            "failed" in result.output.lower() or
-            "error" in result.output.lower()
+            "connection" in result.output.lower()
+            or "failed" in result.output.lower()
+            or "error" in result.output.lower()
         )
 
     def test_connectivity_network_failure_real(self) -> None:

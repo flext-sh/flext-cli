@@ -1,6 +1,6 @@
-"""FLEXT CLI CMD Module - Legacy aliases for tests.
+"""FLEXT CLI CMD Module.
 
-This module provides simple aliases for backward compatibility with existing tests.
+This module provides aliases for CLI configuration functionality.
 All cmd functionality was refactored into FlextCliConfig for better architecture.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -37,19 +37,29 @@ class FlextCliCmd(FlextCliConfig):
     @staticmethod
     def find_config_value(cli_context: object, key: str) -> object:
         """Mock method para compatibilidade com testes - busca no context quando disponível."""
-        # Try parent implementation first
-        parent_result = super(FlextCliCmd, FlextCliCmd).find_config_value(
-            cli_context, key
-        )
-        if parent_result is not None:
-            return parent_result
+        # Search in context attributes first
+        if hasattr(cli_context, "settings") and cli_context.settings and hasattr(cli_context.settings, key):
+            return getattr(cli_context.settings, key)
 
-        # Fallback para defaults se não encontrar no context - SIMPLE ALIAS for test compatibility
+        if hasattr(cli_context, "config") and cli_context.config and hasattr(cli_context.config, key):
+            return getattr(cli_context.config, key)
+
+        # Try parent implementation
+        try:
+            parent_result = super(FlextCliCmd, FlextCliCmd).find_config_value(
+                cli_context, key
+            )
+            if parent_result is not None:
+                return parent_result
+        except (AttributeError, TypeError):
+            pass
+
+        # Default values when not found in context
         defaults = {
             "debug": False,
             "profile": "production",
             "output_format": "table",
-            "project_name": "real-test-project",
+            "project_name": "flext-cli",
             "version": "1.0.0",
             "log_level": "DEBUG",
             "api_url": "http://localhost:8000",

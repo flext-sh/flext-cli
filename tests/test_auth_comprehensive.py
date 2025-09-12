@@ -26,9 +26,7 @@ class TestFlextCliAuth:
     def test_user_data_structure(self) -> None:
         """Test UserData TypedDict structure."""
         user_data = FlextCliAuth.UserData(
-            name="Test User",
-            email="test@example.com",
-            id="user123"
+            name="Test User", email="test@example.com", id="user123"
         )
         assert user_data["name"] == "Test User"
         assert user_data["email"] == "test@example.com"
@@ -42,7 +40,7 @@ class TestFlextCliAuth:
             token_exists=True,
             refresh_token_file="/path/to/refresh",
             refresh_token_exists=True,
-            auto_refresh=True
+            auto_refresh=True,
         )
         assert auth_status["authenticated"] is True
         assert auth_status["token_file"] == "/path/to/token"
@@ -51,8 +49,7 @@ class TestFlextCliAuth:
     def test_login_credentials_structure(self) -> None:
         """Test LoginCredentials TypedDict structure."""
         credentials = FlextCliAuth.LoginCredentials(
-            username="test@example.com",
-            password="password123"
+            username="test@example.com", password="password123"
         )
         assert credentials["username"] == "test@example.com"
         assert credentials["password"] == "password123"
@@ -61,7 +58,7 @@ class TestFlextCliAuth:
         """Test TokenPaths TypedDict structure."""
         token_paths = FlextCliAuth.TokenPaths(
             token_path=Path("/path/to/token"),
-            refresh_token_path=Path("/path/to/refresh")
+            refresh_token_path=Path("/path/to/refresh"),
         )
         assert isinstance(token_paths["token_path"], Path)
         assert isinstance(token_paths["refresh_token_path"], Path)
@@ -147,16 +144,14 @@ class TestFlextCliAuth:
 
         # Test valid credentials
         valid_credentials = FlextCliAuth.LoginCredentials(
-            username="test@example.com",
-            password="password123"
+            username="test@example.com", password="password123"
         )
         result = auth.validate_credentials(valid_credentials)
         assert result.is_success
 
         # Test invalid credentials (empty username)
         invalid_credentials = FlextCliAuth.LoginCredentials(
-            username="",
-            password="password123"
+            username="", password="password123"
         )
         result = auth.validate_credentials(invalid_credentials)
         assert result.is_failure
@@ -213,11 +208,13 @@ class TestFlextCliAuth:
 
         # Mock successful login
         with patch.object(FlextApiClient, "login") as mock_login:
-            mock_login.return_value = FlextResult[dict[str, object]].ok({
-                "access_token": "test_token",
-                "refresh_token": "refresh_token",
-                "token": "test_token"  # Add missing token field
-            })
+            mock_login.return_value = FlextResult[dict[str, object]].ok(
+                {
+                    "access_token": "test_token",
+                    "refresh_token": "refresh_token",
+                    "token": "test_token",  # Add missing token field
+                }
+            )
 
             result = await auth.login("test@example.com", "password")
 
@@ -228,8 +225,11 @@ class TestFlextCliAuth:
     @pytest.mark.asyncio
     async def test_login_failure(self) -> None:
         """Test login failure."""
+
         # Create mock authentication client
-        async def mock_login(_username: str, _password: str) -> FlextResult[dict[str, object]]:
+        async def mock_login(
+            _username: str, _password: str
+        ) -> FlextResult[dict[str, object]]:
             return FlextResult[dict[str, object]].fail("Invalid credentials")
 
         mock_auth_client = Mock()
@@ -310,7 +310,9 @@ class TestFlextCliAuth:
         with tempfile.TemporaryDirectory() as temp_dir:
             token_path = Path(temp_dir) / "test_token"
 
-            result = auth.save_token_to_storage("test_token", "access_token", token_path)
+            result = auth.save_token_to_storage(
+                "test_token", "access_token", token_path
+            )
 
             assert result.is_success
             assert token_path.exists()
@@ -340,7 +342,10 @@ class TestFlextCliAuth:
 
             assert result.is_failure
             assert result.error is not None
-            assert "access_token file does not exist in SOURCE OF TRUTH storage" in result.error
+            assert (
+                "access_token file does not exist in SOURCE OF TRUTH storage"
+                in result.error
+            )
 
     def test_save_auth_token(self) -> None:
         """Test save_auth_token method."""
@@ -452,10 +457,9 @@ class TestFlextCliAuth:
         assert isinstance(config, FlextCliConfig)
 
     def test_load_config_from_source(self) -> None:
-        """Test _load_config_from_source method."""
+        """Test config loading from source."""
         auth = FlextCliAuth()
-        result = auth._load_config_from_source()
+        config = auth.config
 
-        assert result.is_success
-        assert result.value is not None
-        assert isinstance(result.value, FlextCliConfig)
+        assert config is not None
+        assert isinstance(config, FlextCliConfig)

@@ -4,7 +4,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import json
@@ -150,10 +149,12 @@ class TestFlextCliConfig:
             "debug": True,
             "output_format": "yaml",
             "api_url": "https://test.example.com",
-            "log_level": "debug",
+            "log_level": "DEBUG",
         }
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False
+        ) as temp_file:
             json.dump(config_data, temp_file)
             temp_path = Path(temp_file.name)
 

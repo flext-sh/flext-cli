@@ -7,7 +7,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import json
@@ -82,7 +81,6 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         """Test FlextCliService initialization with real attributes."""
         service = FlextCliService()
 
-
         config = service.get_config()
         handlers = service.get_handlers()
         plugins = service.get_plugins()
@@ -119,7 +117,6 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         result = self.service.configure(config)
         assert result.is_success
 
-
         service_config = self.service.get_config()
         assert service_config is not None
         assert isinstance(service_config, dict)
@@ -140,7 +137,6 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         result = self.service.configure(config_dict)
         assert result.is_success
 
-
         service_config = self.service.get_config()
         assert service_config is not None
         assert isinstance(service_config, dict)
@@ -158,7 +154,6 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
         result = self.service.configure(config_dict)
         assert result.is_success
-
 
         service_config = self.service.get_config()
         assert service_config is not None
@@ -199,7 +194,6 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         }
         result = self.service.configure(config_dict)
         assert result.is_success
-
 
         service_config = self.service.get_config()
         assert service_config is not None
@@ -348,7 +342,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             output_file = Path(temp_dir) / "test_export.json"
 
             result = self.service.flext_cli_export(
-                data, str(output_file), FlextCliTypes.OutputFormat.JSON,
+                data,
+                str(output_file),
+                FlextCliTypes.OutputFormat.JSON,
             )
             assert result.is_success
             assert output_file.exists()
@@ -370,7 +366,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             output_file = Path(temp_dir) / "config.yaml"
 
             result = self.service.flext_cli_export(
-                data, str(output_file), FlextCliTypes.OutputFormat.YAML,
+                data,
+                str(output_file),
+                FlextCliTypes.OutputFormat.YAML,
             )
             assert result.is_success
             assert output_file.exists()
@@ -393,7 +391,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             output_file = Path(temp_dir) / "products.csv"
 
             result = self.service.flext_cli_export(
-                data, str(output_file), FlextCliTypes.OutputFormat.CSV,
+                data,
+                str(output_file),
+                FlextCliTypes.OutputFormat.CSV,
             )
             assert result.is_success
             assert output_file.exists()
@@ -412,7 +412,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             nested_path = Path(temp_dir) / "level1" / "level2" / "test.json"
 
             result = self.service.flext_cli_export(
-                data, str(nested_path), FlextCliTypes.OutputFormat.JSON,
+                data,
+                str(nested_path),
+                FlextCliTypes.OutputFormat.JSON,
             )
             assert result.is_success
             assert nested_path.exists()
@@ -550,13 +552,15 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
         # Register handler
         register_result = self.service.flext_cli_register_handler(
-            "test-handler", test_handler,
+            "test-handler",
+            test_handler,
         )
         assert register_result.is_success
 
         # Execute handler
         execute_result = self.service.flext_cli_execute_handler(
-            "test-handler", "test-data",
+            "test-handler",
+            "test-data",
         )
         assert execute_result.is_success
         assert execute_result.value == "Processed: test-data"
@@ -709,7 +713,12 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
     def test_flext_cli_get_plugins_returns_copy(self) -> None:
         """Test get_plugins returns copy to prevent external modification."""
         # Create a plugin first
-        plugin = FlextCliModels.CliCommand(id="test", command_line="test --version", name="test", entry_point="test:main")
+        plugin = FlextCliModels.CliCommand(
+            id="test",
+            command_line="test --version",
+            name="test",
+            entry_point="test:main",
+        )
         self.service.flext_cli_register_plugin("test", plugin)
 
         result1 = self.service.flext_cli_get_plugins()
@@ -745,7 +754,8 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         # Create multiple commands
         for i in range(3):
             result = self.service.flext_cli_create_command(
-                f"cmd-{i}", f"echo 'command {i}'",
+                f"cmd-{i}",
+                f"echo 'command {i}'",
             )
             assert result.is_success
 

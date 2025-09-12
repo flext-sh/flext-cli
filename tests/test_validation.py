@@ -128,7 +128,10 @@ class TestUrlValidation:
             assert isinstance(result.value, str)
         else:
             # If it rejects whitespace, that's also acceptable
-            assert "empty" in str(result.error or "").lower() or "whitespace" in str(result.error or "").lower()
+            assert (
+                "empty" in str(result.error or "").lower()
+                or "whitespace" in str(result.error or "").lower()
+            )
 
     def test_validate_url_no_protocol(self) -> None:
         """Test URL without http/https protocol."""
@@ -251,7 +254,7 @@ class TestEdgeCases:
         """Test email validation edge cases."""
         edge_cases = [
             "a@b.c",  # Minimal valid email
-            "user@domain.toolongtoplausiblybereal.extension", # Long domain
+            "user@domain.toolongtoplausiblybereal.extension",  # Long domain
             "very.long.email.address@domain.com",  # Long local part
         ]
 
@@ -296,7 +299,9 @@ class TestIntegrationScenarios:
         timeout_result = validator.validate_timeout(config_values["timeout"])
 
         # Use type validation from flext-core
-        debug_result = FlextValidations.Core.TypeValidators.validate_string(str(config_values["debug"]))
+        debug_result = FlextValidations.Core.TypeValidators.validate_string(
+            str(config_values["debug"])
+        )
 
         # All should be valid (or have appropriate failure messages)
         for result in [email_result, url_result, timeout_result, debug_result]:

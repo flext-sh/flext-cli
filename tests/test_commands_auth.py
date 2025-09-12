@@ -9,7 +9,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import tempfile
@@ -114,7 +113,10 @@ class TestLogoutCommand:
             console = Console()
 
             result = runner.invoke(
-                auth, ["logout"], obj={"console": console}, catch_exceptions=False,
+                auth,
+                ["logout"],
+                obj={"console": console},
+                catch_exceptions=False,
             )
 
             # Real functionality - logout should work even if API call fails
@@ -183,7 +185,10 @@ class TestStatusCommand:
         console = Console()
 
         result = runner.invoke(
-            auth, ["status"], obj={"console": console}, catch_exceptions=False,
+            auth,
+            ["status"],
+            obj={"console": console},
+            catch_exceptions=False,
         )
 
         # Status should always work and show authentication state

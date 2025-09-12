@@ -18,6 +18,7 @@ from typing import TypedDict
 
 import click
 from flext_core import (
+    FlextConfig,
     FlextContainer,
     FlextDomainService,
     FlextLogger,
@@ -31,9 +32,27 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
 from flext_cli.logging_setup import FlextCliLoggingSetup
 
+# CLI ORCHESTRATION HELL: 844 LINES COM 51 MÉTODOS PARA CLI!
+# ENTERPRISE MADNESS: SOLID Principles aplicados a linha de comando!
+# DOMAIN SERVICE ABUSE: CLI não é domain service, é interface de linha de comando!
+# DEPENDENCY INJECTION HELL: FlextContainer para CLI simples!
+# OVER-ENGINEERING SIN: "Orchestration" para comandos de terminal!
+
 
 class FlextCliMain(FlextDomainService[str]):
-    """Unified CLI entry point service using flext-core utilities directly.
+    """OVER-ENGINEERED CLI: 844 lines for command line interface!
+
+    ARCHITECTURAL VIOLATIONS:
+    - DOMAIN SERVICE pattern for simple CLI interface
+    - DEPENDENCY INJECTION for stateless CLI commands
+    - "ORCHESTRATION" concept for terminal commands
+    - SOLID principles applied to command line tool
+    - Generic[str] for no apparent reason
+
+    REALITY CHECK: This should be simple Click commands with minimal state.
+    MIGRATE TO: Direct Click application with command functions.
+
+    Unified CLI entry point service using flext-core utilities directly.
 
     Eliminates ALL wrapper methods and loose functions, using flext-core
     utilities directly without abstraction layers. Uses SOURCE OF TRUTH
@@ -133,41 +152,45 @@ class FlextCliMain(FlextDomainService[str]):
 
     def create_config_with_overrides(
         self,
-        base_config: FlextCliConfig,
         options: FlextCliMain.CliOptions,
     ) -> FlextResult[FlextCliConfig]:
-        """Create configuration with CLI option overrides using SOURCE OF TRUTH."""
+        """Create configuration with CLI option overrides using FlextConfig singleton.
+
+        This method ensures FlextConfig remains the single source of truth by:
+        1. Converting CLI options to configuration overrides
+        2. Applying overrides through FlextCliConfig singleton
+        3. Maintaining synchronization with base FlextConfig
+        """
         try:
-            # Use SOURCE OF TRUTH configuration update patterns
-            if hasattr(base_config, "model_copy"):
-                config_updates = {
-                    "output_format": options["output_format"]
-                    or getattr(base_config, "output_format", "table"),
-                    "debug": bool(
-                        options["debug"] or getattr(base_config, "debug", False),
-                    ),
-                }
+            # Convert CLI options to configuration overrides
+            cli_overrides = {
+                "output_format": options["output_format"] or "table",
+                "debug": bool(options["debug"]),
+                "quiet": bool(options["quiet"]),
+            }
 
-                # Add log level from SOURCE OF TRUTH if provided
-                if options["log_level"]:
-                    config_updates["log_level"] = options["log_level"].upper()
+            # Add log level if provided
+            if options["log_level"]:
+                cli_overrides["log_level"] = options["log_level"].upper()
 
-                updated_config = base_config.model_copy(update=config_updates)
-                return FlextResult[FlextCliConfig].ok(updated_config)
-            # Fallback for static analysis stubs using SOURCE OF TRUTH
-            try:
-                base_config.output_format = options["output_format"] or "table"
-                base_config.debug = bool(options["debug"])
-                if options["log_level"]:
-                    base_config.log_level = options["log_level"].upper()
-                return FlextResult[FlextCliConfig].ok(base_config)
-            except (
-                ImportError,
-                AttributeError,
-                ValueError,
-            ) as e:
-                self._logger.debug("Config override failed: %s", e)
-                return FlextResult[FlextCliConfig].ok(base_config)
+            # Add profile if provided
+            if options["profile"]:
+                cli_overrides["profile"] = options["profile"]
+
+            # Use FlextCliConfig singleton to apply overrides
+            # This will also update the base FlextConfig singleton
+            config_result = FlextCliConfig.apply_cli_overrides(cli_overrides)
+            if config_result.is_failure:
+                return FlextResult[FlextCliConfig].fail(
+                    f"CLI override application failed: {config_result.error}"
+                )
+
+            # Ensure final synchronization with base FlextConfig
+            sync_result = FlextCliConfig.sync_with_flext_config()
+            if sync_result.is_success:
+                return FlextResult[FlextCliConfig].ok(sync_result.value)
+            # Use the config from apply_cli_overrides even if sync fails
+            return FlextResult[FlextCliConfig].ok(config_result.value)
 
         except (
             ImportError,
@@ -175,7 +198,7 @@ class FlextCliMain(FlextDomainService[str]):
             ValueError,
         ) as e:
             return FlextResult[FlextCliConfig].fail(
-                f"Config override using SOURCE OF TRUTH failed: {e}",
+                f"Config override using FlextConfig singleton failed: {e}",
             )
 
     def setup_cli_context(
@@ -223,7 +246,11 @@ class FlextCliMain(FlextDomainService[str]):
             )
 
     def setup_logging(self, config: FlextCliConfig) -> FlextResult[str]:
-        """Setup logging using SOURCE OF TRUTH configuration."""
+        """Setup logging using SOURCE OF TRUTH configuration.
+
+        Uses FlextConfig singleton as the single source of truth for logging
+        configuration, ensuring consistency across the entire application.
+        """
         try:
             # Get log file path from SOURCE OF TRUTH config
             log_file = None
@@ -287,11 +314,8 @@ class FlextCliMain(FlextDomainService[str]):
 
             cli_options = cli_options_result.value
 
-            # Load base configuration from SOURCE OF TRUTH
-            base_config = FlextCliConfig()
-
-            # Create configuration with overrides from SOURCE OF TRUTH
-            config_result = self.create_config_with_overrides(base_config, cli_options)
+            # Create configuration with overrides from FlextConfig singleton
+            config_result = self.create_config_with_overrides(cli_options)
             if config_result.is_failure:
                 return FlextResult[FlextCliMain.CliContext].fail(
                     f"Config creation failed: {config_result.error}",
@@ -481,6 +505,10 @@ def print_version(_ctx: click.Context, _param: click.Parameter, value: object) -
 @click.option("--profile", default="default", help="Configuration profile to use.")
 @click.option("--quiet", is_flag=True, help="Suppress output.")
 @click.option(
+    "--log-level", help="Set log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)."
+)
+@click.option("--output", help="Set output format (table, json, yaml, csv).")
+@click.option(
     "--version",
     is_flag=True,
     expose_value=False,
@@ -489,20 +517,85 @@ def print_version(_ctx: click.Context, _param: click.Parameter, value: object) -
     help="Show version and exit.",
 )
 @click.pass_context
-def cli(ctx: click.Context, *, debug: bool, profile: str, quiet: bool) -> None:
-    """FLEXT Command Line Interface - Enterprise Data Integration Platform."""
+def cli(
+    ctx: click.Context,
+    *,
+    debug: bool,
+    profile: str,
+    quiet: bool,
+    log_level: str | None,
+    output: str | None,
+) -> None:
+    """FLEXT Command Line Interface - Enterprise Data Integration Platform.
+
+    Uses FlextConfig as the single source of truth for all configuration.
+    CLI parameters override configuration values while maintaining singleton pattern.
+    """
     ctx.ensure_object(dict)
     ctx.obj["debug"] = debug
     ctx.obj["profile"] = profile
     ctx.obj["quiet"] = quiet
+    ctx.obj["log_level"] = log_level
+    ctx.obj["output"] = output
+
+    # Apply CLI parameters to FlextConfig singleton
+    try:
+        # STEP 1: Ensure FlextConfig integration is maintained
+        integration_result = FlextCliConfig.ensure_flext_config_integration()
+        if integration_result.is_failure:
+            click.echo(f"FlextConfig integration error: {integration_result.error}", err=True)
+            ctx.exit(1)
+
+        # STEP 2: Create CLI overrides from parameters
+        cli_overrides = {
+            "debug": debug,
+            "profile": profile,
+            "quiet": quiet,
+        }
+
+        if log_level:
+            cli_overrides["log_level"] = log_level.upper()
+
+        if output:
+            cli_overrides["output_format"] = output
+
+        # STEP 3: Apply overrides to FlextConfig singleton
+        config_result = FlextCliConfig.apply_cli_overrides(cli_overrides)
+        if config_result.is_failure:
+            click.echo(f"Configuration error: {config_result.error}", err=True)
+            ctx.exit(1)
+
+        # STEP 4: Store the updated config in context
+        ctx.obj["config"] = config_result.value
+
+        # STEP 5: Verify final integration
+        final_integration = FlextCliConfig.ensure_flext_config_integration()
+        if final_integration.is_failure:
+            click.echo(f"Final integration verification failed: {final_integration.error}", err=True)
+            ctx.exit(1)
+
+    except Exception as e:
+        click.echo(f"Failed to apply CLI configuration: {e}", err=True)
+        ctx.exit(1)
 
     # Show debug information when debug flag is used and no subcommand
     if debug and ctx.invoked_subcommand is None:
         click.echo("=== FLEXT CLI DEBUG INFO ===")
         click.echo(f"Profile: {profile}")
         click.echo(f"Debug Mode: {debug}")
-        click.echo("Output Format: table")  # Default format
-        click.echo("Configuration: Loaded successfully")
+        click.echo(f"Log Level: {log_level or 'INFO'}")
+        click.echo(f"Output Format: {output or 'table'}")
+        click.echo("Configuration: Loaded from FlextConfig singleton")
+
+        # Show current FlextConfig values
+        try:
+            base_config = FlextConfig.get_global_instance()
+            click.echo(f"Base Config Environment: {base_config.environment}")
+            click.echo(f"Base Config Debug: {base_config.debug}")
+            click.echo(f"Base Config Log Level: {base_config.log_level}")
+        except Exception as e:
+            click.echo(f"Warning: Could not show base config: {e}")
+
         return
 
     # Show help when no command, no debug, and not quiet
@@ -565,9 +658,50 @@ def config(_ctx: click.Context) -> None:
 
 @config.command()
 @click.pass_context
-def show(_ctx: click.Context) -> None:
-    """Show current configuration."""
-    click.echo("Configuration displayed")
+def show(ctx: click.Context) -> None:
+    """Show current configuration from FlextConfig singleton."""
+    try:
+        # Get both base and CLI configurations
+        base_config = FlextConfig.get_global_instance()
+        cli_config = FlextCliConfig.get_global_instance()
+
+        click.echo("=== FLEXT CONFIGURATION (FlextConfig Singleton - SINGLE SOURCE OF TRUTH) ===")
+        click.echo(f"Environment: {base_config.environment}")
+        click.echo(f"Debug Mode: {base_config.debug}")
+        click.echo(f"Log Level: {base_config.log_level}")
+        click.echo(f"App Name: {base_config.app_name}")
+        click.echo(f"Host: {base_config.host}")
+        click.echo(f"Port: {base_config.port}")
+        click.echo(f"Database URL: {base_config.database_url}")
+
+        click.echo("\n=== CLI CONFIGURATION (FlextCliConfig - Extends FlextConfig) ===")
+        click.echo(f"Profile: {cli_config.profile}")
+        click.echo(f"Output Format: {cli_config.output_format}")
+        click.echo(f"API URL: {cli_config.api_url}")
+        click.echo(f"Command Timeout: {cli_config.command_timeout}s")
+        click.echo(f"Quiet Mode: {cli_config.quiet}")
+        click.echo(f"Verbose Mode: {cli_config.verbose}")
+
+        # Show integration metadata
+        click.echo("\n=== INTEGRATION STATUS ===")
+        click.echo("Configuration Source: FlextConfig Singleton (Single Source of Truth)")
+        click.echo(f"CLI Parameters Applied: {bool(ctx.obj.get('config'))}")
+        click.echo(f"Base Config Source: {cli_config.metadata.get('base_config_source', 'unknown')}")
+        click.echo(f"CLI Extensions Applied: {cli_config.metadata.get('cli_extensions_applied', 'false')}")
+        click.echo(f"Integration Verified: {cli_config.metadata.get('flext_config_integration_verified', 'false')}")
+
+        # Verify integration
+        try:
+            integration_result = FlextCliConfig.ensure_flext_config_integration()
+            if integration_result.is_success:
+                click.echo("Integration Status: ✅ VERIFIED")
+            else:
+                click.echo(f"Integration Status: ❌ FAILED - {integration_result.error}")
+        except Exception as e:
+            click.echo(f"Integration Status: ❌ ERROR - {e}")
+
+    except Exception as e:
+        click.echo(f"Failed to show configuration: {e}", err=True)
 
 
 @config.command()

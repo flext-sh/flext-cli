@@ -34,24 +34,30 @@ class FlextCliDecorators(FlextDecorators):
             if asyncio.iscoroutinefunction(func):
 
                 async def async_handler() -> object:
-                    # Call the async function and await the result
-                    coro = func(*args, **kwargs)
-                    if asyncio.iscoroutine(coro):
-                        result = await coro
-                    else:
-                        result = coro
+                    try:
+                        # Call the async function and await the result
+                        coro = func(*args, **kwargs)
+                        if asyncio.iscoroutine(coro):
+                            result = await coro
+                        else:
+                            result = coro
 
-                    # Process FlextResult
-                    if isinstance(result, FlextResult):
-                        if result.is_success:
-                            return result.value
-                        # For failures, print error and return None
+                        # Process FlextResult
+                        if isinstance(result, FlextResult):
+                            if result.is_success:
+                                return result.value
+                            # For failures, print error and return None
+                            console = Console()
+                            console.print(f"[red]Error: {result.error}[/red]")
+                            return None
+
+                        # Pass through non-FlextResult values
+                        return result
+                    except Exception as e:
+                        # Handle exceptions by printing error and returning None
                         console = Console()
-                        console.print(f"[red]Error: {result.error}[/red]")
+                        console.print(f"[red]Error: {e}[/red]")
                         return None
-
-                    # Pass through non-FlextResult values
-                    return result
 
                 return async_handler()
 
@@ -254,48 +260,27 @@ class FlextCliDecorators(FlextDecorators):
         return _decorator
 
     @staticmethod
-    def retry(
-        *,
-        max_attempts: int = 3,
-        delay: float = 0.1,
-        exceptions: tuple[type[Exception], ...] = (Exception,),
-    ) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
-        """Retry decorator for handling transient failures.
-
-        Args:
-            max_attempts: Maximum number of attempts (default: 3)
-            delay: Delay between attempts in seconds (default: 0.1)
-            exceptions: Tuple of exceptions to catch and retry (default: Exception)
-
-        Returns:
-            Decorated function with retry logic
-
-        """
-
-        def _decorator(func: Callable[P, T]) -> Callable[P, T | None]:
+    def retry(max_attempts: int = 3) -> Callable[[T], T]:
+        """Retry decorator for handling transient failures."""
+        def _decorator(func: Callable[P, T]) -> Callable[P, T]:
             @functools.wraps(func)
-            def _wrapped(*args: P.args, **kwargs: P.kwargs) -> T | None:
+            def _wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
                 last_exception = None
 
                 for attempt in range(max_attempts):
                     try:
                         return func(*args, **kwargs)
-                    except exceptions as e:
+                    except Exception as e:
                         last_exception = e
                         if attempt < max_attempts - 1:  # Not last attempt
-                            time.sleep(delay)
+                            time.sleep(0.1)  # Fixed delay
                             continue
                         break
 
-                # All attempts failed
-                console = Console()
-                console.print(
-                    f"[red]Retry failed after {max_attempts} attempts: {last_exception}[/red]",
-                )
-                return None
+                # All attempts failed - re-raise the last exception
+                raise last_exception or RuntimeError(f"Retry failed after {max_attempts} attempts")
 
             return _wrapped
-
         return _decorator
 
 

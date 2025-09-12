@@ -10,7 +10,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-
 from __future__ import annotations
 
 import json
@@ -47,6 +46,7 @@ class TestFlextCliDataProcessingFunctional:
         # Execute data validation (use existing method)
         def validator_func(data: object) -> bool:
             return isinstance(data, dict) and "name" in data
+
         result = self.processor.validate_data(test_data[0], validator_func)
 
         # Validate using flext_tests matchers
@@ -63,6 +63,7 @@ class TestFlextCliDataProcessingFunctional:
         # Test batch processing with correct signature
         def validator_func(item: dict[str, object]) -> dict[str, object]:
             return item
+
         result = self.processor.batch_process_items(test_data, validator_func)
         assert FlextTestsMatchers.is_successful_result(result)
 
@@ -86,6 +87,7 @@ class TestFlextCliDataProcessingFunctional:
         # Execute transformation
         def validator_func(data: object) -> bool:
             return isinstance(data, dict) and "name" in data
+
         result = self.processor.validate_data(raw_data[0], validator_func)
 
         # Verify transformations worked
@@ -97,13 +99,16 @@ class TestFlextCliDataProcessingFunctional:
     def test_batch_validation_performance(self) -> None:
         """Test batch validation performance using flext_tests profiler."""
         # Generate large dataset for performance testing
-        large_dataset = [self.realistic_data.user_registration_data() for _ in range(100)]
+        large_dataset = [
+            self.realistic_data.user_registration_data() for _ in range(100)
+        ]
 
         # Profile the batch validation with flext_tests performance tools
         # Use timing measurement for performance validation
 
         def validator_func(item: dict[str, object]) -> dict[str, object]:
             return item
+
         result = self.processor.batch_process_items(large_dataset, validator_func)
 
         # Verify functionality (timing validation removed)
@@ -127,6 +132,7 @@ class TestFlextCliDataProcessingFunctional:
         # Execute aggregation
         def validator_func(data: object) -> bool:
             return isinstance(data, dict) and "id" in data
+
         result = self.processor.validate_data(combined_data[0], validator_func)
 
         # Validate aggregation results
@@ -160,9 +166,11 @@ class TestFlextCliDataProcessingFunctional:
 
     def test_error_handling_real_scenarios(self) -> None:
         """Test error handling with real error scenarios."""
+
         # Test with invalid data types
         def validator_func(data: object) -> bool:
             return isinstance(data, dict) and isinstance(data.get("age"), int)
+
         result = self.processor.validate_data({"age": "not_a_number"}, validator_func)
         assert FlextTestsMatchers.is_failed_result(result)
 
@@ -180,8 +188,10 @@ class TestFlextCliDataProcessingFunctional:
             {"incomplete": True},
             {"malformed": "data"},  # Remove None from list as it's not a dict
         ]
+
         def malformed_validator(data: object) -> bool:
             return isinstance(data, dict)
+
         result = self.processor.validate_data(malformed_data[0], malformed_validator)
         # Should either succeed with filtered data or fail gracefully
         assert isinstance(result, FlextResult)
@@ -199,6 +209,7 @@ class TestFlextCliDataProcessingFunctional:
         # Step 1: Transform data
         def validator_func(data: object) -> bool:
             return isinstance(data, dict) and "name" in data
+
         transform_result = self.processor.validate_data(complex_data[0], validator_func)
         assert FlextTestsMatchers.is_successful_result(transform_result)
 
@@ -232,7 +243,10 @@ class TestFlextCliDataProcessingEdgeCases:
             assert len(results) == 0
         else:
             # Defensive behavior: reject empty data with clear message
-            assert "required" in str(result.error or "").lower() or "empty" in str(result.error or "").lower()
+            assert (
+                "required" in str(result.error or "").lower()
+                or "empty" in str(result.error or "").lower()
+            )
 
     def test_large_dataset_handling(self) -> None:
         """Test handling of large datasets."""
@@ -242,6 +256,7 @@ class TestFlextCliDataProcessingEdgeCases:
         # Should handle large datasets without crashing
         def validator_func(item: str) -> str:
             return item
+
         result = self.processor.batch_process_items(large_data, validator_func)
         assert isinstance(result, FlextResult)
 
@@ -256,5 +271,6 @@ class TestFlextCliDataProcessingEdgeCases:
         # Should handle malformed data gracefully
         def malformed_validator(data: object) -> bool:
             return isinstance(data, dict)
+
         result = self.processor.validate_data(malformed_data[0], malformed_validator)
         assert isinstance(result, FlextResult)

@@ -52,7 +52,7 @@ from flext_cli.cli import (
 from flext_cli.client import FlextApiClient
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
-from flext_cli.context import FlextCliContext, FlextCliExecutionContext
+from flext_cli.context import FlextCliContext
 from flext_cli.core import FlextCliService
 from flext_cli.data_processing import FlextCliDataProcessing
 from flext_cli.debug import FlextCliDebug
@@ -82,7 +82,7 @@ from flext_cli.models import FlextCliModels
 from flext_cli.services import FlextCliServices
 from flext_cli.typings import E, F, P, R, T, U, V
 
-# Simple aliases for test compatibility - NO WRAPPERS
+# Command aliases
 auth = auth_cmd
 status = status_cmd
 login = login_cmd
@@ -94,7 +94,7 @@ handle_service_result = FlextCliDecorators.handle_service_result
 
 
 def get_cli_config() -> FlextCliConfig:
-    """Get CLI config instance - test compatibility."""
+    """Get CLI config instance."""
     return FlextCliConfig()
 
 
