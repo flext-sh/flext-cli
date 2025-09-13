@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncio
 import time
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 from flext_core import FlextConstants
@@ -217,11 +217,7 @@ class TestMeasureTime:
             patch("flext_cli.decorators.time.time") as mock_time,
             patch("rich.console.Console.print") as mock_print,
         ):
-            mock_time.side_effect = [
-                1000.0,
-                1002.5,
-                1003.0,
-            ]  # 2.5 seconds elapsed + extra calls
+            mock_time.side_effect = [1000.0, 1002.5]  # Start and end time
 
             @measure_time(show_in_output=True)
             def timed_function() -> str:
@@ -237,13 +233,9 @@ class TestMeasureTime:
         """Test measure_time decorator with output disabled."""
         with (
             patch("flext_cli.decorators.time.time") as mock_time,
-            patch("rich.console.Console.print") as mock_print,
+            patch("flext_cli.decorators.FlextLogger.info") as mock_logger,
         ):
-            mock_time.side_effect = [
-                1000.0,
-                1001.0,
-                1002.0,
-            ]  # 1 second elapsed + extra calls
+            mock_time.side_effect = [1000.0, 1001.0]  # Start and end time
 
             @measure_time(show_in_output=False)
             def timed_function() -> str:
@@ -253,7 +245,7 @@ class TestMeasureTime:
             if result != "completed":
                 msg: str = f"Expected {'completed'}, got {result}"
                 raise AssertionError(msg)
-            mock_print.assert_not_called()
+            mock_logger.assert_not_called()
 
     def test_measure_time_preserves_function_signature(self) -> None:
         """Test that measure_time preserves function signature."""
@@ -281,7 +273,7 @@ class TestRetry:
         """Test retry when function succeeds on first attempt."""
         call_count = 0
 
-        @retry(max_attempts=3, delay=0.01)
+        @retry(max_attempts=3)
         def reliable_function() -> str:
             nonlocal call_count
             call_count += 1
@@ -297,7 +289,7 @@ class TestRetry:
         """Test retry when function succeeds after some failures."""
         call_count = 0
 
-        @retry(max_attempts=3, delay=0.01)
+        @retry(max_attempts=3)
         def flaky_function() -> str:
             nonlocal call_count
             call_count += 1
@@ -335,7 +327,7 @@ class TestRetry:
         with patch("flext_cli.decorators.time.sleep") as mock_sleep:
             call_count = 0
 
-            @retry(max_attempts=3, delay=0.5)
+            @retry(max_attempts=3)
             def flaky_function() -> str:
                 nonlocal call_count
                 call_count += 1
@@ -363,7 +355,7 @@ class TestValidateConfig:
             timeout = 30
 
         @validate_config(["api_url", "timeout"])
-        def function_requiring_config(_config: MockConfig) -> str:
+        def function_requiring__config(__config: MockConfig) -> str:
             return "config validated"
 
         result = function_requiring_config(MockConfig())
@@ -373,14 +365,14 @@ class TestValidateConfig:
 
     def test_validate_config_with_missing_keys(self) -> None:
         """Test validate_config with missing required keys."""
-        with patch("rich.console.Console.print") as mock_print:
+        with patch("flext_cli.decorators.FlextLogger.error") as mock_logger:
             # Create mock config object missing required attributes
             class MockConfig:
                 api_url = f"http://{FlextConstants.Platform.DEFAULT_HOST}:{FlextConstants.Platform.FLEXT_API_PORT}"
                 # missing timeout
 
             @validate_config(["api_url", "timeout"])
-            def function_requiring_config(_config: MockConfig) -> str:
+            def function_requiring__config(__config: MockConfig) -> str:
                 return "config validated"
 
             result = function_requiring_config(MockConfig())
@@ -388,16 +380,15 @@ class TestValidateConfig:
             validation_passed = result is None
             if not validation_passed:
                 pytest.fail(f"Expected None, got {result}")
-            # Mock print assertion - only executed if validation passed
+            # Mock logger assertion - only executed if validation passed
             if validation_passed:
-                mock_print.assert_called_once_with(
-                    "Missing required configuration: timeout",
-                    style="red",
+                mock_logger.assert_called_once_with(
+                    "Missing required configuration: timeout"
                 )
 
     def test_validate_config_no_context(self) -> None:
         """Test validate_config when no config available."""
-        with patch("rich.console.Console.print") as mock_print:
+        with patch("flext_cli.decorators.FlextLogger.warning") as mock_logger:
 
             @validate_config(["api_url"])
             def function_requiring_config() -> str:
@@ -410,11 +401,10 @@ class TestValidateConfig:
             validation_passed = result is None
             if not validation_passed:
                 pytest.fail(f"Expected None, got {result}")
-            # Mock print assertion - only executed if validation passed
+            # Mock logger assertion - only executed if validation passed
             if validation_passed:
-                mock_print.assert_called_once_with(
-                    "Configuration not available for validation.",
-                    style="red",
+                mock_logger.assert_called_once_with(
+                    "Configuration not available for validation."
                 )
 
 
@@ -423,10 +413,7 @@ class TestWithSpinner:
 
     def test_with_spinner_default_message(self) -> None:
         """Test with_spinner decorator with default message."""
-        with patch("rich.console.Console.status") as mock_status:
-            mock_context = Mock()
-            mock_status.return_value.__enter__ = Mock(return_value=mock_context)
-            mock_status.return_value.__exit__ = Mock(return_value=None)
+        with patch("flext_cli.decorators.FlextLogger.info") as mock_logger:
 
             @with_spinner()
             def long_running_task() -> str:
@@ -437,14 +424,14 @@ class TestWithSpinner:
             if result != "task completed":
                 msg: str = f"Expected {'task completed'}, got {result}"
                 raise AssertionError(msg)
-            mock_status.assert_called_once_with("Processing...", spinner="dots")
+            # Verify that logger was called for start and completion
+            assert mock_logger.call_count == 2
+            mock_logger.assert_any_call("Starting: Processing...")
+            mock_logger.assert_any_call("Completed: Processing...")
 
     def test_with_spinner_custom_message(self) -> None:
         """Test with_spinner decorator with custom message."""
-        with patch("rich.console.Console.status") as mock_status:
-            mock_context = Mock()
-            mock_status.return_value.__enter__ = Mock(return_value=mock_context)
-            mock_status.return_value.__exit__ = Mock(return_value=None)
+        with patch("flext_cli.decorators.FlextLogger.info") as mock_logger:
 
             @with_spinner("Calculating results...")
             def calculation_task() -> str:
@@ -455,17 +442,14 @@ class TestWithSpinner:
             if result != "calculation done":
                 msg: str = f"Expected {'calculation done'}, got {result}"
                 raise AssertionError(msg)
-            mock_status.assert_called_once_with(
-                "Calculating results...",
-                spinner="dots",
-            )
+            # Verify that logger was called for start and completion
+            assert mock_logger.call_count == 2
+            mock_logger.assert_any_call("Starting: Calculating results...")
+            mock_logger.assert_any_call("Completed: Calculating results...")
 
     def test_with_spinner_exception_handling(self) -> None:
         """Test with_spinner decorator with exception handling."""
-        with patch("rich.console.Console.status") as mock_status:
-            mock_context = Mock()
-            mock_status.return_value.__enter__ = Mock(return_value=mock_context)
-            mock_status.return_value.__exit__ = Mock(return_value=None)
+        with patch("flext_cli.decorators.FlextLogger.info") as mock_logger:
 
             @with_spinner("Processing...")
             def failing_task() -> str:
@@ -474,7 +458,9 @@ class TestWithSpinner:
 
             with pytest.raises(ValueError, match="task failed"):
                 failing_task()
-            mock_status.assert_called_once_with("Processing...", spinner="dots")
+            # Verify that logger was called for start (completion won't be called due to exception)
+            assert mock_logger.call_count == 1
+            mock_logger.assert_called_once_with("Starting: Processing...")
 
 
 class TestDecoratorCombinations:
@@ -483,7 +469,7 @@ class TestDecoratorCombinations:
     def test_multiple_decorators(self) -> None:
         """Test combining multiple decorators."""
         with (
-            patch("rich.console.Console.input") as mock_input,
+            patch("builtins.input") as mock_input,
             patch("flext_cli.decorators.time.time") as mock_time,
         ):
             mock_input.return_value = "y"
@@ -504,7 +490,7 @@ class TestDecoratorCombinations:
         """Test that decorator order is preserved."""
 
         @measure_time(show_in_output=False)
-        @retry(max_attempts=1, delay=0)
+        @retry(max_attempts=1)
         def decorated_function() -> str:
             """A decorated function."""
             return "result"

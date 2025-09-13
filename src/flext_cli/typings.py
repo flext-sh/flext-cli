@@ -2,12 +2,11 @@
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import Literal, Protocol, TypedDict, TypeVar
@@ -17,8 +16,9 @@ from flext_core import FlextResult, FlextTypes
 from pydantic import BaseModel, Field
 
 from flext_cli.constants import FlextCliConstants
+from flext_cli.utils import BASE_CONFIG_DICT, datetime_field
 
-# Type variables for compatibility with existing tests
+# Essential type variables (still needed for compatibility)
 E = TypeVar("E")
 F = TypeVar("F")
 P = TypeVar("P")
@@ -70,29 +70,37 @@ class FlextCliTypes:
         class PendingState(BaseModel):
             """Command in pending state."""
 
+            model_config = BASE_CONFIG_DICT
+
             status: Literal["PENDING"] = "PENDING"
-            queued_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+            queued_at: datetime = datetime_field()
 
         class RunningState(BaseModel):
             """Command in running state."""
 
+            model_config = BASE_CONFIG_DICT
+
             status: Literal["RUNNING"] = "RUNNING"
-            started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+            started_at: datetime = datetime_field()
             process_id: int | None = None
 
         class CompletedState(BaseModel):
             """Command completed successfully."""
 
+            model_config = BASE_CONFIG_DICT
+
             status: Literal["COMPLETED"] = "COMPLETED"
-            completed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+            completed_at: datetime = datetime_field()
             exit_code: int = 0
             output: str = ""
 
         class FailedState(BaseModel):
             """Command failed with error."""
 
+            model_config = BASE_CONFIG_DICT
+
             status: Literal["FAILED"] = "FAILED"
-            failed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+            failed_at: datetime = datetime_field()
             exit_code: int
             error_output: str
 
@@ -115,42 +123,47 @@ class FlextCliTypes:
     # =============================================================================
 
     class Config:
-        """CLI configuration types extending FlextTypes.Config."""
+        """CLI configuration types leveraging FlextTypes.Config (reduced bloat)."""
 
-        # CLI-specific config types - direct definitions
+        # Use flext-core types where possible
+        CliLogLevel = FlextTypes.Config.LogLevel
+        CliConfigDict = FlextTypes.Config.ConfigDict
+
+        # CLI-specific extensions only
         CliProfile = str
         CliOutputFormat = Literal["table", "json", "yaml", "csv"]
-        CliLogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         CliTimeout = int
         CliConfigPath = Path
 
-        # Advanced Pydantic v2 discriminated union for configuration profiles
-        class DevelopmentProfile(BaseModel):
+        # Streamlined Pydantic v2 profiles with modern ConfigDict
+        class BaseProfile(BaseModel):
+            """Base profile with common settings."""
+
+            model_config = BASE_CONFIG_DICT
+
+            profile: str
+            debug: bool = False
+            log_level: str = "INFO"
+            output_format: str = "json"
+
+        class DevelopmentProfile(BaseProfile):
             """Development environment configuration."""
 
             profile: Literal["development"] = "development"
             debug: bool = True
             log_level: Literal["DEBUG"] = "DEBUG"
             output_format: Literal["table", "json"] = "table"
-            auto_refresh: bool = True
 
-        class ProductionProfile(BaseModel):
+        class ProductionProfile(BaseProfile):
             """Production environment configuration."""
 
             profile: Literal["production"] = "production"
-            debug: bool = False
-            log_level: Literal["INFO", "WARNING", "ERROR"] = "INFO"
-            output_format: Literal["json", "yaml"] = "json"
-            auto_refresh: bool = False
             timeout_seconds: int = Field(ge=30, le=300, default=60)
 
-        class TestingProfile(BaseModel):
+        class TestingProfile(BaseProfile):
             """Testing environment configuration."""
 
             profile: Literal["testing"] = "testing"
-            debug: bool = False
-            log_level: Literal["WARNING", "ERROR"] = "WARNING"
-            output_format: Literal["json"] = "json"
             mock_services: bool = True
 
         # Discriminated union for type-safe configuration management
@@ -282,6 +295,7 @@ class FlextCliTypes:
                 request: str | dict[str, object],
             ) -> FlextResult[object]:
                 """Process CLI request."""
+                ...
 
             def build(
                 self,
@@ -290,6 +304,7 @@ class FlextCliTypes:
                 correlation_id: str,
             ) -> str | dict[str, object]:
                 """Build CLI response."""
+                ...
 
         class CliValidator(Protocol):
             """Protocol for CLI validators."""
@@ -299,6 +314,7 @@ class FlextCliTypes:
                 data: dict[str, object] | str | float,
             ) -> FlextResult[None]:
                 """Validate CLI data."""
+                ...
 
         class CliFormatter(Protocol):
             """Protocol for CLI formatters."""
@@ -309,6 +325,7 @@ class FlextCliTypes:
                 format_type: str,
             ) -> FlextResult[str]:
                 """Format CLI data with specified type."""
+                ...
 
         class CliAuthenticator(Protocol):
             """Protocol for CLI authenticators."""
@@ -318,76 +335,56 @@ class FlextCliTypes:
                 credentials: dict[str, str],
             ) -> FlextResult[FlextCliTypes.Auth.CliAuthContext]:
                 """Authenticate CLI user."""
+                ...
 
             def is_authenticated(self) -> bool:
                 """Check authentication status."""
+                ...
+
+    # =============================================================================
+    # PLUGIN STATUS TYPES - Nested for unified class pattern
+    # =============================================================================
+
+    class PluginStatusEnum(StrEnum):
+        """Plugin status enumeration."""
+
+        ACTIVE = "active"
+        INACTIVE = "inactive"
+        ERROR = "error"
+        LOADING = "loading"
 
 
 # No aliases - use direct imports
 
 
-# Command-related types
+# Unified command types (reduce duplication)
 CommandStatus = FlextCliConstants.CommandStatus
-CommandType = FlextCliConstants.CommandStatus  # Make it an enum for tests
+# CommandType removed - redundant with CommandStatus
+
+# Plugin status alias
+PluginStatus = FlextCliTypes.PluginStatusEnum
+
+# Essential type aliases only (eliminate dead code)
+URL = str  # Consolidated URL type - actually used
 
 
-# Plugin status enum for tests
-class PluginStatusEnum(StrEnum):
-    """Plugin status enumeration."""
-
-    ACTIVE = "active"
-    INACTIVE = "inactive"
-    ERROR = "error"
-    LOADING = "loading"
-
-
-PluginStatus = PluginStatusEnum
-
-# Model classes expected by tests
-FlextCliCommand = dict[str, object]
-FlextCliConfigDict = dict[str, object]  # Config dictionary type
-ContextParams = dict[str, object]  # Context parameters type
-PluginResult = dict[str, object]  # Plugin result type
-SessionData = dict[str, object]  # Session data type
-
-# Data types expected by tests
-FlextCliDataType = str  # Generic data type
-FlextCliLogLevel = str  # Log level type
-
-# Utility types
-PositiveIntType = int
-URL = str
-URLType = str
-
-
+# Minimal exports - only actually used types
 __all__ = [
     "URL",
-    "UTC",
     "UUID",
     "BaseModel",
     "CommandStatus",
-    "CommandType",
-    "ContextParams",
     "E",
     "F",
-    "Field",
-    "FlextCliCommand",
-    "FlextCliConfigDict",
     "FlextCliConstants",
-    "FlextCliDataType",
-    "FlextCliLogLevel",
     "FlextCliTypes",
     "FlextTypes",
     "P",
-    "PluginResult",
     "PluginStatus",
-    "PositiveIntType",
     "R",
-    "SessionData",
     "T",
     "TypedDict",
     "U",
-    "URLType",
     "V",
     "datetime",
 ]

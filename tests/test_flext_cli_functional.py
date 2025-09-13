@@ -1,9 +1,4 @@
-"""FUNCTIONAL TESTS - FLEXT CLI Library - REAL functionality validation.
-
-These tests Execute code functionality without excessive mocking,
-following the consolidated class patterns and demonstrating 100% working code.
-
-
+"""Test FlextCli functional functionality.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -14,10 +9,7 @@ from __future__ import annotations
 import pytest
 from flext_core import FlextResult, FlextTypes
 
-from flext_cli import (
-    FlextCliConstants,
-    FlextCliModels,
-)
+from flext_cli import ( FlextCliConstants, FlextCliModels, )
 from flext_cli.typings import FlextCliTypes
 
 

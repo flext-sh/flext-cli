@@ -1,13 +1,3 @@
-"""Tests for debug commands - REAL FUNCTIONALITY EXECUTION.
-
-Tests debug command functionality with actual execution, eliminating mocks.
-
-
-
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
 
 from __future__ import annotations
 

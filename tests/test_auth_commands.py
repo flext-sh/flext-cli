@@ -1,11 +1,7 @@
-"""REAL tests for auth commands - NO MOCKING!.
 
-Tests authentication command functionality with ACTUAL execution.
-Following user requirement: "melhore bem os tests para executar codigo de verdade
-e validar a funcionalidade requerida, pare de ficar mockando tudo!"
+"""FLEXT CLI Authentication Commands Tests.
 
-
-
+Test CLI authentication commands with real functionality.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT

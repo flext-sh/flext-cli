@@ -5,14 +5,19 @@ using domain entities and value objects, following Domain-Driven Design principl
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_core import FlextDomainService, FlextLogger, FlextResult, FlextTypes
+from flext_core import (
+    FlextDomainService,
+    FlextLogger,
+    FlextResult,
+    FlextTypes,
+    FlextUtilities,
+)
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
@@ -215,6 +220,10 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
 
         """
         try:
+            # Auto-generate user_id if not provided
+            if user_id is None:
+                user_id = f"user_{FlextUtilities.Generators.generate_id()}"
+
             session = FlextCliModels.CliSession(user_id=user_id)
 
             # Validate business rules

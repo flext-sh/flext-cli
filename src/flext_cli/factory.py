@@ -1,7 +1,4 @@
-"""FLEXT CLI Factory - Direct flext-core usage.
-
-NO WRAPPERS - Direct usage of flext-core FlextContainer for dependency injection.
-Eliminates duplicate factory patterns.
+"""FLEXT CLI Factory.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT

@@ -11,11 +11,11 @@ import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from flext_core import FlextResult, FlextTypes
-from rich.console import Console
+from flext_core import FlextLogger, FlextResult, FlextTypes
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
+from flext_cli.utils import empty_dict
 
 
 class FlextCliContext:
@@ -24,12 +24,6 @@ class FlextCliContext:
     Composition-based design containing execution environment, user information,
     and configuration settings for CLI command execution. Uses FlextModels.Value
     as a composed component rather than inheritance for better separation of concerns.
-
-    Architecture pattern:
-        - Composition: Contains FlextModels.Value as component
-        - Immutable state: Context values are frozen after creation
-        - Business rules: Validates context state during initialization
-        - Type safety: FlextResult for error handling
 
     Business Rules:
       - Working directory must exist if specified
@@ -42,7 +36,8 @@ class FlextCliContext:
         *,
         id_: str | None = None,
         config: FlextCliConfig | None = None,
-        console: Console | None = None,
+        logger: FlextLogger | None = None,
+        console: object | None = None,  # Support for test compatibility
         debug: bool = False,
         quiet: bool = False,
         verbose: bool = False,
@@ -57,7 +52,8 @@ class FlextCliContext:
         Args:
             id_: Context identifier (generated if not provided)
             config: CLI configuration instance
-            console: Rich console for output
+            logger: FlextLogger for output
+            console: Console object for test compatibility
             debug: Enable debug mode
             quiet: Enable quiet mode
             verbose: Enable verbose mode
@@ -74,7 +70,8 @@ class FlextCliContext:
         # Context state management via composition
         self._id = id_ or str(uuid.uuid4())
         self._config = config or FlextCliConfig()
-        self._console = console or Console()
+        self._logger = logger or FlextLogger(__name__)
+        self._console = console  # For test compatibility
         self._debug = debug
         self._quiet = quiet
         self._verbose = verbose
@@ -101,8 +98,13 @@ class FlextCliContext:
         return self._config
 
     @property
-    def console(self) -> Console:
-        """Get Rich console."""
+    def logger(self) -> FlextLogger:
+        """Get FlextLogger."""
+        return self._logger
+
+    @property
+    def console(self) -> object | None:
+        """Get console object for test compatibility."""
         return self._console
 
     @property
@@ -133,9 +135,11 @@ class FlextCliContext:
     @property
     def timeout_seconds(self) -> int:
         """Get default timeout for operations."""
-        if isinstance(self._timeout_seconds, (int, float, str)):
-            return int(self._timeout_seconds)
-        return 30
+        match self._timeout_seconds:
+            case int() | float() | str() as timeout:
+                return int(timeout)
+            case _:
+                return 30
 
     @property
     def debug(self) -> bool:
@@ -200,25 +204,25 @@ class FlextCliContext:
     # Printing helpers expected by tests
     def print_success(self, message: str) -> None:
         """Print success message."""
-        self.console.print(f"[green][SUCCESS][/green] {message}")
+        self._logger.info(f"SUCCESS: {message}")
 
     def print_error(self, message: str) -> None:
         """Print error message."""
-        self.console.print(f"[red][ERROR][/red] {message}")
+        self._logger.error(f"ERROR: {message}")
 
     def print_warning(self, message: str) -> None:
         """Print warning message."""
-        self.console.print(f"[yellow][WARNING][/yellow] {message}")
+        self._logger.warning(f"WARNING: {message}")
 
     def print_info(self, message: str) -> None:
         """Print info message."""
         if not self.is_quiet:
-            self.console.print(f"[blue][INFO][/blue] {message}")
+            self._logger.info(f"INFO: {message}")
 
     def print_verbose(self, message: str) -> None:
         """Print verbose message."""
         if self.is_verbose:
-            self.console.print(f"[dim][VERBOSE][/dim] {message}")
+            self._logger.debug(f"VERBOSE: {message}")
 
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI context business rules."""
@@ -233,7 +237,7 @@ class FlextCliContext:
         # Direct creation path
         return FlextCliContext.create(
             config=self.config,
-            console=self.console,
+            logger=self.logger,
             debug=self.debug,
             quiet=self.quiet,
             verbose=self.verbose,
@@ -244,7 +248,7 @@ class FlextCliContext:
         """Create new context with different working directory."""
         return FlextCliContext.create(
             config=self.config,
-            console=self.console,
+            logger=self.logger,
             debug=self.debug,
             quiet=self.quiet,
             verbose=self.verbose,
@@ -257,7 +261,7 @@ class FlextCliContext:
 
         command_name: str | None = None
         command_args: FlextTypes.Core.Dict = field(
-            default_factory=dict,
+            default_factory=empty_dict,
         )
         execution_id: str | None = None
         start_time: float | None = None
@@ -278,8 +282,12 @@ class FlextCliContext:
     def create(cls, **kwargs: object) -> FlextCliContext:
         """Create a CLI context with optional parameters."""
         config = kwargs.get("config")
-        console_param = kwargs.get("console")
-        console = console_param if isinstance(console_param, Console) else Console()
+        logger_param = kwargs.get("logger")
+        logger = (
+            logger_param
+            if isinstance(logger_param, FlextLogger)
+            else FlextLogger(__name__)
+        )
         debug = bool(kwargs.get("debug"))
         quiet = bool(kwargs.get("quiet"))
         verbose = bool(kwargs.get("verbose"))
@@ -290,9 +298,9 @@ class FlextCliContext:
         # Create context with proper initialization
 
         return cls(
-            id=str(uuid.uuid4()),
+            id_=str(uuid.uuid4()),
             config=cli_config,
-            console=console,
+            logger=logger,
             debug=debug,
             quiet=quiet,
             verbose=verbose,
@@ -322,12 +330,12 @@ class FlextCliContext:
         return FlextCliContext.ExecutionContext(
             command_name=command_name,
             command_args=command_args,
-            execution_id=str(execution_id) if execution_id is not None else None,
+            execution_id=str(execution_id) if execution_id else None,
             start_time=float(start_time)
-            if start_time is not None and (isinstance(start_time, (int, float, str)))
+            if start_time and isinstance(start_time, (int, float, str))
             else None,
-            session_id=str(session_id) if session_id is not None else None,
-            user_id=str(user_id) if user_id is not None else None,
+            session_id=str(session_id) if session_id else None,
+            user_id=str(user_id) if user_id else None,
         )
 
     @classmethod

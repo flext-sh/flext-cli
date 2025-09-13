@@ -7,8 +7,7 @@ and type-safe state transitions following Domain-Driven Design principles.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Annotated, ClassVar, Self
-from uuid import uuid4
+from typing import Annotated, ClassVar
 
 from flext_core import FlextModels, FlextResult
 from pydantic import (
@@ -21,6 +20,18 @@ from pydantic import (
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
+from flext_cli.utils import (
+    STRICT_CONFIG_DICT,
+    bool_field,
+    constant_field,
+    datetime_field,
+    empty_list,
+    enum_field,
+    optional_field,
+    timeout_field,
+    uuid_field,
+    version_field,
+)
 
 
 class FlextCliModels:
@@ -38,9 +49,11 @@ class FlextCliModels:
             - Comprehensive validation with business rules
         """
 
-        id: str = Field(default_factory=lambda: str(uuid4()))
-        command_line: str | None = Field(None, description="Command to execute")
-        execution_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
+        model_config = STRICT_CONFIG_DICT
+
+        id: str = uuid_field()
+        command_line: str | None = optional_field(description="Command to execute")
+        execution_time: datetime = datetime_field()
 
         # Advanced discriminated union state management
         state: Annotated[
@@ -126,7 +139,7 @@ class FlextCliModels:
 
             return self
 
-        def start_execution(self) -> FlextResult[Self]:
+        def start_execution(self) -> FlextResult[None]:
             """Start execution with type-safe state transition using pattern matching."""
             match self.state:
                 case FlextCliTypes.Commands.PendingState():
@@ -134,9 +147,9 @@ class FlextCliModels:
                         started_at=datetime.now(UTC),
                     )
                     self.execution_time = datetime.now(UTC)
-                    return FlextResult[Self].ok(self)
+                    return FlextResult[None].ok(None)
                 case current_state:
-                    return FlextResult[Self].fail(
+                    return FlextResult[None].fail(
                         f"Cannot start execution from state {current_state.status}. "
                         "Command must be in PENDING state.",
                     )
@@ -146,7 +159,7 @@ class FlextCliModels:
             exit_code: int,
             output: str = "",
             error_output: str = "",
-        ) -> FlextResult[Self]:
+        ) -> FlextResult[None]:
             """Complete execution with advanced state transition and pattern matching."""
             match self.state:
                 case FlextCliTypes.Commands.RunningState():
@@ -167,9 +180,9 @@ class FlextCliModels:
                             exit_code=exit_code,
                             error_output=error_output,
                         )
-                    return FlextResult[Self].ok(self)
+                    return FlextResult[None].ok(None)
                 case current_state:
-                    return FlextResult[Self].fail(
+                    return FlextResult[None].fail(
                         f"Cannot complete execution from state {current_state.status}. "
                         "Command must be in RUNNING state.",
                     )
@@ -180,44 +193,44 @@ class FlextCliModels:
             if self.command_line and not self.command_line.strip():
                 return FlextResult[None].fail("Command line cannot be empty")
 
-            # Simplified state validation to avoid unreachable code issues
-            # Basic validation based on state type names
-
-            state_name = type(self.state).__name__
-
-            # Check for basic state validation rules
-            if "Pending" in state_name and self.exit_code is not None:
-                return FlextResult[None].fail(
-                    "Pending commands should not have exit codes",
-                )
-            if "Running" in state_name and self.exit_code is not None:
-                return FlextResult[None].fail(
-                    "Running commands should not have exit codes until completion",
-                )
-
-            # Check exit code requirements for completed/failed states
-            if hasattr(self.state, "exit_code"):
-                exit_code = getattr(self.state, "exit_code", None)
-                if "Completed" in state_name and exit_code is None:
+            # Advanced pattern matching validation with Python 3.13+ syntax
+            match self.state:
+                case FlextCliTypes.Commands.PendingState() if (
+                    self.exit_code is not None
+                ):
                     return FlextResult[None].fail(
-                        "Completed commands must have exit codes",
+                        "Pending commands should not have exit codes"
                     )
-                if "Failed" in state_name and (exit_code is None or exit_code == 0):
+                case FlextCliTypes.Commands.RunningState() if (
+                    self.exit_code is not None
+                ):
                     return FlextResult[None].fail(
-                        "Failed commands must have non-zero exit codes",
+                        "Running commands should not have exit codes until completion"
                     )
+                case FlextCliTypes.Commands.CompletedState(exit_code=None):
+                    return FlextResult[None].fail(
+                        "Completed commands must have exit codes"
+                    )
+                case FlextCliTypes.Commands.FailedState(exit_code=exit_code) if (
+                    exit_code is None or exit_code == 0
+                ):
+                    return FlextResult[None].fail(
+                        "Failed commands must have non-zero exit codes"
+                    )
+                case _:
+                    # All validation rules passed
+                    pass
 
-            # If we reach here, validation passed
             return FlextResult[None].ok(None)
 
     class CliSession(FlextModels.Entity):
         """CLI session model."""
 
-        id: str = Field(default_factory=lambda: str(uuid4()))
-        session_id: str = Field(default_factory=lambda: str(uuid4()))
-        start_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
+        id: str = uuid_field()
+        session_id: str = uuid_field()
+        start_time: datetime = datetime_field()
         end_time: datetime | None = None
-        commands: list[FlextCliModels.CliCommand] = Field(default_factory=list)
+        commands: list[FlextCliModels.CliCommand] = Field(default_factory=empty_list)
         user_id: str | None = None
 
         @computed_field
@@ -256,14 +269,14 @@ class FlextCliModels:
     class CliConfig(FlextModels.Entity):
         """CLI configuration model."""
 
-        id: str = Field(default_factory=lambda: str(uuid4()))
-        profile: str = Field(default=FlextCliConstants.ProfileName.DEFAULT)
-        output_format: str = Field(
-            default=FlextCliConstants.OUTPUT.default_output_format,
+        id: str = uuid_field()
+        profile: str = enum_field(FlextCliConstants.ProfileName.DEFAULT)
+        output_format: str = constant_field(
+            FlextCliConstants.OUTPUT.default_output_format,
         )
-        debug_mode: bool = Field(default=False)
-        timeout_seconds: int = Field(
-            default=FlextCliConstants.TIMEOUTS.default_command_timeout,
+        debug_mode: bool = bool_field(False)
+        timeout_seconds: int = timeout_field(
+            FlextCliConstants.TIMEOUTS.default_command_timeout,
         )
 
         @field_validator("output_format")
@@ -295,10 +308,10 @@ class FlextCliModels:
     class CliPlugin(FlextModels.Entity):
         """CLI plugin model."""
 
-        id: str = Field(default_factory=lambda: str(uuid4()))
+        id: str = uuid_field()
         name: str = Field(...)
         entry_point: str = Field(...)
-        plugin_version: str = Field(default="1.0.0")
+        plugin_version: str = version_field(default="1.0.0")
         description: str | None = None
 
         @field_validator("name")

@@ -140,7 +140,7 @@ class TestTableCreation:
         data = {"name": "John", "age": 30, "city": "NYC"}
 
         api = FlextCliApi()
-        result = api.create_table(data, "Test Table")
+        result = api.create_rich_table(data, "Test Table")
 
         assert result.is_success
         table = result.value
@@ -203,7 +203,9 @@ class TestTableCreation:
 
         assert result.is_success
         table = result.value
-        assert isinstance(table, RichTable)
+        assert isinstance(table, str)
+        assert "name" in table
+        assert "age" in table
 
     def test_table_creation_single_value(self) -> None:
         """Test flext_cli_table with single value."""
@@ -213,7 +215,8 @@ class TestTableCreation:
 
         assert result.is_success
         table = result.value
-        assert isinstance(table, RichTable)
+        assert isinstance(table, str)
+        assert "Single value" in table
 
 
 class TestDataTransformation:
@@ -484,7 +487,9 @@ class TestEdgeCases:
 
         assert result.is_success
         table = result.value
-        assert isinstance(table, RichTable)
+        assert isinstance(table, str)
+        assert "simple" in table
+        assert "value" in table
 
     def test_export_to_readonly_directory(self) -> None:
         """Test export to directory without write permissions."""

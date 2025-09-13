@@ -6,7 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
 import tempfile
 from collections.abc import Generator
 from datetime import UTC, datetime
@@ -17,28 +16,10 @@ from click.testing import CliRunner
 from flext_core import FlextResult, FlextTypes
 from rich.console import Console
 
-# Add src to Python path for imports
-src_path = Path(__file__).parent.parent / "src"
-if str(src_path) not in sys.path:
-    sys.path.insert(0, str(src_path))
-
-# Import after path modification - this is necessary for pytest
-try:
-    from flext_cli import FlextCliConfig, FlextCliContext
-except ImportError:
-    # Fallback for when src is not in path
-    import importlib.util
-
-    spec = importlib.util.spec_from_file_location(
-        "flext_cli", src_path / "flext_cli" / "__init__.py"
-    )
-    flext_cli = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(flext_cli)
-    FlextCliConfig = flext_cli.FlextCliConfig
-    FlextCliContext = flext_cli.FlextCliContext
+from flext_cli import FlextCliConfig, FlextCliContext
 
 
-class TestUser:
+class MockUser:
     """Simple test user class for testing purposes."""
 
     def __init__(
@@ -123,9 +104,9 @@ def test_config() -> FlextCliConfig:
 
 
 @pytest.fixture
-def test_user() -> TestUser:
+def test_user() -> MockUser:
     """Provide real test user using factory."""
-    return TestUser(
+    return MockUser(
         user_id="test_user_factory",
         name="Test User",
         email="test@example.com",
@@ -137,9 +118,9 @@ def test_user() -> TestUser:
 
 
 @pytest.fixture
-def real_test_user() -> TestUser:
+def real_test_user() -> MockUser:
     """Provide real User instance for testing."""
-    return TestUser(
+    return MockUser(
         user_id="test_user_id",  # Required: id
         name="test_user",  # Required: name
         email="test@example.com",  # Required: email
@@ -166,7 +147,7 @@ def test_flext_result_failure() -> FlextResult[str]:
 def real_repositories() -> FlextTypes.Core.Dict:
     """Provide collection of real repository implementations."""
     return {
-        "user_repo": TestUser,  # Test user class
+        "user_repo": MockUser,  # Test user class
         "config": FlextCliConfig(profile="test"),
     }
 

@@ -1,10 +1,5 @@
-"""Real functionality tests for FlextCliAuth unified class - NO MOCKS.
 
-Tests authentication functionality using real implementations following
-the ZERO TOLERANCE requirements for production-ready code.
-
-
-
+"""Test utilities for FlextCliAuth authentication functionality.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT

@@ -1,15 +1,3 @@
-"""Comprehensive real functionality tests for formatters.py.
-
-Following user requirement: "melhore bem os tests para executar codigo de verdade e validar
-a funcionalidade requerida, pare de ficar mockando tudo!"
-
-These tests Execute formatter functionality and validate actual output formatting.
-Coverage target: Increase formatters.py from current to 90%+
-
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
 
 from __future__ import annotations
 

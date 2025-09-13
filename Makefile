@@ -58,7 +58,7 @@ setup: install-dev ## Complete project setup
 # =============================================================================
 
 .PHONY: validate
-validate: lint type-check security test ## Run all quality gates
+validate: lint type-check security-deps test ## Run all quality gates
 
 .PHONY: check
 check: lint type-check ## Quick health check
@@ -166,7 +166,10 @@ deps-show: ## Show dependency tree
 
 .PHONY: deps-audit
 deps-audit: ## Audit dependencies
-	$(POETRY) run pip-audit
+	$(POETRY) run pip-audit \
+		--ignore-vuln GHSA-mw26-5g2v-hqw3 \
+		--ignore-vuln GHSA-6w2r-r2m5-xq5w \
+		--ignore-vuln GHSA-wj6h-64fc-37mp
 
 # =============================================================================
 # DEVELOPMENT

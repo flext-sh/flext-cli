@@ -31,19 +31,11 @@ from typing import Protocol
 from uuid import UUID, uuid4
 
 import click
-from flext_core import (
-    FlextDomainService,
-    FlextModels,
-    FlextResult,
-)
+from flext_core import ( FlextDomainService, FlextModels, FlextResult, )
 from rich.console import Console
 
 from example_utils import handle_command_result
-from flext_cli import (
-    FlextCliService,
-    cli_measure_time,
-    require_auth,
-)
+from flext_cli import ( FlextCliService, cli_measure_time, require_auth, )
 
 
 

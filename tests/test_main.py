@@ -28,7 +28,7 @@ class TestMainModule:
         result = subprocess.run(
             [sys.executable, "-m", "flext_cli", "--help"],
             check=False,
-            cwd=Path(__file__).parent.parent,
+            cwd=Path(__file__).parent.parent / "src",
             capture_output=True,
             text=True,
             timeout=10,

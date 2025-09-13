@@ -30,11 +30,7 @@ from flext_core import FlextResult
 from rich.console import Console
 from rich.panel import Panel
 
-from flext_cli import (
-    CLICommand,
-    FlextCliHelper,
-    setup_cli,
-)
+from flext_cli import ( CLICommand, FlextCliHelper, setup_cli, )
 from flext_cli.auth import get_cli_config
 
 

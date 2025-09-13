@@ -1,13 +1,3 @@
-"""Real functionality tests for src/flext_cli/commands/debug.py module.
-
-Tests all debug command functionality using real implementations instead of mocks.
-
-
-
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
 
 from __future__ import annotations
 
@@ -23,14 +13,7 @@ from rich.console import Console
 
 from flext_cli import debug
 from flext_cli.config import FlextCliConfig
-from flext_cli.debug import (
-    connectivity,
-    env,
-    paths,
-    performance,
-    trace,
-    validate,
-)
+from flext_cli.debug import ( connectivity, env, paths, performance, trace, validate, )
 
 
 class TestDebugCommandReal:

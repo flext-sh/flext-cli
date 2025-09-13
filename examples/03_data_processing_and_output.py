@@ -35,11 +35,7 @@ from flext_core import FlextResult
 from rich.console import Console
 from rich.panel import Panel
 
-from flext_cli import (
-    flext_cli_aggregate_data,
-    flext_cli_format,
-    flext_cli_table,
-)
+from flext_cli import ( flext_cli_aggregate_data, flext_cli_format, flext_cli_table, )
 from example_utils import print_demo_completion
 
 

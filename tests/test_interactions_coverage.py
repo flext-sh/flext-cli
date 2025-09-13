@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import Mock
+from flext_core import FlextLogger
 
 from flext_cli import FlextCliInteractions
 
@@ -17,11 +17,11 @@ class TestFlextCliInteractionsCoverage:
         assert hasattr(interactions, "confirm")
         assert hasattr(interactions, "prompt")
 
-    def test_interactions_with_console(self) -> None:
-        """Test interactions with custom console."""
-        console = Mock()
-        interactions = FlextCliInteractions(console=console)
-        assert interactions.console == console
+    def test_interactions_with_logger(self) -> None:
+        """Test interactions with custom logger."""
+        logger = FlextLogger(__name__)
+        interactions = FlextCliInteractions(logger=logger)
+        assert interactions._logger == logger
 
     def test_interactions_quiet_mode(self) -> None:
         """Test interactions in quiet mode."""
@@ -58,75 +58,57 @@ class TestFlextCliInteractionsCoverage:
 
     def test_print_status_info(self) -> None:
         """Test print_status with info."""
-        console = Mock()
-        interactions = FlextCliInteractions(console=console)
+        interactions = FlextCliInteractions()
         result = interactions.print_status("Test message", status="info")
         assert result.is_success
-        console.print.assert_called_once()
 
     def test_print_status_success(self) -> None:
         """Test print_status with success."""
-        console = Mock()
-        interactions = FlextCliInteractions(console=console)
+        interactions = FlextCliInteractions()
         result = interactions.print_status("Test message", status="success")
         assert result.is_success
-        console.print.assert_called_once()
 
     def test_print_status_warning(self) -> None:
         """Test print_status with warning."""
-        console = Mock()
-        interactions = FlextCliInteractions(console=console)
+        interactions = FlextCliInteractions()
         result = interactions.print_status("Test message", status="warning")
         assert result.is_success
-        console.print.assert_called_once()
 
     def test_print_status_error(self) -> None:
         """Test print_status with error."""
-        console = Mock()
-        interactions = FlextCliInteractions(console=console)
+        interactions = FlextCliInteractions()
         result = interactions.print_status("Test message", status="error")
         assert result.is_success
-        console.print.assert_called_once()
 
     def test_print_status_unknown(self) -> None:
         """Test print_status with unknown status."""
-        console = Mock()
-        interactions = FlextCliInteractions(console=console)
+        interactions = FlextCliInteractions()
         result = interactions.print_status("Test message", status="unknown")
         assert result.is_success
-        console.print.assert_called_once()
 
     def test_print_success(self) -> None:
         """Test print_success method."""
-        console = Mock()
-        interactions = FlextCliInteractions(console=console)
+        interactions = FlextCliInteractions()
         result = interactions.print_success("Success message")
         assert result.is_success
-        console.print.assert_called_once()
 
     def test_print_error(self) -> None:
         """Test print_error method."""
-        console = Mock()
-        interactions = FlextCliInteractions(console=console)
+        interactions = FlextCliInteractions()
         result = interactions.print_error("Error message")
         assert result.is_success
-        console.print.assert_called_once()
 
     def test_print_warning(self) -> None:
         """Test print_warning method."""
-        console = Mock()
-        interactions = FlextCliInteractions(console=console)
+        interactions = FlextCliInteractions()
         result = interactions.print_warning("Warning message")
         assert result.is_success
-        console.print.assert_called_once()
 
     def test_print_info(self) -> None:
         """Test print_info method."""
-        console = Mock()
-        interactions = FlextCliInteractions(console=console)
+        interactions = FlextCliInteractions()
         result = interactions.print_info("Info message")
         assert result.is_success
-        console.print.assert_called_once()
 
     def test_create_progress(self) -> None:
         """Test create_progress method."""

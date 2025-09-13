@@ -7,6 +7,7 @@ This document describes the comprehensive refactoring of the FLEXT CLI to use Fl
 ## Problem Statement
 
 ### Before Refactoring
+
 - **Multiple Configuration Patterns**: Each module had its own configuration loading logic
 - **Duplicate Code**: Configuration validation and loading was duplicated across modules
 - **Inconsistent Sources**: Different modules used different configuration sources
@@ -14,6 +15,7 @@ This document describes the comprehensive refactoring of the FLEXT CLI to use Fl
 - **Inconsistent Validation**: Different validation rules across modules
 
 ### After Refactoring
+
 - **Single Configuration Pattern**: FlextConfig singleton as the only configuration source
 - **Zero Duplication**: All modules use FlextConfig.get_global_instance()
 - **Consistent Source**: All modules get configuration from the same singleton
@@ -37,7 +39,9 @@ CLI Parameters → Behavior Changes
 ### Module Refactoring
 
 #### 1. FlextApiClient
+
 **Before**: Custom configuration loading
+
 ```python
 def __init__(self, base_url=None, token=None, timeout=30):
     config = FlextCliConfig()  # Creates new instance
@@ -45,6 +49,7 @@ def __init__(self, base_url=None, token=None, timeout=30):
 ```
 
 **After**: Uses FlextConfig singleton
+
 ```python
 def __init__(self, base_url=None, token=None, timeout=None):
     config = FlextCliConfig.get_global_instance()  # Uses singleton
@@ -53,13 +58,16 @@ def __init__(self, base_url=None, token=None, timeout=None):
 ```
 
 #### 2. FlextCliApi
+
 **Before**: Custom version handling
+
 ```python
 def __init__(self, version="0.9.1"):
     state = FlextCliApi.ApiState(version=version)
 ```
 
 **After**: Uses FlextConfig singleton
+
 ```python
 def __init__(self, version=None):
     config = FlextCliConfig.get_global_instance()
@@ -69,23 +77,28 @@ def __init__(self, version=None):
 ```
 
 #### 3. FlextCliService
+
 **Before**: Custom configuration loading
+
 ```python
 def __init__(self):
     self._config = None  # No configuration
 ```
 
 **After**: Uses FlextConfig singleton
+
 ```python
 def __init__(self):
     self._initialize_configuration()
-    
+
 def _initialize_configuration(self):
     self._config = FlextCliConfig.get_global_instance()
 ```
 
 #### 4. FlextCliAuth
+
 **Before**: Complex configuration loading
+
 ```python
 def __init__(self, config=None):
     if config is None:
@@ -94,6 +107,7 @@ def __init__(self, config=None):
 ```
 
 **After**: Uses FlextConfig singleton
+
 ```python
 def __init__(self, config=None):
     if config is None:
@@ -162,21 +176,25 @@ Configuration values are applied in the following priority order:
 ## Benefits
 
 ### 1. Single Source of Truth
+
 - **Eliminates Inconsistencies**: All modules use the same configuration source
 - **Centralized Management**: Configuration changes in one place affect all modules
 - **Reduced Complexity**: No need to manage multiple configuration sources
 
 ### 2. Automatic Synchronization
+
 - **Real-time Updates**: Configuration changes propagate to all modules immediately
 - **No Manual Work**: Modules automatically stay synchronized
 - **Consistent State**: All modules always use the latest configuration
 
 ### 3. CLI Parameter Integration
+
 - **Direct Behavior Modification**: CLI parameters modify application behavior through FlextConfig
 - **Type-safe Validation**: All parameter validation uses the same system
 - **Error Handling**: Consistent error handling across all modules
 
 ### 4. Maintainability
+
 - **Reduced Code Duplication**: Single configuration loading logic
 - **Easier Testing**: Single configuration source to test
 - **Simplified Debugging**: One place to check configuration values
@@ -188,7 +206,7 @@ Configuration values are applied in the following priority order:
 ```python
 class FlextCliConfig(FlextConfig):
     _global_cli_instance: ClassVar[FlextCliConfig | None] = None
-    
+
     @classmethod
     def get_global_instance(cls) -> FlextCliConfig:
         if cls._global_cli_instance is None:
@@ -203,17 +221,17 @@ class FlextCliConfig(FlextConfig):
 def _load_cli_config_from_sources(cls) -> FlextCliConfig:
     # STEP 1: Get base FlextConfig singleton as SINGLE SOURCE OF TRUTH
     base_config = FlextConfig.get_global_instance()
-    
+
     # STEP 2: Create CLI config by extending the base config instance
     cli_config_data = base_config.model_dump()
-    
+
     # STEP 3: Apply CLI-specific overrides from environment variables
     cli_overrides = cls._get_cli_environment_overrides()
     cli_config_data.update(cli_overrides)
-    
+
     # STEP 4: Create CLI config instance with merged data
     cli_config = cls(**cli_config_data)
-    
+
     return cli_config
 ```
 
@@ -223,7 +241,7 @@ def _load_cli_config_from_sources(cls) -> FlextCliConfig:
 def __init__(self):
     # Get FlextConfig singleton as single source of truth
     self._config = FlextCliConfig.get_global_instance()
-    
+
     # Initialize with configuration values
     self.base_url = self._config.api_url
     self.timeout = self._config.api_timeout

@@ -10,10 +10,12 @@ import inspect
 import os
 
 from click.testing import CliRunner
+from flext_core import FlextLogger
 
 from flext_cli import cli, main
-from flext_cli.cli import FlextCliMain
+from flext_cli.cli import create_cli_options
 from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
 
 
 class TestCliMain:
@@ -44,27 +46,21 @@ class TestCliMain:
         assert "Usage:" in result.output
 
     def test_cli_main_initialization(self) -> None:
-        """Test FlextCliMain initialization."""
-        # Test normal initialization
-        cli_main = FlextCliMain()
-        assert cli_main is not None
-        assert hasattr(cli_main, "_constants")
-        assert hasattr(cli_main, "_container")
-        assert hasattr(cli_main, "_logger")
+        """Test CLI initialization."""
+        # Test that CLI can be imported and used
+        assert cli is not None
+        assert hasattr(cli, "commands")
+        assert hasattr(cli, "get_help")
 
     def test_load_constants_metadata_success(self) -> None:
-        """Test _load_constants_metadata success case."""
-        cli_main = FlextCliMain()
-        result = cli_main._load_constants_metadata()
-
-        assert result.is_success
-        assert result.value is not None
+        """Test constants metadata loading."""
+        constants = FlextCliConstants()
+        assert constants is not None
+        assert hasattr(constants, "DEFAULT_PROFILE")
 
     def test_get_logger(self) -> None:
-        """Test get_logger method."""
-        cli_main = FlextCliMain()
-        logger = cli_main.get_logger()
-
+        """Test logger functionality."""
+        logger = FlextLogger(__name__)
         assert logger is not None
         assert hasattr(logger, "info")
         assert hasattr(logger, "error")
@@ -72,8 +68,7 @@ class TestCliMain:
 
     def test_create_cli_options_default(self) -> None:
         """Test create_cli_options with default values."""
-        cli_main = FlextCliMain()
-        result = cli_main.create_cli_options()
+        result = create_cli_options()
 
         assert result.is_success
         options = result.value
@@ -85,9 +80,12 @@ class TestCliMain:
 
     def test_create_cli_options_custom(self) -> None:
         """Test create_cli_options with custom values."""
-        cli_main = FlextCliMain()
-        result = cli_main.create_cli_options(
-            profile="test", output="json", debug=True, quiet=True, log_level="DEBUG"
+        result = create_cli_options(
+            profile="test",
+            output_format="json",
+            debug=True,
+            quiet=True,
+            log_level="DEBUG",
         )
 
         assert result.is_success

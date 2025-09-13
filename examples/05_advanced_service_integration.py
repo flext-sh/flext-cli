@@ -36,11 +36,7 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
 from rich.table import Table
 
-from flext_cli import (
-    FlextApiClient,
-    FlextCliService,
-    get_cli_config,
-)
+from flext_cli import ( FlextApiClient, FlextCliService, get_cli_config, )
 from example_utils import print_demo_completion
 
 

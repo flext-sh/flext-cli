@@ -5,66 +5,99 @@ elements with FlextResult error handling and Rich integration.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
 
-from flext_core import FlextResult, FlextTypes
-from rich.console import Console
-from rich.progress import Progress
-from rich.prompt import Confirm, Prompt
+from flext_core import FlextLogger, FlextResult, FlextTypes
 
 
 class FlextCliInteractions:
     """User interaction utilities following SOLID principles.
 
     Single responsibility: User interaction operations.
-    Uses Rich for output formatting with FlextResult error handling.
+    Uses FlextLogger for output with FlextResult error handling.
+    NO DIRECT RICH IMPORTS - uses flext-core exclusively.
     """
 
-    def __init__(self, *, console: Console | None = None, quiet: bool = False) -> None:
+    def __init__(
+        self, *, logger: FlextLogger | None = None, quiet: bool = False
+    ) -> None:
         """Initialize interactions manager."""
-        self.console: Console = console or Console()
+        self._logger: FlextLogger = logger or FlextLogger(__name__)
         self.quiet: bool = quiet
 
     def confirm(self, message: str, *, default: bool = False) -> FlextResult[bool]:
-        """Get user confirmation."""
+        """Get user confirmation using standard input."""
         if self.quiet:
             return FlextResult[bool].ok(default)
         try:
-            answer = bool(Confirm.ask(message, default=default))
-            return FlextResult[bool].ok(answer)
+            prompt_text = f"{message} [y/N]: " if not default else f"{message} [Y/n]: "
+            response = input(prompt_text).strip().lower()
+
+            if not response:
+                return FlextResult[bool].ok(default)
+
+            if response in {"y", "yes", "1", "true"}:
+                return FlextResult[bool].ok(data=True)
+            if response in {"n", "no", "0", "false"}:
+                return FlextResult[bool].ok(data=False)
+            self._logger.warning(
+                f"Invalid response '{response}', using default {default}"
+            )
+            return FlextResult[bool].ok(default)
+
         except KeyboardInterrupt:
             return FlextResult[bool].fail("User interrupted confirmation")
+        except EOFError:
+            return FlextResult[bool].fail("Input stream ended")
         except Exception as e:
             return FlextResult[bool].fail(f"Confirmation failed: {e}")
 
     def prompt(self, message: str, *, default: str | None = None) -> FlextResult[str]:
-        """Get user text input."""
+        """Get user text input using standard input."""
         if self.quiet and default is not None:
             return FlextResult[str].ok(default)
         try:
-            value = str(Prompt.ask(message, default=default or "")).strip()
-            if not value and default is None:
-                return FlextResult[str].fail("Empty input is not allowed")
-            return FlextResult[str].ok(value or (default or ""))
+            prompt_text = (
+                f"{message}: " if default is None else f"{message} [{default}]: "
+            )
+
+            if not (value := input(prompt_text).strip()):
+                return (
+                    FlextResult[str].ok(default)
+                    if default is not None
+                    else FlextResult[str].fail("Empty input is not allowed")
+                )
+
+            return FlextResult[str].ok(value)
+
         except KeyboardInterrupt:
             return FlextResult[str].fail("User interrupted prompt")
+        except EOFError:
+            return FlextResult[str].fail("Input stream ended")
         except Exception as e:
             return FlextResult[str].fail(f"Prompt failed: {e}")
 
     def print_status(self, message: str, *, status: str = "info") -> FlextResult[None]:
-        """Print status message with styled formatting."""
+        """Print status message using FlextLogger."""
         try:
-            styles = {
-                "info": "[bold blue]i[/bold blue] ",
-                "success": "[bold green]✓[/bold green] ",
-                "warning": "[bold yellow]⚠[/bold yellow] ",
-                "error": "[bold red]✗[/bold red] ",
-            }
-            prefix = styles.get(status, "")
-            self.console.print(f"{prefix}{message}")
+            if self.quiet and status == "info":
+                return FlextResult[None].ok(None)
+
+            # Use match-case for status handling (Python 3.13+)
+            match status:
+                case "info":
+                    self._logger.info(message)
+                case "success":
+                    self._logger.info(f"SUCCESS: {message}")
+                case "warning":
+                    self._logger.warning(message)
+                case "error":
+                    self._logger.error(message)
+                case _:
+                    self._logger.info(f"{status.upper()}: {message}")
+
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(f"Print status failed: {e}")
@@ -85,23 +118,24 @@ class FlextCliInteractions:
         """Print info message."""
         return self.print_status(message, status="info")
 
-    def create_progress(self, message: str = "") -> FlextResult[Progress]:
-        """Create Rich progress indicator."""
+    def create_progress(self, message: str = "") -> FlextResult[str]:
+        """Create simple progress tracking message."""
         try:
-            _ = message  # Keep signature for future use
-            progress = Progress()
-            return FlextResult[Progress].ok(progress)
+            if message and not self.quiet:
+                self._logger.info(f"Starting: {message}")
+            return FlextResult[str].ok(message)
         except Exception as e:
-            return FlextResult[Progress].fail(f"Progress creation failed: {e}")
+            return FlextResult[str].fail(f"Progress creation failed: {e}")
 
     def with_progress(
         self,
         items: FlextTypes.Core.List,
         message: str,
     ) -> FlextResult[FlextTypes.Core.List]:
-        """Process items with progress indicator."""
+        """Process items with simple progress tracking."""
         try:
-            _ = message  # For future enhanced implementation
+            if message and not self.quiet:
+                self._logger.info(f"Processing {len(items)} items: {message}")
             return FlextResult[FlextTypes.Core.List].ok(items)
         except Exception as e:
             return FlextResult[FlextTypes.Core.List].fail(

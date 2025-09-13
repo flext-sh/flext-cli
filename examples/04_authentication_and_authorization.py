@@ -32,13 +32,10 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from example_utils import print_demo_completion
-from flext_cli import (
-    FlextApiClient,
-    save_auth_token,
-)
-from flext_cli.auth import get_auth_headers, get_cli_config
-from flext_cli.decorators import require_auth
+from flext_cli.example_utils import print_demo_completion
+from flext_cli import ( FlextApiClient, save_auth_token, )
+from flext_cli import get_auth_headers, get_cli_config
+from flext_cli import require_auth
 
 
 def demonstrate_basic_authentication() -> FlextResult[None]:
