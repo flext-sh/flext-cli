@@ -2,7 +2,6 @@
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -27,6 +26,7 @@ __description__ = (
     "Unified Command Line Interface for FLEXT Ecosystem - 32+ Data Integration Projects"
 )
 __long_description__ = """
+
 FLEXT CLI provides a comprehensive command-line interface for the entire FLEXT
 distributed data integration ecosystem (32+ projects). Built with Clean Architecture,
 Domain-Driven Design, and CQRS patterns for enterprise-grade CLI operations.

@@ -1,10 +1,4 @@
-"""Functional tests for FlextCliDataProcessor using flext_tests patterns.
-
-Real functionality tests without mocks, using flext_tests library for
-advanced testing patterns and comprehensive coverage.
-
-
-
+"""Test FlextCliDataProcessing functionality.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -15,13 +9,6 @@ from __future__ import annotations
 import json
 
 from flext_core import FlextResult, FlextTypes
-from flext_tests import (
-    FlextTestsDomains,
-    FlextTestsFactories,
-    FlextTestsMatchers,
-    FlextTestsPerformance,
-    FlextTestsUtilities,
-)
 
 from flext_cli import FlextCliDataProcessing
 
@@ -32,16 +19,15 @@ class TestFlextCliDataProcessingFunctional:
     def setup_method(self) -> None:
         """Setup test environment with real processor instance."""
         self.processor = FlextCliDataProcessing()
-        self.test_utils = FlextTestsUtilities()
-        self.performance = FlextTestsPerformance()
-        self.matchers = FlextTestsMatchers()
-        self.realistic_data = FlextTestsDomains.Realistic()
-        self.validation_cases = FlextTestsFactories.EdgeCaseGenerators()
 
     def test_data_processing_workflow_success(self) -> None:
         """Test complete data processing workflow with real data."""
-        # Generate realistic test data using flext_tests
-        test_data = [self.realistic_data.user_registration_data() for _ in range(3)]
+        # Generate realistic test data
+        test_data = [
+            {"name": "John Doe", "email": "john@example.com", "age": 30},
+            {"name": "Jane Smith", "email": "jane@example.com", "age": 25},
+            {"name": "Bob Johnson", "email": "bob@example.com", "age": 35},
+        ]
 
         # Execute data validation (use existing method)
         def validator_func(data: object) -> bool:
@@ -49,15 +35,15 @@ class TestFlextCliDataProcessingFunctional:
 
         result = self.processor.validate_data(test_data[0], validator_func)
 
-        # Validate using flext_tests matchers
-        assert FlextTestsMatchers.is_successful_result(result)
+        # Validate result
+        assert result.is_success
         processed_data = result.unwrap()
         assert isinstance(processed_data, dict)
 
     def test_field_validation_with_realistic_data(self) -> None:
         """Test batch validation using realistic edge cases."""
         # Create test data with boundary numbers
-        boundary_numbers = self.validation_cases.boundary_numbers()
+        boundary_numbers = [0, 1, 100, -1, 999999]
         test_data = [{"value": num} for num in boundary_numbers[:3]]
 
         # Test batch processing with correct signature
@@ -65,15 +51,15 @@ class TestFlextCliDataProcessingFunctional:
             return item
 
         result = self.processor.batch_process_items(test_data, validator_func)
-        assert FlextTestsMatchers.is_successful_result(result)
+        assert result.is_success
 
         # Create test data with special characters
-        special_chars = self.validation_cases.special_characters()
+        special_chars = ["@", "#", "$", "%", "&"]
         char_data = [{"text": char} for char in special_chars[:2]]
 
         # Test special character validation with correct signature
         char_result = self.processor.batch_process_items(char_data, validator_func)
-        assert FlextTestsMatchers.is_successful_result(char_result)
+        assert char_result.is_success
 
     def test_data_transformation_pipeline(self) -> None:
         """Test data transformation pipeline with real transformations."""
@@ -91,7 +77,7 @@ class TestFlextCliDataProcessingFunctional:
         result = self.processor.validate_data(raw_data[0], validator_func)
 
         # Verify transformations worked
-        assert FlextTestsMatchers.is_successful_result(result)
+        assert result.is_success
         transformed_data = result.unwrap()
 
         assert isinstance(transformed_data, dict)
@@ -100,7 +86,8 @@ class TestFlextCliDataProcessingFunctional:
         """Test batch validation performance using flext_tests profiler."""
         # Generate large dataset for performance testing
         large_dataset = [
-            self.realistic_data.user_registration_data() for _ in range(100)
+            {"name": f"User {i}", "email": f"user{i}@example.com", "age": 20 + i}
+            for i in range(100)
         ]
 
         # Profile the batch validation with flext_tests performance tools
@@ -112,12 +99,11 @@ class TestFlextCliDataProcessingFunctional:
         result = self.processor.batch_process_items(large_dataset, validator_func)
 
         # Verify functionality (timing validation removed)
-        assert FlextTestsMatchers.is_successful_result(result)
+        assert result.is_success
 
         validated_data = result.unwrap()
-        assert isinstance(validated_data, tuple)
-        results, errors = validated_data
-        assert len(results) == 100
+        assert isinstance(validated_data, list)
+        assert len(validated_data) == 100
 
     def test_data_aggregation_real_sources(self) -> None:
         """Test data aggregation with real data sources."""
@@ -136,7 +122,7 @@ class TestFlextCliDataProcessingFunctional:
         result = self.processor.validate_data(combined_data[0], validator_func)
 
         # Validate aggregation results
-        assert FlextTestsMatchers.is_successful_result(result)
+        assert result.is_success
         aggregated_data = result.unwrap()
 
         # Check structured aggregation result
@@ -172,7 +158,9 @@ class TestFlextCliDataProcessingFunctional:
             return isinstance(data, dict) and isinstance(data.get("age"), int)
 
         result = self.processor.validate_data({"age": "not_a_number"}, validator_func)
-        assert FlextTestsMatchers.is_failed_result(result)
+        assert (
+            result.is_failure
+        )  # The validator function returns False, so validation should fail
 
         # Test with empty data - implementation uses defensive validation
         result = self.processor.batch_process_items([], lambda x: x)
@@ -200,9 +188,9 @@ class TestFlextCliDataProcessingFunctional:
         """Test complex workflow integration using available methods."""
         # Create complex test scenario using available methods
         complex_data = [
-            self.realistic_data.user_registration_data(),
-            self.realistic_data.order_data(),
-            self.realistic_data.api_response_data(),
+            {"name": "John Doe", "email": "john@example.com", "age": 30},
+            {"order_id": "12345", "total": 99.99, "status": "completed"},
+            {"status": "success", "data": {"id": 1, "name": "test"}},
         ]
 
         # Execute multi-step workflow using real available methods
@@ -211,7 +199,7 @@ class TestFlextCliDataProcessingFunctional:
             return isinstance(data, dict) and "name" in data
 
         transform_result = self.processor.validate_data(complex_data[0], validator_func)
-        assert FlextTestsMatchers.is_successful_result(transform_result)
+        assert transform_result.is_success
 
         # Step 2: Aggregate transformed data
         transformed_data = transform_result.unwrap()
@@ -238,9 +226,8 @@ class TestFlextCliDataProcessingEdgeCases:
         # or informative failure message (both are valid defensive behaviors)
         if result.is_success:
             unwrapped = result.unwrap()
-            assert isinstance(unwrapped, tuple)
-            results, errors = unwrapped
-            assert len(results) == 0
+            assert isinstance(unwrapped, list)
+            assert len(unwrapped) == 0
         else:
             # Defensive behavior: reject empty data with clear message
             assert (

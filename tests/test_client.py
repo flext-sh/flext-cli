@@ -1,15 +1,3 @@
-"""Comprehensive real functionality tests for client.py.
-
-Following user requirement: "melhore bem os tests para executar codigo de verdade e validar
-a funcionalidade requerida, pare de ficar mockando tudo!"
-
-These tests Execute HTTP client functionality and validate actual API behavior.
-Coverage target: Increase client.py from current to 90%+
-
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
 
 from __future__ import annotations
 
@@ -26,6 +14,7 @@ import pytest
 from flext_core import FlextResult, FlextTypes
 
 from flext_cli.client import FlextApiClient
+from flext_cli.config import FlextCliConfig
 
 # Alias for easier testing access
 FlextApiClientModels = FlextApiClient
@@ -34,8 +23,9 @@ FlextApiClientModels = FlextApiClient
 class MockHTTPHandler(BaseHTTPRequestHandler):
     """Simple test HTTP server for real client testing."""
 
-    def log_message(self, fmt: str, *args: object) -> None:
+    def log_message(self, _fmt: str, *args: object) -> None:
         """Override log_message to handle the correct number of arguments."""
+
         # Suppress logging for tests
 
     def do_GET(self) -> None:
@@ -524,6 +514,10 @@ class AsyncTestCase(unittest.TestCase):
 class TestFlextApiClientInitialization(AsyncTestCase):
     """Real functionality tests for FlextApiClient initialization."""
 
+    def setup__method(self, __method: object) -> None:
+        """Clean up global configuration before each test."""
+        FlextCliConfig.clear_global_instance()
+
     def test_client_initialization_with_all_params(self) -> None:
         """Test client initialization with all parameters."""
         client = FlextApiClient(
@@ -545,7 +539,7 @@ class TestFlextApiClientInitialization(AsyncTestCase):
         # Should have some default base_url
         assert isinstance(client.base_url, str)
         assert client.token is None
-        assert client.timeout == 30.0
+        assert client.timeout == 30  # Default timeout from FlextCliConfig
         assert client.verify_ssl is True
 
     def test_client_headers_without_token(self) -> None:

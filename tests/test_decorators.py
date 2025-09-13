@@ -1,10 +1,4 @@
-"""Comprehensive real functionality tests for decorators.py module.
-
-NO MOCKING - All tests Execute functionality and validate actual business logic.
-Following user requirement: "pare de ficar mockando tudo!"
-
-These tests validate the FlextCliDecorators class and its methods.
-
+"""Test FlextCliDecorators functionality.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -20,10 +14,7 @@ from pathlib import Path
 
 from flext_core import FlextTypes
 
-from flext_cli.decorators import (
-    FlextCliDecorators,
-    handle_service_result,
-)
+from flext_cli.decorators import ( FlextCliDecorators, handle_service_result, )
 
 
 class TestFlextCliDecorators(unittest.TestCase):

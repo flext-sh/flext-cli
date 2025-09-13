@@ -1,11 +1,9 @@
-"""FLEXT CLI Exceptions - Consolidated exception handling following flext-core patterns.
+"""FLEXT CLI Exceptions.
 
-Provides FlextCliException class as single comprehensive exception type with
-error codes and context, replacing multiple specialized exception classes.
+Error codes and context, replacing multiple specialized exception classes.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations

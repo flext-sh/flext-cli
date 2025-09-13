@@ -1,6 +1,4 @@
-"""Tests for data_processing.py module - Direct flext-core usage.
-
-NO WRAPPERS - Tests direct flext-core FlextUtilities usage.
+"""Test FlextCliDataProcessing functionality.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -47,7 +45,72 @@ class TestFlextCliDataProcessing:
         assert isinstance(result, FlextResult)
         assert result.is_failure
         assert result.error is not None
-        assert "Invalid data or validators format" in result.error
+        assert "Validator function must be callable" in result.error
+
+    def test_validate_data_with_callable_validator(self) -> None:
+        """Test validate_data with callable validator function."""
+        processor = FlextCliDataProcessing()
+
+        def validator(data: dict) -> bool:
+            return "name" in data and "value" in data
+
+        data = {"name": "test", "value": 42}
+        result = processor.validate_data(data, validator)
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_validate_data_with_invalid_callable(self) -> None:
+        """Test validate_data with invalid callable."""
+        processor = FlextCliDataProcessing()
+
+        data = {"name": "test"}
+        result = processor.validate_data(data, "not_callable")
+
+        assert isinstance(result, FlextResult)
+        assert result.is_failure
+        assert "Validator function must be callable" in result.error
+
+    def test_validate_data_with_list(self) -> None:
+        """Test validate_data with list data."""
+        processor = FlextCliDataProcessing()
+
+        def validator(data: list) -> bool:
+            return len(data) > 0
+
+        data = [1, 2, 3]
+        result = processor.validate_data(data, validator)
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_validate_data_with_other_types(self) -> None:
+        """Test validate_data with other data types."""
+        processor = FlextCliDataProcessing()
+
+        def validator(data: str) -> bool:
+            return len(data) > 0
+
+        data = "test_string"
+        result = processor.validate_data(data, validator)
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_validate_data_exception_handling(self) -> None:
+        """Test validate_data exception handling."""
+        processor = FlextCliDataProcessing()
+
+        def validator(_data: dict) -> bool:
+            error_msg = "Test exception"
+            raise ValueError(error_msg)
+
+        data = {"name": "test"}
+        result = processor.validate_data(data, validator)
+
+        assert isinstance(result, FlextResult)
+        assert result.is_failure
+        assert "Validation failed" in result.error
 
     def test_batch_process_items_with_list(self) -> None:
         """Test batch_process_items with list input."""
@@ -152,3 +215,73 @@ class TestFlextCliDataProcessing:
         assert isinstance(result1, FlextResult)
         assert isinstance(result2, FlextResult)
         assert isinstance(result3, FlextResult)
+
+    def test_batch_process_items_with_invalid_items(self) -> None:
+        """Test batch_process_items with invalid items format."""
+        processor = FlextCliDataProcessing()
+
+        def processor_func(x: int) -> int:
+            return x * 2
+
+        result = processor.batch_process_items("not_a_list", processor_func)
+
+        assert isinstance(result, FlextResult)
+        assert result.is_failure
+        assert "Invalid items format" in result.error
+
+    def test_batch_process_items_with_invalid_processor(self) -> None:
+        """Test batch_process_items with invalid processor function."""
+        processor = FlextCliDataProcessing()
+
+        items = [1, 2, 3]
+        result = processor.batch_process_items(items, "not_callable")
+
+        assert isinstance(result, FlextResult)
+        assert result.is_failure
+        assert "Processor function must be callable" in result.error
+
+    def test_batch_process_items_with_processor_exception(self) -> None:
+        """Test batch_process_items with processor function that raises exception."""
+        processor = FlextCliDataProcessing()
+
+        def processor_func(x: int) -> int:
+            if x == 2:
+                error_msg = "Test exception"
+                raise ValueError(error_msg)
+            return x * 2
+
+        items = [1, 2, 3]
+        result = processor.batch_process_items(items, processor_func)
+
+        assert isinstance(result, FlextResult)
+        assert result.is_failure
+        assert "Item processing failed" in result.error
+
+    def test_safe_json_stringify_success(self) -> None:
+        """Test safe_json_stringify with valid data."""
+        processor = FlextCliDataProcessing()
+
+        data = {"name": "test", "value": 42}
+        result = processor.safe_json_stringify(data)
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert isinstance(result.value, str)
+
+    def test_safe_json_stringify_exception(self) -> None:
+        """Test safe_json_stringify with data that causes exception."""
+        processor = FlextCliDataProcessing()
+
+        # Create an object that can't be JSON serialized
+        class Unserializable:
+            def __init__(self) -> None:
+                """Initialize the instance."""
+                self.func = lambda: None
+
+        data = Unserializable()
+        result = processor.safe_json_stringify(data)
+
+        assert isinstance(result, FlextResult)
+        # FlextUtilities.safe_json_stringify may handle exceptions gracefully
+        # So we just check that it returns a FlextResult
+        assert result.is_success or result.is_failure

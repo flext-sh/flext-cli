@@ -1,15 +1,3 @@
-"""Simple real functionality tests for CMD Debug.
-
-Following user requirement: "melhore bem os tests para executar codigo de verdade e validar
-a funcionalidade requerida, pare de ficar mockando tudo!"
-
-These tests Execute debug command functionality with minimal mocking.
-Coverage target: Increase commands_debug.py from 24% to 90%+
-
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
 
 from __future__ import annotations
 

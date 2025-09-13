@@ -1,11 +1,4 @@
-"""Real functionality tests for FlextCliConfig unified class.
-
-Following ZERO TOLERANCE requirements:
-- NO mocking whatsoever - real functionality testing only
-- 100% test coverage using actual code execution
-- Tests validate real business logic and configuration behavior
-- All tests use FlextCliConfig unified class following flext-core patterns
-
+"""FLEXT CLI Configuration Tests.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -17,7 +10,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult
 
 from flext_cli.config import FlextCliConfig
 
@@ -70,9 +63,9 @@ class TestFlextCliConfig(unittest.TestCase):
             quiet=True,
             verbose=False,
             debug=True,
-            api_timeout=60,
-            retries=5,
-            project_name="custom-project",
+            timeout_seconds=60,
+            max_command_retries=5,
+            app_name="custom-project",
         )
 
         assert config.output_format == "json"
@@ -80,9 +73,9 @@ class TestFlextCliConfig(unittest.TestCase):
         assert config.quiet is True
         assert config.verbose is False
         assert config.debug is True
-        assert config.api_timeout == 60
-        assert config.retries == 5
-        assert config.project_name == "custom-project"
+        assert config.timeout_seconds == 60
+        assert config.max_command_retries == 5
+        assert config.app_name == "custom-project"
 
     def test_config_output_formats(self) -> None:
         """Test FlextCliConfig with all valid output formats."""
@@ -123,24 +116,20 @@ class TestFlextCliConfig(unittest.TestCase):
         assert validation_result.is_success
 
     def test_config_nested_classes(self) -> None:
-        """Test FlextCliConfig nested classes structure."""
+        """Test FlextCliConfig simplified structure."""
         config = FlextCliConfig()
 
-        # Test nested classes exist and work
-        defaults = config.CliDefaults()
-        assert hasattr(defaults, "Command")
-        assert hasattr(defaults, "Output")
-        assert hasattr(defaults, "Auth")
+        # Test that configuration fields are accessible directly
+        assert hasattr(config, "profile")
+        assert hasattr(config, "debug")
+        assert hasattr(config, "output_format")
+        assert hasattr(config, "api_url")
+        assert hasattr(config, "command_timeout")
 
-        # Test constants are accessible
-        assert hasattr(defaults.Command, "timeout_seconds")
-        assert hasattr(defaults.Output, "default_format")
-        assert hasattr(defaults.Auth, "token_expiry_hours")
-
-        # Test directory manager
-        dir_manager = config.CliDirectories(config)
-        assert hasattr(dir_manager, "create_directories")
-        assert hasattr(dir_manager, "validate_directories")
+        # Test that configuration values are properly set
+        assert config.profile == "default"
+        assert config.debug is False
+        assert config.output_format == "table"
 
     def test_config_factory_methods(self) -> None:
         """Test FlextCliConfig factory methods for different environments."""
@@ -162,14 +151,14 @@ class TestFlextCliConfig(unittest.TestCase):
 
     def test_config_serialization(self) -> None:
         """Test FlextCliConfig serialization and property access."""
-        config = FlextCliConfig(output_format="json", debug=True, api_timeout=45)
+        config = FlextCliConfig(output_format="json", debug=True, timeout_seconds=45)
 
         # Test model serialization
         config_dict = config.model_dump()
         assert isinstance(config_dict, dict)
         assert config_dict["output_format"] == "json"
         assert config_dict["debug"] is True
-        assert config_dict["api_timeout"] == 45
+        assert config_dict["timeout_seconds"] == 45
 
         # Test properties
         assert config.is_development_mode is True
@@ -184,7 +173,7 @@ class TestConfigIntegration(unittest.TestCase):
         """Test complete configuration creation, setup, and usage workflow."""
         # Create configuration with directories
         config_result = FlextCliConfig.create_with_directories(
-            {"debug": True, "output_format": "json", "api_timeout": 60},
+            {"debug": True, "output_format": "json", "timeout_seconds": 60},
         )
 
         assert isinstance(config_result, FlextResult)
@@ -193,7 +182,7 @@ class TestConfigIntegration(unittest.TestCase):
         config = config_result.value
         assert config.debug is True
         assert config.output_format == "json"
-        assert config.api_timeout == 60
+        assert config.timeout_seconds == 60
 
         # Test validation
         validation_result = config.validate_business_rules()
@@ -209,26 +198,24 @@ class TestConfigIntegration(unittest.TestCase):
         assert config.profile == "test-profile"
 
     def test_configuration_providers(self) -> None:
-        """Test FlextCliConfig configuration providers."""
+        """Test FlextCliConfig simplified configuration management."""
         config = FlextCliConfig()
 
-        # Test ArgsProvider
-        args = {"debug": True, "output_format": "yaml"}
-        args_provider = config.ArgsProvider(args)
-        assert args_provider.get_priority() > 0
+        # Test that configuration can be updated directly
+        config.debug = True
+        config.output_format = "yaml"
 
-        debug_result = args_provider.get_config("debug")
-        assert debug_result.is_success
-        assert debug_result.value is True
+        assert config.debug is True
+        assert config.output_format == "yaml"
 
-        # Test ConstantsProvider
-        constants: FlextTypes.Core.Dict = {"default_timeout": 30}
-        constants_provider = config.ConstantsProvider(constants)
-        assert constants_provider.get_priority() == 0
+        # Test validation still works
+        validation_result = config.validate_business_rules()
+        assert validation_result.is_success
 
-        timeout_result = constants_provider.get_config("default_timeout")
-        assert timeout_result.is_success
-        assert timeout_result.value == 30
+        # Test that configuration values are properly accessible
+        assert config.profile is not None
+        assert config.api_url is not None
+        assert config.command_timeout > 0
 
 
 if __name__ == "__main__":

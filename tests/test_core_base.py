@@ -216,8 +216,7 @@ class TestHandleServiceResult:
 
         async def test_runner() -> None:
             async_result = await async_fail_function()
-            result = async_result if async_result is not None else None
-            assert result is None
+            assert async_result is None
             # Error should be printed to console (no need to mock)
 
         # Run the async test
@@ -234,10 +233,8 @@ class TestHandleServiceResult:
 
         async def test_runner() -> None:
             # Exception should be re-raised and error should be printed
-            async_result = await async_exception_function()
-            if async_result is not None:
-                with pytest.raises(ValueError, match="async test exception"):
-                    await async_result
+            with pytest.raises(ValueError, match="async test exception"):
+                await async_exception_function()
 
         # Run the async test
         asyncio.run(test_runner())
@@ -252,10 +249,7 @@ class TestHandleServiceResult:
 
         async def test_runner() -> None:
             async_result = await async_regular_function()
-            result = async_result if async_result is not None else None
-            if result != "async regular data":
-                msg = f"Expected {'async regular data'}, got {result}"
-                raise AssertionError(msg)
+            assert async_result == "async regular data"
 
         # Run the async test
         asyncio.run(test_runner())

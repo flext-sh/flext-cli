@@ -1,9 +1,7 @@
-"""Tests for application commands.
 
-Tests command-related domain models and functionality.
+"""FLEXT CLI Application Commands Tests.
 
-
-
+Test CLI command and session models.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT

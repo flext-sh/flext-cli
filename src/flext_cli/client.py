@@ -14,9 +14,9 @@ import httpx
 from flext_core import FlextConstants, FlextLogger, FlextResult, FlextTypes
 from pydantic import BaseModel, Field
 
-# Removed circular import - FlextCliAuth will be injected when needed
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
+from flext_cli.utils import BASE_CONFIG_DICT
 
 # HTTP status codes
 HTTP_OK = 200
@@ -32,6 +32,8 @@ class FlextApiClient:
     class PipelineConfig(BaseModel):
         """Pipeline configuration model for Singer/Meltano workflows."""
 
+        model_config = BASE_CONFIG_DICT
+
         name: str = Field(description="Pipeline name")
         schedule: str | None = Field(None, description="Cron schedule")
         tap: str = Field(description="Source tap plugin")
@@ -45,6 +47,8 @@ class FlextApiClient:
 
     class Pipeline(BaseModel):
         """Pipeline model for API responses."""
+
+        model_config = BASE_CONFIG_DICT
 
         id: str = Field(description="Pipeline unique identifier")
         name: str = Field(description="Pipeline name")
@@ -63,6 +67,8 @@ class FlextApiClient:
 
     class PipelineList(BaseModel):
         """Pipeline list response."""
+
+        model_config = BASE_CONFIG_DICT
 
         pipelines: list[FlextApiClient.Pipeline] = Field(
             description="List of pipelines",
@@ -94,15 +100,19 @@ class FlextApiClient:
         # Use config values as defaults, allow overrides
         if base_url:
             self.base_url = base_url
-        elif config.api_url:
-            self.base_url = config.api_url
+        elif config.base_url:
+            self.base_url = config.base_url
         else:
             computed = self._compute_default_base_url()
             self.base_url = computed or FlextCliConstants.FALLBACK_API_URL
 
-        self.token = token or getattr(config, "api_key", None)
-        self.timeout = timeout or config.api_timeout
-        self.verify_ssl = verify_ssl if verify_ssl is not None else config.verify_ssl
+        self.token = token or getattr(config, "api_key", None) or None
+        self.timeout = timeout or config.timeout_seconds
+        self.verify_ssl = (
+            verify_ssl
+            if verify_ssl is not None
+            else getattr(config, "verify_ssl", True)
+        )
         self._session: httpx.AsyncClient | None = None
 
         # Store reference to config for future use
@@ -118,11 +128,11 @@ class FlextApiClient:
         config = FlextCliConfig.get_global_instance()
 
         # Update configuration values
-        if config.api_url:
-            self.base_url = config.api_url
+        if config.base_url:
+            self.base_url = config.base_url
         self.token = getattr(config, "api_key", self.token)
-        self.timeout = config.api_timeout
-        self.verify_ssl = config.verify_ssl
+        self.timeout = config.timeout_seconds
+        self.verify_ssl = getattr(config, "verify_ssl", True)
 
         # Update stored config reference
         self._config = config

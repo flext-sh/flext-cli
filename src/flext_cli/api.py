@@ -1,12 +1,4 @@
-"""FLEXT CLI API - Unified single-class implementation with Python 3.13 cutting-edge patterns.
-
-Advanced implementation using:
-- Single unified class with all functionality encapsulated
-- Nested specialized handlers for different operations
-- Python 3.13+ pattern matching and advanced typing
-- Zero loose helper functions - everything inside the unified class
-- Advanced Pydantic v2 optimizations with flext-core integration
-"""
+"""FLEXT CLI API - Unified single-class implementation with Python 3.13 cutting-edge patterns."""
 
 from __future__ import annotations
 
@@ -29,12 +21,14 @@ from flext_core import (
     FlextUtilities,
 )
 from pydantic import BaseModel, Field, PrivateAttr
+from rich.table import Table as RichTable
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
 from flext_cli.services import FlextCliServices
+from flext_cli.utils import STRICT_CONFIG_DICT, empty_dict, empty_list
 
 # CLI API HELL: 811 LINES COM 48 MÉTODOS PARA API DE CLI!
 # BUZZWORD BINGO: "cutting-edge patterns", "advanced pattern matching"!
@@ -44,7 +38,7 @@ from flext_cli.services import FlextCliServices
 
 
 class FlextCliApi(FlextDomainService[str]):
-    """OVER-ENGINEERED CLI API: 811 lines for HTTP client!
+    """OVER-ENGINEERED CLI API: 811 lines for HTTP client!.
 
     BUZZWORD VIOLATIONS:
     - "CUTTING-EDGE PATTERNS" - just over-complicated HTTP calls
@@ -84,12 +78,18 @@ class FlextCliApi(FlextDomainService[str]):
     class ApiState(BaseModel):
         """Nested state manager with advanced Pydantic validation."""
 
+        model_config = STRICT_CONFIG_DICT
+
         version: str = Field(default="0.9.1")
         service_name: str = Field(default=FlextCliConstants.SERVICE_NAME_API)
-        sessions: dict[str, FlextCliModels.CliSession] = Field(default_factory=dict)
-        command_history: list[FlextCliModels.CliCommand] = Field(default_factory=list)
-        handlers: dict[str, object] = Field(default_factory=dict)
-        plugins: dict[str, object] = Field(default_factory=dict)
+        sessions: dict[str, FlextCliModels.CliSession] = Field(
+            default_factory=empty_dict
+        )
+        command_history: list[FlextCliModels.CliCommand] = Field(
+            default_factory=empty_list
+        )
+        handlers: dict[str, object] = Field(default_factory=empty_dict)
+        plugins: dict[str, object] = Field(default_factory=empty_dict)
         enable_session_tracking: bool = Field(default=True)
         enable_command_history: bool = Field(default=True)
 
@@ -563,9 +563,14 @@ class FlextCliApi(FlextDomainService[str]):
     def update_from_config(self) -> None:
         """Update API configuration from FlextConfig singleton.
 
-        This method allows the API to refresh its configuration
-        from the FlextConfig singleton, ensuring it always uses
-        the latest configuration values.
+                This method allows the API to refresh its configuration
+                from the FlextConfig singleton, ensuring it always uses
+        from flext_core import FlextLogger
+        from flext_core import FlextModels
+        from flext_core import FlextResult
+        from typing import Dict
+        from typing import List
+                the latest configuration values.
         """
         # Update configuration from singleton
         self._config = FlextCliConfig.get_global_instance()
@@ -664,11 +669,54 @@ class FlextCliApi(FlextDomainService[str]):
         data: object,
         title: str | None = None,
     ) -> FlextResult[object]:
-        """Create formatted table representation using flext-cli formatters."""
+        """Create formatted table - returns string for most cases, RichTable when needed."""
         table_result = self._formatters.format_table(data, title=title)
         if table_result.is_success:
             return FlextResult[object].ok(table_result.value)
         return FlextResult[object].fail(table_result.error or "Table creation failed")
+
+    def create_rich_table(
+        self,
+        data: object,
+        title: str | None = None,
+    ) -> FlextResult[RichTable]:
+        """Create Rich Table object for advanced use cases."""
+        try:
+            # Create Rich Table object directly
+            rich_table = RichTable(title=title)
+
+            if isinstance(data, dict):
+                # Add columns for dict data
+                rich_table.add_column("Key", style="cyan")
+                rich_table.add_column("Value", style="white")
+
+                # Add rows
+                for key, value in data.items():
+                    rich_table.add_row(str(key), str(value))
+            elif isinstance(data, (list, tuple)):
+                # Handle list/tuple data
+                if data and isinstance(data[0], dict):
+                    # List of dicts - use keys as columns
+                    keys = list(data[0].keys()) if data else []
+                    for key in keys:
+                        rich_table.add_column(str(key))
+
+                    for item in data:
+                        row_values = [str(item.get(key, "")) for key in keys]
+                        rich_table.add_row(*row_values)
+                else:
+                    # Simple list - single column
+                    rich_table.add_column("Value")
+                    for item in data:
+                        rich_table.add_row(str(item))
+            else:
+                # Single value
+                rich_table.add_column("Value")
+                rich_table.add_row(str(data))
+
+            return FlextResult[RichTable].ok(rich_table)
+        except Exception as e:
+            return FlextResult[RichTable].fail(f"Table creation failed: {e}")
 
     def aggregate_data(
         self,

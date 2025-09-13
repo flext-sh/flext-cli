@@ -33,16 +33,7 @@ from flext_core import FlextConfig, FlextResult
 from rich.console import Console
 from rich.table import Table
 
-from flext_cli import (
-    FlextApiClient,
-    FlextCliService,
-    FlextCliApi,
-    FlextCliAuth,
-    save_auth_token,
-    cli_create_table,
-    cli_format_output,
-    require_auth,
-)
+from flext_cli import ( FlextApiClient, FlextCliService, FlextCliApi, FlextCliAuth, save_auth_token, cli_create_table, cli_format_output, require_auth, )
 
 
 

@@ -1,4 +1,4 @@
-"""Tests for exceptions.py to improve coverage.
+"""FLEXT CLI Exceptions Tests.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,21 +10,7 @@ import tempfile
 
 import pytest
 
-from flext_cli.exceptions import (
-    FlextCliArgumentError,
-    FlextCliAuthenticationError,
-    FlextCliCommandError,
-    FlextCliConfigurationError,
-    FlextCliConnectionError,
-    FlextCliContextError,
-    FlextCliError,
-    FlextCliException,
-    FlextCliFormatError,
-    FlextCliOutputError,
-    FlextCliProcessingError,
-    FlextCliTimeoutError,
-    FlextCliValidationError,
-)
+from flext_cli.exceptions import ( FlextCliArgumentError, FlextCliAuthenticationError, FlextCliCommandError, FlextCliConfigurationError, FlextCliConnectionError, FlextCliContextError, FlextCliError, FlextCliException, FlextCliFormatError, FlextCliOutputError, FlextCliProcessingError, FlextCliTimeoutError, FlextCliValidationError, )
 
 
 class TestFlextCliErrorCodes:

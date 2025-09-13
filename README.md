@@ -259,7 +259,7 @@ make check                   # lint + type-check + test
 
 # Individual quality gates
 make lint
-make type-check            
+make type-check
 make test                    # pytest with 90% coverage requirement
 make security                # Bandit + pip-audit + secrets scan
 ```
@@ -500,7 +500,6 @@ pytest tests/test_integration.py -v
 ### Core Dependencies (flext-core Ecosystem)
 
 - **flext-core**: Foundation library - **60% integration complete**
-
   - ✅ FlextResult (excellent railway-oriented programming)
   - ✅ FlextModels.Entity (good domain modeling with validation)
   - ✅ FlextModels.Value (proper immutable value objects)
@@ -660,13 +659,11 @@ ls -la src/flext_cli/
 **Goal**: Enable basic FLEXT ecosystem management
 
 1. **Pipeline Management Commands** (Priority 1)
-
    - `flext pipeline list|start|stop|status|logs`
    - Integration with FlexCore (Go:8080) and FLEXT Service (Go/Py:8081)
    - Real-time pipeline monitoring and control
 
 2. **Service Orchestration** (Priority 1)
-
    - `flext service health|status|logs|start|stop`
    - Health checks for all 32+ FLEXT ecosystem projects
    - Service discovery and dependency mapping
@@ -681,13 +678,11 @@ ls -la src/flext_cli/
 **Goal**: Complete data pipeline management capabilities
 
 1. **Data Management Commands**
-
    - `flext data taps|targets|dbt` - Singer ecosystem management
    - Integration with 15 Singer projects (5 taps + 5 targets + 4 DBT + 1 extension)
    - Pipeline creation, monitoring, and troubleshooting
 
 2. **Plugin & Extension Management**
-
    - `flext plugin list|install|enable|disable`
    - Dynamic loading of project-specific functionality
    - Extension marketplace and dependency resolution
@@ -702,13 +697,11 @@ ls -la src/flext_cli/
 **Goal**: Full ecosystem project support
 
 1. **ALGAR Integration** (`flext algar`)
-
    - Oracle Unified Directory migration commands
    - ALGAR-specific pipeline and data operations
    - Integration with algar-oud-mig project
 
 2. **GrupoNos Integration** (`flext gruponos`)
-
    - GrupoNos-specific Meltano operations
    - Pipeline deployment and management
    - Integration with gruponos-meltano-native project
@@ -723,13 +716,11 @@ ls -la src/flext_cli/
 **Goal**: Production-ready enterprise features
 
 1. **Monitoring & Observability**
-
    - `flext monitor dashboard|metrics|alerts`
    - Real-time monitoring dashboard with Rich UI
    - Integration with flext-observability project
 
 2. **Distributed Logging**
-
    - `flext logs search|tail|export`
    - Centralized log aggregation and search
    - Correlation across all FLEXT services
@@ -744,13 +735,11 @@ ls -la src/flext_cli/
 **Goal**: Advanced operational capabilities
 
 1. **Configuration Management**
-
    - Profile system (dev/staging/prod environments)
    - Hierarchical configuration with inheritance
    - Secrets management integration
 
 2. **Performance & Reliability**
-
    - Circuit breaker patterns for service calls
    - Retry policies and graceful degradation
    - Performance benchmarking and optimization

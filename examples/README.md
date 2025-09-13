@@ -348,19 +348,16 @@ session.add_context("environment", "production")
 The examples demonstrate all four architectural layers:
 
 1. **Domain Layer** (`03_domain_entities.py`):
-
    - CLI entities with business logic
    - Value objects and domain services
    - Business rule validation
 
 2. **Application Layer** (`cli_app/application/commands.py`):
-
    - Use case orchestration
    - Command and query handlers (Sprint 2-3)
    - Application service coordination
 
 3. **Infrastructure Layer** (Utilities and configuration):
-
    - External service integration
    - Configuration management
    - Dependency injection (Sprint 1)

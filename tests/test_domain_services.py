@@ -1,10 +1,3 @@
-"""Comprehensive tests for FLEXT CLI Domain Services.
-
-Tests for FlextCliDomainServices class covering business logic orchestration,
-command lifecycle management, session management, and domain-driven design patterns.
-
-Coverage target: 15% → 95%+
-"""
 
 from __future__ import annotations
 
@@ -227,7 +220,7 @@ class TestSessionManagement:
         result = self.domain_services.create_session()
         assert result.is_success
         assert isinstance(result.value, FlextCliModels.CliSession)
-        assert result.value.user_id is None  # No user_id provided
+        assert result.value.user_id is not None  # Auto-generated user_id
 
     def test_create_session_with_user_id(self) -> None:
         """Test successful session creation with user ID."""

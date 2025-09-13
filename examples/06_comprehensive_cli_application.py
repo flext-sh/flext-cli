@@ -14,13 +14,6 @@ Key Patterns Demonstrated:
 - Interactive prompts and confirmation patterns
 - Comprehensive logging and debugging capabilities
 
-Architecture:
-- Multi-command CLI with nested command groups
-- Plugin architecture for extensibility
-- Configuration management with environment profiles
-- Service integration with external APIs
-- Rich terminal UI with progress tracking and tables
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -39,11 +32,7 @@ from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
-from flext_cli import (
-    FlextApiClient,
-    FlextCliContext,
-    get_cli_config,
-)
+from flext_cli import ( FlextApiClient, FlextCliContext, get_cli_config, )
 
 
 class ComprehensiveCliApplication:
@@ -242,16 +231,16 @@ python = "^3.13"
                 file_path = directory / filename
                 file_path.write_text(content)
 
-            # Complete command execution
-            # Project created successfully
-            app.console.print(
-                f"✅ Project '{name}' created successfully in {directory}"
-            )
+                # Complete command execution
+                # Project created successfully
+                app.console.print(
+                    f"✅ Project '{name}' created successfully in {directory}"
+                )
 
-            # Display project summary
-            project_table = Table(title=f"Project: {name}")
-            project_table.add_column("Property", style="cyan")
-            project_table.add_column("Value", style="green")
+                # Display project summary
+                project_table = Table(title=f"Project: {name}")
+                project_table.add_column("Property", style="cyan")
+                project_table.add_column("Value", style="green")
 
                 project_table.add_row("Name", name)
                 project_table.add_row("Template", template)
@@ -262,13 +251,10 @@ python = "^3.13"
                 )
 
                 app.console.print(project_table)
-            else:
-                app.console.print(
-                    f"[red]Command completion failed: {completion_result.error}[/red]"
-                )
-        else:
+
+        except Exception as e:
             app.console.print(
-                f"[red]Project creation failed: {execution_result.error}[/red]"
+                f"[red]Project creation failed: {e}[/red]"
             )
 
 

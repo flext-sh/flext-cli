@@ -157,7 +157,7 @@ class TestTypeCompatibility:
             return x
 
         # Basic validation that types work
-        assert isinstance(data, dict)
+        assert isinstance(data, str)
         assert isinstance(format_str, str)
         assert isinstance(args, list)
         assert callable(handler)

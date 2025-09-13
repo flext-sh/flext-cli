@@ -33,9 +33,8 @@ class TestFlextCliService:
         assert health_data["service"] == "FlextCliService"
         assert health_data["status"] == "healthy"
         assert "timestamp" in health_data
-        assert "flext_core_integration" in health_data
-        assert isinstance(health_data["flext_core_integration"], dict)
-        assert health_data["flext_core_integration"]["entities"] is True
+        assert "domain" in health_data
+        assert health_data["domain"] == "cli"
 
     def test_service_inherits_from_domain_service(self) -> None:
         """Test service inherits from FlextDomainService."""
@@ -45,6 +44,10 @@ class TestFlextCliService:
 
 class TestFlextCliConfig:
     """Test configuration functionality."""
+
+    def setup__method(self, __method: object) -> None:
+        """Clean up global configuration before each test."""
+        FlextCliConfig.clear_global_instance()
 
     def test_config_creation_with_defaults(self) -> None:
         """Test config creation with default values."""
@@ -70,10 +73,9 @@ class TestFlextCliConfig:
     def test_config_directories_creation(self) -> None:
         """Test directory creation functionality."""
         config = FlextCliConfig()
-        directories = config.CliDirectories(config=config)
 
-        # Test that directories can be created
-        result = directories.create_directories()
+        # Test that directories can be created using modern method
+        result = config.ensure_directories()
         assert isinstance(result, FlextResult)
         # Directory creation may succeed or fail based on permissions
         # but should return a FlextResult
@@ -81,18 +83,14 @@ class TestFlextCliConfig:
     def test_config_directories_validation(self) -> None:
         """Test directory validation functionality."""
         config = FlextCliConfig()
-        directories = config.CliDirectories(config=config)
 
-        # Create directories first
-        directories.create_directories()
-
-        # Test validation
-        result = directories.validate_directories()
+        # Create and validate directories using modern method
+        result = config.ensure_directories()
         assert isinstance(result, FlextResult)
 
     def test_config_settings_with_environment_variables(self) -> None:
         """Test settings loading from environment."""
-        settings = FlextCliConfig.CliSettings()
+        settings = FlextCliConfig()
 
         # Settings should be created successfully
         assert hasattr(settings, "profile")
@@ -177,8 +175,8 @@ class TestFlextCliConfig:
         assert hasattr(FlextCliConstants, "LOG_LEVEL_INFO")
 
         # Verify defaults match constants
-        settings = FlextCliConfig.CliSettings()
-        assert settings.api_url == FlextCliConstants.DEFAULT_API_URL
+        settings = FlextCliConfig()
+        assert settings.api_url == FlextCliConstants.FALLBACK_API_URL
         assert settings.log_level == FlextCliConstants.LOG_LEVEL_INFO
 
 

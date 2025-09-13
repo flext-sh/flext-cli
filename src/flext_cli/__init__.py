@@ -1,7 +1,4 @@
-"""FLEXT CLI - Direct API exposure using flext-core.
-
-NO WRAPPERS - Direct exposure of flext-core functionality.
-Uses SOURCE OF TRUTH principle - no reimplementation.
+"""FLEXT CLI - API exposure using.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -9,7 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-# Direct imports - NO WRAPPERS
 from flext_cli.__version__ import (
     __author__,
     __author_email__,
@@ -34,22 +30,34 @@ from flext_cli.__version__ import (
     __version_info__,
 )
 
-# Core CLI classes - DIRECT EXPOSURE
+# Import aliases and utility functions from dedicated module
+from flext_cli.aliases import (
+    FlextCliExecutionContext,
+    auth,
+    config,
+    debug,
+    get_cli_config,
+    handle_service_result,
+    login,
+    logout,
+    status,
+)
 from flext_cli.api import FlextCliApi
 from flext_cli.auth import FlextCliAuth
-
-# Click commands - DIRECT EXPOSURE
 from flext_cli.cli import (
-    FlextCliMain,
     auth as auth_cmd,
     cli,
     debug as debug_cmd,
+    get_cmd,
     login as login_cmd,
     logout as logout_cmd,
     main,
     status as status_cmd,
 )
+from flext_cli.cli_bus import FlextCliCommandBusService
+from flext_cli.cli_main import FlextCliMain
 from flext_cli.client import FlextApiClient
+from flext_cli.cmd import FlextCliCmd  # DEPRECATED - use FlextCliCommandBusService
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
@@ -82,22 +90,6 @@ from flext_cli.models import FlextCliModels
 from flext_cli.services import FlextCliServices
 from flext_cli.typings import E, F, P, R, T, U, V
 
-# Command aliases
-auth = auth_cmd
-status = status_cmd
-login = login_cmd
-logout = logout_cmd
-debug = debug_cmd
-config = FlextCliConfig
-FlextCliCmd = FlextCliConfig
-handle_service_result = FlextCliDecorators.handle_service_result
-
-
-def get_cli_config() -> FlextCliConfig:
-    """Get CLI config instance."""
-    return FlextCliConfig()
-
-
 __all__ = [
     "E",
     "F",
@@ -106,7 +98,8 @@ __all__ = [
     "FlextCliArgumentError",
     "FlextCliAuth",
     "FlextCliAuthenticationError",
-    "FlextCliCmd",
+    "FlextCliCmd",  # DEPRECATED - use FlextCliCommandBusService
+    "FlextCliCommandBusService",  # NEW - proper Command Bus integration
     "FlextCliCommandError",
     "FlextCliConfig",
     "FlextCliConfigurationError",
@@ -162,13 +155,19 @@ __all__ = [
     "__version__",
     "__version_info__",
     "auth",
+    "auth_cmd",
     "cli",
     "config",
     "debug",
+    "debug_cmd",
     "get_cli_config",
+    "get_cmd",
     "handle_service_result",
     "login",
+    "login_cmd",
     "logout",
+    "logout_cmd",
     "main",
     "status",
+    "status_cmd",
 ]

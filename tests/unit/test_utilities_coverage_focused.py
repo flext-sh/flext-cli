@@ -1,0 +1,200 @@
+"""Focused tests for FlextUtilities to achieve 100% coverage.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
+from __future__ import annotations
+
+import uuid
+from unittest.mock import Mock
+
+from flext_core import FlextUtilities
+
+
+class TestFlextUtilitiesCoverageFocused:
+    """Focused FlextUtilities tests targeting 100% coverage."""
+
+    def test_conversions_safe_int_edge_cases(self) -> None:
+        """Test safe_int with various edge cases to hit exception paths."""
+        # Test normal cases
+        assert FlextUtilities.Conversions.safe_int("123") == 123
+        assert FlextUtilities.Conversions.safe_int(45.7) == 45
+        assert FlextUtilities.Conversions.safe_int("456", default=99) == 456
+
+        # Test ValueError cases
+        assert FlextUtilities.Conversions.safe_int("invalid") == 0
+        assert FlextUtilities.Conversions.safe_int("not_a_number", default=42) == 42
+        assert FlextUtilities.Conversions.safe_int("") == 0
+
+        # Test TypeError cases
+        assert FlextUtilities.Conversions.safe_int(None) == 0
+        assert FlextUtilities.Conversions.safe_int(None, default=123) == 123
+        assert FlextUtilities.Conversions.safe_int(object()) == 0
+
+        # Test complex object that might raise TypeError
+        mock_obj = Mock()
+        mock_obj.__int__ = Mock(side_effect=TypeError("Cannot convert"))
+        assert FlextUtilities.Conversions.safe_int(mock_obj, default=999) == 999
+
+    def test_conversions_safe_bool_comprehensive(self) -> None:
+        """Test safe_bool with comprehensive coverage of all paths."""
+        # Test actual boolean values
+        assert FlextUtilities.Conversions.safe_bool(True) is True
+        assert FlextUtilities.Conversions.safe_bool(False) is False
+
+        # Test string true values
+        assert FlextUtilities.Conversions.safe_bool("true") is True
+        assert FlextUtilities.Conversions.safe_bool("TRUE") is True
+        assert FlextUtilities.Conversions.safe_bool("True") is True
+        assert FlextUtilities.Conversions.safe_bool("1") is True
+        assert FlextUtilities.Conversions.safe_bool("yes") is True
+        assert FlextUtilities.Conversions.safe_bool("YES") is True
+        assert FlextUtilities.Conversions.safe_bool("on") is True
+        assert FlextUtilities.Conversions.safe_bool("ON") is True
+
+        # Test string false values
+        assert FlextUtilities.Conversions.safe_bool("false") is False
+        assert FlextUtilities.Conversions.safe_bool("FALSE") is False
+        assert FlextUtilities.Conversions.safe_bool("False") is False
+        assert FlextUtilities.Conversions.safe_bool("0") is False
+        assert FlextUtilities.Conversions.safe_bool("no") is False
+        assert FlextUtilities.Conversions.safe_bool("NO") is False
+        assert FlextUtilities.Conversions.safe_bool("off") is False
+        assert FlextUtilities.Conversions.safe_bool("OFF") is False
+
+        # Test string default case (unrecognized strings)
+        assert FlextUtilities.Conversions.safe_bool("invalid") is False
+        assert FlextUtilities.Conversions.safe_bool("maybe", default=True) is True
+        assert FlextUtilities.Conversions.safe_bool("unknown") is False
+
+        # Test non-string, non-bool values with truthy/falsy
+        assert FlextUtilities.Conversions.safe_bool(1) is True
+        assert FlextUtilities.Conversions.safe_bool(0) is False
+        assert FlextUtilities.Conversions.safe_bool([1, 2, 3]) is True
+        assert FlextUtilities.Conversions.safe_bool([]) is False
+        assert FlextUtilities.Conversions.safe_bool({"key": "value"}) is True
+        assert FlextUtilities.Conversions.safe_bool({}) is False
+
+        # Test None and default handling
+        assert FlextUtilities.Conversions.safe_bool(None) is False
+        assert FlextUtilities.Conversions.safe_bool(None, default=True) is True
+
+        # Test exception handling paths
+        mock_obj = Mock()
+        mock_obj.__bool__ = Mock(side_effect=ValueError("Cannot convert to bool"))
+        assert FlextUtilities.Conversions.safe_bool(mock_obj) is False
+        assert FlextUtilities.Conversions.safe_bool(mock_obj, default=True) is True
+
+        # Test TypeError path
+        mock_obj2 = Mock()
+        mock_obj2.__bool__ = Mock(side_effect=TypeError("Type error"))
+        assert FlextUtilities.Conversions.safe_bool(mock_obj2, default=True) is True
+
+    def test_conversions_safe_float_edge_cases(self) -> None:
+        """Test safe_float with various edge cases to hit exception paths."""
+        # Test normal cases
+        assert FlextUtilities.Conversions.safe_float("123.45") == 123.45
+        assert FlextUtilities.Conversions.safe_float(67.89) == 67.89
+        assert FlextUtilities.Conversions.safe_float("456.78", default=99.9) == 456.78
+
+        # Test ValueError cases
+        assert FlextUtilities.Conversions.safe_float("invalid") == 0.0
+        assert FlextUtilities.Conversions.safe_float("not_a_number", default=42.5) == 42.5
+        assert FlextUtilities.Conversions.safe_float("") == 0.0
+
+        # Test TypeError cases
+        assert FlextUtilities.Conversions.safe_float(None) == 0.0
+        assert FlextUtilities.Conversions.safe_float(None, default=123.4) == 123.4
+        assert FlextUtilities.Conversions.safe_float(object()) == 0.0
+
+        # Test complex object that might raise TypeError
+        mock_obj = Mock()
+        mock_obj.__float__ = Mock(side_effect=TypeError("Cannot convert"))
+        assert FlextUtilities.Conversions.safe_float(mock_obj, default=999.9) == 999.9
+
+    def test_generators_edge_cases(self) -> None:
+        """Test Generators class methods for edge case coverage."""
+        # Test generate_unique_id
+        id1 = FlextUtilities.Generators.generate_unique_id()
+        id2 = FlextUtilities.Generators.generate_unique_id()
+        assert id1 != id2
+        assert isinstance(id1, str)
+        assert len(id1) > 0
+
+        # Test generate_correlation_id
+        corr_id = FlextUtilities.Generators.generate_correlation_id()
+        assert isinstance(corr_id, str)
+        assert len(corr_id) > 0
+
+    def test_text_processor_edge_cases(self) -> None:
+        """Test TextProcessor class methods for edge case coverage."""
+        # Test sanitize_filename with various inputs
+        assert FlextUtilities.TextProcessor.sanitize_filename("valid_name.txt") == "valid_name.txt"
+        assert FlextUtilities.TextProcessor.sanitize_filename("file/with\\slashes") == "file_with_slashes"
+
+        # Test truncate_string
+        assert FlextUtilities.TextProcessor.truncate_string("hello", 10) == "hello"
+        assert FlextUtilities.TextProcessor.truncate_string("very long string", 5) == "very "
+
+        # Test edge cases
+        assert FlextUtilities.TextProcessor.sanitize_filename("") == ""
+        assert FlextUtilities.TextProcessor.truncate_string("", 5) == ""
+
+        # Test to_snake_case
+        result = FlextUtilities.TextProcessor.to_snake_case("CamelCaseString")
+        assert isinstance(result, str)
+
+    def test_type_guards_comprehensive(self) -> None:
+        """Test TypeGuards class methods comprehensively."""
+        # Test is_non_empty_string
+        assert FlextUtilities.TypeGuards.is_non_empty_string("hello") is True
+        assert FlextUtilities.TypeGuards.is_non_empty_string("") is False
+        assert FlextUtilities.TypeGuards.is_non_empty_string(None) is False
+        assert FlextUtilities.TypeGuards.is_non_empty_string(123) is False
+
+        # Test is_valid_email
+        assert FlextUtilities.TypeGuards.is_valid_email("user@example.com") is True
+        assert FlextUtilities.TypeGuards.is_valid_email("invalid-email") is False
+        assert FlextUtilities.TypeGuards.is_valid_email("") is False
+        assert FlextUtilities.TypeGuards.is_valid_email(None) is False
+
+    def test_utility_functions_edge_cases(self) -> None:
+        """Test utility functions for edge case coverage."""
+        # Test generate_iso_timestamp
+        timestamp = FlextUtilities.generate_iso_timestamp()
+        assert isinstance(timestamp, str)
+        assert "T" in timestamp  # ISO format contains T
+
+        # Test safe_json_stringify with various data types
+        assert FlextUtilities.safe_json_stringify({"key": "value"}) == '{"key": "value"}'
+        assert FlextUtilities.safe_json_stringify([1, 2, 3]) == "[1, 2, 3]"
+        assert FlextUtilities.safe_json_stringify("simple string") == '"simple string"'
+
+        # Test with non-serializable object (should return fallback)
+        non_serializable = object()
+        result = FlextUtilities.safe_json_stringify(non_serializable)
+        assert result == '{"error": "Object not JSON serializable"}'
+
+    def test_validation_class_comprehensive(self) -> None:
+        """Test Validation class methods comprehensively."""
+        # Test is_valid_uuid
+        valid_uuid = str(uuid.uuid4())
+        assert FlextUtilities.Validation.is_valid_uuid(valid_uuid) is True
+        assert FlextUtilities.Validation.is_valid_uuid("invalid-uuid") is False
+        assert FlextUtilities.Validation.is_valid_uuid("") is False
+        assert FlextUtilities.Validation.is_valid_uuid(None) is False
+
+    def test_conversions_with_mock_exceptions(self) -> None:
+        """Test conversion methods with mocked exceptions to ensure all paths are covered."""
+        # Create mock objects that raise specific exceptions
+
+        # Test safe_int with object that raises ValueError in __int__
+        mock_obj = Mock()
+        mock_obj.__int__ = Mock(side_effect=ValueError("Mock ValueError"))
+        assert FlextUtilities.Conversions.safe_int(mock_obj, default=555) == 555
+
+        # Test safe_float with object that raises ValueError in __float__
+        mock_obj2 = Mock()
+        mock_obj2.__float__ = Mock(side_effect=ValueError("Mock ValueError"))
+        assert FlextUtilities.Conversions.safe_float(mock_obj2, default=777.7) == 777.7

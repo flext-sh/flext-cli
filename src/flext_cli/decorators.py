@@ -5,11 +5,11 @@ from __future__ import annotations
 import asyncio
 import functools
 import time
-from collections.abc import Callable, Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from pathlib import Path
-from typing import ParamSpec, TypeVar
+from typing import ParamSpec, TypeVar, cast
 
-from flext_core import FlextDecorators, FlextResult, FlextTypes
+from flext_core import FlextDecorators, FlextLogger, FlextResult, FlextTypes
 from rich.console import Console
 
 from flext_cli.constants import FlextCliConstants
@@ -25,74 +25,81 @@ class FlextCliDecorators(FlextDecorators):
     """
 
     @staticmethod
-    def handle_service_result(func: Callable[..., object]) -> Callable[..., object]:
+    def handle_service_result(
+        func: Callable[P, T],
+    ) -> Callable[P, T | None] | Callable[P, Awaitable[T | None]]:
         """Decorator for handling FlextResult values - extracts success data or returns None on failure."""
+        if asyncio.iscoroutinefunction(func):
 
-        @functools.wraps(func)
-        def _wrapper(*args: object, **kwargs: object) -> object:
-            # For async functions, return a coroutine that handles FlextResult
-            if asyncio.iscoroutinefunction(func):
+            @functools.wraps(func)
+            async def _async_wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
+                try:
+                    result = await func(*args, **kwargs)
 
-                async def async_handler() -> object:
-                    try:
-                        # Call the async function and await the result
-                        coro = func(*args, **kwargs)
-                        if asyncio.iscoroutine(coro):
-                            result = await coro
-                        else:
-                            result = coro
-
-                        # Process FlextResult
-                        if isinstance(result, FlextResult):
-                            if result.is_success:
-                                return result.value
-                            # For failures, print error and return None
-                            console = Console()
-                            console.print(f"[red]Error: {result.error}[/red]")
-                            return None
-
-                        # Pass through non-FlextResult values
-                        return result
-                    except Exception as e:
-                        # Handle exceptions by printing error and returning None
-                        console = Console()
-                        console.print(f"[red]Error: {e}[/red]")
+                    # Process FlextResult
+                    if isinstance(result, FlextResult):
+                        if result.success:
+                            # Type-safe extraction of value from FlextResult
+                            return cast("T", result.unwrap())
+                        # For failures, log error and return None
+                        logger = FlextLogger(__name__)
+                        logger.error(f"Async FlextResult error: {result.error}")
                         return None
 
-                return async_handler()
+                    # Pass through non-FlextResult values with type safety
+                    return cast("T", result)
 
-            # Handle sync functions normally
-            result = func(*args, **kwargs)
+                except Exception:
+                    # Handle exceptions by logging error and re-raising
+                    logger = FlextLogger(__name__)
+                    logger.exception("Exception in async decorated function")
+                    raise  # Re-raise the exception for proper error handling
 
-            # Process FlextResult
-            if isinstance(result, FlextResult):
-                if result.is_success:
-                    return result.value
-                # For failures, print error and return None
-                console = Console()
-                console.print(f"[red]Error: {result.error}[/red]")
-                return None
+            return _async_wrapper
 
-            # Pass through non-FlextResult values
-            return result
+        @functools.wraps(func)
+        def _sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
+            try:
+                result = func(*args, **kwargs)
 
-        return _wrapper
+                # Process FlextResult
+                if isinstance(result, FlextResult):
+                    if result.success:
+                        # Type-safe extraction of value from FlextResult
+                        return cast("T", result.unwrap())
+                    # For failures, log error and return None
+                    logger = FlextLogger(__name__)
+                    logger.error(f"FlextResult error: {result.error}")
+                    return None
+
+                # Pass through non-FlextResult values with type safety
+                return result
+
+            except Exception:
+                # Handle exceptions by logging error and re-raising
+                logger = FlextLogger(__name__)
+                logger.exception("Exception in decorated function")
+                raise  # Re-raise the exception for proper error handling
+
+        return _sync_wrapper
 
     @staticmethod
-    def async_command(func: Callable[..., object]) -> Callable[..., object]:
+    def async_command(func: Callable[P, T]) -> Callable[P, T]:
         """Convert async function to sync by running with asyncio.run when safe."""
         if asyncio.iscoroutinefunction(func):
 
             @functools.wraps(func)
-            def _wrapper(*args: object, **kwargs: object) -> object:
+            def _wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
                 try:
                     # Check if we're in an event loop already
                     asyncio.get_running_loop()
-                    # If we get here, there's a running loop, so return the coroutine
-                    return func(*args, **kwargs)
+                    # If we get here, there's a running loop, cannot use asyncio.run
+                    # Return error instead of coroutine
+                    error_msg = "Cannot run async command within existing event loop"
+                    raise RuntimeError(error_msg)
                 except RuntimeError:
                     # No event loop running, safe to use asyncio.run
-                    return asyncio.run(func(*args, **kwargs))
+                    return cast("T", asyncio.run(func(*args, **kwargs)))
 
             return _wrapper
         return func
@@ -106,8 +113,8 @@ class FlextCliDecorators(FlextDecorators):
         def _decorator(func: Callable[P, T]) -> Callable[P, T | None]:
             @functools.wraps(func)
             def _wrapped(*args: P.args, **kwargs: P.kwargs) -> T | None:
-                console = Console()
                 try:
+                    console = Console()
                     answer = console.input(f"{message} (y/N): ").strip().lower()
                     if answer in {"y", "yes"}:
                         return func(*args, **kwargs)
@@ -166,10 +173,8 @@ class FlextCliDecorators(FlextDecorators):
                 finally:
                     elapsed = time.time() - start
                     if show_in_output:
-                        Console().print(
-                            f"⏱  Execution time: {elapsed:.2f}s",
-                            style="dim",
-                        )
+                        console = Console()
+                        console.print(f"⏱  Execution time: {elapsed:.2f}s", style="dim")
 
             return _wrapped
 
@@ -184,7 +189,7 @@ class FlextCliDecorators(FlextDecorators):
         def _decorator(func: Callable[P, T]) -> Callable[P, T | None]:
             @functools.wraps(func)
             def _wrapped(*args: P.args, **kwargs: P.kwargs) -> T | None:
-                console = Console()
+                logger = FlextLogger(__name__)
 
                 candidate = (
                     kwargs.get("config")
@@ -195,10 +200,7 @@ class FlextCliDecorators(FlextDecorators):
                 )
 
                 if candidate is None:
-                    console.print(
-                        "Configuration not available for validation.",
-                        style="red",
-                    )
+                    logger.warning("Configuration not available for validation.")
                     return None
 
                 def _get(c: object, k: str) -> object | None:
@@ -208,10 +210,7 @@ class FlextCliDecorators(FlextDecorators):
 
                 for key in required_keys:
                     if _get(candidate, key) is None:
-                        console.print(
-                            f"Missing required configuration: {key}",
-                            style="red",
-                        )
+                        logger.error(f"Missing required configuration: {key}")
                         return None
 
                 return func(*args, **kwargs)
@@ -229,9 +228,11 @@ class FlextCliDecorators(FlextDecorators):
         def _decorator(func: Callable[P, T]) -> Callable[P, T]:
             @functools.wraps(func)
             def _wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
-                console = Console()
-                with console.status(message, spinner="dots"):
-                    return func(*args, **kwargs)
+                logger = FlextLogger(__name__)
+                logger.info(f"Starting: {message}")
+                result = func(*args, **kwargs)
+                logger.info(f"Completed: {message}")
+                return result
 
             return _wrapped
 
@@ -260,28 +261,36 @@ class FlextCliDecorators(FlextDecorators):
         return _decorator
 
     @staticmethod
-    def retry(max_attempts: int = 3) -> Callable[[T], T]:
-        """Retry decorator for handling transient failures."""
-        def _decorator(func: Callable[P, T]) -> Callable[P, T]:
+    def retry(max_attempts: int = 3) -> Callable[[T], T]:  # Match superclass signature
+        """Create retry decorator with exponential backoff."""
+
+        def decorator(func: T) -> T:
+            if not callable(func):
+                return func
+
             @functools.wraps(func)
-            def _wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
-                last_exception = None
+            def _wrapped(*args: object, **kwargs: object) -> T:
+                last_exception: Exception | None = None
 
                 for attempt in range(max_attempts):
                     try:
-                        return func(*args, **kwargs)
+                        return cast("T", func(*args, **kwargs))
                     except Exception as e:
                         last_exception = e
-                        if attempt < max_attempts - 1:  # Not last attempt
-                            time.sleep(0.1)  # Fixed delay
-                            continue
-                        break
+                        if attempt < max_attempts - 1:  # Don't sleep on last attempt
+                            sleep_time = 0.5 * (2**attempt)  # Exponential backoff
+                            time.sleep(sleep_time)
+                        continue
 
-                # All attempts failed - re-raise the last exception
-                raise last_exception or RuntimeError(f"Retry failed after {max_attempts} attempts")
+                # Re-raise the last exception if all attempts failed
+                if last_exception is not None:
+                    raise last_exception
+                error_msg = "Retry failed without exception"
+                raise RuntimeError(error_msg)
 
-            return _wrapped
-        return _decorator
+            return cast("T", _wrapped)
+
+        return decorator
 
 
 # Backward compatibility - expose static methods as module functions
