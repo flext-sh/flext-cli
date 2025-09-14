@@ -16,16 +16,7 @@ from flext_core import FlextResult, FlextTypes
 from pydantic import BaseModel, Field
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.utils import BASE_CONFIG_DICT, datetime_field
-
-# Essential type variables (still needed for compatibility)
-E = TypeVar("E")
-F = TypeVar("F")
-P = TypeVar("P")
-R = TypeVar("R")
-T = TypeVar("T")
-U = TypeVar("U")
-V = TypeVar("V")
+from flext_cli.utils import BASE_CONFIG_DICT
 
 
 class FlextCliTypes:
@@ -73,7 +64,7 @@ class FlextCliTypes:
             model_config = BASE_CONFIG_DICT
 
             status: Literal["PENDING"] = "PENDING"
-            queued_at: datetime = datetime_field()
+            queued_at: datetime = Field()
 
         class RunningState(BaseModel):
             """Command in running state."""
@@ -81,7 +72,7 @@ class FlextCliTypes:
             model_config = BASE_CONFIG_DICT
 
             status: Literal["RUNNING"] = "RUNNING"
-            started_at: datetime = datetime_field()
+            started_at: datetime = Field()
             process_id: int | None = None
 
         class CompletedState(BaseModel):
@@ -90,7 +81,7 @@ class FlextCliTypes:
             model_config = BASE_CONFIG_DICT
 
             status: Literal["COMPLETED"] = "COMPLETED"
-            completed_at: datetime = datetime_field()
+            completed_at: datetime = Field()
             exit_code: int = 0
             output: str = ""
 
@@ -100,7 +91,7 @@ class FlextCliTypes:
             model_config = BASE_CONFIG_DICT
 
             status: Literal["FAILED"] = "FAILED"
-            failed_at: datetime = datetime_field()
+            failed_at: datetime = Field()
             exit_code: int
             error_output: str
 
@@ -366,6 +357,15 @@ PluginStatus = FlextCliTypes.PluginStatusEnum
 
 # Essential type aliases only (eliminate dead code)
 URL = str  # Consolidated URL type - actually used
+
+# Type variables for generic programming
+E = TypeVar("E")
+F = TypeVar("F")
+P = TypeVar("P")
+R = TypeVar("R")
+T = TypeVar("T")
+U = TypeVar("U")
+V = TypeVar("V")
 
 
 # Minimal exports - only actually used types

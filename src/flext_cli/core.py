@@ -8,16 +8,17 @@ from __future__ import annotations
 
 import csv
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
 from flext_core import (
     FlextContainer,
     FlextDomainService,
-    FlextHandlers,
     FlextLogger,
+    FlextProcessing,
     FlextResult,
-    FlextServices,
+    FlextUtilities,
 )
 from pydantic import PrivateAttr
 
@@ -31,7 +32,7 @@ class FlextCliService(FlextDomainService[str]):
     """CLI service using flext-core services directly - ZERO duplication.
 
     Single responsibility: CLI service orchestration using existing flext-core infrastructure.
-    Uses FlextServices for health checks, FlextHandlers for request processing,
+    Uses FlextProcessing for health checks, FlextProcessing for request processing,
     FlextModels for data structures - NO reimplementation.
     Uses FlextConfig singleton as the single source of truth for all configuration.
     """
@@ -103,9 +104,9 @@ class FlextCliService(FlextDomainService[str]):
     def _initialize_services(self) -> None:
         """Initialize services using flext-core directly."""
         # Use flext-core services directly - NO duplication
-        self._service_registry = FlextServices.create_handler_registry()
-        self._service_orchestrator = FlextServices.create_pipeline()
-        self._handler_registry = FlextHandlers.create_handler_registry()
+        self._service_registry = FlextProcessing.create_handler_registry()
+        self._service_orchestrator = FlextProcessing.create_pipeline()
+        self._handler_registry = FlextProcessing.create_handler_registry()
 
         # Initialize _formatters using FlextCliFormatters for full integration
         self._formatters = FlextCliFormatters()
@@ -256,7 +257,12 @@ class FlextCliService(FlextDomainService[str]):
     ) -> FlextResult[object]:
         """Create a command."""
         try:
-            command = FlextCliModels.CliCommand(command_line=command_line, name=name)
+            command = FlextCliModels.CliCommand(
+                id=FlextUtilities.Generators.generate_uuid(),
+                command_line=command_line,
+                execution_time=datetime.now(UTC),
+                name=name,
+            )
             self._commands[name] = command
             return FlextResult[object].ok(command)
         except Exception as e:
@@ -265,7 +271,12 @@ class FlextCliService(FlextDomainService[str]):
     def flext_cli_create_session(self, user_id: str) -> FlextResult[object]:
         """Create a session."""
         try:
-            session = FlextCliModels.CliSession(user_id=user_id)
+            session = FlextCliModels.CliSession(
+                id=FlextUtilities.Generators.generate_uuid(),
+                session_id=FlextUtilities.Generators.generate_uuid(),
+                start_time=datetime.now(UTC),
+                user_id=user_id,
+            )
             self._sessions[session.id] = session
             return FlextResult[object].ok(session)
         except Exception as e:

@@ -19,20 +19,23 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
 import click
-from flext_core import FlextLogger, FlextResult, FlextContainer
+from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
-from flext_cli import ( FlextApiClient, FlextCliContext, get_cli_config, )
+from flext_cli import (
+    FlextApiClient,
+    FlextCliContext,
+    get_cli_config,
+)
 
 
 class ComprehensiveCliApplication:
@@ -202,8 +205,7 @@ def create(
         return
 
     # Create project directory
-    import subprocess
-    
+
     # Execute project creation with progress
     with app.console.status(f"[bold green]Creating {template} project...") as status:
         try:

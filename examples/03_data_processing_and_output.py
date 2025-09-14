@@ -22,7 +22,6 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import csv
 import io
@@ -31,12 +30,16 @@ import tempfile
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from flext_core import FlextResult
+from example_utils import print_demo_completion
+from flext_core import FlextResult, FlextTypes
 from rich.console import Console
 from rich.panel import Panel
 
-from flext_cli import ( flext_cli_aggregate_data, flext_cli_format, flext_cli_table, )
-from example_utils import print_demo_completion
+from flext_cli import (
+    flext_cli_aggregate_data,
+    flext_cli_format,
+    flext_cli_table,
+)
 
 
 def demonstrate_data_transformation() -> FlextResult[None]:
@@ -319,7 +322,7 @@ def demonstrate_file_operations() -> FlextResult[None]:
         ) as temp_file:
             temp_path = Path(temp_file.name)
 
-      
+
         try:
             temp_path.write_text(json.dumps(config_data, indent=2), encoding="utf-8")
             save_result = FlextResult[bool].ok(data=True)

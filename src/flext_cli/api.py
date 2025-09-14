@@ -28,7 +28,7 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
 from flext_cli.services import FlextCliServices
-from flext_cli.utils import STRICT_CONFIG_DICT, empty_dict, empty_list
+from flext_cli.utils import STRICT_CONFIG_DICT
 
 # CLI API HELL: 811 LINES COM 48 MÉTODOS PARA API DE CLI!
 # BUZZWORD BINGO: "cutting-edge patterns", "advanced pattern matching"!
@@ -82,14 +82,10 @@ class FlextCliApi(FlextDomainService[str]):
 
         version: str = Field(default="0.9.1")
         service_name: str = Field(default=FlextCliConstants.SERVICE_NAME_API)
-        sessions: dict[str, FlextCliModels.CliSession] = Field(
-            default_factory=empty_dict
-        )
-        command_history: list[FlextCliModels.CliCommand] = Field(
-            default_factory=empty_list
-        )
-        handlers: dict[str, object] = Field(default_factory=empty_dict)
-        plugins: dict[str, object] = Field(default_factory=empty_dict)
+        sessions: dict[str, FlextCliModels.CliSession] = Field(default_factory=dict)
+        command_history: list[FlextCliModels.CliCommand] = Field(default_factory=list)
+        handlers: dict[str, object] = Field(default_factory=dict)
+        plugins: dict[str, object] = Field(default_factory=dict)
         enable_session_tracking: bool = Field(default=True)
         enable_command_history: bool = Field(default=True)
 
@@ -337,7 +333,11 @@ class FlextCliApi(FlextDomainService[str]):
                 return FlextResult[FlextCliModels.CliCommand].fail(
                     "Invalid command line",
                 )
-            command = FlextCliModels.CliCommand(command_line=command_line.strip())
+            command = FlextCliModels.CliCommand(
+                id=FlextUtilities.Generators.generate_uuid(),
+                command_line=command_line.strip(),
+                execution_time=datetime.now(UTC),
+            )
             self.state.command_history.append(command)
             return FlextResult[FlextCliModels.CliCommand].ok(command)
 
@@ -356,6 +356,9 @@ class FlextCliApi(FlextDomainService[str]):
         ) -> FlextResult[FlextCliModels.CliSession]:
             """Handle session creation with advanced state management."""
             session = FlextCliModels.CliSession(
+                id=FlextUtilities.Generators.generate_uuid(),
+                session_id=FlextUtilities.Generators.generate_uuid(),
+                start_time=datetime.now(UTC),
                 user_id=str(user_id) if user_id else None,
             )
             if self.state.enable_session_tracking:

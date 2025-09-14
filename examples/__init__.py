@@ -25,6 +25,7 @@ All examples demonstrate proper flext-core usage without TYPE_CHECKING imports.
 """
 
 from __future__ import annotations
+
 from flext_core import FlextTypes
 
 __all__: FlextTypes.Core.StringList = []

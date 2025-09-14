@@ -22,7 +22,6 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -31,13 +30,20 @@ from typing import Protocol
 from uuid import UUID, uuid4
 
 import click
-from flext_core import ( FlextDomainService, FlextModels, FlextResult, )
+from example_utils import handle_command_result
+from flext_core import (
+    FlextDomainService,
+    FlextModels,
+    FlextResult,
+    FlextTypes,
+)
 from rich.console import Console
 
-from example_utils import handle_command_result
-from flext_cli import ( FlextCliService, cli_measure_time, require_auth, )
-
-
+from flext_cli import (
+    FlextCliService,
+    cli_measure_time,
+    require_auth,
+)
 
 
 @dataclass(frozen=True)

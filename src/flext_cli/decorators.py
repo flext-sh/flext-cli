@@ -7,15 +7,12 @@ import functools
 import time
 from collections.abc import Awaitable, Callable, Mapping
 from pathlib import Path
-from typing import ParamSpec, TypeVar, cast
+from typing import cast
 
-from flext_core import FlextDecorators, FlextLogger, FlextResult, FlextTypes
+from flext_core import FlextDecorators, FlextLogger, FlextResult, FlextTypes, P, T
 from rich.console import Console
 
 from flext_cli.constants import FlextCliConstants
-
-P = ParamSpec("P")
-T = TypeVar("T")
 
 
 class FlextCliDecorators(FlextDecorators):

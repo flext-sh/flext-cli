@@ -22,15 +22,6 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 from flext_cli.utils import (
     STRICT_CONFIG_DICT,
-    bool_field,
-    constant_field,
-    datetime_field,
-    empty_list,
-    enum_field,
-    optional_field,
-    timeout_field,
-    uuid_field,
-    version_field,
 )
 
 
@@ -51,16 +42,18 @@ class FlextCliModels:
 
         model_config = STRICT_CONFIG_DICT
 
-        id: str = uuid_field()
-        command_line: str | None = optional_field(description="Command to execute")
-        execution_time: datetime = datetime_field()
+        id: str = Field()
+        command_line: str | None = Field(default=None, description="Command to execute")
+        execution_time: datetime = Field()
 
         # Advanced discriminated union state management
         state: Annotated[
             FlextCliTypes.Commands.CommandState,
             Discriminator("status"),
         ] = Field(
-            default_factory=FlextCliTypes.Commands.PendingState,
+            default_factory=lambda: FlextCliTypes.Commands.PendingState(
+                queued_at=datetime.now(UTC)
+            ),
             description="Type-safe command state with discriminated union",
         )
 
@@ -226,11 +219,11 @@ class FlextCliModels:
     class CliSession(FlextModels.Entity):
         """CLI session model."""
 
-        id: str = uuid_field()
-        session_id: str = uuid_field()
-        start_time: datetime = datetime_field()
+        id: str = Field()
+        session_id: str = Field()
+        start_time: datetime = Field()
         end_time: datetime | None = None
-        commands: list[FlextCliModels.CliCommand] = Field(default_factory=empty_list)
+        commands: list[FlextCliModels.CliCommand] = Field(default_factory=list)
         user_id: str | None = None
 
         @computed_field
@@ -269,15 +262,11 @@ class FlextCliModels:
     class CliConfig(FlextModels.Entity):
         """CLI configuration model."""
 
-        id: str = uuid_field()
-        profile: str = enum_field(FlextCliConstants.ProfileName.DEFAULT)
-        output_format: str = constant_field(
-            FlextCliConstants.OUTPUT.default_output_format,
-        )
-        debug_mode: bool = bool_field(False)
-        timeout_seconds: int = timeout_field(
-            FlextCliConstants.TIMEOUTS.default_command_timeout,
-        )
+        id: str = Field()
+        profile: str = Field(default=FlextCliConstants.ProfileName.DEFAULT)
+        output_format: str = Field(default=FlextCliConstants.OUTPUT.default_output_format, frozen=True)
+        debug_mode: bool = Field(default=False)
+        timeout_seconds: int = Field(default=FlextCliConstants.TIMEOUTS.default_command_timeout, ge=1)
 
         @field_validator("output_format")
         @classmethod
@@ -308,10 +297,10 @@ class FlextCliModels:
     class CliPlugin(FlextModels.Entity):
         """CLI plugin model."""
 
-        id: str = uuid_field()
+        id: str = Field()
         name: str = Field(...)
         entry_point: str = Field(...)
-        plugin_version: str = version_field(default="1.0.0")
+        plugin_version: str = Field(default="1.0.0")
         description: str | None = None
 
         @field_validator("name")

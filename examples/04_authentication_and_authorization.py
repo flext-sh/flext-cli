@@ -22,20 +22,23 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import os
 from datetime import UTC, datetime, timedelta
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from flext_cli import (
+    FlextApiClient,
+    get_auth_headers,
+    get_cli_config,
+    require_auth,
+    save_auth_token,
+)
 from flext_cli.example_utils import print_demo_completion
-from flext_cli import ( FlextApiClient, save_auth_token, )
-from flext_cli import get_auth_headers, get_cli_config
-from flext_cli import require_auth
 
 
 def demonstrate_basic_authentication() -> FlextResult[None]:

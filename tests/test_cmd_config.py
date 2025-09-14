@@ -11,7 +11,15 @@ from click.testing import CliRunner
 from flext_core import FlextTypes
 from rich.console import Console
 
-from flext_cli.cli import ( config, edit, get, path, set_value, show, validate, )
+from flext_cli.cli import (
+    config,
+    edit,
+    get,
+    path,
+    set_value,
+    show,
+    validate,
+)
 from flext_cli.cli_bus import FlextCliCommandBusService
 
 

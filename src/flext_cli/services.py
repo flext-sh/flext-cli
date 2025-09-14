@@ -12,7 +12,7 @@ from flext_core import FlextProcessing, FlextResult
 class FlextCliServices:
     """CLI Services using flext-core directly - ZERO duplication.
 
-    Uses FlextProcessing (aliased as FlextServices) directly for all service operations.
+    Uses FlextProcessing (aliased as FlextProcessing) directly for all service operations.
     NO custom implementations, NO wrappers, NO duplications.
     """
 

@@ -31,15 +31,15 @@ class TestUtilitiesDebugCoverage:
             FlextUtilities.Conversions.safe_float("12.34.56.78")
 
             # TypeError cases - these should definitely hit the exception handler
-            FlextUtilities.Conversions.safe_float(None)  # type: ignore[arg-type]
-            FlextUtilities.Conversions.safe_float(complex(1, 2))  # type: ignore[arg-type]
-            FlextUtilities.Conversions.safe_float([1, 2, 3])  # type: ignore[arg-type]
-            FlextUtilities.Conversions.safe_float({"key": "value"})  # type: ignore[arg-type]
+            FlextUtilities.Conversions.safe_float(None)
+            FlextUtilities.Conversions.safe_float(complex(1, 2))
+            FlextUtilities.Conversions.safe_float([1, 2, 3])
+            FlextUtilities.Conversions.safe_float({"key": "value"})
 
             # More exotic type errors
-            FlextUtilities.Conversions.safe_float(object())  # type: ignore[arg-type]
-            FlextUtilities.Conversions.safe_float(set())  # type: ignore[arg-type]
-            FlextUtilities.Conversions.safe_float(lambda x: x)  # type: ignore[arg-type]
+            FlextUtilities.Conversions.safe_float(object())
+            FlextUtilities.Conversions.safe_float(set())
+            FlextUtilities.Conversions.safe_float(lambda x: x)
 
         # Run with tracing
         tracer.run("traced_safe_float_exceptions()")
@@ -71,7 +71,7 @@ class TestUtilitiesDebugCoverage:
         ]
 
         for case in test_cases_type_error:
-            result = FlextUtilities.Conversions.safe_float(case, default=888.0)  # type: ignore[arg-type]
+            result = FlextUtilities.Conversions.safe_float(case, default=888.0)
             assert result == 888.0, f"safe_float({case!r}) should return default 888.0, got {result}"
 
     def test_safe_float_exception_paths_with_monkey_patch(self) -> None:
@@ -93,7 +93,7 @@ class TestUtilitiesDebugCoverage:
 
         try:
             # Temporarily replace float()
-            builtins.float = counting_float  # type: ignore[assignment]
+            builtins.float = counting_float
 
             # Test forced ValueError path
             result1 = FlextUtilities.Conversions.safe_float("force_value_error", default=111.0)
@@ -140,5 +140,5 @@ class TestUtilitiesDebugCoverage:
         ]
 
         for test_input, expected_default in edge_cases:
-            result = FlextUtilities.Conversions.safe_float(test_input, default=expected_default)  # type: ignore[arg-type]
+            result = FlextUtilities.Conversions.safe_float(test_input, default=expected_default)
             assert result == expected_default, f"safe_float({test_input!r}) should return {expected_default}, got {result}"

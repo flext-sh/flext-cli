@@ -13,7 +13,10 @@ import click
 from click.testing import CliRunner
 from rich.console import Console
 
-from flext_cli import ( FlextCliConfig, get_cli_config, )
+from flext_cli import (
+    FlextCliConfig,
+    get_cli_config,
+)
 from flext_cli.cli import config
 
 
