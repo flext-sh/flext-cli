@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 import pytest
 from flext_core import FlextResult, FlextTypes
 
@@ -30,7 +32,7 @@ class TestFlextCliModelsReal:
     def test_command_creation_and_validation(self) -> None:
         """Test REAL command creation and business rule validation."""
         # Create REAL command
-        command = FlextCliModels.CliCommand(command_line="echo hello")
+        command = FlextCliModels.CliCommand(command_line="echo hello", execution_time=datetime.now(UTC))
 
         # Test REAL validation
         validation_result = command.validate_business_rules()
@@ -38,7 +40,7 @@ class TestFlextCliModelsReal:
 
     def test_command_execution_workflow(self) -> None:
         """Test REAL command execution workflow."""
-        command = FlextCliModels.CliCommand(command_line="test command", id="test-123")
+        command = FlextCliModels.CliCommand(command_line="test command", id="test-123", execution_time=datetime.now(UTC))
 
         # Test starting execution
         start_result = command.start_execution()
@@ -48,10 +50,10 @@ class TestFlextCliModelsReal:
 
     def test_session_functionality(self) -> None:
         """Test REAL session functionality."""
-        session = FlextCliModels.CliSession(user_id="test-user")
+        session = FlextCliModels.CliSession(user_id="test-user", start_time=datetime.now(UTC))
 
         # Test adding command to session
-        test_command = FlextCliModels.CliCommand(command_line="test-command")
+        test_command = FlextCliModels.CliCommand(command_line="test-command", execution_time=datetime.now(UTC))
         add_result = session.add_command(test_command)
         assert add_result.is_success
         assert len(session.commands) > 0
@@ -125,7 +127,7 @@ class TestFlextCliIntegration:
 
     def test_flext_result_integration(self) -> None:
         """Test REAL FlextResult integration works throughout CLI."""
-        command = FlextCliModels.CliCommand(command_line="test")
+        command = FlextCliModels.CliCommand(command_line="test", execution_time=datetime.now(UTC))
 
         # All CLI operations return FlextResult
         validation = command.validate_business_rules()
@@ -144,7 +146,7 @@ class TestFlextCliIntegration:
 
         # All should be single point of access
         command_cls = FlextCliModels.CliCommand
-        command = command_cls(command_line="test")
+        command = command_cls(command_line="test", execution_time=datetime.now(UTC))
         assert command.command_line == "test"
 
 
@@ -178,7 +180,7 @@ class TestFlextCliExportsReal:
         timeout_config = FlextCliConstants.TimeoutConfig
 
         # Test they work
-        cmd = command_cls(command_line="test")
+        cmd = command_cls(command_line="test", execution_time=datetime.now(UTC))
         config = timeout_config()
         assert cmd.command_line == "test"
         assert config.default_api_timeout > 0

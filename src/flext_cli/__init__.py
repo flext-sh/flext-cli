@@ -32,8 +32,6 @@ from flext_cli.__version__ import (
     __version__,
     __version_info__,
 )
-
-# Import aliases and utility functions from dedicated module
 from flext_cli.aliases import (
     FlextCliExecutionContext,
     auth,

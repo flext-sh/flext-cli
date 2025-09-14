@@ -67,7 +67,7 @@ class TestUtilitiesDebugCoverage:
             [1, 2, 3],
             {"key": "value"},
             object(),
-            set([1, 2, 3]),
+            {1, 2, 3},
         ]
 
         for case in test_cases_type_error:
@@ -85,10 +85,12 @@ class TestUtilitiesDebugCoverage:
             # Force exceptions for certain values to ensure coverage
             if value == "force_value_error":
                 exception_counter += 1
-                raise ValueError("Forced ValueError for coverage")
+                msg = "Forced ValueError for coverage"
+                raise ValueError(msg)
             if value == "force_type_error":
                 exception_counter += 1
-                raise TypeError("Forced TypeError for coverage")
+                msg = "Forced TypeError for coverage"
+                raise TypeError(msg)
             return original_float(value)
 
         try:

@@ -45,13 +45,13 @@ class TestFlextCliDataProcessing:
         assert isinstance(result, FlextResult)
         assert result.is_failure
         assert result.error is not None
-        assert "Validator function must be callable" in result.error
+        assert "Validator function must be callable" in str(result.error)
 
     def test_validate_data_with_callable_validator(self) -> None:
         """Test validate_data with callable validator function."""
         processor = FlextCliDataProcessing()
 
-        def validator(data: dict) -> bool:
+        def validator(data: dict[str, object]) -> bool:
             return "name" in data and "value" in data
 
         data = {"name": "test", "value": 42}
@@ -69,13 +69,14 @@ class TestFlextCliDataProcessing:
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
-        assert "Validator function must be callable" in result.error
+        assert result.error is not None
+        assert "Validator function must be callable" in str(result.error)
 
     def test_validate_data_with_list(self) -> None:
         """Test validate_data with list data."""
         processor = FlextCliDataProcessing()
 
-        def validator(data: list) -> bool:
+        def validator(data: list[object]) -> bool:
             return len(data) > 0
 
         data = [1, 2, 3]
@@ -101,7 +102,7 @@ class TestFlextCliDataProcessing:
         """Test validate_data exception handling."""
         processor = FlextCliDataProcessing()
 
-        def validator(_data: dict) -> bool:
+        def validator(_data: dict[str, object]) -> bool:
             error_msg = "Test exception"
             raise ValueError(error_msg)
 

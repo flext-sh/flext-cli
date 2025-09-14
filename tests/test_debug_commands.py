@@ -1,3 +1,4 @@
+"""Test module for debug_commands."""
 
 from __future__ import annotations
 

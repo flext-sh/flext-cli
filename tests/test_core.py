@@ -1,9 +1,11 @@
+"""Test module for core."""
 
 from __future__ import annotations
 
 import json
 import tempfile
 import unittest
+from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
@@ -561,6 +563,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         plugin = FlextCliModels.CliCommand(
             id="test-plugin-123",
             command_line="test-plugin --version",
+            execution_time=datetime.now(UTC),
             name="test-plugin",
             entry_point="test.plugin:main",
             plugin_version="1.0.0",
@@ -583,12 +586,14 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         plugin1 = FlextCliModels.CliCommand(
             id="plugin1",
             command_line="duplicate-plugin --test1",
+            execution_time=datetime.now(UTC),
             name="duplicate-plugin",
             entry_point="test1:main",
         )
         plugin2 = FlextCliModels.CliCommand(
             id="plugin2",
             command_line="duplicate-plugin --test2",
+            execution_time=datetime.now(UTC),
             name="duplicate-plugin",
             entry_point="test2:main",
         )
@@ -684,6 +689,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         plugin = FlextCliModels.CliCommand(
             id="test",
             command_line="test --version",
+            execution_time=datetime.now(UTC),
             name="test",
             entry_point="test:main",
         )

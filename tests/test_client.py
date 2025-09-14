@@ -1,3 +1,4 @@
+"""Test module for client."""
 
 from __future__ import annotations
 
