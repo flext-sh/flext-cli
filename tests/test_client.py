@@ -269,8 +269,6 @@ class TestClientModels(unittest.TestCase):
             id="pipeline-123",
             name="Test Pipeline",
             status="active",
-            created_at="2025-01-01T00:00:00Z",
-            updated_at="2025-01-01T12:00:00Z",
             config=config,
         )
 

@@ -111,7 +111,7 @@ class TestFlextCliDataProcessing:
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
-        assert "Validation failed" in result.error
+        assert result.error and "Validation failed" in result.error
 
     def test_batch_process_items_with_list(self) -> None:
         """Test batch_process_items with list input."""

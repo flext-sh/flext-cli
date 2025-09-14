@@ -172,3 +172,6 @@ __all__ = [
     "status",
     "status_cmd",
 ]
+
+# Ensure aliases take precedence over module imports for CLI commands
+from flext_cli.aliases import auth as _auth_cmd  # noqa: F401 E402
