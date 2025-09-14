@@ -30,27 +30,9 @@ from flext_cli.models import FlextCliModels
 from flext_cli.services import FlextCliServices
 from flext_cli.utils import STRICT_CONFIG_DICT
 
-# CLI API HELL: 811 LINES COM 48 MÉTODOS PARA API DE CLI!
-# BUZZWORD BINGO: "cutting-edge patterns", "advanced pattern matching"!
-# DOMAIN SERVICE ABUSE: API não é domain service, é client HTTP!
-# OVER-ENGINEERING SIN: "Operation dispatching" para CLI simples!
-# PYTHON 3.13 MARKETING: Using "cutting-edge" as justification for complexity!
-
 
 class FlextCliApi(FlextDomainService[str]):
-    """OVER-ENGINEERED CLI API: 811 lines for HTTP client!.
-
-    BUZZWORD VIOLATIONS:
-    - "CUTTING-EDGE PATTERNS" - just over-complicated HTTP calls
-    - "ADVANCED PATTERN MATCHING" - unnecessary for simple API client
-    - "SPECIALIZED HANDLERS" - HTTP requests don't need handlers
-    - "OPERATION DISPATCHING" - overkill for REST API calls
-    - Python 3.13 features used as complexity justification
-
-    REALITY CHECK: This should be simple requests wrapper with error handling.
-    MIGRATE TO: httpx client with minimal abstraction layer.
-
-    Unified CLI API with Python 3.13 cutting-edge patterns and nested specialized handlers.
+    """Unified CLI API with Python 3.13 cutting-edge patterns and nested specialized handlers.
 
     Features:
         - Single class pattern with all functionality encapsulated

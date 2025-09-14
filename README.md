@@ -1,813 +1,226 @@
-# flext-cli — FLEXT Command Line Interface
+# flext-cli
 
-**Type**: Application | **Status**: Active development (~30% functional) | **Dependencies**: flext-core, click, rich, httpx
+**CLI library for the FLEXT ecosystem - currently in early development with significant functionality gaps.**
 
-Unified CLI for the distributed FLEXT ecosystem. Currently exposes functional `auth`, `config` and `debug` groups; other groups are planned.
+[![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
+[![Development Status](https://img.shields.io/badge/status-alpha-red.svg)](#current-status)
 
-## 📋 **Recent Major Achievements**
-
-- ✅ **Complete docstring standardization** - All 35 source files updated with comprehensive documentation
-- ✅ **English standardization** - Repository moving toward English-only documentation
-- ✅ **Sprint alignment** - All modules reference specific Sprint requirements from 10-sprint roadmap
-- ✅ **Architecture documentation** - Comprehensive patterns documented in all layers (Domain, Application, Infrastructure)
-- ✅ **Status indicators** - 251 status indicators (✅/⚠️/❌/🎯) across all files providing clear implementation status
-- ✅ **Documentation modernization** - Complete English translation and modernization of all docs/ directory
-
-## Mission & Vision
-
-### 🎯 **Mission**
-
-Provide a unified CLI that simplifies management and orchestration of the entire FLEXT distributed data integration ecosystem, enabling developers and operators to efficiently work with 32+ interconnected projects from a single command interface.
-
-### 🚀 **Vision**
-
-Become the primary interface for FLEXT ecosystem operations, offering:
-
-- **Unified Management**: Single CLI for all FLEXT services, pipelines, and projects
-- **Enterprise Operations**: Production-ready orchestration, monitoring, and debugging
-- **Developer Productivity**: Streamlined workflows for development, testing, and deployment
-- **Ecosystem Integration**: Seamless interaction between FlexCore, Singer pipelines, DBT, and project-specific tools
-
-### 🏗️ **FLEXT Ecosystem Integration**
-
-FLEXT CLI serves as the central command hub for:
-
-#### **Core Services (2 services)**
-
-- **FlexCore** (Go): Runtime container service (port 8080)
-- **FLEXT Service** (Go/Python): Main data platform service (port 8081)
-
-#### **Data Integration (15 Singer projects)**
-
-- **5 Taps**: Oracle, LDAP, LDIF, Oracle OIC, Oracle WMS extractors
-- **5 Targets**: Oracle, LDAP, LDIF, Oracle OIC, Oracle WMS loaders
-- **4 DBT Projects**: LDAP, LDIF, Oracle, Oracle WMS transformers
-- **1 Extension**: Oracle OIC extensions
-
-#### **Application Services (5 projects)**
-
-- **flext-api**: REST API services
-- **flext-auth**: Authentication and authorization
-- **flext-web**: Web interface and dashboard
-- **flext-quality**: Code quality analysis
-- **flext-cli**: This command-line interface
-
-#### **Infrastructure & Foundation (8 projects)**
-
-- **flext-core**: Base patterns and shared library
-- **flext-observability**: Monitoring and metrics
-- **flext-db-oracle**: Oracle database connectivity
-- **flext-ldap**: LDAP directory services
-- **flext-ldif**: LDIF file processing
-- **flext-oracle-wms**: Oracle WMS integration
-- **flext-grpc**: gRPC communication
-- **flext-meltano**: Singer/Meltano/DBT orchestration
-
-#### **Project-Specific Integrations (2 projects)**
-
-- **algar-oud-mig**: ALGAR Oracle Unified Directory migration
-- **gruponos-meltano-native**: GrupoNos-specific Meltano implementation
-
-## Recursos atuais (~30%)
-
-### ✅ Implementado & funcionando
-
-- **🎨 Rich Terminal UI**: Beautiful output with tables, progress bars, panels (Rich library)
-- **🏗️ Clean Architecture**: Domain-driven design with flext-core foundation
-- **🔐 Authentication**: User authentication and token management (`flext auth`)
-- **⚙️ Configuration**: Basic configuration management (`flext config`)
-- **🐛 Debugging**: Diagnostic and debugging tools (`flext debug`)
-- **📊 Multiple Output Formats**: JSON, YAML, Table, CSV, Plain text support
-- **🎯 Type Safety**: MyPy strict mode enabled; ongoing work to reach zero errors
-- **🧪 Quality Gates**: Coverage improving toward 90%; validation pipeline enabled
-
-### ⚠️ Parcialmente implementado
-
-- **🏗️ flext-core Integration (60%)**: Good foundations, missing enterprise patterns
-  - ✅ FlextResult (railway-oriented programming)
-  - ✅ FlextModels.Entity (domain modeling)
-  - ✅ FlextModels.Value (immutable value objects)
-  - ✅ FlextConfig (configuration)
-  - ❌ FlextContainer (dependency injection)
-  - ❌ CQRS (command/query separation)
-  - ❌ Domain Events (event-driven architecture)
-
-### ❌ Missing Critical Features
-
-#### **Pipeline Management** (Priority 1)
-
-```bash
-flext pipeline list                    # List all data pipelines
-flext pipeline start <name>           # Start specific pipeline
-flext pipeline stop <name>            # Stop running pipeline
-flext pipeline status <name>          # Check pipeline status
-flext pipeline logs <name>            # View pipeline logs
-```
-
-#### **Service Orchestration** (Priority 1)
-
-```bash
-flext service health                   # Health check all services
-flext service start <service>         # Start FLEXT service
-flext service stop <service>          # Stop FLEXT service
-flext service logs <service>          # View service logs
-flext service status                  # Overall ecosystem status
-```
-
-#### **Data Management** (Priority 2)
-
-```bash
-flext data taps list                   # List available Singer taps
-flext data targets list               # List available Singer targets
-flext data dbt run <project>          # Execute DBT transformations
-flext data pipeline create <config>   # Create new data pipeline
-```
-
-#### **Plugin & Extension Management** (Priority 2)
-
-```bash
-flext plugin list                      # List installed plugins
-flext plugin install <name>           # Install plugin/extension
-flext plugin enable <name>            # Enable plugin
-flext plugin disable <name>           # Disable plugin
-```
-
-#### **Project-Specific Commands** (Priority 3)
-
-```bash
-flext algar migration status          # ALGAR migration operations
-flext algar oud sync                  # Oracle Unified Directory sync
-flext gruponos pipeline deploy        # GrupoNos pipeline deployment
-flext meltano project init           # Meltano project initialization
-```
-
-#### **Monitoring & Observability** (Priority 3)
-
-```bash
-flext monitor dashboard               # Real-time monitoring dashboard
-flext monitor metrics <service>       # Service-specific metrics
-flext monitor alerts list            # Active alerts and warnings
-flext logs search <query>            # Distributed log search
-```
-
-## Arquitetura
-
-### 🏗️ **Target Architecture (Enterprise-Grade)**
-
-FLEXT CLI follows Clean Architecture principles with full flext-core integration to provide functionality:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    FLEXT CLI - Unified Interface                │
-├─────────────────────────────────────────────────────────────────┤
-│                     Command Layer (Click)                      │
-├─────────────────────────────────────────────────────────────────┤
-│  pipeline │ service │ data │ plugin │ monitor │ project │ auth  │
-├─────────────────────────────────────────────────────────────────┤
-│                  Application Layer (CQRS)                      │
-│     Commands    │    Queries     │    Event Handlers          │
-├─────────────────────────────────────────────────────────────────┤
-│                    Domain Layer (DDD)                          │
-│  Entities │ Value Objects │ Domain Events │ Business Rules     │
-├─────────────────────────────────────────────────────────────────┤
-│                 Infrastructure Layer                           │
-│   Repositories │ External APIs │ File System │ Configuration   │
-├─────────────────────────────────────────────────────────────────┤
-│                      flext-core Foundation                     │
-│ FlextResult │ FlextContainer │ FlextEvents │ FlextRepository   │
-└─────────────────────────────────────────────────────────────────┘
-                                 │
-                    ┌─────────────┴─────────────┐
-                    │     FLEXT Ecosystem      │
-                    │                          │
-            ┌───────┴────────┐        ┌───────┴────────┐
-            │   FlexCore     │        │ FLEXT Service  │
-            │   (Go:8080)    │        │ (Go/Py:8081)   │
-            └────────────────┘        └────────────────┘
-                    │                          │
-    ┌───────────────┼──────────────────────────┼──────────────────┐
-    │                                                             │
-┌───▼────┐  ┌─────────┐  ┌─────────┐  ┌──────────┐  ┌──────────┐
-│ Singer │  │   DBT   │  │ Project │  │    Web   │  │   API    │
-│ Pipes  │  │Transform│  │Specific │  │Interface │  │Services  │
-│(15 proj│  │(4 proj) │  │(2 proj) │  │          │  │          │
-└────────┘  └─────────┘  └─────────┘  └──────────┘  └──────────┘
-```
-
-### 📁 Estrutura real (condizente com `src/`)
-
-```
-src/flext_cli/
-├── domain/                    # ✅ GOOD: FlextModels.Entity domain modeling
-│   ├── entities.py           # ✅ CLICommand, FlextCliSession, FlextCliPlugin entities
-│   ├── cli_context.py        # ✅ Value objects with validation
-│   └── cli_services.py       # ⚠️ BASIC: Services need FlextDomainService
-├── application/               # ⚠️ INCOMPLETE: Missing CQRS implementation
-│   └── commands.py           # ⚠️ Basic handlers, need proper command pattern
-├── infrastructure/            # ⚠️ PARTIAL: Custom DI, need FlextContainer
-│   ├── container.py          # ❌ SimpleDIContainer instead of FlextContainer
-│   └── config.py             # ✅ Configuration management
-├── commands/                  # ❌ CRITICAL GAP: Only 3 of 10+ groups
-│   ├── auth.py              # ✅ Authentication (functional)
-│   ├── config.py            # ✅ Configuration (functional)
-│   ├── debug.py             # ✅ Debugging (functional)
-│   │
-│   └── [MISSING COMMANDS]    # ❌ See "Missing Critical Features" above
-├── core/                      # ✅ GOOD: CLI utilities with FlextResult
-│   ├── base.py              # ✅ FlextCliContext, handle_service_result
-│   ├── decorators.py        # ✅ CLI decorators and patterns
-│   └── formatters.py        # ✅ Output formatting utilities
-└── utils/                     # ✅ GOOD: FlextConfig integration
-    ├── auth.py              # ✅ Authentication utilities
-    ├── config.py            # ✅ Configuration with FlextConfig
-    └── output.py            # ✅ Rich console output
-```
-
-### 🎯 **Architecture Goals & Principles**
-
-1. **Unified Interface**: Single CLI for entire FLEXT ecosystem (32+ projects)
-2. **Enterprise Patterns**: Full flext-core integration (CQRS, Events, DI)
-3. **Service Integration**: Direct communication with FlexCore & FLEXT services
-4. **Extensibility**: Plugin architecture for project-specific functionality
-5. **Observability**: Comprehensive logging, metrics, and monitoring
-6. **Developer Experience**: Rich UI, tab completion, interactive mode
-
-## Installation
-
-```bash
-# Install dependencies with Poetry
-cd /home/marlonsc/flext/flext-cli
-poetry install --all-extras --with dev,test,docs,security
-
-# Install CLI globally
-make install-cli
-
-# Verify installation
-poetry run flext --version
-```
-
-## Comandos de desenvolvimento
-
-### Quality Standards
-
-```bash
-# Complete validation pipeline (run before commits)
-make validate                 # lint + type-check + security + test (90% coverage)
-
-# Essential checks
-make check                   # lint + type-check + test
-
-# Individual quality gates
-make lint
-make type-check
-make test                    # pytest with 90% coverage requirement
-make security                # Bandit + pip-audit + secrets scan
-```
-
-### Development Setup
-
-```bash
-# Complete setup
-make setup                   # Complete setup with pre-commit hooks
-make install                 # Install dependencies with Poetry
-make dev-install             # Development mode with all extras
-
-# CLI operations
-make install-cli             # Install CLI globally
-make test-cli                # Test CLI commands
-make cli-smoke-test          # Run smoke tests
-```
-
-## Guia rápido
-
-```bash
-# List available commands
-poetry run flext --help
-
-# ✅ Working command groups (only 3 implemented)
-poetry run flext auth --help        # Authentication commands
-poetry run flext config --help      # Configuration management
-poetry run flext debug --help       # Debug and diagnostic tools
-
-# ⚠️ Placeholder commands (show "coming soon")
-poetry run flext interactive        # Shows "Interactive mode coming soon!"
-poetry run flext version           # Basic version information
-
-# ❌ Missing command groups (not implemented)
-# poetry run flext pipeline --help    # Not implemented
-# poetry run flext plugin --help      # Not implemented
-# poetry run flext algar --help       # Not implemented
-# poetry run flext gruponos --help    # Not implemented
-# poetry run flext meltano --help     # Not implemented
-```
-
-### 🎯 **Quick Start Guide**
-
-#### **1. Current Functional Commands**
-
-```bash
-# ✅ Authentication & Authorization
-flext auth login                       # Login to FLEXT ecosystem
-flext auth logout                      # Logout and clear tokens
-flext auth status                      # Check authentication status
-flext auth token                       # Display current auth token
-
-# ✅ Configuration Management
-flext config show                      # Display current configuration
-flext config set <key> <value>        # Set configuration value
-flext config get <key>                # Get configuration value
-flext config reset                     # Reset to default configuration
-
-# ✅ Debugging & Diagnostics
-flext debug info                       # System and environment information
-flext debug health                     # Basic health checks
-flext debug logs                       # View application logs
-flext debug validate                   # Validate CLI installation
-```
-
-#### **2. Placeholder Commands (Show "Coming Soon")**
-
-```bash
-# ⚠️ These show status messages but don't perform operations
-flext interactive                      # "Interactive mode coming soon!"
-flext version                          # Basic version information
-```
-
-#### **3. Priority Development Targets**
-
-**Next Sprint (Priority 1)**:
-
-```bash
-# 🚧 Pipeline Management (Critical for FLEXT ecosystem)
-flext pipeline list                    # List all active pipelines
-flext pipeline status <name>          # Check specific pipeline status
-flext pipeline start <name>           # Start data pipeline
-flext pipeline stop <name>            # Stop running pipeline
-
-# 🚧 Service Orchestration (Critical for distributed services)
-flext service health                   # Health check all FLEXT services
-flext service status                   # Overall ecosystem status
-flext service logs <service>          # View service-specific logs
-```
-
-**Sprint 2-3 (Priority 2)**:
-
-```bash
-# 🚧 Data Management
-flext data taps list                   # Available Singer taps
-flext data targets list               # Available Singer targets
-flext data dbt run <project>          # Execute DBT transformations
-
-# 🚧 Plugin Management
-flext plugin list                      # Installed plugins
-flext plugin install <name>           # Install new plugin
-```
-
-**Future Sprints (Priority 3)**:
-
-```bash
-# 🚧 Project-Specific Integration
-flext algar migration status          # ALGAR-specific operations
-flext gruponos pipeline deploy        # GrupoNos-specific operations
-flext meltano project init           # Meltano project management
-
-# 🚧 Monitoring & Observability
-flext monitor dashboard               # Real-time monitoring
-flext monitor metrics <service>       # Service metrics
-flext logs search <query>            # Distributed log search
-```
-
-## Command Structure (Current vs Planned)
-
-```
-flext
-├── auth                   # ✅ Authentication commands (IMPLEMENTED)
-├── config                 # ✅ Configuration management (IMPLEMENTED)
-├── debug                  # ✅ Debug and diagnostic tools (IMPLEMENTED)
-├── interactive            # ⚠️ Interactive mode (placeholder - shows "coming soon")
-├── version                # ⚠️ Version information (basic implementation)
-└── [MISSING COMMANDS]     # ❌ The following are NOT implemented:
-    ├── pipeline           # ❌ Pipeline operations (missing)
-    ├── plugin             # ❌ Plugin management (missing)
-    ├── algar              # ❌ ALGAR project commands (missing)
-    ├── gruponos           # ❌ GrupoNos project commands (missing)
-    └── meltano            # ❌ Meltano integration commands (missing)
-```
-
-**Implementation Status**: 3 out of 10+ expected command groups
-
-## Configuration
-
-### Global CLI Options
-
-```bash
-# Profile support
-flext --profile development command
-flext --profile production command
-
-# Output formats
-flext --output json command
-flext --output table command  # default
-flext --output yaml command
-flext --output csv command
-
-# Debug mode
-flext --debug command
-flext --quiet command
-```
-
-### Environment Variables
-
-```bash
-# CLI Configuration
-export FLEXT_CLI_DEV_MODE=true
-export FLEXT_CLI_LOG_LEVEL=debug
-export FLEXT_CLI_CONFIG_PATH=/path/to/config.yaml
-
-# Profile and output
-export FLX_PROFILE=development
-export FLX_DEBUG=true
-```
-
-### Configuration Files
-
-- Project config: `config/dev.yaml`, `config/prod.yaml`
-- User config: `~/.flx/config.yaml` (future implementation)
-- Environment variables override file settings
-
-## Testes
-
-### flext-core Integration Testing
-
-```python
-from flext_cli.domain.entities import CLICommand, CommandStatus, CommandType
-from flext_core import FlextResult
-
-def test_command_lifecycle_with_flext_patterns():
-    # ✅ Good: Uses FlextModels.Entity inheritance
-    command = CLICommand(
-        name="test",
-        command_line="echo hello",
-        command_type=CommandType.SYSTEM
-    )
-
-    # ✅ Good: Domain validation with FlextResult
-    validation_result = command.validate_domain_rules()
-    assert validation_result.success
-
-    # ✅ Good: Immutable updates with model_copy
-    running_command = command.start_execution()
-    assert running_command.command_status == CommandStatus.RUNNING
-
-    completed_command = running_command.complete_execution(exit_code=0, stdout="hello")
-    assert completed_command.successful
-```
-
-### CLI Command Testing
-
-```python
-from click.testing import CliRunner
-from flext_cli.cli import cli
-
-def test_cli_commands():
-    runner = CliRunner()
-
-    # Test main CLI
-    result = runner.invoke(cli, ['--version'])
-    assert result.exit_code == 0
-
-    # Test command groups
-    result = runner.invoke(cli, ['auth', '--help'])
-    assert result.exit_code == 0
-```
-
-### Running Tests
-
-```bash
-# Full test suite with coverage
-make test
-
-# Test specific modules
-pytest tests/test_domain.py -v
-pytest tests/test_commands.py -v
-
-# Integration tests
-pytest tests/test_integration.py -v
-```
-
-## Dependências
-
-### Core Dependencies (flext-core Ecosystem)
-
-- **flext-core**: Foundation library - **60% integration complete**
-  - ✅ FlextResult (excellent railway-oriented programming)
-  - ✅ FlextModels.Entity (good domain modeling with validation)
-  - ✅ FlextModels.Value (proper immutable value objects)
-  - ✅ FlextConfig (good configuration management)
-  - ❌ FlextContainer (using custom SimpleDIContainer instead)
-  - ❌ CQRS patterns (no command/query separation)
-  - ❌ Domain Events (defined but unused)
-  - ❌ Repository pattern (only mock implementations)
-
-- **flext-observability**: Monitoring and metrics
-- **Click 8.2+**: CLI framework with hierarchical commands
-- **Rich 14.0+**: Terminal UI components (tables, progress bars, panels)
-- **Pydantic 2.11+**: Data validation (used via flext-core integration)
-
-### Project-Specific Dependencies (Local Development)
-
-- **algar-oud-mig**: ALGAR project integration (local dependency)
-- **gruponos-meltano-native**: GrupoNos project integration (local dependency)
-- **flext-meltano**: Meltano orchestration (local dependency)
-
-**Integration Status**: Good foundations but missing enterprise-grade flext-core patterns
-
-## Development Workflow
-
-### Adding New Commands
-
-1. Create command module in `commands/` or `commands/projects/`
-2. Use Click decorators with Rich output formatting
-3. Register command in `cli.py` main group
-4. Add comprehensive tests with CliRunner
-5. Run `make validate` before committing
-
-### Example New Command (Following flext-core Patterns)
-
-```python
-# commands/new_feature.py
-import click
-from rich.console import Console
-from flext_core import FlextResult, FlextLogger
-from flext_cli.core.base import handle_service_result
-
-logger = FlextLogger(__name__)
-
-@click.group()
-def new_feature():
-    """New feature commands using flext-core patterns."""
-    pass
-
-@new_feature.command()
-@click.pass_context
-@handle_service_result  # ✅ Handles FlextResult automatically
-def action(ctx: click.Context) -> FlextResult[None]:
-    """Perform new feature action with proper error handling."""
-    console: Console = ctx.obj["console"]
-
-    try:
-        # Business logic here
-        console.print("[green]Success![/green]")
-        logger.info("New feature action completed successfully")
-        return FlextResult[None].ok(None)
-    except Exception as e:
-        logger.error(f"New feature action failed: {e}")
-        return FlextResult[None].fail(f"Action failed: {e}")
-
-# Register in cli.py (add after line 102)
-from flext_cli.commands import new_feature
-cli.add_command(new_feature.new_feature)
-```
-
-**Key Improvements**: Uses FlextResult, structured logging, proper error handling
-
-## Padrões de qualidade
-
-### Quality Targets
-
-- **Linting**: Ruff compliance with comprehensive rule set
-- **Type Safety**: MyPy strict mode adoption; aim for zero errors
-- **Test Coverage**: 90% target across core modules
-- **Security**: Bandit + pip-audit scanning in CI
-- **Pre-commit hooks**: Recommended for local enforcement
-
-### Code Style
-
-- **Python 3.13+**: Modern syntax and type hints
-- **Clean Architecture**: Strict layer separation
-- **Domain-Driven Design**: Rich domain entities
-- **Type Safety**: Complete type coverage with MyPy
-
-## Solução de problemas
-
-### Common Issues
-
-1. **Import Errors**
-
-   ```bash
-   # Clean and reinstall dependencies
-   rm -rf .venv && poetry install --all-extras
-   ```
-
-2. **Type Check Failures**
-
-   ```bash
-   # Run MyPy with specific paths
-   poetry run mypy src/flext_cli --show-error-codes
-   ```
-
-3. **Test Failures**
-
-   ```bash
-   # Run tests with verbose output
-   poetry run pytest tests/ -v -s
-   ```
-
-### Getting Help
-
-```bash
-# General help
-poetry run flext --help
-
-# Command group help
-poetry run flext auth --help
-poetry run flext config --help
-
-# View project structure
-ls -la src/flext_cli/
-```
-
-## Project Status (Honest Assessment)
-
-### ✅ **Implemented & Working**
-
-- **Clean Architecture Foundation**: Good domain layer with flext-core FlextModels.Entity
-- **Core Commands**: 3 command groups (auth, config, debug) functional
-- **Quality Gates**: Comprehensive validation pipeline with 90% coverage
-- **Testing**: Complete test suite with pytest framework
-- **flext-core Basics**: FlextResult, FlextModels.Entity, FlextModels.Value, FlextConfig
-
-### ⚠️ **Partial Implementation**
-
-- **flext-core Integration**: 60% complete - good foundations, missing enterprise patterns
-- **CLI Functionality**: Only 3 out of 10+ expected command groups
-- **Service Layer**: Basic services but not using FlextDomainService patterns
-- **Dependency Injection**: Custom container instead of FlextContainer
-
-### ❌ **Missing Critical Features**
-
-- **Pipeline Commands**: Pipeline management not implemented
-- **Interactive Mode**: Placeholder only - no REPL functionality
-- **Service Integration**: No FlexCore (8080) or FLEXT Service (8081) integration
-- **Project Commands**: ALGAR, GrupoNos, Meltano commands missing
-- **Enterprise Patterns**: CQRS, Domain Events, Repository pattern not implemented
-
-## 📋 **Development Roadmap**
-
-### **Phase 1: Critical Infrastructure (Sprint 1-2)**
-
-**Goal**: Enable basic FLEXT ecosystem management
-
-1. **Pipeline Management Commands** (Priority 1)
-   - `flext pipeline list|start|stop|status|logs`
-   - Integration with FlexCore (Go:8080) and FLEXT Service (Go/Py:8081)
-   - Real-time pipeline monitoring and control
-
-2. **Service Orchestration** (Priority 1)
-   - `flext service health|status|logs|start|stop`
-   - Health checks for all 32+ FLEXT ecosystem projects
-   - Service discovery and dependency mapping
-
-3. **FlextContainer Migration** (Technical Debt)
-   - Replace SimpleDIContainer with flext-core FlextContainer
-   - Type-safe dependency injection across all services
-   - Proper service lifecycle management
-
-### **Phase 2: Data Platform Integration (Sprint 3-4)**
-
-**Goal**: Complete data pipeline management capabilities
-
-1. **Data Management Commands**
-   - `flext data taps|targets|dbt` - Singer ecosystem management
-   - Integration with 15 Singer projects (5 taps + 5 targets + 4 DBT + 1 extension)
-   - Pipeline creation, monitoring, and troubleshooting
-
-2. **Plugin & Extension Management**
-   - `flext plugin list|install|enable|disable`
-   - Dynamic loading of project-specific functionality
-   - Extension marketplace and dependency resolution
-
-3. **CQRS Implementation** (Technical Enhancement)
-   - Command/Query separation for complex operations
-   - Event-driven architecture with Domain Events
-   - Improved scalability and maintainability
-
-### **Phase 3: Project-Specific Integration (Sprint 5-6)**
-
-**Goal**: Full ecosystem project support
-
-1. **ALGAR Integration** (`flext algar`)
-   - Oracle Unified Directory migration commands
-   - ALGAR-specific pipeline and data operations
-   - Integration with algar-oud-mig project
-
-2. **GrupoNos Integration** (`flext gruponos`)
-   - GrupoNos-specific Meltano operations
-   - Pipeline deployment and management
-   - Integration with gruponos-meltano-native project
-
-3. **Meltano Native Support** (`flext meltano`)
-   - Meltano project initialization and management
-   - Singer tap/target orchestration
-   - DBT transformation execution
-
-### **Phase 4: Enterprise Operations (Sprint 7-8)**
-
-**Goal**: Production-ready enterprise features
-
-1. **Monitoring & Observability**
-   - `flext monitor dashboard|metrics|alerts`
-   - Real-time monitoring dashboard with Rich UI
-   - Integration with flext-observability project
-
-2. **Distributed Logging**
-   - `flext logs search|tail|export`
-   - Centralized log aggregation and search
-   - Correlation across all FLEXT services
-
-3. **Interactive Mode & UX**
-   - Functional REPL with tab completion
-   - Context-aware help and command suggestion
-   - Command history and session management
-
-### **Phase 5: Advanced Features (Sprint 9-10)**
-
-**Goal**: Advanced operational capabilities
-
-1. **Configuration Management**
-   - Profile system (dev/staging/prod environments)
-   - Hierarchical configuration with inheritance
-   - Secrets management integration
-
-2. **Performance & Reliability**
-   - Circuit breaker patterns for service calls
-   - Retry policies and graceful degradation
-   - Performance benchmarking and optimization
-
-3. **Security & Compliance**
-   - Enhanced authentication and authorization
-   - Audit logging and compliance reporting
-   - Security scanning and vulnerability management
-
-## 📊 **Success Metrics & Goals**
-
-### **Completion Targets**
-
-- **Sprint 2**: 50% functional (pipeline + service commands)
-- **Sprint 4**: 70% functional (data management + plugins)
-- **Sprint 6**: 85% functional (project integrations)
-- **Sprint 8**: 95% functional (monitoring + observability)
-- **Sprint 10**: 100% functional (advanced features)
-
-### **Quality Gates**
-
-- **Test Coverage**: Maintain 90%+ throughout development
-- **flext-core Integration**: Achieve 95% pattern compliance
-- **Performance**: <1s response time for basic commands
-- **Documentation**: 100% command coverage with examples
-- **Integration**: Seamless operation with all 32+ FLEXT projects
-
-### **Developer Experience Goals**
-
-- **Discoverability**: Intuitive command structure and help system
-- **Productivity**: Streamlined workflows for common operations
-- **Reliability**: Consistent behavior across all environments
-- **Extensibility**: Easy plugin development and integration
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Run `make validate` before committing
-4. Commit your changes (`git commit -m 'Add amazing feature'`)
-5. Push to the branch (`git push origin feature/amazing-feature`)
-6. Open a Pull Request
-
-## Licença
-
-MIT License - see [LICENSE](LICENSE) for details.
-
-## Documentação
-
-### Architecture & Development
-
-- [CLAUDE.md](CLAUDE.md) - Development guidance and architectural patterns
-- [ARCHITECTURE.md](ARCHITECTURE.md) - Detailed architectural decisions and patterns
-- [docs/](docs/) - Comprehensive project documentation
-
-### Related Projects
-
-- [../../flext-core/](../../flext-core/) - Foundation library with shared patterns
-- [../../flext-observability/](../../flext-observability/) - Monitoring and metrics integration
-- [../../flext-meltano/](../../flext-meltano/) - Meltano orchestration platform
-
-### Ecosystem Integration
-
-- [../../flexcore/](../../flexcore/) - Go runtime container service (port 8080)
-- [../../cmd/flext/](../../cmd/flext/) - Go/Python data integration service (port 8081)
-- [../../flext-api/](../../flext-api/) - REST API services
-- [../../flext-web/](../../flext-web/) - Web interface and dashboard
+> **⚠️ STATUS**: Early development - core functionality has implementation gaps and errors
 
 ---
 
-**Framework**: FLEXT Ecosystem | **Language**: Python 3.13+ | **Architecture**: Clean Architecture + DDD | **Updated**: 2025-08-13
+## 🎯 Purpose and Goals
+
+### **Intended Role**
+
+flext-cli aims to provide command-line interfaces for the FLEXT ecosystem, offering consistent CLI patterns across platform tools.
+
+### **Current Limitations**
+
+1. **Authentication System** - Fails to initialize due to configuration errors
+2. **CLI Commands** - Basic commands crash with argument errors
+3. **Framework Integration** - Uses legacy Click pattern instead of modern Typer
+4. **Test Coverage** - Limited functional test coverage
+
+### **Integration Status**
+
+- **flext-core** → Uses FlextResult patterns (when working)
+- **flext-auth** → Planned integration (not functional)
+- **FLEXT Projects** → Limited ecosystem integration
+
+---
+
+## 🏗️ Current Implementation Status
+
+### **What Actually Works**
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| **Basic imports** | ✅ Working | Core modules import successfully |
+| **File structure** | ✅ Complete | 32 modules, organized architecture |
+| **Type annotations** | ✅ Present | Python 3.13+ type hints throughout |
+| **FlextResult usage** | 🟡 Partial | Present but not consistently working |
+
+### **What Doesn't Work**
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| **Authentication** | ❌ Broken | Fails on initialization with Pydantic errors |
+| **CLI execution** | ❌ Broken | --version crashes with argument errors |
+| **Login commands** | ❌ Broken | References non-existent methods |
+| **Configuration** | ❌ Broken | Config loading fails validation |
+
+---
+
+## 🚧 Installation (Development Only)
+
+### **Setup for Development**
+
+```bash
+git clone https://github.com/flext-sh/flext-cli.git
+cd flext-cli
+
+# Setup development environment
+make setup
+
+# Note: Basic imports work, but functionality is limited
+python -c "import flext_cli; print('Import successful')"
+```
+
+### **Known Issues**
+
+- Authentication initialization fails with Pydantic validation errors
+- CLI commands crash with argument mismatches
+- Configuration system has validation problems
+
+---
+
+## 📈 Development Roadmap
+
+### **Phase 1: Fix Broken Functionality (Priority 1)**
+
+1. **Fix Authentication System**
+   - Resolve Pydantic configuration errors
+   - Implement working token management
+   - Add proper error handling
+
+2. **Fix CLI Commands**
+   - Correct argument handling in version command
+   - Fix missing method references in login
+   - Ensure basic commands execute without crashing
+
+3. **Configuration System**
+   - Fix validation errors
+   - Implement proper defaults
+   - Add configuration loading
+
+### **Phase 2: Modern CLI Patterns (Priority 2)**
+
+1. **Framework Migration**
+   - Evaluate migration from Click to Typer (2025 standard)
+   - Implement type-hint driven CLI architecture
+   - Add automatic shell completion
+
+2. **Rich Integration**
+   - Enhanced output formatting with tables and progress bars
+   - Modern terminal UI patterns
+   - Proper error display
+
+3. **Testing Foundation**
+   - Add comprehensive functional tests
+   - Test CLI commands end-to-end
+   - Establish quality baselines
+
+### **Phase 3: FLEXT Ecosystem Integration**
+
+1. **Service Integration**
+   - Working flext-auth integration
+   - flext-grpc communication patterns
+   - flext-observability metrics
+
+2. **Ecosystem Patterns**
+   - Consistent CLI patterns across FLEXT projects
+   - Service discovery and interaction
+   - Configuration management
+
+---
+
+## 🔧 Technical Debt
+
+### **Critical Issues**
+
+1. **Broken Core Functionality**
+   - Authentication system doesn't initialize
+   - CLI commands fail on execution
+   - Configuration validation errors
+
+2. **Architecture Issues**
+   - Uses legacy Click instead of modern Typer
+   - Missing error handling patterns
+   - Inconsistent FlextResult usage
+
+3. **Testing Gaps**
+   - Limited functional test coverage
+   - No CLI interaction testing
+   - Missing integration tests
+
+### **Framework Assessment**
+
+**Current**: Click 8.2+ (legacy 2020s pattern)
+**Modern Standard**: Typer + Rich (2025 pattern)
+**Migration**: Required for competitive CLI library
+
+---
+
+## 📊 Honest Assessment
+
+### **Lines of Code vs Functionality**
+
+- **32 Python modules** (~10,000 lines total)
+- **Substantial scaffolding** with type definitions and class structures
+- **Limited working functionality** - much is unimplemented or broken
+- **Extensive documentation** that doesn't match implementation reality
+
+### **What This Is**
+
+- Architecture framework with good structure
+- Type-safe patterns and interfaces
+- Foundation for future CLI development
+
+### **What This Isn't**
+
+- Production-ready CLI library
+- Drop-in CLI solution for projects
+- Complete implementation of documented features
+
+---
+
+## 🎯 Making This Library Great
+
+### **Modern CLI Requirements (2025)**
+
+Based on industry patterns:
+
+1. **Type-Hint Driven Architecture** (Typer pattern)
+2. **Rich Visual Output** (tables, progress bars, colors)
+3. **Automatic Shell Completion** (built-in)
+4. **Interactive Commands** (prompts, confirmations)
+5. **Error Handling** (helpful, actionable messages)
+6. **Testing** (comprehensive CLI interaction tests)
+
+### **Success Metrics**
+
+- **Basic functionality works** without crashes
+- **Authentication flows complete** successfully
+- **CLI commands execute** as documented
+- **Integration tests pass** for core workflows
+- **Modern patterns implemented** (Typer + Rich)
+
+---
+
+## 🤝 Contributing
+
+### **Current Priorities**
+
+1. Fix broken core functionality
+2. Implement proper testing
+3. Plan modern framework migration
+4. Document actual working features
+
+### **Not Ready For**
+
+- New feature development
+- Ecosystem integration
+- Production usage
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+**flext-cli v0.9.0** - CLI foundation for FLEXT ecosystem (early development)
+
+**Reality**: Structured architecture with significant implementation gaps requiring substantial development work to achieve stated goals.

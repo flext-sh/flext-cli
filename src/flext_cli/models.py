@@ -22,6 +22,7 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
 from flext_cli.utils import (
     STRICT_CONFIG_DICT,
+    generate_uuid,
 )
 
 
@@ -42,7 +43,7 @@ class FlextCliModels:
 
         model_config = STRICT_CONFIG_DICT
 
-        id: str = Field()
+        id: str = Field(default_factory=generate_uuid)
         command_line: str | None = Field(default=None, description="Command to execute")
         execution_time: datetime = Field()
 
@@ -219,8 +220,8 @@ class FlextCliModels:
     class CliSession(FlextModels.Entity):
         """CLI session model."""
 
-        id: str = Field()
-        session_id: str = Field()
+        id: str = Field(default_factory=generate_uuid)
+        session_id: str = Field(default_factory=generate_uuid)
         start_time: datetime = Field()
         end_time: datetime | None = None
         commands: list[FlextCliModels.CliCommand] = Field(default_factory=list)
@@ -262,11 +263,15 @@ class FlextCliModels:
     class CliConfig(FlextModels.Entity):
         """CLI configuration model."""
 
-        id: str = Field()
+        id: str = Field(default_factory=generate_uuid)
         profile: str = Field(default=FlextCliConstants.ProfileName.DEFAULT)
-        output_format: str = Field(default=FlextCliConstants.OUTPUT.default_output_format, frozen=True)
+        output_format: str = Field(
+            default=FlextCliConstants.OUTPUT.default_output_format, frozen=True
+        )
         debug_mode: bool = Field(default=False)
-        timeout_seconds: int = Field(default=FlextCliConstants.TIMEOUTS.default_command_timeout, ge=1)
+        timeout_seconds: int = Field(
+            default=FlextCliConstants.TIMEOUTS.default_command_timeout, ge=1
+        )
 
         @field_validator("output_format")
         @classmethod
@@ -297,7 +302,7 @@ class FlextCliModels:
     class CliPlugin(FlextModels.Entity):
         """CLI plugin model."""
 
-        id: str = Field()
+        id: str = Field(default_factory=generate_uuid)
         name: str = Field(...)
         entry_point: str = Field(...)
         plugin_version: str = Field(default="1.0.0")

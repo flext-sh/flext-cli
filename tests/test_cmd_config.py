@@ -1,3 +1,4 @@
+"""Test module for cmd_config."""
 
 from __future__ import annotations
 

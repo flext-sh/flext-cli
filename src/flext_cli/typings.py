@@ -127,35 +127,37 @@ class FlextCliTypes:
         CliConfigPath = Path
 
         # Streamlined Pydantic v2 profiles with modern ConfigDict
-        class BaseProfile(BaseModel):
-            """Base profile with common settings."""
+        class DevelopmentProfile(BaseModel):
+            """Development environment configuration."""
 
             model_config = BASE_CONFIG_DICT
 
-            profile: str
-            debug: bool = False
-            log_level: str = "INFO"
-            output_format: str = "json"
+            profile: Literal["development"] = Field(default="development")
+            debug: bool = Field(default=True)
+            log_level: Literal["DEBUG"] = Field(default="DEBUG")
+            output_format: Literal["table", "json"] = Field(default="table")
 
-        class DevelopmentProfile(BaseProfile):
-            """Development environment configuration."""
-
-            profile: Literal["development"] = "development"
-            debug: bool = True
-            log_level: Literal["DEBUG"] = "DEBUG"
-            output_format: Literal["table", "json"] = "table"
-
-        class ProductionProfile(BaseProfile):
+        class ProductionProfile(BaseModel):
             """Production environment configuration."""
 
-            profile: Literal["production"] = "production"
+            model_config = BASE_CONFIG_DICT
+
+            profile: Literal["production"] = Field(default="production")
+            debug: bool = Field(default=False)
+            log_level: str = Field(default="INFO")
+            output_format: str = Field(default="json")
             timeout_seconds: int = Field(ge=30, le=300, default=60)
 
-        class TestingProfile(BaseProfile):
+        class TestingProfile(BaseModel):
             """Testing environment configuration."""
 
-            profile: Literal["testing"] = "testing"
-            mock_services: bool = True
+            model_config = BASE_CONFIG_DICT
+
+            profile: Literal["testing"] = Field(default="testing")
+            debug: bool = Field(default=False)
+            log_level: str = Field(default="INFO")
+            output_format: str = Field(default="json")
+            mock_services: bool = Field(default=True)
 
         # Discriminated union for type-safe configuration management
         ConfigProfile = DevelopmentProfile | ProductionProfile | TestingProfile

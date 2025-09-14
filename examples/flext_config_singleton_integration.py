@@ -64,7 +64,6 @@ def demonstrate_cli_parameter_integration() -> None:
     integration_result = FlextCliConfig.ensure_flext_config_integration()
     if integration_result.is_success:
         print("   ✅ Integration verified")
-        cli_config = integration_result.value
     else:
         print(f"   ❌ Integration failed: {integration_result.error}")
         return

@@ -14,8 +14,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from flext_core import FlextContainer, FlextLogger
-from pydantic import ConfigDict, Field
-from pydantic.fields import FieldInfo
+from pydantic import ConfigDict
 from pydantic_settings import SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
@@ -102,41 +101,7 @@ def refresh_token_file_path() -> Path:
 
 
 # Field factory functions moved to field_factories.py to avoid circular imports
-
-
-def datetime_field(**kwargs: object) -> FieldInfo:
-    """Factory for datetime fields with consistent configuration."""
-    return Field(**kwargs)
-
-
-def bool_field(**kwargs: object) -> FieldInfo:
-    """Factory for boolean fields."""
-    return Field(**kwargs)
-
-
-def constant_field(value: object, **kwargs: object) -> FieldInfo:
-    """Factory for constant fields."""
-    return Field(default=value, frozen=True, **kwargs)
-
-
-def enum_field(default: object = None, **kwargs: object) -> FieldInfo:
-    """Factory for enum fields."""
-    return Field(default=default, **kwargs)
-
-
-def optional_field(**kwargs: object) -> FieldInfo:
-    """Factory for optional fields."""
-    return Field(default=None, **kwargs)
-
-
-def uuid_field(**kwargs: object) -> FieldInfo:
-    """Factory for UUID fields."""
-    return Field(**kwargs)
-
-
-def version_field(**kwargs: object) -> FieldInfo:
-    """Factory for version fields."""
-    return Field(**kwargs)
+# Use direct Field() calls instead of factory functions to avoid type issues
 
 
 # description_field removed - use direct Field() calls instead

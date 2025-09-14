@@ -395,7 +395,7 @@ def config(ctx: click.Context) -> None:
 def show(ctx: click.Context) -> None:
     """Show current configuration."""
     app: ComprehensiveCliApplication = ctx.obj["app"]
-    cli_context: FlextCliContext = ctx.obj["cli_context"]
+    ctx.obj["cli_context"]
 
     app.console.print("[green]Current Configuration[/green]")
 

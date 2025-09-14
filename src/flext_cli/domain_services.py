@@ -106,7 +106,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
             command = FlextCliModels.CliCommand(
                 id=FlextUtilities.Generators.generate_uuid(),
                 command_line=command_line.strip(),
-                execution_time=datetime.now(UTC)
+                execution_time=datetime.now(UTC),
             )
 
             # Validate business rules
@@ -233,7 +233,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
                 id=FlextUtilities.Generators.generate_uuid(),
                 session_id=FlextUtilities.Generators.generate_uuid(),
                 start_time=datetime.now(UTC),
-                user_id=user_id
+                user_id=user_id,
             )
 
             # Validate business rules

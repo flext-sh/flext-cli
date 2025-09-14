@@ -1,3 +1,4 @@
+"""Test module for formatters."""
 
 from __future__ import annotations
 
