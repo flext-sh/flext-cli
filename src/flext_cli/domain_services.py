@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from flext_core import (
@@ -102,7 +103,11 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
                     "Command line cannot be empty",
                 )
 
-            command = FlextCliModels.CliCommand(command_line=command_line.strip())
+            command = FlextCliModels.CliCommand(
+                id=FlextUtilities.Generators.generate_uuid(),
+                command_line=command_line.strip(),
+                execution_time=datetime.now(UTC)
+            )
 
             # Validate business rules
             validation_result = command.validate_business_rules()
@@ -224,7 +229,12 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
             if user_id is None:
                 user_id = f"user_{FlextUtilities.Generators.generate_id()}"
 
-            session = FlextCliModels.CliSession(user_id=user_id)
+            session = FlextCliModels.CliSession(
+                id=FlextUtilities.Generators.generate_uuid(),
+                session_id=FlextUtilities.Generators.generate_uuid(),
+                start_time=datetime.now(UTC),
+                user_id=user_id
+            )
 
             # Validate business rules
             validation_result = session.validate_business_rules()

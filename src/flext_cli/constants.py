@@ -15,14 +15,7 @@ from typing import ClassVar, Final
 
 from pydantic import BaseModel, Field, computed_field
 
-from flext_cli.utils import (
-    bounded_str_field,
-    frozen_str_field,
-    port_field,
-    positive_int_field,
-    size_field,
-    timeout_field,
-)
+# Field factories replaced with direct Field usage
 
 
 class FlextCliConstants:
@@ -31,87 +24,81 @@ class FlextCliConstants:
     class TimeoutConfig(BaseModel):
         """Timeout and duration configuration with validation."""
 
-        default_command_timeout: int = timeout_field(30)
-        max_command_timeout: int = timeout_field(300)
-        min_command_timeout: int = timeout_field(1, max_timeout=60)
-        default_api_timeout: int = timeout_field(30, max_timeout=300)
-        default_read_timeout: int = timeout_field(60, max_timeout=300)
-        default_dev_timeout: int = timeout_field(60, max_timeout=300)
-        production_api_timeout: int = timeout_field(
-            120, min_timeout=30, max_timeout=600
-        )
-        session_timeout_minutes: int = positive_int_field(60, max_val=1440)
-        token_expiry_hours: int = positive_int_field(24, max_val=168)
-        refresh_expiry_days: int = positive_int_field(30, max_val=365)
+        default_command_timeout: int = Field(default=30, ge=1, le=3600)
+        max_command_timeout: int = Field(default=300, ge=1, le=3600)
+        min_command_timeout: int = Field(default=1, ge=1, le=60)
+        default_api_timeout: int = Field(default=30, ge=1, le=300)
+        default_read_timeout: int = Field(default=60, ge=1, le=300)
+        default_dev_timeout: int = Field(default=60, ge=1, le=300)
+        production_api_timeout: int = Field(default=120, ge=30, le=600)
+        session_timeout_minutes: int = Field(default=60, ge=1, le=1440)
+        token_expiry_hours: int = Field(default=24, ge=1, le=168)
+        refresh_expiry_days: int = Field(default=30, ge=1, le=365)
         milliseconds_per_second: float = Field(default=1000.0, frozen=True)
 
     class LimitsConfig(BaseModel):
         """Size and validation limits with constraints."""
 
-        max_history_size: int = positive_int_field(1000, max_val=100_000)
-        max_output_size: int = size_field(1_048_576)
-        max_table_rows: int = positive_int_field(1000, max_val=10_000)
-        max_filename_length: int = positive_int_field(255, max_val=255)
-        max_profile_name_length: int = positive_int_field(50, max_val=100)
-        max_config_key_length: int = positive_int_field(100, max_val=200)
-        max_config_value_length: int = positive_int_field(1000, max_val=10_000)
-        max_commands_per_session: int = positive_int_field(10_000, max_val=100_000)
-        max_env_var_display_length: int = positive_int_field(60, max_val=200)
-        max_timeout_seconds: int = timeout_field(3600, max_timeout=86_400)
+        max_history_size: int = Field(default=1000, ge=1, le=100_000)
+        max_output_size: int = Field(default=1_048_576, ge=1)
+        max_table_rows: int = Field(default=1000, ge=1, le=10_000)
+        max_filename_length: int = Field(default=255, ge=1, le=255)
+        max_profile_name_length: int = Field(default=50, ge=1, le=100)
+        max_config_key_length: int = Field(default=100, ge=1, le=200)
+        max_config_value_length: int = Field(default=1000, ge=1, le=10_000)
+        max_commands_per_session: int = Field(default=10_000, ge=1, le=100_000)
+        max_env_var_display_length: int = Field(default=60, ge=1, le=200)
+        max_timeout_seconds: int = Field(default=3600, ge=1, le=86_400)
 
     class DataStructureConfig(BaseModel):
         """Data structure configuration for tuple processing."""
 
-        tuple_pair_length: int = positive_int_field(2, min_val=2, max_val=10)
-        min_service_id_length: int = positive_int_field(10, max_val=50)
+        tuple_pair_length: int = Field(default=2, ge=2, le=10)
+        min_service_id_length: int = Field(default=10, ge=1, le=50)
 
     class OutputConfig(BaseModel):
         """Output formatting configuration."""
 
-        default_output_format: str = bounded_str_field(
-            "table", pattern=r"^(table|json|yaml|csv)$"
+        default_output_format: str = Field(
+            default="table", pattern=r"^(table|json|yaml|csv)$"
         )
-        default_output_width: int = positive_int_field(120, min_val=40, max_val=400)
-        default_progress_bar_width: int = positive_int_field(
-            40, min_val=10, max_val=100
-        )
-        default_table_padding: int = positive_int_field(1, min_val=0, max_val=10)
-        high_priority_value: int = positive_int_field(1000, max_val=10_000)
-        default_retries: int = positive_int_field(3, min_val=0, max_val=10)
-        min_length: int = positive_int_field(1, max_val=10)
-        default_token_min_length: int = positive_int_field(10, max_val=100)
+        default_output_width: int = Field(default=120, ge=40, le=400)
+        default_progress_bar_width: int = Field(default=40, ge=10, le=100)
+        default_table_padding: int = Field(default=1, ge=0, le=10)
+        high_priority_value: int = Field(default=1000, ge=1, le=10_000)
+        default_retries: int = Field(default=3, ge=0, le=10)
+        min_length: int = Field(default=1, ge=1, le=10)
+        default_token_min_length: int = Field(default=10, ge=1, le=100)
 
     class SecurityConfig(BaseModel):
         """Security and privacy configuration."""
 
-        sensitive_value_preview_length: int = positive_int_field(4, max_val=10)
-        min_path_length_for_masking: int = positive_int_field(4, max_val=20)
-        max_config_key_length: int = positive_int_field(100, min_val=10, max_val=1000)
-        max_output_size: int = size_field(1_048_576)  # 1MB
+        sensitive_value_preview_length: int = Field(default=4, ge=1, le=10)
+        min_path_length_for_masking: int = Field(default=4, ge=1, le=20)
+        max_config_key_length: int = Field(default=100, ge=10, le=1000)
+        max_output_size: int = Field(default=1_048_576, ge=1)  # 1MB
 
     class HttpConfig(BaseModel):
         """HTTP client configuration with security defaults."""
 
-        http_scheme: str = frozen_str_field("http")
-        https_scheme: str = frozen_str_field("https")
-        default_host: str = bounded_str_field("localhost", min_len=1)
-        default_port: int = port_field(8081)
-        default_api_port: int = port_field(8080)
-        fallback_api_port: int = port_field(8000)
-        content_type_json: str = frozen_str_field("application/json")
-        header_content_type: str = frozen_str_field("Content-Type")
-        header_accept: str = frozen_str_field("Accept")
-        header_authorization: str = frozen_str_field("Authorization")
-        auth_bearer_prefix: str = frozen_str_field("Bearer")
+        http_scheme: str = Field(default="http", frozen=True)
+        https_scheme: str = Field(default="https", frozen=True)
+        default_host: str = Field(default="localhost", min_length=1)
+        default_port: int = Field(default=8081, ge=1, le=65535)
+        default_api_port: int = Field(default=8080, ge=1, le=65535)
+        fallback_api_port: int = Field(default=8000, ge=1, le=65535)
+        content_type_json: str = Field(default="application/json", frozen=True)
+        header_content_type: str = Field(default="Content-Type", frozen=True)
+        header_accept: str = Field(default="Accept", frozen=True)
+        header_authorization: str = Field(default="Authorization", frozen=True)
+        auth_bearer_prefix: str = Field(default="Bearer", frozen=True)
 
         @computed_field
-        @property
         def default_api_url(self) -> str:
             """Generate default API URL from configuration."""
             return f"{self.http_scheme}://{self.default_host}:{self.default_api_port}"
 
         @computed_field
-        @property
         def fallback_api_url(self) -> str:
             """Generate fallback API URL from configuration."""
             return f"{self.http_scheme}://{self.default_host}:{self.fallback_api_port}"
@@ -119,23 +106,21 @@ class FlextCliConstants:
     class FileConfig(BaseModel):
         """File and directory configuration with security."""
 
-        flext_dir_name: str = bounded_str_field(".flext", min_len=1)
-        config_file_name: str = bounded_str_field("config.yaml", min_len=1)
-        default_encoding: str = frozen_str_field("utf-8")
-        test_write_file_name: str = bounded_str_field(".flext_test_write", min_len=1)
-        cache_dir_name: str = bounded_str_field("cache", min_len=1)
-        logs_dir_name: str = bounded_str_field("logs", min_len=1)
-        data_dir_name: str = bounded_str_field("data", min_len=1)
-        auth_dir_name: str = bounded_str_field("auth", min_len=1)
+        flext_dir_name: str = Field(default=".flext", min_length=1)
+        config_file_name: str = Field(default="config.yaml", min_length=1)
+        default_encoding: str = Field(default="utf-8", frozen=True)
+        test_write_file_name: str = Field(default=".flext_test_write", min_length=1)
+        cache_dir_name: str = Field(default="cache", min_length=1)
+        logs_dir_name: str = Field(default="logs", min_length=1)
+        data_dir_name: str = Field(default="data", min_length=1)
+        auth_dir_name: str = Field(default="auth", min_length=1)
 
         @computed_field
-        @property
         def token_file_name(self) -> str:
             """Get token file name from environment or default."""
             return os.environ.get("FLEXT_CLI_TOKEN_FILE_NAME", "token.json")
 
         @computed_field
-        @property
         def refresh_token_file_name(self) -> str:
             """Get refresh token file name from environment or default."""
             return os.environ.get(
@@ -196,38 +181,38 @@ class FlextCliConstants:
     class MessageConfig(BaseModel):
         """User-facing CLI message configuration."""
 
-        interactive_feature_help: str = bounded_str_field(
-            "Interactive commands: REPL, completion, history", min_len=1
+        interactive_feature_help: str = Field(
+            default="Interactive commands: REPL, completion, history", min_length=1
         )
-        info_use_help: str = bounded_str_field(
-            "Use --help for more information", min_len=1
+        info_use_help: str = Field(
+            default="Use --help for more information", min_length=1
         )
-        version_cli: str = bounded_str_field("FLEXT CLI", min_len=1)
-        version_python: str = bounded_str_field("Python", min_len=1)
-        version_flext_core: str = bounded_str_field("FLEXT Core", min_len=1)
-        service_name_api: str = bounded_str_field("FLEXT CLI API", min_len=1)
-        table_title_config: str = bounded_str_field(
-            "FLEXT Configuration v0.7.0", min_len=1
+        version_cli: str = Field(default="FLEXT CLI", min_length=1)
+        version_python: str = Field(default="Python", min_length=1)
+        version_flext_core: str = Field(default="FLEXT Core", min_length=1)
+        service_name_api: str = Field(default="FLEXT CLI API", min_length=1)
+        table_title_config: str = Field(
+            default="FLEXT Configuration v0.7.0", min_length=1
         )
-        table_title_paths: str = bounded_str_field(
-            "FLEXT Configuration Paths", min_len=1
+        table_title_paths: str = Field(
+            default="FLEXT Configuration Paths", min_length=1
         )
-        table_title_metrics: str = bounded_str_field(
-            "System Performance Metrics", min_len=1
+        table_title_metrics: str = Field(
+            default="System Performance Metrics", min_length=1
         )
-        table_title_env_vars: str = bounded_str_field(
-            "FLEXT Environment Variables", min_len=1
+        table_title_env_vars: str = Field(
+            default="FLEXT Environment Variables", min_length=1
         )
-        table_title_cli_paths: str = bounded_str_field("FLEXT CLI Paths", min_len=1)
-        debug_flext_core_not_detected: str = bounded_str_field(
-            "FLEXT Core version not detected", min_len=1
+        table_title_cli_paths: str = Field(default="FLEXT CLI Paths", min_length=1)
+        debug_flext_core_not_detected: str = Field(
+            default="FLEXT Core version not detected", min_length=1
         )
-        debug_information: str = bounded_str_field("Debug Information", min_len=1)
-        debug_configuration: str = bounded_str_field("Configuration", min_len=1)
-        debug_python_executable: str = bounded_str_field("Python Executable", min_len=1)
-        debug_platform: str = bounded_str_field("Platform", min_len=1)
-        debug_service_connectivity: str = bounded_str_field(
-            "Service connectivity check", min_len=1
+        debug_information: str = Field(default="Debug Information", min_length=1)
+        debug_configuration: str = Field(default="Configuration", min_length=1)
+        debug_python_executable: str = Field(default="Python Executable", min_length=1)
+        debug_platform: str = Field(default="Platform", min_length=1)
+        debug_service_connectivity: str = Field(
+            default="Service connectivity check", min_length=1
         )
 
     # =============================================================================
@@ -263,8 +248,8 @@ class FlextCliConstants:
     # HTTP (DEPRECATED: Use HTTP.field_name instead)
     DEFAULT_HOST: Final[str] = HTTP.default_host
     DEFAULT_PORT: Final[int] = HTTP.default_port
-    DEFAULT_API_URL: Final[str] = HTTP.default_api_url
-    FALLBACK_API_URL: Final[str] = HTTP.fallback_api_url
+    DEFAULT_API_URL: Final[str] = "http://localhost:8080"
+    FALLBACK_API_URL: Final[str] = "http://localhost:8000"
     CONTENT_TYPE_JSON: Final[str] = HTTP.content_type_json
     HEADER_CONTENT_TYPE: Final[str] = HTTP.header_content_type
     HEADER_ACCEPT: Final[str] = HTTP.header_accept
@@ -290,8 +275,8 @@ class FlextCliConstants:
     LOGS_DIR_NAME: Final[str] = FILES.logs_dir_name
     DATA_DIR_NAME: Final[str] = FILES.data_dir_name
     AUTH_DIR_NAME: Final[str] = FILES.auth_dir_name
-    TOKEN_FILE_NAME: Final[str] = FILES.token_file_name
-    REFRESH_TOKEN_FILE_NAME: Final[str] = FILES.refresh_token_file_name
+    TOKEN_FILE_NAME: Final[str] = "token.json"
+    REFRESH_TOKEN_FILE_NAME: Final[str] = "refresh_token.json"
 
     # Messages (DEPRECATED: Use MESSAGES.field_name instead)
     SERVICE_NAME_API: Final[str] = MESSAGES.service_name_api

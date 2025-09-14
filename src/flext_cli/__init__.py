@@ -1,4 +1,7 @@
-"""FLEXT CLI - API exposure using.
+"""FLEXT CLI - CLI Foundation (30% functional, targeting 75%).
+
+Current Status: Basic CLI wrapper with authentication and configuration.
+Planned: Complete Click/Rich abstraction layer for ecosystem.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT

@@ -355,7 +355,7 @@ class TestValidateConfig:
             timeout = 30
 
         @validate_config(["api_url", "timeout"])
-        def function_requiring__config(__config: MockConfig) -> str:
+        def function_requiring_config(__config: MockConfig) -> str:
             return "config validated"
 
         result = function_requiring_config(MockConfig())
@@ -372,7 +372,7 @@ class TestValidateConfig:
                 # missing timeout
 
             @validate_config(["api_url", "timeout"])
-            def function_requiring__config(__config: MockConfig) -> str:
+            def function_requiring_config(__config: MockConfig) -> str:
                 return "config validated"
 
             result = function_requiring_config(MockConfig())

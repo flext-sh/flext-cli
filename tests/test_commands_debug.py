@@ -13,7 +13,14 @@ from rich.console import Console
 
 from flext_cli import debug
 from flext_cli.config import FlextCliConfig
-from flext_cli.debug import ( connectivity, env, paths, performance, trace, validate, )
+from flext_cli.debug import (
+    connectivity,
+    env,
+    paths,
+    performance,
+    trace,
+    validate,
+)
 
 
 class TestDebugCommandReal:

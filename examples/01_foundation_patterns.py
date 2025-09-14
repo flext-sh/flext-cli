@@ -28,7 +28,14 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from flext_cli import ( CLICommand, FlextCliApi, FlextCliConfig, FlextCliHelper, FlextCliSession, setup_cli, )
+from flext_cli import (
+    CLICommand,
+    FlextCliApi,
+    FlextCliConfig,
+    FlextCliHelper,
+    FlextCliSession,
+    setup_cli,
+)
 
 
 def _setup_cli_demo(console: Console) -> FlextResult[None]:

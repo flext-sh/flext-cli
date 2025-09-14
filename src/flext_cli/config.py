@@ -11,23 +11,15 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import override
 
 from flext_core import FlextConfig, FlextResult, FlextUtilities
-from pydantic import field_validator, model_validator
+from pydantic import Field, field_validator, model_validator
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.utils import (
     SETTINGS_CONFIG_DICT,
-    bool_field,
-    description_field,
-    optional_field,
-    path_field,
-    positive_int_field,
     refresh_token_file_path,
-    timeout_field,
     token_file_path,
-    version_field,
 )
 
 
@@ -42,7 +34,7 @@ class FlextCliConfig(FlextConfig):
     model_config = SETTINGS_CONFIG_DICT
 
     # Override app_name for CLI-specific configuration
-    app_name: str = description_field("flext-cli", description="CLI application name")
+    app_name: str = Field(default="flext-cli", description="CLI application name")
 
     # Nested class for CLI defaults (expected by tests)
     class CliDefaults:
@@ -72,19 +64,19 @@ class FlextCliConfig(FlextConfig):
     # =========================================================================
 
     # CLI profile management
-    profile: str = description_field(
-        "default", description="CLI configuration profile name"
+    profile: str = Field(
+        default="default", description="CLI configuration profile name"
     )
 
     # CLI output settings
-    output_format: str = description_field(
-        "table", description="CLI output format (table, json, yaml, csv)"
+    output_format: str = Field(
+        default="table", description="CLI output format (table, json, yaml, csv)"
     )
-    no_color: bool = bool_field(False, description="Disable colored CLI output")
-    quiet: bool = bool_field(False, description="Minimal output mode")
-    verbose: bool = bool_field(False, description="Verbose output mode")
-    pager: str | None = optional_field(
-        description="Optional pager command for long output"
+    no_color: bool = Field(default=False, description="Disable colored CLI output")
+    quiet: bool = Field(default=False, description="Minimal output mode")
+    verbose: bool = Field(default=False, description="Verbose output mode")
+    pager: str | None = Field(
+        default=None, description="Optional pager command for long output"
     )
 
     # CLI directories (simplified pattern using base directory)
@@ -108,50 +100,61 @@ class FlextCliConfig(FlextConfig):
         """Data directory for CLI operations."""
         return FlextCliConfig._base_dir() / "data"
 
-    config_dir: Path = path_field(_base_dir)
-    cache_dir: Path = path_field(_cache_dir)
-    log_dir: Path = path_field(_log_dir)
-    data_dir: Path = path_field(_data_dir)
+    config_dir: Path = Field(default_factory=_base_dir)
+    cache_dir: Path = Field(default_factory=_cache_dir)
+    log_dir: Path = Field(default_factory=_log_dir)
+    data_dir: Path = Field(default_factory=_data_dir)
 
     # Authentication files (CLI-specific)
-    token_file: Path = path_field(
-        token_file_path, description="CLI authentication token file"
+    token_file: Path = Field(
+        default_factory=token_file_path, description="CLI authentication token file"
     )
-    refresh_token_file: Path = path_field(
-        refresh_token_file_path, description="CLI refresh token file"
+    refresh_token_file: Path = Field(
+        default_factory=refresh_token_file_path, description="CLI refresh token file"
     )
-    auto_refresh: bool = bool_field(
+    auto_refresh: bool = Field(
         default=True, description="Enable automatic token refresh"
     )
 
     # API-related fields (aliases for compatibility)
-    api_url: str = description_field(
-        FlextCliConstants.FALLBACK_API_URL, description="API URL (alias for base_url)"
+    api_url: str = Field(
+        default=FlextCliConstants.FALLBACK_API_URL,
+        description="API URL (alias for base_url)",
     )
-    api_timeout: int = timeout_field(30, description="API timeout in seconds")
-    connect_timeout: int = timeout_field(
-        30, description="Connection timeout in seconds"
+    api_timeout: int = Field(
+        default=30, ge=1, le=3600, description="API timeout in seconds"
     )
-    read_timeout: int = timeout_field(60, description="Read timeout in seconds")
-    verify_ssl: bool = bool_field(default=True, description="Verify SSL certificates")
+    connect_timeout: int = Field(
+        default=30, ge=1, le=3600, description="Connection timeout in seconds"
+    )
+    read_timeout: int = Field(
+        default=60, ge=1, le=3600, description="Read timeout in seconds"
+    )
+    verify_ssl: bool = Field(default=True, description="Verify SSL certificates")
 
     # Retry configuration (aliases for compatibility)
-    retries: int = positive_int_field(
-        3, max_val=10, description="Number of retries (alias for max_command_retries)"
+    retries: int = Field(
+        default=3,
+        ge=0,
+        le=10,
+        description="Number of retries (alias for max_command_retries)",
     )
-    max_retries: int = positive_int_field(
-        3, max_val=10, description="Maximum retries (alias for max_command_retries)"
+    max_retries: int = Field(
+        default=3,
+        ge=0,
+        le=10,
+        description="Maximum retries (alias for max_command_retries)",
     )
 
     # Project metadata (CLI-specific overrides)
-    project_name: str = description_field(
-        "flext-cli", description="Project name for CLI"
-    )
-    project_description: str = description_field(
-        "FLEXT CLI - Developer Command Line Interface",
+    project_name: str = Field(default="flext-cli", description="Project name for CLI")
+    project_description: str = Field(
+        default="FLEXT CLI - Developer Command Line Interface",
         description="Project description",
     )
-    project_version: str = version_field(description="CLI version")
+    project_version: str = Field(
+        default="0.9.0", pattern=r"^\d+\.\d+\.\d+", description="CLI version"
+    )
 
     # =========================================================================
     # VALIDATORS
@@ -245,7 +248,7 @@ class FlextCliConfig(FlextConfig):
     # COMPATIBILITY METHODS
     # =========================================================================
 
-    def __init__(self, /, **data: object) -> None:
+    def __init__(self, **data: object) -> None:
         """Initialize with backward compatibility support."""
         # Handle backward compatibility aliases
         if "base_url" in data and "api_url" not in data:
@@ -254,13 +257,13 @@ class FlextCliConfig(FlextConfig):
             data["retries"] = data["max_command_retries"]
             data["max_retries"] = data["max_command_retries"]
 
-        # Call parent __init__ with correct parameters
-        # FlextConfig will handle all field setting via its __init__
-        try:
-            super().__init__(_factory_mode=False, **data)
-        except TypeError:
-            # If direct init fails, use individual field setting
-            super().__init__(_factory_mode=False)
+        # Call parent __init__ - FlextConfig handles initialization
+        super().__init__()
+
+        # Set fields manually after parent initialization
+        for key, value in data.items():
+            if hasattr(self, key) and value is not None:
+                setattr(self, key, value)
 
         # After parent init, check if command_timeout was properly set
         # If not, set it manually (this handles edge cases)
@@ -293,32 +296,14 @@ class FlextCliConfig(FlextConfig):
                 # Use __dict__ to avoid validation recursion
                 self.__dict__[key] = value
 
-    @override
-    def model_dump(self, **kwargs: object) -> dict[str, object]:
+    def model_dump(self, **_kwargs: object) -> dict[str, object]:
         """Dump model with all fields for compatibility."""
-        # Get base dump - use type cast for kwargs
-        result = super().model_dump(**kwargs)
-
-        # Add CLI-specific fields explicitly
-        cli_fields = {
-            "profile": self.profile,
-            "output_format": self.output_format,
-            "no_color": self.no_color,
-            "quiet": self.quiet,
-            "verbose": self.verbose,
-            "api_url": self.api_url,
-            "api_timeout": self.api_timeout,
-            "retries": self.retries,
-            "max_retries": self.max_retries,
-            "auto_refresh": self.auto_refresh,
+        # Get all attributes that are not private or methods
+        return {
+            key: getattr(self, key)
+            for key in dir(self)
+            if not key.startswith("_") and not callable(getattr(self, key, None))
         }
-
-        result.update(cli_fields)
-
-        # Add nested output structure for backward compatibility
-        result["output"] = {"format": self.output_format}
-
-        return result
 
     @property
     def is_development_mode(self) -> bool:
@@ -343,7 +328,7 @@ class FlextCliConfig(FlextConfig):
             )
 
         # Validate profile using Python 3.13+ walrus operator and modern validation
-        if not self.profile or not (profile_stripped := self.profile.strip()):
+        if not self.profile or not self.profile.strip():
             return FlextResult[None].fail("Profile name cannot be empty")
 
         # Validate timeouts
@@ -450,7 +435,12 @@ class FlextCliConfig(FlextConfig):
         if isinstance(base_config, cls):
             return base_config
 
-        base_data = base_config.model_dump()
+        # Get base config data as dict
+        base_data = {
+            key: getattr(base_config, key)
+            for key in dir(base_config)
+            if not key.startswith("_") and not callable(getattr(base_config, key, None))
+        }
 
         # Remove fields that should use FlextCliConfig defaults or environment variables
         # instead of base config values
@@ -473,8 +463,7 @@ class FlextCliConfig(FlextConfig):
                 cli_specific_overrides.append(field)
 
         for field in cli_specific_overrides:
-            if field in base_data:
-                del base_data[field]
+            base_data.pop(field, None)
 
         # Create CLI config extending the base - this will automatically pick up
         # environment variables due to Pydantic's SettingsConfigDict behavior
@@ -597,7 +586,14 @@ class FlextCliConfig(FlextConfig):
 
             # Create new config with overrides
             if config_updates:
-                new_config = cls(**{**current_config.model_dump(), **config_updates})
+                # Create new config with current values and updates
+                current_data = {
+                    key: getattr(current_config, key)
+                    for key in dir(current_config)
+                    if not key.startswith("_")
+                    and not callable(getattr(current_config, key, None))
+                }
+                new_config = cls(**{**current_data, **config_updates})
                 cls.set_global_instance(new_config)
                 return FlextResult[FlextCliConfig].ok(new_config)
 
@@ -615,7 +611,14 @@ class FlextCliConfig(FlextConfig):
             base_config = FlextConfig.get_global_instance()
 
             # Create CLI config from base
-            cli_config = cls(**base_config.model_dump())
+            # Create CLI config from base config data
+            base_data = {
+                key: getattr(base_config, key)
+                for key in dir(base_config)
+                if not key.startswith("_")
+                and not callable(getattr(base_config, key, None))
+            }
+            cli_config = cls(**base_data)
 
             # Set as global
             cls.set_global_instance(cli_config)
@@ -629,26 +632,22 @@ class FlextCliConfig(FlextConfig):
     @classmethod
     def ensure_flext_config_integration(cls) -> FlextResult[None]:
         """Ensure integration with FlextConfig is maintained."""
+        # Verify that FlextConfig base functionality is working
         try:
-            # Verify that FlextConfig base functionality is working
-            base_config = FlextConfig.get_global_instance()
-            if base_config is None:
-                return FlextResult[None].fail(
-                    "FlextConfig global instance not available"
-                )
-
-            # Ensure CLI-specific extensions are compatible
-            cli_config = cls.get_global_instance()
-
-            # Basic validation that inheritance chain is intact
-            if not isinstance(cli_config, FlextConfig):
-                return FlextResult[None].fail(
-                    "FlextCliConfig is not properly inheriting from FlextConfig"
-                )
-
-            return FlextResult[None].ok(None)
+            FlextConfig.get_global_instance()
         except Exception as e:
-            return FlextResult[None].fail(f"FlextConfig integration check failed: {e}")
+            return FlextResult[None].fail(
+                f"FlextConfig global instance not available: {e}"
+            )
+
+        # Ensure CLI-specific extensions are compatible
+        # Get CLI config to verify it works
+        try:
+            cls.get_global_instance()
+        except Exception as e:
+            return FlextResult[None].fail(f"CLI config instance not available: {e}")
+
+        return FlextResult[None].ok(None)
 
     @property
     def timeout(self) -> int:

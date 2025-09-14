@@ -15,11 +15,6 @@ from __future__ import annotations
 from flext_core import FlextCommands, FlextDomainService, FlextLogger, FlextResult
 from pydantic import Field
 
-from flext_cli.utils import (
-    bool_field,
-    command_type_field,
-)
-
 
 class FlextCliCommands(FlextDomainService[None]):
     """Unified CLI Commands Service following FLEXT architectural patterns.
@@ -119,9 +114,11 @@ class FlextCliCommands(FlextDomainService[None]):
     class AuthStatusCommand(FlextCommands.Models.Command):
         """Authentication status command using flext-core Command pattern."""
 
-        command_type: str = command_type_field("auth_status")
-        detailed: bool = bool_field(
-            False, description="Show detailed authentication information"
+        command_type: str = Field(
+            default="auth_status", description="Command type identifier"
+        )
+        detailed: bool = Field(
+            default=False, description="Show detailed authentication information"
         )
 
         def validate_command(self) -> FlextResult[bool]:
@@ -131,7 +128,9 @@ class FlextCliCommands(FlextDomainService[None]):
     class AuthLogoutCommand(FlextCommands.Models.Command):
         """Authentication logout command using flext-core Command pattern."""
 
-        command_type: str = command_type_field("auth_logout")
+        command_type: str = Field(
+            default="auth_logout", description="Command type identifier"
+        )
 
         all_profiles: bool = Field(
             default=False, description="Logout from all profiles"

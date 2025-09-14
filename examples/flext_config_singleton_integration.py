@@ -18,16 +18,16 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from pathlib import Path
 
-from flext_core import FlextConfig, FlextResult
+from flext_core import FlextConfig
+
 from flext_cli.config import FlextCliConfig
 
 
 def demonstrate_single_source_of_truth() -> None:
     """Demonstrate FlextConfig as SINGLE SOURCE OF TRUTH."""
     print("=== FLEXT CONFIG AS SINGLE SOURCE OF TRUTH ===\n")
-    
+
     # 1. Show FlextConfig singleton as authoritative source
     print("1. FlextConfig Singleton (SINGLE SOURCE OF TRUTH):")
     base_config = FlextConfig.get_global_instance()
@@ -37,7 +37,7 @@ def demonstrate_single_source_of_truth() -> None:
     print(f"   App Name: {base_config.app_name}")
     print(f"   Timeout: {base_config.timeout_seconds}s")
     print()
-    
+
     # 2. Show FlextCliConfig extending FlextConfig
     print("2. FlextCliConfig Extends FlextConfig:")
     cli_config = FlextCliConfig.get_global_instance()
@@ -46,7 +46,7 @@ def demonstrate_single_source_of_truth() -> None:
     print(f"   API URL: {cli_config.api_url}")
     print(f"   Command Timeout: {cli_config.command_timeout}s")
     print()
-    
+
     # 3. Verify integration metadata
     print("3. Integration Metadata:")
     print(f"   Base Config Source: {cli_config._metadata.get('base_config_source', 'unknown')}")
@@ -58,7 +58,7 @@ def demonstrate_single_source_of_truth() -> None:
 def demonstrate_cli_parameter_integration() -> None:
     """Demonstrate CLI parameter integration with FlextConfig."""
     print("=== CLI PARAMETER INTEGRATION ===\n")
-    
+
     # 1. Ensure integration is maintained
     print("1. Ensuring FlextConfig Integration:")
     integration_result = FlextCliConfig.ensure_flext_config_integration()
@@ -69,7 +69,7 @@ def demonstrate_cli_parameter_integration() -> None:
         print(f"   ❌ Integration failed: {integration_result.error}")
         return
     print()
-    
+
     # 2. Apply CLI parameter overrides
     print("2. Applying CLI Parameter Overrides:")
     cli_overrides = {
@@ -79,20 +79,20 @@ def demonstrate_cli_parameter_integration() -> None:
         "output_format": "json",
         "command_timeout": 60,
     }
-    
+
     print("   CLI Parameters:")
     for key, value in cli_overrides.items():
         print(f"     {key}: {value}")
-    
+
     # Apply overrides
     result = FlextCliConfig.apply_cli_overrides(cli_overrides)
     if result.is_failure:
         print(f"   ❌ Failed to apply overrides: {result.error}")
         return
-    
+
     print("   ✅ Overrides applied successfully")
     print()
-    
+
     # 3. Show updated configurations
     print("3. Updated FlextConfig Singleton:")
     updated_base_config = FlextConfig.get_global_instance()
@@ -100,14 +100,14 @@ def demonstrate_cli_parameter_integration() -> None:
     print(f"   Log Level: {updated_base_config.log_level}")
     print(f"   Timeout: {updated_base_config.timeout_seconds}s")
     print()
-    
+
     print("4. Updated FlextCliConfig:")
     updated_cli_config = FlextCliConfig.get_global_instance()
     print(f"   Profile: {updated_cli_config.profile}")
     print(f"   Output Format: {updated_cli_config.output_format}")
     print(f"   Command Timeout: {updated_cli_config.command_timeout}s")
     print()
-    
+
     # 4. Show integration metadata
     print("5. Integration Status:")
     print(f"   CLI Overrides Applied: {updated_cli_config._metadata.get('cli_overrides_applied', 'false')}")
@@ -119,37 +119,37 @@ def demonstrate_cli_parameter_integration() -> None:
 def demonstrate_environment_integration() -> None:
     """Demonstrate environment variable integration."""
     print("=== ENVIRONMENT INTEGRATION ===\n")
-    
+
     # Set environment variables
     os.environ["FLEXT_DEBUG"] = "true"
     os.environ["FLEXT_LOG_LEVEL"] = "WARNING"
     os.environ["FLEXT_CLI_PROFILE"] = "production"
     os.environ["FLEXT_CLI_OUTPUT_FORMAT"] = "yaml"
-    
+
     print("1. Environment Variables Set:")
     print("   FLEXT_DEBUG=true")
     print("   FLEXT_LOG_LEVEL=WARNING")
     print("   FLEXT_CLI_PROFILE=production")
     print("   FLEXT_CLI_OUTPUT_FORMAT=yaml")
     print()
-    
+
     # Clear singleton instances to force reload from environment
     FlextConfig.clear_global_instance()
     FlextCliConfig.clear_global_instance()
-    
+
     print("2. Reloading from Environment:")
     base_config = FlextConfig.get_global_instance()
     cli_config = FlextCliConfig.get_global_instance()
-    
+
     print("   FlextConfig (from FLEXT_* env vars):")
     print(f"     Debug: {base_config.debug}")
     print(f"     Log Level: {base_config.log_level}")
-    
+
     print("   FlextCliConfig (from FLEXT_CLI_* env vars):")
     print(f"     Profile: {cli_config.profile}")
     print(f"     Output Format: {cli_config.output_format}")
     print()
-    
+
     # Clean up environment variables
     for key in ["FLEXT_DEBUG", "FLEXT_LOG_LEVEL", "FLEXT_CLI_PROFILE", "FLEXT_CLI_OUTPUT_FORMAT"]:
         os.environ.pop(key, None)
@@ -158,31 +158,31 @@ def demonstrate_environment_integration() -> None:
 def demonstrate_priority_hierarchy() -> None:
     """Demonstrate configuration priority hierarchy."""
     print("=== CONFIGURATION PRIORITY HIERARCHY ===\n")
-    
+
     # Set environment variables (lower priority)
     os.environ["FLEXT_CLI_DEBUG"] = "false"
     os.environ["FLEXT_CLI_LOG_LEVEL"] = "INFO"
-    
+
     print("1. Environment Variables (Lower Priority):")
     print("   FLEXT_CLI_DEBUG=false")
     print("   FLEXT_CLI_LOG_LEVEL=INFO")
-    
+
     # Clear and reload
     FlextCliConfig.clear_global_instance()
     env_config = FlextCliConfig.get_global_instance()
-    
+
     print("2. Configuration from Environment:")
     print(f"   Debug: {env_config.debug}")
     print(f"   Log Level: {env_config.log_level}")
     print()
-    
+
     # Apply CLI overrides (higher priority)
     print("3. Applying CLI Overrides (Higher Priority):")
     cli_overrides = {
         "debug": True,
         "log_level": "DEBUG",
     }
-    
+
     result = FlextCliConfig.apply_cli_overrides(cli_overrides)
     if result.is_success:
         updated_config = result.value
@@ -192,7 +192,7 @@ def demonstrate_priority_hierarchy() -> None:
         print(f"   Log Level: {updated_config.log_level}")
     else:
         print(f"   ❌ Failed to apply CLI overrides: {result.error}")
-    
+
     # Clean up
     for key in ["FLEXT_CLI_DEBUG", "FLEXT_CLI_LOG_LEVEL"]:
         os.environ.pop(key, None)
@@ -202,7 +202,7 @@ def demonstrate_priority_hierarchy() -> None:
 def demonstrate_validation_and_error_handling() -> None:
     """Demonstrate validation and error handling."""
     print("=== VALIDATION AND ERROR HANDLING ===\n")
-    
+
     # Test valid configuration
     print("1. Valid Configuration:")
     valid_overrides = {
@@ -211,14 +211,14 @@ def demonstrate_validation_and_error_handling() -> None:
         "output_format": "json",
         "command_timeout": 30,
     }
-    
+
     result = FlextCliConfig.apply_cli_overrides(valid_overrides)
     if result.is_success:
         print("   ✅ Valid configuration accepted")
     else:
         print(f"   ❌ Valid configuration rejected: {result.error}")
     print()
-    
+
     # Test invalid configuration
     print("2. Invalid Configuration:")
     invalid_overrides = {
@@ -227,7 +227,7 @@ def demonstrate_validation_and_error_handling() -> None:
         "output_format": "invalid_format",  # Invalid output format
         "command_timeout": -1,  # Invalid timeout
     }
-    
+
     result = FlextCliConfig.apply_cli_overrides(invalid_overrides)
     if result.is_failure:
         print("   ✅ Invalid configuration properly rejected")
@@ -240,36 +240,36 @@ def demonstrate_validation_and_error_handling() -> None:
 def demonstrate_synchronization() -> None:
     """Demonstrate configuration synchronization."""
     print("=== CONFIGURATION SYNCHRONIZATION ===\n")
-    
+
     # Get initial configurations
     base_config = FlextConfig.get_global_instance()
     cli_config = FlextCliConfig.get_global_instance()
-    
+
     print("1. Initial Configurations:")
     print(f"   FlextConfig Debug: {base_config.debug}")
     print(f"   FlextCliConfig Debug: {cli_config.debug}")
     print()
-    
+
     # Apply CLI overrides
     cli_overrides = {"debug": True, "log_level": "DEBUG"}
     result = FlextCliConfig.apply_cli_overrides(cli_overrides)
-    
+
     if result.is_success:
         print("2. After CLI Overrides:")
         updated_base = FlextConfig.get_global_instance()
         updated_cli = FlextCliConfig.get_global_instance()
-        
+
         print(f"   FlextConfig Debug: {updated_base.debug}")
         print(f"   FlextCliConfig Debug: {updated_cli.debug}")
         print(f"   Synchronized: {updated_base.debug == updated_cli.debug}")
         print()
-        
+
         # Test synchronization method
         print("3. Manual Synchronization:")
         sync_result = FlextCliConfig.sync_with_base_config()
         if sync_result.is_success:
             synced_config = sync_result.value
-            print(f"   ✅ Synchronization successful")
+            print("   ✅ Synchronization successful")
             print(f"   Synced Debug: {synced_config.debug}")
         else:
             print(f"   ❌ Synchronization failed: {sync_result.error}")
@@ -283,7 +283,7 @@ def main() -> None:
     print("FLEXT CLI Configuration Singleton Integration Example")
     print("=" * 60)
     print()
-    
+
     try:
         demonstrate_single_source_of_truth()
         demonstrate_cli_parameter_integration()
@@ -291,7 +291,7 @@ def main() -> None:
         demonstrate_priority_hierarchy()
         demonstrate_validation_and_error_handling()
         demonstrate_synchronization()
-        
+
         print("=== SUMMARY ===")
         print("✅ FlextConfig serves as SINGLE SOURCE OF TRUTH")
         print("✅ FlextCliConfig extends FlextConfig while maintaining singleton")
@@ -308,7 +308,7 @@ def main() -> None:
         print("- Integration verification and metadata tracking")
         print("- Type-safe validation and error handling")
         print("- Consistent state across the entire application")
-        
+
     except Exception as e:
         print(f"❌ Demonstration failed: {e}")
         raise

@@ -9,9 +9,8 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 from rich.console import Console
 from rich.panel import Panel
 

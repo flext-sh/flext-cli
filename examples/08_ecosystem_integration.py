@@ -22,20 +22,23 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 from dataclasses import dataclass
-from functools import partial
 from pathlib import Path
 
 import click
-from flext_core import FlextConfig, FlextResult
+from flext_core import FlextConfig, FlextResult, FlextTypes
 from rich.console import Console
 from rich.table import Table
 
-from flext_cli import ( FlextApiClient, FlextCliService, FlextCliApi, FlextCliAuth, save_auth_token, cli_create_table, cli_format_output, require_auth, )
-
-
+from flext_cli import (
+    FlextApiClient,
+    FlextCliService,
+    cli_create_table,
+    cli_format_output,
+    require_auth,
+    save_auth_token,
+)
 
 
 class EcosystemSettings(FlextConfig):
@@ -437,7 +440,7 @@ def _handle_table_format(console: Console, data: object) -> FlextResult[str]:
     else:
         # Fallback: create a single-column table
         table_data = [{"value": str(data)}]
-    
+
     row_count = len(table_data)
     table = cli_create_table(table_data, title=f"Query Results ({row_count} rows)")
     console.print(table)

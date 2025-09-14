@@ -14,7 +14,10 @@ from pathlib import Path
 
 from flext_core import FlextTypes
 
-from flext_cli.decorators import ( FlextCliDecorators, handle_service_result, )
+from flext_cli import (
+    FlextCliDecorators,
+    handle_service_result,
+)
 
 
 class TestFlextCliDecorators(unittest.TestCase):

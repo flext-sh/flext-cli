@@ -23,21 +23,24 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import asyncio
 import time
 from datetime import UTC, datetime
 from enum import Enum
 
-from flext_core import FlextLogger, FlextResult
+from example_utils import print_demo_completion
+from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
 from rich.table import Table
 
-from flext_cli import ( FlextApiClient, FlextCliService, get_cli_config, )
-from example_utils import print_demo_completion
+from flext_cli import (
+    FlextApiClient,
+    FlextCliService,
+    get_cli_config,
+)
 
 
 class ServiceStatus(Enum):

@@ -17,7 +17,7 @@ Unified CLI for the distributed FLEXT ecosystem. Currently exposes functional `a
 
 ### 🎯 **Mission**
 
-Provide a unified, enterprise-grade CLI that simplifies management and orchestration of the entire FLEXT distributed data integration ecosystem, enabling developers and operators to efficiently work with 32+ interconnected projects from a single command interface.
+Provide a unified CLI that simplifies management and orchestration of the entire FLEXT distributed data integration ecosystem, enabling developers and operators to efficiently work with 32+ interconnected projects from a single command interface.
 
 ### 🚀 **Vision**
 
@@ -154,7 +154,7 @@ flext logs search <query>            # Distributed log search
 
 ### 🏗️ **Target Architecture (Enterprise-Grade)**
 
-FLEXT CLI follows Clean Architecture principles with full flext-core integration to provide enterprise-grade functionality:
+FLEXT CLI follows Clean Architecture principles with full flext-core integration to provide functionality:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
