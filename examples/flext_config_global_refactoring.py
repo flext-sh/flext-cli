@@ -57,8 +57,8 @@ def demonstrate_global_configuration_refactoring() -> None:
     # Initialize CLI API
     cli_api = FlextCliApi()
     print("   ✅ FlextCliApi initialized")
-    print(f"      Version: {cli_api.state.version}")
-    print(f"      Service Name: {cli_api.state.service_name}")
+    print(f"      Version: {cli_api.version}")
+    print(f"      Service Name: {cli_api.service_name}")
 
     # Initialize CLI Service
     cli_service = FlextCliService()
@@ -105,7 +105,7 @@ def demonstrate_global_configuration_refactoring() -> None:
     # Update CLI API
     cli_api.update_from_config()
     print("   ✅ FlextCliApi updated")
-    print(f"      New Version: {cli_api.state.version}")
+    print(f"      New Version: {cli_api.version}")
 
     # Update CLI Service
     cli_service.update_configuration()
@@ -132,7 +132,7 @@ def demonstrate_global_configuration_refactoring() -> None:
     consistency_checks = [
         ("API Client Base URL", api_client.base_url, updated_cli_config.api_url),
         ("API Client Timeout", api_client.timeout, updated_cli_config.api_timeout),
-        ("CLI API Version", cli_api.state.version, updated_cli_config.project_version),
+        ("CLI API Version", cli_api.version, updated_cli_config.project_version),
     ]
 
     print("\n   Consistency Checks:")
@@ -200,7 +200,7 @@ def demonstrate_dynamic_configuration_updates() -> None:
 
     print("1. Initial Configuration State:")
     print(f"   API Client Base URL: {api_client.base_url}")
-    print(f"   CLI API Version: {cli_api.state.version}")
+    print(f"   CLI API Version: {cli_api.version}")
     print(f"   CLI Service Config: {type(cli_service.get_config()).__name__}")
     print(f"   CLI Auth Config: {type(cli_auth.config).__name__}")
     print()
@@ -235,7 +235,7 @@ def demonstrate_dynamic_configuration_updates() -> None:
     # Show updated state
     print("4. Updated Configuration State:")
     print(f"   API Client Base URL: {api_client.base_url}")
-    print(f"   CLI API Version: {cli_api.state.version}")
+    print(f"   CLI API Version: {cli_api.version}")
     print(f"   CLI Service Config: {type(cli_service.get_config()).__name__}")
     print(f"   CLI Auth Config: {type(cli_auth.config).__name__}")
     print()
@@ -310,7 +310,7 @@ def demonstrate_cli_parameter_integration() -> None:
     print("6. Module Configuration Verification:")
     print(f"   API Client Base URL: {api_client.base_url}")
     print(f"   API Client Timeout: {api_client.timeout}s")
-    print(f"   CLI API Version: {cli_api.state.version}")
+    print(f"   CLI API Version: {cli_api.version}")
     print(f"   CLI Service Config: {type(cli_service.get_config()).__name__}")
     print(f"   CLI Auth Config: {type(cli_auth.config).__name__}")
     print()

@@ -7,7 +7,7 @@ import functools
 import time
 from collections.abc import Awaitable, Callable, Mapping
 from pathlib import Path
-from typing import ParamSpec, TypeVar, cast
+from typing import ParamSpec, TypeVar, cast, overload
 
 from flext_core import FlextDecorators, FlextLogger, FlextResult, FlextTypes
 from rich.console import Console
@@ -26,8 +26,20 @@ class FlextCliDecorators(FlextDecorators):
     """
 
     @staticmethod
+    @overload
     def handle_service_result(
         func: Callable[P, T],
+    ) -> Callable[P, T | None]: ...
+
+    @staticmethod
+    @overload
+    def handle_service_result(
+        func: Callable[P, Awaitable[T]],
+    ) -> Callable[P, Awaitable[T | None]]: ...
+
+    @staticmethod
+    def handle_service_result(
+        func: Callable[P, T] | Callable[P, Awaitable[T]],
     ) -> Callable[P, T | None] | Callable[P, Awaitable[T | None]]:
         """Decorator for handling FlextResult values - extracts success data or returns None on failure."""
         if asyncio.iscoroutinefunction(func):
@@ -74,7 +86,7 @@ class FlextCliDecorators(FlextDecorators):
                     return None
 
                 # Pass through non-FlextResult values with type safety
-                return result
+                return cast("T", result)  # type: ignore[return-value]
 
             except Exception:
                 # Handle exceptions by logging error and re-raising

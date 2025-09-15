@@ -265,7 +265,7 @@ def demonstrate_synchronization() -> None:
 
         # Test synchronization method
         print("3. Manual Synchronization:")
-        sync_result = FlextCliConfig.sync_with_base_config()
+        sync_result = FlextCliConfig.sync_with_flext_config()
         if sync_result.is_success:
             synced_config = sync_result.value
             print("   ✅ Synchronization successful")

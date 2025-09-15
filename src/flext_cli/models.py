@@ -45,7 +45,7 @@ class FlextCliModels:
 
         id: str = Field(default_factory=generate_uuid)
         command_line: str | None = Field(default=None, description="Command to execute")
-        execution_time: datetime = Field()
+        execution_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
         # Advanced discriminated union state management
         state: Annotated[
@@ -222,7 +222,7 @@ class FlextCliModels:
 
         id: str = Field(default_factory=generate_uuid)
         session_id: str = Field(default_factory=generate_uuid)
-        start_time: datetime = Field()
+        start_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
         end_time: datetime | None = None
         commands: list[FlextCliModels.CliCommand] = Field(default_factory=list)
         user_id: str | None = None

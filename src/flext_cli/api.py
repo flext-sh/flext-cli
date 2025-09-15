@@ -7,7 +7,7 @@ import platform
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import override
+from typing import TypeVar, override
 from uuid import UUID
 
 import yaml
@@ -29,6 +29,8 @@ from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
 from flext_cli.services import FlextCliServices
 from flext_cli.utils import STRICT_CONFIG_DICT
+
+T = TypeVar("T")
 
 
 class FlextCliApi(FlextDomainService[str]):
@@ -763,11 +765,11 @@ class FlextCliApi(FlextDomainService[str]):
     # UTILITY METHODS - All functionality contained within unified class
     # =========================================================================
 
-    def unwrap_or_default(self, result: FlextResult[object], default: object) -> object:
+    def unwrap_or_default(self, result: FlextResult[T], default: T) -> T:
         """Unwrap FlextResult or return default value."""
         return result.value if result.is_success else default
 
-    def unwrap_or_none(self, result: FlextResult[object]) -> object | None:
+    def unwrap_or_none(self, result: FlextResult[T]) -> T | None:
         """Unwrap FlextResult or return None."""
         return result.value if result.is_success else None
 
