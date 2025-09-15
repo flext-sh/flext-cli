@@ -54,7 +54,7 @@ class TestFlextCliFileOperations:
 
         assert result.is_failure
         assert result.error is not None
-        assert result.error and "File not found" in result.error
+        assert "File not found" in result.error
 
     def test_load_json_file_invalid_json(self) -> None:
         """Test JSON file loading with invalid JSON."""
@@ -205,7 +205,7 @@ class TestFlextCliFileOperations:
 
         assert result.is_failure
         assert result.error is not None
-        assert result.error and "File not found" in result.error
+        assert "File not found" in result.error
 
     def test_backup_and_process_with_confirmation(self) -> None:
         """Test backup and process with user confirmation."""
@@ -258,7 +258,7 @@ class TestFlextCliFileOperations:
 
                 assert result.is_failure
                 assert result.error is not None
-                assert result.error and "Operation cancelled by user" in result.error
+                assert "Operation cancelled by user" in result.error
 
                 # Cleanup
                 Path(tmp_file.name).unlink()
@@ -347,7 +347,7 @@ class TestFlextCliFileOperations:
 
         assert result.is_failure
         assert result.error is not None
-        assert result.error and "File not found" in result.error
+        assert "File not found" in result.error
 
     def test_error_handling_permission_denied(self) -> None:
         """Test error handling for permission denied scenarios."""
@@ -360,7 +360,7 @@ class TestFlextCliFileOperations:
             result = ops.load_json_file("/restricted/file.json")
             assert result.is_failure
             assert result.error is not None
-            assert result.error and "JSON load failed" in result.error
+            assert "JSON load failed" in result.error
 
     def test_error_handling_os_error(self) -> None:
         """Test error handling for OS errors."""
@@ -372,4 +372,4 @@ class TestFlextCliFileOperations:
             result = ops.save_json_file({"key": "value"}, "/invalid/path/test.json")
             assert result.is_failure
             assert result.error is not None
-            assert result.error and "JSON save failed" in result.error
+            assert "JSON save failed" in result.error

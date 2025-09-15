@@ -26,11 +26,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Protocol
+from typing import Any, Protocol
 from uuid import UUID, uuid4
 
 import click
-from example_utils import handle_command_result
+from flext_cli import (
+    FlextCliService,
+    cli_measure_time,
+    require_auth,
+)
 from flext_core import (
     FlextDomainService,
     FlextModels,
@@ -39,11 +43,7 @@ from flext_core import (
 )
 from rich.console import Console
 
-from flext_cli import (
-    FlextCliService,
-    cli_measure_time,
-    require_auth,
-)
+from examples import handle_command_result
 
 
 @dataclass(frozen=True)
@@ -81,7 +81,9 @@ class Project(FlextModels.AggregateRoot):
     description: str
     owner_id: str
     status: ProjectStatus
-    # created_at and updated_at are inherited from FlextModels as FlextModels
+    # Timestamp fields inherited from Entity base class
+    created_at: datetime
+    updated_at: datetime
 
     def change_status(
         self, new_status: ProjectStatus, _reason: str
@@ -133,7 +135,8 @@ class Project(FlextModels.AggregateRoot):
             description=description.strip(),
             owner_id=owner_id,
             status=ProjectStatus.ACTIVE,
-            # FlextModels will handle created_at automatically
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
 
         # Validate business rules
@@ -423,14 +426,9 @@ class ProjectManagementService(FlextCliService):
         self._status_handler = ChangeProjectStatusHandler(repository=self._repository)
         self._query_handler = ProjectQueryHandler(repository=self._repository)
 
-    def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
+    def execute(self) -> FlextResult[str]:
         """Execute method required by FlextService base class."""
-        return FlextResult[FlextTypes.Core.Dict].ok(
-            {
-                "service": "project_management",
-                "status": "active",
-            }
-        )
+        return FlextResult[str].ok("project_management service active")
 
     def create_project(
         self, name: str, description: str, owner_id: str
@@ -505,7 +503,7 @@ class ProjectManagementService(FlextCliService):
 
 @click.group()
 @click.pass_context
-def enterprise_cli(ctx: click.Context) -> None:
+def enterprise_cli(ctx: click.Context) -> Any:
     """Enterprise patterns CLI demonstrating Clean Architecture and CQRS."""
     ctx.ensure_object(dict)
     ctx.obj["console"] = Console()

@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Literal, Protocol, TypedDict, TypeVar
+from typing import Literal, ParamSpec, Protocol, TypedDict, TypeVar
 from uuid import UUID
 
 from flext_core import FlextResult, FlextTypes
@@ -359,11 +359,12 @@ PluginStatus = FlextCliTypes.PluginStatusEnum
 
 # Essential type aliases only (eliminate dead code)
 URL = str  # Consolidated URL type - actually used
+URLType = str  # URL type alias for compatibility
 
 # Type variables for generic programming
 E = TypeVar("E")
 F = TypeVar("F")
-P = TypeVar("P")
+P = ParamSpec("P")
 R = TypeVar("R")
 T = TypeVar("T")
 U = TypeVar("U")
@@ -372,12 +373,14 @@ V = TypeVar("V")
 
 # Minimal exports - only actually used types
 __all__ = [
+    "BASE_CONFIG_DICT",
     "URL",
     "UUID",
     "BaseModel",
     "CommandStatus",
     "E",
     "F",
+    "Field",
     "FlextCliConstants",
     "FlextCliTypes",
     "FlextTypes",
@@ -387,6 +390,7 @@ __all__ = [
     "T",
     "TypedDict",
     "U",
+    "URLType",
     "V",
     "datetime",
 ]

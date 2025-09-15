@@ -12,7 +12,7 @@ import time
 import unittest
 from pathlib import Path
 
-from flext_core import FlextTypes
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli import (
     FlextCliDecorators,
@@ -155,10 +155,11 @@ class TestFlextCliDecorators(unittest.TestCase):
         """Test handle_service_result pass-through decorator."""
 
         @handle_service_result
-        def test_func() -> str:
-            return "handled"
+        def test_func() -> FlextResult[str]:
+            return FlextResult[str].ok("handled")
 
         result = test_func()
+        # Decorator extracts the value from FlextResult
         assert result == "handled"
 
 

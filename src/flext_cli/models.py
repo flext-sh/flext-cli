@@ -201,10 +201,6 @@ class FlextCliModels:
                     return FlextResult[None].fail(
                         "Running commands should not have exit codes until completion"
                     )
-                case FlextCliTypes.Commands.CompletedState(exit_code=None):
-                    return FlextResult[None].fail(
-                        "Completed commands must have exit codes"
-                    )
                 case FlextCliTypes.Commands.FailedState(exit_code=exit_code) if (
                     exit_code is None or exit_code == 0
                 ):

@@ -1,9 +1,11 @@
 """Copyright (c) 2025 FLEXT Team. All rights reserved.
+
 SPDX-License-Identifier: MIT.
 """
 
 from __future__ import annotations
 
+import logging
 import os
 
 import pytest
@@ -192,9 +194,11 @@ class TestFlextConfigIntegration:
             # If creation succeeded, validation should still fail
             validation_result = invalid_config.validate_business_rules()
             assert validation_result.is_failure
-        except Exception:
+        except Exception as e:
             # If Pydantic prevents creation, that's also valid - the validation is working
-            pass
+            # Log the exception for debugging purposes
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Expected validation exception caught: {e}")
 
     def test_cli_parameter_mapping(self) -> None:
         """Test CLI parameter mapping to configuration fields."""

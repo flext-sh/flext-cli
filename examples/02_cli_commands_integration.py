@@ -28,16 +28,13 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from flext_core import FlextResult
-
 from flext_cli import (
-    FlextCliApi,
     FlextCliConfig,
     FlextCliFormatters,
     FlextCliMain,
     FlextCliModels,
-    FlextCliService,
 )
+from flext_core import FlextResult
 
 
 def _setup_cli_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
@@ -52,7 +49,7 @@ def _setup_cli_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
     setup_success = setup_result.value
     formatter.print_success("✅ CLI setup using FLEXT CLI foundation")
     formatter.console.print(f"   Setup result: {setup_success}")
-    formatter.console.print(f"   Foundation: FlextCliMain + FlextCliApi")
+    formatter.console.print("   Foundation: FlextCliMain + FlextCliApi")
     return FlextResult[None].ok(None)
 
 

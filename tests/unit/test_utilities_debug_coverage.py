@@ -9,8 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import builtins
 import trace
-from typing import Any
 
 from flext_core import FlextUtilities
 
@@ -42,7 +42,7 @@ class TestUtilitiesDebugCoverage:
             FlextUtilities.Conversions.safe_float(lambda x: x)
 
         # Run with tracing
-        tracer.run("traced_safe_float_exceptions()")
+        tracer.runfunc(traced_safe_float_exceptions)
 
     def test_safe_float_manual_exception_verification(self) -> None:
         """Manually verify that exception handling is working."""
@@ -80,12 +80,10 @@ class TestUtilitiesDebugCoverage:
 
     def test_safe_float_exception_paths_with_monkey_patch(self) -> None:
         """Test safe_float by temporarily patching float() to force exceptions."""
-        import builtins
-
         original_float = builtins.float
         exception_counter = 0
 
-        def counting_float(value: Any) -> float:
+        def counting_float(value: object) -> float:
             nonlocal exception_counter
             # Force exceptions for certain values to ensure coverage
             if value == "force_value_error":
@@ -134,8 +132,8 @@ class TestUtilitiesDebugCoverage:
             # String cases that should cause ValueError
             ("", 1.1),
             ("   ", 2.2),  # Whitespace
-            ("nan", 3.3),  # NaN string (might be valid in some Python versions)
-            ("infinity", 4.4),  # Infinity string variants
+            ("invalid_nan", 3.3),  # Invalid NaN string
+            ("invalid_infinity", 4.4),  # Invalid infinity string variants
             ("1.2.3.4", 5.5),  # Multiple dots
             ("12e", 6.6),  # Incomplete scientific notation
             ("e12", 7.7),  # Invalid scientific notation

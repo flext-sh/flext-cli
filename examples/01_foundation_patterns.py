@@ -25,15 +25,14 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from flext_core import FlextContainer, FlextResult
-
 from flext_cli import (
     FlextCliApi,
     FlextCliConfig,
-    FlextCliService,
-    FlextCliModels,
     FlextCliFormatters,
+    FlextCliModels,
+    FlextCliService,
 )
+from flext_core import FlextContainer, FlextResult
 
 
 def _setup_cli() -> FlextResult[str]:

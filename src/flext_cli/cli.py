@@ -452,21 +452,13 @@ def auth(ctx: click.Context) -> None:
     """Authentication commands."""
 
 
-# Interceptar help do auth para mostrar profile
-original_auth_get_help = auth.get_help
-
-
+# Custom help for auth that shows profile
 def auth_get_help(ctx: click.Context) -> str:
     """Custom help for auth that shows profile."""
     if ctx.parent and ctx.parent.obj:
         profile = ctx.parent.obj.get("profile", "default")
-        help_text = str(original_auth_get_help(ctx))
-        return f"Profile: {profile}\n{help_text}"
-    return str(original_auth_get_help(ctx))
-
-
-# Override the help method for auth command
-auth.get_help = auth_get_help
+        return f"Profile: {profile}\nAuthentication commands."
+    return "Authentication commands."
 
 
 @auth.command()
@@ -717,17 +709,23 @@ get_cmd = get
 
 __all__ = [
     "auth",
+    "check",
     "cli",
     "config",
+    "connectivity",
+    "debug",
     "edit",
+    "env",
     "get",
     "get_cmd",
     "login",
     "logout",
     "main",
     "path",
+    "paths",
     "set_value",
     "show",
     "status",
+    "trace",
     "validate",
 ]

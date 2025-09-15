@@ -537,10 +537,10 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
     def test_flext_cli_register_duplicate_handler_fails(self) -> None:
         """Test registering duplicate handler names fails."""
 
-        def handler1(__data: object) -> str:
+        def handler1(__data: object, /) -> str:
             return "handler1"
 
-        def handler2(__data: object) -> str:
+        def handler2(__data: object, /) -> str:
             return "handler2"
 
         # Register first handler
@@ -754,9 +754,8 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         health_result = self.service.flext_cli_health()
         assert health_result.is_success
         health = health_result.value
-        assert (
-            isinstance(health["handlers"], int) and health["handlers"] >= 0
-        )  # Check handlers count instead
+        assert isinstance(health["handlers"], int)
+        assert health["handlers"] >= 0  # Check handlers count instead
         assert health["sessions"] == 2
 
 

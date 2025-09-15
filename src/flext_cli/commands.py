@@ -24,6 +24,7 @@ class FlextCliCommands(FlextDomainService[None]):
     - All command classes nested within this service
     - NO loose functions outside classes
     - Explicit FlextResult error handling
+    - NO factory patterns or wrapper methods
     """
 
     def __init__(self) -> None:
@@ -157,66 +158,6 @@ class FlextCliCommands(FlextDomainService[None]):
         def validate_command(self) -> FlextResult[bool]:
             """Validate debug info command parameters."""
             return FlextResult[bool].ok(data=True)
-
-    class _CommandFactory:
-        """Nested helper class for creating command instances - NO loose functions."""
-
-        @staticmethod
-        def create_show_config_command(
-            output_format: str = "table", profile: str = "default"
-        ) -> FlextCliCommands.ShowConfigCommand:
-            """Create show config command instance."""
-            return FlextCliCommands.ShowConfigCommand(
-                output_format=output_format, profile=profile
-            )
-
-        @staticmethod
-        def create_set_config_value_command(
-            key: str, value: str, profile: str = "default"
-        ) -> FlextCliCommands.SetConfigValueCommand:
-            """Create set config value command instance."""
-            return FlextCliCommands.SetConfigValueCommand(
-                key=key, value=value, profile=profile
-            )
-
-        @staticmethod
-        def create_edit_config_command(
-            profile: str = "default", editor: str = ""
-        ) -> FlextCliCommands.EditConfigCommand:
-            """Create edit config command instance."""
-            return FlextCliCommands.EditConfigCommand(profile=profile, editor=editor)
-
-        @staticmethod
-        def create_auth_login_command(
-            username: str, password: str, api_url: str = ""
-        ) -> FlextCliCommands.AuthLoginCommand:
-            """Create auth login command instance."""
-            return FlextCliCommands.AuthLoginCommand(
-                username=username, password=password, api_url=api_url
-            )
-
-        @staticmethod
-        def create_auth_status_command(
-            *, detailed: bool = False
-        ) -> FlextCliCommands.AuthStatusCommand:
-            """Create auth status command instance."""
-            return FlextCliCommands.AuthStatusCommand(detailed=detailed)
-
-        @staticmethod
-        def create_auth_logout_command(
-            *, all_profiles: bool = False
-        ) -> FlextCliCommands.AuthLogoutCommand:
-            """Create auth logout command instance."""
-            return FlextCliCommands.AuthLogoutCommand(all_profiles=all_profiles)
-
-        @staticmethod
-        def create_debug_info_command(
-            *, include_system: bool = True, include_config: bool = True
-        ) -> FlextCliCommands.DebugInfoCommand:
-            """Create debug info command instance."""
-            return FlextCliCommands.DebugInfoCommand(
-                include_system=include_system, include_config=include_config
-            )
 
     def get_available_commands(self) -> list[str]:
         """Get list of available command types."""

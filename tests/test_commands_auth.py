@@ -10,8 +10,8 @@ import pytest
 from click.testing import CliRunner
 from rich.console import Console
 
-from flext_cli import auth
 from flext_cli.auth import FlextCliAuth
+from flext_cli.cli import auth
 from flext_cli.config import FlextCliConfig
 
 

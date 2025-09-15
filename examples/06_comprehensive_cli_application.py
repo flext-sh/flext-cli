@@ -25,17 +25,16 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import click
-from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
-from rich.console import Console
-from rich.panel import Panel
-from rich.prompt import Confirm, Prompt
-from rich.table import Table
-
 from flext_cli import (
     FlextApiClient,
     FlextCliContext,
     get_cli_config,
 )
+from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
+from rich.console import Console
+from rich.panel import Panel
+from rich.prompt import Confirm, Prompt
+from rich.table import Table
 
 
 class ComprehensiveCliApplication:

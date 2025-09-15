@@ -21,8 +21,8 @@ from flext_core import (
     FlextUtilities,
 )
 from pydantic import BaseModel, Field, PrivateAttr
-from rich.table import Table as RichTable
 
+# Rich imports removed - use formatters.py abstraction layer
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
@@ -666,44 +666,16 @@ class FlextCliApi(FlextDomainService[str]):
         self,
         data: object,
         title: str | None = None,
-    ) -> FlextResult[RichTable]:
-        """Create Rich Table object for advanced use cases."""
+    ) -> FlextResult[object]:
+        """Create Rich Table object for advanced use cases - uses abstraction layer."""
         try:
-            # Create Rich Table object directly
-            rich_table = RichTable(title=title)
-
-            if isinstance(data, dict):
-                # Add columns for dict data
-                rich_table.add_column("Key", style="cyan")
-                rich_table.add_column("Value", style="white")
-
-                # Add rows
-                for key, value in data.items():
-                    rich_table.add_row(str(key), str(value))
-            elif isinstance(data, (list, tuple)):
-                # Handle list/tuple data
-                if data and isinstance(data[0], dict):
-                    # List of dicts - use keys as columns
-                    keys = list(data[0].keys()) if data else []
-                    for key in keys:
-                        rich_table.add_column(str(key))
-
-                    for item in data:
-                        row_values = [str(item.get(key, "")) for key in keys]
-                        rich_table.add_row(*row_values)
-                else:
-                    # Simple list - single column
-                    rich_table.add_column("Value")
-                    for item in data:
-                        rich_table.add_row(str(item))
-            else:
-                # Single value
-                rich_table.add_column("Value")
-                rich_table.add_row(str(data))
-
-            return FlextResult[RichTable].ok(rich_table)
+            # Use formatters abstraction layer instead of direct Rich import
+            table_result = self._formatters.create_rich_table_object(data, title=title)
+            if table_result.is_success:
+                return FlextResult[object].ok(table_result.value)
+            return FlextResult[object].fail(f"Table creation failed: {table_result.error}")
         except Exception as e:
-            return FlextResult[RichTable].fail(f"Table creation failed: {e}")
+            return FlextResult[object].fail(f"Table creation failed: {e}")
 
     def aggregate_data(
         self,

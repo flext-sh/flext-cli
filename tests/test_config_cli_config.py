@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
+import logging
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -150,9 +151,11 @@ class TestCLIConfig:
             FlextCliConfig(log_level="ERROR")
             error_msg = "ERROR log level should be rejected in development"
             raise AssertionError(error_msg)
-        except Exception:
+        except Exception as e:
             # Expected - ERROR should be rejected in development
-            pass
+            # Log the exception for debugging purposes
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Expected exception caught: {e}")
 
     def test_config_as_dict(self) -> None:
         """Test converting config to dictionary."""

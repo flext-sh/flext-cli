@@ -69,7 +69,7 @@ class TestFlextCliAuthRealValidation:
         result = auth.validate_credentials(invalid_credentials)
         assert result.is_failure
         assert result.error is not None
-        assert result.error and "username" in result.error.lower()
+        assert "username" in result.error.lower()
 
     def test_auth_token_save_and_retrieve(self) -> None:
         """Test saving and retrieving auth tokens."""
@@ -261,7 +261,7 @@ class TestFlextCliAuthRealValidation:
         result = auth.validate_credentials(invalid_credentials)
         assert result.is_failure
         assert result.error is not None
-        assert result.error and "username" in result.error.lower()
+        assert "username" in result.error.lower()
 
         # Test getting token when none exists
         auth.clear_auth_tokens()

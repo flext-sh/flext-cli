@@ -156,7 +156,7 @@ class TestFlextCliAuth:
         result = auth.validate_credentials(invalid_credentials)
         assert result.is_failure
         assert result.error is not None
-        assert result.error and "Username and password cannot be empty" in result.error
+        assert "Username and password cannot be empty" in result.error
 
     def test_is_authenticated_with_token(self) -> None:
         """Test is_authenticated method with token file."""
@@ -241,7 +241,7 @@ class TestFlextCliAuth:
 
         assert result.is_failure
         assert result.error is not None
-        assert result.error and "Invalid credentials" in result.error
+        assert "Invalid credentials" in result.error
 
     @pytest.mark.asyncio
     async def test_logout_success(self) -> None:

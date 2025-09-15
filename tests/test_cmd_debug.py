@@ -11,10 +11,9 @@ import click
 from click.testing import CliRunner
 from rich.console import Console
 
-from flext_cli import debug
+from flext_cli.cli import check, debug, env, paths, trace, validate
 from flext_cli.client import FlextApiClient
 from flext_cli.config import FlextCliConfig
-from flext_cli.debug import check, env, paths, trace, validate
 
 
 class TestDebugBasicFunctions(unittest.TestCase):

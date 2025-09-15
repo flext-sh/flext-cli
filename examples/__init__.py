@@ -28,4 +28,14 @@ from __future__ import annotations
 
 from flext_core import FlextTypes
 
-__all__: FlextTypes.Core.StringList = []
+from .example_utils import (
+    handle_command_result,
+    print_demo_completion,
+    print_demo_error,
+)
+
+__all__: FlextTypes.Core.StringList = [
+    "handle_command_result",
+    "print_demo_completion",
+    "print_demo_error",
+]

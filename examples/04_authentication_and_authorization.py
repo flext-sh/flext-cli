@@ -26,11 +26,6 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime, timedelta
 
-from flext_core import FlextResult, FlextTypes
-from rich.console import Console
-from rich.panel import Panel
-from rich.table import Table
-
 from flext_cli import (
     FlextApiClient,
     get_auth_headers,
@@ -38,7 +33,12 @@ from flext_cli import (
     require_auth,
     save_auth_token,
 )
-from flext_cli.example_utils import print_demo_completion
+from flext_core import FlextResult, FlextTypes
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+
+from examples import print_demo_completion
 
 
 def demonstrate_basic_authentication() -> FlextResult[None]:
@@ -243,7 +243,7 @@ def demonstrate_session_management() -> FlextResult[None]:
             console.print("✅ Session refreshed successfully")
             if refreshed_session and isinstance(refreshed_session, dict):
                 expires_at = refreshed_session.get("expires_at")
-                if expires_at and hasattr(expires_at, "strftime"):
+                if expires_at and isinstance(expires_at, datetime):
                     console.print(
                         f"   New expiry: {expires_at.strftime('%Y-%m-%d %H:%M:%S UTC')}"
                     )
@@ -330,7 +330,7 @@ def simulate_authenticated_request(
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        return FlextResult[FlextTypes.Core.Dict].ok(response_data)
+        return FlextResult[FlextTypes.Core.Dict].ok(dict(response_data))
 
     except Exception as e:
         return FlextResult[FlextTypes.Core.Dict].fail(f"API request failed: {e}")
@@ -463,11 +463,11 @@ def main() -> None:
             console.print(f"[red]API auth demo failed: {api_result.error}[/red]")
 
         protected_result = demonstrate_protected_operation()
-        if protected_result and protected_result.is_failure:
+        if isinstance(protected_result, FlextResult) and protected_result.is_failure:
             console.print(
                 f"[red]Protected operation demo failed: {protected_result.error}[/red]"
             )
-        elif not protected_result:
+        elif not isinstance(protected_result, FlextResult):
             console.print(
                 "[red]Protected operation failed - authentication required[/red]"
             )
