@@ -38,7 +38,7 @@ class FlextCliService(FlextDomainService[str]):
     """
 
     # Private attributes
-    _config: object = PrivateAttr(default=None)
+    _config: FlextCliConfig | None = PrivateAttr(default=None)
     _commands: dict[str, object] = PrivateAttr(default_factory=empty_dict)
     _registered_handlers: dict[str, object] = PrivateAttr(default_factory=empty_dict)
     _plugins: dict[str, object] = PrivateAttr(default_factory=empty_dict)
@@ -64,7 +64,7 @@ class FlextCliService(FlextDomainService[str]):
         self._formatters = FlextCliFormatters()
 
     # Public accessor methods
-    def get_config(self) -> object:
+    def get_config(self) -> FlextCliConfig | None:
         """Get current configuration from FlextConfig singleton."""
         return self._config
 
