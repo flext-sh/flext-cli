@@ -135,7 +135,7 @@ class FlextCliMain(FlextDomainService[str]):
         try:
             cli_context: FlextCliMain.CliContext = {
                 "config": config,
-                "debug_mode": config.debug,
+                "debug_mode": bool(config.debug),
                 "quiet_mode": quiet,
                 "profile": config.profile,
                 "output_format": config.output_format,
@@ -163,8 +163,7 @@ class FlextCliMain(FlextDomainService[str]):
         self,
         ctx: click.Context,
         _param: click.Parameter,
-        *,
-        value: bool | None = None,
+        value: object,
     ) -> None:
         """Print version information and exit."""
         if not value or ctx.resilient_parsing:
@@ -291,8 +290,7 @@ _cli_main = FlextCliMain()
 def print_version(
     ctx: click.Context,
     param: click.Parameter,
-    *,
-    value: bool | None = None,
+    value: object,
 ) -> None:
     """Delegate to unified service."""
     return _cli_main.print_version(ctx, param, value=value)

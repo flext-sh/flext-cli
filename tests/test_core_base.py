@@ -191,16 +191,17 @@ class TestHandleServiceResult:
     def test_async_function_compatibility(self) -> None:
         """Test decorator compatibility with async functions."""
 
-        @handle_service_result
+        @handle_service_result  # type: ignore[arg-type]
         async def async_function() -> FlextResult[str]:
             await asyncio.sleep(0.01)  # Small delay to test async
             return FlextResult[str].ok("async result")
 
         async def test_runner() -> None:
-            async_result = await async_function()
-            result = async_result if async_result is not None else None
-            if result != "async result":
-                msg = f"Expected {'async result'}, got {result}"
+            async_result = await async_function()  # type: ignore[misc]
+            # The decorator returns T | None, so we need to handle None case
+            assert async_result is not None, "Expected result, got None"
+            if async_result != "async result":
+                msg = f"Expected {'async result'}, got {async_result}"
                 raise AssertionError(msg)
 
         # Run the async test
@@ -209,13 +210,14 @@ class TestHandleServiceResult:
     def test_async_failed_result_handling(self) -> None:
         """Test async handling of failed FlextResult - REAL functionality."""
 
-        @handle_service_result
+        @handle_service_result  # type: ignore[arg-type]
         async def async_fail_function() -> FlextResult[str]:
             await asyncio.sleep(0.01)
             return FlextResult[str].fail("async error message")
 
         async def test_runner() -> None:
-            async_result = await async_fail_function()
+            async_result = await async_fail_function()  # type: ignore[misc]
+            # Failed FlextResult should return None through decorator
             assert async_result is None
             # Error should be printed to console (no need to mock)
 
@@ -225,7 +227,7 @@ class TestHandleServiceResult:
     def test_async_exception_handling(self) -> None:
         """Test async exception handling in decorator - REAL functionality."""
 
-        @handle_service_result
+        @handle_service_result  # type: ignore[arg-type]
         async def async_exception_function() -> str:
             await asyncio.sleep(0.01)
             msg = "async test exception"
@@ -234,7 +236,7 @@ class TestHandleServiceResult:
         async def test_runner() -> None:
             # Exception should be re-raised and error should be printed
             with pytest.raises(ValueError, match="async test exception"):
-                await async_exception_function()
+                await async_exception_function()  # type: ignore[misc]
 
         # Run the async test
         asyncio.run(test_runner())
@@ -242,13 +244,14 @@ class TestHandleServiceResult:
     def test_async_non_result_passthrough(self) -> None:
         """Test async passthrough of non-FlextResult values."""
 
-        @handle_service_result
+        @handle_service_result  # type: ignore[arg-type]
         async def async_regular_function() -> str:
             await asyncio.sleep(0.01)
             return "async regular data"
 
         async def test_runner() -> None:
-            async_result = await async_regular_function()
+            async_result = await async_regular_function()  # type: ignore[misc]
+            # Regular return value should pass through decorator
             assert async_result == "async regular data"
 
         # Run the async test

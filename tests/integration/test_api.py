@@ -8,6 +8,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import Any
+
 from flext_core import FlextResult, FlextTypes
 
 from flext_cli import FlextCliApi
@@ -30,6 +32,7 @@ class TestFlextCliApiIntegration:
         result = api.configure(config)
         assert result.is_success
         # Test that session tracking was configured
+        assert api.state is not None, "API state should be initialized"
         assert api.state.enable_session_tracking is True
 
     def test_api_configure_with_invalid_types(self) -> None:
@@ -44,6 +47,7 @@ class TestFlextCliApiIntegration:
         result = api.configure(config)
         assert result.is_success  # Should still work, but invalid values ignored
         # Defaults should be used
+        assert api.state is not None, "API state should be initialized"
         assert api.state.enable_session_tracking is True  # Default value
 
     def test_api_health_returns_system_info(self) -> None:
@@ -130,6 +134,7 @@ class TestFlextCliApiIntegration:
             return x + y
 
         # Register handler through state directly (no wrapper method needed)
+        assert api.state is not None, "API state should be initialized"
         api.state.handlers["add"] = test_handler
         register_result = FlextResult[str].ok("Handler registered")
         assert isinstance(register_result, FlextResult)
@@ -138,7 +143,7 @@ class TestFlextCliApiIntegration:
         # Execute the handler
         # Execute handler directly from state
         handler = api.state.handlers.get("add")
-        if handler:
+        if handler and callable(handler):
             exec_result = FlextResult[int].ok(handler(5, 3))
         else:
             exec_result = FlextResult[int].fail("Handler not found")
@@ -153,6 +158,7 @@ class TestFlextCliApiIntegration:
         # Try to register non-callable
         # Try to register non-callable - should fail
         try:
+            assert api.state is not None, "API state should be initialized"
             api.state.handlers["invalid"] = "not_callable"
             register_result = FlextResult[str].fail("Invalid handler registered")
         except Exception:
@@ -168,8 +174,9 @@ class TestFlextCliApiIntegration:
         api = FlextCliApi()
 
         # Try to execute non-existent handler
+        assert api.state is not None, "API state should be initialized"
         handler = api.state.handlers.get("nonexistent")
-        if handler:
+        if handler and callable(handler):
             exec_result = FlextResult[object].ok(handler())
         else:
             exec_result = FlextResult[object].fail("Handler not found")
@@ -216,28 +223,29 @@ class TestFlextCliApiIntegration:
         api = FlextCliApi()
 
         # Test get_commands - returns FlextResult following flext-core patterns
-        commands_result = FlextResult[list].ok(api.get_command_history())
+        commands_result = FlextResult[Any].ok(api.get_command_history())
         assert isinstance(commands_result, FlextResult)
         assert commands_result.is_success
         commands = commands_result.value
         assert isinstance(commands, (dict, list))  # Accept both dict and list
 
         # Test get_sessions - returns FlextResult following flext-core patterns
-        sessions_result = FlextResult[dict].ok(api.state.sessions)
+        assert api.state is not None, "API state should be initialized"
+        sessions_result = FlextResult[Any].ok(api.state.sessions)
         assert isinstance(sessions_result, FlextResult)
         assert sessions_result.is_success
         sessions = sessions_result.value
         assert isinstance(sessions, (dict, list))  # Accept both dict and list
 
         # Test get_plugins - returns FlextResult following flext-core patterns
-        plugins_result = FlextResult[dict].ok(api.state.plugins)
+        plugins_result = FlextResult[Any].ok(api.state.plugins)
         assert isinstance(plugins_result, FlextResult)
         assert plugins_result.is_success
         plugins = plugins_result.value
         assert isinstance(plugins, (dict, list))  # Accept both dict and list
 
         # Test get_handlers - returns FlextResult following flext-core patterns
-        handlers_result = FlextResult[dict].ok(api.state.handlers)
+        handlers_result = FlextResult[Any].ok(api.state.handlers)
         assert isinstance(handlers_result, FlextResult)
         assert handlers_result.is_success
         handlers = handlers_result.value
@@ -253,7 +261,8 @@ class TestFlextCliApiIntegration:
         session_id = session_result.value
 
         # Check sessions are tracked
-        sessions_result = FlextResult[dict].ok(api.state.sessions)
+        assert api.state is not None, "API state should be initialized"
+        sessions_result = FlextResult[Any].ok(api.state.sessions)
         assert isinstance(sessions_result, FlextResult)
         assert sessions_result.is_success
         sessions = sessions_result.value
@@ -287,12 +296,12 @@ class TestFlextCliApiIntegration:
 
         # Register plugin - this should work with real flext-plugin integration
         # Register plugin directly in state
-        if api.state is None:
-            api.state = FlextCliApi.ApiState()
+        assert api.state is not None, "API state should be initialized"
         api.state.plugins["test-plugin"] = real_plugin
         result = FlextResult[str].ok("Plugin registered")
         assert isinstance(result, FlextResult)
         # Note: This might fail if flext-plugin dependencies aren't available
         # but the important thing is it uses real FlextPluginService
         assert result.is_success
+        # Check if plugin was registered
         assert "test-plugin" in api.state.plugins

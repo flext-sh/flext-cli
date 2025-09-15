@@ -313,7 +313,7 @@ class FlextCliConfig(FlextConfig):
     @property
     def is_development_mode(self) -> bool:
         """Check if in development mode."""
-        return self.profile == "development" or self.debug
+        return self.profile == "development" or bool(self.debug)
 
     @property
     def is_production_mode(self) -> bool:
