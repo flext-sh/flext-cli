@@ -156,7 +156,7 @@ def _command_registration_demo(formatter: FlextCliFormatters) -> FlextResult[Non
     formatter.print_success("\n5. 🎛️ Command Registration System")
 
     # Create CLI main using flext-cli foundation
-    cli_main = FlextCliMain(name="demo-cli")
+    cli_main = FlextCliMain()
 
     # Register command groups (simulated)
     commands_data = {
@@ -248,7 +248,8 @@ def _execute_connection_test(command: FlextCliModels.CliCommand) -> FlextResult[
             )
 
         # Simulate execution result
-        if "localhost" in command.command_line:
+        command_line = command.command_line or ""
+        if "localhost" in command_line:
             result_msg = "Connection successful to localhost"
         else:
             result_msg = "Connection test completed successfully"

@@ -500,7 +500,7 @@ class TestExceptionHandling:
 
         for method in methods_to_test:
             try:
-                result = method()
+                result = method()  # type: ignore[no-untyped-call]
                 assert isinstance(result, FlextResult)
                 # Should either succeed or fail gracefully
                 assert result.is_success or result.is_failure
@@ -517,7 +517,7 @@ class TestExceptionHandling:
         ]
 
         for scenario in error_scenarios:
-            result = scenario()
+            result = scenario()  # type: ignore[no-untyped-call]
             if result.is_failure:
                 assert result.error is not None
                 assert len(result.error) > 10  # Should be descriptive

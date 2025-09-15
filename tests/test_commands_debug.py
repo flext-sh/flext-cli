@@ -12,7 +12,7 @@ from click.testing import CliRunner
 from flext_core import FlextConstants
 from rich.console import Console
 
-from flext_cli import debug
+from flext_cli.cli import debug
 from flext_cli.config import FlextCliConfig
 from flext_cli.debug import (
     connectivity,
