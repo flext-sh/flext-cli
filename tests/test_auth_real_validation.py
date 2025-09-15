@@ -69,7 +69,7 @@ class TestFlextCliAuthRealValidation:
         result = auth.validate_credentials(invalid_credentials)
         assert result.is_failure
         assert result.error is not None
-        assert "username" in result.error.lower()
+        assert result.error and "username" in result.error.lower()
 
     def test_auth_token_save_and_retrieve(self) -> None:
         """Test saving and retrieving auth tokens."""
@@ -261,7 +261,7 @@ class TestFlextCliAuthRealValidation:
         result = auth.validate_credentials(invalid_credentials)
         assert result.is_failure
         assert result.error is not None
-        assert "username" in result.error.lower()
+        assert result.error and "username" in result.error.lower()
 
         # Test getting token when none exists
         auth.clear_auth_tokens()
@@ -290,8 +290,8 @@ class TestFlextCliAuthRealValidation:
             assert config_result.value["api_key"] == "test_key"
 
             # Test clearing auth data
-            result = auth.clear_auth_tokens()
-            assert result.is_success
+            clear_result = auth.clear_auth_tokens()
+            assert clear_result.is_success
 
             # Verify file is deleted (if it was a token file)
             # Note: clear_auth_tokens clears token files, not config files

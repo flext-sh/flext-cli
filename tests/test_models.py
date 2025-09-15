@@ -91,6 +91,7 @@ class TestFlextCliModelsCliCommand:
         )
         if completion_result.is_success:
             completed_command = completion_result.unwrap()
+            assert completed_command is not None
             assert completed_command.status == FlextCliConstants.STATUS_COMPLETED
 
     def test_cli_command_start_execution_method(self) -> None:

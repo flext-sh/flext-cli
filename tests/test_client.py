@@ -288,8 +288,6 @@ class TestClientModels(unittest.TestCase):
             id="pipeline-1",
             name="Pipeline 1",
             status="active",
-            created_at="2025-01-01T00:00:00Z",
-            updated_at="2025-01-01T00:00:00Z",
             config=config,
         )
 
@@ -326,8 +324,6 @@ class TestClientModels(unittest.TestCase):
             id="pipeline-123",
             name="valid-pipeline",
             status="active",
-            created_at="2025-01-01T00:00:00Z",
-            updated_at="2025-01-01T00:00:00Z",
             config=FlextApiClientModels.PipelineConfig(
                 name="valid-pipeline",
                 tap="tap-csv",
@@ -344,8 +340,6 @@ class TestClientModels(unittest.TestCase):
             id="pipeline-123",
             name="",  # Empty name
             status="active",
-            created_at="2025-01-01T00:00:00Z",
-            updated_at="2025-01-01T00:00:00Z",
             config=FlextApiClientModels.PipelineConfig(
                 name="valid-pipeline",
                 tap="tap-csv",
@@ -356,7 +350,7 @@ class TestClientModels(unittest.TestCase):
         result = pipeline.validate_business_rules()
         assert result.is_failure
         assert result.error is not None
-        assert "Pipeline name cannot be empty" in result.error
+        assert result.error and "Pipeline name cannot be empty" in result.error
 
     def test_pipeline_validation_whitespace_name(self) -> None:
         """Test Pipeline validation with whitespace-only name."""
@@ -364,8 +358,6 @@ class TestClientModels(unittest.TestCase):
             id="pipeline-123",
             name="   ",  # Whitespace-only name
             status="active",
-            created_at="2025-01-01T00:00:00Z",
-            updated_at="2025-01-01T00:00:00Z",
             config=FlextApiClientModels.PipelineConfig(
                 name="valid-pipeline",
                 tap="tap-csv",
@@ -376,7 +368,7 @@ class TestClientModels(unittest.TestCase):
         result = pipeline.validate_business_rules()
         assert result.is_failure
         assert result.error is not None
-        assert "Pipeline name cannot be empty" in result.error
+        assert result.error and "Pipeline name cannot be empty" in result.error
 
     def test_pipeline_validation_invalid_status(self) -> None:
         """Test Pipeline validation with invalid status."""
@@ -384,8 +376,6 @@ class TestClientModels(unittest.TestCase):
             id="pipeline-123",
             name="valid-pipeline",
             status="invalid-status",  # Invalid status
-            created_at="2025-01-01T00:00:00Z",
-            updated_at="2025-01-01T00:00:00Z",
             config=FlextApiClientModels.PipelineConfig(
                 name="valid-pipeline",
                 tap="tap-csv",
@@ -396,7 +386,7 @@ class TestClientModels(unittest.TestCase):
         result = pipeline.validate_business_rules()
         assert result.is_failure
         assert result.error is not None
-        assert "Invalid pipeline status" in result.error
+        assert result.error and "Invalid pipeline status" in result.error
 
 
 class TestComputeDefaultBaseUrl(unittest.TestCase):
@@ -817,8 +807,6 @@ class TestFlextApiClientContextManager(AsyncTestCase):
             id="test-pipeline",
             name="Test Pipeline",
             status="active",
-            created_at="2024-01-01T00:00:00Z",
-            updated_at="2024-01-01T00:00:00Z",
             config=FlextApiClient.PipelineConfig(
                 name="Test Pipeline", tap="tap-postgres", target="target-postgres"
             ),
@@ -833,8 +821,6 @@ class TestFlextApiClientContextManager(AsyncTestCase):
             id="test-pipeline",
             name="",  # Empty name should fail
             status="active",
-            created_at="2024-01-01T00:00:00Z",
-            updated_at="2024-01-01T00:00:00Z",
             config=FlextApiClient.PipelineConfig(
                 name="Test Pipeline", tap="tap-postgres", target="target-postgres"
             ),
@@ -843,7 +829,7 @@ class TestFlextApiClientContextManager(AsyncTestCase):
         result = pipeline.validate_business_rules()
         assert result.is_failure
         assert result.error is not None
-        assert "Pipeline name cannot be empty" in result.error
+        assert result.error and "Pipeline name cannot be empty" in result.error
 
     def test_pipeline_validation_invalid_status(self) -> None:
         """Test pipeline validation with invalid status."""
@@ -851,8 +837,6 @@ class TestFlextApiClientContextManager(AsyncTestCase):
             id="test-pipeline",
             name="Test Pipeline",
             status="invalid_status",  # Invalid status
-            created_at="2024-01-01T00:00:00Z",
-            updated_at="2024-01-01T00:00:00Z",
             config=FlextApiClient.PipelineConfig(
                 name="Test Pipeline", tap="tap-postgres", target="target-postgres"
             ),
@@ -861,7 +845,7 @@ class TestFlextApiClientContextManager(AsyncTestCase):
         result = pipeline.validate_business_rules()
         assert result.is_failure
         assert result.error is not None
-        assert "Invalid pipeline status" in result.error
+        assert result.error and "Invalid pipeline status" in result.error
 
     def test_pipeline_config_creation(self) -> None:
         """Test pipeline config creation."""
@@ -889,8 +873,6 @@ class TestFlextApiClientContextManager(AsyncTestCase):
             id="test-pipeline",
             name="Test Pipeline",
             status="active",
-            created_at="2024-01-01T00:00:00Z",
-            updated_at="2024-01-01T00:00:00Z",
             config=FlextApiClient.PipelineConfig(
                 name="Test Pipeline", tap="tap-postgres", target="target-postgres"
             ),

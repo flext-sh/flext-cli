@@ -155,6 +155,7 @@ __all__ = [
     "__url__",
     "__version__",
     "__version_info__",
+    "_auth_cmd",
     "auth",
     "auth_cmd",
     "cli",
@@ -174,4 +175,4 @@ __all__ = [
 ]
 
 # Ensure aliases take precedence over module imports for CLI commands
-from flext_cli.aliases import auth as _auth_cmd  # noqa: F401 E402
+from flext_cli.aliases import auth as _auth_cmd

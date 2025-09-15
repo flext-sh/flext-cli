@@ -142,7 +142,7 @@ class TestFlextCliDataProcessing:
         assert isinstance(result, FlextResult)
         assert result.is_failure
         assert result.error is not None
-        assert "Invalid items format" in result.error
+        assert result.error and "Invalid items format" in result.error
 
     def test_safe_json_stringify_with_dict(self) -> None:
         """Test safe_json_stringify with dictionary input."""
@@ -228,7 +228,7 @@ class TestFlextCliDataProcessing:
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
-        assert "Invalid items format" in result.error
+        assert result.error and "Invalid items format" in result.error
 
     def test_batch_process_items_with_invalid_processor(self) -> None:
         """Test batch_process_items with invalid processor function."""
@@ -239,7 +239,7 @@ class TestFlextCliDataProcessing:
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
-        assert "Processor function must be callable" in result.error
+        assert result.error and "Processor function must be callable" in result.error
 
     def test_batch_process_items_with_processor_exception(self) -> None:
         """Test batch_process_items with processor function that raises exception."""
@@ -256,7 +256,7 @@ class TestFlextCliDataProcessing:
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
-        assert "Item processing failed" in result.error
+        assert result.error and "Item processing failed" in result.error
 
     def test_safe_json_stringify_success(self) -> None:
         """Test safe_json_stringify with valid data."""

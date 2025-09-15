@@ -435,12 +435,16 @@ class FlextCliConfig(FlextConfig):
         if isinstance(base_config, cls):
             return base_config
 
-        # Get base config data as dict
-        base_data = {
-            key: getattr(base_config, key)
-            for key in dir(base_config)
-            if not key.startswith("_") and not callable(getattr(base_config, key, None))
-        }
+        # Get base config data as dict using model_dump for safe serialization
+        if hasattr(base_config, "model_dump"):
+            base_data = base_config.model_dump()
+        else:
+            # Fallback: only copy known safe attributes from model fields
+            base_data = {}
+            if hasattr(base_config.__class__, "model_fields"):
+                for field_name in base_config.__class__.model_fields:
+                    if hasattr(base_config, field_name):
+                        base_data[field_name] = getattr(base_config, field_name)
 
         # Remove fields that should use FlextCliConfig defaults or environment variables
         # instead of base config values
