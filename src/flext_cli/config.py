@@ -11,9 +11,10 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import Self, cast
 
 from flext_core import FlextConfig, FlextResult, FlextUtilities
-from pydantic import Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.utils import (
@@ -226,8 +227,7 @@ class FlextCliConfig(FlextConfig):
 
         return self
 
-    @model_validator(mode="after")
-    def validate_configuration_consistency(self) -> FlextCliConfig:
+    def validate_configuration_consistency(self) -> Self:
         """Override parent validation to allow flexible CLI configuration.
 
         CLI tools need more flexibility than server applications, so we
@@ -243,6 +243,11 @@ class FlextCliConfig(FlextConfig):
             self.output_format = "table"
 
         return self
+
+    @model_validator(mode="after")
+    def _validate_configuration_consistency_model(self) -> Self:
+        """Pydantic model validator that delegates to the runtime method."""
+        return self.validate_configuration_consistency()
 
     # =========================================================================
     # COMPATIBILITY METHODS
@@ -437,12 +442,12 @@ class FlextCliConfig(FlextConfig):
 
         # Get base config data as dict using model_dump for safe serialization
         if hasattr(base_config, "model_dump"):
-            base_data = base_config.model_dump()
+            base_data = cast("BaseModel", base_config).model_dump()
         else:
             # Fallback: only copy known safe attributes from model fields
             base_data = {}
             if hasattr(base_config.__class__, "model_fields"):
-                for field_name in base_config.__class__.model_fields:
+                for field_name in cast("BaseModel", base_config.__class__).model_fields:
                     if hasattr(base_config, field_name):
                         base_data[field_name] = getattr(base_config, field_name)
 

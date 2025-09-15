@@ -55,7 +55,7 @@ class TestFlextConfigIntegration:
         _ = FlextCliConfig.get_global_instance()
 
         # Apply CLI overrides
-        cli_params = {
+        cli_params: dict[str, object] = {
             "debug": True,
             "log_level": "DEBUG",
             "output_format": "json",
@@ -200,7 +200,7 @@ class TestFlextConfigIntegration:
     def test_cli_parameter_mapping(self) -> None:
         """Test CLI parameter mapping to configuration fields."""
         # Test various CLI parameter formats
-        cli_params = {
+        cli_params: dict[str, object] = {
             "profile": "test",
             "debug": True,
             "output": "json",  # Short form
@@ -266,7 +266,7 @@ class TestFlextConfigIntegration:
         assert config1.model_dump() == config2.model_dump()
 
         # Apply overrides
-        cli_params = {"debug": True, "profile": "test"}
+        cli_params: dict[str, object] = {"debug": True, "profile": "test"}
         override_result = FlextCliConfig.apply_cli_overrides(cli_params)
         assert override_result.is_success
 
@@ -284,7 +284,7 @@ class TestFlextConfigIntegration:
     def test_error_handling(self) -> None:
         """Test error handling in configuration operations."""
         # Test invalid CLI parameters
-        invalid_params = {"invalid_param": "value"}
+        invalid_params: dict[str, object] = {"invalid_param": "value"}
         override_result = FlextCliConfig.apply_cli_overrides(invalid_params)
         assert override_result.is_success  # Should succeed with ignored invalid params
 
@@ -300,7 +300,7 @@ class TestFlextConfigIntegration:
         assert config.profile == "default"
 
         # Test profile override
-        cli_params = {"profile": "development"}
+        cli_params: dict[str, object] = {"profile": "development"}
         override_result = FlextCliConfig.apply_cli_overrides(cli_params)
         assert override_result.is_success
 
@@ -328,7 +328,7 @@ class TestFlextConfigIntegration:
         assert config.timeout == config.timeout_seconds
 
         # Test timeout override
-        cli_params = {"timeout": 120}
+        cli_params: dict[str, object] = {"timeout": 120}
         override_result = FlextCliConfig.apply_cli_overrides(cli_params)
         assert override_result.is_success
 

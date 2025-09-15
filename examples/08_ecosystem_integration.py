@@ -26,18 +26,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-import click
 from flext_core import FlextConfig, FlextResult, FlextTypes
-from rich.console import Console
-from rich.table import Table
 
 from flext_cli import (
     FlextApiClient,
     FlextCliService,
-    cli_create_table,
-    cli_format_output,
-    require_auth,
-    save_auth_token,
+    FlextCliFormatters,
+    FlextCliAuth,
+    FlextCliMain,
 )
 
 

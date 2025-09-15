@@ -185,8 +185,8 @@ def main() -> None:
     # Validate CLI configuration directories
     cli_config = FlextCliConfig.get_global_instance()
 
-    # Validate directories
-    dir_validation_result = cli_config.validate_directories()
+    # Validate directories (using ensure_directories for validation)
+    dir_validation_result = cli_config.ensure_directories()
     if dir_validation_result.is_success:
         print("✅ All directories are valid and accessible")
     else:

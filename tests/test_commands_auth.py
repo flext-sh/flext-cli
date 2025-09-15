@@ -141,6 +141,7 @@ class TestStatusCommand:
             # FlextResult has data as a dict, not direct dict access
             assert status_result.is_success
             status_info = status_result.data
+            assert status_info is not None
             assert status_info["authenticated"] is False
             assert status_info["token_exists"] is False
 
@@ -167,6 +168,7 @@ class TestStatusCommand:
             # FlextResult has data as a dict, not direct dict access
             assert status_result.is_success
             status_info = status_result.data
+            assert status_info is not None
             assert status_info["authenticated"] is True
             assert status_info["token_exists"] is True
 

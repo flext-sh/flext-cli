@@ -84,7 +84,7 @@ def demonstrate_flext_config_singleton() -> None:
 
     # 5. Demonstrate synchronization
     print("6. Configuration Synchronization:")
-    sync_result = FlextCliConfig.sync_with_base_config()
+    sync_result = FlextCliConfig.sync_with_flext_config()
     if sync_result.is_success:
         print("   ✅ Configurations synchronized successfully")
         synced_config = sync_result.value

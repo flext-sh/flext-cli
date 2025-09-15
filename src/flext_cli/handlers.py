@@ -15,8 +15,10 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from typing import cast
 
 from flext_core import FlextCommands, FlextDomainService, FlextLogger, FlextResult
+from pydantic import BaseModel
 
 from flext_cli.commands import (
     AuthLoginCommand,
@@ -100,10 +102,10 @@ class FlextCliHandlers(FlextDomainService[None]):
                 config = FlextCliConfig(profile=command.profile)
 
                 # Check if key exists in model
-                if command.key not in config.__class__.model_fields:
+                if command.key not in cast(BaseModel, config.__class__).model_fields:
                     return FlextResult[bool].fail(
                         f"Configuration key '{command.key}' is not valid. "
-                        f"Available keys: {list(config.__class__.model_fields.keys())}"
+                        f"Available keys: {list(cast(BaseModel, config.__class__).model_fields.keys())}"
                     )
 
                 # Set the value using Pydantic model validation

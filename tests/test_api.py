@@ -42,7 +42,12 @@ class TestFlextCliContext:
         assert state.session_count == 0
 
         # Add some sessions
-        state.sessions = {"session1": {}, "session2": {}, "session3": {}}
+        from flext_cli.models import FlextCliModels
+        state.sessions = {
+            "session1": FlextCliModels.CliSession(user_id="user1"),
+            "session2": FlextCliModels.CliSession(user_id="user2"),
+            "session3": FlextCliModels.CliSession(user_id="user3")
+        }
         assert state.session_count == 3
 
     def test_api_state_handler_count_property(self) -> None:
