@@ -1,4 +1,3 @@
-
 """FLEXT CLI Authentication Commands Tests.
 
 Test CLI authentication commands with real functionality.

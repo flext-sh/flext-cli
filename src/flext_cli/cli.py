@@ -468,7 +468,7 @@ def auth_get_help(ctx: click.Context) -> str:
 
 
 # Override the help method for auth command
-auth.get_help = auth_get_help  # type: ignore[method-assign]
+auth.get_help = auth_get_help
 
 
 @auth.command()

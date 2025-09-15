@@ -754,7 +754,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         health_result = self.service.flext_cli_health()
         assert health_result.is_success
         health = health_result.value
-        assert isinstance(health["handlers"], int) and health["handlers"] >= 0  # Check handlers count instead
+        assert (
+            isinstance(health["handlers"], int) and health["handlers"] >= 0
+        )  # Check handlers count instead
         assert health["sessions"] == 2
 
 

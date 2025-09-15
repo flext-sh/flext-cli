@@ -1,4 +1,3 @@
-
 """Test utilities for FlextCliAuth authentication functionality.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.

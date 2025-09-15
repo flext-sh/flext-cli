@@ -58,7 +58,9 @@ class TestUtilitiesDebugCoverage:
 
         for case in test_cases_value_error:
             result = FlextUtilities.Conversions.safe_float(case, default=999.0)
-            assert result == 999.0, f"safe_float('{case}') should return default 999.0, got {result}"
+            assert result == 999.0, (
+                f"safe_float('{case}') should return default 999.0, got {result}"
+            )
 
         # Test cases that should trigger TypeError
         test_cases_type_error = [
@@ -72,11 +74,14 @@ class TestUtilitiesDebugCoverage:
 
         for case in test_cases_type_error:
             result = FlextUtilities.Conversions.safe_float(case, default=888.0)
-            assert result == 888.0, f"safe_float({case!r}) should return default 888.0, got {result}"
+            assert result == 888.0, (
+                f"safe_float({case!r}) should return default 888.0, got {result}"
+            )
 
     def test_safe_float_exception_paths_with_monkey_patch(self) -> None:
         """Test safe_float by temporarily patching float() to force exceptions."""
         import builtins
+
         original_float = builtins.float
         exception_counter = 0
 
@@ -98,15 +103,25 @@ class TestUtilitiesDebugCoverage:
             builtins.float = counting_float
 
             # Test forced ValueError path
-            result1 = FlextUtilities.Conversions.safe_float("force_value_error", default=111.0)
-            assert result1 == 111.0, f"Forced ValueError should return default, got {result1}"
+            result1 = FlextUtilities.Conversions.safe_float(
+                "force_value_error", default=111.0
+            )
+            assert result1 == 111.0, (
+                f"Forced ValueError should return default, got {result1}"
+            )
 
             # Test forced TypeError path
-            result2 = FlextUtilities.Conversions.safe_float("force_type_error", default=222.0)
-            assert result2 == 222.0, f"Forced TypeError should return default, got {result2}"
+            result2 = FlextUtilities.Conversions.safe_float(
+                "force_type_error", default=222.0
+            )
+            assert result2 == 222.0, (
+                f"Forced TypeError should return default, got {result2}"
+            )
 
             # Verify exceptions were actually raised and caught
-            assert exception_counter == 2, f"Expected 2 exceptions, got {exception_counter}"
+            assert exception_counter == 2, (
+                f"Expected 2 exceptions, got {exception_counter}"
+            )
 
         finally:
             # Restore original float()
@@ -127,7 +142,6 @@ class TestUtilitiesDebugCoverage:
             ("12e+-3", 8.8),  # Invalid scientific notation with conflicting signs
             ("++12", 9.9),  # Multiple signs
             ("12++", 10.1),  # Trailing invalid characters
-
             # Type cases that should cause TypeError
             (None, 11.1),
             (complex(0, 1), 12.2),
@@ -142,5 +156,9 @@ class TestUtilitiesDebugCoverage:
         ]
 
         for test_input, expected_default in edge_cases:
-            result = FlextUtilities.Conversions.safe_float(test_input, default=expected_default)
-            assert result == expected_default, f"safe_float({test_input!r}) should return {expected_default}, got {result}"
+            result = FlextUtilities.Conversions.safe_float(
+                test_input, default=expected_default
+            )
+            assert result == expected_default, (
+                f"safe_float({test_input!r}) should return {expected_default}, got {result}"
+            )

@@ -20,7 +20,7 @@ def print_demo_completion(
     demo_name: str,
     features: FlextTypes.Core.StringList,
     *,
-    border_style: str = "green"
+    border_style: str = "green",
 ) -> None:
     """Print standardized demo completion panel.
 
@@ -50,7 +50,7 @@ def handle_command_result(
     console: Console,
     result: FlextResult[FlextTypes.Core.Dict],
     action: str,
-    success_fields: FlextTypes.Core.StringList | None = None
+    success_fields: FlextTypes.Core.StringList | None = None,
 ) -> None:
     """Generic handler for CQRS command results to eliminate code duplication.
 
@@ -76,11 +76,7 @@ def handle_command_result(
 
 
 def print_demo_error(
-    console: Console,
-    demo_name: str,
-    error: str,
-    *,
-    border_style: str = "red"
+    console: Console, demo_name: str, error: str, *, border_style: str = "red"
 ) -> None:
     """Print standardized demo error panel.
 

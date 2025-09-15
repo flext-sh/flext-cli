@@ -13,6 +13,7 @@
 flext-cli provides CLI interfaces for the FLEXT ecosystem using a layered architecture that separates framework concerns from business logic.
 
 **Core Principles**:
+
 - **Separation of Concerns** - CLI interface separate from business logic
 - **Framework Abstraction** - Click integration contained to specific modules
 - **FLEXT Integration** - Uses flext-core patterns for consistency
@@ -172,6 +173,7 @@ formatter = FlextCliFormatters()
 ### Adding New Commands
 
 1. **Create Command Function**
+
    ```python
    def new_command(ctx, options):
        # Implementation using FlextResult pattern
@@ -180,11 +182,13 @@ formatter = FlextCliFormatters()
    ```
 
 2. **Register with CLI Framework**
+
    ```python
    # Add to appropriate command group in cli.py
    ```
 
 3. **Add Tests**
+
    ```python
    # Create tests in tests/test_new_command.py
    def test_new_command_success():

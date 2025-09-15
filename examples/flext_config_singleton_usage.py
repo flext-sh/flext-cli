@@ -131,7 +131,12 @@ def demonstrate_environment_integration() -> None:
     print()
 
     # Clean up environment variables
-    for key in ["FLEXT_DEBUG", "FLEXT_LOG_LEVEL", "FLEXT_CLI_PROFILE", "FLEXT_CLI_OUTPUT_FORMAT"]:
+    for key in [
+        "FLEXT_DEBUG",
+        "FLEXT_LOG_LEVEL",
+        "FLEXT_CLI_PROFILE",
+        "FLEXT_CLI_OUTPUT_FORMAT",
+    ]:
         os.environ.pop(key, None)
 
 

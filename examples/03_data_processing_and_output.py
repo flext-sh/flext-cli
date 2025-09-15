@@ -108,7 +108,6 @@ def demonstrate_data_transformation() -> FlextResult[None]:
         # Transform data - add computed fields (custom transformation)
         enriched_services = []
         for service in running_services:
-
             cpu_val = (
                 int(service["cpu"]) if isinstance(service["cpu"], (int, float)) else 0
             )
@@ -321,7 +320,6 @@ def demonstrate_file_operations() -> FlextResult[None]:
             encoding="utf-8", mode="w", suffix=".json", delete=False
         ) as temp_file:
             temp_path = Path(temp_file.name)
-
 
         try:
             temp_path.write_text(json.dumps(config_data, indent=2), encoding="utf-8")
@@ -559,7 +557,7 @@ def main() -> None:
             "📁 Type-safe file operations (ExistingFile, NewFile, ExistingDir)",
             "⚡ Batch processing with cli_batch_process_files",
             "📤 Data export with flext_cli_export",
-            "🏭 FormatterFactory pattern for consistent formatting"
+            "🏭 FormatterFactory pattern for consistent formatting",
         ]
 
         print_demo_completion(console, "Data Processing and Output Demo", features)

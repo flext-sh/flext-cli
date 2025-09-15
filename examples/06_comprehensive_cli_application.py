@@ -255,13 +255,16 @@ python = "^3.13"
                 app.console.print(project_table)
 
         except Exception as e:
-            app.console.print(
-                f"[red]Project creation failed: {e}[/red]"
-            )
+            app.console.print(f"[red]Project creation failed: {e}[/red]")
 
 
 @project.command()
-@click.option("--directory", type=click.Path(exists=True, file_okay=False, dir_okay=True), default=".", help="Project directory")
+@click.option(
+    "--directory",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True),
+    default=".",
+    help="Project directory",
+)
 # Removed problematic decorator @cli_enhanced - causes type inference issues
 @click.pass_context
 def status(ctx: click.Context, directory: Path) -> None:
@@ -310,7 +313,9 @@ def service(ctx: click.Context) -> None:
 
 @service.command()
 @click.option("--url", type=str, required=True, help="Service URL")
-@click.option("--timeout", type=click.IntRange(min=1), default=30, help="Timeout in seconds")
+@click.option(
+    "--timeout", type=click.IntRange(min=1), default=30, help="Timeout in seconds"
+)
 # Removed problematic decorators @cli_enhanced, @cli_measure_time - cause type inference issues
 @click.pass_context
 def health(ctx: click.Context, url: str, timeout: int) -> None:

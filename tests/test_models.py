@@ -20,7 +20,9 @@ class TestFlextCliModelsCliCommand:
 
     def test_cli_command_creation_with_defaults(self) -> None:
         """Test CLI command creation with default values."""
-        command = FlextCliModels.CliCommand(command_line="test command", execution_time=datetime.now(UTC))
+        command = FlextCliModels.CliCommand(
+            command_line="test command", execution_time=datetime.now(UTC)
+        )
 
         assert command.command_line == "test command"
         assert command.status == FlextCliConstants.STATUS_PENDING
@@ -96,7 +98,9 @@ class TestFlextCliModelsCliCommand:
 
     def test_cli_command_start_execution_method(self) -> None:
         """Test start_execution domain method."""
-        command = FlextCliModels.CliCommand(command_line="test command", execution_time=datetime.now(UTC))
+        command = FlextCliModels.CliCommand(
+            command_line="test command", execution_time=datetime.now(UTC)
+        )
         result = command.start_execution()
 
         # Should return FlextResult
@@ -104,7 +108,9 @@ class TestFlextCliModelsCliCommand:
 
     def test_cli_command_validate_business_rules_method(self) -> None:
         """Test validate_business_rules domain method."""
-        command = FlextCliModels.CliCommand(command_line="test command", execution_time=datetime.now(UTC))
+        command = FlextCliModels.CliCommand(
+            command_line="test command", execution_time=datetime.now(UTC)
+        )
         result = command.validate_business_rules()
 
         # Should return FlextResult
@@ -127,14 +133,18 @@ class TestFlextCliModelsCliSession:
 
     def test_cli_session_creation_with_user_id(self) -> None:
         """Test CLI session creation with user ID."""
-        session = FlextCliModels.CliSession(user_id="test_user", start_time=datetime.now(UTC))
+        session = FlextCliModels.CliSession(
+            user_id="test_user", start_time=datetime.now(UTC)
+        )
 
         assert session.user_id == "test_user"
         assert isinstance(session.start_time, datetime)
 
     def test_cli_session_validate_business_rules_method(self) -> None:
         """Test validate_business_rules domain method."""
-        session = FlextCliModels.CliSession(user_id="test_user", start_time=datetime.now(UTC))
+        session = FlextCliModels.CliSession(
+            user_id="test_user", start_time=datetime.now(UTC)
+        )
         result = session.validate_business_rules()
 
         # Should return FlextResult
@@ -227,7 +237,9 @@ class TestFlextCliModelsIntegration:
     def test_command_with_all_valid_statuses(self) -> None:
         """Test command can be created with basic parameters."""
         # Test basic command creation (new architecture uses state pattern)
-        command = FlextCliModels.CliCommand(command_line="test", execution_time=datetime.now(UTC))
+        command = FlextCliModels.CliCommand(
+            command_line="test", execution_time=datetime.now(UTC)
+        )
         assert command.command_line == "test"
 
         # Test command with exit_code
@@ -249,7 +261,9 @@ class TestFlextCliModelsIntegration:
     def test_models_inherit_from_flext_core(self) -> None:
         """Test that models properly inherit from flext-core."""
         # Commands should inherit from FlextModels.Entity
-        command = FlextCliModels.CliCommand(command_line="test", execution_time=datetime.now(UTC))
+        command = FlextCliModels.CliCommand(
+            command_line="test", execution_time=datetime.now(UTC)
+        )
         assert isinstance(command, FlextModels.Entity)
 
         # Sessions should inherit from FlextModels.Entity

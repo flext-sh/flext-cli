@@ -43,10 +43,11 @@ class TestFlextCliContext:
 
         # Add some sessions
         from flext_cli.models import FlextCliModels
+
         state.sessions = {
             "session1": FlextCliModels.CliSession(user_id="user1"),
             "session2": FlextCliModels.CliSession(user_id="user2"),
-            "session3": FlextCliModels.CliSession(user_id="user3")
+            "session3": FlextCliModels.CliSession(user_id="user3"),
         }
         assert state.session_count == 3
 
