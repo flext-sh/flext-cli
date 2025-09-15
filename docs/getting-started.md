@@ -1,14 +1,16 @@
 # Getting Started with flext-cli
 
-**Installation and setup guide for flext-cli development.**
+**Installation and setup guide for the FLEXT ecosystem CLI foundation library.**
 
 **Updated**: September 17, 2025 | **Version**: 0.9.0
 
 ---
 
-## ⚠️ Important Notice
+## Overview
 
-**Current Status**: flext-cli has significant functionality gaps and broken core features. This guide covers development setup only - the library is not ready for production use.
+flext-cli serves as the **CLI foundation library** for the FLEXT ecosystem, providing standardized command-line interfaces using **flext-core patterns** with **Click framework integration**.
+
+> **⚠️ STATUS**: Core services work, but CLI commands fail execution due to Click callback signature issues
 
 ---
 
@@ -17,83 +19,102 @@
 ### System Requirements
 
 - **Python**: 3.13+ (required for advanced type features)
-- **Poetry**: For dependency management
-- **Make**: For build automation
+- **Poetry**: Dependency management
+- **Make**: Build automation
+- **FLEXT Ecosystem**: Access to flext-core foundation library
 
-### FLEXT Ecosystem Context
+### FLEXT Ecosystem Integration
 
-flext-cli is part of the FLEXT ecosystem but has limited working integration:
-- **flext-core**: Uses FlextResult patterns (when working)
-- **Authentication**: Integration planned but currently broken
+- **[flext-core](../../flext-core/README.md)**: Foundation patterns (FlextResult, FlextService, FlextContainer)
+- **CLI Standards**: Provides CLI foundation for all FLEXT project command-line tools
 
 ---
 
-## Development Setup
+## Installation
 
-### Clone and Setup
+### Development Setup
 
 ```bash
-# Clone repository
+# Clone from FLEXT ecosystem
 git clone https://github.com/flext-sh/flext-cli.git
 cd flext-cli
 
 # Complete development setup
 make setup
 
-# Verify basic imports work (functionality limited)
-python -c "import flext_cli; print('Import successful - limited functionality')"
+# Verify core components load successfully
+python -c "from flext_cli import FlextCliService; print('✅ Core service loads')"
+python -c "from flext_cli.auth import FlextCliAuth; print('✅ Auth system loads')"
 ```
 
-### Known Setup Issues
+### Current Status Verification
 
-**Authentication Import Fails**:
-```bash
-# This will fail with Pydantic errors
-python -c "from flext_cli import FlextCliAuth; FlextCliAuth()"
+# Core service initialization
+from flext_cli import FlextCliService
+service = FlextCliService()  # ✅ Works
+
+# Authentication system loading
+from flext_cli.auth import FlextCliAuth
+auth = FlextCliAuth()  # ✅ Works
+
+# Type system verification
+from flext_cli.typings import FlextCliTypes
+format_types = FlextCliTypes.OutputFormat  # ✅ Works
 ```
 
-**CLI Commands Crash**:
+**What's Broken**:
 ```bash
-# These commands currently crash
-python -m flext_cli.cli --version  # Argument error
-python -m flext_cli.cli --help     # May work
+# CLI command execution fails
+python -m flext_cli --version
+# Error: print_version() takes 2 positional arguments but 3 were given
+
+# Basic CLI commands crash due to Click callback signature issues
 ```
 
 ---
 
-## What Actually Works
+## Development Workflow
 
-### Working Imports
-```python
-# Basic module imports work
-import flext_cli
-from flext_cli import __version__
+### Quality Gates
 
-# Some type definitions are accessible
-from flext_cli.typings import E, F, P, R, T, U, V
-```
-
-### Limited CLI Help
 ```bash
-# Basic help may work
-python -c "
-import sys
-sys.path.insert(0, 'src')
-import flext_cli.cli
-print('CLI module imported')
-"
+# Code quality validation
+make lint                   # ✅ Ruff linting (should pass)
+make format                 # Auto-format code
+
+# Type checking
+make type-check            # ✅ MyPy strict mode (src/ passes)
+
+# Testing
+make test                  # Run test suite
+pytest tests/unit/         # Unit tests only
 ```
 
-## What Doesn't Work
+### Working Development Pattern
 
-### Broken Authentication
 ```python
-# This fails with configuration errors
-from flext_cli import FlextCliAuth
-auth = FlextCliAuth()  # Crashes
+# This development pattern works for extending the library
+from flext_cli import FlextCliService
+from flext_core import FlextResult
+
+# Initialize service
+service = FlextCliService()
+
+# Service operations work correctly
+health = service.get_service_health()
+assert health.is_success
+
+# Configuration works
+config = service.get_config()  # Returns FlextCliConfig | None
 ```
 
-### Broken CLI Commands
+## Critical Issues
+
+### CLI Command Execution
+
+**Issue**: Click callback signatures are incorrect
+**Impact**: No CLI commands execute successfully
+**Status**: Requires immediate fix for basic functionality
 - Version command crashes with argument errors
 - Login commands reference non-existent methods
 - Configuration system fails validation
