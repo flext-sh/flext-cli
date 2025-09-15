@@ -46,7 +46,7 @@ def main() -> None:
         "debug": True,
         "output_format": "json",
         "log_level": "DEBUG",
-        "profile": "development"
+        "profile": "development",
     }
 
     # Apply CLI overrides - this updates BOTH FlextConfig and FlextCliConfig
@@ -123,7 +123,9 @@ def main() -> None:
     print(f"  Debug: {cli_config.debug}")
     print(f"  Log Level: {cli_config.log_level}")
     print(f"  API URL: {cli_config.api_url}")
-    print(f"  CLI-specific: Profile={cli_config.profile}, Output={cli_config.output_format}")
+    print(
+        f"  CLI-specific: Profile={cli_config.profile}, Output={cli_config.output_format}"
+    )
 
     # =========================================================================
     # 6. CLI PARAMETER OVERRIDES - Simulate CLI arguments
@@ -139,7 +141,7 @@ def main() -> None:
         "log_level": "DEBUG",
         "verbose": True,
         "api_url": "https://api.custom.com",
-        "timeout": 60
+        "timeout": 60,
     }
 
     # Apply CLI overrides to global configuration

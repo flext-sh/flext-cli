@@ -49,8 +49,12 @@ def demonstrate_single_source_of_truth() -> None:
 
     # 3. Verify integration metadata
     print("3. Integration Metadata:")
-    print(f"   Base Config Source: {cli_config._metadata.get('base_config_source', 'unknown')}")
-    print(f"   CLI Extensions Applied: {cli_config._metadata.get('cli_extensions_applied', 'false')}")
+    print(
+        f"   Base Config Source: {cli_config._metadata.get('base_config_source', 'unknown')}"
+    )
+    print(
+        f"   CLI Extensions Applied: {cli_config._metadata.get('cli_extensions_applied', 'false')}"
+    )
     print(f"   Override Count: {cli_config._metadata.get('override_count', '0')}")
     print()
 
@@ -109,9 +113,15 @@ def demonstrate_cli_parameter_integration() -> None:
 
     # 4. Show integration metadata
     print("5. Integration Status:")
-    print(f"   CLI Overrides Applied: {updated_cli_config._metadata.get('cli_overrides_applied', 'false')}")
-    print(f"   Override Count: {updated_cli_config._metadata.get('override_count', '0')}")
-    print(f"   Base Config Synchronized: {updated_cli_config._metadata.get('base_config_synchronized', 'false')}")
+    print(
+        f"   CLI Overrides Applied: {updated_cli_config._metadata.get('cli_overrides_applied', 'false')}"
+    )
+    print(
+        f"   Override Count: {updated_cli_config._metadata.get('override_count', '0')}"
+    )
+    print(
+        f"   Base Config Synchronized: {updated_cli_config._metadata.get('base_config_synchronized', 'false')}"
+    )
     print()
 
 
@@ -150,7 +160,12 @@ def demonstrate_environment_integration() -> None:
     print()
 
     # Clean up environment variables
-    for key in ["FLEXT_DEBUG", "FLEXT_LOG_LEVEL", "FLEXT_CLI_PROFILE", "FLEXT_CLI_OUTPUT_FORMAT"]:
+    for key in [
+        "FLEXT_DEBUG",
+        "FLEXT_LOG_LEVEL",
+        "FLEXT_CLI_PROFILE",
+        "FLEXT_CLI_OUTPUT_FORMAT",
+    ]:
         os.environ.pop(key, None)
 
 

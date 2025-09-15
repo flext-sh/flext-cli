@@ -1,4 +1,3 @@
-
 """FLEXT CLI API Integration Tests.
 
 Integration tests for FLEXT CLI API real functionality.

@@ -1,4 +1,3 @@
-
 """FLEXT CLI Application Commands Tests.
 
 Test CLI command and session models.

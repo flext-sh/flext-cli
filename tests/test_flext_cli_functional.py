@@ -32,7 +32,9 @@ class TestFlextCliModelsReal:
     def test_command_creation_and_validation(self) -> None:
         """Test REAL command creation and business rule validation."""
         # Create REAL command
-        command = FlextCliModels.CliCommand(command_line="echo hello", execution_time=datetime.now(UTC))
+        command = FlextCliModels.CliCommand(
+            command_line="echo hello", execution_time=datetime.now(UTC)
+        )
 
         # Test REAL validation
         validation_result = command.validate_business_rules()
@@ -40,7 +42,9 @@ class TestFlextCliModelsReal:
 
     def test_command_execution_workflow(self) -> None:
         """Test REAL command execution workflow."""
-        command = FlextCliModels.CliCommand(command_line="test command", id="test-123", execution_time=datetime.now(UTC))
+        command = FlextCliModels.CliCommand(
+            command_line="test command", id="test-123", execution_time=datetime.now(UTC)
+        )
 
         # Test starting execution
         start_result = command.start_execution()
@@ -50,10 +54,14 @@ class TestFlextCliModelsReal:
 
     def test_session_functionality(self) -> None:
         """Test REAL session functionality."""
-        session = FlextCliModels.CliSession(user_id="test-user", start_time=datetime.now(UTC))
+        session = FlextCliModels.CliSession(
+            user_id="test-user", start_time=datetime.now(UTC)
+        )
 
         # Test adding command to session
-        test_command = FlextCliModels.CliCommand(command_line="test-command", execution_time=datetime.now(UTC))
+        test_command = FlextCliModels.CliCommand(
+            command_line="test-command", execution_time=datetime.now(UTC)
+        )
         add_result = session.add_command(test_command)
         assert add_result.is_success
         assert len(session.commands) > 0
@@ -127,7 +135,9 @@ class TestFlextCliIntegration:
 
     def test_flext_result_integration(self) -> None:
         """Test REAL FlextResult integration works throughout CLI."""
-        command = FlextCliModels.CliCommand(command_line="test", execution_time=datetime.now(UTC))
+        command = FlextCliModels.CliCommand(
+            command_line="test", execution_time=datetime.now(UTC)
+        )
 
         # All CLI operations return FlextResult
         validation = command.validate_business_rules()

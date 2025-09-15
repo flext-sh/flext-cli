@@ -73,8 +73,7 @@ def _config_demo(formatter: FlextCliFormatters) -> FlextResult[FlextCliConfig]:
     }
 
     table_result = formatter.format_table(
-        data=config_data,
-        title="CLI Configuration (FlextModels Integration)"
+        data=config_data, title="CLI Configuration (FlextModels Integration)"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -82,7 +81,9 @@ def _config_demo(formatter: FlextCliFormatters) -> FlextResult[FlextCliConfig]:
     return FlextResult[FlextCliConfig].ok(config)
 
 
-def _container_demo(formatter: FlextCliFormatters, config: FlextCliConfig) -> FlextResult[None]:
+def _container_demo(
+    formatter: FlextCliFormatters, config: FlextCliConfig
+) -> FlextResult[None]:
     """Demo FlextContainer dependency injection."""
     formatter.print_success("\\n3. 🏭 FlextContainer DI Pattern (Advanced)")
     container = FlextContainer.get_global()
@@ -105,8 +106,7 @@ def _container_demo(formatter: FlextCliFormatters, config: FlextCliConfig) -> Fl
         services_data[service_name] = f"{status} ({service_type})"
 
     table_result = formatter.format_table(
-        data=services_data,
-        title="Registered Services (FlextContainer)"
+        data=services_data, title="Registered Services (FlextContainer)"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -122,9 +122,9 @@ def _entities_demo(
 
     command_result = _create_sample_command()
     if command_result.is_failure:
-        return FlextResult[tuple[FlextCliModels.CliCommand, FlextCliModels.CliSession]].fail(
-            f"Command creation failed: {command_result.error}"
-        )
+        return FlextResult[
+            tuple[FlextCliModels.CliCommand, FlextCliModels.CliSession]
+        ].fail(f"Command creation failed: {command_result.error}")
 
     command = command_result.value
     formatter.console.print(f"✅ CLI Command: {command.id}")
@@ -133,19 +133,23 @@ def _entities_demo(
 
     session_result = _create_sample_session(config)
     if session_result.is_failure:
-        return FlextResult[tuple[FlextCliModels.CliCommand, FlextCliModels.CliSession]].fail(
-            f"Session creation failed: {session_result.error}"
-        )
+        return FlextResult[
+            tuple[FlextCliModels.CliCommand, FlextCliModels.CliSession]
+        ].fail(f"Session creation failed: {session_result.error}")
 
     session = session_result.value
     formatter.console.print(f"✅ CLI Session: {session.id}")
     formatter.console.print(f"   Duration: {session.duration_seconds}")
     formatter.console.print(f"   Type: {type(session).__name__}")
 
-    return FlextResult[tuple[FlextCliModels.CliCommand, FlextCliModels.CliSession]].ok((command, session))
+    return FlextResult[tuple[FlextCliModels.CliCommand, FlextCliModels.CliSession]].ok(
+        (command, session)
+    )
 
 
-def _validation_demo(formatter: FlextCliFormatters, command: FlextCliModels.CliCommand) -> FlextResult[None]:
+def _validation_demo(
+    formatter: FlextCliFormatters, command: FlextCliModels.CliCommand
+) -> FlextResult[None]:
     """Demo validation and lifecycle."""
     formatter.print_success("\\n5. ✅ Validation & Lifecycle (Business Rules)")
 
@@ -184,8 +188,7 @@ def _summary_demo(formatter: FlextCliFormatters) -> None:
     }
 
     table_result = formatter.format_table(
-        data=summary_data,
-        title="Foundation Patterns Summary"
+        data=summary_data, title="Foundation Patterns Summary"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -205,10 +208,14 @@ def _create_sample_command() -> FlextResult[FlextCliModels.CliCommand]:
         return FlextResult[FlextCliModels.CliCommand].ok(command)
 
     except Exception as e:
-        return FlextResult[FlextCliModels.CliCommand].fail(f"Failed to create command: {e}")
+        return FlextResult[FlextCliModels.CliCommand].fail(
+            f"Failed to create command: {e}"
+        )
 
 
-def _create_sample_session(config: FlextCliConfig) -> FlextResult[FlextCliModels.CliSession]:
+def _create_sample_session(
+    config: FlextCliConfig,
+) -> FlextResult[FlextCliModels.CliSession]:
     """Create a sample CLI session with REAL configuration."""
     try:
         # Create session with REAL required parameters using actual CliSession structure
@@ -223,7 +230,9 @@ def _create_sample_session(config: FlextCliConfig) -> FlextResult[FlextCliModels
         return FlextResult[FlextCliModels.CliSession].ok(session)
 
     except Exception as e:
-        return FlextResult[FlextCliModels.CliSession].fail(f"Failed to create session: {e}")
+        return FlextResult[FlextCliModels.CliSession].fail(
+            f"Failed to create session: {e}"
+        )
 
 
 def main() -> None:

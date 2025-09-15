@@ -88,7 +88,9 @@ class AdvancedCliService(FlextCliService):
 
     # Removed problematic decorators - @cli_enhanced, @cli_measure_time, @cli_retry
     # These decorators cause type inference issues with PyRight
-    def check_service_health(self, service_name: str) -> FlextResult[FlextTypes.Core.Dict]:
+    def check_service_health(
+        self, service_name: str
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Check health of a specific service with retry logic."""
         try:
             logger = getattr(self, "logger", None)
@@ -305,7 +307,9 @@ class AdvancedCliService(FlextCliService):
                         "result": f"Operation {operation} completed successfully",
                     }
                 )
-            return FlextResult[FlextTypes.Core.Dict].fail(f"Operation {operation} failed")
+            return FlextResult[FlextTypes.Core.Dict].fail(
+                f"Operation {operation} failed"
+            )
 
         except Exception as e:
             return FlextResult[FlextTypes.Core.Dict].fail(f"Step execution failed: {e}")
@@ -646,7 +650,7 @@ def main() -> None:
             "🎼 Multi-service orchestration with rollback capability",
             "💉 Dependency injection container with service composition",
             "📊 Real-time monitoring and health tracking",
-            "🔧 Advanced error handling and resilience patterns"
+            "🔧 Advanced error handling and resilience patterns",
         ]
 
         print_demo_completion(console, "Advanced Service Integration Demo", features)

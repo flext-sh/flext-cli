@@ -1,4 +1,3 @@
-
 """FLEXT CLI Validation Tests.
 
 Tests for validation functionality using flext-core validation patterns.

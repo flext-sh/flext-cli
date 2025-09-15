@@ -76,9 +76,6 @@ class ServiceHealth:
     error: str | None = None
 
 
-
-
-
 class EcosystemService(FlextCliService):
     """Service for integrating with FLEXT ecosystem projects."""
 
@@ -219,7 +216,9 @@ class EcosystemService(FlextCliService):
             }
             return FlextResult[FlextTypes.Core.Dict].ok(result)
         except Exception as e:
-            return FlextResult[FlextTypes.Core.Dict].fail(f"Meltano operation failed: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(
+                f"Meltano operation failed: {e}"
+            )
 
     def query_oracle_database(
         self, _query: str, _schema: str
@@ -262,9 +261,6 @@ class EcosystemService(FlextCliService):
             return FlextResult[FlextTypes.Core.Dict].ok(dict(metrics))
         except Exception as e:
             return FlextResult[FlextTypes.Core.Dict].fail(f"Failed to get metrics: {e}")
-
-
-
 
 
 @click.group()
@@ -386,7 +382,9 @@ def meltano(ctx: click.Context, operation: str, project: str) -> None:
 )
 @click.pass_context
 @require_auth()
-def oracle_query(ctx: click.Context, query: str, schema: str, output_format: str) -> None:
+def oracle_query(
+    ctx: click.Context, query: str, schema: str, output_format: str
+) -> None:
     """Query Oracle database through flext-db-oracle integration using advanced patterns."""
     console: Console = ctx.obj["console"]
     service: EcosystemService = ctx.obj["service"]
@@ -404,14 +402,20 @@ def oracle_query(ctx: click.Context, query: str, schema: str, output_format: str
             return FlextResult[None].fail(query_result.error)
 
         # Step 3: Format output using Python 3.13+ match-case
-        format_result = _format_oracle_output(console, query_result.value, output_format)
-        return format_result.map(lambda _: None)  # Convert to None for consistent return
+        format_result = _format_oracle_output(
+            console, query_result.value, output_format
+        )
+        return format_result.map(
+            lambda _: None
+        )  # Convert to None for consistent return
 
     # Execute pipeline
     execute_query_pipeline()
 
 
-def _format_oracle_output(console: Console, data: object, output_format: str) -> FlextResult[str]:
+def _format_oracle_output(
+    console: Console, data: object, output_format: str
+) -> FlextResult[str]:
     """Format Oracle query output using Python 3.13+ match-case patterns."""
     # Python 3.13+ pattern matching for cleaner control flow
     match output_format:
@@ -443,7 +447,9 @@ def _handle_table_format(console: Console, data: object) -> FlextResult[str]:
     return FlextResult[str].ok(str(data))
 
 
-def _handle_structured_format(console: Console, data: object, format_type: str) -> FlextResult[str]:
+def _handle_structured_format(
+    console: Console, data: object, format_type: str
+) -> FlextResult[str]:
     """Handle JSON/CSV formats with error handling."""
     format_data = _prepare_display_data(data)
     formatted_result = cli_format_output(format_data, format_type)

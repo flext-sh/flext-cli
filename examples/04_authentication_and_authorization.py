@@ -410,7 +410,9 @@ def validate_session(session_data: FlextTypes.Core.Dict) -> FlextResult[bool]:
         return FlextResult[bool].fail(f"Session validation error: {e}")
 
 
-def refresh_session(session_data: FlextTypes.Core.Dict) -> FlextResult[FlextTypes.Core.Dict]:
+def refresh_session(
+    session_data: FlextTypes.Core.Dict,
+) -> FlextResult[FlextTypes.Core.Dict]:
     """Refresh session with new expiration time."""
     try:
         current_time = datetime.now(UTC)
@@ -494,10 +496,12 @@ def main() -> None:
             "👥 Role-based permissions and access control",
             "⏰ Session lifecycle management and validation",
             "🔑 Environment-based secure configuration",
-            "🌐 FlextApiClient authentication patterns"
+            "🌐 FlextApiClient authentication patterns",
         ]
 
-        print_demo_completion(console, "Authentication and Authorization Demo", features)
+        print_demo_completion(
+            console, "Authentication and Authorization Demo", features
+        )
 
     except Exception as e:
         console.print(f"[bold red]❌ Authentication demo error: {e}[/bold red]")

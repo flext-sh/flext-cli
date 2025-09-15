@@ -152,9 +152,6 @@ class Project(FlextModels.AggregateRoot):
         return FlextResult[Project].ok(project)
 
 
-
-
-
 class ProjectDomainService(FlextDomainService[FlextTypes.Core.Dict]):
     """Domain service for cross-project operations."""
 
@@ -175,9 +172,6 @@ class ProjectDomainService(FlextDomainService[FlextTypes.Core.Dict]):
 
         can_transfer = True
         return FlextResult[bool].ok(can_transfer)
-
-
-
 
 
 class ProjectRepository(Protocol):
@@ -220,9 +214,6 @@ class InMemoryProjectRepository:
             if project.owner_id == owner_id
         ]
         return FlextResult[list[Project]].ok(projects)
-
-
-
 
 
 @dataclass(frozen=True)
@@ -304,7 +295,9 @@ class CreateProjectHandler:
         for event in events:
             if isinstance(event, dict) and event.get("type") == "ProjectCreated":
                 # In real app: publish to event bus, update read models, etc.
-                print(f"Processing domain event: {event.get('type')} for project {event.get('project_id')}")
+                print(
+                    f"Processing domain event: {event.get('type')} for project {event.get('project_id')}"
+                )
 
 
 class ChangeProjectStatusHandler:
@@ -410,9 +403,6 @@ class ProjectQueryHandler:
         return FlextResult[list[FlextTypes.Core.Dict]].ok(project_list_obj)
 
 
-
-
-
 class ProjectManagementService(FlextCliService):
     """Infrastructure service orchestrating the application layer."""
 
@@ -513,9 +503,6 @@ class ProjectManagementService(FlextCliService):
         return self._query_handler.execute_list_by_owner(query)
 
 
-
-
-
 @click.group()
 @click.pass_context
 def enterprise_cli(ctx: click.Context) -> None:
@@ -562,7 +549,9 @@ def change_status(
 
     console.print(f"[blue]Changing project status to:[/blue] {status}")
     result = service.change_project_status(project_id, status, reason)
-    handle_command_result(console, result, "change status", success_fields=["id", "status"])
+    handle_command_result(
+        console, result, "change status", success_fields=["id", "status"]
+    )
 
 
 @enterprise_cli.command()

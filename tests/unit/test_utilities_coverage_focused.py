@@ -100,7 +100,9 @@ class TestFlextUtilitiesCoverageFocused:
 
         # Test ValueError cases
         assert FlextUtilities.Conversions.safe_float("invalid") == 0.0
-        assert FlextUtilities.Conversions.safe_float("not_a_number", default=42.5) == 42.5
+        assert (
+            FlextUtilities.Conversions.safe_float("not_a_number", default=42.5) == 42.5
+        )
         assert FlextUtilities.Conversions.safe_float("") == 0.0
 
         # Test TypeError cases
@@ -130,12 +132,21 @@ class TestFlextUtilitiesCoverageFocused:
     def test_text_processor_edge_cases(self) -> None:
         """Test TextProcessor class methods for edge case coverage."""
         # Test sanitize_filename with various inputs
-        assert FlextUtilities.TextProcessor.sanitize_filename("valid_name.txt") == "valid_name.txt"
-        assert FlextUtilities.TextProcessor.sanitize_filename("file/with\\slashes") == "file_with_slashes"
+        assert (
+            FlextUtilities.TextProcessor.sanitize_filename("valid_name.txt")
+            == "valid_name.txt"
+        )
+        assert (
+            FlextUtilities.TextProcessor.sanitize_filename("file/with\\slashes")
+            == "file_with_slashes"
+        )
 
         # Test truncate_string
         assert FlextUtilities.TextProcessor.truncate_string("hello", 10) == "hello"
-        assert FlextUtilities.TextProcessor.truncate_string("very long string", 5) == "very "
+        assert (
+            FlextUtilities.TextProcessor.truncate_string("very long string", 5)
+            == "very "
+        )
 
         # Test edge cases
         assert FlextUtilities.TextProcessor.sanitize_filename("") == ""
@@ -167,7 +178,9 @@ class TestFlextUtilitiesCoverageFocused:
         assert "T" in timestamp  # ISO format contains T
 
         # Test safe_json_stringify with various data types
-        assert FlextUtilities.safe_json_stringify({"key": "value"}) == '{"key": "value"}'
+        assert (
+            FlextUtilities.safe_json_stringify({"key": "value"}) == '{"key": "value"}'
+        )
         assert FlextUtilities.safe_json_stringify([1, 2, 3]) == "[1, 2, 3]"
         assert FlextUtilities.safe_json_stringify("simple string") == '"simple string"'
 

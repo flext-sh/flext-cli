@@ -74,7 +74,7 @@ class FlextCliDecorators(FlextDecorators):
                     return None
 
                 # Pass through non-FlextResult values with type safety
-                return cast("T", result)  # type: ignore[return-value]
+                return cast("T", result)
 
             except Exception:
                 # Handle exceptions by logging error and re-raising

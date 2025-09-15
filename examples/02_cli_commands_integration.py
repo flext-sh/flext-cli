@@ -56,7 +56,9 @@ def _setup_cli_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
     return FlextResult[None].ok(None)
 
 
-def _connection_demo(formatter: FlextCliFormatters, config: FlextCliConfig) -> FlextResult[None]:
+def _connection_demo(
+    formatter: FlextCliFormatters, config: FlextCliConfig
+) -> FlextResult[None]:
     """Demo connection testing using flext-cli patterns."""
     formatter.print_success("\n2. 🌐 Connection Testing Integration")
 
@@ -65,13 +67,12 @@ def _connection_demo(formatter: FlextCliFormatters, config: FlextCliConfig) -> F
         "URL": "https://api.example.com",
         "Timeout": "30s",
         "Retries": "3",
-        "Status": "Ready"
+        "Status": "Ready",
     }
 
     # Display connection info using flext-cli formatter
     table_result = formatter.format_table(
-        data=connection_data,
-        title="Connection Test Configuration"
+        data=connection_data, title="Connection Test Configuration"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -79,7 +80,9 @@ def _connection_demo(formatter: FlextCliFormatters, config: FlextCliConfig) -> F
     # Execute connection test
     command_result = _create_connection_command("https://api.example.com", 30, 3)
     if command_result.is_failure:
-        return FlextResult[None].fail(f"Command creation failed: {command_result.error}")
+        return FlextResult[None].fail(
+            f"Command creation failed: {command_result.error}"
+        )
 
     command = command_result.value
     test_result = _execute_connection_test(command)
@@ -102,13 +105,12 @@ def _file_processing_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
         "Format": "JSON",
         "Batch Size": "100",
         "Lines": "150",
-        "Batches": "2"
+        "Batches": "2",
     }
 
     # Display processing info using flext-cli formatter
     table_result = formatter.format_table(
-        data=processing_data,
-        title="File Processing Configuration"
+        data=processing_data, title="File Processing Configuration"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -125,7 +127,9 @@ def _file_processing_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
     return FlextResult[None].ok(None)
 
 
-def _cli_status_demo(formatter: FlextCliFormatters, config: FlextCliConfig) -> FlextResult[None]:
+def _cli_status_demo(
+    formatter: FlextCliFormatters, config: FlextCliConfig
+) -> FlextResult[None]:
     """Demo CLI status display using flext-cli patterns."""
     formatter.print_success("\n4. 📊 CLI Status Integration")
 
@@ -135,12 +139,11 @@ def _cli_status_demo(formatter: FlextCliFormatters, config: FlextCliConfig) -> F
         "Debug Mode": str(config.debug),
         "Output Format": str(config.output_format),
         "Workspace": str(Path.cwd()),
-        "CLI Foundation": "FLEXT CLI"
+        "CLI Foundation": "FLEXT CLI",
     }
 
     table_result = formatter.format_table(
-        data=status_data,
-        title="CLI Status Dashboard"
+        data=status_data, title="CLI Status Dashboard"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -160,12 +163,11 @@ def _command_registration_demo(formatter: FlextCliFormatters) -> FlextResult[Non
         "connect": "✅ Connection testing command",
         "process": "✅ File processing command",
         "status": "✅ Status display command",
-        "config": "✅ Configuration management"
+        "config": "✅ Configuration management",
     }
 
     table_result = formatter.format_table(
-        data=commands_data,
-        title="Registered Commands (FlextCliMain)"
+        data=commands_data, title="Registered Commands (FlextCliMain)"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -186,12 +188,11 @@ def _summary_demo(formatter: FlextCliFormatters) -> None:
         "FlextCliFormatters": "✅ Output abstraction",
         "FlextResult Pattern": "✅ Error handling",
         "FlextCliModels": "✅ Domain entities",
-        "FLEXT Foundation": "✅ Zero Click/Rich imports"
+        "FLEXT Foundation": "✅ Zero Click/Rich imports",
     }
 
     table_result = formatter.format_table(
-        data=summary_data,
-        title="CLI Integration Components"
+        data=summary_data, title="CLI Integration Components"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -221,7 +222,9 @@ def _create_connection_command(
         return FlextResult[FlextCliModels.CliCommand].ok(command)
 
     except Exception as e:
-        return FlextResult[FlextCliModels.CliCommand].fail(f"Failed to create connection command: {e}")
+        return FlextResult[FlextCliModels.CliCommand].fail(
+            f"Failed to create connection command: {e}"
+        )
 
 
 def _execute_connection_test(command: FlextCliModels.CliCommand) -> FlextResult[str]:
@@ -240,7 +243,9 @@ def _execute_connection_test(command: FlextCliModels.CliCommand) -> FlextResult[
         # Start command execution
         start_result = command.start_execution()
         if start_result.is_failure:
-            return FlextResult[str].fail(f"Execution start failed: {start_result.error}")
+            return FlextResult[str].fail(
+                f"Execution start failed: {start_result.error}"
+            )
 
         # Simulate execution result
         if "localhost" in command.command_line:
@@ -251,7 +256,9 @@ def _execute_connection_test(command: FlextCliModels.CliCommand) -> FlextResult[
         # Complete execution
         complete_result = command.complete_execution(exit_code=0, output=result_msg)
         if complete_result.is_failure:
-            return FlextResult[str].fail(f"Execution completion failed: {complete_result.error}")
+            return FlextResult[str].fail(
+                f"Execution completion failed: {complete_result.error}"
+            )
 
         return FlextResult[str].ok(result_msg)
 
@@ -313,7 +320,9 @@ def main() -> None:
 
         registration_result = _command_registration_demo(formatter)
         if registration_result.is_failure:
-            formatter.print_error(f"Registration demo failed: {registration_result.error}")
+            formatter.print_error(
+                f"Registration demo failed: {registration_result.error}"
+            )
             return
 
         _summary_demo(formatter)

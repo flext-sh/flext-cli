@@ -22,12 +22,12 @@ api.process_command("example")
 
 ### Integration Status
 
-| FLEXT Library | Status | Integration Level |
-|--------------|--------|------------------|
-| **flext-core** | 🟢 Complete | Foundation patterns, FlextResult, FlextContainer |
-| **flext-auth** | 🟡 Partial | Authentication commands, service integration |
-| **flext-grpc** | 🔄 Planned | gRPC client integration for distributed CLI |
-| **flext-observability** | 🔄 Planned | CLI monitoring and metrics collection |
+| FLEXT Library           | Status      | Integration Level                                |
+| ----------------------- | ----------- | ------------------------------------------------ |
+| **flext-core**          | 🟢 Complete | Foundation patterns, FlextResult, FlextContainer |
+| **flext-auth**          | 🟡 Partial  | Authentication commands, service integration     |
+| **flext-grpc**          | 🔄 Planned  | gRPC client integration for distributed CLI      |
+| **flext-observability** | 🔄 Planned  | CLI monitoring and metrics collection            |
 
 ---
 
