@@ -16,7 +16,7 @@ from flext_core import FlextResult, FlextTypes
 from rich.console import Console
 from rich.table import Table as RichTable
 
-from flext_cli import FlextCliApi, FlextCliConfig, FlextCliContext
+from flext_cli import FlextCliApi, FlextCliConfig, FlextCliContext, FlextCliModels
 
 
 class TestFlextCliContext:
@@ -42,8 +42,6 @@ class TestFlextCliContext:
         assert state.session_count == 0
 
         # Add some sessions
-        from flext_cli.models import FlextCliModels
-
         state.sessions = {
             "session1": FlextCliModels.CliSession(user_id="user1"),
             "session2": FlextCliModels.CliSession(user_id="user2"),

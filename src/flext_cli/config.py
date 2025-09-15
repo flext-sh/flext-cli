@@ -266,8 +266,14 @@ class FlextCliConfig(FlextConfig):
         super().__init__()
 
         # Set fields manually after parent initialization
+        # Exclude read-only properties that have no setter
+        readonly_properties = {"is_development_mode", "is_production_mode"}
         for key, value in data.items():
-            if hasattr(self, key) and value is not None:
+            if (
+                hasattr(self, key)
+                and value is not None
+                and key not in readonly_properties
+            ):
                 setattr(self, key, value)
 
         # After parent init, check if command_timeout was properly set
@@ -301,14 +307,19 @@ class FlextCliConfig(FlextConfig):
                 # Use __dict__ to avoid validation recursion
                 self.__dict__[key] = value
 
-    def model_dump(self, **_kwargs: object) -> dict[str, object]:
+    def model_dump(
+        self, *, mode: str = "python", **kwargs: object
+    ) -> dict[str, object]:
         """Dump model with all fields for compatibility."""
-        # Get all attributes that are not private or methods
-        return {
-            key: getattr(self, key)
-            for key in dir(self)
-            if not key.startswith("_") and not callable(getattr(self, key, None))
-        }
+        # Use proper Pydantic v2 approach with proper type annotations
+        result = super().model_dump(mode=mode, **kwargs)
+
+        # Add computed fields by accessing the class, not instance
+        for field_name in self.__class__.model_computed_fields:
+            if hasattr(self, field_name):
+                result[field_name] = getattr(self, field_name)
+
+        return result
 
     @property
     def is_development_mode(self) -> bool:
@@ -596,11 +607,11 @@ class FlextCliConfig(FlextConfig):
             # Create new config with overrides
             if config_updates:
                 # Create new config with current values and updates
+                # Only copy actual model fields, not computed properties
                 current_data = {
                     key: getattr(current_config, key)
-                    for key in dir(current_config)
-                    if not key.startswith("_")
-                    and not callable(getattr(current_config, key, None))
+                    for key in cls.model_fields
+                    if hasattr(current_config, key)
                 }
                 new_config = cls(**{**current_data, **config_updates})
                 cls.set_global_instance(new_config)
@@ -620,13 +631,16 @@ class FlextCliConfig(FlextConfig):
             base_config = FlextConfig.get_global_instance()
 
             # Create CLI config from base
-            # Create CLI config from base config data
-            base_data = {
-                key: getattr(base_config, key)
-                for key in dir(base_config)
-                if not key.startswith("_")
-                and not callable(getattr(base_config, key, None))
-            }
+            # Only copy actual model fields, not class attributes
+            base_data = {}
+            if hasattr(base_config, "model_dump"):
+                # Use model_dump to get only the actual field data
+                base_data = cast("BaseModel", base_config).model_dump()
+            # Fallback: only copy known model fields
+            elif hasattr(base_config.__class__, "model_fields"):
+                for field_name in base_config.__class__.model_fields:
+                    if hasattr(base_config, field_name):
+                        base_data[field_name] = getattr(base_config, field_name)
             cli_config = cls(**base_data)
 
             # Set as global

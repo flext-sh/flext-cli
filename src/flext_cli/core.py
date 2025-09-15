@@ -104,9 +104,9 @@ class FlextCliService(FlextDomainService[str]):
     def _initialize_services(self) -> None:
         """Initialize services using flext-core directly."""
         # Use flext-core services directly - NO duplication
-        self._service_registry = FlextProcessing.create_handler_registry()
+        self._service_registry = FlextProcessing()
         self._service_orchestrator = FlextProcessing.create_pipeline()
-        self._handler_registry = FlextProcessing.create_handler_registry()
+        self._handler_registry = FlextProcessing()
 
         # Initialize _formatters using FlextCliFormatters for full integration
         self._formatters = FlextCliFormatters()

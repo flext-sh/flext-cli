@@ -29,18 +29,21 @@ import time
 from datetime import UTC, datetime
 from enum import Enum
 
-from example_utils import print_demo_completion
-from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
-from rich.console import Console
-from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
-from rich.table import Table
 
+# Simple replacement for missing example_utils
+def print_demo_completion(title: str) -> None:
+    """Print demo completion message."""
+    print(f"✅ {title} completed successfully!")
 from flext_cli import (
     FlextApiClient,
     FlextCliService,
     get_cli_config,
 )
+from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
+from rich.console import Console
+from rich.panel import Panel
+from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
+from rich.table import Table
 
 
 class ServiceStatus(Enum):
@@ -67,24 +70,20 @@ class AdvancedCliService(FlextCliService):
         """Initialize advanced CLI service with comprehensive components."""
         super().__init__()
 
-        # Use object.__setattr__ to set attributes on frozen model
-        object.__setattr__(self, "_service_health", {})
-        object.__setattr__(self, "_circuit_breakers", {})
-        object.__setattr__(self, "_performance_metrics", {})
+        # Initialize private attributes
+        self._service_health: dict[str, object] = {}
+        self._circuit_breakers: dict[str, dict[str, object]] = {}
+        self._performance_metrics: dict[str, object] = {}
+
+        # Initialize logger
+        self.logger = FlextLogger(__name__)
 
         # Initialize circuit_breakers as public attribute
-        circuit_breakers_dict = {}
-        object.__setattr__(self, "circuit_breakers", circuit_breakers_dict)
+        self.circuit_breakers: dict[str, dict[str, object]] = {}
 
-    def execute(self) -> FlextResult[object]:
+    def execute(self) -> FlextResult[str]:
         """Execute advanced CLI service operations."""
-        return FlextResult[object].ok(
-            {
-                "service": "AdvancedCliService",
-                "status": "operational",
-                "features": ["health_check", "circuit_breaker", "async_operations"],
-            }
-        )
+        return FlextResult[str].ok("AdvancedCliService operational")
 
     # Removed problematic decorators - @cli_enhanced, @cli_measure_time, @cli_retry
     # These decorators cause type inference issues with PyRight
@@ -208,11 +207,13 @@ class AdvancedCliService(FlextCliService):
             current_time = datetime.now(UTC)
 
             # Check if circuit should be half-open
+            last_failure = breaker.get("last_failure")
             if (
                 breaker["state"] == CircuitBreakerState.OPEN
-                and breaker["last_failure"]
-                and (current_time - breaker["last_failure"]).seconds
-                > breaker["timeout_duration"]
+                and last_failure
+                and isinstance(last_failure, datetime)
+                and (current_time - last_failure).seconds
+                > int(str(breaker.get("timeout_duration", 60)))
             ):
                 breaker["state"] = CircuitBreakerState.HALF_OPEN
                 if (
@@ -240,10 +241,16 @@ class AdvancedCliService(FlextCliService):
                 success_state = True
                 return FlextResult[bool].ok(success_state)
             # Handle failure
-            breaker["failure_count"] += 1
+            current_failure_count = breaker.get("failure_count", 0)
+            if isinstance(current_failure_count, int):
+                breaker["failure_count"] = current_failure_count + 1
+            else:
+                breaker["failure_count"] = 1
             breaker["last_failure"] = current_time
 
-            if breaker["failure_count"] >= breaker["failure_threshold"]:
+            failure_count = int(str(breaker.get("failure_count", 0)))
+            failure_threshold = int(str(breaker.get("failure_threshold", 5)))
+            if isinstance(failure_count, int) and isinstance(failure_threshold, int) and failure_count >= failure_threshold:
                 breaker["state"] = CircuitBreakerState.OPEN
                 if (
                     hasattr(self, "logger")
@@ -380,26 +387,37 @@ async def demonstrate_async_service_operations() -> None:
     for service_name, result in results:
         if result.is_success:
             data = result.value
-            status = data["status"]
-            response_time = f"{data.get('response_time_ms', 0)}ms"
-            details = f"CPU: {data.get('details', {}).get('cpu_usage', 'N/A')}"
+            if isinstance(data, dict):
+                status = data.get("status", "unknown")
+                response_time = f"{data.get('response_time_ms', 0)}ms"
+                details_dict = data.get("details", {})
+                if isinstance(details_dict, dict):
+                    details = f"CPU: {details_dict.get('cpu_usage', 'N/A')}"
+                else:
+                    details = "CPU: N/A"
+            else:
+                status = "unknown"
+                response_time = "0ms"
+                details = "CPU: N/A"
 
             # Color code status
+            status_str = str(status) if status is not None else "unknown"
             status_display = {
                 "healthy": "[green]Healthy[/green]",
                 "degraded": "[yellow]Degraded[/yellow]",
                 "unhealthy": "[red]Unhealthy[/red]",
-            }.get(status, status)
+            }.get(status_str, status_str)
 
         else:
             status_display = "[red]Error[/red]"
             response_time = "N/A"
             # Define constant for max error display length
             max_error_length = 50
+            error_msg = result.error or "Unknown error"
             details = (
-                result.error[:max_error_length] + "..."
-                if len(result.error) > max_error_length
-                else result.error
+                error_msg[:max_error_length] + "..."
+                if len(error_msg) > max_error_length
+                else error_msg
             )
 
         health_table.add_row(service_name, status_display, response_time, details)
@@ -433,7 +451,7 @@ def demonstrate_circuit_breaker_pattern() -> FlextResult[None]:
         status_color = "green" if result.is_success else "red"
         console.print(
             f"   Attempt {attempt + 1}: [{status_color}]{result.is_success}[/{status_color}] "
-            f"(State: {breaker_state.value if hasattr(breaker_state, 'value') else breaker_state}, "
+            f"(State: {breaker_state.value if hasattr(breaker_state, 'value') else str(breaker_state)}, "
             f"Failures: {failure_count})"
         )
 
@@ -455,13 +473,15 @@ def demonstrate_circuit_breaker_pattern() -> FlextResult[None]:
         breaker_table.add_column("Property", style="cyan")
         breaker_table.add_column("Value", style="green")
 
-        breaker_table.add_row("State", str(breaker_info["state"].value))
-        breaker_table.add_row("Failure Count", str(breaker_info["failure_count"]))
+        state = breaker_info.get("state")
+        state_value = state.value if state and hasattr(state, "value") else str(state) if state else "unknown"
+        breaker_table.add_row("State", str(state_value))
+        breaker_table.add_row("Failure Count", str(breaker_info.get("failure_count", 0)))
         breaker_table.add_row(
-            "Failure Threshold", str(breaker_info["failure_threshold"])
+            "Failure Threshold", str(breaker_info.get("failure_threshold", 5))
         )
         breaker_table.add_row(
-            "Timeout Duration", f"{breaker_info['timeout_duration']}s"
+            "Timeout Duration", f"{breaker_info.get('timeout_duration', 60)}s"
         )
 
         console.print(breaker_table)
@@ -490,13 +510,17 @@ def demonstrate_service_orchestration() -> FlextResult[None]:
         orchestration_table.add_column("Status", style="yellow")
         orchestration_table.add_column("Execution Time", style="blue")
 
-        for service_name, step_result in result_data["results"].items():
-            orchestration_table.add_row(
-                service_name,
-                step_result["operation"],
-                step_result["status"],
-                f"{step_result['execution_time_ms']}ms",
-            )
+        if isinstance(result_data, dict) and "results" in result_data:
+            results_dict = result_data["results"]
+            if isinstance(results_dict, dict):
+                for service_name, step_result in results_dict.items():
+                    if isinstance(step_result, dict):
+                        orchestration_table.add_row(
+                            service_name,
+                            step_result.get("operation", "unknown"),
+                            step_result.get("status", "unknown"),
+                            f"{step_result.get('execution_time_ms', 0)}ms",
+                        )
 
         console.print(orchestration_table)
 
@@ -517,7 +541,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     console.print("\n[green]Dependency Injection with CLI Container[/green]")
 
     # Create and configure CLI container
-    container = FlextContainer.get_global()
+    container: FlextContainer | None = FlextContainer.get_global()
     # Container has register/get methods available
     if container:
         console.print("[green]✓[/green] Container is ready to use")
@@ -526,7 +550,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
         # Create mock container for demonstration
         class MockContainer:
             def __init__(self) -> None:
-                self._services = {}
+                self._services: dict[str, object] = {}
 
             def register(self, name: str, service: object) -> None:
                 self._services[name] = service
@@ -548,26 +572,35 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
 
     console.print("📦 Registering services in container:")
     for service_name, service_instance in services_to_register:
-        container.register(service_name, service_instance)
+        if container:
+            container.register(service_name, service_instance)
         console.print(f"   ✅ {service_name}: {type(service_instance).__name__}")
 
     # Demonstrate service retrieval
     console.print("\n🔍 Retrieving services from container:")
     for service_name, _ in services_to_register:
-        retrieval_result = container.get(service_name)
-        if retrieval_result.is_success:
-            retrieved_service = retrieval_result.value
-            console.print(f"   ✅ {service_name}: {type(retrieved_service).__name__}")
+        if container:
+            retrieval_result = container.get(service_name)
+            if retrieval_result.is_success:
+                retrieved_service = retrieval_result.value
+                console.print(f"   ✅ {service_name}: {type(retrieved_service).__name__}")
+            else:
+                console.print(f"   ❌ {service_name}: {retrieval_result.error}")
         else:
-            console.print(f"   ❌ {service_name}: {retrieval_result.error}")
+            console.print(f"   ❌ {service_name}: Container not available")
 
     # Demonstrate service composition
     console.print("\n🏗️ Service composition example:")
 
     # Create a composite service using retrieved dependencies
-    logger_result = container.get("logger")
-    config_result = container.get("config")
-    api_client_result = container.get("api_client")
+    if container:
+        logger_result = container.get("logger")
+        config_result = container.get("config")
+        api_client_result = container.get("api_client")
+    else:
+        logger_result = FlextResult[object].fail("Container not available")
+        config_result = FlextResult[object].fail("Container not available")
+        api_client_result = FlextResult[object].fail("Container not available")
 
     if all(
         result.is_success
@@ -583,7 +616,10 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
         console.print(f"   🌐 API Client: {type(api_client).__name__}")
 
         # Demonstrate using composed services
-        logger.info("Dependency injection demonstration completed")
+        if hasattr(logger, "info"):
+            logger.info("Dependency injection demonstration completed")
+        else:
+            console.print("   📝 Logger demonstration completed")
         console.print("   ✅ Services working together successfully")
 
     return FlextResult[None].ok(None)
@@ -653,7 +689,7 @@ def main() -> None:
             "🔧 Advanced error handling and resilience patterns",
         ]
 
-        print_demo_completion(console, "Advanced Service Integration Demo", features)
+        print_demo_completion("Advanced Service Integration Demo")
 
     except Exception as e:
         console.print(

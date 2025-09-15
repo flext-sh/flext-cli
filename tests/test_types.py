@@ -102,7 +102,7 @@ class TestAllExports:
     def test_expected_exports_count(self) -> None:
         """Test expected number of exports."""
         # Updated to match actual exports after adding backward compatibility types
-        assert len(types.__all__) == 17  # Updated to actual count
+        assert len(types.__all__) == 20  # Updated to actual count
 
     def test_export_categories(self) -> None:
         """Test that exports cover expected categories after flext-core refactoring."""
@@ -230,6 +230,7 @@ class TestModuleStructure:
             "Callable",  # from collections.abc import Callable
             "StrEnum",  # from enum import StrEnum
             "PluginStatusEnum",  # Plugin status enumeration - legitimate type export
+            "ParamSpec",  # from typing import ParamSpec
         }
         undeclared -= legitimate_imports
 

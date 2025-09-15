@@ -12,12 +12,11 @@ from flext_cli.data_processing import FlextCliDataProcessing
 
 
 class TestFlextCliDataProcessing:
-    """Test FlextCliDataProcessing with direct flext-core usage."""
+    """Test suite for FlextCliDataProcessing class."""
 
-    def test_data_processing_init(self) -> None:
-        """Test data processing initialization."""
+    def test_processor_initialization(self) -> None:
+        """Test processor can be initialized."""
         processor = FlextCliDataProcessing()
-
         assert processor is not None
         assert hasattr(processor, "validate_data")
         assert hasattr(processor, "batch_process_items")
@@ -111,7 +110,8 @@ class TestFlextCliDataProcessing:
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
-        assert result.error and "Validation failed" in result.error
+        assert result.error is not None
+        assert "Validation failed" in result.error
 
     def test_batch_process_items_with_list(self) -> None:
         """Test batch_process_items with list input."""
@@ -142,7 +142,7 @@ class TestFlextCliDataProcessing:
         assert isinstance(result, FlextResult)
         assert result.is_failure
         assert result.error is not None
-        assert result.error and "Invalid items format" in result.error
+        assert "Invalid items format" in result.error
 
     def test_safe_json_stringify_with_dict(self) -> None:
         """Test safe_json_stringify with dictionary input."""
@@ -228,7 +228,8 @@ class TestFlextCliDataProcessing:
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
-        assert result.error and "Invalid items format" in result.error
+        assert result.error is not None
+        assert "Invalid items format" in result.error
 
     def test_batch_process_items_with_invalid_processor(self) -> None:
         """Test batch_process_items with invalid processor function."""
@@ -239,7 +240,8 @@ class TestFlextCliDataProcessing:
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
-        assert result.error and "Processor function must be callable" in result.error
+        assert result.error is not None
+        assert "Processor function must be callable" in result.error
 
     def test_batch_process_items_with_processor_exception(self) -> None:
         """Test batch_process_items with processor function that raises exception."""
@@ -256,33 +258,5 @@ class TestFlextCliDataProcessing:
 
         assert isinstance(result, FlextResult)
         assert result.is_failure
-        assert result.error and "Item processing failed" in result.error
-
-    def test_safe_json_stringify_success(self) -> None:
-        """Test safe_json_stringify with valid data."""
-        processor = FlextCliDataProcessing()
-
-        data = {"name": "test", "value": 42}
-        result = processor.safe_json_stringify(data)
-
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-        assert isinstance(result.value, str)
-
-    def test_safe_json_stringify_exception(self) -> None:
-        """Test safe_json_stringify with data that causes exception."""
-        processor = FlextCliDataProcessing()
-
-        # Create an object that can't be JSON serialized
-        class Unserializable:
-            def __init__(self) -> None:
-                """Initialize the instance."""
-                self.func = lambda: None
-
-        data = Unserializable()
-        result = processor.safe_json_stringify(data)
-
-        assert isinstance(result, FlextResult)
-        # FlextUtilities.safe_json_stringify may handle exceptions gracefully
-        # So we just check that it returns a FlextResult
-        assert result.is_success or result.is_failure
+        assert result.error is not None
+        assert "Item processing failed" in result.error

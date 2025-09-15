@@ -17,7 +17,8 @@ from io import StringIO
 from typing import ClassVar, Protocol, TextIO, runtime_checkable
 
 import yaml
-from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_core import FlextResult, FlextUtilities
+from rich.table import Table as RichTable
 
 # Rich functionality replaced with flext-core compatible output
 
@@ -227,7 +228,7 @@ class FlextCliFormatters:
         """
         self._registry[name] = formatter_class
 
-    def list_formats(self) -> FlextTypes.Core.StringList:
+    def list_formats(self) -> list[str]:
         """List all available formatter names.
 
         Returns:
@@ -442,6 +443,49 @@ class FlextCliFormatters:
             return FlextResult[None].ok(None)
         except (ImportError, AttributeError, ValueError) as e:
             return FlextResult[None].fail(f"Print warning failed: {e}")
+
+    def create_rich_table_object(
+        self,
+        data: object,
+        title: str | None = None,
+    ) -> FlextResult[object]:
+        """Create Rich Table object for advanced use cases - maintains abstraction layer."""
+        try:
+            # Use RichTable from top-level import (already available at module level)
+            rich_table = RichTable(title=title)
+
+            if isinstance(data, dict):
+                # Add columns for dict data
+                rich_table.add_column("Key", style="cyan")
+                rich_table.add_column("Value", style="white")
+
+                # Add rows
+                for key, value in data.items():
+                    rich_table.add_row(str(key), str(value))
+            elif isinstance(data, (list, tuple)):
+                # Handle list/tuple data
+                if data and isinstance(data[0], dict):
+                    # List of dicts - use keys as columns
+                    keys = list(data[0].keys()) if data else []
+                    for key in keys:
+                        rich_table.add_column(str(key))
+
+                    for item in data:
+                        row_values = [str(item.get(key, "")) for key in keys]
+                        rich_table.add_row(*row_values)
+                else:
+                    # Simple list - single column
+                    rich_table.add_column("Value")
+                    for item in data:
+                        rich_table.add_row(str(item))
+            else:
+                # Single value
+                rich_table.add_column("Value")
+                rich_table.add_row(str(data))
+
+            return FlextResult[object].ok(rich_table)
+        except Exception as e:
+            return FlextResult[object].fail(f"Rich table creation failed: {e}")
 
 
 __all__ = [

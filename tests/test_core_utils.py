@@ -45,7 +45,7 @@ class TestFlextCliService:
 class TestFlextCliConfig:
     """Test configuration functionality."""
 
-    def setup__method(self, __method: object) -> None:
+    def setup__method(self, __method: object, /) -> None:
         """Clean up global configuration before each test."""
         FlextCliConfig.clear_global_instance()
 

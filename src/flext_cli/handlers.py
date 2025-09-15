@@ -102,10 +102,10 @@ class FlextCliHandlers(FlextDomainService[None]):
                 config = FlextCliConfig(profile=command.profile)
 
                 # Check if key exists in model
-                if command.key not in cast("BaseModel", config).model_fields:
+                if command.key not in cast("BaseModel", config).__class__.model_fields:
                     return FlextResult[bool].fail(
                         f"Configuration key '{command.key}' is not valid. "
-                        f"Available keys: {list(cast('BaseModel', config).model_fields.keys())}"
+                        f"Available keys: {list(cast('BaseModel', config).__class__.model_fields.keys())}"
                     )
 
                 # Set the value using Pydantic model validation

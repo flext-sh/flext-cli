@@ -144,7 +144,9 @@ class TestFlextCliApiIntegration:
         # Execute handler directly from state
         handler = api.state.handlers.get("add")
         if handler and callable(handler):
-            exec_result = FlextResult[int].ok(handler(5, 3))
+            result = handler(5, 3)  # We know this returns int from test_handler
+            # Cast to int for type safety since handler returns int but dict lookup gives object
+            exec_result = FlextResult[int].ok(int(result) if isinstance(result, (int, str, float)) else 0)
         else:
             exec_result = FlextResult[int].fail("Handler not found")
         assert isinstance(exec_result, FlextResult)

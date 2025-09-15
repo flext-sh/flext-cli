@@ -7,10 +7,9 @@ import functools
 import time
 from collections.abc import Awaitable, Callable, Mapping
 from pathlib import Path
-from typing import ParamSpec, TypeVar, cast
+from typing import ParamSpec, TypeVar, overload
 
-from flext_core import FlextDecorators, FlextLogger, FlextResult, FlextTypes
-from rich.console import Console
+from flext_core import FlextDecorators, FlextLogger, FlextResult
 
 from flext_cli.constants import FlextCliConstants
 
@@ -26,8 +25,53 @@ class FlextCliDecorators(FlextDecorators):
     """
 
     @staticmethod
+    def cli_measure_time(func: Callable[P, T]) -> Callable[P, T]:
+        """Decorator to measure and log execution time of CLI commands.
+
+        Args:
+            func: Function to wrap with timing measurement
+
+        Returns:
+            Wrapped function that logs execution time
+
+        """
+
+        @functools.wraps(func)
+        def _wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            start_time = time.time()
+            logger = FlextLogger(__name__)
+
+            try:
+                result = func(*args, **kwargs)
+                execution_time = time.time() - start_time
+                logger.info(
+                    f"Command '{func.__name__}' executed in {execution_time:.3f}s"
+                )
+                return result
+            except Exception:
+                execution_time = time.time() - start_time
+                logger.exception(
+                    f"Command '{func.__name__}' failed after {execution_time:.3f}s"
+                )
+                raise
+
+        return _wrapper
+
+    @staticmethod
+    @overload
     def handle_service_result(
-        func: Callable[P, T] | Callable[P, Awaitable[T]],
+        func: Callable[P, FlextResult[T]],
+    ) -> Callable[P, T | None]: ...
+
+    @staticmethod
+    @overload
+    def handle_service_result(
+        func: Callable[P, Awaitable[FlextResult[T]]],
+    ) -> Callable[P, Awaitable[T | None]]: ...
+
+    @staticmethod
+    def handle_service_result(
+        func: Callable[P, FlextResult[T]] | Callable[P, Awaitable[FlextResult[T]]],
     ) -> Callable[P, T | None] | Callable[P, Awaitable[T | None]]:
         """Decorator for handling FlextResult values - extracts success data or returns None on failure."""
         if asyncio.iscoroutinefunction(func):
@@ -37,18 +81,21 @@ class FlextCliDecorators(FlextDecorators):
                 try:
                     result = await func(*args, **kwargs)
 
-                    # Process FlextResult
+                    # Process FlextResult - func should return FlextResult[T]
                     if isinstance(result, FlextResult):
                         if result.success:
                             # Type-safe extraction of value from FlextResult
-                            return cast("T", result.unwrap())
+                            unwrapped_value: T = result.unwrap()
+                            return unwrapped_value
                         # For failures, log error and return None
                         logger = FlextLogger(__name__)
                         logger.error(f"Async FlextResult error: {result.error}")
                         return None
 
-                    # Pass through non-FlextResult values with type safety
-                    return cast("T", result)
+                    # This shouldn't happen if func returns FlextResult[T]
+                    logger = FlextLogger(__name__)
+                    logger.warning(f"Expected FlextResult, got {type(result)}")
+                    return None
 
                 except Exception:
                     # Handle exceptions by logging error and re-raising
@@ -63,18 +110,21 @@ class FlextCliDecorators(FlextDecorators):
             try:
                 result = func(*args, **kwargs)
 
-                # Process FlextResult
+                # Process FlextResult - func should return FlextResult[T]
                 if isinstance(result, FlextResult):
                     if result.success:
                         # Type-safe extraction of value from FlextResult
-                        return cast("T", result.unwrap())
+                        unwrapped_value: T = result.unwrap()
+                        return unwrapped_value
                     # For failures, log error and return None
                     logger = FlextLogger(__name__)
                     logger.error(f"FlextResult error: {result.error}")
                     return None
 
-                # Pass through non-FlextResult values with type safety
-                return cast("T", result)
+                # This shouldn't happen if func returns FlextResult[T]
+                logger = FlextLogger(__name__)
+                logger.warning(f"Expected FlextResult, got {type(result)}")
+                return None
 
             except Exception:
                 # Handle exceptions by logging error and re-raising
@@ -100,7 +150,8 @@ class FlextCliDecorators(FlextDecorators):
                     raise RuntimeError(error_msg)
                 except RuntimeError:
                     # No event loop running, safe to use asyncio.run
-                    return cast("T", asyncio.run(func(*args, **kwargs)))
+                    result: T = asyncio.run(func(*args, **kwargs))
+                    return result
 
             return _wrapper
         return func
@@ -115,8 +166,7 @@ class FlextCliDecorators(FlextDecorators):
             @functools.wraps(func)
             def _wrapped(*args: P.args, **kwargs: P.kwargs) -> T | None:
                 try:
-                    console = Console()
-                    answer = console.input(f"{message} (y/N): ").strip().lower()
+                    answer = input(f"{message} (y/N): ").strip().lower()
                     if answer in {"y", "yes"}:
                         return func(*args, **kwargs)
                     return None
@@ -174,8 +224,8 @@ class FlextCliDecorators(FlextDecorators):
                 finally:
                     elapsed = time.time() - start
                     if show_in_output:
-                        console = Console()
-                        console.print(f"⏱  Execution time: {elapsed:.2f}s", style="dim")
+                        logger = FlextLogger(__name__)
+                        logger.info(f"⏱  Execution time: {elapsed:.2f}s")
 
             return _wrapped
 
@@ -183,7 +233,7 @@ class FlextCliDecorators(FlextDecorators):
 
     @staticmethod
     def validate_config(
-        required_keys: FlextTypes.Core.StringList,
+        required_keys: list[str],
     ) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
         """Create configuration validation decorator."""
 
@@ -241,7 +291,7 @@ class FlextCliDecorators(FlextDecorators):
 
     @staticmethod
     def flext_cli_auto_validate(
-        _validators: FlextTypes.Core.StringList,
+        _validators: list[str],
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
         """Create automatic validation decorator."""
 
@@ -262,7 +312,7 @@ class FlextCliDecorators(FlextDecorators):
         return _decorator
 
     @staticmethod
-    def retry(max_attempts: int = 3) -> Callable[[T], T]:  # Match superclass signature
+    def retry(max_attempts: int = 3) -> Callable[[T], T]:
         """Create retry decorator with exponential backoff."""
 
         def decorator(func: T) -> T:
@@ -270,12 +320,12 @@ class FlextCliDecorators(FlextDecorators):
                 return func
 
             @functools.wraps(func)
-            def _wrapped(*args: object, **kwargs: object) -> T:
+            def _wrapped(*args: object, **kwargs: object) -> object:
                 last_exception: Exception | None = None
 
                 for attempt in range(max_attempts):
                     try:
-                        return cast("T", func(*args, **kwargs))
+                        return func(*args, **kwargs)
                     except Exception as e:
                         last_exception = e
                         if attempt < max_attempts - 1:  # Don't sleep on last attempt
@@ -289,7 +339,7 @@ class FlextCliDecorators(FlextDecorators):
                 error_msg = "Retry failed without exception"
                 raise RuntimeError(error_msg)
 
-            return cast("T", _wrapped)
+            return _wrapped
 
         return decorator
 

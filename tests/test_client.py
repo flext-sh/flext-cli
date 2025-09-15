@@ -350,7 +350,7 @@ class TestClientModels(unittest.TestCase):
         result = pipeline.validate_business_rules()
         assert result.is_failure
         assert result.error is not None
-        assert result.error and "Pipeline name cannot be empty" in result.error
+        assert "Pipeline name cannot be empty" in result.error
 
     def test_pipeline_validation_whitespace_name(self) -> None:
         """Test Pipeline validation with whitespace-only name."""
@@ -368,7 +368,7 @@ class TestClientModels(unittest.TestCase):
         result = pipeline.validate_business_rules()
         assert result.is_failure
         assert result.error is not None
-        assert result.error and "Pipeline name cannot be empty" in result.error
+        assert "Pipeline name cannot be empty" in result.error
 
     def test_pipeline_validation_invalid_status(self) -> None:
         """Test Pipeline validation with invalid status."""
@@ -386,7 +386,7 @@ class TestClientModels(unittest.TestCase):
         result = pipeline.validate_business_rules()
         assert result.is_failure
         assert result.error is not None
-        assert result.error and "Invalid pipeline status" in result.error
+        assert "Invalid pipeline status" in result.error
 
 
 class TestComputeDefaultBaseUrl(unittest.TestCase):
@@ -503,7 +503,7 @@ class AsyncTestCase(unittest.TestCase):
 class TestFlextApiClientInitialization(AsyncTestCase):
     """Real functionality tests for FlextApiClient initialization."""
 
-    def setup__method(self, __method: object) -> None:
+    def setup__method(self, __method: object, /) -> None:
         """Clean up global configuration before each test."""
         FlextCliConfig.clear_global_instance()
 
@@ -829,7 +829,7 @@ class TestFlextApiClientContextManager(AsyncTestCase):
         result = pipeline.validate_business_rules()
         assert result.is_failure
         assert result.error is not None
-        assert result.error and "Pipeline name cannot be empty" in result.error
+        assert "Pipeline name cannot be empty" in result.error
 
     def test_pipeline_validation_invalid_status(self) -> None:
         """Test pipeline validation with invalid status."""
@@ -845,7 +845,7 @@ class TestFlextApiClientContextManager(AsyncTestCase):
         result = pipeline.validate_business_rules()
         assert result.is_failure
         assert result.error is not None
-        assert result.error and "Invalid pipeline status" in result.error
+        assert "Invalid pipeline status" in result.error
 
     def test_pipeline_config_creation(self) -> None:
         """Test pipeline config creation."""

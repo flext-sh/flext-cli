@@ -72,7 +72,7 @@ from typing import Optional
 value: Optional[str] = None
 
 # 3. Use type ignore with specific codes
-result = some_operation()  # type: ignore[assignment]
+result = some_operation()
 ```
 
 ### Testing Issues

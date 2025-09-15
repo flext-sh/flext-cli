@@ -32,13 +32,10 @@ import tempfile
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from flext_core import FlextResult
-
 from flext_cli import (
     FlextCliFormatters,
-    FlextCliConfig,
-    FlextCliModels,
 )
+from flext_core import FlextResult
 
 
 def _demonstrate_data_transformation(formatter: FlextCliFormatters) -> FlextResult[None]:

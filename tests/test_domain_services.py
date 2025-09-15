@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import UTC, datetime
+from typing import Any
 
 import pytest
 from flext_core import FlextResult
@@ -493,14 +495,15 @@ class TestExceptionHandling:
     def test_graceful_exception_handling(self) -> None:
         """Test that all methods handle exceptions gracefully."""
         # All domain service methods should return FlextResult and handle exceptions
-        methods_to_test = [
+        # Fixed: Use Any to handle different FlextResult return types
+        methods_to_test: list[Callable[[], FlextResult[Any]]] = [
             lambda: self.domain_services.health_check(),
             lambda: self.domain_services.execute(),
         ]
 
         for method in methods_to_test:
             try:
-                result = method()  # type: ignore[no-untyped-call]
+                result = method()
                 assert isinstance(result, FlextResult)
                 # Should either succeed or fail gracefully
                 assert result.is_success or result.is_failure
@@ -511,13 +514,14 @@ class TestExceptionHandling:
     def test_error_message_quality(self) -> None:
         """Test that error messages are descriptive and helpful."""
         # Test various error scenarios
-        error_scenarios = [
+        # Fixed: Use Any to handle different FlextResult return types
+        error_scenarios: list[Callable[[], FlextResult[Any]]] = [
             lambda: self.domain_services.create_command(""),
             lambda: self.domain_services.create_command("   "),
         ]
 
         for scenario in error_scenarios:
-            result = scenario()  # type: ignore[no-untyped-call]
+            result = scenario()
             if result.is_failure:
                 assert result.error is not None
                 assert len(result.error) > 10  # Should be descriptive

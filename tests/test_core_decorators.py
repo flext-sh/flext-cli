@@ -94,7 +94,7 @@ class TestConfirmAction:
 
     def test_confirm_action_confirmed(self) -> None:
         """Test confirm action when user confirms."""
-        with patch("rich.console.Console.input") as mock_input:
+        with patch("builtins.input") as mock_input:
             mock_input.return_value = "y"
 
             # Test the decorator function directly without nested decorator usage
@@ -111,7 +111,7 @@ class TestConfirmAction:
 
     def test_confirm_action_cancelled(self) -> None:
         """Test confirm action when user cancels."""
-        with patch("rich.console.Console.input") as mock_input:
+        with patch("builtins.input") as mock_input:
             mock_input.return_value = "n"
 
             def dangerous_action() -> str:
@@ -124,7 +124,7 @@ class TestConfirmAction:
 
     def test_confirm_action_with_custom_message(self) -> None:
         """Test confirm action with custom message."""
-        with patch("rich.console.Console.input") as mock_input:
+        with patch("builtins.input") as mock_input:
             mock_input.return_value = "yes"
 
             def delete_files() -> str:
@@ -139,7 +139,7 @@ class TestConfirmAction:
 
     def test_confirm_action_with_arguments(self) -> None:
         """Test confirm action with function arguments."""
-        with patch("rich.console.Console.input") as mock_input:
+        with patch("builtins.input") as mock_input:
             mock_input.return_value = "y"
 
             def action_with_args(name: str, count: int) -> str:
@@ -215,19 +215,22 @@ class TestMeasureTime:
         """Test measure_time decorator with output enabled."""
         with (
             patch("flext_cli.decorators.time.time") as mock_time,
-            patch("rich.console.Console.print") as mock_print,
+            patch("flext_cli.decorators.FlextLogger") as mock_logger_class,
         ):
-            mock_time.side_effect = [1000.0, 1002.5]  # Start and end time
+            # Start time, End time to get 2.50s elapsed (1002.5 - 1000.0 = 2.5)
+            mock_time.side_effect = [1000.0, 1002.5]  # Start time, End time
 
             @measure_time(show_in_output=True)
             def timed_function() -> str:
                 return "completed"
 
+            mock_logger = mock_logger_class.return_value
             result = timed_function()
             if result != "completed":
                 msg: str = f"Expected {'completed'}, got {result}"
                 raise AssertionError(msg)
-            mock_print.assert_called_once_with("⏱  Execution time: 2.50s", style="dim")
+            # Verify that the logger info method was called with timing information
+            mock_logger.info.assert_called_once_with("⏱  Execution time: 2.50s")
 
     def test_measure_time_without_output(self) -> None:
         """Test measure_time decorator with output disabled."""
@@ -355,7 +358,7 @@ class TestValidateConfig:
             timeout = 30
 
         @validate_config(["api_url", "timeout"])
-        def function_requiring_config(__config: MockConfig) -> str:
+        def function_requiring_config(__config: MockConfig, /) -> str:
             return "config validated"
 
         result = function_requiring_config(MockConfig())
@@ -372,7 +375,7 @@ class TestValidateConfig:
                 # missing timeout
 
             @validate_config(["api_url", "timeout"])
-            def function_requiring_config(__config: MockConfig) -> str:
+            def function_requiring_config(__config: MockConfig, /) -> str:
                 return "config validated"
 
             result = function_requiring_config(MockConfig())

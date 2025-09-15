@@ -486,10 +486,6 @@ class FlextCliAuth(FlextDomainService[str]):
                     return FlextResult[FlextTypes.Core.Dict].fail(
                         f"Login validation from SOURCE OF TRUTH failed: {e}",
                     )
-                case OSError():
-                    return FlextResult[FlextTypes.Core.Dict].fail(
-                        f"Network error to SOURCE OF TRUTH: {e}",
-                    )
                 case _:
                     return FlextResult[FlextTypes.Core.Dict].fail(
                         f"Login to SOURCE OF TRUTH failed: {e}",
@@ -641,9 +637,6 @@ class FlextCliAuth(FlextDomainService[str]):
     def _validate_user_data(self, user_data: dict[str, object]) -> FlextResult[bool]:
         """Validate user data using flext-core validation."""
         try:
-            if not isinstance(user_data, dict):
-                return FlextResult[bool].fail("User data must be a dictionary")
-
             # Basic validation
             if "name" not in user_data or "email" not in user_data:
                 return FlextResult[bool].fail("Missing required fields: name, email")
@@ -724,9 +717,6 @@ class FlextCliAuth(FlextDomainService[str]):
     ) -> FlextResult[bool]:
         """Validate authentication configuration."""
         try:
-            if not isinstance(config_data, dict):
-                return FlextResult[bool].fail("Config data must be a dictionary")
-
             # Basic validation
             if "api_key" not in config_data or "base_url" not in config_data:
                 return FlextResult[bool].fail(
