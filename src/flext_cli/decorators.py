@@ -7,7 +7,7 @@ import functools
 import time
 from collections.abc import Awaitable, Callable, Mapping
 from pathlib import Path
-from typing import ParamSpec, TypeVar, cast, overload
+from typing import ParamSpec, TypeVar, cast
 
 from flext_core import FlextDecorators, FlextLogger, FlextResult, FlextTypes
 from rich.console import Console
@@ -24,18 +24,6 @@ class FlextCliDecorators(FlextDecorators):
 
     All decorators are exposed as class methods to avoid module-level helpers.
     """
-
-    @staticmethod
-    @overload
-    def handle_service_result(
-        func: Callable[P, T],
-    ) -> Callable[P, T | None]: ...
-
-    @staticmethod
-    @overload
-    def handle_service_result(
-        func: Callable[P, Awaitable[T]],
-    ) -> Callable[P, Awaitable[T | None]]: ...
 
     @staticmethod
     def handle_service_result(
