@@ -101,6 +101,30 @@ class FlextCliService(FlextDomainService[str]):
         """Get formatters instance."""
         return self._formatters
 
+    # ABI compatibility properties for tests
+    @property
+    def registry(self) -> object:
+        """Get service registry for ABI compatibility."""
+        if not hasattr(self, "_service_registry"):
+            self._initialize_services()
+        return self._service_registry
+
+    @property
+    def orchestrator(self) -> object:
+        """Get service orchestrator for ABI compatibility."""
+        if not hasattr(self, "_service_orchestrator"):
+            self._initialize_services()
+        return self._service_orchestrator
+
+    @property
+    def metrics(self) -> dict[str, object]:
+        """Get service metrics for ABI compatibility."""
+        # Return health metrics as service metrics
+        health_result = self.get_service_health()
+        if health_result.is_success:
+            return health_result.value
+        return {"status": "unhealthy", "error": health_result.error}
+
     def _initialize_services(self) -> None:
         """Initialize services using flext-core directly."""
         # Use flext-core services directly - NO duplication
@@ -428,6 +452,40 @@ class FlextCliService(FlextDomainService[str]):
             ValueError,
         ) as e:
             return FlextResult[str].fail(f"CLI execution failed: {e}")
+
+    # ========== Consolidated FlextCliServices functionality ==========
+    # Methods from services.py - using flext-core directly with ZERO duplication
+
+    @staticmethod
+    def create_command_processor() -> FlextResult[str]:
+        """Create command processor using flext-core processing directly."""
+        try:
+            # Use flext-core processing directly - FlextProcessing exists
+            FlextProcessing()
+            return FlextResult[str].ok("Command processor created successfully")
+        except Exception as e:
+            return FlextResult[str].fail(f"Command processor creation failed: {e}")
+
+    @staticmethod
+    def create_session_processor() -> FlextResult[str]:
+        """Create session processor using flext-core processing directly."""
+        try:
+            # Use flext-core processing directly - create_pipeline() returns Pipeline directly
+            FlextProcessing.create_pipeline()
+            # Pipeline created successfully
+            return FlextResult[str].ok("Session processor created successfully")
+        except Exception as e:
+            return FlextResult[str].fail(f"Session processor creation failed: {e}")
+
+    @staticmethod
+    def create_config_processor() -> FlextResult[str]:
+        """Create config processor using flext-core processing directly."""
+        try:
+            # Use flext-core processing directly
+            FlextProcessing()
+            return FlextResult[str].ok("Config processor created successfully")
+        except Exception as e:
+            return FlextResult[str].fail(f"Config processor creation failed: {e}")
 
 
 __all__ = ["FlextCliService"]

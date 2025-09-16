@@ -215,34 +215,13 @@ class FlextCliError(Exception):
         return self.context.get(key, default)
 
 
-# Backward compatibility aliases for existing code
-FlextCliException = FlextCliError  # Backward compatibility
-FlextCliValidationError = FlextCliError
-FlextCliConfigurationError = FlextCliError
-FlextCliConnectionError = FlextCliError
-FlextCliProcessingError = FlextCliError
-FlextCliAuthenticationError = FlextCliError
-FlextCliTimeoutError = FlextCliError
-FlextCliCommandError = FlextCliError
-FlextCliArgumentError = FlextCliError
-FlextCliFormatError = FlextCliError
-FlextCliOutputError = FlextCliError
-FlextCliContextError = FlextCliError
+# ZERO TOLERANCE: All legacy exception aliases removed
+# Use FlextCliError with appropriate error codes instead
+
+
+# ZERO TOLERANCE: No compatibility aliases allowed
 
 
 __all__ = [
-    "FlextCliArgumentError",
-    "FlextCliAuthenticationError",
-    "FlextCliCommandError",
-    "FlextCliConfigurationError",
-    "FlextCliConnectionError",
-    "FlextCliContextError",
-    # Backward compatibility exports
     "FlextCliError",
-    "FlextCliException",
-    "FlextCliFormatError",
-    "FlextCliOutputError",
-    "FlextCliProcessingError",
-    "FlextCliTimeoutError",
-    "FlextCliValidationError",
 ]

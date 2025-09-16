@@ -57,7 +57,7 @@ class TestFlextCliAuthRealValidation:
 
         # Test valid credentials
         valid_credentials = auth.LoginCredentials(
-            username="testuser", password="testpass123"
+            username="testuser", password="testpass123",
         )
 
         result = auth.validate_credentials(valid_credentials)
@@ -212,10 +212,10 @@ class TestFlextCliAuthRealValidation:
 
         # Test UserData
         user_data = auth.UserData(
-            name="Test User", email="test@example.com", id="user123"
+            name="Test User", email="test@example.com", id="user123",
         )
-        assert user_data["name"] == "Test User"
-        assert user_data["email"] == "test@example.com"
+        assert user_data.get("name") == "Test User"
+        assert user_data.get("email") == "test@example.com"
 
         # Test AuthStatus
         auth_status = auth.AuthStatus(
@@ -236,7 +236,7 @@ class TestFlextCliAuthRealValidation:
 
         # Test AuthConfig
         auth_config = auth.AuthConfig(
-            api_key="test_key", base_url="https://api.example.com", timeout=30
+            api_key="test_key", base_url="https://api.example.com", timeout=30,
         )
         assert auth_config["api_key"] == "test_key"
         assert auth_config["base_url"] == "https://api.example.com"

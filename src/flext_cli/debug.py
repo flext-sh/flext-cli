@@ -119,7 +119,8 @@ class FlextCliDebug(FlextDomainService[str]):
     def get_environment_variables(self) -> FlextResult[FlextCliDebug.EnvironmentInfo]:
         """Get FLEXT environment variables."""
         try:
-            flext_prefix = "FLX_"
+            # Use standardized environment prefix from constants
+            flext_prefix = self._constants.SYSTEM.env_prefix
             flext_vars = {
                 k: v for k, v in os.environ.items() if k.startswith(flext_prefix)
             }
@@ -130,7 +131,7 @@ class FlextCliDebug(FlextDomainService[str]):
 
             for key, value in flext_vars.items():
                 if any(pattern in key.upper() for pattern in sensitive_patterns):
-                    preview_len = self._constants.SENSITIVE_VALUE_PREVIEW_LENGTH
+                    preview_len = self._constants.SECURITY.sensitive_value_preview_length
                     masked_vars[key] = f"{value[:preview_len]}****"
                     masked_count += 1
                 else:
@@ -271,7 +272,7 @@ class FlextCliDebug(FlextDomainService[str]):
                 "status": "ready",
                 "timestamp": str(datetime.now(UTC).isoformat()),
                 "domain": "debug",
-                "version": "0.9.0",
+                "version": self._constants.SYSTEM.project_version,
             }
             return FlextResult[dict[str, object]].ok(system_info)
         except Exception as e:

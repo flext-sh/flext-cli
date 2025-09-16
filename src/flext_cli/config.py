@@ -307,20 +307,6 @@ class FlextCliConfig(FlextConfig):
                 # Use __dict__ to avoid validation recursion
                 self.__dict__[key] = value
 
-    def model_dump(
-        self, *, mode: str = "python", **kwargs: object
-    ) -> dict[str, object]:
-        """Dump model with all fields for compatibility."""
-        # Use proper Pydantic v2 approach with proper type annotations
-        result = super().model_dump(mode=mode, **kwargs)
-
-        # Add computed fields by accessing the class, not instance
-        for field_name in self.__class__.model_computed_fields:
-            if hasattr(self, field_name):
-                result[field_name] = getattr(self, field_name)
-
-        return result
-
     @property
     def is_development_mode(self) -> bool:
         """Check if in development mode."""

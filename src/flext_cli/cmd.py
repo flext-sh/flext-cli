@@ -78,7 +78,9 @@ class FlextCliCmd(FlextDomainService[str]):
             try:
                 validation_result = config.validate_business_rules()
                 if validation_result.is_failure:
-                    return FlextResult[None].fail(f"Config validation failed: {validation_result.error}")
+                    return FlextResult[None].fail(
+                        f"Config validation failed: {validation_result.error}"
+                    )
                 return FlextResult[None].ok(None)
             except Exception as e:
                 return FlextResult[None].fail(f"Config validation error: {e}")
@@ -103,8 +105,7 @@ class FlextCliCmd(FlextDomainService[str]):
         try:
             # Implementation through command bus service
             return self.command_bus_service.execute_set_config_command(
-                key=key,
-                value=value
+                key=key, value=value
             )
         except Exception as e:
             return FlextResult[bool].fail(f"Set config value failed: {e}")
@@ -158,18 +159,22 @@ def get_cmd_instance() -> FlextCliCommandBusService:
     cmd = FlextCliCmd()
     return cmd.get_cmd_instance()
 
+
 def _get_cmd_instance() -> FlextCliCommandBusService:
     """Internal function for getting command bus service instance."""
     return get_cmd_instance()
+
 
 # Compatibility aliases for legacy code
 def show_config(logger: FlextLogger) -> FlextResult[None]:
     """Show configuration using CLI command."""
     return FlextCliCmd()._ConfigDisplayHelper.show_config(logger)
 
+
 def edit_config() -> FlextResult[str]:
     """Edit configuration using CLI command."""
     return FlextCliCmd()._ConfigModificationHelper.edit_config()
+
 
 __all__ = [
     "FlextCliCmd",

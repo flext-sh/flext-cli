@@ -386,7 +386,7 @@ class TestValidateConfig:
             # Mock logger assertion - only executed if validation passed
             if validation_passed:
                 mock_logger.assert_called_once_with(
-                    "Missing required configuration: timeout"
+                    "Missing required configuration: timeout",
                 )
 
     def test_validate_config_no_context(self) -> None:
@@ -407,7 +407,7 @@ class TestValidateConfig:
             # Mock logger assertion - only executed if validation passed
             if validation_passed:
                 mock_logger.assert_called_once_with(
-                    "Configuration not available for validation."
+                    "Configuration not available for validation.",
                 )
 
 

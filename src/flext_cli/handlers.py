@@ -13,7 +13,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 from typing import cast
 
@@ -30,6 +29,7 @@ from flext_cli.commands import (
     ShowConfigCommand,
 )
 from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
 
 
 class FlextCliHandlers(FlextDomainService[None]):
@@ -135,6 +135,7 @@ class FlextCliHandlers(FlextDomainService[None]):
         def __init__(self) -> None:
             """Initialize EditConfigHandler."""
             super().__init__(handler_name="EditConfigHandler")
+            self._constants = FlextCliConstants()
 
         def handle(self, command: EditConfigCommand) -> FlextResult[bool]:
             """Handle edit config command with proper error handling."""
@@ -150,8 +151,8 @@ class FlextCliHandlers(FlextDomainService[None]):
                     with config_file.open("w") as f:
                         json.dump(config.model_dump(), f, indent=2)
 
-                # Determine editor
-                editor = command.editor or os.environ.get("EDITOR", "nano")
+                # Use constants for editor configuration (single source of truth)
+                editor = command.editor or self._constants.SYSTEM.editor_command
 
                 # This would open the editor - for now just simulate success
                 self.logger.info(f"Would open {config_file} with {editor}")

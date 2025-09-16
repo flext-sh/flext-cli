@@ -33,7 +33,7 @@ class TestFlextCliFileOperations:
         test_data = {"key": "value", "number": 42}
 
         with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
+            mode="w", suffix=".json", delete=False,
         ) as tmp_file:
             json.dump(test_data, tmp_file)
             tmp_file.flush()
@@ -59,7 +59,7 @@ class TestFlextCliFileOperations:
     def test_load_json_file_invalid_json(self) -> None:
         """Test JSON file loading with invalid JSON."""
         with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
+            mode="w", suffix=".json", delete=False,
         ) as tmp_file:
             tmp_file.write("invalid json content")
             tmp_file.flush()
@@ -79,7 +79,7 @@ class TestFlextCliFileOperations:
         test_data = {"key": "value", "number": 42}
 
         with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
+            mode="w", suffix=".json", delete=False,
         ) as tmp_file:
             tmp_file.close()  # Close to allow writing
 
@@ -224,7 +224,7 @@ class TestFlextCliFileOperations:
 
                 ops = FlextCliFileOperations()
                 result = ops.backup_and_process(
-                    tmp_file.name, process_func, require_confirmation=True
+                    tmp_file.name, process_func, require_confirmation=True,
                 )
 
                 assert result.is_success
@@ -253,7 +253,7 @@ class TestFlextCliFileOperations:
 
                 ops = FlextCliFileOperations()
                 result = ops.backup_and_process(
-                    tmp_file.name, process_func, require_confirmation=True
+                    tmp_file.name, process_func, require_confirmation=True,
                 )
 
                 assert result.is_failure

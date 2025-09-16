@@ -7,15 +7,11 @@ import functools
 import time
 from collections.abc import Awaitable, Callable, Mapping
 from pathlib import Path
-from typing import ParamSpec, TypeVar, overload
+from typing import overload
 
-from flext_core import FlextDecorators, FlextLogger, FlextResult
+from flext_core import FlextDecorators, FlextLogger, FlextResult, P, T
 
 from flext_cli.constants import FlextCliConstants
-
-# Type variables for generic decorators
-P = ParamSpec("P")
-T = TypeVar("T")
 
 
 class FlextCliDecorators(FlextDecorators):
@@ -312,15 +308,12 @@ class FlextCliDecorators(FlextDecorators):
         return _decorator
 
     @staticmethod
-    def retry(max_attempts: int = 3) -> Callable[[T], T]:
-        """Create retry decorator with exponential backoff."""
+    def cli_retry(max_attempts: int = 3) -> Callable[[Callable[P, T]], Callable[P, T]]:
+        """Create CLI-specific retry decorator with exponential backoff."""
 
-        def decorator(func: T) -> T:
-            if not callable(func):
-                return func
-
+        def decorator(func: Callable[P, T]) -> Callable[P, T]:
             @functools.wraps(func)
-            def _wrapped(*args: object, **kwargs: object) -> object:
+            def _wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
                 last_exception: Exception | None = None
 
                 for attempt in range(max_attempts):
@@ -343,14 +336,10 @@ class FlextCliDecorators(FlextDecorators):
 
         return decorator
 
-
-# Backward compatibility - expose static methods as module functions
-handle_service_result = FlextCliDecorators.handle_service_result
-flext_cli_require_confirmation = FlextCliDecorators.require_confirmation
+    # CLI-specific retry alias to avoid override conflict
+    cli_retry_alias = cli_retry  # For test compatibility
 
 
 __all__ = [
     "FlextCliDecorators",
-    "flext_cli_require_confirmation",
-    "handle_service_result",
 ]

@@ -10,12 +10,13 @@ Key Patterns Demonstrated:
 - Repository pattern with Unit of Work
 - Event sourcing and domain event handling
 - Service layer orchestration
+- FLEXT-CLI foundation patterns (NO Click imports)
 
 Architecture Layers:
 - Domain: Rich domain models with business logic
 - Application: Use case orchestration and CQRS handlers
 - Infrastructure: External service integration and persistence
-- Commands: CLI interface layer
+- Commands: CLI interface layer using FlextCliMain and FlextCliApi
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -29,8 +30,12 @@ from enum import StrEnum
 from typing import Any, Protocol
 from uuid import UUID, uuid4
 
-import click
+from pydantic import Field
+
 from flext_cli import (
+    FlextCliService,
+    FlextCliApi,
+    FlextCliMain,
     FlextCliService,
     cli_measure_time,
     require_auth,
@@ -41,9 +46,6 @@ from flext_core import (
     FlextResult,
     FlextTypes,
 )
-from rich.console import Console
-
-from examples import handle_command_result
 
 
 @dataclass(frozen=True)
@@ -82,8 +84,8 @@ class Project(FlextModels.AggregateRoot):
     owner_id: str
     status: ProjectStatus
     # Timestamp fields inherited from Entity base class
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
 
     def change_status(
         self, new_status: ProjectStatus, _reason: str
@@ -501,115 +503,197 @@ class ProjectManagementService(FlextCliService):
         return self._query_handler.execute_list_by_owner(query)
 
 
-@click.group()
-@click.pass_context
-def enterprise_cli(ctx: click.Context) -> Any:
-    """Enterprise patterns CLI demonstrating Clean Architecture and CQRS."""
-    ctx.ensure_object(dict)
-    ctx.obj["console"] = Console()
-    ctx.obj["service"] = ProjectManagementService()
+class EnterpriseCliApplication:
+    """Enterprise CLI application using flext-cli patterns exclusively."""
 
+    def __init__(self) -> None:
+        """Initialize enterprise CLI application."""
+        self.cli_api = FlextCliApi()
+        self.api_client = FlextCliService()
+        self.service = ProjectManagementService()
 
-@enterprise_cli.command()
-@click.option("--name", required=True, help="Project name")
-@click.option("--description", required=True, help="Project description")
-@click.option("--owner", required=True, help="Project owner ID")
-@cli_measure_time
-@click.pass_context
-def create_project(ctx: click.Context, name: str, description: str, owner: str) -> None:
-    """Create a new project using enterprise patterns."""
-    console: Console = ctx.obj["console"]
-    service: ProjectManagementService = ctx.obj["service"]
+    def create_cli_interface(self) -> FlextResult[FlextCliMain]:
+        """Create enterprise CLI interface using flext-cli patterns."""
+        try:
+            # Initialize CLI main instance
+            cli_main = FlextCliMain(
+                name="enterprise-cli",
+                description="Enterprise patterns CLI demonstrating Clean Architecture and CQRS"
+            )
 
-    console.print(f"[blue]Creating project:[/blue] {name}")
-    result = service.create_project(name, description, owner)
-    handle_command_result(console, result, "create project")
+            # Register command groups
+            self._register_project_commands(cli_main)
 
+            return FlextResult[FlextCliMain].ok(cli_main)
 
-@enterprise_cli.command()
-@click.option("--project-id", required=True, help="Project ID")
-@click.option(
-    "--status",
-    required=True,
-    type=click.Choice(["active", "suspended", "completed", "archived"]),
-    help="New status",
-)
-@click.option("--reason", required=True, help="Reason for status change")
-@cli_measure_time
-@require_auth()
-@click.pass_context
-def change_status(
-    ctx: click.Context, project_id: str, status: str, reason: str
-) -> None:
-    """Change project status using CQRS command."""
-    console: Console = ctx.obj["console"]
-    service: ProjectManagementService = ctx.obj["service"]
+        except Exception as e:
+            return FlextResult[FlextCliMain].fail(f"CLI interface creation failed: {e}")
 
-    console.print(f"[blue]Changing project status to:[/blue] {status}")
-    result = service.change_project_status(project_id, status, reason)
-    handle_command_result(
-        console, result, "change status", success_fields=["id", "status"]
-    )
+    def _register_project_commands(self, cli_main: FlextCliMain) -> None:
+        """Register project management commands."""
+        # Create commands and unwrap FlextResult values
+        create_cmd = self.cli_api.create_command(
+            name="create",
+            description="Create a new project using enterprise patterns",
+            handler=self._handle_create_project,
+            arguments=["--name", "--description", "--owner"]
+        )
+        change_status_cmd = self.cli_api.create_command(
+            name="change-status",
+            description="Change project status using CQRS command",
+            handler=self._handle_change_status,
+            arguments=["--project-id", "--status", "--reason"]
+        )
+        get_cmd = self.cli_api.create_command(
+            name="get",
+            description="Get project details using CQRS query",
+            handler=self._handle_get_project,
+            arguments=["--project-id"]
+        )
+        list_cmd = self.cli_api.create_command(
+            name="list",
+            description="List projects by owner using CQRS query",
+            handler=self._handle_list_projects,
+            arguments=["--owner-id"]
+        )
 
+        # Unwrap commands for registration - only include successful commands
+        project_commands = {}
+        if create_cmd.is_success:
+            project_commands["create"] = create_cmd.unwrap()
+        if change_status_cmd.is_success:
+            project_commands["change-status"] = change_status_cmd.unwrap()
+        if get_cmd.is_success:
+            project_commands["get"] = get_cmd.unwrap()
+        if list_cmd.is_success:
+            project_commands["list"] = list_cmd.unwrap()
 
-@enterprise_cli.command()
-@click.option("--project-id", required=True, help="Project ID")
-@click.pass_context
-def get_project(ctx: click.Context, project_id: str) -> None:
-    """Get project details using CQRS query."""
-    console: Console = ctx.obj["console"]
-    service: ProjectManagementService = ctx.obj["service"]
+        cli_main.register_command_group(
+            name="project",
+            commands=project_commands,
+            description="Project management commands using enterprise patterns"
+        )
 
-    result = service.get_project(project_id)
+    def _handle_create_project(self, **kwargs: object) -> FlextResult[None]:
+        """Handle create project command."""
+        name = str(kwargs.get("name", ""))
+        description = str(kwargs.get("description", ""))
+        owner = str(kwargs.get("owner", ""))
 
-    if result.is_success:
-        data = result.value
-        console.print("[green]Project Details:[/green]")
-        console.print(f"ID: {data['id']}")
-        console.print(f"Name: {data['name']}")
-        console.print(f"Description: {data['description']}")
-        console.print(f"Owner: {data['owner_id']}")
-        console.print(f"Status: {data['status']}")
-        console.print(f"Created: {data['created_at']}")
-        if data["updated_at"]:
-            console.print(f"Updated: {data['updated_at']}")
-    else:
-        console.print(f"[red]❌ Failed to get project: {result.error}[/red]")
+        if not all([name, description, owner]):
+            return FlextResult[None].fail("Name, description, and owner are required")
 
+        self.cli_api.display_message(f"Creating project: {name}", message_type="info")
+        result = self.service.create_project(name, description, owner)
 
-@enterprise_cli.command()
-@click.option("--owner-id", required=True, help="Owner ID")
-@click.pass_context
-def list_projects(ctx: click.Context, owner_id: str) -> None:
-    """List projects by owner using CQRS query."""
-    console: Console = ctx.obj["console"]
-    service: ProjectManagementService = ctx.obj["service"]
-
-    result = service.list_projects_by_owner(owner_id)
-
-    if result.is_success:
-        projects = result.value
-        if projects:
-            console.print(f"[green]Projects for owner {owner_id}:[/green]")
-            for project in projects:
-                console.print(
-                    f"- {project['name']} ({project['status']}) - {project['id']}"
-                )
+        if result.is_success:
+            data = result.unwrap()
+            self.cli_api.display_output(
+                data=data,
+                format_type="table",
+                title="Project Created"
+            )
         else:
-            console.print(f"[yellow]No projects found for owner: {owner_id}[/yellow]")
-    else:
-        console.print(f"[red]❌ Failed to list projects: {result.error}[/red]")
+            self.cli_api.display_message(f"Failed to create project: {result.error}", message_type="error")
+
+        return FlextResult[None].ok(None)
+
+    def _handle_change_status(self, **kwargs: object) -> FlextResult[None]:
+        """Handle change project status command."""
+        project_id = str(kwargs.get("project_id", ""))
+        status = str(kwargs.get("status", ""))
+        reason = str(kwargs.get("reason", ""))
+
+        if not all([project_id, status, reason]):
+            return FlextResult[None].fail("Project ID, status, and reason are required")
+
+        valid_statuses = ["active", "suspended", "completed", "archived"]
+        if status not in valid_statuses:
+            return FlextResult[None].fail(f"Status must be one of: {', '.join(valid_statuses)}")
+
+        self.cli_api.display_message(f"Changing project status to: {status}", message_type="info")
+        result = self.service.change_project_status(project_id, status, reason)
+
+        if result.is_success:
+            data = result.unwrap()
+            self.cli_api.display_output(
+                data=data,
+                format_type="table",
+                title="Status Changed"
+            )
+        else:
+            self.cli_api.display_message(f"Failed to change status: {result.error}", message_type="error")
+
+        return FlextResult[None].ok(None)
+
+    def _handle_get_project(self, **kwargs: object) -> FlextResult[None]:
+        """Handle get project command."""
+        project_id = str(kwargs.get("project_id", ""))
+
+        if not project_id:
+            return FlextResult[None].fail("Project ID is required")
+
+        result = self.service.get_project(project_id)
+
+        if result.is_success:
+            data = result.unwrap()
+            self.cli_api.display_output(
+                data=data,
+                format_type="table",
+                title="Project Details"
+            )
+        else:
+            self.cli_api.display_message(f"Failed to get project: {result.error}", message_type="error")
+
+        return FlextResult[None].ok(None)
+
+    def _handle_list_projects(self, **kwargs: object) -> FlextResult[None]:
+        """Handle list projects command."""
+        owner_id = str(kwargs.get("owner_id", ""))
+
+        if not owner_id:
+            return FlextResult[None].fail("Owner ID is required")
+
+        result = self.service.list_projects_by_owner(owner_id)
+
+        if result.is_success:
+            projects = result.unwrap()
+            if projects:
+                self.cli_api.display_message(f"Projects for owner {owner_id}:", message_type="info")
+                for project in projects:
+                    project_info = f"- {project['name']} ({project['status']}) - {project['id']}"
+                    self.cli_api.display_message(project_info, message_type="info")
+            else:
+                self.cli_api.display_message(f"No projects found for owner: {owner_id}", message_type="warning")
+        else:
+            self.cli_api.display_message(f"Failed to list projects: {result.error}", message_type="error")
+
+        return FlextResult[None].ok(None)
 
 
 def main() -> None:
-    """Run enterprise patterns demonstration."""
+    """Run enterprise patterns demonstration using flext-cli patterns."""
+    try:
+        # Create application instance
+        app = EnterpriseCliApplication()
+
+        # Create CLI interface
+        cli_result = app.create_cli_interface()
+        if cli_result.is_failure:
+            app.cli_api.display_message(f"CLI creation failed: {cli_result.error}", message_type="error")
+            return
+
+        # Run CLI
+        cli_main = cli_result.unwrap()
+        execution_result = cli_main.execute()
+
+        if execution_result.is_failure:
+            app.cli_api.display_message(f"CLI execution failed: {execution_result.error}", message_type="error")
+
+    except Exception as e:
+        cli_api = FlextCliApi()
+        cli_api.display_message(f"Enterprise CLI error: {e}", message_type="error")
 
 
 if __name__ == "__main__":
-    import sys
-    from datetime import datetime
-
-    if len(sys.argv) == 1:
-        main()
-    else:
-        enterprise_cli()
+    main()

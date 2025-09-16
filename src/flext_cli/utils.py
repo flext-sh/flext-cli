@@ -14,7 +14,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID, uuid4
 
-from flext_core import FlextContainer, FlextLogger, FlextUtilities
+from flext_core import FlextContainer, FlextLogger, FlextResult, FlextUtilities
 from pydantic import ConfigDict
 from pydantic_settings import SettingsConfigDict
 
@@ -131,6 +131,93 @@ class FlextCliUtilities(FlextUtilities):
             use_enum_values=True,
             env_prefix="FLEXT_CLI_",
         )
+
+    # Data Processing (consolidated from FlextCliDataProcessing)
+    @staticmethod
+    def validate_data(data: object, validator_func: object) -> FlextResult[object]:
+        """Validate data using flext-core utilities directly."""
+        try:
+            # Handle dict of validators
+            if isinstance(validator_func, dict) and isinstance(data, dict):
+                for key, validator_type in validator_func.items():
+                    if key not in data:
+                        return FlextResult[object].fail(
+                            f"Missing required field: {key}"
+                        )
+                    if not isinstance(data[key], validator_type):
+                        return FlextResult[object].fail(
+                            f"Field '{key}' has wrong type, expected {validator_type.__name__}"
+                        )
+                return FlextResult[object].ok(data)
+
+            # Handle callable validator function
+            if not callable(validator_func):
+                return FlextResult[object].fail("Validator function must be callable")
+
+            # Use flext-core validation directly
+            if isinstance(data, dict):
+                # Validate dictionary data
+                validation_result = validator_func(data)
+                if validation_result:
+                    return FlextResult[object].ok(data)
+                return FlextResult[object].fail("Data validation failed")
+
+            if isinstance(data, list):
+                # Validate list data
+                validation_result = validator_func(data)
+                if validation_result:
+                    return FlextResult[object].ok(data)
+                return FlextResult[object].fail("Data validation failed")
+
+            # For other types, try validation
+            validation_result = validator_func(data)
+            if validation_result:
+                return FlextResult[object].ok(data)
+            return FlextResult[object].fail("Data validation failed")
+
+        except Exception as e:
+            return FlextResult[object].fail(f"Validation failed: {e}")
+
+    @staticmethod
+    def batch_process_items(
+        items: object, processor_func: object
+    ) -> FlextResult[object]:
+        """Process items in batch using flext-core utilities directly."""
+        try:
+            if not isinstance(items, list):
+                return FlextResult[object].fail("Invalid items format - must be a list")
+
+            if not callable(processor_func):
+                return FlextResult[object].fail("Processor function must be callable")
+
+            # Use flext-core processing directly
+            processed_items = []
+            for item in items:
+                try:
+                    processed_item = processor_func(item)
+                    processed_items.append(processed_item)
+                except Exception as e:
+                    return FlextResult[object].fail(f"Item processing failed: {e}")
+
+            return FlextResult[object].ok(processed_items)
+
+        except Exception as e:
+            return FlextResult[object].fail(f"Batch processing failed: {e}")
+
+    @staticmethod
+    def safe_json_stringify_flext_result(data: object) -> FlextResult[str]:
+        """Convert data to JSON string with FlextResult wrapper - avoid override conflict."""
+        try:
+            # Use flext-core utilities directly
+            json_string = FlextUtilities.safe_json_stringify(data)
+            return FlextResult[str].ok(json_string)
+        except Exception as e:
+            return FlextResult[str].fail(f"JSON stringify failed: {e}")
+
+    # NOTE: safe_json_stringify removed to avoid override conflict with flext-core
+    # Use safe_json_stringify_flext_result() directly for FlextResult wrapper
+
+
 
     # Validation Utilities (consolidated from Validation class)
     class _ValidationHelper:

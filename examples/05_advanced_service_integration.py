@@ -28,6 +28,7 @@ import asyncio
 import time
 from datetime import UTC, datetime
 from enum import Enum
+from typing import Any, cast
 
 
 # Simple replacement for missing example_utils
@@ -35,9 +36,9 @@ def print_demo_completion(title: str) -> None:
     """Print demo completion message."""
     print(f"✅ {title} completed successfully!")
 from flext_cli import (
-    FlextApiClient,
     FlextCliService,
-    get_cli_config,
+    FlextCliService,
+    FlextCliConfig,
 )
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 from rich.console import Console
@@ -451,7 +452,7 @@ def demonstrate_circuit_breaker_pattern() -> FlextResult[None]:
         status_color = "green" if result.is_success else "red"
         console.print(
             f"   Attempt {attempt + 1}: [{status_color}]{result.is_success}[/{status_color}] "
-            f"(State: {breaker_state.value if hasattr(breaker_state, 'value') else str(breaker_state)}, "
+            f"(State: {getattr(breaker_state, 'value', str(breaker_state))}, "
             f"Failures: {failure_count})"
         )
 
@@ -474,7 +475,7 @@ def demonstrate_circuit_breaker_pattern() -> FlextResult[None]:
         breaker_table.add_column("Value", style="green")
 
         state = breaker_info.get("state")
-        state_value = state.value if state and hasattr(state, "value") else str(state) if state else "unknown"
+        state_value = getattr(state, "value", str(state)) if state else "unknown"
         breaker_table.add_row("State", str(state_value))
         breaker_table.add_row("Failure Count", str(breaker_info.get("failure_count", 0)))
         breaker_table.add_row(
@@ -541,7 +542,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     console.print("\n[green]Dependency Injection with CLI Container[/green]")
 
     # Create and configure CLI container
-    container: FlextContainer | None = FlextContainer.get_global()
+    container: Any = FlextContainer.get_global()
     # Container has register/get methods available
     if container:
         console.print("[green]✓[/green] Container is ready to use")
@@ -566,8 +567,8 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     services_to_register = [
         ("console", Console()),
         ("logger", FlextLogger("demo")),
-        ("config", get_cli_config()),
-        ("api_client", FlextApiClient()),
+        ("config", FlextCliConfig.get_current()),
+        ("api_client", FlextCliService()),
     ]
 
     console.print("📦 Registering services in container:")
@@ -606,7 +607,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
         result.is_success
         for result in [logger_result, config_result, api_client_result]
     ):
-        logger = logger_result.value
+        logger = cast(FlextLogger, logger_result.value)
         config = config_result.value
         api_client = api_client_result.value
 

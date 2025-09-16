@@ -21,7 +21,7 @@ class TestTableFormatter:
         """Test formatting list of dictionaries as table."""
         fmt_instance = FlextCliFormatters()
         formatter = fmt_instance.create_formatter("table")
-        console = Console(file=io.StringIO(), width=80)
+        console = FlextCliFormatters._ConsoleOutput(file=io.StringIO())
 
         data = [
             {"name": "Alice", "age": 30},
@@ -35,7 +35,7 @@ class TestTableFormatter:
         """Test formatting simple list as table."""
         fmt_instance = FlextCliFormatters()
         formatter = fmt_instance.create_formatter("table")
-        console = Console(file=io.StringIO(), width=80)
+        console = FlextCliFormatters._ConsoleOutput(file=io.StringIO())
 
         data = ["item1", "item2", "item3"]
 
@@ -46,7 +46,7 @@ class TestTableFormatter:
         """Test formatting single dictionary as table."""
         fmt_instance = FlextCliFormatters()
         formatter = fmt_instance.create_formatter("table")
-        console = Console(file=io.StringIO(), width=80)
+        console = FlextCliFormatters._ConsoleOutput(file=io.StringIO())
 
         data = {"name": "Alice", "age": 30}
 
@@ -56,7 +56,7 @@ class TestTableFormatter:
     def test_format_other_data_type(self) -> None:
         """Test formatting other data types."""
         formatter = FlextCliFormatters().create_formatter("table")
-        console = Console(file=io.StringIO(), width=80)
+        console = FlextCliFormatters._ConsoleOutput(file=io.StringIO())
 
         data = "simple string"
 
@@ -71,7 +71,7 @@ class TestJSONFormatter:
         """Test formatting dictionary as JSON."""
         formatter = FlextCliFormatters().create_formatter("json")
         output = io.StringIO()
-        console = Console(file=output, width=80)
+        console = FlextCliFormatters._ConsoleOutput(file=output)
 
         data = {"name": "Alice", "age": 30}
 
@@ -86,7 +86,7 @@ class TestJSONFormatter:
         """Test formatting list as JSON."""
         formatter = FlextCliFormatters().create_formatter("json")
         output = io.StringIO()
-        console = Console(file=output, width=80)
+        console = FlextCliFormatters._ConsoleOutput(file=output)
 
         data = [{"name": "Alice"}, {"name": "Bob"}]
 
@@ -105,7 +105,7 @@ class TestYAMLFormatter:
         """Test formatting dictionary as YAML."""
         formatter = FlextCliFormatters().create_formatter("yaml")
         output = io.StringIO()
-        console = Console(file=output, width=80)
+        console = FlextCliFormatters._ConsoleOutput(file=output)
 
         data = {"name": "Alice", "age": 30}
 
@@ -120,7 +120,7 @@ class TestYAMLFormatter:
         """Test formatting list as YAML."""
         formatter = FlextCliFormatters().create_formatter("yaml")
         output = io.StringIO()
-        console = Console(file=output, width=80)
+        console = FlextCliFormatters._ConsoleOutput(file=output)
 
         data = [{"name": "Alice"}, {"name": "Bob"}]
 
@@ -139,7 +139,7 @@ class TestCSVFormatter:
         """Test formatting list of dictionaries as CSV."""
         formatter = FlextCliFormatters().create_formatter("csv")
         output = io.StringIO()
-        console = Console(file=output, width=80)
+        console = FlextCliFormatters._ConsoleOutput(file=output)
 
         data = [
             {"name": "Alice", "age": 30},
@@ -160,7 +160,7 @@ class TestCSVFormatter:
         """Test formatting simple list as CSV."""
         formatter = FlextCliFormatters().create_formatter("csv")
         output = io.StringIO()
-        console = Console(file=output, width=80)
+        console = FlextCliFormatters._ConsoleOutput(file=output)
 
         data = ["item1", "item2", "item3"]
 
@@ -180,7 +180,7 @@ class TestCSVFormatter:
         """Test formatting single dictionary as CSV."""
         formatter = FlextCliFormatters().create_formatter("csv")
         output = io.StringIO()
-        console = Console(file=output, width=80)
+        console = FlextCliFormatters._ConsoleOutput(file=output)
 
         data = {"name": "Alice", "age": 30}
 
@@ -199,7 +199,7 @@ class TestPlainFormatter:
         """Test formatting list of dictionaries as plain text."""
         formatter = FlextCliFormatters().create_formatter("plain")
         output = io.StringIO()
-        console = Console(file=output, width=80)
+        console = FlextCliFormatters._ConsoleOutput(file=output)
 
         data = [
             {"name": "Alice", "age": 30},
@@ -221,7 +221,7 @@ class TestPlainFormatter:
         """Test formatting simple list as plain text."""
         formatter = FlextCliFormatters().create_formatter("plain")
         output = io.StringIO()
-        console = Console(file=output, width=80)
+        console = FlextCliFormatters._ConsoleOutput(file=output)
 
         data = ["item1", "item2", "item3"]
 
@@ -239,7 +239,7 @@ class TestPlainFormatter:
         """Test formatting single dictionary as plain text."""
         formatter = FlextCliFormatters().create_formatter("plain")
         output = io.StringIO()
-        console = Console(file=output, width=80)
+        console = FlextCliFormatters._ConsoleOutput(file=output)
 
         data = {"name": "Alice", "age": 30}
 
@@ -254,7 +254,7 @@ class TestPlainFormatter:
         """Test formatting other data types as plain text."""
         formatter = FlextCliFormatters().create_formatter("plain")
         output = io.StringIO()
-        console = Console(file=output, width=80)
+        console = FlextCliFormatters._ConsoleOutput(file=output)
 
         data = "simple string"
 
@@ -305,7 +305,7 @@ class TestFormatterFactory:
         """Test registering custom formatter."""
 
         class CustomFormatter(FlextCliFormatters.OutputFormatter):
-            def format(self, data: object, console: Console) -> None:
+            def format(self, data: object, console: FlextCliFormatters._ConsoleOutput | Console) -> None:
                 console.print(f"custom: {data}")
 
         formatter_instance = FlextCliFormatters()

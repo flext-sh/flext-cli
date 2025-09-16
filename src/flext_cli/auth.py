@@ -28,7 +28,7 @@ from flext_core import (
 )
 
 from flext_cli.config import FlextCliConfig
-from flext_cli.protocols import AuthenticationClient
+from flext_cli.protocols import FlextCliProtocols
 
 
 class FlextCliAuth(FlextDomainService[str]):
@@ -93,7 +93,7 @@ class FlextCliAuth(FlextDomainService[str]):
         self,
         *,
         config: FlextCliConfig | None = None,
-        auth_client: AuthenticationClient | None = None,
+        auth_client: FlextCliProtocols.AuthenticationClient | None = None,
         **_data: object,
     ) -> None:
         """Initialize authentication service with flext-core dependencies and SOURCE OF TRUTH."""
@@ -410,7 +410,7 @@ class FlextCliAuth(FlextDomainService[str]):
                 f"Auth headers from SOURCE OF TRUTH failed: {e}",
             )
 
-    async def login(
+    def login(
         self,
         username: str,
         password: str,
@@ -435,7 +435,26 @@ class FlextCliAuth(FlextDomainService[str]):
                     "Authentication client not available"
                 )
 
-            response = await self._auth_client.login(username, password)
+            # Handle async authentication client internally
+            async def _perform_login() -> FlextResult[FlextTypes.Core.Dict]:
+                try:
+                    if self._auth_client is None:
+                        return FlextResult[FlextTypes.Core.Dict].fail(
+                            "Authentication client not available"
+                        )
+                    return await self._auth_client.login(username, password)
+                except Exception as e:
+                    return FlextResult[FlextTypes.Core.Dict].fail(
+                        f"Authentication request failed: {e}"
+                    )
+
+            # Execute async operation and return FlextResult synchronously
+            try:
+                response = asyncio.run(_perform_login())
+            except Exception as e:
+                return FlextResult[FlextTypes.Core.Dict].fail(
+                    f"Login execution failed: {e}"
+                )
 
             # Check response using SOURCE OF TRUTH patterns
             if not response.is_success:
@@ -491,7 +510,7 @@ class FlextCliAuth(FlextDomainService[str]):
                         f"Login to SOURCE OF TRUTH failed: {e}",
                     )
 
-    async def logout(self) -> FlextResult[None]:
+    def logout(self) -> FlextResult[None]:
         """Perform logout using SOURCE OF TRUTH authentication flow."""
         try:
             # Check authentication status using SOURCE OF TRUTH
@@ -507,7 +526,13 @@ class FlextCliAuth(FlextDomainService[str]):
             # Attempt server logout using injected authentication client (graceful failure)
             if self._auth_client is not None:
                 try:
-                    await self._auth_client.logout()
+                    # Handle async logout client internally
+                    async def _perform_logout() -> None:
+                        if self._auth_client is not None:
+                            await self._auth_client.logout()
+
+                    # Execute async operation internally
+                    asyncio.run(_perform_logout())
                 except (
                     ImportError,
                     AttributeError,
@@ -740,28 +765,20 @@ class FlextCliAuth(FlextDomainService[str]):
 
         def handle_login(self, username: str, password: str) -> None:
             """Handle login command using SOURCE OF TRUTH."""
-
-            async def _login() -> None:
-                result = await self._auth.login(username, password)
+            with contextlib.suppress(Exception):
+                result = self._auth.login(username, password)
                 if result.is_success:
                     # Display any user data from response
                     response_data = result.value
                     if "user" in response_data:
                         pass
 
-            with contextlib.suppress(Exception):
-                asyncio.run(_login())
-
         def handle_logout(self) -> None:
             """Handle logout command using SOURCE OF TRUTH."""
-
-            async def _logout() -> None:
-                result = await self._auth.logout()
+            with contextlib.suppress(Exception):
+                result = self._auth.logout()
                 if result.is_success:
                     pass
-
-            with contextlib.suppress(Exception):
-                asyncio.run(_logout())
 
         def handle_status(self) -> None:
             """Handle status command using SOURCE OF TRUTH."""

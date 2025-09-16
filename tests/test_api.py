@@ -132,7 +132,7 @@ class TestFormatting:
 
         assert not result.is_success
         assert "Invalid format" in str(
-            result.error or ""
+            result.error or "",
         ) or "Unsupported format" in str(result.error or "")
 
 
@@ -162,24 +162,26 @@ class TestTableCreation:
         assert result.value is not None
 
     def test_flext_cli_table_simple_list_data(self) -> None:
-        """Test table creation from simple list."""
+        """Test table creation from simple list - should fail with validation error."""
         data = ["item1", "item2", "item3"]
 
         api = FlextCliApi()
         result = api.create_table(data)
 
-        assert result.is_success
-        assert result.value is not None
+        # Simple lists are not supported - expects dict or list of dicts
+        assert result.is_failure
+        assert "Data must be a dict or list of dicts" in str(result.error)
 
     def test_flext_cli_table_single_value(self) -> None:
-        """Test table creation from single value."""
+        """Test table creation from single value - should fail with validation error."""
         data = "Single value"
 
         api = FlextCliApi()
         result = api.create_table(data)
 
-        assert result.is_success
-        assert result.value is not None
+        # Single values are not supported - expects dict or list of dicts
+        assert result.is_failure
+        assert "Data must be a dict or list of dicts" in str(result.error)
 
     def test_table_creation_dict_list(self) -> None:
         """Test flext_cli_table with list of dictionaries."""
@@ -191,13 +193,14 @@ class TestTableCreation:
         assert result.value is not None
 
     def test_table_creation_simple_list(self) -> None:
-        """Test flext_cli_table with simple list."""
+        """Test flext_cli_table with simple list - should fail with validation error."""
         data = ["item1", "item2", "item3"]
         api = FlextCliApi()
         result = api.create_table(data)
 
-        assert result.is_success
-        assert result.value is not None
+        # Simple lists are not supported - expects dict or list of dicts
+        assert result.is_failure
+        assert "Data must be a dict or list of dicts" in str(result.error)
 
     def test_table_creation_dict(self) -> None:
         """Test flext_cli_table with dictionary."""
@@ -212,15 +215,14 @@ class TestTableCreation:
         assert "age" in table
 
     def test_table_creation_single_value(self) -> None:
-        """Test flext_cli_table with single value."""
+        """Test flext_cli_table with single value - should fail with validation error."""
         data = "Single value"
         api = FlextCliApi()
         result = api.create_table(data)
 
-        assert result.is_success
-        table = result.value
-        assert isinstance(table, str)
-        assert "Single value" in table
+        # Single values are not supported - expects dict or list of dicts
+        assert result.is_failure
+        assert "Data must be a dict or list of dicts" in str(result.error)
 
 
 class TestDataTransformation:
@@ -337,7 +339,7 @@ class TestDataExport:
 
         # Test with invalid file extension to trigger format detection failure
         with tempfile.NamedTemporaryFile(
-            suffix=".invalid_extension", delete=False
+            suffix=".invalid_extension", delete=False,
         ) as f:
             invalid_path = Path(f.name)
 
@@ -417,7 +419,7 @@ class TestDataExport:
             else:
                 # Alternative: API rejects invalid format
                 assert "Invalid format" in str(
-                    result.error or ""
+                    result.error or "",
                 ) or "Unsupported export format" in str(result.error or "")
 
 

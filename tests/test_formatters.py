@@ -31,7 +31,7 @@ class TestOutputFormatter(unittest.TestCase):
         formatters = FlextCliFormatters()
 
         class CustomFormatter:
-            def format(self, data: object, console: Console) -> None:
+            def format(self, data: object, console: FlextCliFormatters._ConsoleOutput | Console) -> None:
                 console.print(f"Custom: {data}")
 
         # Register custom formatter
@@ -39,7 +39,7 @@ class TestOutputFormatter(unittest.TestCase):
 
         # Test it works
         custom_formatter = formatters.create_formatter("custom")
-        console = Console()
+        console = FlextCliFormatters._ConsoleOutput()
         try:
             custom_formatter.format("test", console)
             assert True
@@ -735,7 +735,7 @@ class TestFormatterIntegration(unittest.TestCase):
 
                 except Exception as e:
                     pytest.fail(
-                        f"Format {format_type} failed with data 'Hello, World!': {e}"
+                        f"Format {format_type} failed with data 'Hello, World!': {e}",
                     )
 
     def test_formatters_preserve_data_integrity(self) -> None:
@@ -766,7 +766,7 @@ class TestFormatterIntegration(unittest.TestCase):
 
                 output = output_buffer.getvalue().strip()
                 if output and callable(
-                    parser
+                    parser,
                 ):  # Only test if formatter produced output and parser is callable
                     parsed_data = parser(output)
                     assert parsed_data == original_data
