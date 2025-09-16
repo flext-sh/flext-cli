@@ -14,8 +14,10 @@ from flext_core import (
     FlextResult,
     __version__ as core_version,
 )
+from pydantic import Field
 
 from flext_cli.__version__ import __version__
+from flext_cli.models import FlextCliModels
 
 
 class FlextCliMain(FlextDomainService[str]):
@@ -24,6 +26,10 @@ class FlextCliMain(FlextDomainService[str]):
     Provides core CLI functionality expected by the ecosystem.
     Single responsibility with nested helpers pattern.
     """
+
+    # CLI application metadata
+    name: str = Field(default="flext-cli")
+    description: str = Field(default="FLEXT CLI Application")
 
     class CliOptions(TypedDict):
         """CLI options type structure."""
@@ -51,10 +57,28 @@ class FlextCliMain(FlextDomainService[str]):
         python_version: str
         platform: str
 
-    def __init__(self) -> None:
-        """Initialize FlextCliMain."""
+    def __init__(
+        self, name: str | None = None, description: str | None = None, **_data: object
+    ) -> None:
+        """Initialize FlextCliMain.
+
+        Args:
+            name: CLI application name
+            description: CLI application description
+            **_data: Additional data for FlextDomainService (unused)
+
+        """
+        # Initialize Pydantic fields directly - no need to pass to super().__init__()
+        # FlextDomainService inherits from TimestampedModel with default_factory fields
         super().__init__()
+
+        # Set fields after initialization if provided
+        if name is not None:
+            object.__setattr__(self, "name", name)
+        if description is not None:
+            object.__setattr__(self, "description", description)
         self._logger = FlextLogger(__name__)
+        self._command_groups: dict[str, dict[str, object]] = {}
 
     class _OptionsHelper:
         """Nested helper class for CLI options processing."""
@@ -146,6 +170,44 @@ class FlextCliMain(FlextDomainService[str]):
     def get_version(self) -> FlextResult[VersionInfo]:
         """Get version information using nested helper."""
         return self._VersionHelper.get_version_info()
+
+    def register_command_group(
+        self,
+        name: str,
+        commands: dict[str, FlextCliModels.CliCommand],
+        description: str | None = None,
+    ) -> FlextResult[None]:
+        """Register a command group with the CLI.
+
+        Args:
+            name: Command group name
+            commands: Dictionary of commands in the group
+            description: Optional description for the group
+
+        Returns:
+            FlextResult[None]: Success or failure result
+
+        """
+        try:
+            if not name or not name.strip():
+                return FlextResult[None].fail("Command group name cannot be empty")
+
+            if not commands:
+                return FlextResult[None].fail("Commands dictionary cannot be empty")
+
+            # Store the command group
+            self._command_groups[name] = {
+                "commands": commands,
+                "description": description or f"{name} commands",
+            }
+
+            self._logger.info(
+                f"Registered command group: {name} with {len(commands)} commands"
+            )
+            return FlextResult[None].ok(None)
+
+        except Exception as e:
+            return FlextResult[None].fail(f"Command group registration failed: {e}")
 
 
 __all__ = ["FlextCliMain"]

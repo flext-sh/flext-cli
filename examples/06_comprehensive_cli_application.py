@@ -5,7 +5,7 @@ This example demonstrates building a complete, real-world CLI application
 using all flext-cli patterns and components:
 
 Key Patterns Demonstrated:
-- Complete CLI application structure with Click groups and commands
+- Complete CLI application structure with FlextCliMain and FlextCliApi
 - Integration of all flext-cli components in a cohesive application
 - Configuration management with profiles and environments
 - Command lifecycle with validation, execution, and reporting
@@ -24,17 +24,13 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-import click
 from flext_cli import (
-    FlextApiClient,
-    FlextCliContext,
-    get_cli_config,
+    FlextCliService,
+    FlextCliApi,
+    FlextCliConfig,
+    FlextCliMain,
 )
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
-from rich.console import Console
-from rich.panel import Panel
-from rich.prompt import Confirm, Prompt
-from rich.table import Table
 
 
 class ComprehensiveCliApplication:
@@ -42,11 +38,11 @@ class ComprehensiveCliApplication:
 
     def __init__(self) -> None:
         """Initialize comprehensive CLI application."""
-        self.console = Console()
         self.logger = FlextLogger(__name__)
-        self.config = get_cli_config()
+        self.config = FlextCliConfig()
         self.container = FlextContainer.get_global()
-        self.api_client = FlextApiClient()
+        self.api_client = FlextCliService()
+        self.cli_api = FlextCliApi()
 
         # Application state
         self.current_session = None
@@ -56,16 +52,13 @@ class ComprehensiveCliApplication:
     def initialize_application(self) -> FlextResult[None]:
         """Initialize the CLI application with setup and validation."""
         try:
-            self.console.print(
-                Panel(
-                    "[bold cyan]FLEXT-CLI Comprehensive Application[/bold cyan]\n\n"
-                    "[yellow]Initializing application with full flext-cli integration...[/yellow]",
-                    expand=False,
-                )
+            # Display initialization message using flext-cli API
+            self.cli_api.display_message(
+                "Initializing application with full flext-cli integration...",
+                message_type="info"
             )
 
             # Setup CLI foundation
-            # Setup CLI if needed
             setup_result = FlextResult[None].ok(None)
             if setup_result.is_failure:
                 return FlextResult[None].fail(f"CLI setup failed: {setup_result.error}")
@@ -76,7 +69,7 @@ class ComprehensiveCliApplication:
             # Load user preferences
             self._load_user_preferences()
 
-            self.console.print("✅ Application initialized successfully")
+            self.cli_api.display_message("Application initialized successfully", message_type="success")
             return FlextResult[None].ok(None)
 
         except Exception as e:
@@ -85,10 +78,10 @@ class ComprehensiveCliApplication:
     def _register_core_services(self) -> None:
         """Register core services in the DI container."""
         services = [
-            ("console", self.console),
             ("logger", self.logger),
             ("config", self.config),
             ("api_client", self.api_client),
+            ("cli_api", self.cli_api),
         ]
 
         for service_name, service_instance in services:
@@ -104,120 +97,139 @@ class ComprehensiveCliApplication:
             "verbose_logging": False,
         }
 
-
-# CLI Application Instance
-app = ComprehensiveCliApplication()
-
-
-# Click CLI Definition with comprehensive structure
-@click.group()
-@click.option(
-    "--profile",
-    default="default",
-    envvar="FLEXT_PROFILE",
-    help="Configuration profile (default/dev/staging/prod)",
-)
-@click.option(
-    "--output",
-    type=click.Choice(["table", "json", "yaml", "csv"]),
-    default="table",
-    help="Output format",
-)
-@click.option(
-    "--debug/--no-debug", default=False, envvar="FLEXT_DEBUG", help="Enable debug mode"
-)
-@click.option("--verbose/--quiet", default=False, help="Verbose output")
-@click.pass_context
-def cli(
-    ctx: click.Context, profile: str, output: str, *, debug: bool, verbose: bool
-) -> None:
-    """FLEXT-CLI Comprehensive Application Demonstration.
-
-    This comprehensive CLI demonstrates all flext-cli patterns and capabilities
-    in a real-world application structure.
-    """
-    # Initialize application
-    init_result = app.initialize_application()
-    if init_result.is_failure:
-        app.console.print(f"[red]Initialization failed: {init_result.error}[/red]")
-        ctx.exit(1)
-
-    # Setup Click context
-    ctx.ensure_object(dict)
-    ctx.obj["app"] = app
-    ctx.obj["profile"] = profile
-    ctx.obj["output"] = output
-    ctx.obj["debug"] = debug
-    ctx.obj["verbose"] = verbose
-
-    # Configure context - use basic FlextCliContext
-    cli_context = FlextCliContext()
-    # Store context values in ctx.obj for access
-    ctx.obj["profile"] = profile
-    ctx.obj["output"] = output.upper()
-    ctx.obj["debug"] = debug
-    ctx.obj["quiet"] = not verbose
-    ctx.obj["verbose"] = verbose
-    ctx.obj["cli_context"] = cli_context
-
-
-# Project Management Commands Group
-@cli.group()
-@click.pass_context
-def project(ctx: click.Context) -> None:
-    """Project management commands."""
-
-
-@project.command()
-@click.option("--name", required=True, help="Project name")
-@click.option(
-    "--template",
-    type=click.Choice(["web", "api", "cli", "library"]),
-    default="api",
-    help="Project template",
-)
-@click.option("--directory", type=click.Path(path_type=Path), help="Project directory")
-# Removed problematic decorators @cli_enhanced, @cli_measure_time - cause type inference issues
-@click.pass_context
-def create(
-    ctx: click.Context, name: str, template: str, directory: Path | None
-) -> None:
-    """Create a new project using flext-cli patterns."""
-    app: ComprehensiveCliApplication = ctx.obj["app"]
-    ctx.obj["cli_context"]
-
-    app.console.print(f"[green]Creating project: {name}[/green]")
-    app.console.print(f"Template: {template}")
-
-    # Validate project name
-    if not name or len(name.strip()) == 0:
-        app.console.print("[red]Error: Project name cannot be empty[/red]")
-        return
-
-    # Determine project directory
-    if directory is None:
-        directory = Path.cwd() / name
-
-    # Confirm project creation
-    if not Confirm.ask(f"Create project '{name}' in {directory}?", default=True):
-        app.console.print("[yellow]Project creation cancelled[/yellow]")
-        return
-
-    # Create project directory
-
-    # Execute project creation with progress
-    with app.console.status(f"[bold green]Creating {template} project...") as status:
+    def create_cli_interface(self) -> FlextResult[FlextCliMain]:
+        """Create the comprehensive CLI interface using flext-cli patterns."""
         try:
-            # Simulate project creation steps
-            status.update("[bold green]Setting up project structure...")
+            # Initialize CLI main instance
+            cli_main = FlextCliMain(
+                name="comprehensive-cli",
+                description="FLEXT-CLI Comprehensive Application Demonstration"
+            )
 
-            # Create directory if it doesn't exist
-            directory.mkdir(parents=True, exist_ok=True)
+            # Register command groups
+            self._register_project_commands(cli_main)
+            self._register_service_commands(cli_main)
+            self._register_config_commands(cli_main)
+            self._register_interactive_commands(cli_main)
 
-            # Create basic project files
-            project_files = {
-                "README.md": f"# {name}\n\nA {template} project created with FLEXT-CLI.",
-                "pyproject.toml": f"""[tool.poetry]
+            return FlextResult[FlextCliMain].ok(cli_main)
+
+        except Exception as e:
+            return FlextResult[FlextCliMain].fail(f"CLI interface creation failed: {e}")
+
+    def _register_project_commands(self, cli_main: FlextCliMain) -> None:
+        """Register project management commands."""
+        create_cmd_result = self.cli_api.create_command(
+            name="create",
+            description="Create a new project using flext-cli patterns",
+            handler=self._handle_project_create,
+            arguments=["--name", "--template", "--directory"]
+        )
+        status_cmd_result = self.cli_api.create_command(
+            name="status",
+            description="Show project status and information",
+            handler=self._handle_project_status,
+            arguments=["--directory"]
+        )
+        
+        project_commands = {
+            "create": create_cmd_result.unwrap(),
+            "status": status_cmd_result.unwrap()
+        }
+
+        cli_main.register_command_group(
+            name="project",
+            commands=project_commands,
+            description="Project management commands"
+        )
+
+    def _register_service_commands(self, cli_main: FlextCliMain) -> None:
+        """Register service management commands."""
+        health_cmd_result = self.cli_api.create_command(
+            name="health",
+            description="Check health of a service",
+            handler=self._handle_service_health,
+            arguments=["--url", "--timeout"]
+        )
+        
+        service_commands = {
+            "health": health_cmd_result.unwrap()
+        }
+
+        cli_main.register_command_group(
+            name="service",
+            commands=service_commands,
+            description="Service management commands"
+        )
+
+    def _register_config_commands(self, cli_main: FlextCliMain) -> None:
+        """Register configuration commands."""
+        show_cmd_result = self.cli_api.create_command(
+            name="show",
+            description="Show current configuration",
+            handler=self._handle_config_show,
+            arguments=[]
+        )
+        set_cmd_result = self.cli_api.create_command(
+            name="set",
+            description="Set configuration values",
+            handler=self._handle_config_set,
+            arguments=["--profile", "--output"]
+        )
+        
+        config_commands = {
+            "show": show_cmd_result.unwrap(),
+            "set": set_cmd_result.unwrap()
+        }
+
+        cli_main.register_command_group(
+            name="config",
+            commands=config_commands,
+            description="Configuration management commands"
+        )
+
+    def _register_interactive_commands(self, cli_main: FlextCliMain) -> None:
+        """Register interactive commands."""
+        wizard_cmd_result = self.cli_api.create_command(
+            name="wizard",
+            description="Interactive setup wizard",
+            handler=self._handle_interactive_wizard,
+            arguments=[]
+        )
+        
+        interactive_commands = {
+            "wizard": wizard_cmd_result.unwrap()
+        }
+
+        cli_main.register_command_group(
+            name="interactive",
+            commands=interactive_commands,
+            description="Interactive commands and prompts"
+        )
+
+    def _handle_project_create(self, **kwargs: object) -> FlextResult[None]:
+        """Handle project creation command."""
+        name = str(kwargs.get("name", ""))
+        template = str(kwargs.get("template", "api"))
+        directory_path = kwargs.get("directory")
+
+        if not name:
+            return FlextResult[None].fail("Project name is required")
+
+        # Display progress
+        self.cli_api.display_message(f"Creating project: {name}", message_type="info")
+        self.cli_api.display_message(f"Template: {template}", message_type="info")
+
+        # Determine project directory
+        directory = Path(str(directory_path)) if directory_path else Path.cwd() / name
+
+        # Create project directory
+        directory.mkdir(parents=True, exist_ok=True)
+
+        # Create basic project files
+        project_files = {
+            "README.md": f"# {name}\n\nA {template} project created with FLEXT-CLI.",
+            "pyproject.toml": f"""[tool.poetry]
 name = "{name}"
 version = "0.1.0"
 description = "A {template} project"
@@ -225,321 +237,203 @@ description = "A {template} project"
 [tool.poetry.dependencies]
 python = "^3.13"
 """,
-                ".gitignore": "*.pyc\n__pycache__/\n.env\n.venv/\n",
-            }
+            ".gitignore": "*.pyc\n__pycache__/\n.env\n.venv/\n",
+        }
 
-            for filename, content in project_files.items():
-                file_path = directory / filename
-                file_path.write_text(content)
+        for filename, content in project_files.items():
+            file_path = directory / filename
+            file_path.write_text(content)
 
-                # Complete command execution
-                # Project created successfully
-                app.console.print(
-                    f"✅ Project '{name}' created successfully in {directory}"
-                )
+        # Display success using flext-cli formatting
+        project_data = {
+            "Name": name,
+            "Template": template,
+            "Directory": str(directory),
+            "Files Created": str(len(project_files)),
+            "Created At": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+        }
 
-                # Display project summary
-                project_table = Table(title=f"Project: {name}")
-                project_table.add_column("Property", style="cyan")
-                project_table.add_column("Value", style="green")
-
-                project_table.add_row("Name", name)
-                project_table.add_row("Template", template)
-                project_table.add_row("Directory", str(directory))
-                project_table.add_row("Files Created", str(len(project_files)))
-                project_table.add_row(
-                    "Created At", datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
-                )
-
-                app.console.print(project_table)
-
-        except Exception as e:
-            app.console.print(f"[red]Project creation failed: {e}[/red]")
-
-
-@project.command()
-@click.option(
-    "--directory",
-    type=click.Path(exists=True, file_okay=False, dir_okay=True),
-    default=".",
-    help="Project directory",
-)
-# Removed problematic decorator @cli_enhanced - causes type inference issues
-@click.pass_context
-def status(ctx: click.Context, directory: Path) -> None:
-    """Show project status and information."""
-    app: ComprehensiveCliApplication = ctx.obj["app"]
-
-    app.console.print(f"[green]Project Status for: {directory.absolute()}[/green]")
-
-    # Analyze project structure
-    project_files = list(directory.glob("*"))
-    python_files = list(directory.glob("**/*.py"))
-    config_files = [
-        f
-        for f in project_files
-        if f.name in {"pyproject.toml", "setup.py", "requirements.txt"}
-    ]
-
-    # Display project analysis
-    status_table = Table(title="Project Analysis")
-    status_table.add_column("Metric", style="cyan")
-    status_table.add_column("Value", style="green")
-
-    status_table.add_row("Directory", str(directory.absolute()))
-    status_table.add_row("Total Files", str(len(project_files)))
-    status_table.add_row("Python Files", str(len(python_files)))
-    status_table.add_row("Config Files", str(len(config_files)))
-    status_table.add_row(
-        "Analysis Time", datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
-    )
-
-    app.console.print(status_table)
-
-    # Show config files found
-    if config_files:
-        app.console.print("\n[yellow]Configuration files found:[/yellow]")
-        for config_file in config_files:
-            app.console.print(f"  📄 {config_file.name}")
-
-
-# Service Management Commands Group
-@cli.group()
-@click.pass_context
-def service(ctx: click.Context) -> None:
-    """Service management commands."""
-
-
-@service.command()
-@click.option("--url", type=str, required=True, help="Service URL")
-@click.option(
-    "--timeout", type=click.IntRange(min=1), default=30, help="Timeout in seconds"
-)
-# Removed problematic decorators @cli_enhanced, @cli_measure_time - cause type inference issues
-@click.pass_context
-def health(ctx: click.Context, url: str, timeout: int) -> None:
-    """Check health of a service."""
-    app: ComprehensiveCliApplication = ctx.obj["app"]
-
-    app.console.print(f"[green]Checking health of service: {url}[/green]")
-
-    # Create health check command
-    command_result = app.entity_factory.create_command(
-        name="health-check",
-        command_line=f"curl -f --connect-timeout {timeout} {url}/health",
-        # Removed unsupported parameters: description, arguments
-    )
-
-    if command_result.failure:
-        app.console.print(
-            f"[red]Failed to create health check command: {command_result.error}[/red]"
+        self.cli_api.display_output(
+            data=project_data,
+            format_type="table",
+            title=f"Project: {name}"
         )
-        return
 
-    command = command_result.value
+        return FlextResult[None].ok(None)
 
-    # Execute health check
-    with app.console.status("[bold green]Checking service health..."):
-        execution_result = command.start_execution()
+    def _handle_project_status(self, **kwargs: object) -> FlextResult[None]:
+        """Handle project status command."""
+        directory_path = kwargs.get("directory", ".")
+        directory = Path(str(directory_path))
 
-        if execution_result.is_success:
-            # Simulate health check
+        # Analyze project structure
+        project_files = list(directory.glob("*"))
+        python_files = list(directory.glob("**/*.py"))
+        config_files = [
+            f for f in project_files
+            if f.name in {"pyproject.toml", "setup.py", "requirements.txt"}
+        ]
 
-            health_status = "healthy"  # Fixed status for demo
-            response_time = 100  # Fixed response time for demo
+        # Display project analysis
+        status_data = {
+            "Directory": str(directory.absolute()),
+            "Total Files": str(len(project_files)),
+            "Python Files": str(len(python_files)),
+            "Config Files": str(len(config_files)),
+            "Analysis Time": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+        }
 
-            # Complete command
-            completion_result = command.complete_execution(
-                exit_code=0 if health_status == "healthy" else 1,
-                stdout=f"Service health: {health_status}",
-                stderr="" if health_status == "healthy" else "Service issues detected",
-            )
-
-            if completion_result.is_success:
-                # Display health results
-                health_table = Table(title=f"Service Health: {url}")
-                health_table.add_column("Metric", style="cyan")
-                health_table.add_column(
-                    "Value", style="green" if health_status == "healthy" else "red"
-                )
-
-                health_table.add_row("URL", url)
-                health_table.add_row("Status", health_status.upper())
-                health_table.add_row("Response Time", f"{response_time}ms")
-                health_table.add_row("Timeout", f"{timeout}s")
-                health_table.add_row(
-                    "Check Time", datetime.now(UTC).strftime("%H:%M:%S UTC")
-                )
-
-                app.console.print(health_table)
-
-                if health_status != "healthy":
-                    app.console.print(
-                        "[yellow]⚠️ Service may require attention[/yellow]"
-                    )
-            else:
-                app.console.print(
-                    f"[red]Health check completion failed: {completion_result.error}[/red]"
-                )
-        else:
-            app.console.print(
-                f"[red]Health check execution failed: {execution_result.error}[/red]"
-            )
-
-
-# Configuration Management Commands Group
-@cli.group()
-@click.pass_context
-def config(ctx: click.Context) -> None:
-    """Configuration management commands."""
-
-
-@config.command()
-@click.pass_context
-def show(ctx: click.Context) -> None:
-    """Show current configuration."""
-    app: ComprehensiveCliApplication = ctx.obj["app"]
-    ctx.obj["cli_context"]
-
-    app.console.print("[green]Current Configuration[/green]")
-
-    # Display configuration
-    config_table = Table(title="CLI Configuration")
-    config_table.add_column("Setting", style="cyan")
-    config_table.add_column("Value", style="green")
-
-    config_table.add_row("Profile", ctx.obj.get("profile", "default"))
-    config_table.add_row("Output Format", ctx.obj.get("output", "TABLE"))
-    config_table.add_row("Debug Mode", str(ctx.obj.get("debug", False)))
-    config_table.add_row("Verbose Mode", str(ctx.obj.get("verbose", False)))
-    config_table.add_row("Quiet Mode", str(ctx.obj.get("quiet", False)))
-
-    app.console.print(config_table)
-
-    # Show user preferences
-    app.console.print("\n[yellow]User Preferences:[/yellow]")
-    prefs_table = Table()
-    prefs_table.add_column("Preference", style="cyan")
-    prefs_table.add_column("Value", style="green")
-
-    for pref_name, pref_value in app.user_preferences.items():
-        prefs_table.add_row(pref_name, str(pref_value))
-
-    app.console.print(prefs_table)
-
-
-@config.command()
-@click.option("--profile", help="Set default profile")
-@click.option(
-    "--output",
-    type=click.Choice(["table", "json", "yaml", "csv"]),
-    help="Set default output format",
-)
-@click.pass_context
-def set_config(ctx: click.Context, profile: str | None, output: str | None) -> None:
-    """Set configuration values."""
-    app: ComprehensiveCliApplication = ctx.obj["app"]
-
-    if not profile and not output:
-        app.console.print("[yellow]No configuration changes specified[/yellow]")
-        return
-
-    app.console.print("[green]Updating configuration...[/green]")
-
-    changes = []
-
-    if profile:
-        app.user_preferences["default_profile"] = profile
-        changes.append(f"Profile: {profile}")
-
-    if output:
-        app.user_preferences["default_output_format"] = output
-        changes.append(f"Output format: {output}")
-
-    # Display changes
-    app.console.print("✅ Configuration updated:")
-    for change in changes:
-        app.console.print(f"   • {change}")
-
-
-# Interactive Commands Group
-@cli.group()
-@click.pass_context
-def interactive(ctx: click.Context) -> None:
-    """Interactive commands and prompts."""
-
-
-@interactive.command()
-@click.pass_context
-def wizard(ctx: click.Context) -> None:
-    """Interactive setup wizard."""
-    app: ComprehensiveCliApplication = ctx.obj["app"]
-
-    app.console.print(
-        Panel(
-            "[bold magenta]FLEXT-CLI Interactive Setup Wizard[/bold magenta]\n\n"
-            "[yellow]This wizard will guide you through CLI configuration...[/yellow]",
-            expand=False,
+        self.cli_api.display_output(
+            data=status_data,
+            format_type="table",
+            title="Project Analysis"
         )
-    )
 
-    try:
-        # Collect user input
-        project_name = Prompt.ask("Enter project name", default="my-flext-project")
-        project_type = Prompt.ask(
-            "Select project type",
-            choices=["web", "api", "cli", "library"],
-            default="api",
+        return FlextResult[None].ok(None)
+
+    def _handle_service_health(self, **kwargs: object) -> FlextResult[None]:
+        """Handle service health check command."""
+        url = str(kwargs.get("url", ""))
+        timeout = int(str(kwargs.get("timeout", 30)))
+
+        if not url:
+            return FlextResult[None].fail("Service URL is required")
+
+        self.cli_api.display_message(f"Checking health of service: {url}", message_type="info")
+
+        # Simulate health check (in real implementation, would make HTTP request)
+        health_status = "healthy"
+        response_time = 100
+
+        # Display health results
+        health_data = {
+            "URL": url,
+            "Status": health_status.upper(),
+            "Response Time": f"{response_time}ms",
+            "Timeout": f"{timeout}s",
+            "Check Time": datetime.now(UTC).strftime("%H:%M:%S UTC")
+        }
+
+        self.cli_api.display_output(
+            data=health_data,
+            format_type="table",
+            title=f"Service Health: {url}"
         )
-        use_database = Confirm.ask("Include database support?", default=True)
-        use_auth = Confirm.ask("Include authentication?", default=True)
 
-        # Display summary
-        wizard_table = Table(title="Setup Summary")
-        wizard_table.add_column("Setting", style="cyan")
-        wizard_table.add_column("Value", style="green")
+        return FlextResult[None].ok(None)
 
-        wizard_table.add_row("Project Name", project_name)
-        wizard_table.add_row("Project Type", project_type)
-        wizard_table.add_row("Database Support", "Yes" if use_database else "No")
-        wizard_table.add_row("Authentication", "Yes" if use_auth else "No")
+    def _handle_config_show(self, **kwargs: object) -> FlextResult[None]:
+        """Handle configuration show command."""
+        # Display current configuration
+        config_data = {
+            "Profile": "default",
+            "Output Format": "table",
+            "Debug Mode": str(self.config.debug),
+            "App Name": self.config.app_name
+        }
 
-        app.console.print(wizard_table)
+        self.cli_api.display_output(
+            data=config_data,
+            format_type="table",
+            title="CLI Configuration"
+        )
 
-        # Confirm setup
-        if Confirm.ask("Proceed with this configuration?", default=True):
-            app.console.print("✅ Configuration saved successfully!")
+        # Show user preferences
+        self.cli_api.display_output(
+            data=self.user_preferences,
+            format_type="table",
+            title="User Preferences"
+        )
 
-            # Store configuration
-            wizard_config = {
-                "project_name": project_name,
-                "project_type": project_type,
-                "database_support": use_database,
-                "authentication": use_auth,
-                "configured_at": datetime.now(UTC).isoformat(),
-            }
+        return FlextResult[None].ok(None)
 
-            app.user_preferences.update(wizard_config)
+    def _handle_config_set(self, **kwargs: object) -> FlextResult[None]:
+        """Handle configuration set command."""
+        profile = kwargs.get("profile")
+        output = kwargs.get("output")
 
-        else:
-            app.console.print("[yellow]Configuration cancelled[/yellow]")
+        if not profile and not output:
+            self.cli_api.display_message("No configuration changes specified", message_type="warning")
+            return FlextResult[None].ok(None)
 
-    except KeyboardInterrupt:
-        app.console.print("\n[yellow]Wizard cancelled by user[/yellow]")
+        changes = []
+
+        if profile:
+            self.user_preferences["default_profile"] = profile
+            changes.append(f"Profile: {profile}")
+
+        if output:
+            self.user_preferences["default_output_format"] = output
+            changes.append(f"Output format: {output}")
+
+        self.cli_api.display_message("Configuration updated", message_type="success")
+        for change in changes:
+            self.cli_api.display_message(f"  • {change}", message_type="info")
+
+        return FlextResult[None].ok(None)
+
+    def _handle_interactive_wizard(self, **kwargs: object) -> FlextResult[None]:
+        """Handle interactive setup wizard."""
+        self.cli_api.display_message(
+            "This wizard will guide you through CLI configuration...",
+            message_type="info"
+        )
+
+        # In a real implementation, would use flext-cli interactive features
+        # For this example, we'll simulate the configuration
+        wizard_config = {
+            "project_name": "my-flext-project",
+            "project_type": "api",
+            "database_support": True,
+            "authentication": True,
+            "configured_at": datetime.now(UTC).isoformat(),
+        }
+
+        self.cli_api.display_output(
+            data=wizard_config,
+            format_type="table",
+            title="Setup Summary"
+        )
+
+        self.user_preferences.update(wizard_config)
+        self.cli_api.display_message("Configuration saved successfully!", message_type="success")
+
+        return FlextResult[None].ok(None)
 
 
-# Main CLI entry point
 def main() -> None:
     """Main CLI entry point with comprehensive error handling."""
     try:
-        cli()
+        # Create application instance
+        app = ComprehensiveCliApplication()
+
+        # Initialize application
+        init_result = app.initialize_application()
+        if init_result.is_failure:
+            app.cli_api.display_message(f"Initialization failed: {init_result.error}", message_type="error")
+            sys.exit(1)
+
+        # Create CLI interface
+        cli_result = app.create_cli_interface()
+        if cli_result.is_failure:
+            app.cli_api.display_message(f"CLI creation failed: {cli_result.error}", message_type="error")
+            sys.exit(1)
+
+        # Run CLI
+        cli_main = cli_result.unwrap()
+        execution_result = cli_main.execute()
+
+        if execution_result.is_failure:
+            app.cli_api.display_message(f"CLI execution failed: {execution_result.error}", message_type="error")
+            sys.exit(1)
+
     except KeyboardInterrupt:
-        console = Console()
-        console.print("\n[yellow]Operation cancelled by user[/yellow]")
+        cli_api = FlextCliApi()
+        cli_api.display_message("Operation cancelled by user", message_type="warning")
         sys.exit(130)
     except Exception as e:
-        console = Console()
-        console.print(f"[bold red]CLI error: {e}[/bold red]")
+        cli_api = FlextCliApi()
+        cli_api.display_message(f"CLI error: {e}", message_type="error")
         sys.exit(1)
 
 

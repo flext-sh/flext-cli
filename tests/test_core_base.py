@@ -12,8 +12,7 @@ import io
 import pytest
 from flext_core import FlextResult
 
-from flext_cli import handle_service_result
-from flext_cli.context import FlextCliContext
+from flext_cli import FlextCliContext, FlextCliDecorators
 
 # Constants
 EXPECTED_DATA_COUNT = 3
@@ -86,7 +85,7 @@ class TestHandleServiceResult:
     def test_successful_result_handling(self) -> None:
         """Test handling of successful FlextResult."""
 
-        @handle_service_result
+        @FlextCliDecorators.handle_service_result
         def success_function() -> FlextResult[str]:
             return FlextResult[str].ok("success data")
 
@@ -100,7 +99,7 @@ class TestHandleServiceResult:
         # Capture console output to verify error printing
         io.StringIO()
 
-        @handle_service_result
+        @FlextCliDecorators.handle_service_result
         def fail_function() -> FlextResult[str]:
             return FlextResult[str].fail("error message")
 
@@ -112,7 +111,7 @@ class TestHandleServiceResult:
     def test_non_result_passthrough(self) -> None:
         """Test passthrough of non-FlextResult values now returns None with warning."""
 
-        @handle_service_result
+        @FlextCliDecorators.handle_service_result
         def regular_function() -> FlextResult[str]:
             return FlextResult[str].ok("regular data")
 
@@ -123,7 +122,7 @@ class TestHandleServiceResult:
     def test_exception_handling(self) -> None:
         """Test exception handling in decorator."""
 
-        @handle_service_result
+        @FlextCliDecorators.handle_service_result
         def exception_function() -> FlextResult[str]:
             msg = "test exception"
             raise ValueError(msg)
@@ -135,7 +134,7 @@ class TestHandleServiceResult:
     def test_decorator_preserves_function_metadata(self) -> None:
         """Test that decorator preserves function metadata."""
 
-        @handle_service_result
+        @FlextCliDecorators.handle_service_result
         def documented_function() -> FlextResult[str]:
             """A documented function."""
             return FlextResult[str].ok("result")
@@ -152,7 +151,7 @@ class TestHandleServiceResult:
     def test_decorator_with_arguments(self) -> None:
         """Test decorator with function arguments."""
 
-        @handle_service_result
+        @FlextCliDecorators.handle_service_result
         def function_with_args(arg1: str, arg2: int, kwarg1: str = "default") -> FlextResult[str]:
             return FlextResult[str].ok(f"{arg1}-{arg2}-{kwarg1}")
 
@@ -164,7 +163,7 @@ class TestHandleServiceResult:
     def test_result_with_complex_data(self) -> None:
         """Test handling FlextResult with complex data types."""
 
-        @handle_service_result
+        @FlextCliDecorators.handle_service_result
         def complex_data_function() -> FlextResult[dict[str, object]]:
             return FlextResult[dict[str, object]].ok(
                 {
@@ -209,7 +208,7 @@ class TestHandleServiceResult:
     def test_async_exception_handling(self) -> None:
         """Test async exception handling in decorator - REAL functionality."""
 
-        @handle_service_result
+        @FlextCliDecorators.handle_service_result
         async def async_exception_function() -> FlextResult[str]:
             await asyncio.sleep(0.01)
             msg = "async test exception"
@@ -227,7 +226,7 @@ class TestHandleServiceResult:
     def test_async_non_result_passthrough(self) -> None:
         """Test async passthrough of non-FlextResult values now returns None."""
 
-        @handle_service_result
+        @FlextCliDecorators.handle_service_result
         async def async_regular_function() -> FlextResult[str]:
             await asyncio.sleep(0.01)
             return FlextResult[str].ok("async regular data")

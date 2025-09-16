@@ -10,7 +10,7 @@ import json
 
 from flext_core import FlextResult, FlextTypes
 
-from flext_cli import FlextCliDataProcessing
+from flext_cli.utils import FlextCliUtilities as FlextCliDataProcessing
 
 
 class TestFlextCliDataProcessingFunctional:
@@ -138,7 +138,7 @@ class TestFlextCliDataProcessingFunctional:
         ]
 
         # Execute export
-        result = self.processor.safe_json_stringify(test_data)
+        result = self.processor.safe_json_stringify_flext_result(test_data)
 
         # Verify export worked
         assert result.is_success
@@ -203,7 +203,7 @@ class TestFlextCliDataProcessingFunctional:
 
         # Step 2: Aggregate transformed data
         transformed_data = transform_result.unwrap()
-        aggregate_result = self.processor.safe_json_stringify(transformed_data)
+        aggregate_result = self.processor.safe_json_stringify_flext_result(transformed_data)
         assert aggregate_result.is_success
 
         final_result = aggregate_result.unwrap()

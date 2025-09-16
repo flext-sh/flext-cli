@@ -24,6 +24,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from datetime import datetime
+from typing import cast
 
 from flext_cli import (
     FlextCliApi,
@@ -187,7 +188,7 @@ def _summary_demo(formatter: FlextCliFormatters) -> None:
     }
 
     table_result = formatter.format_table(
-        data=summary_data, title="Foundation Patterns Summary"
+        data=cast(dict[str, object], summary_data), title="Foundation Patterns Summary"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)

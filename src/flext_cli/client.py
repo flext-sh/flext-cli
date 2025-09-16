@@ -57,7 +57,9 @@ class FlextApiClient:
             description="Pipeline configuration",
         )
         created_at: str | None = Field(None, description="Pipeline creation timestamp")
-        updated_at: str | None = Field(None, description="Pipeline last update timestamp")
+        updated_at: str | None = Field(
+            None, description="Pipeline last update timestamp"
+        )
 
         def validate_business_rules(self) -> FlextResult[None]:
             """Validate pipeline business rules."""

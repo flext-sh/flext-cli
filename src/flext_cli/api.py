@@ -622,6 +622,99 @@ class FlextCliApi(FlextDomainService[str]):
     # CONVENIENCE METHODS - Backward compatibility with unified implementation
     # =========================================================================
 
+    def display_message(
+        self, message: str, message_type: str = "info"
+    ) -> FlextResult[None]:
+        """Display message using CLI formatters."""
+        try:
+            # Use formatters to display message with type
+            display_result = self._formatters.display_message(message, message_type)
+            if display_result.is_success:
+                return FlextResult[None].ok(None)
+            return FlextResult[None].fail(
+                display_result.error or "Message display failed"
+            )
+        except Exception as e:
+            return FlextResult[None].fail(f"Message display failed: {e}")
+
+    def display_output(
+        self,
+        data: object,
+        format_type: str = "table",
+        title: str | None = None,
+    ) -> FlextResult[None]:
+        """Display output using CLI formatters."""
+        try:
+            # Format the data first
+            format_result = self.format_data(data, format_type)
+            if format_result.is_failure:
+                return FlextResult[None].fail(
+                    f"Data formatting failed: {format_result.error}"
+                )
+
+            # Display using formatters
+            display_result = self._formatters.display_formatted_output(
+                format_result.value, title=title
+            )
+            if display_result.is_success:
+                return FlextResult[None].ok(None)
+            return FlextResult[None].fail(
+                display_result.error or "Output display failed"
+            )
+        except Exception as e:
+            return FlextResult[None].fail(f"Output display failed: {e}")
+
+    def format_output(
+        self,
+        data: object,
+        format_type: str = "table",
+    ) -> FlextResult[str]:
+        """Format data using CLI formatters."""
+        return self.format_data(data, format_type)
+
+    def create_command(
+        self,
+        name: str,
+        description: str,
+        handler: object,
+        arguments: list[str] | None = None,
+    ) -> FlextResult[FlextCliModels.CliCommand]:
+        """Create CLI command with validation."""
+        try:
+            if not name or not name.strip():
+                return FlextResult[FlextCliModels.CliCommand].fail(
+                    "Command name cannot be empty"
+                )
+
+            if not description or not description.strip():
+                return FlextResult[FlextCliModels.CliCommand].fail(
+                    "Command description cannot be empty"
+                )
+
+            if not callable(handler):
+                return FlextResult[FlextCliModels.CliCommand].fail(
+                    "Handler must be callable"
+                )
+
+            command = FlextCliModels.CliCommand(
+                id=FlextUtilities.Generators.generate_uuid(),
+                command_line=f"{name} {' '.join(arguments or [])}",
+                execution_time=datetime.now(UTC),
+            )
+
+            # Note: output_format stored separately as needed
+            # command model doesn't have _output_format attribute
+
+            # Store command in history if enabled
+            if self.enable_command_history and self.state:
+                self.state.command_history.append(command)
+
+            return FlextResult[FlextCliModels.CliCommand].ok(command)
+        except Exception as e:
+            return FlextResult[FlextCliModels.CliCommand].fail(
+                f"Command creation failed: {e}"
+            )
+
     def format_data(self, data: object, format_type: str) -> FlextResult[str]:
         """Format data to specified format type using FlextCliFormatters."""
         return self._formatters.format_data(data, format_type)
@@ -673,7 +766,9 @@ class FlextCliApi(FlextDomainService[str]):
             table_result = self._formatters.create_rich_table_object(data, title=title)
             if table_result.is_success:
                 return FlextResult[object].ok(table_result.value)
-            return FlextResult[object].fail(f"Table creation failed: {table_result.error}")
+            return FlextResult[object].fail(
+                f"Table creation failed: {table_result.error}"
+            )
         except Exception as e:
             return FlextResult[object].fail(f"Table creation failed: {e}")
 

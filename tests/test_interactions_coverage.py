@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from flext_core import FlextLogger
+from typing import cast
+
+from flext_core import FlextLogger, FlextTypes
 
 from flext_cli import FlextCliInteractions
 
@@ -121,6 +123,6 @@ class TestFlextCliInteractionsCoverage:
         """Test with_progress method."""
         interactions = FlextCliInteractions()
         items = [1, 2, 3]
-        result = interactions.with_progress(items, "Processing")
+        result = interactions.with_progress(cast("FlextTypes.Core.List", items), "Processing")
         assert result.is_success
         assert result.value == items

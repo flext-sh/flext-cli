@@ -1,4 +1,4 @@
-"""Test FlextCliFactory functionality.
+"""Test FlextCli direct constructors functionality.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -8,51 +8,37 @@ from __future__ import annotations
 
 from flext_core import FlextResult
 
-from flext_cli.factory import FlextCliFactory
+from flext_cli.auth import FlextCliAuth
+from flext_cli.client import FlextApiClient
 
 
-class TestFlextCliFactory:
-    """Test FlextCliFactory with direct flext-core usage."""
+class TestFlextCliDirectConstructors:
+    """Test FlextCli direct constructors following FLEXT patterns."""
 
     def test_create_auth_service(self) -> None:
-        """Test auth service creation."""
-        result = FlextCliFactory.create_auth_service()
+        """Test auth service direct constructor."""
+        auth_service = FlextCliAuth()
 
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-        assert result.value is not None
-        assert hasattr(result.value, "authenticate_user")
-        assert hasattr(result.value, "login")
+        assert auth_service is not None
+        assert hasattr(auth_service, "authenticate_user")
+        assert hasattr(auth_service, "login")
 
     def test_create_api_client(self) -> None:
-        """Test API client creation."""
-        result = FlextCliFactory.create_api_client()
+        """Test API client direct constructor."""
+        api_client = FlextApiClient()
 
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-        assert result.value is not None
-        assert hasattr(result.value, "base_url")
-        assert hasattr(result.value, "timeout")
+        assert api_client is not None
+        assert hasattr(api_client, "base_url")
+        assert hasattr(api_client, "timeout")
 
-    def test_create_default_auth_service(self) -> None:
-        """Test default auth service creation."""
-        result = FlextCliFactory.create_default_auth_service()
+    def test_auth_service_methods_return_flext_result(self) -> None:
+        """Test that auth service methods return FlextResult."""
+        auth_service = FlextCliAuth()
 
-        assert isinstance(result, FlextResult)
-        assert result.is_success
-        assert result.value is not None
-        assert hasattr(result.value, "authenticate_user")
-        assert hasattr(result.value, "login")
+        # Test login method
+        login_result = auth_service.login("test_user", "test_password")
+        assert isinstance(login_result, FlextResult)
 
-    def test_factory_methods_return_flext_result(self) -> None:
-        """Test that all factory methods return FlextResult."""
-        methods = [
-            FlextCliFactory.create_auth_service,
-            FlextCliFactory.create_api_client,
-            FlextCliFactory.create_default_auth_service,
-        ]
-
-        for method in methods:
-            result = method()
-            assert isinstance(result, FlextResult)
-            assert result.is_success
+        # Test authenticate_user method
+        auth_result = auth_service.authenticate_user("test_user", "test_password")
+        assert isinstance(auth_result, FlextResult)

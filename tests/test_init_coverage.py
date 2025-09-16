@@ -9,11 +9,9 @@ from flext_cli import (
     FlextCliConfig,
     FlextCliConstants,
     FlextCliContext,
-    FlextCliDataProcessing,
     FlextCliDebug,
     FlextCliDecorators,
     FlextCliDomainServices,
-    FlextCliFactory,
     FlextCliFileOperations,
     FlextCliFormatters,
     FlextCliInteractions,
@@ -29,7 +27,6 @@ from flext_cli import (
     cli,
     config,
     debug,
-    get_cli_config,
     login,
     logout,
     main,
@@ -40,9 +37,9 @@ from flext_cli import (
 class TestFlextCliDirectCoverage:
     """Test direct flext-core usage - NO WRAPPERS."""
 
-    def test_get_cli_config_function(self) -> None:
-        """Test get_cli_config function."""
-        config = get_cli_config()
+    def test_cli_config_direct_creation(self) -> None:
+        """Test FlextCliConfig direct creation (no factory pattern)."""
+        config = FlextCliConfig()
         assert config is not None
         assert isinstance(config, FlextCliConfig)
 
@@ -82,11 +79,9 @@ class TestFlextCliDirectCoverage:
         assert FlextApiClient is not None
         assert FlextCliConstants is not None
         assert FlextCliContext is not None
-        assert FlextCliDataProcessing is not None
         assert FlextCliDebug is not None
         assert FlextCliDecorators is not None
         assert FlextCliDomainServices is not None
-        assert FlextCliFactory is not None
         assert FlextCliFileOperations is not None
         assert FlextCliInteractions is not None
         assert FlextCliLoggingSetup is not None

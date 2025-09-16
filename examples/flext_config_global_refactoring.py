@@ -21,9 +21,8 @@ from __future__ import annotations
 
 from flext_cli.api import FlextCliApi
 from flext_cli.auth import FlextCliAuth
-from flext_cli.client import FlextApiClient
 from flext_cli.config import FlextCliConfig
-from flext_cli.core import FlextCliService
+from flext_cli.client import FlextApiClient
 from flext_core import FlextConfig
 
 
@@ -60,9 +59,9 @@ def demonstrate_global_configuration_refactoring() -> None:
     print(f"      Service Name: {cli_api.service_name}")
 
     # Initialize CLI Service
-    cli_service = FlextCliService()
-    print("   ✅ FlextCliService initialized")
-    print(f"      Config Source: {type(cli_service.get_config()).__name__}")
+    cli_service = FlextApiClient()
+    print("   ✅ FlextApiClient initialized")
+    print(f"      Config Source: {type(cli_service._config).__name__}")
 
     # Initialize CLI Auth
     cli_auth = FlextCliAuth()
@@ -107,9 +106,9 @@ def demonstrate_global_configuration_refactoring() -> None:
     print(f"      New Version: {cli_api.version}")
 
     # Update CLI Service
-    cli_service.update_configuration()
-    print("   ✅ FlextCliService updated")
-    print(f"      Config Updated: {type(cli_service.get_config()).__name__}")
+    cli_service.update_from_config()
+    print("   ✅ FlextApiClient updated")
+    print(f"      Config Updated: {type(cli_service._config).__name__}")
 
     # Update CLI Auth
     cli_auth.update_from_config()
@@ -176,7 +175,7 @@ def demonstrate_elimination_of_duplicate_patterns() -> None:
     modules = [
         ("FlextApiClient", "api_client.update_from_config()"),
         ("FlextCliApi", "cli_api.update_from_config()"),
-        ("FlextCliService", "cli_service.update_configuration()"),
+        ("FlextApiClient", "cli_service.update_from_config()"),
         ("FlextCliAuth", "cli_auth.update_from_config()"),
     ]
 
@@ -194,13 +193,13 @@ def demonstrate_dynamic_configuration_updates() -> None:
     # Initialize all modules
     api_client = FlextApiClient()
     cli_api = FlextCliApi()
-    cli_service = FlextCliService()
+    cli_service = FlextApiClient()
     cli_auth = FlextCliAuth()
 
     print("1. Initial Configuration State:")
     print(f"   API Client Base URL: {api_client.base_url}")
     print(f"   CLI API Version: {cli_api.version}")
-    print(f"   CLI Service Config: {type(cli_service.get_config()).__name__}")
+    print(f"   CLI Service Config: {type(cli_service._config).__name__}")
     print(f"   CLI Auth Config: {type(cli_auth.config).__name__}")
     print()
 
@@ -225,7 +224,7 @@ def demonstrate_dynamic_configuration_updates() -> None:
     print("3. Updating All Modules:")
     api_client.update_from_config()
     cli_api.update_from_config()
-    cli_service.update_configuration()
+    cli_service.update_from_config()
     cli_auth.update_from_config()
 
     print("   ✅ All modules updated from FlextConfig singleton")
@@ -235,7 +234,7 @@ def demonstrate_dynamic_configuration_updates() -> None:
     print("4. Updated Configuration State:")
     print(f"   API Client Base URL: {api_client.base_url}")
     print(f"   CLI API Version: {cli_api.version}")
-    print(f"   CLI Service Config: {type(cli_service.get_config()).__name__}")
+    print(f"   CLI Service Config: {type(cli_service._config).__name__}")
     print(f"   CLI Auth Config: {type(cli_auth.config).__name__}")
     print()
 
@@ -291,7 +290,7 @@ def demonstrate_cli_parameter_integration() -> None:
     print("4. Initializing Modules with Updated Configuration:")
     api_client = FlextApiClient()
     cli_api = FlextCliApi()
-    cli_service = FlextCliService()
+    cli_service = FlextApiClient()
     cli_auth = FlextCliAuth()
 
     print("   ✅ All modules initialized with CLI parameter overrides")
@@ -310,7 +309,7 @@ def demonstrate_cli_parameter_integration() -> None:
     print(f"   API Client Base URL: {api_client.base_url}")
     print(f"   API Client Timeout: {api_client.timeout}s")
     print(f"   CLI API Version: {cli_api.version}")
-    print(f"   CLI Service Config: {type(cli_service.get_config()).__name__}")
+    print(f"   CLI Service Config: {type(cli_service._config).__name__}")
     print(f"   CLI Auth Config: {type(cli_auth.config).__name__}")
     print()
 

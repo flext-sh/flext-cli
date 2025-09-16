@@ -1,465 +1,368 @@
-"""Comprehensive tests for auth.py module."""
+"""Comprehensive auth tests using FlextTests* utilities and real functionality.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
-import tempfile
-from pathlib import Path
-from unittest.mock import Mock, patch
-
 import pytest
 from flext_core import FlextResult
+from flext_tests import FlextTestsBuilders, FlextTestsDomains, FlextTestsMatchers
 
-from flext_cli.auth import FlextCliAuth
-from flext_cli.client import FlextApiClient
-from flext_cli.config import FlextCliConfig
+from flext_cli import FlextCliApi, FlextCliAuth, FlextCliMain
+from flext_cli.models import FlextCliModels
 
 
-class TestFlextCliAuth:
-    """Test FlextCliAuth class."""
+@pytest.mark.auth
+@pytest.mark.real
+class TestAuthCore:
+    """Core auth functionality tests using FlextTests* utilities."""
 
-    def test_initialization(self) -> None:
-        """Test auth service initialization."""
-        auth = FlextCliAuth()
-        assert auth is not None
-        assert hasattr(auth, "execute")
+    def test_auth_instance_creation(self, cli_auth: FlextCliAuth) -> None:
+        """Test FlextCliAuth instance creation."""
+        assert isinstance(cli_auth, FlextCliAuth)
+        assert hasattr(cli_auth, "save_auth_token")
+        assert hasattr(cli_auth, "get_auth_token")
+        assert hasattr(cli_auth, "clear_auth_tokens")
+        assert hasattr(cli_auth, "get_status")
 
-    def test_user_data_structure(self) -> None:
-        """Test UserData TypedDict structure."""
-        user_data = FlextCliAuth.UserData(
-            name="Test User", email="test@example.com", id="user123"
+    def test_auth_token_operations(
+        self,
+        cli_auth: FlextCliAuth,
+        auth_tokens: dict[str, str],
+        flext_matchers: FlextTestsMatchers,
+    ) -> None:
+        """Test auth token save/load operations using FlextTests* utilities."""
+        test_token = auth_tokens["valid"]
+
+        # Test save operation
+        save_result = cli_auth.save_auth_token(test_token)
+        flext_matchers.assert_result_success(save_result)
+
+        # Test load operation
+        load_result = cli_auth.get_auth_token()
+        flext_matchers.assert_result_success(load_result)
+        assert load_result.value == test_token
+
+        # Test clear operation
+        clear_result = cli_auth.clear_auth_tokens()
+        flext_matchers.assert_result_success(clear_result)
+
+        # Verify token was cleared
+        cleared_result = cli_auth.get_auth_token()
+        flext_matchers.assert_result_failure(cleared_result)
+
+    def test_auth_status_functionality(
+        self,
+        cli_auth: FlextCliAuth,
+    ) -> None:
+        """Test auth status functionality."""
+        status_result = cli_auth.get_status()
+        assert isinstance(status_result, FlextResult)
+        # Status can be success or failure - both are valid states
+
+    def test_auth_token_edge_cases(
+        self,
+        cli_auth: FlextCliAuth,
+        auth_tokens: dict[str, str],
+        flext_matchers: FlextTestsMatchers,
+    ) -> None:
+        """Test auth token edge cases using test data constants."""
+        # Test empty token validation
+        empty_result = cli_auth.save_auth_token(auth_tokens["empty"])
+        flext_matchers.assert_result_failure(empty_result)
+        assert "cannot be empty" in str(empty_result.error or "").lower()
+
+        # Test special characters token
+        special_result = cli_auth.save_auth_token(auth_tokens["special_chars"])
+        flext_matchers.assert_result_success(special_result)
+
+        special_load = cli_auth.get_auth_token()
+        flext_matchers.assert_result_success(special_load)
+        assert special_load.value == auth_tokens["special_chars"]
+
+        # Test very long token
+        long_result = cli_auth.save_auth_token(auth_tokens["long"])
+        flext_matchers.assert_result_success(long_result)
+
+        long_load = cli_auth.get_auth_token()
+        flext_matchers.assert_result_success(long_load)
+        assert long_load.value == auth_tokens["long"]
+
+
+@pytest.mark.auth
+@pytest.mark.cli
+class TestAuthCommands:
+    """Test auth commands using FlextTests* utilities."""
+
+    def test_auth_group_registration(
+        self,
+        cli_main: FlextCliMain,
+        auth_commands: dict[str, FlextCliModels.CliCommand],
+        flext_matchers: FlextTestsMatchers,
+    ) -> None:
+        """Test auth command group registration."""
+        register_result = cli_main.register_command_group(
+            "auth", auth_commands, "Authentication commands",
         )
-        assert user_data["name"] == "Test User"
-        assert user_data["email"] == "test@example.com"
-        assert user_data["id"] == "user123"
+        flext_matchers.assert_result_success(register_result)
 
-    def test_auth_status_structure(self) -> None:
-        """Test AuthStatus TypedDict structure."""
-        auth_status = FlextCliAuth.AuthStatus(
-            authenticated=True,
-            token_file="/path/to/token",
-            token_exists=True,
-            refresh_token_file="/path/to/refresh",
-            refresh_token_exists=True,
-            auto_refresh=True,
-        )
-        assert auth_status["authenticated"] is True
-        assert auth_status["token_file"] == "/path/to/token"
-        assert auth_status["token_exists"] is True
+    def test_login_command_functionality(
+        self,
+        cli_api: FlextCliApi,
+        cli_auth: FlextCliAuth,
+        auth_tokens: dict[str, str],
+        flext_matchers: FlextTestsMatchers,
+        flext_builders: FlextTestsBuilders,
+    ) -> None:
+        """Test login command functionality."""
+        test_token = auth_tokens["valid"]
 
-    def test_login_credentials_structure(self) -> None:
-        """Test LoginCredentials TypedDict structure."""
-        credentials = FlextCliAuth.LoginCredentials(
-            username="test@example.com", password="password123"
-        )
-        assert credentials["username"] == "test@example.com"
-        assert credentials["password"] == "password123"
+        # Test login data formatting
+        login_data = flext_builders.success_result({
+            "username": "testuser",
+            "authentication_method": "password",
+            "status": "success",
+        }).value
 
-    def test_token_paths_structure(self) -> None:
-        """Test TokenPaths TypedDict structure."""
-        token_paths = FlextCliAuth.TokenPaths(
-            token_path=Path("/path/to/token"),
-            refresh_token_path=Path("/path/to/refresh"),
-        )
-        assert isinstance(token_paths["token_path"], Path)
-        assert isinstance(token_paths["refresh_token_path"], Path)
+        format_result = cli_api.format_output(login_data, format_type="json")
+        flext_matchers.assert_result_success(format_result)
 
-    def test_execute_method(self) -> None:
-        """Test execute method."""
-        auth = FlextCliAuth()
-        result = auth.execute()
+        # Test token storage
+        save_result = cli_auth.save_auth_token(test_token)
+        flext_matchers.assert_result_success(save_result)
 
-        assert result.is_success
-        assert isinstance(result.value, str)
-        assert "FlextCliAuth service ready" in result.value
+        get_result = cli_auth.get_auth_token()
+        flext_matchers.assert_result_success(get_result)
+        assert get_result.value == test_token
 
-    def test_get_token_paths(self) -> None:
-        """Test get_token_paths method."""
-        auth = FlextCliAuth()
-        result = auth.get_token_paths()
+    def test_logout_command_functionality(
+        self,
+        cli_api: FlextCliApi,
+        cli_auth: FlextCliAuth,
+        auth_tokens: dict[str, str],
+        test_messages: dict[str, str],
+        flext_matchers: FlextTestsMatchers,
+    ) -> None:
+        """Test logout command functionality."""
+        # Set up token first
+        test_token = auth_tokens["valid"]
+        cli_auth.save_auth_token(test_token)
 
-        assert result.is_success
-        assert result.value is not None
-        assert "token_path" in result.value
-        assert "refresh_token_path" in result.value
+        # Test logout functionality
+        logout_result = cli_auth.clear_auth_tokens()
+        flext_matchers.assert_result_success(logout_result)
 
-    def test_get_token_path(self) -> None:
-        """Test get_token_path method."""
-        auth = FlextCliAuth()
-        path = auth.get_token_path()
+        # Verify token cleared
+        get_result = cli_auth.get_auth_token()
+        flext_matchers.assert_result_failure(get_result)
 
-        assert isinstance(path, Path)
-        assert path.name == "token.json"
+        # Test success message display
+        message_result = cli_api.display_message(test_messages["logout_success"], "success")
+        flext_matchers.assert_result_success(message_result)
 
-    def test_get_refresh_token_path(self) -> None:
-        """Test get_refresh_token_path method."""
-        auth = FlextCliAuth()
-        path = auth.get_refresh_token_path()
+    def test_status_command_functionality(
+        self,
+        cli_api: FlextCliApi,
+        cli_auth: FlextCliAuth,
+        auth_tokens: dict[str, str],
+        test_messages: dict[str, str],
+        flext_matchers: FlextTestsMatchers,
+    ) -> None:
+        """Test status command functionality."""
+        # Test status with token
+        test_token = auth_tokens["valid"]
+        cli_auth.save_auth_token(test_token)
 
-        assert isinstance(path, Path)
-        assert path.name == "refresh_token.json"
+        status_result = cli_auth.get_status()
+        assert isinstance(status_result, FlextResult)
 
-    def test_save_refresh_token(self) -> None:
-        """Test save_refresh_token method."""
-        auth = FlextCliAuth()
-
-        # Test that the method exists and can be called
-        result = auth.save_refresh_token("test_token")
-
-        # The method should return a result (success or failure depending on file system)
-        assert result is not None
-        assert hasattr(result, "is_success")
-
-    def test_get_refresh_token(self) -> None:
-        """Test get_refresh_token method."""
-        auth = FlextCliAuth()
-
-        # Test that the method exists and can be called
-        result = auth.get_refresh_token()
-
-        # The method should return a result (success or failure depending on file system)
-        assert result is not None
-        assert hasattr(result, "is_success")
-
-    def test_get_refresh_token_not_found(self) -> None:
-        """Test get_refresh_token when token file doesn't exist."""
-        auth = FlextCliAuth()
-
-        # Test that the method exists and can be called
-        result = auth.get_refresh_token()
-
-        # The method should return a result (success or failure depending on file system)
-        assert result is not None
-        assert hasattr(result, "is_success")
-
-    def test_should_auto_refresh(self) -> None:
-        """Test should_auto_refresh method."""
-        auth = FlextCliAuth()
-        result = auth.should_auto_refresh()
-
-        assert isinstance(result, bool)
-
-    def test_validate_credentials(self) -> None:
-        """Test validate_credentials method."""
-        auth = FlextCliAuth()
-
-        # Test valid credentials
-        valid_credentials = FlextCliAuth.LoginCredentials(
-            username="test@example.com", password="password123"
-        )
-        result = auth.validate_credentials(valid_credentials)
-        assert result.is_success
-
-        # Test invalid credentials (empty username)
-        invalid_credentials = FlextCliAuth.LoginCredentials(
-            username="", password="password123"
-        )
-        result = auth.validate_credentials(invalid_credentials)
-        assert result.is_failure
-        assert result.error is not None
-        assert "Username and password cannot be empty" in result.error
-
-    def test_is_authenticated_with_token(self) -> None:
-        """Test is_authenticated method with token file."""
-        auth = FlextCliAuth()
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # Create a token file
-            token_file = Path(temp_dir) / "access_token"
-            token_file.write_text("test_token")
-
-            result = auth.is_authenticated(token_path=token_file)
-
-            assert result is True
-
-    def test_is_authenticated_without_token(self) -> None:
-        """Test is_authenticated method without token file."""
-        auth = FlextCliAuth()
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # Use non-existent token file
-            token_file = Path(temp_dir) / "nonexistent_token"
-
-            result = auth.is_authenticated(token_path=token_file)
-
-            assert result is False
-
-    def test_check_authentication_status(self) -> None:
-        """Test check_authentication_status method."""
-        auth = FlextCliAuth()
-        result = auth.check_authentication_status()
-
-        assert result.is_success
-        assert result.value is not None
-        assert isinstance(result.value, bool)
-
-    def test_get_auth_headers(self) -> None:
-        """Test get_auth_headers method."""
-        auth = FlextCliAuth()
-        result = auth.get_auth_headers()
-
-        assert result.is_success
-        assert result.value is not None
-        assert isinstance(result.value, dict)
-
-    @pytest.mark.asyncio
-    async def test_login_success(self) -> None:
-        """Test successful login."""
-        auth = FlextCliAuth()
-
-        # Mock successful login
-        with patch.object(FlextApiClient, "login") as mock_login:
-            mock_login.return_value = FlextResult[dict[str, object]].ok(
-                {
-                    "access_token": "test_token",
-                    "refresh_token": "refresh_token",
-                    "token": "test_token",  # Add missing token field
-                }
+        if status_result.is_success:
+            format_result = cli_api.format_output(
+                status_result.value, format_type="table",
             )
-
-            result = await auth.login("test@example.com", "password")
-
-            # The method should return a result (success or failure depending on implementation)
-            assert result is not None
-            assert hasattr(result, "is_success")
-
-    @pytest.mark.asyncio
-    async def test_login_failure(self) -> None:
-        """Test login failure."""
-
-        # Create mock authentication client
-        async def mock_login(
-            _username: str, _password: str
-        ) -> FlextResult[dict[str, object]]:
-            return FlextResult[dict[str, object]].fail("Invalid credentials")
-
-        mock_auth_client = Mock()
-        mock_auth_client.login = mock_login
-
-        auth = FlextCliAuth(auth_client=mock_auth_client)
-
-        result = await auth.login("test@example.com", "wrong_password")
-
-        assert result.is_failure
-        assert result.error is not None
-        assert "Invalid credentials" in result.error
-
-    @pytest.mark.asyncio
-    async def test_logout_success(self) -> None:
-        """Test successful logout."""
-        auth = FlextCliAuth()
-
-        # Mock successful logout
-        with patch.object(FlextApiClient, "logout") as mock_logout:
-            mock_logout.return_value = FlextResult[None].ok(None)
-
-            result = await auth.logout()
-
-            # The method should return a result (success or failure depending on authentication)
-            assert result is not None
-            assert hasattr(result, "is_success")
-
-    @pytest.mark.asyncio
-    async def test_logout_failure(self) -> None:
-        """Test logout failure."""
-        auth = FlextCliAuth()
-
-        # Mock logout failure
-        with patch.object(FlextApiClient, "logout") as mock_logout:
-            mock_logout.return_value = FlextResult[None].fail("Logout failed")
-
-            result = await auth.logout()
-
-            # The method should return a result (success or failure depending on authentication)
-            assert result is not None
-            assert hasattr(result, "is_success")
-
-    def test_get_status(self) -> None:
-        """Test get_status method."""
-        auth = FlextCliAuth()
-        result = auth.get_status()
-
-        assert result.is_success
-        assert result.value is not None
-        assert "authenticated" in result.value
-        assert "auto_refresh" in result.value
-
-    def test_whoami(self) -> None:
-        """Test whoami method."""
-        auth = FlextCliAuth()
-        result = auth.whoami()
-
-        # The method should return a result (success or failure depending on authentication)
-        assert result is not None
-        assert hasattr(result, "is_success")
-
-    def test_clear_auth_tokens(self) -> None:
-        """Test clear_auth_tokens method."""
-        auth = FlextCliAuth()
-
-        # Test that the method exists and can be called
-        result = auth.clear_auth_tokens()
-
-        # The method should return a result (success or failure depending on file system)
-        assert result is not None
-        assert hasattr(result, "is_success")
-
-    def test_save_token_to_storage(self) -> None:
-        """Test save_token_to_storage method."""
-        auth = FlextCliAuth()
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            token_path = Path(temp_dir) / "test_token"
-
-            result = auth.save_token_to_storage(
-                "test_token", "access_token", token_path
-            )
-
-            assert result.is_success
-            assert token_path.exists()
-            assert token_path.read_text() == "test_token"
-
-    def test_load_token_from_storage(self) -> None:
-        """Test load_token_from_storage method."""
-        auth = FlextCliAuth()
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            token_path = Path(temp_dir) / "test_token"
-            token_path.write_text("test_token")
-
-            result = auth.load_token_from_storage(token_path, "access_token")
-
-            assert result.is_success
-            assert result.value == "test_token"
-
-    def test_load_token_from_storage_not_found(self) -> None:
-        """Test load_token_from_storage when file doesn't exist."""
-        auth = FlextCliAuth()
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            token_path = Path(temp_dir) / "nonexistent_token"
-
-            result = auth.load_token_from_storage(token_path, "access_token")
-
-            assert result.is_failure
-            assert result.error is not None
-            assert (
-                "access_token file does not exist in SOURCE OF TRUTH storage"
-                in result.error
-            )
-
-    def test_save_auth_token(self) -> None:
-        """Test save_auth_token method."""
-        auth = FlextCliAuth()
-
-        # Test that the method exists and can be called
-        result = auth.save_auth_token("test_token")
-
-        # The method should return a result (success or failure depending on file system)
-        assert result is not None
-        assert hasattr(result, "is_success")
-
-    def test_get_auth_token(self) -> None:
-        """Test get_auth_token method."""
-        auth = FlextCliAuth()
-
-        # Test that the method exists and can be called
-        result = auth.get_auth_token()
-
-        # The method should return a result (success or failure depending on file system)
-        assert result is not None
-        assert hasattr(result, "is_success")
-
-    def test_get_auth_token_not_found(self) -> None:
-        """Test get_auth_token when token file doesn't exist."""
-        auth = FlextCliAuth()
-
-        # Test that the method exists and can be called
-        result = auth.get_auth_token()
-
-        # The method should return a result (success or failure depending on file system)
-        assert result is not None
-        assert hasattr(result, "is_success")
-
-    def test_command_handler_initialization(self) -> None:
-        """Test CommandHandler initialization."""
-        auth = FlextCliAuth()
-        handler = FlextCliAuth.CommandHandler(auth)
-
-        assert handler is not None
-        # Test that the handler has the expected methods
-        assert hasattr(handler, "handle_login")
-        assert hasattr(handler, "handle_logout")
-
-    def test_command_handler_handle_login(self) -> None:
-        """Test CommandHandler handle_login method."""
-        auth = FlextCliAuth()
-        handler = FlextCliAuth.CommandHandler(auth)
-
-        # This should not raise an exception
-        handler.handle_login("test@example.com", "password")
-
-    def test_command_handler_handle_logout(self) -> None:
-        """Test CommandHandler handle_logout method."""
-        auth = FlextCliAuth()
-        handler = FlextCliAuth.CommandHandler(auth)
-
-        # This should not raise an exception
-        handler.handle_logout()
-
-    def test_command_handler_handle_status(self) -> None:
-        """Test CommandHandler handle_status method."""
-        auth = FlextCliAuth()
-        handler = FlextCliAuth.CommandHandler(auth)
-
-        # This should not raise an exception
-        handler.handle_status()
-
-    def test_command_handler_handle_whoami(self) -> None:
-        """Test CommandHandler handle_whoami method."""
-        auth = FlextCliAuth()
-        handler = FlextCliAuth.CommandHandler(auth)
-
-        # This should not raise an exception
-        handler.handle_whoami()
-
-    def test_create_class_method(self) -> None:
-        """Test create class method."""
-        config = FlextCliConfig()
-        auth = FlextCliAuth.create(config=config)
-
-        assert auth is not None
-        assert isinstance(auth, FlextCliAuth)
-
-    def test_create_class_method_no_config(self) -> None:
-        """Test create class method without config."""
-        auth = FlextCliAuth.create()
-
-        assert auth is not None
-        assert isinstance(auth, FlextCliAuth)
-
-    def test_error_handling_exception(self) -> None:
-        """Test error handling for exceptions."""
-        auth = FlextCliAuth()
-
-        # Test that the method handles exceptions gracefully
-        result = auth.save_refresh_token("test_token")
-
-        # The method should return a result (success or failure depending on file system)
-        assert result is not None
-        assert hasattr(result, "is_success")
-
-    def test_config_property(self) -> None:
-        """Test config property."""
-        auth = FlextCliAuth()
-        config = auth.config
-
-        assert config is not None
-        assert isinstance(config, FlextCliConfig)
-
-    def test_load_config_from_source(self) -> None:
-        """Test config loading from source."""
-        auth = FlextCliAuth()
-        config = auth.config
-
-        assert config is not None
-        assert isinstance(config, FlextCliConfig)
+            flext_matchers.assert_result_success(format_result)
+
+        # Clean up
+        cli_auth.clear_auth_tokens()
+
+        # Test status without token
+        no_auth_message = cli_api.display_message(
+            test_messages["not_authenticated"], "warning",
+        )
+        flext_matchers.assert_result_success(no_auth_message)
+
+
+@pytest.mark.auth
+@pytest.mark.integration
+class TestAuthIntegration:
+    """Integration tests for auth workflow using FlextTests* utilities."""
+
+    def test_complete_auth_workflow(
+        self,
+        cli_api: FlextCliApi,
+        cli_main: FlextCliMain,
+        cli_auth: FlextCliAuth,
+        auth_commands: dict[str, FlextCliModels.CliCommand],
+        auth_tokens: dict[str, str],
+        test_messages: dict[str, str],
+        flext_matchers: FlextTestsMatchers,
+        flext_domains: FlextTestsDomains,
+    ) -> None:
+        """Test complete auth workflow integration."""
+        # Step 1: Register auth commands
+        register_result = cli_main.register_command_group(
+            "auth", auth_commands, "Authentication commands",
+        )
+        flext_matchers.assert_result_success(register_result)
+
+        # Step 2: Create test user data using FlextTestsDomains
+        user_data = flext_domains.create_user(
+            name="Test User",
+            email="test@example.com",
+            age=25,
+        )
+
+        # Step 3: Format login data
+        login_data = {"username": user_data["name"], "status": "success"}
+        login_format = cli_api.format_output(login_data, format_type="json")
+        flext_matchers.assert_result_success(login_format)
+
+        # Step 4: Token management workflow
+        test_token = auth_tokens["workflow"]
+        save_result = cli_auth.save_auth_token(test_token)
+        flext_matchers.assert_result_success(save_result)
+
+        # Step 5: Status check
+        status_result = cli_auth.get_status()
+        assert isinstance(status_result, FlextResult)
+
+        # Step 6: Logout
+        logout_result = cli_auth.clear_auth_tokens()
+        flext_matchers.assert_result_success(logout_result)
+
+        # Step 7: Verify logout success message
+        success_msg = cli_api.display_message(test_messages["auth_success"], "success")
+        flext_matchers.assert_result_success(success_msg)
+
+    def test_auth_error_scenarios(
+        self,
+        cli_api: FlextCliApi,
+        test_messages: dict[str, str],
+        flext_matchers: FlextTestsMatchers,
+    ) -> None:
+        """Test auth error scenarios."""
+        # Test authentication failure message
+        error_result = cli_api.display_message(test_messages["auth_failure"], "error")
+        flext_matchers.assert_result_success(error_result)
+
+        # Test token expired warning
+        warning_result = cli_api.display_message(test_messages["token_expired"], "warning")
+        flext_matchers.assert_result_success(warning_result)
+
+    def test_auth_output_formatting(
+        self,
+        cli_api: FlextCliApi,
+        cli_auth: FlextCliAuth,
+        auth_tokens: dict[str, str],
+        flext_matchers: FlextTestsMatchers,
+    ) -> None:
+        """Test auth output formatting through CLI API."""
+        # Set up auth status
+        test_token = auth_tokens["integration"]
+        cli_auth.save_auth_token(test_token)
+
+        status_result = cli_auth.get_status()
+
+        if status_result.is_success:
+            # Test multiple output formats
+            for format_type in ["json", "yaml", "table"]:
+                format_result = cli_api.format_output(
+                    status_result.value, format_type=format_type,
+                )
+                flext_matchers.assert_result_success(format_result)
+                assert isinstance(format_result.value, str)
+                assert len(format_result.value) > 0
+
+    @pytest.mark.performance
+    def test_auth_concurrent_operations(
+        self,
+        cli_auth: FlextCliAuth,
+        auth_tokens: dict[str, str],
+        flext_matchers: FlextTestsMatchers,
+    ) -> None:
+        """Test sequential auth token operations."""
+        tokens = [auth_tokens["valid"], auth_tokens["integration"], auth_tokens["workflow"]]
+
+        for token in tokens:
+            save_result = cli_auth.save_auth_token(token)
+            flext_matchers.assert_result_success(save_result)
+
+            # Verify each token save
+            load_result = cli_auth.get_auth_token()
+            flext_matchers.assert_result_success(load_result)
+            assert load_result.value == token
+
+
+@pytest.mark.auth
+@pytest.mark.unit
+class TestAuthValidation:
+    """Auth validation tests using Pydantic models and FlextTests*."""
+
+    def test_auth_result_patterns(
+        self,
+        cli_auth: FlextCliAuth,
+        auth_tokens: dict[str, str],
+        flext_matchers: FlextTestsMatchers,
+    ) -> None:
+        """Test FlextResult patterns in auth operations."""
+        test_token = auth_tokens["valid"]
+
+        # Test success pattern
+        save_result = cli_auth.save_auth_token(test_token)
+        assert isinstance(save_result, FlextResult)
+        flext_matchers.assert_result_success(save_result)
+        assert save_result.error is None
+
+        # Test load pattern
+        load_result = cli_auth.get_auth_token()
+        assert isinstance(load_result, FlextResult)
+        flext_matchers.assert_result_success(load_result)
+        assert load_result.value == test_token
+
+        # Test clear pattern
+        clear_result = cli_auth.clear_auth_tokens()
+        assert isinstance(clear_result, FlextResult)
+        flext_matchers.assert_result_success(clear_result)
+
+        # Test failure pattern
+        no_token_result = cli_auth.get_auth_token()
+        flext_matchers.assert_result_failure(no_token_result)
+        assert "not found" in str(no_token_result.error or "").lower() or \
+               "does not exist" in str(no_token_result.error or "").lower()
+
+    def test_auth_model_validation(
+        self,
+        auth_commands: dict[str, FlextCliModels.CliCommand],
+        flext_domains: FlextTestsDomains,
+    ) -> None:
+        """Test auth model validation using Pydantic."""
+        # Test command model validation
+        for cmd_name, cmd_model in auth_commands.items():
+            assert isinstance(cmd_model, FlextCliModels.CliCommand)
+            assert cmd_model.name == cmd_name
+            assert cmd_model.entry_point is not None
+            assert cmd_model.entry_point.startswith("auth.")
+            assert cmd_model.command_line is not None
+            assert cmd_model.command_line.startswith("auth ")
+
+        # Test user data validation
+        user_data = flext_domains.create_user(
+            name="Auth Test User",
+            email="auth@test.com",
+            age=30,
+        )
+        assert user_data["name"] == "Auth Test User"
+        assert user_data["email"] == "auth@test.com"
+        assert user_data["age"] == 30

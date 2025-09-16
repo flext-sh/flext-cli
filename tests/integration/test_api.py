@@ -8,11 +8,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Any
-
 from flext_core import FlextResult, FlextTypes
 
-from flext_cli import FlextCliApi
+from flext_cli import FlextCliApi, FlextCliModels
 
 
 class TestFlextCliApiIntegration:
@@ -225,7 +223,7 @@ class TestFlextCliApiIntegration:
         api = FlextCliApi()
 
         # Test get_commands - returns FlextResult following flext-core patterns
-        commands_result = FlextResult[Any].ok(api.get_command_history())
+        commands_result = FlextResult[list[FlextCliModels.CliCommand]].ok(api.get_command_history())
         assert isinstance(commands_result, FlextResult)
         assert commands_result.is_success
         commands = commands_result.value
@@ -233,21 +231,21 @@ class TestFlextCliApiIntegration:
 
         # Test get_sessions - returns FlextResult following flext-core patterns
         assert api.state is not None, "API state should be initialized"
-        sessions_result = FlextResult[Any].ok(api.state.sessions)
+        sessions_result = FlextResult[dict[str, object]].ok(dict(api.state.sessions))
         assert isinstance(sessions_result, FlextResult)
         assert sessions_result.is_success
         sessions = sessions_result.value
         assert isinstance(sessions, (dict, list))  # Accept both dict and list
 
         # Test get_plugins - returns FlextResult following flext-core patterns
-        plugins_result = FlextResult[Any].ok(api.state.plugins)
+        plugins_result = FlextResult[dict[str, object]].ok(api.state.plugins)
         assert isinstance(plugins_result, FlextResult)
         assert plugins_result.is_success
         plugins = plugins_result.value
         assert isinstance(plugins, (dict, list))  # Accept both dict and list
 
         # Test get_handlers - returns FlextResult following flext-core patterns
-        handlers_result = FlextResult[Any].ok(api.state.handlers)
+        handlers_result = FlextResult[dict[str, object]].ok(api.state.handlers)
         assert isinstance(handlers_result, FlextResult)
         assert handlers_result.is_success
         handlers = handlers_result.value
@@ -264,7 +262,7 @@ class TestFlextCliApiIntegration:
 
         # Check sessions are tracked
         assert api.state is not None, "API state should be initialized"
-        sessions_result = FlextResult[Any].ok(api.state.sessions)
+        sessions_result = FlextResult[dict[str, object]].ok(dict(api.state.sessions))
         assert isinstance(sessions_result, FlextResult)
         assert sessions_result.is_success
         sessions = sessions_result.value

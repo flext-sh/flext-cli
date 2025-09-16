@@ -29,7 +29,7 @@ from pathlib import Path
 
 import yaml
 from flext_cli import (
-    FlextApiClient,
+    FlextCliService,
     FlextCliAuth,
     FlextCliFormatters,
     FlextCliService,
@@ -83,7 +83,7 @@ class EcosystemService(FlextCliService):
         """Initialize ecosystem service."""
         super().__init__()
         self._settings = EcosystemSettings()
-        self._api_client = FlextApiClient()
+        self._api_client = FlextCliService()
         self._auth_service = FlextCliAuth()
         self._formatters = FlextCliFormatters()
 

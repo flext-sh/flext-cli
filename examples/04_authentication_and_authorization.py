@@ -27,9 +27,9 @@ import os
 from datetime import UTC, datetime, timedelta
 
 from flext_cli import (
-    FlextApiClient,
+    FlextCliService,
     get_auth_headers,
-    get_cli_config,
+    FlextCliConfig,
     require_auth,
     save_auth_token,
 )
@@ -93,8 +93,8 @@ def demonstrate_api_authentication() -> FlextResult[None]:
 
     try:
         # Create authenticated API client
-        api_client = FlextApiClient()
-        console.print("✅ FlextApiClient initialized")
+        api_client = FlextCliService()
+        console.print("✅ FlextCliService initialized")
 
         # Simulate authenticated API call
         # Note: This is a demo - actual API endpoints would be real
@@ -261,7 +261,8 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
     console.print("\n[green]7. Secure Configuration Management[/green]")
 
     # Get CLI configuration
-    get_cli_config()
+    from flext_cli import FlextCliConfig
+    FlextCliConfig.get_current()
     console.print("✅ CLI configuration loaded")
 
     # Demonstrate environment variable usage for sensitive data
@@ -299,7 +300,7 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
 
 
 def simulate_authenticated_request(
-    _client: FlextApiClient, endpoint: str
+    _client: FlextCliService, endpoint: str
 ) -> FlextResult[FlextTypes.Core.Dict]:
     """Simulate an authenticated API request."""
     try:
@@ -496,7 +497,7 @@ def main() -> None:
             "👥 Role-based permissions and access control",
             "⏰ Session lifecycle management and validation",
             "🔑 Environment-based secure configuration",
-            "🌐 FlextApiClient authentication patterns",
+            "🌐 FlextCliService authentication patterns",
         ]
 
         print_demo_completion(

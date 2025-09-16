@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Any
 
 import pytest
 from flext_core import FlextResult
@@ -348,7 +347,7 @@ class TestCommandWorkflow:
     def test_execute_command_workflow_invalid_command(self) -> None:
         """Test command workflow with invalid command."""
         result = self.domain_services.execute_command_workflow(
-            "invalid_command_that_does_not_exist_12345"
+            "invalid_command_that_does_not_exist_12345",
         )
 
         # Should handle gracefully - workflow method returns dict or fails
@@ -385,7 +384,7 @@ class TestIntegrationScenarios:
 
             # Add to session
             add_result = self.domain_services.add_command_to_session(
-                session, cmd_result.value
+                session, cmd_result.value,
             )
             assert add_result.is_success
 
@@ -495,11 +494,12 @@ class TestExceptionHandling:
     def test_graceful_exception_handling(self) -> None:
         """Test that all methods handle exceptions gracefully."""
         # All domain service methods should return FlextResult and handle exceptions
-        # Fixed: Use Any to handle different FlextResult return types
-        methods_to_test: list[Callable[[], FlextResult[Any]]] = [
-            lambda: self.domain_services.health_check(),
-            lambda: self.domain_services.execute(),
-        ]
+        # Use proper types for different FlextResult return types
+        # Test methods that return different FlextResult types
+        health_check_method: Callable[[], FlextResult[str]] = lambda: self.domain_services.health_check()
+        execute_method: Callable[[], FlextResult[FlextResult[object]]] = lambda: self.domain_services.execute()
+
+        methods_to_test = [health_check_method, execute_method]
 
         for method in methods_to_test:
             try:
@@ -514,8 +514,8 @@ class TestExceptionHandling:
     def test_error_message_quality(self) -> None:
         """Test that error messages are descriptive and helpful."""
         # Test various error scenarios
-        # Fixed: Use Any to handle different FlextResult return types
-        error_scenarios: list[Callable[[], FlextResult[Any]]] = [
+        # Use proper types for different FlextResult return types
+        error_scenarios: list[Callable[[], FlextResult[FlextCliModels.CliCommand]]] = [
             lambda: self.domain_services.create_command(""),
             lambda: self.domain_services.create_command("   "),
         ]

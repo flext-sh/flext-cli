@@ -248,6 +248,10 @@ class TestClientModels(unittest.TestCase):
             name="minimal-pipeline",
             tap="tap-source",
             target="target-dest",
+            schedule=None,
+            transform=None,
+            state=None,
+            config=None,
         )
 
         assert config.name == "minimal-pipeline"

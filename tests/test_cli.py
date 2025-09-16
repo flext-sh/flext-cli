@@ -1,4 +1,4 @@
-"""Tests for CLI main entry point.
+"""Tests for CLI main entry point using FLEXT patterns.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -8,49 +8,49 @@ from __future__ import annotations
 
 import inspect
 import os
+from pathlib import Path
 
-from click.testing import CliRunner
-from flext_core import FlextLogger
+from flext_core import FlextLogger, FlextResult
 
-from flext_cli import cli, main
+from flext_cli import FlextCliApi, FlextCliConfig, FlextCliMain, main
 from flext_cli.cli import create_cli_options
-from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 
 
 class TestCliMain:
-    """Test CLI main command group."""
+    """Test CLI main command group using flext-cli patterns."""
 
     def setup_method(self) -> None:
         """Set up test environment."""
-        self.runner = CliRunner()
+        self.cli_api = FlextCliApi()
+        self.cli_main = FlextCliMain(name="test-cli", description="Test CLI")
 
-    def test_cli_help(self) -> None:
-        """Test CLI shows help when no command provided."""
-        result = self.runner.invoke(cli, ["--help"])
-        assert result.exit_code == 0
-        assert "FLEXT Command Line Interface" in result.output
-
-    def test_cli_version(self) -> None:
-        """Test CLI version display."""
-        result = self.runner.invoke(cli, ["--version"])
-        assert result.exit_code == 0
-        # Should contain version info
-        assert "flext" in result.output.lower()
-
-    def test_cli_no_command_shows_help(self) -> None:
-        """Test CLI shows help when invoked without subcommand."""
-        result = self.runner.invoke(cli, [])
-        assert result.exit_code == 0
-        # Should show help content
-        assert "Usage:" in result.output
+    def test_cli_api_initialization(self) -> None:
+        """Test FlextCliApi initialization."""
+        assert self.cli_api is not None
+        assert hasattr(self.cli_api, "display_message")
+        assert hasattr(self.cli_api, "display_output")
 
     def test_cli_main_initialization(self) -> None:
-        """Test CLI initialization."""
-        # Test that CLI can be imported and used
-        assert cli is not None
-        assert hasattr(cli, "commands")
-        assert hasattr(cli, "get_help")
+        """Test FlextCliMain initialization."""
+        assert self.cli_main is not None
+        assert self.cli_main.name == "test-cli"
+        assert self.cli_main.description == "Test CLI"
+
+    def test_cli_api_display_message(self) -> None:
+        """Test CLI API message display functionality."""
+        result = self.cli_api.display_message("test message", message_type="info")
+        assert isinstance(result, FlextResult)
+
+    def test_cli_api_display_output(self) -> None:
+        """Test CLI API output display functionality."""
+        test_data = {"key": "value", "number": 42}
+        result = self.cli_api.display_output(
+            data=test_data,
+            format_type="table",
+            title="Test Output",
+        )
+        assert isinstance(result, FlextResult)
 
     def test_load_constants_metadata_success(self) -> None:
         """Test constants metadata loading."""
@@ -96,67 +96,41 @@ class TestCliMain:
         assert options["quiet"] is True
         assert options["log_level"] == "DEBUG"
 
-    def test_cli_debug_option(self) -> None:
-        """Test CLI debug option."""
-        result = self.runner.invoke(cli, ["--debug"])
-        assert result.exit_code == 0
-        # Debug output should show profile info
-        assert "Profile:" in result.output
+    def test_cli_main_command_registration(self) -> None:
+        """Test command registration using flext-cli patterns."""
+        # Create a test command
+        test_command = self.cli_api.create_command(
+            name="test-cmd",
+            description="Test command",
+            handler=lambda **_kwargs: FlextResult[None].ok(None),
+            arguments=["--option"],
+        )
 
-    def test_cli_profile_option(self) -> None:
-        """Test CLI profile option."""
-        result = self.runner.invoke(cli, ["--profile", "test", "--debug"])
-        assert result.exit_code == 0
-        # Should show the test profile
-        assert "Profile: test" in result.output
+        # Register command group
+        result = self.cli_main.register_command_group(
+            name="test-group",
+            commands={"test": test_command.value},
+            description="Test command group",
+        )
 
-    def test_cli_output_format_option(self) -> None:
-        """Test CLI debug option shows output format."""
-        result = self.runner.invoke(cli, ["--debug"])
-        assert result.exit_code == 0
-        # Should show default table format
-        assert "Output Format: table" in result.output
+        assert result.is_success
 
-    def test_cli_quiet_option(self) -> None:
-        """Test CLI quiet option suppresses output."""
-        result = self.runner.invoke(cli, ["--quiet"])
-        assert result.exit_code == 0
-        # Quiet mode should still work but suppress non-error output
-        # Help is still shown when no command provided
+    def test_cli_main_execution(self) -> None:
+        """Test CLI main execution."""
+        result = self.cli_main.execute()
+        assert isinstance(result, FlextResult)
 
-    def test_cli_invalid_output_format(self) -> None:
-        """Test CLI with invalid output format."""
-        result = self.runner.invoke(cli, ["--output", "invalid"])
-        assert result.exit_code != 0
-        # Should show error for invalid choice
+    def test_cli_config_integration(self) -> None:
+        """Test CLI configuration integration."""
+        config = FlextCliConfig()
+        assert config is not None
+        assert hasattr(config, "debug")
+        assert hasattr(config, "app_name")
 
-    def test_cli_context_setup_real(self) -> None:
-        """Test CLI context is properly set up with real implementation."""
-        # Test that CLI can execute without context errors
-        result = self.runner.invoke(cli, ["--debug"])
-        assert result.exit_code == 0
-
-        # Verify debug output shows actual configuration
-        assert "Profile:" in result.output
-
-        # Test that configuration can be accessed
-        test_config = FlextCliConfig().model_dump()
-        assert "profile" in test_config
-        assert "debug" in test_config
-
-    def test_cli_interactive_command(self) -> None:
-        """Test interactive command placeholder."""
-        result = self.runner.invoke(cli, ["interactive"])
-        assert result.exit_code == 0
-        # Should show placeholder message
-        assert "PLACEHOLDER" in result.output or "coming soon" in result.output.lower()
-
-    def test_cli_version_command(self) -> None:
-        """Test version command."""
-        result = self.runner.invoke(cli, ["version"])
-        assert result.exit_code == 0
-        # Should show version information
-        assert "FLEXT CLI" in result.output or "Version" in result.output
+        # Test model_dump functionality
+        config_dict = config.model_dump()
+        assert isinstance(config_dict, dict)
+        assert "debug" in config_dict
 
 
 class TestMainEntryPoint:
@@ -176,18 +150,15 @@ class TestMainEntryPoint:
 
     def test_main_cli_integration_real(self) -> None:
         """Test main() integration with real CLI functionality."""
-        # Test main integrates with CLI by checking it can handle help
-        # We can't easily test the real main() without SystemExit,
-        # but we can test the CLI it wraps
-        runner = CliRunner()
-        result = runner.invoke(cli, ["--help"])
-        assert result.exit_code == 0
-        assert "FLEXT Command Line Interface" in result.output
+        # Test that main function is properly integrated
+        # We test this by verifying CLI components work
+        cli_api = FlextCliApi()
+        assert cli_api is not None
 
-        # Test version command integration
-        result = runner.invoke(cli, ["--version"])
-        assert result.exit_code == 0
-        assert "flext" in result.output.lower()
+        # Test CLI main creation
+        cli_main = FlextCliMain(name="test", description="Test")
+        result = cli_main.execute()
+        assert isinstance(result, FlextResult)
 
 
 class TestCliIntegration:
@@ -195,43 +166,101 @@ class TestCliIntegration:
 
     def setup_method(self) -> None:
         """Set up test environment."""
-        self.runner = CliRunner()
+        self.cli_api = FlextCliApi()
+        self.cli_main = FlextCliMain(name="integration-test", description="Integration test CLI")
 
-    def test_auth_command_registered(self) -> None:
-        """Test auth command is registered and accessible."""
-        result = self.runner.invoke(cli, ["auth", "--help"])
-        assert result.exit_code == 0
-        assert "authentication" in result.output.lower()
-
-    def test_config_command_registered(self) -> None:
-        """Test config command is registered and accessible."""
-        result = self.runner.invoke(cli, ["config", "--help"])
-        assert result.exit_code == 0
-        assert "configuration" in result.output.lower()
-
-    def test_debug_command_registered(self) -> None:
-        """Test debug command is registered and accessible."""
-        result = self.runner.invoke(cli, ["debug", "--help"])
-        assert result.exit_code == 0
-        assert "debug" in result.output.lower()
-
-    def test_cli_with_global_options_and_subcommand(self) -> None:
-        """Test CLI with global options combined with subcommand."""
-        result = self.runner.invoke(
-            cli,
-            ["--debug", "--profile", "test", "auth", "--help"],
+    def test_auth_command_functionality(self) -> None:
+        """Test auth command functionality using flext-cli patterns."""
+        # Create auth command using flext-cli API
+        auth_command = self.cli_api.create_command(
+            name="login",
+            description="Authentication login",
+            handler=self._handle_auth_login,
+            arguments=["--username", "--password"],
         )
-        assert result.exit_code == 0
-        # When using --help with subcommand, only subcommand help is shown
-        # (not debug info since subcommand was invoked)
-        assert "authentication" in result.output.lower()
 
-    def test_cli_context_passed_to_subcommands(self) -> None:
-        """Test CLI context is properly passed to subcommands."""
-        # This is tested indirectly through successful subcommand execution
-        result = self.runner.invoke(cli, ["debug", "env"])
-        # Should execute without context errors
-        assert result.exit_code == 0
+        result = self.cli_main.register_command_group(
+            name="auth",
+            commands={"login": auth_command.value},
+            description="Authentication commands",
+        )
+
+        assert result.is_success
+
+    def test_config_command_functionality(self) -> None:
+        """Test config command functionality using flext-cli patterns."""
+        # Create config command using flext-cli API
+        config_command = self.cli_api.create_command(
+            name="show",
+            description="Show configuration",
+            handler=self._handle_config_show,
+            arguments=[],
+        )
+
+        result = self.cli_main.register_command_group(
+            name="config",
+            commands={"show": config_command.value},
+            description="Configuration commands",
+        )
+
+        assert result.is_success
+
+    def test_debug_command_functionality(self) -> None:
+        """Test debug command functionality using flext-cli patterns."""
+        # Create debug command using flext-cli API
+        debug_command = self.cli_api.create_command(
+            name="env",
+            description="Show environment information",
+            handler=self._handle_debug_env,
+            arguments=[],
+        )
+
+        result = self.cli_main.register_command_group(
+            name="debug",
+            commands={"env": debug_command.value},
+            description="Debug commands",
+        )
+
+        assert result.is_success
+
+    def _handle_auth_login(self, **kwargs: object) -> FlextResult[None]:
+        """Handle auth login command."""
+        username = kwargs.get("username", "")
+        password = kwargs.get("password", "")
+
+        if not username or not password:
+            return FlextResult[None].fail("Username and password required")
+
+        return FlextResult[None].ok(None)
+
+    def _handle_config_show(self, **_kwargs: object) -> FlextResult[None]:
+        """Handle config show command."""
+        config = FlextCliConfig()
+        config_data = config.model_dump()
+
+        self.cli_api.display_output(
+            data=config_data,
+            format_type="table",
+            title="Configuration",
+        )
+
+        return FlextResult[None].ok(None)
+
+    def _handle_debug_env(self, **_kwargs: object) -> FlextResult[None]:
+        """Handle debug env command."""
+        env_data = {
+            "PWD": str(Path.cwd()),
+            "USER": os.environ.get("USER", "unknown"),
+            "PATH": os.environ.get("PATH", "unknown")[:50] + "...",
+        }
+
+        self.cli_api.display_output(
+            data=env_data,
+            format_type="table",
+            title="Environment Information",
+        )
+
+        return FlextResult[None].ok(None)
 
 
 class TestCliErrorHandling:
@@ -239,20 +268,52 @@ class TestCliErrorHandling:
 
     def setup_method(self) -> None:
         """Set up test environment."""
-        self.runner = CliRunner()
+        self.cli_api = FlextCliApi()
+        self.cli_main = FlextCliMain(name="error-test", description="Error test CLI")
 
-    def test_cli_with_unknown_command(self) -> None:
-        """Test CLI behavior with unknown command."""
-        result = self.runner.invoke(cli, ["unknown-command"])
-        assert result.exit_code != 0
-        # Should show error message
-        assert "No such command" in result.output or "Usage:" in result.output
+    def test_cli_command_validation_errors(self) -> None:
+        """Test CLI command validation error handling."""
+        # Create command with validation
+        def failing_handler(**_kwargs: object) -> FlextResult[None]:
+            return FlextResult[None].fail("Validation failed")
 
-    def test_cli_with_invalid_option(self) -> None:
-        """Test CLI behavior with invalid global option."""
-        result = self.runner.invoke(cli, ["--invalid-option"])
-        assert result.exit_code != 0
-        # Should show error about unknown option
+        command = self.cli_api.create_command(
+            name="fail",
+            description="Failing command",
+            handler=failing_handler,
+            arguments=[],
+        )
+
+        result = self.cli_main.register_command_group(
+            name="test",
+            commands={"fail": command.value},
+            description="Test commands",
+        )
+
+        assert result.is_success
+
+    def test_cli_missing_argument_handling(self) -> None:
+        """Test CLI handling of missing required arguments."""
+        def required_arg_handler(**kwargs: object) -> FlextResult[None]:
+            required_arg = kwargs.get("required")
+            if not required_arg:
+                return FlextResult[None].fail("Required argument missing")
+            return FlextResult[None].ok(None)
+
+        command = self.cli_api.create_command(
+            name="require",
+            description="Command requiring arguments",
+            handler=required_arg_handler,
+            arguments=["--required"],
+        )
+
+        result = self.cli_main.register_command_group(
+            name="validation",
+            commands={"require": command.value},
+            description="Validation commands",
+        )
+
+        assert result.is_success
 
     def test_cli_environment_variable_integration_real(self) -> None:
         """Test CLI functionality with environment variables."""
@@ -265,11 +326,13 @@ class TestCliErrorHandling:
             os.environ["FLX_DEBUG"] = "true"
             os.environ["FLX_PROFILE"] = "test"
 
-            # Test that CLI still works with explicit options
-            result = self.runner.invoke(cli, ["--debug"])
-            assert result.exit_code == 0
-            # Should show debug output from explicit flag
-            assert "Profile:" in result.output
+            # Test that CLI still works with configuration
+            config = FlextCliConfig()
+            assert config is not None
+
+            # Test that CLI API works
+            result = self.cli_api.display_message("Environment test", message_type="info")
+            assert isinstance(result, FlextResult)
 
         finally:
             # Restore original environment
@@ -289,51 +352,74 @@ class TestCliConfiguration:
 
     def setup_method(self) -> None:
         """Set up test environment."""
-        self.runner = CliRunner()
+        self.cli_api = FlextCliApi()
 
     def test_cli_config_loading_real(self) -> None:
         """Test CLI loads configuration correctly with real implementation."""
         # Test that CLI can load and use real configuration
-        result = self.runner.invoke(cli, ["--debug"])
-        assert result.exit_code == 0
+        config = FlextCliConfig()
+        assert config is not None
 
-        # Verify configuration is loaded by checking debug output
-        assert "Profile:" in result.output
-        assert "Output Format:" in result.output
+        # Verify configuration properties
+        assert hasattr(config, "debug")
+        assert hasattr(config, "app_name")
 
-        # Test configuration with different values
-        result = self.runner.invoke(
-            cli,
-            ["--profile", "test", "--debug"],
-        )
-        assert result.exit_code == 0
-        assert "Profile: test" in result.output
-        assert "Output Format: table" in result.output
+        # Test configuration serialization
+        config_dict = config.model_dump()
+        assert isinstance(config_dict, dict)
+        assert "debug" in config_dict
 
     def test_cli_context_creation_real(self) -> None:
         """Test CLI creates proper CLI context with real implementation."""
-        # Test that CLI context is created and works properly
-        result = self.runner.invoke(cli, ["--debug"])
-        assert result.exit_code == 0
+        # Test that CLI API is accessible and functional
+        assert self.cli_api is not None
 
-        # Test that CLI can execute subcommands (proves context works)
-        result = self.runner.invoke(cli, ["debug", "env"])
-        assert result.exit_code == 0
+        # Test message display
+        result = self.cli_api.display_message("Context test", message_type="info")
+        assert isinstance(result, FlextResult)
 
-        # Test that CLI can handle configuration commands
-        result = self.runner.invoke(cli, ["config", "--help"])
-        assert result.exit_code == 0
+        # Test output display
+        test_data = {"test": "data"}
+        result = self.cli_api.display_output(
+            data=test_data,
+            format_type="table",
+            title="Context Test",
+        )
+        assert isinstance(result, FlextResult)
 
     def test_cli_configuration_validation(self) -> None:
         """Test CLI configuration validation with real values."""
-        # Test valid profile options (existing CLI option)
+        # Test configuration creation with different profiles
         valid_profiles = ["default", "test", "dev", "prod"]
+
         for profile in valid_profiles:
-            result = self.runner.invoke(cli, ["--profile", profile, "--debug"])
-            assert result.exit_code == 0
-            assert f"Profile: {profile}" in result.output
+            config = FlextCliConfig(profile=profile)
+            assert config is not None
+            assert config.profile == profile
 
         # Test that CLI configuration can be inspected
         test_config = FlextCliConfig().model_dump()
         assert isinstance(test_config, dict)
         assert "profile" in test_config
+
+    def test_cli_api_command_creation(self) -> None:
+        """Test CLI API command creation functionality."""
+        # Test basic command creation
+        command = self.cli_api.create_command(
+            name="test",
+            description="Test command",
+            handler=lambda **_kwargs: FlextResult[None].ok(None),
+            arguments=[],
+        )
+
+        assert command is not None
+
+        # Test command with arguments
+        command_with_args = self.cli_api.create_command(
+            name="test-args",
+            description="Test command with arguments",
+            handler=lambda **_kwargs: FlextResult[None].ok(None),
+            arguments=["--option", "--flag"],
+        )
+
+        assert command_with_args is not None

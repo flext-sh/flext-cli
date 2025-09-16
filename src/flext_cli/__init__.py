@@ -13,7 +13,6 @@ from collections.abc import Callable
 from typing import ParamSpec, TypeVar
 
 from flext_core import FlextResult, FlextTypes
-from flext_core.typings import T
 
 from flext_cli.__version__ import (
     __author__,
@@ -61,30 +60,17 @@ from flext_cli.cli import (
 from flext_cli.cli_bus import FlextCliCommandBusService
 from flext_cli.cli_main import FlextCliMain
 from flext_cli.client import FlextApiClient
-from flext_cli.cmd import FlextCliCmd  # DEPRECATED - use FlextCliCommandBusService
+from flext_cli.cmd import FlextCliCmd
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
 from flext_cli.core import FlextCliService
-from flext_cli.data_processing import FlextCliDataProcessing
+
+# FlextCliDataProcessing is now integrated into FlextCliUtilities
 from flext_cli.debug import FlextCliDebug
-from flext_cli.decorators import FlextCliDecorators, handle_service_result
+from flext_cli.decorators import FlextCliDecorators
 from flext_cli.domain_services import FlextCliDomainServices
-from flext_cli.exceptions import (
-    FlextCliArgumentError,
-    FlextCliAuthenticationError,
-    FlextCliCommandError,
-    FlextCliConfigurationError,
-    FlextCliConnectionError,
-    FlextCliContextError,
-    FlextCliError,
-    FlextCliException,
-    FlextCliFormatError,
-    FlextCliOutputError,
-    FlextCliProcessingError,
-    FlextCliTimeoutError,
-    FlextCliValidationError,
-)
+from flext_cli.exceptions import FlextCliError
 
 # FlextCliFactory removed - use direct constructors (FlextCliAuth, FlextApiClient)
 from flext_cli.file_operations import FlextCliFileOperations
@@ -93,68 +79,40 @@ from flext_cli.interactions import FlextCliInteractions
 from flext_cli.logging_setup import FlextCliLoggingSetup
 from flext_cli.models import FlextCliModels
 from flext_cli.services import FlextCliServices
-from flext_cli.utils import Validation
+
+# Import core utilities - no compatibility layers
+from flext_cli.utils import FlextCliUtilities
 
 # Export cli_measure_time function for examples
 cli_measure_time = FlextCliDecorators.cli_measure_time
 
-# Compatibility aliases for removed aliases.py functionality
-FlextCliExecutionContext = FlextCliContext  # Direct alias to real class
-_auth_cmd = auth  # Keep for backward compatibility
+# Export handle_service_result function for ecosystem compatibility
+handle_service_result = FlextCliDecorators.handle_service_result
 
-def get_cli_config() -> FlextCliConfig:
-    """Get CLI configuration instance.
-
-    Factory function for FlextCliConfig - replaces removed aliases.py version.
-
-    Returns:
-        FlextCliConfig: New CLI configuration instance
-
-    """
-    return FlextCliConfig()
 
 __all__ = [
-    "Callable",
+    # Core CLI classes - no aliases or compatibility layers
     "FlextApiClient",
     "FlextCliApi",
-    "FlextCliArgumentError",
     "FlextCliAuth",
-    "FlextCliAuthenticationError",
-    "FlextCliCmd",  # DEPRECATED - use FlextCliCommandBusService
-    "FlextCliCommandBusService",  # NEW - proper Command Bus integration
-    "FlextCliCommandError",
+    "FlextCliCmd",
+    "FlextCliCommandBusService",
     "FlextCliConfig",
-    "FlextCliConfigurationError",
-    "FlextCliConnectionError",
     "FlextCliConstants",
     "FlextCliContext",
-    "FlextCliContextError",
-    "FlextCliDataProcessing",
     "FlextCliDebug",
     "FlextCliDecorators",
     "FlextCliDomainServices",
-    "FlextCliEcosystem",
     "FlextCliError",
-    "FlextCliException",
-    "FlextCliExecutionContext",
-    # "FlextCliFactory",  # Removed - use direct constructors
     "FlextCliFileOperations",
-    "FlextCliFormatError",
     "FlextCliFormatters",
     "FlextCliInteractions",
     "FlextCliLoggingSetup",
     "FlextCliMain",
     "FlextCliModels",
-    "FlextCliOutputError",
-    "FlextCliProcessingError",
     "FlextCliService",
     "FlextCliServices",
-    "FlextCliTimeoutError",
-    "FlextCliValidationError",
-    "FlextResult",
-    "FlextTypes",
-    "T",
-    "Validation",
+    "FlextCliUtilities",
     "__author__",
     "__author_email__",
     "__build__",
@@ -176,7 +134,6 @@ __all__ = [
     "__url__",
     "__version__",
     "__version_info__",
-    "_auth_cmd",
     "auth",
     "auth_cmd",
     "cli",
@@ -185,7 +142,6 @@ __all__ = [
     "debug",
     "debug_cmd",
     "get_auth_headers",
-    "get_cli_config",
     "get_cmd",
     "handle_service_result",
     "login",
@@ -264,7 +220,7 @@ class FlextCliEcosystem:
                 # Check if user is authenticated
                 if not self.auth_service.is_authenticated():
                     auth_error_msg = "Authentication required"
-                    raise FlextCliAuthenticationError(auth_error_msg)
+                    raise FlextCliError.authentication_error(auth_error_msg)
 
                 # In a real implementation, would check roles here
                 if roles:
@@ -280,6 +236,7 @@ class FlextCliEcosystem:
 
 # Create ecosystem instance for compatibility functions
 _ecosystem = FlextCliEcosystem()
+
 
 # Ecosystem compatibility functions - maintain existing API
 def save_auth_token(token: str) -> FlextResult[None]:
@@ -307,6 +264,7 @@ def get_auth_headers() -> FlextTypes.Core.Headers:
 
 P = ParamSpec("P")
 R = TypeVar("R")
+
 
 def require_auth(
     roles: list[str] | None = None,

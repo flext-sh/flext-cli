@@ -26,6 +26,7 @@ from flext_core import (
 
 from flext_cli.__version__ import __version__
 from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
 from flext_cli.logging_setup import FlextCliLoggingSetup
 
 
@@ -278,8 +279,9 @@ class FlextCliMain(FlextDomainService[str]):
         @staticmethod
         def get_environment_info() -> dict[str, str]:
             """Get FLEXT environment information."""
-            # Find FLEXT environment variables (FLX_ prefix)
-            return {k: v for k, v in os.environ.items() if k.startswith("FLX_")}
+            # Use standardized environment prefix from constants
+            env_prefix = FlextCliConstants.SYSTEM.env_prefix
+            return {k: v for k, v in os.environ.items() if k.startswith(env_prefix)}
 
 
 # Create global instance for Click decorators
@@ -615,7 +617,8 @@ def env(_ctx: click.Context) -> None:
                 display_value = value
             click.echo(f"{key}: {display_value}")
     else:
-        click.echo("No FLEXT environment variables found (FLX_ prefix)")
+        env_prefix = FlextCliConstants.SYSTEM.env_prefix
+        click.echo(f"No FLEXT environment variables found ({env_prefix} prefix)")
 
 
 @debug.command()

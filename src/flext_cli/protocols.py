@@ -72,15 +72,6 @@ class FlextCliProtocols:
             ...
 
 
-# Aliases for backward compatibility
-AuthenticationClient = FlextCliProtocols.AuthenticationClient
-TokenStorage = FlextCliProtocols.TokenStorage
-AuthenticationService = FlextCliProtocols.AuthenticationService
-
-
 __all__ = [
-    "AuthenticationClient",
-    "AuthenticationService",
     "FlextCliProtocols",
-    "TokenStorage",
 ]

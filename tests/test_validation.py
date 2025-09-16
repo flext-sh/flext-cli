@@ -289,7 +289,7 @@ class TestIntegrationScenarios:
 
         # Use type validation from flext-core
         debug_result = FlextValidations.TypeValidators.validate_string(
-            str(config_values["debug"])
+            str(config_values["debug"]),
         )
 
         # All should be valid (or have appropriate failure messages)
