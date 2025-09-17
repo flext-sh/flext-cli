@@ -8,9 +8,10 @@ from __future__ import annotations
 
 import json
 
-from flext_core import FlextResult, FlextTypes
+from pydantic import BaseModel
 
 from flext_cli.utils import FlextCliUtilities as FlextCliDataProcessing
+from flext_core import FlextResult, FlextTypes
 
 
 class TestFlextCliDataProcessingFunctional:
@@ -29,16 +30,18 @@ class TestFlextCliDataProcessingFunctional:
             {"name": "Bob Johnson", "email": "bob@example.com", "age": 35},
         ]
 
-        # Execute data validation (use existing method)
-        def validator_func(data: object) -> bool:
-            return isinstance(data, dict) and "name" in data
+        # Execute data validation using Pydantic model
+        class TestModel(BaseModel):
+            name: str
+            email: str
+            age: int
 
-        result = self.processor.validate_data(test_data[0], validator_func)
+        result = self.processor.validate_with_pydantic_model(test_data[0], TestModel)
 
         # Validate result
         assert result.is_success
         processed_data = result.unwrap()
-        assert isinstance(processed_data, dict)
+        assert isinstance(processed_data, BaseModel)
 
     def test_field_validation_with_realistic_data(self) -> None:
         """Test batch validation using realistic edge cases."""
@@ -47,8 +50,8 @@ class TestFlextCliDataProcessingFunctional:
         test_data = [{"value": num} for num in boundary_numbers[:3]]
 
         # Test batch processing with correct signature
-        def validator_func(item: dict[str, object]) -> dict[str, object]:
-            return item
+        def validator_func(item: object) -> FlextResult[object]:
+            return FlextResult[object].ok(item)
 
         result = self.processor.batch_process_items(test_data, validator_func)
         assert result.is_success
@@ -70,17 +73,19 @@ class TestFlextCliDataProcessingFunctional:
             {"name": " Charlie ", "age": "35", "active": "true"},
         ]
 
-        # Execute transformation
-        def validator_func(data: object) -> bool:
-            return isinstance(data, dict) and "name" in data
+        # Execute transformation using Pydantic model
+        class RawDataModel(BaseModel):
+            name: str
+            age: str
+            active: str
 
-        result = self.processor.validate_data(raw_data[0], validator_func)
+        result = self.processor.validate_with_pydantic_model(raw_data[0], RawDataModel)
 
         # Verify transformations worked
         assert result.is_success
         transformed_data = result.unwrap()
 
-        assert isinstance(transformed_data, dict)
+        assert isinstance(transformed_data, BaseModel)
 
     def test_batch_validation_performance(self) -> None:
         """Test batch validation performance using flext_tests profiler."""
@@ -93,8 +98,8 @@ class TestFlextCliDataProcessingFunctional:
         # Profile the batch validation with flext_tests performance tools
         # Use timing measurement for performance validation
 
-        def validator_func(item: dict[str, object]) -> dict[str, object]:
-            return item
+        def validator_func(item: object) -> FlextResult[object]:
+            return FlextResult[object].ok(item)
 
         result = self.processor.batch_process_items(large_dataset, validator_func)
 
@@ -115,19 +120,21 @@ class TestFlextCliDataProcessingFunctional:
             {"user_id": 2, "amount": 150.0, "product": "Gadget"},
         ]
 
-        # Execute aggregation
-        def validator_func(data: object) -> bool:
-            return isinstance(data, dict) and "id" in data
+        # Execute aggregation using Pydantic model
+        class CombinedDataModel(BaseModel):
+            id: int
+            name: str
+            department: str
 
-        result = self.processor.validate_data(combined_data[0], validator_func)
+        result = self.processor.validate_with_pydantic_model(combined_data[0], CombinedDataModel)
 
         # Validate aggregation results
         assert result.is_success
         aggregated_data = result.unwrap()
 
         # Check structured aggregation result
-        assert isinstance(aggregated_data, dict)
-        assert "id" in aggregated_data
+        assert isinstance(aggregated_data, BaseModel)
+        assert aggregated_data.id == 1
 
     def test_export_functionality_real_files(self) -> None:
         """Test export functionality with real file operations."""
@@ -138,11 +145,12 @@ class TestFlextCliDataProcessingFunctional:
         ]
 
         # Execute export
-        result = self.processor.safe_json_stringify_flext_result(test_data)
+        flext_result = FlextResult[object].ok(test_data)
+        result = self.processor.safe_json_stringify_flext_result(flext_result)
 
         # Verify export worked
-        assert result.is_success
-        json_data = result.unwrap()
+        assert isinstance(result, str)
+        json_data = result
         assert isinstance(json_data, str)
 
         # Verify JSON data is valid
@@ -153,22 +161,25 @@ class TestFlextCliDataProcessingFunctional:
     def test_error_handling_real_scenarios(self) -> None:
         """Test error handling with real error scenarios."""
 
-        # Test with invalid data types
-        def validator_func(data: object) -> bool:
-            return isinstance(data, dict) and isinstance(data.get("age"), int)
+        # Test with invalid data types using Pydantic model
+        class AgeModel(BaseModel):
+            age: int
 
-        result = self.processor.validate_data({"age": "not_a_number"}, validator_func)
+        result = self.processor.validate_with_pydantic_model({"age": "not_a_number"}, AgeModel)
         assert (
             result.is_failure
         )  # The validator function returns False, so validation should fail
 
         # Test with empty data - implementation uses defensive validation
-        result = self.processor.batch_process_items([], lambda x: x)
+        def empty_validator(x: object) -> FlextResult[object]:
+            return FlextResult[object].ok(x)
+
+        batch_result = self.processor.batch_process_items([], empty_validator)
         # Accept either graceful success OR defensive rejection with clear message
-        if result.is_success:
-            assert result.unwrap() is not None
+        if batch_result.is_success:
+            assert batch_result.unwrap() is not None
         else:
-            error_str = str(result.error or "").lower()
+            error_str = str(batch_result.error or "").lower()
             assert "required" in error_str or "data" in error_str
 
         # Test with malformed data
@@ -177,10 +188,10 @@ class TestFlextCliDataProcessingFunctional:
             {"malformed": "data"},  # Remove None from list as it's not a dict
         ]
 
-        def malformed_validator(data: object) -> bool:
-            return isinstance(data, dict)
+        class MalformedModel(BaseModel):
+            incomplete: bool
 
-        result = self.processor.validate_data(malformed_data[0], malformed_validator)
+        result = self.processor.validate_with_pydantic_model(malformed_data[0], MalformedModel)
         # Should either succeed with filtered data or fail gracefully
         assert isinstance(result, FlextResult)
 
@@ -195,18 +206,21 @@ class TestFlextCliDataProcessingFunctional:
 
         # Execute multi-step workflow using real available methods
         # Step 1: Transform data
-        def validator_func(data: object) -> bool:
-            return isinstance(data, dict) and "name" in data
+        class ComplexModel(BaseModel):
+            name: str
+            email: str
+            age: int
 
-        transform_result = self.processor.validate_data(complex_data[0], validator_func)
+        transform_result = self.processor.validate_with_pydantic_model(dict(complex_data[0]), ComplexModel)
         assert transform_result.is_success
 
         # Step 2: Aggregate transformed data
         transformed_data = transform_result.unwrap()
-        aggregate_result = self.processor.safe_json_stringify_flext_result(transformed_data)
-        assert aggregate_result.is_success
+        flext_result = FlextResult[object].ok(transformed_data)
+        aggregate_result = self.processor.safe_json_stringify_flext_result(flext_result)
+        assert isinstance(aggregate_result, str)
 
-        final_result = aggregate_result.unwrap()
+        final_result = aggregate_result
         assert isinstance(final_result, str)
 
 
@@ -220,19 +234,22 @@ class TestFlextCliDataProcessingEdgeCases:
     def test_empty_data_handling(self) -> None:
         """Test handling of empty data structures."""
         # Test empty list - should handle gracefully with proper validation
-        result = self.processor.batch_process_items([], lambda x: x)
+        def empty_validator(x: object) -> FlextResult[object]:
+            return FlextResult[object].ok(x)
+
+        batch_result = self.processor.batch_process_items([], empty_validator)
 
         # Empty data should be handled gracefully - either success with empty result
         # or informative failure message (both are valid defensive behaviors)
-        if result.is_success:
-            unwrapped = result.unwrap()
+        if batch_result.is_success:
+            unwrapped = batch_result.unwrap()
             assert isinstance(unwrapped, list)
             assert len(unwrapped) == 0
         else:
             # Defensive behavior: reject empty data with clear message
             assert (
-                "required" in str(result.error or "").lower()
-                or "empty" in str(result.error or "").lower()
+                "required" in str(batch_result.error or "").lower()
+                or "empty" in str(batch_result.error or "").lower()
             )
 
     def test_large_dataset_handling(self) -> None:
@@ -241,8 +258,8 @@ class TestFlextCliDataProcessingEdgeCases:
         large_data: FlextTypes.Core.List = [f"item_{i}" for i in range(10000)]
 
         # Should handle large datasets without crashing
-        def validator_func(item: str) -> str:
-            return item
+        def validator_func(item: object) -> FlextResult[object]:
+            return FlextResult[object].ok(item)
 
         result = self.processor.batch_process_items(large_data, validator_func)
         assert isinstance(result, FlextResult)
@@ -256,8 +273,8 @@ class TestFlextCliDataProcessingEdgeCases:
         ]
 
         # Should handle malformed data gracefully
-        def malformed_validator(data: object) -> bool:
-            return isinstance(data, dict)
+        class MalformedModel(BaseModel):
+            incomplete: bool
 
-        result = self.processor.validate_data(malformed_data[0], malformed_validator)
+        result = self.processor.validate_with_pydantic_model(malformed_data[0], MalformedModel)
         assert isinstance(result, FlextResult)

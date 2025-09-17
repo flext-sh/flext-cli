@@ -94,7 +94,7 @@ def _container_demo(
     container.register("cli_service", FlextCliService())
 
     # Use flext-cli formatting instead of direct Rich Table
-    services_data = {}
+    services_data: dict[str, object] = {}
     for service_name in ["formatter", "config", "cli_api", "cli_service"]:
         service_result = container.get(service_name)
         status = "✅ Retrieved" if service_result.is_success else "❌ Failed"
@@ -188,7 +188,7 @@ def _summary_demo(formatter: FlextCliFormatters) -> None:
     }
 
     table_result = formatter.format_table(
-        data=cast(dict[str, object], summary_data), title="Foundation Patterns Summary"
+        data=cast("dict[str, object]", summary_data), title="Foundation Patterns Summary"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)

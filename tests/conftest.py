@@ -10,10 +10,9 @@ import tempfile
 from collections.abc import Callable, Generator
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, ClassVar
+from typing import  ClassVar
 
 import pytest
-from flext_core import FlextResult, FlextTypes
 from flext_tests import (
     FlextTestsBuilders,
     FlextTestsDomains,
@@ -31,6 +30,7 @@ from flext_cli import (
     FlextCliMain,
 )
 from flext_cli.models import FlextCliModels
+from flext_core import FlextResult, FlextTypes
 
 
 # Test Configuration and Constants
@@ -48,7 +48,7 @@ class FlextCliTestData:
     }
 
     # User Test Data
-    TEST_USERS: ClassVar[dict[str, dict[str, Any]]] = {
+    TEST_USERS: ClassVar[dict[str, dict[str, object]]] = {
         "default": {
             "user_id": "test_user_factory",
             "name": "Test User",
@@ -226,7 +226,7 @@ def auth_failure_result(flext_builders: FlextTestsBuilders) -> FlextResult[objec
 
 # Repository and Service Fixtures
 @pytest.fixture
-def real_repositories(flext_fixtures: FlextTestsFixtures) -> FlextTypes.Core.Dict:
+def real_repositories(_flext_fixtures: FlextTestsFixtures) -> FlextTypes.Core.Dict:
     """Provide collection of real repository implementations using FlextTestsFixtures."""
     return {
         "user_repo": {},  # Placeholder for in-memory repo
@@ -297,7 +297,7 @@ def assert_failure(flext_matchers: FlextTestsMatchers) -> Callable[[FlextResult[
 
 # Performance and Benchmarking Fixtures
 @pytest.fixture
-def benchmark_fixture(flext_fixtures: FlextTestsFixtures) -> object:
+def benchmark_fixture(_flext_fixtures: FlextTestsFixtures) -> object:
     """Provide benchmark fixture for performance tests."""
     return {}  # Placeholder for benchmark fixture
 

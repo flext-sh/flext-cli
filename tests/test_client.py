@@ -12,19 +12,22 @@ from urllib.parse import parse_qs, urlparse
 
 import httpx
 import pytest
+
+from flext_cli.client import FlextApiClient, Pipeline, PipelineConfig, PipelineList
+from flext_cli.config import FlextCliConfig
 from flext_core import FlextResult, FlextTypes
 
-from flext_cli.client import FlextApiClient
-from flext_cli.config import FlextCliConfig
-
-# Alias for easier testing access
-FlextApiClientModels = FlextApiClient
+# Alias for easier testing access - using module-level imports
+class FlextApiClientModels:
+    Pipeline = Pipeline
+    PipelineConfig = PipelineConfig
+    PipelineList = PipelineList
 
 
 class MockHTTPHandler(BaseHTTPRequestHandler):
     """Simple test HTTP server for real client testing."""
 
-    def log_message(self, _fmt: str, *args: object) -> None:
+    def log_message(self, fmt: str, *args: object) -> None:
         """Override log_message to handle the correct number of arguments."""
 
         # Suppress logging for tests
@@ -224,43 +227,37 @@ class TestClientModels(unittest.TestCase):
         """Test creating PipelineConfig with real data."""
         config = FlextApiClientModels.PipelineConfig(
             name="test-pipeline",
-            tap="tap-csv",
-            target="target-json",
-            schedule="0 * * * *",
-            transform="dbt-transform",
-            state={"last_run": "2025-01-01T00:00:00Z"},
-            config={"batch_size": 1000},
+            description="Test pipeline description",
+            timeout_seconds=60,
+            max_retries=3,
+            parallel_execution=False,
+            fail_fast=True,
+            environment={"ENV": "test"},
+            tags=["test", "ci"],
         )
 
         assert config.name == "test-pipeline"
-        assert config.tap == "tap-csv"
-        assert config.target == "target-json"
-        assert config.schedule == "0 * * * *"
-        assert config.transform == "dbt-transform"
-        assert config.state is not None
-        assert config.state["last_run"] == "2025-01-01T00:00:00Z"
-        assert config.config is not None
-        assert config.config["batch_size"] == 1000
+        assert config.description == "Test pipeline description"
+        assert config.timeout_seconds == 60
+        assert config.max_retries == 3
+        assert config.parallel_execution is False
+        assert config.fail_fast is True
+        assert config.environment["ENV"] == "test"
+        assert "test" in config.tags
 
     def test_pipeline_config_minimal(self) -> None:
         """Test creating PipelineConfig with minimal required fields."""
         config = FlextApiClientModels.PipelineConfig(
-            name="minimal-pipeline",
-            tap="tap-source",
-            target="target-dest",
-            schedule=None,
-            transform=None,
-            state=None,
-            config=None,
+            name="minimal-pipeline"
+            # All other fields have defaults
         )
 
         assert config.name == "minimal-pipeline"
-        assert config.tap == "tap-source"
-        assert config.target == "target-dest"
-        assert config.schedule is None
-        assert config.transform is None
-        assert config.state is None
-        assert config.config is None
+        assert config.description == ""  # Default value
+        assert config.timeout_seconds == 30  # Default from constants
+        assert config.max_retries == 3  # Default value
+        assert config.parallel_execution is False  # Default value
+        assert config.fail_fast is True  # Default value
 
     def test_pipeline_model_creation(self) -> None:
         """Test creating Pipeline model with real data."""
@@ -268,18 +265,21 @@ class TestClientModels(unittest.TestCase):
             name="test",
             tap="tap",
             target="target",
+            schedule=None,
+            transform=None,
+            state=None,
+            config=None,
         )
         pipeline = FlextApiClientModels.Pipeline(
             id="pipeline-123",
             name="Test Pipeline",
-            status="active",
-            config=config,
+            # created_at and updated_at will use default factories
         )
 
         assert pipeline.id == "pipeline-123"
         assert pipeline.name == "Test Pipeline"
-        assert pipeline.status == "active"
-        assert pipeline.config.name == "test"
+        assert pipeline.status == "PENDING"  # Default state is PipelinePendingState
+        # Note: Pipeline model doesn't have a config field, that's separate
 
     def test_pipeline_list_creation(self) -> None:
         """Test creating PipelineList with real data."""
@@ -287,12 +287,18 @@ class TestClientModels(unittest.TestCase):
             name="test",
             tap="tap",
             target="target",
+            schedule=None,
+            transform=None,
+            state=None,
+            config=None,
         )
         pipeline = FlextApiClientModels.Pipeline(
             id="pipeline-1",
             name="Pipeline 1",
             status="active",
             config=config,
+            created_at=None,
+            updated_at=None,
         )
 
         pipeline_list = FlextApiClientModels.PipelineList(
@@ -313,6 +319,9 @@ class TestClientModels(unittest.TestCase):
             name="serialize-test",
             tap="tap-test",
             target="target-test",
+            schedule=None,
+            transform=None,
+            state=None,
             config={"key": "value"},
         )
 
@@ -332,7 +341,13 @@ class TestClientModels(unittest.TestCase):
                 name="valid-pipeline",
                 tap="tap-csv",
                 target="target-json",
+                schedule=None,
+                transform=None,
+                state=None,
+                config=None,
             ),
+            created_at=None,
+            updated_at=None,
         )
 
         result = pipeline.validate_business_rules()
@@ -348,7 +363,13 @@ class TestClientModels(unittest.TestCase):
                 name="valid-pipeline",
                 tap="tap-csv",
                 target="target-json",
+                schedule=None,
+                transform=None,
+                state=None,
+                config=None,
             ),
+            created_at=None,
+            updated_at=None,
         )
 
         result = pipeline.validate_business_rules()
@@ -366,7 +387,13 @@ class TestClientModels(unittest.TestCase):
                 name="valid-pipeline",
                 tap="tap-csv",
                 target="target-json",
+                schedule=None,
+                transform=None,
+                state=None,
+                config=None,
             ),
+            created_at=None,
+            updated_at=None,
         )
 
         result = pipeline.validate_business_rules()
@@ -384,7 +411,13 @@ class TestClientModels(unittest.TestCase):
                 name="valid-pipeline",
                 tap="tap-csv",
                 target="target-json",
+                schedule=None,
+                transform=None,
+                state=None,
+                config=None,
             ),
+            created_at=None,
+            updated_at=None,
         )
 
         result = pipeline.validate_business_rules()
@@ -714,6 +747,9 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
             tap="tap-csv",
             target="target-json",
             schedule="0 0 * * *",
+            transform=None,
+            state=None,
+            config=None,
         )
 
         async def test_create() -> object:
@@ -736,6 +772,10 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
             name="updated-pipeline",
             tap="tap-updated",
             target="target-updated",
+            schedule=None,
+            transform=None,
+            state=None,
+            config=None,
         )
 
         async def test_update() -> object:
@@ -812,8 +852,16 @@ class TestFlextApiClientContextManager(AsyncTestCase):
             name="Test Pipeline",
             status="active",
             config=FlextApiClient.PipelineConfig(
-                name="Test Pipeline", tap="tap-postgres", target="target-postgres"
+                name="Test Pipeline",
+                tap="tap-postgres",
+                target="target-postgres",
+                schedule=None,
+                transform=None,
+                state=None,
+                config=None,
             ),
+            created_at=None,
+            updated_at=None,
         )
 
         result = pipeline.validate_business_rules()
@@ -826,8 +874,16 @@ class TestFlextApiClientContextManager(AsyncTestCase):
             name="",  # Empty name should fail
             status="active",
             config=FlextApiClient.PipelineConfig(
-                name="Test Pipeline", tap="tap-postgres", target="target-postgres"
+                name="Test Pipeline",
+                tap="tap-postgres",
+                target="target-postgres",
+                schedule=None,
+                transform=None,
+                state=None,
+                config=None,
             ),
+            created_at=None,
+            updated_at=None,
         )
 
         result = pipeline.validate_business_rules()
@@ -842,8 +898,16 @@ class TestFlextApiClientContextManager(AsyncTestCase):
             name="Test Pipeline",
             status="invalid_status",  # Invalid status
             config=FlextApiClient.PipelineConfig(
-                name="Test Pipeline", tap="tap-postgres", target="target-postgres"
+                name="Test Pipeline",
+                tap="tap-postgres",
+                target="target-postgres",
+                schedule=None,
+                transform=None,
+                state=None,
+                config=None,
             ),
+            created_at=None,
+            updated_at=None,
         )
 
         result = pipeline.validate_business_rules()
@@ -878,8 +942,16 @@ class TestFlextApiClientContextManager(AsyncTestCase):
             name="Test Pipeline",
             status="active",
             config=FlextApiClient.PipelineConfig(
-                name="Test Pipeline", tap="tap-postgres", target="target-postgres"
+                name="Test Pipeline",
+                tap="tap-postgres",
+                target="target-postgres",
+                schedule=None,
+                transform=None,
+                state=None,
+                config=None,
             ),
+            created_at=None,
+            updated_at=None,
         )
 
         pipeline_list = FlextApiClient.PipelineList(

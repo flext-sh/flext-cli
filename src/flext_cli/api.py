@@ -11,6 +11,13 @@ from typing import TypeVar, override
 from uuid import UUID
 
 import yaml
+from pydantic import Field, PrivateAttr
+
+# Rich imports removed - use formatters.py abstraction layer
+from flext_cli.config import FlextCliConfig
+from flext_cli.core import FlextCliService
+from flext_cli.formatters import FlextCliFormatters
+from flext_cli.models import FlextCliModels
 from flext_core import (
     FlextContainer,
     FlextDomainService,
@@ -20,15 +27,6 @@ from flext_core import (
     FlextTypes,
     FlextUtilities,
 )
-from pydantic import BaseModel, Field, PrivateAttr
-
-# Rich imports removed - use formatters.py abstraction layer
-from flext_cli.config import FlextCliConfig
-from flext_cli.constants import FlextCliConstants
-from flext_cli.formatters import FlextCliFormatters
-from flext_cli.models import FlextCliModels
-from flext_cli.services import FlextCliServices
-from flext_cli.utils import STRICT_CONFIG_DICT
 
 T = TypeVar("T")
 
@@ -45,8 +43,17 @@ class FlextCliApi(FlextDomainService[str]):
     """
 
     # State management attributes - SIMPLE ALIAS: Use optional fields with proper defaults
-    state: FlextCliApi.ApiState | None = Field(default=None)
+    state: FlextCliModels.ApiState | None = Field(default=None)
     dispatcher: FlextCliApi.OperationDispatcher | None = Field(default=None)
+
+    # Type alias for test compatibility
+    @property
+    def api_state_class(self) -> type[FlextCliModels.ApiState]:
+        """Get ApiState model class for test compatibility."""
+        return FlextCliModels.ApiState
+
+    # Legacy property alias for backward compatibility
+    ApiState: type[FlextCliModels.ApiState] = FlextCliModels.ApiState
 
     # Private attributes for Pydantic
     _formatters: FlextCliFormatters = PrivateAttr()
@@ -59,36 +66,12 @@ class FlextCliApi(FlextDomainService[str]):
     # NESTED SPECIALIZED CLASSES - Advanced Architecture Pattern
     # =========================================================================
 
-    class ApiState(BaseModel):
-        """Nested state manager with advanced Pydantic validation."""
-
-        model_config = STRICT_CONFIG_DICT
-
-        version: str = Field(default="0.9.1")
-        service_name: str = Field(default=FlextCliConstants.SERVICE_NAME_API)
-        sessions: dict[str, FlextCliModels.CliSession] = Field(default_factory=dict)
-        command_history: list[FlextCliModels.CliCommand] = Field(default_factory=list)
-        handlers: dict[str, object] = Field(default_factory=dict)
-        plugins: dict[str, object] = Field(default_factory=dict)
-        enable_session_tracking: bool = Field(default=True)
-        enable_command_history: bool = Field(default=True)
-
-        @property
-        def session_count(self) -> int:
-            """Get current session count using advanced property caching."""
-            return len(self.sessions)
-
-        @property
-        def handler_count(self) -> int:
-            """Get current handler count using advanced property caching."""
-            return len(self.handlers)
-
     class OperationDispatcher:
         """Nested operation dispatcher using Python 3.13 pattern matching."""
 
         def __init__(
             self,
-            state: FlextCliApi.ApiState,
+            state: FlextCliModels.ApiState,
             formatters: FlextCliFormatters,
         ) -> None:
             """Initialize operation dispatcher with state and formatters."""
@@ -237,40 +220,41 @@ class FlextCliApi(FlextDomainService[str]):
             format_type: str,
         ) -> FlextResult[str]:
             """Handle format operations using advanced parameter validation."""
-            try:
-                match format_type.lower():
-                    case "json":
-                        result = FlextUtilities.safe_json_stringify(data)
-                        return FlextResult[str].ok(result)
-                    case "yaml":
-                        result = yaml.dump(
-                            data,
-                            default_flow_style=False,
-                            allow_unicode=True,
-                        )
-                        return FlextResult[str].ok(result)
-                    case "csv":
-                        return self._format_as_csv(data)
-                    case "table":
-                        table_result = self.formatters.format_table(data)
-                        if table_result.is_success:
-                            # Convert Table to string representation
-                            return FlextResult[str].ok(str(table_result.value))
-                        return FlextResult[str].fail(
-                            table_result.error or "Table formatting failed",
-                        )
-                    case "plain":
-                        return FlextResult[str].ok(str(data))
-                    case _:
-                        return FlextResult[str].fail(
-                            f"Unsupported format type: {format_type}",
-                        )
-            except (
-                ImportError,
-                AttributeError,
-                ValueError,
-            ) as e:
-                return FlextResult[str].fail(f"Format failed: {e}")
+            if not format_type or not isinstance(format_type, str):
+                return FlextResult[str].fail("Format type must be a non-empty string")
+
+            match format_type.lower():
+                case "json":
+                    result = FlextUtilities.safe_json_stringify(data)
+                    return FlextResult[str].ok(result)
+                case "yaml":
+                    result = yaml.dump(
+                        data,
+                        default_flow_style=False,
+                        allow_unicode=True,
+                    )
+                    return FlextResult[str].ok(result)
+                case "csv":
+                    return self._format_as_csv(data)
+                case "table":
+                    # FlextCliFormatters handles all object types - no type validation needed
+                    # Type cast to match formatter expectations
+                    formatted_data = (
+                        data if isinstance(data, (dict, list)) else {"value": data}
+                    )
+                    table_result = self.formatters.format_table(formatted_data)
+                    if table_result.is_success:
+                        # Convert Table to string representation
+                        return FlextResult[str].ok(str(table_result.value))
+                    return FlextResult[str].fail(
+                        table_result.error or "Table formatting failed",
+                    )
+                case "plain":
+                    return FlextResult[str].ok(str(data))
+                case _:
+                    return FlextResult[str].fail(
+                        f"Unsupported format type: {format_type}",
+                    )
 
         def _format_as_csv(self, data: object) -> FlextResult[str]:
             """Format data as CSV using flext-core utilities - NO duplication."""
@@ -395,31 +379,37 @@ class FlextCliApi(FlextDomainService[str]):
 
         def _handle_configure_operation(self, config: object) -> FlextResult[None]:
             """Handle configuration with advanced validation and state updates."""
-            try:
-                if not isinstance(config, dict):
-                    return FlextResult[None].fail("Configuration must be a dictionary")
+            if not isinstance(config, dict):
+                return FlextResult[None].fail("Configuration must be a dictionary")
 
-                if not config:
-                    return FlextResult[None].fail("Configuration cannot be empty")
+            if not config:
+                return FlextResult[None].fail("Configuration cannot be empty")
 
-                # Apply configuration settings using pattern matching
-                for key, value in config.items():
-                    match key:
-                        case "enable_session_tracking":
-                            self.state.enable_session_tracking = bool(value)
-                        case "enable_command_history":
-                            self.state.enable_command_history = bool(value)
-                        case "version":
-                            if str(value):
-                                self.state.version = str(value)
+            # Apply configuration settings using pattern matching
+            for key, value in config.items():
+                match key:
+                    case "enable_session_tracking":
+                        self.state.enable_session_tracking = bool(value)
+                    case "enable_command_history":
+                        self.state.enable_command_history = bool(value)
+                    case "version":
+                        if str(value):
+                            # Convert to int since Entity.version expects int
+                            version_str = str(value)
+                            if "." in version_str:
+                                version_parts = version_str.split(".")
+                                if version_parts and version_parts[0].isdigit():
+                                    self.state.version = int(
+                                        version_parts[0]
+                                    )  # Use major version
+                                else:
+                                    self.state.version = 1  # Default version
+                            elif version_str.isdigit():
+                                self.state.version = int(version_str)
+                            else:
+                                self.state.version = 1  # Default version
 
-                return FlextResult[None].ok(None)
-            except (
-                ImportError,
-                AttributeError,
-                ValueError,
-            ) as e:
-                return FlextResult[None].fail(f"Configuration failed: {e}")
+            return FlextResult[None].ok(None)
 
         def _handle_aggregate_operation(
             self,
@@ -447,51 +437,46 @@ class FlextCliApi(FlextDomainService[str]):
             format_type: object,
         ) -> FlextResult[FlextTypes.Core.StringList]:
             """Handle batch export."""
-            try:
-                if not isinstance(datasets, list):
-                    return FlextResult[FlextTypes.Core.StringList].fail(
-                        "Datasets must be a list",
-                    )
-
-                if not isinstance(base_path, (str, Path)):
-                    return FlextResult[FlextTypes.Core.StringList].fail(
-                        "Base path must be string or Path",
-                    )
-
-                if not isinstance(format_type, str):
-                    return FlextResult[FlextTypes.Core.StringList].fail(
-                        "Format type must be string",
-                    )
-
-                base = Path(base_path)
-                base.mkdir(parents=True, exist_ok=True)
-
-                exported_files = []
-
-                for name, data in datasets:
-                    filename = f"{name}.{format_type}"
-                    file_path = base / filename
-
-                    if format_type == "json":
-                        content = json.dumps(data, indent=2)
-                    elif format_type in {"yaml", "yml"}:
-                        content = yaml.safe_dump(data, default_flow_style=False)
-                    else:
-                        content = str(data)
-
-                    file_path.write_text(content, encoding="utf-8")
-                    exported_files.append(str(file_path))
-
-                return FlextResult[FlextTypes.Core.StringList].ok(exported_files)
-
-            except (
-                ImportError,
-                AttributeError,
-                ValueError,
-            ) as e:
+            if not isinstance(datasets, list):
                 return FlextResult[FlextTypes.Core.StringList].fail(
-                    f"Batch export failed: {e}",
+                    "Datasets must be a list",
                 )
+
+            if not isinstance(base_path, (str, Path)):
+                return FlextResult[FlextTypes.Core.StringList].fail(
+                    "Base path must be string or Path",
+                )
+
+            if not isinstance(format_type, str):
+                return FlextResult[FlextTypes.Core.StringList].fail(
+                    "Format type must be string",
+                )
+
+            base = Path(base_path)
+            base.mkdir(parents=True, exist_ok=True)
+
+            exported_files = []
+
+            for name, data in datasets:
+                if not isinstance(name, str) or not name:
+                    return FlextResult[FlextTypes.Core.StringList].fail(
+                        "Dataset names must be non-empty strings"
+                    )
+
+                filename = f"{name}.{format_type}"
+                file_path = base / filename
+
+                if format_type == "json":
+                    content = json.dumps(data, indent=2)
+                elif format_type in {"yaml", "yml"}:
+                    content = yaml.safe_dump(data, default_flow_style=False)
+                else:
+                    content = str(data)
+
+                file_path.write_text(content, encoding="utf-8")
+                exported_files.append(str(file_path))
+
+            return FlextResult[FlextTypes.Core.StringList].ok(exported_files)
 
     # =========================================================================
     # MAIN API IMPLEMENTATION
@@ -501,7 +486,7 @@ class FlextCliApi(FlextDomainService[str]):
         self,
         *,
         models: FlextModels | None = None,
-        services: FlextCliServices | None = None,
+        services: FlextCliService | None = None,
         version: str | None = None,
     ) -> None:
         """Initialize unified API with nested architecture and flext-core patterns.
@@ -518,7 +503,24 @@ class FlextCliApi(FlextDomainService[str]):
         temp_formatters = FlextCliFormatters()
 
         # Initialize state and dispatcher BEFORE calling super() - SIMPLE ALIAS approach
-        state = FlextCliApi.ApiState(version=api_version)
+        # Convert version to int for Entity compatibility
+        if "." in api_version:
+            version_parts = api_version.split(".")
+            if version_parts and version_parts[0].isdigit():
+                version_int = int(version_parts[0])  # Use major version
+            else:
+                version_int = 1  # Default version
+        elif api_version.isdigit():
+            version_int = int(api_version)
+        else:
+            version_int = 1  # Default version
+
+        # Create ApiState with required base_url from config
+        api_base_url = getattr(config, "api_url", "http://localhost:8000")
+        state = FlextCliModels.ApiState(
+            version=version_int,
+            base_url=api_base_url,
+        )
         dispatcher = FlextCliApi.OperationDispatcher(
             state=state,
             formatters=temp_formatters,
@@ -539,7 +541,7 @@ class FlextCliApi(FlextDomainService[str]):
 
         # Store reference to config for future use
         self._config = config
-        self._services = services or FlextCliServices()
+        self._services = services or FlextCliService()
 
     def configure(self, config: object) -> FlextResult[None]:
         """Configure API with validation and state updates."""
@@ -550,23 +552,28 @@ class FlextCliApi(FlextDomainService[str]):
     def update_from_config(self) -> None:
         """Update API configuration from FlextConfig singleton.
 
-                This method allows the API to refresh its configuration
-                from the FlextConfig singleton, ensuring it always uses
-        from flext_core import FlextLogger
-        from flext_core import FlextModels
-        from flext_core import FlextResult
-        from typing import Dict
-        from typing import List
-                the latest configuration values.
+        This method allows the API to refresh its configuration
+        from the FlextConfig singleton, ensuring it always uses
+        the latest configuration values.
         """
         # Update configuration from singleton
         self._config = FlextCliConfig.get_global_instance()
 
         # Update state with new configuration
         if hasattr(self, "state") and self.state:
-            # Update version from config
+            # Update version from config - convert to int for Entity compatibility
             config_version = getattr(self._config, "project_version", "0.9.1")
-            self.state.version = config_version
+            version_str = str(config_version)
+            if "." in version_str:
+                version_parts = version_str.split(".")
+                if version_parts and version_parts[0].isdigit():
+                    self.state.version = int(version_parts[0])  # Use major version
+                else:
+                    self.state.version = 1  # Default version
+            elif version_str.isdigit():
+                self.state.version = int(version_str)
+            else:
+                self.state.version = 1  # Default version
 
     # =========================================================================
     # PUBLIC API - Maintaining original signatures for backward compatibility
@@ -626,16 +633,17 @@ class FlextCliApi(FlextDomainService[str]):
         self, message: str, message_type: str = "info"
     ) -> FlextResult[None]:
         """Display message using CLI formatters."""
-        try:
-            # Use formatters to display message with type
-            display_result = self._formatters.display_message(message, message_type)
-            if display_result.is_success:
-                return FlextResult[None].ok(None)
-            return FlextResult[None].fail(
-                display_result.error or "Message display failed"
-            )
-        except Exception as e:
-            return FlextResult[None].fail(f"Message display failed: {e}")
+        if not message:
+            return FlextResult[None].fail("Message cannot be empty")
+
+        if message_type not in {"info", "warning", "error", "success"}:
+            return FlextResult[None].fail(f"Invalid message type: {message_type}")
+
+        # Use formatters to display message with type
+        display_result = self._formatters.display_message(message, message_type)
+        if display_result.is_success:
+            return FlextResult[None].ok(None)
+        return FlextResult[None].fail(display_result.error or "Message display failed")
 
     def display_output(
         self,
@@ -644,25 +652,26 @@ class FlextCliApi(FlextDomainService[str]):
         title: str | None = None,
     ) -> FlextResult[None]:
         """Display output using CLI formatters."""
-        try:
-            # Format the data first
-            format_result = self.format_data(data, format_type)
-            if format_result.is_failure:
-                return FlextResult[None].fail(
-                    f"Data formatting failed: {format_result.error}"
-                )
+        if data is None:
+            return FlextResult[None].fail("Data cannot be None")
 
-            # Display using formatters
-            display_result = self._formatters.display_formatted_output(
-                format_result.value, title=title
-            )
-            if display_result.is_success:
-                return FlextResult[None].ok(None)
+        if format_type not in {"table", "json", "yaml", "text"}:
+            return FlextResult[None].fail(f"Invalid format type: {format_type}")
+
+        # Format the data first
+        format_result = self.format_data(data, format_type)
+        if format_result.is_failure:
             return FlextResult[None].fail(
-                display_result.error or "Output display failed"
+                f"Data formatting failed: {format_result.error}"
             )
-        except Exception as e:
-            return FlextResult[None].fail(f"Output display failed: {e}")
+
+        # Display using formatters
+        display_result = self._formatters.display_formatted_output(
+            format_result.value, title=title
+        )
+        if display_result.is_success:
+            return FlextResult[None].ok(None)
+        return FlextResult[None].fail(display_result.error or "Output display failed")
 
     def format_output(
         self,
@@ -680,69 +689,66 @@ class FlextCliApi(FlextDomainService[str]):
         arguments: list[str] | None = None,
     ) -> FlextResult[FlextCliModels.CliCommand]:
         """Create CLI command with validation."""
-        try:
-            if not name or not name.strip():
-                return FlextResult[FlextCliModels.CliCommand].fail(
-                    "Command name cannot be empty"
-                )
-
-            if not description or not description.strip():
-                return FlextResult[FlextCliModels.CliCommand].fail(
-                    "Command description cannot be empty"
-                )
-
-            if not callable(handler):
-                return FlextResult[FlextCliModels.CliCommand].fail(
-                    "Handler must be callable"
-                )
-
-            command = FlextCliModels.CliCommand(
-                id=FlextUtilities.Generators.generate_uuid(),
-                command_line=f"{name} {' '.join(arguments or [])}",
-                execution_time=datetime.now(UTC),
-            )
-
-            # Note: output_format stored separately as needed
-            # command model doesn't have _output_format attribute
-
-            # Store command in history if enabled
-            if self.enable_command_history and self.state:
-                self.state.command_history.append(command)
-
-            return FlextResult[FlextCliModels.CliCommand].ok(command)
-        except Exception as e:
+        if not name or not name.strip():
             return FlextResult[FlextCliModels.CliCommand].fail(
-                f"Command creation failed: {e}"
+                "Command name cannot be empty"
             )
+
+        if not description or not description.strip():
+            return FlextResult[FlextCliModels.CliCommand].fail(
+                "Command description cannot be empty"
+            )
+
+        if not callable(handler):
+            return FlextResult[FlextCliModels.CliCommand].fail(
+                "Handler must be callable"
+            )
+
+        command = FlextCliModels.CliCommand(
+            id=FlextUtilities.Generators.generate_uuid(),
+            command_line=f"{name} {' '.join(arguments or [])}",
+            execution_time=datetime.now(UTC),
+        )
+
+        # Note: output_format stored separately as needed
+        # command model doesn't have _output_format attribute
+
+        # Store command in history if enabled
+        if self.enable_command_history and self.state:
+            self.state.command_history.append(command)
+
+        return FlextResult[FlextCliModels.CliCommand].ok(command)
 
     def format_data(self, data: object, format_type: str) -> FlextResult[str]:
         """Format data to specified format type using FlextCliFormatters."""
+        # FlextCliFormatters handles all object types - no type validation needed
         return self._formatters.format_data(data, format_type)
 
     def export_data(self, data: object, file_path: str | Path) -> FlextResult[str]:
         """Export data to file."""
+        if not file_path:
+            return FlextResult[str].fail("File path cannot be empty")
+
+        if data is None:
+            return FlextResult[str].fail("Data cannot be None")
+
+        path = Path(file_path)
+        suffix = path.suffix.lower()
+
+        if suffix == ".json":
+            content = json.dumps(data, indent=2)
+        elif suffix in {".yaml", ".yml"}:
+            content = yaml.safe_dump(data, default_flow_style=False)
+        else:
+            content = str(data)
+
         try:
-            path = Path(file_path)
-            suffix = path.suffix.lower()
-
-            if suffix == ".json":
-                content = json.dumps(data, indent=2)
-            elif suffix in {".yaml", ".yml"}:
-                content = yaml.safe_dump(data, default_flow_style=False)
-            else:
-                content = str(data)
-
+            # Create parent directory if it doesn't exist
+            path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding="utf-8")
             return FlextResult[str].ok(f"Data exported to {file_path}")
-
-        except (
-            ImportError,
-            AttributeError,
-            ValueError,
-            FileNotFoundError,
-            PermissionError,
-        ) as e:
-            return FlextResult[str].fail(f"Export failed: {e}")
+        except (OSError, PermissionError) as e:
+            return FlextResult[str].fail(f"Failed to export data to {file_path}: {e}")
 
     def create_table(
         self,
@@ -750,7 +756,10 @@ class FlextCliApi(FlextDomainService[str]):
         title: str | None = None,
     ) -> FlextResult[object]:
         """Create formatted table - returns string for most cases, RichTable when needed."""
-        table_result = self._formatters.format_table(data, title=title)
+        # FlextCliFormatters handles all object types - no type validation needed
+        # Type cast to match formatter expectations
+        formatted_data = data if isinstance(data, (dict, list)) else {"value": data}
+        table_result = self._formatters.format_table(formatted_data, title=title)
         if table_result.is_success:
             return FlextResult[object].ok(table_result.value)
         return FlextResult[object].fail(table_result.error or "Table creation failed")
@@ -761,16 +770,19 @@ class FlextCliApi(FlextDomainService[str]):
         title: str | None = None,
     ) -> FlextResult[object]:
         """Create Rich Table object for advanced use cases - uses abstraction layer."""
-        try:
-            # Use formatters abstraction layer instead of direct Rich import
-            table_result = self._formatters.create_rich_table_object(data, title=title)
-            if table_result.is_success:
-                return FlextResult[object].ok(table_result.value)
-            return FlextResult[object].fail(
-                f"Table creation failed: {table_result.error}"
-            )
-        except Exception as e:
-            return FlextResult[object].fail(f"Table creation failed: {e}")
+        if data is None:
+            return FlextResult[object].fail("Data cannot be None")
+
+        # FlextCliFormatters handles all object types - no type validation needed
+        # Use formatters abstraction layer instead of direct Rich import
+        # Type cast to match formatter expectations
+        formatted_data = data if isinstance(data, (dict, list)) else {"value": data}
+        table_result = self._formatters.create_rich_table_object(
+            formatted_data, title=title
+        )
+        if table_result.is_success:
+            return FlextResult[object].ok(table_result.value)
+        return FlextResult[object].fail(f"Table creation failed: {table_result.error}")
 
     def aggregate_data(
         self,
@@ -845,7 +857,7 @@ class FlextCliApi(FlextDomainService[str]):
         """Get API version from unified state."""
         if self.state is None:
             return "unknown"
-        return self.state.version
+        return str(self.state.version)
 
     @property
     def service_name(self) -> str:
@@ -885,7 +897,7 @@ class FlextCliApi(FlextDomainService[str]):
         cls,
         *,
         models: FlextModels | None = None,
-        services: FlextCliServices | None = None,
+        services: FlextCliService | None = None,
         config_override: FlextTypes.Core.Dict | None = None,
     ) -> FlextCliApi:
         """Factory method for creating API with full dependency injection."""

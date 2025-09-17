@@ -4,10 +4,9 @@ import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
-from flext_core import FlextResult
-
 from flext_cli.auth import FlextCliAuth
 from flext_cli.config import FlextCliConfig
+from flext_core import FlextResult
 
 
 class TestFlextCliAuthRealValidation:

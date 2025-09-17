@@ -11,11 +11,10 @@ import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from flext_core import FlextLogger, FlextResult, FlextTypes
-
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
-from flext_cli.utils import empty_dict
+from flext_cli.utils import FlextCliUtilities
+from flext_core import FlextLogger, FlextResult, FlextTypes
 
 
 class FlextCliContext:
@@ -224,6 +223,11 @@ class FlextCliContext:
         if self.is_verbose:
             self._logger.debug(f"VERBOSE: {message}")
 
+    def print_debug(self, message: str) -> None:
+        """Print debug message if debug mode is enabled."""
+        if self._debug:
+            self._logger.debug(f"[DEBUG] {message}")
+
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI context business rules."""
         # CLI context is valid by construction due to Pydantic validation
@@ -261,7 +265,7 @@ class FlextCliContext:
 
         command_name: str | None = None
         command_args: FlextTypes.Core.Dict = field(
-            default_factory=empty_dict,
+            default_factory=FlextCliUtilities.empty_dict,
         )
         execution_id: str | None = None
         start_time: float | None = None
@@ -354,8 +358,8 @@ class FlextCliContext:
             message = "Profile cannot be empty"
             raise ValueError(message)
 
-        if output_format not in {"table", "json", "yaml", "csv"}:
-            message = f"Output format must be one of table, json, yaml, csv, got: {output_format}"
+        if output_format not in {"table", "json", "yaml", "csv", "plain"}:
+            message = f"Output format must be one of table, json, yaml, csv, plain, got: {output_format}"
             raise ValueError(message)
 
         if quiet and verbose:

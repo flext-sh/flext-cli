@@ -70,7 +70,7 @@ def _connection_demo(
 
     # Display connection info using flext-cli formatter
     table_result = formatter.format_table(
-        data=cast(dict[str, object], connection_data), title="Connection Test Configuration"
+        data=cast("dict[str, object]", connection_data), title="Connection Test Configuration"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -108,7 +108,7 @@ def _file_processing_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
 
     # Display processing info using flext-cli formatter
     table_result = formatter.format_table(
-        data=cast(dict[str, object], processing_data), title="File Processing Configuration"
+        data=cast("dict[str, object]", processing_data), title="File Processing Configuration"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -141,7 +141,7 @@ def _cli_status_demo(
     }
 
     table_result = formatter.format_table(
-        data=cast(dict[str, object], status_data), title="CLI Status Dashboard"
+        data=cast("dict[str, object]", status_data), title="CLI Status Dashboard"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -165,7 +165,7 @@ def _command_registration_demo(formatter: FlextCliFormatters) -> FlextResult[Non
     }
 
     table_result = formatter.format_table(
-        data=cast(dict[str, object], commands_data), title="Registered Commands (FlextCliMain)"
+        data=cast("dict[str, object]", commands_data), title="Registered Commands (FlextCliMain)"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -190,7 +190,7 @@ def _summary_demo(formatter: FlextCliFormatters) -> None:
     }
 
     table_result = formatter.format_table(
-        data=cast(dict[str, object], summary_data), title="CLI Integration Components"
+        data=cast("dict[str, object]", summary_data), title="CLI Integration Components"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)

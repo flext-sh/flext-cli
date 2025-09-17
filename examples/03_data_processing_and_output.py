@@ -70,7 +70,7 @@ def _demonstrate_data_transformation(formatter: FlextCliFormatters) -> FlextResu
     # Display sample enriched service using flext-cli formatter
     if enriched_services:
         sample = enriched_services[0]
-        sample_data = {
+        sample_data: dict[str, object] = {
             "Service": sample["name"],
             "Health Score": str(sample["health_score"]),
             "Memory (GB)": f"{sample['memory_gb']}GB",
@@ -110,7 +110,7 @@ def _demonstrate_data_aggregation(formatter: FlextCliFormatters) -> FlextResult[
     formatter.print_success("✅ Service aggregation completed")
 
     # Display aggregated data using flext-cli formatter
-    agg_data = {}
+    agg_data: dict[str, object] = {}
     for stats in service_stats:
         service = str(stats.get("service", "unknown"))
 
@@ -138,7 +138,7 @@ def _demonstrate_output_formatting(formatter: FlextCliFormatters) -> FlextResult
     formatter.print_success("\n3. 🎨 Output Formatting Patterns")
 
     # Sample structured data
-    sample_data = {
+    sample_data: dict[str, object] = {
         "Application": "flext-demo",
         "Version": "1.2.3",
         "Environment": "production",
@@ -163,7 +163,7 @@ def _demonstrate_output_formatting(formatter: FlextCliFormatters) -> FlextResult
         formatter.console.print("   Sample JSON output generated successfully")
 
     # Services data table
-    services_data = {
+    services_data: dict[str, object] = {
         "api-gateway": "Port 8080, Healthy",
         "auth-service": "Port 8081, Healthy",
         "database": "Port 5432, Unhealthy"
@@ -208,7 +208,7 @@ def _demonstrate_file_operations(formatter: FlextCliFormatters) -> FlextResult[N
     formatter.print_success("✅ Configuration loaded successfully")
 
     # Display loaded config using flext-cli formatter
-    config_display = {}
+    config_display: dict[str, object] = {}
     if isinstance(loaded_data, dict):
         database = loaded_data.get("database", {})
         api = loaded_data.get("api", {})
@@ -245,7 +245,7 @@ def _demonstrate_batch_processing(formatter: FlextCliFormatters) -> FlextResult[
     formatter.print_success(f"✅ Batch processing completed: {len(results)} files processed")
 
     # Display results using flext-cli formatter
-    results_data = {}
+    results_data: dict[str, object] = {}
     for i, result in enumerate(results):
         results_data[f"File {i+1}"] = result
 
@@ -281,7 +281,7 @@ def _demonstrate_data_export(formatter: FlextCliFormatters) -> FlextResult[None]
         formatter.print_success("✅ CSV export completed")
 
     # Display export summary using flext-cli formatter
-    export_summary = {
+    export_summary: dict[str, object] = {
         "JSON Export": "✅ Success - All data exported",
         "CSV Export": "✅ Success - Headers and data exported",
         "Format": "Structured data with error handling",
@@ -302,7 +302,7 @@ def _summary_demo(formatter: FlextCliFormatters) -> None:
     """Demo summary display."""
     formatter.print_success("\n📋 Data Processing and Output Summary")
 
-    summary_data = {
+    summary_data: dict[str, object] = {
         "Feature": "Status",
         "Data Transformation": "✅ FlextResult patterns",
         "Data Aggregation": "✅ Type-safe processing",

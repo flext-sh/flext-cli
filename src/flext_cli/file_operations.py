@@ -14,10 +14,9 @@ import json
 from collections.abc import Callable
 from pathlib import Path
 
-from flext_core import FlextResult, FlextTypes, FlextUtilities
-
 from flext_cli.constants import FlextCliConstants
 from flext_cli.interactions import FlextCliInteractions
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 
 class FlextCliFileOperations:
@@ -59,7 +58,9 @@ class FlextCliFileOperations:
             if not file_path.exists():
                 return FlextResult[FlextTypes.Core.Dict].fail(f"File not found: {path}")
 
-            content = file_path.read_text(encoding=FlextCliConstants.DEFAULT_ENCODING)
+            content = file_path.read_text(
+                encoding=FlextCliConstants.FILES.default_encoding
+            )
             # Parse JSON content with safe fallback
             try:
                 parse_result = json.loads(content)
@@ -106,7 +107,7 @@ class FlextCliFileOperations:
             json_content = FlextUtilities.safe_json_stringify(data)
             file_path.write_text(
                 json_content,
-                encoding=FlextCliConstants.DEFAULT_ENCODING,
+                encoding=FlextCliConstants.FILES.default_encoding,
             )
 
             return FlextResult[None].ok(None)
@@ -145,14 +146,14 @@ class FlextCliFileOperations:
             if backup and path.exists():
                 backup_path = path.with_suffix(path.suffix + ".bak")
                 existing_content = path.read_text(
-                    encoding=FlextCliConstants.DEFAULT_ENCODING,
+                    encoding=FlextCliConstants.FILES.default_encoding,
                 )
                 backup_path.write_text(
                     existing_content,
-                    encoding=FlextCliConstants.DEFAULT_ENCODING,
+                    encoding=FlextCliConstants.FILES.default_encoding,
                 )
 
-            path.write_text(content, encoding=FlextCliConstants.DEFAULT_ENCODING)
+            path.write_text(content, encoding=FlextCliConstants.FILES.default_encoding)
             path.chmod(0o600)  # Secure permissions
 
             return FlextResult[None].ok(None)
@@ -203,7 +204,7 @@ class FlextCliFileOperations:
 
             # Read original content
             original_content = path.read_text(
-                encoding=FlextCliConstants.DEFAULT_ENCODING,
+                encoding=FlextCliConstants.FILES.default_encoding,
             )
 
             # Process content
@@ -217,13 +218,13 @@ class FlextCliFileOperations:
             backup_path = path.with_suffix(path.suffix + ".bak")
             backup_path.write_text(
                 original_content,
-                encoding=FlextCliConstants.DEFAULT_ENCODING,
+                encoding=FlextCliConstants.FILES.default_encoding,
             )
 
             # Write processed content
             path.write_text(
                 process_result.value,
-                encoding=FlextCliConstants.DEFAULT_ENCODING,
+                encoding=FlextCliConstants.FILES.default_encoding,
             )
 
             return FlextResult[str].ok(process_result.value)

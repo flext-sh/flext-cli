@@ -17,12 +17,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TypedDict
 
-from flext_core import (
-    FlextContainer,
-    FlextDomainService,
-    FlextResult,
-)
-
 from flext_cli.cli import (
     check,
     connectivity,
@@ -32,8 +26,13 @@ from flext_cli.cli import (
     trace,
     validate,
 )
-from flext_cli.client import FlextApiClient
+from flext_cli.client import FlextCliClient
 from flext_cli.constants import FlextCliConstants
+from flext_core import (
+    FlextContainer,
+    FlextDomainService,
+    FlextResult,
+)
 
 
 class FlextCliDebug(FlextDomainService[str]):
@@ -74,7 +73,7 @@ class FlextCliDebug(FlextDomainService[str]):
     def test_connectivity(self) -> FlextResult[dict[str, str]]:
         """Test API connectivity."""
         try:
-            client = FlextApiClient()
+            client = FlextCliClient()
             return FlextResult[dict[str, str]].ok(
                 {
                     "status": "connected",
@@ -89,7 +88,7 @@ class FlextCliDebug(FlextDomainService[str]):
     async def get_system_metrics(self) -> FlextResult[FlextCliDebug.SystemMetrics]:
         """Get system performance metrics."""
         try:
-            client = FlextApiClient()
+            client = FlextCliClient()
             status_result = await client.get_system_status()
             metrics: FlextCliDebug.SystemMetrics = {
                 "cpu_usage": str(status_result.get("cpu_usage", "Unknown")),
@@ -131,7 +130,9 @@ class FlextCliDebug(FlextDomainService[str]):
 
             for key, value in flext_vars.items():
                 if any(pattern in key.upper() for pattern in sensitive_patterns):
-                    preview_len = self._constants.SECURITY.sensitive_value_preview_length
+                    preview_len = (
+                        self._constants.SECURITY.sensitive_value_preview_length
+                    )
                     masked_vars[key] = f"{value[:preview_len]}****"
                     masked_count += 1
                 else:

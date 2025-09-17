@@ -14,10 +14,10 @@ import sys
 import tempfile
 from pathlib import Path
 
-from flext_core import FlextResult
-
-from flext_cli import FlextCliApi, FlextCliMain, debug as debug_module
+from flext_cli import FlextCliApi, FlextCliMain
+from flext_cli.debug import FlextCliDebug
 from flext_cli.models import FlextCliModels
+from flext_core import FlextResult
 
 
 class TestDebugCommandsReal:
@@ -30,11 +30,8 @@ class TestDebugCommandsReal:
 
     def test_debug_module_exists(self) -> None:
         """Test that debug module exists and has the expected service."""
-        # Check that debug module exists and has the expected service class
-        assert hasattr(debug_module, "FlextCliDebug"), "Missing FlextCliDebug service class"
-
         # Verify the service can be instantiated
-        debug_service = debug_module.FlextCliDebug()
+        debug_service = FlextCliDebug()
         assert debug_service is not None
         assert hasattr(debug_service, "execute")
 
@@ -256,7 +253,7 @@ class TestDebugServiceIntegration:
     def setup_method(self) -> None:
         """Set up test environment."""
         self.cli_api = FlextCliApi()
-        self.debug_service = debug_module.FlextCliDebug()
+        self.debug_service = FlextCliDebug()
 
     def test_debug_service_execution(self) -> None:
         """Test debug service execution through flext-cli."""

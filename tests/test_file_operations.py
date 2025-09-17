@@ -7,10 +7,9 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from flext_core import FlextResult
-
 from flext_cli.file_operations import FlextCliFileOperations
 from flext_cli.interactions import FlextCliInteractions
+from flext_core import FlextResult
 
 
 class TestFlextCliFileOperations:

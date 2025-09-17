@@ -12,6 +12,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
+from pydantic import PrivateAttr
+
+from flext_cli.config import FlextCliConfig
+from flext_cli.formatters import FlextCliFormatters
+from flext_cli.models import FlextCliModels
+from flext_cli.utils import FlextCliUtilities
 from flext_core import (
     FlextContainer,
     FlextDomainService,
@@ -20,12 +26,6 @@ from flext_core import (
     FlextResult,
     FlextUtilities,
 )
-from pydantic import PrivateAttr
-
-from flext_cli.config import FlextCliConfig
-from flext_cli.formatters import FlextCliFormatters
-from flext_cli.models import FlextCliModels
-from flext_cli.utils import empty_dict
 
 
 class FlextCliService(FlextDomainService[str]):
@@ -39,11 +39,19 @@ class FlextCliService(FlextDomainService[str]):
 
     # Private attributes
     _config: FlextCliConfig | None = PrivateAttr(default=None)
-    _commands: dict[str, object] = PrivateAttr(default_factory=empty_dict)
-    _registered_handlers: dict[str, object] = PrivateAttr(default_factory=empty_dict)
-    _plugins: dict[str, object] = PrivateAttr(default_factory=empty_dict)
-    _sessions: dict[str, object] = PrivateAttr(default_factory=empty_dict)
-    _formatters: object = PrivateAttr(default=None)
+    _commands: dict[str, object] = PrivateAttr(
+        default_factory=FlextCliUtilities.empty_dict
+    )
+    _registered_handlers: dict[str, object] = PrivateAttr(
+        default_factory=FlextCliUtilities.empty_dict
+    )
+    _plugins: dict[str, object] = PrivateAttr(
+        default_factory=FlextCliUtilities.empty_dict
+    )
+    _sessions: dict[str, object] = PrivateAttr(
+        default_factory=FlextCliUtilities.empty_dict
+    )
+    _formatters: FlextCliFormatters | None = PrivateAttr(default=None)
 
     def __init__(self) -> None:
         """Initialize with flext-core services directly using FlextConfig singleton."""
@@ -97,33 +105,39 @@ class FlextCliService(FlextDomainService[str]):
         """Get registered commands."""
         return self._commands
 
-    def get_formatters(self) -> object:
+    def get_formatters(self) -> FlextCliFormatters:
         """Get formatters instance."""
+        if self._formatters is None:
+            self._initialize_services()
+        if self._formatters is None:
+            msg = "Failed to initialize formatters"
+            raise RuntimeError(msg)
         return self._formatters
 
-    # ABI compatibility properties for tests
+    # Properties for test compatibility
     @property
     def registry(self) -> object:
-        """Get service registry for ABI compatibility."""
-        if not hasattr(self, "_service_registry"):
-            self._initialize_services()
+        """Get service registry for test compatibility."""
         return self._service_registry
 
     @property
     def orchestrator(self) -> object:
-        """Get service orchestrator for ABI compatibility."""
-        if not hasattr(self, "_service_orchestrator"):
-            self._initialize_services()
+        """Get service orchestrator for test compatibility."""
         return self._service_orchestrator
 
     @property
     def metrics(self) -> dict[str, object]:
-        """Get service metrics for ABI compatibility."""
-        # Return health metrics as service metrics
-        health_result = self.get_service_health()
-        if health_result.is_success:
-            return health_result.value
-        return {"status": "unhealthy", "error": health_result.error}
+        """Get service metrics for test compatibility."""
+        return {
+            "commands_executed": len(self._commands),
+            "handlers_registered": len(self._registered_handlers),
+            "sessions_active": len(self._sessions),
+            "plugins_loaded": len(self._plugins),
+        }
+
+    def flext_cli_format(self, data: object, format_type: str) -> FlextResult[str]:
+        """Format data using FlextCliFormatters - alias for format_data."""
+        return self.format_data(data, format_type)
 
     def _initialize_services(self) -> None:
         """Initialize services using flext-core directly."""
@@ -179,12 +193,9 @@ class FlextCliService(FlextDomainService[str]):
 
     def format_data(self, data: object, format_type: str) -> FlextResult[str]:
         """Format data using FlextCliFormatters to avoid duplication."""
+        # FlextCliFormatters handles all object types - no type validation needed
         formatters = FlextCliFormatters()
         return formatters.format_data(data, format_type)
-
-    def flext_cli_format(self, data: object, format_type: str) -> FlextResult[str]:
-        """Alias for format_data for backward compatibility."""
-        return self.format_data(data, format_type)
 
     def flext_cli_export(
         self, data: object, file_path: str, format_type: str

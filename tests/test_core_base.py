@@ -10,9 +10,9 @@ import asyncio
 import io
 
 import pytest
-from flext_core import FlextResult
 
 from flext_cli import FlextCliContext, FlextCliDecorators
+from flext_core import FlextResult
 
 # Constants
 EXPECTED_DATA_COUNT = 3
