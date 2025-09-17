@@ -13,11 +13,10 @@ import platform
 import sys
 from pathlib import Path
 
-from flext_core import FlextConstants, FlextResult
-
 from flext_cli import FlextCliApi, FlextCliMain
 from flext_cli.config import FlextCliConfig
 from flext_cli.models import FlextCliModels
+from flext_core import FlextConstants, FlextResult
 
 
 class TestDebugCommandReal:
@@ -247,7 +246,7 @@ class TestEnvCommandReal:
             "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
             "platform": platform.system(),
             "architecture": platform.machine(),
-            "flext_constants": str(FlextConstants.API_VERSION) if hasattr(FlextConstants, "API_VERSION") else "unknown",
+            "flext_constants": str(FlextConstants.Core.VERSION) if hasattr(FlextConstants.Core, "VERSION") else "unknown",
         }
 
         # Test formatting environment data

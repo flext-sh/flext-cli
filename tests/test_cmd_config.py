@@ -14,11 +14,11 @@ import unittest
 from pathlib import Path
 
 import yaml
-from flext_core import FlextResult, FlextTypes
 
 from flext_cli import FlextCliApi, FlextCliMain
 from flext_cli.cli_bus import FlextCliCommandBusService
 from flext_cli.models import FlextCliModels
+from flext_core import FlextResult, FlextTypes
 
 
 class _TestConfig:

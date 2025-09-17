@@ -8,16 +8,16 @@ from __future__ import annotations
 import sys
 from typing import TypedDict
 
+from pydantic import Field
+
+from flext_cli.__version__ import __version__
+from flext_cli.models import FlextCliModels
 from flext_core import (
     FlextDomainService,
     FlextLogger,
     FlextResult,
     __version__ as core_version,
 )
-from pydantic import Field
-
-from flext_cli.__version__ import __version__
-from flext_cli.models import FlextCliModels
 
 
 class FlextCliMain(FlextDomainService[str]):

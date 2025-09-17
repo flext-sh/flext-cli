@@ -27,18 +27,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any, Protocol
+from typing import Protocol
 from uuid import UUID, uuid4
 
 from pydantic import Field
 
 from flext_cli import (
-    FlextCliService,
     FlextCliApi,
     FlextCliMain,
     FlextCliService,
-    cli_measure_time,
-    require_auth,
 )
 from flext_core import (
     FlextDomainService,

@@ -9,25 +9,19 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextCommands, FlextDomainService, FlextLogger, FlextResult
+from typing import cast
 
-from flext_cli.commands import (
-    AuthLoginCommand,
-    AuthLogoutCommand,
-    AuthStatusCommand,
-    DebugInfoCommand,
-    EditConfigCommand,
-    SetConfigValueCommand,
-    ShowConfigCommand,
-)
-from flext_cli.handlers import (
-    AuthLoginCommandHandler,
-    AuthLogoutCommandHandler,
-    AuthStatusCommandHandler,
-    DebugInfoCommandHandler,
-    EditConfigCommandHandler,
-    SetConfigValueCommandHandler,
-    ShowConfigCommandHandler,
+from flext_cli.command_models import FlextCliCommands
+from flext_cli.constants import FlextCliConstants
+from flext_cli.handlers import FlextCliHandlers
+from flext_core import (
+    FlextBus,
+    FlextDispatcher,
+    FlextDispatcherRegistry,
+    FlextDomainService,
+    FlextHandlers,
+    FlextLogger,
+    FlextResult,
 )
 
 
@@ -35,7 +29,7 @@ class FlextCliCommandBusService(FlextDomainService[None]):
     """CLI Command Bus Service using flext-core Command System exclusively.
 
     ZERO TOLERANCE COMPLIANCE:
-    - Uses FlextCommands.Bus for all command processing
+    - Uses FlextBus for all command processing
     - NO duplication of flext-core functionality
     - Unified class with nested helpers only
     - Explicit error handling with FlextResult
@@ -45,7 +39,11 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         """Initialize CLI Command Bus Service."""
         super().__init__()
         self._logger = FlextLogger(__name__)
-        self._command_bus = FlextCommands.Factories.create_command_bus()
+        self._command_bus = FlextBus.create_command_bus()
+        self._use_dispatcher = FlextCliConstants.FeatureFlags.ENABLE_DISPATCHER
+        self._dispatcher = (
+            FlextDispatcher(bus=self._command_bus) if self._use_dispatcher else None
+        )
         self._setup_handlers()
 
     def _setup_handlers(self) -> None:
@@ -53,19 +51,61 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         try:
             # Register all CLI command handlers
             handlers = [
-                ShowConfigCommandHandler(),
-                SetConfigValueCommandHandler(),
-                EditConfigCommandHandler(),
-                AuthLoginCommandHandler(),
-                AuthStatusCommandHandler(),
-                AuthLogoutCommandHandler(),
-                DebugInfoCommandHandler(),
+                FlextCliHandlers.ShowConfigCommandHandler(),
+                FlextCliHandlers.SetConfigValueCommandHandler(),
+                FlextCliHandlers.EditConfigCommandHandler(),
+                FlextCliHandlers.AuthLoginCommandHandler(),
+                FlextCliHandlers.AuthStatusCommandHandler(),
+                FlextCliHandlers.AuthLogoutCommandHandler(),
+                FlextCliHandlers.DebugInfoCommandHandler(),
             ]
+            registry = (
+                FlextDispatcherRegistry(self._dispatcher)
+                if self._dispatcher is not None
+                else None
+            )
+
             for handler in handlers:
                 try:
-                    self._command_bus.register_handler(handler)
+                    registered_via_dispatcher = False
+                    if registry is not None:
+                        typed_handler = cast("FlextHandlers[object, object]", handler)
+                        registration = registry.register_handler(typed_handler)
+                        if registration.is_success:
+                            registered_via_dispatcher = True
+                        else:
+                            self._logger.error(
+                                "dispatcher_registration_failed",
+                                handler=getattr(
+                                    handler,
+                                    "handler_name",
+                                    handler.__class__.__name__,
+                                ),
+                                error=registration.error,
+                            )
+
+                    if not registered_via_dispatcher:
+                        bus_result = self._command_bus.register_handler(handler)
+                        if bus_result.is_failure:
+                            self._logger.error(
+                                "bus_registration_failed",
+                                handler=getattr(
+                                    handler,
+                                    "handler_name",
+                                    handler.__class__.__name__,
+                                ),
+                                error=bus_result.error,
+                            )
+                            continue
+
                     self._logger.debug(
-                        f"Registered handler: {getattr(handler, 'handler_name', 'unknown')}"
+                        "handler_registered",
+                        handler=getattr(
+                            handler,
+                            "handler_name",
+                            handler.__class__.__name__,
+                        ),
+                        via_dispatcher=registered_via_dispatcher,
                     )
                 except Exception:
                     self._logger.exception("Failed to register handler")
@@ -98,10 +138,12 @@ class FlextCliCommandBusService(FlextDomainService[None]):
             return FlextResult[bool].ok(data=True)
 
     def execute_show_config_command(
-        self, output_format: str = "table", profile: str = "default"
+        self,
+        output_format: str = FlextCliConstants.OutputFormat.TABLE,
+        profile: str = FlextCliConstants.ProfileName.DEFAULT,
     ) -> FlextResult[dict[str, object]]:
         """Execute show config command using flext-core Command Bus."""
-        command = ShowConfigCommand(output_format=output_format, profile=profile)
+        command = FlextCliCommands.ShowConfigCommand(output_format=output_format, profile=profile)
         # Validate command using nested helper
         validation_result = self._CommandValidator.validate_command_data(command)
         if validation_result.is_failure:
@@ -109,7 +151,7 @@ class FlextCliCommandBusService(FlextDomainService[None]):
                 f"Command validation failed: {validation_result.error}"
             )
         # Execute using flext-core Command Bus with type-safe casting
-        result = self._command_bus.execute(command)
+        result = self._dispatch(command)
         if result.is_success:
             # Cast the result to expected dictionary format
             unwrapped_result = result.unwrap()
@@ -123,33 +165,33 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         )
 
     def execute_set_config_command(
-        self, key: str, value: str, profile: str = "default"
+        self, key: str, value: str, profile: str = FlextCliConstants.ProfileName.DEFAULT
     ) -> FlextResult[bool]:
         """Execute set config command using flext-core Command Bus."""
-        command = SetConfigValueCommand(key=key, value=value, profile=profile)
+        command = FlextCliCommands.SetConfigValueCommand(key=key, value=value, profile=profile)
         validation_result = self._CommandValidator.validate_command_data(command)
         if validation_result.is_failure:
             return FlextResult[bool].fail(
                 f"Command validation failed: {validation_result.error}"
             )
         # Execute using flext-core Command Bus with type-safe casting
-        result = self._command_bus.execute(command)
+        result = self._dispatch(command)
         if result.is_success:
             return FlextResult[bool].ok(data=True)
         return FlextResult[bool].fail(result.error or "Command execution failed")
 
     def execute_edit_config_command(
-        self, profile: str = "default", editor: str = ""
+        self, profile: str = FlextCliConstants.ProfileName.DEFAULT, editor: str = ""
     ) -> FlextResult[bool]:
         """Execute edit config command using flext-core Command Bus."""
-        command = EditConfigCommand(profile=profile, editor=editor)
+        command = FlextCliCommands.EditConfigCommand(profile=profile, editor=editor)
         validation_result = self._CommandValidator.validate_command_data(command)
         if validation_result.is_failure:
             return FlextResult[bool].fail(
                 f"Command validation failed: {validation_result.error}"
             )
         # Execute using flext-core Command Bus with type-safe casting
-        result = self._command_bus.execute(command)
+        result = self._dispatch(command)
         if result.is_success:
             return FlextResult[bool].ok(data=True)
         return FlextResult[bool].fail(result.error or "Command execution failed")
@@ -158,7 +200,7 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         self, username: str, password: str, api_url: str = ""
     ) -> FlextResult[dict[str, object]]:
         """Execute auth login command using flext-core Command Bus."""
-        command = AuthLoginCommand(
+        command = FlextCliCommands.AuthLoginCommand(
             username=username, password=password, api_url=api_url
         )
         validation_result = self._CommandValidator.validate_command_data(command)
@@ -167,7 +209,7 @@ class FlextCliCommandBusService(FlextDomainService[None]):
                 f"Command validation failed: {validation_result.error}"
             )
         # Execute using flext-core Command Bus with type-safe casting
-        result = self._command_bus.execute(command)
+        result = self._dispatch(command)
         if result.is_success:
             # Cast the result to expected dictionary format
             unwrapped_result = result.unwrap()
@@ -184,14 +226,14 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         self, *, detailed: bool = False
     ) -> FlextResult[dict[str, object]]:
         """Execute auth status command using flext-core Command Bus."""
-        command = AuthStatusCommand(detailed=detailed)
+        command = FlextCliCommands.AuthStatusCommand(detailed=detailed)
         validation_result = self._CommandValidator.validate_command_data(command)
         if validation_result.is_failure:
             return FlextResult[dict[str, object]].fail(
                 f"Command validation failed: {validation_result.error}"
             )
         # Execute using flext-core Command Bus with type-safe casting
-        result = self._command_bus.execute(command)
+        result = self._dispatch(command)
         if result.is_success:
             # Cast the result to expected dictionary format
             unwrapped_result = result.unwrap()
@@ -204,11 +246,35 @@ class FlextCliCommandBusService(FlextDomainService[None]):
             result.error or "Command execution failed"
         )
 
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    def _dispatch(self, command: object) -> FlextResult[object]:
+        """Route commands via dispatcher when enabled."""
+        if self._dispatcher is not None:
+            metadata: dict[str, object] = {
+                "command": command.__class__.__name__,
+                "source": self.__class__.__name__,
+            }
+            dispatch_result: FlextResult[object] = self._dispatcher.dispatch(
+                command,
+                metadata=metadata,
+            )
+            if dispatch_result.is_failure:
+                self._logger.error(
+                    "dispatcher_execution_failed",
+                    command=command.__class__.__name__,
+                    error=dispatch_result.error,
+                )
+            return dispatch_result
+        return self._command_bus.execute(command)
+
     def execute_auth_logout_command(
         self, *, all_profiles: bool = False
     ) -> FlextResult[bool]:
         """Execute auth logout command using flext-core Command Bus."""
-        command = AuthLogoutCommand(all_profiles=all_profiles)
+        command = FlextCliCommands.AuthLogoutCommand(all_profiles=all_profiles)
         validation_result = self._CommandValidator.validate_command_data(command)
         if validation_result.is_failure:
             return FlextResult[bool].fail(
@@ -224,7 +290,7 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         self, *, include_system: bool = True, include_config: bool = True
     ) -> FlextResult[dict[str, object]]:
         """Execute debug info command using flext-core Command Bus."""
-        command = DebugInfoCommand(
+        command = FlextCliCommands.DebugInfoCommand(
             include_system=include_system, include_config=include_config
         )
         validation_result = self._CommandValidator.validate_command_data(command)
@@ -270,4 +336,4 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         """Execute domain service - returns status of command bus."""
         status = self.get_command_bus_status()
         self._logger.info(f"Command bus status: {status}")
-        return FlextResult[None].ok(data=None)
+        return FlextResult[None].ok(None)

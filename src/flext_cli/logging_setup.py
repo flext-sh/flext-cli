@@ -14,10 +14,11 @@ import os
 from pathlib import Path
 from typing import ClassVar
 
-from flext_core import FlextContainer, FlextDomainService, FlextLogger, FlextResult
 from pydantic import BaseModel, Field
 
 from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
+from flext_core import FlextContainer, FlextDomainService, FlextLogger, FlextResult
 
 
 class FlextCliLoggingSetup(FlextDomainService[str]):
@@ -39,7 +40,7 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
         """
 
         log_level: str = Field(
-            default="INFO",
+            default=FlextCliConstants.LogLevel.INFO,
             description="Logging level from any supported source",
         )
         log_format: str = Field(
@@ -56,7 +57,7 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
 
         # Configuration source tracking for debugging
         log_level_source: str = Field(
-            default="default",
+            default=FlextCliConstants.ProfileName.DEFAULT,
             description="Source of log level configuration (for debugging)",
         )
 

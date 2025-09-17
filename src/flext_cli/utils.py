@@ -9,45 +9,51 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import re
+import json
+from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
-from uuid import UUID, uuid4
+from uuid import uuid4
 
-from flext_core import FlextContainer, FlextLogger, FlextResult, FlextUtilities
-from pydantic import ConfigDict
+from pydantic import BaseModel, ConfigDict, ValidationError
 from pydantic_settings import SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
 
+# No imports needed - FlextCliModels not used in this module
+from flext_core import FlextContainer, FlextDomainService, FlextLogger, FlextResult
 
-class FlextCliUtilities(FlextUtilities):
-    """CLI utilities extending flext-core FlextUtilities.
 
-    Single unified class consolidating all utility functions and validation helpers.
-    Follows FLEXT unified class pattern - one class per module extending flext-core.
+class FlextCliUtilities(FlextDomainService[None]):
+    """Unified utility service for CLI operations using modern Pydantic v2.
+
+    Provides centralized utilities without duplicating Pydantic v2 functionality.
+    Uses FlextModels and FlextConfig for all validation needs.
     """
 
     def __init__(self) -> None:
-        """Initialize with flext-core services."""
+        """Initialize FlextCliUtilities service."""
         super().__init__()
         self._container = FlextContainer.get_global()
-        self._logger = FlextLogger(self.__class__.__module__)
+        self._logger = FlextLogger(__name__)
+
+    def execute(self) -> FlextResult[None]:
+        """Execute the main domain service operation."""
+        return FlextResult[None].ok(None)
 
     @property
     def logger(self) -> FlextLogger:
-        """Access logger instance."""
+        """Get logger instance."""
         return self._logger
 
     @property
     def container(self) -> FlextContainer:
-        """Access container instance."""
+        """Get container instance."""
         return self._container
 
-    # Factory Functions (consolidated from loose functions)
     @staticmethod
     def generate_uuid() -> str:
-        """Generate UUID string for entity IDs."""
+        """Generate UUID string."""
         return str(uuid4())
 
     @staticmethod
@@ -57,33 +63,51 @@ class FlextCliUtilities(FlextUtilities):
 
     @staticmethod
     def empty_dict() -> dict[str, object]:
-        """Factory for empty dictionary - optimized for Pydantic default_factory."""
+        """Get empty dict."""
         return {}
 
     @staticmethod
     def empty_list() -> list[object]:
-        """Factory for empty list - optimized for Pydantic default_factory."""
+        """Get empty list."""
         return []
 
     @staticmethod
     def empty_str_dict() -> dict[str, str]:
-        """Factory for empty string dictionary."""
+        """Get empty string dict."""
         return {}
 
     @staticmethod
+    def get_base_config_dict() -> ConfigDict:
+        """Get base Pydantic configuration for CLI models."""
+        return ConfigDict(
+            validate_assignment=True,
+            use_enum_values=True,
+            arbitrary_types_allowed=True,
+        )
+
+    @staticmethod
+    def get_strict_config_dict() -> ConfigDict:
+        """Get strict Pydantic configuration for CLI models."""
+        return ConfigDict(
+            validate_assignment=True,
+            use_enum_values=True,
+            arbitrary_types_allowed=False,
+            str_strip_whitespace=True,
+        )
+
+    @staticmethod
     def empty_str_list() -> list[str]:
-        """Factory for empty string list."""
+        """Get empty string list."""
         return []
 
-    # Path Factory Functions
     @staticmethod
     def home_path() -> Path:
-        """Factory for user home directory path."""
+        """Get home directory path."""
         return Path.home()
 
     @staticmethod
     def token_file_path() -> Path:
-        """Factory for CLI authentication token file path."""
+        """Get authentication token file path."""
         return (
             Path.home()
             / FlextCliConstants.FLEXT_DIR_NAME
@@ -93,7 +117,7 @@ class FlextCliUtilities(FlextUtilities):
 
     @staticmethod
     def refresh_token_file_path() -> Path:
-        """Factory for CLI refresh token file path."""
+        """Get refresh token file path."""
         return (
             Path.home()
             / FlextCliConstants.FLEXT_DIR_NAME
@@ -101,208 +125,143 @@ class FlextCliUtilities(FlextUtilities):
             / FlextCliConstants.REFRESH_TOKEN_FILE_NAME
         )
 
-    # Configuration Dictionaries
-    @staticmethod
-    def get_strict_config_dict() -> ConfigDict:
-        """Get strict ConfigDict for Pydantic configuration."""
-        return ConfigDict(
-            str_strip_whitespace=True,
-            validate_default=True,
-            use_enum_values=True,
-            extra="forbid",
-        )
-
-    @staticmethod
-    def get_base_config_dict() -> ConfigDict:
-        """Get base ConfigDict for Pydantic configuration."""
-        return ConfigDict(
-            str_strip_whitespace=True,
-            validate_default=True,
-            extra="forbid",
-        )
-
     @staticmethod
     def get_settings_config_dict() -> SettingsConfigDict:
-        """Get settings ConfigDict for Pydantic Settings."""
+        """Get Pydantic configuration for CLI settings models."""
         return SettingsConfigDict(
-            str_strip_whitespace=True,
-            validate_default=True,
-            extra="ignore",
+            validate_assignment=True,
             use_enum_values=True,
             env_prefix="FLEXT_CLI_",
+            case_sensitive=False,
         )
 
-    # Data Processing (consolidated from FlextCliDataProcessing)
     @staticmethod
-    def validate_data(data: object, validator_func: object) -> FlextResult[object]:
-        """Validate data using flext-core utilities directly."""
+    def validate_with_pydantic_model(
+        data: dict[str, object] | object, model_class: type[BaseModel]
+    ) -> FlextResult[BaseModel]:
+        """Validate data using Pydantic v2 model directly.
+
+        Args:
+            data: Data to validate (dict or object convertible to dict)
+            model_class: Pydantic v2 model class to validate against
+
+        Returns:
+            FlextResult containing validated model instance or error
+
+        """
         try:
-            # Handle dict of validators
-            if isinstance(validator_func, dict) and isinstance(data, dict):
-                for key, validator_type in validator_func.items():
-                    if key not in data:
-                        return FlextResult[object].fail(
-                            f"Missing required field: {key}"
-                        )
-                    if not isinstance(data[key], validator_type):
-                        return FlextResult[object].fail(
-                            f"Field '{key}' has wrong type, expected {validator_type.__name__}"
-                        )
-                return FlextResult[object].ok(data)
-
-            # Handle callable validator function
-            if not callable(validator_func):
-                return FlextResult[object].fail("Validator function must be callable")
-
-            # Use flext-core validation directly
+            # Convert data to dict if needed
             if isinstance(data, dict):
-                # Validate dictionary data
-                validation_result = validator_func(data)
-                if validation_result:
-                    return FlextResult[object].ok(data)
-                return FlextResult[object].fail("Data validation failed")
+                validated_data = data
+            elif hasattr(data, "model_dump") and callable(getattr(data, "model_dump")):
+                validated_data = getattr(data, "model_dump")()
+            elif hasattr(data, "__dict__"):
+                validated_data = data.__dict__
+            else:
+                # Try to convert other types to dict format
+                validated_data = {"value": data}
 
-            if isinstance(data, list):
-                # Validate list data
-                validation_result = validator_func(data)
-                if validation_result:
-                    return FlextResult[object].ok(data)
-                return FlextResult[object].fail("Data validation failed")
-
-            # For other types, try validation
-            validation_result = validator_func(data)
-            if validation_result:
-                return FlextResult[object].ok(data)
-            return FlextResult[object].fail("Data validation failed")
-
+            validated_model = model_class.model_validate(validated_data)
+            return FlextResult[BaseModel].ok(validated_model)
+        except ValidationError as e:
+            error_details = "; ".join(
+                [
+                    f"{err['loc'][0] if err['loc'] else 'field'}: {err['msg']}"
+                    for err in e.errors()
+                ]
+            )
+            return FlextResult[BaseModel].fail(f"Validation failed: {error_details}")
         except Exception as e:
-            return FlextResult[object].fail(f"Validation failed: {e}")
+            return FlextResult[BaseModel].fail(f"Unexpected validation error: {e}")
+
+    @staticmethod
+    def validate_data(data: object, validator: object) -> FlextResult[bool]:
+        """Validate data using provided validator function or dict.
+
+        Backward compatibility method for legacy validation patterns.
+        """
+        try:
+            if data is None or validator is None:
+                return FlextResult[bool].fail("Data and validator cannot be None")
+
+            if callable(validator):
+                result = validator(data)
+                return FlextResult[bool].ok(bool(result))
+            if isinstance(validator, dict):
+                # Simple dict-based validation
+                if isinstance(data, dict):
+                    for key, expected_type in validator.items():
+                        if key not in data:
+                            return FlextResult[bool].fail(
+                                f"Missing required field: {key}"
+                            )
+                        if not isinstance(data[key], expected_type):
+                            return FlextResult[bool].fail(
+                                f"Invalid type for {key}: expected {expected_type.__name__}"
+                            )
+                    return FlextResult[bool].ok(data=True)
+                return FlextResult[bool].fail(
+                    "Data must be dict for dict-based validation"
+                )
+            return FlextResult[bool].fail("Validator must be callable or dict")
+        except Exception as e:
+            return FlextResult[bool].fail(f"Validation failed: {e}")
 
     @staticmethod
     def batch_process_items(
-        items: object, processor_func: object
-    ) -> FlextResult[object]:
-        """Process items in batch using flext-core utilities directly."""
+        items: Sequence[object], processor: Callable[[object], object]
+    ) -> FlextResult[list[object]]:
+        """Process items in batch with error handling."""
         try:
-            if not isinstance(items, list):
-                return FlextResult[object].fail("Invalid items format - must be a list")
+            if not isinstance(items, (list, tuple)):
+                return FlextResult[list[object]].fail(
+                    "Invalid items format: must be list or tuple"
+                )
 
-            if not callable(processor_func):
-                return FlextResult[object].fail("Processor function must be callable")
-
-            # Use flext-core processing directly
-            processed_items = []
+            results = []
             for item in items:
                 try:
-                    processed_item = processor_func(item)
-                    processed_items.append(processed_item)
+                    result = processor(item)
+                    # Handle both FlextResult and raw value returns
+                    if hasattr(result, "is_failure") and hasattr(result, "unwrap"):
+                        if getattr(result, "is_failure"):
+                            error_msg = getattr(result, "error", "Unknown error")
+                            return FlextResult[list[object]].fail(
+                                f"Item processing failed: {error_msg}"
+                            )
+                        results.append(getattr(result, "unwrap")())
+                    else:
+                        results.append(result)
                 except Exception as e:
-                    return FlextResult[object].fail(f"Item processing failed: {e}")
-
-            return FlextResult[object].ok(processed_items)
-
+                    return FlextResult[list[object]].fail(
+                        f"Item processing failed: {e}"
+                    )
+            return FlextResult[list[object]].ok(results)
         except Exception as e:
-            return FlextResult[object].fail(f"Batch processing failed: {e}")
+            return FlextResult[list[object]].fail(f"Batch processing failed: {e}")
 
     @staticmethod
-    def safe_json_stringify_flext_result(data: object) -> FlextResult[str]:
-        """Convert data to JSON string with FlextResult wrapper - avoid override conflict."""
+    def safe_json_stringify(data: object) -> str:
+        """Safely stringify data to JSON."""
         try:
-            # Use flext-core utilities directly
-            json_string = FlextUtilities.safe_json_stringify(data)
-            return FlextResult[str].ok(json_string)
+            return json.dumps(data, default=str, indent=2)
+        except Exception:
+            return str(data)
+
+    @staticmethod
+    def json_stringify_with_result(data: object) -> FlextResult[str]:
+        """Stringify data to JSON with result handling."""
+        try:
+            return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
         except Exception as e:
-            return FlextResult[str].fail(f"JSON stringify failed: {e}")
-
-    # NOTE: safe_json_stringify removed to avoid override conflict with flext-core
-    # Use safe_json_stringify_flext_result() directly for FlextResult wrapper
-
-
-
-    # Validation Utilities (consolidated from Validation class)
-    class _ValidationHelper:
-        """Internal validation helper class."""
-
-        @staticmethod
-        def is_valid_uuid(uuid_string: str | None) -> bool:
-            """Validate if a string is a valid UUID."""
-            if uuid_string is None:
-                return False
-            try:
-                UUID(uuid_string)
-                return True
-            except (ValueError, TypeError):
-                return False
-
-        @staticmethod
-        def is_valid_email(email: str) -> bool:
-            """Validate if a string is a valid email address."""
-            pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-            return bool(re.match(pattern, email))
-
-        @staticmethod
-        def is_valid_url(url: str) -> bool:
-            """Validate if a string is a valid URL."""
-            pattern = r"^https?://[^\s/$.?#].[^\s]*$"
-            return bool(re.match(pattern, url))
-
-    # Public validation interface
-    @property
-    def validation(self) -> _ValidationHelper:
-        """Access validation utilities."""
-        return self._ValidationHelper()
-
-    # Backwards compatibility aliases for validation
-    @staticmethod
-    def is_valid_uuid(uuid_string: str | None) -> bool:
-        """Validate if a string is a valid UUID."""
-        return FlextCliUtilities._ValidationHelper.is_valid_uuid(uuid_string)
+            return FlextResult[str].fail(f"JSON serialization failed: {e}")
 
     @staticmethod
-    def is_valid_email(email: str) -> bool:
-        """Validate if a string is a valid email address."""
-        return FlextCliUtilities._ValidationHelper.is_valid_email(email)
-
-    @staticmethod
-    def is_valid_url(url: str) -> bool:
-        """Validate if a string is a valid URL."""
-        return FlextCliUtilities._ValidationHelper.is_valid_url(url)
+    def safe_json_stringify_flext_result(result: FlextResult[object]) -> str:
+        """Safely stringify FlextResult to JSON."""
+        return FlextCliUtilities.safe_json_stringify(
+            result.unwrap() if result.is_success else {"error": result.error}
+        )
 
 
-# Maintain backwards compatibility with global constants
-STRICT_CONFIG_DICT = FlextCliUtilities.get_strict_config_dict()
-BASE_CONFIG_DICT = FlextCliUtilities.get_base_config_dict()
-SETTINGS_CONFIG_DICT = FlextCliUtilities.get_settings_config_dict()
-
-# Maintain backwards compatibility with loose functions
-generate_uuid = FlextCliUtilities.generate_uuid
-utc_now = FlextCliUtilities.utc_now
-empty_dict = FlextCliUtilities.empty_dict
-empty_list = FlextCliUtilities.empty_list
-empty_str_dict = FlextCliUtilities.empty_str_dict
-empty_str_list = FlextCliUtilities.empty_str_list
-home_path = FlextCliUtilities.home_path
-token_file_path = FlextCliUtilities.token_file_path
-refresh_token_file_path = FlextCliUtilities.refresh_token_file_path
-
-# Maintain backwards compatibility with previous classes
-Validation = FlextCliUtilities._ValidationHelper
-FlextServiceMixin = FlextCliUtilities
-
-__all__ = [
-    "BASE_CONFIG_DICT",
-    "SETTINGS_CONFIG_DICT",
-    "STRICT_CONFIG_DICT",
-    "FlextCliUtilities",
-    "FlextServiceMixin",
-    "Validation",
-    "empty_dict",
-    "empty_list",
-    "empty_str_dict",
-    "empty_str_list",
-    "generate_uuid",
-    "home_path",
-    "refresh_token_file_path",
-    "token_file_path",
-    "utc_now",
-]
+__all__ = ["FlextCliUtilities"]

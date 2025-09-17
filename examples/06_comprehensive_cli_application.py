@@ -25,10 +25,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from flext_cli import (
-    FlextCliService,
     FlextCliApi,
     FlextCliConfig,
     FlextCliMain,
+    FlextCliService,
 )
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 
@@ -131,7 +131,7 @@ class ComprehensiveCliApplication:
             handler=self._handle_project_status,
             arguments=["--directory"]
         )
-        
+
         project_commands = {
             "create": create_cmd_result.unwrap(),
             "status": status_cmd_result.unwrap()
@@ -151,7 +151,7 @@ class ComprehensiveCliApplication:
             handler=self._handle_service_health,
             arguments=["--url", "--timeout"]
         )
-        
+
         service_commands = {
             "health": health_cmd_result.unwrap()
         }
@@ -176,7 +176,7 @@ class ComprehensiveCliApplication:
             handler=self._handle_config_set,
             arguments=["--profile", "--output"]
         )
-        
+
         config_commands = {
             "show": show_cmd_result.unwrap(),
             "set": set_cmd_result.unwrap()
@@ -196,7 +196,7 @@ class ComprehensiveCliApplication:
             handler=self._handle_interactive_wizard,
             arguments=[]
         )
-        
+
         interactive_commands = {
             "wizard": wizard_cmd_result.unwrap()
         }

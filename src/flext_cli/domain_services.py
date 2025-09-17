@@ -12,6 +12,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from flext_cli.constants import FlextCliConstants
+from flext_cli.models import FlextCliModels
 from flext_core import (
     FlextDomainService,
     FlextLogger,
@@ -19,9 +21,6 @@ from flext_core import (
     FlextTypes,
     FlextUtilities,
 )
-
-from flext_cli.constants import FlextCliConstants
-from flext_cli.models import FlextCliModels
 
 if TYPE_CHECKING:
     CommandInput = FlextTypes.Core.Dict
@@ -138,7 +137,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
 
         """
         try:
-            if command.status != FlextCliConstants.STATUS_PENDING:
+            if command.status != FlextCliConstants.CommandStatus.PENDING:
                 return FlextResult[FlextCliModels.CliCommand].fail(
                     f"Command must be pending to start, current status: {command.status}",
                 )
@@ -177,7 +176,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
 
         """
         try:
-            if command.status != FlextCliConstants.STATUS_RUNNING:
+            if command.status != FlextCliConstants.CommandStatus.RUNNING:
                 return FlextResult[FlextCliModels.CliCommand].fail(
                     f"Command must be running to complete, current status: {command.status}",
                 )
@@ -268,9 +267,12 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
         """
         try:
             # Check session limits
-            if len(session.commands) >= FlextCliConstants.MAX_COMMANDS_PER_SESSION:
+            if (
+                len(session.commands)
+                >= FlextCliConstants.LIMITS.max_commands_per_session
+            ):
                 return FlextResult[FlextCliModels.CliSession].fail(
-                    f"Session command limit reached: {FlextCliConstants.MAX_COMMANDS_PER_SESSION}",
+                    f"Session command limit reached: {FlextCliConstants.LIMITS.max_commands_per_session}",
                 )
 
             add_result = session.add_command(command)

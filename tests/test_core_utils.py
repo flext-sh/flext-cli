@@ -10,11 +10,10 @@ import json
 import tempfile
 from pathlib import Path
 
-from flext_core import FlextDomainService, FlextResult
-
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.core import FlextCliService
+from flext_core import FlextDomainService, FlextResult
 
 
 class TestFlextCliService:

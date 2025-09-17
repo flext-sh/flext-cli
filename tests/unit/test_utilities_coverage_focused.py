@@ -8,10 +8,13 @@ from __future__ import annotations
 
 import uuid
 from unittest.mock import Mock
+from uuid import UUID
 
-from flext_core import FlextUtilities
+import pytest
+from pydantic import BaseModel, EmailStr, HttpUrl, ValidationError
 
 from flext_cli.utils import FlextCliUtilities
+from flext_core import FlextUtilities
 
 
 class TestFlextUtilitiesCoverageFocused:
@@ -201,14 +204,53 @@ class TestFlextUtilitiesCoverageFocused:
         assert isinstance(result, str)
         assert result == "{}" # Non-serializable objects return empty JSON
 
-    def test_validation_class_comprehensive(self) -> None:
-        """Test Validation class methods comprehensively."""
-        # Test is_valid_uuid
+    def test_validation_with_pydantic_models(self) -> None:
+        """Test validation using Pydantic v2 models directly."""
+        # Test UUID validation using Pydantic v2
+        class UUIDModel(BaseModel):
+            uuid_field: UUID
+
         valid_uuid = str(uuid.uuid4())
-        assert FlextCliUtilities._ValidationHelper.is_valid_uuid(valid_uuid) is True
-        assert FlextCliUtilities._ValidationHelper.is_valid_uuid("invalid-uuid") is False
-        assert FlextCliUtilities._ValidationHelper.is_valid_uuid("") is False
-        assert FlextCliUtilities._ValidationHelper.is_valid_uuid(None) is False
+
+        # Valid UUID should work
+        model = UUIDModel(uuid_field=valid_uuid)
+        assert str(model.uuid_field) == valid_uuid
+
+        # Invalid UUIDs should raise ValidationError
+        with pytest.raises(ValidationError):
+            UUIDModel(uuid_field="invalid-uuid")
+
+        # Test EmailStr validation using Pydantic v2
+        class EmailModel(BaseModel):
+            email: EmailStr
+
+        valid_email = EmailModel(email="test@example.com")
+        assert str(valid_email.email) == "test@example.com"
+
+        with pytest.raises(ValidationError):
+            EmailModel(email="invalid-email")
+
+        # Test HttpUrl validation using Pydantic v2
+        class UrlModel(BaseModel):
+            url: HttpUrl
+
+        valid_url = UrlModel(url="https://example.com")
+        assert str(valid_url.url) == "https://example.com/"
+
+        with pytest.raises(ValidationError):
+            UrlModel(url="invalid-url")
+
+        # Test validate_with_pydantic_model utility
+        data = {"uuid_field": valid_uuid}
+        result = FlextCliUtilities.validate_with_pydantic_model(data, UUIDModel)
+        assert result.is_success
+        assert isinstance(result.unwrap(), UUIDModel)
+
+        # Test validation failure
+        invalid_data = {"uuid_field": "invalid-uuid"}
+        result = FlextCliUtilities.validate_with_pydantic_model(invalid_data, UUIDModel)
+        assert result.is_failure
+        assert "Validation failed" in result.error
 
     def test_conversions_with_mock_exceptions(self) -> None:
         """Test conversion methods with mocked exceptions to ensure all paths are covered."""

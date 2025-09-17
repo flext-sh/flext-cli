@@ -6,14 +6,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextResult
-
 from flext_cli import (
     FlextCliApi,
     FlextCliConfig,
     FlextCliMain,
 )
 from flext_cli.models import FlextCliModels
+from flext_core import FlextResult
 
 
 class TestConfigCommandsReal:

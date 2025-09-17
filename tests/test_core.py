@@ -9,13 +9,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
-from flext_core import FlextTypes
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.core import FlextCliService
 from flext_cli.domain_services import FlextCliDomainServices
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
+from flext_core import FlextTypes
 
 
 class TestFlextCliService(unittest.TestCase):
@@ -330,7 +330,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         # This should fail since we're passing invalid format
         result = self.service.flext_cli_format(data, "xml")
         assert not result.is_success
-        assert "Unsupported format:" in (result.error or "")
+        assert "Unsupported format" in (result.error or "")
 
     def test_flext_cli_export_json_to_file(self) -> None:
         """Test exporting JSON data to file."""
@@ -578,8 +578,10 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         plugins = plugins_result.value
         assert "test-plugin" in plugins
         assert plugins["test-plugin"] is not None
-        assert hasattr(plugins["test-plugin"], "name")
-        assert plugins["test-plugin"].name == "test-plugin"
+        stored_plugin = plugins["test-plugin"]
+        assert isinstance(stored_plugin, FlextCliModels.CliCommand)
+        assert hasattr(stored_plugin, "name")
+        assert stored_plugin.name == "test-plugin"
 
     def test_flext_cli_register_duplicate_plugin_fails(self) -> None:
         """Test registering duplicate plugin names fails."""

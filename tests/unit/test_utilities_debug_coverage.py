@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import builtins
 import trace
-from typing import Any, cast
+from typing import cast
 
 from flext_core import FlextUtilities
 
@@ -95,7 +95,7 @@ class TestUtilitiesDebugCoverage:
                 exception_counter += 1
                 msg = "Forced TypeError for coverage"
                 raise TypeError(msg)
-            return original_float(cast("Any", value))
+            return original_float(cast("object", value))
 
         try:
             # Temporarily replace float()

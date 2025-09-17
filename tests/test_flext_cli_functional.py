@@ -9,13 +9,13 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
-from flext_core import FlextResult, FlextTypes
 
 from flext_cli import (
     FlextCliConstants,
     FlextCliModels,
 )
 from flext_cli.typings import FlextCliTypes
+from flext_core import FlextResult, FlextTypes
 
 
 class TestFlextCliModelsReal:

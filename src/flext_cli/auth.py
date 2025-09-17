@@ -12,12 +12,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TypedDict
 
+from flext_cli.config import FlextCliConfig
+from flext_cli.protocols import FlextCliProtocols
 from flext_core import (
     FlextContainer,
     FlextDomainService,
@@ -26,9 +27,6 @@ from flext_core import (
     FlextTypes,
     FlextUtilities,
 )
-
-from flext_cli.config import FlextCliConfig
-from flext_cli.protocols import FlextCliProtocols
 
 
 class FlextCliAuth(FlextDomainService[str]):
@@ -75,14 +73,14 @@ class FlextCliAuth(FlextDomainService[str]):
         refresh_token_path: Path
 
     class AuthConfig(TypedDict):
-        """Auth config structure for test compatibility."""
+        """Authentication configuration structure."""
 
         api_key: str
         base_url: str
         timeout: int
 
     class TokenData(TypedDict):
-        """Token data structure for test compatibility."""
+        """Authentication token data structure."""
 
         access_token: str
         refresh_token: str
@@ -112,7 +110,7 @@ class FlextCliAuth(FlextDomainService[str]):
 
     @property
     def config(self) -> FlextCliConfig:
-        """Get configuration - SIMPLE ALIAS for test compatibility."""
+        """Get current authentication configuration."""
         return self._config
 
     def update_from_config(self) -> None:
@@ -146,15 +144,15 @@ class FlextCliAuth(FlextDomainService[str]):
             )
 
     def get_token_path(self) -> Path:
-        """Get token path - SIMPLE ALIAS for test compatibility."""
+        """Get authentication token file path."""
         return self._config.token_file
 
     def get_refresh_token_path(self) -> Path:
-        """Get refresh token path - SIMPLE ALIAS for test compatibility."""
+        """Get refresh token file path."""
         return self._config.refresh_token_file
 
     def save_refresh_token(self, token: str) -> FlextResult[None]:
-        """Save refresh token - SIMPLE ALIAS for test compatibility."""
+        """Save refresh token to storage."""
         return self.save_token_to_storage(
             token,
             "refresh",
@@ -162,7 +160,7 @@ class FlextCliAuth(FlextDomainService[str]):
         )
 
     def get_refresh_token(self) -> FlextResult[str]:
-        """Get refresh token - SIMPLE ALIAS for test compatibility."""
+        """Get refresh token from storage."""
         try:
             if not self._config.refresh_token_file.exists():
                 return FlextResult[str].fail("Refresh token file not found")
@@ -180,7 +178,7 @@ class FlextCliAuth(FlextDomainService[str]):
             return FlextResult[str].fail(f"Failed to read refresh token: {e}")
 
     def should_auto_refresh(self) -> bool:
-        """Check if auto refresh is enabled - SIMPLE ALIAS for test compatibility."""
+        """Check if auto refresh is enabled."""
         return bool(getattr(self._config, "auto_refresh", False))
 
     def validate_credentials(self, credentials: LoginCredentials) -> FlextResult[None]:
@@ -360,7 +358,7 @@ class FlextCliAuth(FlextDomainService[str]):
             )
 
     def is_authenticated(self, *, token_path: Path | None = None) -> bool:
-        """Check authentication status - SIMPLE ALIAS for test compatibility."""
+        """Check current authentication status."""
         try:
             token_result = self.get_auth_token(token_path=token_path)
             return token_result.is_success and bool(token_result.value)
@@ -374,7 +372,7 @@ class FlextCliAuth(FlextDomainService[str]):
     def check_authentication_status(
         self, *, token_path: Path | None = None
     ) -> FlextResult[bool]:
-        """Check authentication status using SOURCE OF TRUTH - returns FlextResult for API compatibility."""
+        """Check authentication status using SOURCE OF TRUTH."""
         try:
             authenticated = self.is_authenticated(token_path=token_path)
             return FlextResult[bool].ok(authenticated)
@@ -512,144 +510,110 @@ class FlextCliAuth(FlextDomainService[str]):
 
     def logout(self) -> FlextResult[None]:
         """Perform logout using SOURCE OF TRUTH authentication flow."""
-        try:
-            # Check authentication status using SOURCE OF TRUTH
-            auth_result = self.check_authentication_status()
-            if auth_result.is_failure:
-                return FlextResult[None].fail(
-                    f"Authentication check failed: {auth_result.error}",
-                )
+        # Check authentication status using SOURCE OF TRUTH
+        auth_result = self.check_authentication_status()
+        if auth_result.is_failure:
+            return FlextResult[None].fail(
+                f"Authentication check failed: {auth_result.error}",
+            )
 
-            if not auth_result.value:
-                return FlextResult[None].fail("Not authenticated to SOURCE OF TRUTH")
+        if not auth_result.value:
+            return FlextResult[None].fail("Not authenticated to SOURCE OF TRUTH")
 
-            # Attempt server logout using injected authentication client (graceful failure)
-            if self._auth_client is not None:
-                try:
-                    # Handle async logout client internally
-                    async def _perform_logout() -> None:
-                        if self._auth_client is not None:
-                            await self._auth_client.logout()
+        # Attempt server logout using injected authentication client
+        if self._auth_client is not None:
+            # Handle async logout client internally
+            async def _perform_logout() -> FlextResult[None]:
+                if self._auth_client is not None:
+                    await self._auth_client.logout()
+                return FlextResult[None].ok(None)
 
-                    # Execute async operation internally
-                    asyncio.run(_perform_logout())
-                except (
-                    ImportError,
-                    AttributeError,
-                    ValueError,
-                ) as e:
-                    logout_msg = f"Server logout from SOURCE OF TRUTH failed (continuing anyway): {e}"
-                    self._logger.debug(logout_msg)
+            # Execute async operation internally
+            logout_result = asyncio.run(_perform_logout())
+            if logout_result.is_failure:
+                self._logger.debug(f"Server logout warning: {logout_result.error}")
 
-            # Always clear local tokens from SOURCE OF TRUTH storage
-            clear_result = self.clear_auth_tokens()
-            if clear_result.is_failure:
-                return FlextResult[None].fail(
-                    f"Token cleanup from SOURCE OF TRUTH failed: {clear_result.error}",
-                )
+        # Always clear local tokens from SOURCE OF TRUTH storage
+        clear_result = self.clear_auth_tokens()
+        if clear_result.is_failure:
+            return FlextResult[None].fail(
+                f"Token cleanup from SOURCE OF TRUTH failed: {clear_result.error}",
+            )
 
-            return FlextResult[None].ok(None)
-
-        except (
-            ImportError,
-            AttributeError,
-            ValueError,
-        ) as e:
-            return FlextResult[None].fail(f"Logout from SOURCE OF TRUTH failed: {e}")
+        return FlextResult[None].ok(None)
 
     def get_status(self) -> FlextResult[FlextCliAuth.AuthStatus]:
         """Get authentication status from SOURCE OF TRUTH."""
-        try:
-            # Get authentication status from SOURCE OF TRUTH
-            auth_result = self.check_authentication_status()
-            if auth_result.is_failure:
-                return FlextResult[FlextCliAuth.AuthStatus].fail(
-                    f"Authentication check failed: {auth_result.error}",
-                )
-
-            authenticated = auth_result.value
-
-            # Get paths from SOURCE OF TRUTH
-            paths_result = self.get_token_paths()
-            if paths_result.is_failure:
-                return FlextResult[FlextCliAuth.AuthStatus].fail(
-                    f"Token paths from SOURCE OF TRUTH failed: {paths_result.error}",
-                )
-
-            paths = paths_result.value
-
-            # Build status from SOURCE OF TRUTH data
-            status: FlextCliAuth.AuthStatus = {
-                "authenticated": authenticated,
-                "token_file": str(paths["token_path"]),
-                "token_exists": paths["token_path"].exists(),
-                "refresh_token_file": str(paths["refresh_token_path"]),
-                "refresh_token_exists": paths["refresh_token_path"].exists(),
-                "auto_refresh": getattr(self._config, "auto_refresh", False),
-            }
-
-            return FlextResult[FlextCliAuth.AuthStatus].ok(status)
-
-        except (
-            ImportError,
-            AttributeError,
-            ValueError,
-        ) as e:
+        # Get authentication status from SOURCE OF TRUTH
+        auth_result = self.check_authentication_status()
+        if auth_result.is_failure:
             return FlextResult[FlextCliAuth.AuthStatus].fail(
-                f"Status retrieval from SOURCE OF TRUTH failed: {e}",
+                f"Authentication check failed: {auth_result.error}",
             )
+
+        authenticated = auth_result.value
+
+        # Get paths from SOURCE OF TRUTH
+        paths_result = self.get_token_paths()
+        if paths_result.is_failure:
+            return FlextResult[FlextCliAuth.AuthStatus].fail(
+                f"Token paths from SOURCE OF TRUTH failed: {paths_result.error}",
+            )
+
+        paths = paths_result.value
+
+        # Validate config has auto_refresh attribute
+        if not hasattr(self._config, "auto_refresh"):
+            return FlextResult[FlextCliAuth.AuthStatus].fail(
+                "Configuration missing auto_refresh field"
+            )
+
+        # Build status from SOURCE OF TRUTH data
+        status: FlextCliAuth.AuthStatus = {
+            "authenticated": authenticated,
+            "token_file": str(paths["token_path"]),
+            "token_exists": paths["token_path"].exists(),
+            "refresh_token_file": str(paths["refresh_token_path"]),
+            "refresh_token_exists": paths["refresh_token_path"].exists(),
+            "auto_refresh": self._config.auto_refresh,
+        }
+
+        return FlextResult[FlextCliAuth.AuthStatus].ok(status)
 
     def whoami(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Get current user information from SOURCE OF TRUTH."""
-        try:
-            # Check authentication using SOURCE OF TRUTH
-            auth_result = self.check_authentication_status()
-            if auth_result.is_failure:
-                return FlextResult[FlextTypes.Core.Dict].fail(
-                    f"Authentication check failed: {auth_result.error}",
-                )
-
-            if not auth_result.value:
-                return FlextResult[FlextTypes.Core.Dict].fail(
-                    "Not authenticated to SOURCE OF TRUTH",
-                )
-
-            # In real implementation, would decode JWT from SOURCE OF TRUTH or make API call
-            user_info = {
-                "authenticated": True,
-                "note": "User information retrieval from SOURCE OF TRUTH not yet implemented",
-                "timestamp": FlextUtilities.Generators.generate_iso_timestamp(),
-            }
-
-            return FlextResult[FlextTypes.Core.Dict].ok(user_info)
-
-        except (
-            ImportError,
-            AttributeError,
-            ValueError,
-        ) as e:
+        # Check authentication using SOURCE OF TRUTH
+        auth_result = self.check_authentication_status()
+        if auth_result.is_failure:
             return FlextResult[FlextTypes.Core.Dict].fail(
-                f"User info retrieval from SOURCE OF TRUTH failed: {e}",
+                f"Authentication check failed: {auth_result.error}",
             )
+
+        if not auth_result.value:
+            return FlextResult[FlextTypes.Core.Dict].fail(
+                "Not authenticated to SOURCE OF TRUTH",
+            )
+
+        # In real implementation, would decode JWT from SOURCE OF TRUTH or make API call
+        user_info = {
+            "authenticated": True,
+            "note": "User information retrieval from SOURCE OF TRUTH not yet implemented",
+            "timestamp": FlextUtilities.Generators.generate_iso_timestamp(),
+        }
+
+        return FlextResult[FlextTypes.Core.Dict].ok(user_info)
 
     def execute(self) -> FlextResult[str]:
         """Execute authentication service - required by FlextDomainService abstract method."""
-        try:
-            # Default execution returns authentication status from SOURCE OF TRUTH
-            status_result = self.get_status()
-            if status_result.is_failure:
-                return FlextResult[str].fail(
-                    f"Auth status check failed: {status_result.error}",
-                )
-            return FlextResult[str].ok(
-                f"FlextCliAuth service ready: {status_result.value}",
+        # Default execution returns authentication status from SOURCE OF TRUTH
+        status_result = self.get_status()
+        if status_result.is_failure:
+            return FlextResult[str].fail(
+                f"Auth status check failed: {status_result.error}",
             )
-        except (
-            ImportError,
-            AttributeError,
-            ValueError,
-        ) as e:
-            return FlextResult[str].fail(f"Auth service execution failed: {e}")
+        return FlextResult[str].ok(
+            f"FlextCliAuth service ready: {status_result.value}",
+        )
 
     @classmethod
     def create(cls, *, config: FlextCliConfig | None = None) -> FlextCliAuth:
@@ -714,12 +678,12 @@ class FlextCliAuth(FlextDomainService[str]):
 
     def _is_token_expired(self, timestamp: str) -> bool:
         """Check if token is expired."""
-        try:
-            token_time = datetime.fromisoformat(timestamp)
-            now = datetime.now(UTC)
-            return now > token_time + timedelta(hours=24)
-        except Exception:
+        if not timestamp:
             return True
+
+        token_time = datetime.fromisoformat(timestamp)
+        now = datetime.now(UTC)
+        return now > token_time + timedelta(hours=24)
 
     def load_auth_config(self, file_path: str) -> FlextResult[dict[str, object]]:
         """Load authentication configuration from file."""
@@ -762,23 +726,30 @@ class FlextCliAuth(FlextDomainService[str]):
         def __init__(self, auth_service: FlextCliAuth) -> None:
             """Initialize with SOURCE OF TRUTH authentication service."""
             self._auth = auth_service
+            self._logger = FlextLogger(__name__)
 
         def handle_login(self, username: str, password: str) -> None:
             """Handle login command using SOURCE OF TRUTH."""
-            with contextlib.suppress(Exception):
-                result = self._auth.login(username, password)
-                if result.is_success:
-                    # Display any user data from response
-                    response_data = result.value
-                    if "user" in response_data:
-                        pass
+            result = self._auth.login(username, password)
+            if result.is_success:
+                # Display any user data from response
+                response_data = result.value
+                if "user" in response_data:
+                    user = response_data["user"]
+                    self._logger.info("login_successful", user=user)
+                else:
+                    self._logger.info(
+                        "login_successful", details="Login completed successfully"
+                    )
 
         def handle_logout(self) -> None:
             """Handle logout command using SOURCE OF TRUTH."""
-            with contextlib.suppress(Exception):
-                result = self._auth.logout()
-                if result.is_success:
-                    pass
+            result = self._auth.logout()
+            if result.is_success:
+                # Handle successful logout - could show confirmation message
+                self._auth._logger.info(
+                    "logout_successful", details="Logout completed successfully"
+                )
 
         def handle_status(self) -> None:
             """Handle status command using SOURCE OF TRUTH."""
@@ -787,8 +758,9 @@ class FlextCliAuth(FlextDomainService[str]):
                 return
 
             status_info = status_result.value
-            for _key, _value in status_info.items():
-                pass
+            for key, value in status_info.items():
+                # Log status information - could be displayed to user
+                self._auth._logger.info("auth_status", key=key, value=value)
 
         def handle_whoami(self) -> None:
             """Handle whoami command using SOURCE OF TRUTH."""
@@ -797,29 +769,9 @@ class FlextCliAuth(FlextDomainService[str]):
                 return
 
             user_info = whoami_result.value
-            for _key, _value in user_info.items():
-                pass
+            for key, value in user_info.items():
+                # Log user information - could be displayed to user
+                self._auth._logger.info("user_info", key=key, value=value)
 
 
-# Lazy loading aliases para evitar instantiation durante import
-def _get_auth_instance() -> FlextCliAuth:
-    """Get auth instance lazily."""
-    return FlextCliAuth()
-
-
-def _get_auth_handler() -> FlextCliAuth.CommandHandler:
-    """Get auth command handler lazily."""
-    instance = _get_auth_instance()
-    return instance.CommandHandler(instance)
-
-
-def _get_status_func() -> object:
-    """Get status function lazily."""
-    return _get_auth_instance().get_status
-
-
-# Aliases que os testes esperam - usando lazy loading
-auth = _get_auth_handler  # Handler function
-status = _get_status_func  # Status function
-
-__all__ = ["FlextCliAuth", "auth", "status"]
+__all__ = ["FlextCliAuth"]

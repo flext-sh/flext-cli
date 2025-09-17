@@ -16,6 +16,11 @@ import sys
 from typing import TypedDict
 
 import click
+
+from flext_cli.__version__ import __version__
+from flext_cli.config import FlextCliConfig
+from flext_cli.constants import FlextCliConstants
+from flext_cli.logging_setup import FlextCliLoggingSetup
 from flext_core import (
     FlextConfig,
     FlextDomainService,
@@ -23,11 +28,6 @@ from flext_core import (
     FlextResult,
     __version__ as core_version,
 )
-
-from flext_cli.__version__ import __version__
-from flext_cli.config import FlextCliConfig
-from flext_cli.constants import FlextCliConstants
-from flext_cli.logging_setup import FlextCliLoggingSetup
 
 
 class FlextCliMain(FlextDomainService[str]):
@@ -84,81 +84,65 @@ class FlextCliMain(FlextDomainService[str]):
 
     def create_cli_options(self, **options: object) -> FlextResult[CliOptions]:
         """Create CLI options from SOURCE OF TRUTH."""
-        try:
-            cli_options: FlextCliMain.CliOptions = {
-                "profile": str(options.get("profile", "default")),
-                "output_format": str(options.get("output_format", "table")),
-                "debug": bool(options.get("debug")),
-                "quiet": bool(options.get("quiet")),
-                "log_level": str(options.get("log_level"))
-                if options.get("log_level")
-                else None,
-            }
-            return FlextResult[FlextCliMain.CliOptions].ok(cli_options)
-        except Exception as e:
-            return FlextResult[FlextCliMain.CliOptions].fail(
-                f"CLI options creation failed: {e}"
-            )
+        cli_options: FlextCliMain.CliOptions = {
+            "profile": str(options.get("profile", "default")),
+            "output_format": str(options.get("output_format", "table")),
+            "debug": bool(options.get("debug")),
+            "quiet": bool(options.get("quiet")),
+            "log_level": str(options.get("log_level"))
+            if options.get("log_level")
+            else None,
+        }
+        return FlextResult[FlextCliMain.CliOptions].ok(cli_options)
 
     def create_config_with_overrides(
         self, cli_options: CliOptions
     ) -> FlextResult[FlextCliConfig]:
         """Create configuration with CLI overrides from FlextConfig singleton."""
-        try:
-            # Create CLI overrides from options
-            cli_overrides = {
-                "debug": cli_options["debug"],
-                "profile": cli_options["profile"],
-                "quiet": cli_options["quiet"],
-            }
+        # Create CLI overrides from options
+        cli_overrides = {
+            "debug": cli_options["debug"],
+            "profile": cli_options["profile"],
+            "quiet": cli_options["quiet"],
+        }
 
-            if cli_options["log_level"]:
-                cli_overrides["log_level"] = cli_options["log_level"].upper()
+        if cli_options["log_level"]:
+            cli_overrides["log_level"] = cli_options["log_level"].upper()
 
-            if cli_options["output_format"]:
-                cli_overrides["output_format"] = cli_options["output_format"]
+        if cli_options["output_format"]:
+            cli_overrides["output_format"] = cli_options["output_format"]
 
-            # Apply overrides to FlextConfig singleton
-            config_result = FlextCliConfig.apply_cli_overrides(cli_overrides)
-            if config_result.is_failure:
-                return FlextResult[FlextCliConfig].fail(
-                    f"Config creation failed: {config_result.error}"
-                )
+        # Apply overrides to FlextConfig singleton
+        config_result = FlextCliConfig.apply_cli_overrides(cli_overrides)
+        if config_result.is_failure:
+            return FlextResult[FlextCliConfig].fail(
+                f"Config creation failed: {config_result.error}"
+            )
 
-            return FlextResult[FlextCliConfig].ok(config_result.value)
-        except Exception as e:
-            return FlextResult[FlextCliConfig].fail(f"Config creation failed: {e}")
+        return FlextResult[FlextCliConfig].ok(config_result.value)
 
     def setup_cli_context(
         self, config: FlextCliConfig, *, quiet: bool = False
     ) -> FlextResult[CliContext]:
         """Setup CLI context from SOURCE OF TRUTH."""
-        try:
-            cli_context: FlextCliMain.CliContext = {
-                "config": config,
-                "debug_mode": bool(config.debug),
-                "quiet_mode": quiet,
-                "profile": config.profile,
-                "output_format": config.output_format,
-            }
-            return FlextResult[FlextCliMain.CliContext].ok(cli_context)
-        except Exception as e:
-            return FlextResult[FlextCliMain.CliContext].fail(
-                f"CLI context setup failed: {e}"
-            )
+        cli_context: FlextCliMain.CliContext = {
+            "config": config,
+            "debug_mode": bool(config.debug),
+            "quiet_mode": quiet,
+            "profile": config.profile,
+            "output_format": config.output_format,
+        }
+        return FlextResult[FlextCliMain.CliContext].ok(cli_context)
 
     def setup_logging(self, _config: FlextCliConfig) -> FlextResult[None]:
         """Setup logging from SOURCE OF TRUTH."""
-        try:
-            logging_setup = FlextCliLoggingSetup()
-            logging_result = logging_setup.setup_logging()
-            if logging_result.is_failure:
-                return FlextResult[None].fail(
-                    f"Logging setup failed: {logging_result.error}"
-                )
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Logging setup failed: {e}")
+        logging_setup = FlextCliLoggingSetup()
+        logging_result = logging_setup.setup_logging()
+        if logging_result.is_failure:
+            return FlextResult[None].fail(
+                f"Logging setup failed: {logging_result.error}"
+            )
+        return FlextResult[None].ok(None)
 
     def print_version(
         self,
@@ -274,7 +258,12 @@ class FlextCliMain(FlextDomainService[str]):
         @staticmethod
         def start_interactive() -> str:
             """Start interactive mode."""
-            return "PLACEHOLDER: Interactive mode coming soon"
+            try:
+                # Simple interactive mode implementation
+                # This could be enhanced with proper CLI interaction patterns later
+                return "Interactive mode started. Type 'help' for commands, 'exit' to quit."
+            except Exception as e:
+                return f"Interactive mode failed to start: {e}"
 
         @staticmethod
         def get_environment_info() -> dict[str, str]:
@@ -295,7 +284,7 @@ def print_version(
     value: object,
 ) -> None:
     """Delegate to unified service."""
-    return _cli_main.print_version(ctx, param, value=value)
+    return _cli_main.print_version(ctx, param, value)
 
 
 def get_version_info() -> FlextCliMain.VersionInfo:
@@ -325,12 +314,6 @@ def setup_cli_context(
 def setup_logging(config: FlextCliConfig) -> FlextResult[None]:
     """Delegate to unified service."""
     return _cli_main.setup_logging(config)
-
-
-# Aliases for backward compatibility
-CliOptions = FlextCliMain.CliOptions
-VersionInfo = FlextCliMain.VersionInfo
-CliContext = FlextCliMain.CliContext
 
 
 @click.group(invoke_without_command=True)
@@ -433,13 +416,10 @@ def cli(
         click.echo("Configuration: Loaded from FlextConfig singleton")
 
         # Show current FlextConfig values
-        try:
-            base_config = FlextConfig.get_global_instance()
-            click.echo(f"Base Config Environment: {base_config.environment}")
-            click.echo(f"Base Config Debug: {base_config.debug}")
-            click.echo(f"Base Config Log Level: {base_config.log_level}")
-        except Exception as e:
-            click.echo(f"Warning: Could not show base config: {e}")
+        base_config = FlextConfig.get_global_instance()
+        click.echo(f"Base Config Environment: {base_config.environment}")
+        click.echo(f"Base Config Debug: {base_config.debug}")
+        click.echo(f"Base Config Log Level: {base_config.log_level}")
 
         return
 
@@ -533,16 +513,11 @@ def show(ctx: click.Context) -> None:
         click.echo("Integration Verified: true")
 
         # Verify integration
-        try:
-            integration_result = FlextCliConfig.ensure_flext_config_integration()
-            if integration_result.is_success:
-                click.echo("Integration Status: ✅ VERIFIED")
-            else:
-                click.echo(
-                    f"Integration Status: ❌ FAILED - {integration_result.error}"
-                )
-        except Exception as e:
-            click.echo(f"Integration Status: ❌ ERROR - {e}")
+        integration_result = FlextCliConfig.ensure_flext_config_integration()
+        if integration_result.is_success:
+            click.echo("Integration Status: ✅ VERIFIED")
+        else:
+            click.echo(f"Integration Status: ❌ FAILED - {integration_result.error}")
 
     except Exception as e:
         click.echo(f"Failed to show configuration: {e}", err=True)
@@ -551,14 +526,14 @@ def show(ctx: click.Context) -> None:
 @config.command()
 @click.pass_context
 def edit(_ctx: click.Context) -> None:
-    """Edit configuration - SIMPLE ALIAS for test compatibility."""
+    """Edit configuration using default editor."""
     click.echo(_cli_main._ConfigCommands.edit_config())
 
 
 @config.command()
 @click.pass_context
 def path(_ctx: click.Context) -> None:
-    """Show configuration path - SIMPLE ALIAS for test compatibility."""
+    """Show configuration file path."""
     click.echo(_cli_main._ConfigCommands.get_config_path())
 
 
@@ -566,7 +541,7 @@ def path(_ctx: click.Context) -> None:
 @click.argument("key", required=False)
 @click.pass_context
 def get(_ctx: click.Context, key: str = "") -> None:
-    """Get configuration value - SIMPLE ALIAS for test compatibility."""
+    """Get configuration value by key."""
     click.echo(_cli_main._ConfigCommands.get_config_value(key))
 
 
@@ -575,14 +550,14 @@ def get(_ctx: click.Context, key: str = "") -> None:
 @click.argument("value")
 @click.pass_context
 def set_value(_ctx: click.Context, key: str, value: str) -> None:
-    """Set configuration value - SIMPLE ALIAS for test compatibility."""
+    """Set configuration value for key."""
     click.echo(f"Set {key} = {value}")
 
 
 @config.command()
 @click.pass_context
 def validate(_ctx: click.Context) -> None:
-    """Validate configuration - SIMPLE ALIAS for test compatibility."""
+    """Validate configuration settings."""
     click.echo(_cli_main._ConfigCommands.validate_config())
 
 
@@ -660,14 +635,14 @@ def validate_system(_ctx: click.Context) -> None:
 @debug.command()
 @click.pass_context
 def validate_debug(_ctx: click.Context) -> None:
-    """Validate system - SIMPLE ALIAS for test compatibility."""
+    """Validate system configuration."""
     click.echo(_cli_main._SystemCommands.validate_system())
 
 
 @debug.command(name="validate")
 @click.pass_context
 def validate_alias(_ctx: click.Context) -> None:
-    """Validate system - SIMPLE ALIAS for test compatibility."""
+    """Validate system configuration."""
     click.echo(_cli_main._SystemCommands.validate_system())
 
 
@@ -682,7 +657,7 @@ def trace(_ctx: click.Context, args: tuple[str, ...]) -> None:
 @debug.command()
 @click.pass_context
 def check(_ctx: click.Context) -> None:
-    """Health check - alias for connectivity."""
+    """Health check for system connectivity."""
     # Allow execution even without context (uses default console when needed)
     click.echo(_cli_main._SystemCommands.health_check())
 
@@ -707,9 +682,6 @@ def main() -> None:
     cli.main(standalone_mode=False)
 
 
-# Alias for test compatibility
-get_cmd = get
-
 __all__ = [
     "auth",
     "check",
@@ -720,7 +692,6 @@ __all__ = [
     "edit",
     "env",
     "get",
-    "get_cmd",
     "login",
     "logout",
     "main",

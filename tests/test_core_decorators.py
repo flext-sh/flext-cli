@@ -12,9 +12,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from flext_core import FlextConstants
 
 from flext_cli.decorators import FlextCliDecorators as D
+from flext_core import FlextConstants
 
 # Map class methods to local names for decorator usage in tests
 async_command = D.async_command

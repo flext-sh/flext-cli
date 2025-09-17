@@ -10,11 +10,10 @@ import inspect
 import os
 from pathlib import Path
 
-from flext_core import FlextLogger, FlextResult
-
 from flext_cli import FlextCliApi, FlextCliConfig, FlextCliMain, main
 from flext_cli.cli import create_cli_options
 from flext_cli.constants import FlextCliConstants
+from flext_core import FlextLogger, FlextResult
 
 
 class TestCliMain:

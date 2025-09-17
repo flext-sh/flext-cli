@@ -12,11 +12,11 @@ import tempfile
 from pathlib import Path
 
 import yaml
-from flext_core import FlextResult, FlextTypes
 from rich.console import Console
 from rich.table import Table as RichTable
 
 from flext_cli import FlextCliApi, FlextCliConfig, FlextCliContext, FlextCliModels
+from flext_core import FlextResult, FlextTypes
 
 
 class TestFlextCliContext:
@@ -162,26 +162,28 @@ class TestTableCreation:
         assert result.value is not None
 
     def test_flext_cli_table_simple_list_data(self) -> None:
-        """Test table creation from simple list - should fail with validation error."""
+        """Test table creation from simple list - should succeed with FlextCliFormatters handling all types."""
         data = ["item1", "item2", "item3"]
 
         api = FlextCliApi()
         result = api.create_table(data)
 
-        # Simple lists are not supported - expects dict or list of dicts
-        assert result.is_failure
-        assert "Data must be a dict or list of dicts" in str(result.error)
+        # Simple lists are now supported by FlextCliFormatters
+        assert result.is_success
+        assert isinstance(result.value, str)
+        assert "item1" in str(result.value)
 
     def test_flext_cli_table_single_value(self) -> None:
-        """Test table creation from single value - should fail with validation error."""
+        """Test table creation from single value - should succeed with FlextCliFormatters handling all types."""
         data = "Single value"
 
         api = FlextCliApi()
         result = api.create_table(data)
 
-        # Single values are not supported - expects dict or list of dicts
-        assert result.is_failure
-        assert "Data must be a dict or list of dicts" in str(result.error)
+        # Single values are now supported by FlextCliFormatters
+        assert result.is_success
+        assert isinstance(result.value, str)
+        assert "Single value" in str(result.value)
 
     def test_table_creation_dict_list(self) -> None:
         """Test flext_cli_table with list of dictionaries."""
@@ -193,14 +195,15 @@ class TestTableCreation:
         assert result.value is not None
 
     def test_table_creation_simple_list(self) -> None:
-        """Test flext_cli_table with simple list - should fail with validation error."""
+        """Test flext_cli_table with simple list - should succeed with FlextCliFormatters handling all types."""
         data = ["item1", "item2", "item3"]
         api = FlextCliApi()
         result = api.create_table(data)
 
-        # Simple lists are not supported - expects dict or list of dicts
-        assert result.is_failure
-        assert "Data must be a dict or list of dicts" in str(result.error)
+        # Simple lists are now supported by FlextCliFormatters
+        assert result.is_success
+        assert isinstance(result.value, str)
+        assert "item1" in str(result.value)
 
     def test_table_creation_dict(self) -> None:
         """Test flext_cli_table with dictionary."""
@@ -215,14 +218,15 @@ class TestTableCreation:
         assert "age" in table
 
     def test_table_creation_single_value(self) -> None:
-        """Test flext_cli_table with single value - should fail with validation error."""
+        """Test flext_cli_table with single value - should succeed with FlextCliFormatters handling all types."""
         data = "Single value"
         api = FlextCliApi()
         result = api.create_table(data)
 
-        # Single values are not supported - expects dict or list of dicts
-        assert result.is_failure
-        assert "Data must be a dict or list of dicts" in str(result.error)
+        # Single values are now supported by FlextCliFormatters
+        assert result.is_success
+        assert isinstance(result.value, str)
+        assert "Single value" in str(result.value)
 
 
 class TestDataTransformation:

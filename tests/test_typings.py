@@ -6,9 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextTypes as CoreFlextTypes
-
 from flext_cli import typings
+from flext_core import FlextTypes as CoreFlextTypes
 
 
 class TestTypingsImports:

@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 from flext_core import FlextResult, FlextTypes
 
@@ -69,6 +69,72 @@ class FlextCliProtocols:
 
         async def deauthenticate(self) -> FlextResult[None]:
             """Perform deauthentication."""
+            ...
+
+    # ==========================================================================
+    # CLI PROCESSING PROTOCOLS - Moved from typings.py for unification
+    # ==========================================================================
+
+    class CliProcessor(Protocol):
+        """Protocol for CLI processors."""
+
+        def process(
+            self,
+            request: str | dict[str, object],
+        ) -> FlextResult[object]:
+            """Process CLI request."""
+            ...
+
+        def build(
+            self,
+            domain: object,
+            *,
+            correlation_id: str,
+        ) -> str | dict[str, object]:
+            """Build CLI response."""
+            ...
+
+    class CliValidator(Protocol):
+        """Protocol for CLI validators."""
+
+        def validate(
+            self,
+            data: dict[str, object] | str | float,
+        ) -> FlextResult[None]:
+            """Validate CLI data."""
+            ...
+
+    class CliFormatter(Protocol):
+        """Protocol for CLI formatters."""
+
+        def format(
+            self,
+            data: dict[str, object] | list[object] | str,
+            format_type: str,
+        ) -> FlextResult[str]:
+            """Format CLI data with specified type."""
+            ...
+
+    class CliAuthenticator(Protocol):
+        """Protocol for CLI authenticators."""
+
+        def authenticate(
+            self,
+            credentials: dict[str, str],
+        ) -> FlextResult[FlextTypes.Core.Dict]:
+            """Authenticate CLI user."""
+            ...
+
+        def is_authenticated(self) -> bool:
+            """Check authentication status."""
+            ...
+
+    @runtime_checkable
+    class OutputFormatter(Protocol):
+        """Protocol for formatter classes used by the CLI."""
+
+        def format(self, data: object, console: object) -> None:
+            """Format data using console output."""
             ...
 
 

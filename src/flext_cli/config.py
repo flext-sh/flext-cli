@@ -13,15 +13,11 @@ import os
 from pathlib import Path
 from typing import Self, cast
 
-from flext_core import FlextConfig, FlextResult, FlextUtilities
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.utils import (
-    SETTINGS_CONFIG_DICT,
-    refresh_token_file_path,
-    token_file_path,
-)
+from flext_cli.utils import FlextCliUtilities
+from flext_core import FlextConfig, FlextResult, FlextUtilities
 
 
 class FlextCliConfig(FlextConfig):
@@ -32,7 +28,7 @@ class FlextCliConfig(FlextConfig):
     for all shared configuration values.
     """
 
-    model_config = SETTINGS_CONFIG_DICT
+    model_config = FlextCliUtilities.get_settings_config_dict()
 
     # Override app_name for CLI-specific configuration
     app_name: str = Field(default="flext-cli", description="CLI application name")
@@ -108,19 +104,21 @@ class FlextCliConfig(FlextConfig):
 
     # Authentication files (CLI-specific)
     token_file: Path = Field(
-        default_factory=token_file_path, description="CLI authentication token file"
+        default_factory=FlextCliUtilities.token_file_path,
+        description="CLI authentication token file",
     )
     refresh_token_file: Path = Field(
-        default_factory=refresh_token_file_path, description="CLI refresh token file"
+        default_factory=FlextCliUtilities.refresh_token_file_path,
+        description="CLI refresh token file",
     )
     auto_refresh: bool = Field(
         default=True, description="Enable automatic token refresh"
     )
 
-    # API-related fields (aliases for compatibility)
+    # API-related fields
     api_url: str = Field(
         default=FlextCliConstants.FALLBACK_API_URL,
-        description="API URL (alias for base_url)",
+        description="API URL",
     )
     api_timeout: int = Field(
         default=30, ge=1, le=3600, description="API timeout in seconds"
@@ -133,18 +131,18 @@ class FlextCliConfig(FlextConfig):
     )
     verify_ssl: bool = Field(default=True, description="Verify SSL certificates")
 
-    # Retry configuration (aliases for compatibility)
+    # Retry configuration
     retries: int = Field(
         default=3,
         ge=0,
         le=10,
-        description="Number of retries (alias for max_command_retries)",
+        description="Number of retries",
     )
     max_retries: int = Field(
         default=3,
         ge=0,
         le=10,
-        description="Maximum retries (alias for max_command_retries)",
+        description="Maximum retries",
     )
 
     # Project metadata (CLI-specific overrides)
@@ -187,7 +185,7 @@ class FlextCliConfig(FlextConfig):
 
     @model_validator(mode="after")
     def sync_api_fields(self) -> FlextCliConfig:
-        """Synchronize API-related fields for backward compatibility.
+        """Synchronize API-related fields.
 
         Ensures that api_url and base_url are synchronized, and that
         retries/max_retries/max_command_retries are consistent.
@@ -254,8 +252,8 @@ class FlextCliConfig(FlextConfig):
     # =========================================================================
 
     def __init__(self, **data: object) -> None:
-        """Initialize with backward compatibility support."""
-        # Handle backward compatibility aliases
+        """Initialize CLI configuration."""
+        # Handle configuration aliases
         if "base_url" in data and "api_url" not in data:
             data["api_url"] = data["base_url"]
         if "max_command_retries" in data:
@@ -324,7 +322,7 @@ class FlextCliConfig(FlextConfig):
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate CLI-specific business rules."""
         # Validate output format
-        if self.output_format not in {"table", "json", "yaml", "csv"}:
+        if self.output_format not in {"table", "json", "yaml", "csv", "plain"}:
             return FlextResult[None].fail(
                 f"Invalid output format: {self.output_format}"
             )
@@ -345,21 +343,19 @@ class FlextCliConfig(FlextConfig):
 
     def ensure_directories(self) -> FlextResult[None]:
         """Ensure CLI directories exist."""
-        try:
-            # Create essential directories
-            for directory in [
-                self.config_dir,
-                self.cache_dir,
-                self.log_dir,
-                self.data_dir,
-            ]:
+        # Create essential directories - handle specific OS errors explicitly
+        for directory in [
+            self.config_dir,
+            self.cache_dir,
+            self.log_dir,
+            self.data_dir,
+        ]:
+            if not directory.exists():
                 directory.mkdir(parents=True, exist_ok=True)
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Failed to create directories: {e}")
+        return FlextResult[None].ok(None)
 
     def ensure_setup(self) -> FlextResult[None]:
-        """Ensure CLI setup is complete (alias for ensure_directories)."""
+        """Ensure CLI setup is complete."""
         return self.ensure_directories()
 
     @classmethod
@@ -367,20 +363,17 @@ class FlextCliConfig(FlextConfig):
         cls, config: FlextCliConfig | None = None
     ) -> FlextResult[FlextCliConfig]:
         """Set up CLI with configuration."""
-        try:
-            if config is None:
-                config = cls.get_global_instance()
+        if config is None:
+            config = cls.get_global_instance()
 
-            # Validate configuration
-            validation_result = config.validate_business_rules()
-            if validation_result.is_failure:
-                return FlextResult[FlextCliConfig].fail(
-                    f"Configuration validation failed: {validation_result.error}"
-                )
+        # Validate configuration
+        validation_result = config.validate_business_rules()
+        if validation_result.is_failure:
+            return FlextResult[FlextCliConfig].fail(
+                f"Configuration validation failed: {validation_result.error}"
+            )
 
-            return FlextResult[FlextCliConfig].ok(config)
-        except Exception as e:
-            return FlextResult[FlextCliConfig].fail(f"CLI setup failed: {e}")
+        return FlextResult[FlextCliConfig].ok(config)
 
     # =========================================================================
     # FACTORY METHODS
@@ -389,38 +382,28 @@ class FlextCliConfig(FlextConfig):
     @classmethod
     def create_development_config(cls) -> FlextResult[FlextCliConfig]:
         """Create development configuration."""
-        try:
-            config = cls(
-                profile="development",
-                debug=True,
-                trace=True,
-                log_level="DEBUG",
-                verbose=True,
-                output_format="table",
-            )
-            return FlextResult[FlextCliConfig].ok(config)
-        except Exception as e:
-            return FlextResult[FlextCliConfig].fail(
-                f"Failed to create development config: {e}"
-            )
+        config = cls(
+            profile="development",
+            debug=True,
+            trace=True,
+            log_level="DEBUG",
+            verbose=True,
+            output_format="table",
+        )
+        return FlextResult[FlextCliConfig].ok(config)
 
     @classmethod
     def create_production_config(cls) -> FlextResult[FlextCliConfig]:
         """Create production configuration."""
-        try:
-            config = cls(
-                profile="production",
-                debug=False,
-                log_level="INFO",
-                quiet=True,
-                output_format="json",
-                verify_ssl=True,
-            )
-            return FlextResult[FlextCliConfig].ok(config)
-        except Exception as e:
-            return FlextResult[FlextCliConfig].fail(
-                f"Failed to create production config: {e}"
-            )
+        config = cls(
+            profile="production",
+            debug=False,
+            log_level="INFO",
+            quiet=True,
+            output_format="json",
+            verify_ssl=True,
+        )
+        return FlextResult[FlextCliConfig].ok(config)
 
     @classmethod
     def get_global_instance(cls) -> FlextCliConfig:
@@ -487,7 +470,7 @@ class FlextCliConfig(FlextConfig):
 
     @classmethod
     def get_current(cls) -> FlextCliConfig:
-        """Get current CLI configuration (alias for get_global_instance)."""
+        """Get current CLI configuration."""
         return cls.get_global_instance()
 
     @classmethod
@@ -495,34 +478,26 @@ class FlextCliConfig(FlextConfig):
         cls, config_data: dict[str, object] | None = None
     ) -> FlextResult[FlextCliConfig]:
         """Create CLI configuration with directory setup."""
-        try:
-            # Create config with provided data
-            config = cls(**config_data) if config_data else cls()
+        # Create config with provided data
+        config = cls(**config_data) if config_data else cls()
 
-            # Ensure directories exist
-            dir_result = config.ensure_directories()
-            if dir_result.is_failure:
-                return FlextResult[FlextCliConfig].fail(
-                    f"Failed to create directories: {dir_result.error}"
-                )
+        # Ensure directories exist
+        dir_result = config.ensure_directories()
+        if dir_result.is_failure:
+            return FlextResult[FlextCliConfig].fail(
+                f"Failed to create directories: {dir_result.error}"
+            )
 
-            return FlextResult[FlextCliConfig].ok(config)
-        except Exception as e:
-            return FlextResult[FlextCliConfig].fail(f"Failed to create config: {e}")
+        return FlextResult[FlextCliConfig].ok(config)
 
     @classmethod
     def load_from_profile(cls, profile_name: str) -> FlextResult[FlextCliConfig]:
         """Load configuration from a specific profile."""
-        try:
-            if not profile_name or not profile_name.strip():
-                return FlextResult[FlextCliConfig].fail("Profile name cannot be empty")
+        if not profile_name or not profile_name.strip():
+            return FlextResult[FlextCliConfig].fail("Profile name cannot be empty")
 
-            config = cls(profile=profile_name.strip())
-            return FlextResult[FlextCliConfig].ok(config)
-        except Exception as e:
-            return FlextResult[FlextCliConfig].fail(
-                f"Failed to load profile '{profile_name}': {e}"
-            )
+        config = cls(profile=profile_name.strip())
+        return FlextResult[FlextCliConfig].ok(config)
 
     @classmethod
     def apply_cli_overrides(
@@ -660,7 +635,7 @@ class FlextCliConfig(FlextConfig):
 
     @property
     def timeout(self) -> int:
-        """Timeout alias for backward compatibility."""
+        """Get timeout in seconds."""
         return self.timeout_seconds
 
 

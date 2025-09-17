@@ -9,16 +9,12 @@ from collections.abc import Awaitable, Callable, Mapping
 from pathlib import Path
 from typing import overload
 
-from flext_core import FlextDecorators, FlextLogger, FlextResult, P, T
-
 from flext_cli.constants import FlextCliConstants
+from flext_core import FlextLogger, FlextResult, P, T
 
 
-class FlextCliDecorators(FlextDecorators):
-    """CLI-specific decorators extending flext-core FlextDecorators.
-
-    All decorators are exposed as class methods to avoid module-level helpers.
-    """
+class FlextCliDecorators:
+    """CLI-specific decorator utilities."""
 
     @staticmethod
     def cli_measure_time(func: Callable[P, T]) -> Callable[P, T]:
@@ -252,7 +248,8 @@ class FlextCliDecorators(FlextDecorators):
 
                 def _get(c: object, k: str) -> object | None:
                     if isinstance(c, Mapping):
-                        return c.get(k)
+                        result = c.get(k)
+                        return result if result is not None else None
                     return getattr(c, k, None)
 
                 for key in required_keys:
@@ -337,7 +334,48 @@ class FlextCliDecorators(FlextDecorators):
         return decorator
 
     # CLI-specific retry alias to avoid override conflict
-    cli_retry_alias = cli_retry  # For test compatibility
+
+    # Override the stub retry method from flext-core with proper implementation
+    @staticmethod
+    def retry(
+        max_attempts: int = 3,
+        *,
+        exceptions: tuple[type[BaseException], ...] = (Exception,),
+        initial_backoff: float = 0.5,
+        backoff_multiplier: float = 2.0,
+        logger_name: str | None = None,
+    ) -> Callable[[Callable[P, T]], Callable[P, T]]:
+        """Retry decorator with actual retry functionality (overrides flext-core stub)."""
+
+        def decorator(func: Callable[P, T]) -> Callable[P, T]:
+            @functools.wraps(func)
+            def _wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
+                last_exception: BaseException | None = None
+                logger = FlextLogger(logger_name or func.__name__)
+
+                for attempt in range(max_attempts):
+                    try:
+                        return func(*args, **kwargs)
+                    except exceptions as e:
+                        last_exception = e
+                        if attempt < max_attempts - 1:  # Don't sleep on last attempt
+                            sleep_time = initial_backoff * (backoff_multiplier**attempt)
+                            logger.debug(
+                                f"Retry attempt {attempt + 1}/{max_attempts} failed: {e}, sleeping {sleep_time}s"
+                            )
+                            time.sleep(sleep_time)
+                        continue
+
+                # Re-raise the last exception if all attempts failed
+                if last_exception is not None:
+                    logger.error(f"All {max_attempts} retry attempts failed")
+                    raise last_exception
+                error_msg = "Retry failed without exception"
+                raise RuntimeError(error_msg)
+
+            return _wrapped
+
+        return decorator
 
 
 __all__ = [

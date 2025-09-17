@@ -10,9 +10,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from flext_core import FlextResult
-
 from flext_cli.config import FlextCliConfig
+from flext_core import FlextResult
 
 
 class TestFlextCliConfig(unittest.TestCase):

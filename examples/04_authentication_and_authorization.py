@@ -26,19 +26,19 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime, timedelta
 
-from flext_cli import (
-    FlextCliService,
-    get_auth_headers,
-    FlextCliConfig,
-    require_auth,
-    save_auth_token,
-)
-from flext_core import FlextResult, FlextTypes
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
 from examples import print_demo_completion
+from flext_cli import (
+    FlextCliConfig,
+    FlextCliService,
+    get_auth_headers,
+    require_auth,
+    save_auth_token,
+)
+from flext_core import FlextResult, FlextTypes
 
 
 def demonstrate_basic_authentication() -> FlextResult[None]:
@@ -261,7 +261,6 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
     console.print("\n[green]7. Secure Configuration Management[/green]")
 
     # Get CLI configuration
-    from flext_cli import FlextCliConfig
     FlextCliConfig.get_current()
     console.print("✅ CLI configuration loaded")
 

@@ -7,10 +7,9 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from flext_core import FlextResult
-
 from flext_cli.config import FlextCliConfig
 from flext_cli.logging_setup import FlextCliLoggingSetup
+from flext_core import FlextResult
 
 
 class TestFlextCliLoggingConfig:

@@ -11,75 +11,24 @@ from typing import Self
 from urllib.parse import urljoin
 
 import httpx
-from flext_core import FlextConstants, FlextLogger, FlextResult, FlextTypes
-from pydantic import BaseModel, Field
+
+# HTTP status codes
+from pydantic import ValidationError
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
-from flext_cli.utils import BASE_CONFIG_DICT
+from flext_cli.models import FlextCliModels
+from flext_core import FlextConstants, FlextLogger, FlextResult, FlextTypes
 
-# HTTP status codes
 HTTP_OK = 200
 
 
-class FlextApiClient:
+class FlextCliClient:
     """Client for FLEXT API operations.
 
     Provides async methods for interacting with the FLEXT API.
     Uses FlextConfig singleton as the single source of truth for all configuration.
     """
-
-    class PipelineConfig(BaseModel):
-        """Pipeline configuration model for Singer/Meltano workflows."""
-
-        model_config = BASE_CONFIG_DICT
-
-        name: str = Field(description="Pipeline name")
-        schedule: str | None = Field(None, description="Cron schedule")
-        tap: str = Field(description="Source tap plugin")
-        target: str = Field(description="Target plugin")
-        transform: str | None = Field(None, description="Transform plugin")
-        state: FlextTypes.Core.Dict | None = Field(None, description="Pipeline state")
-        config: FlextTypes.Core.Dict | None = Field(
-            None,
-            description="Additional config",
-        )
-
-    class Pipeline(BaseModel):
-        """Pipeline model for API responses."""
-
-        model_config = BASE_CONFIG_DICT
-
-        id: str = Field(description="Pipeline unique identifier")
-        name: str = Field(description="Pipeline name")
-        status: str = Field(description="Pipeline status")
-        config: FlextApiClient.PipelineConfig = Field(
-            description="Pipeline configuration",
-        )
-        created_at: str | None = Field(None, description="Pipeline creation timestamp")
-        updated_at: str | None = Field(
-            None, description="Pipeline last update timestamp"
-        )
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate pipeline business rules."""
-            if not self.name or not self.name.strip():
-                return FlextResult[None].fail("Pipeline name cannot be empty")
-            if self.status not in FlextCliConstants.VALID_PIPELINE_STATUSES:
-                return FlextResult[None].fail(f"Invalid pipeline status: {self.status}")
-            return FlextResult[None].ok(None)
-
-    class PipelineList(BaseModel):
-        """Pipeline list response."""
-
-        model_config = BASE_CONFIG_DICT
-
-        pipelines: list[FlextApiClient.Pipeline] = Field(
-            description="List of pipelines",
-        )
-        total: int = Field(description="Total count")
-        page: int = Field(1, description="Current page")
-        page_size: int = Field(20, description="Page size")
 
     def __init__(
         self,
@@ -182,65 +131,80 @@ class FlextApiClient:
         return self._url(path)
 
     def _parse_json_response(self, response: httpx.Response) -> FlextTypes.Core.Dict:
-        """Parse JSON response with proper typing."""
+        """Parse JSON response using Pydantic validation."""
         json_data = response.json()
-        # Validate it's a dict-like structure
-        if not isinstance(json_data, dict):
-            msg = f"Expected dict response, got {type(json_data)}"
-            raise TypeError(msg)
-        return json_data
+        # Use Pydantic model for validation instead of manual isinstance check
+        try:
+            validated_response = FlextCliModels.ApiJsonResponse(data=json_data)
+            return validated_response.data
+        except ValidationError as e:
+            msg = f"Invalid JSON response format: {e}"
+            raise TypeError(msg) from e
 
     def _parse_json_list_response(
         self, response: httpx.Response
     ) -> list[FlextTypes.Core.Dict]:
-        """Parse JSON response as list with proper typing."""
+        """Parse JSON response as list using Pydantic validation."""
         json_data = response.json()
-        if not isinstance(json_data, list):
-            msg = f"Expected list response, got {type(json_data)}"
-            raise TypeError(msg)
-        return json_data
+        # Use Pydantic model for validation instead of manual isinstance check
+        try:
+            validated_response = FlextCliModels.ApiListResponse(data=json_data)
+            return validated_response.data
+        except ValidationError as e:
+            msg = f"Invalid JSON list response format: {e}"
+            raise TypeError(msg) from e
 
     def _extract_string_list(
         self, data: FlextTypes.Core.Dict, key: str
     ) -> FlextTypes.Core.StringList:
-        """Extract string list from dict with proper typing."""
+        """Extract string list from dict using Pydantic validation."""
         if key not in data:
             msg = f"Key '{key}' not found in response"
             raise KeyError(msg)
 
         value = data[key]
+        # Validate that value is a list before passing to Pydantic
         if not isinstance(value, list):
-            msg = f"Expected list for key '{key}', got {type(value)}"
+            msg = f"Expected list for key '{key}', got {type(value).__name__}"
             raise TypeError(msg)
 
-        # Validate all items are strings
-        for item in value:
-            if not isinstance(item, str):
-                msg = f"Expected string list for key '{key}', found {type(item)}"
-                raise TypeError(msg)
-
-        return value
+        # Use Pydantic model for validation instead of manual isinstance checks
+        try:
+            if key == "logs":
+                validated_response = FlextCliModels.StringListResponse(logs=value)
+                return validated_response.logs
+            # Generic string list validation
+            validated_response = FlextCliModels.StringListResponse(logs=value)
+            return validated_response.logs
+        except ValidationError as e:
+            msg = f"Invalid string list for key '{key}': {e}"
+            raise TypeError(msg) from e
 
     def _extract_dict_list(
         self, data: FlextTypes.Core.Dict, key: str
     ) -> list[FlextTypes.Core.Dict]:
-        """Extract dict list from dict with proper typing."""
+        """Extract dict list from dict using Pydantic validation."""
         if key not in data:
             msg = f"Key '{key}' not found in response"
             raise KeyError(msg)
 
         value = data[key]
+        # Validate that value is a list before passing to Pydantic
         if not isinstance(value, list):
-            msg = f"Expected list for key '{key}', got {type(value)}"
+            msg = f"Expected list for key '{key}', got {type(value).__name__}"
             raise TypeError(msg)
 
-        # Validate all items are dicts
-        for item in value:
-            if not isinstance(item, dict):
-                msg = f"Expected dict list for key '{key}', found {type(item)}"
-                raise TypeError(msg)
-
-        return value
+        # Use Pydantic model for validation instead of manual isinstance checks
+        try:
+            if key == "plugins":
+                plugin_response = FlextCliModels.PluginListResponse(plugins=value)
+                return plugin_response.plugins
+            # Generic dict list validation
+            api_response = FlextCliModels.ApiListResponse(data=value)
+            return api_response.data
+        except ValidationError as e:
+            msg = f"Invalid dict list for key '{key}': {e}"
+            raise TypeError(msg) from e
 
     async def _request(
         self,
@@ -366,7 +330,7 @@ class FlextApiClient:
         page: int = 1,
         page_size: int = 20,
         status: str | None = None,
-    ) -> FlextApiClient.PipelineList:
+    ) -> FlextCliModels.PipelineList:
         """List pipelines with pagination.
 
         Args:
@@ -390,9 +354,9 @@ class FlextApiClient:
             "/api/v1/pipelines",
             params=params,
         )
-        return FlextApiClient.PipelineList(**response.json())
+        return FlextCliModels.PipelineList(**response.json())
 
-    async def get_pipeline(self, pipeline_id: str) -> FlextApiClient.Pipeline:
+    async def get_pipeline(self, pipeline_id: str) -> FlextCliModels.Pipeline:
         """Get pipeline by ID.
 
         Args:
@@ -406,12 +370,12 @@ class FlextApiClient:
             FlextCliConstants.HttpMethod.GET,
             f"/api/v1/pipelines/{pipeline_id}",
         )
-        return FlextApiClient.Pipeline(**response.json())
+        return FlextCliModels.Pipeline(**response.json())
 
     async def create_pipeline(
         self,
-        config: FlextApiClient.PipelineConfig,
-    ) -> FlextApiClient.Pipeline:
+        config: FlextCliModels.PipelineConfig,
+    ) -> FlextCliModels.Pipeline:
         """Create new pipeline.
 
         Args:
@@ -426,13 +390,13 @@ class FlextApiClient:
             "/api/v1/pipelines",
             json_data=config.model_dump(),
         )
-        return FlextApiClient.Pipeline(**response.json())
+        return FlextCliModels.Pipeline(**response.json())
 
     async def update_pipeline(
         self,
         pipeline_id: str,
-        config: FlextApiClient.PipelineConfig,
-    ) -> FlextApiClient.Pipeline:
+        config: FlextCliModels.PipelineConfig,
+    ) -> FlextCliModels.Pipeline:
         """Update existing pipeline.
 
         Args:
@@ -448,7 +412,7 @@ class FlextApiClient:
             f"/api/v1/pipelines/{pipeline_id}",
             json_data=config.model_dump(),
         )
-        return FlextApiClient.Pipeline(**response.json())
+        return FlextCliModels.Pipeline(**response.json())
 
     async def delete_pipeline(self, pipeline_id: str) -> None:
         """Delete pipeline.
@@ -686,4 +650,7 @@ class FlextApiClient:
             return True
 
 
-__all__ = ["FlextApiClient"]
+# ARCHITECTURAL COMPLIANCE: Aliases removed - use FlextCliModels.Pipeline directly
+
+
+__all__ = ["FlextCliClient"]

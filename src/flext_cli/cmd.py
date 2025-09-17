@@ -9,10 +9,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextDomainService, FlextLogger, FlextResult
-
 from flext_cli.cli_bus import FlextCliCommandBusService
 from flext_cli.config import FlextCliConfig
+from flext_core import FlextDomainService, FlextLogger, FlextResult
 
 
 class FlextCliCmd(FlextDomainService[str]):
@@ -37,11 +36,8 @@ class FlextCliCmd(FlextDomainService[str]):
 
     def execute(self) -> FlextResult[str]:
         """Execute CLI command through command bus."""
-        try:
-            # Delegate to command bus service for proper command execution
-            return FlextResult[str].ok("Command bus integration ready")
-        except Exception as e:
-            return FlextResult[str].fail(f"Command execution failed: {e}")
+        # Delegate to command bus service for proper command execution
+        return FlextResult[str].ok("Command bus integration ready")
 
     # Configuration Management (consolidated from helper classes)
     class _ConfigDisplayHelper:
@@ -50,12 +46,9 @@ class FlextCliCmd(FlextDomainService[str]):
         @staticmethod
         def show_config(logger: FlextLogger) -> FlextResult[None]:
             """Show current configuration through command bus."""
-            try:
-                logger.info("Displaying CLI configuration")
-                # Implementation delegated to command bus
-                return FlextResult[None].ok(None)
-            except Exception as e:
-                return FlextResult[None].fail(f"Show config failed: {e}")
+            logger.info("Displaying CLI configuration")
+            # Implementation delegated to command bus
+            return FlextResult[None].ok(None)
 
     class _ConfigModificationHelper:
         """Internal helper for configuration modification."""
@@ -63,11 +56,8 @@ class FlextCliCmd(FlextDomainService[str]):
         @staticmethod
         def edit_config() -> FlextResult[str]:
             """Edit configuration through command bus."""
-            try:
-                # Implementation delegated to command bus
-                return FlextResult[str].ok("Config edit completed")
-            except Exception as e:
-                return FlextResult[str].fail(f"Edit config failed: {e}")
+            # Implementation delegated to command bus
+            return FlextResult[str].ok("Config edit completed")
 
     class _ConfigValidationHelper:
         """Internal helper for configuration validation."""
@@ -75,57 +65,37 @@ class FlextCliCmd(FlextDomainService[str]):
         @staticmethod
         def validate_config(config: FlextCliConfig) -> FlextResult[None]:
             """Validate CLI configuration."""
-            try:
-                validation_result = config.validate_business_rules()
-                if validation_result.is_failure:
-                    return FlextResult[None].fail(
-                        f"Config validation failed: {validation_result.error}"
-                    )
-                return FlextResult[None].ok(None)
-            except Exception as e:
-                return FlextResult[None].fail(f"Config validation error: {e}")
+            validation_result = config.validate_business_rules()
+            if validation_result.is_failure:
+                return FlextResult[None].fail(
+                    f"Config validation failed: {validation_result.error}"
+                )
+            return FlextResult[None].ok(None)
 
     # Public Configuration Interface
     def show_config_paths(self) -> FlextResult[list[str]]:
         """Show configuration paths."""
-        try:
-            config = FlextCliConfig()
-            paths = [
-                str(config.config_dir),
-                str(config.cache_dir),
-                str(config.token_file),
-                str(config.refresh_token_file),
-            ]
-            return FlextResult[list[str]].ok(paths)
-        except Exception as e:
-            return FlextResult[list[str]].fail(f"Show config paths failed: {e}")
+        config = FlextCliConfig()
+        paths = [
+            str(config.config_dir),
+            str(config.cache_dir),
+            str(config.token_file),
+            str(config.refresh_token_file),
+        ]
+        return FlextResult[list[str]].ok(paths)
 
     def set_config_value(self, key: str, value: str, /) -> FlextResult[bool]:
         """Set configuration value through command bus."""
-        try:
-            # Implementation through command bus service
-            return self.command_bus_service.execute_set_config_command(
-                key=key, value=value
-            )
-        except Exception as e:
-            return FlextResult[bool].fail(f"Set config value failed: {e}")
+        # Implementation through command bus service
+        return self.command_bus_service.execute_set_config_command(key=key, value=value)
 
     def get_config_value(self, key: str | None, /) -> FlextResult[dict[str, object]]:
         """Get configuration value through command bus."""
-        try:
-            # Implementation through command bus service
-            _ = key  # Acknowledge the parameter (currently not used in implementation)
-            return self.command_bus_service.execute_show_config_command(
-                output_format="json"  # Use proper parameter name
-            )
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Get config value failed: {e}")
-
-    def show_config_paths_legacy(
-        self, _obj: dict[str, object] | None
-    ) -> FlextResult[list[str]]:
-        """Legacy method for showing config paths."""
-        return self.show_config_paths()
+        # Implementation through command bus service
+        _ = key  # Acknowledge the parameter (currently not used in implementation)
+        return self.command_bus_service.execute_show_config_command(
+            output_format="json"  # Use proper parameter name
+        )
 
     # Instance Management (consolidated from loose functions)
     def get_cmd_instance(self) -> FlextCliCommandBusService:
@@ -153,33 +123,6 @@ class FlextCliCmd(FlextDomainService[str]):
         return self._ConfigValidationHelper.validate_config(config)
 
 
-# Backwards compatibility - maintain existing API
-def get_cmd_instance() -> FlextCliCommandBusService:
-    """Get CLI command service instance - returns Command Bus Service."""
-    cmd = FlextCliCmd()
-    return cmd.get_cmd_instance()
-
-
-def _get_cmd_instance() -> FlextCliCommandBusService:
-    """Internal function for getting command bus service instance."""
-    return get_cmd_instance()
-
-
-# Compatibility aliases for legacy code
-def show_config(logger: FlextLogger) -> FlextResult[None]:
-    """Show configuration using CLI command."""
-    return FlextCliCmd()._ConfigDisplayHelper.show_config(logger)
-
-
-def edit_config() -> FlextResult[str]:
-    """Edit configuration using CLI command."""
-    return FlextCliCmd()._ConfigModificationHelper.edit_config()
-
-
 __all__ = [
     "FlextCliCmd",
-    "_get_cmd_instance",
-    "edit_config",
-    "get_cmd_instance",
-    "show_config",
 ]

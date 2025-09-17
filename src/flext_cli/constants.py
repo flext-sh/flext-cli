@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import os
 from enum import StrEnum
-from typing import ClassVar, Final
+from typing import ClassVar
 
 from pydantic import BaseModel, Field, computed_field
 
@@ -46,6 +46,7 @@ class FlextCliConstants:
         """File and directory configuration - only used fields."""
 
         flext_dir_name: str = Field(default=".flext", min_length=1)
+        config_file_name: str = Field(default="config.yaml", min_length=1)
         default_encoding: str = Field(default="utf-8", frozen=True)
         auth_dir_name: str = Field(default="auth", min_length=1)
         cache_dir_name: str = Field(default="cache", min_length=1)
@@ -81,12 +82,15 @@ class FlextCliConstants:
         """Timeout configuration - only used fields."""
 
         default_command_timeout: int = Field(default=30, ge=1, le=3600)
+        default_api_timeout: int = Field(default=60, ge=1, le=3600)
+        default_dev_timeout: int = Field(default=120, ge=1, le=7200)
 
     class LimitsConfig(BaseModel):
         """Limits configuration - only used fields."""
 
         max_commands_per_session: int = Field(default=10_000, ge=1, le=100_000)
         max_timeout_seconds: int = Field(default=3600, ge=1, le=86_400)
+        max_error_rate_percent: float = Field(default=50.0, ge=0.0, le=100.0)
 
     class OutputConfig(BaseModel):
         """Output configuration - only used fields."""
@@ -99,6 +103,7 @@ class FlextCliConstants:
         """Security configuration - only used fields."""
 
         sensitive_value_preview_length: int = Field(default=4, ge=1, le=10)
+        max_filename_length: int = Field(default=255, ge=1, le=1000)
 
     class HttpMethod(StrEnum):
         """HTTP methods - only used values."""
@@ -120,6 +125,37 @@ class FlextCliConstants:
         RUNNING = "RUNNING"
         COMPLETED = "COMPLETED"
         FAILED = "FAILED"
+        CANCELLED = "CANCELLED"
+
+    class OutputFormat(StrEnum):
+        """Output formats - used by tests and CLI."""
+
+        TABLE = "table"
+        JSON = "json"
+        YAML = "yaml"
+        CSV = "csv"
+        PLAIN = "plain"
+
+    class FeatureFlags:
+        """Feature toggles for progressive rollouts."""
+
+        @staticmethod
+        def _env_enabled(flag_name: str, default: str = "1") -> bool:
+            value = os.environ.get(flag_name, default)
+            return value.lower() not in {"0", "false", "no"}
+
+        ENABLE_DISPATCHER: ClassVar[bool] = _env_enabled(
+            "FLEXT_CLI_ENABLE_DISPATCHER",
+        )
+
+    class LogLevel(StrEnum):
+        """Log levels - used by tests."""
+
+        DEBUG = "DEBUG"
+        INFO = "INFO"
+        WARNING = "WARNING"
+        ERROR = "ERROR"
+        CRITICAL = "CRITICAL"
 
     # =============================================================================
     # DEFAULT INSTANCES - Ready-to-use configurations (SINGLE SOURCE OF TRUTH)
@@ -135,35 +171,60 @@ class FlextCliConstants:
     SECURITY: ClassVar[SecurityConfig] = SecurityConfig()
 
     # =============================================================================
-    # BACKWARD COMPATIBILITY - Only for actually used constants
+    # COMPATIBILITY ALIASES - Direct access to nested properties
     # =============================================================================
 
-    # HTTP (DEPRECATED: Use HTTP.field_name instead)
-    DEFAULT_ENCODING: Final[str] = FILES.default_encoding
-    FALLBACK_API_URL: str = str(HTTP.fallback_api_url)
-    FLEXT_DIR_NAME: Final[str] = FILES.flext_dir_name
-    AUTH_DIR_NAME: Final[str] = FILES.auth_dir_name
-    TOKEN_FILE_NAME: str = str(FILES.token_file_name)
-    REFRESH_TOKEN_FILE_NAME: str = str(FILES.refresh_token_file_name)
+    # File system constants
+    FLEXT_DIR_NAME: ClassVar[str] = FILES.flext_dir_name
+    AUTH_DIR_NAME: ClassVar[str] = FILES.auth_dir_name
+    TOKEN_FILE_NAME: ClassVar[str] = (
+        "token.json"  # Direct value instead of computed field
+    )
+    REFRESH_TOKEN_FILE_NAME: ClassVar[str] = (
+        "refresh_token.json"  # Direct value instead of computed field
+    )
 
-    # System (DEPRECATED: Use SYSTEM.field_name instead)
-    SERVICE_NAME_API: Final[str] = "FLEXT CLI API"
+    # API constants
+    FALLBACK_API_URL: ClassVar[str] = (
+        f"{HTTP.http_scheme}://{HTTP.default_host}:{HTTP.fallback_api_port}"  # Direct construction
+    )
 
-    # Status constants (DEPRECATED: Use CommandStatus enum instead)
-    STATUS_PENDING: Final[str] = CommandStatus.PENDING
-    STATUS_RUNNING: Final[str] = CommandStatus.RUNNING
-    STATUS_COMPLETED: Final[str] = CommandStatus.COMPLETED
-    STATUS_FAILED: Final[str] = CommandStatus.FAILED
+    # Service constants
+    SERVICE_NAME_API: ClassVar[str] = "flext-api"
 
-    # Limits (DEPRECATED: Use LIMITS.field_name instead)
-    MAX_COMMANDS_PER_SESSION: Final[int] = LIMITS.max_commands_per_session
-    MAX_COMMAND_TIMEOUT: Final[int] = 300  # Used in one place
+    # Validation constants
+    VALID_PIPELINE_STATUSES: ClassVar[list[str]] = [
+        status.value for status in CommandStatus
+    ]
+    VALID_OUTPUT_FORMATS: ClassVar[list[str]] = [fmt.value for fmt in OutputFormat]
 
-    # Output formats tuple (DEPRECATED: Use OutputFormat enum instead)
-    VALID_OUTPUT_FORMATS: Final[tuple[str, ...]] = ("table", "json", "yaml", "csv")
+    # Timeout constants
+    MAX_COMMAND_TIMEOUT: ClassVar[int] = LIMITS.max_timeout_seconds
+    # Command status aliases (for backward compatibility with tests)
+    STATUS_PENDING: ClassVar[str] = CommandStatus.PENDING.value
+    STATUS_RUNNING: ClassVar[str] = CommandStatus.RUNNING.value
+    STATUS_COMPLETED: ClassVar[str] = CommandStatus.COMPLETED.value
+    STATUS_FAILED: ClassVar[str] = CommandStatus.FAILED.value
+    STATUS_CANCELLED: ClassVar[str] = CommandStatus.CANCELLED.value
 
-    # Pipeline statuses tuple (DEPRECATED: Use PipelineStatus enum instead)
-    VALID_PIPELINE_STATUSES: Final[tuple[str, ...]] = ("active", "inactive", "pending")
+    # Additional missing constants used by tests
+    VALID_COMMAND_STATUSES: ClassVar[tuple[str, ...]] = tuple(
+        status.value for status in CommandStatus
+    )
+    DEFAULT_COMMAND_TIMEOUT: ClassVar[int] = TIMEOUTS.default_command_timeout
+    MAX_FILENAME_LENGTH: ClassVar[int] = SECURITY.max_filename_length
+
+    # Missing API and configuration constants
+    DEFAULT_API_URL: ClassVar[str] = "http://localhost:8000"
+    DEFAULT_PROFILE: ClassVar[str] = ProfileName.DEFAULT.value
+    CONFIG_FILE_NAME: ClassVar[str] = "config.toml"
+
+    # Log level aliases (for backward compatibility with tests)
+    LOG_LEVEL_DEBUG: ClassVar[str] = LogLevel.DEBUG.value
+    LOG_LEVEL_INFO: ClassVar[str] = LogLevel.INFO.value
+    LOG_LEVEL_WARNING: ClassVar[str] = LogLevel.WARNING.value
+    LOG_LEVEL_ERROR: ClassVar[str] = LogLevel.ERROR.value
+    LOG_LEVEL_CRITICAL: ClassVar[str] = LogLevel.CRITICAL.value
 
 
 __all__ = ["FlextCliConstants"]

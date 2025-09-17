@@ -9,9 +9,9 @@ import logging
 import os
 
 import pytest
-from flext_core import FlextConfig
 
 from flext_cli import FlextCliConfig
+from flext_core import FlextConfig
 
 
 class TestFlextConfigIntegration:

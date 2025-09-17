@@ -9,14 +9,13 @@ from __future__ import annotations
 from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Literal, ParamSpec, Protocol, TypedDict, TypeVar
+from typing import Literal, TypedDict
 from uuid import UUID
 
-from flext_core import FlextResult, FlextTypes
 from pydantic import BaseModel, Field
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.utils import BASE_CONFIG_DICT
+from flext_core import E, F, FlextResult, FlextTypes, P, R, T, U, V
 
 
 class FlextCliTypes:
@@ -55,48 +54,30 @@ class FlextCliTypes:
             "CANCELLED",
         ]
 
-        # Advanced Pydantic v2 discriminated union for command states
-        # Imports moved to top level to fix F821 errors
+        # Command state classes
+        class PendingState:
+            """Pending command state."""
 
-        class PendingState(BaseModel):
-            """Command in pending state."""
+            status: str = "PENDING"
+            message: str = "Command is pending execution"
 
-            model_config = BASE_CONFIG_DICT
+        class RunningState:
+            """Running command state."""
 
-            status: Literal["PENDING"] = "PENDING"
-            queued_at: datetime = Field()
+            status: str = "RUNNING"
+            message: str = "Command is currently running"
 
-        class RunningState(BaseModel):
-            """Command in running state."""
+        class CompletedState:
+            """Completed command state."""
 
-            model_config = BASE_CONFIG_DICT
+            status: str = "COMPLETED"
+            message: str = "Command completed successfully"
 
-            status: Literal["RUNNING"] = "RUNNING"
-            started_at: datetime = Field()
-            process_id: int | None = None
+        class FailedState:
+            """Failed command state."""
 
-        class CompletedState(BaseModel):
-            """Command completed successfully."""
-
-            model_config = BASE_CONFIG_DICT
-
-            status: Literal["COMPLETED"] = "COMPLETED"
-            completed_at: datetime = Field()
-            exit_code: int = 0
-            output: str = ""
-
-        class FailedState(BaseModel):
-            """Command failed with error."""
-
-            model_config = BASE_CONFIG_DICT
-
-            status: Literal["FAILED"] = "FAILED"
-            failed_at: datetime = Field()
-            exit_code: int
-            error_output: str
-
-        # Discriminated union for type-safe command state management
-        CommandState = PendingState | RunningState | CompletedState | FailedState
+            status: str = "FAILED"
+            message: str = "Command execution failed"
 
         # CLI command execution context
         class CliCommandContext(TypedDict):
@@ -126,41 +107,27 @@ class FlextCliTypes:
         CliTimeout = int
         CliConfigPath = Path
 
-        # Streamlined Pydantic v2 profiles with modern ConfigDict
-        class DevelopmentProfile(BaseModel):
-            """Development environment configuration."""
+        # Profile classes for different environments
+        class DevelopmentProfile:
+            """Development profile configuration."""
 
-            model_config = BASE_CONFIG_DICT
+            name: str = "development"
+            debug_mode: bool = True
+            log_level: str = "DEBUG"
 
-            profile: Literal["development"] = Field(default="development")
-            debug: bool = Field(default=True)
-            log_level: Literal["DEBUG"] = Field(default="DEBUG")
-            output_format: Literal["table", "json"] = Field(default="table")
+        class ProductionProfile:
+            """Production profile configuration."""
 
-        class ProductionProfile(BaseModel):
-            """Production environment configuration."""
+            name: str = "production"
+            debug_mode: bool = False
+            log_level: str = "INFO"
 
-            model_config = BASE_CONFIG_DICT
+        class TestingProfile:
+            """Testing profile configuration."""
 
-            profile: Literal["production"] = Field(default="production")
-            debug: bool = Field(default=False)
-            log_level: str = Field(default="INFO")
-            output_format: str = Field(default="json")
-            timeout_seconds: int = Field(ge=30, le=300, default=60)
-
-        class TestingProfile(BaseModel):
-            """Testing environment configuration."""
-
-            model_config = BASE_CONFIG_DICT
-
-            profile: Literal["testing"] = Field(default="testing")
-            debug: bool = Field(default=False)
-            log_level: str = Field(default="INFO")
-            output_format: str = Field(default="json")
-            mock_services: bool = Field(default=True)
-
-        # Discriminated union for type-safe configuration management
-        ConfigProfile = DevelopmentProfile | ProductionProfile | TestingProfile
+            name: str = "testing"
+            debug_mode: bool = True
+            log_level: str = "DEBUG"
 
         # CLI configuration context
         class CliConfigContext(TypedDict):
@@ -274,67 +241,6 @@ class FlextCliTypes:
         CliValidationResult = FlextResult[None]
 
     # =============================================================================
-    # CLI PROTOCOL DEFINITIONS - Advanced Python 3.13+ patterns
-    # =============================================================================
-
-    class Protocols:
-        """CLI protocol definitions for type safety."""
-
-        class CliProcessor(Protocol):
-            """Protocol for CLI processors."""
-
-            def process(
-                self,
-                request: str | dict[str, object],
-            ) -> FlextResult[object]:
-                """Process CLI request."""
-                ...
-
-            def build(
-                self,
-                domain: object,
-                *,
-                correlation_id: str,
-            ) -> str | dict[str, object]:
-                """Build CLI response."""
-                ...
-
-        class CliValidator(Protocol):
-            """Protocol for CLI validators."""
-
-            def validate(
-                self,
-                data: dict[str, object] | str | float,
-            ) -> FlextResult[None]:
-                """Validate CLI data."""
-                ...
-
-        class CliFormatter(Protocol):
-            """Protocol for CLI formatters."""
-
-            def format(
-                self,
-                data: dict[str, object] | list[object] | str,
-                format_type: str,
-            ) -> FlextResult[str]:
-                """Format CLI data with specified type."""
-                ...
-
-        class CliAuthenticator(Protocol):
-            """Protocol for CLI authenticators."""
-
-            def authenticate(
-                self,
-                credentials: dict[str, str],
-            ) -> FlextResult[FlextCliTypes.Auth.CliAuthContext]:
-                """Authenticate CLI user."""
-                ...
-
-            def is_authenticated(self) -> bool:
-                """Check authentication status."""
-                ...
-
-    # =============================================================================
     # PLUGIN STATUS TYPES - Nested for unified class pattern
     # =============================================================================
 
@@ -346,38 +252,52 @@ class FlextCliTypes:
         ERROR = "error"
         LOADING = "loading"
 
+    # =============================================================================
+    # CLI PROTOCOLS - Type protocols for CLI interfaces
+    # =============================================================================
+
+    class Protocols:
+        """CLI protocol types for interface definitions."""
+
+        class CliProcessor:
+            """Protocol for CLI data processors."""
+
+            def process(self, data: object) -> object:
+                """Process CLI data."""
+                raise NotImplementedError
+
+        class CliValidator:
+            """Protocol for CLI validators."""
+
+            def validate(self, data: object) -> bool:
+                """Validate CLI data."""
+                raise NotImplementedError
+
+        class CliFormatter:
+            """Protocol for CLI formatters."""
+
+            def format(self, data: object) -> str:
+                """Format CLI data."""
+                raise NotImplementedError
+
+        class CliAuthenticator:
+            """Protocol for CLI authenticators."""
+
+            def authenticate(self, credentials: dict[str, str]) -> bool:
+                """Authenticate CLI user."""
+                raise NotImplementedError
+
 
 # No aliases - use direct imports
 
 
-# Unified command types (reduce duplication)
-CommandStatus = FlextCliConstants.CommandStatus
-# CommandType removed - redundant with CommandStatus
-
-# Plugin status alias
-PluginStatus = FlextCliTypes.PluginStatusEnum
-
-# Essential type aliases only (eliminate dead code)
-URL = str  # Consolidated URL type - actually used
-URLType = str  # URL type alias for compatibility
-
-# Type variables for generic programming
-E = TypeVar("E")
-F = TypeVar("F")
-P = ParamSpec("P")
-R = TypeVar("R")
-T = TypeVar("T")
-U = TypeVar("U")
-V = TypeVar("V")
+# ARCHITECTURAL COMPLIANCE: All aliases removed - use full qualified names
 
 
 # Minimal exports - only actually used types
 __all__ = [
-    "BASE_CONFIG_DICT",
-    "URL",
     "UUID",
     "BaseModel",
-    "CommandStatus",
     "E",
     "F",
     "Field",
@@ -385,12 +305,11 @@ __all__ = [
     "FlextCliTypes",
     "FlextTypes",
     "P",
-    "PluginStatus",
+    "Path",
     "R",
     "T",
     "TypedDict",
     "U",
-    "URLType",
     "V",
     "datetime",
 ]

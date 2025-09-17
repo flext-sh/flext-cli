@@ -28,23 +28,23 @@ import asyncio
 import time
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, cast
+from typing import  cast
 
 
 # Simple replacement for missing example_utils
 def print_demo_completion(title: str) -> None:
     """Print demo completion message."""
     print(f"✅ {title} completed successfully!")
-from flext_cli import (
-    FlextCliService,
-    FlextCliService,
-    FlextCliConfig,
-)
-from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
 from rich.table import Table
+
+from flext_cli import (
+    FlextCliConfig,
+    FlextCliService,
+)
+from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 
 
 class ServiceStatus(Enum):
@@ -542,7 +542,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     console.print("\n[green]Dependency Injection with CLI Container[/green]")
 
     # Create and configure CLI container
-    container: Any = FlextContainer.get_global()
+    container: object = FlextContainer.get_global()
     # Container has register/get methods available
     if container:
         console.print("[green]✓[/green] Container is ready to use")
@@ -607,7 +607,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
         result.is_success
         for result in [logger_result, config_result, api_client_result]
     ):
-        logger = cast(FlextLogger, logger_result.value)
+        logger = cast("FlextLogger", logger_result.value)
         config = config_result.value
         api_client = api_client_result.value
 

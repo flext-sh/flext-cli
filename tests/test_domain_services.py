@@ -6,10 +6,9 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 
 import pytest
-from flext_core import FlextResult
 
 from flext_cli import FlextCliConstants, FlextCliDomainServices, FlextCliModels
-from flext_cli.typings import FlextCliTypes
+from flext_core import FlextResult
 
 
 class TestFlextCliDomainServices:
@@ -136,7 +135,7 @@ class TestCommandLifecycleManagement:
 
         # Set state to completed manually to test validation - SIMPLE ALIAS for test compatibility
         command.exit_code = 0  # Set exit code first to satisfy Pydantic validation
-        command.state = FlextCliTypes.Commands.CompletedState(
+        command.state = FlextCliModels.CompletedState(
             completed_at=datetime.now(UTC),
             exit_code=0,
             output="",
@@ -496,8 +495,11 @@ class TestExceptionHandling:
         # All domain service methods should return FlextResult and handle exceptions
         # Use proper types for different FlextResult return types
         # Test methods that return different FlextResult types
-        health_check_method: Callable[[], FlextResult[str]] = lambda: self.domain_services.health_check()
-        execute_method: Callable[[], FlextResult[FlextResult[object]]] = lambda: self.domain_services.execute()
+        def health_check_method() -> FlextResult[str]:
+            return self.domain_services.health_check()
+
+        def execute_method() -> FlextResult[FlextResult[object]]:
+            return self.domain_services.execute()
 
         methods_to_test = [health_check_method, execute_method]
 
