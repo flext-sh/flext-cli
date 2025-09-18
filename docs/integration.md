@@ -2,7 +2,7 @@
 
 **Ecosystem integration patterns and usage with FLEXT projects.**
 
-**Last Updated**: September 17, 2025 | **Version**: 0.9.0
+**Last Updated**: September 17, 2025 | **Version**: 0.9.9 RC
 
 ---
 

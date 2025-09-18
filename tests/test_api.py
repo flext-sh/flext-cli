@@ -12,11 +12,11 @@ import tempfile
 from pathlib import Path
 
 import yaml
+from flext_core import FlextResult, FlextTypes
 from rich.console import Console
 from rich.table import Table as RichTable
 
 from flext_cli import FlextCliApi, FlextCliConfig, FlextCliContext, FlextCliModels
-from flext_core import FlextResult, FlextTypes
 
 
 class TestFlextCliContext:
@@ -39,7 +39,7 @@ class TestFlextCliContext:
         state = api.ApiState()
 
         # Initially no sessions
-        assert state.session_count == 0
+        assert state.session_count == 0  # type: ignore[comparison-overlap]
 
         # Add some sessions
         state.sessions = {
@@ -47,7 +47,7 @@ class TestFlextCliContext:
             "session2": FlextCliModels.CliSession(user_id="user2"),
             "session3": FlextCliModels.CliSession(user_id="user3"),
         }
-        assert state.session_count == 3
+        assert state.session_count == 3  # type: ignore[comparison-overlap]
 
     def test_api_state_handler_count_property(self) -> None:
         """Test ApiState handler_count property."""
@@ -55,11 +55,11 @@ class TestFlextCliContext:
         state = api.ApiState()
 
         # Initially no handlers
-        assert state.handler_count == 0
+        assert state.handler_count == 0  # type: ignore[comparison-overlap]
 
         # Add some handlers
         state.handlers = {"handler1": {}, "handler2": {}}
-        assert state.handler_count == 2
+        assert state.handler_count == 2  # type: ignore[comparison-overlap]
 
 
 class TestFormatting:
@@ -343,7 +343,8 @@ class TestDataExport:
 
         # Test with invalid file extension to trigger format detection failure
         with tempfile.NamedTemporaryFile(
-            suffix=".invalid_extension", delete=False,
+            suffix=".invalid_extension",
+            delete=False,
         ) as f:
             invalid_path = Path(f.name)
 

@@ -10,10 +10,11 @@ import inspect
 import os
 from pathlib import Path
 
-from flext_cli import FlextCliApi, FlextCliConfig, FlextCliMain, main
-from flext_cli.cli import create_cli_options
-from flext_cli.constants import FlextCliConstants
 from flext_core import FlextLogger, FlextResult
+
+from flext_cli import FlextCliApi, FlextCliConfig, FlextCliMain
+from flext_cli.cli import create_cli_options, main
+from flext_cli.constants import FlextCliConstants
 
 
 class TestCliMain:
@@ -166,7 +167,9 @@ class TestCliIntegration:
     def setup_method(self) -> None:
         """Set up test environment."""
         self.cli_api = FlextCliApi()
-        self.cli_main = FlextCliMain(name="integration-test", description="Integration test CLI")
+        self.cli_main = FlextCliMain(
+            name="integration-test", description="Integration test CLI"
+        )
 
     def test_auth_command_functionality(self) -> None:
         """Test auth command functionality using flext-cli patterns."""
@@ -272,6 +275,7 @@ class TestCliErrorHandling:
 
     def test_cli_command_validation_errors(self) -> None:
         """Test CLI command validation error handling."""
+
         # Create command with validation
         def failing_handler(**_kwargs: object) -> FlextResult[None]:
             return FlextResult[None].fail("Validation failed")
@@ -293,6 +297,7 @@ class TestCliErrorHandling:
 
     def test_cli_missing_argument_handling(self) -> None:
         """Test CLI handling of missing required arguments."""
+
         def required_arg_handler(**kwargs: object) -> FlextResult[None]:
             required_arg = kwargs.get("required")
             if not required_arg:
@@ -330,7 +335,9 @@ class TestCliErrorHandling:
             assert config is not None
 
             # Test that CLI API works
-            result = self.cli_api.display_message("Environment test", message_type="info")
+            result = self.cli_api.display_message(
+                "Environment test", message_type="info"
+            )
             assert isinstance(result, FlextResult)
 
         finally:

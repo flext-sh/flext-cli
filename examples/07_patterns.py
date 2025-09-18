@@ -30,18 +30,18 @@ from enum import StrEnum
 from typing import Protocol
 from uuid import UUID, uuid4
 
+from flext_core import (
+    FlextDomainService,
+    FlextModels,
+    FlextResult,
+    FlextTypes,
+)
 from pydantic import Field
 
 from flext_cli import (
     FlextCliApi,
     FlextCliMain,
     FlextCliService,
-)
-from flext_core import (
-    FlextDomainService,
-    FlextModels,
-    FlextResult,
-    FlextTypes,
 )
 
 
@@ -254,6 +254,7 @@ class CreateProjectHandler:
     """CQRS command handler for creating projects."""
 
     def __init__(
+
         self,
         repository: ProjectRepository,
         domain_service: ProjectDomainService,
@@ -515,7 +516,7 @@ class EnterpriseCliApplication:
             # Initialize CLI main instance
             cli_main = FlextCliMain(
                 name="enterprise-cli",
-                description="Enterprise patterns CLI demonstrating Clean Architecture and CQRS"
+                description="Enterprise patterns CLI demonstrating Clean Architecture and CQRS",
             )
 
             # Register command groups
@@ -533,25 +534,25 @@ class EnterpriseCliApplication:
             name="create",
             description="Create a new project using enterprise patterns",
             handler=self._handle_create_project,
-            arguments=["--name", "--description", "--owner"]
+            arguments=["--name", "--description", "--owner"],
         )
         change_status_cmd = self.cli_api.create_command(
             name="change-status",
             description="Change project status using CQRS command",
             handler=self._handle_change_status,
-            arguments=["--project-id", "--status", "--reason"]
+            arguments=["--project-id", "--status", "--reason"],
         )
         get_cmd = self.cli_api.create_command(
             name="get",
             description="Get project details using CQRS query",
             handler=self._handle_get_project,
-            arguments=["--project-id"]
+            arguments=["--project-id"],
         )
         list_cmd = self.cli_api.create_command(
             name="list",
             description="List projects by owner using CQRS query",
             handler=self._handle_list_projects,
-            arguments=["--owner-id"]
+            arguments=["--owner-id"],
         )
 
         # Unwrap commands for registration - only include successful commands
@@ -568,7 +569,7 @@ class EnterpriseCliApplication:
         cli_main.register_command_group(
             name="project",
             commands=project_commands,
-            description="Project management commands using enterprise patterns"
+            description="Project management commands using enterprise patterns",
         )
 
     def _handle_create_project(self, **kwargs: object) -> FlextResult[None]:
@@ -586,12 +587,12 @@ class EnterpriseCliApplication:
         if result.is_success:
             data = result.unwrap()
             self.cli_api.display_output(
-                data=data,
-                format_type="table",
-                title="Project Created"
+                data=data, format_type="table", title="Project Created"
             )
         else:
-            self.cli_api.display_message(f"Failed to create project: {result.error}", message_type="error")
+            self.cli_api.display_message(
+                f"Failed to create project: {result.error}", message_type="error"
+            )
 
         return FlextResult[None].ok(None)
 
@@ -606,20 +607,24 @@ class EnterpriseCliApplication:
 
         valid_statuses = ["active", "suspended", "completed", "archived"]
         if status not in valid_statuses:
-            return FlextResult[None].fail(f"Status must be one of: {', '.join(valid_statuses)}")
+            return FlextResult[None].fail(
+                f"Status must be one of: {', '.join(valid_statuses)}"
+            )
 
-        self.cli_api.display_message(f"Changing project status to: {status}", message_type="info")
+        self.cli_api.display_message(
+            f"Changing project status to: {status}", message_type="info"
+        )
         result = self.service.change_project_status(project_id, status, reason)
 
         if result.is_success:
             data = result.unwrap()
             self.cli_api.display_output(
-                data=data,
-                format_type="table",
-                title="Status Changed"
+                data=data, format_type="table", title="Status Changed"
             )
         else:
-            self.cli_api.display_message(f"Failed to change status: {result.error}", message_type="error")
+            self.cli_api.display_message(
+                f"Failed to change status: {result.error}", message_type="error"
+            )
 
         return FlextResult[None].ok(None)
 
@@ -635,12 +640,12 @@ class EnterpriseCliApplication:
         if result.is_success:
             data = result.unwrap()
             self.cli_api.display_output(
-                data=data,
-                format_type="table",
-                title="Project Details"
+                data=data, format_type="table", title="Project Details"
             )
         else:
-            self.cli_api.display_message(f"Failed to get project: {result.error}", message_type="error")
+            self.cli_api.display_message(
+                f"Failed to get project: {result.error}", message_type="error"
+            )
 
         return FlextResult[None].ok(None)
 
@@ -656,14 +661,22 @@ class EnterpriseCliApplication:
         if result.is_success:
             projects = result.unwrap()
             if projects:
-                self.cli_api.display_message(f"Projects for owner {owner_id}:", message_type="info")
+                self.cli_api.display_message(
+                    f"Projects for owner {owner_id}:", message_type="info"
+                )
                 for project in projects:
-                    project_info = f"- {project['name']} ({project['status']}) - {project['id']}"
+                    project_info = (
+                        f"- {project['name']} ({project['status']}) - {project['id']}"
+                    )
                     self.cli_api.display_message(project_info, message_type="info")
             else:
-                self.cli_api.display_message(f"No projects found for owner: {owner_id}", message_type="warning")
+                self.cli_api.display_message(
+                    f"No projects found for owner: {owner_id}", message_type="warning"
+                )
         else:
-            self.cli_api.display_message(f"Failed to list projects: {result.error}", message_type="error")
+            self.cli_api.display_message(
+                f"Failed to list projects: {result.error}", message_type="error"
+            )
 
         return FlextResult[None].ok(None)
 
@@ -677,7 +690,9 @@ def main() -> None:
         # Create CLI interface
         cli_result = app.create_cli_interface()
         if cli_result.is_failure:
-            app.cli_api.display_message(f"CLI creation failed: {cli_result.error}", message_type="error")
+            app.cli_api.display_message(
+                f"CLI creation failed: {cli_result.error}", message_type="error"
+            )
             return
 
         # Run CLI
@@ -685,7 +700,9 @@ def main() -> None:
         execution_result = cli_main.execute()
 
         if execution_result.is_failure:
-            app.cli_api.display_message(f"CLI execution failed: {execution_result.error}", message_type="error")
+            app.cli_api.display_message(
+                f"CLI execution failed: {execution_result.error}", message_type="error"
+            )
 
     except Exception as e:
         cli_api = FlextCliApi()

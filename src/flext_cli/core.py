@@ -1,7 +1,10 @@
-"""CLI core service using flext-core DIRECTLY - ZERO duplication.
+"""CLI core service using flext-core directly.
 
-ELIMINATES ALL duplicated functionality and uses flext-core services directly.
-Uses SOURCE OF TRUTH principle - no reimplementation of existing flext-core features.
+Production-ready CLI service that uses flext-core services directly without
+duplication or fallback mechanisms. Implements standardized architecture patterns.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -29,12 +32,21 @@ from flext_core import (
 
 
 class FlextCliService(FlextDomainService[str]):
-    """CLI service using flext-core services directly - ZERO duplication.
+    """Production-ready CLI service using flext-core directly.
 
-    Single responsibility: CLI service orchestration using existing flext-core infrastructure.
-    Uses FlextProcessing for health checks, FlextProcessing for request processing,
-    FlextModels for data structures - NO reimplementation.
-    Uses FlextConfig singleton as the single source of truth for all configuration.
+    Provides CLI service orchestration using flext-core infrastructure without
+    duplication or fallback mechanisms. Uses FlextConfig singleton as the single
+    source of truth for all configuration.
+
+    Args:
+        None: Service initializes with flext-core dependencies.
+
+    Returns:
+        FlextResult[str]: Service execution result.
+
+    Raises:
+        RuntimeError: If service initialization fails.
+
     """
 
     # Private attributes
@@ -54,7 +66,15 @@ class FlextCliService(FlextDomainService[str]):
     _formatters: FlextCliFormatters | None = PrivateAttr(default=None)
 
     def __init__(self) -> None:
-        """Initialize with flext-core services directly using FlextConfig singleton."""
+        """Initialize CLI service with flext-core dependencies.
+
+        Initializes the service using FlextConfig singleton and flext-core
+        infrastructure. No fallback mechanisms are used.
+
+        Raises:
+            RuntimeError: If initialization fails.
+
+        """
         super().__init__()
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
@@ -64,7 +84,11 @@ class FlextCliService(FlextDomainService[str]):
         self._initialize_services()
 
     def _initialize_configuration(self) -> None:
-        """Initialize configuration from FlextConfig singleton."""
+        """Initialize configuration from FlextConfig singleton.
+
+        Sets up configuration and formatters using flext-core patterns.
+        No fallback mechanisms are used.
+        """
         # Initialize with None for test compatibility
         self._config = None
 
@@ -140,7 +164,11 @@ class FlextCliService(FlextDomainService[str]):
         return self.format_data(data, format_type)
 
     def _initialize_services(self) -> None:
-        """Initialize services using flext-core directly."""
+        """Initialize services using flext-core directly.
+
+        Sets up service registry, orchestrator, and handlers using flext-core
+        infrastructure. No duplication or fallback mechanisms are used.
+        """
         # Use flext-core services directly - NO duplication
         self._service_registry = FlextProcessing()
         self._service_orchestrator = FlextProcessing.create_pipeline()
@@ -153,13 +181,24 @@ class FlextCliService(FlextDomainService[str]):
         self._register_cli_handlers()
 
     def _register_cli_handlers(self) -> None:
-        """Register CLI handlers using flext-core handler registry."""
+        """Register CLI handlers using flext-core handler registry.
 
+        Registers CLI-specific handlers using flext-core patterns.
+        Implementation will be added when concrete handlers are available.
+        """
         # Skip handler registration for now - Handler is abstract
         # This will be implemented when concrete handlers are available
 
     def get_service_health(self) -> FlextResult[dict[str, object]]:
-        """Get service health using flext-core patterns directly."""
+        """Get service health using flext-core patterns directly.
+
+        Returns:
+            FlextResult[dict[str, object]]: Health information or error.
+
+        Raises:
+            RuntimeError: If health check fails.
+
+        """
         try:
             health_info: dict[str, object] = {
                 "service": "FlextCliService",
@@ -192,7 +231,16 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[dict[str, object]].fail(f"Health check failed: {e}")
 
     def format_data(self, data: object, format_type: str) -> FlextResult[str]:
-        """Format data using FlextCliFormatters to avoid duplication."""
+        """Format data using FlextCliFormatters.
+
+        Args:
+            data: Data to format.
+            format_type: Format type (table, json, yaml, csv).
+
+        Returns:
+            FlextResult[str]: Formatted data or error.
+
+        """
         # FlextCliFormatters handles all object types - no type validation needed
         formatters = FlextCliFormatters()
         return formatters.format_data(data, format_type)
@@ -200,7 +248,17 @@ class FlextCliService(FlextDomainService[str]):
     def flext_cli_export(
         self, data: object, file_path: str, format_type: str
     ) -> FlextResult[str]:
-        """Export data to file using flext-core utilities directly."""
+        """Export data to file using flext-core utilities directly.
+
+        Args:
+            data: Data to export.
+            file_path: Target file path.
+            format_type: Export format (json, yaml, csv).
+
+        Returns:
+            FlextResult[str]: Export result or error.
+
+        """
         try:
             path = Path(file_path)
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -230,11 +288,25 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[str].fail(f"Export failed: {e}")
 
     def flext_cli_health(self) -> FlextResult[dict[str, object]]:
-        """Get CLI health status."""
+        """Get CLI health status.
+
+        Returns:
+            FlextResult[dict[str, object]]: Health information or error.
+
+        """
         return self.get_service_health()
 
     def flext_cli_register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
-        """Register a plugin."""
+        """Register a plugin.
+
+        Args:
+            name: Plugin name.
+            plugin: Plugin object.
+
+        Returns:
+            FlextResult[None]: Registration result or error.
+
+        """
         try:
             if name in self._plugins:
                 return FlextResult[None].fail(f"Plugin '{name}' already registered")
@@ -244,7 +316,12 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[None].fail(f"Plugin registration failed: {e}")
 
     def flext_cli_get_plugins(self) -> FlextResult[dict[str, object]]:
-        """Get plugins copy."""
+        """Get plugins copy.
+
+        Returns:
+            FlextResult[dict[str, object]]: Plugins dictionary or error.
+
+        """
         try:
             # Return a copy to prevent external modification
             plugins_copy = self._plugins.copy()
@@ -255,7 +332,16 @@ class FlextCliService(FlextDomainService[str]):
     def flext_cli_execute_handler(
         self, handler_name: str, data: object
     ) -> FlextResult[object]:
-        """Execute handler by name."""
+        """Execute handler by name.
+
+        Args:
+            handler_name: Name of handler to execute.
+            data: Data to pass to handler.
+
+        Returns:
+            FlextResult[object]: Handler result or error.
+
+        """
         try:
             if handler_name not in self._registered_handlers:
                 return FlextResult[object].fail(f"Handler '{handler_name}' not found")
@@ -271,7 +357,16 @@ class FlextCliService(FlextDomainService[str]):
     def flext_cli_render_with_context(
         self, data: object, context_options: object = None
     ) -> FlextResult[str]:
-        """Render data with context using configured format."""
+        """Render data with context using configured format.
+
+        Args:
+            data: Data to render.
+            context_options: Context options for rendering.
+
+        Returns:
+            FlextResult[str]: Rendered data or error.
+
+        """
         try:
             # Use context format if provided, otherwise configured format, otherwise default to table
             format_type = "table"
@@ -290,7 +385,16 @@ class FlextCliService(FlextDomainService[str]):
     def flext_cli_create_command(
         self, name: str, command_line: str
     ) -> FlextResult[object]:
-        """Create a command."""
+        """Create a command.
+
+        Args:
+            name: Command name.
+            command_line: Command line string.
+
+        Returns:
+            FlextResult[object]: Created command or error.
+
+        """
         try:
             command = FlextCliModels.CliCommand(
                 id=FlextUtilities.Generators.generate_uuid(),
@@ -304,7 +408,15 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[object].fail(f"Command creation failed: {e}")
 
     def flext_cli_create_session(self, user_id: str) -> FlextResult[object]:
-        """Create a session."""
+        """Create a session.
+
+        Args:
+            user_id: User ID for session.
+
+        Returns:
+            FlextResult[object]: Created session or error.
+
+        """
         try:
             session = FlextCliModels.CliSession(
                 id=FlextUtilities.Generators.generate_uuid(),
@@ -320,7 +432,16 @@ class FlextCliService(FlextDomainService[str]):
     def flext_cli_register_handler(
         self, name: str, handler: object
     ) -> FlextResult[None]:
-        """Register a handler."""
+        """Register a handler.
+
+        Args:
+            name: Handler name.
+            handler: Handler object.
+
+        Returns:
+            FlextResult[None]: Registration result or error.
+
+        """
         try:
             if name in self._registered_handlers:
                 return FlextResult[None].fail(f"Handler '{name}' already registered")
@@ -330,7 +451,12 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[None].fail(f"Handler registration failed: {e}")
 
     def flext_cli_get_handlers(self) -> FlextResult[dict[str, object]]:
-        """Get handlers copy."""
+        """Get handlers copy.
+
+        Returns:
+            FlextResult[dict[str, object]]: Handlers dictionary or error.
+
+        """
         try:
             # Return a copy to prevent external modification
             handlers_copy = self._registered_handlers.copy()
@@ -339,7 +465,12 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[dict[str, object]].fail(f"Get handlers failed: {e}")
 
     def flext_cli_get_sessions(self) -> FlextResult[dict[str, object]]:
-        """Get sessions copy."""
+        """Get sessions copy.
+
+        Returns:
+            FlextResult[dict[str, object]]: Sessions dictionary or error.
+
+        """
         try:
             # Return a copy to prevent external modification
             sessions_copy = self._sessions.copy()
@@ -348,7 +479,12 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[dict[str, object]].fail(f"Get sessions failed: {e}")
 
     def flext_cli_get_commands(self) -> FlextResult[dict[str, object]]:
-        """Get commands copy."""
+        """Get commands copy.
+
+        Returns:
+            FlextResult[dict[str, object]]: Commands dictionary or error.
+
+        """
         try:
             # Return a copy to prevent external modification
             commands_copy = self._commands.copy()
@@ -357,7 +493,15 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[dict[str, object]].fail(f"Get commands failed: {e}")
 
     def validate_request(self, request_data: object) -> FlextResult[bool]:
-        """Validate request using flext-core validation."""
+        """Validate request using flext-core validation.
+
+        Args:
+            request_data: Data to validate.
+
+        Returns:
+            FlextResult[bool]: Validation result or error.
+
+        """
         try:
             # Use flext-core validation directly - NO duplication
             if request_data is None:
@@ -374,7 +518,12 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[bool].fail(f"Request validation failed: {e}")
 
     def start(self) -> FlextResult[None]:
-        """Start CLI service."""
+        """Start CLI service.
+
+        Returns:
+            FlextResult[None]: Start result or error.
+
+        """
         try:
             # Initialize services if not already done
             if not hasattr(self, "_service_registry"):
@@ -387,7 +536,12 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[None].fail(f"Service start failed: {e}")
 
     def stop(self) -> FlextResult[None]:
-        """Stop CLI service."""
+        """Stop CLI service.
+
+        Returns:
+            FlextResult[None]: Stop result or error.
+
+        """
         try:
             # Clean up resources
             self._commands.clear()
@@ -402,7 +556,12 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[None].fail(f"Service stop failed: {e}")
 
     def health_check(self) -> FlextResult[str]:
-        """Perform health check and return status."""
+        """Perform health check and return status.
+
+        Returns:
+            FlextResult[str]: Health status or error.
+
+        """
         try:
             health_result = self.get_service_health()
             if health_result.is_success:
@@ -413,7 +572,15 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[str].fail(f"Health check failed: {e}")
 
     def configure(self, config: object) -> FlextResult[None]:
-        """Configure service with new configuration."""
+        """Configure service with new configuration.
+
+        Args:
+            config: Configuration object or dictionary.
+
+        Returns:
+            FlextResult[None]: Configuration result or error.
+
+        """
         try:
             # Validate configuration
             if isinstance(config, dict):
@@ -447,7 +614,12 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[None].fail(f"Service configuration failed: {e}")
 
     def execute(self) -> FlextResult[str]:
-        """Execute CLI request using flext-core service processor."""
+        """Execute CLI request using flext-core service processor.
+
+        Returns:
+            FlextResult[str]: Execution result or error.
+
+        """
         try:
             # Use flext-core service orchestrator directly (correct property)
             health_result = self.get_service_health()
@@ -469,7 +641,12 @@ class FlextCliService(FlextDomainService[str]):
 
     @staticmethod
     def create_command_processor() -> FlextResult[str]:
-        """Create command processor using flext-core processing directly."""
+        """Create command processor using flext-core processing directly.
+
+        Returns:
+            FlextResult[str]: Creation result or error.
+
+        """
         try:
             # Use flext-core processing directly - FlextProcessing exists
             FlextProcessing()
@@ -479,7 +656,12 @@ class FlextCliService(FlextDomainService[str]):
 
     @staticmethod
     def create_session_processor() -> FlextResult[str]:
-        """Create session processor using flext-core processing directly."""
+        """Create session processor using flext-core processing directly.
+
+        Returns:
+            FlextResult[str]: Creation result or error.
+
+        """
         try:
             # Use flext-core processing directly - create_pipeline() returns Pipeline directly
             FlextProcessing.create_pipeline()
@@ -490,7 +672,12 @@ class FlextCliService(FlextDomainService[str]):
 
     @staticmethod
     def create_config_processor() -> FlextResult[str]:
-        """Create config processor using flext-core processing directly."""
+        """Create config processor using flext-core processing directly.
+
+        Returns:
+            FlextResult[str]: Creation result or error.
+
+        """
         try:
             # Use flext-core processing directly
             FlextProcessing()

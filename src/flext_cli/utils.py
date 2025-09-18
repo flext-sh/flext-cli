@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
@@ -19,12 +20,10 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 from pydantic_settings import SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
-
-# No imports needed - FlextCliModels not used in this module
-from flext_core import FlextContainer, FlextDomainService, FlextLogger, FlextResult
+from flext_core import FlextContainer, FlextResult
 
 
-class FlextCliUtilities(FlextDomainService[None]):
+class FlextCliUtilities(BaseModel):
     """Unified utility service for CLI operations using modern Pydantic v2.
 
     Provides centralized utilities without duplicating Pydantic v2 functionality.
@@ -35,14 +34,14 @@ class FlextCliUtilities(FlextDomainService[None]):
         """Initialize FlextCliUtilities service."""
         super().__init__()
         self._container = FlextContainer.get_global()
-        self._logger = FlextLogger(__name__)
+        self._logger = logging.getLogger(__name__)
 
     def execute(self) -> FlextResult[None]:
         """Execute the main domain service operation."""
         return FlextResult[None].ok(None)
 
     @property
-    def logger(self) -> FlextLogger:
+    def logger(self) -> logging.Logger:
         """Get logger instance."""
         return self._logger
 

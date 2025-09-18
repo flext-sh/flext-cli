@@ -7,11 +7,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
+from flext_core import FlextResult
 from flext_tests import FlextTestsBuilders, FlextTestsDomains, FlextTestsMatchers
 
 from flext_cli import FlextCliApi, FlextCliAuth, FlextCliMain
 from flext_cli.models import FlextCliModels
-from flext_core import FlextResult
 
 
 @pytest.mark.auth
@@ -104,7 +104,9 @@ class TestAuthCommands:
     ) -> None:
         """Test auth command group registration."""
         register_result = cli_main.register_command_group(
-            "auth", auth_commands, "Authentication commands",
+            "auth",
+            auth_commands,
+            "Authentication commands",
         )
         flext_matchers.assert_result_success(register_result)
 
@@ -120,11 +122,13 @@ class TestAuthCommands:
         test_token = auth_tokens["valid"]
 
         # Test login data formatting
-        login_data = flext_builders.success_result({
-            "username": "testuser",
-            "authentication_method": "password",
-            "status": "success",
-        }).value
+        login_data = flext_builders.success_result(
+            {
+                "username": "testuser",
+                "authentication_method": "password",
+                "status": "success",
+            }
+        ).value
 
         format_result = cli_api.format_output(login_data, format_type="json")
         flext_matchers.assert_result_success(format_result)
@@ -159,7 +163,9 @@ class TestAuthCommands:
         flext_matchers.assert_result_failure(get_result)
 
         # Test success message display
-        message_result = cli_api.display_message(test_messages["logout_success"], "success")
+        message_result = cli_api.display_message(
+            test_messages["logout_success"], "success"
+        )
         flext_matchers.assert_result_success(message_result)
 
     def test_status_command_functionality(
@@ -180,7 +186,8 @@ class TestAuthCommands:
 
         if status_result.is_success:
             format_result = cli_api.format_output(
-                status_result.value, format_type="table",
+                status_result.value,
+                format_type="table",
             )
             flext_matchers.assert_result_success(format_result)
 
@@ -189,7 +196,8 @@ class TestAuthCommands:
 
         # Test status without token
         no_auth_message = cli_api.display_message(
-            test_messages["not_authenticated"], "warning",
+            test_messages["not_authenticated"],
+            "warning",
         )
         flext_matchers.assert_result_success(no_auth_message)
 
@@ -213,7 +221,9 @@ class TestAuthIntegration:
         """Test complete auth workflow integration."""
         # Step 1: Register auth commands
         register_result = cli_main.register_command_group(
-            "auth", auth_commands, "Authentication commands",
+            "auth",
+            auth_commands,
+            "Authentication commands",
         )
         flext_matchers.assert_result_success(register_result)
 
@@ -258,7 +268,9 @@ class TestAuthIntegration:
         flext_matchers.assert_result_success(error_result)
 
         # Test token expired warning
-        warning_result = cli_api.display_message(test_messages["token_expired"], "warning")
+        warning_result = cli_api.display_message(
+            test_messages["token_expired"], "warning"
+        )
         flext_matchers.assert_result_success(warning_result)
 
     def test_auth_output_formatting(
@@ -279,7 +291,8 @@ class TestAuthIntegration:
             # Test multiple output formats
             for format_type in ["json", "yaml", "table"]:
                 format_result = cli_api.format_output(
-                    status_result.value, format_type=format_type,
+                    status_result.value,
+                    format_type=format_type,
                 )
                 flext_matchers.assert_result_success(format_result)
                 assert isinstance(format_result.value, str)
@@ -293,7 +306,11 @@ class TestAuthIntegration:
         flext_matchers: FlextTestsMatchers,
     ) -> None:
         """Test sequential auth token operations."""
-        tokens = [auth_tokens["valid"], auth_tokens["integration"], auth_tokens["workflow"]]
+        tokens = [
+            auth_tokens["valid"],
+            auth_tokens["integration"],
+            auth_tokens["workflow"],
+        ]
 
         for token in tokens:
             save_result = cli_auth.save_auth_token(token)
@@ -339,8 +356,10 @@ class TestAuthValidation:
         # Test failure pattern
         no_token_result = cli_auth.get_auth_token()
         flext_matchers.assert_result_failure(no_token_result)
-        assert "not found" in str(no_token_result.error or "").lower() or \
-               "does not exist" in str(no_token_result.error or "").lower()
+        assert (
+            "not found" in str(no_token_result.error or "").lower()
+            or "does not exist" in str(no_token_result.error or "").lower()
+        )
 
     def test_auth_model_validation(
         self,

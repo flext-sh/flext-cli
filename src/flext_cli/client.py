@@ -2,7 +2,6 @@
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -11,8 +10,6 @@ from typing import Self
 from urllib.parse import urljoin
 
 import httpx
-
-# HTTP status codes
 from pydantic import ValidationError
 
 from flext_cli.config import FlextCliConfig
@@ -287,7 +284,7 @@ class FlextCliClient:
                 f"Login failed with status {response.status_code}"
             )
 
-        except (ImportError, AttributeError, ValueError) as e:
+        except (AttributeError, ValueError) as e:
             return FlextResult[dict[str, object]].fail(
                 f"Login to SOURCE OF TRUTH failed: {e}"
             )
@@ -308,7 +305,7 @@ class FlextCliClient:
                 f"Logout failed with status {response.status_code}"
             )
 
-        except (ImportError, AttributeError, ValueError) as e:
+        except (AttributeError, ValueError) as e:
             return FlextResult[None].fail(f"Logout failed: {e}")
 
     async def get_current_user(self) -> FlextTypes.Core.Dict:
@@ -388,7 +385,7 @@ class FlextCliClient:
         response = await self._request(
             FlextCliConstants.HttpMethod.POST,
             "/api/v1/pipelines",
-            json_data=config.model_dump(),
+            json_data=config.model_dump(mode="json"),
         )
         return FlextCliModels.Pipeline(**response.json())
 
@@ -410,7 +407,7 @@ class FlextCliClient:
         response = await self._request(
             FlextCliConstants.HttpMethod.PUT,
             f"/api/v1/pipelines/{pipeline_id}",
-            json_data=config.model_dump(),
+            json_data=config.model_dump(mode="json"),
         )
         return FlextCliModels.Pipeline(**response.json())
 

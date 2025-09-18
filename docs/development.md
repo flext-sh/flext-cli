@@ -2,7 +2,7 @@
 
 **Contributing guidelines and development workflow for flext-cli.**
 
-**Last Updated**: September 17, 2025 | **Version**: 0.9.0
+**Last Updated**: September 17, 2025 | **Version**: 0.9.9 RC
 
 ---
 

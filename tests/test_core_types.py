@@ -7,9 +7,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
+from flext_core import FlextTypes
 
 from flext_cli.typings import FlextCliTypes
-from flext_core import FlextTypes
 
 
 class TestFlextCliTypes:

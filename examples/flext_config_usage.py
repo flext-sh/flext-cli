@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 
 from flext_cli import FlextCliConfig
+from flext_core import FlextConfig
 
 
 def main() -> None:
@@ -106,9 +107,6 @@ def main() -> None:
     # =========================================================================
     print("\n🎯 5. FlextConfig as Single Source of Truth")
     print("-" * 45)
-
-    # Demonstrate that FlextConfig is the single source of truth
-    from flext_core import FlextConfig
 
     # Get the base FlextConfig singleton
     base_config = FlextConfig.get_global_instance()

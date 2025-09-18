@@ -11,10 +11,10 @@ from unittest.mock import Mock
 from uuid import UUID
 
 import pytest
+from flext_core import FlextUtilities
 from pydantic import BaseModel, EmailStr, HttpUrl, ValidationError
 
 from flext_cli.utils import FlextCliUtilities
-from flext_core import FlextUtilities
 
 
 class TestFlextUtilitiesCoverageFocused:
@@ -202,10 +202,11 @@ class TestFlextUtilitiesCoverageFocused:
         non_serializable = object()
         result = FlextUtilities.safe_json_stringify(non_serializable)
         assert isinstance(result, str)
-        assert result == "{}" # Non-serializable objects return empty JSON
+        assert result == "{}"  # Non-serializable objects return empty JSON
 
     def test_validation_with_pydantic_models(self) -> None:
         """Test validation using Pydantic v2 models directly."""
+
         # Test UUID validation using Pydantic v2
         class UUIDModel(BaseModel):
             uuid_field: UUID
@@ -213,7 +214,7 @@ class TestFlextUtilitiesCoverageFocused:
         valid_uuid = str(uuid.uuid4())
 
         # Valid UUID should work
-        model = UUIDModel(uuid_field=valid_uuid)
+        model = UUIDModel(uuid_field=UUID(valid_uuid))
         assert str(model.uuid_field) == valid_uuid
 
         # Invalid UUIDs should raise ValidationError
@@ -234,7 +235,7 @@ class TestFlextUtilitiesCoverageFocused:
         class UrlModel(BaseModel):
             url: HttpUrl
 
-        valid_url = UrlModel(url="https://example.com")
+        valid_url = UrlModel(url=HttpUrl("https://example.com"))
         assert str(valid_url.url) == "https://example.com/"
 
         with pytest.raises(ValidationError):
@@ -250,7 +251,7 @@ class TestFlextUtilitiesCoverageFocused:
         invalid_data = {"uuid_field": "invalid-uuid"}
         result = FlextCliUtilities.validate_with_pydantic_model(invalid_data, UUIDModel)
         assert result.is_failure
-        assert "Validation failed" in result.error
+        assert "Validation failed" in (result.error or "")
 
     def test_conversions_with_mock_exceptions(self) -> None:
         """Test conversion methods with mocked exceptions to ensure all paths are covered."""

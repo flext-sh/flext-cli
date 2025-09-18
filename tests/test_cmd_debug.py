@@ -13,11 +13,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from flext_core import FlextResult
+
 from flext_cli import FlextCliApi, FlextCliMain
 from flext_cli.client import FlextCliClient as FlextApiClient
 from flext_cli.config import FlextCliConfig
 from flext_cli.models import FlextCliModels
-from flext_core import FlextResult
 
 
 class TestDebugBasicFunctions(unittest.TestCase):
@@ -84,11 +85,17 @@ class TestDebugBasicFunctions(unittest.TestCase):
 
         # Register debug command group
         register_result = self.cli_main.register_command_group(
-            "debug", debug_commands, "Debug commands for FLEXT CLI",
+            "debug",
+            debug_commands,
+            "Debug commands for FLEXT CLI",
         )
 
-        assert isinstance(register_result, FlextResult), "Registration should return FlextResult"
-        assert register_result.is_success, f"Registration should succeed: {register_result.error}"
+        assert isinstance(register_result, FlextResult), (
+            "Registration should return FlextResult"
+        )
+        assert register_result.is_success, (
+            f"Registration should succeed: {register_result.error}"
+        )
 
 
 class TestDebugCommands(unittest.TestCase):
@@ -110,7 +117,9 @@ class TestDebugCommands(unittest.TestCase):
 
         # Test formatting environment data
         format_result = self.cli_api.format_output(env_data, format_type="table")
-        assert isinstance(format_result, FlextResult), "Format should return FlextResult"
+        assert isinstance(format_result, FlextResult), (
+            "Format should return FlextResult"
+        )
         assert format_result.is_success, f"Format should succeed: {format_result.error}"
 
     def test_paths_command_functionality(self) -> None:
@@ -125,7 +134,9 @@ class TestDebugCommands(unittest.TestCase):
 
         # Test formatting paths data
         format_result = self.cli_api.format_output(paths_data, format_type="yaml")
-        assert isinstance(format_result, FlextResult), "Format should return FlextResult"
+        assert isinstance(format_result, FlextResult), (
+            "Format should return FlextResult"
+        )
         assert format_result.is_success, f"Format should succeed: {format_result.error}"
 
     def test_validate_command_functionality(self) -> None:
@@ -140,7 +151,9 @@ class TestDebugCommands(unittest.TestCase):
 
         # Test formatting validation data
         format_result = self.cli_api.format_output(validation_data, format_type="json")
-        assert isinstance(format_result, FlextResult), "Format should return FlextResult"
+        assert isinstance(format_result, FlextResult), (
+            "Format should return FlextResult"
+        )
         assert format_result.is_success, f"Format should succeed: {format_result.error}"
 
     def test_trace_command_functionality(self) -> None:
@@ -155,7 +168,9 @@ class TestDebugCommands(unittest.TestCase):
 
         # Test formatting trace data
         format_result = self.cli_api.format_output(trace_data, format_type="table")
-        assert isinstance(format_result, FlextResult), "Format should return FlextResult"
+        assert isinstance(format_result, FlextResult), (
+            "Format should return FlextResult"
+        )
         assert format_result.is_success, f"Format should succeed: {format_result.error}"
 
     def test_check_command_functionality(self) -> None:
@@ -170,10 +185,15 @@ class TestDebugCommands(unittest.TestCase):
 
         # Test displaying check results
         display_result = self.cli_api.display_message(
-            f"System check completed: {check_data['system_health']}", "success",
+            f"System check completed: {check_data['system_health']}",
+            "success",
         )
-        assert isinstance(display_result, FlextResult), "Display should return FlextResult"
-        assert display_result.is_success, f"Display should succeed: {display_result.error}"
+        assert isinstance(display_result, FlextResult), (
+            "Display should return FlextResult"
+        )
+        assert display_result.is_success, (
+            f"Display should succeed: {display_result.error}"
+        )
 
 
 class TestDebugOutputFormats(unittest.TestCase):
@@ -193,8 +213,12 @@ class TestDebugOutputFormats(unittest.TestCase):
         }
 
         format_result = self.cli_api.format_output(debug_data, format_type="json")
-        assert isinstance(format_result, FlextResult), "JSON format should return FlextResult"
-        assert format_result.is_success, f"JSON format should succeed: {format_result.error}"
+        assert isinstance(format_result, FlextResult), (
+            "JSON format should return FlextResult"
+        )
+        assert format_result.is_success, (
+            f"JSON format should succeed: {format_result.error}"
+        )
 
     def test_debug_output_yaml_format(self) -> None:
         """Test debug output in YAML format."""
@@ -211,8 +235,12 @@ class TestDebugOutputFormats(unittest.TestCase):
         }
 
         format_result = self.cli_api.format_output(debug_data, format_type="yaml")
-        assert isinstance(format_result, FlextResult), "YAML format should return FlextResult"
-        assert format_result.is_success, f"YAML format should succeed: {format_result.error}"
+        assert isinstance(format_result, FlextResult), (
+            "YAML format should return FlextResult"
+        )
+        assert format_result.is_success, (
+            f"YAML format should succeed: {format_result.error}"
+        )
 
     def test_debug_output_table_format(self) -> None:
         """Test debug output in table format."""
@@ -225,8 +253,12 @@ class TestDebugOutputFormats(unittest.TestCase):
         }
 
         format_result = self.cli_api.format_output(debug_data, format_type="table")
-        assert isinstance(format_result, FlextResult), "Table format should return FlextResult"
-        assert format_result.is_success, f"Table format should succeed: {format_result.error}"
+        assert isinstance(format_result, FlextResult), (
+            "Table format should return FlextResult"
+        )
+        assert format_result.is_success, (
+            f"Table format should succeed: {format_result.error}"
+        )
 
 
 class TestDebugIntegration(unittest.TestCase):
@@ -235,7 +267,9 @@ class TestDebugIntegration(unittest.TestCase):
     def setUp(self) -> None:
         """Set up test fixtures."""
         self.cli_api = FlextCliApi()
-        self.cli_main = FlextCliMain(name="test-debug-integration", description="Debug integration test")
+        self.cli_main = FlextCliMain(
+            name="test-debug-integration", description="Debug integration test"
+        )
         self.config = FlextCliConfig()
 
     def test_debug_workflow_complete(self) -> None:
@@ -265,7 +299,9 @@ class TestDebugIntegration(unittest.TestCase):
         }
 
         register_result = self.cli_main.register_command_group(
-            "debug", debug_commands, "Debug commands",
+            "debug",
+            debug_commands,
+            "Debug commands",
         )
         assert register_result.is_success, "Debug command registration should succeed"
 
@@ -280,7 +316,9 @@ class TestDebugIntegration(unittest.TestCase):
         assert paths_result.is_success, "Paths format should succeed"
 
         # 4. Test validation
-        validation_result = self.cli_api.display_message("All validations passed", "success")
+        validation_result = self.cli_api.display_message(
+            "All validations passed", "success"
+        )
         assert validation_result.is_success, "Validation message should succeed"
 
     def test_debug_error_scenarios(self) -> None:
@@ -288,12 +326,20 @@ class TestDebugIntegration(unittest.TestCase):
         # Test error message display
         error_result = self.cli_api.display_message("Debug check failed", "error")
         assert isinstance(error_result, FlextResult), "Error should return FlextResult"
-        assert error_result.is_success, f"Error display should succeed: {error_result.error}"
+        assert error_result.is_success, (
+            f"Error display should succeed: {error_result.error}"
+        )
 
         # Test warning message display
-        warning_result = self.cli_api.display_message("Some checks incomplete", "warning")
-        assert isinstance(warning_result, FlextResult), "Warning should return FlextResult"
-        assert warning_result.is_success, f"Warning display should succeed: {warning_result.error}"
+        warning_result = self.cli_api.display_message(
+            "Some checks incomplete", "warning"
+        )
+        assert isinstance(warning_result, FlextResult), (
+            "Warning should return FlextResult"
+        )
+        assert warning_result.is_success, (
+            f"Warning display should succeed: {warning_result.error}"
+        )
 
     def test_debug_file_operations(self) -> None:
         """Test debug file operations through flext-cli."""
@@ -308,9 +354,15 @@ class TestDebugIntegration(unittest.TestCase):
             }
 
             # Test formatting file information
-            file_result = self.cli_api.format_output(debug_file_data, format_type="yaml")
-            assert isinstance(file_result, FlextResult), "File format should return FlextResult"
-            assert file_result.is_success, f"File format should succeed: {file_result.error}"
+            file_result = self.cli_api.format_output(
+                debug_file_data, format_type="yaml"
+            )
+            assert isinstance(file_result, FlextResult), (
+                "File format should return FlextResult"
+            )
+            assert file_result.is_success, (
+                f"File format should succeed: {file_result.error}"
+            )
 
 
 if __name__ == "__main__":

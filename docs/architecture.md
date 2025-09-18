@@ -2,7 +2,7 @@
 
 **flext-cli structure and design patterns for CLI functionality.**
 
-**Last Updated**: September 17, 2025 | **Version**: 0.9.0
+**Last Updated**: September 17, 2025 | **Version**: 0.9.9 RC
 
 ---
 

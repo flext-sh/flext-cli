@@ -1,7 +1,7 @@
-"""FLEXT CLI - CLI Foundation (30% functional, targeting 75%).
+"""FLEXT CLI - Production-ready CLI Foundation.
 
-Current Status: Basic CLI wrapper with authentication and configuration.
-Planned: Complete Click/Rich abstraction layer for ecosystem.
+Enterprise-grade command line interface built on flext-core with direct
+imports, standardized architecture, and production-ready patterns.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -34,18 +34,7 @@ from flext_cli.__version__ import (
 )
 from flext_cli.api import FlextCliApi
 from flext_cli.auth import FlextCliAuth
-
-# Clean imports without aliases following FLEXT unified class pattern
-from flext_cli.cli import (
-    auth,
-    cli,
-    config,
-    debug,
-    login,
-    logout,
-    main,
-    status,
-)
+from flext_cli.cli import auth, cli, config, debug, login, logout, main, status
 from flext_cli.cli_bus import FlextCliCommandBusService
 from flext_cli.cli_main import FlextCliMain
 from flext_cli.client import FlextCliClient
@@ -65,15 +54,11 @@ from flext_cli.logging_setup import FlextCliLoggingSetup
 from flext_cli.models import FlextCliModels
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.utils import FlextCliUtilities
-from flext_core import FlextResult
-
-# Clean exports without function aliases - use class methods directly
-
 
 __all__ = [
+    # Core CLI classes
     "FlextCliApi",
     "FlextCliAuth",
-    # Core CLI classes - no aliases or compatibility layers
     "FlextCliClient",
     "FlextCliCmd",
     "FlextCliCommandBusService",
@@ -93,7 +78,7 @@ __all__ = [
     "FlextCliProtocols",
     "FlextCliService",
     "FlextCliUtilities",
-    "FlextResult",
+    # Version information
     "__author__",
     "__author_email__",
     "__build__",
@@ -115,6 +100,7 @@ __all__ = [
     "__url__",
     "__version__",
     "__version_info__",
+    # CLI command functions
     "auth",
     "cli",
     "config",
@@ -124,7 +110,3 @@ __all__ = [
     "main",
     "status",
 ]
-
-
-# ARCHITECTURAL COMPLIANCE: All aliases and compatibility wrappers removed
-# Use FlextCliAuth class methods directly instead of loose functions

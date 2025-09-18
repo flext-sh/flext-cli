@@ -19,8 +19,9 @@ from __future__ import annotations
 
 import os
 
-from flext_cli.config import FlextCliConfig
 from flext_core import FlextConfig
+
+from flext_cli.config import FlextCliConfig
 
 
 def demonstrate_single_source_of_truth() -> None:

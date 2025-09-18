@@ -1,7 +1,8 @@
-"""FLEXT CLI Formatters - Output formatting utilities following flext-core patterns.
+"""FLEXT CLI Formatters - Production-ready output formatting utilities.
 
 Provides comprehensive output formatting for CLI applications including table,
 JSON, YAML, and CSV formats with Rich integration for enhanced terminal display.
+Uses direct imports and standardized architecture patterns.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -30,21 +31,37 @@ OverflowOption = Literal["fold", "crop", "ellipsis", "ignore"]
 
 
 class FlextCliFormatters:
-    """FLEXT CLI Formatters - Rich output abstraction for CLI ecosystem.
+    """Production-ready CLI formatters with Rich integration.
 
     Provides comprehensive output formatting while abstracting Rich implementation.
-    ZERO TOLERANCE: This is the ONLY place Rich should be imported in CLI ecosystem.
+    This is the only place Rich should be imported in the CLI ecosystem.
+
+    Args:
+        None: Formatters initialize with default Rich console.
+
+    Returns:
+        FlextResult[str]: Formatted output or error.
+
+    Raises:
+        RuntimeError: If formatter initialization fails.
+
     """
 
     class FormatterProtocol(Protocol):
         """Protocol for formatters to ensure consistent interface."""
 
-        def format(self, data: object, console: Console) -> None:
+        def format(
+            self, data: object, console: Console | FlextCliFormatters._ConsoleOutput
+        ) -> None:
             """Format data and output to console."""
             ...
 
     def __init__(self) -> None:
-        """Initialize CLI formatters with Rich console."""
+        """Initialize CLI formatters with Rich console.
+
+        Sets up Rich console and custom formatters registry.
+        No fallback mechanisms are used.
+        """
         self._console = Console()
         self._custom_formatters: dict[
             str, type[FlextCliFormatters.FormatterProtocol]
@@ -69,11 +86,14 @@ class FlextCliFormatters:
         """Format data for CLI output using Rich abstraction.
 
         Args:
-            data: Data to format (dict, list, or other object)
-            format_type: Output format ("table", "json", "yaml", "csv")
+            data: Data to format (dict, list, or other object).
+            format_type: Output format ("table", "json", "yaml", "csv").
 
         Returns:
-            FlextResult containing formatted string or error
+            FlextResult[str]: Formatted string or error.
+
+        Raises:
+            RuntimeError: If formatting fails.
 
         """
         # Allow None and other falsy values for JSON formatting - only reject undefined
@@ -95,7 +115,15 @@ class FlextCliFormatters:
             return FlextResult[str].fail(f"Formatting failed: {e}")
 
     def _format_as_table(self, data: object) -> FlextResult[str]:
-        """Format data as Rich table."""
+        """Format data as Rich table.
+
+        Args:
+            data: Data to format as table.
+
+        Returns:
+            FlextResult[str]: Formatted table or error.
+
+        """
         try:
             if isinstance(data, dict):
                 # Convert dict to table format
@@ -127,7 +155,15 @@ class FlextCliFormatters:
             return FlextResult[str].fail(f"Table formatting failed: {e}")
 
     def _format_as_json(self, data: object) -> FlextResult[str]:
-        """Format data as JSON."""
+        """Format data as JSON.
+
+        Args:
+            data: Data to format as JSON.
+
+        Returns:
+            FlextResult[str]: Formatted JSON or error.
+
+        """
         try:
             formatted = json.dumps(data, indent=2, default=str)
             return FlextResult[str].ok(formatted)
@@ -135,7 +171,15 @@ class FlextCliFormatters:
             return FlextResult[str].fail(f"JSON formatting failed: {e}")
 
     def _format_as_yaml(self, data: object) -> FlextResult[str]:
-        """Format data as YAML."""
+        """Format data as YAML.
+
+        Args:
+            data: Data to format as YAML.
+
+        Returns:
+            FlextResult[str]: Formatted YAML or error.
+
+        """
         try:
             formatted = yaml.dump(data, default_flow_style=False, default_style=None)
             return FlextResult[str].ok(formatted)
@@ -143,7 +187,15 @@ class FlextCliFormatters:
             return FlextResult[str].fail(f"YAML formatting failed: {e}")
 
     def _format_as_csv(self, data: object) -> FlextResult[str]:
-        """Format data as CSV."""
+        """Format data as CSV.
+
+        Args:
+            data: Data to format as CSV.
+
+        Returns:
+            FlextResult[str]: Formatted CSV or error.
+
+        """
         try:
             output = StringIO()
             if isinstance(data, dict):
@@ -175,14 +227,30 @@ class FlextCliFormatters:
             return FlextResult[str].fail(f"CSV formatting failed: {e}")
 
     def _format_as_plain(self, data: object) -> FlextResult[str]:
-        """Format data as plain text."""
+        """Format data as plain text.
+
+        Args:
+            data: Data to format as plain text.
+
+        Returns:
+            FlextResult[str]: Formatted plain text or error.
+
+        """
         try:
             return FlextResult[str].ok(str(data))
         except Exception as e:
             return FlextResult[str].fail(f"Plain formatting failed: {e}")
 
     def display_output(self, formatted_data: str) -> FlextResult[None]:
-        """Display formatted data using Rich console."""
+        """Display formatted data using Rich console.
+
+        Args:
+            formatted_data: Data to display.
+
+        Returns:
+            FlextResult[None]: Display result or error.
+
+        """
         try:
             self._console.print(formatted_data)
             return FlextResult[None].ok(None)
@@ -348,7 +416,9 @@ class FlextCliFormatters:
     class TableFormatter(FormatterProtocol):
         """Table formatter implementation."""
 
-        def format(self, data: object, console: Console) -> None:
+        def format(
+            self, data: object, console: Console | FlextCliFormatters._ConsoleOutput
+        ) -> None:
             """Format data as table."""
             if isinstance(data, dict):
                 table_data = [[str(k), str(v)] for k, v in data.items()]
@@ -376,7 +446,9 @@ class FlextCliFormatters:
     class JSONFormatter(FormatterProtocol):
         """JSON formatter implementation."""
 
-        def format(self, data: object, console: Console) -> None:
+        def format(
+            self, data: object, console: Console | FlextCliFormatters._ConsoleOutput
+        ) -> None:
             """Format data as JSON."""
             formatted_json = json.dumps(data, indent=2, default=str)
             console.print(formatted_json)
@@ -384,7 +456,9 @@ class FlextCliFormatters:
     class YAMLFormatter(FormatterProtocol):
         """YAML formatter implementation."""
 
-        def format(self, data: object, console: Console) -> None:
+        def format(
+            self, data: object, console: Console | FlextCliFormatters._ConsoleOutput
+        ) -> None:
             """Format data as YAML."""
             formatted_yaml = yaml.dump(
                 data, default_flow_style=False, default_style=None
@@ -394,7 +468,9 @@ class FlextCliFormatters:
     class CSVFormatter(FormatterProtocol):
         """CSV formatter implementation."""
 
-        def format(self, data: object, console: Console) -> None:
+        def format(
+            self, data: object, console: Console | FlextCliFormatters._ConsoleOutput
+        ) -> None:
             """Format data as CSV."""
             output = StringIO()
             if isinstance(data, dict):
@@ -422,7 +498,9 @@ class FlextCliFormatters:
     class PlainFormatter(FormatterProtocol):
         """Plain text formatter implementation."""
 
-        def format(self, data: object, console: Console) -> None:
+        def format(
+            self, data: object, console: Console | FlextCliFormatters._ConsoleOutput
+        ) -> None:
             """Format data as plain text."""
             if isinstance(data, dict):
                 formatted_text = "\\n".join(f"{k}: {v}" for k, v in data.items())

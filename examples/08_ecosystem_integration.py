@@ -28,13 +28,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
+from flext_core import FlextConfig, FlextResult
 
 from flext_cli import (
     FlextCliAuth,
     FlextCliFormatters,
     FlextCliService,
 )
-from flext_core import FlextConfig, FlextResult
 
 
 class EcosystemSettings(FlextConfig):
@@ -103,7 +103,9 @@ class EcosystemService(FlextCliService):
         }
         return FlextResult[dict[str, object]].ok(health_data)
 
-    def authenticate_user(self, username: str, password: str) -> FlextResult[dict[str, object]]:
+    def authenticate_user(
+        self, username: str, password: str
+    ) -> FlextResult[dict[str, object]]:
         """Authenticate user across FLEXT ecosystem."""
         # Simulate authentication since FlextCliAuth doesn't have authenticate method
         # Password is used for authentication validation
@@ -112,21 +114,25 @@ class EcosystemService(FlextCliService):
             "username": username,
             "token": "mock_token_12345",
             "expires_in": self._settings.auth_token_expiry,
-            "services": ["flext_api", "flext_core", "flext_auth"]
+            "services": ["flext_api", "flext_core", "flext_auth"],
         }
         return FlextResult[dict[str, object]].ok(auth_data)
 
-    def run_meltano_operation(self, operation: str, project: str) -> FlextResult[dict[str, object]]:
+    def run_meltano_operation(
+        self, operation: str, project: str
+    ) -> FlextResult[dict[str, object]]:
         """Run Meltano operation."""
         operations = {
             "run": {"status": "completed", "pipelines": 3, "duration": "2m 34s"},
             "test": {"status": "passed", "tests": 15, "duration": "45s"},
             "invoke": {"status": "completed", "tasks": 2, "duration": "1m 12s"},
-            "install": {"status": "completed", "plugins": 8, "duration": "3m 45s"}
+            "install": {"status": "completed", "plugins": 8, "duration": "3m 45s"},
         }
 
         if operation not in operations:
-            return FlextResult[dict[str, object]].fail(f"Unknown operation: {operation}")
+            return FlextResult[dict[str, object]].fail(
+                f"Unknown operation: {operation}"
+            )
 
         result_data: dict[str, object] = operations[operation].copy()
         result_data["project"] = project
@@ -134,7 +140,9 @@ class EcosystemService(FlextCliService):
 
         return FlextResult[dict[str, object]].ok(result_data)
 
-    def execute_oracle_query(self, query: str, schema: str = "public") -> FlextResult[dict[str, object]]:
+    def execute_oracle_query(
+        self, query: str, schema: str = "public"
+    ) -> FlextResult[dict[str, object]]:
         """Execute Oracle query."""
         # Simulate query execution
         query_data: dict[str, object] = {
@@ -144,31 +152,36 @@ class EcosystemService(FlextCliService):
             "execution_time": "156ms",
             "columns": ["id", "name", "created_at", "status"],
             "sample_data": [
-                {"id": 1, "name": "Sample 1", "created_at": "2025-01-15", "status": "active"},
-                {"id": 2, "name": "Sample 2", "created_at": "2025-01-16", "status": "inactive"},
-            ]
+                {
+                    "id": 1,
+                    "name": "Sample 1",
+                    "created_at": "2025-01-15",
+                    "status": "active",
+                },
+                {
+                    "id": 2,
+                    "name": "Sample 2",
+                    "created_at": "2025-01-16",
+                    "status": "inactive",
+                },
+            ],
         }
         return FlextResult[dict[str, object]].ok(query_data)
 
     def get_ecosystem_metrics(self) -> FlextResult[dict[str, object]]:
         """Get ecosystem metrics."""
         metrics_data: dict[str, object] = {
-            "services": {
-                "total": 6,
-                "healthy": 6,
-                "degraded": 0,
-                "down": 0
-            },
+            "services": {"total": 6, "healthy": 6, "degraded": 0, "down": 0},
             "performance": {
                 "avg_response_time": "45ms",
                 "requests_per_minute": 1250,
-                "error_rate": "0.02%"
+                "error_rate": "0.02%",
             },
             "resources": {
                 "cpu_usage": "23%",
                 "memory_usage": "67%",
-                "disk_usage": "45%"
-            }
+                "disk_usage": "45%",
+            },
         }
         return FlextResult[dict[str, object]].ok(metrics_data)
 
@@ -180,10 +193,10 @@ class EcosystemService(FlextCliService):
                 "flexcore_url": self._settings.flexcore_url,
                 "meltano_project_root": str(self._settings.meltano_project_root),
                 "oracle_connection_timeout": self._settings.oracle_connection_timeout,
-                "auth_token_expiry": self._settings.auth_token_expiry
+                "auth_token_expiry": self._settings.auth_token_expiry,
             },
             "environment": "development",
-            "version": "0.9.1"
+            "version": "0.9.1",
         }
         return FlextResult[dict[str, object]].ok(config_data)
 
@@ -192,11 +205,13 @@ class EcosystemService(FlextCliService):
 # Note: This example demonstrates ecosystem integration patterns
 # In production, use FlextCliMain for proper CLI implementation
 
+
 def ecosystem_cli() -> None:
     """FLEXT Ecosystem Integration CLI - Example implementation."""
     print("FLEXT Ecosystem Integration CLI")
     print("This example demonstrates ecosystem integration patterns")
     print("Use FlextCliMain for production CLI implementation")
+
 
 def health() -> None:
     """Show ecosystem health status."""
@@ -209,9 +224,12 @@ def health() -> None:
         for service_name, status in health_data.items():
             if isinstance(status, dict) and isinstance(service_name, str):
                 status_dict = status
-                print(f"{service_name}: {status_dict.get('status', 'unknown')} ({status_dict.get('response_time', 'unknown')})")
+                print(
+                    f"{service_name}: {status_dict.get('status', 'unknown')} ({status_dict.get('response_time', 'unknown')})"
+                )
     else:
         print(f"Health check failed: {health_result.error}")
+
 
 def authenticate(username: str, password: str) -> None:
     """Authenticate user across FLEXT ecosystem."""
@@ -230,6 +248,7 @@ def authenticate(username: str, password: str) -> None:
                 print(f"Services: {', '.join(str(s) for s in services)}")
     else:
         print(f"Authentication failed: {auth_result.error}")
+
 
 def meltano(operation: str, project: str) -> None:
     """Run Meltano operation."""
@@ -255,7 +274,10 @@ def meltano(operation: str, project: str) -> None:
     else:
         print(f"Meltano operation failed: {meltano_result.error}")
 
-def oracle_query(query: str, schema: str = "public", output_format: str = "table") -> None:
+
+def oracle_query(
+    query: str, schema: str = "public", output_format: str = "table"
+) -> None:
     """Execute Oracle query."""
     service = EcosystemService()
     query_result = service.execute_oracle_query(query, schema)
@@ -285,9 +307,12 @@ def oracle_query(query: str, schema: str = "public", output_format: str = "table
                 if isinstance(sample_data, list):
                     for row in sample_data:
                         if isinstance(row, dict):
-                            print(f"{row.get('id', '')},{row.get('name', '')},{row.get('created_at', '')},{row.get('status', '')}")
+                            print(
+                                f"{row.get('id', '')},{row.get('name', '')},{row.get('created_at', '')},{row.get('status', '')}"
+                            )
     else:
         print(f"Oracle query failed: {query_result.error}")
+
 
 def metrics(output_format: str = "table") -> None:
     """Show ecosystem metrics."""
@@ -311,8 +336,12 @@ def metrics(output_format: str = "table") -> None:
                 print("\nPerformance:")
                 perf = metrics_data.get("performance", {})
                 if isinstance(perf, dict):
-                    print(f"  Avg Response Time: {perf.get('avg_response_time', 'unknown')}")
-                    print(f"  Requests/min: {perf.get('requests_per_minute', 'unknown')}")
+                    print(
+                        f"  Avg Response Time: {perf.get('avg_response_time', 'unknown')}"
+                    )
+                    print(
+                        f"  Requests/min: {perf.get('requests_per_minute', 'unknown')}"
+                    )
                     print(f"  Error Rate: {perf.get('error_rate', 'unknown')}")
 
                 print("\nResources:")
@@ -327,6 +356,7 @@ def metrics(output_format: str = "table") -> None:
                 print(yaml.dump(metrics_data, default_flow_style=False))
     else:
         print(f"Metrics retrieval failed: {metrics_result.error}")
+
 
 def config() -> None:
     """Show ecosystem configuration."""
@@ -346,4 +376,3 @@ def config() -> None:
                     print(f"  {key}: {value}")
     else:
         print(f"Configuration retrieval failed: {config_result.error}")
-

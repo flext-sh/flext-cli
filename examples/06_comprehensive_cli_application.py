@@ -24,13 +24,14 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
+from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
+
 from flext_cli import (
     FlextCliApi,
     FlextCliConfig,
     FlextCliMain,
     FlextCliService,
 )
-from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 
 
 class ComprehensiveCliApplication:
@@ -55,7 +56,7 @@ class ComprehensiveCliApplication:
             # Display initialization message using flext-cli API
             self.cli_api.display_message(
                 "Initializing application with full flext-cli integration...",
-                message_type="info"
+                message_type="info",
             )
 
             # Setup CLI foundation
@@ -69,7 +70,9 @@ class ComprehensiveCliApplication:
             # Load user preferences
             self._load_user_preferences()
 
-            self.cli_api.display_message("Application initialized successfully", message_type="success")
+            self.cli_api.display_message(
+                "Application initialized successfully", message_type="success"
+            )
             return FlextResult[None].ok(None)
 
         except Exception as e:
@@ -103,7 +106,7 @@ class ComprehensiveCliApplication:
             # Initialize CLI main instance
             cli_main = FlextCliMain(
                 name="comprehensive-cli",
-                description="FLEXT-CLI Comprehensive Application Demonstration"
+                description="FLEXT-CLI Comprehensive Application Demonstration",
             )
 
             # Register command groups
@@ -123,24 +126,24 @@ class ComprehensiveCliApplication:
             name="create",
             description="Create a new project using flext-cli patterns",
             handler=self._handle_project_create,
-            arguments=["--name", "--template", "--directory"]
+            arguments=["--name", "--template", "--directory"],
         )
         status_cmd_result = self.cli_api.create_command(
             name="status",
             description="Show project status and information",
             handler=self._handle_project_status,
-            arguments=["--directory"]
+            arguments=["--directory"],
         )
 
         project_commands = {
             "create": create_cmd_result.unwrap(),
-            "status": status_cmd_result.unwrap()
+            "status": status_cmd_result.unwrap(),
         }
 
         cli_main.register_command_group(
             name="project",
             commands=project_commands,
-            description="Project management commands"
+            description="Project management commands",
         )
 
     def _register_service_commands(self, cli_main: FlextCliMain) -> None:
@@ -149,17 +152,15 @@ class ComprehensiveCliApplication:
             name="health",
             description="Check health of a service",
             handler=self._handle_service_health,
-            arguments=["--url", "--timeout"]
+            arguments=["--url", "--timeout"],
         )
 
-        service_commands = {
-            "health": health_cmd_result.unwrap()
-        }
+        service_commands = {"health": health_cmd_result.unwrap()}
 
         cli_main.register_command_group(
             name="service",
             commands=service_commands,
-            description="Service management commands"
+            description="Service management commands",
         )
 
     def _register_config_commands(self, cli_main: FlextCliMain) -> None:
@@ -168,24 +169,24 @@ class ComprehensiveCliApplication:
             name="show",
             description="Show current configuration",
             handler=self._handle_config_show,
-            arguments=[]
+            arguments=[],
         )
         set_cmd_result = self.cli_api.create_command(
             name="set",
             description="Set configuration values",
             handler=self._handle_config_set,
-            arguments=["--profile", "--output"]
+            arguments=["--profile", "--output"],
         )
 
         config_commands = {
             "show": show_cmd_result.unwrap(),
-            "set": set_cmd_result.unwrap()
+            "set": set_cmd_result.unwrap(),
         }
 
         cli_main.register_command_group(
             name="config",
             commands=config_commands,
-            description="Configuration management commands"
+            description="Configuration management commands",
         )
 
     def _register_interactive_commands(self, cli_main: FlextCliMain) -> None:
@@ -194,17 +195,15 @@ class ComprehensiveCliApplication:
             name="wizard",
             description="Interactive setup wizard",
             handler=self._handle_interactive_wizard,
-            arguments=[]
+            arguments=[],
         )
 
-        interactive_commands = {
-            "wizard": wizard_cmd_result.unwrap()
-        }
+        interactive_commands = {"wizard": wizard_cmd_result.unwrap()}
 
         cli_main.register_command_group(
             name="interactive",
             commands=interactive_commands,
-            description="Interactive commands and prompts"
+            description="Interactive commands and prompts",
         )
 
     def _handle_project_create(self, **kwargs: object) -> FlextResult[None]:
@@ -250,13 +249,11 @@ python = "^3.13"
             "Template": template,
             "Directory": str(directory),
             "Files Created": str(len(project_files)),
-            "Created At": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+            "Created At": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
         }
 
         self.cli_api.display_output(
-            data=project_data,
-            format_type="table",
-            title=f"Project: {name}"
+            data=project_data, format_type="table", title=f"Project: {name}"
         )
 
         return FlextResult[None].ok(None)
@@ -270,7 +267,8 @@ python = "^3.13"
         project_files = list(directory.glob("*"))
         python_files = list(directory.glob("**/*.py"))
         config_files = [
-            f for f in project_files
+            f
+            for f in project_files
             if f.name in {"pyproject.toml", "setup.py", "requirements.txt"}
         ]
 
@@ -280,13 +278,11 @@ python = "^3.13"
             "Total Files": str(len(project_files)),
             "Python Files": str(len(python_files)),
             "Config Files": str(len(config_files)),
-            "Analysis Time": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+            "Analysis Time": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
         }
 
         self.cli_api.display_output(
-            data=status_data,
-            format_type="table",
-            title="Project Analysis"
+            data=status_data, format_type="table", title="Project Analysis"
         )
 
         return FlextResult[None].ok(None)
@@ -299,7 +295,9 @@ python = "^3.13"
         if not url:
             return FlextResult[None].fail("Service URL is required")
 
-        self.cli_api.display_message(f"Checking health of service: {url}", message_type="info")
+        self.cli_api.display_message(
+            f"Checking health of service: {url}", message_type="info"
+        )
 
         # Simulate health check (in real implementation, would make HTTP request)
         health_status = "healthy"
@@ -311,13 +309,11 @@ python = "^3.13"
             "Status": health_status.upper(),
             "Response Time": f"{response_time}ms",
             "Timeout": f"{timeout}s",
-            "Check Time": datetime.now(UTC).strftime("%H:%M:%S UTC")
+            "Check Time": datetime.now(UTC).strftime("%H:%M:%S UTC"),
         }
 
         self.cli_api.display_output(
-            data=health_data,
-            format_type="table",
-            title=f"Service Health: {url}"
+            data=health_data, format_type="table", title=f"Service Health: {url}"
         )
 
         return FlextResult[None].ok(None)
@@ -329,20 +325,16 @@ python = "^3.13"
             "Profile": "default",
             "Output Format": "table",
             "Debug Mode": str(self.config.debug),
-            "App Name": self.config.app_name
+            "App Name": self.config.app_name,
         }
 
         self.cli_api.display_output(
-            data=config_data,
-            format_type="table",
-            title="CLI Configuration"
+            data=config_data, format_type="table", title="CLI Configuration"
         )
 
         # Show user preferences
         self.cli_api.display_output(
-            data=self.user_preferences,
-            format_type="table",
-            title="User Preferences"
+            data=self.user_preferences, format_type="table", title="User Preferences"
         )
 
         return FlextResult[None].ok(None)
@@ -353,7 +345,9 @@ python = "^3.13"
         output = kwargs.get("output")
 
         if not profile and not output:
-            self.cli_api.display_message("No configuration changes specified", message_type="warning")
+            self.cli_api.display_message(
+                "No configuration changes specified", message_type="warning"
+            )
             return FlextResult[None].ok(None)
 
         changes = []
@@ -376,7 +370,7 @@ python = "^3.13"
         """Handle interactive setup wizard."""
         self.cli_api.display_message(
             "This wizard will guide you through CLI configuration...",
-            message_type="info"
+            message_type="info",
         )
 
         # In a real implementation, would use flext-cli interactive features
@@ -390,13 +384,13 @@ python = "^3.13"
         }
 
         self.cli_api.display_output(
-            data=wizard_config,
-            format_type="table",
-            title="Setup Summary"
+            data=wizard_config, format_type="table", title="Setup Summary"
         )
 
         self.user_preferences.update(wizard_config)
-        self.cli_api.display_message("Configuration saved successfully!", message_type="success")
+        self.cli_api.display_message(
+            "Configuration saved successfully!", message_type="success"
+        )
 
         return FlextResult[None].ok(None)
 
@@ -410,13 +404,17 @@ def main() -> None:
         # Initialize application
         init_result = app.initialize_application()
         if init_result.is_failure:
-            app.cli_api.display_message(f"Initialization failed: {init_result.error}", message_type="error")
+            app.cli_api.display_message(
+                f"Initialization failed: {init_result.error}", message_type="error"
+            )
             sys.exit(1)
 
         # Create CLI interface
         cli_result = app.create_cli_interface()
         if cli_result.is_failure:
-            app.cli_api.display_message(f"CLI creation failed: {cli_result.error}", message_type="error")
+            app.cli_api.display_message(
+                f"CLI creation failed: {cli_result.error}", message_type="error"
+            )
             sys.exit(1)
 
         # Run CLI
@@ -424,7 +422,9 @@ def main() -> None:
         execution_result = cli_main.execute()
 
         if execution_result.is_failure:
-            app.cli_api.display_message(f"CLI execution failed: {execution_result.error}", message_type="error")
+            app.cli_api.display_message(
+                f"CLI execution failed: {execution_result.error}", message_type="error"
+            )
             sys.exit(1)
 
     except KeyboardInterrupt:

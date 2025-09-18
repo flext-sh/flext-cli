@@ -2,7 +2,7 @@
 
 **Installation and setup guide for the FLEXT ecosystem CLI foundation library.**
 
-**Updated**: September 17, 2025 | **Version**: 0.9.0
+**Updated**: September 17, 2025 | **Version**: 0.9.9 RC
 
 ---
 

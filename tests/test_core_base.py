@@ -10,9 +10,9 @@ import asyncio
 import io
 
 import pytest
+from flext_core import FlextResult
 
 from flext_cli import FlextCliContext, FlextCliDecorators
-from flext_core import FlextResult
 
 # Constants
 EXPECTED_DATA_COUNT = 3
@@ -152,7 +152,9 @@ class TestHandleServiceResult:
         """Test decorator with function arguments."""
 
         @FlextCliDecorators.handle_service_result
-        def function_with_args(arg1: str, arg2: int, kwarg1: str = "default") -> FlextResult[str]:
+        def function_with_args(
+            arg1: str, arg2: int, kwarg1: str = "default"
+        ) -> FlextResult[str]:
             return FlextResult[str].ok(f"{arg1}-{arg2}-{kwarg1}")
 
         result = function_with_args("test", 42, kwarg1="custom")

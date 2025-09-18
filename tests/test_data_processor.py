@@ -8,10 +8,10 @@ from __future__ import annotations
 
 import json
 
+from flext_core import FlextResult, FlextTypes
 from pydantic import BaseModel
 
 from flext_cli.utils import FlextCliUtilities as FlextCliDataProcessing
-from flext_core import FlextResult, FlextTypes
 
 
 class TestFlextCliDataProcessingFunctional:
@@ -126,15 +126,20 @@ class TestFlextCliDataProcessingFunctional:
             name: str
             department: str
 
-        result = self.processor.validate_with_pydantic_model(combined_data[0], CombinedDataModel)
+        result = self.processor.validate_with_pydantic_model(
+            combined_data[0], CombinedDataModel
+        )
 
         # Validate aggregation results
         assert result.is_success
         aggregated_data = result.unwrap()
 
         # Check structured aggregation result
-        assert isinstance(aggregated_data, BaseModel)
-        assert aggregated_data.id == 1
+        assert isinstance(aggregated_data, CombinedDataModel)
+        # Type cast to ensure proper type checking
+        typed_data = aggregated_data if isinstance(aggregated_data, CombinedDataModel) else None
+        assert typed_data is not None
+        assert typed_data.id == 1
 
     def test_export_functionality_real_files(self) -> None:
         """Test export functionality with real file operations."""
@@ -165,7 +170,9 @@ class TestFlextCliDataProcessingFunctional:
         class AgeModel(BaseModel):
             age: int
 
-        result = self.processor.validate_with_pydantic_model({"age": "not_a_number"}, AgeModel)
+        result = self.processor.validate_with_pydantic_model(
+            {"age": "not_a_number"}, AgeModel
+        )
         assert (
             result.is_failure
         )  # The validator function returns False, so validation should fail
@@ -191,7 +198,9 @@ class TestFlextCliDataProcessingFunctional:
         class MalformedModel(BaseModel):
             incomplete: bool
 
-        result = self.processor.validate_with_pydantic_model(malformed_data[0], MalformedModel)
+        result = self.processor.validate_with_pydantic_model(
+            malformed_data[0], MalformedModel
+        )
         # Should either succeed with filtered data or fail gracefully
         assert isinstance(result, FlextResult)
 
@@ -211,7 +220,9 @@ class TestFlextCliDataProcessingFunctional:
             email: str
             age: int
 
-        transform_result = self.processor.validate_with_pydantic_model(dict(complex_data[0]), ComplexModel)
+        transform_result = self.processor.validate_with_pydantic_model(
+            complex_data[0], ComplexModel
+        )
         assert transform_result.is_success
 
         # Step 2: Aggregate transformed data
@@ -233,6 +244,7 @@ class TestFlextCliDataProcessingEdgeCases:
 
     def test_empty_data_handling(self) -> None:
         """Test handling of empty data structures."""
+
         # Test empty list - should handle gracefully with proper validation
         def empty_validator(x: object) -> FlextResult[object]:
             return FlextResult[object].ok(x)
@@ -276,5 +288,7 @@ class TestFlextCliDataProcessingEdgeCases:
         class MalformedModel(BaseModel):
             incomplete: bool
 
-        result = self.processor.validate_with_pydantic_model(malformed_data[0], MalformedModel)
+        result = self.processor.validate_with_pydantic_model(
+            malformed_data[0], MalformedModel
+        )
         assert isinstance(result, FlextResult)

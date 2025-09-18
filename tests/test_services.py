@@ -9,9 +9,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import FlextResult
+
 from flext_cli.domain_services import FlextCliDomainServices
 from flext_cli.models import FlextCliModels
-from flext_core import FlextResult
 
 
 class TestFlextCliDomainServices:
@@ -61,16 +62,18 @@ class TestFlextCliDomainServices:
     def test_service_has_required_methods(self) -> None:
         """Test service has expected methods."""
         required_methods = [
-            'health_check',
-            'create_command',
-            'create_session',
-            'execute_command_workflow',
-            'start_command_execution',
-            'complete_command_execution',
+            "health_check",
+            "create_command",
+            "create_session",
+            "execute_command_workflow",
+            "start_command_execution",
+            "complete_command_execution",
         ]
 
         for method_name in required_methods:
-            assert hasattr(self.service, method_name), f"Service should have {method_name} method"
+            assert hasattr(self.service, method_name), (
+                f"Service should have {method_name} method"
+            )
 
     def test_execute_method_returns_flext_result(self) -> None:
         """Test that execute method returns FlextResult."""
@@ -87,11 +90,14 @@ class TestFlextCliDomainServices:
         assert create_result.is_success
 
         command = create_result.unwrap()
-        workflow_result = self.service.execute_command_workflow(command.command_line, "test-user")
+        workflow_result = self.service.execute_command_workflow(
+            command.command_line or "", "test-user"
+        )
 
         assert isinstance(workflow_result, FlextResult)
 
 
 if __name__ == "__main__":
     import pytest
+
     pytest.main([__file__])

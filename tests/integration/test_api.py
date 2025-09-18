@@ -8,8 +8,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import FlextCliApi, FlextCliModels
 from flext_core import FlextResult, FlextTypes
+
+from flext_cli import FlextCliApi, FlextCliModels
 
 
 class TestFlextCliApiIntegration:
@@ -143,7 +144,9 @@ class TestFlextCliApiIntegration:
         if handler and callable(handler):
             result = handler(5, 3)  # We know this returns int from test_handler
             # Cast to int for type safety since handler returns int but dict lookup gives object
-            exec_result = FlextResult[int].ok(int(result) if isinstance(result, (int, str, float)) else 0)
+            exec_result = FlextResult[int].ok(
+                int(result) if isinstance(result, (int, str, float)) else 0
+            )
         else:
             exec_result = FlextResult[int].fail("Handler not found")
         assert isinstance(exec_result, FlextResult)
@@ -222,7 +225,9 @@ class TestFlextCliApiIntegration:
         api = FlextCliApi()
 
         # Test get_commands - returns FlextResult following flext-core patterns
-        commands_result = FlextResult[list[FlextCliModels.CliCommand]].ok(api.get_command_history())
+        commands_result = FlextResult[list[FlextCliModels.CliCommand]].ok(
+            api.get_command_history()
+        )
         assert isinstance(commands_result, FlextResult)
         assert commands_result.is_success
         commands = commands_result.value

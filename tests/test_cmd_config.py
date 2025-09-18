@@ -14,11 +14,11 @@ import unittest
 from pathlib import Path
 
 import yaml
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli import FlextCliApi, FlextCliMain
 from flext_cli.cli_bus import FlextCliCommandBusService
 from flext_cli.models import FlextCliModels
-from flext_core import FlextResult, FlextTypes
 
 
 class _TestConfig:
@@ -125,7 +125,8 @@ class TestConfigHelperFunctions(unittest.TestCase):
 
         # Test show config command
         result = command_bus.execute_show_config_command(
-            output_format="json", profile="default",
+            output_format="json",
+            profile="default",
         )
         assert result.is_success
         config_data = result.unwrap()
@@ -138,7 +139,8 @@ class TestConfigHelperFunctions(unittest.TestCase):
 
         # Test set config command with valid key
         result = command_bus.execute_set_config_command(
-            key="profile", value="real-test-project",
+            key="profile",
+            value="real-test-project",
         )
         assert result.is_success
 
@@ -148,7 +150,8 @@ class TestConfigHelperFunctions(unittest.TestCase):
 
         # Test set config with invalid key
         result = command_bus.execute_set_config_command(
-            key="nonexistent_key", value="test_value",
+            key="nonexistent_key",
+            value="test_value",
         )
         assert result.is_failure
 
@@ -158,7 +161,8 @@ class TestConfigHelperFunctions(unittest.TestCase):
 
         # Test show config with invalid profile
         result = command_bus.execute_show_config_command(
-            output_format="json", profile="nonexistent_profile",
+            output_format="json",
+            profile="nonexistent_profile",
         )
         # Should still succeed as it creates default config
         assert result.is_success
@@ -169,7 +173,8 @@ class TestConfigHelperFunctions(unittest.TestCase):
 
         # Test show config in JSON format
         result = command_bus.execute_show_config_command(
-            output_format="json", profile="default",
+            output_format="json",
+            profile="default",
         )
         assert result.is_success
         config_data = result.unwrap()
@@ -182,7 +187,8 @@ class TestConfigHelperFunctions(unittest.TestCase):
 
         # Test show config in YAML format
         result = command_bus.execute_show_config_command(
-            output_format="yaml", profile="default",
+            output_format="yaml",
+            profile="default",
         )
         assert result.is_success
         config_data = result.unwrap()
@@ -194,7 +200,8 @@ class TestConfigHelperFunctions(unittest.TestCase):
 
         # Test show config in table format
         result = command_bus.execute_show_config_command(
-            output_format="table", profile="default",
+            output_format="table",
+            profile="default",
         )
         assert result.is_success
         config_data = result.unwrap()
@@ -206,7 +213,8 @@ class TestConfigHelperFunctions(unittest.TestCase):
 
         # Test show config in JSON format
         result = command_bus.execute_show_config_command(
-            output_format="json", profile="default",
+            output_format="json",
+            profile="default",
         )
         assert result.is_success
         config_data = result.unwrap()
@@ -218,7 +226,8 @@ class TestConfigHelperFunctions(unittest.TestCase):
 
         # Test show config in YAML format
         result = command_bus.execute_show_config_command(
-            output_format="yaml", profile="default",
+            output_format="yaml",
+            profile="default",
         )
         assert result.is_success
         config_data = result.unwrap()
@@ -230,7 +239,8 @@ class TestConfigHelperFunctions(unittest.TestCase):
 
         # Test show config in table format
         result = command_bus.execute_show_config_command(
-            output_format="table", profile="default",
+            output_format="table",
+            profile="default",
         )
         assert result.is_success
         config_data = result.unwrap()
@@ -242,7 +252,8 @@ class TestConfigHelperFunctions(unittest.TestCase):
 
         # Test show config in table format
         result = command_bus.execute_show_config_command(
-            output_format="table", profile="default",
+            output_format="table",
+            profile="default",
         )
         assert result.is_success
         config_data = result.unwrap()
@@ -311,17 +322,24 @@ class TestConfigCommands(unittest.TestCase):
         }
 
         register_result = self.cli_main.register_command_group(
-            "config", config_commands, "Configuration commands",
+            "config",
+            config_commands,
+            "Configuration commands",
         )
-        assert isinstance(register_result, FlextResult), "Registration should return FlextResult"
-        assert register_result.is_success, f"Registration should succeed: {register_result.error}"
+        assert isinstance(register_result, FlextResult), (
+            "Registration should return FlextResult"
+        )
+        assert register_result.is_success, (
+            f"Registration should succeed: {register_result.error}"
+        )
 
     def test_show_command_through_api(self) -> None:
         """Test config show through CLI API."""
         # Test show config using command bus service
         command_bus = FlextCliCommandBusService()
         result = command_bus.execute_show_config_command(
-            output_format="table", profile="default",
+            output_format="table",
+            profile="default",
         )
         assert isinstance(result, FlextResult), "Show should return FlextResult"
         assert result.is_success, f"Show should succeed: {result.error}"
@@ -336,14 +354,16 @@ class TestConfigCommands(unittest.TestCase):
 
         # Test JSON format
         result = command_bus.execute_show_config_command(
-            output_format="json", profile="default",
+            output_format="json",
+            profile="default",
         )
         assert result.is_success, "JSON format should work"
         assert result.unwrap()["format"] == "json"
 
         # Test YAML format
         result = command_bus.execute_show_config_command(
-            output_format="yaml", profile="default",
+            output_format="yaml",
+            profile="default",
         )
         assert result.is_success, "YAML format should work"
         assert result.unwrap()["format"] == "yaml"
@@ -352,18 +372,24 @@ class TestConfigCommands(unittest.TestCase):
         """Test config get command for single value."""
         # Test through CLI API format output
         format_result = self.cli_api.format_output(
-            {"api_url": self.test_config.api_url}, format_type="json",
+            {"api_url": self.test_config.api_url},
+            format_type="json",
         )
-        assert isinstance(format_result, FlextResult), "Format should return FlextResult"
+        assert isinstance(format_result, FlextResult), (
+            "Format should return FlextResult"
+        )
         assert format_result.is_success, f"Format should succeed: {format_result.error}"
 
     def test_get_command_all_values(self) -> None:
         """Test config get command for all values."""
         # Test through CLI API format output
         format_result = self.cli_api.format_output(
-            self.test_config.model_dump(), format_type="table",
+            self.test_config.model_dump(),
+            format_type="table",
         )
-        assert isinstance(format_result, FlextResult), "Format should return FlextResult"
+        assert isinstance(format_result, FlextResult), (
+            "Format should return FlextResult"
+        )
         assert format_result.is_success, f"Format should succeed: {format_result.error}"
 
     def test_set_value_command(self) -> None:
@@ -371,7 +397,8 @@ class TestConfigCommands(unittest.TestCase):
         # Test through command bus
         command_bus = FlextCliCommandBusService()
         result = command_bus.execute_set_config_command(
-            key="read_timeout", value="60",
+            key="read_timeout",
+            value="60",
         )
         assert isinstance(result, FlextResult), "Set should return FlextResult"
         assert result.is_success, f"Set should succeed: {result.error}"
@@ -380,18 +407,27 @@ class TestConfigCommands(unittest.TestCase):
         """Test config validate command."""
         # Test validation through CLI API
         display_result = self.cli_api.display_message(
-            "Configuration validation completed", "success",
+            "Configuration validation completed",
+            "success",
         )
-        assert isinstance(display_result, FlextResult), "Display should return FlextResult"
-        assert display_result.is_success, f"Display should succeed: {display_result.error}"
+        assert isinstance(display_result, FlextResult), (
+            "Display should return FlextResult"
+        )
+        assert display_result.is_success, (
+            f"Display should succeed: {display_result.error}"
+        )
 
     def test_path_command(self) -> None:
         """Test config path command."""
         # Test path display through CLI API
         path_info = {"config_path": str(self.test_config.config_file)}
         format_result = self.cli_api.format_output(path_info, format_type="table")
-        assert isinstance(format_result, FlextResult), "Path format should return FlextResult"
-        assert format_result.is_success, f"Path format should succeed: {format_result.error}"
+        assert isinstance(format_result, FlextResult), (
+            "Path format should return FlextResult"
+        )
+        assert format_result.is_success, (
+            f"Path format should succeed: {format_result.error}"
+        )
 
 
 class TestEditCommand(unittest.TestCase):
@@ -412,9 +448,12 @@ class TestEditCommand(unittest.TestCase):
 
             # Test edit through CLI API
             edit_result = self.cli_api.display_message(
-                "Configuration edit completed", "success",
+                "Configuration edit completed",
+                "success",
             )
-            assert isinstance(edit_result, FlextResult), "Edit should return FlextResult"
+            assert isinstance(edit_result, FlextResult), (
+                "Edit should return FlextResult"
+            )
             assert edit_result.is_success, f"Edit should succeed: {edit_result.error}"
 
     def test_edit_command_existing_config_file(self) -> None:
@@ -434,10 +473,15 @@ class TestEditCommand(unittest.TestCase):
 
             # Test that config data can be formatted
             format_result = self.cli_api.format_output(
-                test_config.model_dump(), format_type="yaml",
+                test_config.model_dump(),
+                format_type="yaml",
             )
-            assert isinstance(format_result, FlextResult), "Format should return FlextResult"
-            assert format_result.is_success, f"Format should succeed: {format_result.error}"
+            assert isinstance(format_result, FlextResult), (
+                "Format should return FlextResult"
+            )
+            assert format_result.is_success, (
+                f"Format should succeed: {format_result.error}"
+            )
 
 
 class TestConfigOutputFormats(unittest.TestCase):
@@ -458,10 +502,15 @@ class TestConfigOutputFormats(unittest.TestCase):
 
         # Test JSON output through CLI API
         format_result = self.cli_api.format_output(
-            test_config.model_dump(), format_type="json",
+            test_config.model_dump(),
+            format_type="json",
         )
-        assert isinstance(format_result, FlextResult), "Format should return FlextResult"
-        assert format_result.is_success, f"JSON format should succeed: {format_result.error}"
+        assert isinstance(format_result, FlextResult), (
+            "Format should return FlextResult"
+        )
+        assert format_result.is_success, (
+            f"JSON format should succeed: {format_result.error}"
+        )
 
     def test_config_output_yaml_format(self) -> None:
         """Test config output in YAML format."""
@@ -474,10 +523,15 @@ class TestConfigOutputFormats(unittest.TestCase):
 
         # Test YAML output through CLI API
         format_result = self.cli_api.format_output(
-            test_config.model_dump(), format_type="yaml",
+            test_config.model_dump(),
+            format_type="yaml",
         )
-        assert isinstance(format_result, FlextResult), "Format should return FlextResult"
-        assert format_result.is_success, f"YAML format should succeed: {format_result.error}"
+        assert isinstance(format_result, FlextResult), (
+            "Format should return FlextResult"
+        )
+        assert format_result.is_success, (
+            f"YAML format should succeed: {format_result.error}"
+        )
 
     def test_config_output_table_format(self) -> None:
         """Test config output in table format (default)."""
@@ -490,10 +544,15 @@ class TestConfigOutputFormats(unittest.TestCase):
 
         # Test table output through CLI API
         format_result = self.cli_api.format_output(
-            test_config.model_dump(), format_type="table",
+            test_config.model_dump(),
+            format_type="table",
         )
-        assert isinstance(format_result, FlextResult), "Format should return FlextResult"
-        assert format_result.is_success, f"Table format should succeed: {format_result.error}"
+        assert isinstance(format_result, FlextResult), (
+            "Format should return FlextResult"
+        )
+        assert format_result.is_success, (
+            f"Table format should succeed: {format_result.error}"
+        )
 
 
 class TestConfigIntegration(unittest.TestCase):
@@ -519,37 +578,43 @@ class TestConfigIntegration(unittest.TestCase):
 
             # 1. Show config through command bus
             result = self.command_bus.execute_show_config_command(
-                output_format="table", profile="default",
+                output_format="table",
+                profile="default",
             )
             assert result.is_success, "Show config should succeed"
 
             # 2. Get specific value through formatting
             format_result = self.cli_api.format_output(
-                {"api_url": test_config.api_url}, format_type="json",
+                {"api_url": test_config.api_url},
+                format_type="json",
             )
             assert format_result.is_success, "Get value format should succeed"
 
             # 3. Set new value through command bus
             set_result = self.command_bus.execute_set_config_command(
-                key="read_timeout", value="45",
+                key="read_timeout",
+                value="45",
             )
             assert set_result.is_success, "Set value should succeed"
 
             # 4. Validate config through message display
             validate_result = self.cli_api.display_message(
-                "Configuration validation completed", "success",
+                "Configuration validation completed",
+                "success",
             )
             assert validate_result.is_success, "Validate display should succeed"
 
             # 5. Show paths through formatting
             path_result = self.cli_api.format_output(
-                {"config_path": str(config_file)}, format_type="table",
+                {"config_path": str(config_file)},
+                format_type="table",
             )
             assert path_result.is_success, "Path display should succeed"
 
             # 6. Edit config through message display
             edit_result = self.cli_api.display_message(
-                "Configuration edit completed", "success",
+                "Configuration edit completed",
+                "success",
             )
             assert edit_result.is_success, "Edit completion should succeed"
 
@@ -560,13 +625,15 @@ class TestConfigIntegration(unittest.TestCase):
 
         # Test formatting minimal config
         format_result = self.cli_api.format_output(
-            minimal_config.model_dump(), format_type="json",
+            minimal_config.model_dump(),
+            format_type="json",
         )
         assert format_result.is_success, "Minimal config format should succeed"
 
         # Test show config with command bus
         show_result = self.command_bus.execute_show_config_command(
-            output_format="json", profile="default",
+            output_format="json",
+            profile="default",
         )
         assert show_result.is_success, "Show with default profile should succeed"
 

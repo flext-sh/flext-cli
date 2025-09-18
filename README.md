@@ -157,7 +157,7 @@ python -m flext_cli --version # Requires targeted callback resolution
 
 ## 🗺️ Roadmap
 
-### **Current Version (v0.9.0) - September 17, 2025**
+### **Current Version (v0.9.9) - September 17, 2025**
 
 **Focus**: Address specific CLI execution issues while maintaining substantial working foundation
 
@@ -254,6 +254,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**flext-cli v0.9.0** - September 17, 2025 - Enterprise CLI foundation library with substantial implementation across 32 modules and 10K+ lines.
+**flext-cli v0.9.9** - September 17, 2025 - Enterprise CLI foundation library with substantial implementation across 32 modules and 10K+ lines.
 
 **Mission**: Deliver enterprise-grade CLI foundation with comprehensive flext-core integration, enabling standardized command-line experiences across all FLEXT projects through proven architectural patterns and type safety.

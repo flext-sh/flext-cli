@@ -10,10 +10,11 @@ import json
 import tempfile
 from pathlib import Path
 
+from flext_core import FlextDomainService, FlextResult
+
 from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.core import FlextCliService
-from flext_core import FlextDomainService, FlextResult
 
 
 class TestFlextCliService:
@@ -150,7 +151,9 @@ class TestFlextCliConfig:
         }
 
         with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False,
+            mode="w",
+            suffix=".json",
+            delete=False,
         ) as temp_file:
             json.dump(config_data, temp_file)
             temp_path = Path(temp_file.name)
