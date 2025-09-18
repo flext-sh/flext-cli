@@ -12,8 +12,9 @@ import time
 import unittest
 from pathlib import Path
 
-from flext_cli import FlextCliDecorators
 from flext_core import FlextResult, FlextTypes
+
+from flext_cli import FlextCliDecorators
 
 
 class TestFlextCliDecorators(unittest.TestCase):

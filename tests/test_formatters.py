@@ -10,10 +10,10 @@ import unittest
 
 import pytest
 import yaml
+from flext_core import FlextTypes
 from rich.console import Console
 
 from flext_cli.formatters import FlextCliFormatters
-from flext_core import FlextTypes
 
 
 class TestOutputFormatter(unittest.TestCase):
@@ -31,7 +31,9 @@ class TestOutputFormatter(unittest.TestCase):
         formatters = FlextCliFormatters()
 
         class CustomFormatter:
-            def format(self, data: object, console: FlextCliFormatters._ConsoleOutput | Console) -> None:
+            def format(
+                self, data: object, console: FlextCliFormatters._ConsoleOutput | Console
+            ) -> None:
                 console.print(f"Custom: {data}")
 
         # Register custom formatter

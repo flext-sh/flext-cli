@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.utils import FlextCliUtilities
-from flext_core import FlextConfig, FlextResult, FlextUtilities
+from flext_core import FlextConfig, FlextResult
 
 
 class FlextCliConfig(FlextConfig):
@@ -176,8 +176,8 @@ class FlextCliConfig(FlextConfig):
         if not value or not value.strip():
             msg = "Profile name cannot be empty"
             raise ValueError(msg)
-        # Use FlextUtilities for string processing
-        cleaned = FlextUtilities.TextProcessor.clean_text(value)
+        # Use standard Python string processing
+        cleaned = str(value).strip()
         if not cleaned:
             msg = "Profile name must contain valid characters"
             raise ValueError(msg)

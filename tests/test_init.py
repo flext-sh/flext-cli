@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import pytest
 
+import flext_cli
 from flext_cli import (
     FlextCliApi,
     FlextCliAuth,
@@ -19,9 +20,9 @@ from flext_cli import (
     FlextCliConstants,
     FlextCliFormatters,
     FlextCliModels,
-    FlextResult,
 )
 
+from flext_core import FlextResult
 
 class TestFlextCliImports:
     """Test flext_cli module imports following unified class patterns."""
@@ -52,14 +53,14 @@ class TestFlextCliImports:
 
     def test_constants_available(self) -> None:
         """Test FlextCliConstants is available."""
-        assert hasattr(FlextCliConstants, 'HTTP')
-        assert hasattr(FlextCliConstants, 'TIMEOUTS')
+        assert hasattr(FlextCliConstants, "HTTP")
+        assert hasattr(FlextCliConstants, "TIMEOUTS")
 
     def test_models_available(self) -> None:
         """Test FlextCliModels is available with nested classes."""
-        assert hasattr(FlextCliModels, 'Pipeline')
-        assert hasattr(FlextCliModels, 'PipelineConfig')
-        assert hasattr(FlextCliModels, 'CliCommand')
+        assert hasattr(FlextCliModels, "Pipeline")
+        assert hasattr(FlextCliModels, "PipelineConfig")
+        assert hasattr(FlextCliModels, "CliCommand")
 
     def test_unified_class_pattern_compliance(self) -> None:
         """Test that classes follow unified class pattern."""
@@ -76,31 +77,29 @@ class TestFlextCliImports:
             instance = cls()
             assert instance is not None
             # Should have validate_business_rules method (unified pattern)
-            if hasattr(instance, 'validate_business_rules'):
+            if hasattr(instance, "validate_business_rules"):
                 result = instance.validate_business_rules()
                 assert isinstance(result, FlextResult)
 
     def test_no_legacy_functions_available(self) -> None:
         """Test that legacy functions are NOT available (compliance check)."""
-        import flext_cli
-
         # These legacy patterns should NOT exist
         legacy_functions = [
-            'get_auth_headers',
-            'save_auth_token',
-            'require_auth',
-            'handle_service_result',  # Should be class method only
+            "get_auth_headers",
+            "save_auth_token",
+            "require_auth",
+            "handle_service_result",  # Should be class method only
         ]
 
         for func_name in legacy_functions:
-            assert not hasattr(flext_cli, func_name), f"Legacy function {func_name} should not be available"
+            assert not hasattr(flext_cli, func_name), (
+                f"Legacy function {func_name} should not be available"
+            )
 
     def test_version_info_available(self) -> None:
         """Test version information is available."""
-        import flext_cli
-
-        assert hasattr(flext_cli, '__version__')
-        assert hasattr(flext_cli, '__author__')
+        assert hasattr(flext_cli, "__version__")
+        assert hasattr(flext_cli, "__author__")
         assert isinstance(flext_cli.__version__, str)
 
 
@@ -118,9 +117,9 @@ class TestFlextCliAuth:
     def test_auth_service_has_required_methods(self) -> None:
         """Test auth service has required methods."""
         # Test that auth service has the expected methods
-        assert hasattr(self.auth_service, 'authenticate_user')
-        assert hasattr(self.auth_service, 'login')
-        assert hasattr(self.auth_service, 'validate_business_rules')
+        assert hasattr(self.auth_service, "authenticate_user")
+        assert hasattr(self.auth_service, "login")
+        assert hasattr(self.auth_service, "validate_business_rules")
 
     def test_auth_service_business_rules_validation(self) -> None:
         """Test auth service business rules validation."""
@@ -141,8 +140,8 @@ class TestFlextCliApi:
 
     def test_api_service_has_required_methods(self) -> None:
         """Test API service has expected methods."""
-        assert hasattr(self.api_service, 'format_output')
-        assert hasattr(self.api_service, 'display_output')
+        assert hasattr(self.api_service, "format_output")
+        assert hasattr(self.api_service, "display_output")
 
     def test_api_service_format_output(self) -> None:
         """Test API service format_output method."""

@@ -95,7 +95,7 @@ class TestUtilitiesDebugCoverage:
                 exception_counter += 1
                 msg = "Forced TypeError for coverage"
                 raise TypeError(msg)
-            return original_float(cast("object", value))
+            return original_float(cast("float", value))
 
         try:
             # Temporarily replace float()
@@ -103,7 +103,8 @@ class TestUtilitiesDebugCoverage:
 
             # Test forced ValueError path
             result1 = FlextUtilities.Conversions.safe_float(
-                "force_value_error", default=111.0,
+                "force_value_error",
+                default=111.0,
             )
             assert result1 == 111.0, (
                 f"Forced ValueError should return default, got {result1}"
@@ -111,7 +112,8 @@ class TestUtilitiesDebugCoverage:
 
             # Test forced TypeError path
             result2 = FlextUtilities.Conversions.safe_float(
-                "force_type_error", default=222.0,
+                "force_type_error",
+                default=222.0,
             )
             assert result2 == 222.0, (
                 f"Forced TypeError should return default, got {result2}"
@@ -156,7 +158,8 @@ class TestUtilitiesDebugCoverage:
 
         for test_input, expected_default in edge_cases:
             result = FlextUtilities.Conversions.safe_float(
-                test_input, default=expected_default,
+                test_input,
+                default=expected_default,
             )
             assert result == expected_default, (
                 f"safe_float({test_input!r}) should return {expected_default}, got {result}"

@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Literal, TypedDict
+from typing import Literal, Protocol, TypedDict
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -269,33 +269,33 @@ class FlextCliTypes:
     class Protocols:
         """CLI protocol types for interface definitions."""
 
-        class CliProcessor:
+        class CliProcessor(Protocol):
             """Protocol for CLI data processors."""
 
             def process(self, data: object) -> object:
                 """Process CLI data."""
-                raise NotImplementedError
+                ...
 
-        class CliValidator:
+        class CliValidator(Protocol):
             """Protocol for CLI validators."""
 
             def validate(self, data: object) -> bool:
                 """Validate CLI data."""
-                raise NotImplementedError
+                ...
 
-        class CliFormatter:
+        class CliFormatter(Protocol):
             """Protocol for CLI formatters."""
 
             def format(self, data: object) -> str:
                 """Format CLI data."""
-                raise NotImplementedError
+                ...
 
-        class CliAuthenticator:
+        class CliAuthenticator(Protocol):
             """Protocol for CLI authenticators."""
 
             def authenticate(self, credentials: dict[str, str]) -> bool:
                 """Authenticate CLI user."""
-                raise NotImplementedError
+                ...
 
 
 # Top-level aliases for test compatibility

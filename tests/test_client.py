@@ -7,22 +7,24 @@ import json
 import threading
 import unittest
 from collections.abc import Coroutine
-from datetime import datetime
+from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs, urlparse
 
 import httpx
 import pytest
+from flext_core import FlextResult, FlextTypes
 
 from flext_cli.client import FlextCliClient
 from flext_cli.config import FlextCliConfig
 from flext_cli.models import FlextCliModels
-from flext_core import FlextResult, FlextTypes
 
 # Alias for easier testing access - using proper model imports
 FlextApiClient = FlextCliClient  # Alias for backward compatibility in tests
 
 class FlextApiClientModels:
+    """Alias class for easier testing access to FlextCliModels."""
+
     Pipeline = FlextCliModels.Pipeline
     PipelineConfig = FlextCliModels.PipelineConfig
     PipelineList = FlextCliModels.PipelineList
@@ -31,7 +33,7 @@ class FlextApiClientModels:
 class MockHTTPHandler(BaseHTTPRequestHandler):
     """Simple test HTTP server for real client testing."""
 
-    def log_message(self, fmt: str, *args: object) -> None:
+    def log_message(self, format_str: str, *args: object) -> None:
         """Override log_message to handle the correct number of arguments."""
 
         # Suppress logging for tests
@@ -265,15 +267,6 @@ class TestClientModels(unittest.TestCase):
 
     def test_pipeline_model_creation(self) -> None:
         """Test creating Pipeline model with real data."""
-        config = FlextApiClientModels.PipelineConfig(
-            name="test",
-            tap="tap",
-            target="target",
-            schedule=None,
-            transform=None,
-            state=None,
-            config=None,
-        )
         pipeline = FlextApiClientModels.Pipeline(
             id="pipeline-123",
             name="Test Pipeline",
@@ -282,7 +275,7 @@ class TestClientModels(unittest.TestCase):
 
         assert pipeline.id == "pipeline-123"
         assert pipeline.name == "Test Pipeline"
-        assert pipeline.status == "PENDING"  # Default state is PipelinePendingState
+        assert pipeline.status == "inactive"  # Default state
         # Note: Pipeline model doesn't have a config field, that's separate
 
     def test_pipeline_list_creation(self) -> None:
@@ -300,9 +293,7 @@ class TestClientModels(unittest.TestCase):
             id="pipeline-1",
             name="Pipeline 1",
             status="active",
-            config=config,
-            created_at=None,
-            updated_at=None,
+            config=config.model_dump(),
         )
 
         pipeline_list = FlextApiClientModels.PipelineList(
@@ -349,9 +340,7 @@ class TestClientModels(unittest.TestCase):
                 transform=None,
                 state=None,
                 config=None,
-            ),
-            created_at=None,
-            updated_at=None,
+            ).model_dump(),
         )
 
         result = pipeline.validate_business_rules()
@@ -371,15 +360,13 @@ class TestClientModels(unittest.TestCase):
                 transform=None,
                 state=None,
                 config=None,
-            ),
-            created_at=None,
-            updated_at=None,
+            ).model_dump(),
         )
 
         result = pipeline.validate_business_rules()
         assert result.is_failure
         assert result.error is not None
-        assert "Pipeline name cannot be empty" in result.error
+        assert "Pipeline must have a name" in result.error
 
     def test_pipeline_validation_whitespace_name(self) -> None:
         """Test Pipeline validation with whitespace-only name."""
@@ -395,15 +382,13 @@ class TestClientModels(unittest.TestCase):
                 transform=None,
                 state=None,
                 config=None,
-            ),
-            created_at=None,
-            updated_at=None,
+            ).model_dump(),
         )
 
         result = pipeline.validate_business_rules()
         assert result.is_failure
         assert result.error is not None
-        assert "Pipeline name cannot be empty" in result.error
+        assert "Pipeline must have a name" in result.error
 
     def test_pipeline_validation_invalid_status(self) -> None:
         """Test Pipeline validation with invalid status."""
@@ -419,9 +404,7 @@ class TestClientModels(unittest.TestCase):
                 transform=None,
                 state=None,
                 config=None,
-            ),
-            created_at=None,
-            updated_at=None,
+            ).model_dump(),
         )
 
         result = pipeline.validate_business_rules()
@@ -492,7 +475,7 @@ class TestComputeDefaultBaseUrl(unittest.TestCase):
         with pytest.raises(TypeError) as context:
             client._parse_json_response(mock_response)
 
-        assert "Expected dict response, got" in str(context.value)
+        assert "Invalid JSON response format" in str(context.value)
 
     def test_parse_json_list_response_valid_list(self) -> None:
         """Test _parse_json_list_response with valid list response."""
@@ -766,7 +749,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
         assert isinstance(pipeline, FlextApiClientModels.Pipeline)
         assert pipeline.name == "new-test-pipeline"
         assert pipeline.status == "pending"
-        assert pipeline.config.tap == "tap-csv"
+        assert pipeline.config["tap"] == "tap-csv"
 
     def test_update_pipeline(self) -> None:
         """Test updating an existing pipeline."""
@@ -792,7 +775,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
         assert isinstance(pipeline, FlextApiClientModels.Pipeline)
         assert pipeline.id == "pipeline-123"
         assert pipeline.name == "updated-pipeline"
-        assert pipeline.config.tap == "tap-updated"
+        assert pipeline.config["tap"] == "tap-updated"
 
     def test_delete_pipeline(self) -> None:
         """Test deleting a pipeline."""
@@ -851,7 +834,7 @@ class TestFlextApiClientContextManager(AsyncTestCase):
 
     def test_pipeline_validation_success(self) -> None:
         """Test pipeline validation with valid data."""
-        now = datetime.now()
+        now = datetime.now(tz=UTC)
         config_obj = FlextApiClientModels.PipelineConfig(
             name="Test Pipeline",
             tap="tap-postgres",
@@ -887,15 +870,13 @@ class TestFlextApiClientContextManager(AsyncTestCase):
                 transform=None,
                 state=None,
                 config=None,
-            ),
-            created_at=None,
-            updated_at=None,
+            ).model_dump(),
         )
 
         result = pipeline.validate_business_rules()
         assert result.is_failure
         assert result.error is not None
-        assert "Pipeline name cannot be empty" in result.error
+        assert "Pipeline must have a name" in result.error
 
     def test_pipeline_validation_invalid_status(self) -> None:
         """Test pipeline validation with invalid status."""
@@ -911,9 +892,7 @@ class TestFlextApiClientContextManager(AsyncTestCase):
                 transform=None,
                 state=None,
                 config=None,
-            ),
-            created_at=None,
-            updated_at=None,
+            ).model_dump(),
         )
 
         result = pipeline.validate_business_rules()
@@ -938,12 +917,14 @@ class TestFlextApiClientContextManager(AsyncTestCase):
         assert config.target == "target-postgres"
         assert config.schedule == "0 0 * * *"
         assert config.transform == "dbt"
-        assert config.state == "bookmark_2024-01-01"  # Updated to match string expectation
+        assert (
+            config.state == "bookmark_2024-01-01"
+        )  # Updated to match string expectation
         assert config.config == {"additional": "config"}
 
     def test_pipeline_list_creation(self) -> None:
         """Test pipeline list creation."""
-        now = datetime.now()
+        now = datetime.now(tz=UTC)
         config_obj = FlextApiClientModels.PipelineConfig(
             name="Test Pipeline",
             tap="tap-postgres",

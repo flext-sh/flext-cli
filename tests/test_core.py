@@ -9,13 +9,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
+from flext_core import FlextTypes
 
 from flext_cli.config import FlextCliConfig
 from flext_cli.core import FlextCliService
 from flext_cli.domain_services import FlextCliDomainServices
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
-from flext_core import FlextTypes
 
 
 class TestFlextCliService(unittest.TestCase):

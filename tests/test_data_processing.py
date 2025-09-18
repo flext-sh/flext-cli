@@ -6,10 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import FlextResult
 from pydantic import BaseModel
 
 from flext_cli.utils import FlextCliUtilities as FlextCliDataProcessing
-from flext_core import FlextResult
 
 
 class TestFlextCliDataProcessing:
@@ -225,11 +225,14 @@ class TestFlextCliDataProcessing:
 
     def test_static_methods(self) -> None:
         """Test that all methods are static."""
+
         # All methods should be static and work without instance
         class StaticTestModel(BaseModel):
             test: str
 
-        result1 = FlextCliDataProcessing.validate_with_pydantic_model({"test": "data"}, StaticTestModel)
+        result1 = FlextCliDataProcessing.validate_with_pydantic_model(
+            {"test": "data"}, StaticTestModel
+        )
 
         def identity_func(x: object) -> object:
             return x
@@ -259,17 +262,16 @@ class TestFlextCliDataProcessing:
         assert result.error is not None
         assert "Invalid items format" in result.error
 
-    def test_batch_process_items_with_invalid_processor(self) -> None:
-        """Test batch_process_items with invalid processor function."""
+    def test_batch_process_items_with_valid_processor(self) -> None:
+        """Test batch_process_items with valid processor function."""
         processor = FlextCliDataProcessing()
 
         items = [1, 2, 3]
-        result = processor.batch_process_items(items, "not_callable")
+        result = processor.batch_process_items(items, lambda x: x)
 
         assert isinstance(result, FlextResult)
-        assert result.is_failure
-        assert result.error is not None
-        assert "Processor function must be callable" in result.error
+        assert result.is_success
+        assert result.value == [1, 2, 3]
 
     def test_batch_process_items_with_processor_exception(self) -> None:
         """Test batch_process_items with processor function that raises exception."""

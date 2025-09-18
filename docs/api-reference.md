@@ -2,7 +2,7 @@
 
 **Complete API documentation for the FLEXT CLI foundation library.**
 
-**Last Updated**: September 17, 2025 | **Version**: 0.9.0
+**Last Updated**: September 17, 2025 | **Version**: 0.9.9 RC
 
 ---
 

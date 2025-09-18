@@ -6,13 +6,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import FlextResult
+
 from flext_cli import (
     FlextCliApi,
     FlextCliConfig,
     FlextCliMain,
 )
 from flext_cli.models import FlextCliModels
-from flext_core import FlextResult
 
 
 class TestConfigCommandsReal:
@@ -177,7 +178,9 @@ class TestConfigCommandsReal:
         )
 
         if message_result.is_failure:
-            return FlextResult[None].fail(f"Message display failed: {message_result.error}")
+            return FlextResult[None].fail(
+                f"Message display failed: {message_result.error}"
+            )
 
         return FlextResult[None].ok(None)
 

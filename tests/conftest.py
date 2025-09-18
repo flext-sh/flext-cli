@@ -10,9 +10,10 @@ import tempfile
 from collections.abc import Callable, Generator
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import  ClassVar
+from typing import ClassVar
 
 import pytest
+from flext_core import FlextResult, FlextTypes
 from flext_tests import (
     FlextTestsBuilders,
     FlextTestsDomains,
@@ -30,7 +31,6 @@ from flext_cli import (
     FlextCliMain,
 )
 from flext_cli.models import FlextCliModels
-from flext_core import FlextResult, FlextTypes
 
 
 # Test Configuration and Constants
@@ -98,25 +98,30 @@ def flext_builders() -> FlextTestsBuilders:
     """Provide FlextTestsBuilders for test data creation."""
     return FlextTestsBuilders()
 
+
 @pytest.fixture
 def flext_factories() -> FlextTestsFactories:
     """Provide FlextTestsFactories for realistic test data."""
     return FlextTestsFactories()
+
 
 @pytest.fixture
 def flext_fixtures() -> FlextTestsFixtures:
     """Provide FlextTestsFixtures for comprehensive test utilities."""
     return FlextTestsFixtures()
 
+
 @pytest.fixture
 def flext_matchers() -> FlextTestsMatchers:
     """Provide FlextTestsMatchers for assertions and validations."""
     return FlextTestsMatchers()
 
+
 @pytest.fixture
 def flext_domains() -> FlextTestsDomains:
     """Provide FlextTestsDomains for domain-specific test data."""
     return FlextTestsDomains()
+
 
 @pytest.fixture
 def flext_utilities() -> FlextTestsUtilities:
@@ -138,15 +143,18 @@ def cli_api() -> FlextCliApi:
     """Provide FlextCliApi for testing."""
     return FlextCliApi()
 
+
 @pytest.fixture
 def cli_main() -> FlextCliMain:
     """Provide FlextCliMain for testing."""
     return FlextCliMain(name="test-cli", description="Test CLI interface")
 
+
 @pytest.fixture
 def cli_auth() -> FlextCliAuth:
     """Provide FlextCliAuth for testing."""
     return FlextCliAuth()
+
 
 @pytest.fixture
 def cli_context(flext_factories: FlextTestsFactories) -> FlextCliContext:
@@ -190,10 +198,12 @@ def test_user(flext_domains: FlextTestsDomains) -> FlextTypes.Core.Dict:
     """Provide test user using FlextTestsDomains."""
     return flext_domains.create_user(**FlextCliTestData.TEST_USERS["default"])
 
+
 @pytest.fixture
 def admin_user(flext_domains: FlextTestsDomains) -> FlextTypes.Core.Dict:
     """Provide admin user using FlextTestsDomains."""
     return flext_domains.create_user(**FlextCliTestData.TEST_USERS["admin"])
+
 
 @pytest.fixture
 def test_user_batch(flext_domains: FlextTestsDomains) -> list[FlextTypes.Core.Dict]:
@@ -207,16 +217,22 @@ def success_result(flext_builders: FlextTestsBuilders) -> FlextResult[object]:
     """Provide successful FlextResult using FlextTestsBuilders."""
     return flext_builders.success_result("test_success")
 
+
 @pytest.fixture
 def failure_result(flext_builders: FlextTestsBuilders) -> FlextResult[object]:
     """Provide failed FlextResult using FlextTestsBuilders."""
     return flext_builders.failure_result("test_failure")
 
+
 @pytest.fixture
 def auth_success_result(flext_builders: FlextTestsBuilders) -> FlextResult[object]:
     """Provide successful auth result using FlextTestsBuilders."""
-    auth_data = {"token": FlextCliTestData.AUTH_TOKENS["valid"], "status": "authenticated"}
+    auth_data = {
+        "token": FlextCliTestData.AUTH_TOKENS["valid"],
+        "status": "authenticated",
+    }
     return flext_builders.success_result(auth_data)
+
 
 @pytest.fixture
 def auth_failure_result(flext_builders: FlextTestsBuilders) -> FlextResult[object]:
@@ -257,6 +273,7 @@ def auth_commands() -> dict[str, FlextCliModels.CliCommand]:
         ),
     }
 
+
 @pytest.fixture
 def cli_models() -> type[FlextCliModels]:
     """Provide FlextCliModels for command creation."""
@@ -269,6 +286,7 @@ def auth_tokens() -> dict[str, str]:
     """Provide auth token test data."""
     return FlextCliTestData.AUTH_TOKENS.copy()
 
+
 @pytest.fixture
 def test_messages() -> dict[str, str]:
     """Provide test message constants."""
@@ -277,21 +295,34 @@ def test_messages() -> dict[str, str]:
 
 # Validation and Assertion Helpers
 @pytest.fixture
-def assert_success(flext_matchers: FlextTestsMatchers) -> Callable[[FlextResult[object], object], None]:
+def assert_success(
+    flext_matchers: FlextTestsMatchers,
+) -> Callable[[FlextResult[object], object], None]:
     """Provide success assertion helper."""
-    def _assert_success(result: FlextResult[object], expected_data: object = None) -> None:
+
+    def _assert_success(
+        result: FlextResult[object], expected_data: object = None
+    ) -> None:
         flext_matchers.assert_result_success(result)
         if expected_data is not None:
             assert result.value == expected_data
+
     return _assert_success
 
+
 @pytest.fixture
-def assert_failure(flext_matchers: FlextTestsMatchers) -> Callable[[FlextResult[object], str | None], None]:
+def assert_failure(
+    flext_matchers: FlextTestsMatchers,
+) -> Callable[[FlextResult[object], str | None], None]:
     """Provide failure assertion helper."""
-    def _assert_failure(result: FlextResult[object], expected_error: str | None = None) -> None:
+
+    def _assert_failure(
+        result: FlextResult[object], expected_error: str | None = None
+    ) -> None:
         flext_matchers.assert_result_failure(result)
         if expected_error is not None:
             assert expected_error in str(result.error or "")
+
     return _assert_failure
 
 
@@ -315,11 +346,16 @@ def clean_auth_environment(cli_auth: FlextCliAuth) -> Generator[None]:
 
 # Legacy compatibility fixtures (DEPRECATED - use FlextTests* directly)
 @pytest.fixture
-def test_flext_result_success(success_result: FlextResult[object]) -> FlextResult[object]:
+def test_flext_result_success(
+    success_result: FlextResult[object],
+) -> FlextResult[object]:
     """DEPRECATED: Use success_result fixture directly."""
     return success_result
 
+
 @pytest.fixture
-def test_flext_result_failure(failure_result: FlextResult[object]) -> FlextResult[object]:
+def test_flext_result_failure(
+    failure_result: FlextResult[object],
+) -> FlextResult[object]:
     """DEPRECATED: Use failure_result fixture directly."""
     return failure_result

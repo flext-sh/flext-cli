@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from flext_cli import (
-    FlextCliClient,
     FlextCliApi,
     FlextCliAuth,
+    FlextCliClient,
     FlextCliConfig,
     FlextCliConstants,
     FlextCliContext,

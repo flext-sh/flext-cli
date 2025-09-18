@@ -25,17 +25,17 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
+
+from flext_core import FlextResult
 
 from flext_cli import (
     FlextCliConfig,
     FlextCliFormatters,
-    FlextCliMain,
     FlextCliModels,
 )
-from flext_core import FlextResult
 
 
 def _setup_cli_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
@@ -70,7 +70,8 @@ def _connection_demo(
 
     # Display connection info using flext-cli formatter
     table_result = formatter.format_table(
-        data=cast("dict[str, object]", connection_data), title="Connection Test Configuration"
+        data=cast("dict[str, object]", connection_data),
+        title="Connection Test Configuration",
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -108,7 +109,8 @@ def _file_processing_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
 
     # Display processing info using flext-cli formatter
     table_result = formatter.format_table(
-        data=cast("dict[str, object]", processing_data), title="File Processing Configuration"
+        data=cast("dict[str, object]", processing_data),
+        title="File Processing Configuration",
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -154,7 +156,7 @@ def _command_registration_demo(formatter: FlextCliFormatters) -> FlextResult[Non
     formatter.print_success("\n5. 🎛️ Command Registration System")
 
     # Create CLI main using flext-cli foundation
-    cli_main = FlextCliMain()
+    # cli_main = FlextCliMain()
 
     # Register command groups (simulated)
     commands_data = {
@@ -165,7 +167,8 @@ def _command_registration_demo(formatter: FlextCliFormatters) -> FlextResult[Non
     }
 
     table_result = formatter.format_table(
-        data=cast("dict[str, object]", commands_data), title="Registered Commands (FlextCliMain)"
+        data=cast("dict[str, object]", commands_data),
+        title="Registered Commands (FlextCliMain)",
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -214,7 +217,7 @@ def _create_connection_command(
     try:
         command = FlextCliModels.CliCommand(
             command_line=f"curl --connect-timeout {timeout} --retry {retries} {url}",
-            execution_time=datetime.now(),
+            execution_time=datetime.now(tz=UTC),
         )
 
         return FlextResult[FlextCliModels.CliCommand].ok(command)
@@ -266,7 +269,7 @@ def _execute_connection_test(command: FlextCliModels.CliCommand) -> FlextResult[
 
 
 def _simulate_file_processing(
-    file_path: Path, output_format: str, batch_size: int
+    file_path: Path
 ) -> FlextResult[str]:
     """Simulate file processing with FlextResult pattern."""
     try:

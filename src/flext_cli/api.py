@@ -1,40 +1,36 @@
 """FLEXT CLI API - Unified single-class implementation.
 
 Uses Python 3.13 cutting-edge patterns.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
 
 import json
+import logging
 import platform
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TypeVar, override
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import yaml
-from pydantic import Field, PrivateAttr
+from pydantic import BaseModel, Field, PrivateAttr
 
 # Rich imports removed - use formatters.py abstraction layer
 from flext_cli.config import FlextCliConfig
 from flext_cli.core import FlextCliService
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
-from flext_core import (
-    FlextContainer,
-    FlextDomainService,
-    FlextLogger,
-    FlextModels,
-    FlextResult,
-    FlextTypes,
-    FlextUtilities,
-)
+from flext_core import FlextContainer, FlextResult, FlextTypes
 
 T = TypeVar("T")
 
 
-class FlextCliApi(FlextDomainService[str]):
+class FlextCliApi(BaseModel):
     """Unified CLI API with Python 3.13 cutting-edge patterns.
 
     Uses nested specialized handlers.
@@ -66,6 +62,9 @@ class FlextCliApi(FlextDomainService[str]):
     _logger: object = PrivateAttr()
     _models: object = PrivateAttr()
     _services: object = PrivateAttr()
+
+    # Model configuration
+    model_config = {"arbitrary_types_allowed": True}
 
     # =========================================================================
     # NESTED SPECIALIZED CLASSES - Advanced Architecture Pattern
@@ -230,7 +229,7 @@ class FlextCliApi(FlextDomainService[str]):
 
             match format_type.lower():
                 case "json":
-                    result = FlextUtilities.safe_json_stringify(data)
+                    result = json.dumps(data, default=str)
                     return FlextResult[str].ok(result)
                 case "yaml":
                     result = yaml.dump(
@@ -307,7 +306,7 @@ class FlextCliApi(FlextDomainService[str]):
                     "Invalid command line",
                 )
             command = FlextCliModels.CliCommand(
-                id=FlextUtilities.Generators.generate_uuid(),
+                id=str(uuid4()),
                 command_line=command_line.strip(),
                 execution_time=datetime.now(UTC),
             )
@@ -329,8 +328,8 @@ class FlextCliApi(FlextDomainService[str]):
         ) -> FlextResult[FlextCliModels.CliSession]:
             """Handle session creation with advanced state management."""
             session = FlextCliModels.CliSession(
-                id=FlextUtilities.Generators.generate_uuid(),
-                session_id=FlextUtilities.Generators.generate_uuid(),
+                id=str(uuid4()),
+                session_id=str(uuid4()),
                 start_time=datetime.now(UTC),
                 user_id=str(user_id) if user_id else None,
             )
@@ -440,20 +439,20 @@ class FlextCliApi(FlextDomainService[str]):
             datasets: object,
             base_path: object,
             format_type: object,
-        ) -> FlextResult[FlextTypes.Core.StringList]:
+        ) -> FlextResult[list[str]]:
             """Handle batch export."""
             if not isinstance(datasets, list):
-                return FlextResult[FlextTypes.Core.StringList].fail(
+                return FlextResult[list[str]].fail(
                     "Datasets must be a list",
                 )
 
             if not isinstance(base_path, (str, Path)):
-                return FlextResult[FlextTypes.Core.StringList].fail(
+                return FlextResult[list[str]].fail(
                     "Base path must be string or Path",
                 )
 
             if not isinstance(format_type, str):
-                return FlextResult[FlextTypes.Core.StringList].fail(
+                return FlextResult[list[str]].fail(
                     "Format type must be string",
                 )
 
@@ -464,7 +463,7 @@ class FlextCliApi(FlextDomainService[str]):
 
             for name, data in datasets:
                 if not isinstance(name, str) or not name:
-                    return FlextResult[FlextTypes.Core.StringList].fail(
+                    return FlextResult[list[str]].fail(
                         "Dataset names must be non-empty strings"
                     )
 
@@ -481,7 +480,7 @@ class FlextCliApi(FlextDomainService[str]):
                 file_path.write_text(content, encoding="utf-8")
                 exported_files.append(str(file_path))
 
-            return FlextResult[FlextTypes.Core.StringList].ok(exported_files)
+            return FlextResult[list[str]].ok(exported_files)
 
     # =========================================================================
     # MAIN API IMPLEMENTATION
@@ -490,7 +489,7 @@ class FlextCliApi(FlextDomainService[str]):
     def __init__(
         self,
         *,
-        models: FlextModels | None = None,
+        models: type[BaseModel] | None = None,
         services: FlextCliService | None = None,
         version: str | None = None,
     ) -> None:
@@ -540,9 +539,9 @@ class FlextCliApi(FlextDomainService[str]):
 
         # Set all private attributes after Pydantic initialization
         self._formatters = temp_formatters
-        self._container = FlextContainer.get_global()
-        self._logger = FlextLogger(__name__)
-        self._models = models or FlextModels()
+        self._container = FlextContainer()
+        self._logger = logging.getLogger(__name__)
+        self._models = models or BaseModel
 
         # Store reference to config for future use
         self._config = config
@@ -710,7 +709,7 @@ class FlextCliApi(FlextDomainService[str]):
             )
 
         command = FlextCliModels.CliCommand(
-            id=FlextUtilities.Generators.generate_uuid(),
+            id=str(uuid4()),
             command_line=f"{name} {' '.join(arguments or [])}",
             execution_time=datetime.now(UTC),
         )
@@ -793,7 +792,7 @@ class FlextCliApi(FlextDomainService[str]):
         self,
         _data: list[FlextTypes.Core.Dict],
         _group_by: str,
-        _sum_fields: FlextTypes.Core.StringList | None = None,
+        _sum_fields: list[str] | None = None,
     ) -> FlextResult[FlextTypes.Core.Dict]:
         """ELIMINATED: Data aggregation violates API single responsibility principle."""
         # VIOLATION: CLI API should not perform complex data analysis operations
@@ -808,10 +807,10 @@ class FlextCliApi(FlextDomainService[str]):
         datasets: list[tuple[str, object]],
         base_path: Path,
         format_type: str,
-    ) -> FlextResult[FlextTypes.Core.StringList]:
+    ) -> FlextResult[list[str]]:
         """Export multiple datasets to files."""
         if self.dispatcher is None:
-            return FlextResult[FlextTypes.Core.StringList].fail(
+            return FlextResult[list[str]].fail(
                 "Dispatcher not initialized",
             )
         result = self.dispatcher.dispatch_operation(
@@ -822,8 +821,8 @@ class FlextCliApi(FlextDomainService[str]):
         )
         # Safe casting - we know batch_export returns list of strings
         if result.is_success and isinstance(result.value, list):
-            return FlextResult[FlextTypes.Core.StringList].ok(result.value)
-        return FlextResult[FlextTypes.Core.StringList].fail(
+            return FlextResult[list[str]].ok(result.value)
+        return FlextResult[list[str]].fail(
             result.error or "Batch export failed",
         )
 
@@ -901,11 +900,11 @@ class FlextCliApi(FlextDomainService[str]):
     def create_with_dependencies(
         cls,
         *,
-        models: FlextModels | None = None,
+        models: type[BaseModel] | None = None,
         services: FlextCliService | None = None,
         config_override: FlextTypes.Core.Dict | None = None,
     ) -> FlextCliApi:
-        """Factory method for creating API with full dependency injection."""
+        """Create factory method for creating API with full dependency injection."""
         api = cls(models=models, services=services)
 
         if config_override:

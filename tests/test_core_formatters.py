@@ -304,8 +304,10 @@ class TestFormatterFactory:
     def test_register_custom_formatter(self) -> None:
         """Test registering custom formatter."""
 
-        class CustomFormatter(FlextCliFormatters.OutputFormatter):
-            def format(self, data: object, console: FlextCliFormatters._ConsoleOutput | Console) -> None:
+        class CustomFormatter(FlextCliFormatters.FormatterProtocol):
+            def format(
+                self, data: object, console: FlextCliFormatters._ConsoleOutput | Console
+            ) -> None:
                 console.print(f"custom: {data}")
 
         formatter_instance = FlextCliFormatters()

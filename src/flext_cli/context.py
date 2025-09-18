@@ -2,7 +2,6 @@
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -354,7 +353,7 @@ class FlextCliContext:
         no_color = params.get("no_color", False)
 
         # Validate parameters
-        if profile == "":
+        if not profile:
             message = "Profile cannot be empty"
             raise ValueError(message)
 

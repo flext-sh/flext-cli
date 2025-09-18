@@ -23,8 +23,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import cast
+
+from flext_core import FlextContainer, FlextResult
 
 from flext_cli import (
     FlextCliApi,
@@ -33,7 +35,6 @@ from flext_cli import (
     FlextCliModels,
     FlextCliService,
 )
-from flext_core import FlextContainer, FlextResult
 
 
 def _setup_cli() -> FlextResult[str]:
@@ -188,7 +189,8 @@ def _summary_demo(formatter: FlextCliFormatters) -> None:
     }
 
     table_result = formatter.format_table(
-        data=cast("dict[str, object]", summary_data), title="Foundation Patterns Summary"
+        data=cast("dict[str, object]", summary_data),
+        title="Foundation Patterns Summary",
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -202,7 +204,7 @@ def _create_sample_command() -> FlextResult[FlextCliModels.CliCommand]:
         # Create command with REAL validation and parameters
         command = FlextCliModels.CliCommand(
             command_line="echo 'Hello FLEXT CLI Foundation Patterns!'",
-            execution_time=datetime.now(),
+            execution_time=datetime.now(tz=UTC),
         )
 
         return FlextResult[FlextCliModels.CliCommand].ok(command)
@@ -219,12 +221,12 @@ def _create_sample_session(
     """Create a sample CLI session with REAL configuration."""
     try:
         # Create session with REAL required parameters using actual CliSession structure
-        session_id = f"foundation-demo-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+        session_id = f"foundation-demo-{datetime.now(tz=UTC).strftime('%Y%m%d-%H%M%S')}"
 
         session = FlextCliModels.CliSession(
             session_id=session_id,
             user_id=f"demo-user-{config.profile}",
-            start_time=datetime.now(),
+            start_time=datetime.now(tz=UTC),
         )
 
         return FlextResult[FlextCliModels.CliSession].ok(session)

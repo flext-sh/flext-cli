@@ -5,7 +5,6 @@ JSON handling, and secure write operations.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -72,7 +71,6 @@ class FlextCliFileOperations:
 
             return FlextResult[FlextTypes.Core.Dict].ok(parse_result)
         except (
-            ImportError,
             AttributeError,
             ValueError,
             PermissionError,
@@ -112,7 +110,6 @@ class FlextCliFileOperations:
 
             return FlextResult[None].ok(None)
         except (
-            ImportError,
             AttributeError,
             ValueError,
             PermissionError,
@@ -158,7 +155,6 @@ class FlextCliFileOperations:
 
             return FlextResult[None].ok(None)
         except (
-            ImportError,
             AttributeError,
             ValueError,
             PermissionError,
@@ -229,7 +225,6 @@ class FlextCliFileOperations:
 
             return FlextResult[str].ok(process_result.value)
         except (
-            ImportError,
             AttributeError,
             ValueError,
             PermissionError,
@@ -253,7 +248,6 @@ class FlextCliFileOperations:
             path.mkdir(parents=True, exist_ok=True, mode=0o700)
             return FlextResult[Path].ok(path)
         except (
-            ImportError,
             AttributeError,
             ValueError,
             PermissionError,
@@ -313,7 +307,6 @@ class FlextCliFileOperations:
             size = path.stat().st_size
             return FlextResult[int].ok(size)
         except (
-            ImportError,
             AttributeError,
             ValueError,
             PermissionError,

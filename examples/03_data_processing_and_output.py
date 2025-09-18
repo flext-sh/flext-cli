@@ -32,23 +32,56 @@ import tempfile
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
+from flext_core import FlextResult
+
 from flext_cli import (
     FlextCliFormatters,
 )
-from flext_core import FlextResult
 
 
-def _demonstrate_data_transformation(formatter: FlextCliFormatters) -> FlextResult[None]:
+def _demonstrate_data_transformation(
+    formatter: FlextCliFormatters,
+) -> FlextResult[None]:
     """Demonstrate data transformation using flext-cli patterns."""
     formatter.print_success("\n1. 🔄 Data Transformation with FLEXT CLI")
 
     # Sample raw data
     raw_data = [
-        {"name": "Service A", "status": "running", "cpu": 45, "memory": 1200, "region": "us-east"},
-        {"name": "Service B", "status": "stopped", "cpu": 0, "memory": 0, "region": "us-west"},
-        {"name": "Service C", "status": "running", "cpu": 78, "memory": 2100, "region": "us-east"},
-        {"name": "Service D", "status": "running", "cpu": 23, "memory": 800, "region": "eu-west"},
-        {"name": "Service E", "status": "failed", "cpu": 0, "memory": 0, "region": "us-east"},
+        {
+            "name": "Service A",
+            "status": "running",
+            "cpu": 45,
+            "memory": 1200,
+            "region": "us-east",
+        },
+        {
+            "name": "Service B",
+            "status": "stopped",
+            "cpu": 0,
+            "memory": 0,
+            "region": "us-west",
+        },
+        {
+            "name": "Service C",
+            "status": "running",
+            "cpu": 78,
+            "memory": 2100,
+            "region": "us-east",
+        },
+        {
+            "name": "Service D",
+            "status": "running",
+            "cpu": 23,
+            "memory": 800,
+            "region": "eu-west",
+        },
+        {
+            "name": "Service E",
+            "status": "failed",
+            "cpu": 0,
+            "memory": 0,
+            "region": "us-east",
+        },
     ]
 
     # Transform data - filter only running services
@@ -65,7 +98,9 @@ def _demonstrate_data_transformation(formatter: FlextCliFormatters) -> FlextResu
         return FlextResult[None].fail(f"Data enrichment failed: {enrich_result.error}")
 
     enriched_services = enrich_result.value
-    formatter.print_success("✅ Added computed fields: health_score, memory_gb, efficiency")
+    formatter.print_success(
+        "✅ Added computed fields: health_score, memory_gb, efficiency"
+    )
 
     # Display sample enriched service using flext-cli formatter
     if enriched_services:
@@ -74,12 +109,11 @@ def _demonstrate_data_transformation(formatter: FlextCliFormatters) -> FlextResu
             "Service": sample["name"],
             "Health Score": str(sample["health_score"]),
             "Memory (GB)": f"{sample['memory_gb']}GB",
-            "Efficiency": str(sample["efficiency"])
+            "Efficiency": str(sample["efficiency"]),
         }
 
         table_result = formatter.format_table(
-            data=sample_data,
-            title="Sample Enriched Service"
+            data=sample_data, title="Sample Enriched Service"
         )
         if table_result.is_success:
             formatter.console.print(table_result.value)
@@ -93,18 +127,50 @@ def _demonstrate_data_aggregation(formatter: FlextCliFormatters) -> FlextResult[
 
     # Sample metrics data
     metrics_data = [
-        {"timestamp": "2025-01-15T10:00:00", "service": "api", "requests": 150, "errors": 2},
-        {"timestamp": "2025-01-15T10:00:00", "service": "auth", "requests": 75, "errors": 0},
-        {"timestamp": "2025-01-15T10:00:00", "service": "db", "requests": 200, "errors": 1},
-        {"timestamp": "2025-01-15T11:00:00", "service": "api", "requests": 180, "errors": 3},
-        {"timestamp": "2025-01-15T11:00:00", "service": "auth", "requests": 90, "errors": 1},
-        {"timestamp": "2025-01-15T11:00:00", "service": "db", "requests": 240, "errors": 0},
+        {
+            "timestamp": "2025-01-15T10:00:00",
+            "service": "api",
+            "requests": 150,
+            "errors": 2,
+        },
+        {
+            "timestamp": "2025-01-15T10:00:00",
+            "service": "auth",
+            "requests": 75,
+            "errors": 0,
+        },
+        {
+            "timestamp": "2025-01-15T10:00:00",
+            "service": "db",
+            "requests": 200,
+            "errors": 1,
+        },
+        {
+            "timestamp": "2025-01-15T11:00:00",
+            "service": "api",
+            "requests": 180,
+            "errors": 3,
+        },
+        {
+            "timestamp": "2025-01-15T11:00:00",
+            "service": "auth",
+            "requests": 90,
+            "errors": 1,
+        },
+        {
+            "timestamp": "2025-01-15T11:00:00",
+            "service": "db",
+            "requests": 240,
+            "errors": 0,
+        },
     ]
 
     # Aggregate by service
     aggregation_result = _aggregate_by_service(metrics_data)
     if aggregation_result.is_failure:
-        return FlextResult[None].fail(f"Data aggregation failed: {aggregation_result.error}")
+        return FlextResult[None].fail(
+            f"Data aggregation failed: {aggregation_result.error}"
+        )
 
     service_stats = aggregation_result.value
     formatter.print_success("✅ Service aggregation completed")
@@ -118,14 +184,19 @@ def _demonstrate_data_aggregation(formatter: FlextCliFormatters) -> FlextResult[
         requests_obj = stats.get("total_requests", 0)
         errors_obj = stats.get("total_errors", 0)
 
-        total_requests = int(requests_obj) if isinstance(requests_obj, (int, float)) else 0
+        total_requests = (
+            int(requests_obj) if isinstance(requests_obj, (int, float)) else 0
+        )
         total_errors = int(errors_obj) if isinstance(errors_obj, (int, float)) else 0
-        error_rate = round((total_errors / total_requests * 100), 2) if total_requests > 0 else 0.0
+        error_rate = (
+            round((total_errors / total_requests * 100), 2)
+            if total_requests > 0
+            else 0.0
+        )
         agg_data[service] = f"{total_requests} requests, {error_rate}% error rate"
 
     table_result = formatter.format_table(
-        data=agg_data,
-        title="Service Aggregation Results"
+        data=agg_data, title="Service Aggregation Results"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -144,13 +215,12 @@ def _demonstrate_output_formatting(formatter: FlextCliFormatters) -> FlextResult
         "Environment": "production",
         "Uptime": "99.9%",
         "Requests/sec": "1250",
-        "Error Rate": "0.1%"
+        "Error Rate": "0.1%",
     }
 
     # Display using flext-cli table formatter
     table_result = formatter.format_table(
-        data=sample_data,
-        title="Application Status (FLEXT CLI Formatted)"
+        data=sample_data, title="Application Status (FLEXT CLI Formatted)"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -166,12 +236,11 @@ def _demonstrate_output_formatting(formatter: FlextCliFormatters) -> FlextResult
     services_data: dict[str, object] = {
         "api-gateway": "Port 8080, Healthy",
         "auth-service": "Port 8081, Healthy",
-        "database": "Port 5432, Unhealthy"
+        "database": "Port 5432, Unhealthy",
     }
 
     services_table_result = formatter.format_table(
-        data=services_data,
-        title="Application Services"
+        data=services_data, title="Application Services"
     )
     if services_table_result.is_success:
         formatter.console.print(services_table_result.value)
@@ -188,7 +257,7 @@ def _demonstrate_file_operations(formatter: FlextCliFormatters) -> FlextResult[N
     config_data = {
         "database": {"host": "localhost", "port": 5432, "database": "flext_demo"},
         "api": {"host": "localhost", "port": 8080, "debug": False},
-        "logging": {"level": "INFO", "file": "/var/log/flext-demo.log"}
+        "logging": {"level": "INFO", "file": "/var/log/flext-demo.log"},
     }
 
     # Save configuration to temporary file
@@ -219,8 +288,7 @@ def _demonstrate_file_operations(formatter: FlextCliFormatters) -> FlextResult[N
             config_display["Debug Mode"] = str(api.get("debug", False))
 
     table_result = formatter.format_table(
-        data=config_display,
-        title="Loaded Configuration"
+        data=config_display, title="Loaded Configuration"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -242,16 +310,17 @@ def _demonstrate_batch_processing(formatter: FlextCliFormatters) -> FlextResult[
         return FlextResult[None].fail(f"Batch processing failed: {batch_result.error}")
 
     results = batch_result.value
-    formatter.print_success(f"✅ Batch processing completed: {len(results)} files processed")
+    formatter.print_success(
+        f"✅ Batch processing completed: {len(results)} files processed"
+    )
 
     # Display results using flext-cli formatter
     results_data: dict[str, object] = {}
     for i, result in enumerate(results):
-        results_data[f"File {i+1}"] = result
+        results_data[f"File {i + 1}"] = result
 
     table_result = formatter.format_table(
-        data=results_data,
-        title="Batch Processing Results"
+        data=results_data, title="Batch Processing Results"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -265,8 +334,18 @@ def _demonstrate_data_export(formatter: FlextCliFormatters) -> FlextResult[None]
 
     # Sample report data
     report_data = [
-        {"date": "2025-01-15", "service": "api-gateway", "requests": 15240, "errors": 12},
-        {"date": "2025-01-15", "service": "auth-service", "requests": 8750, "errors": 2},
+        {
+            "date": "2025-01-15",
+            "service": "api-gateway",
+            "requests": 15240,
+            "errors": 12,
+        },
+        {
+            "date": "2025-01-15",
+            "service": "auth-service",
+            "requests": 8750,
+            "errors": 2,
+        },
         {"date": "2025-01-15", "service": "database", "requests": 23100, "errors": 0},
     ]
 
@@ -285,13 +364,10 @@ def _demonstrate_data_export(formatter: FlextCliFormatters) -> FlextResult[None]
         "JSON Export": "✅ Success - All data exported",
         "CSV Export": "✅ Success - Headers and data exported",
         "Format": "Structured data with error handling",
-        "Method": "FLEXT CLI FlextResult patterns"
+        "Method": "FLEXT CLI FlextResult patterns",
     }
 
-    table_result = formatter.format_table(
-        data=export_summary,
-        title="Export Summary"
-    )
+    table_result = formatter.format_table(data=export_summary, title="Export Summary")
     if table_result.is_success:
         formatter.console.print(table_result.value)
 
@@ -309,12 +385,11 @@ def _summary_demo(formatter: FlextCliFormatters) -> None:
         "Output Formatting": "✅ FLEXT CLI formatters",
         "File Operations": "✅ Railway-oriented I/O",
         "Batch Processing": "✅ Error-safe workflows",
-        "Data Export": "✅ Multiple format support"
+        "Data Export": "✅ Multiple format support",
     }
 
     table_result = formatter.format_table(
-        data=summary_data,
-        title="Data Processing Components"
+        data=summary_data, title="Data Processing Components"
     )
     if table_result.is_success:
         formatter.console.print(table_result.value)
@@ -324,19 +399,23 @@ def _summary_demo(formatter: FlextCliFormatters) -> None:
 
 # Helper functions using FlextResult patterns
 
-def _filter_running_services(data: list[dict[str, object]]) -> FlextResult[list[dict[str, object]]]:
+
+def _filter_running_services(
+    data: list[dict[str, object]],
+) -> FlextResult[list[dict[str, object]]]:
     """Filter services by running status."""
     try:
         running_services = [
-            service for service in data
-            if service.get("status") == "running"
+            service for service in data if service.get("status") == "running"
         ]
         return FlextResult[list[dict[str, object]]].ok(running_services)
     except Exception as e:
         return FlextResult[list[dict[str, object]]].fail(f"Filter failed: {e}")
 
 
-def _enrich_service_data(services: list[dict[str, object]]) -> FlextResult[list[dict[str, object]]]:
+def _enrich_service_data(
+    services: list[dict[str, object]],
+) -> FlextResult[list[dict[str, object]]]:
     """Enrich service data with computed fields."""
     try:
         enriched_services = []
@@ -361,7 +440,9 @@ def _enrich_service_data(services: list[dict[str, object]]) -> FlextResult[list[
         return FlextResult[list[dict[str, object]]].fail(f"Enrichment failed: {e}")
 
 
-def _aggregate_by_service(metrics: list[dict[str, object]]) -> FlextResult[list[dict[str, object]]]:
+def _aggregate_by_service(
+    metrics: list[dict[str, object]],
+) -> FlextResult[list[dict[str, object]]]:
     """Aggregate metrics by service."""
     try:
         service_stats: dict[str, dict[str, object]] = {}
@@ -373,18 +454,32 @@ def _aggregate_by_service(metrics: list[dict[str, object]]) -> FlextResult[list[
             requests_obj = metric.get("requests", 0)
             errors_obj = metric.get("errors", 0)
 
-            requests = int(requests_obj) if isinstance(requests_obj, (int, float)) else 0
+            requests = (
+                int(requests_obj) if isinstance(requests_obj, (int, float)) else 0
+            )
             errors = int(errors_obj) if isinstance(errors_obj, (int, float)) else 0
 
             if service not in service_stats:
-                service_stats[service] = {"service": service, "total_requests": 0, "total_errors": 0}
+                service_stats[service] = {
+                    "service": service,
+                    "total_requests": 0,
+                    "total_errors": 0,
+                }
 
             # Safe arithmetic with validated types
             current_requests_obj = service_stats[service]["total_requests"]
             current_errors_obj = service_stats[service]["total_errors"]
 
-            current_requests = int(current_requests_obj) if isinstance(current_requests_obj, (int, float)) else 0
-            current_errors = int(current_errors_obj) if isinstance(current_errors_obj, (int, float)) else 0
+            current_requests = (
+                int(current_requests_obj)
+                if isinstance(current_requests_obj, (int, float))
+                else 0
+            )
+            current_errors = (
+                int(current_errors_obj)
+                if isinstance(current_errors_obj, (int, float))
+                else 0
+            )
 
             service_stats[service]["total_requests"] = current_requests + requests
             service_stats[service]["total_errors"] = current_errors + errors
@@ -406,7 +501,9 @@ def _format_as_json(data: dict[str, object]) -> FlextResult[str]:
 def _save_config_to_file(config_data: dict[str, object]) -> FlextResult[Path]:
     """Save configuration to temporary file."""
     try:
-        with NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as temp_file:
+        with NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as temp_file:
             temp_path = Path(temp_file.name)
 
         temp_path.write_text(json.dumps(config_data, indent=2), encoding="utf-8")
@@ -439,7 +536,9 @@ def _process_sample_files() -> FlextResult[list[str]]:
             # Process files
             results = []
             for file_path in temp_path.glob("*.txt"):
-                processed = f"Processed: {file_path.name} ({file_path.stat().st_size} bytes)"
+                processed = (
+                    f"Processed: {file_path.name} ({file_path.stat().st_size} bytes)"
+                )
                 results.append(processed)
 
             return FlextResult[list[str]].ok(results)
@@ -462,7 +561,7 @@ def _export_to_csv(data: list[dict[str, object]]) -> FlextResult[str]:
         output = io.StringIO()
         if data:
             # Get keys from first item, ensuring they're strings
-            fieldnames = [str(key) for key in data[0].keys()]
+            fieldnames = [str(key) for key in data[0]]
             writer = csv.DictWriter(output, fieldnames=fieldnames)
             writer.writeheader()
 
@@ -488,12 +587,16 @@ def main() -> None:
         # Run all demos in sequence using FlextResult railway pattern
         transform_result = _demonstrate_data_transformation(formatter)
         if transform_result.is_failure:
-            formatter.print_error(f"Transformation demo failed: {transform_result.error}")
+            formatter.print_error(
+                f"Transformation demo failed: {transform_result.error}"
+            )
             return
 
         aggregation_result = _demonstrate_data_aggregation(formatter)
         if aggregation_result.is_failure:
-            formatter.print_error(f"Aggregation demo failed: {aggregation_result.error}")
+            formatter.print_error(
+                f"Aggregation demo failed: {aggregation_result.error}"
+            )
             return
 
         formatting_result = _demonstrate_output_formatting(formatter)

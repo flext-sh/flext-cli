@@ -6,8 +6,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli.cli_bus import FlextCliCommandBusService
 from flext_core import FlextResult
+
+from flext_cli.cli_bus import FlextCliCommandBusService
 
 
 class TestFlextCliCommandBusService:
@@ -27,13 +28,16 @@ class TestFlextCliCommandBusService:
 
     def test_command_validator_validate_command_type(self) -> None:
         """Test command validator for command type validation."""
+
         # Test with valid command-like object
         class MockCommand:
             def validate_command(self) -> FlextResult[bool]:
                 return FlextResult[bool].ok(True)
 
         mock_command = MockCommand()
-        result = FlextCliCommandBusService._CommandValidator.validate_command_type(mock_command)
+        result = FlextCliCommandBusService._CommandValidator.validate_command_type(
+            mock_command
+        )
         assert isinstance(result, FlextResult)
         assert result.is_success
         assert result.unwrap() is True
@@ -42,20 +46,25 @@ class TestFlextCliCommandBusService:
         """Test command validator with invalid command type."""
         # Test with object that doesn't have validate_command method
         invalid_command = object()
-        result = FlextCliCommandBusService._CommandValidator.validate_command_type(invalid_command)
+        result = FlextCliCommandBusService._CommandValidator.validate_command_type(
+            invalid_command
+        )
         assert isinstance(result, FlextResult)
         assert result.is_failure
-        assert "Invalid command type" in result.error
+        assert "Invalid command type" in (result.error or "")
 
     def test_command_validator_validate_command_data(self) -> None:
         """Test command validator for command data validation."""
+
         # Test with command that has validate_command method
         class MockCommand:
             def validate_command(self) -> FlextResult[bool]:
                 return FlextResult[bool].ok(True)
 
         mock_command = MockCommand()
-        result = FlextCliCommandBusService._CommandValidator.validate_command_data(mock_command)
+        result = FlextCliCommandBusService._CommandValidator.validate_command_data(
+            mock_command
+        )
         assert isinstance(result, FlextResult)
         assert result.is_success
         assert result.unwrap() is True
@@ -64,7 +73,9 @@ class TestFlextCliCommandBusService:
         """Test command validator with command that has no validate_command method."""
         # Test with object that doesn't have validate_command method
         invalid_command = object()
-        result = FlextCliCommandBusService._CommandValidator.validate_command_data(invalid_command)
+        result = FlextCliCommandBusService._CommandValidator.validate_command_data(
+            invalid_command
+        )
         assert isinstance(result, FlextResult)
         assert result.is_success
         assert result.unwrap() is True
@@ -84,8 +95,7 @@ class TestFlextCliCommandBusService:
 
         # Test with custom parameters
         result = bus_service.execute_show_config_command(
-            output_format="json",
-            profile="test-profile"
+            output_format="json", profile="test-profile"
         )
         assert isinstance(result, FlextResult)
 
@@ -103,9 +113,7 @@ class TestFlextCliCommandBusService:
 
         # Test with custom profile
         result = bus_service.execute_set_config_command(
-            "test_key",
-            "test_value",
-            profile="test-profile"
+            "test_key", "test_value", profile="test-profile"
         )
         assert isinstance(result, FlextResult)
 
@@ -123,8 +131,7 @@ class TestFlextCliCommandBusService:
 
         # Test with custom parameters
         result = bus_service.execute_edit_config_command(
-            profile="test-profile",
-            editor="vim"
+            profile="test-profile", editor="vim"
         )
         assert isinstance(result, FlextResult)
 
@@ -142,9 +149,7 @@ class TestFlextCliCommandBusService:
 
         # Test with custom API URL
         result = bus_service.execute_auth_login_command(
-            "test_user",
-            "test_password",
-            api_url="https://api.example.com"
+            "test_user", "test_password", api_url="https://api.example.com"
         )
         assert isinstance(result, FlextResult)
 
@@ -194,7 +199,6 @@ class TestFlextCliCommandBusService:
 
         # Test with custom parameters
         result = bus_service.execute_debug_info_command(
-            include_system=False,
-            include_config=True
+            include_system=False, include_config=True
         )
         assert isinstance(result, FlextResult)

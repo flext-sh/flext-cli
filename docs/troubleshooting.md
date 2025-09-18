@@ -2,7 +2,7 @@
 
 **Common issues and solutions for flext-cli development and usage.**
 
-**Last Updated**: September 17, 2025 | **Version**: 0.9.0
+**Last Updated**: September 17, 2025 | **Version**: 0.9.9 RC
 
 ---
 

@@ -6,16 +6,17 @@ principle for all CLI orchestration and metadata.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
 
+import logging
 import os
 import sys
 from typing import TypedDict
 
 import click
+from pydantic import BaseModel
 
 from flext_cli.__version__ import __version__
 from flext_cli.config import FlextCliConfig
@@ -23,14 +24,12 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.logging_setup import FlextCliLoggingSetup
 from flext_core import (
     FlextConfig,
-    FlextDomainService,
-    FlextLogger,
     FlextResult,
     __version__ as core_version,
 )
 
 
-class FlextCliMain(FlextDomainService[str]):
+class FlextCliMain(BaseModel):
     """Unified CLI service using FlextDomainService.
 
     Single responsibility with nested helpers pattern.
@@ -66,11 +65,11 @@ class FlextCliMain(FlextDomainService[str]):
     def __init__(self) -> None:
         """Initialize FlextCliMain service."""
         super().__init__()
-        self._logger = FlextLogger(__name__)
+        self._logger = logging.getLogger(__name__)
 
     def execute(self) -> FlextResult[str]:
-        """Execute CLI operation - FlextDomainService interface."""
-        self.log_info("Executing CLI operation")
+        """Execute CLI operation - FlextModels.Entity interface."""
+        self._logger.info("Executing CLI operation")
         return FlextResult[str].ok("CLI operation executed")
 
     def get_version_info(self) -> VersionInfo:
@@ -124,7 +123,7 @@ class FlextCliMain(FlextDomainService[str]):
     def setup_cli_context(
         self, config: FlextCliConfig, *, quiet: bool = False
     ) -> FlextResult[CliContext]:
-        """Setup CLI context from SOURCE OF TRUTH."""
+        """Set up CLI context from SOURCE OF TRUTH."""
         cli_context: FlextCliMain.CliContext = {
             "config": config,
             "debug_mode": bool(config.debug),
@@ -135,7 +134,7 @@ class FlextCliMain(FlextDomainService[str]):
         return FlextResult[FlextCliMain.CliContext].ok(cli_context)
 
     def setup_logging(self, _config: FlextCliConfig) -> FlextResult[None]:
-        """Setup logging from SOURCE OF TRUTH."""
+        """Set up logging from SOURCE OF TRUTH."""
         logging_setup = FlextCliLoggingSetup()
         logging_result = logging_setup.setup_logging()
         if logging_result.is_failure:
@@ -416,7 +415,7 @@ def cli(
         click.echo("Configuration: Loaded from FlextConfig singleton")
 
         # Show current FlextConfig values
-        base_config = FlextConfig.get_global_instance()
+        base_config = FlextConfig()
         click.echo(f"Base Config Environment: {base_config.environment}")
         click.echo(f"Base Config Debug: {base_config.debug}")
         click.echo(f"Base Config Log Level: {base_config.log_level}")
@@ -431,7 +430,7 @@ def cli(
 @cli.group()
 @click.pass_context
 def auth(ctx: click.Context) -> None:
-    """Authentication commands."""
+    """Handle authentication commands."""
 
 
 # Custom help for auth that shows profile
@@ -471,7 +470,7 @@ def logout(_ctx: click.Context) -> None:
 @cli.group()
 @click.pass_context
 def config(_ctx: click.Context) -> None:
-    """Configuration commands."""
+    """Handle configuration commands."""
 
 
 @config.command()
@@ -480,7 +479,7 @@ def show(ctx: click.Context) -> None:
     """Show current configuration from FlextConfig singleton."""
     try:
         # Get both base and CLI configurations
-        base_config = FlextConfig.get_global_instance()
+        base_config = FlextConfig()
         cli_config = FlextCliConfig.get_current()
 
         click.echo(
@@ -678,7 +677,7 @@ def interactive(_ctx: click.Context) -> None:
 
 # Função main simples que os testes esperam
 def main() -> None:
-    """Main function for CLI entry point - calls Click CLI."""
+    """Execute main function for CLI entry point - calls Click CLI."""
     cli.main(standalone_mode=False)
 
 

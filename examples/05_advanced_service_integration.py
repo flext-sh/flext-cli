@@ -8,6 +8,7 @@ Key Patterns Demonstrated:
 - Dependency injection with create_container()
 - Async command execution with @async_command decorator
 - Error handling with retry patterns and circuit breakers
+
 - Service composition and orchestration
 - Event-driven architecture with domain events
 - CQRS pattern implementation for CLI operations
@@ -28,13 +29,9 @@ import asyncio
 import time
 from datetime import UTC, datetime
 from enum import Enum
-from typing import  cast
+from typing import cast
 
-
-# Simple replacement for missing example_utils
-def print_demo_completion(title: str) -> None:
-    """Print demo completion message."""
-    print(f"✅ {title} completed successfully!")
+from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
@@ -44,7 +41,14 @@ from flext_cli import (
     FlextCliConfig,
     FlextCliService,
 )
-from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
+
+
+# Simple replacement for missing example_utils
+def print_demo_completion(title: str) -> None:
+    """Print demo completion message."""
+    print(f"✅ {title} completed successfully!")
+
+
 
 
 class ServiceStatus(Enum):
@@ -77,7 +81,7 @@ class AdvancedCliService(FlextCliService):
         self._performance_metrics: dict[str, object] = {}
 
         # Initialize logger
-        self.logger = FlextLogger(__name__)
+        self._logger = FlextLogger(__name__)
 
         # Initialize circuit_breakers as public attribute
         self.circuit_breakers: dict[str, dict[str, object]] = {}
@@ -115,10 +119,10 @@ class AdvancedCliService(FlextCliService):
         except Exception as e:
             if (
                 hasattr(self, "logger")
-                and self.logger
-                and hasattr(self.logger, "exception")
+                and self._logger
+                and hasattr(self._logger, "exception")
             ):
-                self.logger.exception(f"Health check failed for {service_name}")
+                self._logger.exception(f"Health check failed for {service_name}")
             return FlextResult[FlextTypes.Core.Dict].fail(f"Health check failed: {e}")
 
     # Removed problematic decorators - @cli_enhanced, @with_spinner
@@ -126,8 +130,8 @@ class AdvancedCliService(FlextCliService):
     def orchestrate_services(self, operation: str) -> FlextResult[FlextTypes.Core.Dict]:
         """Orchestrate multiple services for complex operations."""
         try:
-            if hasattr(self, "logger") and self.logger and hasattr(self.logger, "info"):
-                self.logger.info(f"Starting service orchestration: {operation}")
+            if hasattr(self, "logger") and self._logger and hasattr(self._logger, "info"):
+                self._logger.info(f"Starting service orchestration: {operation}")
 
             # Define service orchestration steps
             orchestration_steps = [
@@ -149,20 +153,20 @@ class AdvancedCliService(FlextCliService):
                     results[service_name] = step_result.value
                     if (
                         hasattr(self, "logger")
-                        and self.logger
-                        and hasattr(self.logger, "info")
+                        and self._logger
+                        and hasattr(self._logger, "info")
                     ):
-                        self.logger.info(
+                        self._logger.info(
                             f"Step completed: {service_name}.{step_operation}"
                         )
                 else:
                     # Handle step failure - implement rollback if needed
                     if (
                         hasattr(self, "logger")
-                        and self.logger
-                        and hasattr(self.logger, "error")
+                        and self._logger
+                        and hasattr(self._logger, "error")
                     ):
-                        self.logger.error(
+                        self._logger.error(
                             f"Step failed: {service_name}.{step_operation} - {step_result.error}"
                         )
                     return FlextResult[FlextTypes.Core.Dict].fail(
@@ -182,10 +186,10 @@ class AdvancedCliService(FlextCliService):
         except Exception as e:
             if (
                 hasattr(self, "logger")
-                and self.logger
-                and hasattr(self.logger, "exception")
+                and self._logger
+                and hasattr(self._logger, "exception")
             ):
-                self.logger.exception("Service orchestration failed")
+                self._logger.exception("Service orchestration failed")
             return FlextResult[FlextTypes.Core.Dict].fail(
                 f"Service orchestration failed: {e}"
             )
@@ -219,10 +223,10 @@ class AdvancedCliService(FlextCliService):
                 breaker["state"] = CircuitBreakerState.HALF_OPEN
                 if (
                     hasattr(self, "logger")
-                    and self.logger
-                    and hasattr(self.logger, "info")
+                    and self._logger
+                    and hasattr(self._logger, "info")
                 ):
-                    self.logger.info(
+                    self._logger.info(
                         f"Circuit breaker for {service_name} moved to HALF_OPEN"
                     )
 
@@ -251,14 +255,18 @@ class AdvancedCliService(FlextCliService):
 
             failure_count = int(str(breaker.get("failure_count", 0)))
             failure_threshold = int(str(breaker.get("failure_threshold", 5)))
-            if isinstance(failure_count, int) and isinstance(failure_threshold, int) and failure_count >= failure_threshold:
+            if (
+                isinstance(failure_count, int)
+                and isinstance(failure_threshold, int)
+                and failure_count >= failure_threshold
+            ):
                 breaker["state"] = CircuitBreakerState.OPEN
                 if (
                     hasattr(self, "logger")
-                    and self.logger
-                    and hasattr(self.logger, "warning")
+                    and self._logger
+                    and hasattr(self._logger, "warning")
                 ):
-                    self.logger.warning(f"Circuit breaker OPENED for {service_name}")
+                    self._logger.warning(f"Circuit breaker OPENED for {service_name}")
 
             return FlextResult[bool].fail(f"Service call failed for {service_name}")
 
@@ -477,7 +485,9 @@ def demonstrate_circuit_breaker_pattern() -> FlextResult[None]:
         state = breaker_info.get("state")
         state_value = getattr(state, "value", str(state)) if state else "unknown"
         breaker_table.add_row("State", str(state_value))
-        breaker_table.add_row("Failure Count", str(breaker_info.get("failure_count", 0)))
+        breaker_table.add_row(
+            "Failure Count", str(breaker_info.get("failure_count", 0))
+        )
         breaker_table.add_row(
             "Failure Threshold", str(breaker_info.get("failure_threshold", 5))
         )
@@ -542,7 +552,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     console.print("\n[green]Dependency Injection with CLI Container[/green]")
 
     # Create and configure CLI container
-    container: object = FlextContainer.get_global()
+    container: FlextContainer = FlextContainer.get_global()
     # Container has register/get methods available
     if container:
         console.print("[green]✓[/green] Container is ready to use")
@@ -584,7 +594,9 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
             retrieval_result = container.get(service_name)
             if retrieval_result.is_success:
                 retrieved_service = retrieval_result.value
-                console.print(f"   ✅ {service_name}: {type(retrieved_service).__name__}")
+                console.print(
+                    f"   ✅ {service_name}: {type(retrieved_service).__name__}"
+                )
             else:
                 console.print(f"   ❌ {service_name}: {retrieval_result.error}")
         else:

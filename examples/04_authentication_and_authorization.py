@@ -26,6 +26,7 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime, timedelta
 
+from flext_core import FlextResult, FlextTypes
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -37,7 +38,6 @@ from flext_cli import (
     FlextCliDecorators,
     FlextCliService,
 )
-from flext_core import FlextResult, FlextTypes
 
 
 def demonstrate_basic_authentication() -> FlextResult[None]:

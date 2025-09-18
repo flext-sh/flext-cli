@@ -7,9 +7,10 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
+from flext_core import FlextResult
+
 from flext_cli.config import FlextCliConfig
 from flext_cli.logging_setup import FlextCliLoggingSetup
-from flext_core import FlextResult
 
 
 class TestFlextCliLoggingConfig:
@@ -109,7 +110,9 @@ class TestFlextCliLoggingSetup:
 
         # Mock the method using patch on the class instead of instance
         with patch.object(
-            FlextCliLoggingSetup, "_detect_log_configuration", mock_detect_config,
+            FlextCliLoggingSetup,
+            "_detect_log_configuration",
+            mock_detect_config,
         ):
             result = setup.setup_logging()
 
@@ -146,7 +149,9 @@ class TestFlextCliLoggingSetup:
     def test_setup_logging_with_env_file(self) -> None:
         """Test logging setup with .env file."""
         with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".env", delete=False,
+            mode="w",
+            suffix=".env",
+            delete=False,
         ) as tmp_file:
             tmp_file.write("FLEXT_CLI_LOG_LEVEL=WARNING\n")
             tmp_file.flush()

@@ -6,9 +6,9 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 
 import pytest
+from flext_core import FlextResult
 
 from flext_cli import FlextCliConstants, FlextCliDomainServices, FlextCliModels
-from flext_core import FlextResult
 
 
 class TestFlextCliDomainServices:
@@ -383,7 +383,8 @@ class TestIntegrationScenarios:
 
             # Add to session
             add_result = self.domain_services.add_command_to_session(
-                session, cmd_result.value,
+                session,
+                cmd_result.value,
             )
             assert add_result.is_success
 
@@ -492,6 +493,7 @@ class TestExceptionHandling:
 
     def test_graceful_exception_handling(self) -> None:
         """Test that all methods handle exceptions gracefully."""
+
         # All domain service methods should return FlextResult and handle exceptions
         # Use proper types for different FlextResult return types
         # Test methods that return different FlextResult types
