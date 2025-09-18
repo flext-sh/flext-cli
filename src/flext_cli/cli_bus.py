@@ -143,7 +143,9 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         profile: str = FlextCliConstants.ProfileName.DEFAULT,
     ) -> FlextResult[dict[str, object]]:
         """Execute show config command using flext-core Command Bus."""
-        command = FlextCliCommands.ShowConfigCommand(output_format=output_format, profile=profile)
+        command = FlextCliCommands.ShowConfigCommand(
+            output_format=output_format, profile=profile
+        )
         # Validate command using nested helper
         validation_result = self._CommandValidator.validate_command_data(command)
         if validation_result.is_failure:
@@ -168,7 +170,9 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         self, key: str, value: str, profile: str = FlextCliConstants.ProfileName.DEFAULT
     ) -> FlextResult[bool]:
         """Execute set config command using flext-core Command Bus."""
-        command = FlextCliCommands.SetConfigValueCommand(key=key, value=value, profile=profile)
+        command = FlextCliCommands.SetConfigValueCommand(
+            key=key, value=value, profile=profile
+        )
         validation_result = self._CommandValidator.validate_command_data(command)
         if validation_result.is_failure:
             return FlextResult[bool].fail(

@@ -126,7 +126,9 @@ class FlextCliCommands:
             default="auth_logout", description="Command type identifier"
         )
 
-        all_profiles: bool = Field(default=False, description="Logout from all profiles")
+        all_profiles: bool = Field(
+            default=False, description="Logout from all profiles"
+        )
 
         def validate_command(self) -> FlextResult[bool]:
             """Validate auth logout command parameters."""
@@ -139,7 +141,9 @@ class FlextCliCommands:
             default="debug_info", description="Command type identifier"
         )
 
-        include_system: bool = Field(default=True, description="Include system information")
+        include_system: bool = Field(
+            default=True, description="Include system information"
+        )
         include_config: bool = Field(
             default=True, description="Include configuration information"
         )

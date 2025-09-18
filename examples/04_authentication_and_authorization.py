@@ -32,11 +32,10 @@ from rich.table import Table
 
 from examples import print_demo_completion
 from flext_cli import (
+    FlextCliAuth,
     FlextCliConfig,
+    FlextCliDecorators,
     FlextCliService,
-    get_auth_headers,
-    require_auth,
-    save_auth_token,
 )
 from flext_core import FlextResult, FlextTypes
 
@@ -52,7 +51,8 @@ def demonstrate_basic_authentication() -> FlextResult[None]:
     # Simulate receiving a token from login
     demo_token = "flx_demo_token_" + datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
 
-    save_result = save_auth_token(demo_token)
+    auth = FlextCliAuth()
+    save_result = auth.save_auth_token(demo_token)
     if save_result.is_success:
         console.print("✅ Authentication token saved successfully")
         console.print(f"   Token prefix: {demo_token[:20]}...")
@@ -65,7 +65,7 @@ def demonstrate_basic_authentication() -> FlextResult[None]:
 
     # get_auth_headers returns FlextTypes.Core.Headers directly, not FlextResult
     try:
-        headers = get_auth_headers()
+        headers = auth.get_auth_headers()
         if headers and isinstance(headers, dict):
             console.print("✅ Authorization headers retrieved")
             console.print("   Headers structure:")
@@ -123,7 +123,7 @@ def demonstrate_api_authentication() -> FlextResult[None]:
     return FlextResult[None].ok(None)
 
 
-@require_auth()
+@FlextCliDecorators.require_auth()
 def demonstrate_protected_operation() -> FlextResult[str]:
     """Demonstrate a protected operation requiring authentication."""
     console = Console()

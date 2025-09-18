@@ -362,7 +362,19 @@ class FlextCliModels:
         name: str = Field(..., description="Pipeline name")
         description: str = Field(default="", description="Pipeline description")
         status: str = Field(default="inactive", description="Pipeline status")
-        config: dict[str, object] = Field(default_factory=dict, description="Pipeline configuration")
+        config: dict[str, object] = Field(
+            default_factory=dict, description="Pipeline configuration"
+        )
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate pipeline business rules."""
+            if not self.name or not self.name.strip():
+                return FlextResult[None].fail("Pipeline must have a name")
+
+            if self.status not in {"active", "inactive", "pending", "failed"}:
+                return FlextResult[None].fail("Invalid pipeline status")
+
+            return FlextResult[None].ok(None)
 
         # Entity fields are inherited: id, created_at, updated_at (all required datetime)
 
@@ -533,7 +545,9 @@ class FlextCliModels:
         pipelines: list[FlextCliModels.Pipeline] = Field(default_factory=list)
         total: int = Field(default=0, ge=0, description="Total number of pipelines")
         page: int = Field(default=1, ge=1, description="Current page number")
-        page_size: int = Field(default=10, ge=1, le=100, description="Number of items per page")
+        page_size: int = Field(
+            default=10, ge=1, le=100, description="Number of items per page"
+        )
         has_next: bool = Field(default=False)
         has_previous: bool = Field(default=False)
 
@@ -580,7 +594,9 @@ class FlextCliModels:
         schedule: str | None = Field(default=None, description="Schedule expression")
         transform: str | None = Field(default=None, description="Transform name")
         state: str | None = Field(default=None, description="State backend")
-        config: dict[str, object] | None = Field(default=None, description="Additional configuration")
+        config: dict[str, object] | None = Field(
+            default=None, description="Additional configuration"
+        )
 
         @field_validator("timeout_seconds")
         @classmethod
