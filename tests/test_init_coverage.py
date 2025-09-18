@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from flext_cli import (
-    FlextApiClient,
+    FlextCliClient,
     FlextCliApi,
     FlextCliAuth,
     FlextCliConfig,
@@ -19,7 +19,6 @@ from flext_cli import (
     FlextCliMain,
     FlextCliModels,
     FlextCliService,
-    FlextCliServices,
     __author__,
     __description__,
     __version__,
@@ -76,7 +75,7 @@ class TestFlextCliDirectCoverage:
     def test_direct_import_access(self) -> None:
         """Test that all direct imports are accessible."""
         # Test that classes can be instantiated
-        assert FlextApiClient is not None
+        assert FlextCliClient is not None
         assert FlextCliConstants is not None
         assert FlextCliContext is not None
         assert FlextCliDebug is not None
@@ -87,7 +86,6 @@ class TestFlextCliDirectCoverage:
         assert FlextCliLoggingSetup is not None
         assert FlextCliModels is not None
         assert FlextCliService is not None
-        assert FlextCliServices is not None
 
     def test_command_aliases(self) -> None:
         """Test command aliases work."""

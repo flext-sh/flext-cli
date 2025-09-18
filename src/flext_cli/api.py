@@ -1,4 +1,7 @@
-"""FLEXT CLI API - Unified single-class implementation with Python 3.13 cutting-edge patterns."""
+"""FLEXT CLI API - Unified single-class implementation.
+
+Uses Python 3.13 cutting-edge patterns.
+"""
 
 from __future__ import annotations
 
@@ -32,7 +35,9 @@ T = TypeVar("T")
 
 
 class FlextCliApi(FlextDomainService[str]):
-    """Unified CLI API with Python 3.13 cutting-edge patterns and nested specialized handlers.
+    """Unified CLI API with Python 3.13 cutting-edge patterns.
+
+    Uses nested specialized handlers.
 
     Features:
         - Single class pattern with all functionality encapsulated

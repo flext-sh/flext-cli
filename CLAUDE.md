@@ -6,6 +6,18 @@
 
 **References**: See [../CLAUDE.md](../CLAUDE.md) for FLEXT ecosystem standards and [README.md](README.md) for project overview.
 
+**Hierarchy**: This document provides project-specific standards based on workspace-level patterns defined in [../CLAUDE.md](../CLAUDE.md). For architectural principles, quality gates, and MCP server usage, reference the main workspace standards.
+
+## 🔗 MCP SERVER INTEGRATION
+
+| MCP Server | Purpose | Status |
+|------------|---------|--------|
+| **serena** | CLI codebase analysis and command-line interface patterns | **ACTIVE** |
+| **sequential-thinking** | CLI architecture and user interface problem solving | **ACTIVE** |
+| **github** | CLI ecosystem integration and interface PRs | **ACTIVE** |
+
+**Usage**: `claude mcp list` for available servers, leverage for CLI-specific development patterns and command-line interface analysis.
+
 ---
 
 ## 🎯 FLEXT-CLI MISSION (CLI ECOSYSTEM AUTHORITY)

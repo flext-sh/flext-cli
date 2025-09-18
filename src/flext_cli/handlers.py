@@ -39,14 +39,18 @@ class FlextCliHandlers(FlextDomainService[None]):
         super().__init__()
         self._logger = FlextLogger(__name__)
 
-    class ShowConfigCommandHandler(FlextHandlers[FlextCliCommands.ShowConfigCommand, dict[str, object]]):
+    class ShowConfigCommandHandler(
+        FlextHandlers[FlextCliCommands.ShowConfigCommand, dict[str, object]]
+    ):
         """Handler for showing CLI configuration using flext-core CommandHandler."""
 
         def __init__(self) -> None:
             """Initialize ShowConfigHandler."""
             super().__init__(handler_name="ShowConfigHandler")
 
-        def handle(self, message: FlextCliCommands.ShowConfigCommand) -> FlextResult[dict[str, object]]:
+        def handle(
+            self, message: FlextCliCommands.ShowConfigCommand
+        ) -> FlextResult[dict[str, object]]:
             """Handle show config command with proper error handling."""
             try:
                 # Load configuration using flext-cli config system
@@ -76,14 +80,18 @@ class FlextCliHandlers(FlextDomainService[None]):
                     f"Failed to show configuration: {e}"
                 )
 
-    class SetConfigValueCommandHandler(FlextHandlers[FlextCliCommands.SetConfigValueCommand, bool]):
+    class SetConfigValueCommandHandler(
+        FlextHandlers[FlextCliCommands.SetConfigValueCommand, bool]
+    ):
         """Handler for setting configuration values using flext-core CommandHandler."""
 
         def __init__(self) -> None:
             """Initialize SetConfigValueHandler."""
             super().__init__(handler_name="SetConfigValueHandler")
 
-        def handle(self, message: FlextCliCommands.SetConfigValueCommand) -> FlextResult[bool]:
+        def handle(
+            self, message: FlextCliCommands.SetConfigValueCommand
+        ) -> FlextResult[bool]:
             """Handle set config value command with proper error handling."""
             try:
                 # Load current configuration
@@ -115,7 +123,9 @@ class FlextCliHandlers(FlextDomainService[None]):
             except Exception as e:
                 return FlextResult[bool].fail(f"Failed to set configuration value: {e}")
 
-    class EditConfigCommandHandler(FlextHandlers[FlextCliCommands.EditConfigCommand, bool]):
+    class EditConfigCommandHandler(
+        FlextHandlers[FlextCliCommands.EditConfigCommand, bool]
+    ):
         """Handler for editing configuration using flext-core CommandHandler."""
 
         def __init__(self) -> None:
@@ -123,7 +133,9 @@ class FlextCliHandlers(FlextDomainService[None]):
             super().__init__(handler_name="EditConfigHandler")
             self._constants = FlextCliConstants()
 
-        def handle(self, message: FlextCliCommands.EditConfigCommand) -> FlextResult[bool]:
+        def handle(
+            self, message: FlextCliCommands.EditConfigCommand
+        ) -> FlextResult[bool]:
             """Handle edit config command with proper error handling."""
             try:
                 config = FlextCliConfig(profile=message.profile)
@@ -148,14 +160,18 @@ class FlextCliHandlers(FlextDomainService[None]):
             except Exception as e:
                 return FlextResult[bool].fail(f"Failed to edit configuration: {e}")
 
-    class AuthLoginCommandHandler(FlextHandlers[FlextCliCommands.AuthLoginCommand, dict[str, object]]):
+    class AuthLoginCommandHandler(
+        FlextHandlers[FlextCliCommands.AuthLoginCommand, dict[str, object]]
+    ):
         """Handler for authentication login using flext-core CommandHandler."""
 
         def __init__(self) -> None:
             """Initialize AuthLoginHandler."""
             super().__init__(handler_name="AuthLoginHandler")
 
-        def handle(self, message: FlextCliCommands.AuthLoginCommand) -> FlextResult[dict[str, object]]:
+        def handle(
+            self, message: FlextCliCommands.AuthLoginCommand
+        ) -> FlextResult[dict[str, object]]:
             """Handle auth login command with proper error handling."""
             try:
                 # Simulate authentication process
@@ -181,14 +197,18 @@ class FlextCliHandlers(FlextDomainService[None]):
                     f"Authentication failed: {e}"
                 )
 
-    class AuthStatusCommandHandler(FlextHandlers[FlextCliCommands.AuthStatusCommand, dict[str, object]]):
+    class AuthStatusCommandHandler(
+        FlextHandlers[FlextCliCommands.AuthStatusCommand, dict[str, object]]
+    ):
         """Handler for authentication status using flext-core CommandHandler."""
 
         def __init__(self) -> None:
             """Initialize AuthStatusHandler."""
             super().__init__(handler_name="AuthStatusHandler")
 
-        def handle(self, message: FlextCliCommands.AuthStatusCommand) -> FlextResult[dict[str, object]]:
+        def handle(
+            self, message: FlextCliCommands.AuthStatusCommand
+        ) -> FlextResult[dict[str, object]]:
             """Handle auth status command with proper error handling."""
             try:
                 # Check authentication status
@@ -223,14 +243,18 @@ class FlextCliHandlers(FlextDomainService[None]):
                     f"Failed to check authentication status: {e}"
                 )
 
-    class AuthLogoutCommandHandler(FlextHandlers[FlextCliCommands.AuthLogoutCommand, bool]):
+    class AuthLogoutCommandHandler(
+        FlextHandlers[FlextCliCommands.AuthLogoutCommand, bool]
+    ):
         """Handler for authentication logout using flext-core CommandHandler."""
 
         def __init__(self) -> None:
             """Initialize AuthLogoutHandler."""
             super().__init__(handler_name="AuthLogoutHandler")
 
-        def handle(self, message: FlextCliCommands.AuthLogoutCommand) -> FlextResult[bool]:
+        def handle(
+            self, message: FlextCliCommands.AuthLogoutCommand
+        ) -> FlextResult[bool]:
             """Handle auth logout command with proper error handling."""
             try:
                 config = FlextCliConfig()
@@ -259,14 +283,18 @@ class FlextCliHandlers(FlextDomainService[None]):
             except Exception as e:
                 return FlextResult[bool].fail(f"Logout failed: {e}")
 
-    class DebugInfoCommandHandler(FlextHandlers[FlextCliCommands.DebugInfoCommand, dict[str, object]]):
+    class DebugInfoCommandHandler(
+        FlextHandlers[FlextCliCommands.DebugInfoCommand, dict[str, object]]
+    ):
         """Handler for debug information using flext-core CommandHandler."""
 
         def __init__(self) -> None:
             """Initialize DebugInfoHandler."""
             super().__init__(handler_name="DebugInfoHandler")
 
-        def handle(self, message: FlextCliCommands.DebugInfoCommand) -> FlextResult[dict[str, object]]:
+        def handle(
+            self, message: FlextCliCommands.DebugInfoCommand
+        ) -> FlextResult[dict[str, object]]:
             """Handle debug info command with proper error handling."""
             try:
                 debug_info: dict[str, object] = {

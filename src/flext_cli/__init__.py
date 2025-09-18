@@ -71,10 +71,10 @@ from flext_core import FlextResult
 
 
 __all__ = [
-    # Core CLI classes - no aliases or compatibility layers
-    "FlextCliClient",
     "FlextCliApi",
     "FlextCliAuth",
+    # Core CLI classes - no aliases or compatibility layers
+    "FlextCliClient",
     "FlextCliCmd",
     "FlextCliCommandBusService",
     "FlextCliConfig",

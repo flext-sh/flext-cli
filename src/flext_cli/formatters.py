@@ -273,7 +273,9 @@ class FlextCliFormatters:
         """Print error message with red styling."""
         return self.display_message(message, "error", **kwargs)
 
-    def create_formatter(self, format_type: str) -> FlextCliFormatters.FormatterProtocol:
+    def create_formatter(
+        self, format_type: str
+    ) -> FlextCliFormatters.FormatterProtocol:
         """Create a formatter for the specified format type.
 
         Args:

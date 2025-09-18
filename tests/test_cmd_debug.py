@@ -14,7 +14,7 @@ import unittest
 from pathlib import Path
 
 from flext_cli import FlextCliApi, FlextCliMain
-from flext_cli.client import FlextApiClient
+from flext_cli.client import FlextCliClient as FlextApiClient
 from flext_cli.config import FlextCliConfig
 from flext_cli.models import FlextCliModels
 from flext_core import FlextResult

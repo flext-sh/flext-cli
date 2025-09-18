@@ -657,7 +657,7 @@ def main() -> None:
         # Run circuit breaker demonstration
         console.print("\n" + "=" * 60)
         circuit_breaker_result = demonstrate_circuit_breaker_pattern()
-        if circuit_breaker_result.failure:
+        if circuit_breaker_result.is_failure:
             console.print(
                 f"[red]Circuit breaker demo failed: {circuit_breaker_result.error}[/red]"
             )
@@ -665,7 +665,7 @@ def main() -> None:
         # Run orchestration demonstration
         console.print("\n" + "=" * 60)
         orchestration_result = demonstrate_service_orchestration()
-        if orchestration_result.failure:
+        if orchestration_result.is_failure:
             console.print(
                 f"[red]Orchestration demo failed: {orchestration_result.error}[/red]"
             )
@@ -673,7 +673,7 @@ def main() -> None:
         # Run dependency injection demonstration
         console.print("\n" + "=" * 60)
         di_result = demonstrate_dependency_injection()
-        if di_result.failure:
+        if di_result.is_failure:
             console.print(
                 f"[red]Dependency injection demo failed: {di_result.error}[/red]"
             )

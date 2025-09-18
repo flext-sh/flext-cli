@@ -45,7 +45,17 @@ class FlextCliTypes:
     class Commands:
         """CLI command types using FlextTypes.Commands directly."""
 
-        # CLI-specific command types - direct definitions
+        # CLI-specific command types - proper enum for test compatibility
+        class CommandStatusEnum(StrEnum):
+            """Command status enumeration."""
+
+            PENDING = "PENDING"
+            RUNNING = "RUNNING"
+            COMPLETED = "COMPLETED"
+            FAILED = "FAILED"
+            CANCELLED = "CANCELLED"
+
+        # Also keep the Literal type for type annotations
         CliCommandStatus = Literal[
             "PENDING",
             "RUNNING",
@@ -288,6 +298,15 @@ class FlextCliTypes:
                 raise NotImplementedError
 
 
+# Top-level aliases for test compatibility
+PluginStatus = FlextCliTypes.PluginStatusEnum
+CommandStatus = FlextCliTypes.Commands.CommandStatusEnum
+
+# URL types for test compatibility
+URL = str
+URLType = str
+
+
 # No aliases - use direct imports
 
 
@@ -296,8 +315,10 @@ class FlextCliTypes:
 
 # Minimal exports - only actually used types
 __all__ = [
+    "URL",
     "UUID",
     "BaseModel",
+    "CommandStatus",
     "E",
     "F",
     "Field",
@@ -306,10 +327,12 @@ __all__ = [
     "FlextTypes",
     "P",
     "Path",
+    "PluginStatus",
     "R",
     "T",
     "TypedDict",
     "U",
+    "URLType",
     "V",
     "datetime",
 ]

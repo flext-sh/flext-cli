@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from flext_cli.api import FlextCliApi
 from flext_cli.auth import FlextCliAuth
-from flext_cli.client import FlextApiClient
+from flext_cli.client import FlextCliClient
 from flext_cli.config import FlextCliConfig
 from flext_core import FlextConfig
 
@@ -46,8 +46,8 @@ def demonstrate_global_configuration_refactoring() -> None:
     print("2. Initializing All Modules with FlextConfig Singleton:")
 
     # Initialize API Client
-    api_client = FlextApiClient()
-    print("   ✅ FlextApiClient initialized")
+    api_client = FlextCliClient()
+    print("   ✅ FlextCliClient initialized")
     print(f"      Base URL: {api_client.base_url}")
     print(f"      Timeout: {api_client.timeout}s")
     print(f"      Verify SSL: {api_client.verify_ssl}")
@@ -59,8 +59,8 @@ def demonstrate_global_configuration_refactoring() -> None:
     print(f"      Service Name: {cli_api.service_name}")
 
     # Initialize CLI Service
-    cli_service = FlextApiClient()
-    print("   ✅ FlextApiClient initialized")
+    cli_service = FlextCliClient()
+    print("   ✅ FlextCliClient initialized")
     print(f"      Config Source: {type(cli_service._config).__name__}")
 
     # Initialize CLI Auth
@@ -96,7 +96,7 @@ def demonstrate_global_configuration_refactoring() -> None:
 
     # Update API Client
     api_client.update_from_config()
-    print("   ✅ FlextApiClient updated")
+    print("   ✅ FlextCliClient updated")
     print(f"      New Base URL: {api_client.base_url}")
     print(f"      New Timeout: {api_client.timeout}s")
 
@@ -107,7 +107,7 @@ def demonstrate_global_configuration_refactoring() -> None:
 
     # Update CLI Service
     cli_service.update_from_config()
-    print("   ✅ FlextApiClient updated")
+    print("   ✅ FlextCliClient updated")
     print(f"      Config Updated: {type(cli_service._config).__name__}")
 
     # Update CLI Auth
@@ -173,9 +173,9 @@ def demonstrate_elimination_of_duplicate_patterns() -> None:
 
     # Show how all modules now use the same pattern
     modules = [
-        ("FlextApiClient", "api_client.update_from_config()"),
+        ("FlextCliClient", "api_client.update_from_config()"),
         ("FlextCliApi", "cli_api.update_from_config()"),
-        ("FlextApiClient", "cli_service.update_from_config()"),
+        ("FlextCliClient", "cli_service.update_from_config()"),
         ("FlextCliAuth", "cli_auth.update_from_config()"),
     ]
 
@@ -191,9 +191,9 @@ def demonstrate_dynamic_configuration_updates() -> None:
     print("=== DYNAMIC CONFIGURATION UPDATES ===\n")
 
     # Initialize all modules
-    api_client = FlextApiClient()
+    api_client = FlextCliClient()
     cli_api = FlextCliApi()
-    cli_service = FlextApiClient()
+    cli_service = FlextCliClient()
     cli_auth = FlextCliAuth()
 
     print("1. Initial Configuration State:")
@@ -288,9 +288,9 @@ def demonstrate_cli_parameter_integration() -> None:
 
     # Initialize modules with updated configuration
     print("4. Initializing Modules with Updated Configuration:")
-    api_client = FlextApiClient()
+    api_client = FlextCliClient()
     cli_api = FlextCliApi()
-    cli_service = FlextApiClient()
+    cli_service = FlextCliClient()
     cli_auth = FlextCliAuth()
 
     print("   ✅ All modules initialized with CLI parameter overrides")
