@@ -6,13 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import os
-import sys
 from unittest.mock import MagicMock, patch
 
 import click
 
-import flext_cli.cli  # Import the module to ensure it's loaded for coverage
 from flext_cli.cli import (
     FlextCliMain,
     create_cli_options,
@@ -23,6 +20,7 @@ from flext_cli.cli import (
     setup_logging,
 )
 from flext_cli.configs import FlextCliConfigs
+from flext_cli.typings import FlextCliTypes
 from flext_core import FlextResult
 
 
@@ -73,7 +71,7 @@ class TestCliDirectFunctions:
     def test_flext_cli_main_create_config_with_overrides(self) -> None:
         """Test FlextCliMain create_config_with_overrides method."""
         cli_main = FlextCliMain()
-        cli_options = {
+        cli_options: FlextCliTypes.CliOptions = {
             "profile": "test",
             "output_format": "json",
             "debug": True,
@@ -149,7 +147,7 @@ class TestCliDirectFunctions:
 
     def test_create_config_with_overrides_function(self) -> None:
         """Test create_config_with_overrides standalone function."""
-        cli_options = {
+        cli_options: FlextCliTypes.CliOptions = {
             "profile": "dev",
             "output_format": "yaml",
             "debug": True,
@@ -194,7 +192,7 @@ class TestCliDirectFunctions:
     def test_flext_cli_main_create_config_without_log_level(self) -> None:
         """Test create_config_with_overrides without log_level."""
         cli_main = FlextCliMain()
-        cli_options = {
+        cli_options: FlextCliTypes.CliOptions = {
             "profile": "test",
             "output_format": "json",
             "debug": True,
@@ -207,7 +205,7 @@ class TestCliDirectFunctions:
     def test_flext_cli_main_create_config_without_output_format(self) -> None:
         """Test create_config_with_overrides without output_format."""
         cli_main = FlextCliMain()
-        cli_options = {
+        cli_options: FlextCliTypes.CliOptions = {
             "profile": "test",
             "output_format": None,
             "debug": False,
@@ -231,7 +229,7 @@ class TestCliErrorPaths:
     def test_create_config_with_overrides_failure_path(self) -> None:
         """Test create_config_with_overrides when apply_cli_overrides fails."""
         # This will test the failure path if apply_cli_overrides returns failure
-        cli_options = {
+        cli_options: FlextCliTypes.CliOptions = {
             "profile": "test",
             "output_format": "json",
             "debug": True,
@@ -239,7 +237,7 @@ class TestCliErrorPaths:
             "log_level": "DEBUG",
         }
 
-        with patch('flext_cli.configs.FlextCliConfigs.apply_cli_overrides') as mock_apply:
+        with patch("flext_cli.configs.FlextCliConfigs.apply_cli_overrides") as mock_apply:
             mock_apply.return_value = FlextResult[FlextCliConfigs].fail("Test failure")
             result = create_config_with_overrides(cli_options)
             assert isinstance(result, FlextResult)

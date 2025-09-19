@@ -96,7 +96,7 @@ class FlextCliMain(FlextDomainService[str]):
                     "debug_mode": options["debug"],
                     "quiet_mode": options["quiet"],
                     "profile": options["profile"],
-                    "output_format": options["output_format"],
+                    "output_format": options["output_format"] or "table",
                 }
                 return FlextResult[FlextCliTypes.CliContext].ok(cli_context)
             except Exception as e:

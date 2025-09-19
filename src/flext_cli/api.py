@@ -9,961 +9,430 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-import logging
 import platform
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Protocol, override
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import yaml
-from pydantic import BaseModel, Field, PrivateAttr
 
-from flext_cli.configs import FlextCliConfigs
-from flext_cli.core import FlextCliService
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
-from flext_core import FlextContainer, FlextResult, FlextTypes, T
+from flext_core import (
+    FlextContainer,
+    FlextDomainService,
+    FlextLogger,
+    FlextResult,
+    FlextTypes,
+)
 
 
-class FlextCliApi(BaseModel):
-    """Unified CLI API with Python 3.13 cutting-edge patterns.
+class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
+    """Unified CLI API service using single responsibility principle.
 
-    Uses nested specialized handlers.
-
-    Features:
-        - Single class pattern with all functionality encapsulated
-        - Nested specialized handlers for different operation types
-        - Advanced pattern matching for request dispatching
-        - Zero loose helper functions - all functionality contained
-        - Advanced Pydantic v2 optimizations with computed fields
+    Provides core CLI functionality expected by the ecosystem.
+    ARCHITECTURAL COMPLIANCE: One class per module, nested helpers pattern.
     """
 
-    # State management attributes - SIMPLE ALIAS: Use optional fields with proper defaults
-    state: FlextCliModels.ApiState | None = Field(default=None)
-    dispatcher: object | None = Field(
-        default=None,
-    )  # Will be OperationDispatcher implementing DispatcherProtocol at runtime
+    class _StateHelper:
+        """Nested helper for state management - no loose functions."""
 
+        @staticmethod
+        def create_initial_state() -> FlextCliModels.ApiState:
+            """Create initial API state with proper defaults."""
+            return FlextCliModels.ApiState(
+                service_name="flext-cli-api",
+                enable_session_tracking=True,
+                enable_command_history=True,
+                command_history=[],
+                sessions={},
+            )
 
-    def api_state(self) -> FlextCliModels.ApiState:
-        """Create ApiState instance for test compatibility."""
-        return FlextCliModels.ApiState()
+    class _ValidationHelper:
+        """Nested helper for input validation - no loose functions."""
 
-    # Private attributes for Pydantic
-    _formatters: FlextCliFormatters = PrivateAttr()
-    _container: object = PrivateAttr()
-    _logger: object = PrivateAttr()
-    _models: object = PrivateAttr()
-    _services: object = PrivateAttr()
-
-    # Model configuration
-    model_config = {"arbitrary_types_allowed": True}
-
-    class DispatcherProtocol(Protocol):
-        """Protocol for operation dispatcher with proper type safety."""
-
-        def dispatch_operation(
-            self, operation: str, **params: object
-        ) -> FlextResult[object]:
-            """Dispatch operation with parameters."""
-            ...
-
-        def configure(self, config: object) -> FlextResult[None]:
-            """Configure dispatcher with settings."""
-            ...
-
-    # =========================================================================
-    # NESTED SPECIALIZED CLASSES - Advanced Architecture Pattern
-    # =========================================================================
-
-    class OperationDispatcher:
-        """Nested operation dispatcher using Python 3.13 pattern matching."""
-
-        def __init__(
-            self,
-            state: FlextCliModels.ApiState,
-            formatters: FlextCliFormatters,
-        ) -> None:
-            """Initialize operation dispatcher with state and formatters."""
-            self.state = state
-            self.formatters = formatters
-
-        def dispatch_operation(
-            self,
-            operation: str,
-            **params: object,
-        ) -> FlextResult[object]:
-            """Advanced operation dispatching using match-case patterns."""
-            match operation.lower():
-                case "format":
-                    format_result = self._handle_format_operation(
-                        params.get("data"),
-                        str(params.get("format_type", "table")),
-                    )
-                    return (
-                        FlextResult[object].ok(format_result.value)
-                        if format_result.is_success
-                        else FlextResult[object].fail(
-                            format_result.error or "Format failed",
-                        )
-                    )
-                case "export":
-                    export_result = self._handle_export_operation(
-                        params.get("data"),
-                        params.get("file_path"),
-                    )
-                    return (
-                        FlextResult[object].ok(export_result.value)
-                        if export_result.is_success
-                        else FlextResult[object].fail(
-                            export_result.error or "Export failed",
-                        )
-                    )
-                case "transform":
-                    transform_result = self._handle_transform_operation(
-                        params.get("data"),
-                        params.get("filters"),
-                    )
-                    return (
-                        FlextResult[object].ok(transform_result.value)
-                        if transform_result.is_success
-                        else FlextResult[object].fail(
-                            transform_result.error or "Transform failed",
-                        )
-                    )
-                case "create_command":
-                    cmd_result = self._handle_create_command_operation(
-                        params.get("command_line"),
-                    )
-                    return (
-                        FlextResult[object].ok(cmd_result.value)
-                        if cmd_result.is_success
-                        else FlextResult[object].fail(
-                            cmd_result.error or "Create command failed",
-                        )
-                    )
-                case "execute_command":
-                    exec_result = self._handle_execute_command_operation(
-                        params.get("command"),
-                    )
-                    return (
-                        FlextResult[object].ok(exec_result.value)
-                        if exec_result.is_success
-                        else FlextResult[object].fail(
-                            exec_result.error or "Execute command failed",
-                        )
-                    )
-                case "create_session":
-                    session_result = self._handle_create_session_operation(
-                        params.get("user_id"),
-                    )
-                    return (
-                        FlextResult[object].ok(session_result.value)
-                        if session_result.is_success
-                        else FlextResult[object].fail(
-                            session_result.error or "Create session failed",
-                        )
-                    )
-                case "end_session":
-                    end_result = self._handle_end_session_operation(
-                        params.get("session_id"),
-                    )
-                    return (
-                        FlextResult[object].ok(end_result.value)
-                        if end_result.is_success
-                        else FlextResult[object].fail(
-                            end_result.error or "End session failed",
-                        )
-                    )
-                case "health":
-                    health_result = self._handle_health_operation()
-                    return (
-                        FlextResult[object].ok(health_result.value)
-                        if health_result.is_success
-                        else FlextResult[object].fail(
-                            health_result.error or "Health check failed",
-                        )
-                    )
-                case "configure":
-                    config_result = self._handle_configure_operation(
-                        params.get("config"),
-                    )
-                    return (
-                        FlextResult[object].ok(config_result.value)
-                        if config_result.is_success
-                        else FlextResult[object].fail(
-                            config_result.error or "Configure failed",
-                        )
-                    )
-                case "aggregate":
-                    agg_result = self._handle_aggregate_operation(
-                        params.get("data"),
-                        params.get("group_by"),
-                        params.get("sum_fields"),
-                    )
-                    return (
-                        FlextResult[object].ok(agg_result.value)
-                        if agg_result.is_success
-                        else FlextResult[object].fail(
-                            agg_result.error or "Aggregate failed",
-                        )
-                    )
-                case "batch_export":
-                    batch_result = self._handle_batch_export_operation(
-                        params.get("datasets"),
-                        params.get("base_path"),
-                        params.get("format_type"),
-                    )
-                    return (
-                        FlextResult[object].ok(batch_result.value)
-                        if batch_result.is_success
-                        else FlextResult[object].fail(
-                            batch_result.error or "Batch export failed",
-                        )
-                    )
-                case _:
-                    return FlextResult[object].fail(f"Unknown operation: {operation}")
-
-        def _handle_format_operation(
-            self,
-            data: object,
-            format_type: str,
-        ) -> FlextResult[str]:
-            """Handle format operations using advanced parameter validation."""
+        @staticmethod
+        def validate_format_type(format_type: str) -> FlextResult[str]:
+            """Validate format type parameter."""
             if not format_type or not isinstance(format_type, str):
                 return FlextResult[str].fail("Format type must be a non-empty string")
 
-            match format_type.lower():
-                case "json":
-                    result = json.dumps(data, default=str)
-                    return FlextResult[str].ok(result)
-                case "yaml":
-                    result = yaml.dump(
-                        data,
-                        default_flow_style=False,
-                        allow_unicode=True,
-                    )
-                    return FlextResult[str].ok(result)
-                case "csv":
-                    return self._format_as_csv(data)
-                case "table":
-                    # FlextCliFormatters handles all object types - no type validation needed
-                    # Type cast to match formatter expectations
-                    formatted_data = (
-                        data if isinstance(data, (dict, list)) else {"value": data}
-                    )
-                    table_result = self.formatters.create_table(formatted_data)
-                    if table_result.is_success:
-                        # Convert Table to string representation
-                        return FlextResult[str].ok(str(table_result.value))
-                    return FlextResult[str].fail(
-                        table_result.error or "Table formatting failed",
-                    )
-                case "plain":
-                    return FlextResult[str].ok(str(data))
-                case _:
-                    return FlextResult[str].fail(
-                        f"Unsupported format type: {format_type}",
-                    )
+            valid_formats = {"json", "yaml", "csv", "table", "plain"}
+            if format_type.lower() not in valid_formats:
+                return FlextResult[str].fail(f"Unsupported format type: {format_type}")
 
-        def _format_as_csv(self, data: object) -> FlextResult[str]:
-            """Format data as CSV using flext-core utilities - NO duplication."""
-            # REMOVED: Local CSV implementation - using flext-core formatters instead
-            # This method now delegates to standard string formatting
-            # CSV format should be handled by dedicated CSV processors in proper domain
-            return FlextResult[str].ok(str(data))
+            return FlextResult[str].ok(format_type.lower())
 
-        def _handle_export_operation(
-            self,
-            _data: object,
-            _file_path: object,
-        ) -> FlextResult[str]:
-            """ELIMINATED: File I/O violates API single responsibility principle."""
-            # VIOLATION: CLI API should NOT handle file operations directly
-            # SOLUTION: Delegate to proper file operations domain (FlextCliFileOperations)
-            return FlextResult[str].fail(
-                "Export operations moved to FlextCliFileOperations domain",
-            )
-
-        def _handle_transform_operation(
-            self,
-            _data: object,
-            _filters: object,
-        ) -> FlextResult[FlextTypes.Core.List]:
-            """ELIMINATED: Data transformation violates API single responsibility principle."""
-            # VIOLATION ANALYSIS:
-            # - Data transformation: Already available in FlextUtilities from flext-core
-            # - Filtering logic: Should use flext-core data processing utilities
-            # - Data conversion patterns: FlextUtilities has pattern matching conversions
-            # - Complex filtering: Violates Single Responsibility Principle for CLI API
-            #
-            # SOLUTION: Use FlextUtilities from flext-core for data transformations
-            return FlextResult[FlextTypes.Core.List].fail(
-                "Data transformation operations moved to FlextUtilities from flext-core - use existing utilities",
-            )
-
-        def _handle_create_command_operation(
-            self,
-            command_line: object,
-        ) -> FlextResult[FlextCliModels.CliCommand]:
-            """Handle command creation with advanced validation."""
+        @staticmethod
+        def validate_command_line(command_line: object) -> FlextResult[str]:
+            """Validate command line parameter."""
             if not isinstance(command_line, str) or not command_line.strip():
-                return FlextResult[FlextCliModels.CliCommand].fail(
-                    "Invalid command line",
-                )
-            command = FlextCliModels.CliCommand(
-                id=str(uuid4()),
-                command_line=command_line.strip(),
-                execution_time=datetime.now(UTC),
-            )
-            self.state.command_history.append(command)
-            return FlextResult[FlextCliModels.CliCommand].ok(command)
+                return FlextResult[str].fail("Command line must be a non-empty string")
 
-        def _handle_execute_command_operation(
-            self,
-            command: object,
-        ) -> FlextResult[str]:
-            """Handle command execution with validation."""
-            if not isinstance(command, FlextCliModels.CliCommand):
-                return FlextResult[str].fail("Invalid command object")
-            return FlextResult[str].ok(f"Executed: {command.command_line}")
+            return FlextResult[str].ok(command_line.strip())
 
-        def _handle_create_session_operation(
-            self,
-            user_id: object,
-        ) -> FlextResult[FlextCliModels.CliSession]:
-            """Handle session creation with advanced state management."""
-            session = FlextCliModels.CliSession(
-                id=str(uuid4()),
-                session_id=str(uuid4()),
-                start_time=datetime.now(UTC),
-                user_id=str(user_id) if user_id else None,
-            )
-            if self.state.enable_session_tracking:
-                self.state.sessions[session.session_id] = session
-            return FlextResult[FlextCliModels.CliSession].ok(session)
-
-        def _handle_end_session_operation(
-            self,
-            session_id: object,
-        ) -> FlextResult[None]:
-            """Handle session end with advanced validation."""
-            if not isinstance(session_id, str) or not session_id.strip():
-                return FlextResult[None].fail("Session ID must be a non-empty string")
-
-            try:
-                UUID(session_id)
-            except ValueError:
-                return FlextResult[None].fail(
-                    f"Invalid session ID format: {session_id}",
-                )
-
-            # Remove from tracking if exists
-            if session_id in self.state.sessions:
-                del self.state.sessions[session_id]
-
-            return FlextResult[None].ok(None)
-
-        def _handle_health_operation(self) -> FlextResult[FlextTypes.Core.Dict]:
-            """Handle health check with comprehensive system information."""
-            return FlextResult[FlextTypes.Core.Dict].ok(
-                {
-                    "status": "healthy",
-                    "version": self.state.version,
-                    "service": self.state.service_name,
-                    "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
-                    "platform": platform.system(),
-                    "timestamp": datetime.now(UTC).isoformat(),
-                    "sessions": self.state.session_count,
-                    "handlers": self.state.handler_count,
-                    "features": {
-                        "session_tracking": self.state.enable_session_tracking,
-                        "command_history": self.state.enable_command_history,
-                    },
-                },
-            )
-
-        def configure(self, config: object) -> FlextResult[None]:
-            """Configure API with validation and state updates."""
-            return self._handle_configure_operation(config)
-
-        def _handle_configure_operation(self, config: object) -> FlextResult[None]:
-            """Handle configuration with advanced validation and state updates."""
-            if not isinstance(config, dict):
-                return FlextResult[None].fail("Configuration must be a dictionary")
-
-            if not config:
-                return FlextResult[None].fail("Configuration cannot be empty")
-
-            # Apply configuration settings using pattern matching
-            for key, value in config.items():
-                match key:
-                    case "enable_session_tracking":
-                        self.state.enable_session_tracking = bool(value)
-                    case "enable_command_history":
-                        self.state.enable_command_history = bool(value)
-                    case "version":
-                        if str(value):
-                            # Convert to int since Entity.version expects int
-                            version_str = str(value)
-                            if "." in version_str:
-                                version_parts = version_str.split(".")
-                                if version_parts and version_parts[0].isdigit():
-                                    self.state.version = int(
-                                        version_parts[0],
-                                    )  # Use major version
-                                else:
-                                    self.state.version = 1  # Default version
-                            elif version_str.isdigit():
-                                self.state.version = int(version_str)
-                            else:
-                                self.state.version = 1  # Default version
-
-            return FlextResult[None].ok(None)
-
-        def _handle_aggregate_operation(
-            self,
-            _data: object,
-            _group_by: object,
-            _sum_fields: object,
-        ) -> FlextResult[FlextTypes.Core.Dict]:
-            """ELIMINATED: Data aggregation violates API single responsibility principle."""
-            # VIOLATION ANALYSIS:
-            # - Complex data grouping: Should be in FlextDataProcessing service
-            # - Mathematical computations (sum, count): Not CLI API responsibility
-            # - Business logic for aggregations: Belongs in dedicated analytics domain
-            # - Data transformation patterns: FlextUtilities has these capabilities
-            # - Advanced computations: Violates Single Responsibility Principle
-            #
-            # SOLUTION: Use FlextDataProcessing service from flext-core for aggregations
-            return FlextResult[FlextTypes.Core.Dict].fail(
-                "Data aggregation operations moved to FlextDataProcessing service - use dedicated analytics domain",
-            )
-
-        def _handle_batch_export_operation(
-            self,
-            datasets: object,
-            base_path: object,
-            format_type: object,
-        ) -> FlextResult[list[str]]:
-            """Handle batch export."""
-            if not isinstance(datasets, list):
-                return FlextResult[list[str]].fail(
-                    "Datasets must be a list",
-                )
-
-            if not isinstance(base_path, (str, Path)):
-                return FlextResult[list[str]].fail(
-                    "Base path must be string or Path",
-                )
-
-            if not isinstance(format_type, str):
-                return FlextResult[list[str]].fail(
-                    "Format type must be string",
-                )
-
-            base = Path(base_path)
-            base.mkdir(parents=True, exist_ok=True)
-
-            exported_files = []
-
-            for name, data in datasets:
-                if not isinstance(name, str) or not name:
-                    return FlextResult[list[str]].fail(
-                        "Dataset names must be non-empty strings",
-                    )
-
-                filename = f"{name}.{format_type}"
-                file_path = base / filename
-
-                if format_type == "json":
-                    content = json.dumps(data, indent=2)
-                elif format_type in {"yaml", "yml"}:
-                    content = yaml.safe_dump(data, default_flow_style=False)
-                else:
-                    content = str(data)
-
-                file_path.write_text(content, encoding="utf-8")
-                exported_files.append(str(file_path))
-
-            return FlextResult[list[str]].ok(exported_files)
-
-    # =========================================================================
-    # MAIN API IMPLEMENTATION
-    # =========================================================================
-
-    def __init__(
-        self,
-        *,
-        models: type[BaseModel] | None = None,
-        services: FlextCliService | None = None,
-        version: str | None = None,
-    ) -> None:
-        """Initialize unified API with nested architecture and flext-core patterns.
-
-        Uses FlextConfig singleton as the single source of truth for all configuration.
-        """
-        # Get FlextConfig singleton as single source of truth
-        config = FlextCliConfigs.get_global_instance()
-
-        # Use config values as defaults, allow overrides
-        api_version = str(version or getattr(config, "project_version", "0.9.1"))
-
-        # Initialize components needed for dispatcher (temporary)
-        temp_formatters = FlextCliFormatters()
-
-        # Initialize state and dispatcher BEFORE calling super() - SIMPLE ALIAS approach
-        # Convert version to int for Entity compatibility
-        if "." in api_version:
-            version_parts = api_version.split(".")
-            if version_parts and version_parts[0].isdigit():
-                version_int = int(version_parts[0])  # Use major version
-            else:
-                version_int = 1  # Default version
-        elif api_version.isdigit():
-            version_int = int(api_version)
-        else:
-            version_int = 1  # Default version
-
-        # Create ApiState with required base_url from config
-        api_base_url = getattr(config, "api_url", "http://localhost:8000")
-        state = FlextCliModels.ApiState(
-            version=version_int,
-            base_url=api_base_url,
-        )
-        dispatcher = FlextCliApi.OperationDispatcher(
-            state=state,
-            formatters=temp_formatters,
-        )
-
-        # Initialize FlextDomainService without extra data
+    def __init__(self) -> None:
+        """Initialize FlextCliApi with proper state management."""
         super().__init__()
-
-        # Set state and dispatcher using object.__setattr__ to bypass frozen model
-        object.__setattr__(self, "state", state)
-        object.__setattr__(self, "dispatcher", dispatcher)
-
-        # Set all private attributes after Pydantic initialization
-        self._formatters = temp_formatters
-        self._container = FlextContainer()
-        self._logger = logging.getLogger(__name__)
-        self._models = models or BaseModel
-
-        # Store reference to config for future use
-        self._config = config
-        self._services = services or FlextCliService()
-
-    def _dispatch_operation(
-        self,
-        operation: str,
-        **kwargs: object,
-    ) -> FlextResult[object]:
-        """Safely dispatch operation to dispatcher with type checking."""
-        if self.dispatcher is None:
-            return FlextResult[object].fail("Dispatcher not initialized")
-        if not hasattr(self.dispatcher, "dispatch_operation"):
-            return FlextResult[object].fail(
-                "Dispatcher missing dispatch_operation method",
-            )
-        # Safe attribute access with getattr for type checking compliance
-        dispatch_method = getattr(self.dispatcher, "dispatch_operation")
-        result = dispatch_method(operation, **kwargs)
-        return (
-            result
-            if isinstance(result, FlextResult)
-            else FlextResult[object].ok(result)
-        )
-
-    def configure(self, config: object) -> FlextResult[None]:
-        """Configure API with validation and state updates."""
-        if self.dispatcher is None:
-            return FlextResult[None].fail("Dispatcher not initialized")
-        if not hasattr(self.dispatcher, "configure"):
-            return FlextResult[None].fail("Dispatcher missing configure method")
-        # Safe attribute access with getattr for type checking compliance
-        configure_method = getattr(self.dispatcher, "configure")
-        result = configure_method(config)
-        return result if isinstance(result, FlextResult) else FlextResult[None].ok(None)
-
-    def update_from_config(self) -> None:
-        """Update API configuration from FlextConfig singleton.
-
-        This method allows the API to refresh its configuration
-        from the FlextConfig singleton, ensuring it always uses
-        the latest configuration values.
-        """
-        # Update configuration from singleton
-        self._config = FlextCliConfigs.get_global_instance()
-
-        # Update state with new configuration
-        if hasattr(self, "state") and self.state:
-            # Update version from config - convert to int for Entity compatibility
-            config_version = getattr(self._config, "project_version", "0.9.1")
-            version_str = str(config_version)
-            if "." in version_str:
-                version_parts = version_str.split(".")
-                if version_parts and version_parts[0].isdigit():
-                    self.state.version = int(version_parts[0])  # Use major version
-                else:
-                    self.state.version = 1  # Default version
-            elif version_str.isdigit():
-                self.state.version = int(version_str)
-            else:
-                self.state.version = 1  # Default version
-
-    # =========================================================================
-    # PUBLIC API - Maintaining original signatures for backward compatibility
-    # =========================================================================
+        self._logger = FlextLogger(__name__)
+        self._container = FlextContainer.get_global()
+        self._formatters = FlextCliFormatters()
+        self._state = self._StateHelper.create_initial_state()
 
     def execute(
-        self,
-        operation: str | None = None,
-        **kwargs: object,
-    ) -> FlextResult[str]:
-        """Execute service request - required by FlextDomainService with simple alias support."""
-        if operation is None:
-            # Default execution for FlextDomainService
-            health_result = self._dispatch_operation("health")
-            if health_result.is_success:
-                return FlextResult[str].ok("CLI API executed successfully")
-            return FlextResult[str].fail(f"API execution failed: {health_result.error}")
-
-        if operation == "format":
-            format_type = kwargs.get("format_type", "plain")
-            data = kwargs.get("data", {})
-            return self.format_data(data, str(format_type))
-
-        # Dispatch other operations through the dispatcher
-        result = self._dispatch_operation(operation, **kwargs)
-        return (
-            FlextResult[str].ok(str(result.value))
-            if result.is_success
-            else FlextResult[str].fail(result.error or f"Operation {operation} failed")
-        )
-
-    def execute_operation(
-        self,
-        operation_name: str,
-        operation: object,
-        *_args: object,
-        **kwargs: object,
-    ) -> FlextResult[object]:
-        """Universal operation executor using advanced pattern matching dispatch."""
-        # Convert superclass signature to internal dispatcher call
-        all_params = dict(kwargs)
-        if operation is not None:
-            all_params["operation"] = operation
-        return self._dispatch_operation(operation_name, **all_params)
-
-    # =========================================================================
-    # CONVENIENCE METHODS - Backward compatibility with unified implementation
-    # =========================================================================
-
-    def display_message(
-        self,
-        message: str,
-        message_type: str = "info",
-    ) -> FlextResult[None]:
-        """Display message using CLI formatters."""
-        if not message:
-            return FlextResult[None].fail("Message cannot be empty")
-
-        if message_type not in {"info", "warning", "error", "success"}:
-            return FlextResult[None].fail(f"Invalid message type: {message_type}")
-
-        # Use formatters to display message with type
-        display_result = self._formatters.display_message(message, message_type)
-        if display_result.is_success:
-            return FlextResult[None].ok(None)
-        return FlextResult[None].fail(display_result.error or "Message display failed")
-
-    def display_output(
-        self,
-        data: object,
-        format_type: str = "table",
-        title: str | None = None,
-    ) -> FlextResult[None]:
-        """Display output using CLI formatters."""
-        if data is None:
-            return FlextResult[None].fail("Data cannot be None")
-
-        if format_type not in {"table", "json", "yaml", "text"}:
-            return FlextResult[None].fail(f"Invalid format type: {format_type}")
-
-        # Format the data first
-        format_result = self.format_data(data, format_type)
-        if format_result.is_failure:
-            return FlextResult[None].fail(
-                f"Data formatting failed: {format_result.error}",
+        self, command: str | None = None, **kwargs: object
+    ) -> FlextResult[object | str]:
+        """Execute CLI operation - supports both parent interface and backward compatibility."""
+        if command is None:
+            # Parent class interface
+            self._logger.info("Executing CLI API operation")
+            return FlextResult[object].ok(
+                {"status": "operational", "service": "flext-cli-api"}
             )
 
-        # Display using formatters
-        if format_type == "table":
-            display_result = self._formatters.display_table(data, title=title)
-        else:
-            # For other formats, display the formatted string directly
-            self._formatters.console.print(format_result.value)
-            display_result = FlextResult[None].ok(None)
-        if display_result.is_success:
-            return FlextResult[None].ok(None)
-        return FlextResult[None].fail(display_result.error or "Output display failed")
+        # Backward compatibility interface
+        self._logger.info(f"Executing CLI API operation: {command}")
+
+        if command == "format":
+            data = kwargs.get("data")
+            format_type = kwargs.get("format_type", "json")
+            if data is not None:
+                # format_output returns FlextResult[str]; adapt to declared return
+                fmt_res = self.format_output(data, str(format_type))
+                if fmt_res.is_failure:
+                    return FlextResult[object | str].fail(
+                        fmt_res.error or "Formatting failed"
+                    )
+                return FlextResult[object | str].ok(fmt_res.unwrap())
+            return FlextResult[object].fail("No data provided for formatting")
+
+        return FlextResult[object].ok({"status": "operational", "command": command})
+
+    def execute_command(
+        self, command: str = "status", **kwargs: object
+    ) -> FlextResult[object | str]:
+        """Execute CLI operation with command and parameters - delegates to execute."""
+        return self.execute(command, **kwargs)
 
     def format_output(
         self,
         data: object,
         format_type: str = "table",
+        **options: object,
     ) -> FlextResult[str]:
-        """Format data using CLI formatters."""
-        return self.format_data(data, format_type)
+        """Format data using specified format type - core CLI functionality."""
+        # Input validation using nested helper
+        format_validation = self._ValidationHelper.validate_format_type(format_type)
+        if format_validation.is_failure:
+            return FlextResult[str].fail(
+                format_validation.error or "Format validation failed"
+            )
+
+        validated_format = format_validation.unwrap()
+
+        # Delegate to appropriate formatter based on type
+        match validated_format:
+            case "json":
+                return self._format_as_json(data)
+            case "yaml":
+                return self._format_as_yaml(data)
+            case "table":
+                return self._format_as_table(data, **options)
+            case "plain":
+                return FlextResult[str].ok(str(data))
+            case _:
+                return FlextResult[str].fail(f"Unsupported format: {validated_format}")
+
+    def _format_as_json(self, data: object) -> FlextResult[str]:
+        """Format data as JSON using standard library."""
+        try:
+            result = json.dumps(data, default=str, indent=2)
+            return FlextResult[str].ok(result)
+        except Exception as e:
+            return FlextResult[str].fail(f"JSON formatting failed: {e}")
+
+    def _format_as_yaml(self, data: object) -> FlextResult[str]:
+        """Format data as YAML using standard library."""
+        try:
+            result = yaml.dump(data, default_flow_style=False, allow_unicode=True)
+            return FlextResult[str].ok(result)
+        except Exception as e:
+            return FlextResult[str].fail(f"YAML formatting failed: {e}")
+
+    def _format_as_table(self, data: object, **options: object) -> FlextResult[str]:
+        """Format data as table with proper type casting."""
+        if not data:
+            return FlextResult[str].fail("Cannot format empty data as table")
+
+        try:
+            headers_value = options.get("headers")
+            headers = headers_value if isinstance(headers_value, list) else None
+
+            title_value = options.get("title")
+            title = title_value if isinstance(title_value, str) else None
+
+            show_lines_value = options.get("show_lines", True)
+            show_lines = (
+                show_lines_value if isinstance(show_lines_value, bool) else True
+            )
+
+            table_result = self._formatters.create_table(
+                data=data, headers=headers, title=title, show_lines=show_lines
+            )
+
+            if table_result.is_failure:
+                return FlextResult[str].fail(
+                    f"Table creation failed: {table_result.error or 'Unknown error'}"
+                )
+
+            return FlextResult[str].ok(str(table_result.unwrap()))
+        except Exception as e:
+            return FlextResult[str].fail(f"Table formatting failed: {e!s}")
+
+    def display_output(self, formatted_data: str) -> FlextResult[None]:
+        """Display formatted data using flext-cli display system."""
+        try:
+            # Use flext-cli display system (abstracts Rich internally)
+            display_result = self._formatters.display_message(formatted_data)
+            if display_result.is_failure:
+                return FlextResult[None].fail(display_result.error or "Display failed")
+
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Display failed: {e}")
 
     def create_command(
         self,
-        name: str,
-        description: str,
-        handler: object,
-        arguments: list[str] | None = None,
+        command_line: str,
+        **_options: object,
     ) -> FlextResult[FlextCliModels.CliCommand]:
-        """Create CLI command with validation."""
-        if not name or not name.strip():
+        """Create CLI command with validation - core CLI functionality."""
+        # Input validation using nested helper
+        validation_result = self._ValidationHelper.validate_command_line(command_line)
+        if validation_result.is_failure:
             return FlextResult[FlextCliModels.CliCommand].fail(
-                "Command name cannot be empty",
+                validation_result.error or "Command validation failed"
             )
 
-        if not description or not description.strip():
-            return FlextResult[FlextCliModels.CliCommand].fail(
-                "Command description cannot be empty",
+        validated_command = validation_result.unwrap()
+
+        # Create command with proper metadata
+        try:
+            command = FlextCliModels.CliCommand(
+                id=str(uuid4()),
+                command_line=validated_command,
+                execution_time=datetime.now(UTC),
             )
 
-        if not callable(handler):
+            # Add to command history if enabled
+            if self._state.enable_command_history:
+                self._state.command_history.append(command)
+
+            return FlextResult[FlextCliModels.CliCommand].ok(command)
+        except Exception as e:
             return FlextResult[FlextCliModels.CliCommand].fail(
-                "Handler must be callable",
+                f"Command creation failed: {e}"
             )
 
-        command = FlextCliModels.CliCommand(
-            id=str(uuid4()),
-            command_line=f"{name} {' '.join(arguments or [])}",
-            execution_time=datetime.now(UTC),
-        )
+    def get_health_status(self) -> FlextResult[FlextTypes.Core.Dict]:
+        """Get API health status - core CLI functionality."""
+        try:
+            health_data = {
+                "status": "healthy",
+                "version": "1.0.0",
+                "service": self._state.service_name,
+                "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
+                "platform": platform.system(),
+                "timestamp": datetime.now(UTC).isoformat(),
+                "sessions": self._state.session_count,
+                "handlers": self._state.handler_count,
+                "features": {
+                    "session_tracking": self._state.enable_session_tracking,
+                    "command_history": self._state.enable_command_history,
+                },
+            }
 
-        # Note: output_format stored separately as needed
-        # command model doesn't have _output_format attribute
+            return FlextResult[FlextTypes.Core.Dict].ok(health_data)
+        except Exception as e:
+            return FlextResult[FlextTypes.Core.Dict].fail(f"Health check failed: {e}")
 
-        # Store command in history if enabled
-        if self.enable_command_history and self.state:
-            self.state.command_history.append(command)
-
-        return FlextResult[FlextCliModels.CliCommand].ok(command)
-
-    def format_data(self, data: object, format_type: str) -> FlextResult[str]:
-        """Format data to specified format type using FlextCliFormatters."""
-        # FlextCliFormatters handles all object types - no type validation needed
-        return self._formatters.format_data(data, format_type)
-
-    def export_data(self, data: object, file_path: str | Path) -> FlextResult[str]:
-        """Export data to file."""
-        if not file_path:
-            return FlextResult[str].fail("File path cannot be empty")
-
-        if data is None:
-            return FlextResult[str].fail("Data cannot be None")
-
-        path = Path(file_path)
-        suffix = path.suffix.lower()
-
-        if suffix == ".json":
-            content = json.dumps(data, indent=2)
-        elif suffix in {".yaml", ".yml"}:
-            content = yaml.safe_dump(data, default_flow_style=False)
-        else:
-            content = str(data)
+    def configure_api(self, config: dict[str, object]) -> FlextResult[None]:
+        """Configure API with validation - core CLI functionality."""
+        if not isinstance(config, dict) or not config:
+            return FlextResult[None].fail(
+                "Configuration must be a non-empty dictionary"
+            )
 
         try:
-            # Create parent directory if it doesn't exist
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(content, encoding="utf-8")
-            return FlextResult[str].ok(f"Data exported to {file_path}")
-        except (OSError, PermissionError) as e:
-            return FlextResult[str].fail(f"Failed to export data to {file_path}: {e}")
+            # Apply configuration settings using pattern matching
+            for key, value in config.items():
+                match key:
+                    case "enable_session_tracking":
+                        self._state.enable_session_tracking = bool(value)
+                    case "enable_command_history":
+                        self._state.enable_command_history = bool(value)
+                    case "version":
+                        # Version is now hardcoded, ignore configuration attempts
+                        pass
+
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Configuration failed: {e}")
+
+    def get_command_history(self) -> FlextResult[list[FlextCliModels.CliCommand]]:
+        """Get command history - core CLI functionality."""
+        if not self._state.enable_command_history:
+            return FlextResult[list[FlextCliModels.CliCommand]].fail(
+                "Command history is disabled"
+            )
+
+        return FlextResult[list[FlextCliModels.CliCommand]].ok(
+            self._state.command_history.copy()
+        )
+
+    def clear_command_history(self) -> FlextResult[None]:
+        """Clear command history - core CLI functionality."""
+        if not self._state.enable_command_history:
+            return FlextResult[None].fail("Command history is disabled")
+
+        self._state.command_history.clear()
+        return FlextResult[None].ok(None)
+
+    def api_state(self) -> FlextCliModels.ApiState:
+        """Get current API state for inspection and testing."""
+        return self._state
+
+    def format_data(self, data: object, format_type: str) -> FlextResult[str]:
+        """Format data using specified format type."""
+        return self.format_output(data, format_type)
 
     def create_table(
-        self,
-        data: object,
-        title: str | None = None,
-    ) -> FlextResult[object]:
-        """Create formatted table - returns string for most cases, RichTable when needed."""
-        # FlextCliFormatters handles all object types - pass data directly
-        table_result = self._formatters.create_table(data, title=title)
-        if table_result.is_success:
-            return FlextResult[object].ok(table_result.value)
-        return FlextResult[object].fail(table_result.error or "Table creation failed")
+        self, data: object, title: str | None = None, **options: object
+    ) -> FlextResult[str]:
+        """Create table from data with optional title and options."""
+        return self._format_as_table(data, title=title, **options)
 
     def create_rich_table(
-        self,
-        data: object,
-        title: str | None = None,
-    ) -> FlextResult[object]:
-        """Create Rich Table object for advanced use cases - uses abstraction layer."""
-        if data is None:
-            return FlextResult[object].fail("Data cannot be None")
+        self, data: object, title: str | None = None, **options: object
+    ) -> FlextResult[str]:
+        """Create Rich table from data - alias for create_table."""
+        return self.create_table(data, title=title, **options)
 
-        # FlextCliFormatters handles all object types - no type validation needed
-        # Use formatters abstraction layer instead of direct Rich import
-        # FlextCliFormatters handles all object types - pass data directly
-        table_result = self._formatters.create_table(data, title=title)
-        if table_result.is_success:
-            return FlextResult[object].ok(table_result.value)
-        return FlextResult[object].fail(f"Table creation failed: {table_result.error}")
+    def transform_data(self, data: object, transform_fn: object) -> FlextResult[object]:
+        """Transform data using provided function."""
+        if not callable(transform_fn):
+            return FlextResult[object].fail("Transform function must be callable")
 
-    def aggregate_data(
-        self,
-        _data: list[FlextTypes.Core.Dict],
-        _group_by: str,
-        _sum_fields: list[str] | None = None,
-    ) -> FlextResult[FlextTypes.Core.Dict]:
-        """ELIMINATED: Data aggregation violates API single responsibility principle."""
-        # VIOLATION: CLI API should not perform complex data analysis operations
-        # SOLUTION: Use FlextDataProcessing service from flext-core for data aggregations
-        # PATTERN: Separate data analytics from CLI API operations
-        return FlextResult[FlextTypes.Core.Dict].fail(
-            "Data aggregation operations moved to FlextDataProcessing service - use dedicated analytics domain",
-        )
+        try:
+            if isinstance(data, list):
+                transformed = [transform_fn(item) for item in data]
+            else:
+                transformed = transform_fn(data)
+            return FlextResult[object].ok(transformed)
+        except Exception as e:
+            return FlextResult[object].fail(f"Data transformation failed: {e!s}")
 
-    def batch_export(
-        self,
-        datasets: list[tuple[str, object]],
-        base_path: Path,
-        format_type: str,
-    ) -> FlextResult[list[str]]:
-        """Export multiple datasets to files."""
-        if self.dispatcher is None:
-            return FlextResult[list[str]].fail(
-                "Dispatcher not initialized",
+    def aggregate_data(self, data: object, **kwargs: object) -> FlextResult[object]:
+        """Aggregate data based on provided parameters."""
+        if not isinstance(data, list):
+            return FlextResult[object].fail("Aggregation requires list data")
+
+        group_by = kwargs.get("_group_by")
+        sum_fields = kwargs.get("_sum_fields", [])
+
+        if not group_by:
+            return FlextResult[object].fail(
+                "group_by parameter required for aggregation"
             )
-        result = self._dispatch_operation(
-            "batch_export",
-            datasets=datasets,
-            base_path=base_path,
-            format_type=format_type,
-        )
-        # Safe casting - we know batch_export returns list of strings
-        if result.is_success and isinstance(result.value, list):
-            return FlextResult[list[str]].ok(result.value)
-        return FlextResult[list[str]].fail(
-            result.error or "Batch export failed",
-        )
 
-    def transform_data(
-        self,
-        _data: object,
-        _transform_fn: object,
-        _group_by: str | None = None,
-    ) -> FlextResult[object]:
-        """ELIMINATED: Data transformation violates API single responsibility principle."""
-        # VIOLATION ANALYSIS:
-        # - Function application: Not CLI API responsibility
-        # - Data grouping logic: Should be in FlextDataProcessing service
-        # - Complex transformation patterns: FlextUtilities has these capabilities
-        # - Business logic execution: Violates Single Responsibility Principle
-        #
-        # SOLUTION: Use FlextDataProcessing service from flext-core for transformations
-        return FlextResult[object].fail(
-            "Data transformation operations moved to FlextUtilities/FlextDataProcessing - use existing services",
-        )
+        try:
+            # Simple aggregation implementation
+            groups: dict[str, list[object]] = {}
+            for item in data:
+                if isinstance(item, dict) and group_by in item:
+                    key = str(item[group_by])
+                    if key not in groups:
+                        groups[key] = []
+                    groups[key].append(item)
 
-    # =========================================================================
-    # UTILITY METHODS - All functionality contained within unified class
-    # =========================================================================
+            # Sum numeric fields if specified
+            if sum_fields and isinstance(sum_fields, list):
+                result_groups: dict[str, object] = {}
+                for key, items in groups.items():
+                    for field in sum_fields:
+                        if isinstance(field, str) and items:
+                            total = sum(
+                                item.get(field, 0)
+                                for item in items
+                                if isinstance(item, dict)
+                            )
+                            first_item = items[0]
+                            if isinstance(first_item, dict):
+                                result_groups[key] = {**first_item, field: total}
+                            else:
+                                result_groups[key] = {field: total}
+                return FlextResult[object].ok(result_groups)
 
-    def unwrap_or_default(self, result: FlextResult[T], default: T) -> T:
-        """Unwrap FlextResult or return default value."""
-        return result.value if result.is_success else default
+            return FlextResult[object].ok(groups)
+        except Exception as e:
+            return FlextResult[object].fail(f"Data aggregation failed: {e!s}")
 
-    def unwrap_or_none(self, result: FlextResult[T]) -> T | None:
-        """Unwrap FlextResult or return None."""
-        return result.value if result.is_success else None
+    def export_data(
+        self, data: object, file_path: object, format_type: str = "json"
+    ) -> FlextResult[None]:
+        """Export data to file in specified format."""
+        if not isinstance(file_path, Path):
+            return FlextResult[None].fail("file_path must be a Path object")
 
-    @property
-    def version(self) -> str:
-        """Get API version from unified state."""
-        if self.state is None:
-            return "unknown"
-        return str(self.state.version)
-
-    @property
-    def service_name(self) -> str:
-        """Get service name from unified state."""
-        if self.state is None:
-            return "flext-cli"
-        return self.state.service_name
-
-    @property
-    def enable_session_tracking(self) -> bool:
-        """Check if session tracking is enabled from unified state."""
-        if self.state is None:
-            return False
-        return self.state.enable_session_tracking
-
-    @property
-    def enable_command_history(self) -> bool:
-        """Check if command history is enabled from unified state."""
-        if self.state is None:
-            return False
-        return self.state.enable_command_history
-
-    def get_command_history(self) -> list[FlextCliModels.CliCommand]:
-        """Get command history from unified state."""
-        if not self.enable_command_history:
-            return []
-        if self.state is None:
-            return []
-        return list(self.state.command_history)
-
-    # =========================================================================
-    # FACTORY METHODS - Advanced dependency injection patterns
-    # =========================================================================
-
-    @classmethod
-    def create_with_dependencies(
-        cls,
-        *,
-        models: type[BaseModel] | None = None,
-        services: FlextCliService | None = None,
-        config_override: FlextTypes.Core.Dict | None = None,
-    ) -> FlextCliApi:
-        """Create factory method for creating API with full dependency injection."""
-        api = cls(models=models, services=services)
-
-        if config_override:
-            configure_result = api.configure(config_override)
-            if (
-                configure_result.is_failure
-                and hasattr(api, "_logger")
-                and hasattr(api._logger, "warning")
-            ):
-                # Log warning but continue - skip logging if no logger available
-                getattr(api._logger, "warning", lambda _: None)(
-                    f"Configuration override failed: {configure_result.error}",
+        try:
+            if format_type == "json":
+                with file_path.open("w") as f:
+                    json.dump(data, f, indent=2)
+            elif format_type == "yaml":
+                with file_path.open("w") as f:
+                    yaml.dump(data, f)
+            else:
+                return FlextResult[None].fail(
+                    f"Unsupported export format: {format_type}"
                 )
 
-        return api
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Export failed: {e!s}")
 
-    @override
-    def __repr__(self) -> str:
-        """Return string representation of unified FlextCliApi."""
-        session_count = self.state.session_count if self.state else 0
-        handler_count = self.state.handler_count if self.state else 0
-        return (
-            f"FlextCliApi("
-            f"version='{self.version}', "
-            f"service='{self.service_name}', "
-            f"session_tracking={self.enable_session_tracking}, "
-            f"command_history={self.enable_command_history}, "
-            f"sessions={session_count}, "
-            f"handlers={handler_count}"
-            f")"
-        )
+    def batch_export(
+        self, datasets: object, output_dir: object, format_type: str = "json"
+    ) -> FlextResult[None]:
+        """Export multiple datasets to directory."""
+        if not isinstance(output_dir, Path):
+            return FlextResult[None].fail("output_dir must be a Path object")
+
+        if not isinstance(datasets, dict):
+            return FlextResult[None].fail("datasets must be a dictionary")
+
+        try:
+            for name, data in datasets.items():
+                file_path = output_dir / f"{name}.{format_type}"
+                export_result = self.export_data(data, file_path, format_type)
+                if export_result.is_failure:
+                    return export_result
+
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Batch export failed: {e!s}")
+
+    def unwrap_or_default(self, result: FlextResult[object], default: object) -> object:
+        """Unwrap FlextResult or return default value if failed."""
+        if result.is_success:
+            return result.unwrap()
+        return default
+
+    def unwrap_or_none(self, result: FlextResult[object]) -> object | None:
+        """Unwrap FlextResult or return None if failed."""
+        if result.is_success:
+            return result.unwrap()
+        return None
 
 
 # =========================================================================

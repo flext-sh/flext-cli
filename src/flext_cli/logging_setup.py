@@ -68,12 +68,14 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
 
             log_config = log_config_result.value
 
-            # Configure FlextLogger for entire CLI application
+            # Configure FlextLogger for entire CLI application with enhanced formatting
+            verbosity = os.environ.get("FLEXT_LOG_VERBOSITY", "detailed")
             FlextLogger.configure(
                 log_level=log_config.log_level,
-                structured_output=False,
+                structured_output=True,  # Enable enhanced console renderer
                 json_output=False,
                 include_source=False,
+                log_verbosity=verbosity,
             )
 
             # Add custom file handler if specified
@@ -206,6 +208,125 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
     def is_setup_complete(self) -> bool:
         """Check if logging setup has been completed."""
         return FlextCliLoggingSetup._setup_complete
+
+    @classmethod
+    def set_global_log_level(cls, level: str) -> FlextResult[str]:
+        """Set global log level for all FLEXT projects."""
+        try:
+            # Validate log level
+            valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+            level_upper = level.upper()
+            if level_upper not in valid_levels:
+                return FlextResult[str].fail(
+                    f"Invalid log level '{level}'. Valid levels: {', '.join(valid_levels)}"
+                )
+
+            # Set environment variable for cross-project control
+            os.environ["FLEXT_LOG_LEVEL"] = level_upper
+
+            # Reconfigure FlextLogger if already configured
+            if cls._setup_complete:
+                verbosity = os.environ.get("FLEXT_LOG_VERBOSITY", "detailed")
+                FlextLogger.configure(
+                    log_level=level_upper,
+                    structured_output=True,
+                    json_output=False,
+                    include_source=False,
+                    log_verbosity=verbosity,
+                )
+
+            return FlextResult[str].ok(f"Global log level set to {level_upper}")
+        except Exception as e:
+            return FlextResult[str].fail(f"Failed to set log level: {e}")
+
+    @classmethod
+    def set_global_log_verbosity(cls, verbosity: str) -> FlextResult[str]:
+        """Set global log verbosity for all FLEXT projects."""
+        try:
+            # Validate verbosity level
+            valid_verbosity = {"compact", "detailed", "full"}
+            verbosity_lower = verbosity.lower()
+            if verbosity_lower not in valid_verbosity:
+                return FlextResult[str].fail(
+                    f"Invalid verbosity '{verbosity}'. Valid levels: {', '.join(valid_verbosity)}"
+                )
+
+            # Set environment variable for cross-project control
+            os.environ["FLEXT_LOG_VERBOSITY"] = verbosity_lower
+
+            # Reconfigure FlextLogger if already configured
+            if cls._setup_complete:
+                current_level = os.environ.get("FLEXT_LOG_LEVEL", "INFO")
+                FlextLogger.configure(
+                    log_level=current_level,
+                    structured_output=True,
+                    json_output=False,
+                    include_source=False,
+                    log_verbosity=verbosity_lower,
+                )
+
+            return FlextResult[str].ok(f"Global log verbosity set to {verbosity_lower}")
+        except Exception as e:
+            return FlextResult[str].fail(f"Failed to set log verbosity: {e}")
+
+    @classmethod
+    def get_current_log_config(cls) -> FlextResult[dict[str, str]]:
+        """Get current logging configuration for all FLEXT projects."""
+        try:
+            config = {
+                "log_level": os.environ.get("FLEXT_LOG_LEVEL", "INFO"),
+                "log_verbosity": os.environ.get("FLEXT_LOG_VERBOSITY", "detailed"),
+                "cli_log_level": os.environ.get("FLEXT_CLI_LOG_LEVEL", "INFO"),
+                "configured": str(cls._setup_complete),
+            }
+            return FlextResult[dict[str, str]].ok(config)
+        except Exception as e:
+            return FlextResult[dict[str, str]].fail(f"Failed to get log config: {e}")
+
+    @classmethod
+    def configure_project_logging(
+        cls,
+        project_name: str,
+        log_level: str | None = None,
+        verbosity: str | None = None,
+    ) -> FlextResult[str]:
+        """Configure logging for a specific FLEXT project."""
+        try:
+            messages = []
+
+            if log_level:
+                valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+                level_upper = log_level.upper()
+                if level_upper not in valid_levels:
+                    return FlextResult[str].fail(
+                        f"Invalid log level '{log_level}'. Valid levels: {', '.join(valid_levels)}"
+                    )
+
+                # Set project-specific environment variable
+                env_var = f"FLEXT_{project_name.upper().replace('-', '_')}_LOG_LEVEL"
+                os.environ[env_var] = level_upper
+                messages.append(f"Log level for {project_name} set to {level_upper}")
+
+            if verbosity:
+                valid_verbosity = {"compact", "detailed", "full"}
+                verbosity_lower = verbosity.lower()
+                if verbosity_lower not in valid_verbosity:
+                    return FlextResult[str].fail(
+                        f"Invalid verbosity '{verbosity}'. Valid levels: {', '.join(valid_verbosity)}"
+                    )
+
+                # Set project-specific environment variable
+                env_var = (
+                    f"FLEXT_{project_name.upper().replace('-', '_')}_LOG_VERBOSITY"
+                )
+                os.environ[env_var] = verbosity_lower
+                messages.append(
+                    f"Log verbosity for {project_name} set to {verbosity_lower}"
+                )
+
+            return FlextResult[str].ok("; ".join(messages))
+        except Exception as e:
+            return FlextResult[str].fail(f"Failed to configure project logging: {e}")
 
 
 __all__ = [
