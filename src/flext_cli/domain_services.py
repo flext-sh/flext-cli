@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
@@ -21,11 +20,6 @@ from flext_core import (
     FlextTypes,
     FlextUtilities,
 )
-
-if TYPE_CHECKING:
-    CommandInput = FlextTypes.Core.Dict
-    SessionContext = FlextTypes.Core.Dict
-
 
 logger = FlextLogger(__name__)
 
@@ -66,7 +60,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
             return FlextResult[FlextResult[object]].fail(
                 health_result.error or "Health check failed",
             )
-        except (ImportError, AttributeError, ValueError) as e:
+        except (AttributeError, ValueError) as e:
             logger.exception("Domain service execution failed")
             return FlextResult[FlextResult[object]].fail(f"Execution failed: {e}")
 
@@ -79,7 +73,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
         """
         try:
             return FlextResult[str].ok("FLEXT CLI Domain Services: healthy")
-        except (ImportError, AttributeError, ValueError) as e:
+        except (AttributeError, ValueError) as e:
             logger.exception("Health check failed")
             return FlextResult[str].fail(f"Health check failed: {e}")
 
@@ -117,7 +111,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
 
             logger.debug("Created command: %s", command.id)
             return FlextResult[FlextCliModels.CliCommand].ok(command)
-        except (ImportError, AttributeError, ValueError) as e:
+        except (AttributeError, ValueError) as e:
             logger.exception("Failed to create command")
             return FlextResult[FlextCliModels.CliCommand].fail(
                 f"Command creation failed: {e}",
@@ -150,7 +144,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
 
             logger.debug("Started execution for command: %s", command.id)
             return FlextResult[FlextCliModels.CliCommand].ok(command)
-        except (ImportError, AttributeError, ValueError) as e:
+        except (AttributeError, ValueError) as e:
             logger.exception("Failed to start command execution")
             return FlextResult[FlextCliModels.CliCommand].fail(
                 f"Command execution start failed: {e}",
@@ -204,7 +198,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
                 exit_code,
             )
             return FlextResult[FlextCliModels.CliCommand].ok(command)
-        except (ImportError, AttributeError, ValueError) as e:
+        except (AttributeError, ValueError) as e:
             logger.exception("Failed to complete command execution")
             return FlextResult[FlextCliModels.CliCommand].fail(
                 f"Command execution completion failed: {e}",
@@ -244,7 +238,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
 
             logger.debug("Created session: %s", session.id)
             return FlextResult[FlextCliModels.CliSession].ok(session)
-        except (ImportError, AttributeError, ValueError) as e:
+        except (AttributeError, ValueError) as e:
             logger.exception("Failed to create session")
             return FlextResult[FlextCliModels.CliSession].fail(
                 f"Session creation failed: {e}",
@@ -290,7 +284,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
 
             logger.debug("Added command %s to session %s", command.id, session.id)
             return FlextResult[FlextCliModels.CliSession].ok(session)
-        except (ImportError, AttributeError, ValueError) as e:
+        except (AttributeError, ValueError) as e:
             logger.exception("Failed to add command to session")
             return FlextResult[FlextCliModels.CliSession].fail(
                 f"Command addition to session failed: {e}",
@@ -330,7 +324,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
 
             logger.debug("Ended session: %s", session.id)
             return FlextResult[FlextCliModels.CliSession].ok(session)
-        except (ImportError, AttributeError, ValueError) as e:
+        except (AttributeError, ValueError) as e:
             logger.exception("Failed to end session")
             return FlextResult[FlextCliModels.CliSession].fail(
                 f"Session ending failed: {e}",
@@ -396,7 +390,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
 
             logger.debug("Executed command workflow: %s", command_line)
             return FlextResult[FlextTypes.Core.Dict].ok(workflow_result)
-        except (ImportError, AttributeError, ValueError) as e:
+        except (AttributeError, ValueError) as e:
             logger.exception("Command workflow execution failed")
             return FlextResult[FlextTypes.Core.Dict].fail(
                 f"Command workflow execution failed: {e}",

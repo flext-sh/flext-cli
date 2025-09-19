@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli.cli_bus import FlextCliCommandBusService
-from flext_cli.config import FlextCliConfig
+from flext_cli.configs import FlextCliConfigs as FlextCliConfig
 from flext_core import FlextDomainService, FlextLogger, FlextResult
 
 

@@ -28,13 +28,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
-from flext_core import FlextConfig, FlextResult
 
 from flext_cli import (
     FlextCliAuth,
     FlextCliFormatters,
     FlextCliService,
 )
+from flext_core import FlextConfig, FlextResult
 
 
 class EcosystemSettings(FlextConfig):

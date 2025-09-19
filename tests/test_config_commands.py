@@ -6,14 +6,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextResult
-
 from flext_cli import (
     FlextCliApi,
-    FlextCliConfig,
+    FlextCliConfigs,
     FlextCliMain,
 )
 from flext_cli.models import FlextCliModels
+from flext_core import FlextResult
 
 
 class TestConfigCommandsReal:
@@ -23,12 +22,12 @@ class TestConfigCommandsReal:
         """Set up test environment with real components."""
         self.cli_api = FlextCliApi()
         self.cli_main = FlextCliMain(name="test-config", description="Test config CLI")
-        self.config = FlextCliConfig()
+        self.config = FlextCliConfigs()
 
     def test_config_creation_real(self) -> None:
         """Test that config can be created and is properly structured."""
         assert self.config is not None
-        assert isinstance(self.config, FlextCliConfig)
+        assert isinstance(self.config, FlextCliConfigs)
         assert hasattr(self.config, "profile")
         assert hasattr(self.config, "debug")
 
@@ -191,7 +190,7 @@ class TestConfigIntegration:
     def setup_method(self) -> None:
         """Set up integration test environment."""
         self.cli_api = FlextCliApi()
-        self.config = FlextCliConfig()
+        self.config = FlextCliConfigs()
 
     def test_config_cli_integration_real(self) -> None:
         """Test config integration with CLI system."""

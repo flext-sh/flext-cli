@@ -9,10 +9,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextResult
-
 from flext_cli.domain_services import FlextCliDomainServices
 from flext_cli.models import FlextCliModels
+from flext_core import FlextResult
 
 
 class TestFlextCliDomainServices:

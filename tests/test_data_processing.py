@@ -6,10 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextResult
 from pydantic import BaseModel
 
 from flext_cli.utils import FlextCliUtilities as FlextCliDataProcessing
+from flext_core import FlextResult
 
 
 class TestFlextCliDataProcessing:

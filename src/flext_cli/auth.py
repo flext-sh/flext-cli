@@ -14,10 +14,10 @@ import asyncio
 import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import TypedDict
 
-from flext_cli.config import FlextCliConfig
+from flext_cli.configs import FlextCliConfigs as FlextCliConfig
 from flext_cli.protocols import FlextCliProtocols
+from flext_cli.typings import FlextCliTypes
 from flext_core import (
     FlextContainer,
     FlextDomainService,
@@ -42,49 +42,15 @@ class FlextCliAuth(FlextDomainService[str]):
         - Interface Segregation: Focused authentication interface
     """
 
-    class UserData(TypedDict, total=False):
-        """User data structure from SOURCE OF TRUTH."""
-
-        name: str
-        email: str
-        id: str
-
-    class AuthStatus(TypedDict):
-        """Authentication status structure from SOURCE OF TRUTH."""
-
-        authenticated: bool
-        token_file: str
-        token_exists: bool
-        refresh_token_file: str
-        refresh_token_exists: bool
-        auto_refresh: bool
-
-    class LoginCredentials(TypedDict):
-        """Login credentials structure from SOURCE OF TRUTH."""
-
-        username: str
-        password: str
-
-    class TokenPaths(TypedDict):
-        """Token paths structure from SOURCE OF TRUTH."""
-
-        token_path: Path
-        refresh_token_path: Path
-
-    class AuthConfig(TypedDict):
-        """Authentication configuration structure."""
-
-        api_key: str
-        base_url: str
-        timeout: int
-
-    class TokenData(TypedDict):
-        """Authentication token data structure."""
-
-        access_token: str
-        refresh_token: str
-        expires_at: datetime
-        token_type: str
+    # Use unified types and models from centralized modules - marked as ClassVar for Pydantic
+    # UserData: ClassVar[type[FlextCliTypes.UserData]] = FlextCliTypes.UserData
+    # AuthStatus: ClassVar[type[FlextCliTypes.AuthStatus]] = FlextCliTypes.AuthStatus
+    # LoginCredentials: ClassVar[type[FlextCliTypes.LoginCredentials]] = (
+    #     FlextCliTypes.LoginCredentials
+    # )
+    # TokenPaths: ClassVar[type[FlextCliTypes.TokenPaths]] = FlextCliTypes.TokenPaths
+    # TokenData: ClassVar[type[FlextCliTypes.TokenData]] = FlextCliTypes.TokenData
+    # AuthConfig: ClassVar[type[FlextCliModels.AuthConfig]] = FlextCliModels.AuthConfig
 
     def __init__(
         self,
@@ -122,23 +88,22 @@ class FlextCliAuth(FlextDomainService[str]):
         # Update configuration from singleton
         self._config = FlextCliConfig.get_current()
 
-    def get_token_paths(self) -> FlextResult[FlextCliAuth.TokenPaths]:
+    def get_token_paths(self) -> FlextResult[FlextCliTypes.TokenPaths]:
         """Get token paths from SOURCE OF TRUTH configuration."""
         try:
             # Extract paths from SOURCE OF TRUTH config
-            paths: FlextCliAuth.TokenPaths = {
+            paths: FlextCliTypes.TokenPaths = {
                 "token_path": self._config.token_file,
                 "refresh_token_path": self._config.refresh_token_file,
             }
 
-            return FlextResult[FlextCliAuth.TokenPaths].ok(paths)
+            return FlextResult[FlextCliTypes.TokenPaths].ok(paths)
 
         except (
-            ImportError,
             AttributeError,
             ValueError,
         ) as e:
-            return FlextResult[FlextCliAuth.TokenPaths].fail(
+            return FlextResult[FlextCliTypes.TokenPaths].fail(
                 f"Token paths from SOURCE OF TRUTH failed: {e}",
             )
 
@@ -170,7 +135,6 @@ class FlextCliAuth(FlextDomainService[str]):
 
             return FlextResult[str].ok(content.strip())
         except (
-            ImportError,
             AttributeError,
             ValueError,
         ) as e:
@@ -180,7 +144,9 @@ class FlextCliAuth(FlextDomainService[str]):
         """Check if auto refresh is enabled."""
         return bool(getattr(self._config, "auto_refresh", False))
 
-    def validate_credentials(self, credentials: LoginCredentials) -> FlextResult[None]:
+    def validate_credentials(
+        self, credentials: FlextCliTypes.LoginCredentials
+    ) -> FlextResult[None]:
         """Validate login credentials using SOURCE OF TRUTH validation rules."""
         try:
             username = (
@@ -202,7 +168,6 @@ class FlextCliAuth(FlextDomainService[str]):
             return FlextResult[None].ok(None)
 
         except (
-            ImportError,
             AttributeError,
             ValueError,
         ) as e:
@@ -281,7 +246,6 @@ class FlextCliAuth(FlextDomainService[str]):
             return self.save_token_to_storage(token, "Authentication token", file_path)
 
         except (
-            ImportError,
             AttributeError,
             ValueError,
         ) as e:
@@ -304,7 +268,6 @@ class FlextCliAuth(FlextDomainService[str]):
             return self.load_token_from_storage(file_path, "Authentication token")
 
         except (
-            ImportError,
             AttributeError,
             ValueError,
         ) as e:
@@ -348,7 +311,6 @@ class FlextCliAuth(FlextDomainService[str]):
             return FlextResult[None].ok(None)
 
         except (
-            ImportError,
             AttributeError,
             ValueError,
         ) as e:
@@ -376,7 +338,6 @@ class FlextCliAuth(FlextDomainService[str]):
             authenticated = self.is_authenticated(token_path=token_path)
             return FlextResult[bool].ok(authenticated)
         except (
-            ImportError,
             AttributeError,
             ValueError,
         ) as e:
@@ -399,7 +360,6 @@ class FlextCliAuth(FlextDomainService[str]):
             return FlextResult[FlextTypes.Core.Headers].ok(headers)
 
         except (
-            ImportError,
             AttributeError,
             ValueError,
         ) as e:
@@ -415,7 +375,7 @@ class FlextCliAuth(FlextDomainService[str]):
         """Perform login using SOURCE OF TRUTH authentication flow."""
         try:
             # Validate credentials using SOURCE OF TRUTH
-            credentials: FlextCliAuth.LoginCredentials = {
+            credentials: FlextCliTypes.LoginCredentials = {
                 "username": username,
                 "password": password,
             }
@@ -488,24 +448,18 @@ class FlextCliAuth(FlextDomainService[str]):
             return FlextResult[FlextTypes.Core.Dict].ok(response_data)
 
         except (
-            ImportError,
             AttributeError,
             ValueError,
         ) as e:
-            # Categorized exception handling using Python 3.13+ match-case patterns
-            match e:
-                case ConnectionError() | TimeoutError():
-                    return FlextResult[FlextTypes.Core.Dict].fail(
-                        f"Connection to SOURCE OF TRUTH failed: {e}",
-                    )
-                case ValueError() | KeyError():
-                    return FlextResult[FlextTypes.Core.Dict].fail(
-                        f"Login validation from SOURCE OF TRUTH failed: {e}",
-                    )
-                case _:
-                    return FlextResult[FlextTypes.Core.Dict].fail(
-                        f"Login to SOURCE OF TRUTH failed: {e}",
-                    )
+            # Explicit exception handling for caught types
+            if isinstance(e, ValueError):
+                return FlextResult[FlextTypes.Core.Dict].fail(
+                    f"Validation error in SOURCE OF TRUTH: {e}",
+                )
+            # AttributeError
+            return FlextResult[FlextTypes.Core.Dict].fail(
+                f"Login validation from SOURCE OF TRUTH failed: {e}",
+            )
 
     def logout(self) -> FlextResult[None]:
         """Perform logout using SOURCE OF TRUTH authentication flow."""
@@ -541,12 +495,12 @@ class FlextCliAuth(FlextDomainService[str]):
 
         return FlextResult[None].ok(None)
 
-    def get_status(self) -> FlextResult[FlextCliAuth.AuthStatus]:
+    def get_status(self) -> FlextResult[FlextCliTypes.AuthStatus]:
         """Get authentication status from SOURCE OF TRUTH."""
         # Get authentication status from SOURCE OF TRUTH
         auth_result = self.check_authentication_status()
         if auth_result.is_failure:
-            return FlextResult[FlextCliAuth.AuthStatus].fail(
+            return FlextResult[FlextCliTypes.AuthStatus].fail(
                 f"Authentication check failed: {auth_result.error}",
             )
 
@@ -555,7 +509,7 @@ class FlextCliAuth(FlextDomainService[str]):
         # Get paths from SOURCE OF TRUTH
         paths_result = self.get_token_paths()
         if paths_result.is_failure:
-            return FlextResult[FlextCliAuth.AuthStatus].fail(
+            return FlextResult[FlextCliTypes.AuthStatus].fail(
                 f"Token paths from SOURCE OF TRUTH failed: {paths_result.error}",
             )
 
@@ -563,13 +517,25 @@ class FlextCliAuth(FlextDomainService[str]):
 
         # Validate config has auto_refresh attribute
         if not hasattr(self._config, "auto_refresh"):
-            return FlextResult[FlextCliAuth.AuthStatus].fail(
+            return FlextResult[FlextCliTypes.AuthStatus].fail(
                 "Configuration missing auto_refresh field"
             )
 
-        # Build status from SOURCE OF TRUTH data
-        status: FlextCliAuth.AuthStatus = {
+        # Extract username from token if available (placeholder implementation)
+        username: str | None = None
+        expires_at: str | None = None
+
+        if authenticated:
+            # In a real implementation, this would decode JWT token to extract username and expiry
+            # For now, we provide None values to satisfy the TypedDict contract
+            username = None  # Would extract from JWT token
+            expires_at = None  # Would extract from JWT token
+
+        # Build status from SOURCE OF TRUTH data with all required TypedDict fields
+        status: FlextCliTypes.AuthStatus = {
             "authenticated": authenticated,
+            "username": username,
+            "expires_at": expires_at,
             "token_file": str(paths["token_path"]),
             "token_exists": paths["token_path"].exists(),
             "refresh_token_file": str(paths["refresh_token_path"]),
@@ -577,7 +543,7 @@ class FlextCliAuth(FlextDomainService[str]):
             "auto_refresh": self._config.auto_refresh,
         }
 
-        return FlextResult[FlextCliAuth.AuthStatus].ok(status)
+        return FlextResult[FlextCliTypes.AuthStatus].ok(status)
 
     def whoami(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Get current user information from SOURCE OF TRUTH."""

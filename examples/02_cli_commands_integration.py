@@ -29,13 +29,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
 
-from flext_core import FlextResult
-
 from flext_cli import (
     FlextCliConfig,
     FlextCliFormatters,
     FlextCliModels,
 )
+from flext_core import FlextResult
 
 
 def _setup_cli_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
@@ -117,7 +116,7 @@ def _file_processing_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
 
     # Simulate file processing
     file_path = Path("/tmp/example.json")
-    result = _simulate_file_processing(file_path, "json", 100)
+    result = _simulate_file_processing(file_path)
 
     if result.is_success:
         formatter.print_success(f"✅ File processing: {result.value}")
@@ -268,15 +267,15 @@ def _execute_connection_test(command: FlextCliModels.CliCommand) -> FlextResult[
         return FlextResult[str].fail(f"Connection test failed: {e}")
 
 
-def _simulate_file_processing(
-    file_path: Path
-) -> FlextResult[str]:
+def _simulate_file_processing(file_path: Path) -> FlextResult[str]:
     """Simulate file processing with FlextResult pattern."""
     try:
         # Simulate processing without requiring actual file
         time.sleep(0.1)
 
         lines_processed = 150  # Simulate
+        batch_size = 50  # Default batch size
+        output_format = "json"  # Default output format
         batches = (lines_processed + batch_size - 1) // batch_size
 
         return FlextResult[str].ok(

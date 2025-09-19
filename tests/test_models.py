@@ -8,11 +8,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from flext_core import FlextModels, FlextResult
-
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
+from flext_core import FlextModels, FlextResult
 
 
 class TestFlextCliModelsCliCommand:

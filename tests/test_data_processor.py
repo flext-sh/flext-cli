@@ -8,10 +8,10 @@ from __future__ import annotations
 
 import json
 
-from flext_core import FlextResult, FlextTypes
 from pydantic import BaseModel
 
 from flext_cli.utils import FlextCliUtilities as FlextCliDataProcessing
+from flext_core import FlextResult, FlextTypes
 
 
 class TestFlextCliDataProcessingFunctional:
@@ -137,7 +137,9 @@ class TestFlextCliDataProcessingFunctional:
         # Check structured aggregation result
         assert isinstance(aggregated_data, CombinedDataModel)
         # Type cast to ensure proper type checking
-        typed_data = aggregated_data if isinstance(aggregated_data, CombinedDataModel) else None
+        typed_data = (
+            aggregated_data if isinstance(aggregated_data, CombinedDataModel) else None
+        )
         assert typed_data is not None
         assert typed_data.id == 1
 

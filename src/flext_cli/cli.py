@@ -13,15 +13,15 @@ from __future__ import annotations
 import logging
 import os
 import sys
-from typing import TypedDict
 
 import click
 from pydantic import BaseModel
 
 from flext_cli.__version__ import __version__
-from flext_cli.config import FlextCliConfig
+from flext_cli.configs import FlextCliConfigs as FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.logging_setup import FlextCliLoggingSetup
+from flext_cli.typings import FlextCliTypes
 from flext_core import (
     FlextConfig,
     FlextResult,
@@ -36,31 +36,10 @@ class FlextCliMain(BaseModel):
     No loose helper functions - all functionality encapsulated.
     """
 
-    class CliOptions(TypedDict):
-        """CLI options structure from SOURCE OF TRUTH."""
-
-        profile: str
-        output_format: str
-        debug: bool
-        quiet: bool
-        log_level: str | None
-
-    class VersionInfo(TypedDict):
-        """Version information structure."""
-
-        cli_version: str
-        core_version: str | None
-        python_version: str
-        platform: str
-
-    class CliContext(TypedDict):
-        """CLI execution context structure."""
-
-        config: FlextCliConfig
-        debug_mode: bool
-        quiet_mode: bool
-        profile: str
-        output_format: str
+    # Use unified types from FlextCliTypes - marked as ClassVar for Pydantic
+    # CliOptions: ClassVar[type[FlextCliTypes.CliOptions]] = FlextCliTypes.CliOptions
+    # VersionInfo: ClassVar[type[FlextCliTypes.VersionInfo]] = FlextCliTypes.VersionInfo
+    # CliContext: ClassVar[type[FlextCliTypes.CliContext]] = FlextCliTypes.CliContext
 
     def __init__(self) -> None:
         """Initialize FlextCliMain service."""
@@ -72,7 +51,7 @@ class FlextCliMain(BaseModel):
         self._logger.info("Executing CLI operation")
         return FlextResult[str].ok("CLI operation executed")
 
-    def get_version_info(self) -> VersionInfo:
+    def get_version_info(self) -> FlextCliTypes.VersionInfo:
         """Get version information from SOURCE OF TRUTH."""
         return {
             "cli_version": __version__,
@@ -81,9 +60,11 @@ class FlextCliMain(BaseModel):
             "platform": f"{sys.platform}",
         }
 
-    def create_cli_options(self, **options: object) -> FlextResult[CliOptions]:
+    def create_cli_options(
+        self, **options: object
+    ) -> FlextResult[FlextCliTypes.CliOptions]:
         """Create CLI options from SOURCE OF TRUTH."""
-        cli_options: FlextCliMain.CliOptions = {
+        cli_options: FlextCliTypes.CliOptions = {
             "profile": str(options.get("profile", "default")),
             "output_format": str(options.get("output_format", "table")),
             "debug": bool(options.get("debug")),
@@ -92,10 +73,10 @@ class FlextCliMain(BaseModel):
             if options.get("log_level")
             else None,
         }
-        return FlextResult[FlextCliMain.CliOptions].ok(cli_options)
+        return FlextResult[FlextCliTypes.CliOptions].ok(cli_options)
 
     def create_config_with_overrides(
-        self, cli_options: CliOptions
+        self, cli_options: FlextCliTypes.CliOptions
     ) -> FlextResult[FlextCliConfig]:
         """Create configuration with CLI overrides from FlextConfig singleton."""
         # Create CLI overrides from options
@@ -122,16 +103,16 @@ class FlextCliMain(BaseModel):
 
     def setup_cli_context(
         self, config: FlextCliConfig, *, quiet: bool = False
-    ) -> FlextResult[CliContext]:
+    ) -> FlextResult[FlextCliTypes.CliContext]:
         """Set up CLI context from SOURCE OF TRUTH."""
-        cli_context: FlextCliMain.CliContext = {
+        cli_context: FlextCliTypes.CliContext = {
             "config": config,
             "debug_mode": bool(config.debug),
             "quiet_mode": quiet,
             "profile": config.profile,
             "output_format": config.output_format,
         }
-        return FlextResult[FlextCliMain.CliContext].ok(cli_context)
+        return FlextResult[FlextCliTypes.CliContext].ok(cli_context)
 
     def setup_logging(self, _config: FlextCliConfig) -> FlextResult[None]:
         """Set up logging from SOURCE OF TRUTH."""
@@ -286,18 +267,18 @@ def print_version(
     return _cli_main.print_version(ctx, param, value)
 
 
-def get_version_info() -> FlextCliMain.VersionInfo:
+def get_version_info() -> FlextCliTypes.VersionInfo:
     """Delegate to unified service."""
     return _cli_main.get_version_info()
 
 
-def create_cli_options(**options: object) -> FlextResult[FlextCliMain.CliOptions]:
+def create_cli_options(**options: object) -> FlextResult[FlextCliTypes.CliOptions]:
     """Delegate to unified service."""
     return _cli_main.create_cli_options(**options)
 
 
 def create_config_with_overrides(
-    cli_options: FlextCliMain.CliOptions,
+    cli_options: FlextCliTypes.CliOptions,
 ) -> FlextResult[FlextCliConfig]:
     """Delegate to unified service."""
     return _cli_main.create_config_with_overrides(cli_options)
@@ -305,7 +286,7 @@ def create_config_with_overrides(
 
 def setup_cli_context(
     config: FlextCliConfig, *, quiet: bool = False
-) -> FlextResult[FlextCliMain.CliContext]:
+) -> FlextResult[FlextCliTypes.CliContext]:
     """Delegate to unified service."""
     return _cli_main.setup_cli_context(config, quiet=quiet)
 
@@ -428,8 +409,7 @@ def cli(
 
 
 @cli.group()
-@click.pass_context
-def auth(ctx: click.Context) -> None:
+def auth() -> None:
     """Handle authentication commands."""
 
 

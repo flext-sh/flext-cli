@@ -24,14 +24,13 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
-
 from flext_cli import (
     FlextCliApi,
     FlextCliConfig,
     FlextCliMain,
     FlextCliService,
 )
+from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 
 
 class ComprehensiveCliApplication:

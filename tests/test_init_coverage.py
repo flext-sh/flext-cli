@@ -6,7 +6,7 @@ from flext_cli import (
     FlextCliApi,
     FlextCliAuth,
     FlextCliClient,
-    FlextCliConfig,
+    FlextCliConfigs,
     FlextCliConstants,
     FlextCliContext,
     FlextCliDebug,
@@ -37,10 +37,10 @@ class TestFlextCliDirectCoverage:
     """Test direct flext-core usage - NO WRAPPERS."""
 
     def test_cli_config_direct_creation(self) -> None:
-        """Test FlextCliConfig direct creation (no factory pattern)."""
-        config = FlextCliConfig()
+        """Test FlextCliConfigs direct creation (no factory pattern)."""
+        config = FlextCliConfigs()
         assert config is not None
-        assert isinstance(config, FlextCliConfig)
+        assert isinstance(config, FlextCliConfigs)
 
     def test_flext_cli_main_initialization(self) -> None:
         """Test FlextCliMain initialization."""
@@ -67,8 +67,8 @@ class TestFlextCliDirectCoverage:
         assert hasattr(formatters, "format_data")
 
     def test_flext_cli_config_initialization(self) -> None:
-        """Test FlextCliConfig initialization."""
-        config = FlextCliConfig()
+        """Test FlextCliConfigs initialization."""
+        config = FlextCliConfigs()
         assert config is not None
         assert hasattr(config, "validate_business_rules")
 

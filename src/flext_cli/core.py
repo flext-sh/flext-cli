@@ -17,7 +17,7 @@ from pathlib import Path
 import yaml
 from pydantic import PrivateAttr
 
-from flext_cli.config import FlextCliConfig
+from flext_cli.configs import FlextCliConfigs as FlextCliConfig
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
 from flext_cli.utils import FlextCliUtilities
@@ -224,7 +224,6 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[dict[str, object]].ok(health_info)
 
         except (
-            ImportError,
             AttributeError,
             ValueError,
         ) as e:
@@ -511,7 +510,6 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[bool].ok(data=True)
 
         except (
-            ImportError,
             AttributeError,
             ValueError,
         ) as e:
@@ -630,7 +628,6 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[str].ok("CLI service executed successfully")
 
         except (
-            ImportError,
             AttributeError,
             ValueError,
         ) as e:

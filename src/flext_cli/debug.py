@@ -14,7 +14,6 @@ import os
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TypedDict
 
 from flext_cli.cli import (
     check,
@@ -27,6 +26,7 @@ from flext_cli.cli import (
 )
 from flext_cli.client import FlextCliClient
 from flext_cli.constants import FlextCliConstants
+from flext_cli.typings import FlextCliTypes
 from flext_core import (
     FlextContainer,
     FlextDomainService,
@@ -41,27 +41,15 @@ class FlextCliDebug(FlextDomainService[str]):
     Uses flext-core utilities directly without wrapper layers.
     """
 
-    class SystemMetrics(TypedDict):
-        """System metrics structure."""
-
-        cpu_usage: str | float
-        memory_usage: str | float
-        disk_usage: str | float
-        response_time: str | float
-
-    class PathInfo(TypedDict):
-        """Path information structure."""
-
-        label: str
-        path: Path
-        exists: bool
-
-    class EnvironmentInfo(TypedDict):
-        """Environment variable information structure."""
-
-        variables: dict[str, str]
-        masked_count: int
-        total_count: int
+    # Use unified types from centralized modules - marked as ClassVar for Pydantic
+    # Need to move to FlextCliTypes
+    # SystemMetrics: ClassVar[type[FlextCliTypes.SystemMetrics]] = (
+    #     FlextCliTypes.SystemMetrics
+    # )
+    # PathInfo: ClassVar[type[FlextCliTypes.PathInfo]] = FlextCliTypes.PathInfo
+    # EnvironmentInfo: ClassVar[type[FlextCliTypes.EnvironmentInfo]] = (
+    #     FlextCliTypes.EnvironmentInfo
+    # )
 
     def __init__(self, **_data: object) -> None:
         """Initialize debug service."""
@@ -84,21 +72,21 @@ class FlextCliDebug(FlextDomainService[str]):
         except Exception as e:
             return FlextResult[dict[str, str]].fail(f"Connection test failed: {e}")
 
-    async def get_system_metrics(self) -> FlextResult[FlextCliDebug.SystemMetrics]:
+    async def get_system_metrics(self) -> FlextResult[FlextCliTypes.SystemMetrics]:
         """Get system performance metrics."""
         try:
             client = FlextCliClient()
             status_result = await client.get_system_status()
-            metrics: FlextCliDebug.SystemMetrics = {
+            metrics: FlextCliTypes.SystemMetrics = {
                 "cpu_usage": str(status_result.get("cpu_usage", "Unknown")),
                 "memory_usage": str(status_result.get("memory_usage", "Unknown")),
                 "disk_usage": str(status_result.get("disk_usage", "Unknown")),
                 "response_time": str(status_result.get("response_time", "Unknown")),
             }
 
-            return FlextResult[FlextCliDebug.SystemMetrics].ok(metrics)
+            return FlextResult[FlextCliTypes.SystemMetrics].ok(metrics)
         except Exception as e:
-            return FlextResult[FlextCliDebug.SystemMetrics].fail(
+            return FlextResult[FlextCliTypes.SystemMetrics].fail(
                 f"Metrics fetch failed: {e}"
             )
 
@@ -114,7 +102,7 @@ class FlextCliDebug(FlextDomainService[str]):
         except Exception as e:
             return FlextResult[list[str]].fail(f"Environment validation failed: {e}")
 
-    def get_environment_variables(self) -> FlextResult[FlextCliDebug.EnvironmentInfo]:
+    def get_environment_variables(self) -> FlextResult[FlextCliTypes.EnvironmentInfo]:
         """Get FLEXT environment variables."""
         try:
             # Use standardized environment prefix from constants
@@ -137,19 +125,19 @@ class FlextCliDebug(FlextDomainService[str]):
                 else:
                     masked_vars[key] = value
 
-            env_info: FlextCliDebug.EnvironmentInfo = {
+            env_info: FlextCliTypes.EnvironmentInfo = {
                 "variables": masked_vars,
                 "masked_count": masked_count,
                 "total_count": len(flext_vars),
             }
 
-            return FlextResult[FlextCliDebug.EnvironmentInfo].ok(env_info)
+            return FlextResult[FlextCliTypes.EnvironmentInfo].ok(env_info)
         except Exception as e:
-            return FlextResult[FlextCliDebug.EnvironmentInfo].fail(
+            return FlextResult[FlextCliTypes.EnvironmentInfo].fail(
                 f"Environment variables fetch failed: {e}"
             )
 
-    def get_system_paths(self) -> FlextResult[list[FlextCliDebug.PathInfo]]:
+    def get_system_paths(self) -> FlextResult[list[FlextCliTypes.PathInfo]]:
         """Get system paths."""
         try:
             home = Path.home()
@@ -172,18 +160,18 @@ class FlextCliDebug(FlextDomainService[str]):
                 },
             ]
 
-            paths_data: list[FlextCliDebug.PathInfo] = []
+            paths_data: list[FlextCliTypes.PathInfo] = []
             for path_metadata in paths_metadata:
-                path_info: FlextCliDebug.PathInfo = {
+                path_info: FlextCliTypes.PathInfo = {
                     "label": str(path_metadata.get("label", "unknown")),
                     "path": Path(str(path_metadata.get("path", "/"))),
                     "exists": Path(str(path_metadata.get("path", "/"))).exists(),
                 }
                 paths_data.append(path_info)
 
-            return FlextResult[list[FlextCliDebug.PathInfo]].ok(paths_data)
+            return FlextResult[list[FlextCliTypes.PathInfo]].ok(paths_data)
         except Exception as e:
-            return FlextResult[list[FlextCliDebug.PathInfo]].fail(
+            return FlextResult[list[FlextCliTypes.PathInfo]].fail(
                 f"System paths fetch failed: {e}"
             )
 

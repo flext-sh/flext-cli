@@ -14,11 +14,12 @@ import os
 from pathlib import Path
 from typing import ClassVar
 
-from pydantic import BaseModel, Field
-
-from flext_cli.config import FlextCliConfig
-from flext_cli.constants import FlextCliConstants
+from flext_cli.configs import FlextCliConfigs as FlextCliConfig
+from flext_cli.models import FlextCliModels
 from flext_core import FlextContainer, FlextDomainService, FlextLogger, FlextResult
+
+# Type alias for LoggingConfig
+LoggingConfig = FlextCliModels.LoggingConfig
 
 
 class FlextCliLoggingSetup(FlextDomainService[str]):
@@ -28,38 +29,7 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
     No loose helper functions - all functionality encapsulated.
     """
 
-    class LoggingConfig(BaseModel):
-        """Nested logging configuration with automatic source detection.
-
-        Supports multiple configuration sources with precedence:
-        1. CLI parameter (--log-level) - Highest precedence
-        2. Environment variable (FLEXT_CLI_LOG_LEVEL)
-        3. .env file (FLEXT_CLI_LOG_LEVEL=DEBUG)
-        4. Config file settings
-        5. Default (INFO) - Lowest precedence
-        """
-
-        log_level: str = Field(
-            default=FlextCliConstants.LogLevel.INFO,
-            description="Logging level from any supported source",
-        )
-        log_format: str = Field(
-            default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            description="Log message format string",
-        )
-        log_file: Path | None = Field(
-            default=None, description="Optional log file path"
-        )
-        console_logging: bool = Field(
-            default=True,
-            description="Enable console logging output",
-        )
-
-        # Configuration source tracking for debugging
-        log_level_source: str = Field(
-            default=FlextCliConstants.ProfileName.DEFAULT,
-            description="Source of log level configuration (for debugging)",
-        )
+    # LoggingConfig type alias is defined at module level
 
     # Class-level state for singleton behavior
     _loggers: ClassVar[dict[str, logging.Logger]] = {}
@@ -79,16 +49,14 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
         self.log_info("Executing logging setup")
         return FlextResult[str].ok("Logging setup executed")
 
-    def setup_logging(self) -> FlextResult[FlextCliLoggingSetup.LoggingConfig]:
+    def setup_logging(self) -> FlextResult[LoggingConfig]:
         """Setup logging with automatic source detection."""
         try:
             # Prevent duplicate setup calls
             if FlextCliLoggingSetup._setup_complete:
                 log_config_result = self._detect_log_configuration()
                 if log_config_result.is_success:
-                    return FlextResult[FlextCliLoggingSetup.LoggingConfig].ok(
-                        log_config_result.value
-                    )
+                    return FlextResult[LoggingConfig].ok(log_config_result.value)
                 return log_config_result
 
             # Detect log level and its source
@@ -125,18 +93,16 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
             )
 
             FlextCliLoggingSetup._setup_complete = True
-            return FlextResult[FlextCliLoggingSetup.LoggingConfig].ok(log_config)
+            return FlextResult[LoggingConfig].ok(log_config)
         except Exception as e:
-            return FlextResult[FlextCliLoggingSetup.LoggingConfig].fail(
-                f"Logging setup failed: {e}"
-            )
+            return FlextResult[LoggingConfig].fail(f"Logging setup failed: {e}")
 
     def _detect_log_configuration(
         self,
-    ) -> FlextResult[FlextCliLoggingSetup.LoggingConfig]:
+    ) -> FlextResult[LoggingConfig]:
         """Detect log configuration from multiple sources with precedence."""
         try:
-            log_config = FlextCliLoggingSetup.LoggingConfig()
+            log_config = LoggingConfig()
 
             # Source 1: Check CLI configuration (highest precedence)
             if (
@@ -145,14 +111,14 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
             ):
                 log_config.log_level = self._resolved_config.log_level
                 log_config.log_level_source = "config_instance"
-                return FlextResult[FlextCliLoggingSetup.LoggingConfig].ok(log_config)
+                return FlextResult[LoggingConfig].ok(log_config)
 
             # Source 2: Check environment variable
             # Python 3.13+ walrus operator pattern
             if env_log_level := os.environ.get("FLEXT_CLI_LOG_LEVEL"):
                 log_config.log_level = env_log_level.upper()
                 log_config.log_level_source = "environment_variable"
-                return FlextResult[FlextCliLoggingSetup.LoggingConfig].ok(log_config)
+                return FlextResult[LoggingConfig].ok(log_config)
 
             # Source 3: Check .env file - Python 3.13+ walrus operator
             if (env_file_path := Path.cwd() / ".env").exists():
@@ -164,15 +130,13 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
                         if env_value:
                             log_config.log_level = env_value.upper()
                             log_config.log_level_source = "env_file"
-                            return FlextResult[FlextCliLoggingSetup.LoggingConfig].ok(
-                                log_config
-                            )
+                            return FlextResult[LoggingConfig].ok(log_config)
 
             # Source 4: Use default
             log_config.log_level_source = "default"
-            return FlextResult[FlextCliLoggingSetup.LoggingConfig].ok(log_config)
+            return FlextResult[LoggingConfig].ok(log_config)
         except Exception as e:
-            return FlextResult[FlextCliLoggingSetup.LoggingConfig].fail(
+            return FlextResult[LoggingConfig].fail(
                 f"Log configuration detection failed: {e}"
             )
 

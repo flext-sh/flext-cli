@@ -7,7 +7,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from datetime import datetime
-from enum import StrEnum
 from pathlib import Path
 from typing import Literal, Protocol, TypedDict
 from uuid import UUID
@@ -25,35 +24,8 @@ class FlextCliTypes:
     Unified class containing ALL CLI types including output formats.
     """
 
-    # =============================================================================
-    # CLI OUTPUT FORMATS - String enum for type safety
-    # =============================================================================
-
-    class OutputFormat(StrEnum):
-        """Supported CLI output formats (string enum for type safety in tests)."""
-
-        JSON = "json"
-        YAML = "yaml"
-        CSV = "csv"
-        TABLE = "table"
-        PLAIN = "plain"
-
-    # =============================================================================
-    # CLI COMMAND TYPES - Direct usage of FlextTypes.Commands
-    # =============================================================================
-
     class Commands:
         """CLI command types using FlextTypes.Commands directly."""
-
-        # CLI-specific command types - proper enum for test compatibility
-        class CommandStatusEnum(StrEnum):
-            """Command status enumeration."""
-
-            PENDING = "PENDING"
-            RUNNING = "RUNNING"
-            COMPLETED = "COMPLETED"
-            FAILED = "FAILED"
-            CANCELLED = "CANCELLED"
 
         # Also keep the Literal type for type annotations
         CliCommandStatus = Literal[
@@ -149,6 +121,19 @@ class FlextCliTypes:
             config_path: Path
             environment: str
             updated_at: datetime
+
+    # =============================================================================
+    # CLI OUTPUT FORMAT TYPES - For tests compatibility
+    # =============================================================================
+
+    class OutputFormat:
+        """CLI output format enumeration for test compatibility."""
+
+        JSON = "json"
+        YAML = "yaml"
+        CSV = "csv"
+        TABLE = "table"
+        PLAIN = "plain"
 
     # =============================================================================
     # CLI AUTHENTICATION TYPES - Using FlextTypes.Auth as foundation
@@ -254,14 +239,6 @@ class FlextCliTypes:
     # PLUGIN STATUS TYPES - Nested for unified class pattern
     # =============================================================================
 
-    class PluginStatusEnum(StrEnum):
-        """Plugin status enumeration."""
-
-        ACTIVE = "active"
-        INACTIVE = "inactive"
-        ERROR = "error"
-        LOADING = "loading"
-
     # =============================================================================
     # CLI PROTOCOLS - Type protocols for CLI interfaces
     # =============================================================================
@@ -297,10 +274,104 @@ class FlextCliTypes:
                 """Authenticate CLI user."""
                 ...
 
+    # =============================================================================
+    # CLI MAIN TYPES - Moved from cli.py for centralization
+    # =============================================================================
 
-# Top-level aliases for test compatibility
-PluginStatus = FlextCliTypes.PluginStatusEnum
-CommandStatus = FlextCliTypes.Commands.CommandStatusEnum
+    class CliOptions(TypedDict):
+        """CLI options structure from SOURCE OF TRUTH."""
+
+        profile: str
+        output_format: str
+        debug: bool
+        quiet: bool
+        log_level: str | None
+
+    class VersionInfo(TypedDict):
+        """Version information structure."""
+
+        cli_version: str
+        core_version: str | None
+        python_version: str
+        platform: str
+
+    class CliContext(TypedDict):
+        """CLI execution context structure."""
+
+        config: object  # FlextCliConfig but avoid circular import
+        debug_mode: bool
+        quiet_mode: bool
+        profile: str
+        output_format: str
+
+    # =============================================================================
+    # AUTH TYPES - Moved from auth.py
+    # =============================================================================
+
+    class UserData(TypedDict):
+        """User data structure."""
+
+        username: str
+        email: str | None
+        id: str | None
+
+    class AuthStatus(TypedDict):
+        """Authentication status structure."""
+
+        authenticated: bool
+        username: str | None
+        expires_at: str | None
+        token_file: str
+        token_exists: bool
+        refresh_token_file: str
+        refresh_token_exists: bool
+        auto_refresh: bool
+
+    class LoginCredentials(TypedDict):
+        """Login credentials structure."""
+
+        username: str
+        password: str
+
+    class TokenPaths(TypedDict):
+        """Token file paths structure."""
+
+        token_path: Path
+        refresh_token_path: Path
+
+    class TokenData(TypedDict):
+        """Token data structure."""
+
+        access_token: str
+        refresh_token: str | None
+        expires_at: str | None
+
+    # =============================================================================
+    # DEBUG TYPES - Moved from debug.py
+    # =============================================================================
+
+    class SystemMetrics(TypedDict):
+        """System metrics structure."""
+
+        cpu_usage: str | float
+        memory_usage: str | float
+        disk_usage: str | float
+        response_time: str | float
+
+    class PathInfo(TypedDict):
+        """Path information structure."""
+
+        label: str
+        path: Path
+        exists: bool
+
+    class EnvironmentInfo(TypedDict):
+        """Environment variable information structure."""
+
+        variables: dict[str, str]
+        masked_count: int
+        total_count: int
+
 
 # URL types for test compatibility
 URL = str
@@ -318,7 +389,6 @@ __all__ = [
     "URL",
     "UUID",
     "BaseModel",
-    "CommandStatus",
     "E",
     "F",
     "Field",
@@ -327,7 +397,6 @@ __all__ = [
     "FlextTypes",
     "P",
     "Path",
-    "PluginStatus",
     "R",
     "T",
     "TypedDict",

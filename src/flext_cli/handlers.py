@@ -18,9 +18,9 @@ from typing import cast
 
 from pydantic import BaseModel
 
-from flext_cli.command_models import FlextCliCommands
-from flext_cli.config import FlextCliConfig
+from flext_cli.configs import FlextCliConfigs as FlextCliConfig
 from flext_cli.constants import FlextCliConstants
+from flext_cli.models import FlextCliModels
 from flext_core import FlextDomainService, FlextHandlers, FlextLogger, FlextResult
 
 
@@ -40,7 +40,7 @@ class FlextCliHandlers(FlextDomainService[None]):
         self._logger = FlextLogger(__name__)
 
     class ShowConfigCommandHandler(
-        FlextHandlers[FlextCliCommands.ShowConfigCommand, dict[str, object]]
+        FlextHandlers[FlextCliModels.ShowConfigCommand, dict[str, object]]
     ):
         """Handler for showing CLI configuration using flext-core CommandHandler."""
 
@@ -49,7 +49,7 @@ class FlextCliHandlers(FlextDomainService[None]):
             super().__init__(handler_name="ShowConfigHandler")
 
         def handle(
-            self, message: FlextCliCommands.ShowConfigCommand
+            self, message: FlextCliModels.ShowConfigCommand
         ) -> FlextResult[dict[str, object]]:
             """Handle show config command with proper error handling."""
             try:
@@ -81,7 +81,7 @@ class FlextCliHandlers(FlextDomainService[None]):
                 )
 
     class SetConfigValueCommandHandler(
-        FlextHandlers[FlextCliCommands.SetConfigValueCommand, bool]
+        FlextHandlers[FlextCliModels.SetConfigValueCommand, bool]
     ):
         """Handler for setting configuration values using flext-core CommandHandler."""
 
@@ -90,7 +90,7 @@ class FlextCliHandlers(FlextDomainService[None]):
             super().__init__(handler_name="SetConfigValueHandler")
 
         def handle(
-            self, message: FlextCliCommands.SetConfigValueCommand
+            self, message: FlextCliModels.SetConfigValueCommand
         ) -> FlextResult[bool]:
             """Handle set config value command with proper error handling."""
             try:
@@ -124,7 +124,7 @@ class FlextCliHandlers(FlextDomainService[None]):
                 return FlextResult[bool].fail(f"Failed to set configuration value: {e}")
 
     class EditConfigCommandHandler(
-        FlextHandlers[FlextCliCommands.EditConfigCommand, bool]
+        FlextHandlers[FlextCliModels.EditConfigCommand, bool]
     ):
         """Handler for editing configuration using flext-core CommandHandler."""
 
@@ -134,7 +134,7 @@ class FlextCliHandlers(FlextDomainService[None]):
             self._constants = FlextCliConstants()
 
         def handle(
-            self, message: FlextCliCommands.EditConfigCommand
+            self, message: FlextCliModels.EditConfigCommand
         ) -> FlextResult[bool]:
             """Handle edit config command with proper error handling."""
             try:
@@ -161,7 +161,7 @@ class FlextCliHandlers(FlextDomainService[None]):
                 return FlextResult[bool].fail(f"Failed to edit configuration: {e}")
 
     class AuthLoginCommandHandler(
-        FlextHandlers[FlextCliCommands.AuthLoginCommand, dict[str, object]]
+        FlextHandlers[FlextCliModels.AuthLoginCommand, dict[str, object]]
     ):
         """Handler for authentication login using flext-core CommandHandler."""
 
@@ -170,7 +170,7 @@ class FlextCliHandlers(FlextDomainService[None]):
             super().__init__(handler_name="AuthLoginHandler")
 
         def handle(
-            self, message: FlextCliCommands.AuthLoginCommand
+            self, message: FlextCliModels.AuthLoginCommand
         ) -> FlextResult[dict[str, object]]:
             """Handle auth login command with proper error handling."""
             try:
@@ -198,7 +198,7 @@ class FlextCliHandlers(FlextDomainService[None]):
                 )
 
     class AuthStatusCommandHandler(
-        FlextHandlers[FlextCliCommands.AuthStatusCommand, dict[str, object]]
+        FlextHandlers[FlextCliModels.AuthStatusCommand, dict[str, object]]
     ):
         """Handler for authentication status using flext-core CommandHandler."""
 
@@ -207,7 +207,7 @@ class FlextCliHandlers(FlextDomainService[None]):
             super().__init__(handler_name="AuthStatusHandler")
 
         def handle(
-            self, message: FlextCliCommands.AuthStatusCommand
+            self, message: FlextCliModels.AuthStatusCommand
         ) -> FlextResult[dict[str, object]]:
             """Handle auth status command with proper error handling."""
             try:
@@ -244,7 +244,7 @@ class FlextCliHandlers(FlextDomainService[None]):
                 )
 
     class AuthLogoutCommandHandler(
-        FlextHandlers[FlextCliCommands.AuthLogoutCommand, bool]
+        FlextHandlers[FlextCliModels.AuthLogoutCommand, bool]
     ):
         """Handler for authentication logout using flext-core CommandHandler."""
 
@@ -253,7 +253,7 @@ class FlextCliHandlers(FlextDomainService[None]):
             super().__init__(handler_name="AuthLogoutHandler")
 
         def handle(
-            self, message: FlextCliCommands.AuthLogoutCommand
+            self, message: FlextCliModels.AuthLogoutCommand
         ) -> FlextResult[bool]:
             """Handle auth logout command with proper error handling."""
             try:
@@ -284,7 +284,7 @@ class FlextCliHandlers(FlextDomainService[None]):
                 return FlextResult[bool].fail(f"Logout failed: {e}")
 
     class DebugInfoCommandHandler(
-        FlextHandlers[FlextCliCommands.DebugInfoCommand, dict[str, object]]
+        FlextHandlers[FlextCliModels.DebugInfoCommand, dict[str, object]]
     ):
         """Handler for debug information using flext-core CommandHandler."""
 
@@ -293,7 +293,7 @@ class FlextCliHandlers(FlextDomainService[None]):
             super().__init__(handler_name="DebugInfoHandler")
 
         def handle(
-            self, message: FlextCliCommands.DebugInfoCommand
+            self, message: FlextCliModels.DebugInfoCommand
         ) -> FlextResult[dict[str, object]]:
             """Handle debug info command with proper error handling."""
             try:

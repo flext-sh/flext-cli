@@ -10,11 +10,10 @@ import inspect
 import os
 from pathlib import Path
 
-from flext_core import FlextLogger, FlextResult
-
-from flext_cli import FlextCliApi, FlextCliConfig, FlextCliMain
+from flext_cli import FlextCliApi, FlextCliConfigs, FlextCliMain
 from flext_cli.cli import create_cli_options, main
 from flext_cli.constants import FlextCliConstants
+from flext_core import FlextLogger, FlextResult
 
 
 class TestCliMain:
@@ -122,7 +121,7 @@ class TestCliMain:
 
     def test_cli_config_integration(self) -> None:
         """Test CLI configuration integration."""
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
         assert config is not None
         assert hasattr(config, "debug")
         assert hasattr(config, "app_name")
@@ -237,7 +236,7 @@ class TestCliIntegration:
 
     def _handle_config_show(self, **_kwargs: object) -> FlextResult[None]:
         """Handle config show command."""
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
         config_data = config.model_dump()
 
         self.cli_api.display_output(
@@ -331,7 +330,7 @@ class TestCliErrorHandling:
             os.environ["FLX_PROFILE"] = "test"
 
             # Test that CLI still works with configuration
-            config = FlextCliConfig()
+            config = FlextCliConfigs()
             assert config is not None
 
             # Test that CLI API works
@@ -363,7 +362,7 @@ class TestCliConfiguration:
     def test_cli_config_loading_real(self) -> None:
         """Test CLI loads configuration correctly with real implementation."""
         # Test that CLI can load and use real configuration
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
         assert config is not None
 
         # Verify configuration properties
@@ -399,12 +398,12 @@ class TestCliConfiguration:
         valid_profiles = ["default", "test", "dev", "prod"]
 
         for profile in valid_profiles:
-            config = FlextCliConfig(profile=profile)
+            config = FlextCliConfigs(profile=profile)
             assert config is not None
             assert config.profile == profile
 
         # Test that CLI configuration can be inspected
-        test_config = FlextCliConfig().model_dump()
+        test_config = FlextCliConfigs().model_dump()
         assert isinstance(test_config, dict)
         assert "profile" in test_config
 

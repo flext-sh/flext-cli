@@ -1,4 +1,4 @@
-"""Test FlextCliConfig class functionality.
+"""Test FlextCliConfigs class functionality.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -12,18 +12,18 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from flext_cli import FlextCliConfig
+from flext_cli import FlextCliConfigs
 
 # Constants
 EXPECTED_BULK_SIZE = 2
 
 
 class TestCLIConfig:
-    """Test FlextCliConfig class."""
+    """Test FlextCliConfigs class."""
 
     def test_config_initialization_defaults(self) -> None:
         """Test config initialization with default values."""
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
 
         if config.profile != "default":
             msg = f"Expected {'default'}, got {config.profile}"
@@ -38,7 +38,7 @@ class TestCLIConfig:
 
     def test_config_initialization_with_values(self) -> None:
         """Test config initialization with custom values."""
-        config = FlextCliConfig(
+        config = FlextCliConfigs(
             base_url="https://custom.api.com",
             command_timeout=60,
             max_command_retries=5,
@@ -62,7 +62,7 @@ class TestCLIConfig:
 
     def test_config_dir_property(self) -> None:
         """Test config_dir property."""
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
 
         expected_dir = Path.home() / ".flext"
         if config.config_dir != expected_dir:
@@ -71,7 +71,7 @@ class TestCLIConfig:
 
     def test_cache_dir_property(self) -> None:
         """Test cache_dir property."""
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
 
         expected_dir = Path.home() / ".flext" / "cache"
         if config.cache_dir != expected_dir:
@@ -80,7 +80,7 @@ class TestCLIConfig:
 
     def test_token_file_property(self) -> None:
         """Test token_file property."""
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
 
         expected_file = Path.home() / ".flext" / "auth" / "token.json"
         if config.token_file != expected_file:
@@ -89,7 +89,7 @@ class TestCLIConfig:
 
     def test_refresh_token_file_property(self) -> None:
         """Test refresh_token_file property."""
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
 
         expected_file = Path.home() / ".flext" / "auth" / "refresh_token.json"
         if config.refresh_token_file != expected_file:
@@ -108,7 +108,7 @@ class TestCLIConfig:
         ]
 
         for url in valid_urls:
-            config = FlextCliConfig(base_url=url)
+            config = FlextCliConfigs(base_url=url)
             if config.api_url != url:
                 msg = f"Expected {url}, got {config.api_url}"
                 raise AssertionError(msg)
@@ -119,7 +119,7 @@ class TestCLIConfig:
         valid_timeouts = [1, 30, 60, 300]
 
         for timeout in valid_timeouts:
-            config = FlextCliConfig(command_timeout=timeout)
+            config = FlextCliConfigs(command_timeout=timeout)
             if config.command_timeout != timeout:
                 msg = f"Expected {timeout}, got {config.command_timeout}"
                 raise AssertionError(msg)
@@ -130,7 +130,7 @@ class TestCLIConfig:
         valid_retries = [0, 1, 3, 5, 10]
 
         for retries in valid_retries:
-            config = FlextCliConfig(max_command_retries=retries)
+            config = FlextCliConfigs(max_command_retries=retries)
             if config.retries != retries:
                 msg = f"Expected {retries}, got {config.retries}"
                 raise AssertionError(msg)
@@ -141,14 +141,14 @@ class TestCLIConfig:
         valid_levels_for_dev = ["DEBUG", "INFO", "WARNING"]
 
         for level in valid_levels_for_dev:
-            config = FlextCliConfig(log_level=level)
+            config = FlextCliConfigs(log_level=level)
             if config.log_level != level:
                 msg = f"Expected {level}, got {config.log_level}"
                 raise AssertionError(msg)
 
         # Test that ERROR is rejected in development environment
         try:
-            FlextCliConfig(log_level="ERROR")
+            FlextCliConfigs(log_level="ERROR")
             error_msg = "ERROR log level should be rejected in development"
             raise AssertionError(error_msg)
         except Exception as e:
@@ -159,7 +159,7 @@ class TestCLIConfig:
 
     def test_config_as_dict(self) -> None:
         """Test converting config to dictionary."""
-        config = FlextCliConfig(
+        config = FlextCliConfigs(
             profile="test",
             debug=True,
             output_format="json",
@@ -167,7 +167,7 @@ class TestCLIConfig:
 
         config_dict = config.model_dump()
 
-        # Test actual structure returned by FlextCliConfig
+        # Test actual structure returned by FlextCliConfigs
         if config_dict["profile"] != "test":
             msg = f"Expected {'test'}, got {config_dict['profile']}"
             raise AssertionError(msg)
@@ -189,7 +189,7 @@ class TestCLIConfig:
             "auto_refresh": True,
         }
 
-        config = FlextCliConfig(**config_data)
+        config = FlextCliConfigs(**config_data)
 
         if config.api_url != "https://from-dict.com":
             msg = f"Expected {'https://from-dict.com'}, got {config.api_url}"
@@ -209,7 +209,7 @@ class TestCLIConfig:
         """Test config behavior with environment variables."""
         # Test current implementation behavior - may use default value
         with patch.dict("os.environ", {"FLEXT_API_URL": "https://env.test.com"}):
-            config = FlextCliConfig()
+            config = FlextCliConfigs()
 
             # Current implementation uses default value - both patterns are valid
             valid_urls = {
@@ -224,7 +224,7 @@ class TestCLIConfig:
 
     def test_config_path_creation(self) -> None:
         """Test that config paths are properly created."""
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
 
         # Test that all path properties return Path objects
         assert isinstance(config.config_dir, Path)
@@ -240,7 +240,7 @@ class TestCLIConfig:
 
     def test_config_mutability(self) -> None:
         """Test config mutability behavior."""
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
         original_url = config.base_url
 
         # Current implementation allows modifications to base_url (mutable model)
@@ -253,9 +253,9 @@ class TestCLIConfig:
 
     def test_config_equality(self) -> None:
         """Test config equality by comparing attributes."""
-        config1 = FlextCliConfig(base_url="https://test.com", command_timeout=30)
-        config2 = FlextCliConfig(base_url="https://test.com", command_timeout=30)
-        config3 = FlextCliConfig(base_url="https://different.com", command_timeout=30)
+        config1 = FlextCliConfigs(base_url="https://test.com", command_timeout=30)
+        config2 = FlextCliConfigs(base_url="https://test.com", command_timeout=30)
+        config3 = FlextCliConfigs(base_url="https://different.com", command_timeout=30)
 
         # Compare by attributes since object equality may not be implemented
         assert config1.api_url == config2.api_url
@@ -267,9 +267,9 @@ class TestCLIConfig:
 
     def test_config_comparison(self) -> None:
         """Test config object identity and comparison."""
-        config1 = FlextCliConfig(base_url="https://test.com")
-        config2 = FlextCliConfig(base_url="https://test.com")
-        config3 = FlextCliConfig(base_url="https://different.com")
+        config1 = FlextCliConfigs(base_url="https://test.com")
+        config2 = FlextCliConfigs(base_url="https://test.com")
+        config3 = FlextCliConfigs(base_url="https://different.com")
 
         # Configs with same values should have equal properties
         assert config1.api_url == config2.api_url
@@ -279,10 +279,10 @@ class TestCLIConfig:
 
     def test_config_string_representation(self) -> None:
         """Test config string representation."""
-        config = FlextCliConfig(base_url="https://test.com")
+        config = FlextCliConfigs(base_url="https://test.com")
 
         config_str = str(config)
-        # FlextCliConfig uses detailed string representation showing all config values
+        # FlextCliConfigs uses detailed string representation showing all config values
         # Check for key identifying elements instead of class name
         if "base_url='https://test.com'" not in config_str:
             msg = f"Expected base_url='https://test.com' in {config_str}"
@@ -291,16 +291,16 @@ class TestCLIConfig:
 
     def test_config_repr(self) -> None:
         """Test config repr representation."""
-        config = FlextCliConfig(base_url="https://test.com")
+        config = FlextCliConfigs(base_url="https://test.com")
 
         config_repr = repr(config)
-        if "FlextCliConfig" not in config_repr:
-            msg = f"Expected {'FlextCliConfig'} in {config_repr}"
+        if "FlextCliConfigs" not in config_repr:
+            msg = f"Expected {'FlextCliConfigs'} in {config_repr}"
             raise AssertionError(msg)
 
     def test_config_json_serialization(self) -> None:
         """Test config JSON serialization."""
-        config = FlextCliConfig(
+        config = FlextCliConfigs(
             base_url="https://json.test.com",
             timeout_seconds=90,
             log_level="DEBUG",
@@ -319,7 +319,7 @@ class TestCLIConfig:
     def test_config_model_validation(self) -> None:
         """Test Pydantic model validation."""
         # Test that the config is a valid Pydantic model
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
 
         # Should have model methods
         assert hasattr(config, "model_dump")
@@ -328,7 +328,7 @@ class TestCLIConfig:
 
     def test_config_field_defaults(self) -> None:
         """Test that all fields have proper defaults."""
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
 
         # All required fields should have values
         assert config.api_url is not None
@@ -348,7 +348,7 @@ class TestCLIConfig:
 
             # If config supports custom paths, test it
             # Otherwise, this documents expected behavior
-            config = FlextCliConfig()
+            config = FlextCliConfigs()
 
             # Paths should be under user home by default
             if config.config_dir.parts[0] != Path.home().parts[0]:
@@ -361,12 +361,12 @@ class TestCLIConfig:
 
 
 class TestCLIConfigIntegration:
-    """Integration tests for FlextCliConfig."""
+    """Integration tests for FlextCliConfigs."""
 
     def test_config_workflow(self) -> None:
         """Test complete config workflow."""
         # Create config
-        original_config = FlextCliConfig(
+        original_config = FlextCliConfigs(
             api_url="https://workflow.test.com",
             command_timeout=60,
             log_level="DEBUG",
@@ -376,7 +376,7 @@ class TestCLIConfigIntegration:
         config_dict = original_config.model_dump()
 
         # Recreate from dict
-        restored_config = FlextCliConfig(**config_dict)
+        restored_config = FlextCliConfigs(**config_dict)
 
         # Should have same attributes after serialization roundtrip
         assert original_config.api_url == restored_config.api_url
@@ -388,34 +388,34 @@ class TestCLIConfigIntegration:
         """Test config validation with edge cases."""
         # Empty strings (if allowed)
         with contextlib.suppress(RuntimeError, ValueError, TypeError):
-            config = FlextCliConfig(api_url="")
+            config = FlextCliConfigs(api_url="")
             # If this doesn't raise, empty strings are allowed
 
         # Maximum valid timeout (le=600 constraint)
-        config = FlextCliConfig(command_timeout=600)
+        config = FlextCliConfigs(command_timeout=600)
         assert config.command_timeout == 600
 
         # Valid maximum timeout
-        config = FlextCliConfig(timeout_seconds=300)
+        config = FlextCliConfigs(timeout_seconds=300)
         if config.timeout_seconds != 300:
             msg = f"Expected {300}, got {config.timeout_seconds}"
             raise AssertionError(msg)
 
         # Zero retries (valid since ge=0)
-        config = FlextCliConfig(max_command_retries=0)
+        config = FlextCliConfigs(max_command_retries=0)
         if config.retries != 0:
             msg = f"Expected {0}, got {config.retries}"
             raise AssertionError(msg)
 
         # Maximum retries
-        config = FlextCliConfig(max_command_retries=10)
+        config = FlextCliConfigs(max_command_retries=10)
         if config.retries != 10:
             msg = f"Expected {10}, got {config.retries}"
             raise AssertionError(msg)
 
     def test_config_paths_relationship(self) -> None:
         """Test relationship between different config paths."""
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
 
         # Cache dir should be under config dir
         if config.cache_dir.parent != config.config_dir:
@@ -437,7 +437,7 @@ class TestCLIConfigIntegration:
 
     def test_config_type_annotations(self) -> None:
         """Test that config has proper type annotations."""
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
 
         # Test type hints are working
         assert isinstance(config.api_url, str)

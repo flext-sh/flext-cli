@@ -13,7 +13,6 @@ from pathlib import Path
 from typing import ClassVar
 
 import pytest
-from flext_core import FlextResult, FlextTypes
 from flext_tests import (
     FlextTestsBuilders,
     FlextTestsDomains,
@@ -26,11 +25,12 @@ from flext_tests import (
 from flext_cli import (
     FlextCliApi,
     FlextCliAuth,
-    FlextCliConfig,
+    FlextCliConfigs,
     FlextCliContext,
     FlextCliMain,
 )
 from flext_cli.models import FlextCliModels
+from flext_core import FlextResult, FlextTypes
 
 
 # Test Configuration and Constants
@@ -168,7 +168,7 @@ def cli_context(flext_factories: FlextTestsFactories) -> FlextCliContext:
         no_color=True,
     )
 
-    config = FlextCliConfig(**config_data)
+    config = FlextCliConfigs(**config_data)
     return FlextCliContext(
         config=config,
         debug=True,
@@ -181,7 +181,7 @@ def cli_context(flext_factories: FlextTestsFactories) -> FlextCliContext:
 
 # Configuration Fixtures
 @pytest.fixture
-def test_config(flext_factories: FlextTestsFactories) -> FlextCliConfig:
+def test_config(flext_factories: FlextTestsFactories) -> FlextCliConfigs:
     """Provide test configuration using FlextTestsFactories."""
     config_data = flext_factories.ConfigFactory.create(
         profile="test",
@@ -189,7 +189,7 @@ def test_config(flext_factories: FlextTestsFactories) -> FlextCliConfig:
         timeout_seconds=30,
         output_format="table",
     )
-    return FlextCliConfig(**config_data)
+    return FlextCliConfigs(**config_data)
 
 
 # User and Domain Fixtures
@@ -247,7 +247,7 @@ def real_repositories(_flext_fixtures: FlextTestsFixtures) -> FlextTypes.Core.Di
     return {
         "user_repo": {},  # Placeholder for in-memory repo
         "auth_service": FlextCliAuth(),
-        "config": FlextCliConfig(profile="test"),
+        "config": FlextCliConfigs(profile="test"),
     }
 
 

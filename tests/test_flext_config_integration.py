@@ -10,7 +10,7 @@ import os
 
 import pytest
 
-from flext_cli import FlextCliConfig
+from flext_cli import FlextCliConfigs
 from flext_core import FlextConfig
 
 
@@ -20,22 +20,22 @@ class TestFlextConfigIntegration:
     def setup_method(self) -> None:
         """Setup test environment."""
         # Clear global instances before each test
-        FlextCliConfig.clear_global_instance()
+        FlextCliConfigs.clear_global_instance()
         FlextConfig.clear_global_instance()
 
     def teardown_method(self) -> None:
         """Cleanup test environment."""
         # Clear global instances after each test
-        FlextCliConfig.clear_global_instance()
+        FlextCliConfigs.clear_global_instance()
         FlextConfig.clear_global_instance()
 
     def test_flext_config_singleton_integration(self) -> None:
-        """Test that FlextCliConfig integrates with FlextConfig singleton."""
+        """Test that FlextCliConfigs integrates with FlextConfig singleton."""
         # Get base FlextConfig singleton
         base_config = FlextConfig.get_global_instance()
 
         # Get CLI config (should inherit from base)
-        cli_config = FlextCliConfig.get_global_instance()
+        cli_config = FlextCliConfigs.get_global_instance()
 
         # Verify CLI config inherits base config values
         assert cli_config.debug == base_config.debug
@@ -53,7 +53,7 @@ class TestFlextConfigIntegration:
         """Test that CLI parameter overrides update both configs."""
         # Get initial configs (for reference)
         _ = FlextConfig.get_global_instance()
-        _ = FlextCliConfig.get_global_instance()
+        _ = FlextCliConfigs.get_global_instance()
 
         # Apply CLI overrides
         cli_params: dict[str, object] = {
@@ -63,7 +63,7 @@ class TestFlextConfigIntegration:
             "profile": "development",
         }
 
-        override_result = FlextCliConfig.apply_cli_overrides(cli_params)
+        override_result = FlextCliConfigs.apply_cli_overrides(cli_params)
         assert override_result.is_success
 
         # Get updated configs
@@ -84,7 +84,7 @@ class TestFlextConfigIntegration:
         """Test synchronization between CLI config and FlextConfig."""
         # Get initial configs
         base_config = FlextConfig.get_global_instance()
-        _ = FlextCliConfig.get_global_instance()
+        _ = FlextCliConfigs.get_global_instance()
 
         # Modify base config directly
         base_config.debug = True
@@ -92,7 +92,7 @@ class TestFlextConfigIntegration:
         FlextConfig.set_global_instance(base_config)
 
         # Synchronize CLI config
-        sync_result = FlextCliConfig.sync_with_flext_config()
+        sync_result = FlextCliConfigs.sync_with_flext_config()
         assert sync_result.is_success
 
         # Verify CLI config is synchronized
@@ -109,10 +109,10 @@ class TestFlextConfigIntegration:
 
         try:
             # Clear global instance to force reload
-            FlextCliConfig.clear_global_instance()
+            FlextCliConfigs.clear_global_instance()
 
             # Get new instance with environment overrides
-            config = FlextCliConfig.get_global_instance()
+            config = FlextCliConfigs.get_global_instance()
 
             # Verify environment overrides
             assert config.debug
@@ -137,7 +137,7 @@ class TestFlextConfigIntegration:
         FlextConfig.set_global_instance(base_config)
 
         # Get CLI config (should inherit changes)
-        cli_config = FlextCliConfig.get_global_instance()
+        cli_config = FlextCliConfigs.get_global_instance()
 
         # Verify inheritance
         assert cli_config.debug
@@ -153,33 +153,33 @@ class TestFlextConfigIntegration:
     def test_global_instance_management(self) -> None:
         """Test global instance management."""
         # Get initial instance
-        config1 = FlextCliConfig.get_global_instance()
+        config1 = FlextCliConfigs.get_global_instance()
 
-        # Get same instance - note: FlextCliConfig creates new instances for test isolation
-        config2 = FlextCliConfig.get_global_instance()
+        # Get same instance - note: FlextCliConfigs creates new instances for test isolation
+        config2 = FlextCliConfigs.get_global_instance()
         assert config1.model_dump() == config2.model_dump()  # Same configuration values
 
         # Set new global instance
-        new_config = FlextCliConfig(profile="test", debug=True)
-        FlextCliConfig.set_global_instance(new_config)
+        new_config = FlextCliConfigs(profile="test", debug=True)
+        FlextCliConfigs.set_global_instance(new_config)
 
         # Verify new instance is returned
-        config3 = FlextCliConfig.get_global_instance()
+        config3 = FlextCliConfigs.get_global_instance()
         assert config3 is new_config
         assert config3.profile == "test"
         assert config3.debug
 
         # Clear global instance
-        FlextCliConfig.clear_global_instance()
+        FlextCliConfigs.clear_global_instance()
 
         # Verify new instance is created
-        config4 = FlextCliConfig.get_global_instance()
+        config4 = FlextCliConfigs.get_global_instance()
         assert config4 is not new_config
 
     def test_configuration_validation(self) -> None:
         """Test configuration validation."""
         # Get valid config
-        config = FlextCliConfig.get_global_instance()
+        config = FlextCliConfigs.get_global_instance()
 
         # Validate configuration
         validation_result = config.validate_business_rules()
@@ -187,7 +187,7 @@ class TestFlextConfigIntegration:
 
         # Test invalid configuration creation
         try:
-            invalid_config = FlextCliConfig(
+            invalid_config = FlextCliConfigs(
                 profile="",  # Invalid empty profile
                 output_format="invalid_format",  # Invalid format
             )
@@ -224,7 +224,7 @@ class TestFlextConfigIntegration:
             "api-timeout": 120,  # Kebab case
         }
 
-        override_result = FlextCliConfig.apply_cli_overrides(cli_params)
+        override_result = FlextCliConfigs.apply_cli_overrides(cli_params)
         assert override_result.is_success
 
         config = override_result.value
@@ -244,7 +244,7 @@ class TestFlextConfigIntegration:
 
     def test_configuration_export(self) -> None:
         """Test configuration export functionality."""
-        config = FlextCliConfig.get_global_instance()
+        config = FlextCliConfigs.get_global_instance()
 
         # Test model_dump
         config_dict = config.model_dump()
@@ -262,19 +262,19 @@ class TestFlextConfigIntegration:
     def test_configuration_consistency(self) -> None:
         """Test configuration consistency across different access methods."""
         # Get config via different methods
-        config1 = FlextCliConfig.get_global_instance()
-        config2 = FlextCliConfig.get_current()
+        config1 = FlextCliConfigs.get_global_instance()
+        config2 = FlextCliConfigs.get_current()
 
         # Should have the same configuration values
         assert config1.model_dump() == config2.model_dump()
 
         # Apply overrides
         cli_params: dict[str, object] = {"debug": True, "profile": "test"}
-        override_result = FlextCliConfig.apply_cli_overrides(cli_params)
+        override_result = FlextCliConfigs.apply_cli_overrides(cli_params)
         assert override_result.is_success
 
         # Get updated config
-        config3 = FlextCliConfig.get_global_instance()
+        config3 = FlextCliConfigs.get_global_instance()
 
         # Verify consistency
         assert config3.debug
@@ -288,23 +288,23 @@ class TestFlextConfigIntegration:
         """Test error handling in configuration operations."""
         # Test invalid CLI parameters
         invalid_params: dict[str, object] = {"invalid_param": "value"}
-        override_result = FlextCliConfig.apply_cli_overrides(invalid_params)
+        override_result = FlextCliConfigs.apply_cli_overrides(invalid_params)
         assert override_result.is_success  # Should succeed with ignored invalid params
 
         # Test synchronization with invalid config
         # This should not fail as it's handled gracefully
-        sync_result = FlextCliConfig.sync_with_flext_config()
+        sync_result = FlextCliConfigs.sync_with_flext_config()
         assert sync_result.is_success
 
     def test_configuration_profiles(self) -> None:
         """Test configuration profile functionality."""
         # Test default profile
-        config = FlextCliConfig.get_global_instance()
+        config = FlextCliConfigs.get_global_instance()
         assert config.profile == "default"
 
         # Test profile override
         cli_params: dict[str, object] = {"profile": "development"}
-        override_result = FlextCliConfig.apply_cli_overrides(cli_params)
+        override_result = FlextCliConfigs.apply_cli_overrides(cli_params)
         assert override_result.is_success
 
         updated_config = override_result.value
@@ -312,7 +312,7 @@ class TestFlextConfigIntegration:
 
     def test_configuration_directories(self) -> None:
         """Test configuration directory management."""
-        config = FlextCliConfig.get_global_instance()
+        config = FlextCliConfigs.get_global_instance()
 
         # Test directory validation using modern method
         dir_result = config.ensure_directories()
@@ -324,7 +324,7 @@ class TestFlextConfigIntegration:
 
     def test_configuration_timeout_aliases(self) -> None:
         """Test timeout configuration aliases."""
-        config = FlextCliConfig.get_global_instance()
+        config = FlextCliConfigs.get_global_instance()
 
         # Test timeout alias
         assert hasattr(config, "timeout")
@@ -332,7 +332,7 @@ class TestFlextConfigIntegration:
 
         # Test timeout override
         cli_params: dict[str, object] = {"timeout": 120}
-        override_result = FlextCliConfig.apply_cli_overrides(cli_params)
+        override_result = FlextCliConfigs.apply_cli_overrides(cli_params)
         assert override_result.is_success
 
         updated_config = override_result.value
