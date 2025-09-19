@@ -137,10 +137,12 @@ class FlextCliDecorators:
                     # Check if we're in an event loop already
                     asyncio.get_running_loop()
                     # If we get here, there's a running loop, cannot use asyncio.run
-                    # Return error instead of coroutine
                     error_msg = "Cannot run async command within existing event loop"
                     raise RuntimeError(error_msg)
-                except RuntimeError:
+                except RuntimeError as e:
+                    # Check if this is the "no running loop" error or our custom error
+                    if "Cannot run async command" in str(e):
+                        raise
                     # No event loop running, safe to use asyncio.run
                     result: T = asyncio.run(func(*args, **kwargs))
                     return result

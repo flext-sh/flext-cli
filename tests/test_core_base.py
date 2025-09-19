@@ -153,7 +153,9 @@ class TestHandleServiceResult:
 
         @FlextCliDecorators.handle_service_result
         def function_with_args(
-            arg1: str, arg2: int, kwarg1: str = "default"
+            arg1: str,
+            arg2: int,
+            kwarg1: str = "default",
         ) -> FlextResult[str]:
             return FlextResult[str].ok(f"{arg1}-{arg2}-{kwarg1}")
 

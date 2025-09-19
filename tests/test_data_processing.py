@@ -231,7 +231,8 @@ class TestFlextCliDataProcessing:
             test: str
 
         result1 = FlextCliDataProcessing.validate_with_pydantic_model(
-            {"test": "data"}, StaticTestModel
+            {"test": "data"},
+            StaticTestModel,
         )
 
         def identity_func(x: object) -> object:

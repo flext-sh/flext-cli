@@ -147,7 +147,8 @@ class FlextCliAuth(FlextDomainService[str]):
         return bool(getattr(self._config, "auto_refresh", False))
 
     def validate_credentials(
-        self, credentials: FlextCliTypes.LoginCredentials,
+        self,
+        credentials: FlextCliTypes.LoginCredentials,
     ) -> FlextResult[None]:
         """Validate login credentials using SOURCE OF TRUTH validation rules."""
         try:
@@ -333,7 +334,9 @@ class FlextCliAuth(FlextDomainService[str]):
             return False
 
     def check_authentication_status(
-        self, *, token_path: Path | None = None,
+        self,
+        *,
+        token_path: Path | None = None,
     ) -> FlextResult[bool]:
         """Check authentication status using SOURCE OF TRUTH."""
         try:
@@ -606,7 +609,9 @@ class FlextCliAuth(FlextDomainService[str]):
             return FlextResult[bool].fail(f"Validation failed: {e}")
 
     def authenticate_user(
-        self, username: str, password: str,
+        self,
+        username: str,
+        password: str,
     ) -> FlextResult[dict[str, object]]:
         """Authenticate user with credentials."""
         try:
@@ -629,7 +634,9 @@ class FlextCliAuth(FlextDomainService[str]):
             return FlextResult[dict[str, object]].fail(f"Authentication failed: {e}")
 
     def save_auth_config(
-        self, config_data: dict[str, object], file_path: str,
+        self,
+        config_data: dict[str, object],
+        file_path: str,
     ) -> FlextResult[str]:
         """Save authentication configuration to file."""
         try:
@@ -669,7 +676,8 @@ class FlextCliAuth(FlextDomainService[str]):
             return FlextResult[dict[str, object]].fail(f"Load failed: {e}")
 
     def _validate_auth_config(
-        self, config_data: dict[str, object],
+        self,
+        config_data: dict[str, object],
     ) -> FlextResult[bool]:
         """Validate authentication configuration."""
         try:
@@ -706,7 +714,8 @@ class FlextCliAuth(FlextDomainService[str]):
                     self._logger.info("login_successful", user=user)
                 else:
                     self._logger.info(
-                        "login_successful", details="Login completed successfully",
+                        "login_successful",
+                        details="Login completed successfully",
                     )
 
         def handle_logout(self) -> None:
@@ -714,8 +723,9 @@ class FlextCliAuth(FlextDomainService[str]):
             result = self._auth.logout()
             if result.is_success:
                 # Handle successful logout - could show confirmation message
-                self._auth._logger.info(
-                    "logout_successful", details="Logout completed successfully",
+                self._logger.info(
+                    "logout_successful",
+                    details="Logout completed successfully",
                 )
 
         def handle_status(self) -> None:
@@ -727,7 +737,7 @@ class FlextCliAuth(FlextDomainService[str]):
             status_info = status_result.value
             for key, value in status_info.items():
                 # Log status information - could be displayed to user
-                self._auth._logger.info("auth_status", key=key, value=value)
+                self._logger.info("auth_status", key=key, value=value)
 
         def handle_whoami(self) -> None:
             """Handle whoami command using SOURCE OF TRUTH."""
@@ -738,7 +748,7 @@ class FlextCliAuth(FlextDomainService[str]):
             user_info = whoami_result.value
             for key, value in user_info.items():
                 # Log user information - could be displayed to user
-                self._auth._logger.info("user_info", key=key, value=value)
+                self._logger.info("user_info", key=key, value=value)
 
 
 __all__ = ["FlextCliAuth"]

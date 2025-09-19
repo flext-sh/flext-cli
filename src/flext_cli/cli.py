@@ -146,6 +146,71 @@ class FlextCliMain(BaseModel):
         click.echo(f"Platform: {version_info['platform']}")
         ctx.exit()
 
+    # Public API methods for CLI commands (instead of accessing private nested classes)
+    def get_auth_status(self) -> str:
+        """Get authentication status."""
+        return self._AuthCommands.get_auth_status()
+
+    def login_user(self, username: str, password: str) -> str:
+        """Login user with credentials."""
+        return self._AuthCommands.login_user(username, password)
+
+    def logout_user(self) -> str:
+        """Logout current user."""
+        return self._AuthCommands.logout_user()
+
+    def edit_config(self) -> str:
+        """Edit configuration."""
+        return self._ConfigCommands.edit_config()
+
+    def get_config_path(self) -> str:
+        """Get configuration path."""
+        return self._ConfigCommands.get_config_path()
+
+    def get_config_value(self, key: str) -> str:
+        """Get configuration value."""
+        return self._ConfigCommands.get_config_value(key)
+
+    def validate_config(self) -> str:
+        """Validate configuration."""
+        return self._ConfigCommands.validate_config()
+
+    def get_environment_info(self) -> dict[str, str]:
+        """Get FLEXT environment information."""
+        return self._SystemCommands.get_environment_info()
+
+    def check_connectivity(self) -> str:
+        """Check connectivity."""
+        return self._SystemCommands.check_connectivity()
+
+    def check_performance(self) -> str:
+        """Check performance."""
+        return self._SystemCommands.check_performance()
+
+    def show_paths(self) -> dict[str, str]:
+        """Show system paths."""
+        return self._SystemCommands.show_paths()
+
+    def validate_system(self) -> str:
+        """Validate system."""
+        return self._SystemCommands.validate_system()
+
+    def run_trace(self, args: tuple[str, ...]) -> str:
+        """Run trace command."""
+        return self._SystemCommands.run_trace(args)
+
+    def health_check(self) -> str:
+        """Run health check."""
+        return self._SystemCommands.health_check()
+
+    def get_version(self) -> str:
+        """Get version information."""
+        return self._SystemCommands.get_version()
+
+    def start_interactive(self) -> str:
+        """Start interactive mode."""
+        return self._SystemCommands.start_interactive()
+
     class _AuthCommands:
         """Nested helper for authentication commands."""
 
@@ -265,11 +330,19 @@ _cli_main = FlextCliMain()
 # Delegating functions for Click decorators (they need module-level functions)
 def print_version(
     ctx: click.Context,
-    param: click.Parameter,
+    _param: click.Parameter,
     value: object,
 ) -> None:
     """Delegate to unified service."""
-    return _cli_main.print_version(ctx, param, value)
+    if not value or ctx.resilient_parsing:
+        return
+
+    version_info = _cli_main.get_version_info()
+    click.echo(f"FLEXT CLI Version: {version_info['cli_version']}")
+    click.echo(f"FLEXT Core Version: {version_info['core_version']}")
+    click.echo(f"Python Version: {version_info['python_version']}")
+    click.echo(f"Platform: {version_info['platform']}")
+    ctx.exit()
 
 
 def get_version_info() -> FlextCliTypes.VersionInfo:
@@ -435,7 +508,7 @@ def auth_get_help(ctx: click.Context) -> str:
 @click.pass_context
 def status(_ctx: click.Context) -> None:
     """Show authentication status."""
-    click.echo(_cli_main._AuthCommands.get_auth_status())
+    click.echo(_cli_main.get_auth_status())
 
 
 @auth.command()
@@ -449,14 +522,14 @@ def status(_ctx: click.Context) -> None:
 @click.pass_context
 def login(_ctx: click.Context, username: str, _password: str) -> None:
     """Login with username and password."""
-    click.echo(_cli_main._AuthCommands.login_user(username, _password))
+    click.echo(_cli_main.login_user(username, _password))
 
 
 @auth.command()
 @click.pass_context
 def logout(_ctx: click.Context) -> None:
     """Logout and remove authentication."""
-    click.echo(_cli_main._AuthCommands.logout_user())
+    click.echo(_cli_main.logout_user())
 
 
 @cli.group()
@@ -520,14 +593,14 @@ def show(ctx: click.Context) -> None:
 @click.pass_context
 def edit(_ctx: click.Context) -> None:
     """Edit configuration using default editor."""
-    click.echo(_cli_main._ConfigCommands.edit_config())
+    click.echo(_cli_main.edit_config())
 
 
 @config.command()
 @click.pass_context
 def path(_ctx: click.Context) -> None:
     """Show configuration file path."""
-    click.echo(_cli_main._ConfigCommands.get_config_path())
+    click.echo(_cli_main.get_config_path())
 
 
 @config.command()
@@ -535,7 +608,7 @@ def path(_ctx: click.Context) -> None:
 @click.pass_context
 def get(_ctx: click.Context, key: str = "") -> None:
     """Get configuration value by key."""
-    click.echo(_cli_main._ConfigCommands.get_config_value(key))
+    click.echo(_cli_main.get_config_value(key))
 
 
 @config.command()
@@ -551,7 +624,7 @@ def set_value(_ctx: click.Context, key: str, value: str) -> None:
 @click.pass_context
 def validate(_ctx: click.Context) -> None:
     """Validate configuration settings."""
-    click.echo(_cli_main._ConfigCommands.validate_config())
+    click.echo(_cli_main.validate_config())
 
 
 @cli.group()
@@ -564,7 +637,7 @@ def debug(_ctx: click.Context) -> None:
 @click.pass_context
 def env(_ctx: click.Context) -> None:
     """Show environment information."""
-    flx_vars = _cli_main._SystemCommands.get_environment_info()
+    flx_vars = _cli_main.get_environment_info()
 
     if flx_vars:
         click.echo("FLEXT Environment Variables:")
@@ -597,21 +670,21 @@ def connectivity(_ctx: click.Context) -> None:
     if not _ctx.obj:
         click.echo("Connection test failed: context not available", err=True)
         _ctx.exit(1)
-    click.echo(_cli_main._SystemCommands.check_connectivity())
+    click.echo(_cli_main.check_connectivity())
 
 
 @debug.command()
 @click.pass_context
 def performance(_ctx: click.Context) -> None:
     """Show performance metrics."""
-    click.echo(_cli_main._SystemCommands.check_performance())
+    click.echo(_cli_main.check_performance())
 
 
 @debug.command()
 @click.pass_context
 def paths(_ctx: click.Context) -> None:
     """Show system paths."""
-    paths_info = _cli_main._SystemCommands.show_paths()
+    paths_info = _cli_main.show_paths()
     click.echo("FLEXT Configuration Paths")
     click.echo("=" * 25)
     for name, path in paths_info.items():
@@ -622,21 +695,21 @@ def paths(_ctx: click.Context) -> None:
 @click.pass_context
 def validate_system(_ctx: click.Context) -> None:
     """Validate system setup."""
-    click.echo(_cli_main._SystemCommands.validate_system())
+    click.echo(_cli_main.validate_system())
 
 
 @debug.command()
 @click.pass_context
 def validate_debug(_ctx: click.Context) -> None:
     """Validate system configuration."""
-    click.echo(_cli_main._SystemCommands.validate_system())
+    click.echo(_cli_main.validate_system())
 
 
 @debug.command(name="validate")
 @click.pass_context
 def validate_alias(_ctx: click.Context) -> None:
     """Validate system configuration."""
-    click.echo(_cli_main._SystemCommands.validate_system())
+    click.echo(_cli_main.validate_system())
 
 
 @debug.command()
@@ -644,7 +717,7 @@ def validate_alias(_ctx: click.Context) -> None:
 @click.pass_context
 def trace(_ctx: click.Context, args: tuple[str, ...]) -> None:
     """Trace operations."""
-    click.echo(_cli_main._SystemCommands.run_trace(args))
+    click.echo(_cli_main.run_trace(args))
 
 
 @debug.command()
@@ -652,21 +725,21 @@ def trace(_ctx: click.Context, args: tuple[str, ...]) -> None:
 def check(_ctx: click.Context) -> None:
     """Health check for system connectivity."""
     # Allow execution even without context (uses default console when needed)
-    click.echo(_cli_main._SystemCommands.health_check())
+    click.echo(_cli_main.health_check())
 
 
 @cli.command()
 @click.pass_context
 def version(_ctx: click.Context) -> None:
     """Show version information."""
-    click.echo(_cli_main._SystemCommands.get_version())
+    click.echo(_cli_main.get_version())
 
 
 @cli.command()
 @click.pass_context
 def interactive(_ctx: click.Context) -> None:
     """Interactive mode - coming soon."""
-    click.echo(_cli_main._SystemCommands.start_interactive())
+    click.echo(_cli_main.start_interactive())
 
 
 # Função main simples que os testes esperam

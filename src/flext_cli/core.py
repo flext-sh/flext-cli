@@ -159,9 +159,6 @@ class FlextCliService(FlextDomainService[str]):
             "plugins_loaded": len(self._plugins),
         }
 
-    def flext_cli_format(self, data: object, format_type: str) -> FlextResult[str]:
-        """Format data using FlextCliFormatters - alias for format_data."""
-        return self.format_data(data, format_type)
 
     def _initialize_services(self) -> None:
         """Initialize services using flext-core directly.
@@ -245,7 +242,10 @@ class FlextCliService(FlextDomainService[str]):
         return formatters.format_data(data, format_type)
 
     def flext_cli_export(
-        self, data: object, file_path: str, format_type: str,
+        self,
+        data: object,
+        file_path: str,
+        format_type: str,
     ) -> FlextResult[str]:
         """Export data to file using flext-core utilities directly.
 
@@ -329,7 +329,9 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[dict[str, object]].fail(f"Get plugins failed: {e}")
 
     def flext_cli_execute_handler(
-        self, handler_name: str, data: object,
+        self,
+        handler_name: str,
+        data: object,
     ) -> FlextResult[object]:
         """Execute handler by name.
 
@@ -354,7 +356,9 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[object].fail(f"Handler execution failed: {e}")
 
     def flext_cli_render_with_context(
-        self, data: object, context_options: object = None,
+        self,
+        data: object,
+        context_options: object = None,
     ) -> FlextResult[str]:
         """Render data with context using configured format.
 
@@ -382,7 +386,9 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[str].fail(f"Render failed: {e}")
 
     def flext_cli_create_command(
-        self, name: str, command_line: str,
+        self,
+        name: str,
+        command_line: str,
     ) -> FlextResult[object]:
         """Create a command.
 
@@ -429,7 +435,9 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[object].fail(f"Session creation failed: {e}")
 
     def flext_cli_register_handler(
-        self, name: str, handler: object,
+        self,
+        name: str,
+        handler: object,
     ) -> FlextResult[None]:
         """Register a handler.
 

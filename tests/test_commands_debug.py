@@ -355,7 +355,8 @@ class TestDebugIntegration:
         """Setup test method with real components."""
         self.cli_api = FlextCliApi()
         self.cli_main = FlextCliMain(
-            name="test-debug-integration", description="Test debug integration"
+            name="test-debug-integration",
+            description="Test debug integration",
         )
 
     def test_debug_workflow_real(self) -> None:
@@ -389,20 +390,23 @@ class TestDebugIntegration:
         # 2. Test connectivity check
         connectivity_data = {"network": "connected", "api": "reachable"}
         format_result = self.cli_api.format_output(
-            connectivity_data, format_type="json"
+            connectivity_data,
+            format_type="json",
         )
         assert format_result.is_success, "Connectivity format should succeed"
 
         # 3. Test performance metrics
         performance_data = {"cpu": "15%", "memory": "45%"}
         metrics_result = self.cli_api.format_output(
-            performance_data, format_type="table"
+            performance_data,
+            format_type="table",
         )
         assert metrics_result.is_success, "Performance format should succeed"
 
         # 4. Test validation
         validation_result = self.cli_api.display_message(
-            "All validations passed", "success"
+            "All validations passed",
+            "success",
         )
         assert validation_result.is_success, "Validation message should succeed"
 
@@ -417,7 +421,8 @@ class TestDebugIntegration:
 
         # Test warning message display
         warning_result = self.cli_api.display_message(
-            "Debug check incomplete", "warning"
+            "Debug check incomplete",
+            "warning",
         )
         assert isinstance(warning_result, FlextResult), (
             "Warning should return FlextResult"

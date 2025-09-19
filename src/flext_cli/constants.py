@@ -158,6 +158,13 @@ class FlextCliConstants:
         ERROR = "ERROR"
         CRITICAL = "CRITICAL"
 
+    # Log level constants for backward compatibility
+    LOG_LEVEL_DEBUG = LogLevel.DEBUG
+    LOG_LEVEL_INFO = LogLevel.INFO
+    LOG_LEVEL_WARNING = LogLevel.WARNING
+    LOG_LEVEL_ERROR = LogLevel.ERROR
+    LOG_LEVEL_CRITICAL = LogLevel.CRITICAL
+
     class ErrorCode(StrEnum):
         """Error code enumeration for CLI exception categorization."""
 
@@ -257,6 +264,8 @@ class FlextCliConstants:
     # Test compatibility aliases
     OutputFormat: ClassVar[type[Output]] = Output
     TimeoutConfig: ClassVar[type[Timeouts]] = Timeouts
+    LimitsConfig: ClassVar[type[Limits]] = Limits
+    OutputConfig: ClassVar[type[Output]] = Output
 
 
 __all__ = ["FlextCliConstants"]

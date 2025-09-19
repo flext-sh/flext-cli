@@ -22,7 +22,7 @@ from __future__ import annotations
 from flext_cli.api import FlextCliApi
 from flext_cli.auth import FlextCliAuth
 from flext_cli.client import FlextCliClient
-from flext_cli.config import FlextCliConfigs
+from flext_cli.configs import FlextCliConfigs
 from flext_core import FlextConfig
 
 

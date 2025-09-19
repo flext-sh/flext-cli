@@ -35,7 +35,7 @@ class FlextCliContext:
         id_: str | None = None,
         config: FlextCliConfigs | None = None,
         logger: FlextLogger | None = None,
-        console: object | None = None,  # Support for test compatibility
+        console: object | None = None,
         debug: bool = False,
         quiet: bool = False,
         verbose: bool = False,
@@ -51,7 +51,7 @@ class FlextCliContext:
             id_: Context identifier (generated if not provided)
             config: CLI configuration instance
             logger: FlextLogger for output
-            console: Console object for test compatibility
+            console: Console object
             debug: Enable debug mode
             quiet: Enable quiet mode
             verbose: Enable verbose mode
@@ -69,7 +69,7 @@ class FlextCliContext:
         self._id = id_ or str(uuid.uuid4())
         self._config = config or FlextCliConfigs()
         self._logger = logger or FlextLogger(__name__)
-        self._console = console  # For test compatibility
+        self._console = console
         self._debug = debug
         self._quiet = quiet
         self._verbose = verbose
@@ -102,7 +102,7 @@ class FlextCliContext:
 
     @property
     def console(self) -> object | None:
-        """Get console object for test compatibility."""
+        """Get console object."""
         return self._console
 
     @property

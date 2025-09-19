@@ -21,7 +21,10 @@ class FlextCliInteractions:
     """
 
     def __init__(
-        self, *, logger: FlextLogger | None = None, quiet: bool = False,
+        self,
+        *,
+        logger: FlextLogger | None = None,
+        quiet: bool = False,
     ) -> None:
         """Initialize interactions manager."""
         self._logger: FlextLogger = logger or FlextLogger(__name__)

@@ -27,18 +27,6 @@ from flext_cli.models import FlextCliModels
 from flext_core import FlextContainer, FlextResult, FlextTypes, T
 
 
-class DispatcherProtocol(Protocol):
-    """Protocol for operation dispatcher with proper type safety."""
-
-    def dispatch_operation(self, operation: str, **params: object) -> FlextResult[object]:
-        """Dispatch operation with parameters."""
-        ...
-
-    def configure(self, config: object) -> FlextResult[None]:
-        """Configure dispatcher with settings."""
-        ...
-
-
 class FlextCliApi(BaseModel):
     """Unified CLI API with Python 3.13 cutting-edge patterns.
 
@@ -58,11 +46,10 @@ class FlextCliApi(BaseModel):
         default=None,
     )  # Will be OperationDispatcher implementing DispatcherProtocol at runtime
 
-    # Type alias for test compatibility
-    @property
-    def api_state_class(self) -> type[FlextCliModels.ApiState]:
-        """Get ApiState model class for test compatibility."""
-        return FlextCliModels.ApiState
+
+    def api_state(self) -> FlextCliModels.ApiState:
+        """Create ApiState instance for test compatibility."""
+        return FlextCliModels.ApiState()
 
     # Private attributes for Pydantic
     _formatters: FlextCliFormatters = PrivateAttr()
@@ -73,6 +60,19 @@ class FlextCliApi(BaseModel):
 
     # Model configuration
     model_config = {"arbitrary_types_allowed": True}
+
+    class DispatcherProtocol(Protocol):
+        """Protocol for operation dispatcher with proper type safety."""
+
+        def dispatch_operation(
+            self, operation: str, **params: object
+        ) -> FlextResult[object]:
+            """Dispatch operation with parameters."""
+            ...
+
+        def configure(self, config: object) -> FlextResult[None]:
+            """Configure dispatcher with settings."""
+            ...
 
     # =========================================================================
     # NESTED SPECIALIZED CLASSES - Advanced Architecture Pattern
@@ -556,7 +556,9 @@ class FlextCliApi(BaseModel):
         self._services = services or FlextCliService()
 
     def _dispatch_operation(
-        self, operation: str, **kwargs: object,
+        self,
+        operation: str,
+        **kwargs: object,
     ) -> FlextResult[object]:
         """Safely dispatch operation to dispatcher with type checking."""
         if self.dispatcher is None:
@@ -660,7 +662,9 @@ class FlextCliApi(BaseModel):
     # =========================================================================
 
     def display_message(
-        self, message: str, message_type: str = "info",
+        self,
+        message: str,
+        message_type: str = "info",
     ) -> FlextResult[None]:
         """Display message using CLI formatters."""
         if not message:
@@ -789,10 +793,8 @@ class FlextCliApi(BaseModel):
         title: str | None = None,
     ) -> FlextResult[object]:
         """Create formatted table - returns string for most cases, RichTable when needed."""
-        # FlextCliFormatters handles all object types - no type validation needed
-        # Type cast to match formatter expectations
-        formatted_data = data if isinstance(data, (dict, list)) else {"value": data}
-        table_result = self._formatters.create_table(formatted_data, title=title)
+        # FlextCliFormatters handles all object types - pass data directly
+        table_result = self._formatters.create_table(data, title=title)
         if table_result.is_success:
             return FlextResult[object].ok(table_result.value)
         return FlextResult[object].fail(table_result.error or "Table creation failed")
@@ -808,9 +810,8 @@ class FlextCliApi(BaseModel):
 
         # FlextCliFormatters handles all object types - no type validation needed
         # Use formatters abstraction layer instead of direct Rich import
-        # Type cast to match formatter expectations
-        formatted_data = data if isinstance(data, (dict, list)) else {"value": data}
-        table_result = self._formatters.create_table(formatted_data, title=title)
+        # FlextCliFormatters handles all object types - pass data directly
+        table_result = self._formatters.create_table(data, title=title)
         if table_result.is_success:
             return FlextResult[object].ok(table_result.value)
         return FlextResult[object].fail(f"Table creation failed: {table_result.error}")

@@ -144,7 +144,7 @@ class TestFlextCliApiIntegration:
             result = handler(5, 3)  # We know this returns int from test_handler
             # Cast to int for type safety since handler returns int but dict lookup gives object
             exec_result = FlextResult[int].ok(
-                int(result) if isinstance(result, (int, str, float)) else 0
+                int(result) if isinstance(result, (int, str, float)) else 0,
             )
         else:
             exec_result = FlextResult[int].fail("Handler not found")
@@ -225,7 +225,7 @@ class TestFlextCliApiIntegration:
 
         # Test get_commands - returns FlextResult following flext-core patterns
         commands_result = FlextResult[list[FlextCliModels.CliCommand]].ok(
-            api.get_command_history()
+            api.get_command_history(),
         )
         assert isinstance(commands_result, FlextResult)
         assert commands_result.is_success

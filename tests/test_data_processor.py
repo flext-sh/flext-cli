@@ -127,7 +127,8 @@ class TestFlextCliDataProcessingFunctional:
             department: str
 
         result = self.processor.validate_with_pydantic_model(
-            combined_data[0], CombinedDataModel
+            combined_data[0],
+            CombinedDataModel,
         )
 
         # Validate aggregation results
@@ -173,7 +174,8 @@ class TestFlextCliDataProcessingFunctional:
             age: int
 
         result = self.processor.validate_with_pydantic_model(
-            {"age": "not_a_number"}, AgeModel
+            {"age": "not_a_number"},
+            AgeModel,
         )
         assert (
             result.is_failure
@@ -201,7 +203,8 @@ class TestFlextCliDataProcessingFunctional:
             incomplete: bool
 
         result = self.processor.validate_with_pydantic_model(
-            malformed_data[0], MalformedModel
+            malformed_data[0],
+            MalformedModel,
         )
         # Should either succeed with filtered data or fail gracefully
         assert isinstance(result, FlextResult)
@@ -223,7 +226,8 @@ class TestFlextCliDataProcessingFunctional:
             age: int
 
         transform_result = self.processor.validate_with_pydantic_model(
-            complex_data[0], ComplexModel
+            complex_data[0],
+            ComplexModel,
         )
         assert transform_result.is_success
 
@@ -291,6 +295,7 @@ class TestFlextCliDataProcessingEdgeCases:
             incomplete: bool
 
         result = self.processor.validate_with_pydantic_model(
-            malformed_data[0], MalformedModel
+            malformed_data[0],
+            MalformedModel,
         )
         assert isinstance(result, FlextResult)

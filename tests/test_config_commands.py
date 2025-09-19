@@ -178,7 +178,7 @@ class TestConfigCommandsReal:
 
         if message_result.is_failure:
             return FlextResult[None].fail(
-                f"Message display failed: {message_result.error}"
+                f"Message display failed: {message_result.error}",
             )
 
         return FlextResult[None].ok(None)

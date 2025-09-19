@@ -154,6 +154,7 @@ class TestTypeCompatibility:
         format_str: types.FlextCliTypes.OutputFormat = (
             types.FlextCliTypes.OutputFormat.JSON
         )
+        format_value: str = format_str.value
         args: list[str] = ["arg1", "arg2"]
 
         def handler(x: object) -> object:
@@ -161,7 +162,7 @@ class TestTypeCompatibility:
 
         # Basic validation that types work
         assert isinstance(data, str)
-        assert isinstance(format_str, str)
+        assert isinstance(format_value, str)  # Test the .value property
         assert isinstance(args, list)
         assert callable(handler)
 
@@ -229,6 +230,7 @@ class TestModuleStructure:
             "click",  # import click
             "Callable",  # from collections.abc import Callable
             "StrEnum",  # from enum import StrEnum
+            "Enum",  # from enum import Enum
             "PluginStatusEnum",  # Plugin status enumeration - legitimate type export
             "ParamSpec",  # from typing import ParamSpec
         }

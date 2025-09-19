@@ -127,7 +127,7 @@ class TestAuthCommands:
                 "username": "testuser",
                 "authentication_method": "password",
                 "status": "success",
-            }
+            },
         ).value
 
         format_result = cli_api.format_output(login_data, format_type="json")
@@ -164,7 +164,8 @@ class TestAuthCommands:
 
         # Test success message display
         message_result = cli_api.display_message(
-            test_messages["logout_success"], "success"
+            test_messages["logout_success"],
+            "success",
         )
         flext_matchers.assert_result_success(message_result)
 
@@ -269,7 +270,8 @@ class TestAuthIntegration:
 
         # Test token expired warning
         warning_result = cli_api.display_message(
-            test_messages["token_expired"], "warning"
+            test_messages["token_expired"],
+            "warning",
         )
         flext_matchers.assert_result_success(warning_result)
 

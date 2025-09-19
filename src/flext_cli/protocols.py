@@ -52,7 +52,9 @@ class FlextCliProtocols:
         """Protocol for authentication service operations."""
 
         def validate_credentials(
-            self, username: str, password: str,
+            self,
+            username: str,
+            password: str,
         ) -> FlextResult[None]:
             """Validate login credentials."""
             ...
@@ -62,7 +64,9 @@ class FlextCliProtocols:
             ...
 
         async def authenticate(
-            self, username: str, password: str,
+            self,
+            username: str,
+            password: str,
         ) -> FlextResult[FlextTypes.Core.Dict]:
             """Perform authentication."""
             ...

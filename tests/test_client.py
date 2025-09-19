@@ -31,7 +31,7 @@ class FlextApiClientModels:
 class MockHTTPHandler(BaseHTTPRequestHandler):
     """Simple test HTTP server for real client testing."""
 
-    def log_message(self, format: str, *args: object) -> None:
+    def log_message(self, format: str, *args: object) -> None:  # type: ignore[reportIncompatibleMethodOverride]
         """Override log_message to handle the correct number of arguments."""
 
         # Suppress logging for tests
@@ -206,7 +206,9 @@ class MockHTTPHandler(BaseHTTPRequestHandler):
             self._send_error_response(404, "Not Found")
 
     def _send_json_response(
-        self, data: dict[str, object] | list[object], status_code: int = 200
+        self,
+        data: dict[str, object] | list[object],
+        status_code: int = 200,
     ) -> None:
         """Send JSON response."""
         self.send_response(status_code)
@@ -252,7 +254,7 @@ class TestClientModels(unittest.TestCase):
     def test_pipeline_config_minimal(self) -> None:
         """Test creating PipelineConfig with minimal required fields."""
         config = FlextApiClientModels.PipelineConfig(
-            name="minimal-pipeline"
+            name="minimal-pipeline",
             # All other fields have defaults
         )
 
@@ -528,7 +530,7 @@ class AsyncTestCase(unittest.TestCase):
             # Wait for cancelled tasks to complete
             if pending_tasks:
                 loop.run_until_complete(
-                    asyncio.gather(*pending_tasks, return_exceptions=True)
+                    asyncio.gather(*pending_tasks, return_exceptions=True),
                 )
 
             loop.close()
@@ -955,7 +957,10 @@ class TestFlextApiClientContextManager(AsyncTestCase):
         )
 
         pipeline_list = FlextApiClientModels.PipelineList(
-            pipelines=[pipeline], total=1, page=1, page_size=20
+            pipelines=[pipeline],
+            total=1,
+            page=1,
+            page_size=20,
         )
 
         assert len(pipeline_list.pipelines) == 1

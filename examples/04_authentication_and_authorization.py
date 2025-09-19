@@ -65,7 +65,8 @@ def demonstrate_basic_authentication() -> FlextResult[None]:
 
     # get_auth_headers returns FlextResult[FlextTypes.Core.Headers]
     headers_result = auth.get_auth_headers()
-    # Duck-typing: check for FlextResult-like attributes to access .is_success/.value
+    
+    # Handle FlextResult type
     if hasattr(headers_result, "is_success") and hasattr(headers_result, "value"):
         if getattr(headers_result, "is_success"):
             headers = getattr(headers_result, "value") or {}
@@ -88,24 +89,8 @@ def demonstrate_basic_authentication() -> FlextResult[None]:
                 f"❌ Failed to retrieve headers: {getattr(headers_result, 'error', 'unknown')}"
             )
     else:
-        # Backward-compatible fallback in case implementation returns raw dict
-        try:
-            headers = headers_result
-            if headers and isinstance(headers, dict):
-                console.print("✅ Authorization headers retrieved")
-                console.print("   Headers structure:")
-                for key, value in headers.items():
-                    max_display_length = 10
-                    display_value = (
-                        str(value)[:max_display_length] + "..."
-                        if len(str(value)) > max_display_length
-                        else str(value)
-                    )
-                    console.print(f"     {key}: {display_value}")
-            else:
-                console.print("❌ No headers returned")
-        except Exception as e:
-            console.print(f"❌ Error getting headers: {e}")
+        # Handle case where headers_result might be a raw dict (backward compatibility)
+        console.print("❌ Headers result is not a FlextResult type")
 
     return FlextResult[None].ok(None)
 

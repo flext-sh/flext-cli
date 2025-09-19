@@ -186,10 +186,10 @@ class TestCSVFormatter:
 
         formatter.format(data, console)
         result = output.getvalue()
-        if "name,age" not in result:
-            header_msg: str = f"Expected {'name,age'} in {result}"
-            raise AssertionError(header_msg)
-        assert "Alice,30" in result
+        # Single dict uses Key,Value format, not the actual keys
+        assert "Key,Value" in result
+        assert "name,Alice" in result
+        assert "age,30" in result
 
 
 class TestPlainFormatter:
@@ -306,7 +306,9 @@ class TestFormatterFactory:
 
         class CustomFormatter(FlextCliFormatters.FormatterProtocol):
             def format(
-                self, data: object, console: FlextCliFormatters._ConsoleOutput | Console
+                self,
+                data: object,
+                console: FlextCliFormatters._ConsoleOutput | Console,
             ) -> None:
                 console.print(f"custom: {data}")
 

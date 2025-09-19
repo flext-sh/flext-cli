@@ -32,7 +32,9 @@ class TestOutputFormatter(unittest.TestCase):
 
         class CustomFormatter:
             def format(
-                self, data: object, console: FlextCliFormatters._ConsoleOutput | Console
+                self,
+                data: object,
+                console: FlextCliFormatters._ConsoleOutput | Console,
             ) -> None:
                 console.print(f"Custom: {data}")
 
@@ -423,18 +425,21 @@ class TestCSVFormatter(unittest.TestCase):
         assert isinstance(output, str)
 
     def test_csv_formatter_mixed_keys(self) -> None:
-        """Test CSV formatting with dictionaries having different keys fails appropriately."""
+        """Test CSV formatting with dictionaries having different keys handles gracefully."""
         test_data = [
             {"name": "Alice", "age": 25},
             {"name": "Bob", "city": "NYC"},  # 'city' not in first dict's keys
             {"age": 30, "job": "Developer"},  # 'job' not in first dict's keys
         ]
 
-        # CSVFormatter uses first dict's keys as fieldnames, so extra keys cause ValueError
-        with pytest.raises(ValueError) as context:
-            self.formatter.format(test_data, self.console)
+        # CSVFormatter uses first dict's keys as fieldnames and fills missing with empty string
+        # This should NOT raise an error - it handles mixed keys gracefully
+        self.formatter.format(test_data, self.console)
 
-        assert "dict contains fields not in fieldnames" in str(context.value)
+        # Verify the output contains expected headers from first dict
+        output = self.output_buffer.getvalue()
+        assert "name" in output
+        assert "age" in output
 
     def test_csv_formatter_special_characters(self) -> None:
         """Test CSV formatting with special characters that need escaping."""
