@@ -123,7 +123,8 @@ class TestFlextCliInteractionsCoverage:
         interactions = FlextCliInteractions()
         items = [1, 2, 3]
         result = interactions.with_progress(
-            cast("FlextTypes.Core.List", items), "Processing"
+            cast("FlextTypes.Core.List", items),
+            "Processing",
         )
         assert result.is_success
         assert result.value == items

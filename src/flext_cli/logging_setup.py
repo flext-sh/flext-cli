@@ -18,9 +18,6 @@ from flext_cli.configs import FlextCliConfigs
 from flext_cli.models import FlextCliModels
 from flext_core import FlextContainer, FlextDomainService, FlextLogger, FlextResult
 
-# Type alias for LoggingConfig
-LoggingConfig = FlextCliModels.LoggingConfig
-
 
 class FlextCliLoggingSetup(FlextDomainService[str]):
     """Unified logging setup service using FlextDomainService.
@@ -30,7 +27,9 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
     """
 
     # LoggingConfig access for tests compatibility
-    LoggingConfig: ClassVar[type[FlextCliModels.LoggingConfig]] = FlextCliModels.LoggingConfig
+    LoggingConfig: ClassVar[type[FlextCliModels.LoggingConfig]] = (
+        FlextCliModels.LoggingConfig
+    )
 
     # Class-level state for singleton behavior
     _loggers: ClassVar[dict[str, logging.Logger]] = {}
@@ -57,7 +56,9 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
             if FlextCliLoggingSetup._setup_complete:
                 log_config_result = self._detect_log_configuration()
                 if log_config_result.is_success:
-                    return FlextResult[FlextCliModels.LoggingConfig].ok(log_config_result.value)
+                    return FlextResult[FlextCliModels.LoggingConfig].ok(
+                        log_config_result.value
+                    )
                 return log_config_result
 
             # Detect log level and its source
@@ -96,7 +97,9 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
             FlextCliLoggingSetup._setup_complete = True
             return FlextResult[FlextCliModels.LoggingConfig].ok(log_config)
         except Exception as e:
-            return FlextResult[FlextCliModels.LoggingConfig].fail(f"Logging setup failed: {e}")
+            return FlextResult[FlextCliModels.LoggingConfig].fail(
+                f"Logging setup failed: {e}"
+            )
 
     def _detect_log_configuration(
         self,
@@ -131,7 +134,9 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
                         if env_value:
                             log_config.log_level = env_value.upper()
                             log_config.log_level_source = "env_file"
-                            return FlextResult[FlextCliModels.LoggingConfig].ok(log_config)
+                            return FlextResult[FlextCliModels.LoggingConfig].ok(
+                                log_config
+                            )
 
             # Source 4: Use default
             log_config.log_level_source = "default"

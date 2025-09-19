@@ -136,7 +136,8 @@ class FlextCliUtilities(BaseModel):
 
     @staticmethod
     def validate_with_pydantic_model(
-        data: dict[str, object] | object, model_class: type[BaseModel],
+        data: dict[str, object] | object,
+        model_class: type[BaseModel],
     ) -> FlextResult[BaseModel]:
         """Validate data using Pydantic v2 model directly.
 
@@ -152,7 +153,9 @@ class FlextCliUtilities(BaseModel):
             # Convert data to dict if needed
             if isinstance(data, dict):
                 validated_data = data
-            elif hasattr(data, "model_dump") and callable(getattr(data, "model_dump", None)):
+            elif hasattr(data, "model_dump") and callable(
+                getattr(data, "model_dump", None)
+            ):
                 # Safe attribute access with getattr instead of direct access
                 model_dump_method = getattr(data, "model_dump")
                 validated_data = model_dump_method()
@@ -207,7 +210,8 @@ class FlextCliUtilities(BaseModel):
 
     @staticmethod
     def batch_process_items(
-        items: Sequence[object], processor: Callable[[object], object],
+        items: Sequence[object],
+        processor: Callable[[object], object],
     ) -> FlextResult[list[object]]:
         """Process items in batch with error handling."""
         try:

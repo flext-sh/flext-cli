@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import os
 
-from flext_cli.config import FlextCliConfigs
+from flext_cli.configs import FlextCliConfigs
 from flext_core import FlextConfig
 
 

@@ -139,7 +139,8 @@ class FlextCliClient:
             raise TypeError(msg) from e
 
     def _parse_json_list_response(
-        self, response: httpx.Response,
+        self,
+        response: httpx.Response,
     ) -> list[FlextTypes.Core.Dict]:
         """Parse JSON response as list using Pydantic validation."""
         json_data = response.json()
@@ -152,7 +153,9 @@ class FlextCliClient:
             raise TypeError(msg) from e
 
     def _extract_string_list(
-        self, data: FlextTypes.Core.Dict, key: str,
+        self,
+        data: FlextTypes.Core.Dict,
+        key: str,
     ) -> FlextTypes.Core.StringList:
         """Extract string list from dict using Pydantic validation."""
         if key not in data:
@@ -178,7 +181,9 @@ class FlextCliClient:
             raise TypeError(msg) from e
 
     def _extract_dict_list(
-        self, data: FlextTypes.Core.Dict, key: str,
+        self,
+        data: FlextTypes.Core.Dict,
+        key: str,
     ) -> list[FlextTypes.Core.Dict]:
         """Extract dict list from dict using Pydantic validation."""
         if key not in data:

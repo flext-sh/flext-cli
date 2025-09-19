@@ -301,7 +301,8 @@ def assert_success(
     """Provide success assertion helper."""
 
     def _assert_success(
-        result: FlextResult[object], expected_data: object = None
+        result: FlextResult[object],
+        expected_data: object = None,
     ) -> None:
         flext_matchers.assert_result_success(result)
         if expected_data is not None:
@@ -317,7 +318,8 @@ def assert_failure(
     """Provide failure assertion helper."""
 
     def _assert_failure(
-        result: FlextResult[object], expected_error: str | None = None
+        result: FlextResult[object],
+        expected_error: str | None = None,
     ) -> None:
         flext_matchers.assert_result_failure(result)
         if expected_error is not None:

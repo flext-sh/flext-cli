@@ -167,7 +167,8 @@ class TestCliIntegration:
         """Set up test environment."""
         self.cli_api = FlextCliApi()
         self.cli_main = FlextCliMain(
-            name="integration-test", description="Integration test CLI"
+            name="integration-test",
+            description="Integration test CLI",
         )
 
     def test_auth_command_functionality(self) -> None:
@@ -335,7 +336,8 @@ class TestCliErrorHandling:
 
             # Test that CLI API works
             result = self.cli_api.display_message(
-                "Environment test", message_type="info"
+                "Environment test",
+                message_type="info",
             )
             assert isinstance(result, FlextResult)
 

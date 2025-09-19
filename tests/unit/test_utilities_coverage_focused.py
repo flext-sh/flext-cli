@@ -216,7 +216,7 @@ class TestFlextUtilitiesCoverageFocused:
 
         # Invalid UUIDs should raise ValidationError
         with pytest.raises(ValidationError):
-            UUIDModel(uuid_field="invalid-uuid")
+            UUIDModel.model_validate({"uuid_field": "invalid-uuid"})
 
         # Test EmailStr validation using Pydantic v2
         class EmailModel(BaseModel):
@@ -236,7 +236,7 @@ class TestFlextUtilitiesCoverageFocused:
         assert str(valid_url.url) == "https://example.com/"
 
         with pytest.raises(ValidationError):
-            UrlModel(url="invalid-url")
+            UrlModel.model_validate({"url": "invalid-url"})
 
         # Test validate_with_pydantic_model utility
         data = {"uuid_field": valid_uuid}

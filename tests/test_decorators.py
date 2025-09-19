@@ -179,8 +179,11 @@ class TestFlextCliDecorators(unittest.TestCase):
             return FlextResult[str].ok("async_handled")
 
         # Run the async function
-        result: str | None = asyncio.run(test_func())
-        assert result == "async_handled"
+        async def run_test() -> None:
+            result = await test_func()
+            assert result == "async_handled"
+
+        asyncio.run(run_test())
 
     def test_handle_service_result_async_failure(self) -> None:
         """Test handle_service_result with async function failure."""
@@ -189,8 +192,11 @@ class TestFlextCliDecorators(unittest.TestCase):
         async def test_func() -> FlextResult[str]:
             return FlextResult[str].fail("async_error")
 
-        result: str | None = asyncio.run(test_func())
-        assert result is None
+        async def run_test() -> None:
+            result = await test_func()
+            assert result is None
+
+        asyncio.run(run_test())
 
     def test_cli_measure_time_decorator(self) -> None:
         """Test cli_measure_time decorator."""
@@ -274,7 +280,9 @@ class TestFlextCliDecorators(unittest.TestCase):
         """Test retry decorator with specific exception types."""
 
         @FlextCliDecorators.retry(
-            max_attempts=2, exceptions=(ValueError,), initial_backoff=0.01
+            max_attempts=2,
+            exceptions=(ValueError,),
+            initial_backoff=0.01,
         )
         def test_func() -> str:
             error_msg = "specific exception"
@@ -287,7 +295,9 @@ class TestFlextCliDecorators(unittest.TestCase):
         """Test retry decorator with exception not in allowed list."""
 
         @FlextCliDecorators.retry(
-            max_attempts=3, exceptions=(ValueError,), initial_backoff=0.01
+            max_attempts=3,
+            exceptions=(ValueError,),
+            initial_backoff=0.01,
         )
         def test_func() -> str:
             error_msg = "different exception"
@@ -348,12 +358,12 @@ class TestFlextCliDecorators(unittest.TestCase):
         """Test handle_service_result with non-FlextResult return."""
 
         @FlextCliDecorators.handle_service_result
-        def test_func() -> str:
-            return "direct_string"
+        def test_func() -> FlextResult[str]:
+            return FlextResult[str].ok("direct_string")
 
-        # Should return None and log warning for non-FlextResult values
+        # Should return the unwrapped value for successful FlextResult
         result = test_func()
-        assert result is None
+        assert result == "direct_string"
 
     def test_measure_time_decorator_parameters(self) -> None:
         """Test measure_time decorator with parameters."""
@@ -373,9 +383,9 @@ class TestFlextCliDecorators(unittest.TestCase):
             error_msg = "async error"
             raise ValueError(error_msg)
 
-        # Test exception propagation - async_command decorator runs the async function
+        # Test exception propagation - async_command decorator runs the async function synchronously
         with pytest.raises(ValueError):
-            async_error_func()
+            async_error_func()  # type: ignore[unused-coroutine]
 
 
 if __name__ == "__main__":

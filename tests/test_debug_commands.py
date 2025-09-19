@@ -57,7 +57,8 @@ class TestDebugCommandsReal:
 
         # Test formatting connectivity results
         format_result = self.cli_api.format_output(
-            connectivity_data, format_type="table"
+            connectivity_data,
+            format_type="table",
         )
         assert isinstance(format_result, FlextResult), (
             "Connectivity format should return FlextResult"
@@ -186,7 +187,8 @@ class TestDebugIntegrationReal:
         """Set up test environment."""
         self.cli_api = FlextCliApi()
         self.cli_main = FlextCliMain(
-            name="test-debug-integration", description="Debug integration test"
+            name="test-debug-integration",
+            description="Debug integration test",
         )
 
     def test_debug_workflow_complete(self) -> None:
@@ -235,7 +237,8 @@ class TestDebugIntegrationReal:
         # 2. Test connectivity check
         connectivity_data = {"network": "connected", "api": "reachable"}
         connectivity_result = self.cli_api.format_output(
-            connectivity_data, format_type="json"
+            connectivity_data,
+            format_type="json",
         )
         assert connectivity_result.is_success, "Connectivity check should succeed"
 
@@ -259,7 +262,8 @@ class TestDebugIntegrationReal:
 
         # Test warning scenarios
         warning_result = self.cli_api.display_message(
-            "Some checks incomplete", "warning"
+            "Some checks incomplete",
+            "warning",
         )
         assert isinstance(warning_result, FlextResult), (
             "Warning should return FlextResult"

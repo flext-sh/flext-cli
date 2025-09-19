@@ -146,7 +146,8 @@ class FlextCliCommandBusService(FlextDomainService[None]):
     ) -> FlextResult[dict[str, object]]:
         """Execute show config command using flext-core Command Bus."""
         command = FlextCliModels.ShowConfigCommand(
-            output_format=output_format, profile=profile,
+            output_format=output_format,
+            profile=profile,
         )
         # Validate command using nested helper
         validation_result = self._CommandValidator.validate_command_data(command)
@@ -169,11 +170,16 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         )
 
     def execute_set_config_command(
-        self, key: str, value: str, profile: str = FlextCliConstants.ProfileName.DEFAULT,
+        self,
+        key: str,
+        value: str,
+        profile: str = FlextCliConstants.ProfileName.DEFAULT,
     ) -> FlextResult[bool]:
         """Execute set config command using flext-core Command Bus."""
         command = FlextCliModels.SetConfigValueCommand(
-            key=key, value=value, profile=profile,
+            key=key,
+            value=value,
+            profile=profile,
         )
         validation_result = self._CommandValidator.validate_command_data(command)
         if validation_result.is_failure:
@@ -187,7 +193,9 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         return FlextResult[bool].fail(result.error or "Command execution failed")
 
     def execute_edit_config_command(
-        self, profile: str = FlextCliConstants.ProfileName.DEFAULT, editor: str = "",
+        self,
+        profile: str = FlextCliConstants.ProfileName.DEFAULT,
+        editor: str = "",
     ) -> FlextResult[bool]:
         """Execute edit config command using flext-core Command Bus."""
         command = FlextCliModels.EditConfigCommand(profile=profile, editor=editor)
@@ -203,11 +211,16 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         return FlextResult[bool].fail(result.error or "Command execution failed")
 
     def execute_auth_login_command(
-        self, username: str, password: str, api_url: str = "",
+        self,
+        username: str,
+        password: str,
+        api_url: str = "",
     ) -> FlextResult[dict[str, object]]:
         """Execute auth login command using flext-core Command Bus."""
         command = FlextCliModels.AuthLoginCommand(
-            username=username, password=password, api_url=api_url,
+            username=username,
+            password=password,
+            api_url=api_url,
         )
         validation_result = self._CommandValidator.validate_command_data(command)
         if validation_result.is_failure:
@@ -229,7 +242,9 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         )
 
     def execute_auth_status_command(
-        self, *, detailed: bool = False,
+        self,
+        *,
+        detailed: bool = False,
     ) -> FlextResult[dict[str, object]]:
         """Execute auth status command using flext-core Command Bus."""
         command = FlextCliModels.AuthStatusCommand(detailed=detailed)
@@ -277,7 +292,9 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         return self._command_bus.execute(command)
 
     def execute_auth_logout_command(
-        self, *, all_profiles: bool = False,
+        self,
+        *,
+        all_profiles: bool = False,
     ) -> FlextResult[bool]:
         """Execute auth logout command using flext-core Command Bus."""
         command = FlextCliModels.AuthLogoutCommand(all_profiles=all_profiles)
@@ -293,11 +310,15 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         return FlextResult[bool].fail(result.error or "Command execution failed")
 
     def execute_debug_info_command(
-        self, *, include_system: bool = True, include_config: bool = True,
+        self,
+        *,
+        include_system: bool = True,
+        include_config: bool = True,
     ) -> FlextResult[dict[str, object]]:
         """Execute debug info command using flext-core Command Bus."""
         command = FlextCliModels.DebugInfoCommand(
-            include_system=include_system, include_config=include_config,
+            include_system=include_system,
+            include_config=include_config,
         )
         validation_result = self._CommandValidator.validate_command_data(command)
         if validation_result.is_failure:

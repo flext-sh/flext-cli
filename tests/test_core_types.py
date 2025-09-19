@@ -19,11 +19,11 @@ class TestFlextCliTypes:
         """Test OutputFormat enum has expected values."""
         formats = FlextCliTypes.OutputFormat
 
-        assert str(formats.JSON) == "json"
-        assert str(formats.YAML) == "yaml"
-        assert str(formats.CSV) == "csv"
-        assert str(formats.TABLE) == "table"
-        assert str(formats.PLAIN) == "plain"
+        assert formats.JSON.value == "json"
+        assert formats.YAML.value == "yaml"
+        assert formats.CSV.value == "csv"
+        assert formats.TABLE.value == "table"
+        assert formats.PLAIN.value == "plain"
 
     def test_output_format_enum_membership(self) -> None:
         """Test OutputFormat enum membership."""

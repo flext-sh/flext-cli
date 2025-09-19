@@ -267,7 +267,8 @@ class TestDebugIntegration(unittest.TestCase):
         """Set up test fixtures."""
         self.cli_api = FlextCliApi()
         self.cli_main = FlextCliMain(
-            name="test-debug-integration", description="Debug integration test"
+            name="test-debug-integration",
+            description="Debug integration test",
         )
         self.config = FlextCliConfigs()
 
@@ -316,7 +317,8 @@ class TestDebugIntegration(unittest.TestCase):
 
         # 4. Test validation
         validation_result = self.cli_api.display_message(
-            "All validations passed", "success"
+            "All validations passed",
+            "success",
         )
         assert validation_result.is_success, "Validation message should succeed"
 
@@ -331,7 +333,8 @@ class TestDebugIntegration(unittest.TestCase):
 
         # Test warning message display
         warning_result = self.cli_api.display_message(
-            "Some checks incomplete", "warning"
+            "Some checks incomplete",
+            "warning",
         )
         assert isinstance(warning_result, FlextResult), (
             "Warning should return FlextResult"
@@ -354,7 +357,8 @@ class TestDebugIntegration(unittest.TestCase):
 
             # Test formatting file information
             file_result = self.cli_api.format_output(
-                debug_file_data, format_type="yaml"
+                debug_file_data,
+                format_type="yaml",
             )
             assert isinstance(file_result, FlextResult), (
                 "File format should return FlextResult"

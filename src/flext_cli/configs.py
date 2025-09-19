@@ -145,7 +145,8 @@ class FlextCliConfigs(FlextConfig):
 
         @staticmethod
         def validate_timeouts(
-            api_timeout: int, connect_timeout: int,
+            api_timeout: int,
+            connect_timeout: int,
         ) -> FlextResult[None]:
             """Validate timeout values."""
             if api_timeout <= 0 or connect_timeout <= 0:
@@ -219,7 +220,8 @@ class FlextCliConfigs(FlextConfig):
 
             # Validate timeouts
             timeout_result = FlextCliConfigs.ApiConfigManager.validate_timeouts(
-                config.api_timeout, config.connect_timeout,
+                config.api_timeout,
+                config.connect_timeout,
             )
             if timeout_result.is_failure:
                 return FlextResult[None].fail(
@@ -228,7 +230,8 @@ class FlextCliConfigs(FlextConfig):
 
             # Validate retries
             retry_result = FlextCliConfigs.ApiConfigManager.validate_retries(
-                config.retries, config.max_retries,
+                config.retries,
+                config.max_retries,
             )
             if retry_result.is_failure:
                 return FlextResult[None].fail(
@@ -243,18 +246,21 @@ class FlextCliConfigs(FlextConfig):
 
     # CLI profile management
     profile: str = Field(
-        default="default", description="CLI configuration profile name",
+        default="default",
+        description="CLI configuration profile name",
     )
 
     # CLI output settings
     output_format: str = Field(
-        default="table", description="CLI output format (table, json, yaml, csv)",
+        default="table",
+        description="CLI output format (table, json, yaml, csv)",
     )
     no_color: bool = Field(default=False, description="Disable colored CLI output")
     quiet: bool = Field(default=False, description="Minimal output mode")
     verbose: bool = Field(default=False, description="Verbose output mode")
     pager: str | None = Field(
-        default=None, description="Optional pager command for long output",
+        default=None,
+        description="Optional pager command for long output",
     )
 
     # CLI directories
@@ -273,7 +279,8 @@ class FlextCliConfigs(FlextConfig):
         description="CLI refresh token file",
     )
     auto_refresh: bool = Field(
-        default=True, description="Enable automatic token refresh",
+        default=True,
+        description="Enable automatic token refresh",
     )
 
     # API-related fields
@@ -282,13 +289,22 @@ class FlextCliConfigs(FlextConfig):
         description="API URL",
     )
     api_timeout: int = Field(
-        default=30, ge=1, le=3600, description="API timeout in seconds",
+        default=30,
+        ge=1,
+        le=3600,
+        description="API timeout in seconds",
     )
     connect_timeout: int = Field(
-        default=30, ge=1, le=3600, description="Connection timeout in seconds",
+        default=30,
+        ge=1,
+        le=3600,
+        description="Connection timeout in seconds",
     )
     read_timeout: int = Field(
-        default=60, ge=1, le=3600, description="Read timeout in seconds",
+        default=60,
+        ge=1,
+        le=3600,
+        description="Read timeout in seconds",
     )
     verify_ssl: bool = Field(default=True, description="Verify SSL certificates")
 
@@ -313,7 +329,9 @@ class FlextCliConfigs(FlextConfig):
         description="Project description",
     )
     project_version: str = Field(
-        default="0.9.0", pattern=r"^\d+\.\d+\.\d+", description="CLI version",
+        default="0.9.0",
+        pattern=r"^\d+\.\d+\.\d+",
+        description="CLI version",
     )
 
     # =========================================================================
@@ -520,7 +538,8 @@ class FlextCliConfigs(FlextConfig):
 
     @classmethod
     def create_with_directories(
-        cls, config_data: dict[str, object] | None = None,
+        cls,
+        config_data: dict[str, object] | None = None,
     ) -> FlextResult[FlextCliConfigs]:
         """Create CLI configuration with directory setup."""
         config = cls(**config_data) if config_data else cls()
@@ -547,7 +566,8 @@ class FlextCliConfigs(FlextConfig):
 
     @classmethod
     def apply_cli_overrides(
-        cls, cli_params: dict[str, object],
+        cls,
+        cli_params: dict[str, object],
     ) -> FlextResult[FlextCliConfigs]:
         """Apply CLI parameter overrides to configuration."""
         try:
@@ -607,7 +627,8 @@ class FlextCliConfigs(FlextConfig):
 
     @classmethod
     def setup_cli(
-        cls, config: FlextCliConfigs | None = None,
+        cls,
+        config: FlextCliConfigs | None = None,
     ) -> FlextResult[FlextCliConfigs]:
         """Set up CLI with configuration."""
         if config is None:

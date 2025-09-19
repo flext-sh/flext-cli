@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import os
 
-from flext_cli.config import FlextCliConfigs
+from flext_cli.configs import FlextCliConfigs
 from flext_core import FlextConfig
 
 
@@ -48,13 +48,14 @@ def demonstrate_single_source_of_truth() -> None:
 
     # 3. Verify integration metadata
     print("3. Integration Metadata:")
+    metadata = cli_config.get_metadata()
     print(
-        f"   Base Config Source: {cli_config._metadata.get('base_config_source', 'unknown')}"
+        f"   Base Config Source: {metadata.get('base_config_source', 'unknown')}"
     )
     print(
-        f"   CLI Extensions Applied: {cli_config._metadata.get('cli_extensions_applied', 'false')}"
+        f"   CLI Extensions Applied: {metadata.get('cli_extensions_applied', 'false')}"
     )
-    print(f"   Override Count: {cli_config._metadata.get('override_count', '0')}")
+    print(f"   Override Count: {metadata.get('override_count', '0')}")
     print()
 
 
@@ -112,14 +113,15 @@ def demonstrate_cli_parameter_integration() -> None:
 
     # 4. Show integration metadata
     print("5. Integration Status:")
+    updated_metadata = updated_cli_config.get_metadata()
     print(
-        f"   CLI Overrides Applied: {updated_cli_config._metadata.get('cli_overrides_applied', 'false')}"
+        f"   CLI Overrides Applied: {updated_metadata.get('cli_overrides_applied', 'false')}"
     )
     print(
-        f"   Override Count: {updated_cli_config._metadata.get('override_count', '0')}"
+        f"   Override Count: {updated_metadata.get('override_count', '0')}"
     )
     print(
-        f"   Base Config Synchronized: {updated_cli_config._metadata.get('base_config_synchronized', 'false')}"
+        f"   Base Config Synchronized: {updated_metadata.get('base_config_synchronized', 'false')}"
     )
     print()
 

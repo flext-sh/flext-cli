@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import datetime
+import io
 import json
 import tempfile
 from pathlib import Path
@@ -36,7 +37,7 @@ class TestFlextCliContext:
     def test_api_state_session_count_property(self) -> None:
         """Test ApiState session_count property."""
         api = FlextCliApi()
-        state = api.ApiState()
+        state = api.api_state()
 
         # Initially no sessions
         assert state.session_count == 0
@@ -52,7 +53,7 @@ class TestFlextCliContext:
     def test_api_state_handler_count_property(self) -> None:
         """Test ApiState handler_count property."""
         api = FlextCliApi()
-        state = api.ApiState()
+        state = api.api_state()
 
         # Initially no handlers
         assert state.handler_count == 0
@@ -170,8 +171,13 @@ class TestTableCreation:
 
         # Simple lists are now supported by FlextCliFormatters
         assert result.is_success
-        assert isinstance(result.value, str)
-        assert "item1" in str(result.value)
+        assert isinstance(result.value, RichTable)
+        # Convert to string to check content
+        string_io = io.StringIO()
+        console = Console(file=string_io, width=80)
+        console.print(result.value)
+        table_str = string_io.getvalue()
+        assert "item1" in table_str
 
     def test_flext_cli_table_single_value(self) -> None:
         """Test table creation from single value - should succeed with FlextCliFormatters handling all types."""
@@ -182,8 +188,13 @@ class TestTableCreation:
 
         # Single values are now supported by FlextCliFormatters
         assert result.is_success
-        assert isinstance(result.value, str)
-        assert "Single value" in str(result.value)
+        assert isinstance(result.value, RichTable)
+        # Convert to string to check content
+        string_io = io.StringIO()
+        console = Console(file=string_io, width=80)
+        console.print(result.value)
+        table_str = string_io.getvalue()
+        assert "Single value" in table_str
 
     def test_table_creation_dict_list(self) -> None:
         """Test flext_cli_table with list of dictionaries."""
@@ -202,8 +213,13 @@ class TestTableCreation:
 
         # Simple lists are now supported by FlextCliFormatters
         assert result.is_success
-        assert isinstance(result.value, str)
-        assert "item1" in str(result.value)
+        assert isinstance(result.value, RichTable)
+        # Convert to string to check content
+        string_io = io.StringIO()
+        console = Console(file=string_io, width=80)
+        console.print(result.value)
+        table_str = string_io.getvalue()
+        assert "item1" in table_str
 
     def test_table_creation_dict(self) -> None:
         """Test flext_cli_table with dictionary."""
@@ -214,8 +230,7 @@ class TestTableCreation:
         assert result.is_success
         table = result.value
         # FlextCliFormatters.create_table returns Rich Table objects
-        from rich.table import Table
-        assert isinstance(table, Table)
+        assert isinstance(table, RichTable)
         # Check table content by examining its columns and rows
         assert table.title is None  # No title specified
         assert len(table.columns) == 2  # Key and Value columns for dict
@@ -228,8 +243,13 @@ class TestTableCreation:
 
         # Single values are now supported by FlextCliFormatters
         assert result.is_success
-        assert isinstance(result.value, str)
-        assert "Single value" in str(result.value)
+        assert isinstance(result.value, RichTable)
+        # Convert to string to check content
+        string_io = io.StringIO()
+        console = Console(file=string_io, width=80)
+        console.print(result.value)
+        table_str = string_io.getvalue()
+        assert "Single value" in table_str
 
 
 class TestDataTransformation:
@@ -501,9 +521,15 @@ class TestEdgeCases:
 
         assert result.is_success
         table = result.value
-        assert isinstance(table, str)
-        assert "simple" in table
-        assert "value" in table
+        # create_table returns Rich Table object, not string
+        assert isinstance(table, RichTable)
+        # Convert to string to check content
+        string_io = io.StringIO()
+        console = Console(file=string_io, width=80)
+        console.print(table)
+        table_str = string_io.getvalue()
+        assert "simple" in table_str
+        assert "value" in table_str
 
     def test_export_to_readonly_directory(self) -> None:
         """Test export to directory without write permissions."""

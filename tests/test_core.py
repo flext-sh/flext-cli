@@ -211,7 +211,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         """Test JSON formatting with simple data."""
         data = {"name": "test", "value": 123, "active": True}
 
-        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.JSON.value)
+        result = self.service.format_data(
+            data, FlextCliTypes.OutputFormat.JSON.value
+        )
         assert result.is_success
         formatted = result.value
 
@@ -231,7 +233,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             "metadata": {"total": 2, "created_at": "2025-01-01T00:00:00Z"},
         }
 
-        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.JSON.value)
+        result = self.service.format_data(
+            data, FlextCliTypes.OutputFormat.JSON.value
+        )
         assert result.is_success
         formatted = result.value
 
@@ -249,7 +253,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             "features": ["feature1", "feature2", "feature3"],
         }
 
-        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.YAML.value)
+        result = self.service.format_data(
+            data, FlextCliTypes.OutputFormat.YAML.value
+        )
         assert result.is_success
         formatted = result.value
 
@@ -267,7 +273,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             {"name": "Carol", "age": 35, "city": "Chicago"},
         ]
 
-        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.CSV.value)
+        result = self.service.format_data(
+            data, FlextCliTypes.OutputFormat.CSV.value
+        )
         assert result.is_success
         formatted = result.value
 
@@ -286,7 +294,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             "uptime": "99.9%",
         }
 
-        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.TABLE.value)
+        result = self.service.format_data(
+            data, FlextCliTypes.OutputFormat.TABLE.value
+        )
         assert result.is_success
         formatted = result.value
 
@@ -304,7 +314,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             {"id": 3, "product": "keyboard", "price": 75},
         ]
 
-        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.TABLE.value)
+        result = self.service.format_data(
+            data, FlextCliTypes.OutputFormat.TABLE.value
+        )
         assert result.is_success
         formatted = result.value
 
@@ -318,7 +330,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         """Test plain text formatting."""
         data = "Simple plain text message for testing"
 
-        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.PLAIN.value)
+        result = self.service.format_data(
+            data, FlextCliTypes.OutputFormat.PLAIN.value
+        )
         assert result.is_success
         formatted = result.value
         assert formatted == "Simple plain text message for testing"
@@ -328,7 +342,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         data: FlextTypes.Core.Dict = {"test": "data"}
 
         # This should fail since we're passing invalid format
-        result = self.service.flext_cli_format(data, "xml")
+        result = self.service.format_data(data, "xml")
         assert not result.is_success
         assert "Unsupported format" in (result.error or "")
 
@@ -342,7 +356,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             result = self.service.flext_cli_export(
                 data,
                 str(output_file),
-                FlextCliTypes.OutputFormat.JSON,
+                FlextCliTypes.OutputFormat.JSON.value,
             )
             assert result.is_success
             assert output_file.exists()
@@ -366,7 +380,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             result = self.service.flext_cli_export(
                 data,
                 str(output_file),
-                FlextCliTypes.OutputFormat.YAML,
+                FlextCliTypes.OutputFormat.YAML.value,
             )
             assert result.is_success
             assert output_file.exists()
@@ -391,7 +405,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             result = self.service.flext_cli_export(
                 data,
                 str(output_file),
-                FlextCliTypes.OutputFormat.CSV,
+                FlextCliTypes.OutputFormat.CSV.value,
             )
             assert result.is_success
             assert output_file.exists()
@@ -412,7 +426,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             result = self.service.flext_cli_export(
                 data,
                 str(nested_path),
-                FlextCliTypes.OutputFormat.JSON,
+                FlextCliTypes.OutputFormat.JSON.value,
             )
             assert result.is_success
             assert nested_path.exists()
@@ -469,12 +483,12 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         valid_formats = ["json", "yaml", "csv", "table", "plain"]
 
         for format_type in valid_formats:
-            result = self.service.flext_cli_format({"test": "data"}, format_type)
+            result = self.service.format_data({"test": "data"}, format_type)
             assert result.is_success
 
     def test_flext_cli_validate_format_invalid_format(self) -> None:
         """Test format validation rejects invalid formats."""
-        result = self.service.flext_cli_format({"test": "data"}, "xml")
+        result = self.service.format_data({"test": "data"}, "xml")
         assert not result.is_success
         assert "xml" in (result.error or "")
 

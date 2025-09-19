@@ -56,7 +56,9 @@ class FlextCliFormatters(BaseModel):
         """Protocol for output formatters."""
 
         def format(
-            self, data: object, console: Console | FlextCliFormatters._ConsoleOutput,
+            self,
+            data: object,
+            console: Console | FlextCliFormatters._ConsoleOutput,
         ) -> None:
             """Format data to console output."""
             ...
@@ -134,9 +136,13 @@ class FlextCliFormatters(BaseModel):
                     # Key-value pairs
                     for key, value in data.items():
                         table.add_row(str(key), str(value))
+                elif headers:
+                    # Multi-column data with specific headers
+                    table.add_row(*[str(data.get(h, "")) for h in headers])
                 else:
-                    # Single column or multi-column data
-                    table.add_row(*[str(data.get(h, "")) for h in (headers or [])])
+                    # Default to key-value pairs when no headers specified
+                    for key, value in data.items():
+                        table.add_row(str(key), str(value))
 
             elif isinstance(data, list) and data:
                 # List format
@@ -169,6 +175,30 @@ class FlextCliFormatters(BaseModel):
         except Exception as e:
             return FlextResult[Table].fail(f"Table creation failed: {e}")
 
+    def format_table(
+        self,
+        data: object,
+        *,
+        title: str | None = None,
+        headers: list[str] | None = None,
+        show_header: bool = True,
+        show_lines: bool = False,
+        caption: str | None = None,
+    ) -> FlextResult[Table]:
+        """Format data as a table using the create_table method.
+
+        This method provides a simpler interface that matches the expected
+        signature from examples and tests.
+        """
+        return self.create_table(
+            data=data,
+            title=title,
+            headers=headers,
+            show_header=show_header,
+            show_lines=show_lines,
+            caption=caption,
+        )
+
     def format_data(self, data: object, format_type: str) -> FlextResult[str]:
         """Format data using specified format type."""
         try:
@@ -197,7 +227,9 @@ class FlextCliFormatters(BaseModel):
 
             show_header = show_header_val if isinstance(show_header_val, bool) else True
             show_lines = show_lines_val if isinstance(show_lines_val, bool) else False
-            caption = caption_val if isinstance(caption_val, (str, type(None))) else None
+            caption = (
+                caption_val if isinstance(caption_val, (str, type(None))) else None
+            )
 
             table_result = self.create_table(
                 data,
@@ -230,7 +262,10 @@ class FlextCliFormatters(BaseModel):
             return FlextResult[None].fail(f"JSON display failed: {e}")
 
     def display_message(
-        self, message: str, style: str = "default", **kwargs: object,
+        self,
+        message: str,
+        style: str = "default",
+        **kwargs: object,
     ) -> FlextResult[None]:
         """Display styled message.
 
@@ -273,7 +308,8 @@ class FlextCliFormatters(BaseModel):
         return self.display_message(message, "error", **kwargs)
 
     def create_formatter(
-        self, format_type: str,
+        self,
+        format_type: str,
     ) -> FlextCliFormatters.FormatterProtocol:
         """Create a formatter for the specified format type.
 
@@ -345,7 +381,9 @@ class FlextCliFormatters(BaseModel):
         """Table formatter implementation."""
 
         def format(
-            self, data: object, console: Console | FlextCliFormatters._ConsoleOutput,
+            self,
+            data: object,
+            console: Console | FlextCliFormatters._ConsoleOutput,
         ) -> None:
             """Format data as table."""
             if isinstance(data, dict):
@@ -383,12 +421,17 @@ class FlextCliFormatters(BaseModel):
         """JSON formatter implementation."""
 
         def format(
-            self, data: object, console: Console | FlextCliFormatters._ConsoleOutput,
+            self,
+            data: object,
+            console: Console | FlextCliFormatters._ConsoleOutput,
         ) -> None:
             """Format data as JSON."""
             try:
                 json_output = json.dumps(
-                    data, indent=2, default=str, ensure_ascii=False,
+                    data,
+                    indent=2,
+                    default=str,
+                    ensure_ascii=False,
                 )
                 console.print(json_output)
             except Exception as e:
@@ -398,12 +441,16 @@ class FlextCliFormatters(BaseModel):
         """YAML formatter implementation."""
 
         def format(
-            self, data: object, console: Console | FlextCliFormatters._ConsoleOutput,
+            self,
+            data: object,
+            console: Console | FlextCliFormatters._ConsoleOutput,
         ) -> None:
             """Format data as YAML."""
             try:
                 yaml_output = yaml.dump(
-                    data, default_flow_style=False, allow_unicode=True,
+                    data,
+                    default_flow_style=False,
+                    allow_unicode=True,
                 )
                 console.print(yaml_output)
             except ImportError:
@@ -416,7 +463,9 @@ class FlextCliFormatters(BaseModel):
         """CSV formatter implementation."""
 
         def format(
-            self, data: object, console: Console | FlextCliFormatters._ConsoleOutput,
+            self,
+            data: object,
+            console: Console | FlextCliFormatters._ConsoleOutput,
         ) -> None:
             """Format data as CSV."""
             try:
@@ -455,7 +504,9 @@ class FlextCliFormatters(BaseModel):
         """Plain text formatter implementation."""
 
         def format(
-            self, data: object, console: Console | FlextCliFormatters._ConsoleOutput,
+            self,
+            data: object,
+            console: Console | FlextCliFormatters._ConsoleOutput,
         ) -> None:
             """Format data as plain text."""
             try:
@@ -464,7 +515,12 @@ class FlextCliFormatters(BaseModel):
                         console.print(f"{key}: {value}")
                 elif isinstance(data, list):
                     for item in data:
-                        console.print(str(item))
+                        if isinstance(item, dict):
+                            # Handle dictionaries in list by printing key-value pairs
+                            for key, value in item.items():
+                                console.print(f"{key}: {value}")
+                        else:
+                            console.print(str(item))
                 else:
                     console.print(str(data))
             except Exception as e:

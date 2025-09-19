@@ -90,7 +90,8 @@ class TestFlextCliDomainServices:
 
         command = create_result.unwrap()
         workflow_result = self.service.execute_command_workflow(
-            command.command_line or "", "test-user"
+            command.command_line or "",
+            "test-user",
         )
 
         assert isinstance(workflow_result, FlextResult)

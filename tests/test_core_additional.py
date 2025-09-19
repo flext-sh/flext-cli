@@ -14,7 +14,7 @@ class TestFlextCliServiceAdditional:
     """Additional tests for FlextCliService to improve coverage."""
 
     def test_format_data_methods(self) -> None:
-        """Test format_data and flext_cli_format methods."""
+        """Test format_data method."""
         service = FlextCliService()
 
         # Test format_data method
@@ -22,8 +22,8 @@ class TestFlextCliServiceAdditional:
         result = service.format_data(test_data, "json")
         assert isinstance(result, FlextResult)
 
-        # Test flext_cli_format method
-        result = service.flext_cli_format(test_data, "json")
+        # Test format_data method
+        result = service.format_data(test_data, "json")
         assert isinstance(result, FlextResult)
 
     def test_flext_cli_export_method(self) -> None:
