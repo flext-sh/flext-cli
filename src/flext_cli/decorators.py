@@ -37,13 +37,13 @@ class FlextCliDecorators:
                 result = func(*args, **kwargs)
                 execution_time = time.time() - start_time
                 logger.info(
-                    f"Command '{func.__name__}' executed in {execution_time:.3f}s"
+                    f"Command '{func.__name__}' executed in {execution_time:.3f}s",
                 )
                 return result
             except Exception:
                 execution_time = time.time() - start_time
                 logger.exception(
-                    f"Command '{func.__name__}' failed after {execution_time:.3f}s"
+                    f"Command '{func.__name__}' failed after {execution_time:.3f}s",
                 )
                 raise
 
@@ -361,7 +361,7 @@ class FlextCliDecorators:
                         if attempt < max_attempts - 1:  # Don't sleep on last attempt
                             sleep_time = initial_backoff * (backoff_multiplier**attempt)
                             logger.debug(
-                                f"Retry attempt {attempt + 1}/{max_attempts} failed: {e}, sleeping {sleep_time}s"
+                                f"Retry attempt {attempt + 1}/{max_attempts} failed: {e}, sleeping {sleep_time}s",
                             )
                             time.sleep(sleep_time)
                         continue

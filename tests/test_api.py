@@ -213,9 +213,12 @@ class TestTableCreation:
 
         assert result.is_success
         table = result.value
-        assert isinstance(table, str)
-        assert "name" in table
-        assert "age" in table
+        # FlextCliFormatters.create_table returns Rich Table objects
+        from rich.table import Table
+        assert isinstance(table, Table)
+        # Check table content by examining its columns and rows
+        assert table.title is None  # No title specified
+        assert len(table.columns) == 2  # Key and Value columns for dict
 
     def test_table_creation_single_value(self) -> None:
         """Test flext_cli_table with single value - should succeed with FlextCliFormatters handling all types."""

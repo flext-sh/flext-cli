@@ -67,7 +67,7 @@ class FlextCliDebug(FlextDomainService[str]):
                     "url": getattr(client, "base_url", "unknown"),
                     "timestamp": str(datetime.now(UTC).isoformat()),
                     "client_type": client.__class__.__name__,
-                }
+                },
             )
         except Exception as e:
             return FlextResult[dict[str, str]].fail(f"Connection test failed: {e}")
@@ -87,7 +87,7 @@ class FlextCliDebug(FlextDomainService[str]):
             return FlextResult[FlextCliTypes.SystemMetrics].ok(metrics)
         except Exception as e:
             return FlextResult[FlextCliTypes.SystemMetrics].fail(
-                f"Metrics fetch failed: {e}"
+                f"Metrics fetch failed: {e}",
             )
 
     def validate_environment_setup(self) -> FlextResult[list[str]]:
@@ -134,7 +134,7 @@ class FlextCliDebug(FlextDomainService[str]):
             return FlextResult[FlextCliTypes.EnvironmentInfo].ok(env_info)
         except Exception as e:
             return FlextResult[FlextCliTypes.EnvironmentInfo].fail(
-                f"Environment variables fetch failed: {e}"
+                f"Environment variables fetch failed: {e}",
             )
 
     def get_system_paths(self) -> FlextResult[list[FlextCliTypes.PathInfo]]:
@@ -172,7 +172,7 @@ class FlextCliDebug(FlextDomainService[str]):
             return FlextResult[list[FlextCliTypes.PathInfo]].ok(paths_data)
         except Exception as e:
             return FlextResult[list[FlextCliTypes.PathInfo]].fail(
-                f"System paths fetch failed: {e}"
+                f"System paths fetch failed: {e}",
             )
 
     def execute_trace(self, args: list[str]) -> FlextResult[dict[str, object]]:

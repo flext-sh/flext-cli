@@ -39,14 +39,14 @@ For projects that need CLI functionality:
 
 ```python
 # Project CLI module
-from flext_cli import FlextCliApi, FlextCliConfig, FlextCliAuth
+from flext_cli import FlextCliApi, FlextCliConfigs, FlextCliAuth
 
 class ProjectCLI:
     """Project-specific CLI interface."""
 
     def __init__(self):
         self.api = FlextCliApi()
-        self.config = FlextCliConfig()
+        self.config = FlextCliConfigs()
         self.auth = FlextCliAuth()
 
     def setup_project_commands(self):
@@ -58,11 +58,11 @@ class ProjectCLI:
 ### Configuration Integration
 
 ```python
-from flext_cli import FlextCliConfig
+from flext_cli import FlextCliConfigs
 
 def load_project_config():
     """Load configuration for project integration."""
-    config = FlextCliConfig()
+    config = FlextCliConfigs()
     config.load_project_config()
     return config.get_output_format()
 ```
@@ -128,9 +128,9 @@ if response_result.is_success:
 ### Configuration-based Requests
 
 ```python
-from flext_cli import FlextApiClient, FlextCliConfig
+from flext_cli import FlextApiClient, FlextCliConfigs
 
-config = FlextCliConfig()
+config = FlextCliConfigs()
 client = FlextApiClient()
 
 # Use configuration for API endpoints

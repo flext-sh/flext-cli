@@ -10,7 +10,7 @@ import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from flext_cli.configs import FlextCliConfigs as FlextCliConfig
+from flext_cli.configs import FlextCliConfigs
 from flext_cli.constants import FlextCliConstants
 from flext_cli.utils import FlextCliUtilities
 from flext_core import FlextLogger, FlextResult, FlextTypes
@@ -33,7 +33,7 @@ class FlextCliContext:
         self,
         *,
         id_: str | None = None,
-        config: FlextCliConfig | None = None,
+        config: FlextCliConfigs | None = None,
         logger: FlextLogger | None = None,
         console: object | None = None,  # Support for test compatibility
         debug: bool = False,
@@ -67,7 +67,7 @@ class FlextCliContext:
 
         # Context state management via composition
         self._id = id_ or str(uuid.uuid4())
-        self._config = config or FlextCliConfig()
+        self._config = config or FlextCliConfigs()
         self._logger = logger or FlextLogger(__name__)
         self._console = console  # For test compatibility
         self._debug = debug
@@ -91,7 +91,7 @@ class FlextCliContext:
         return self._id
 
     @property
-    def config(self) -> FlextCliConfig:
+    def config(self) -> FlextCliConfigs:
         """Get CLI configuration."""
         return self._config
 
@@ -296,7 +296,9 @@ class FlextCliContext:
         verbose = bool(kwargs.get("verbose"))
 
         # Use provided config or create new one
-        cli_config = config if isinstance(config, FlextCliConfig) else FlextCliConfig()
+        cli_config = (
+            config if isinstance(config, FlextCliConfigs) else FlextCliConfigs()
+        )
 
         # Create context with proper initialization
 
@@ -366,7 +368,7 @@ class FlextCliContext:
             raise ValueError(message)
 
         # Create config with parameters
-        config = FlextCliConfig(
+        config = FlextCliConfigs(
             profile=str(profile),
             debug=bool(debug),
             output_format=str(output_format),

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import os
 
-from flext_cli.config import FlextCliConfig
+from flext_cli.config import FlextCliConfigs
 from flext_core import FlextConfig
 
 
@@ -31,9 +31,9 @@ def demonstrate_flext_config_singleton() -> None:
     print(f"   Timeout: {base_config.timeout_seconds}s")
     print()
 
-    # 2. Show initial FlextCliConfig state
-    print("2. Initial FlextCliConfig State:")
-    cli_config = FlextCliConfig.get_global_instance()
+    # 2. Show initial FlextCliConfigs state
+    print("2. Initial FlextCliConfigs State:")
+    cli_config = FlextCliConfigs.get_global_instance()
     print(f"   Profile: {cli_config.profile}")
     print(f"   Output Format: {cli_config.output_format}")
     print(f"   API URL: {cli_config.api_url}")
@@ -55,7 +55,7 @@ def demonstrate_flext_config_singleton() -> None:
         print(f"     {key}: {value}")
 
     # Apply overrides to FlextConfig singleton
-    result = FlextCliConfig.apply_cli_overrides(cli_overrides)
+    result = FlextCliConfigs.apply_cli_overrides(cli_overrides)
     if result.is_failure:
         print(f"   Error: {result.error}")
         return
@@ -73,8 +73,8 @@ def demonstrate_flext_config_singleton() -> None:
     print(f"   Timeout: {updated_base_config.timeout_seconds}s")
     print()
 
-    print("5. Updated FlextCliConfig State:")
-    updated_cli_config = FlextCliConfig.get_global_instance()
+    print("5. Updated FlextCliConfigs State:")
+    updated_cli_config = FlextCliConfigs.get_global_instance()
     print(f"   Profile: {updated_cli_config.profile}")
     print(f"   Output Format: {updated_cli_config.output_format}")
     print(f"   API URL: {updated_cli_config.api_url}")
@@ -83,7 +83,7 @@ def demonstrate_flext_config_singleton() -> None:
 
     # 5. Demonstrate synchronization
     print("6. Configuration Synchronization:")
-    sync_result = FlextCliConfig.sync_with_flext_config()
+    sync_result = FlextCliConfigs.sync_with_flext_config()
     if sync_result.is_success:
         print("   ✅ Configurations synchronized successfully")
         synced_config = sync_result.value
@@ -113,18 +113,18 @@ def demonstrate_environment_integration() -> None:
 
     # Clear singleton instances to force reload from environment
     FlextConfig.clear_global_instance()
-    FlextCliConfig.clear_global_instance()
+    FlextCliConfigs.clear_global_instance()
 
     # Reload configurations
     print("2. Reloading Configurations from Environment:")
     base_config = FlextConfig.get_global_instance()
-    cli_config = FlextCliConfig.get_global_instance()
+    cli_config = FlextCliConfigs.get_global_instance()
 
     print("   FlextConfig (from FLEXT_* env vars):")
     print(f"     Debug: {base_config.debug}")
     print(f"     Log Level: {base_config.log_level}")
 
-    print("   FlextCliConfig (from FLEXT_CLI_* env vars):")
+    print("   FlextCliConfigs (from FLEXT_CLI_* env vars):")
     print(f"     Profile: {cli_config.profile}")
     print(f"     Output Format: {cli_config.output_format}")
     print()
@@ -152,8 +152,8 @@ def demonstrate_cli_parameter_priority() -> None:
     print("   FLEXT_CLI_LOG_LEVEL=INFO")
 
     # Clear and reload
-    FlextCliConfig.clear_global_instance()
-    env_config = FlextCliConfig.get_global_instance()
+    FlextCliConfigs.clear_global_instance()
+    env_config = FlextCliConfigs.get_global_instance()
 
     print("2. Configuration from Environment:")
     print(f"   Debug: {env_config.debug}")
@@ -167,7 +167,7 @@ def demonstrate_cli_parameter_priority() -> None:
         "log_level": "DEBUG",
     }
 
-    result = FlextCliConfig.apply_cli_overrides(cli_overrides)
+    result = FlextCliConfigs.apply_cli_overrides(cli_overrides)
     if result.is_success:
         updated_config = result.value
         print("   ✅ CLI overrides applied")
@@ -196,7 +196,7 @@ def demonstrate_configuration_validation() -> None:
         "command_timeout": 30,
     }
 
-    result = FlextCliConfig.apply_cli_overrides(valid_overrides)
+    result = FlextCliConfigs.apply_cli_overrides(valid_overrides)
     if result.is_success:
         print("   ✅ Valid configuration accepted")
     else:
@@ -212,7 +212,7 @@ def demonstrate_configuration_validation() -> None:
         "command_timeout": -1,  # Invalid timeout
     }
 
-    result = FlextCliConfig.apply_cli_overrides(invalid_overrides)
+    result = FlextCliConfigs.apply_cli_overrides(invalid_overrides)
     if result.is_failure:
         print("   ✅ Invalid configuration properly rejected")
         print(f"   Error: {result.error}")

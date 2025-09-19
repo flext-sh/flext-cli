@@ -211,7 +211,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         """Test JSON formatting with simple data."""
         data = {"name": "test", "value": 123, "active": True}
 
-        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.JSON)
+        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.JSON.value)
         assert result.is_success
         formatted = result.value
 
@@ -231,7 +231,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             "metadata": {"total": 2, "created_at": "2025-01-01T00:00:00Z"},
         }
 
-        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.JSON)
+        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.JSON.value)
         assert result.is_success
         formatted = result.value
 
@@ -249,7 +249,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             "features": ["feature1", "feature2", "feature3"],
         }
 
-        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.YAML)
+        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.YAML.value)
         assert result.is_success
         formatted = result.value
 
@@ -267,7 +267,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             {"name": "Carol", "age": 35, "city": "Chicago"},
         ]
 
-        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.CSV)
+        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.CSV.value)
         assert result.is_success
         formatted = result.value
 
@@ -286,7 +286,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             "uptime": "99.9%",
         }
 
-        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.TABLE)
+        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.TABLE.value)
         assert result.is_success
         formatted = result.value
 
@@ -304,7 +304,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             {"id": 3, "product": "keyboard", "price": 75},
         ]
 
-        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.TABLE)
+        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.TABLE.value)
         assert result.is_success
         formatted = result.value
 
@@ -318,7 +318,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         """Test plain text formatting."""
         data = "Simple plain text message for testing"
 
-        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.PLAIN)
+        result = self.service.flext_cli_format(data, FlextCliTypes.OutputFormat.PLAIN.value)
         assert result.is_success
         formatted = result.value
         assert formatted == "Simple plain text message for testing"

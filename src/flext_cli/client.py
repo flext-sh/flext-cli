@@ -12,7 +12,7 @@ from urllib.parse import urljoin
 import httpx
 from pydantic import ValidationError
 
-from flext_cli.configs import FlextCliConfigs as FlextCliConfig
+from flext_cli.configs import FlextCliConfigs
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_core import FlextConstants, FlextLogger, FlextResult, FlextTypes
@@ -45,7 +45,7 @@ class FlextCliClient:
 
         """
         # Get FlextConfig singleton as single source of truth
-        config = FlextCliConfig.get_global_instance()
+        config = FlextCliConfigs.get_global_instance()
 
         # Use config values as defaults, allow overrides
         if base_url:
@@ -75,7 +75,7 @@ class FlextCliClient:
         from the FlextConfig singleton, ensuring it always uses
         the latest configuration values.
         """
-        config = FlextCliConfig.get_global_instance()
+        config = FlextCliConfigs.get_global_instance()
 
         # Update configuration values
         if config.base_url:
@@ -139,7 +139,7 @@ class FlextCliClient:
             raise TypeError(msg) from e
 
     def _parse_json_list_response(
-        self, response: httpx.Response
+        self, response: httpx.Response,
     ) -> list[FlextTypes.Core.Dict]:
         """Parse JSON response as list using Pydantic validation."""
         json_data = response.json()
@@ -152,7 +152,7 @@ class FlextCliClient:
             raise TypeError(msg) from e
 
     def _extract_string_list(
-        self, data: FlextTypes.Core.Dict, key: str
+        self, data: FlextTypes.Core.Dict, key: str,
     ) -> FlextTypes.Core.StringList:
         """Extract string list from dict using Pydantic validation."""
         if key not in data:
@@ -178,7 +178,7 @@ class FlextCliClient:
             raise TypeError(msg) from e
 
     def _extract_dict_list(
-        self, data: FlextTypes.Core.Dict, key: str
+        self, data: FlextTypes.Core.Dict, key: str,
     ) -> list[FlextTypes.Core.Dict]:
         """Extract dict list from dict using Pydantic validation."""
         if key not in data:
@@ -281,12 +281,12 @@ class FlextCliClient:
                     self.token = str(auth_data["access_token"])
                 return FlextResult[dict[str, object]].ok(auth_data)
             return FlextResult[dict[str, object]].fail(
-                f"Login failed with status {response.status_code}"
+                f"Login failed with status {response.status_code}",
             )
 
         except (AttributeError, ValueError) as e:
             return FlextResult[dict[str, object]].fail(
-                f"Login to SOURCE OF TRUTH failed: {e}"
+                f"Login to SOURCE OF TRUTH failed: {e}",
             )
 
     async def logout(self) -> FlextResult[None]:
@@ -302,7 +302,7 @@ class FlextCliClient:
                 self.token = None
                 return FlextResult[None].ok(None)
             return FlextResult[None].fail(
-                f"Logout failed with status {response.status_code}"
+                f"Logout failed with status {response.status_code}",
             )
 
         except (AttributeError, ValueError) as e:

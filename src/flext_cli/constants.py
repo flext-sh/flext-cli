@@ -187,6 +187,7 @@ class FlextCliConstants:
 
         # Format errors
         FORMAT_ERROR = "CLI_FORMAT_ERROR"
+        OUTPUT_ERROR = "CLI_OUTPUT_ERROR"
 
         # Service/dependency errors
         SERVICE_ERROR = "CLI_SERVICE_ERROR"
@@ -252,6 +253,10 @@ class FlextCliConstants:
     STATUS_COMPLETED: ClassVar[str] = CommandStatus.COMPLETED.value
     STATUS_FAILED: ClassVar[str] = CommandStatus.FAILED.value
     STATUS_CANCELLED: ClassVar[str] = CommandStatus.CANCELLED.value
+
+    # Test compatibility aliases
+    OutputFormat: ClassVar[type[Output]] = Output
+    TimeoutConfig: ClassVar[type[Timeouts]] = Timeouts
 
 
 __all__ = ["FlextCliConstants"]

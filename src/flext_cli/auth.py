@@ -14,8 +14,10 @@ import asyncio
 import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import ClassVar
 
-from flext_cli.configs import FlextCliConfigs as FlextCliConfig
+from flext_cli.configs import FlextCliConfigs
+from flext_cli.models import FlextCliModels
 from flext_cli.protocols import FlextCliProtocols
 from flext_cli.typings import FlextCliTypes
 from flext_core import (
@@ -43,19 +45,19 @@ class FlextCliAuth(FlextDomainService[str]):
     """
 
     # Use unified types and models from centralized modules - marked as ClassVar for Pydantic
-    # UserData: ClassVar[type[FlextCliTypes.UserData]] = FlextCliTypes.UserData
-    # AuthStatus: ClassVar[type[FlextCliTypes.AuthStatus]] = FlextCliTypes.AuthStatus
-    # LoginCredentials: ClassVar[type[FlextCliTypes.LoginCredentials]] = (
-    #     FlextCliTypes.LoginCredentials
-    # )
+    UserData: ClassVar[type[FlextCliTypes.UserData]] = FlextCliTypes.UserData
+    AuthStatus: ClassVar[type[FlextCliTypes.AuthStatus]] = FlextCliTypes.AuthStatus
+    LoginCredentials: ClassVar[type[FlextCliTypes.LoginCredentials]] = (
+        FlextCliTypes.LoginCredentials
+    )
+    AuthConfig: ClassVar[type[FlextCliModels.AuthConfig]] = FlextCliModels.AuthConfig
+    TokenData: ClassVar[type[FlextCliTypes.TokenData]] = FlextCliTypes.TokenData
     # TokenPaths: ClassVar[type[FlextCliTypes.TokenPaths]] = FlextCliTypes.TokenPaths
-    # TokenData: ClassVar[type[FlextCliTypes.TokenData]] = FlextCliTypes.TokenData
-    # AuthConfig: ClassVar[type[FlextCliModels.AuthConfig]] = FlextCliModels.AuthConfig
 
     def __init__(
         self,
         *,
-        config: FlextCliConfig | None = None,
+        config: FlextCliConfigs | None = None,
         auth_client: FlextCliProtocols.AuthenticationClient | None = None,
         **_data: object,
     ) -> None:
@@ -66,7 +68,7 @@ class FlextCliAuth(FlextDomainService[str]):
 
         # Load configuration from FlextConfig singleton as SINGLE SOURCE OF TRUTH
         if config is None:
-            self._config = FlextCliConfig.get_current()
+            self._config = FlextCliConfigs.get_current()
         else:
             self._config = config
 
@@ -74,7 +76,7 @@ class FlextCliAuth(FlextDomainService[str]):
         self._auth_client = auth_client
 
     @property
-    def config(self) -> FlextCliConfig:
+    def config(self) -> FlextCliConfigs:
         """Get current authentication configuration."""
         return self._config
 
@@ -86,7 +88,7 @@ class FlextCliAuth(FlextDomainService[str]):
         configuration values.
         """
         # Update configuration from singleton
-        self._config = FlextCliConfig.get_current()
+        self._config = FlextCliConfigs.get_current()
 
     def get_token_paths(self) -> FlextResult[FlextCliTypes.TokenPaths]:
         """Get token paths from SOURCE OF TRUTH configuration."""
@@ -145,7 +147,7 @@ class FlextCliAuth(FlextDomainService[str]):
         return bool(getattr(self._config, "auto_refresh", False))
 
     def validate_credentials(
-        self, credentials: FlextCliTypes.LoginCredentials
+        self, credentials: FlextCliTypes.LoginCredentials,
     ) -> FlextResult[None]:
         """Validate login credentials using SOURCE OF TRUTH validation rules."""
         try:
@@ -331,7 +333,7 @@ class FlextCliAuth(FlextDomainService[str]):
             return False
 
     def check_authentication_status(
-        self, *, token_path: Path | None = None
+        self, *, token_path: Path | None = None,
     ) -> FlextResult[bool]:
         """Check authentication status using SOURCE OF TRUTH."""
         try:
@@ -389,7 +391,7 @@ class FlextCliAuth(FlextDomainService[str]):
             # Perform login using injected authentication client
             if self._auth_client is None:
                 return FlextResult[FlextTypes.Core.Dict].fail(
-                    "Authentication client not available"
+                    "Authentication client not available",
                 )
 
             # Handle async authentication client internally
@@ -397,12 +399,12 @@ class FlextCliAuth(FlextDomainService[str]):
                 try:
                     if self._auth_client is None:
                         return FlextResult[FlextTypes.Core.Dict].fail(
-                            "Authentication client not available"
+                            "Authentication client not available",
                         )
                     return await self._auth_client.login(username, password)
                 except Exception as e:
                     return FlextResult[FlextTypes.Core.Dict].fail(
-                        f"Authentication request failed: {e}"
+                        f"Authentication request failed: {e}",
                     )
 
             # Execute async operation and return FlextResult synchronously
@@ -410,7 +412,7 @@ class FlextCliAuth(FlextDomainService[str]):
                 response = asyncio.run(_perform_login())
             except Exception as e:
                 return FlextResult[FlextTypes.Core.Dict].fail(
-                    f"Login execution failed: {e}"
+                    f"Login execution failed: {e}",
                 )
 
             # Check response using SOURCE OF TRUTH patterns
@@ -518,7 +520,7 @@ class FlextCliAuth(FlextDomainService[str]):
         # Validate config has auto_refresh attribute
         if not hasattr(self._config, "auto_refresh"):
             return FlextResult[FlextCliTypes.AuthStatus].fail(
-                "Configuration missing auto_refresh field"
+                "Configuration missing auto_refresh field",
             )
 
         # Extract username from token if available (placeholder implementation)
@@ -581,11 +583,11 @@ class FlextCliAuth(FlextDomainService[str]):
         )
 
     @classmethod
-    def create(cls, *, config: FlextCliConfig | None = None) -> FlextCliAuth:
+    def create(cls, *, config: FlextCliConfigs | None = None) -> FlextCliAuth:
         """Create authentication instance using FlextConfig singleton as SINGLE SOURCE OF TRUTH."""
         # Use FlextConfig singleton if no config provided
         if config is None:
-            config = FlextCliConfig.get_current()
+            config = FlextCliConfigs.get_current()
         return cls(config=config)
 
     def _validate_user_data(self, user_data: dict[str, object]) -> FlextResult[bool]:
@@ -604,13 +606,13 @@ class FlextCliAuth(FlextDomainService[str]):
             return FlextResult[bool].fail(f"Validation failed: {e}")
 
     def authenticate_user(
-        self, username: str, password: str
+        self, username: str, password: str,
     ) -> FlextResult[dict[str, object]]:
         """Authenticate user with credentials."""
         try:
             if not username or not password:
                 return FlextResult[dict[str, object]].fail(
-                    "Username and password required"
+                    "Username and password required",
                 )
 
             # Simple authentication logic
@@ -627,7 +629,7 @@ class FlextCliAuth(FlextDomainService[str]):
             return FlextResult[dict[str, object]].fail(f"Authentication failed: {e}")
 
     def save_auth_config(
-        self, config_data: dict[str, object], file_path: str
+        self, config_data: dict[str, object], file_path: str,
     ) -> FlextResult[str]:
         """Save authentication configuration to file."""
         try:
@@ -656,7 +658,7 @@ class FlextCliAuth(FlextDomainService[str]):
             path = Path(file_path)
             if not path.exists():
                 return FlextResult[dict[str, object]].fail(
-                    f"Config file not found: {file_path}"
+                    f"Config file not found: {file_path}",
                 )
 
             content = path.read_text(encoding="utf-8")
@@ -667,14 +669,14 @@ class FlextCliAuth(FlextDomainService[str]):
             return FlextResult[dict[str, object]].fail(f"Load failed: {e}")
 
     def _validate_auth_config(
-        self, config_data: dict[str, object]
+        self, config_data: dict[str, object],
     ) -> FlextResult[bool]:
         """Validate authentication configuration."""
         try:
             # Basic validation
             if "api_key" not in config_data or "base_url" not in config_data:
                 return FlextResult[bool].fail(
-                    "Missing required fields: api_key, base_url"
+                    "Missing required fields: api_key, base_url",
                 )
 
             # Check for empty values
@@ -704,7 +706,7 @@ class FlextCliAuth(FlextDomainService[str]):
                     self._logger.info("login_successful", user=user)
                 else:
                     self._logger.info(
-                        "login_successful", details="Login completed successfully"
+                        "login_successful", details="Login completed successfully",
                     )
 
         def handle_logout(self) -> None:
@@ -713,7 +715,7 @@ class FlextCliAuth(FlextDomainService[str]):
             if result.is_success:
                 # Handle successful logout - could show confirmation message
                 self._auth._logger.info(
-                    "logout_successful", details="Logout completed successfully"
+                    "logout_successful", details="Logout completed successfully",
                 )
 
         def handle_status(self) -> None:

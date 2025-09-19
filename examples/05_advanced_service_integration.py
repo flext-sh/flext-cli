@@ -37,7 +37,7 @@ from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
 from rich.table import Table
 
 from flext_cli import (
-    FlextCliConfig,
+    FlextCliConfigs,
     FlextCliService,
 )
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
@@ -588,7 +588,7 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     services_to_register = [
         ("console", Console()),
         ("logger", FlextLogger("demo")),
-        ("config", FlextCliConfig.get_current()),
+        ("config", FlextCliConfigs.get_current()),
         ("api_client", FlextCliService()),
     ]
 

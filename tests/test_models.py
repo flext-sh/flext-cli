@@ -198,7 +198,7 @@ class TestFlextCliTypesOutputFormat:
         """Test output format enum can be used in validation."""
         # Should work with CLI config
         config = FlextCliModels.CliConfig(
-            output_format=FlextCliTypes.OutputFormat.JSON,
+            output_format=FlextCliTypes.OutputFormat.JSON.value,
         )
         assert config.output_format == "json"
 
