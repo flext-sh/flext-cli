@@ -13,14 +13,12 @@ from urllib.parse import parse_qs, urlparse
 
 import httpx
 import pytest
-from flext_core import FlextResult, FlextTypes
 
 from flext_cli.client import FlextCliClient
-from flext_cli.config import FlextCliConfig
+from flext_cli.configs import FlextCliConfigs
 from flext_cli.models import FlextCliModels
+from flext_core import FlextResult, FlextTypes
 
-# Alias for easier testing access - using proper model imports
-FlextApiClient = FlextCliClient  # Alias for backward compatibility in tests
 
 class FlextApiClientModels:
     """Alias class for easier testing access to FlextCliModels."""
@@ -33,7 +31,7 @@ class FlextApiClientModels:
 class MockHTTPHandler(BaseHTTPRequestHandler):
     """Simple test HTTP server for real client testing."""
 
-    def log_message(self, format_str: str, *args: object) -> None:
+    def log_message(self, format: str, *args: object) -> None:
         """Override log_message to handle the correct number of arguments."""
 
         # Suppress logging for tests
@@ -418,7 +416,7 @@ class TestComputeDefaultBaseUrl(unittest.TestCase):
 
     def test_client_default_base_url_through_public_interface(self) -> None:
         """Test default base URL through public client interface."""
-        client = FlextApiClient()
+        client = FlextCliClient()
         # Test that client can be created and has a base URL
         assert hasattr(client, "_base_url") or hasattr(client, "base_url")
         # The client should handle default URL computation internally
@@ -426,7 +424,7 @@ class TestComputeDefaultBaseUrl(unittest.TestCase):
     def test_client_handles_default_config_gracefully(self) -> None:
         """Test client handles default configuration gracefully."""
         # Should not raise exceptions during initialization
-        client = FlextApiClient()
+        client = FlextCliClient()
         assert client is not None
 
     def test_compute_default_base_url_with_base(self) -> None:
@@ -454,7 +452,7 @@ class TestComputeDefaultBaseUrl(unittest.TestCase):
             headers={"content-type": "application/json"},
         )
 
-        client = FlextApiClient()
+        client = FlextCliClient()
         result = client._parse_json_response(mock_response)
 
         assert isinstance(result, dict)
@@ -470,7 +468,7 @@ class TestComputeDefaultBaseUrl(unittest.TestCase):
             headers={"content-type": "application/json"},
         )
 
-        client = FlextApiClient()
+        client = FlextCliClient()
 
         with pytest.raises(TypeError) as context:
             client._parse_json_response(mock_response)
@@ -486,7 +484,7 @@ class TestComputeDefaultBaseUrl(unittest.TestCase):
             headers={"content-type": "application/json"},
         )
 
-        client = FlextApiClient()
+        client = FlextCliClient()
         result = client._parse_json_list_response(mock_response)
 
         assert isinstance(result, list)
@@ -512,6 +510,7 @@ class AsyncTestCase(unittest.TestCase):
     def tearDown(self) -> None:
         """Tear down test server."""
         self.server.shutdown()
+        self.server.server_close()  # Properly close the server socket
         self.server_thread.join(timeout=1)
 
     def run_async(self, coro: Coroutine[None, None, object]) -> object:
@@ -521,19 +520,31 @@ class AsyncTestCase(unittest.TestCase):
         try:
             return loop.run_until_complete(coro)
         finally:
+            # Cancel any remaining tasks
+            pending_tasks = asyncio.all_tasks(loop)
+            for task in pending_tasks:
+                task.cancel()
+
+            # Wait for cancelled tasks to complete
+            if pending_tasks:
+                loop.run_until_complete(
+                    asyncio.gather(*pending_tasks, return_exceptions=True)
+                )
+
             loop.close()
+            asyncio.set_event_loop(None)
 
 
 class TestFlextApiClientInitialization(AsyncTestCase):
-    """Real functionality tests for FlextApiClient initialization."""
+    """Real functionality tests for FlextCliClient initialization."""
 
     def setup__method(self, __method: object, /) -> None:
         """Clean up global configuration before each test."""
-        FlextCliConfig.clear_global_instance()
+        FlextCliConfigs.clear_global_instance()
 
     def test_client_initialization_with_all_params(self) -> None:
         """Test client initialization with all parameters."""
-        client = FlextApiClient(
+        client = FlextCliClient(
             base_url="http://test.example.com",
             token="test-token",
             timeout=60.0,
@@ -547,17 +558,17 @@ class TestFlextApiClientInitialization(AsyncTestCase):
 
     def test_client_initialization_defaults(self) -> None:
         """Test client initialization with default values."""
-        client = FlextApiClient()
+        client = FlextCliClient()
 
         # Should have some default base_url
         assert isinstance(client.base_url, str)
         assert client.token is None
-        assert client.timeout == 30  # Default timeout from FlextCliConfig
+        assert client.timeout == 30  # Default timeout from FlextCliConfigs
         assert client.verify_ssl is True
 
     def test_client_headers_without_token(self) -> None:
         """Test client headers when no token is provided."""
-        client = FlextApiClient(base_url=self.base_url)
+        client = FlextCliClient(base_url=self.base_url)
         get_headers = client.get_headers
         headers = get_headers()
 
@@ -567,7 +578,7 @@ class TestFlextApiClientInitialization(AsyncTestCase):
 
     def test_client_headers_with_token(self) -> None:
         """Test client headers when token is provided."""
-        client = FlextApiClient(base_url=self.base_url, token="test-auth-token")
+        client = FlextCliClient(base_url=self.base_url, token="test-auth-token")
         get_headers = client.get_headers
         headers = get_headers()
 
@@ -577,7 +588,7 @@ class TestFlextApiClientInitialization(AsyncTestCase):
 
     def test_client_url_building(self) -> None:
         """Test client URL building functionality."""
-        client = FlextApiClient(base_url="http://api.example.com")
+        client = FlextCliClient(base_url="http://api.example.com")
 
         url_builder = client.build_url
         url = url_builder("/api/v1/test")
@@ -592,7 +603,7 @@ class TestFlextApiClientAuthMethods(AsyncTestCase):
 
     def test_login_success(self) -> None:
         """Test successful login with valid credentials."""
-        client = FlextApiClient(base_url=self.base_url)
+        client = FlextCliClient(base_url=self.base_url)
 
         async def test_login() -> FlextResult[FlextTypes.Core.Dict]:
             result = await client.login("testuser", "testpass")
@@ -613,7 +624,7 @@ class TestFlextApiClientAuthMethods(AsyncTestCase):
 
     def test_login_failure(self) -> None:
         """Test login failure with invalid credentials."""
-        client = FlextApiClient(base_url=self.base_url)
+        client = FlextCliClient(base_url=self.base_url)
 
         async def test_login() -> bool:
             try:
@@ -631,7 +642,7 @@ class TestFlextApiClientAuthMethods(AsyncTestCase):
 
     def test_logout(self) -> None:
         """Test logout functionality."""
-        client = FlextApiClient(base_url=self.base_url, token="test-token")
+        client = FlextCliClient(base_url=self.base_url, token="test-token")
 
         async def test_logout() -> bool:
             await client.logout()
@@ -643,7 +654,7 @@ class TestFlextApiClientAuthMethods(AsyncTestCase):
 
     def test_get_current_user(self) -> None:
         """Test getting current user information."""
-        client = FlextApiClient(base_url=self.base_url, token="test-token")
+        client = FlextCliClient(base_url=self.base_url, token="test-token")
 
         async def test_get_user() -> FlextTypes.Core.Dict:
             user = await client.get_current_user()
@@ -663,7 +674,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
 
     def test_list_pipelines_default(self) -> None:
         """Test listing pipelines with default parameters."""
-        client = FlextApiClient(base_url=self.base_url, token="test-token")
+        client = FlextCliClient(base_url=self.base_url, token="test-token")
 
         async def test_list() -> object:
             result = await client.list_pipelines()
@@ -680,7 +691,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
 
     def test_list_pipelines_with_pagination(self) -> None:
         """Test listing pipelines with pagination parameters."""
-        client = FlextApiClient(base_url=self.base_url, token="test-token")
+        client = FlextCliClient(base_url=self.base_url, token="test-token")
 
         async def test_list() -> object:
             result = await client.list_pipelines(page=2, page_size=2)
@@ -695,7 +706,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
 
     def test_list_pipelines_with_status_filter(self) -> None:
         """Test listing pipelines with status filter."""
-        client = FlextApiClient(base_url=self.base_url, token="test-token")
+        client = FlextCliClient(base_url=self.base_url, token="test-token")
 
         async def test_list() -> object:
             result = await client.list_pipelines(status="active")
@@ -711,7 +722,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
 
     def test_get_pipeline(self) -> None:
         """Test getting a specific pipeline."""
-        client = FlextApiClient(base_url=self.base_url, token="test-token")
+        client = FlextCliClient(base_url=self.base_url, token="test-token")
 
         async def test_get() -> object:
             result = await client.get_pipeline("test-pipeline-123")
@@ -727,7 +738,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
 
     def test_create_pipeline(self) -> None:
         """Test creating a new pipeline."""
-        client = FlextApiClient(base_url=self.base_url, token="test-token")
+        client = FlextCliClient(base_url=self.base_url, token="test-token")
 
         config = FlextApiClientModels.PipelineConfig(
             name="new-test-pipeline",
@@ -753,7 +764,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
 
     def test_update_pipeline(self) -> None:
         """Test updating an existing pipeline."""
-        client = FlextApiClient(base_url=self.base_url, token="test-token")
+        client = FlextCliClient(base_url=self.base_url, token="test-token")
 
         config = FlextApiClientModels.PipelineConfig(
             name="updated-pipeline",
@@ -779,7 +790,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
 
     def test_delete_pipeline(self) -> None:
         """Test deleting a pipeline."""
-        client = FlextApiClient(base_url=self.base_url, token="test-token")
+        client = FlextCliClient(base_url=self.base_url, token="test-token")
 
         async def test_delete() -> bool:
             await client.delete_pipeline("pipeline-to-delete")
@@ -791,7 +802,7 @@ class TestFlextApiClientPipelineMethods(AsyncTestCase):
 
     def test_run_pipeline(self) -> None:
         """Test running a pipeline manually."""
-        client = FlextApiClient(base_url=self.base_url, token="test-token")
+        client = FlextCliClient(base_url=self.base_url, token="test-token")
 
         async def test_run() -> FlextTypes.Core.Dict:
             result = await client.run_pipeline("pipeline-123", full_refresh=True)
@@ -813,7 +824,7 @@ class TestFlextApiClientContextManager(AsyncTestCase):
         """Test using client as async context manager."""
 
         async def test_context() -> str:
-            async with FlextApiClient(base_url=self.base_url, token="test") as client:
+            async with FlextCliClient(base_url=self.base_url, token="test") as client:
                 user = await client.get_current_user()
                 return str(user["username"])
 
@@ -824,7 +835,7 @@ class TestFlextApiClientContextManager(AsyncTestCase):
         """Test manually closing client."""
 
         async def test_close() -> bool:
-            client = FlextApiClient(base_url=self.base_url, token="test")
+            client = FlextCliClient(base_url=self.base_url, token="test")
             await client.get_current_user()
             await client.close()
             return True
@@ -954,7 +965,7 @@ class TestFlextApiClientContextManager(AsyncTestCase):
 
     def test_get_headers_without_token(self) -> None:
         """Test get_headers method without token."""
-        client = FlextApiClient()
+        client = FlextCliClient()
         headers = client.get_headers()
 
         assert "Content-Type" in headers
@@ -963,7 +974,7 @@ class TestFlextApiClientContextManager(AsyncTestCase):
 
     def test_get_headers_with_token(self) -> None:
         """Test get_headers method with token."""
-        client = FlextApiClient(token="test-token")
+        client = FlextCliClient(token="test-token")
         headers = client.get_headers()
 
         assert "Content-Type" in headers
@@ -973,21 +984,21 @@ class TestFlextApiClientContextManager(AsyncTestCase):
 
     def test_build_url(self) -> None:
         """Test build_url method."""
-        client = FlextApiClient(base_url="https://api.example.com")
+        client = FlextCliClient(base_url="https://api.example.com")
         url = client.build_url("/test/path")
 
         assert url == "https://api.example.com/test/path"
 
     def test_build_url_with_trailing_slash(self) -> None:
         """Test build_url method with trailing slash in base URL."""
-        client = FlextApiClient(base_url="https://api.example.com/")
+        client = FlextCliClient(base_url="https://api.example.com/")
         url = client.build_url("/test/path")
 
         assert url == "https://api.example.com/test/path"
 
     def test_build_url_without_leading_slash(self) -> None:
         """Test build_url method without leading slash in path."""
-        client = FlextApiClient(base_url="https://api.example.com")
+        client = FlextCliClient(base_url="https://api.example.com")
         url = client.build_url("test/path")
 
         assert url == "https://api.example.com/test/path"

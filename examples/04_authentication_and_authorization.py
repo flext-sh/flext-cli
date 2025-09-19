@@ -26,7 +26,6 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime, timedelta
 
-from flext_core import FlextResult, FlextTypes
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -38,6 +37,7 @@ from flext_cli import (
     FlextCliDecorators,
     FlextCliService,
 )
+from flext_core import FlextResult, FlextTypes
 
 
 def demonstrate_basic_authentication() -> FlextResult[None]:
@@ -63,25 +63,49 @@ def demonstrate_basic_authentication() -> FlextResult[None]:
     # 2. Retrieve authentication headers
     console.print("\n[green]2. Authorization Headers[/green]")
 
-    # get_auth_headers returns FlextTypes.Core.Headers directly, not FlextResult
-    try:
-        headers = auth.get_auth_headers()
-        if headers and isinstance(headers, dict):
-            console.print("✅ Authorization headers retrieved")
-            console.print("   Headers structure:")
-            for key, value in headers.items():
-                # Mask sensitive values
-                max_display_length = 10
-                display_value = (
-                    value[:max_display_length] + "..."
-                    if len(str(value)) > max_display_length
-                    else value
-                )
-                console.print(f"     {key}: {display_value}")
+    # get_auth_headers returns FlextResult[FlextTypes.Core.Headers]
+    headers_result = auth.get_auth_headers()
+    # Duck-typing: check for FlextResult-like attributes to access .is_success/.value
+    if hasattr(headers_result, "is_success") and hasattr(headers_result, "value"):
+        if getattr(headers_result, "is_success"):
+            headers = getattr(headers_result, "value") or {}
+            if isinstance(headers, dict):
+                console.print("✅ Authorization headers retrieved")
+                console.print("   Headers structure:")
+                for key, value in headers.items():
+                    # Mask sensitive values
+                    max_display_length = 10
+                    display_value = (
+                        str(value)[:max_display_length] + "..."
+                        if len(str(value)) > max_display_length
+                        else str(value)
+                    )
+                    console.print(f"     {key}: {display_value}")
+            else:
+                console.print("❌ Headers returned in unknown format")
         else:
-            console.print("❌ No headers returned")
-    except Exception as e:
-        console.print(f"❌ Error getting headers: {e}")
+            console.print(
+                f"❌ Failed to retrieve headers: {getattr(headers_result, 'error', 'unknown')}"
+            )
+    else:
+        # Backward-compatible fallback in case implementation returns raw dict
+        try:
+            headers = headers_result
+            if headers and isinstance(headers, dict):
+                console.print("✅ Authorization headers retrieved")
+                console.print("   Headers structure:")
+                for key, value in headers.items():
+                    max_display_length = 10
+                    display_value = (
+                        str(value)[:max_display_length] + "..."
+                        if len(str(value)) > max_display_length
+                        else str(value)
+                    )
+                    console.print(f"     {key}: {display_value}")
+            else:
+                console.print("❌ No headers returned")
+        except Exception as e:
+            console.print(f"❌ Error getting headers: {e}")
 
     return FlextResult[None].ok(None)
 

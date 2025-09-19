@@ -30,18 +30,18 @@ from enum import StrEnum
 from typing import Protocol
 from uuid import UUID, uuid4
 
-from flext_core import (
-    FlextDomainService,
-    FlextModels,
-    FlextResult,
-    FlextTypes,
-)
 from pydantic import Field
 
 from flext_cli import (
     FlextCliApi,
     FlextCliMain,
     FlextCliService,
+)
+from flext_core import (
+    FlextDomainService,
+    FlextModels,
+    FlextResult,
+    FlextTypes,
 )
 
 
@@ -254,7 +254,6 @@ class CreateProjectHandler:
     """CQRS command handler for creating projects."""
 
     def __init__(
-
         self,
         repository: ProjectRepository,
         domain_service: ProjectDomainService,

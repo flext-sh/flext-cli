@@ -7,7 +7,8 @@ and type-safe state transitions following Domain-Driven Design principles.
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from typing import Annotated, ClassVar, Literal
+from pathlib import Path
+from typing import Annotated, Literal
 
 from pydantic import (
     Discriminator,
@@ -25,7 +26,7 @@ from flext_core import FlextModels, FlextResult
 class FlextCliModels:
     """CLI-specific models extending flext_core FlextModels."""
 
-    Core: ClassVar[type[FlextModels]] = FlextModels
+    # Core: ClassVar[type[FlextModels]] = FlextModels
 
     class CliCommand(FlextModels.Entity):
         """Advanced CLI command model with discriminated union state management.
@@ -262,9 +263,7 @@ class FlextCliModels:
 
         id: str = Field(default_factory=FlextCliUtilities.generate_uuid)
         profile: str = Field(default=FlextCliConstants.ProfileName.DEFAULT)
-        output_format: str = Field(
-            default=FlextCliConstants.OUTPUT.default_output_format, frozen=True
-        )
+        output_format: str = Field(default=FlextCliConstants.Output.TABLE, frozen=True)
         debug_mode: bool = Field(default=False)
         timeout_seconds: int = Field(
             default=FlextCliConstants.TIMEOUTS.default_command_timeout, ge=1
@@ -293,7 +292,7 @@ class FlextCliModels:
             try:
                 # All validation is done through Pydantic validators
                 return FlextResult[None].ok(None)
-            except (ImportError, AttributeError, ValueError) as e:
+            except (AttributeError, ValueError) as e:
                 return FlextResult[None].fail(f"Configuration validation failed: {e}")
 
     class CliPlugin(FlextModels.Entity):
@@ -459,12 +458,12 @@ class FlextCliModels:
 
             return v.strip()
 
-        @computed_field
+        @property
         def session_count(self) -> int:
             """Number of active sessions."""
             return len(self.sessions)
 
-        @computed_field
+        @property
         def handler_count(self) -> int:
             """Number of registered handlers."""
             return len(self.handlers)
@@ -820,6 +819,167 @@ class FlextCliModels:
                     # For now, we trust the Pydantic model structure
                     pass
 
+            return FlextResult[None].ok(None)
+
+    # =============================================================================
+    # COMMAND MODELS - Moved from command_models.py
+    # =============================================================================
+
+    class ShowConfigCommand(FlextModels.Entity):
+        """Show CLI configuration command."""
+
+        command_type: str = Field(
+            default="show_config", description="Command type identifier"
+        )
+        output_format: str = Field(
+            default="table", description="Output format for the configuration"
+        )
+        profile: str = Field(
+            default="default", description="Configuration profile to show"
+        )
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate show configuration command business rules."""
+            return FlextResult[None].ok(None)
+
+    class SetConfigValueCommand(FlextModels.Entity):
+        """Set configuration value command."""
+
+        key: str = Field(description="Configuration key")
+        value: str = Field(description="Configuration value")
+        profile: str = Field(
+            default="default", description="Configuration profile to modify"
+        )
+        command_type: str = Field(
+            default="set_config", description="Command type identifier"
+        )
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate set configuration command business rules."""
+            if not self.key.strip():
+                return FlextResult[None].fail("Configuration key cannot be empty")
+            return FlextResult[None].ok(None)
+
+    class EditConfigCommand(FlextModels.Entity):
+        """Edit configuration command."""
+
+        profile: str = Field(
+            default="default", description="Configuration profile to edit"
+        )
+        editor: str = Field(default="", description="Editor command to use")
+        command_type: str = Field(
+            default="edit_config", description="Command type identifier"
+        )
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate edit configuration command business rules."""
+            return FlextResult[None].ok(None)
+
+    class AuthLoginCommand(FlextModels.Entity):
+        """Authentication login command."""
+
+        username: str = Field(description="Username")
+        password: str = Field(description="Password")
+        api_url: str = Field(default="", description="API URL for authentication")
+        command_type: str = Field(
+            default="auth_login", description="Command type identifier"
+        )
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate authentication login command business rules."""
+            if not self.username.strip():
+                return FlextResult[None].fail("Username cannot be empty")
+            return FlextResult[None].ok(None)
+
+    class AuthStatusCommand(FlextModels.Entity):
+        """Authentication status command."""
+
+        detailed: bool = Field(
+            default=False, description="Show detailed authentication status"
+        )
+        command_type: str = Field(
+            default="auth_status", description="Command type identifier"
+        )
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate authentication status command business rules."""
+            return FlextResult[None].ok(None)
+
+    class AuthLogoutCommand(FlextModels.Entity):
+        """Authentication logout command."""
+
+        command_type: str = Field(
+            default="auth_logout", description="Command type identifier"
+        )
+        all_profiles: bool = Field(
+            default=False, description="Whether to logout from all profiles"
+        )
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate authentication logout command business rules."""
+            return FlextResult[None].ok(None)
+
+    class DebugInfoCommand(FlextModels.Entity):
+        """Debug information command."""
+
+        command_type: str = Field(
+            default="debug_info", description="Command type identifier"
+        )
+        include_system: bool = Field(
+            default=True, description="Whether to include system information"
+        )
+        include_config: bool = Field(
+            default=True, description="Whether to include configuration information"
+        )
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate debug information command business rules."""
+            return FlextResult[None].ok(None)
+
+    # =============================================================================
+    # AUTH MODELS - Moved from auth.py
+    # =============================================================================
+
+    class AuthConfig(FlextModels.Entity):
+        """Authentication configuration model."""
+
+        api_url: str = Field(description="API URL")
+        token_file: str = Field(description="Token file path")
+        refresh_token_file: str = Field(description="Refresh token file path")
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate authentication configuration business rules."""
+            if not self.api_url.strip():
+                return FlextResult[None].fail("API URL cannot be empty")
+            return FlextResult[None].ok(None)
+
+    # Logging configuration model moved from logging_setup.py
+    class LoggingConfig(FlextModels.Entity):
+        """Nested logging configuration with automatic source detection."""
+
+        log_level: str = Field(
+            default="INFO",  # Use constant later
+            description="Logging level from any supported source",
+        )
+        log_format: str = Field(
+            default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            description="Log message format string",
+        )
+        log_file: Path | None = Field(
+            default=None, description="Optional log file path"
+        )
+        log_level_source: str = Field(
+            default="default", description="Source of the log level configuration"
+        )
+        console_output: bool = Field(default=True, description="Enable console output")
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate logging configuration business rules."""
+            valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+            if self.log_level not in valid_levels:
+                return FlextResult[None].fail(
+                    f"Invalid log level: {self.log_level}. Must be one of: {valid_levels}"
+                )
             return FlextResult[None].ok(None)
 
 

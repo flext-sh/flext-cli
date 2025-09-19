@@ -13,12 +13,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from flext_core import FlextResult
-
 from flext_cli import FlextCliApi, FlextCliMain
 from flext_cli.client import FlextCliClient as FlextApiClient
-from flext_cli.config import FlextCliConfig
+from flext_cli.configs import FlextCliConfigs
 from flext_cli.models import FlextCliModels
+from flext_core import FlextResult
 
 
 class TestDebugBasicFunctions(unittest.TestCase):
@@ -30,8 +29,8 @@ class TestDebugBasicFunctions(unittest.TestCase):
         self.cli_main = FlextCliMain(name="test-debug", description="Test debug CLI")
 
     def test_config_creation(self) -> None:
-        """Test FlextCliConfig creation returns proper configuration."""
-        config = FlextCliConfig()
+        """Test FlextCliConfigs creation returns proper configuration."""
+        config = FlextCliConfigs()
 
         # Verify config has required attributes
         assert hasattr(config, "api_url")
@@ -270,7 +269,7 @@ class TestDebugIntegration(unittest.TestCase):
         self.cli_main = FlextCliMain(
             name="test-debug-integration", description="Debug integration test"
         )
-        self.config = FlextCliConfig()
+        self.config = FlextCliConfigs()
 
     def test_debug_workflow_complete(self) -> None:
         """Test complete debug workflow through flext-cli."""

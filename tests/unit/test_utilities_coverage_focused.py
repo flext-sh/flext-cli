@@ -11,10 +11,10 @@ from unittest.mock import Mock
 from uuid import UUID
 
 import pytest
-from flext_core import FlextUtilities
 from pydantic import BaseModel, EmailStr, HttpUrl, ValidationError
 
 from flext_cli.utils import FlextCliUtilities
+from flext_core import FlextUtilities
 
 
 class TestFlextUtilitiesCoverageFocused:
@@ -148,10 +148,7 @@ class TestFlextUtilitiesCoverageFocused:
 
         # Test safe_string
         assert FlextUtilities.TextProcessor.safe_string("hello") == "hello"
-        assert (
-            FlextUtilities.TextProcessor.safe_string(None)
-            == ""
-        )
+        assert FlextUtilities.TextProcessor.safe_string(None) == ""
 
         # Test edge cases
         assert FlextUtilities.TextProcessor.safe_string("") == ""

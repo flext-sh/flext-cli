@@ -13,9 +13,8 @@ from __future__ import annotations
 
 import os
 
-from flext_core import FlextConfig
-
 from flext_cli.config import FlextCliConfig
+from flext_core import FlextConfig
 
 
 def demonstrate_flext_config_singleton() -> None:

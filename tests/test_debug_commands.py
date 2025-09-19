@@ -14,11 +14,10 @@ import sys
 import tempfile
 from pathlib import Path
 
-from flext_core import FlextResult
-
 from flext_cli import FlextCliApi, FlextCliMain
 from flext_cli.debug import FlextCliDebug
 from flext_cli.models import FlextCliModels
+from flext_core import FlextResult
 
 
 class TestDebugCommandsReal:

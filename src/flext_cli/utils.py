@@ -175,10 +175,7 @@ class FlextCliUtilities(BaseModel):
 
     @staticmethod
     def validate_data(data: object, validator: object) -> FlextResult[bool]:
-        """Validate data using provided validator function or dict.
-
-        Backward compatibility method for legacy validation patterns.
-        """
+        """Validate data using provided validator function or dict."""
         try:
             if data is None or validator is None:
                 return FlextResult[bool].fail("Data and validator cannot be None")

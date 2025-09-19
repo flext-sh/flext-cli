@@ -13,11 +13,10 @@ import platform
 import sys
 from pathlib import Path
 
-from flext_core import FlextConstants, FlextResult
-
 from flext_cli import FlextCliApi, FlextCliMain
-from flext_cli.config import FlextCliConfig
+from flext_cli.configs import FlextCliConfigs
 from flext_cli.models import FlextCliModels
+from flext_core import FlextConstants, FlextResult
 
 
 class TestDebugCommandReal:
@@ -200,7 +199,7 @@ class TestValidateCommandReal:
     def setup_method(self) -> None:
         """Setup test method with real components."""
         self.cli_api = FlextCliApi()
-        self.config = FlextCliConfig()
+        self.config = FlextCliConfigs()
 
     def test_validate_command_execution_real(self) -> None:
         """Test validate command execution through flext-cli."""

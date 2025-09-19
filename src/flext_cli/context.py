@@ -10,7 +10,7 @@ import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from flext_cli.config import FlextCliConfig
+from flext_cli.configs import FlextCliConfigs as FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.utils import FlextCliUtilities
 from flext_core import FlextLogger, FlextResult, FlextTypes

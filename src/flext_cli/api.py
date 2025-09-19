@@ -14,20 +14,17 @@ import platform
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TypeVar, override
+from typing import override
 from uuid import UUID, uuid4
 
 import yaml
 from pydantic import BaseModel, Field, PrivateAttr
 
-# Rich imports removed - use formatters.py abstraction layer
-from flext_cli.config import FlextCliConfig
+from flext_cli.configs import FlextCliConfigs as FlextCliConfig
 from flext_cli.core import FlextCliService
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
-from flext_core import FlextContainer, FlextResult, FlextTypes
-
-T = TypeVar("T")
+from flext_core import FlextContainer, FlextResult, FlextTypes, T
 
 
 class FlextCliApi(BaseModel):
@@ -45,16 +42,15 @@ class FlextCliApi(BaseModel):
 
     # State management attributes - SIMPLE ALIAS: Use optional fields with proper defaults
     state: FlextCliModels.ApiState | None = Field(default=None)
-    dispatcher: FlextCliApi.OperationDispatcher | None = Field(default=None)
+    dispatcher: object | None = Field(
+        default=None
+    )  # Will be OperationDispatcher at runtime
 
     # Type alias for test compatibility
     @property
     def api_state_class(self) -> type[FlextCliModels.ApiState]:
         """Get ApiState model class for test compatibility."""
         return FlextCliModels.ApiState
-
-    # Legacy property alias for backward compatibility
-    ApiState: type[FlextCliModels.ApiState] = FlextCliModels.ApiState
 
     # Private attributes for Pydantic
     _formatters: FlextCliFormatters = PrivateAttr()
@@ -246,7 +242,7 @@ class FlextCliApi(BaseModel):
                     formatted_data = (
                         data if isinstance(data, (dict, list)) else {"value": data}
                     )
-                    table_result = self.formatters.format_table(formatted_data)
+                    table_result = self.formatters.create_table(formatted_data)
                     if table_result.is_success:
                         # Convert Table to string representation
                         return FlextResult[str].ok(str(table_result.value))
@@ -547,11 +543,31 @@ class FlextCliApi(BaseModel):
         self._config = config
         self._services = services or FlextCliService()
 
+    def _dispatch_operation(
+        self, operation: str, **kwargs: object
+    ) -> FlextResult[object]:
+        """Safely dispatch operation to dispatcher with type checking."""
+        if self.dispatcher is None:
+            return FlextResult[object].fail("Dispatcher not initialized")
+        if not hasattr(self.dispatcher, "dispatch_operation"):
+            return FlextResult[object].fail(
+                "Dispatcher missing dispatch_operation method"
+            )
+        result = self.dispatcher.dispatch_operation(operation, **kwargs)  # type: ignore[attr-defined]
+        return (
+            result
+            if isinstance(result, FlextResult)
+            else FlextResult[object].ok(result)
+        )
+
     def configure(self, config: object) -> FlextResult[None]:
         """Configure API with validation and state updates."""
         if self.dispatcher is None:
             return FlextResult[None].fail("Dispatcher not initialized")
-        return self.dispatcher.configure(config)
+        if not hasattr(self.dispatcher, "configure"):
+            return FlextResult[None].fail("Dispatcher missing configure method")
+        result = self.dispatcher.configure(config)  # type: ignore[attr-defined]
+        return result if isinstance(result, FlextResult) else FlextResult[None].ok(None)
 
     def update_from_config(self) -> None:
         """Update API configuration from FlextConfig singleton.
@@ -591,9 +607,7 @@ class FlextCliApi(BaseModel):
         """Execute service request - required by FlextDomainService with simple alias support."""
         if operation is None:
             # Default execution for FlextDomainService
-            if self.dispatcher is None:
-                return FlextResult[str].fail("Dispatcher not initialized")
-            health_result = self.dispatcher.dispatch_operation("health")
+            health_result = self._dispatch_operation("health")
             if health_result.is_success:
                 return FlextResult[str].ok("CLI API executed successfully")
             return FlextResult[str].fail(f"API execution failed: {health_result.error}")
@@ -604,9 +618,7 @@ class FlextCliApi(BaseModel):
             return self.format_data(data, str(format_type))
 
         # Dispatch other operations through the dispatcher
-        if self.dispatcher is None:
-            return FlextResult[str].fail("Dispatcher not initialized")
-        result = self.dispatcher.dispatch_operation(operation, **kwargs)
+        result = self._dispatch_operation(operation, **kwargs)
         return (
             FlextResult[str].ok(str(result.value))
             if result.is_success
@@ -625,9 +637,7 @@ class FlextCliApi(BaseModel):
         all_params = dict(kwargs)
         if operation is not None:
             all_params["operation"] = operation
-        if self.dispatcher is None:
-            return FlextResult[object].fail("Dispatcher not initialized")
-        return self.dispatcher.dispatch_operation(operation_name, **all_params)
+        return self._dispatch_operation(operation_name, **all_params)
 
     # =========================================================================
     # CONVENIENCE METHODS - Backward compatibility with unified implementation
@@ -670,9 +680,12 @@ class FlextCliApi(BaseModel):
             )
 
         # Display using formatters
-        display_result = self._formatters.display_formatted_output(
-            format_result.value, title=title
-        )
+        if format_type == "table":
+            display_result = self._formatters.display_table(data, title=title)
+        else:
+            # For other formats, display the formatted string directly
+            self._formatters.console.print(format_result.value)
+            display_result = FlextResult[None].ok(None)
         if display_result.is_success:
             return FlextResult[None].ok(None)
         return FlextResult[None].fail(display_result.error or "Output display failed")
@@ -763,7 +776,7 @@ class FlextCliApi(BaseModel):
         # FlextCliFormatters handles all object types - no type validation needed
         # Type cast to match formatter expectations
         formatted_data = data if isinstance(data, (dict, list)) else {"value": data}
-        table_result = self._formatters.format_table(formatted_data, title=title)
+        table_result = self._formatters.create_table(formatted_data, title=title)
         if table_result.is_success:
             return FlextResult[object].ok(table_result.value)
         return FlextResult[object].fail(table_result.error or "Table creation failed")
@@ -781,9 +794,7 @@ class FlextCliApi(BaseModel):
         # Use formatters abstraction layer instead of direct Rich import
         # Type cast to match formatter expectations
         formatted_data = data if isinstance(data, (dict, list)) else {"value": data}
-        table_result = self._formatters.create_rich_table_object(
-            formatted_data, title=title
-        )
+        table_result = self._formatters.create_table(formatted_data, title=title)
         if table_result.is_success:
             return FlextResult[object].ok(table_result.value)
         return FlextResult[object].fail(f"Table creation failed: {table_result.error}")
@@ -813,7 +824,7 @@ class FlextCliApi(BaseModel):
             return FlextResult[list[str]].fail(
                 "Dispatcher not initialized",
             )
-        result = self.dispatcher.dispatch_operation(
+        result = self._dispatch_operation(
             "batch_export",
             datasets=datasets,
             base_path=base_path,

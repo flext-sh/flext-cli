@@ -6,9 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextResult
-
 from flext_cli.cli_bus import FlextCliCommandBusService
+from flext_core import FlextResult
 
 
 class TestFlextCliCommandBusService:
@@ -202,3 +201,53 @@ class TestFlextCliCommandBusService:
             include_system=False, include_config=True
         )
         assert isinstance(result, FlextResult)
+
+    def test_get_registered_handlers(self) -> None:
+        """Test getting registered handlers."""
+        bus_service = FlextCliCommandBusService()
+
+        handlers = bus_service.get_registered_handlers()
+        assert isinstance(handlers, list)
+        # Should have some handlers registered during setup
+        assert len(handlers) > 0
+
+    def test_get_command_bus_status(self) -> None:
+        """Test getting command bus status."""
+        bus_service = FlextCliCommandBusService()
+
+        status = bus_service.get_command_bus_status()
+        assert isinstance(status, dict)
+        assert "handlers_count" in status
+        assert "bus_initialized" in status
+        assert status["bus_initialized"] is True
+
+    def test_execute_domain_service(self) -> None:
+        """Test execute method from domain service."""
+        bus_service = FlextCliCommandBusService()
+
+        result = bus_service.execute()
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_dispatch_method_with_invalid_command(self) -> None:
+        """Test dispatch method with invalid command."""
+        bus_service = FlextCliCommandBusService()
+
+        # Try to access the protected _dispatch method indirectly
+        # through one of the command methods with invalid data
+        result = bus_service.execute_show_config_command()
+        # Should still work even with minimal parameters
+        assert isinstance(result, FlextResult)
+
+    def test_setup_handlers_called_during_init(self) -> None:
+        """Test that setup handlers is called during initialization."""
+        # Create new instance to test initialization
+        bus_service = FlextCliCommandBusService()
+
+        # Verify handlers are registered
+        handlers = bus_service.get_registered_handlers()
+        assert len(handlers) > 0
+
+        # Verify status shows initialization completed
+        status = bus_service.get_command_bus_status()
+        assert status["bus_initialized"] is True

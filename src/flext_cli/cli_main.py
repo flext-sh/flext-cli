@@ -6,12 +6,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import sys
-from typing import TypedDict
 
 from pydantic import Field
 
 from flext_cli.__version__ import __version__
 from flext_cli.models import FlextCliModels
+from flext_cli.typings import FlextCliTypes
 from flext_core import (
     FlextDomainService,
     FlextLogger,
@@ -31,32 +31,10 @@ class FlextCliMain(FlextDomainService[str]):
     name: str = Field(default="flext-cli")
     description: str = Field(default="FLEXT CLI Application")
 
-    class CliOptions(TypedDict):
-        """CLI options type structure."""
-
-        profile: str
-        output_format: str
-        debug: bool
-        quiet: bool
-        log_level: str | None
-
-    class CliContext(TypedDict):
-        """CLI execution context structure."""
-
-        config: dict[str, object]
-        debug_mode: bool
-        quiet_mode: bool
-        profile: str
-        output_format: str
-
-    class VersionInfo(TypedDict):
-        """Version information structure."""
-
-        cli_version: str
-        core_version: str | None
-        python_version: str
-        platform: str
-
+    # Use unified types from centralized modules - marked as ClassVar for Pydantic
+    # CliOptions: ClassVar[type[FlextCliTypes.CliOptions]] = FlextCliTypes.CliOptions
+    # CliContext: ClassVar[type[FlextCliTypes.CliContext]] = FlextCliTypes.CliContext
+    # VersionInfo: ClassVar[type[FlextCliTypes.VersionInfo]] = FlextCliTypes.VersionInfo
     def __init__(
         self, name: str | None = None, description: str | None = None, **_data: object
     ) -> None:
@@ -86,10 +64,10 @@ class FlextCliMain(FlextDomainService[str]):
         @staticmethod
         def create_cli_options(
             **options: object,
-        ) -> FlextResult[FlextCliMain.CliOptions]:
+        ) -> FlextResult[FlextCliTypes.CliOptions]:
             """Create CLI options from provided parameters."""
             try:
-                cli_options: FlextCliMain.CliOptions = {
+                cli_options: FlextCliTypes.CliOptions = {
                     "profile": str(options.get("profile", "default")),
                     "output_format": str(options.get("output_format", "table")),
                     "debug": bool(options.get("debug")),
@@ -98,9 +76,9 @@ class FlextCliMain(FlextDomainService[str]):
                     if options.get("log_level")
                     else None,
                 }
-                return FlextResult[FlextCliMain.CliOptions].ok(cli_options)
+                return FlextResult[FlextCliTypes.CliOptions].ok(cli_options)
             except Exception as e:
-                return FlextResult[FlextCliMain.CliOptions].fail(
+                return FlextResult[FlextCliTypes.CliOptions].fail(
                     f"CLI options creation failed: {e}"
                 )
 
@@ -110,20 +88,20 @@ class FlextCliMain(FlextDomainService[str]):
         @staticmethod
         def create_cli_context(
             config: dict[str, object],
-            options: FlextCliMain.CliOptions,
-        ) -> FlextResult[FlextCliMain.CliContext]:
+            options: FlextCliTypes.CliOptions,
+        ) -> FlextResult[FlextCliTypes.CliContext]:
             """Create CLI execution context."""
             try:
-                cli_context: FlextCliMain.CliContext = {
+                cli_context: FlextCliTypes.CliContext = {
                     "config": config,
                     "debug_mode": options["debug"],
                     "quiet_mode": options["quiet"],
                     "profile": options["profile"],
                     "output_format": options["output_format"],
                 }
-                return FlextResult[FlextCliMain.CliContext].ok(cli_context)
+                return FlextResult[FlextCliTypes.CliContext].ok(cli_context)
             except Exception as e:
-                return FlextResult[FlextCliMain.CliContext].fail(
+                return FlextResult[FlextCliTypes.CliContext].fail(
                     f"CLI context creation failed: {e}"
                 )
 
@@ -131,18 +109,18 @@ class FlextCliMain(FlextDomainService[str]):
         """Nested helper class for version management."""
 
         @staticmethod
-        def get_version_info() -> FlextResult[FlextCliMain.VersionInfo]:
+        def get_version_info() -> FlextResult[FlextCliTypes.VersionInfo]:
             """Get comprehensive version information."""
             try:
-                version_info: FlextCliMain.VersionInfo = {
+                version_info: FlextCliTypes.VersionInfo = {
                     "cli_version": __version__,
                     "core_version": core_version,
                     "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
                     "platform": sys.platform,
                 }
-                return FlextResult[FlextCliMain.VersionInfo].ok(version_info)
+                return FlextResult[FlextCliTypes.VersionInfo].ok(version_info)
             except Exception as e:
-                return FlextResult[FlextCliMain.VersionInfo].fail(
+                return FlextResult[FlextCliTypes.VersionInfo].fail(
                     f"Version info retrieval failed: {e}"
                 )
 
@@ -155,19 +133,21 @@ class FlextCliMain(FlextDomainService[str]):
         """Get logger instance - expected by tests."""
         return self._logger
 
-    def create_options(self, **options: object) -> FlextResult[CliOptions]:
+    def create_options(
+        self, **options: object
+    ) -> FlextResult[FlextCliTypes.CliOptions]:
         """Create CLI options using nested helper."""
         return self._OptionsHelper.create_cli_options(**options)
 
     def create_context(
         self,
         config: dict[str, object],
-        options: CliOptions,
-    ) -> FlextResult[CliContext]:
+        options: FlextCliTypes.CliOptions,
+    ) -> FlextResult[FlextCliTypes.CliContext]:
         """Create CLI context using nested helper."""
         return self._ContextHelper.create_cli_context(config, options)
 
-    def get_version(self) -> FlextResult[VersionInfo]:
+    def get_version(self) -> FlextResult[FlextCliTypes.VersionInfo]:
         """Get version information using nested helper."""
         return self._VersionHelper.get_version_info()
 

@@ -11,7 +11,7 @@ import io
 import pytest
 from rich.console import Console
 
-from flext_cli import FlextCliConfig, FlextCliContext
+from flext_cli import FlextCliConfigs, FlextCliContext
 
 
 class TestCLIContext:
@@ -23,9 +23,9 @@ class TestCLIContext:
         return Console(file=io.StringIO(), width=80)
 
     @pytest.fixture
-    def cli_config(self) -> FlextCliConfig:
+    def cli_config(self) -> FlextCliConfigs:
         """Create a real CLI config for testing."""
-        return FlextCliConfig(
+        return FlextCliConfigs(
             debug=True,
             verbose=True,
             quiet=False,
@@ -34,9 +34,9 @@ class TestCLIContext:
         )
 
     @pytest.fixture
-    def cli_settings(self) -> FlextCliConfig:
+    def cli_settings(self) -> FlextCliConfigs:
         """Create real CLI config for testing."""
-        return FlextCliConfig(
+        return FlextCliConfigs(
             debug=True,
             project_name="test-project",
         )
@@ -66,7 +66,7 @@ class TestCLIContext:
         # Context should have essential properties
         assert hasattr(context, "id")
         assert hasattr(context, "config")
-        assert isinstance(context.config, FlextCliConfig)
+        assert isinstance(context.config, FlextCliConfigs)
 
     def test_context_arbitrary_types_allowed(self, real_console: Console) -> None:
         """Test FlextCliContext allows arbitrary types (like Console)."""

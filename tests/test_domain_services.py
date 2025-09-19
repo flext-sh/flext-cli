@@ -6,9 +6,9 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 
 import pytest
-from flext_core import FlextResult
 
 from flext_cli import FlextCliConstants, FlextCliDomainServices, FlextCliModels
+from flext_core import FlextResult
 
 
 class TestFlextCliDomainServices:

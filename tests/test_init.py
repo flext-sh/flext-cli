@@ -16,13 +16,13 @@ from flext_cli import (
     FlextCliApi,
     FlextCliAuth,
     FlextCliClient,
-    FlextCliConfig,
+    FlextCliConfigs,
     FlextCliConstants,
     FlextCliFormatters,
     FlextCliModels,
 )
-
 from flext_core import FlextResult
+
 
 class TestFlextCliImports:
     """Test flext_cli module imports following unified class patterns."""
@@ -33,7 +33,7 @@ class TestFlextCliImports:
         api = FlextCliApi()
         auth = FlextCliAuth()
         client = FlextCliClient()
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
         formatters = FlextCliFormatters()
 
         assert api is not None
@@ -69,7 +69,7 @@ class TestFlextCliImports:
             FlextCliApi,
             FlextCliAuth,
             FlextCliClient,
-            FlextCliConfig,
+            FlextCliConfigs,
             FlextCliFormatters,
         ]
 

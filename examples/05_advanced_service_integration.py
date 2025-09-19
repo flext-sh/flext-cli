@@ -29,9 +29,8 @@ import asyncio
 import time
 from datetime import UTC, datetime
 from enum import Enum
-from typing import cast
+from typing import Protocol, cast
 
-from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
@@ -41,14 +40,21 @@ from flext_cli import (
     FlextCliConfig,
     FlextCliService,
 )
+from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
+
+
+# Container protocol for type compatibility
+class ContainerProtocol(Protocol):
+    """Protocol for container interface."""
+
+    def register(self, name: str, service: object) -> FlextResult[None]: ...
+    def get(self, name: str) -> FlextResult[object]: ...
 
 
 # Simple replacement for missing example_utils
 def print_demo_completion(title: str) -> None:
     """Print demo completion message."""
     print(f"✅ {title} completed successfully!")
-
-
 
 
 class ServiceStatus(Enum):
@@ -130,7 +136,11 @@ class AdvancedCliService(FlextCliService):
     def orchestrate_services(self, operation: str) -> FlextResult[FlextTypes.Core.Dict]:
         """Orchestrate multiple services for complex operations."""
         try:
-            if hasattr(self, "logger") and self._logger and hasattr(self._logger, "info"):
+            if (
+                hasattr(self, "logger")
+                and self._logger
+                and hasattr(self._logger, "info")
+            ):
                 self._logger.info(f"Starting service orchestration: {operation}")
 
             # Define service orchestration steps
@@ -396,17 +406,12 @@ async def demonstrate_async_service_operations() -> None:
     for service_name, result in results:
         if result.is_success:
             data = result.value
-            if isinstance(data, dict):
-                status = data.get("status", "unknown")
-                response_time = f"{data.get('response_time_ms', 0)}ms"
-                details_dict = data.get("details", {})
-                if isinstance(details_dict, dict):
-                    details = f"CPU: {details_dict.get('cpu_usage', 'N/A')}"
-                else:
-                    details = "CPU: N/A"
+            status = data.get("status", "unknown")
+            response_time = f"{data.get('response_time_ms', 0)}ms"
+            details_dict = data.get("details", {})
+            if isinstance(details_dict, dict):
+                details = f"CPU: {details_dict.get('cpu_usage', 'N/A')}"
             else:
-                status = "unknown"
-                response_time = "0ms"
                 details = "CPU: N/A"
 
             # Color code status
@@ -552,19 +557,25 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     console.print("\n[green]Dependency Injection with CLI Container[/green]")
 
     # Create and configure CLI container
-    container: FlextContainer = FlextContainer.get_global()
+    container_instance = FlextContainer.get_global()
+
+    # Create container variable with proper typing
+    container: ContainerProtocol
+
     # Container has register/get methods available
-    if container:
+    if container_instance:
         console.print("[green]✓[/green] Container is ready to use")
-        console.print(f"Container type: {type(container).__name__}")
+        console.print(f"Container type: {type(container_instance).__name__}")
+        container = container_instance
     else:
         # Create mock container for demonstration
         class MockContainer:
             def __init__(self) -> None:
                 self._services: dict[str, object] = {}
 
-            def register(self, name: str, service: object) -> None:
+            def register(self, name: str, service: object) -> FlextResult[None]:
                 self._services[name] = service
+                return FlextResult[None].ok(None)
 
             def get(self, name: str) -> FlextResult[object]:
                 if name in self._services:
@@ -584,8 +595,19 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
     console.print("📦 Registering services in container:")
     for service_name, service_instance in services_to_register:
         if container:
-            container.register(service_name, service_instance)
-        console.print(f"   ✅ {service_name}: {type(service_instance).__name__}")
+            registration_result = container.register(service_name, service_instance)
+            if registration_result.is_success:
+                console.print(
+                    f"   ✅ {service_name}: {type(service_instance).__name__}"
+                )
+            else:
+                console.print(
+                    f"   ❌ Failed to register {service_name}: {registration_result.error}"
+                )
+        else:
+            console.print(
+                f"   ⚠️ {service_name}: {type(service_instance).__name__} (no container)"
+            )
 
     # Demonstrate service retrieval
     console.print("\n🔍 Retrieving services from container:")
@@ -691,16 +713,6 @@ def main() -> None:
             )
 
         # Final summary using shared utility
-
-        features = [
-            "🏗️ FlextCliService with comprehensive mixin composition",
-            "🔄 Async operations with concurrent health checking",
-            "🛡️ Circuit breaker pattern for fault tolerance",
-            "🎼 Multi-service orchestration with rollback capability",
-            "💉 Dependency injection container with service composition",
-            "📊 Real-time monitoring and health tracking",
-            "🔧 Advanced error handling and resilience patterns",
-        ]
 
         print_demo_completion("Advanced Service Integration Demo")
 

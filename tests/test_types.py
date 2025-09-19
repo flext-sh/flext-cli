@@ -53,7 +53,7 @@ class TestTypeImports:
         """Test model class imports."""
         model_types: list[str] = [
             # "FlextCliCommand",    # Type does not exist in current implementation
-            # "FlextCliConfigDict", # Type does not exist in current implementation
+            # "FlextCliConfigsDict", # Type does not exist in current implementation
             # "ContextParams",      # Type does not exist in current implementation
             # "PluginResult",       # Type does not exist in current implementation
             # "SessionData",        # Type does not exist in current implementation

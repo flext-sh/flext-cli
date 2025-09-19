@@ -19,8 +19,8 @@ from pydantic import BaseModel, Field, computed_field
 class FlextCliConstants:
     """CLI constants with only actively used constants in the codebase."""
 
-    class HttpConfig(BaseModel):
-        """HTTP client configuration - only used fields."""
+    class Http(BaseModel):
+        """HTTP client configuration - only used fields (no redundant Config suffix)."""
 
         http_scheme: str = Field(default="http", frozen=True)
         default_host: str = Field(default="localhost", min_length=1)
@@ -42,8 +42,8 @@ class FlextCliConstants:
             """Generate fallback API URL from configuration."""
             return f"{self.http_scheme}://{self.default_host}:{self.fallback_api_port}"
 
-    class FileConfig(BaseModel):
-        """File and directory configuration - only used fields."""
+    class Files(BaseModel):
+        """File and directory configuration - only used fields (no redundant Config suffix)."""
 
         flext_dir_name: str = Field(default=".flext", min_length=1)
         config_file_name: str = Field(default="config.yaml", min_length=1)
@@ -66,8 +66,8 @@ class FlextCliConstants:
                 "refresh_token.json",
             )
 
-    class SystemConfig(BaseModel):
-        """System and environment configuration - only used fields."""
+    class System(BaseModel):
+        """System and environment configuration - only used fields (no redundant Config suffix)."""
 
         env_prefix: str = Field(default="FLEXT_CLI_", frozen=True)
         default_editor: str = Field(default="nano", min_length=1)
@@ -78,29 +78,22 @@ class FlextCliConstants:
             """Get editor command from environment or default."""
             return os.environ.get("EDITOR", self.default_editor)
 
-    class TimeoutConfig(BaseModel):
-        """Timeout configuration - only used fields."""
+    class Timeouts(BaseModel):
+        """Timeout configuration - only used fields (no redundant Config suffix)."""
 
         default_command_timeout: int = Field(default=30, ge=1, le=3600)
         default_api_timeout: int = Field(default=60, ge=1, le=3600)
         default_dev_timeout: int = Field(default=120, ge=1, le=7200)
 
-    class LimitsConfig(BaseModel):
-        """Limits configuration - only used fields."""
+    class Limits(BaseModel):
+        """Limits configuration - only used fields (no redundant Config suffix)."""
 
         max_commands_per_session: int = Field(default=10_000, ge=1, le=100_000)
         max_timeout_seconds: int = Field(default=3600, ge=1, le=86_400)
         max_error_rate_percent: float = Field(default=50.0, ge=0.0, le=100.0)
 
-    class OutputConfig(BaseModel):
-        """Output configuration - only used fields."""
-
-        default_output_format: str = Field(
-            default="table", pattern=r"^(table|json|yaml|csv)$"
-        )
-
-    class SecurityConfig(BaseModel):
-        """Security configuration - only used fields."""
+    class Security(BaseModel):
+        """Security configuration - only used fields (no redundant Config suffix)."""
 
         sensitive_value_preview_length: int = Field(default=4, ge=1, le=10)
         max_filename_length: int = Field(default=255, ge=1, le=1000)
@@ -127,14 +120,22 @@ class FlextCliConstants:
         FAILED = "FAILED"
         CANCELLED = "CANCELLED"
 
-    class OutputFormat(StrEnum):
-        """Output formats - used by tests and CLI."""
+    class Output(StrEnum):
+        """Output formats - used by tests and CLI (no redundant Format suffix)."""
 
         TABLE = "table"
         JSON = "json"
         YAML = "yaml"
         CSV = "csv"
         PLAIN = "plain"
+
+    class Plugin(StrEnum):
+        """Plugin status enumeration (no redundant Status suffix)."""
+
+        ACTIVE = "active"
+        INACTIVE = "inactive"
+        ERROR = "error"
+        LOADING = "loading"
 
     class FeatureFlags:
         """Feature toggles for progressive rollouts."""
@@ -157,18 +158,51 @@ class FlextCliConstants:
         ERROR = "ERROR"
         CRITICAL = "CRITICAL"
 
+    class ErrorCode(StrEnum):
+        """Error code enumeration for CLI exception categorization."""
+
+        # General errors
+        CLI_ERROR = "CLI_ERROR"
+
+        # Input/validation errors
+        VALIDATION_ERROR = "CLI_VALIDATION_ERROR"
+        ARGUMENT_ERROR = "CLI_ARGUMENT_ERROR"
+
+        # Configuration errors
+        CONFIGURATION_ERROR = "CLI_CONFIGURATION_ERROR"
+        CONTEXT_ERROR = "CLI_CONTEXT_ERROR"
+
+        # Network/connectivity errors
+        CONNECTION_ERROR = "CLI_CONNECTION_ERROR"
+        AUTHENTICATION_ERROR = "CLI_AUTHENTICATION_ERROR"
+        TIMEOUT_ERROR = "CLI_TIMEOUT_ERROR"
+
+        # Processing errors
+        PROCESSING_ERROR = "CLI_PROCESSING_ERROR"
+        COMMAND_ERROR = "CLI_COMMAND_ERROR"
+
+        # File/storage errors
+        FILE_ERROR = "CLI_FILE_ERROR"
+        PERMISSION_ERROR = "CLI_PERMISSION_ERROR"
+
+        # Format errors
+        FORMAT_ERROR = "CLI_FORMAT_ERROR"
+
+        # Service/dependency errors
+        SERVICE_ERROR = "CLI_SERVICE_ERROR"
+        DEPENDENCY_ERROR = "CLI_DEPENDENCY_ERROR"
+
     # =============================================================================
     # DEFAULT INSTANCES - Ready-to-use configurations (SINGLE SOURCE OF TRUTH)
     # =============================================================================
 
     # Pre-configured instances for immediate use
-    HTTP: ClassVar[HttpConfig] = HttpConfig()
-    FILES: ClassVar[FileConfig] = FileConfig()
-    SYSTEM: ClassVar[SystemConfig] = SystemConfig()
-    TIMEOUTS: ClassVar[TimeoutConfig] = TimeoutConfig()
-    LIMITS: ClassVar[LimitsConfig] = LimitsConfig()
-    OUTPUT: ClassVar[OutputConfig] = OutputConfig()
-    SECURITY: ClassVar[SecurityConfig] = SecurityConfig()
+    HTTP: ClassVar[Http] = Http()
+    FILES: ClassVar[Files] = Files()
+    SYSTEM: ClassVar[System] = System()
+    TIMEOUTS: ClassVar[Timeouts] = Timeouts()
+    LIMITS: ClassVar[Limits] = Limits()
+    SECURITY: ClassVar[Security] = Security()
 
     # =============================================================================
     # COMPATIBILITY ALIASES - Direct access to nested properties
@@ -196,16 +230,10 @@ class FlextCliConstants:
     VALID_PIPELINE_STATUSES: ClassVar[list[str]] = [
         status.value for status in CommandStatus
     ]
-    VALID_OUTPUT_FORMATS: ClassVar[list[str]] = [fmt.value for fmt in OutputFormat]
+    VALID_OUTPUT_FORMATS: ClassVar[list[str]] = [fmt.value for fmt in Output]
 
     # Timeout constants
     MAX_COMMAND_TIMEOUT: ClassVar[int] = LIMITS.max_timeout_seconds
-    # Command status aliases (for backward compatibility with tests)
-    STATUS_PENDING: ClassVar[str] = CommandStatus.PENDING.value
-    STATUS_RUNNING: ClassVar[str] = CommandStatus.RUNNING.value
-    STATUS_COMPLETED: ClassVar[str] = CommandStatus.COMPLETED.value
-    STATUS_FAILED: ClassVar[str] = CommandStatus.FAILED.value
-    STATUS_CANCELLED: ClassVar[str] = CommandStatus.CANCELLED.value
 
     # Additional missing constants used by tests
     VALID_COMMAND_STATUSES: ClassVar[tuple[str, ...]] = tuple(
@@ -218,13 +246,12 @@ class FlextCliConstants:
     DEFAULT_API_URL: ClassVar[str] = "http://localhost:8000"
     DEFAULT_PROFILE: ClassVar[str] = ProfileName.DEFAULT.value
     CONFIG_FILE_NAME: ClassVar[str] = "config.toml"
-
-    # Log level aliases (for backward compatibility with tests)
-    LOG_LEVEL_DEBUG: ClassVar[str] = LogLevel.DEBUG.value
-    LOG_LEVEL_INFO: ClassVar[str] = LogLevel.INFO.value
-    LOG_LEVEL_WARNING: ClassVar[str] = LogLevel.WARNING.value
-    LOG_LEVEL_ERROR: ClassVar[str] = LogLevel.ERROR.value
-    LOG_LEVEL_CRITICAL: ClassVar[str] = LogLevel.CRITICAL.value
+    # Command status constants
+    STATUS_PENDING: ClassVar[str] = CommandStatus.PENDING.value
+    STATUS_RUNNING: ClassVar[str] = CommandStatus.RUNNING.value
+    STATUS_COMPLETED: ClassVar[str] = CommandStatus.COMPLETED.value
+    STATUS_FAILED: ClassVar[str] = CommandStatus.FAILED.value
+    STATUS_CANCELLED: ClassVar[str] = CommandStatus.CANCELLED.value
 
 
 __all__ = ["FlextCliConstants"]

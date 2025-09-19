@@ -10,9 +10,9 @@ import asyncio
 import io
 
 import pytest
-from flext_core import FlextResult
 
 from flext_cli import FlextCliContext, FlextCliDecorators
+from flext_core import FlextResult
 
 # Constants
 EXPECTED_DATA_COUNT = 3
@@ -197,15 +197,33 @@ class TestHandleServiceResult:
                 msg,
             )
 
-    @pytest.mark.skip(reason="handle_service_result decorator not found")
     def test_async_function_compatibility(self) -> None:
         """Test decorator compatibility with async functions."""
-        # Skipping - decorator not implemented
 
-    @pytest.mark.skip(reason="handle_service_result decorator not found")
+        @FlextCliDecorators.handle_service_result
+        async def async_success_function() -> FlextResult[str]:
+            await asyncio.sleep(0.01)
+            return FlextResult[str].ok("async success")
+
+        async def test_runner() -> None:
+            result = await async_success_function()
+            assert result == "async success"
+
+        asyncio.run(test_runner())
+
     def test_async_failed_result_handling(self) -> None:
         """Test async handling of failed FlextResult - REAL functionality."""
-        # Skipping - decorator not implemented
+
+        @FlextCliDecorators.handle_service_result
+        async def async_failed_function() -> FlextResult[str]:
+            await asyncio.sleep(0.01)
+            return FlextResult[str].fail("async failure")
+
+        async def test_runner() -> None:
+            result = await async_failed_function()
+            assert result is None  # Failed results return None
+
+        asyncio.run(test_runner())
 
     def test_async_exception_handling(self) -> None:
         """Test async exception handling in decorator - REAL functionality."""

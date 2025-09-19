@@ -9,13 +9,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
-from flext_core import FlextTypes
 
-from flext_cli.config import FlextCliConfig
+from flext_cli.configs import FlextCliConfigs
 from flext_cli.core import FlextCliService
 from flext_cli.domain_services import FlextCliDomainServices
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
+from flext_core import FlextTypes
 
 
 class TestFlextCliService(unittest.TestCase):
@@ -101,8 +101,8 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         assert len(commands) == 0
 
     def test_configure_with_flext_cli_config_object(self) -> None:
-        """Test configuring service with FlextCliConfig object."""
-        config = FlextCliConfig(
+        """Test configuring service with FlextCliConfigs object."""
+        config = FlextCliConfigs(
             debug=True,
             output_format="json",
             profile="test-profile",
@@ -433,7 +433,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
     def test_flext_cli_health_with_configuration(self) -> None:
         """Test health check includes configuration when service is configured."""
-        config = FlextCliConfig(debug=True, output_format="json", profile="test")
+        config = FlextCliConfigs(debug=True, output_format="json", profile="test")
         self.service.configure(config)
 
         result = self.service.flext_cli_health()
@@ -638,7 +638,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
     def test_flext_cli_render_with_configured_format(self) -> None:
         """Test rendering uses configured format when no context override."""
         # Configure service for JSON format
-        config = FlextCliConfig(output_format="json")
+        config = FlextCliConfigs(output_format="json")
         self.service.configure(config)
 
         data = {"configured": True, "format": "json"}

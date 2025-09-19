@@ -12,7 +12,7 @@ from urllib.parse import urljoin
 import httpx
 from pydantic import ValidationError
 
-from flext_cli.config import FlextCliConfig
+from flext_cli.configs import FlextCliConfigs as FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_core import FlextConstants, FlextLogger, FlextResult, FlextTypes

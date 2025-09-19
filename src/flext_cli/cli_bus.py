@@ -11,9 +11,9 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_cli.command_models import FlextCliCommands
 from flext_cli.constants import FlextCliConstants
 from flext_cli.handlers import FlextCliHandlers
+from flext_cli.models import FlextCliModels
 from flext_core import (
     FlextBus,
     FlextDispatcher,
@@ -139,11 +139,11 @@ class FlextCliCommandBusService(FlextDomainService[None]):
 
     def execute_show_config_command(
         self,
-        output_format: str = FlextCliConstants.OutputFormat.TABLE,
+        output_format: str = FlextCliConstants.Output.TABLE,
         profile: str = FlextCliConstants.ProfileName.DEFAULT,
     ) -> FlextResult[dict[str, object]]:
         """Execute show config command using flext-core Command Bus."""
-        command = FlextCliCommands.ShowConfigCommand(
+        command = FlextCliModels.ShowConfigCommand(
             output_format=output_format, profile=profile
         )
         # Validate command using nested helper
@@ -170,7 +170,7 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         self, key: str, value: str, profile: str = FlextCliConstants.ProfileName.DEFAULT
     ) -> FlextResult[bool]:
         """Execute set config command using flext-core Command Bus."""
-        command = FlextCliCommands.SetConfigValueCommand(
+        command = FlextCliModels.SetConfigValueCommand(
             key=key, value=value, profile=profile
         )
         validation_result = self._CommandValidator.validate_command_data(command)
@@ -188,7 +188,7 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         self, profile: str = FlextCliConstants.ProfileName.DEFAULT, editor: str = ""
     ) -> FlextResult[bool]:
         """Execute edit config command using flext-core Command Bus."""
-        command = FlextCliCommands.EditConfigCommand(profile=profile, editor=editor)
+        command = FlextCliModels.EditConfigCommand(profile=profile, editor=editor)
         validation_result = self._CommandValidator.validate_command_data(command)
         if validation_result.is_failure:
             return FlextResult[bool].fail(
@@ -204,7 +204,7 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         self, username: str, password: str, api_url: str = ""
     ) -> FlextResult[dict[str, object]]:
         """Execute auth login command using flext-core Command Bus."""
-        command = FlextCliCommands.AuthLoginCommand(
+        command = FlextCliModels.AuthLoginCommand(
             username=username, password=password, api_url=api_url
         )
         validation_result = self._CommandValidator.validate_command_data(command)
@@ -230,7 +230,7 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         self, *, detailed: bool = False
     ) -> FlextResult[dict[str, object]]:
         """Execute auth status command using flext-core Command Bus."""
-        command = FlextCliCommands.AuthStatusCommand(detailed=detailed)
+        command = FlextCliModels.AuthStatusCommand(detailed=detailed)
         validation_result = self._CommandValidator.validate_command_data(command)
         if validation_result.is_failure:
             return FlextResult[dict[str, object]].fail(
@@ -278,7 +278,7 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         self, *, all_profiles: bool = False
     ) -> FlextResult[bool]:
         """Execute auth logout command using flext-core Command Bus."""
-        command = FlextCliCommands.AuthLogoutCommand(all_profiles=all_profiles)
+        command = FlextCliModels.AuthLogoutCommand(all_profiles=all_profiles)
         validation_result = self._CommandValidator.validate_command_data(command)
         if validation_result.is_failure:
             return FlextResult[bool].fail(
@@ -294,7 +294,7 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         self, *, include_system: bool = True, include_config: bool = True
     ) -> FlextResult[dict[str, object]]:
         """Execute debug info command using flext-core Command Bus."""
-        command = FlextCliCommands.DebugInfoCommand(
+        command = FlextCliModels.DebugInfoCommand(
             include_system=include_system, include_config=include_config
         )
         validation_result = self._CommandValidator.validate_command_data(command)
