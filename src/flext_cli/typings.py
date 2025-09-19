@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import Literal, Protocol, TypedDict
 from uuid import UUID
@@ -126,7 +127,7 @@ class FlextCliTypes:
     # CLI OUTPUT FORMAT TYPES - For tests compatibility
     # =============================================================================
 
-    class OutputFormat:
+    class OutputFormat(Enum):
         """CLI output format enumeration for test compatibility."""
 
         JSON = "json"
@@ -298,7 +299,7 @@ class FlextCliTypes:
     class CliContext(TypedDict):
         """CLI execution context structure."""
 
-        config: object  # FlextCliConfig but avoid circular import
+        config: object  # FlextCliConfigs but avoid circular import
         debug_mode: bool
         quiet_mode: bool
         profile: str
@@ -383,12 +384,16 @@ URLType = str
 
 # ARCHITECTURAL COMPLIANCE: All aliases removed - use full qualified names
 
+# Test compatibility aliases for enum access
+CommandStatus = FlextCliConstants.CommandStatus
+PluginStatus = FlextCliConstants.Plugin
 
 # Minimal exports - only actually used types
 __all__ = [
     "URL",
     "UUID",
     "BaseModel",
+    "CommandStatus",
     "E",
     "F",
     "Field",
@@ -397,6 +402,7 @@ __all__ = [
     "FlextTypes",
     "P",
     "Path",
+    "PluginStatus",
     "R",
     "T",
     "TypedDict",

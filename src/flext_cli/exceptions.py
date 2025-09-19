@@ -26,6 +26,9 @@ class FlextCliError(Exception):
         - Integration with FlextResult error handling
     """
 
+    # Alias for test compatibility - provide access to ErrorCode via class attribute
+    ErrorCode = FlextCliConstants.ErrorCode
+
     def __init__(
         self,
         message: str,
@@ -77,7 +80,7 @@ class FlextCliError(Exception):
 
         """
         return cls(
-            message, error_code=FlextCliConstants.ErrorCode.VALIDATION_ERROR, **context
+            message, error_code=FlextCliConstants.ErrorCode.VALIDATION_ERROR, **context,
         )
 
     @classmethod
@@ -111,7 +114,7 @@ class FlextCliError(Exception):
 
         """
         return cls(
-            message, error_code=FlextCliConstants.ErrorCode.CONNECTION_ERROR, **context
+            message, error_code=FlextCliConstants.ErrorCode.CONNECTION_ERROR, **context,
         )
 
     @classmethod
@@ -145,7 +148,7 @@ class FlextCliError(Exception):
 
         """
         return cls(
-            message, error_code=FlextCliConstants.ErrorCode.COMMAND_ERROR, **context
+            message, error_code=FlextCliConstants.ErrorCode.COMMAND_ERROR, **context,
         )
 
     @classmethod
@@ -161,7 +164,7 @@ class FlextCliError(Exception):
 
         """
         return cls(
-            message, error_code=FlextCliConstants.ErrorCode.TIMEOUT_ERROR, **context
+            message, error_code=FlextCliConstants.ErrorCode.TIMEOUT_ERROR, **context,
         )
 
     @classmethod
@@ -177,7 +180,7 @@ class FlextCliError(Exception):
 
         """
         return cls(
-            message, error_code=FlextCliConstants.ErrorCode.FORMAT_ERROR, **context
+            message, error_code=FlextCliConstants.ErrorCode.FORMAT_ERROR, **context,
         )
 
     def is_error_code(self, error_code: FlextCliConstants.ErrorCode) -> bool:

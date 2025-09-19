@@ -39,7 +39,7 @@ from flext_cli.cli_bus import FlextCliCommandBusService
 from flext_cli.cli_main import FlextCliMain
 from flext_cli.client import FlextCliClient
 from flext_cli.cmd import FlextCliCmd
-from flext_cli.configs import FlextCliConfigs as FlextCliConfig
+from flext_cli.configs import FlextCliConfigs
 from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
 from flext_cli.core import FlextCliService
@@ -62,7 +62,7 @@ __all__ = [
     "FlextCliClient",
     "FlextCliCmd",
     "FlextCliCommandBusService",
-    "FlextCliConfig",
+    "FlextCliConfigs",
     "FlextCliConstants",
     "FlextCliContext",
     "FlextCliDebug",

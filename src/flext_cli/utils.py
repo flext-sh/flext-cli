@@ -136,7 +136,7 @@ class FlextCliUtilities(BaseModel):
 
     @staticmethod
     def validate_with_pydantic_model(
-        data: dict[str, object] | object, model_class: type[BaseModel]
+        data: dict[str, object] | object, model_class: type[BaseModel],
     ) -> FlextResult[BaseModel]:
         """Validate data using Pydantic v2 model directly.
 
@@ -152,8 +152,10 @@ class FlextCliUtilities(BaseModel):
             # Convert data to dict if needed
             if isinstance(data, dict):
                 validated_data = data
-            elif hasattr(data, "model_dump") and callable(getattr(data, "model_dump")):
-                validated_data = getattr(data, "model_dump")()
+            elif hasattr(data, "model_dump") and callable(getattr(data, "model_dump", None)):
+                # Safe attribute access with getattr instead of direct access
+                model_dump_method = getattr(data, "model_dump")
+                validated_data = model_dump_method()
             elif hasattr(data, "__dict__"):
                 validated_data = data.__dict__
             else:
@@ -167,7 +169,7 @@ class FlextCliUtilities(BaseModel):
                 [
                     f"{err['loc'][0] if err['loc'] else 'field'}: {err['msg']}"
                     for err in e.errors()
-                ]
+                ],
             )
             return FlextResult[BaseModel].fail(f"Validation failed: {error_details}")
         except Exception as e:
@@ -189,15 +191,15 @@ class FlextCliUtilities(BaseModel):
                     for key, expected_type in validator.items():
                         if key not in data:
                             return FlextResult[bool].fail(
-                                f"Missing required field: {key}"
+                                f"Missing required field: {key}",
                             )
                         if not isinstance(data[key], expected_type):
                             return FlextResult[bool].fail(
-                                f"Invalid type for {key}: expected {expected_type.__name__}"
+                                f"Invalid type for {key}: expected {expected_type.__name__}",
                             )
                     return FlextResult[bool].ok(data=True)
                 return FlextResult[bool].fail(
-                    "Data must be dict for dict-based validation"
+                    "Data must be dict for dict-based validation",
                 )
             return FlextResult[bool].fail("Validator must be callable or dict")
         except Exception as e:
@@ -205,13 +207,13 @@ class FlextCliUtilities(BaseModel):
 
     @staticmethod
     def batch_process_items(
-        items: Sequence[object], processor: Callable[[object], object]
+        items: Sequence[object], processor: Callable[[object], object],
     ) -> FlextResult[list[object]]:
         """Process items in batch with error handling."""
         try:
             if not isinstance(items, (list, tuple)):
                 return FlextResult[list[object]].fail(
-                    "Invalid items format: must be list or tuple"
+                    "Invalid items format: must be list or tuple",
                 )
 
             results = []
@@ -220,17 +222,20 @@ class FlextCliUtilities(BaseModel):
                     result = processor(item)
                     # Handle both FlextResult and raw value returns
                     if hasattr(result, "is_failure") and hasattr(result, "unwrap"):
-                        if getattr(result, "is_failure"):
+                        # Safe attribute access with getattr instead of direct access
+                        is_failure = getattr(result, "is_failure", False)
+                        if is_failure:
                             error_msg = getattr(result, "error", "Unknown error")
                             return FlextResult[list[object]].fail(
-                                f"Item processing failed: {error_msg}"
+                                f"Item processing failed: {error_msg}",
                             )
-                        results.append(getattr(result, "unwrap")())
+                        unwrap_method = getattr(result, "unwrap")
+                        results.append(unwrap_method())
                     else:
                         results.append(result)
                 except Exception as e:
                     return FlextResult[list[object]].fail(
-                        f"Item processing failed: {e}"
+                        f"Item processing failed: {e}",
                     )
             return FlextResult[list[object]].ok(results)
         except Exception as e:
@@ -256,7 +261,7 @@ class FlextCliUtilities(BaseModel):
     def safe_json_stringify_flext_result(result: FlextResult[object]) -> str:
         """Safely stringify FlextResult to JSON."""
         return FlextCliUtilities.safe_json_stringify(
-            result.unwrap() if result.is_success else {"error": result.error}
+            result.unwrap() if result.is_success else {"error": result.error},
         )
 
 

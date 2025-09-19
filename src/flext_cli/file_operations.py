@@ -58,7 +58,7 @@ class FlextCliFileOperations:
                 return FlextResult[FlextTypes.Core.Dict].fail(f"File not found: {path}")
 
             content = file_path.read_text(
-                encoding=FlextCliConstants.FILES.default_encoding
+                encoding=FlextCliConstants.FILES.default_encoding,
             )
             # Parse JSON content with safe fallback
             try:

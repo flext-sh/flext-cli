@@ -18,7 +18,7 @@ import click
 from pydantic import BaseModel
 
 from flext_cli.__version__ import __version__
-from flext_cli.configs import FlextCliConfigs as FlextCliConfig
+from flext_cli.configs import FlextCliConfigs
 from flext_cli.constants import FlextCliConstants
 from flext_cli.logging_setup import FlextCliLoggingSetup
 from flext_cli.typings import FlextCliTypes
@@ -61,7 +61,8 @@ class FlextCliMain(BaseModel):
         }
 
     def create_cli_options(
-        self, **options: object
+        self,
+        **options: object,
     ) -> FlextResult[FlextCliTypes.CliOptions]:
         """Create CLI options from SOURCE OF TRUTH."""
         cli_options: FlextCliTypes.CliOptions = {
@@ -76,8 +77,9 @@ class FlextCliMain(BaseModel):
         return FlextResult[FlextCliTypes.CliOptions].ok(cli_options)
 
     def create_config_with_overrides(
-        self, cli_options: FlextCliTypes.CliOptions
-    ) -> FlextResult[FlextCliConfig]:
+        self,
+        cli_options: FlextCliTypes.CliOptions,
+    ) -> FlextResult[FlextCliConfigs]:
         """Create configuration with CLI overrides from FlextConfig singleton."""
         # Create CLI overrides from options
         cli_overrides = {
@@ -93,16 +95,19 @@ class FlextCliMain(BaseModel):
             cli_overrides["output_format"] = cli_options["output_format"]
 
         # Apply overrides to FlextConfig singleton
-        config_result = FlextCliConfig.apply_cli_overrides(cli_overrides)
+        config_result = FlextCliConfigs.apply_cli_overrides(cli_overrides)
         if config_result.is_failure:
-            return FlextResult[FlextCliConfig].fail(
-                f"Config creation failed: {config_result.error}"
+            return FlextResult[FlextCliConfigs].fail(
+                f"Config creation failed: {config_result.error}",
             )
 
-        return FlextResult[FlextCliConfig].ok(config_result.value)
+        return FlextResult[FlextCliConfigs].ok(config_result.value)
 
     def setup_cli_context(
-        self, config: FlextCliConfig, *, quiet: bool = False
+        self,
+        config: FlextCliConfigs,
+        *,
+        quiet: bool = False,
     ) -> FlextResult[FlextCliTypes.CliContext]:
         """Set up CLI context from SOURCE OF TRUTH."""
         cli_context: FlextCliTypes.CliContext = {
@@ -114,13 +119,13 @@ class FlextCliMain(BaseModel):
         }
         return FlextResult[FlextCliTypes.CliContext].ok(cli_context)
 
-    def setup_logging(self, _config: FlextCliConfig) -> FlextResult[None]:
+    def setup_logging(self, _config: FlextCliConfigs) -> FlextResult[None]:
         """Set up logging from SOURCE OF TRUTH."""
         logging_setup = FlextCliLoggingSetup()
         logging_result = logging_setup.setup_logging()
         if logging_result.is_failure:
             return FlextResult[None].fail(
-                f"Logging setup failed: {logging_result.error}"
+                f"Logging setup failed: {logging_result.error}",
             )
         return FlextResult[None].ok(None)
 
@@ -279,19 +284,21 @@ def create_cli_options(**options: object) -> FlextResult[FlextCliTypes.CliOption
 
 def create_config_with_overrides(
     cli_options: FlextCliTypes.CliOptions,
-) -> FlextResult[FlextCliConfig]:
+) -> FlextResult[FlextCliConfigs]:
     """Delegate to unified service."""
     return _cli_main.create_config_with_overrides(cli_options)
 
 
 def setup_cli_context(
-    config: FlextCliConfig, *, quiet: bool = False
+    config: FlextCliConfigs,
+    *,
+    quiet: bool = False,
 ) -> FlextResult[FlextCliTypes.CliContext]:
     """Delegate to unified service."""
     return _cli_main.setup_cli_context(config, quiet=quiet)
 
 
-def setup_logging(config: FlextCliConfig) -> FlextResult[None]:
+def setup_logging(config: FlextCliConfigs) -> FlextResult[None]:
     """Delegate to unified service."""
     return _cli_main.setup_logging(config)
 
@@ -301,7 +308,8 @@ def setup_logging(config: FlextCliConfig) -> FlextResult[None]:
 @click.option("--profile", default="default", help="Configuration profile to use.")
 @click.option("--quiet", is_flag=True, help="Suppress output.")
 @click.option(
-    "--log-level", help="Set log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)."
+    "--log-level",
+    help="Set log level (DEBUG, INFO, WARNING, ERROR, CRITICAL).",
 )
 @click.option("--output", help="Set output format (table, json, yaml, csv).")
 @click.option(
@@ -336,10 +344,11 @@ def cli(
     # Apply CLI parameters to FlextConfig singleton
     try:
         # STEP 1: Ensure FlextConfig integration is maintained
-        integration_result = FlextCliConfig.ensure_flext_config_integration()
+        integration_result = FlextCliConfigs.ensure_flext_config_integration()
         if integration_result.is_failure:
             click.echo(
-                f"FlextConfig integration error: {integration_result.error}", err=True
+                f"FlextConfig integration error: {integration_result.error}",
+                err=True,
             )
             ctx.exit(1)
 
@@ -365,7 +374,7 @@ def cli(
             cli_overrides["output_format"] = output
 
         # STEP 3: Apply overrides to FlextConfig singleton
-        config_result = FlextCliConfig.apply_cli_overrides(cli_overrides)
+        config_result = FlextCliConfigs.apply_cli_overrides(cli_overrides)
         if config_result.is_failure:
             click.echo(f"Configuration error: {config_result.error}", err=True)
             ctx.exit(1)
@@ -374,7 +383,7 @@ def cli(
         ctx.obj["config"] = config_result.value
 
         # STEP 5: Verify final integration
-        final_integration = FlextCliConfig.ensure_flext_config_integration()
+        final_integration = FlextCliConfigs.ensure_flext_config_integration()
         if final_integration.is_failure:
             click.echo(
                 f"Final integration verification failed: {final_integration.error}",
@@ -432,7 +441,10 @@ def status(_ctx: click.Context) -> None:
 @auth.command()
 @click.option("--username", required=True, help="Username for authentication.")
 @click.option(
-    "--password", "_password", required=True, help="Password for authentication."
+    "--password",
+    "_password",
+    required=True,
+    help="Password for authentication.",
 )
 @click.pass_context
 def login(_ctx: click.Context, username: str, _password: str) -> None:
@@ -460,10 +472,10 @@ def show(ctx: click.Context) -> None:
     try:
         # Get both base and CLI configurations
         base_config = FlextConfig()
-        cli_config = FlextCliConfig.get_current()
+        cli_config = FlextCliConfigs.get_current()
 
         click.echo(
-            "=== FLEXT CONFIGURATION (FlextConfig Singleton - SINGLE SOURCE OF TRUTH) ==="
+            "=== FLEXT CONFIGURATION (FlextConfig Singleton - SINGLE SOURCE OF TRUTH) ===",
         )
         click.echo(f"Environment: {base_config.environment}")
         click.echo(f"Debug Mode: {base_config.debug}")
@@ -473,7 +485,9 @@ def show(ctx: click.Context) -> None:
         click.echo(f"Port: {base_config.port}")
         click.echo(f"Database URL: {base_config.database_url}")
 
-        click.echo("\n=== CLI CONFIGURATION (FlextCliConfig - Extends FlextConfig) ===")
+        click.echo(
+            "\n=== CLI CONFIGURATION (FlextCliConfigs - Extends FlextConfig) ===",
+        )
         click.echo(f"Profile: {cli_config.profile}")
         click.echo(f"Output Format: {cli_config.output_format}")
         click.echo(f"API URL: {cli_config.api_url}")
@@ -484,7 +498,7 @@ def show(ctx: click.Context) -> None:
         # Show integration metadata
         click.echo("\n=== INTEGRATION STATUS ===")
         click.echo(
-            "Configuration Source: FlextConfig Singleton (Single Source of Truth)"
+            "Configuration Source: FlextConfig Singleton (Single Source of Truth)",
         )
         click.echo(f"CLI Parameters Applied: {bool(ctx.obj.get('config'))}")
         click.echo("Base Config Source: flext_config_singleton")
@@ -492,7 +506,7 @@ def show(ctx: click.Context) -> None:
         click.echo("Integration Verified: true")
 
         # Verify integration
-        integration_result = FlextCliConfig.ensure_flext_config_integration()
+        integration_result = FlextCliConfigs.ensure_flext_config_integration()
         if integration_result.is_success:
             click.echo("Integration Status: ✅ VERIFIED")
         else:

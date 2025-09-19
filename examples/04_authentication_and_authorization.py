@@ -33,7 +33,7 @@ from rich.table import Table
 from examples import print_demo_completion
 from flext_cli import (
     FlextCliAuth,
-    FlextCliConfig,
+    FlextCliConfigs,
     FlextCliDecorators,
     FlextCliService,
 )
@@ -285,7 +285,7 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
     console.print("\n[green]7. Secure Configuration Management[/green]")
 
     # Get CLI configuration
-    FlextCliConfig.get_current()
+    FlextCliConfigs.get_current()
     console.print("✅ CLI configuration loaded")
 
     # Demonstrate environment variable usage for sensitive data

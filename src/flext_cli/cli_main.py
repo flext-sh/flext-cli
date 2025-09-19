@@ -31,12 +31,11 @@ class FlextCliMain(FlextDomainService[str]):
     name: str = Field(default="flext-cli")
     description: str = Field(default="FLEXT CLI Application")
 
-    # Use unified types from centralized modules - marked as ClassVar for Pydantic
-    # CliOptions: ClassVar[type[FlextCliTypes.CliOptions]] = FlextCliTypes.CliOptions
-    # CliContext: ClassVar[type[FlextCliTypes.CliContext]] = FlextCliTypes.CliContext
-    # VersionInfo: ClassVar[type[FlextCliTypes.VersionInfo]] = FlextCliTypes.VersionInfo
     def __init__(
-        self, name: str | None = None, description: str | None = None, **_data: object
+        self,
+        name: str | None = None,
+        description: str | None = None,
+        **_data: object,
     ) -> None:
         """Initialize FlextCliMain.
 
@@ -79,7 +78,7 @@ class FlextCliMain(FlextDomainService[str]):
                 return FlextResult[FlextCliTypes.CliOptions].ok(cli_options)
             except Exception as e:
                 return FlextResult[FlextCliTypes.CliOptions].fail(
-                    f"CLI options creation failed: {e}"
+                    f"CLI options creation failed: {e}",
                 )
 
     class _ContextHelper:
@@ -102,7 +101,7 @@ class FlextCliMain(FlextDomainService[str]):
                 return FlextResult[FlextCliTypes.CliContext].ok(cli_context)
             except Exception as e:
                 return FlextResult[FlextCliTypes.CliContext].fail(
-                    f"CLI context creation failed: {e}"
+                    f"CLI context creation failed: {e}",
                 )
 
     class _VersionHelper:
@@ -121,7 +120,7 @@ class FlextCliMain(FlextDomainService[str]):
                 return FlextResult[FlextCliTypes.VersionInfo].ok(version_info)
             except Exception as e:
                 return FlextResult[FlextCliTypes.VersionInfo].fail(
-                    f"Version info retrieval failed: {e}"
+                    f"Version info retrieval failed: {e}",
                 )
 
     def execute(self) -> FlextResult[str]:
@@ -134,7 +133,8 @@ class FlextCliMain(FlextDomainService[str]):
         return self._logger
 
     def create_options(
-        self, **options: object
+        self,
+        **options: object,
     ) -> FlextResult[FlextCliTypes.CliOptions]:
         """Create CLI options using nested helper."""
         return self._OptionsHelper.create_cli_options(**options)
@@ -182,7 +182,7 @@ class FlextCliMain(FlextDomainService[str]):
             }
 
             self._logger.info(
-                f"Registered command group: {name} with {len(commands)} commands"
+                f"Registered command group: {name} with {len(commands)} commands",
             )
             return FlextResult[None].ok(None)
 

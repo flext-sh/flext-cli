@@ -53,7 +53,7 @@ class FlextCliModels:
             Discriminator("status"),
         ] = Field(
             default_factory=lambda: FlextCliModels.PendingState(
-                queued_at=datetime.now(UTC)
+                queued_at=datetime.now(UTC),
             ),
             description="Type-safe command state with discriminated union",
         )
@@ -197,17 +197,17 @@ class FlextCliModels:
             match self.state:
                 case FlextCliModels.PendingState() if self.exit_code is not None:
                     return FlextResult[None].fail(
-                        "Pending commands should not have exit codes"
+                        "Pending commands should not have exit codes",
                     )
                 case FlextCliModels.RunningState() if self.exit_code is not None:
                     return FlextResult[None].fail(
-                        "Running commands should not have exit codes until completion"
+                        "Running commands should not have exit codes until completion",
                     )
                 case FlextCliModels.FailedState(exit_code=exit_code) if (
                     exit_code is None or exit_code == 0
                 ):
                     return FlextResult[None].fail(
-                        "Failed commands must have non-zero exit codes"
+                        "Failed commands must have non-zero exit codes",
                     )
                 case _:
                     # All validation rules passed
@@ -266,7 +266,7 @@ class FlextCliModels:
         output_format: str = Field(default=FlextCliConstants.Output.TABLE, frozen=True)
         debug_mode: bool = Field(default=False)
         timeout_seconds: int = Field(
-            default=FlextCliConstants.TIMEOUTS.default_command_timeout, ge=1
+            default=FlextCliConstants.TIMEOUTS.default_command_timeout, ge=1,
         )
 
         @field_validator("output_format")
@@ -305,7 +305,7 @@ class FlextCliModels:
         enabled: bool = Field(default=True)
         config: dict[str, object] = Field(default_factory=FlextCliUtilities.empty_dict)
         metadata: dict[str, object] = Field(
-            default_factory=FlextCliUtilities.empty_dict
+            default_factory=FlextCliUtilities.empty_dict,
         )
 
         @field_validator("name")
@@ -362,7 +362,7 @@ class FlextCliModels:
         description: str = Field(default="", description="Pipeline description")
         status: str = Field(default="inactive", description="Pipeline status")
         config: dict[str, object] = Field(
-            default_factory=dict, description="Pipeline configuration"
+            default_factory=dict, description="Pipeline configuration",
         )
 
         def validate_business_rules(self) -> FlextResult[None]:
@@ -424,23 +424,23 @@ class FlextCliModels:
 
         # Additional fields required by api.py and tests
         service_name: str = Field(
-            default="flext-cli", description="Service name for API state"
+            default="flext-cli", description="Service name for API state",
         )
         enable_session_tracking: bool = Field(
-            default=True, description="Enable session tracking"
+            default=True, description="Enable session tracking",
         )
         enable_command_history: bool = Field(
-            default=True, description="Enable command history"
+            default=True, description="Enable command history",
         )
         command_history: list[FlextCliModels.CliCommand] = Field(default_factory=list)
         sessions: dict[str, FlextCliModels.CliSession] = Field(default_factory=dict)
 
         # Fields required by tests
         handlers: dict[str, object] = Field(
-            default_factory=dict, description="Registered command handlers"
+            default_factory=dict, description="Registered command handlers",
         )
         plugins: dict[str, object] = Field(
-            default_factory=dict, description="Registered plugins"
+            default_factory=dict, description="Registered plugins",
         )
 
         @field_validator("base_url")
@@ -530,7 +530,7 @@ class FlextCliModels:
 
             if calculated_error_rate > FlextCliConstants.LIMITS.max_error_rate_percent:
                 return FlextResult[None].fail(
-                    f"Error rate too high: {calculated_error_rate:.1f}%"
+                    f"Error rate too high: {calculated_error_rate:.1f}%",
                 )
 
             return FlextResult[None].ok(None)
@@ -545,7 +545,7 @@ class FlextCliModels:
         total: int = Field(default=0, ge=0, description="Total number of pipelines")
         page: int = Field(default=1, ge=1, description="Current page number")
         page_size: int = Field(
-            default=10, ge=1, le=100, description="Number of items per page"
+            default=10, ge=1, le=100, description="Number of items per page",
         )
         has_next: bool = Field(default=False)
         has_previous: bool = Field(default=False)
@@ -579,7 +579,7 @@ class FlextCliModels:
         name: str = Field(min_length=1)
         description: str = Field(default="")
         timeout_seconds: int = Field(
-            default=FlextCliConstants.TIMEOUTS.default_command_timeout, ge=1
+            default=FlextCliConstants.TIMEOUTS.default_command_timeout, ge=1,
         )
         max_retries: int = Field(default=3, ge=0, le=10)
         parallel_execution: bool = Field(default=False)
@@ -594,7 +594,7 @@ class FlextCliModels:
         transform: str | None = Field(default=None, description="Transform name")
         state: str | None = Field(default=None, description="State backend")
         config: dict[str, object] | None = Field(
-            default=None, description="Additional configuration"
+            default=None, description="Additional configuration",
         )
 
         @field_validator("timeout_seconds")
@@ -673,7 +673,7 @@ class FlextCliModels:
         @field_validator("plugins")
         @classmethod
         def validate_plugins_are_dicts(
-            cls, v: list[dict[str, object]]
+            cls, v: list[dict[str, object]],
         ) -> list[dict[str, object]]:
             """Validate all items are dictionaries."""
             # Type validation handled by Pydantic type system - v is guaranteed to be list[dict[str, object]]
@@ -715,13 +715,13 @@ class FlextCliModels:
         model_config = FlextCliUtilities.get_base_config_dict()
 
         data: dict[str, object] | list[dict[str, object]] = Field(
-            description="Data suitable for table formatting"
+            description="Data suitable for table formatting",
         )
 
         @field_validator("data")
         @classmethod
         def validate_table_data(
-            cls, v: dict[str, object] | list[dict[str, object]]
+            cls, v: dict[str, object] | list[dict[str, object]],
         ) -> dict[str, object] | list[dict[str, object]]:
             """Validate data is suitable for table formatting."""
             # Type validation handled by Pydantic - v is guaranteed to match the union type
@@ -739,7 +739,7 @@ class FlextCliModels:
                 for item in self.data[1:]:
                     if isinstance(item, dict) and set(item.keys()) != first_keys:
                         return FlextResult[None].fail(
-                            "Inconsistent dictionary keys in list data"
+                            "Inconsistent dictionary keys in list data",
                         )
             return FlextResult[None].ok(None)
 
@@ -749,13 +749,13 @@ class FlextCliModels:
         model_config = FlextCliUtilities.get_base_config_dict()
 
         data: dict[str, object] | list[dict[str, object]] = Field(
-            description="Data suitable for CSV formatting"
+            description="Data suitable for CSV formatting",
         )
 
         @field_validator("data")
         @classmethod
         def validate_csv_data(
-            cls, v: dict[str, object] | list[dict[str, object]]
+            cls, v: dict[str, object] | list[dict[str, object]],
         ) -> dict[str, object] | list[dict[str, object]]:
             """Validate data is suitable for CSV formatting."""
             # Validate consistent fieldnames for CSV if it's a list
@@ -779,7 +779,7 @@ class FlextCliModels:
 
         field_name: str = Field(min_length=1, description="Name of field to validate")
         field_type: str = Field(
-            min_length=1, description="Expected type name for field"
+            min_length=1, description="Expected type name for field",
         )
         required: bool = Field(default=True, description="Whether field is required")
 
@@ -796,7 +796,7 @@ class FlextCliModels:
 
         data: dict[str, object] = Field(description="Data to validate")
         validation_specs: list[FlextCliModels.FieldValidationSpec] = Field(
-            default_factory=list, description="Field validation specifications"
+            default_factory=list, description="Field validation specifications",
         )
 
         @field_validator("data")
@@ -811,7 +811,7 @@ class FlextCliModels:
             for spec in self.validation_specs:
                 if spec.required and spec.field_name not in self.data:
                     return FlextResult[None].fail(
-                        f"Missing required field: {spec.field_name}"
+                        f"Missing required field: {spec.field_name}",
                     )
 
                 if spec.field_name in self.data:
@@ -829,13 +829,13 @@ class FlextCliModels:
         """Show CLI configuration command."""
 
         command_type: str = Field(
-            default="show_config", description="Command type identifier"
+            default="show_config", description="Command type identifier",
         )
         output_format: str = Field(
-            default="table", description="Output format for the configuration"
+            default="table", description="Output format for the configuration",
         )
         profile: str = Field(
-            default="default", description="Configuration profile to show"
+            default="default", description="Configuration profile to show",
         )
 
         def validate_business_rules(self) -> FlextResult[None]:
@@ -848,10 +848,10 @@ class FlextCliModels:
         key: str = Field(description="Configuration key")
         value: str = Field(description="Configuration value")
         profile: str = Field(
-            default="default", description="Configuration profile to modify"
+            default="default", description="Configuration profile to modify",
         )
         command_type: str = Field(
-            default="set_config", description="Command type identifier"
+            default="set_config", description="Command type identifier",
         )
 
         def validate_business_rules(self) -> FlextResult[None]:
@@ -864,11 +864,11 @@ class FlextCliModels:
         """Edit configuration command."""
 
         profile: str = Field(
-            default="default", description="Configuration profile to edit"
+            default="default", description="Configuration profile to edit",
         )
         editor: str = Field(default="", description="Editor command to use")
         command_type: str = Field(
-            default="edit_config", description="Command type identifier"
+            default="edit_config", description="Command type identifier",
         )
 
         def validate_business_rules(self) -> FlextResult[None]:
@@ -882,7 +882,7 @@ class FlextCliModels:
         password: str = Field(description="Password")
         api_url: str = Field(default="", description="API URL for authentication")
         command_type: str = Field(
-            default="auth_login", description="Command type identifier"
+            default="auth_login", description="Command type identifier",
         )
 
         def validate_business_rules(self) -> FlextResult[None]:
@@ -895,10 +895,10 @@ class FlextCliModels:
         """Authentication status command."""
 
         detailed: bool = Field(
-            default=False, description="Show detailed authentication status"
+            default=False, description="Show detailed authentication status",
         )
         command_type: str = Field(
-            default="auth_status", description="Command type identifier"
+            default="auth_status", description="Command type identifier",
         )
 
         def validate_business_rules(self) -> FlextResult[None]:
@@ -909,10 +909,10 @@ class FlextCliModels:
         """Authentication logout command."""
 
         command_type: str = Field(
-            default="auth_logout", description="Command type identifier"
+            default="auth_logout", description="Command type identifier",
         )
         all_profiles: bool = Field(
-            default=False, description="Whether to logout from all profiles"
+            default=False, description="Whether to logout from all profiles",
         )
 
         def validate_business_rules(self) -> FlextResult[None]:
@@ -923,13 +923,13 @@ class FlextCliModels:
         """Debug information command."""
 
         command_type: str = Field(
-            default="debug_info", description="Command type identifier"
+            default="debug_info", description="Command type identifier",
         )
         include_system: bool = Field(
-            default=True, description="Whether to include system information"
+            default=True, description="Whether to include system information",
         )
         include_config: bool = Field(
-            default=True, description="Whether to include configuration information"
+            default=True, description="Whether to include configuration information",
         )
 
         def validate_business_rules(self) -> FlextResult[None]:
@@ -966,10 +966,10 @@ class FlextCliModels:
             description="Log message format string",
         )
         log_file: Path | None = Field(
-            default=None, description="Optional log file path"
+            default=None, description="Optional log file path",
         )
         log_level_source: str = Field(
-            default="default", description="Source of the log level configuration"
+            default="default", description="Source of the log level configuration",
         )
         console_output: bool = Field(default=True, description="Enable console output")
 
@@ -978,7 +978,7 @@ class FlextCliModels:
             valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
             if self.log_level not in valid_levels:
                 return FlextResult[None].fail(
-                    f"Invalid log level: {self.log_level}. Must be one of: {valid_levels}"
+                    f"Invalid log level: {self.log_level}. Must be one of: {valid_levels}",
                 )
             return FlextResult[None].ok(None)
 

@@ -14,17 +14,29 @@ import platform
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import override
+from typing import Protocol, override
 from uuid import UUID, uuid4
 
 import yaml
 from pydantic import BaseModel, Field, PrivateAttr
 
-from flext_cli.configs import FlextCliConfigs as FlextCliConfig
+from flext_cli.configs import FlextCliConfigs
 from flext_cli.core import FlextCliService
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
 from flext_core import FlextContainer, FlextResult, FlextTypes, T
+
+
+class DispatcherProtocol(Protocol):
+    """Protocol for operation dispatcher with proper type safety."""
+
+    def dispatch_operation(self, operation: str, **params: object) -> FlextResult[object]:
+        """Dispatch operation with parameters."""
+        ...
+
+    def configure(self, config: object) -> FlextResult[None]:
+        """Configure dispatcher with settings."""
+        ...
 
 
 class FlextCliApi(BaseModel):
@@ -43,8 +55,8 @@ class FlextCliApi(BaseModel):
     # State management attributes - SIMPLE ALIAS: Use optional fields with proper defaults
     state: FlextCliModels.ApiState | None = Field(default=None)
     dispatcher: object | None = Field(
-        default=None
-    )  # Will be OperationDispatcher at runtime
+        default=None,
+    )  # Will be OperationDispatcher implementing DispatcherProtocol at runtime
 
     # Type alias for test compatibility
     @property
@@ -400,7 +412,7 @@ class FlextCliApi(BaseModel):
                                 version_parts = version_str.split(".")
                                 if version_parts and version_parts[0].isdigit():
                                     self.state.version = int(
-                                        version_parts[0]
+                                        version_parts[0],
                                     )  # Use major version
                                 else:
                                     self.state.version = 1  # Default version
@@ -460,7 +472,7 @@ class FlextCliApi(BaseModel):
             for name, data in datasets:
                 if not isinstance(name, str) or not name:
                     return FlextResult[list[str]].fail(
-                        "Dataset names must be non-empty strings"
+                        "Dataset names must be non-empty strings",
                     )
 
                 filename = f"{name}.{format_type}"
@@ -494,7 +506,7 @@ class FlextCliApi(BaseModel):
         Uses FlextConfig singleton as the single source of truth for all configuration.
         """
         # Get FlextConfig singleton as single source of truth
-        config = FlextCliConfig.get_global_instance()
+        config = FlextCliConfigs.get_global_instance()
 
         # Use config values as defaults, allow overrides
         api_version = str(version or getattr(config, "project_version", "0.9.1"))
@@ -544,16 +556,18 @@ class FlextCliApi(BaseModel):
         self._services = services or FlextCliService()
 
     def _dispatch_operation(
-        self, operation: str, **kwargs: object
+        self, operation: str, **kwargs: object,
     ) -> FlextResult[object]:
         """Safely dispatch operation to dispatcher with type checking."""
         if self.dispatcher is None:
             return FlextResult[object].fail("Dispatcher not initialized")
         if not hasattr(self.dispatcher, "dispatch_operation"):
             return FlextResult[object].fail(
-                "Dispatcher missing dispatch_operation method"
+                "Dispatcher missing dispatch_operation method",
             )
-        result = self.dispatcher.dispatch_operation(operation, **kwargs)  # type: ignore[attr-defined]
+        # Safe attribute access with getattr for type checking compliance
+        dispatch_method = getattr(self.dispatcher, "dispatch_operation")
+        result = dispatch_method(operation, **kwargs)
         return (
             result
             if isinstance(result, FlextResult)
@@ -566,7 +580,9 @@ class FlextCliApi(BaseModel):
             return FlextResult[None].fail("Dispatcher not initialized")
         if not hasattr(self.dispatcher, "configure"):
             return FlextResult[None].fail("Dispatcher missing configure method")
-        result = self.dispatcher.configure(config)  # type: ignore[attr-defined]
+        # Safe attribute access with getattr for type checking compliance
+        configure_method = getattr(self.dispatcher, "configure")
+        result = configure_method(config)
         return result if isinstance(result, FlextResult) else FlextResult[None].ok(None)
 
     def update_from_config(self) -> None:
@@ -577,7 +593,7 @@ class FlextCliApi(BaseModel):
         the latest configuration values.
         """
         # Update configuration from singleton
-        self._config = FlextCliConfig.get_global_instance()
+        self._config = FlextCliConfigs.get_global_instance()
 
         # Update state with new configuration
         if hasattr(self, "state") and self.state:
@@ -644,7 +660,7 @@ class FlextCliApi(BaseModel):
     # =========================================================================
 
     def display_message(
-        self, message: str, message_type: str = "info"
+        self, message: str, message_type: str = "info",
     ) -> FlextResult[None]:
         """Display message using CLI formatters."""
         if not message:
@@ -676,7 +692,7 @@ class FlextCliApi(BaseModel):
         format_result = self.format_data(data, format_type)
         if format_result.is_failure:
             return FlextResult[None].fail(
-                f"Data formatting failed: {format_result.error}"
+                f"Data formatting failed: {format_result.error}",
             )
 
         # Display using formatters
@@ -708,17 +724,17 @@ class FlextCliApi(BaseModel):
         """Create CLI command with validation."""
         if not name or not name.strip():
             return FlextResult[FlextCliModels.CliCommand].fail(
-                "Command name cannot be empty"
+                "Command name cannot be empty",
             )
 
         if not description or not description.strip():
             return FlextResult[FlextCliModels.CliCommand].fail(
-                "Command description cannot be empty"
+                "Command description cannot be empty",
             )
 
         if not callable(handler):
             return FlextResult[FlextCliModels.CliCommand].fail(
-                "Handler must be callable"
+                "Handler must be callable",
             )
 
         command = FlextCliModels.CliCommand(

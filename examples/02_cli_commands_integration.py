@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import cast
 
 from flext_cli import (
-    FlextCliConfig,
+    FlextCliConfigs,
     FlextCliFormatters,
     FlextCliModels,
 )
@@ -54,7 +54,7 @@ def _setup_cli_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
 
 
 def _connection_demo(
-    formatter: FlextCliFormatters, config: FlextCliConfig
+    formatter: FlextCliFormatters, config: FlextCliConfigs
 ) -> FlextResult[None]:
     """Demo connection testing using flext-cli patterns."""
     formatter.print_success("\n2. 🌐 Connection Testing Integration")
@@ -127,7 +127,7 @@ def _file_processing_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
 
 
 def _cli_status_demo(
-    formatter: FlextCliFormatters, config: FlextCliConfig
+    formatter: FlextCliFormatters, config: FlextCliConfigs
 ) -> FlextResult[None]:
     """Demo CLI status display using flext-cli patterns."""
     formatter.print_success("\n4. 📊 CLI Status Integration")
@@ -302,7 +302,7 @@ def main() -> None:
             return
 
         # Create config for demos
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
 
         connection_result = _connection_demo(formatter, config)
         if connection_result.is_failure:

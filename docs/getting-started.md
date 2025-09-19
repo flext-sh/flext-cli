@@ -104,7 +104,7 @@ health = service.get_service_health()
 assert health.is_success
 
 # Configuration works
-config = service.get_config()  # Returns FlextCliConfig | None
+config = service.get_config()  # Returns FlextCliConfigs | None
 ```
 
 ## Implementation Highlights
@@ -136,7 +136,7 @@ config = service.get_config()  # Returns FlextCliConfig | None
 
 ```python
 # This development pattern demonstrates working functionality
-from flext_cli import FlextCliService, FlextCliAuth, FlextCliConfig
+from flext_cli import FlextCliService, FlextCliAuth, FlextCliConfigs
 from flext_core import FlextResult
 
 # Service initialization and operation
@@ -150,7 +150,7 @@ methods = [m for m in dir(auth) if not m.startswith('_')]
 print(f"Available auth methods: {len(methods)}")  # 35+ methods
 
 # Configuration management
-config = FlextCliConfig(
+config = FlextCliConfigs(
     profile="development",
     debug=True,
     output_format="table"

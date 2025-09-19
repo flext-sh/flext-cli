@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli.cli_bus import FlextCliCommandBusService
-from flext_cli.configs import FlextCliConfigs as FlextCliConfig
+from flext_cli.configs import FlextCliConfigs
 from flext_core import FlextDomainService, FlextLogger, FlextResult
 
 
@@ -63,19 +63,19 @@ class FlextCliCmd(FlextDomainService[str]):
         """Internal helper for configuration validation."""
 
         @staticmethod
-        def validate_config(config: FlextCliConfig) -> FlextResult[None]:
+        def validate_config(config: FlextCliConfigs) -> FlextResult[None]:
             """Validate CLI configuration."""
             validation_result = config.validate_business_rules()
             if validation_result.is_failure:
                 return FlextResult[None].fail(
-                    f"Config validation failed: {validation_result.error}"
+                    f"Config validation failed: {validation_result.error}",
                 )
             return FlextResult[None].ok(None)
 
     # Public Configuration Interface
     def show_config_paths(self) -> FlextResult[list[str]]:
         """Show configuration paths."""
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
         paths = [
             str(config.config_dir),
             str(config.cache_dir),
@@ -94,7 +94,7 @@ class FlextCliCmd(FlextDomainService[str]):
         # Implementation through command bus service
         _ = key  # Acknowledge the parameter (currently not used in implementation)
         return self.command_bus_service.execute_show_config_command(
-            output_format="json"  # Use proper parameter name
+            output_format="json",  # Use proper parameter name
         )
 
     # Instance Management (consolidated from loose functions)
@@ -119,7 +119,7 @@ class FlextCliCmd(FlextDomainService[str]):
     def validate_config(self) -> FlextResult[None]:
         """Validate configuration using internal helper."""
         # Create a default config for validation
-        config = FlextCliConfig()
+        config = FlextCliConfigs()
         return self._ConfigValidationHelper.validate_config(config)
 
 

@@ -212,16 +212,18 @@ class TestFlextCliAuthRealValidation:
 
         # Test UserData
         user_data = auth.UserData(
-            name="Test User",
+            username="testuser",
             email="test@example.com",
             id="user123",
         )
-        assert user_data.get("name") == "Test User"
+        assert user_data.get("username") == "testuser"
         assert user_data.get("email") == "test@example.com"
 
         # Test AuthStatus
         auth_status = auth.AuthStatus(
             authenticated=True,
+            username="testuser",
+            expires_at="2025-12-31T23:59:59Z",
             token_file="/path/to/token",
             token_exists=True,
             refresh_token_file="/path/to/refresh_token",
@@ -229,6 +231,7 @@ class TestFlextCliAuthRealValidation:
             auto_refresh=True,
         )
         assert auth_status["authenticated"] is True
+        assert auth_status["username"] == "testuser"
         assert auth_status["token_exists"] is True
 
         # Test LoginCredentials
@@ -238,22 +241,21 @@ class TestFlextCliAuthRealValidation:
 
         # Test AuthConfig
         auth_config = auth.AuthConfig(
-            api_key="test_key",
-            base_url="https://api.example.com",
-            timeout=30,
+            api_url="https://api.example.com",
+            token_file="/path/to/token",
+            refresh_token_file="/path/to/refresh_token",
         )
-        assert auth_config["api_key"] == "test_key"
-        assert auth_config["base_url"] == "https://api.example.com"
+        assert auth_config.api_url == "https://api.example.com"
+        assert auth_config.token_file == "/path/to/token"
 
         # Test TokenData
         token_data = auth.TokenData(
             access_token="access123",
             refresh_token="refresh123",
-            expires_at=datetime.now(UTC),
-            token_type="Bearer",
+            expires_at="2025-12-31T23:59:59Z",
         )
         assert token_data["access_token"] == "access123"
-        assert token_data["token_type"] == "Bearer"
+        assert token_data["refresh_token"] == "refresh123"
 
     def test_error_handling(self) -> None:
         """Test error handling in various scenarios."""

@@ -18,7 +18,7 @@ from typing import cast
 
 from pydantic import BaseModel
 
-from flext_cli.configs import FlextCliConfigs as FlextCliConfig
+from flext_cli.configs import FlextCliConfigs
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_core import FlextDomainService, FlextHandlers, FlextLogger, FlextResult
@@ -40,7 +40,7 @@ class FlextCliHandlers(FlextDomainService[None]):
         self._logger = FlextLogger(__name__)
 
     class ShowConfigCommandHandler(
-        FlextHandlers[FlextCliModels.ShowConfigCommand, dict[str, object]]
+        FlextHandlers[FlextCliModels.ShowConfigCommand, dict[str, object]],
     ):
         """Handler for showing CLI configuration using flext-core CommandHandler."""
 
@@ -49,22 +49,22 @@ class FlextCliHandlers(FlextDomainService[None]):
             super().__init__(handler_name="ShowConfigHandler")
 
         def handle(
-            self, message: FlextCliModels.ShowConfigCommand
+            self, message: FlextCliModels.ShowConfigCommand,
         ) -> FlextResult[dict[str, object]]:
             """Handle show config command with proper error handling."""
             try:
                 # Load configuration using flext-cli config system
-                config = FlextCliConfig(profile=message.profile)
+                config = FlextCliConfigs(profile=message.profile)
                 config_dict = config.model_dump()
 
                 # Format based on requested output format
                 if message.output_format == "json":
                     return FlextResult[dict[str, object]].ok(
-                        {"format": "json", "data": config_dict}
+                        {"format": "json", "data": config_dict},
                     )
                 if message.output_format == "yaml":
                     return FlextResult[dict[str, object]].ok(
-                        {"format": "yaml", "data": config_dict}
+                        {"format": "yaml", "data": config_dict},
                     )
                 # table format
                 return FlextResult[dict[str, object]].ok(
@@ -72,16 +72,16 @@ class FlextCliHandlers(FlextDomainService[None]):
                         "format": "table",
                         "data": config_dict,
                         "title": f"Configuration Profile: {message.profile}",
-                    }
+                    },
                 )
 
             except Exception as e:
                 return FlextResult[dict[str, object]].fail(
-                    f"Failed to show configuration: {e}"
+                    f"Failed to show configuration: {e}",
                 )
 
     class SetConfigValueCommandHandler(
-        FlextHandlers[FlextCliModels.SetConfigValueCommand, bool]
+        FlextHandlers[FlextCliModels.SetConfigValueCommand, bool],
     ):
         """Handler for setting configuration values using flext-core CommandHandler."""
 
@@ -90,18 +90,18 @@ class FlextCliHandlers(FlextDomainService[None]):
             super().__init__(handler_name="SetConfigValueHandler")
 
         def handle(
-            self, message: FlextCliModels.SetConfigValueCommand
+            self, message: FlextCliModels.SetConfigValueCommand,
         ) -> FlextResult[bool]:
             """Handle set config value command with proper error handling."""
             try:
                 # Load current configuration
-                config = FlextCliConfig(profile=message.profile)
+                config = FlextCliConfigs(profile=message.profile)
 
                 # Check if key exists in model
                 if message.key not in cast("BaseModel", config).__class__.model_fields:
                     return FlextResult[bool].fail(
                         f"Configuration key '{message.key}' is not valid. "
-                        f"Available keys: {list(cast('BaseModel', config).__class__.model_fields.keys())}"
+                        f"Available keys: {list(cast('BaseModel', config).__class__.model_fields.keys())}",
                     )
 
                 # Set the value using Pydantic model validation
@@ -112,11 +112,11 @@ class FlextCliHandlers(FlextDomainService[None]):
                 new_value = getattr(config, message.key)
                 if str(new_value) != message.value:
                     return FlextResult[bool].fail(
-                        f"Failed to set configuration value. Expected: {message.value}, Got: {new_value}"
+                        f"Failed to set configuration value. Expected: {message.value}, Got: {new_value}",
                     )
 
                 self.logger.info(
-                    f"Configuration updated: {message.key} = {message.value}"
+                    f"Configuration updated: {message.key} = {message.value}",
                 )
                 return FlextResult[bool].ok(data=True)
 
@@ -124,7 +124,7 @@ class FlextCliHandlers(FlextDomainService[None]):
                 return FlextResult[bool].fail(f"Failed to set configuration value: {e}")
 
     class EditConfigCommandHandler(
-        FlextHandlers[FlextCliModels.EditConfigCommand, bool]
+        FlextHandlers[FlextCliModels.EditConfigCommand, bool],
     ):
         """Handler for editing configuration using flext-core CommandHandler."""
 
@@ -134,11 +134,11 @@ class FlextCliHandlers(FlextDomainService[None]):
             self._constants = FlextCliConstants()
 
         def handle(
-            self, message: FlextCliModels.EditConfigCommand
+            self, message: FlextCliModels.EditConfigCommand,
         ) -> FlextResult[bool]:
             """Handle edit config command with proper error handling."""
             try:
-                config = FlextCliConfig(profile=message.profile)
+                config = FlextCliConfigs(profile=message.profile)
                 config_file = config.config_dir / f"{message.profile}.json"
 
                 # Ensure config directory exists
@@ -161,7 +161,7 @@ class FlextCliHandlers(FlextDomainService[None]):
                 return FlextResult[bool].fail(f"Failed to edit configuration: {e}")
 
     class AuthLoginCommandHandler(
-        FlextHandlers[FlextCliModels.AuthLoginCommand, dict[str, object]]
+        FlextHandlers[FlextCliModels.AuthLoginCommand, dict[str, object]],
     ):
         """Handler for authentication login using flext-core CommandHandler."""
 
@@ -170,7 +170,7 @@ class FlextCliHandlers(FlextDomainService[None]):
             super().__init__(handler_name="AuthLoginHandler")
 
         def handle(
-            self, message: FlextCliModels.AuthLoginCommand
+            self, message: FlextCliModels.AuthLoginCommand,
         ) -> FlextResult[dict[str, object]]:
             """Handle auth login command with proper error handling."""
             try:
@@ -179,7 +179,7 @@ class FlextCliHandlers(FlextDomainService[None]):
                 api_url = message.api_url or "https://api.flext.com"
 
                 self.logger.info(
-                    f"Authenticating user {message.username} with {api_url}"
+                    f"Authenticating user {message.username} with {api_url}",
                 )
 
                 # Simulate successful login
@@ -194,11 +194,11 @@ class FlextCliHandlers(FlextDomainService[None]):
 
             except Exception as e:
                 return FlextResult[dict[str, object]].fail(
-                    f"Authentication failed: {e}"
+                    f"Authentication failed: {e}",
                 )
 
     class AuthStatusCommandHandler(
-        FlextHandlers[FlextCliModels.AuthStatusCommand, dict[str, object]]
+        FlextHandlers[FlextCliModels.AuthStatusCommand, dict[str, object]],
     ):
         """Handler for authentication status using flext-core CommandHandler."""
 
@@ -207,17 +207,17 @@ class FlextCliHandlers(FlextDomainService[None]):
             super().__init__(handler_name="AuthStatusHandler")
 
         def handle(
-            self, message: FlextCliModels.AuthStatusCommand
+            self, message: FlextCliModels.AuthStatusCommand,
         ) -> FlextResult[dict[str, object]]:
             """Handle auth status command with proper error handling."""
             try:
                 # Check authentication status
-                config = FlextCliConfig()
+                config = FlextCliConfigs()
                 token_file = config.token_file
 
                 if not token_file.exists():
                     return FlextResult[dict[str, object]].ok(
-                        {"authenticated": False, "message": "Not authenticated"}
+                        {"authenticated": False, "message": "Not authenticated"},
                     )
 
                 # Simulate reading token file
@@ -233,18 +233,18 @@ class FlextCliHandlers(FlextDomainService[None]):
                             "config_dir": str(config.config_dir),
                             "api_url": config.api_url,
                             "profile": config.profile,
-                        }
+                        },
                     )
 
                 return FlextResult[dict[str, object]].ok(status_data)
 
             except Exception as e:
                 return FlextResult[dict[str, object]].fail(
-                    f"Failed to check authentication status: {e}"
+                    f"Failed to check authentication status: {e}",
                 )
 
     class AuthLogoutCommandHandler(
-        FlextHandlers[FlextCliModels.AuthLogoutCommand, bool]
+        FlextHandlers[FlextCliModels.AuthLogoutCommand, bool],
     ):
         """Handler for authentication logout using flext-core CommandHandler."""
 
@@ -253,11 +253,11 @@ class FlextCliHandlers(FlextDomainService[None]):
             super().__init__(handler_name="AuthLogoutHandler")
 
         def handle(
-            self, message: FlextCliModels.AuthLogoutCommand
+            self, message: FlextCliModels.AuthLogoutCommand,
         ) -> FlextResult[bool]:
             """Handle auth logout command with proper error handling."""
             try:
-                config = FlextCliConfig()
+                config = FlextCliConfigs()
 
                 if message.all_profiles:
                     # Remove entire auth directory
@@ -284,7 +284,7 @@ class FlextCliHandlers(FlextDomainService[None]):
                 return FlextResult[bool].fail(f"Logout failed: {e}")
 
     class DebugInfoCommandHandler(
-        FlextHandlers[FlextCliModels.DebugInfoCommand, dict[str, object]]
+        FlextHandlers[FlextCliModels.DebugInfoCommand, dict[str, object]],
     ):
         """Handler for debug information using flext-core CommandHandler."""
 
@@ -293,7 +293,7 @@ class FlextCliHandlers(FlextDomainService[None]):
             super().__init__(handler_name="DebugInfoHandler")
 
         def handle(
-            self, message: FlextCliModels.DebugInfoCommand
+            self, message: FlextCliModels.DebugInfoCommand,
         ) -> FlextResult[dict[str, object]]:
             """Handle debug info command with proper error handling."""
             try:
@@ -310,7 +310,7 @@ class FlextCliHandlers(FlextDomainService[None]):
                     }
 
                 if message.include_config:
-                    config = FlextCliConfig()
+                    config = FlextCliConfigs()
                     debug_info["config"] = {
                         "profile": config.profile,
                         "api_url": config.api_url,
@@ -322,7 +322,7 @@ class FlextCliHandlers(FlextDomainService[None]):
 
             except Exception as e:
                 return FlextResult[dict[str, object]].fail(
-                    f"Failed to gather debug information: {e}"
+                    f"Failed to gather debug information: {e}",
                 )
 
     class _HandlerRegistry:
@@ -354,11 +354,11 @@ class FlextCliHandlers(FlextDomainService[None]):
             """Validate that handler instance is properly configured."""
             if not hasattr(handler, "handle"):
                 return FlextResult[bool].fail(
-                    f"Handler {type(handler).__name__} missing handle method"
+                    f"Handler {type(handler).__name__} missing handle method",
                 )
             if not hasattr(handler, "handler_name"):
                 return FlextResult[bool].fail(
-                    f"Handler {type(handler).__name__} missing handler_name attribute"
+                    f"Handler {type(handler).__name__} missing handler_name attribute",
                 )
             return FlextResult[bool].ok(data=True)
 
@@ -375,11 +375,11 @@ class FlextCliHandlers(FlextDomainService[None]):
             # Validate each handler
             for handler in handlers:
                 validation_result = self._HandlerRegistry.validate_handler_instance(
-                    handler
+                    handler,
                 )
                 if validation_result.is_failure:
                     return FlextResult[list[object]].fail(
-                        f"Handler validation failed: {validation_result.error}"
+                        f"Handler validation failed: {validation_result.error}",
                     )
 
             self._logger.info(f"Created {len(handlers)} handler instances")
@@ -387,7 +387,7 @@ class FlextCliHandlers(FlextDomainService[None]):
 
         except Exception as e:
             return FlextResult[list[object]].fail(
-                f"Failed to create handler instances: {e}"
+                f"Failed to create handler instances: {e}",
             )
 
     def execute(self) -> FlextResult[None]:
@@ -395,11 +395,11 @@ class FlextCliHandlers(FlextDomainService[None]):
         handlers_result = self.create_handler_instances()
         if handlers_result.is_failure:
             return FlextResult[None].fail(
-                f"Handlers service failed: {handlers_result.error}"
+                f"Handlers service failed: {handlers_result.error}",
             )
 
         handlers_count = len(handlers_result.unwrap())
         self._logger.info(
-            f"CLI Handlers Service initialized with {handlers_count} handlers"
+            f"CLI Handlers Service initialized with {handlers_count} handlers",
         )
         return FlextResult[None].ok(data=None)

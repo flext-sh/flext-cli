@@ -127,10 +127,10 @@ grep -r "from rich" src/ && echo "❌ CRITICAL: Rich component imports found" &&
 
 # 3. Verify flext-cli wrapper APIs are available
 python -c "
-from flext_cli import FlextCliApi, FlextCliMain, FlextCliConfig
+from flext_cli import FlextCliApi, FlextCliMain, FlextCliConfigs
 api = FlextCliApi()
 main = FlextCliMain()
-config = FlextCliConfig()
+config = FlextCliConfigs()
 print('✅ CLI Foundation APIs available')
 "
 
@@ -146,7 +146,7 @@ src/flext_cli/
 ├── cli.py                   # Main CLI entry point (Click abstraction layer)
 ├── api.py                   # HIGH-LEVEL CLI API (ecosystem interface)
 ├── main.py                  # FlextCliMain (command registration system)
-├── config.py                # FlextCliConfig (unified CLI configuration)
+├── config.py                # FlextCliConfigs (unified CLI configuration)
 ├── constants.py             # FlextCliConstants (CLI system constants)
 ├── formatters.py            # OUTPUT ABSTRACTION (Rich wrapper layer)
 ├── context.py               # CLI execution context management
@@ -178,7 +178,7 @@ src/flext_cli/
 **Layer 3: Ecosystem API** (PUBLIC INTERFACE)
 
 - `api.py` - FlextCliApi for programmatic CLI access
-- `config.py` - FlextCliConfig for configuration management
+- `config.py` - FlextCliConfigs for configuration management
 - `constants.py` - FlextCliConstants for CLI constants
 - ALL ecosystem CLI projects use ONLY these public APIs
 
@@ -193,7 +193,7 @@ src/flext_cli/
 ```python
 # ✅ CORRECT - CLI operations with FlextResult from flext-core
 from flext_core import FlextResult, FlextLogger
-from flext_cli import FlextCliApi, FlextCliConfig
+from flext_cli import FlextCliApi, FlextCliConfigs
 
 def cli_save_config(config_data: dict) -> FlextResult[None]:
     """CLI operation with proper error handling - NO try/except fallbacks."""
@@ -333,28 +333,28 @@ class ProjectCliService:
 ```python
 # ✅ CORRECT - Configuration through flext-cli system
 from flext_core import FlextResult
-from flext_cli import FlextCliConfig, FlextCliConstants
+from flext_cli import FlextCliConfigs, FlextCliConstants
 
 class ProjectCliConfig:
     """Project CLI configuration using flext-cli foundation."""
 
     def __init__(self) -> None:
         # Use flext-cli configuration system
-        self._cli_config = FlextCliConfig(
+        self._cli_config = FlextCliConfigs(
             profile="project",
             debug_mode=False,
             output_format="table",
             no_color=False
         )
 
-    def load_project_config(self) -> FlextResult[FlextCliConfig]:
+    def load_project_config(self) -> FlextResult[FlextCliConfigs]:
         """Load configuration using flext-cli config management."""
         # Configuration validation through flext-cli
         validation_result = self._cli_config.validate_business_rules()
         if validation_result.is_failure:
-            return FlextResult[FlextCliConfig].fail(f"Config validation failed: {validation_result.error}")
+            return FlextResult[FlextCliConfigs].fail(f"Config validation failed: {validation_result.error}")
 
-        return FlextResult[FlextCliConfig].ok(self._cli_config)
+        return FlextResult[FlextCliConfigs].ok(self._cli_config)
 
     def get_output_format(self) -> str:
         """Get output format from CLI configuration."""
@@ -435,10 +435,10 @@ pytest tests/ --cov=src/flext_cli --cov-fail-under=75
 
 # PHASE 4: CLI API Completeness Validation
 python -c "
-from flext_cli import FlextCliApi, FlextCliMain, FlextCliConfig, FlextCliConstants
+from flext_cli import FlextCliApi, FlextCliMain, FlextCliConfigs, FlextCliConstants
 api = FlextCliApi()
 main = FlextCliMain()
-config = FlextCliConfig()
+config = FlextCliConfigs()
 print('✅ CLI Foundation APIs complete and importable')
 "
 ```
@@ -480,7 +480,7 @@ print('✅ CLI Foundation APIs complete and importable')
 
 - `tests/test_api.py` - FlextCliApi functionality (ecosystem interface)
 - `tests/test_main.py` - FlextCliMain command registration system
-- `tests/test_config.py` - FlextCliConfig management
+- `tests/test_config.py` - FlextCliConfigs management
 - `tests/test_formatters.py` - Rich abstraction layer functionality
 - `tests/test_commands_auth.py` - Authentication commands
 - `tests/test_commands_config.py` - Configuration commands
@@ -500,7 +500,7 @@ print('✅ CLI Foundation APIs complete and importable')
 # File: src/flext_cli/data.py
 
 from flext_core import FlextResult, FlextLogger
-from flext_cli import FlextCliApi, FlextCliConfig
+from flext_cli import FlextCliApi, FlextCliConfigs
 
 class DataCommands:
     """Data management commands using CLI foundation - NO Click imports."""
@@ -628,7 +628,7 @@ class FlextCliFormatters:
 - Configuration management (`flext config`) - ecosystem ready
 - Debug/diagnostic tools (`flext debug`) - ecosystem ready
 - FlextResult CLI error handling patterns
-- Basic CLI API structure (FlextCliApi, FlextCliMain, FlextCliConfig)
+- Basic CLI API structure (FlextCliApi, FlextCliMain, FlextCliConfigs)
 
 **IN PROGRESS CLI FOUNDATION** (🚧):
 
@@ -686,10 +686,10 @@ fi
 # 3. Validate CLI foundation APIs are available
 python -c "
 try:
-    from flext_cli import FlextCliApi, FlextCliMain, FlextCliConfig, FlextCliConstants
+    from flext_cli import FlextCliApi, FlextCliMain, FlextCliConfigs, FlextCliConstants
     api = FlextCliApi()
     main = FlextCliMain()
-    config = FlextCliConfig()
+    config = FlextCliConfigs()
     print('✅ CLI Foundation APIs available')
 except Exception as e:
     print(f'❌ CLI Foundation APIs incomplete: {e}')

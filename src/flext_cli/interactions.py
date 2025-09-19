@@ -21,7 +21,7 @@ class FlextCliInteractions:
     """
 
     def __init__(
-        self, *, logger: FlextLogger | None = None, quiet: bool = False
+        self, *, logger: FlextLogger | None = None, quiet: bool = False,
     ) -> None:
         """Initialize interactions manager."""
         self._logger: FlextLogger = logger or FlextLogger(__name__)
@@ -43,7 +43,7 @@ class FlextCliInteractions:
             if response in {"n", "no", "0", "false"}:
                 return FlextResult[bool].ok(data=False)
             self._logger.warning(
-                f"Invalid response '{response}', using default {default}"
+                f"Invalid response '{response}', using default {default}",
             )
             return FlextResult[bool].ok(default)
 
@@ -139,7 +139,7 @@ class FlextCliInteractions:
             return FlextResult[FlextTypes.Core.List].ok(items)
         except Exception as e:
             return FlextResult[FlextTypes.Core.List].fail(
-                f"Progress processing failed: {e}"
+                f"Progress processing failed: {e}",
             )
 
 

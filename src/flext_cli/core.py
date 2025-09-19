@@ -17,7 +17,7 @@ from pathlib import Path
 import yaml
 from pydantic import PrivateAttr
 
-from flext_cli.configs import FlextCliConfigs as FlextCliConfig
+from flext_cli.configs import FlextCliConfigs
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import FlextCliModels
 from flext_cli.utils import FlextCliUtilities
@@ -50,18 +50,18 @@ class FlextCliService(FlextDomainService[str]):
     """
 
     # Private attributes
-    _config: FlextCliConfig | None = PrivateAttr(default=None)
+    _config: FlextCliConfigs | None = PrivateAttr(default=None)
     _commands: dict[str, object] = PrivateAttr(
-        default_factory=FlextCliUtilities.empty_dict
+        default_factory=FlextCliUtilities.empty_dict,
     )
     _registered_handlers: dict[str, object] = PrivateAttr(
-        default_factory=FlextCliUtilities.empty_dict
+        default_factory=FlextCliUtilities.empty_dict,
     )
     _plugins: dict[str, object] = PrivateAttr(
-        default_factory=FlextCliUtilities.empty_dict
+        default_factory=FlextCliUtilities.empty_dict,
     )
     _sessions: dict[str, object] = PrivateAttr(
-        default_factory=FlextCliUtilities.empty_dict
+        default_factory=FlextCliUtilities.empty_dict,
     )
     _formatters: FlextCliFormatters | None = PrivateAttr(default=None)
 
@@ -96,7 +96,7 @@ class FlextCliService(FlextDomainService[str]):
         self._formatters = FlextCliFormatters()
 
     # Public accessor methods
-    def get_config(self) -> FlextCliConfig | None:
+    def get_config(self) -> FlextCliConfigs | None:
         """Get current configuration from FlextConfig singleton."""
         return self._config
 
@@ -108,7 +108,7 @@ class FlextCliService(FlextDomainService[str]):
         configuration values.
         """
         # Update configuration from singleton
-        self._config = FlextCliConfig.get_global_instance()
+        self._config = FlextCliConfigs.get_global_instance()
 
         # Reinitialize formatters with new configuration
         self._formatters = FlextCliFormatters()
@@ -245,7 +245,7 @@ class FlextCliService(FlextDomainService[str]):
         return formatters.format_data(data, format_type)
 
     def flext_cli_export(
-        self, data: object, file_path: str, format_type: str
+        self, data: object, file_path: str, format_type: str,
     ) -> FlextResult[str]:
         """Export data to file using flext-core utilities directly.
 
@@ -276,7 +276,7 @@ class FlextCliService(FlextDomainService[str]):
                             writer.writerows(data)
                         return FlextResult[str].ok(f"Data exported to {file_path}")
                     return FlextResult[str].fail(
-                        "CSV export requires list of dictionaries"
+                        "CSV export requires list of dictionaries",
                     )
                 case _:
                     content = str(data)
@@ -329,7 +329,7 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[dict[str, object]].fail(f"Get plugins failed: {e}")
 
     def flext_cli_execute_handler(
-        self, handler_name: str, data: object
+        self, handler_name: str, data: object,
     ) -> FlextResult[object]:
         """Execute handler by name.
 
@@ -354,7 +354,7 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[object].fail(f"Handler execution failed: {e}")
 
     def flext_cli_render_with_context(
-        self, data: object, context_options: object = None
+        self, data: object, context_options: object = None,
     ) -> FlextResult[str]:
         """Render data with context using configured format.
 
@@ -376,13 +376,13 @@ class FlextCliService(FlextDomainService[str]):
             ):
                 format_type = str(context_options["output_format"])
             elif self._config and hasattr(self._config, "output_format"):
-                format_type = getattr(self._config, "output_format")
+                format_type = self._config.output_format
             return self.format_data(data, format_type)
         except Exception as e:
             return FlextResult[str].fail(f"Render failed: {e}")
 
     def flext_cli_create_command(
-        self, name: str, command_line: str
+        self, name: str, command_line: str,
     ) -> FlextResult[object]:
         """Create a command.
 
@@ -429,7 +429,7 @@ class FlextCliService(FlextDomainService[str]):
             return FlextResult[object].fail(f"Session creation failed: {e}")
 
     def flext_cli_register_handler(
-        self, name: str, handler: object
+        self, name: str, handler: object,
     ) -> FlextResult[None]:
         """Register a handler.
 
@@ -592,16 +592,16 @@ class FlextCliService(FlextDomainService[str]):
                 unknown_keys = [key for key in config_copy if key not in valid_keys]
                 if unknown_keys:
                     return FlextResult[None].fail(
-                        f"Unknown config keys: {', '.join(unknown_keys)}"
+                        f"Unknown config keys: {', '.join(unknown_keys)}",
                     )
 
                 # Create config object from dict
-                self._config = FlextCliConfig(**config_copy)
-            elif isinstance(config, FlextCliConfig):
+                self._config = FlextCliConfigs(**config_copy)
+            elif isinstance(config, FlextCliConfigs):
                 self._config = config
             else:
                 return FlextResult[None].fail(
-                    "Configuration must be a dictionary or FlextCliConfig object"
+                    "Configuration must be a dictionary or FlextCliConfigs object",
                 )
 
             self._formatters = FlextCliFormatters()

@@ -7,7 +7,7 @@ modifying behavior through the singleton pattern.
 
 This example shows:
 1. FlextConfig as the authoritative configuration source
-2. FlextCliConfig extending FlextConfig while maintaining singleton pattern
+2. FlextCliConfigs extending FlextConfig while maintaining singleton pattern
 3. CLI parameters modifying behavior through FlextConfig
 4. Automatic synchronization and integration verification
 
@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import os
 
-from flext_cli.config import FlextCliConfig
+from flext_cli.config import FlextCliConfigs
 from flext_core import FlextConfig
 
 
@@ -37,9 +37,9 @@ def demonstrate_single_source_of_truth() -> None:
     print(f"   Timeout: {base_config.timeout_seconds}s")
     print()
 
-    # 2. Show FlextCliConfig extending FlextConfig
-    print("2. FlextCliConfig Extends FlextConfig:")
-    cli_config = FlextCliConfig.get_global_instance()
+    # 2. Show FlextCliConfigs extending FlextConfig
+    print("2. FlextCliConfigs Extends FlextConfig:")
+    cli_config = FlextCliConfigs.get_global_instance()
     print(f"   Profile: {cli_config.profile}")
     print(f"   Output Format: {cli_config.output_format}")
     print(f"   API URL: {cli_config.api_url}")
@@ -64,7 +64,7 @@ def demonstrate_cli_parameter_integration() -> None:
 
     # 1. Ensure integration is maintained
     print("1. Ensuring FlextConfig Integration:")
-    integration_result = FlextCliConfig.ensure_flext_config_integration()
+    integration_result = FlextCliConfigs.ensure_flext_config_integration()
     if integration_result.is_success:
         print("   ✅ Integration verified")
     else:
@@ -87,7 +87,7 @@ def demonstrate_cli_parameter_integration() -> None:
         print(f"     {key}: {value}")
 
     # Apply overrides
-    result = FlextCliConfig.apply_cli_overrides(cli_overrides)
+    result = FlextCliConfigs.apply_cli_overrides(cli_overrides)
     if result.is_failure:
         print(f"   ❌ Failed to apply overrides: {result.error}")
         return
@@ -103,8 +103,8 @@ def demonstrate_cli_parameter_integration() -> None:
     print(f"   Timeout: {updated_base_config.timeout_seconds}s")
     print()
 
-    print("4. Updated FlextCliConfig:")
-    updated_cli_config = FlextCliConfig.get_global_instance()
+    print("4. Updated FlextCliConfigs:")
+    updated_cli_config = FlextCliConfigs.get_global_instance()
     print(f"   Profile: {updated_cli_config.profile}")
     print(f"   Output Format: {updated_cli_config.output_format}")
     print(f"   Command Timeout: {updated_cli_config.command_timeout}s")
@@ -143,17 +143,17 @@ def demonstrate_environment_integration() -> None:
 
     # Clear singleton instances to force reload from environment
     FlextConfig.clear_global_instance()
-    FlextCliConfig.clear_global_instance()
+    FlextCliConfigs.clear_global_instance()
 
     print("2. Reloading from Environment:")
     base_config = FlextConfig.get_global_instance()
-    cli_config = FlextCliConfig.get_global_instance()
+    cli_config = FlextCliConfigs.get_global_instance()
 
     print("   FlextConfig (from FLEXT_* env vars):")
     print(f"     Debug: {base_config.debug}")
     print(f"     Log Level: {base_config.log_level}")
 
-    print("   FlextCliConfig (from FLEXT_CLI_* env vars):")
+    print("   FlextCliConfigs (from FLEXT_CLI_* env vars):")
     print(f"     Profile: {cli_config.profile}")
     print(f"     Output Format: {cli_config.output_format}")
     print()
@@ -181,8 +181,8 @@ def demonstrate_priority_hierarchy() -> None:
     print("   FLEXT_CLI_LOG_LEVEL=INFO")
 
     # Clear and reload
-    FlextCliConfig.clear_global_instance()
-    env_config = FlextCliConfig.get_global_instance()
+    FlextCliConfigs.clear_global_instance()
+    env_config = FlextCliConfigs.get_global_instance()
 
     print("2. Configuration from Environment:")
     print(f"   Debug: {env_config.debug}")
@@ -196,7 +196,7 @@ def demonstrate_priority_hierarchy() -> None:
         "log_level": "DEBUG",
     }
 
-    result = FlextCliConfig.apply_cli_overrides(cli_overrides)
+    result = FlextCliConfigs.apply_cli_overrides(cli_overrides)
     if result.is_success:
         updated_config = result.value
         print("   ✅ CLI overrides applied")
@@ -225,7 +225,7 @@ def demonstrate_validation_and_error_handling() -> None:
         "command_timeout": 30,
     }
 
-    result = FlextCliConfig.apply_cli_overrides(valid_overrides)
+    result = FlextCliConfigs.apply_cli_overrides(valid_overrides)
     if result.is_success:
         print("   ✅ Valid configuration accepted")
     else:
@@ -241,7 +241,7 @@ def demonstrate_validation_and_error_handling() -> None:
         "command_timeout": -1,  # Invalid timeout
     }
 
-    result = FlextCliConfig.apply_cli_overrides(invalid_overrides)
+    result = FlextCliConfigs.apply_cli_overrides(invalid_overrides)
     if result.is_failure:
         print("   ✅ Invalid configuration properly rejected")
         print(f"   Error: {result.error}")
@@ -256,30 +256,30 @@ def demonstrate_synchronization() -> None:
 
     # Get initial configurations
     base_config = FlextConfig.get_global_instance()
-    cli_config = FlextCliConfig.get_global_instance()
+    cli_config = FlextCliConfigs.get_global_instance()
 
     print("1. Initial Configurations:")
     print(f"   FlextConfig Debug: {base_config.debug}")
-    print(f"   FlextCliConfig Debug: {cli_config.debug}")
+    print(f"   FlextCliConfigs Debug: {cli_config.debug}")
     print()
 
     # Apply CLI overrides
     cli_overrides = {"debug": True, "log_level": "DEBUG"}
-    result = FlextCliConfig.apply_cli_overrides(cli_overrides)
+    result = FlextCliConfigs.apply_cli_overrides(cli_overrides)
 
     if result.is_success:
         print("2. After CLI Overrides:")
         updated_base = FlextConfig.get_global_instance()
-        updated_cli = FlextCliConfig.get_global_instance()
+        updated_cli = FlextCliConfigs.get_global_instance()
 
         print(f"   FlextConfig Debug: {updated_base.debug}")
-        print(f"   FlextCliConfig Debug: {updated_cli.debug}")
+        print(f"   FlextCliConfigs Debug: {updated_cli.debug}")
         print(f"   Synchronized: {updated_base.debug == updated_cli.debug}")
         print()
 
         # Test synchronization method
         print("3. Manual Synchronization:")
-        sync_result = FlextCliConfig.sync_with_flext_config()
+        sync_result = FlextCliConfigs.sync_with_flext_config()
         if sync_result.is_success:
             synced_config = sync_result.value
             print("   ✅ Synchronization successful")
@@ -307,7 +307,7 @@ def main() -> None:
 
         print("=== SUMMARY ===")
         print("✅ FlextConfig serves as SINGLE SOURCE OF TRUTH")
-        print("✅ FlextCliConfig extends FlextConfig while maintaining singleton")
+        print("✅ FlextCliConfigs extends FlextConfig while maintaining singleton")
         print("✅ CLI parameters modify behavior through FlextConfig")
         print("✅ Environment variables integrate automatically")
         print("✅ Configuration validation prevents invalid states")

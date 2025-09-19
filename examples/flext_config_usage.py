@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import os
 
-from flext_cli import FlextCliConfig
+from flext_cli import FlextCliConfigs
 from flext_core import FlextConfig
 
 
@@ -28,7 +28,7 @@ def main() -> None:
     print("-" * 30)
 
     # Get the global singleton instance (source of truth)
-    config = FlextCliConfig.get_global_instance()
+    config = FlextCliConfigs.get_global_instance()
     print(f"Global config instance: {config}")
     print(f"Profile: {config.profile}")
     print(f"Debug Mode: {config.debug}")
@@ -50,8 +50,8 @@ def main() -> None:
         "profile": "development",
     }
 
-    # Apply CLI overrides - this updates BOTH FlextConfig and FlextCliConfig
-    override_result = FlextCliConfig.apply_cli_overrides(cli_params)
+    # Apply CLI overrides - this updates BOTH FlextConfig and FlextCliConfigs
+    override_result = FlextCliConfigs.apply_cli_overrides(cli_params)
     if override_result.is_success:
         updated_config = override_result.value
         print("✅ CLI overrides applied successfully")
@@ -69,7 +69,7 @@ def main() -> None:
     print("-" * 40)
 
     # Ensure CLI config is synchronized with base FlextConfig
-    sync_result = FlextCliConfig.sync_with_flext_config()
+    sync_result = FlextCliConfigs.sync_with_flext_config()
     if sync_result.is_success:
         synced_config = sync_result.value
         print("✅ Synchronization successful")
@@ -91,10 +91,10 @@ def main() -> None:
     os.environ["FLEXT_CLI_API_URL"] = "https://api.production.com"
 
     # Clear global instance to force reload from environment
-    FlextCliConfig.clear_global_instance()
+    FlextCliConfigs.clear_global_instance()
 
     # Get new instance with environment overrides
-    env_config = FlextCliConfig.get_global_instance()
+    env_config = FlextCliConfigs.get_global_instance()
     print("Environment overridden config:")
     print(f"  Profile: {env_config.profile}")
     print(f"  Debug Mode: {env_config.debug}")
@@ -116,7 +116,7 @@ def main() -> None:
     print(f"  API URL: {getattr(base_config, 'api_url', 'N/A')}")
 
     # Show that CLI config inherits from base config
-    cli_config = FlextCliConfig.get_global_instance()
+    cli_config = FlextCliConfigs.get_global_instance()
     print("\nCLI config inherits from base:")
     print(f"  Debug: {cli_config.debug}")
     print(f"  Log Level: {cli_config.log_level}")
@@ -143,7 +143,7 @@ def main() -> None:
     }
 
     # Apply CLI overrides to global configuration
-    override_result = FlextCliConfig.apply_cli_overrides(cli_params)
+    override_result = FlextCliConfigs.apply_cli_overrides(cli_params)
 
     if override_result.is_success:
         cli_config = override_result.value
@@ -183,7 +183,7 @@ def main() -> None:
     print("-" * 30)
 
     # Validate CLI configuration directories
-    cli_config = FlextCliConfig.get_global_instance()
+    cli_config = FlextCliConfigs.get_global_instance()
 
     # Validate directories (using ensure_directories for validation)
     dir_validation_result = cli_config.ensure_directories()
@@ -206,7 +206,7 @@ def main() -> None:
     print("-" * 30)
 
     # Export current CLI configuration
-    cli_config = FlextCliConfig.get_global_instance()
+    cli_config = FlextCliConfigs.get_global_instance()
 
     # Export configuration as dictionary
     config_dict = cli_config.model_dump()
@@ -227,16 +227,16 @@ def main() -> None:
     print("-" * 40)
 
     # Set a specific configuration as global
-    FlextCliConfig.set_global_instance(cli_config)
+    FlextCliConfigs.set_global_instance(cli_config)
     print("✅ CLI configuration set as global instance")
 
     # Verify global instance
-    global_config = FlextCliConfig.get_global_instance()
+    global_config = FlextCliConfigs.get_global_instance()
     print(f"Global instance Profile: {global_config.profile}")
     print(f"Global instance Debug Mode: {global_config.debug}")
 
     # Clear global instance
-    FlextCliConfig.clear_global_instance()
+    FlextCliConfigs.clear_global_instance()
     print("✅ Global instance cleared")
 
     # =========================================================================
@@ -256,9 +256,9 @@ def main() -> None:
 
     print("\nUsage Pattern:")
     print("  1. Get base config: FlextConfig.get_global_instance()")
-    print("  2. Get CLI config: FlextCliConfig.get_global_instance()")
-    print("  3. Apply CLI overrides: FlextCliConfig.apply_cli_overrides()")
-    print("  4. Sync configs: FlextCliConfig.sync_with_flext_config()")
+    print("  2. Get CLI config: FlextCliConfigs.get_global_instance()")
+    print("  3. Apply CLI overrides: FlextCliConfigs.apply_cli_overrides()")
+    print("  4. Sync configs: FlextCliConfigs.sync_with_flext_config()")
 
     print("\n🚀 FlextConfig singleton integration is ready for production use!")
     print("\n🎉 FlextConfig usage example completed!")

@@ -28,17 +28,17 @@ class FlextCliApi(FlextDomainService[str]):
         """Validate CLI configuration data."""
 ```
 
-### FlextCliConfig
+### FlextCliConfigs
 
 Configuration management with Pydantic validation.
 
 ```python
-from flext_cli import FlextCliConfig
+from flext_cli import FlextCliConfigs
 
-class FlextCliConfig:
+class FlextCliConfigs:
     """CLI configuration management."""
 
-    def load_project_config(self) -> FlextResult[FlextCliConfig]:
+    def load_project_config(self) -> FlextResult[FlextCliConfigs]:
         """Load configuration from project settings."""
 
     def save_config(self, config: dict) -> FlextResult[None]:
