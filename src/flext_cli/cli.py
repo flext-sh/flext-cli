@@ -15,6 +15,7 @@ import os
 import sys
 
 import click
+from flext_core.loggings import FlextLogger
 from pydantic import BaseModel
 
 from flext_cli.__version__ import __version__
@@ -210,6 +211,38 @@ class FlextCliMain(BaseModel):
     def start_interactive(self) -> str:
         """Start interactive mode."""
         return self._SystemCommands.start_interactive()
+
+    # Logging control methods
+    def set_global_log_level(self, level: str) -> str:
+        """Set global log level for all FLEXT projects."""
+        result = FlextCliLoggingSetup.set_global_log_level(level)
+        return result.value if result.is_success else f"Error: {result.error}"
+
+    def set_global_log_verbosity(self, verbosity: str) -> str:
+        """Set global log verbosity for all FLEXT projects."""
+        result = FlextCliLoggingSetup.set_global_log_verbosity(verbosity)
+        return result.value if result.is_success else f"Error: {result.error}"
+
+    def get_log_config(self) -> dict[str, str]:
+        """Get current logging configuration."""
+        result = FlextCliLoggingSetup.get_current_log_config()
+        return (
+            result.value
+            if result.is_success
+            else {"error": result.error or "Unknown error"}
+        )
+
+    def configure_project_logging(
+        self,
+        project_name: str,
+        log_level: str | None = None,
+        verbosity: str | None = None,
+    ) -> str:
+        """Configure logging for a specific FLEXT project."""
+        result = FlextCliLoggingSetup.configure_project_logging(
+            project_name, log_level, verbosity
+        )
+        return result.value if result.is_success else f"Error: {result.error}"
 
     class _AuthCommands:
         """Nested helper for authentication commands."""
@@ -740,6 +773,174 @@ def version(_ctx: click.Context) -> None:
 def interactive(_ctx: click.Context) -> None:
     """Interactive mode - coming soon."""
     click.echo(_cli_main.start_interactive())
+
+
+@cli.group()
+@click.pass_context
+def log_control(_ctx: click.Context) -> None:
+    """Control logging configuration for FLEXT projects."""
+
+
+@log_control.command()
+@click.argument(
+    "level",
+    type=click.Choice(
+        ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False
+    ),
+)
+@click.pass_context
+def set_level(_ctx: click.Context, level: str) -> None:
+    """Set global log level for all FLEXT projects."""
+    result = _cli_main.set_global_log_level(level)
+    click.echo(result)
+
+
+@log_control.command()
+@click.argument(
+    "verbosity",
+    type=click.Choice(["compact", "detailed", "full"], case_sensitive=False),
+)
+@click.pass_context
+def set_verbosity(_ctx: click.Context, verbosity: str) -> None:
+    """Set global log verbosity for all FLEXT projects."""
+    result = _cli_main.set_global_log_verbosity(verbosity)
+    click.echo(result)
+
+
+@log_control.command()
+@click.pass_context
+def log_status(_ctx: click.Context) -> None:
+    """Show current logging configuration."""
+    config = _cli_main.get_log_config()
+    if "error" in config:
+        click.echo(f"Error: {config['error']}", err=True)
+        return
+
+    click.echo("=== FLEXT Logging Configuration ===")
+    click.echo(f"Global Log Level: {config['log_level']}")
+    click.echo(f"Global Log Verbosity: {config['log_verbosity']}")
+    click.echo(f"CLI Log Level: {config['cli_log_level']}")
+    click.echo(f"Logging Configured: {config['configured']}")
+
+
+@log_control.command()
+@click.argument("project_name")
+@click.option(
+    "--level",
+    type=click.Choice(
+        ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False
+    ),
+    help="Set log level for the project",
+)
+@click.option(
+    "--verbosity",
+    type=click.Choice(["compact", "detailed", "full"], case_sensitive=False),
+    help="Set log verbosity for the project",
+)
+@click.pass_context
+def configure_project(
+    _ctx: click.Context, project_name: str, level: str | None, verbosity: str | None
+) -> None:
+    """Configure logging for a specific FLEXT project."""
+    if not level and not verbosity:
+        click.echo("Error: Must specify either --level or --verbosity", err=True)
+        return
+
+    result = _cli_main.configure_project_logging(project_name, level, verbosity)
+    click.echo(result)
+
+
+@log_control.command()
+@click.pass_context
+def demo(_ctx: click.Context) -> None:
+    """Demonstrate different logging formats."""
+    click.echo("=== FLEXT Logging Format Demo ===\n")
+
+    # Demo compact format
+    click.echo("1. COMPACT Format:")
+    FlextLogger.configure(log_verbosity="compact", structured_output=True)
+    logger = FlextLogger("demo.service")
+    logger.info("Sample log message for compact format", demo=True, entry_count=42)
+
+    click.echo("\n2. DETAILED Format:")
+    FlextLogger.configure(log_verbosity="detailed", structured_output=True)
+    logger = FlextLogger("demo.service")
+    logger.set_context(
+        extra={"entry_count": 42, "process_time": 0.125, "status": "success"}
+    )
+    logger.info("Sample log message for detailed format")
+
+    click.echo("\n3. FULL Format:")
+    FlextLogger.configure(log_verbosity="full", structured_output=True)
+    logger = FlextLogger("demo.service")
+    logger.set_context(
+        extra={"entry_count": 42, "file_size": 1024, "throughput": 250.5}
+    )
+    logger.info("Sample log message for full format")
+
+    click.echo("\n=== Demo Complete ===")
+    click.echo("Use 'flext log-control set-verbosity <level>' to change the format.")
+
+
+@log_control.command()
+@click.pass_context
+def reset(_ctx: click.Context) -> None:
+    """Reset logging configuration to defaults."""
+    # Remove FLEXT logging environment variables
+    env_vars_to_remove = [
+        "FLEXT_LOG_LEVEL",
+        "FLEXT_LOG_VERBOSITY",
+        "FLEXT_CLI_LOG_LEVEL",
+    ]
+
+    removed = []
+    for var in env_vars_to_remove:
+        if var in os.environ:
+            del os.environ[var]
+            removed.append(var)
+
+    # Also remove any project-specific variables
+    flext_vars = [
+        k
+        for k in os.environ
+        if k.startswith("FLEXT_") and ("LOG_LEVEL" in k or "LOG_VERBOSITY" in k)
+    ]
+    for var in flext_vars:
+        if var not in env_vars_to_remove:  # Don't double-remove
+            del os.environ[var]
+            removed.append(var)
+
+    if removed:
+        click.echo(f"Reset logging configuration. Removed: {', '.join(removed)}")
+        click.echo("Logging will now use default settings.")
+    else:
+        click.echo("No custom logging configuration found to reset.")
+
+
+@log_control.command()
+@click.pass_context
+def help_env(_ctx: click.Context) -> None:
+    """Show environment variables for logging control."""
+    click.echo("=== FLEXT Logging Environment Variables ===")
+    click.echo()
+    click.echo("Global Configuration:")
+    click.echo("  FLEXT_LOG_LEVEL       - Set log level for all FLEXT projects")
+    click.echo("                          (DEBUG, INFO, WARNING, ERROR, CRITICAL)")
+    click.echo("  FLEXT_LOG_VERBOSITY   - Set output format for all FLEXT projects")
+    click.echo("                          (compact, detailed, full)")
+    click.echo()
+    click.echo("CLI-Specific:")
+    click.echo("  FLEXT_CLI_LOG_LEVEL   - Set log level for flext-cli specifically")
+    click.echo()
+    click.echo("Project-Specific Examples:")
+    click.echo("  FLEXT_CORE_LOG_LEVEL     - Set log level for flext-core")
+    click.echo("  FLEXT_LDAP_LOG_LEVEL     - Set log level for flext-ldap")
+    click.echo("  FLEXT_LDIF_LOG_VERBOSITY - Set verbosity for flext-ldif")
+    click.echo()
+    click.echo("Usage:")
+    click.echo("  export FLEXT_LOG_LEVEL=DEBUG")
+    click.echo("  export FLEXT_LOG_VERBOSITY=compact")
+    click.echo("  flext log-control log-status  # Check current settings")
 
 
 # Função main simples que os testes esperam

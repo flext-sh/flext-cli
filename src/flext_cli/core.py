@@ -159,7 +159,6 @@ class FlextCliService(FlextDomainService[str]):
             "plugins_loaded": len(self._plugins),
         }
 
-
     def _initialize_services(self) -> None:
         """Initialize services using flext-core directly.
 

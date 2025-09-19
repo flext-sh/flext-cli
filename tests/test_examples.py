@@ -43,21 +43,25 @@ class TestExamples:
             # Some examples might have dataclass issues with dynamic importing
             # Log the error but don't fail if subprocess works
             print(f"Warning: Direct execution failed for {example_name}: {e}")
-            pass
 
         # Test execution as subprocess too
         env = os.environ.copy()
-        # Set PYTHONPATH to include both flext-core and flext-cli source directories
+        # Set PYTHONPATH to include both flext-core and flext-cli source directories AND examples
         flext_core_src = Path(__file__).parent.parent.parent / "flext-core" / "src"
         flext_cli_src = Path(__file__).parent.parent / "src"
-        python_path_parts = [str(flext_cli_src), str(flext_core_src)]
-        
+        examples_dir = Path(__file__).parent.parent / "examples"
+        python_path_parts = [
+            str(flext_cli_src),
+            str(flext_core_src),
+            str(examples_dir.parent),  # Add parent of examples so "examples" can be imported
+        ]
+
         # Preserve existing PYTHONPATH if set
         if "PYTHONPATH" in env:
             python_path_parts.append(env["PYTHONPATH"])
-        
+
         env["PYTHONPATH"] = os.pathsep.join(python_path_parts)
-        
+
         result = subprocess.run(
             [sys.executable, str(example_path)],
             check=False, capture_output=True,

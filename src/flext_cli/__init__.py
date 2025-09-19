@@ -53,6 +53,13 @@ from flext_cli.interactions import FlextCliInteractions
 from flext_cli.logging_setup import FlextCliLoggingSetup
 from flext_cli.models import FlextCliModels
 from flext_cli.protocols import FlextCliProtocols
+from flext_cli.unified_cli import (
+    FlextCliApplication,
+    FlextCliApplicationContext,
+    FlextCliOutputHandler,
+    FlextUnifiedCli,
+    flext_cli_command,
+)
 from flext_cli.utils import FlextCliUtilities
 
 __all__ = [

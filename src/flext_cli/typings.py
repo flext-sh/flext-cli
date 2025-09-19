@@ -283,7 +283,7 @@ class FlextCliTypes:
         """CLI options structure from SOURCE OF TRUTH."""
 
         profile: str
-        output_format: str
+        output_format: str | None
         debug: bool
         quiet: bool
         log_level: str | None
