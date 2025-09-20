@@ -39,7 +39,7 @@ __documentation_url__ = "https://docs.flext.sh/cli"
 __repository_url__ = "https://github.com/flext/flext-cli"
 __issues_url__ = "https://github.com/flext/flext-cli/issues"
 
-# Development and compatibility information
+# Development and deployment information
 __python_requires__ = ">=3.13"
 __platforms__ = ["any"]
 __keywords__ = ["cli", "data-integration", "flext", "enterprise", "clean-architecture"]

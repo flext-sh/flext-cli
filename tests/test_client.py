@@ -31,7 +31,7 @@ class FlextApiClientModels:
 class MockHTTPHandler(BaseHTTPRequestHandler):
     """Simple test HTTP server for real client testing."""
 
-    def log_message(self, format: str, *args: object) -> None:
+    def log_message(self, format_string: str, *args: object) -> None:
         """Override log_message to handle the correct number of arguments."""
 
         # Suppress logging for tests

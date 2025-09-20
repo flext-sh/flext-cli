@@ -417,14 +417,7 @@ class FlextCliConfigs(FlextConfig):
     # =========================================================================
 
     def __init__(self, **data: object) -> None:
-        """Initialize CLI configuration."""
-        # Handle configuration aliases
-        if "base_url" in data and "api_url" not in data:
-            data["api_url"] = data["base_url"]
-        if "max_command_retries" in data:
-            data["retries"] = data["max_command_retries"]
-            data["max_retries"] = data["max_command_retries"]
-
+        """Initialize CLI configuration with flext-core integration - NO legacy aliases."""
         # Call parent __init__ - FlextConfig handles initialization
         super().__init__()
 

@@ -12,7 +12,6 @@ from pathlib import Path
 
 from flext_cli.configs import FlextCliConfigs
 from flext_cli.constants import FlextCliConstants
-from flext_cli.utils import FlextCliUtilities
 from flext_core import FlextLogger, FlextResult, FlextTypes
 
 
@@ -264,7 +263,7 @@ class FlextCliContext:
 
         command_name: str | None = None
         command_args: FlextTypes.Core.Dict = field(
-            default_factory=FlextCliUtilities.empty_dict,
+            default_factory=dict,
         )
         execution_id: str | None = None
         start_time: float | None = None

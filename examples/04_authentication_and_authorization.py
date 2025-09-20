@@ -65,7 +65,7 @@ def demonstrate_basic_authentication() -> FlextResult[None]:
 
     # get_auth_headers returns FlextResult[FlextTypes.Core.Headers]
     headers_result = auth.get_auth_headers()
-    
+
     # Handle FlextResult type
     if hasattr(headers_result, "is_success") and hasattr(headers_result, "value"):
         if getattr(headers_result, "is_success"):

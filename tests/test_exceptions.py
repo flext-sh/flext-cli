@@ -36,7 +36,9 @@ class TestFlextCliErrorCodes:
 
         for expected_value, attr_name in expected_codes.items():
             assert hasattr(FlextCliConstants.ErrorCode, attr_name)
-            assert getattr(FlextCliConstants.ErrorCode, attr_name).value == expected_value
+            assert (
+                getattr(FlextCliConstants.ErrorCode, attr_name).value == expected_value
+            )
 
 
 class TestFlextCliError:

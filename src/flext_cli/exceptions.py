@@ -30,7 +30,7 @@ class FlextCliError(Exception):
         self,
         message: str,
         *,
-        error_code: FlextCliConstants.ErrorCode = FlextCliConstants.ErrorCode.CLI_ERROR,
+        error_code: FlextCliConstants.Enums.ErrorCode = FlextCliConstants.Enums.ErrorCode.CLI_ERROR,
         **context: object,
     ) -> None:
         """Initialize CLI exception with message, error code, and context.
@@ -78,7 +78,7 @@ class FlextCliError(Exception):
         """
         return cls(
             message,
-            error_code=FlextCliConstants.ErrorCode.VALIDATION_ERROR,
+            error_code=FlextCliConstants.Enums.ErrorCode.VALIDATION_ERROR,
             **context,
         )
 
@@ -96,7 +96,7 @@ class FlextCliError(Exception):
         """
         return cls(
             message,
-            error_code=FlextCliConstants.ErrorCode.CONFIGURATION_ERROR,
+            error_code=FlextCliConstants.Enums.ErrorCode.CONFIGURATION_ERROR,
             **context,
         )
 
@@ -114,7 +114,7 @@ class FlextCliError(Exception):
         """
         return cls(
             message,
-            error_code=FlextCliConstants.ErrorCode.CONNECTION_ERROR,
+            error_code=FlextCliConstants.Enums.ErrorCode.CONNECTION_ERROR,
             **context,
         )
 
@@ -132,7 +132,7 @@ class FlextCliError(Exception):
         """
         return cls(
             message,
-            error_code=FlextCliConstants.ErrorCode.AUTHENTICATION_ERROR,
+            error_code=FlextCliConstants.Enums.ErrorCode.AUTHENTICATION_ERROR,
             **context,
         )
 
@@ -150,7 +150,7 @@ class FlextCliError(Exception):
         """
         return cls(
             message,
-            error_code=FlextCliConstants.ErrorCode.COMMAND_ERROR,
+            error_code=FlextCliConstants.Enums.ErrorCode.COMMAND_ERROR,
             **context,
         )
 
@@ -168,7 +168,7 @@ class FlextCliError(Exception):
         """
         return cls(
             message,
-            error_code=FlextCliConstants.ErrorCode.TIMEOUT_ERROR,
+            error_code=FlextCliConstants.Enums.ErrorCode.TIMEOUT_ERROR,
             **context,
         )
 
@@ -186,11 +186,11 @@ class FlextCliError(Exception):
         """
         return cls(
             message,
-            error_code=FlextCliConstants.ErrorCode.FORMAT_ERROR,
+            error_code=FlextCliConstants.Enums.ErrorCode.FORMAT_ERROR,
             **context,
         )
 
-    def is_error_code(self, error_code: FlextCliConstants.ErrorCode) -> bool:
+    def is_error_code(self, error_code: FlextCliConstants.Enums.ErrorCode) -> bool:
         """Check if exception matches specific error code.
 
         Args:

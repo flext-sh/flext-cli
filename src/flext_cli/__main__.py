@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli.cli import main
+from flext_cli.main import main
 
 if __name__ == "__main__":
     main()

@@ -11,7 +11,7 @@ import io
 import pytest
 from rich.console import Console
 
-from flext_cli.formatters import FlextCliFormatters
+from flext_cli.formatting import FlextCliFormatters
 
 
 class TestTableFormatter:

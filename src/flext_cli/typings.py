@@ -124,11 +124,11 @@ class FlextCliTypes:
             updated_at: datetime
 
     # =============================================================================
-    # CLI OUTPUT FORMAT TYPES - For tests compatibility
+    # CLI OUTPUT FORMAT TYPES - Standard output formats
     # =============================================================================
 
     class OutputFormat(Enum):
-        """CLI output format enumeration for test compatibility."""
+        """CLI output format enumeration for standard output types."""
 
         JSON = "json"
         YAML = "yaml"
@@ -374,26 +374,10 @@ class FlextCliTypes:
         total_count: int
 
 
-# URL types for test compatibility
-URL = str
-URLType = str
-
-
-# No aliases - use direct imports
-
-
-# ARCHITECTURAL COMPLIANCE: All aliases removed - use full qualified names
-
-# Test compatibility aliases for enum access
-CommandStatus = FlextCliConstants.CommandStatus
-PluginStatus = FlextCliConstants.Plugin
-
 # Minimal exports - only actually used types
 __all__ = [
-    "URL",
     "UUID",
     "BaseModel",
-    "CommandStatus",
     "E",
     "F",
     "Field",
@@ -402,12 +386,10 @@ __all__ = [
     "FlextTypes",
     "P",
     "Path",
-    "PluginStatus",
     "R",
     "T",
     "TypedDict",
     "U",
-    "URLType",
     "V",
     "datetime",
 ]

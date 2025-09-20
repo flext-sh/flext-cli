@@ -17,7 +17,7 @@ from uuid import uuid4
 
 import yaml
 
-from flext_cli.formatters import FlextCliFormatters
+from flext_cli.formatting import FlextCliFormatters
 from flext_cli.models import FlextCliModels
 from flext_core import (
     FlextContainer,
@@ -80,10 +80,17 @@ class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
         self._formatters = FlextCliFormatters()
         self._state = self._StateHelper.create_initial_state()
 
-    def execute(
+    def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
+        """Execute CLI operation - required by FlextDomainService."""
+        self._logger.info("Executing CLI API operation")
+        return FlextResult[FlextTypes.Core.Dict].ok(
+            {"status": "operational", "service": "flext-cli-api"}
+        )
+
+    def execute_with_command(
         self, command: str | None = None, **kwargs: object
     ) -> FlextResult[object | str]:
-        """Execute CLI operation - supports both parent interface and backward compatibility."""
+        """Execute CLI operation with command - NO legacy compatibility."""
         if command is None:
             # Parent class interface
             self._logger.info("Executing CLI API operation")
@@ -91,7 +98,7 @@ class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
                 {"status": "operational", "service": "flext-cli-api"}
             )
 
-        # Backward compatibility interface
+        # NO legacy compatibility interface
         self._logger.info(f"Executing CLI API operation: {command}")
 
         if command == "format":
@@ -112,8 +119,8 @@ class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
     def execute_command(
         self, command: str = "status", **kwargs: object
     ) -> FlextResult[object | str]:
-        """Execute CLI operation with command and parameters - delegates to execute."""
-        return self.execute(command, **kwargs)
+        """Execute CLI operation with command and parameters - delegates to execute_with_command."""
+        return self.execute_with_command(command, **kwargs)
 
     def format_output(
         self,
@@ -177,8 +184,15 @@ class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
                 show_lines_value if isinstance(show_lines_value, bool) else True
             )
 
+            # Ensure data is proper type for create_table
+            if not isinstance(data, list) or not all(isinstance(item, dict) for item in data):
+                return FlextResult[str].fail("Data must be a list of dictionaries for table formatting")
+
+            # Ensure title is string
+            table_title = title or ""
+
             table_result = self._formatters.create_table(
-                data=data, headers=headers, title=title, show_lines=show_lines
+                data=data, headers=headers, title=table_title, show_lines=show_lines
             )
 
             if table_result.is_failure:
@@ -316,7 +330,7 @@ class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
     def create_rich_table(
         self, data: object, title: str | None = None, **options: object
     ) -> FlextResult[str]:
-        """Create Rich table from data - alias for create_table."""
+        """Create Rich table from data - NO legacy aliases."""
         return self.create_table(data, title=title, **options)
 
     def transform_data(self, data: object, transform_fn: object) -> FlextResult[object]:
@@ -434,10 +448,6 @@ class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
             return result.unwrap()
         return None
 
-
-# =========================================================================
-# MODULE EXPORTS - Single unified class with all functionality encapsulated
-# =========================================================================
 
 __all__ = [
     "FlextCliApi",

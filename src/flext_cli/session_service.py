@@ -48,9 +48,7 @@ class FlextCliSessionService(FlextDomainService[FlextTypes.Core.Dict]):
                 return FlextResult[str | None].ok(None)
 
             if isinstance(user_id, str):
-                return FlextResult[str | None].ok(
-                    user_id.strip() if user_id.strip() else None
-                )
+                return FlextResult[str | None].ok(user_id.strip() or None)
 
             return FlextResult[str | None].ok(str(user_id))
 

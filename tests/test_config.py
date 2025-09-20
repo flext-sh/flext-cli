@@ -217,5 +217,121 @@ class TestConfigIntegration(unittest.TestCase):
         assert config.command_timeout > 0
 
 
+class TestFlextCliConfigsAdditionalCoverage(unittest.TestCase):
+    """Additional tests for FlextCliConfigs consolidated from test_config_cli_config.py."""
+
+    def test_config_property_paths(self) -> None:
+        """Test config path properties."""
+        config = FlextCliConfigs()
+
+        # Test expected path structures
+        expected_config_dir = Path.home() / ".flext"
+        expected_cache_dir = Path.home() / ".flext" / "cache"
+        expected_token_file = Path.home() / ".flext" / "auth" / "token.json"
+        expected_refresh_token_file = (
+            Path.home() / ".flext" / "auth" / "refresh_token.json"
+        )
+
+        assert config.config_dir == expected_config_dir
+        assert config.cache_dir == expected_cache_dir
+        assert config.token_file == expected_token_file
+        assert config.refresh_token_file == expected_refresh_token_file
+
+    def test_config_validation_api_url(self) -> None:
+        """Test config validation for API URL."""
+        # Valid URLs should work
+        valid_urls = [
+            "https://api.flext.com",
+            "http://localhost:8080",
+            "https://custom.domain.com/api/v1",
+        ]
+
+        for url in valid_urls:
+            config = FlextCliConfigs(base_url=url)
+            assert config.api_url == url
+
+    def test_config_validation_timeout(self) -> None:
+        """Test config validation for timeout."""
+        # Valid timeouts
+        valid_timeouts = [1, 30, 60, 300]
+
+        for timeout in valid_timeouts:
+            config = FlextCliConfigs(command_timeout=timeout)
+            assert config.command_timeout == timeout
+
+    def test_config_validation_max_retries(self) -> None:
+        """Test config validation for max retries."""
+        # Valid retry counts
+        valid_retries = [0, 1, 3, 5, 10]
+
+        for retry_count in valid_retries:
+            config = FlextCliConfigs(max_command_retries=retry_count)
+            assert config.retries == retry_count
+
+    def test_config_validation_log_level(self) -> None:
+        """Test config validation for log level."""
+        # Valid log levels
+        valid_log_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+
+        for log_level in valid_log_levels:
+            config = FlextCliConfigs(log_level=log_level)
+            assert config.log_level == log_level
+
+    def test_config_json_serialization(self) -> None:
+        """Test config JSON serialization."""
+        config = FlextCliConfigs(profile="test", debug=True, output_format="json")
+
+        # Test model_dump (Pydantic v2 method)
+        config_dict = config.model_dump()
+        assert isinstance(config_dict, dict)
+        assert config_dict["profile"] == "test"
+        assert config_dict["debug"] is True
+        assert config_dict["output_format"] == "json"
+
+    def test_config_string_representation(self) -> None:
+        """Test config string representation."""
+        config = FlextCliConfigs(profile="test", debug=True)
+
+        str_repr = str(config)
+        assert isinstance(str_repr, str)
+        assert len(str_repr) > 0
+
+        repr_str = repr(config)
+        assert isinstance(repr_str, str)
+        assert "FlextCliConfigs" in repr_str
+
+    def test_config_equality(self) -> None:
+        """Test config equality comparison."""
+        config1 = FlextCliConfigs(profile="test", debug=True)
+        config2 = FlextCliConfigs(profile="test", debug=True)
+        config3 = FlextCliConfigs(profile="different", debug=True)
+
+        # Same configurations should be equal
+        assert config1 == config2
+
+        # Different configurations should not be equal
+        assert config1 != config3
+
+    def test_config_with_custom_paths(self) -> None:
+        """Test config with custom directory paths."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            _temp_path = Path(temp_dir)
+
+            # FlextCliConfigs doesn't directly accept custom paths in constructor,
+            # but we can test that the default paths are correctly computed
+            config = FlextCliConfigs()
+
+            # Verify paths are Path objects
+            assert isinstance(config.config_dir, Path)
+            assert isinstance(config.cache_dir, Path)
+            assert isinstance(config.log_dir, Path)
+            assert isinstance(config.data_dir, Path)
+
+            # Verify path relationships
+            assert config.cache_dir.parent == config.config_dir
+            assert config.log_dir.parent == config.config_dir
+            assert config.data_dir.parent == config.config_dir
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -131,7 +131,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
 
         """
         try:
-            if command.status != FlextCliConstants.CommandStatus.PENDING:
+            if command.status != FlextCliConstants.Enums.CommandStatus.PENDING:
                 return FlextResult[FlextCliModels.CliCommand].fail(
                     f"Command must be pending to start, current status: {command.status}",
                 )
@@ -170,7 +170,7 @@ class FlextCliDomainServices(FlextDomainService[FlextResult[object]]):
 
         """
         try:
-            if command.status != FlextCliConstants.CommandStatus.RUNNING:
+            if command.status != FlextCliConstants.Enums.CommandStatus.RUNNING:
                 return FlextResult[FlextCliModels.CliCommand].fail(
                     f"Command must be running to complete, current status: {command.status}",
                 )

@@ -49,9 +49,7 @@ def demonstrate_single_source_of_truth() -> None:
     # 3. Verify integration metadata
     print("3. Integration Metadata:")
     metadata = cli_config.get_metadata()
-    print(
-        f"   Base Config Source: {metadata.get('base_config_source', 'unknown')}"
-    )
+    print(f"   Base Config Source: {metadata.get('base_config_source', 'unknown')}")
     print(
         f"   CLI Extensions Applied: {metadata.get('cli_extensions_applied', 'false')}"
     )
@@ -117,9 +115,7 @@ def demonstrate_cli_parameter_integration() -> None:
     print(
         f"   CLI Overrides Applied: {updated_metadata.get('cli_overrides_applied', 'false')}"
     )
-    print(
-        f"   Override Count: {updated_metadata.get('override_count', '0')}"
-    )
+    print(f"   Override Count: {updated_metadata.get('override_count', '0')}")
     print(
         f"   Base Config Synchronized: {updated_metadata.get('base_config_synchronized', 'false')}"
     )

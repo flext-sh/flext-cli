@@ -32,13 +32,11 @@ from flext_cli.__version__ import (
     __version__,
     __version_info__,
 )
+
+# Foundation APIs
 from flext_cli.api import FlextCliApi
 from flext_cli.auth import FlextCliAuth
-from flext_cli.cli import auth, cli, config, debug, login, logout, main, status
-from flext_cli.cli_bus import FlextCliCommandBusService
-from flext_cli.cli_main import FlextCliMain
 from flext_cli.client import FlextCliClient
-from flext_cli.cmd import FlextCliCmd
 from flext_cli.configs import FlextCliConfigs
 from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
@@ -48,27 +46,18 @@ from flext_cli.decorators import FlextCliDecorators
 from flext_cli.domain_services import FlextCliDomainServices
 from flext_cli.exceptions import FlextCliError
 from flext_cli.file_operations import FlextCliFileOperations
-from flext_cli.formatters import FlextCliFormatters
+from flext_cli.formatting import FlextCliFormatters
 from flext_cli.interactions import FlextCliInteractions
 from flext_cli.logging_setup import FlextCliLoggingSetup
+from flext_cli.main import FlextCliMain
 from flext_cli.models import FlextCliModels
 from flext_cli.protocols import FlextCliProtocols
-from flext_cli.unified_cli import (
-    FlextCliApplication,
-    FlextCliApplicationContext,
-    FlextCliOutputHandler,
-    FlextUnifiedCli,
-    flext_cli_command,
-)
 from flext_cli.utils import FlextCliUtilities
 
 __all__ = [
-    # Core CLI classes
     "FlextCliApi",
     "FlextCliAuth",
     "FlextCliClient",
-    "FlextCliCmd",
-    "FlextCliCommandBusService",
     "FlextCliConfigs",
     "FlextCliConstants",
     "FlextCliContext",
@@ -107,13 +96,4 @@ __all__ = [
     "__url__",
     "__version__",
     "__version_info__",
-    # CLI command functions
-    "auth",
-    "cli",
-    "config",
-    "debug",
-    "login",
-    "logout",
-    "main",
-    "status",
 ]

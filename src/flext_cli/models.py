@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Annotated, ClassVar, Literal
+from uuid import uuid4
 
 from pydantic import (
     Discriminator,
@@ -40,7 +41,7 @@ class FlextCliModels:
 
         model_config = FlextCliUtilities.get_base_config_dict()
 
-        id: str = Field(default_factory=FlextCliUtilities.generate_uuid)
+        id: str = Field(default_factory=lambda: str(uuid4()))
         command_line: str | None = Field(default=None, description="Command to execute")
         execution_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
@@ -113,8 +114,8 @@ class FlextCliModels:
             if (
                 self.status
                 in {
-                    FlextCliConstants.CommandStatus.COMPLETED,
-                    FlextCliConstants.CommandStatus.FAILED,
+                    FlextCliConstants.Enums.CommandStatus.COMPLETED,
+                    FlextCliConstants.Enums.CommandStatus.FAILED,
                 }
                 and self.exit_code is None
             ):
@@ -123,7 +124,7 @@ class FlextCliModels:
 
             # Validate successful completion
             if (
-                self.status == FlextCliConstants.CommandStatus.COMPLETED
+                self.status == FlextCliConstants.Enums.CommandStatus.COMPLETED
                 and self.exit_code != 0
             ):
                 msg = "Completed commands should have exit code 0"
@@ -131,7 +132,7 @@ class FlextCliModels:
 
             # Validate failed commands have error output when exit code > 0
             if (
-                self.status == FlextCliConstants.CommandStatus.FAILED
+                self.status == FlextCliConstants.Enums.CommandStatus.FAILED
                 and self.exit_code == 0
             ):
                 msg = "Failed commands should have non-zero exit code"
@@ -218,8 +219,8 @@ class FlextCliModels:
     class CliSession(FlextModels.Entity):
         """CLI session model."""
 
-        id: str = Field(default_factory=FlextCliUtilities.generate_uuid)
-        session_id: str = Field(default_factory=FlextCliUtilities.generate_uuid)
+        id: str = Field(default_factory=lambda: str(uuid4()))
+        session_id: str = Field(default_factory=lambda: str(uuid4()))
         start_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
         end_time: datetime | None = None
         commands: list[FlextCliModels.CliCommand] = Field(default_factory=list)
@@ -246,9 +247,9 @@ class FlextCliModels:
             """Validate session business rules."""
             if self.end_time is not None and self.end_time < self.start_time:
                 return FlextResult[None].fail("End time cannot be before start time")
-            if len(self.commands) > FlextCliConstants.LIMITS.max_commands_per_session:
+            if len(self.commands) > FlextCliConstants.Limits.max_commands_per_session:
                 return FlextResult[None].fail(
-                    f"Session has too many commands (limit: {FlextCliConstants.LIMITS.max_commands_per_session})",
+                    f"Session has too many commands (limit: {FlextCliConstants.Limits.max_commands_per_session})",
                 )
             for cmd in self.commands:
                 validation_result = cmd.validate_business_rules()
@@ -261,12 +262,14 @@ class FlextCliModels:
     class CliConfig(FlextModels.Entity):
         """CLI configuration model."""
 
-        id: str = Field(default_factory=FlextCliUtilities.generate_uuid)
-        profile: str = Field(default=FlextCliConstants.ProfileName.DEFAULT)
-        output_format: str = Field(default=FlextCliConstants.Output.TABLE, frozen=True)
+        id: str = Field(default_factory=lambda: str(uuid4()))
+        profile: str = Field(default=FlextCliConstants.Enums.ProfileName.DEFAULT)
+        output_format: str = Field(
+            default=FlextCliConstants.Enums.Output.TABLE, frozen=True
+        )
         debug_mode: bool = Field(default=False)
         timeout_seconds: int = Field(
-            default=FlextCliConstants.TIMEOUTS.default_command_timeout,
+            default=FlextCliConstants.Timeouts.default_command_timeout,
             ge=1,
         )
 
@@ -283,8 +286,8 @@ class FlextCliModels:
         @classmethod
         def validate_timeout(cls, v: int) -> int:
             """Validate timeout is within limits."""
-            if v <= 0 or v > FlextCliConstants.LIMITS.max_timeout_seconds:
-                msg = f"Timeout must be between 1 and {FlextCliConstants.LIMITS.max_timeout_seconds} seconds"
+            if v <= 0 or v > FlextCliConstants.Limits.max_timeout_seconds:
+                msg = f"Timeout must be between 1 and {FlextCliConstants.Limits.max_timeout_seconds} seconds"
                 raise ValueError(msg)
             return v
 
@@ -299,14 +302,14 @@ class FlextCliModels:
     class CliPlugin(FlextModels.Entity):
         """CLI plugin model."""
 
-        id: str = Field(default_factory=FlextCliUtilities.generate_uuid)
+        id: str = Field(default_factory=lambda: str(uuid4()))
         name: str = Field(min_length=1)
         plugin_version: str = Field(default="0.1.0")
         entry_point: str = Field(min_length=1)
         enabled: bool = Field(default=True)
-        config: dict[str, object] = Field(default_factory=FlextCliUtilities.empty_dict)
+        config: dict[str, object] = Field(default_factory=dict)
         metadata: dict[str, object] = Field(
-            default_factory=FlextCliUtilities.empty_dict,
+            default_factory=dict,
         )
 
         @field_validator("name")
@@ -414,7 +417,7 @@ class FlextCliModels:
 
         model_config = FlextCliUtilities.get_base_config_dict()
 
-        id: str = Field(default_factory=FlextCliUtilities.generate_uuid)
+        id: str = Field(default_factory=lambda: str(uuid4()))
         base_url: str = Field(default="http://localhost:8000", min_length=1)
         authenticated: bool = Field(default=False)
         token: str | None = Field(default=None)
@@ -535,7 +538,7 @@ class FlextCliModels:
             else:
                 calculated_error_rate = (self.error_count / self.request_count) * 100
 
-            if calculated_error_rate > FlextCliConstants.LIMITS.max_error_rate_percent:
+            if calculated_error_rate > FlextCliConstants.Limits.max_error_rate_percent:
                 return FlextResult[None].fail(
                     f"Error rate too high: {calculated_error_rate:.1f}%",
                 )
@@ -585,11 +588,11 @@ class FlextCliModels:
 
         model_config = FlextCliUtilities.get_base_config_dict()
 
-        id: str = Field(default_factory=FlextCliUtilities.generate_uuid)
+        id: str = Field(default_factory=lambda: str(uuid4()))
         name: str = Field(min_length=1)
         description: str = Field(default="")
         timeout_seconds: int = Field(
-            default=FlextCliConstants.TIMEOUTS.default_command_timeout,
+            default=FlextCliConstants.Timeouts.default_command_timeout,
             ge=1,
         )
         max_retries: int = Field(default=3, ge=0, le=10)
@@ -598,7 +601,7 @@ class FlextCliModels:
         environment: dict[str, str] = Field(default_factory=dict)
         tags: list[str] = Field(default_factory=list)
 
-        # Additional fields required by tests for Meltano pipeline compatibility
+        # Additional fields for Meltano pipeline integration
         tap: str | None = Field(default=None, description="Tap (extractor) name")
         target: str | None = Field(default=None, description="Target (loader) name")
         schedule: str | None = Field(default=None, description="Schedule expression")
@@ -613,8 +616,8 @@ class FlextCliModels:
         @classmethod
         def validate_timeout(cls, v: int) -> int:
             """Validate timeout is within limits."""
-            if v <= 0 or v > FlextCliConstants.LIMITS.max_timeout_seconds:
-                msg = f"Timeout must be between 1 and {FlextCliConstants.LIMITS.max_timeout_seconds} seconds"
+            if v <= 0 or v > FlextCliConstants.Limits.max_timeout_seconds:
+                msg = f"Timeout must be between 1 and {FlextCliConstants.Limits.max_timeout_seconds} seconds"
                 raise ValueError(msg)
             return v
 

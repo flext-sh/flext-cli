@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import importlib.util
+import logging
 import os
 import subprocess
 import sys
@@ -19,7 +20,9 @@ from pathlib import Path
 class TestExamples:
     """Test suite for example scripts."""
 
-    def _test_example_with_coverage(self, example_name: str, expected_output: str | None = None) -> None:
+    def _test_example_with_coverage(
+        self, example_name: str, expected_output: str | None = None
+    ) -> None:
         """Test example with both direct execution and subprocess for coverage."""
         example_path = Path(f"examples/{example_name}")
         assert example_path.exists(), f"Example not found: {example_path}"
@@ -42,7 +45,9 @@ class TestExamples:
         except Exception as e:
             # Some examples might have dataclass issues with dynamic importing
             # Log the error but don't fail if subprocess works
-            print(f"Warning: Direct execution failed for {example_name}: {e}")
+            logging.getLogger(__name__).warning(
+                f"Direct execution failed for {example_name}: {e}"
+            )
 
         # Test execution as subprocess too
         env = os.environ.copy()
@@ -53,7 +58,9 @@ class TestExamples:
         python_path_parts = [
             str(flext_cli_src),
             str(flext_core_src),
-            str(examples_dir.parent),  # Add parent of examples so "examples" can be imported
+            str(
+                examples_dir.parent
+            ),  # Add parent of examples so "examples" can be imported
         ]
 
         # Preserve existing PYTHONPATH if set
@@ -64,7 +71,8 @@ class TestExamples:
 
         result = subprocess.run(
             [sys.executable, str(example_path)],
-            check=False, capture_output=True,
+            check=False,
+            capture_output=True,
             text=True,
             env=env,
         )
@@ -75,7 +83,9 @@ class TestExamples:
 
     def test_01_foundation_patterns_executable(self) -> None:
         """Test that 01_foundation_patterns.py is executable."""
-        self._test_example_with_coverage("01_foundation_patterns.py", "Foundation Patterns Demo")
+        self._test_example_with_coverage(
+            "01_foundation_patterns.py", "Foundation Patterns Demo"
+        )
 
     def test_02_cli_commands_integration_executable(self) -> None:
         """Test that 02_cli_commands_integration.py is executable."""

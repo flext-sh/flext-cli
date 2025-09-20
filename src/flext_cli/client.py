@@ -275,7 +275,7 @@ class FlextCliClient:
             }
 
             response = await self._request(
-                FlextCliConstants.HttpMethod.POST,
+                FlextCliConstants.Enums.HttpMethod.POST,
                 "/api/v1/auth/login",
                 json_data=login_data,
             )
@@ -298,7 +298,7 @@ class FlextCliClient:
         """Logout the current user directly."""
         try:
             response = await self._request(
-                FlextCliConstants.HttpMethod.POST,
+                FlextCliConstants.Enums.HttpMethod.POST,
                 "/api/v1/auth/logout",
             )
 
@@ -321,7 +321,7 @@ class FlextCliClient:
 
         """
         response = await self._request(
-            FlextCliConstants.HttpMethod.GET,
+            FlextCliConstants.Enums.HttpMethod.GET,
             "/api/v1/auth/user",
         )
         return self._parse_json_response(response)
@@ -352,7 +352,7 @@ class FlextCliClient:
             params["status"] = status
 
         response = await self._request(
-            FlextCliConstants.HttpMethod.GET,
+            FlextCliConstants.Enums.HttpMethod.GET,
             "/api/v1/pipelines",
             params=params,
         )
@@ -369,7 +369,7 @@ class FlextCliClient:
 
         """
         response = await self._request(
-            FlextCliConstants.HttpMethod.GET,
+            FlextCliConstants.Enums.HttpMethod.GET,
             f"/api/v1/pipelines/{pipeline_id}",
         )
         return FlextCliModels.Pipeline(**response.json())
@@ -388,7 +388,7 @@ class FlextCliClient:
 
         """
         response = await self._request(
-            FlextCliConstants.HttpMethod.POST,
+            FlextCliConstants.Enums.HttpMethod.POST,
             "/api/v1/pipelines",
             json_data=config.model_dump(mode="json"),
         )
@@ -410,7 +410,7 @@ class FlextCliClient:
 
         """
         response = await self._request(
-            FlextCliConstants.HttpMethod.PUT,
+            FlextCliConstants.Enums.HttpMethod.PUT,
             f"/api/v1/pipelines/{pipeline_id}",
             json_data=config.model_dump(mode="json"),
         )
@@ -424,7 +424,7 @@ class FlextCliClient:
 
         """
         await self._request(
-            FlextCliConstants.HttpMethod.DELETE,
+            FlextCliConstants.Enums.HttpMethod.DELETE,
             f"/api/v1/pipelines/{pipeline_id}",
         )
 
@@ -445,7 +445,7 @@ class FlextCliClient:
 
         """
         response = await self._request(
-            FlextCliConstants.HttpMethod.POST,
+            FlextCliConstants.Enums.HttpMethod.POST,
             f"/api/v1/pipelines/{pipeline_id}/run",
             json_data={"full_refresh": full_refresh},
         )
@@ -462,7 +462,7 @@ class FlextCliClient:
 
         """
         response = await self._request(
-            FlextCliConstants.HttpMethod.GET,
+            FlextCliConstants.Enums.HttpMethod.GET,
             f"/api/v1/pipelines/{pipeline_id}/status",
         )
         return self._parse_json_response(response)
@@ -489,7 +489,7 @@ class FlextCliClient:
             params["execution_id"] = execution_id
 
         response = await self._request(
-            FlextCliConstants.HttpMethod.GET,
+            FlextCliConstants.Enums.HttpMethod.GET,
             f"/api/v1/pipelines/{pipeline_id}/logs",
             params=params,
         )
@@ -520,7 +520,7 @@ class FlextCliClient:
             params["type"] = plugin_type
 
         response = await self._request(
-            FlextCliConstants.HttpMethod.GET,
+            FlextCliConstants.Enums.HttpMethod.GET,
             "/api/v1/plugins",
             params=params,
         )
@@ -538,7 +538,7 @@ class FlextCliClient:
 
         """
         response = await self._request(
-            FlextCliConstants.HttpMethod.GET,
+            FlextCliConstants.Enums.HttpMethod.GET,
             f"/api/v1/plugins/{plugin_id}",
         )
         return self._parse_json_response(response)
@@ -563,7 +563,7 @@ class FlextCliClient:
             json_data["version"] = version
 
         response = await self._request(
-            FlextCliConstants.HttpMethod.POST,
+            FlextCliConstants.Enums.HttpMethod.POST,
             "/api/v1/plugins/install",
             json_data=json_data,
         )
@@ -577,7 +577,7 @@ class FlextCliClient:
 
         """
         await self._request(
-            FlextCliConstants.HttpMethod.DELETE,
+            FlextCliConstants.Enums.HttpMethod.DELETE,
             f"/api/v1/plugins/{plugin_id}",
         )
 
@@ -601,7 +601,7 @@ class FlextCliClient:
             json_data["version"] = version
 
         response = await self._request(
-            FlextCliConstants.HttpMethod.PUT,
+            FlextCliConstants.Enums.HttpMethod.PUT,
             f"/api/v1/plugins/{plugin_id}",
             json_data=json_data,
         )
@@ -616,7 +616,7 @@ class FlextCliClient:
 
         """
         response = await self._request(
-            FlextCliConstants.HttpMethod.GET,
+            FlextCliConstants.Enums.HttpMethod.GET,
             "/api/v1/system/status",
         )
         return self._parse_json_response(response)
@@ -629,7 +629,7 @@ class FlextCliClient:
 
         """
         response = await self._request(
-            FlextCliConstants.HttpMethod.GET,
+            FlextCliConstants.Enums.HttpMethod.GET,
             "/api/v1/system/metrics",
         )
         return self._parse_json_response(response)
@@ -642,7 +642,7 @@ class FlextCliClient:
 
         """
         try:
-            await self._request(FlextCliConstants.HttpMethod.GET, "/api/v1/health")
+            await self._request(FlextCliConstants.Enums.HttpMethod.GET, "/api/v1/health")
         except (RuntimeError, ValueError, TypeError) as e:
             logger = FlextLogger(__name__)
             warning_msg = f"Connection test failed: {e}"
