@@ -242,7 +242,7 @@ class TestFlextCliMainErrorHandling:
             assert result is None or result != 0
         except SystemExit as e:
             # CLI should exit with non-zero code for invalid commands
-            assert e.code != 0  # noqa: PT017
+            assert e.code != 0
 
     def test_cli_main_handles_empty_args(self) -> None:
         """Test CLI handles empty arguments."""

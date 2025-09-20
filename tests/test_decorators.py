@@ -385,7 +385,7 @@ class TestFlextCliDecorators(unittest.TestCase):
 
         # Test exception propagation - async_command decorator runs the async function synchronously
         with pytest.raises(ValueError):
-            async_error_func()  # type: ignore[unused-coroutine]
+            async_error_func()
 
 
 if __name__ == "__main__":

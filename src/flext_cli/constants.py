@@ -103,6 +103,7 @@ class FlextCliConstants:
         max_commands_per_session: int = 10_000
         max_timeout_seconds: int = 3600
         max_error_rate_percent: float = 50.0
+        dataset_tuple_length: int = 2
 
     class Security(BaseModel):
         """Security configuration - CLI-specific security settings."""
@@ -189,6 +190,28 @@ class FlextCliConstants:
             PROCESSING_ERROR = "CLI_PROCESSING_ERROR"
             COMMAND_ERROR = "CLI_COMMAND_ERROR"
             FORMAT_ERROR = "CLI_FORMAT_ERROR"
+
+    class TimeoutConfig(BaseModel):
+        """Timeout configuration for CLI operations."""
+
+        default_api_timeout: int = Field(default=30, ge=1, le=300, description="API request timeout in seconds")
+        default_command_timeout: int = Field(default=60, ge=1, le=3600, description="Command execution timeout in seconds")
+        default_connection_timeout: int = Field(default=10, ge=1, le=60, description="Connection timeout in seconds")
+        default_dev_timeout: int = Field(default=120, ge=1, le=600, description="Development timeout in seconds")
+
+    class LimitsConfig(BaseModel):
+        """Limits configuration for CLI operations."""
+
+        max_file_size: int = Field(default=100*1024*1024, ge=1, description="Maximum file size in bytes")
+        max_records: int = Field(default=10000, ge=1, description="Maximum number of records to process")
+        max_concurrent: int = Field(default=10, ge=1, le=100, description="Maximum concurrent operations")
+
+    class OutputConfig(BaseModel):
+        """Output configuration for CLI operations."""
+
+        default_format: str = Field(default="table", description="Default output format")
+        max_width: int = Field(default=120, ge=40, le=200, description="Maximum output width")
+        show_progress: bool = Field(default=True, description="Show progress indicators")
 
     class FeatureFlags:
         """CLI-specific feature toggles."""

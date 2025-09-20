@@ -116,11 +116,14 @@ class FlextCliCmd(FlextDomainService[str]):
         """Edit configuration using internal helper."""
         return self._ConfigModificationHelper.edit_config()
 
-    def validate_config(self) -> FlextResult[None]:
+    def validate_config(self) -> FlextResult[object]:
         """Validate configuration using internal helper."""
         # Create a default config for validation
         config = FlextCliConfigs()
-        return self._ConfigValidationHelper.validate_config(config)
+        result = self._ConfigValidationHelper.validate_config(config)
+        if result.is_success:
+            return FlextResult[object].ok(result.value)
+        return FlextResult[object].fail(result.error or "Validation failed")
 
 
 __all__ = [
