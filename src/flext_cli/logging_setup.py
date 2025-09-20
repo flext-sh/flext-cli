@@ -26,7 +26,7 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
     No loose helper functions - all functionality encapsulated.
     """
 
-    # LoggingConfig access for tests compatibility
+    # LoggingConfig class reference for direct access
     LoggingConfig: ClassVar[type[FlextCliModels.LoggingConfig]] = (
         FlextCliModels.LoggingConfig
     )

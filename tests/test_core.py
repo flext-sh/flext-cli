@@ -15,7 +15,7 @@ from flext_cli.core import FlextCliService
 from flext_cli.domain_services import FlextCliDomainServices
 from flext_cli.models import FlextCliModels
 from flext_cli.typings import FlextCliTypes
-from flext_core import FlextTypes
+from flext_core import FlextResult, FlextTypes
 
 
 class TestFlextCliService(unittest.TestCase):
@@ -211,9 +211,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         """Test JSON formatting with simple data."""
         data = {"name": "test", "value": 123, "active": True}
 
-        result = self.service.format_data(
-            data, FlextCliTypes.OutputFormat.JSON.value
-        )
+        result = self.service.format_data(data, FlextCliTypes.OutputFormat.JSON.value)
         assert result.is_success
         formatted = result.value
 
@@ -233,9 +231,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             "metadata": {"total": 2, "created_at": "2025-01-01T00:00:00Z"},
         }
 
-        result = self.service.format_data(
-            data, FlextCliTypes.OutputFormat.JSON.value
-        )
+        result = self.service.format_data(data, FlextCliTypes.OutputFormat.JSON.value)
         assert result.is_success
         formatted = result.value
 
@@ -253,9 +249,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             "features": ["feature1", "feature2", "feature3"],
         }
 
-        result = self.service.format_data(
-            data, FlextCliTypes.OutputFormat.YAML.value
-        )
+        result = self.service.format_data(data, FlextCliTypes.OutputFormat.YAML.value)
         assert result.is_success
         formatted = result.value
 
@@ -273,9 +267,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             {"name": "Carol", "age": 35, "city": "Chicago"},
         ]
 
-        result = self.service.format_data(
-            data, FlextCliTypes.OutputFormat.CSV.value
-        )
+        result = self.service.format_data(data, FlextCliTypes.OutputFormat.CSV.value)
         assert result.is_success
         formatted = result.value
 
@@ -294,9 +286,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             "uptime": "99.9%",
         }
 
-        result = self.service.format_data(
-            data, FlextCliTypes.OutputFormat.TABLE.value
-        )
+        result = self.service.format_data(data, FlextCliTypes.OutputFormat.TABLE.value)
         assert result.is_success
         formatted = result.value
 
@@ -314,9 +304,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             {"id": 3, "product": "keyboard", "price": 75},
         ]
 
-        result = self.service.format_data(
-            data, FlextCliTypes.OutputFormat.TABLE.value
-        )
+        result = self.service.format_data(data, FlextCliTypes.OutputFormat.TABLE.value)
         assert result.is_success
         formatted = result.value
 
@@ -330,9 +318,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         """Test plain text formatting."""
         data = "Simple plain text message for testing"
 
-        result = self.service.format_data(
-            data, FlextCliTypes.OutputFormat.PLAIN.value
-        )
+        result = self.service.format_data(data, FlextCliTypes.OutputFormat.PLAIN.value)
         assert result.is_success
         formatted = result.value
         assert formatted == "Simple plain text message for testing"
@@ -480,11 +466,19 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
     def test_flext_cli_validate_format_valid_formats(self) -> None:
         """Test format validation with all valid formats."""
-        valid_formats = ["json", "yaml", "csv", "table", "plain"]
+        # Use appropriate data for each format type
+        test_data_dict = {"test": "data"}
+        test_data_list = [{"name": "test", "value": "data"}]
 
-        for format_type in valid_formats:
-            result = self.service.format_data({"test": "data"}, format_type)
-            assert result.is_success
+        # JSON, YAML, and plain work with dict
+        for format_type in ["json", "yaml", "plain"]:
+            result = self.service.format_data(test_data_dict, format_type)
+            assert result.is_success, f"Format {format_type} should succeed with dict data"
+
+        # CSV and table require list of dicts
+        for format_type in ["csv", "table"]:
+            result = self.service.format_data(test_data_list, format_type)
+            assert result.is_success, f"Format {format_type} should succeed with list data"
 
     def test_flext_cli_validate_format_invalid_format(self) -> None:
         """Test format validation rejects invalid formats."""
@@ -773,6 +767,122 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         assert isinstance(health["handlers"], int)
         assert health["handlers"] >= 0  # Check handlers count instead
         assert health["sessions"] == 2
+
+
+class TestFlextCliServiceAdditionalCoverage(unittest.TestCase):
+    """Additional tests for FlextCliService to improve coverage - consolidated from test_core_additional.py."""
+
+    def test_format_data_methods(self) -> None:
+        """Test format_data method."""
+        service = FlextCliService()
+
+        # Test format_data method
+        test_data = {"key": "value", "number": 42}
+        result = service.format_data(test_data, "json")
+        assert isinstance(result, FlextResult)
+
+    def test_flext_cli_export_method(self) -> None:
+        """Test flext_cli_export method."""
+        service = FlextCliService()
+
+        test_data = {"key": "value", "number": 42}
+        result = service.flext_cli_export(test_data, "json", "test_file.json")
+        assert isinstance(result, FlextResult)
+
+    def test_flext_cli_register_plugin_method(self) -> None:
+        """Test flext_cli_register_plugin method."""
+        service = FlextCliService()
+
+        # Create a mock plugin
+        class MockPlugin:
+            def __init__(self) -> None:
+                self.name = "test-plugin"
+                self.version = "1.0.0"
+
+        mock_plugin = MockPlugin()
+        result = service.flext_cli_register_plugin("test-plugin", mock_plugin)
+        assert isinstance(result, FlextResult)
+
+    def test_flext_cli_get_plugins_method(self) -> None:
+        """Test flext_cli_get_plugins method."""
+        service = FlextCliService()
+
+        result = service.flext_cli_get_plugins()
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+        assert isinstance(result.unwrap(), dict)
+
+    def test_flext_cli_execute_handler_method(self) -> None:
+        """Test flext_cli_execute_handler method."""
+        service = FlextCliService()
+
+        # Test with handler name and data
+        handler_data = {"command": "test", "args": ["arg1", "arg2"]}
+        result = service.flext_cli_execute_handler("test_handler", handler_data)
+        assert isinstance(result, FlextResult)
+
+    def test_flext_cli_render_with_context_method(self) -> None:
+        """Test flext_cli_render_with_context method."""
+        service = FlextCliService()
+
+        # Test with mock template and context
+        template = "Hello {{name}}!"
+        context = {"name": "World"}
+        result = service.flext_cli_render_with_context(template, context)
+        assert isinstance(result, FlextResult)
+
+    def test_flext_cli_create_command_method(self) -> None:
+        """Test flext_cli_create_command method."""
+        service = FlextCliService()
+
+        # Test with command name and command line
+        result = service.flext_cli_create_command("test-command", "test-command --help")
+        assert isinstance(result, FlextResult)
+
+    def test_registry_property(self) -> None:
+        """Test registry property."""
+        service = FlextCliService()
+
+        registry = service.registry
+        assert registry is not None
+
+    def test_orchestrator_property(self) -> None:
+        """Test orchestrator property."""
+        service = FlextCliService()
+
+        orchestrator = service.orchestrator
+        assert orchestrator is not None
+
+    def test_metrics_property(self) -> None:
+        """Test metrics property."""
+        service = FlextCliService()
+
+        metrics = service.metrics
+        assert isinstance(metrics, dict)
+
+    def test_get_service_health_method(self) -> None:
+        """Test get_service_health method."""
+        service = FlextCliService()
+
+        result = service.get_service_health()
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+        health_data = result.unwrap()
+        assert isinstance(health_data, dict)
+        assert "service" in health_data
+        assert "status" in health_data
+
+    def test_update_configuration_method(self) -> None:
+        """Test update_configuration method."""
+        service = FlextCliService()
+
+        # This method doesn't return anything, just test it doesn't crash
+        service.update_configuration()
+
+        # Verify the method exists and is callable
+        assert hasattr(service, "update_configuration")
+        assert callable(service.update_configuration)
 
 
 if __name__ == "__main__":

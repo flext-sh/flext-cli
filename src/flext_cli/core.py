@@ -18,9 +18,8 @@ import yaml
 from pydantic import PrivateAttr
 
 from flext_cli.configs import FlextCliConfigs
-from flext_cli.formatters import FlextCliFormatters
+from flext_cli.formatting import FlextCliFormatters
 from flext_cli.models import FlextCliModels
-from flext_cli.utils import FlextCliUtilities
 from flext_core import (
     FlextContainer,
     FlextDomainService,
@@ -52,16 +51,16 @@ class FlextCliService(FlextDomainService[str]):
     # Private attributes
     _config: FlextCliConfigs | None = PrivateAttr(default=None)
     _commands: dict[str, object] = PrivateAttr(
-        default_factory=FlextCliUtilities.empty_dict,
+        default_factory=dict,
     )
     _registered_handlers: dict[str, object] = PrivateAttr(
-        default_factory=FlextCliUtilities.empty_dict,
+        default_factory=dict,
     )
     _plugins: dict[str, object] = PrivateAttr(
-        default_factory=FlextCliUtilities.empty_dict,
+        default_factory=dict,
     )
     _sessions: dict[str, object] = PrivateAttr(
-        default_factory=FlextCliUtilities.empty_dict,
+        default_factory=dict,
     )
     _formatters: FlextCliFormatters | None = PrivateAttr(default=None)
 
@@ -89,7 +88,7 @@ class FlextCliService(FlextDomainService[str]):
         Sets up configuration and formatters using flext-core patterns.
         No fallback mechanisms are used.
         """
-        # Initialize with None for test compatibility
+        # Initialize configuration state
         self._config = None
 
         # Initialize formatters with configuration
@@ -138,20 +137,20 @@ class FlextCliService(FlextDomainService[str]):
             raise RuntimeError(msg)
         return self._formatters
 
-    # Properties for test compatibility
+    # Public property accessors
     @property
     def registry(self) -> object:
-        """Get service registry for test compatibility."""
+        """Get service registry for inspection."""
         return self._service_registry
 
     @property
     def orchestrator(self) -> object:
-        """Get service orchestrator for test compatibility."""
+        """Get service orchestrator for inspection."""
         return self._service_orchestrator
 
     @property
     def metrics(self) -> dict[str, object]:
-        """Get service metrics for test compatibility."""
+        """Get service metrics for monitoring."""
         return {
             "commands_executed": len(self._commands),
             "handlers_registered": len(self._registered_handlers),

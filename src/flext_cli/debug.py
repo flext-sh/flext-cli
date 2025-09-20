@@ -15,15 +15,6 @@ import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
-from flext_cli.cli import (
-    check,
-    connectivity,
-    env,
-    paths,
-    performance,
-    trace,
-    validate,
-)
 from flext_cli.client import FlextCliClient
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
@@ -40,16 +31,6 @@ class FlextCliDebug(FlextDomainService[str]):
     Single responsibility: Debug operations and system diagnostics.
     Uses flext-core utilities directly without wrapper layers.
     """
-
-    # Use unified types from centralized modules - marked as ClassVar for Pydantic
-    # Need to move to FlextCliTypes
-    # SystemMetrics: ClassVar[type[FlextCliTypes.SystemMetrics]] = (
-    #     FlextCliTypes.SystemMetrics
-    # )
-    # PathInfo: ClassVar[type[FlextCliTypes.PathInfo]] = FlextCliTypes.PathInfo
-    # EnvironmentInfo: ClassVar[type[FlextCliTypes.EnvironmentInfo]] = (
-    #     FlextCliTypes.EnvironmentInfo
-    # )
 
     def __init__(self, **_data: object) -> None:
         """Initialize debug service."""
@@ -253,7 +234,7 @@ class FlextCliDebug(FlextDomainService[str]):
                 return
 
     def get_system_info(self) -> FlextResult[dict[str, object]]:
-        """Get system information for CLI compatibility."""
+        """Get system information for CLI debugging."""
         try:
             system_info: dict[str, object] = {
                 "service": self.__class__.__name__,
@@ -267,7 +248,7 @@ class FlextCliDebug(FlextDomainService[str]):
             return FlextResult[dict[str, object]].fail(f"System info failed: {e}")
 
     def validate_configuration(self) -> FlextResult[list[str]]:
-        """Validate configuration for CLI compatibility."""
+        """Validate configuration for CLI debugging."""
         try:
             validation_results = [
                 "Configuration validation passed",
@@ -288,18 +269,6 @@ class FlextCliDebug(FlextDomainService[str]):
             return FlextResult[str].fail(f"Debug service execution failed: {e}")
 
 
-# Criar instância única para aliases
-# _debug_instance = FlextCliDebug()  # Temporarily disabled due to validation errors
-
-# Aliases moved to top-level imports for E402 compliance
-
 __all__ = [
     "FlextCliDebug",
-    "check",
-    "connectivity",
-    "env",
-    "paths",
-    "performance",
-    "trace",
-    "validate",
 ]

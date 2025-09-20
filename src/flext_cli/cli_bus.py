@@ -141,8 +141,8 @@ class FlextCliCommandBusService(FlextDomainService[None]):
 
     def execute_show_config_command(
         self,
-        output_format: str = FlextCliConstants.Output.TABLE,
-        profile: str = FlextCliConstants.ProfileName.DEFAULT,
+        output_format: str = FlextCliConstants.Enums.Output.TABLE,
+        profile: str = FlextCliConstants.Enums.ProfileName.DEFAULT,
     ) -> FlextResult[dict[str, object]]:
         """Execute show config command using flext-core Command Bus."""
         command = FlextCliModels.ShowConfigCommand(
@@ -173,7 +173,7 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         self,
         key: str,
         value: str,
-        profile: str = FlextCliConstants.ProfileName.DEFAULT,
+        profile: str = FlextCliConstants.Enums.ProfileName.DEFAULT,
     ) -> FlextResult[bool]:
         """Execute set config command using flext-core Command Bus."""
         command = FlextCliModels.SetConfigValueCommand(
@@ -194,7 +194,7 @@ class FlextCliCommandBusService(FlextDomainService[None]):
 
     def execute_edit_config_command(
         self,
-        profile: str = FlextCliConstants.ProfileName.DEFAULT,
+        profile: str = FlextCliConstants.Enums.ProfileName.DEFAULT,
         editor: str = "",
     ) -> FlextResult[bool]:
         """Execute edit config command using flext-core Command Bus."""

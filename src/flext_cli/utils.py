@@ -12,9 +12,7 @@ from __future__ import annotations
 import json
 import logging
 from collections.abc import Callable, Sequence
-from datetime import UTC, datetime
 from pathlib import Path
-from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, ValidationError
 from pydantic_settings import SettingsConfigDict
@@ -51,31 +49,6 @@ class FlextCliUtilities(BaseModel):
         return self._container
 
     @staticmethod
-    def generate_uuid() -> str:
-        """Generate UUID string."""
-        return str(uuid4())
-
-    @staticmethod
-    def utc_now() -> datetime:
-        """Get current UTC datetime."""
-        return datetime.now(UTC)
-
-    @staticmethod
-    def empty_dict() -> dict[str, object]:
-        """Get empty dict."""
-        return {}
-
-    @staticmethod
-    def empty_list() -> list[object]:
-        """Get empty list."""
-        return []
-
-    @staticmethod
-    def empty_str_dict() -> dict[str, str]:
-        """Get empty string dict."""
-        return {}
-
-    @staticmethod
     def get_base_config_dict() -> ConfigDict:
         """Get base Pydantic configuration for CLI models."""
         return ConfigDict(
@@ -93,11 +66,6 @@ class FlextCliUtilities(BaseModel):
             arbitrary_types_allowed=False,
             str_strip_whitespace=True,
         )
-
-    @staticmethod
-    def empty_str_list() -> list[str]:
-        """Get empty string list."""
-        return []
 
     @staticmethod
     def home_path() -> Path:

@@ -335,7 +335,7 @@ class FlextCliDecorators:
 
         return decorator
 
-    # CLI-specific retry alias to avoid override conflict
+    # CLI-specific retry implementation
 
     # Override the stub retry method from flext-core with proper implementation
     @staticmethod
