@@ -1,4 +1,8 @@
-"""FLEXT CLI Decorators - Class-only decorator utilities (no free helpers)."""
+"""FLEXT CLI Decorators - Class-only decorator utilities (no free helpers).
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

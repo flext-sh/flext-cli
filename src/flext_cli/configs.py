@@ -1,5 +1,8 @@
 """Unified CLI configurations module with single FlextCliConfigs class.
 
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 This module consolidates ALL configuration-related functionality into a single
 unified class following SOLID principles and flext-core patterns.
 """

@@ -451,53 +451,69 @@ class TestDataExport:
                 ) or "Unsupported export format" in str(result.error or "")
 
 
-class TestUtilityFunctions:
-    """Test utility functions."""
+class TestRailwayPatterns:
+    """Test railway pattern usage in FlextCliApi - NO legacy compatibility methods."""
 
-    def test_flext_cli_unwrap_or_default_success(self) -> None:
-        """Test unwrap_or_default with successful result."""
-        result = FlextResult[str].ok("success")
-
+    def test_flext_result_composition_success(self) -> None:
+        """Test proper FlextResult composition using map/flat_map patterns."""
         api = FlextCliApi()
-        value = api.unwrap_or_default(result, "default")
+        
+        # Test railway pattern composition
+        result = api.format_output({"test": "data"}, format_type="json")
+        
+        assert result.is_success
+        formatted_data = result.unwrap()
+        assert isinstance(formatted_data, str)
+        assert "test" in formatted_data
 
-        assert value == "success"
-
-    def test_flext_cli_unwrap_or_default_failure(self) -> None:
-        """Test unwrap_or_default with failed result."""
-        result = FlextResult[str].fail("error")
-
+    def test_flext_result_composition_failure(self) -> None:
+        """Test railway pattern error propagation."""
         api = FlextCliApi()
-        value = api.unwrap_or_default(result, "default")
+        
+        # Test with invalid format type to trigger failure
+        result = api.format_output({"test": "data"}, format_type="invalid_format")
+        
+        assert result.is_failure
+        assert result.error is not None
 
-        assert value == "default"
-
-    def test_flext_cli_unwrap_or_none_success(self) -> None:
-        """Test unwrap_or_none with successful result."""
-        result = FlextResult[str].ok("success")
-
+    def test_railway_pattern_chaining(self) -> None:
+        """Test chaining operations using railway patterns."""
         api = FlextCliApi()
-        value = api.unwrap_or_none(result)
+        
+        # Test chained operations using railway patterns
+        format_result = api.format_output({"test": "data"}, format_type="table")
+        
+        if format_result.is_success:
+            display_result = api.display_output(format_result.unwrap())
+            assert display_result.is_success
+        else:
+            assert False, f"Format operation should succeed: {format_result.error}"
 
-        assert value == "success"
-
-    def test_flext_cli_unwrap_or_none_failure(self) -> None:
-        """Test unwrap_or_none with failed result."""
-        result = FlextResult[str].fail("error")
-
+    def test_explicit_error_handling(self) -> None:
+        """Test explicit error handling without try/except fallbacks."""
         api = FlextCliApi()
-        value = api.unwrap_or_none(result)
+        
+        # Test explicit error checking pattern
+        result = api.execute_command("invalid_command")
+        
+        # Use explicit is_success/is_failure checks instead of try/except
+        if result.is_failure:
+            assert result.error is not None
+            assert "invalid_command" in str(result.error) or "Unknown command" in str(result.error)
+        else:
+            # Should not reach here for invalid command
+            assert False, "Invalid command should fail"
 
-        assert value is None
-
-    def test_flext_cli_unwrap_or_none_none_result(self) -> None:
-        """Test unwrap_or_none with None result."""
-        result = FlextResult[None].ok(None)
-
+    def test_health_status_railway_pattern(self) -> None:
+        """Test health status using pure railway patterns."""
         api = FlextCliApi()
-        value = api.unwrap_or_none(result)
-
-        assert value is None
+        
+        health_result = api.get_health_status()
+        
+        assert health_result.is_success
+        health_data = health_result.unwrap()
+        assert isinstance(health_data, dict)
+        assert "status" in health_data
 
 
 class TestEdgeCases:

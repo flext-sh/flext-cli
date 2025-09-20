@@ -1,3 +1,9 @@
+"""Type stubs for tabulate library - FLEXT CLI Foundation.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
 from collections.abc import Iterable, Mapping, Sequence
 from typing import Literal
 

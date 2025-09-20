@@ -185,16 +185,15 @@ class FlextCliService(FlextDomainService[str]):
         # This will be implemented when concrete handlers are available
 
     def get_service_health(self) -> FlextResult[dict[str, object]]:
-        """Get service health using flext-core patterns directly.
+        """Get service health using explicit error handling.
 
         Returns:
             FlextResult[dict[str, object]]: Health information or error.
 
-        Raises:
-            RuntimeError: If health check fails.
-
         """
-        try:
+
+        def build_health_info() -> dict[str, object]:
+            """Build health information dictionary - used by safe_call."""
             health_info: dict[str, object] = {
                 "service": "FlextCliService",
                 "status": "healthy",
@@ -216,13 +215,13 @@ class FlextCliService(FlextDomainService[str]):
                     "output_format": getattr(self._config, "output_format", "unknown"),
                 }
 
-            return FlextResult[dict[str, object]].ok(health_info)
+            return health_info
 
-        except (
-            AttributeError,
-            ValueError,
-        ) as e:
-            return FlextResult[dict[str, object]].fail(f"Health check failed: {e}")
+        result = FlextResult.safe_call(build_health_info)
+        if result.is_failure:
+            return FlextResult[dict[str, object]].fail(f"Health check failed: {result.error}")
+
+        return result
 
     def format_data(self, data: object, format_type: str) -> FlextResult[str]:
         """Format data using FlextCliFormatters.
@@ -245,7 +244,7 @@ class FlextCliService(FlextDomainService[str]):
         file_path: str,
         format_type: str,
     ) -> FlextResult[str]:
-        """Export data to file using flext-core utilities directly.
+        """Export data to file using explicit error handling.
 
         Args:
             data: Data to export.
@@ -256,33 +255,72 @@ class FlextCliService(FlextDomainService[str]):
             FlextResult[str]: Export result or error.
 
         """
-        try:
-            path = Path(file_path)
-            path.parent.mkdir(parents=True, exist_ok=True)
 
+        def create_export_directory(path: Path) -> Path:
+            """Create parent directory for export - used by safe_call."""
+            path.parent.mkdir(parents=True, exist_ok=True)
+            return path
+
+        def format_content_for_export(data: object, format_type: str) -> str:
+            """Format content based on export type - used by safe_call."""
             # Python 3.13+ match-case for format type handling
             match format_type.lower():
                 case "json":
-                    content = json.dumps(data, indent=2, ensure_ascii=False)
+                    return json.dumps(data, indent=2, ensure_ascii=False)
                 case "yaml" | "yml":
-                    content = yaml.safe_dump(data, default_flow_style=False)
-                case "csv":
-                    if isinstance(data, list) and data and isinstance(data[0], dict):
-                        with path.open("w", newline="", encoding="utf-8") as csvfile:
-                            writer = csv.DictWriter(csvfile, fieldnames=data[0].keys())
-                            writer.writeheader()
-                            writer.writerows(data)
-                        return FlextResult[str].ok(f"Data exported to {file_path}")
-                    return FlextResult[str].fail(
-                        "CSV export requires list of dictionaries",
-                    )
+                    return yaml.safe_dump(data, default_flow_style=False)
                 case _:
-                    content = str(data)
+                    return str(data)
 
+        def export_csv_data(path: Path, data: object) -> str:
+            """Export CSV data - used by safe_call."""
+            if not isinstance(data, list) or not data or not isinstance(data[0], dict):
+                msg = "CSV export requires list of dictionaries"
+                raise ValueError(msg)
+
+            with path.open("w", newline="", encoding="utf-8") as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=data[0].keys())
+                writer.writeheader()
+                writer.writerows(data)
+            return f"Data exported to {path}"
+
+        def write_content_to_file(path: Path, content: str) -> str:
+            """Write content to file - used by safe_call."""
             path.write_text(content, encoding="utf-8")
-            return FlextResult[str].ok(f"Data exported to {file_path}")
-        except Exception as e:
-            return FlextResult[str].fail(f"Export failed: {e}")
+            return f"Data exported to {path}"
+
+        # Validate inputs first
+        if not file_path.strip():
+            return FlextResult[str].fail("File path cannot be empty")
+
+        path = Path(file_path)
+
+        # Handle CSV special case first
+        if format_type.lower() == "csv":
+            directory_result = FlextResult.safe_call(lambda: create_export_directory(path))
+            if directory_result.is_failure:
+                return FlextResult[str].fail(f"Directory creation failed: {directory_result.error}")
+
+            csv_result = FlextResult.safe_call(lambda: export_csv_data(path, data))
+            if csv_result.is_failure:
+                return FlextResult[str].fail(f"CSV export failed: {csv_result.error}")
+
+            return csv_result
+
+        # Handle other formats using railway pattern
+        directory_result = FlextResult.safe_call(lambda: create_export_directory(path))
+        if directory_result.is_failure:
+            return FlextResult[str].fail(f"Directory creation failed: {directory_result.error}")
+
+        format_result = FlextResult.safe_call(lambda: format_content_for_export(data, format_type))
+        if format_result.is_failure:
+            return FlextResult[str].fail(f"Content formatting failed: {format_result.error}")
+
+        write_result = FlextResult.safe_call(lambda: write_content_to_file(path, format_result.unwrap()))
+        if write_result.is_failure:
+            return FlextResult[str].fail(f"File write failed: {write_result.error}")
+
+        return write_result
 
     def flext_cli_health(self) -> FlextResult[dict[str, object]]:
         """Get CLI health status.
@@ -294,7 +332,7 @@ class FlextCliService(FlextDomainService[str]):
         return self.get_service_health()
 
     def flext_cli_register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
-        """Register a plugin.
+        """Register a plugin using explicit error handling.
 
         Args:
             name: Plugin name.
@@ -304,34 +342,45 @@ class FlextCliService(FlextDomainService[str]):
             FlextResult[None]: Registration result or error.
 
         """
-        try:
+
+        def register_plugin() -> None:
+            """Register plugin - used by safe_call."""
             if name in self._plugins:
-                return FlextResult[None].fail(f"Plugin '{name}' already registered")
+                msg = f"Plugin '{name}' already registered"
+                raise ValueError(msg)
             self._plugins[name] = plugin
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Plugin registration failed: {e}")
+
+        result = FlextResult.safe_call(register_plugin)
+        if result.is_failure:
+            return FlextResult[None].fail(f"Plugin registration failed: {result.error}")
+
+        return FlextResult[None].ok(None)
 
     def flext_cli_get_plugins(self) -> FlextResult[dict[str, object]]:
-        """Get plugins copy.
+        """Get plugins copy using explicit error handling.
 
         Returns:
             FlextResult[dict[str, object]]: Plugins dictionary or error.
 
         """
-        try:
+
+        def copy_plugins() -> dict[str, object]:
+            """Create plugins copy - used by safe_call."""
             # Return a copy to prevent external modification
-            plugins_copy = self._plugins.copy()
-            return FlextResult[dict[str, object]].ok(plugins_copy)
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Get plugins failed: {e}")
+            return self._plugins.copy()
+
+        result = FlextResult.safe_call(copy_plugins)
+        if result.is_failure:
+            return FlextResult[dict[str, object]].fail(f"Get plugins failed: {result.error}")
+
+        return result
 
     def flext_cli_execute_handler(
         self,
         handler_name: str,
         data: object,
     ) -> FlextResult[object]:
-        """Execute handler by name.
+        """Execute handler by name using explicit error handling.
 
         Args:
             handler_name: Name of handler to execute.
@@ -341,24 +390,32 @@ class FlextCliService(FlextDomainService[str]):
             FlextResult[object]: Handler result or error.
 
         """
-        try:
+
+        def execute_handler() -> object:
+            """Execute handler - used by safe_call."""
             if handler_name not in self._registered_handlers:
-                return FlextResult[object].fail(f"Handler '{handler_name}' not found")
+                msg = f"Handler '{handler_name}' not found"
+                raise KeyError(msg)
 
             handler = self._registered_handlers[handler_name]
-            if callable(handler):
-                result = handler(data)
-                return FlextResult[object].ok(result)
-            return FlextResult[object].fail(f"Handler '{handler_name}' is not callable")
-        except Exception as e:
-            return FlextResult[object].fail(f"Handler execution failed: {e}")
+            if not callable(handler):
+                msg = f"Handler '{handler_name}' is not callable"
+                raise TypeError(msg)
+
+            return handler(data)
+
+        result = FlextResult.safe_call(execute_handler)
+        if result.is_failure:
+            return FlextResult[object].fail(f"Handler execution failed: {result.error}")
+
+        return result
 
     def flext_cli_render_with_context(
         self,
         data: object,
         context_options: object = None,
     ) -> FlextResult[str]:
-        """Render data with context using configured format.
+        """Render data with context using explicit error handling.
 
         Args:
             data: Data to render.
@@ -368,7 +425,9 @@ class FlextCliService(FlextDomainService[str]):
             FlextResult[str]: Rendered data or error.
 
         """
-        try:
+
+        def determine_format_type() -> str:
+            """Determine format type from context or config - used by safe_call."""
             # Use context format if provided, otherwise configured format, otherwise default to table
             format_type = "table"
             if (
@@ -379,16 +438,20 @@ class FlextCliService(FlextDomainService[str]):
                 format_type = str(context_options["output_format"])
             elif self._config and hasattr(self._config, "output_format"):
                 format_type = self._config.output_format
-            return self.format_data(data, format_type)
-        except Exception as e:
-            return FlextResult[str].fail(f"Render failed: {e}")
+            return format_type
+
+        format_result = FlextResult.safe_call(determine_format_type)
+        if format_result.is_failure:
+            return FlextResult[str].fail(f"Format type determination failed: {format_result.error}")
+
+        return self.format_data(data, format_result.unwrap())
 
     def flext_cli_create_command(
         self,
         name: str,
         command_line: str,
     ) -> FlextResult[object]:
-        """Create a command.
+        """Create a command using explicit error handling.
 
         Args:
             name: Command name.
@@ -398,7 +461,9 @@ class FlextCliService(FlextDomainService[str]):
             FlextResult[object]: Created command or error.
 
         """
-        try:
+
+        def create_command() -> FlextCliModels.CliCommand:
+            """Create CLI command - used by safe_call."""
             command = FlextCliModels.CliCommand(
                 id=FlextUtilities.Generators.generate_uuid(),
                 command_line=command_line,
@@ -406,12 +471,16 @@ class FlextCliService(FlextDomainService[str]):
                 name=name,
             )
             self._commands[name] = command
-            return FlextResult[object].ok(command)
-        except Exception as e:
-            return FlextResult[object].fail(f"Command creation failed: {e}")
+            return command
+
+        result = FlextResult.safe_call(create_command)
+        if result.is_failure:
+            return FlextResult[object].fail(f"Command creation failed: {result.error}")
+
+        return FlextResult[object].ok(result.unwrap())
 
     def flext_cli_create_session(self, user_id: str) -> FlextResult[object]:
-        """Create a session.
+        """Create a session using explicit error handling.
 
         Args:
             user_id: User ID for session.
@@ -420,7 +489,9 @@ class FlextCliService(FlextDomainService[str]):
             FlextResult[object]: Created session or error.
 
         """
-        try:
+
+        def create_session() -> FlextCliModels.CliSession:
+            """Create CLI session - used by safe_call."""
             session = FlextCliModels.CliSession(
                 id=FlextUtilities.Generators.generate_uuid(),
                 session_id=FlextUtilities.Generators.generate_uuid(),
@@ -428,16 +499,20 @@ class FlextCliService(FlextDomainService[str]):
                 user_id=user_id,
             )
             self._sessions[session.id] = session
-            return FlextResult[object].ok(session)
-        except Exception as e:
-            return FlextResult[object].fail(f"Session creation failed: {e}")
+            return session
+
+        result = FlextResult.safe_call(create_session)
+        if result.is_failure:
+            return FlextResult[object].fail(f"Session creation failed: {result.error}")
+
+        return FlextResult[object].ok(result.unwrap())
 
     def flext_cli_register_handler(
         self,
         name: str,
         handler: object,
     ) -> FlextResult[None]:
-        """Register a handler.
+        """Register a handler using explicit error handling.
 
         Args:
             name: Handler name.
@@ -447,55 +522,70 @@ class FlextCliService(FlextDomainService[str]):
             FlextResult[None]: Registration result or error.
 
         """
-        try:
+
+        def register_handler() -> None:
+            """Register handler - used by safe_call."""
             if name in self._registered_handlers:
-                return FlextResult[None].fail(f"Handler '{name}' already registered")
+                msg = f"Handler '{name}' already registered"
+                raise ValueError(msg)
             self._registered_handlers[name] = handler
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Handler registration failed: {e}")
+
+        result = FlextResult.safe_call(register_handler)
+        if result.is_failure:
+            return FlextResult[None].fail(f"Handler registration failed: {result.error}")
+
+        return FlextResult[None].ok(None)
 
     def flext_cli_get_handlers(self) -> FlextResult[dict[str, object]]:
-        """Get handlers copy.
+        """Get handlers copy using explicit error handling.
 
         Returns:
             FlextResult[dict[str, object]]: Handlers dictionary or error.
 
         """
-        try:
+
+        def copy_handlers() -> dict[str, object]:
+            """Create handlers copy - used by safe_call."""
             # Return a copy to prevent external modification
-            handlers_copy = self._registered_handlers.copy()
-            return FlextResult[dict[str, object]].ok(handlers_copy)
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Get handlers failed: {e}")
+            return self._registered_handlers.copy()
+
+        result = FlextResult.safe_call(copy_handlers)
+        if result.is_failure:
+            return FlextResult[dict[str, object]].fail(f"Get handlers failed: {result.error}")
+
+        return result
 
     def flext_cli_get_sessions(self) -> FlextResult[dict[str, object]]:
-        """Get sessions copy.
+        """Get sessions copy using explicit error handling.
 
         Returns:
             FlextResult[dict[str, object]]: Sessions dictionary or error.
 
         """
-        try:
+
+        def copy_sessions() -> dict[str, object]:
+            """Create sessions copy - used by safe_call."""
             # Return a copy to prevent external modification
-            sessions_copy = self._sessions.copy()
-            return FlextResult[dict[str, object]].ok(sessions_copy)
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Get sessions failed: {e}")
+            return self._sessions.copy()
+
+        result = FlextResult.safe_call(copy_sessions)
+        if result.is_failure:
+            return FlextResult[dict[str, object]].fail(f"Get sessions failed: {result.error}")
+
+        return result
 
     def flext_cli_get_commands(self) -> FlextResult[dict[str, object]]:
-        """Get commands copy.
+        """Get commands using explicit error handling."""
 
-        Returns:
-            FlextResult[dict[str, object]]: Commands dictionary or error.
+        def copy_commands_dict() -> dict[str, object]:
+            """Create commands copy - used by safe_call."""
+            return self._commands.copy()
 
-        """
-        try:
-            # Return a copy to prevent external modification
-            commands_copy = self._commands.copy()
-            return FlextResult[dict[str, object]].ok(commands_copy)
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Get commands failed: {e}")
+        result = FlextResult.safe_call(copy_commands_dict)
+        if result.is_failure:
+            return FlextResult[dict[str, object]].fail(f"Commands retrieval failed: {result.error}")
+
+        return result
 
     def validate_request(self, request_data: object) -> FlextResult[bool]:
         """Validate request using flext-core validation.
@@ -507,19 +597,19 @@ class FlextCliService(FlextDomainService[str]):
             FlextResult[bool]: Validation result or error.
 
         """
-        try:
-            # Use flext-core validation directly - NO duplication
+
+        def validate_request_data() -> bool:
+            """Validate request data - used by safe_call."""
             if request_data is None:
-                return FlextResult[bool].ok(data=False)
-
+                return False
             # Basic validation using flext-core patterns
-            return FlextResult[bool].ok(data=True)
+            return True
 
-        except (
-            AttributeError,
-            ValueError,
-        ) as e:
-            return FlextResult[bool].fail(f"Request validation failed: {e}")
+        result = FlextResult.safe_call(validate_request_data)
+        if result.is_failure:
+            return FlextResult[bool].fail(f"Request validation failed: {result.error}")
+
+        return FlextResult[bool].ok(data=result.unwrap())
 
     def start(self) -> FlextResult[None]:
         """Start CLI service.
@@ -528,16 +618,20 @@ class FlextCliService(FlextDomainService[str]):
             FlextResult[None]: Start result or error.
 
         """
-        try:
+
+        def initialize_and_start_service() -> None:
+            """Initialize and start CLI service - used by safe_call."""
             # Initialize services if not already done
             if not hasattr(self, "_service_registry"):
                 self._initialize_services()
 
             self._logger.info("FlextCliService started successfully")
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            self._logger.exception("Failed to start FlextCliService")
-            return FlextResult[None].fail(f"Service start failed: {e}")
+
+        result = FlextResult.safe_call(initialize_and_start_service)
+        if result.is_failure:
+            return FlextResult[None].fail(f"Service start failed: {result.error}")
+
+        return FlextResult[None].ok(None)
 
     def stop(self) -> FlextResult[None]:
         """Stop CLI service.
@@ -546,7 +640,9 @@ class FlextCliService(FlextDomainService[str]):
             FlextResult[None]: Stop result or error.
 
         """
-        try:
+
+        def cleanup_and_stop_service() -> None:
+            """Clean up and stop CLI service - used by safe_call."""
             # Clean up resources
             self._commands.clear()
             self._registered_handlers.clear()
@@ -554,10 +650,12 @@ class FlextCliService(FlextDomainService[str]):
             self._sessions.clear()
 
             self._logger.info("FlextCliService stopped successfully")
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            self._logger.exception("Failed to stop FlextCliService")
-            return FlextResult[None].fail(f"Service stop failed: {e}")
+
+        result = FlextResult.safe_call(cleanup_and_stop_service)
+        if result.is_failure:
+            return FlextResult[None].fail(f"Service stop failed: {result.error}")
+
+        return FlextResult[None].ok(None)
 
     def health_check(self) -> FlextResult[str]:
         """Perform health check and return status.
@@ -566,14 +664,19 @@ class FlextCliService(FlextDomainService[str]):
             FlextResult[str]: Health status or error.
 
         """
-        try:
+
+        def perform_health_check() -> str:
+            """Perform health check operation - used by safe_call."""
             health_result = self.get_service_health()
             if health_result.is_success:
-                return FlextResult[str].ok("healthy")
-            return FlextResult[str].fail("unhealthy")
-        except Exception as e:
-            self._logger.exception("Health check failed")
-            return FlextResult[str].fail(f"Health check failed: {e}")
+                return "healthy"
+            return "unhealthy"
+
+        result = FlextResult.safe_call(perform_health_check)
+        if result.is_failure:
+            return FlextResult[str].fail(f"Health check failed: {result.error}")
+
+        return result
 
     def configure(self, config: object) -> FlextResult[None]:
         """Configure service with new configuration.
@@ -585,7 +688,9 @@ class FlextCliService(FlextDomainService[str]):
             FlextResult[None]: Configuration result or error.
 
         """
-        try:
+
+        def configure_service() -> None:
+            """Configure service with config - used by safe_call."""
             # Validate configuration
             if isinstance(config, dict):
                 # Handle format_type mapping to output_format
@@ -597,25 +702,23 @@ class FlextCliService(FlextDomainService[str]):
                 valid_keys = {"debug", "output_format", "api_url", "profile"}
                 unknown_keys = [key for key in config_copy if key not in valid_keys]
                 if unknown_keys:
-                    return FlextResult[None].fail(
-                        f"Unknown config keys: {', '.join(unknown_keys)}",
-                    )
+                    raise ValueError(f"Unknown config keys: {', '.join(unknown_keys)}")
 
                 # Create config object from dict
                 self._config = FlextCliConfigs(**config_copy)
             elif isinstance(config, FlextCliConfigs):
                 self._config = config
             else:
-                return FlextResult[None].fail(
-                    "Configuration must be a dictionary or FlextCliConfigs object",
-                )
+                raise ValueError("Configuration must be a dictionary or FlextCliConfigs object")
 
             self._formatters = FlextCliFormatters()
             self._logger.info("FlextCliService configured successfully")
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            self._logger.exception("Failed to configure FlextCliService")
-            return FlextResult[None].fail(f"Service configuration failed: {e}")
+
+        result = FlextResult.safe_call(configure_service)
+        if result.is_failure:
+            return FlextResult[None].fail(f"Service configuration failed: {result.error}")
+
+        return FlextResult[None].ok(None)
 
     def execute(self) -> FlextResult[str]:
         """Execute CLI request using flext-core service processor.
@@ -624,20 +727,22 @@ class FlextCliService(FlextDomainService[str]):
             FlextResult[str]: Execution result or error.
 
         """
-        try:
+
+        def execute_cli_service() -> str:
+            """Execute CLI service operation - used by safe_call."""
             # Use flext-core service orchestrator directly (correct property)
             health_result = self.get_service_health()
             if health_result.is_success:
-                return FlextResult[str].ok("CLI service ready and healthy")
+                return "CLI service ready and healthy"
 
             # Default execution response
-            return FlextResult[str].ok("CLI service executed successfully")
+            return "CLI service executed successfully"
 
-        except (
-            AttributeError,
-            ValueError,
-        ) as e:
-            return FlextResult[str].fail(f"CLI execution failed: {e}")
+        result = FlextResult.safe_call(execute_cli_service)
+        if result.is_failure:
+            return FlextResult[str].fail(f"Service execution failed: {result.error}")
+
+        return result
 
     # ========== Consolidated FlextCliServices functionality ==========
     # Methods from services.py - using flext-core directly with ZERO duplication
@@ -650,12 +755,18 @@ class FlextCliService(FlextDomainService[str]):
             FlextResult[str]: Creation result or error.
 
         """
-        try:
+
+        def create_processor() -> str:
+            """Create command processor - used by safe_call."""
             # Use flext-core processing directly - FlextProcessing exists
             FlextProcessing()
-            return FlextResult[str].ok("Command processor created successfully")
-        except Exception as e:
-            return FlextResult[str].fail(f"Command processor creation failed: {e}")
+            return "Command processor created successfully"
+
+        result = FlextResult.safe_call(create_processor)
+        if result.is_failure:
+            return FlextResult[str].fail(f"Command processor creation failed: {result.error}")
+
+        return result
 
     @staticmethod
     def create_session_processor() -> FlextResult[str]:
@@ -665,13 +776,19 @@ class FlextCliService(FlextDomainService[str]):
             FlextResult[str]: Creation result or error.
 
         """
-        try:
+
+        def create_processor() -> str:
+            """Create session processor - used by safe_call."""
             # Use flext-core processing directly - create_pipeline() returns Pipeline directly
             FlextProcessing.create_pipeline()
             # Pipeline created successfully
-            return FlextResult[str].ok("Session processor created successfully")
-        except Exception as e:
-            return FlextResult[str].fail(f"Session processor creation failed: {e}")
+            return "Session processor created successfully"
+
+        result = FlextResult.safe_call(create_processor)
+        if result.is_failure:
+            return FlextResult[str].fail(f"Session processor creation failed: {result.error}")
+
+        return result
 
     @staticmethod
     def create_config_processor() -> FlextResult[str]:
@@ -681,12 +798,18 @@ class FlextCliService(FlextDomainService[str]):
             FlextResult[str]: Creation result or error.
 
         """
-        try:
+
+        def create_processor() -> str:
+            """Create config processor - used by safe_call."""
             # Use flext-core processing directly
             FlextProcessing()
-            return FlextResult[str].ok("Config processor created successfully")
-        except Exception as e:
-            return FlextResult[str].fail(f"Config processor creation failed: {e}")
+            return "Config processor created successfully"
+
+        result = FlextResult.safe_call(create_processor)
+        if result.is_failure:
+            return FlextResult[str].fail(f"Config processor creation failed: {result.error}")
+
+        return result
 
 
 __all__ = ["FlextCliService"]

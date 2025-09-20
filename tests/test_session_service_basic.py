@@ -8,11 +8,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
 from uuid import uuid4
 
-from flext_cli.session_service import FlextCliSessionService
+import pytest
+
 from flext_cli.models import FlextCliModels
+from flext_cli.session_service import FlextCliSessionService
 from flext_core import FlextResult
 
 
@@ -273,7 +274,9 @@ class TestFlextCliSessionServiceHelpers:
         """Test _SessionValidationHelper session ID validation."""
         # Test valid session ID
         valid_id = str(uuid4())
-        result = FlextCliSessionService._SessionValidationHelper.validate_session_id(valid_id)
+        result = FlextCliSessionService._SessionValidationHelper.validate_session_id(
+            valid_id
+        )
         assert result.is_success
         assert result.unwrap() == valid_id
 
@@ -282,11 +285,15 @@ class TestFlextCliSessionServiceHelpers:
         assert result.is_failure
         assert "Session ID must be a non-empty string" in str(result.error)
 
-        result = FlextCliSessionService._SessionValidationHelper.validate_session_id("invalid-uuid")
+        result = FlextCliSessionService._SessionValidationHelper.validate_session_id(
+            "invalid-uuid"
+        )
         assert result.is_failure
         assert "Invalid session ID format" in str(result.error)
 
-        result = FlextCliSessionService._SessionValidationHelper.validate_session_id(None)
+        result = FlextCliSessionService._SessionValidationHelper.validate_session_id(
+            None
+        )
         assert result.is_failure
 
     def test_session_validation_helper_user_id(self) -> None:
@@ -297,7 +304,9 @@ class TestFlextCliSessionServiceHelpers:
         assert result.unwrap() is None
 
         # Test valid string user ID
-        result = FlextCliSessionService._SessionValidationHelper.validate_user_id("test_user")
+        result = FlextCliSessionService._SessionValidationHelper.validate_user_id(
+            "test_user"
+        )
         assert result.is_success
         assert result.unwrap() == "test_user"
 
@@ -319,7 +328,9 @@ class TestFlextCliSessionServiceHelpers:
     def test_session_state_helper_create_metadata(self) -> None:
         """Test _SessionStateHelper create session metadata."""
         # Test with user ID
-        session = FlextCliSessionService._SessionStateHelper.create_session_metadata("test_user")
+        session = FlextCliSessionService._SessionStateHelper.create_session_metadata(
+            "test_user"
+        )
         assert isinstance(session, FlextCliModels.CliSession)
         assert session.user_id == "test_user"
         assert session.session_id is not None
@@ -328,24 +339,36 @@ class TestFlextCliSessionServiceHelpers:
         assert session.end_time is None
 
         # Test without user ID
-        session = FlextCliSessionService._SessionStateHelper.create_session_metadata(None)
+        session = FlextCliSessionService._SessionStateHelper.create_session_metadata(
+            None
+        )
         assert session.user_id is None
 
     def test_session_state_helper_calculate_duration(self) -> None:
         """Test _SessionStateHelper calculate session duration."""
-        from datetime import UTC, datetime, timedelta
+        from datetime import timedelta
 
         # Create a session with start time
-        session = FlextCliSessionService._SessionStateHelper.create_session_metadata("test")
+        session = FlextCliSessionService._SessionStateHelper.create_session_metadata(
+            "test"
+        )
 
         # Test duration calculation for active session (no end time)
-        duration = FlextCliSessionService._SessionStateHelper.calculate_session_duration(session)
+        duration = (
+            FlextCliSessionService._SessionStateHelper.calculate_session_duration(
+                session
+            )
+        )
         assert isinstance(duration, float)
         assert duration >= 0
 
         # Test duration calculation for ended session
         session.end_time = session.start_time + timedelta(seconds=30)
-        duration = FlextCliSessionService._SessionStateHelper.calculate_session_duration(session)
+        duration = (
+            FlextCliSessionService._SessionStateHelper.calculate_session_duration(
+                session
+            )
+        )
         assert duration == 30.0
 
 

@@ -473,12 +473,16 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         # JSON, YAML, and plain work with dict
         for format_type in ["json", "yaml", "plain"]:
             result = self.service.format_data(test_data_dict, format_type)
-            assert result.is_success, f"Format {format_type} should succeed with dict data"
+            assert result.is_success, (
+                f"Format {format_type} should succeed with dict data"
+            )
 
         # CSV and table require list of dicts
         for format_type in ["csv", "table"]:
             result = self.service.format_data(test_data_list, format_type)
-            assert result.is_success, f"Format {format_type} should succeed with list data"
+            assert result.is_success, (
+                f"Format {format_type} should succeed with list data"
+            )
 
     def test_flext_cli_validate_format_invalid_format(self) -> None:
         """Test format validation rejects invalid formats."""

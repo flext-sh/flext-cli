@@ -35,23 +35,52 @@ class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
 
         self._unified_service = get_unified_cli_service()
 
-    def execute(self, command: str = "", **kwargs: object) -> FlextResult[FlextTypes.Core.Dict | str]:
-        """Execute CLI operation - delegates to unified service."""
+    def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
+        """Execute the main domain service operation - required by FlextDomainService.
+
+        Returns:
+            FlextResult[FlextTypes.Core.Dict]: Health status of the unified service.
+
+        """
+        return self._unified_service.get_health_status()
+
+    def execute_command(
+        self, command: str = "", **kwargs: object
+    ) -> FlextResult[FlextTypes.Core.Dict | str]:
+        """Execute CLI operation using railway pattern.
+
+        Returns:
+            FlextResult[FlextTypes.Core.Dict | str]: Result of command execution or formatted data.
+
+        """
+
+        def handle_format_command(data: object, format_type: str) -> FlextResult[str]:
+            """Handle format command with monadic composition.
+
+            Returns:
+                FlextResult[str]: Formatted data result.
+
+            """
+            return self._unified_service.format_data(data, format_type)
+
+        # Railway pattern for format command
         if command == "format":
-            # Handle format command for test compatibility
             data = kwargs.get("data")
             format_type = str(kwargs.get("format_type", "table"))
             if data is not None:
-                format_result = self._unified_service.format_data(data, format_type)
-                if format_result.is_success:
-                    return FlextResult[FlextTypes.Core.Dict | str].ok(format_result.unwrap())
-                return FlextResult[FlextTypes.Core.Dict | str].fail(format_result.error or "Format failed")
+                return (
+                    FlextResult[object]
+                    .ok(data)
+                    .flat_map(lambda d: handle_format_command(d, format_type))
+                    .map(lambda result: result)  # Cast to union type
+                )
 
-        # Default execution
-        result = self._unified_service.execute()
-        if result.is_success:
-            return FlextResult[FlextTypes.Core.Dict | str].ok(result.unwrap())
-        return FlextResult[FlextTypes.Core.Dict | str].fail(result.error or "Execution failed")
+        # Default execution - direct delegation
+        return (
+            self._unified_service.execute().map(
+                lambda result: result
+            )  # Cast to union type
+        )
 
     def format_output(
         self,
@@ -59,56 +88,121 @@ class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
         format_type: str = "table",
         **options: object,
     ) -> FlextResult[str]:
-        """Format data using unified service - reduced complexity."""
+        """Format data using unified service - reduced complexity.
+
+        Returns:
+            FlextResult[str]: Formatted data string or error result.
+
+        """
         return self._unified_service.format_data(data, format_type, **options)
 
     def display_output(self, formatted_data: str) -> FlextResult[None]:
-        """Display formatted data using unified service."""
+        """Display formatted data using unified service.
+
+        Returns:
+            FlextResult[None]: Success or failure result of display operation.
+
+        """
         return self._unified_service.display_output(formatted_data)
+
+    def display_message(
+        self, message: str, style: str = "", prefix: str = ""
+    ) -> FlextResult[None]:
+        """Display formatted message with optional styling.
+
+        Returns:
+            FlextResult[None]: Success or failure result of message display operation.
+
+        """
+        return self._unified_service.display_message(message, style, prefix)
 
     def create_command(
         self,
         command_line: str,
         **options: object,
     ) -> FlextResult[dict[str, object]]:
-        """Create CLI command using unified service."""
+        """Create CLI command using unified service.
+
+        Returns:
+            FlextResult[dict[str, object]]: Created command metadata or error result.
+
+        """
         return self._unified_service.create_command(command_line, **options)
 
     def get_health_status(self) -> FlextResult[FlextTypes.Core.Dict]:
-        """Get API health status using unified service."""
-        health_result = self._unified_service.get_health_status()
-        if health_result.is_failure:
-            return FlextResult[FlextTypes.Core.Dict].fail(
-                health_result.error or "Health check failed"
-            )
+        """Get API health status using monadic composition.
 
-        return FlextResult[FlextTypes.Core.Dict].ok(health_result.unwrap())
+        Returns:
+            FlextResult[FlextTypes.Core.Dict]: Health status data or error result.
+
+        """
+        return self._unified_service.get_health_status()
 
     def export_data(
         self, data: object, file_path: object, format_type: str = "json"
     ) -> FlextResult[None]:
-        """Export data using unified service."""
-        if not isinstance(file_path, Path):
-            return FlextResult[None].fail("file_path must be a Path object")
+        """Export data using unified service with railway pattern validation.
 
-        return self._unified_service.export_data(data, file_path, format_type)
+        Returns:
+            FlextResult[None]: Success or failure result of export operation.
+
+        """
+
+        def validate_path(path_obj: object) -> FlextResult[Path]:
+            """Validate file path parameter."""
+            if not isinstance(path_obj, Path):
+                return FlextResult[Path].fail("file_path must be a Path object")
+            return FlextResult[Path].ok(path_obj)
+
+        def perform_export(validated_path: Path) -> FlextResult[None]:
+            """Perform the actual export operation."""
+            return self._unified_service.export_data(data, validated_path, format_type)
+
+        return validate_path(file_path).flat_map(perform_export)
 
     def batch_export(
         self, datasets: object, output_dir: object, format_type: str = "json"
     ) -> FlextResult[None]:
-        """Export multiple datasets using unified service."""
-        if not isinstance(output_dir, Path):
-            return FlextResult[None].fail("output_dir must be a Path object")
+        """Export multiple datasets using unified service with railway pattern validation.
 
-        if not isinstance(datasets, dict):
-            return FlextResult[None].fail("datasets must be a dictionary")
+        Returns:
+            FlextResult[None]: Success or failure result of batch export operation.
 
-        return self._unified_service.batch_export(datasets, output_dir, format_type)
+        """
+
+        def validate_output_dir(dir_obj: object) -> FlextResult[Path]:
+            """Validate output directory parameter."""
+            if not isinstance(dir_obj, Path):
+                return FlextResult[Path].fail("output_dir must be a Path object")
+            return FlextResult[Path].ok(dir_obj)
+
+        def validate_datasets(datasets_obj: object) -> FlextResult[dict[str, object]]:
+            """Validate datasets parameter."""
+            if not isinstance(datasets_obj, dict):
+                return FlextResult[dict[str, object]].fail(
+                    "datasets must be a dictionary"
+                )
+            return FlextResult[dict[str, object]].ok(datasets_obj)
+
+        def perform_batch_export(validated_dir: Path) -> FlextResult[None]:
+            """Perform the actual batch export operation."""
+            return validate_datasets(datasets).flat_map(
+                lambda valid_datasets: self._unified_service.batch_export(
+                    valid_datasets, validated_dir, format_type
+                )
+            )
+
+        return validate_output_dir(output_dir).flat_map(perform_batch_export)
 
     def format_and_display(
         self, data: object, format_type: str = "table", **options: object
     ) -> FlextResult[None]:
-        """Format and display data in one operation using unified service."""
+        """Format and display data in one operation using unified service.
+
+        Returns:
+            FlextResult[None]: Success or failure result of format and display operation.
+
+        """
         return self._unified_service.format_and_display(data, format_type, **options)
 
     # Simplified convenience methods (much less code than before)
@@ -133,40 +227,53 @@ class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
     def execute_with_command(
         self, command: str | None = None, **kwargs: object
     ) -> FlextResult[object | str]:
-        """Execute CLI operation with command - simplified through unified service."""
+        """Execute CLI operation with command using railway pattern composition.
+
+        Returns:
+            FlextResult[object | str]: Success or failure result of command execution.
+
+        """
+
+        def handle_format_command(
+            cmd_data: object, fmt_type: str
+        ) -> FlextResult[object | str]:
+            """Handle format command with railway pattern."""
+            if cmd_data is None:
+                return FlextResult[object | str].fail("No data provided for formatting")
+
+            return (
+                self._unified_service.format_data(cmd_data, fmt_type).map(
+                    lambda result: result
+                )  # Cast to union type
+            )
+
+        def execute_default_operation() -> FlextResult[object | str]:
+            """Execute default operation."""
+            return FlextResult[object | str].ok({"status": "operational"})
+
+        def execute_command_with_args(cmd: str) -> FlextResult[object | str]:
+            """Execute specific command with arguments."""
+            if cmd == "format":
+                data = kwargs.get("data")
+                format_type = str(kwargs.get("format_type", "json"))
+                return handle_format_command(data, format_type)
+
+            return FlextResult[object | str].ok(
+                {"status": "operational", "command": cmd}
+            )
+
+        # Railway pattern for command execution
         if command is None:
-            return FlextResult[object].ok({"status": "operational"})
+            return execute_default_operation()
 
-        if command == "format":
-            data = kwargs.get("data")
-            format_type = kwargs.get("format_type", "json")
-            if data is not None:
-                format_result = self._unified_service.format_data(
-                    data, str(format_type)
-                )
-                if format_result.is_failure:
-                    return FlextResult[object | str].fail(
-                        format_result.error or "Formatting failed"
-                    )
-                return FlextResult[object | str].ok(format_result.unwrap())
-            return FlextResult[object].fail("No data provided for formatting")
+        return execute_command_with_args(command)
 
-        return FlextResult[object].ok({"status": "operational", "command": command})
-
-    def execute_command(
-        self, command: str = "status", **kwargs: object
-    ) -> FlextResult[object | str]:
-        """Execute CLI operation - delegates to execute_with_command."""
-        return self.execute_with_command(command, **kwargs)
+    
 
     # Utility methods
-    def unwrap_or_default(self, result: FlextResult[object], default: object) -> object:
-        """Unwrap FlextResult or return default value if failed."""
-        return result.unwrap() if result.is_success else default
+    
 
-    def unwrap_or_none(self, result: FlextResult[object]) -> object | None:
-        """Unwrap FlextResult or return None if failed."""
-        return result.unwrap() if result.is_success else None
+    
 
 
 __all__ = [
