@@ -43,7 +43,7 @@ class FlextCliFileOperations:
         self.interactions = interactions or FlextCliInteractions()
 
     def load_json_file(self, path: str | Path) -> FlextResult[FlextTypes.Core.Dict]:
-        """Load JSON data from file with error handling.
+        """Load JSON data from file using railway pattern - NO try/except fallbacks.
 
         Args:
             path: Path to JSON file
@@ -52,32 +52,46 @@ class FlextCliFileOperations:
             FlextResult containing loaded JSON data as dictionary
 
         """
-        try:
-            file_path = Path(path)
+        def validate_file_path(file_path: Path) -> FlextResult[Path]:
+            """Validate file path exists."""
             if not file_path.exists():
-                return FlextResult[FlextTypes.Core.Dict].fail(f"File not found: {path}")
+                return FlextResult[Path].fail(f"File not found: {path}")
+            return FlextResult[Path].ok(file_path)
 
-            content = file_path.read_text(
-                encoding=FlextCliConstants.FILES.default_encoding,
+        def read_file_content(file_path: Path) -> FlextResult[str]:
+            """Read file content using safe execution."""
+            return FlextResult.safe_call(
+                lambda: file_path.read_text(
+                    encoding=FlextCliConstants.FILES.default_encoding
+                )
             )
-            # Parse JSON content with safe fallback
-            try:
-                parse_result = json.loads(content)
-                if not isinstance(parse_result, dict):
-                    parse_result = {}
-            except (json.JSONDecodeError, ValueError):
-                # Return empty dict for invalid JSON (as expected by tests)
-                parse_result = {}
 
-            return FlextResult[FlextTypes.Core.Dict].ok(parse_result)
-        except (
-            AttributeError,
-            ValueError,
-            PermissionError,
-            FileNotFoundError,
-            OSError,
-        ) as e:
-            return FlextResult[FlextTypes.Core.Dict].fail(f"JSON load failed: {e}")
+        def parse_json_content(content: str) -> FlextResult[FlextTypes.Core.Dict]:
+            """Parse JSON content with safe fallback for invalid JSON."""
+            result = FlextResult.safe_call(lambda: json.loads(content))
+            
+            if result.is_failure:
+                # Return empty dict for invalid JSON (as expected by tests)
+                return FlextResult[FlextTypes.Core.Dict].ok({})
+            
+            parsed_data = result.unwrap()
+            if not isinstance(parsed_data, dict):
+                # Convert non-dict to empty dict (as expected by tests)
+                return FlextResult[FlextTypes.Core.Dict].ok({})
+            
+            return FlextResult[FlextTypes.Core.Dict].ok(parsed_data)
+
+        # Railway pattern composition - NO try/except needed
+        file_path_result = FlextResult.safe_call(lambda: Path(path))
+        if file_path_result.is_failure:
+            return FlextResult[FlextTypes.Core.Dict].fail(f"Invalid path: {path}")
+
+        return (
+            file_path_result
+            .flat_map(validate_file_path)
+            .flat_map(read_file_content)
+            .flat_map(parse_json_content)
+        )
 
     def save_json_file(
         self,
@@ -102,7 +116,7 @@ class FlextCliFileOperations:
             file_path.parent.mkdir(parents=True, exist_ok=True)
 
             # Use standard JSON serialization
-            import json
+
             json_content = json.dumps(data, indent=2, default=str)
             file_path.write_text(
                 json_content,

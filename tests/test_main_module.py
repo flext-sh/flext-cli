@@ -8,10 +8,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-import subprocess
-from pathlib import Path
 import importlib.util
+import subprocess
+import sys
+from pathlib import Path
 
 
 class TestMainModule:
@@ -21,12 +21,14 @@ class TestMainModule:
         """Test that __main__ module can be imported."""
         # Import the __main__ module to trigger coverage
         import flext_cli.__main__
+
         assert flext_cli.__main__ is not None
 
     def test_main_function_import(self) -> None:
         """Test that main function can be imported from __main__."""
         # This tests the import line in __main__.py
         from flext_cli.__main__ import main
+
         assert main is not None
         assert callable(main)
 
@@ -45,10 +47,12 @@ class TestMainModule:
         # Should exit successfully
         assert result.returncode == 0
         # Should contain expected help content
-        assert ("FLEXT CLI" in result.stdout or
-                "Usage:" in result.stdout or
-                "usage:" in result.stdout or
-                "help" in result.stdout.lower())
+        assert (
+            "FLEXT CLI" in result.stdout
+            or "Usage:" in result.stdout
+            or "usage:" in result.stdout
+            or "help" in result.stdout.lower()
+        )
 
     def test_main_module_has_name_main_guard(self) -> None:
         """Test that __main__.py has proper __name__ == '__main__' guard."""
@@ -65,7 +69,7 @@ class TestMainModule:
         # This ensures the import statements in __main__.py are covered
         spec = importlib.util.spec_from_file_location(
             "flext_cli.__main__",
-            Path(__file__).parent.parent / "src" / "flext_cli" / "__main__.py"
+            Path(__file__).parent.parent / "src" / "flext_cli" / "__main__.py",
         )
 
         if spec and spec.loader:

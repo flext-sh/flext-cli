@@ -194,24 +194,47 @@ class FlextCliConstants:
     class TimeoutConfig(BaseModel):
         """Timeout configuration for CLI operations."""
 
-        default_api_timeout: int = Field(default=30, ge=1, le=300, description="API request timeout in seconds")
-        default_command_timeout: int = Field(default=60, ge=1, le=3600, description="Command execution timeout in seconds")
-        default_connection_timeout: int = Field(default=10, ge=1, le=60, description="Connection timeout in seconds")
-        default_dev_timeout: int = Field(default=120, ge=1, le=600, description="Development timeout in seconds")
+        default_api_timeout: int = Field(
+            default=30, ge=1, le=300, description="API request timeout in seconds"
+        )
+        default_command_timeout: int = Field(
+            default=60,
+            ge=1,
+            le=3600,
+            description="Command execution timeout in seconds",
+        )
+        default_connection_timeout: int = Field(
+            default=10, ge=1, le=60, description="Connection timeout in seconds"
+        )
+        default_dev_timeout: int = Field(
+            default=120, ge=1, le=600, description="Development timeout in seconds"
+        )
 
     class LimitsConfig(BaseModel):
         """Limits configuration for CLI operations."""
 
-        max_file_size: int = Field(default=100*1024*1024, ge=1, description="Maximum file size in bytes")
-        max_records: int = Field(default=10000, ge=1, description="Maximum number of records to process")
-        max_concurrent: int = Field(default=10, ge=1, le=100, description="Maximum concurrent operations")
+        max_file_size: int = Field(
+            default=100 * 1024 * 1024, ge=1, description="Maximum file size in bytes"
+        )
+        max_records: int = Field(
+            default=10000, ge=1, description="Maximum number of records to process"
+        )
+        max_concurrent: int = Field(
+            default=10, ge=1, le=100, description="Maximum concurrent operations"
+        )
 
     class OutputConfig(BaseModel):
         """Output configuration for CLI operations."""
 
-        default_format: str = Field(default="table", description="Default output format")
-        max_width: int = Field(default=120, ge=40, le=200, description="Maximum output width")
-        show_progress: bool = Field(default=True, description="Show progress indicators")
+        default_format: str = Field(
+            default="table", description="Default output format"
+        )
+        max_width: int = Field(
+            default=120, ge=40, le=200, description="Maximum output width"
+        )
+        show_progress: bool = Field(
+            default=True, description="Show progress indicators"
+        )
 
     class FeatureFlags:
         """CLI-specific feature toggles."""

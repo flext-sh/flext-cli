@@ -98,52 +98,68 @@ class FlextCliUnifiedService(FlextDomainService[FlextTypes.Core.Dict]):
 
         @staticmethod
         def handle_format_data(command: FormatDataCommand) -> FlextResult[str]:
-            """Handle data formatting command."""
+            """Handle data formatting command using railway pattern."""
             logger = FlextLogger(__name__)
             logger.info(f"Processing format command: {command.request_id}")
 
-            # Validate format type
-            if command.format_type not in {"json", "yaml", "table", "csv", "plain"}:
-                return FlextResult[str].fail(f"Unsupported format: {command.format_type}")
+            def validate_format_type(fmt_type: str) -> FlextResult[str]:
+                """Validate format type using railway pattern."""
+                if fmt_type not in {"json", "yaml", "table", "csv", "plain"}:
+                    return FlextResult[str].fail(f"Unsupported format: {fmt_type}")
+                return FlextResult[str].ok(fmt_type)
 
-            # Delegate to appropriate formatter
-            try:
-                match command.format_type:
+            def delegate_to_formatter(fmt_type: str) -> FlextResult[str]:
+                """Delegate to appropriate formatter using railway pattern."""
+                match fmt_type:
                     case "json":
-                        return FlextCliUnifiedService._CommandHandlers._format_as_json(command.data)
+                        return FlextCliUnifiedService._CommandHandlers._format_as_json(
+                            command.data
+                        )
                     case "yaml":
-                        return FlextCliUnifiedService._CommandHandlers._format_as_yaml(command.data)
+                        return FlextCliUnifiedService._CommandHandlers._format_as_yaml(
+                            command.data
+                        )
                     case "table":
-                        return FlextCliUnifiedService._CommandHandlers._format_as_table(command.data, **command.options)
+                        return FlextCliUnifiedService._CommandHandlers._format_as_table(
+                            command.data, **command.options
+                        )
                     case "csv":
-                        return FlextCliUnifiedService._CommandHandlers._format_as_csv(command.data, **command.options)
+                        return FlextCliUnifiedService._CommandHandlers._format_as_csv(
+                            command.data, **command.options
+                        )
                     case "plain":
                         return FlextResult[str].ok(str(command.data))
                     case _:
-                        return FlextResult[str].fail(f"Format handler not implemented: {command.format_type}")
-            except Exception as e:
-                return FlextResult[str].fail(f"Formatting failed: {e}")
+                        return FlextResult[str].fail(
+                            f"Format handler not implemented: {fmt_type}"
+                        )
+
+            # Railway pattern composition - no try/except needed
+            return validate_format_type(command.format_type).flat_map(
+                delegate_to_formatter
+            )
 
         @staticmethod
         def handle_display_output(command: DisplayOutputCommand) -> FlextResult[None]:
-            """Handle output display command."""
+            """Handle output display command using railway pattern."""
             logger = FlextLogger(__name__)
             logger.info(f"Processing display command: {command.request_id}")
 
-            try:
-                # Use standard output (abstracted from Rich)
-                return FlextResult[None].ok(None)
-            except Exception as e:
-                return FlextResult[None].fail(f"Display failed: {e}")
+            # Direct success return - no risky operations require try/except
+            return FlextResult[None].ok(None)
 
         @staticmethod
-        def handle_create_command(command: CreateCommandCommand) -> FlextResult[dict[str, object]]:
+        def handle_create_command(
+            command: CreateCommandCommand,
+        ) -> FlextResult[dict[str, object]]:
             """Handle CLI command creation."""
             logger = FlextLogger(__name__)
             logger.info(f"Processing create command: {command.request_id}")
 
             if not command.command_line.strip():
-                return FlextResult[dict[str, object]].fail("Command line cannot be empty")
+                return FlextResult[dict[str, object]].fail(
+                    "Command line cannot be empty"
+                )
 
             cli_command: dict[str, object] = {
                 "id": str(uuid4()),
@@ -156,51 +172,102 @@ class FlextCliUnifiedService(FlextDomainService[FlextTypes.Core.Dict]):
 
         @staticmethod
         def handle_export_data(command: ExportDataCommand) -> FlextResult[None]:
-            """Handle data export command."""
+            """Handle data export command using railway pattern."""
             logger = FlextLogger(__name__)
             logger.info(f"Processing export command: {command.request_id}")
 
-            try:
-                if command.format_type == "json":
-                    with command.file_path.open("w") as f:
-                        json.dump(command.data, f, indent=2, default=str)
-                elif command.format_type == "yaml":
-                    with command.file_path.open("w") as f:
-                        yaml.dump(command.data, f, default_flow_style=False)
-                else:
-                    return FlextResult[None].fail(f"Export format not supported: {command.format_type}")
+            def validate_format_type(fmt_type: str) -> FlextResult[str]:
+                """Validate export format type."""
+                if fmt_type not in {"json", "yaml"}:
+                    return FlextResult[str].fail(
+                        f"Export format not supported: {fmt_type}"
+                    )
+                return FlextResult[str].ok(fmt_type)
 
-                return FlextResult[None].ok(None)
-            except Exception as e:
-                return FlextResult[None].fail(f"Export failed: {e}")
+            def export_as_json(data: object, file_path: Path) -> FlextResult[None]:
+                """Export data as JSON using safe execution."""
+                return FlextResult.safe_call(
+                    lambda: FlextCliUnifiedService._CommandHandlers._write_json_file(
+                        data, file_path
+                    )
+                ).map(lambda _: None)
+
+            def export_as_yaml(data: object, file_path: Path) -> FlextResult[None]:
+                """Export data as YAML using safe execution."""
+                return FlextResult.safe_call(
+                    lambda: FlextCliUnifiedService._CommandHandlers._write_yaml_file(
+                        data, file_path
+                    )
+                ).map(lambda _: None)
+
+            def delegate_to_exporter(fmt_type: str) -> FlextResult[None]:
+                """Delegate to appropriate exporter using railway pattern."""
+                match fmt_type:
+                    case "json":
+                        return export_as_json(command.data, command.file_path)
+                    case "yaml":
+                        return export_as_yaml(command.data, command.file_path)
+                    case _:
+                        return FlextResult[None].fail(
+                            f"Export handler not implemented: {fmt_type}"
+                        )
+
+            # Railway pattern composition - no try/except needed
+            return validate_format_type(command.format_type).flat_map(
+                delegate_to_exporter
+            )
+
+        # Private helper functions for file I/O
+        @staticmethod
+        def _write_json_file(data: object, file_path: Path) -> None:
+            """Write data to JSON file - used by safe_call."""
+            with file_path.open("w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, default=str)
+
+        @staticmethod
+        def _write_yaml_file(data: object, file_path: Path) -> None:
+            """Write data to YAML file - used by safe_call."""
+            with file_path.open("w", encoding="utf-8") as f:
+                yaml.dump(data, f, default_flow_style=False)
 
         # Private formatting methods
         @staticmethod
         def _format_as_json(data: object) -> FlextResult[str]:
-            """Format data as JSON."""
-            try:
-                return FlextResult[str].ok(json.dumps(data, indent=2, default=str))
-            except Exception as e:
-                return FlextResult[str].fail(f"JSON formatting failed: {e}")
+            """Format data as JSON using safe execution."""
+            result = FlextResult.safe_call(
+                lambda: json.dumps(data, indent=2, default=str)
+            )
+            if result.is_failure:
+                return FlextResult[str].fail(f"JSON formatting failed: {result.error}")
+            return result
 
         @staticmethod
         def _format_as_yaml(data: object) -> FlextResult[str]:
-            """Format data as YAML."""
+            """Format data as YAML using safe execution."""
             try:
-                return FlextResult[str].ok(yaml.dump(data, default_flow_style=False))
+                formatted_yaml = yaml.dump(data, default_flow_style=False)
+                return FlextResult[str].ok(formatted_yaml)
             except Exception as e:
                 return FlextResult[str].fail(f"YAML formatting failed: {e}")
 
         @staticmethod
         def _format_as_table(data: object, **options: object) -> FlextResult[str]:
-            """Format data as table (simple text format)."""
+            """Format data as table using explicit error handling."""
+            # Validate input data
+            if not isinstance(data, list):
+                return FlextResult[str].fail(
+                    "Table format requires list of dictionaries"
+                )
+
+            if not all(isinstance(item, dict) for item in data):
+                return FlextResult[str].fail(
+                    "Table format requires list of dictionaries"
+                )
+
+            if not data:
+                return FlextResult[str].ok("No data to display")
+
             try:
-                if not isinstance(data, list) or not all(isinstance(item, dict) for item in data):
-                    return FlextResult[str].fail("Table format requires list of dictionaries")
-
-                if not data:
-                    return FlextResult[str].ok("No data to display")
-
                 # Create simple table
                 headers = list(data[0].keys())
                 rows = [list(item.values()) for item in data]
@@ -225,19 +292,22 @@ class FlextCliUnifiedService(FlextDomainService[FlextTypes.Core.Dict]):
 
         @staticmethod
         def _format_as_csv(data: object, **_options: object) -> FlextResult[str]:
-            """Format data as CSV."""
+            """Format data as CSV using explicit error handling."""
+            # Validate input data
+            if not isinstance(data, list):
+                return FlextResult[str].fail("CSV format requires list of dictionaries")
+
+            if not all(isinstance(item, dict) for item in data):
+                return FlextResult[str].fail("CSV format requires list of dictionaries")
+
+            if not data:
+                return FlextResult[str].ok("")
+
             try:
-                if not isinstance(data, list) or not all(isinstance(item, dict) for item in data):
-                    return FlextResult[str].fail("CSV format requires list of dictionaries")
-
-                if not data:
-                    return FlextResult[str].ok("")
-
                 output = StringIO()
                 writer = csv.DictWriter(output, fieldnames=data[0].keys())
                 writer.writeheader()
                 writer.writerows(data)
-
                 return FlextResult[str].ok(output.getvalue())
             except Exception as e:
                 return FlextResult[str].fail(f"CSV formatting failed: {e}")
@@ -249,7 +319,9 @@ class FlextCliUnifiedService(FlextDomainService[FlextTypes.Core.Dict]):
             self._service = service
             self._logger = FlextLogger(__name__)
 
-        def handle_health_status(self, query: HealthStatusQuery) -> FlextResult[dict[str, object]]:
+        def handle_health_status(
+            self, query: HealthStatusQuery
+        ) -> FlextResult[dict[str, object]]:
             """Handle health status query."""
             self._logger.info(f"Processing health query: {query.request_id}")
 
@@ -267,7 +339,9 @@ class FlextCliUnifiedService(FlextDomainService[FlextTypes.Core.Dict]):
 
             return FlextResult[dict[str, object]].ok(health_data)
 
-        def handle_command_history(self, query: CommandHistoryQuery) -> FlextResult[list[dict[str, object]]]:
+        def handle_command_history(
+            self, query: CommandHistoryQuery
+        ) -> FlextResult[list[dict[str, object]]]:
             """Handle command history query."""
             self._logger.info(f"Processing history query: {query.request_id}")
 
@@ -292,30 +366,53 @@ class FlextCliUnifiedService(FlextDomainService[FlextTypes.Core.Dict]):
         # Bus registration simplified - just store handlers
         self._logger.info("Command handlers initialized")
 
-
     def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute the unified service - required by FlextDomainService."""
-        return FlextResult[FlextTypes.Core.Dict].ok({"status": "operational", "service": "flext-cli-unified"})
+        return FlextResult[FlextTypes.Core.Dict].ok(
+            {
+                "status": "operational",
+                "service": "flext-cli-unified",
+            }
+        )
 
     # Public API Methods (simplified through CQRS)
-    def format_data(self, data: object, format_type: str = "table", **options: object) -> FlextResult[str]:
+    def format_data(
+        self, data: object, format_type: str = "table", **options: object
+    ) -> FlextResult[str]:
         """Format data using CQRS command pattern."""
         command = FormatDataCommand(data=data, format_type=format_type, options=options)
         return self._CommandHandlers.handle_format_data(command)
 
-    def display_output(self, formatted_data: str, **options: object) -> FlextResult[None]:
+    def display_output(
+        self, formatted_data: str, **options: object
+    ) -> FlextResult[None]:
         """Display output using CQRS command pattern."""
-        command = DisplayOutputCommand(formatted_data=formatted_data, display_options=options)
+        command = DisplayOutputCommand(
+            formatted_data=formatted_data, display_options=options
+        )
         return self._CommandHandlers.handle_display_output(command)
 
-    def create_command(self, command_line: str, **options: object) -> FlextResult[dict[str, object]]:
+    def display_message(
+        self, message: str, style: str = "", prefix: str = ""
+    ) -> FlextResult[None]:
+        """Display formatted message with optional styling."""
+        formatted_message = f"{prefix}{message}" if prefix else message
+        return self.display_output(formatted_message)
+
+    def create_command(
+        self, command_line: str, **options: object
+    ) -> FlextResult[dict[str, object]]:
         """Create CLI command using CQRS command pattern."""
         command = CreateCommandCommand(command_line=command_line, options=options)
         return self._CommandHandlers.handle_create_command(command)
 
-    def export_data(self, data: object, file_path: Path, format_type: str = "json") -> FlextResult[None]:
+    def export_data(
+        self, data: object, file_path: Path, format_type: str = "json"
+    ) -> FlextResult[None]:
         """Export data using CQRS command pattern."""
-        command = ExportDataCommand(data=data, file_path=file_path, format_type=format_type)
+        command = ExportDataCommand(
+            data=data, file_path=file_path, format_type=format_type
+        )
         return self._CommandHandlers.handle_export_data(command)
 
     def get_health_status(self) -> FlextResult[dict[str, object]]:
@@ -329,7 +426,9 @@ class FlextCliUnifiedService(FlextDomainService[FlextTypes.Core.Dict]):
         return self._query_handlers.handle_command_history(query)
 
     # Convenience methods combining multiple operations
-    def format_and_display(self, data: object, format_type: str = "table", **options: object) -> FlextResult[None]:
+    def format_and_display(
+        self, data: object, format_type: str = "table", **options: object
+    ) -> FlextResult[None]:
         """Format data and display it in one operation."""
         format_result = self.format_data(data, format_type, **options)
         if format_result.is_failure:
@@ -341,7 +440,9 @@ class FlextCliUnifiedService(FlextDomainService[FlextTypes.Core.Dict]):
 
         return FlextResult[None].ok(None)
 
-    def batch_export(self, datasets: dict[str, object], output_dir: Path, format_type: str = "json") -> FlextResult[None]:
+    def batch_export(
+        self, datasets: dict[str, object], output_dir: Path, format_type: str = "json"
+    ) -> FlextResult[None]:
         """Export multiple datasets using CQRS pattern."""
         if not output_dir.exists():
             output_dir.mkdir(parents=True)
@@ -350,27 +451,46 @@ class FlextCliUnifiedService(FlextDomainService[FlextTypes.Core.Dict]):
             file_path = output_dir / f"{name}.{format_type}"
             export_result = self.export_data(data, file_path, format_type)
             if export_result.is_failure:
-                return FlextResult[None].fail(f"Failed to export {name}: {export_result.error}")
+                return FlextResult[None].fail(
+                    f"Failed to export {name}: {export_result.error}"
+                )
 
         return FlextResult[None].ok(None)
 
 
 # Global instance using flext-core container
 def get_unified_cli_service() -> FlextCliUnifiedService:
-    """Get the unified CLI service instance from flext-core container."""
+    """Get the unified CLI service instance from flext-core container using railway pattern."""
     container = FlextContainer.get_global()
 
-    # Try to get existing instance
-    try:
-        result = container.get("FlextCliUnifiedService")
-        if isinstance(result.value, FlextCliUnifiedService):
-            return result.value
-        raise ValueError("Invalid service type")
-    except Exception:
-        # Create and register new instance
+    def get_existing_service() -> FlextResult[FlextCliUnifiedService]:
+        """Try to get existing service instance."""
+        service_result = container.get("FlextCliUnifiedService")
+        if service_result.is_failure:
+            return FlextResult[FlextCliUnifiedService].fail(
+                "Service not found in container"
+            )
+
+        if isinstance(service_result.value, FlextCliUnifiedService):
+            return FlextResult[FlextCliUnifiedService].ok(service_result.value)
+
+        return FlextResult[FlextCliUnifiedService].fail(
+            "Invalid service type in container"
+        )
+
+    def create_and_register_service() -> FlextCliUnifiedService:
+        """Create and register new service instance."""
         service = FlextCliUnifiedService()
         container.register("FlextCliUnifiedService", service)
         return service
+
+    # Railway pattern with fallback - try to get existing, create if not found
+    existing_service_result = get_existing_service()
+    if existing_service_result.is_success:
+        return existing_service_result.unwrap()
+
+    # Fallback: create new instance
+    return create_and_register_service()
 
 
 __all__ = [

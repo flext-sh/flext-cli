@@ -8,8 +8,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
-
 from flext_cli.cli_bus import FlextCliCommandBusService
 from flext_core import FlextResult
 
@@ -42,12 +40,14 @@ class TestFlextCliCommandBusService:
             "execute_edit_config_command",
             "execute_auth_login_command",
             "execute_auth_logout_command",
-            "execute_auth_status_command"
+            "execute_auth_status_command",
         ]
 
         for method_name in expected_methods:
             assert hasattr(service, method_name), f"Missing method: {method_name}"
-            assert callable(getattr(service, method_name)), f"Method not callable: {method_name}"
+            assert callable(getattr(service, method_name)), (
+                f"Method not callable: {method_name}"
+            )
 
     def test_show_config_command_basic(self) -> None:
         """Test show config command basic functionality."""
@@ -74,4 +74,4 @@ class TestFlextCliCommandBusService:
         service = FlextCliCommandBusService()
 
         # Check that service has logger (internal access)
-        assert hasattr(service, '_logger') or hasattr(service, 'get_logger')
+        assert hasattr(service, "_logger") or hasattr(service, "get_logger")

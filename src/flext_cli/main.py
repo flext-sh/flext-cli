@@ -1,8 +1,10 @@
 """CLI Main Service.
 
+Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
+# pyright: reportUnusedFunction=false
 from __future__ import annotations
 
 import os
@@ -301,7 +303,9 @@ class FlextCliMain(FlextDomainService[None]):
         """Validate output format type."""
         return self._OptionsHelper.validate_output_format(format_type)
 
-    def apply_cli_overrides(self, overrides: dict[str, object]) -> FlextResult[FlextCliConfigs]:
+    def apply_cli_overrides(
+        self, overrides: dict[str, object]
+    ) -> FlextResult[FlextCliConfigs]:
         """Apply CLI overrides to configuration."""
         return self._ContextHelper.apply_cli_overrides(overrides)
 
@@ -439,7 +443,9 @@ class FlextCliMain(FlextDomainService[None]):
                         # Validate output format
                         if not self._cli_main.validate_output_format(output):
                             # Get the proper error message from centralized validation
-                            validation_result = FlextCliValidations.validate_output_format(output)
+                            validation_result = (
+                                FlextCliValidations.validate_output_format(output)
+                            )
                             click.echo(
                                 f"Error: {validation_result.error}",
                                 err=True,
@@ -875,7 +881,9 @@ class FlextCliMain(FlextDomainService[None]):
         self, *, debug: bool = False, profile: str = "default", quiet: bool = False
     ) -> dict[str, object]:
         """Create CLI context."""
-        return self._ContextHelper.create_context_object(debug=debug, profile=profile, quiet=quiet)
+        return self._ContextHelper.create_context_object(
+            debug=debug, profile=profile, quiet=quiet
+        )
 
     def get_version(self) -> str:
         """Get version information."""
@@ -894,7 +902,9 @@ class FlextCliMain(FlextDomainService[None]):
         options = self._OptionsHelper.create_common_options()
 
         # Validate output format if present
-        if "output" in options and not self._OptionsHelper.validate_output_format(str(options["output"])):
+        if "output" in options and not self._OptionsHelper.validate_output_format(
+            str(options["output"])
+        ):
             msg = f"Invalid output format: {options['output']}"
             raise ValueError(msg)
 
@@ -1010,7 +1020,6 @@ class FlextCliMain(FlextDomainService[None]):
 
     def create_group(self, name: str, description: str = "") -> object:
         """Create CLI group - simplified wrapper for create_cli_group."""
-        import click
         return click.Group(name=name, help=description)
 
     def run(self, args: list[str] | None = None) -> FlextResult[None]:

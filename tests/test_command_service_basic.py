@@ -91,7 +91,7 @@ class TestFlextCliCommandService:
             description="Test command description",
             handler=dummy_handler,
             arguments=["--verbose"],
-            output_format="json"
+            output_format="json",
         )
 
         assert result.is_success
@@ -295,15 +295,21 @@ class TestFlextCliCommandServiceHelpers:
     def test_command_validation_helper(self) -> None:
         """Test _CommandValidationHelper functionality."""
         # Test valid command line
-        result = FlextCliCommandService._CommandValidationHelper.validate_command_line("valid command")
+        result = FlextCliCommandService._CommandValidationHelper.validate_command_line(
+            "valid command"
+        )
         assert result.is_success
         assert result.unwrap() == "valid command"
 
         # Test invalid command line
-        result = FlextCliCommandService._CommandValidationHelper.validate_command_line("")
+        result = FlextCliCommandService._CommandValidationHelper.validate_command_line(
+            ""
+        )
         assert result.is_failure
 
-        result = FlextCliCommandService._CommandValidationHelper.validate_command_line(None)
+        result = FlextCliCommandService._CommandValidationHelper.validate_command_line(
+            None
+        )
         assert result.is_failure
 
     def test_command_validation_helper_object(self) -> None:
@@ -315,22 +321,32 @@ class TestFlextCliCommandServiceHelpers:
         valid_command = FlextCliModels.CliCommand(
             id=str(uuid4()),
             command_line="test command",
-            execution_time=datetime.now(UTC)
+            execution_time=datetime.now(UTC),
         )
 
-        result = FlextCliCommandService._CommandValidationHelper.validate_command_object(valid_command)
+        result = (
+            FlextCliCommandService._CommandValidationHelper.validate_command_object(
+                valid_command
+            )
+        )
         assert result.is_success
         assert result.unwrap() is valid_command
 
         # Test invalid command object
-        result = FlextCliCommandService._CommandValidationHelper.validate_command_object("not a command")
+        result = (
+            FlextCliCommandService._CommandValidationHelper.validate_command_object(
+                "not a command"
+            )
+        )
         assert result.is_failure
         assert "Invalid command object" in str(result.error)
 
     def test_command_builder_helper(self) -> None:
         """Test _CommandBuilderHelper functionality."""
         # Test create command metadata
-        command = FlextCliCommandService._CommandBuilderHelper.create_command_metadata("test command")
+        command = FlextCliCommandService._CommandBuilderHelper.create_command_metadata(
+            "test command"
+        )
         assert isinstance(command, FlextCliModels.CliCommand)
         assert command.command_line == "test command"
         assert command.id is not None
@@ -340,12 +356,14 @@ class TestFlextCliCommandServiceHelpers:
         def dummy_handler() -> None:
             pass
 
-        command_def = FlextCliCommandService._CommandBuilderHelper.create_command_with_options(
-            name="test",
-            description="Test command",
-            handler=dummy_handler,
-            arguments=["--flag"],
-            output_format="json"
+        command_def = (
+            FlextCliCommandService._CommandBuilderHelper.create_command_with_options(
+                name="test",
+                description="Test command",
+                handler=dummy_handler,
+                arguments=["--flag"],
+                output_format="json",
+            )
         )
 
         assert command_def["name"] == "test"

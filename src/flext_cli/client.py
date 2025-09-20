@@ -642,7 +642,9 @@ class FlextCliClient:
 
         """
         try:
-            await self._request(FlextCliConstants.Enums.HttpMethod.GET, "/api/v1/health")
+            await self._request(
+                FlextCliConstants.Enums.HttpMethod.GET, "/api/v1/health"
+            )
         except (RuntimeError, ValueError, TypeError) as e:
             logger = FlextLogger(__name__)
             warning_msg = f"Connection test failed: {e}"

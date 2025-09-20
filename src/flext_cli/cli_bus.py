@@ -356,7 +356,7 @@ class FlextCliCommandBusService(FlextDomainService[None]):
         return {
             "handlers_count": len(self.get_registered_handlers()),
             "registered_handlers": self.get_registered_handlers(),
-            "bus_initialized": self._command_bus is not None,
+            "bus_initialized": True,  # Command bus is always initialized
         }
 
     def execute(self) -> FlextResult[None]:

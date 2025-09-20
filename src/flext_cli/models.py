@@ -1,5 +1,8 @@
 """FLEXT CLI Models - CLI domain models with Python 3.13 cutting-edge patterns.
 
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 Advanced Pydantic v2 implementation with discriminated unions, computed properties,
 and type-safe state transitions following Domain-Driven Design principles.
 """
@@ -205,7 +208,7 @@ class FlextCliModels:
                         "Running commands should not have exit codes until completion",
                     )
                 case FlextCliModels.FailedState(exit_code=exit_code) if (
-                    exit_code is None or exit_code == 0
+                    exit_code == 0
                 ):
                     return FlextResult[None].fail(
                         "Failed commands must have non-zero exit codes",

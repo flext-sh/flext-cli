@@ -1,5 +1,6 @@
 """CLI Command Service - Single responsibility for command management.
 
+Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
@@ -150,12 +151,12 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
         **options: object,
     ) -> FlextResult[dict[str, object]]:
         """Create command definition for CLI frameworks - single responsibility."""
-        if not isinstance(name, str) or not name.strip():
+        if not name.strip():
             return FlextResult[dict[str, object]].fail(
                 "Command name must be a non-empty string"
             )
 
-        if not isinstance(description, str) or not description.strip():
+        if not description.strip():
             return FlextResult[dict[str, object]].fail(
                 "Command description must be a non-empty string"
             )
@@ -243,7 +244,7 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
                 "Command history is disabled"
             )
 
-        if not isinstance(pattern, str) or not pattern.strip():
+        if not pattern.strip():
             return FlextResult[list[FlextCliModels.CliCommand]].fail(
                 "Pattern must be a non-empty string"
             )
@@ -287,7 +288,7 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
                 "Command history is disabled"
             )
 
-        if not isinstance(limit, int) or limit <= 0:
+        if limit <= 0:
             return FlextResult[list[FlextCliModels.CliCommand]].fail(
                 "Limit must be a positive integer"
             )

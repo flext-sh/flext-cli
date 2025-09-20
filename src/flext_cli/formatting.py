@@ -14,7 +14,7 @@ import json
 from collections.abc import Callable
 from io import StringIO
 from pathlib import Path
-from typing import Protocol
+from typing import Protocol, cast
 
 import yaml
 from pydantic import BaseModel, ConfigDict, PrivateAttr
@@ -99,23 +99,35 @@ class FlextCliFormatters(BaseModel):
     class _FilePathHelper:
         """Nested helper for file path operations."""
 
-        @staticmethod
-        def ensure_directory_exists(file_path: Path) -> FlextResult[Path]:
-            """Ensure parent directory exists for file path."""
-            try:
+        def ensure_directory_exists(self, file_path: Path) -> FlextResult[Path]:
+            """Ensure parent directory exists for file path using explicit error handling."""
+
+            def create_parent_dirs() -> Path:
+                """Create parent directories - used by safe_call."""
                 file_path.parent.mkdir(parents=True, exist_ok=True)
-                return FlextResult[Path].ok(file_path)
-            except OSError as e:
-                return FlextResult[Path].fail(f"Failed to create directory: {e}")
+                return file_path
+
+            result = FlextResult.safe_call(create_parent_dirs)
+            if result.is_failure:
+                return FlextResult[Path].fail(f"Directory creation failed: {result.error}")
+
+            return result
 
         @staticmethod
         def validate_file_path(file_path: str | Path) -> FlextResult[Path]:
-            """Validate and convert file path."""
-            try:
-                path = Path(file_path)
-                return FlextResult[Path].ok(path)
-            except Exception as e:
-                return FlextResult[Path].fail(f"Invalid file path: {e}")
+            """Validate and convert file path using explicit error handling."""
+            if not file_path:
+                return FlextResult[Path].fail("File path cannot be empty")
+
+            def convert_to_path() -> Path:
+                """Convert string/Path to Path object - used by safe_call."""
+                return Path(file_path)
+
+            result = FlextResult.safe_call(convert_to_path)
+            if result.is_failure:
+                return FlextResult[Path].fail(f"Invalid file path: {result.error}")
+
+            return result
 
     class _RichIntegrationHelper:
         """Nested helper for display integration features - abstracted from Rich."""
@@ -159,7 +171,8 @@ class FlextCliFormatters(BaseModel):
             self, table_structure: dict[str, object]
         ) -> FlextResult[str]:
             """Display table structure using flext-core formatting - no direct Rich."""
-            try:
+            def format_table_structure() -> str:
+                """Format table structure - used by safe_call."""
                 # Convert table structure to string representation
                 title = table_structure.get("title", "")
                 show_header = table_structure.get("show_header", True)
@@ -181,15 +194,19 @@ class FlextCliFormatters(BaseModel):
                     row_line = " | ".join(str(cell) for cell in row)
                     output_lines.append(row_line)
 
-                formatted_output = "\n".join(output_lines)
-                return FlextResult[str].ok(formatted_output)
+                return "\n".join(output_lines)
 
-            except Exception as e:
-                return FlextResult[str].fail(f"Table display failed: {e}")
+            result = FlextResult.safe_call(format_table_structure)
+            if result.is_failure:
+                return FlextResult[str].fail(f"Table display failed: {result.error}")
+
+            return result
 
     # Core attributes - using PrivateAttr for underscore-prefixed fields
     _console: Console = PrivateAttr(default_factory=Console)
-    _custom_formatters: dict[str, FormatterProtocol] = PrivateAttr(default_factory=dict)
+    _custom_formatters: dict[str, FlextCliFormatters.FormatterProtocol] = PrivateAttr(
+        default_factory=dict
+    )
     _logger: FlextLogger = PrivateAttr(default_factory=lambda: FlextLogger(__name__))
 
     def __init__(self, **data: object) -> None:
@@ -216,11 +233,12 @@ class FlextCliFormatters(BaseModel):
                 validation_result.error or "Data validation failed"
             )
 
-        try:
+        def create_rich_table() -> Table:
+            """Create Rich table - used by safe_call."""
             table = Table(title=title, show_header=show_header, show_lines=show_lines)
 
             if not data:
-                return FlextResult[Table].ok(table)
+                return table
 
             # Determine columns
             columns = headers or (list(data[0].keys()) if data else [])
@@ -237,10 +255,13 @@ class FlextCliFormatters(BaseModel):
                     values.append(str(value))
                 table.add_row(*values)
 
-            return FlextResult[Table].ok(table)
+            return table
 
-        except Exception as e:
-            return FlextResult[Table].fail(f"Table creation failed: {e}")
+        result = FlextResult.safe_call(create_rich_table)
+        if result.is_failure:
+            return FlextResult[Table].fail(f"Table creation failed: {result.error}")
+
+        return result
 
     def format_table(
         self,
@@ -253,47 +274,46 @@ class FlextCliFormatters(BaseModel):
         if table_result.is_failure:
             return FlextResult[str].fail(table_result.error or "Table creation failed")
 
-        try:
-            # Capture table output as string
+        def capture_table_output() -> str:
+            """Capture table output as string - used by safe_call."""
             with StringIO() as buffer:
                 console = Console(file=buffer, width=120)
                 console.print(table_result.unwrap())
-                return FlextResult[str].ok(buffer.getvalue())
-        except Exception as e:
-            return FlextResult[str].fail(f"Table formatting failed: {e}")
+                return buffer.getvalue()
+
+        result = FlextResult.safe_call(capture_table_output)
+        if result.is_failure:
+            return FlextResult[str].fail(f"Table formatting failed: {result.error}")
+
+        return result
 
     def format_data(
         self, data: object, format_type: str = "table", **kwargs: object
     ) -> FlextResult[str]:
-        """Format data according to specified type."""
-        format_validation = self._FormatValidationHelper.validate_format_type(
-            format_type
-        )
-        if format_validation.is_failure:
-            return FlextResult[str].fail(
-                format_validation.error or "Format validation failed"
-            )
+        """Format data according to specified type using validation chaining."""
 
-        data_validation = self._FormatValidationHelper.validate_data_structure(data)
-        if data_validation.is_failure:
-            return FlextResult[str].fail(
-                data_validation.error or "Data validation failed"
-            )
-
-        try:
+        def perform_formatting(validated_data: object) -> FlextResult[str]:
+            """Perform the actual formatting after validation using explicit routing."""
             if format_type == "table":
-                return self._format_as_table(data, **kwargs)
+                return self._format_as_table(validated_data, **kwargs)
             if format_type == "json":
-                return self._format_as_json(data, **kwargs)
+                return self._format_as_json(validated_data, **kwargs)
             if format_type == "yaml":
-                return self._format_as_yaml(data, **kwargs)
+                return self._format_as_yaml(validated_data, **kwargs)
             if format_type == "csv":
-                return self._format_as_csv(data, **kwargs)
+                return self._format_as_csv(validated_data, **kwargs)
             if format_type == "plain":
-                return FlextResult[str].ok(str(data))
+                return FlextResult[str].ok(str(validated_data))
             return FlextResult[str].fail(f"Unsupported format: {format_type}")
-        except Exception as e:
-            return FlextResult[str].fail(f"Data formatting failed: {e}")
+
+        # Railway pattern: format validation → data validation → formatting
+        return (
+            self._FormatValidationHelper.validate_format_type(format_type)
+            .flat_map(
+                lambda _: self._FormatValidationHelper.validate_data_structure(data)
+            )
+            .flat_map(perform_formatting)
+        )
 
     def display_table(
         self,
@@ -315,14 +335,18 @@ class FlextCliFormatters(BaseModel):
         if table_result.is_failure:
             return FlextResult[None].fail(table_result.error or "Table creation failed")
 
-        try:
-            rich_helper = self._RichIntegrationHelper()
+        def display_table_to_console() -> None:
+            """Display table to console - used by safe_call."""
+            self._RichIntegrationHelper()
             # Display using console directly since display_rich_table doesn't exist
             if hasattr(self._console, "print"):
                 self._console.print(table_result.unwrap())
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Table display failed: {e}")
+
+        result = FlextResult.safe_call(display_table_to_console)
+        if result.is_failure:
+            return FlextResult[None].fail(f"Table display failed: {result.error}")
+
+        return FlextResult[None].ok(None)
 
     def display_json(self, data: object, **kwargs: object) -> FlextResult[None]:
         """Display JSON formatted data."""
@@ -338,13 +362,17 @@ class FlextCliFormatters(BaseModel):
         self, message: str, style: str = "", prefix: str = ""
     ) -> FlextResult[None]:
         """Display formatted message with optional styling."""
-        try:
+        def display_formatted_message() -> None:
+            """Display formatted message - used by safe_call."""
             formatted_message = f"{prefix}{message}" if prefix else message
             console_output = self._ConsoleOutput()
             console_output.print_formatted(formatted_message, style)
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Message display failed: {e}")
+
+        result = FlextResult.safe_call(display_formatted_message)
+        if result.is_failure:
+            return FlextResult[None].fail(f"Message display failed: {result.error}")
+
+        return FlextResult[None].ok(None)
 
     @property
     def console(self) -> Console:
@@ -361,10 +389,10 @@ class FlextCliFormatters(BaseModel):
 
     def create_formatter(
         self, name: str, format_function: Callable[[object], str]
-    ) -> FlextResult[FormatterProtocol]:
-        """Create custom formatter."""
-        try:
-
+    ) -> FlextResult[FlextCliFormatters.FormatterProtocol]:
+        """Create custom formatter using explicit error handling."""
+        def create_custom_formatter() -> FlextCliFormatters.FormatterProtocol:
+            """Create custom formatter - used by safe_call."""
             class CustomFormatter:
                 def format(self, data: object, **format_kwargs: object) -> str:
                     return format_function(data, **format_kwargs)
@@ -373,35 +401,37 @@ class FlextCliFormatters(BaseModel):
                     return name
 
             formatter = CustomFormatter()
-            return FlextResult[FormatterProtocol].ok(formatter)
-        except Exception as e:
-            return FlextResult[FormatterProtocol].fail(f"Formatter creation failed: {e}")
+            # Cast to the inner FormatterProtocol type
+            return cast("FlextCliFormatters.FormatterProtocol", formatter)
+
+        result = FlextResult.safe_call(create_custom_formatter)
+        if result.is_failure:
+            return FlextResult["FlextCliFormatters.FormatterProtocol"].fail(
+                f"Formatter creation failed: {result.error}"
+            )
+
+        return result
 
     def register_formatter(
         self, name: str, formatter: FormatterProtocol | Callable[..., object]
     ) -> FlextResult[None]:
-        """Register custom formatter."""
-        try:
-            if callable(formatter) and not hasattr(formatter, "format"):
-                # Convert function to FormatterProtocol
-                # Cast to the expected type for create_formatter
-                from typing import cast
-                typed_formatter = cast("Callable[[object], str]", formatter)
-                formatter_result = self.create_formatter(name, typed_formatter)
-                if formatter_result.is_failure:
-                    return FlextResult[None].fail(
-                        formatter_result.error or "Formatter creation failed"
-                    )
-                formatter_obj = formatter_result.unwrap()
-                self._custom_formatters[name] = formatter_obj
-            else:
-                # Cast to FormatterProtocol if it's an object with format method
-                from typing import cast
-                formatter_obj = cast("FormatterProtocol", formatter)
-                self._custom_formatters[name] = formatter_obj
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Formatter registration failed: {e}")
+        """Register custom formatter using explicit error handling."""
+        if callable(formatter) and not hasattr(formatter, "format"):
+            # Convert function to FormatterProtocol
+            typed_formatter = cast("Callable[[object], str]", formatter)
+            formatter_result = self.create_formatter(name, typed_formatter)
+            if formatter_result.is_failure:
+                return FlextResult[None].fail(
+                    formatter_result.error or "Formatter creation failed"
+                )
+            formatter_obj = formatter_result.unwrap()
+            self._custom_formatters[name] = formatter_obj
+        else:
+            # Cast to FormatterProtocol if it's an object with format method
+            formatter_obj = cast("FlextCliFormatters.FormatterProtocol", formatter)
+            self._custom_formatters[name] = formatter_obj
+
+        return FlextResult[None].ok(None)
 
     def format_output(
         self, data: object, format_type: str = "table", **kwargs: object
@@ -409,14 +439,19 @@ class FlextCliFormatters(BaseModel):
         """Format output using registered or built-in formatters."""
         # Check for custom formatter first
         if format_type in self._custom_formatters:
-            try:
-                formatter = self._custom_formatters[format_type]
-                if hasattr(formatter, "format"):
-                    result = formatter.format(data, **kwargs)
-                    return FlextResult[str].ok(result)
+            formatter = self._custom_formatters[format_type]
+            if not hasattr(formatter, "format"):
                 return FlextResult[str].fail("Formatter object missing format method")
-            except Exception as e:
-                return FlextResult[str].fail(f"Custom formatter failed: {e}")
+
+            def apply_custom_formatter() -> str:
+                """Apply custom formatter - used by safe_call."""
+                return formatter.format(data, **kwargs)
+
+            result = FlextResult.safe_call(apply_custom_formatter)
+            if result.is_failure:
+                return FlextResult[str].fail(f"Custom formatter failed: {result.error}")
+
+            return result
 
         # Use built-in formatting
         return self.format_data(data, format_type, **kwargs)
@@ -436,37 +471,39 @@ class FlextCliFormatters(BaseModel):
         format_type: str = "json",
         **kwargs: object,
     ) -> FlextResult[Path]:
-        """Export formatted data to file."""
-        # Validate file path
-        path_result = self._FilePathHelper.validate_file_path(file_path)
-        if path_result.is_failure:
-            return FlextResult[Path].fail(path_result.error or "Path validation failed")
+        """Export formatted data to file using railway pattern."""
 
-        file_path_obj = path_result.unwrap()
-
-        # Ensure directory exists
-        dir_result = self._FilePathHelper.ensure_directory_exists(file_path_obj)
-        if dir_result.is_failure:
-            return FlextResult[Path].fail(
-                dir_result.error or "Directory creation failed"
+        def write_formatted_content(file_path_obj: Path) -> FlextResult[Path]:
+            """Write formatted content to validated file path."""
+            return self.format_data(data, format_type, **kwargs).flat_map(
+                lambda formatted_content: self._write_content_to_file(
+                    file_path_obj, formatted_content
+                )
             )
 
-        # Format data
-        format_result = self.format_data(data, format_type, **kwargs)
-        if format_result.is_failure:
-            return FlextResult[Path].fail(
-                format_result.error or "Format operation failed"
-            )
+        # Railway pattern: validation → directory creation → formatting → writing
+        file_helper = self._FilePathHelper()
+        return (
+            self._FilePathHelper.validate_file_path(file_path)
+            .flat_map(file_helper.ensure_directory_exists)
+            .flat_map(write_formatted_content)
+        )
 
-        try:
-            # Write to file using Path.open() (PTH123 fix)
-            formatted_content = format_result.unwrap()
-            file_path_obj.write_text(formatted_content, encoding="utf-8")
+    def _write_content_to_file(
+        self, file_path: Path, content: str
+    ) -> FlextResult[Path]:
+        """Write content to file using explicit error handling."""
+        def write_text_to_file() -> Path:
+            """Write text to file - used by safe_call."""
+            file_path.write_text(content, encoding="utf-8")
+            self._logger.info(f"Data exported to {file_path}")
+            return file_path
 
-            self._logger.info(f"Data exported to {file_path_obj}")
-            return FlextResult[Path].ok(file_path_obj)
-        except Exception as e:
-            return FlextResult[Path].fail(f"File export failed: {e}")
+        result = FlextResult.safe_call(write_text_to_file)
+        if result.is_failure:
+            return FlextResult[Path].fail(f"File write failed: {result.error}")
+
+        return result
 
     def batch_export_datasets(
         self,
@@ -485,7 +522,8 @@ class FlextCliFormatters(BaseModel):
 
         output_dir_path = dir_path_result.unwrap()
 
-        try:
+        def perform_batch_export() -> list[Path]:
+            """Perform batch export operations - used by safe_call."""
             output_dir_path.mkdir(parents=True, exist_ok=True)
             exported_files = []
 
@@ -495,8 +533,9 @@ class FlextCliFormatters(BaseModel):
                     len((data, filename))
                     != FlextCliConstants.LIMITS.dataset_tuple_length
                 ):
-                    return FlextResult[list[Path]].fail(
-                        f"Invalid dataset tuple: expected length {FlextCliConstants.LIMITS.dataset_tuple_length}"
+                    msg = f"Invalid dataset tuple: expected length {FlextCliConstants.LIMITS.dataset_tuple_length}"
+                    raise ValueError(
+                        msg
                     )
 
                 file_path = output_dir_path / filename
@@ -505,15 +544,18 @@ class FlextCliFormatters(BaseModel):
                 )
 
                 if export_result.is_failure:
-                    return FlextResult[list[Path]].fail(
-                        f"Failed to export {filename}: {export_result.error}"
-                    )
+                    msg = f"Failed to export {filename}: {export_result.error}"
+                    raise RuntimeError(msg)
 
                 exported_files.append(export_result.unwrap())
 
-            return FlextResult[list[Path]].ok(exported_files)
-        except Exception as e:
-            return FlextResult[list[Path]].fail(f"Batch export failed: {e}")
+            return exported_files
+
+        result = FlextResult.safe_call(perform_batch_export)
+        if result.is_failure:
+            return FlextResult[list[Path]].fail(f"Batch export failed: {result.error}")
+
+        return result
 
     def create_formatted_output(
         self,
@@ -542,71 +584,79 @@ class FlextCliFormatters(BaseModel):
         return FlextResult[str].ok(formatted_data)
 
     def get_formatter_info(self) -> FlextResult[dict[str, object]]:
-        """Get information about available formatters."""
-        try:
-            info = {
+        """Get information about available formatters using explicit error handling."""
+
+        def build_formatter_info() -> dict[str, object]:
+            """Build formatter information dictionary - used for explicit error handling."""
+            return {
                 "built_in_formats": ["table", "json", "yaml", "csv", "plain"],
                 "custom_formatters": list(self._custom_formatters.keys()),
                 "total_formatters": len(self._custom_formatters) + 5,
                 "rich_integration": True,
                 "export_support": True,
             }
-            return FlextResult[dict[str, object]].ok(info)
-        except Exception as e:
+
+        result = FlextResult.safe_call(build_formatter_info)
+        if result.is_failure:
             return FlextResult[dict[str, object]].fail(
-                f"Failed to get formatter info: {e}"
+                f"Failed to get formatter info: {result.error}"
             )
+
+        return result
 
     # Private formatting methods
     def _format_as_json(self, data: object, **kwargs: object) -> FlextResult[str]:
-        """Format data as JSON."""
-        try:
-            indent = kwargs.get("indent", 2)
-            # Ensure indent is valid type for json.dumps
-            if not isinstance(indent, (int, str, type(None))):
-                indent = 2
-            result = json.dumps(data, indent=indent, ensure_ascii=False)
-            return FlextResult[str].ok(result)
-        except Exception as e:
-            return FlextResult[str].fail(f"JSON formatting failed: {e}")
+        """Format data as JSON using explicit error handling."""
+        indent = kwargs.get("indent", 2)
+        # Ensure indent is valid type for json.dumps
+        if not isinstance(indent, (int, str, type(None))):
+            indent = 2
+
+        result = FlextResult.safe_call(
+            lambda: json.dumps(data, indent=indent, ensure_ascii=False)
+        )
+        if result.is_failure:
+            return FlextResult[str].fail(f"JSON formatting failed: {result.error}")
+        return result
 
     def _format_as_yaml(self, data: object, **kwargs: object) -> FlextResult[str]:
-        """Format data as YAML."""
-        try:
-            # Use kwargs for YAML formatting options (ARG002 fix)
-            default_flow_style = bool(kwargs.get("default_flow_style"))
-            allow_unicode = bool(kwargs.get("allow_unicode", True))
-            indent_value = kwargs.get("indent", 2)
-            indent = int(indent_value) if isinstance(indent_value, (int, str)) else 2
+        """Format data as YAML using explicit error handling."""
+        # Use kwargs for YAML formatting options (ARG002 fix)
+        default_flow_style = bool(kwargs.get("default_flow_style"))
+        allow_unicode = bool(kwargs.get("allow_unicode", True))
+        indent_value = kwargs.get("indent", 2)
+        indent = int(indent_value) if isinstance(indent_value, (int, str)) else 2
 
-            result = yaml.dump(
+        result = FlextResult.safe_call(
+            lambda: yaml.dump(
                 data,
                 default_flow_style=default_flow_style,
                 allow_unicode=allow_unicode,
                 indent=indent,
             )
-            return FlextResult[str].ok(result)
-        except Exception as e:
-            return FlextResult[str].fail(f"YAML formatting failed: {e}")
+        )
+        if result.is_failure:
+            return FlextResult[str].fail(f"YAML formatting failed: {result.error}")
+        return result
 
     def _format_as_csv(self, data: object, **kwargs: object) -> FlextResult[str]:
-        """Format data as CSV."""
-        try:
-            if not isinstance(data, list) or not data:
-                return FlextResult[str].fail(
-                    "CSV formatting requires non-empty list of dictionaries"
-                )
+        """Format data as CSV using explicit error handling."""
+        # Validate input data
+        if not isinstance(data, list) or not data:
+            return FlextResult[str].fail(
+                "CSV formatting requires non-empty list of dictionaries"
+            )
 
-            if not isinstance(data[0], dict):
-                return FlextResult[str].fail(
-                    "CSV formatting requires list of dictionaries"
-                )
+        if not isinstance(data[0], dict):
+            return FlextResult[str].fail("CSV formatting requires list of dictionaries")
 
-            # Use kwargs for CSV formatting options (ARG002 fix)
-            delimiter = str(kwargs.get("delimiter", ","))
-            quotechar = str(kwargs.get("quotechar", '"'))
-            include_header = bool(kwargs.get("include_header", True))
+        # Use kwargs for CSV formatting options (ARG002 fix)
+        delimiter = str(kwargs.get("delimiter", ","))
+        quotechar = str(kwargs.get("quotechar", '"'))
+        include_header = bool(kwargs.get("include_header", True))
 
+        def write_csv_content() -> str:
+            """Write CSV content - used by safe_call."""
             output = StringIO()
             writer = csv.DictWriter(
                 output,
@@ -618,9 +668,12 @@ class FlextCliFormatters(BaseModel):
             if include_header:
                 writer.writeheader()
             writer.writerows(data)
-            return FlextResult[str].ok(output.getvalue())
-        except Exception as e:
-            return FlextResult[str].fail(f"CSV formatting failed: {e}")
+            return output.getvalue()
+
+        result = FlextResult.safe_call(write_csv_content)
+        if result.is_failure:
+            return FlextResult[str].fail(f"CSV formatting failed: {result.error}")
+        return result
 
     def _format_as_table(self, data: object, **kwargs: object) -> FlextResult[str]:
         """Format data as table."""
