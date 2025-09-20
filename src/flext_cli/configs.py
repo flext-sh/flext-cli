@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.utils import FlextCliUtilities
+from flext_cli.validations import FlextCliValidations
 from flext_core import (
     FlextConfig,
     FlextResult,
@@ -189,13 +190,8 @@ class FlextCliConfigs(FlextConfig):
 
         @staticmethod
         def validate_output_format(value: str) -> FlextResult[str]:
-            """Validate output format."""
-            valid_formats = {"table", "json", "yaml", "csv", "plain"}
-            if value not in valid_formats:
-                return FlextResult[str].fail(
-                    f"Invalid output format '{value}'. Must be one of: {valid_formats}",
-                )
-            return FlextResult[str].ok(value)
+            """Validate output format using centralized validation."""
+            return FlextCliValidations.validate_output_format(value)
 
         @staticmethod
         def validate_business_rules(config: FlextCliConfigs) -> FlextResult[None]:

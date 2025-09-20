@@ -8,10 +8,11 @@ from __future__ import annotations
 import os
 import platform
 
-import click
+import click  # ONLY file in ecosystem allowed to import Click - CLI foundation
 
 from flext_cli.configs import FlextCliConfigs
 from flext_cli.constants import FlextCliConstants
+from flext_cli.validations import FlextCliValidations
 from flext_core import (
     FlextConfig,
     FlextDomainService,
@@ -29,6 +30,13 @@ class FlextCliMain(FlextDomainService[None]):
     """
 
     def __init__(self, name: str = "flext-cli", description: str = "FLEXT CLI") -> None:
+        """Initialize FlextCliMain with name and description.
+
+        Args:
+            name: CLI application name
+            description: CLI application description
+
+        """
         super().__init__()
         self._name = name
         self._description = description
@@ -67,9 +75,9 @@ class FlextCliMain(FlextDomainService[None]):
 
         @staticmethod
         def validate_output_format(output: str) -> bool:
-            """Validate output format."""
-            valid_formats = {"table", "json", "yaml", "csv"}
-            return output in valid_formats
+            """Validate output format using centralized validation."""
+            result = FlextCliValidations.validate_output_format(output)
+            return result.is_success
 
     class _ContextHelper:
         """Helper for CLI context management."""
@@ -114,7 +122,7 @@ class FlextCliMain(FlextDomainService[None]):
             return "0.1.0"
 
         @staticmethod
-        def print_version_callback(ctx: object, param: object, value: bool) -> None:
+        def print_version_callback(ctx: object, _param: object, *, value: bool) -> None:
             """Print version and exit."""
             if not value or ctx is None:
                 return
@@ -170,7 +178,7 @@ class FlextCliMain(FlextDomainService[None]):
             return "Authentication status: Not implemented"
 
         @staticmethod
-        def login_user(username: str, password: str) -> str:
+        def login_user(username: str, _password: str) -> str:
             """Login user with credentials."""
             return f"Login attempt for {username}: Not implemented"
 
@@ -288,6 +296,79 @@ class FlextCliMain(FlextDomainService[None]):
             """Run health check."""
             return "Health check: System OK"
 
+    # Public delegation methods to eliminate SLF001 violations
+    def validate_output_format(self, format_type: str) -> bool:
+        """Validate output format type."""
+        return self._OptionsHelper.validate_output_format(format_type)
+
+    def apply_cli_overrides(self, overrides: dict[str, object]) -> FlextResult[FlextCliConfigs]:
+        """Apply CLI overrides to configuration."""
+        return self._ContextHelper.apply_cli_overrides(overrides)
+
+    def get_auth_status(self) -> str:
+        """Get current authentication status."""
+        return self._AuthCommands.get_auth_status()
+
+    def login_user(self, username: str, password: str) -> str:
+        """Login user with credentials."""
+        return self._AuthCommands.login_user(username, password)
+
+    def logout_user(self) -> str:
+        """Logout current user."""
+        return self._AuthCommands.logout_user()
+
+    def show_config(self) -> str:
+        """Show current configuration."""
+        return self._ConfigCommands.show_config()
+
+    def edit_config(self) -> str:
+        """Edit configuration file."""
+        return self._ConfigCommands.edit_config()
+
+    def get_config_path(self) -> str:
+        """Get configuration file path."""
+        return self._ConfigCommands.get_config_path()
+
+    def get_config_value(self, key: str) -> str:
+        """Get configuration value by key."""
+        return self._ConfigCommands.get_config_value(key)
+
+    def set_config_value(self, key: str, value: str) -> str:
+        """Set configuration value."""
+        return self._ConfigCommands.set_config_value(key, value)
+
+    def validate_config_settings(self) -> str:
+        """Validate configuration settings."""
+        return self._ConfigCommands.validate_config()
+
+    def get_environment_info(self) -> dict[str, str]:
+        """Get environment information."""
+        return self._SystemCommands.get_environment_info()
+
+    def check_connectivity(self) -> str:
+        """Check system connectivity."""
+        return self._SystemCommands.check_connectivity()
+
+    def check_performance(self) -> str:
+        """Check system performance."""
+        return self._SystemCommands.check_performance()
+
+    def show_paths(self) -> dict[str, str]:
+        """Show system paths."""
+        return self._SystemCommands.show_paths()
+
+    def validate_system(self) -> str:
+        """Validate system setup."""
+        return self._SystemCommands.validate_system()
+
+    def run_trace(self, args: tuple[str, ...]) -> str:
+        """Run trace operations."""
+        return self._SystemCommands.run_trace(args)
+
+    def health_check(self) -> str:
+        """Perform health check."""
+        return self._SystemCommands.health_check()
+
     class _ClickCommands:
         """Click command definitions consolidated into unified class structure.
 
@@ -356,21 +437,18 @@ class FlextCliMain(FlextDomainService[None]):
 
                     if output:
                         # Validate output format
-                        if not self._cli_main._OptionsHelper.validate_output_format(
-                            output
-                        ):
-                            valid_formats = {"table", "json", "yaml", "csv"}
+                        if not self._cli_main.validate_output_format(output):
+                            # Get the proper error message from centralized validation
+                            validation_result = FlextCliValidations.validate_output_format(output)
                             click.echo(
-                                f"Error: Invalid output format '{output}'. Valid formats: {', '.join(valid_formats)}",
+                                f"Error: {validation_result.error}",
                                 err=True,
                             )
                             ctx.exit(1)
                         cli_overrides["output_format"] = output
 
                     # Apply overrides through helper
-                    config_result = self._cli_main._ContextHelper.apply_cli_overrides(
-                        cli_overrides
-                    )
+                    config_result = self._cli_main.apply_cli_overrides(cli_overrides)
                     if config_result.is_failure:
                         click.echo(
                             f"Configuration error: {config_result.error}", err=True
@@ -413,7 +491,7 @@ class FlextCliMain(FlextDomainService[None]):
 
             return cli
 
-        def _register_auth_commands(self, cli: object) -> None:
+        def _register_auth_commands(self, cli: click.Group) -> None:
             """Register authentication command group."""
 
             @cli.group()
@@ -424,7 +502,7 @@ class FlextCliMain(FlextDomainService[None]):
             @click.pass_context
             def status(_ctx: click.Context) -> None:
                 """Show authentication status."""
-                click.echo(self._cli_main._AuthCommands.get_auth_status())
+                click.echo(self._cli_main.get_auth_status())
 
             @auth.command()
             @click.option(
@@ -439,15 +517,15 @@ class FlextCliMain(FlextDomainService[None]):
             @click.pass_context
             def login(_ctx: click.Context, username: str, _password: str) -> None:
                 """Login with username and password."""
-                click.echo(self._cli_main._AuthCommands.login_user(username, _password))
+                click.echo(self._cli_main.login_user(username, _password))
 
             @auth.command()
             @click.pass_context
             def logout(_ctx: click.Context) -> None:
                 """Logout and remove authentication."""
-                click.echo(self._cli_main._AuthCommands.logout_user())
+                click.echo(self._cli_main.logout_user())
 
-        def _register_config_commands(self, cli: object) -> None:
+        def _register_config_commands(self, cli: click.Group) -> None:
             """Register configuration command group."""
 
             @cli.group()
@@ -460,7 +538,7 @@ class FlextCliMain(FlextDomainService[None]):
             def show(ctx: click.Context) -> None:
                 """Show current configuration from FlextConfig singleton."""
                 try:
-                    config_output = self._cli_main._ConfigCommands.show_config()
+                    config_output = self._cli_main.show_config()
                     click.echo(config_output)
 
                     # Show integration metadata
@@ -488,20 +566,20 @@ class FlextCliMain(FlextDomainService[None]):
             @click.pass_context
             def edit(_ctx: click.Context) -> None:
                 """Edit configuration using default editor."""
-                click.echo(self._cli_main._ConfigCommands.edit_config())
+                click.echo(self._cli_main.edit_config())
 
             @config.command()
             @click.pass_context
             def path(_ctx: click.Context) -> None:
                 """Show configuration file path."""
-                click.echo(self._cli_main._ConfigCommands.get_config_path())
+                click.echo(self._cli_main.get_config_path())
 
             @config.command()
             @click.argument("key", required=False)
             @click.pass_context
             def get(_ctx: click.Context, key: str = "") -> None:
                 """Get configuration value by key."""
-                click.echo(self._cli_main._ConfigCommands.get_config_value(key))
+                click.echo(self._cli_main.get_config_value(key))
 
             @config.command()
             @click.argument("key")
@@ -509,16 +587,16 @@ class FlextCliMain(FlextDomainService[None]):
             @click.pass_context
             def set_value(_ctx: click.Context, key: str, value: str) -> None:
                 """Set configuration value for key."""
-                result = self._cli_main._ConfigCommands.set_config_value(key, value)
+                result = self._cli_main.set_config_value(key, value)
                 click.echo(result)
 
             @config.command()
             @click.pass_context
             def validate(_ctx: click.Context) -> None:
                 """Validate configuration settings."""
-                click.echo(self._cli_main._ConfigCommands.validate_config())
+                click.echo(self._cli_main.validate_config_settings())
 
-        def _register_debug_commands(self, cli: object) -> None:
+        def _register_debug_commands(self, cli: click.Group) -> None:
             """Register debug command group."""
 
             @cli.group()
@@ -530,7 +608,7 @@ class FlextCliMain(FlextDomainService[None]):
             @click.pass_context
             def env(_ctx: click.Context) -> None:
                 """Show environment information."""
-                flx_vars = self._cli_main._SystemCommands.get_environment_info()
+                flx_vars = self._cli_main.get_environment_info()
 
                 if flx_vars:
                     click.echo("FLEXT Environment Variables:")
@@ -565,19 +643,19 @@ class FlextCliMain(FlextDomainService[None]):
                         "Connection test failed: context not available", err=True
                     )
                     _ctx.exit(1)
-                click.echo(self._cli_main._SystemCommands.check_connectivity())
+                click.echo(self._cli_main.check_connectivity())
 
             @debug.command()
             @click.pass_context
             def performance(_ctx: click.Context) -> None:
                 """Show performance metrics."""
-                click.echo(self._cli_main._SystemCommands.check_performance())
+                click.echo(self._cli_main.check_performance())
 
             @debug.command()
             @click.pass_context
             def paths(_ctx: click.Context) -> None:
                 """Show system paths."""
-                paths_info = self._cli_main._SystemCommands.show_paths()
+                paths_info = self._cli_main.show_paths()
                 click.echo("FLEXT Configuration Paths")
                 click.echo("=" * 25)
                 for name, path in paths_info.items():
@@ -587,22 +665,22 @@ class FlextCliMain(FlextDomainService[None]):
             @click.pass_context
             def validate_system(_ctx: click.Context) -> None:
                 """Validate system setup."""
-                click.echo(self._cli_main._SystemCommands.validate_system())
+                click.echo(self._cli_main.validate_system())
 
             @debug.command()
             @click.argument("args", nargs=-1)
             @click.pass_context
             def trace(_ctx: click.Context, args: tuple[str, ...]) -> None:
                 """Trace operations."""
-                click.echo(self._cli_main._SystemCommands.run_trace(args))
+                click.echo(self._cli_main.run_trace(args))
 
             @debug.command()
             @click.pass_context
             def check(_ctx: click.Context) -> None:
                 """Health check for system connectivity."""
-                click.echo(self._cli_main._SystemCommands.health_check())
+                click.echo(self._cli_main.health_check())
 
-        def _register_log_control_commands(self, cli: object) -> None:
+        def _register_log_control_commands(self, cli: click.Group) -> None:
             """Register log control command group."""
 
             @cli.group()
@@ -765,7 +843,7 @@ class FlextCliMain(FlextDomainService[None]):
 
                 click.echo("Logging configuration reset to defaults.")
 
-        def _register_standalone_commands(self, cli: object) -> None:
+        def _register_standalone_commands(self, cli: click.Group) -> None:
             """Register standalone commands not part of any group."""
 
             @cli.command()
@@ -794,7 +872,7 @@ class FlextCliMain(FlextDomainService[None]):
         return self._OptionsHelper.create_common_options()
 
     def create_context(
-        self, debug: bool = False, profile: str = "default", quiet: bool = False
+        self, *, debug: bool = False, profile: str = "default", quiet: bool = False
     ) -> dict[str, object]:
         """Create CLI context."""
         return self._ContextHelper.create_context_object(debug=debug, profile=profile, quiet=quiet)
@@ -816,10 +894,9 @@ class FlextCliMain(FlextDomainService[None]):
         options = self._OptionsHelper.create_common_options()
 
         # Validate output format if present
-        if "output" in options:
-            if not self._OptionsHelper.validate_output_format(str(options["output"])):
-                msg = f"Invalid output format: {options['output']}"
-                raise ValueError(msg)
+        if "output" in options and not self._OptionsHelper.validate_output_format(str(options["output"])):
+            msg = f"Invalid output format: {options['output']}"
+            raise ValueError(msg)
 
         return options
 
@@ -843,7 +920,7 @@ class FlextCliMain(FlextDomainService[None]):
             )
 
     def setup_cli_context(
-        self, ctx: object, *, debug: bool, profile: str, quiet: bool
+        self, _ctx: object, *, debug: bool, profile: str, quiet: bool
     ) -> FlextResult[None]:
         """Setup CLI context with configuration."""
         try:
@@ -866,11 +943,12 @@ class FlextCliMain(FlextDomainService[None]):
         """Setup logging configuration."""
         return self._LoggingHelper.setup_logging(debug=debug, log_level=log_level)
 
-    def print_version(self, ctx: object, param: object, *, value: bool) -> None:
+    def print_version(self, ctx: object, _param: object, *, value: bool) -> None:
         """Print version and exit callback."""
         if not value:
             return
 
+        # Get version info and display it
         self.get_version_info()
 
         if ctx:
@@ -926,7 +1004,16 @@ class FlextCliMain(FlextDomainService[None]):
             )
             return FlextResult[None].fail(error_msg)
 
-    def run(self) -> FlextResult[None]:
+    def register_command(self, name: str, command: object) -> FlextResult[None]:
+        """Register command - alias for add_command to match test expectations."""
+        return self.add_command(name, command)
+
+    def create_group(self, name: str, description: str = "") -> object:
+        """Create CLI group - simplified wrapper for create_cli_group."""
+        import click
+        return click.Group(name=name, help=description)
+
+    def run(self, args: list[str] | None = None) -> FlextResult[None]:
         """Run the CLI application."""
         try:
             # Create the main CLI group
@@ -971,75 +1058,6 @@ class FlextCliMain(FlextDomainService[None]):
     def execute_debug_info_command(self) -> dict[str, str]:
         """Execute debug info command."""
         return self._SystemCommands.get_environment_info()
-
-    # Public API methods
-    def get_auth_status(self) -> str:
-        """Get authentication status."""
-        return self._AuthCommands.get_auth_status()
-
-    def login_user(self, username: str, password: str) -> str:
-        """Login user with credentials."""
-        return self._AuthCommands.login_user(username, password)
-
-    def logout_user(self) -> str:
-        """Logout current user."""
-        return self._AuthCommands.logout_user()
-
-    def edit_config(self) -> str:
-        """Edit configuration."""
-        return self._ConfigCommands.edit_config()
-
-    def get_config_path(self) -> str:
-        """Get configuration file path."""
-        return self._ConfigCommands.get_config_path()
-
-    def get_config_value(self, key: str) -> str:
-        """Get configuration value by key."""
-        return self._ConfigCommands.get_config_value(key)
-
-    def validate_config(self) -> FlextResult[None]:
-        """Validate configuration."""
-        try:
-            self._ConfigCommands.validate_config()
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Configuration validation failed: {e}")
-
-    def show_config_paths(self) -> dict[str, str]:
-        """Show configuration paths."""
-        return self._SystemCommands.show_paths()
-
-    def set_config_value(self, key: str, value: str) -> str:
-        """Set configuration value."""
-        return self._ConfigCommands.set_config_value(key, value)
-
-    def get_environment_info(self) -> dict[str, str]:
-        """Get environment information."""
-        return self._SystemCommands.get_environment_info()
-
-    def check_connectivity(self) -> str:
-        """Check system connectivity."""
-        return self._SystemCommands.check_connectivity()
-
-    def check_performance(self) -> str:
-        """Check system performance."""
-        return self._SystemCommands.check_performance()
-
-    def show_paths(self) -> dict[str, str]:
-        """Show system paths."""
-        return self._SystemCommands.show_paths()
-
-    def validate_system(self) -> str:
-        """Validate system setup."""
-        return self._SystemCommands.validate_system()
-
-    def run_trace(self, args: tuple[str, ...]) -> str:
-        """Run trace operations."""
-        return self._SystemCommands.run_trace(args)
-
-    def health_check(self) -> str:
-        """Run health check."""
-        return self._SystemCommands.health_check()
 
     def start_interactive(self) -> str:
         """Start interactive mode."""
@@ -1174,7 +1192,7 @@ def main() -> None:
         cli_group()
     else:
         msg = "CLI group is not callable"
-        raise RuntimeError(msg)
+        raise TypeError(msg)
 
 
 __all__ = [

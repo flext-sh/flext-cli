@@ -15,7 +15,7 @@ from pathlib import Path
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.interactions import FlextCliInteractions
-from flext_core import FlextResult, FlextTypes, FlextUtilities
+from flext_core import FlextResult, FlextTypes
 
 
 class FlextCliFileOperations:
@@ -101,8 +101,9 @@ class FlextCliFileOperations:
             file_path = Path(path)
             file_path.parent.mkdir(parents=True, exist_ok=True)
 
-            # Use FlextUtilities instead of duplicating JSON serialization - ELIMINATES DUPLICATION
-            json_content = FlextUtilities.safe_json_stringify(data)
+            # Use standard JSON serialization
+            import json
+            json_content = json.dumps(data, indent=2, default=str)
             file_path.write_text(
                 json_content,
                 encoding=FlextCliConstants.FILES.default_encoding,
