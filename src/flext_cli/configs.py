@@ -318,7 +318,7 @@ class FlextCliConfigs(BaseModel):
             FlextCliConfigs: Global configuration instance.
 
         """
-        global _global_instance  # noqa: PLW0603
+        global _global_instance
         if _global_instance is None:
             _global_instance = cls()
         return _global_instance
@@ -336,13 +336,13 @@ class FlextCliConfigs(BaseModel):
     @classmethod
     def clear_global_instance(cls) -> None:
         """Clear global instance."""
-        global _global_instance  # noqa: PLW0603
+        global _global_instance
         _global_instance = None
 
     @classmethod
     def set_global_instance(cls, instance: FlextCliConfigs) -> None:
         """Set global instance."""
-        global _global_instance  # noqa: PLW0603
+        global _global_instance
         _global_instance = instance
 
     @classmethod
