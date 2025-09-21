@@ -35,22 +35,42 @@ class FlextCliUtilities(BaseModel):
         self._logger = logging.getLogger(__name__)
 
     def execute(self) -> FlextResult[None]:
-        """Execute the main domain service operation."""
+        """Execute the main domain service operation.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         return FlextResult[None].ok(None)
 
     @property
     def logger(self) -> logging.Logger:
-        """Get logger instance."""
+        """Get logger instance.
+
+        Returns:
+            logging.Logger: Description of return value.
+
+        """
         return self._logger
 
     @property
     def container(self) -> FlextContainer:
-        """Get container instance."""
+        """Get container instance.
+
+        Returns:
+            FlextContainer: Description of return value.
+
+        """
         return self._container
 
     @staticmethod
     def get_base_config_dict() -> ConfigDict:
-        """Get base Pydantic configuration for CLI models."""
+        """Get base Pydantic configuration for CLI models.
+
+        Returns:
+            ConfigDict: Description of return value.
+
+        """
         return ConfigDict(
             validate_assignment=True,
             use_enum_values=True,
@@ -59,7 +79,12 @@ class FlextCliUtilities(BaseModel):
 
     @staticmethod
     def get_strict_config_dict() -> ConfigDict:
-        """Get strict Pydantic configuration for CLI models."""
+        """Get strict Pydantic configuration for CLI models.
+
+        Returns:
+            ConfigDict: Description of return value.
+
+        """
         return ConfigDict(
             validate_assignment=True,
             use_enum_values=True,
@@ -69,12 +94,22 @@ class FlextCliUtilities(BaseModel):
 
     @staticmethod
     def home_path() -> Path:
-        """Get home directory path."""
+        """Get home directory path.
+
+        Returns:
+            Path: Description of return value.
+
+        """
         return Path.home()
 
     @staticmethod
     def token_file_path() -> Path:
-        """Get authentication token file path."""
+        """Get authentication token file path.
+
+        Returns:
+            Path: Description of return value.
+
+        """
         return (
             Path.home()
             / FlextCliConstants.FLEXT_DIR_NAME
@@ -84,7 +119,12 @@ class FlextCliUtilities(BaseModel):
 
     @staticmethod
     def refresh_token_file_path() -> Path:
-        """Get refresh token file path."""
+        """Get refresh token file path.
+
+        Returns:
+            Path: Description of return value.
+
+        """
         return (
             Path.home()
             / FlextCliConstants.FLEXT_DIR_NAME
@@ -94,7 +134,12 @@ class FlextCliUtilities(BaseModel):
 
     @staticmethod
     def get_settings_config_dict() -> SettingsConfigDict:
-        """Get Pydantic configuration for CLI settings models."""
+        """Get Pydantic configuration for CLI settings models.
+
+        Returns:
+            SettingsConfigDict: Description of return value.
+
+        """
         return SettingsConfigDict(
             validate_assignment=True,
             use_enum_values=True,
@@ -148,7 +193,12 @@ class FlextCliUtilities(BaseModel):
 
     @staticmethod
     def validate_data(data: object, validator: object) -> FlextResult[bool]:
-        """Validate data using provided validator function or dict."""
+        """Validate data using provided validator function or dict.
+
+        Returns:
+            FlextResult[bool]: Description of return value.
+
+        """
         try:
             if data is None or validator is None:
                 return FlextResult[bool].fail("Data and validator cannot be None")
@@ -181,7 +231,12 @@ class FlextCliUtilities(BaseModel):
         items: Sequence[object],
         processor: Callable[[object], object],
     ) -> FlextResult[list[object]]:
-        """Process items in batch with error handling."""
+        """Process items in batch with error handling.
+
+        Returns:
+            FlextResult[list[object]]: Description of return value.
+
+        """
         try:
             if not isinstance(items, (list, tuple)):
                 return FlextResult[list[object]].fail(
@@ -215,7 +270,12 @@ class FlextCliUtilities(BaseModel):
 
     @staticmethod
     def safe_json_stringify(data: object) -> str:
-        """Safely stringify data to JSON."""
+        """Safely stringify data to JSON.
+
+        Returns:
+            str: Description of return value.
+
+        """
         try:
             return json.dumps(data, default=str, indent=2)
         except Exception:
@@ -223,7 +283,12 @@ class FlextCliUtilities(BaseModel):
 
     @staticmethod
     def json_stringify_with_result(data: object) -> FlextResult[str]:
-        """Stringify data to JSON with result handling."""
+        """Stringify data to JSON with result handling.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         try:
             return FlextResult[str].ok(json.dumps(data, default=str, indent=2))
         except Exception as e:
@@ -231,7 +296,12 @@ class FlextCliUtilities(BaseModel):
 
     @staticmethod
     def safe_json_stringify_flext_result(result: FlextResult[object]) -> str:
-        """Safely stringify FlextResult to JSON."""
+        """Safely stringify FlextResult to JSON.
+
+        Returns:
+            str: Description of return value.
+
+        """
         return FlextCliUtilities.safe_json_stringify(
             result.unwrap() if result.is_success else {"error": result.error},
         )

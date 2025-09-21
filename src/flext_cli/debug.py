@@ -39,7 +39,12 @@ class FlextCliDebug(FlextDomainService[str]):
         self._constants = FlextCliConstants()
 
     def test_connectivity(self) -> FlextResult[dict[str, str]]:
-        """Test API connectivity."""
+        """Test API connectivity.
+
+        Returns:
+            FlextResult[dict[str, str]]: Description of return value.
+
+        """
         try:
             client = FlextCliClient()
             return FlextResult[dict[str, str]].ok(
@@ -54,25 +59,58 @@ class FlextCliDebug(FlextDomainService[str]):
             return FlextResult[dict[str, str]].fail(f"Connection test failed: {e}")
 
     async def get_system_metrics(self) -> FlextResult[FlextCliTypes.SystemMetrics]:
-        """Get system performance metrics."""
+        """Get system performance metrics using railway pattern.
+
+        Returns:
+            FlextResult[FlextCliTypes.SystemMetrics]: Description of return value.
+
+        """
+
+        def extract_metrics(
+            status_data: dict[str, object],
+        ) -> FlextResult[FlextCliTypes.SystemMetrics]:
+            """Extract metrics from status data.
+
+            Returns:
+            FlextResult[FlextCliTypes.SystemMetrics]: Description of return value.
+
+            """
+            if not isinstance(status_data, dict):
+                return FlextResult[FlextCliTypes.SystemMetrics].fail(
+                    "Invalid status data format"
+                )
+
+            metrics: FlextCliTypes.SystemMetrics = {
+                "cpu_usage": str(status_data.get("cpu_usage", "Unknown")),
+                "memory_usage": str(status_data.get("memory_usage", "Unknown")),
+                "disk_usage": str(status_data.get("disk_usage", "Unknown")),
+                "response_time": str(status_data.get("response_time", "Unknown")),
+            }
+            return FlextResult[FlextCliTypes.SystemMetrics].ok(metrics)
+
         try:
             client = FlextCliClient()
-            status_result = await client.get_system_status()
-            metrics: FlextCliTypes.SystemMetrics = {
-                "cpu_usage": str(status_result.get("cpu_usage", "Unknown")),
-                "memory_usage": str(status_result.get("memory_usage", "Unknown")),
-                "disk_usage": str(status_result.get("disk_usage", "Unknown")),
-                "response_time": str(status_result.get("response_time", "Unknown")),
-            }
 
-            return FlextResult[FlextCliTypes.SystemMetrics].ok(metrics)
+            # Railway pattern composition - no try/except needed for status call
+            status_result = await client.get_system_status()
+            if status_result.is_failure:
+                return FlextResult[FlextCliTypes.SystemMetrics].fail(
+                    f"Failed to get system status: {status_result.error}"
+                )
+
+            return extract_metrics(status_result.unwrap())
         except Exception as e:
             return FlextResult[FlextCliTypes.SystemMetrics].fail(
                 f"Metrics fetch failed: {e}",
             )
 
     def validate_environment_setup(self) -> FlextResult[list[str]]:
-        """Validate environment setup."""
+        """Validate environment setup.
+
+        Returns:
+            FlextResult[list[str]]: Description of return value.
+
+        """
         try:
             validation_results = [
                 "Configuration validation passed",
@@ -84,7 +122,12 @@ class FlextCliDebug(FlextDomainService[str]):
             return FlextResult[list[str]].fail(f"Environment validation failed: {e}")
 
     def get_environment_variables(self) -> FlextResult[FlextCliTypes.EnvironmentInfo]:
-        """Get FLEXT environment variables."""
+        """Get FLEXT environment variables.
+
+        Returns:
+            FlextResult[FlextCliTypes.EnvironmentInfo]: Description of return value.
+
+        """
         try:
             # Use standardized environment prefix from constants
             flext_prefix = self._constants.SYSTEM.env_prefix
@@ -119,7 +162,12 @@ class FlextCliDebug(FlextDomainService[str]):
             )
 
     def get_system_paths(self) -> FlextResult[list[FlextCliTypes.PathInfo]]:
-        """Get system paths."""
+        """Get system paths.
+
+        Returns:
+            FlextResult[list[FlextCliTypes.PathInfo]]: Description of return value.
+
+        """
         try:
             home = Path.home()
             flext_dir = home / self._constants.FILES.flext_dir_name
@@ -157,7 +205,12 @@ class FlextCliDebug(FlextDomainService[str]):
             )
 
     def execute_trace(self, args: list[str]) -> FlextResult[dict[str, object]]:
-        """Execute trace operation."""
+        """Execute trace operation.
+
+        Returns:
+            FlextResult[dict[str, object]]: Description of return value.
+
+        """
         try:
             trace_metadata = {
                 "operation": "trace",
@@ -171,7 +224,12 @@ class FlextCliDebug(FlextDomainService[str]):
             return FlextResult[dict[str, object]].fail(f"Trace execution failed: {e}")
 
     def execute_health_check(self) -> FlextResult[dict[str, object]]:
-        """Execute health check."""
+        """Execute health check.
+
+        Returns:
+            FlextResult[dict[str, object]]: Description of return value.
+
+        """
         try:
             health_metadata: dict[str, object] = {
                 "status": "OK",
@@ -234,7 +292,12 @@ class FlextCliDebug(FlextDomainService[str]):
                 return
 
     def get_system_info(self) -> FlextResult[dict[str, object]]:
-        """Get system information for CLI debugging."""
+        """Get system information for CLI debugging.
+
+        Returns:
+            FlextResult[dict[str, object]]: Description of return value.
+
+        """
         try:
             system_info: dict[str, object] = {
                 "service": self.__class__.__name__,
@@ -248,7 +311,12 @@ class FlextCliDebug(FlextDomainService[str]):
             return FlextResult[dict[str, object]].fail(f"System info failed: {e}")
 
     def validate_configuration(self) -> FlextResult[list[str]]:
-        """Validate configuration for CLI debugging."""
+        """Validate configuration for CLI debugging.
+
+        Returns:
+            FlextResult[list[str]]: Description of return value.
+
+        """
         try:
             validation_results = [
                 "Configuration validation passed",
@@ -261,7 +329,12 @@ class FlextCliDebug(FlextDomainService[str]):
             return FlextResult[list[str]].fail(f"Configuration validation failed: {e}")
 
     def execute(self) -> FlextResult[str]:
-        """Execute debug service."""
+        """Execute debug service.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         try:
             # Simple synchronous execution for debug service
             return FlextResult[str].ok("FlextCliDebug service ready")

@@ -69,7 +69,12 @@ class FlextCliDecorators:
     def handle_service_result(
         func: Callable[P, FlextResult[T]] | Callable[P, Awaitable[FlextResult[T]]],
     ) -> Callable[P, T | None] | Callable[P, Awaitable[T | None]]:
-        """Decorator for handling FlextResult values - extracts success data or returns None on failure."""
+        """Decorator for handling FlextResult values - extracts success data or returns None on failure.
+
+        Returns:
+            Callable[P, T | None] | Callable[P, Awaitable[T | None]]: Decorated function.
+
+        """
         if asyncio.iscoroutinefunction(func):
 
             @functools.wraps(func)
@@ -132,7 +137,12 @@ class FlextCliDecorators:
 
     @staticmethod
     def async_command(func: Callable[P, T]) -> Callable[P, T]:
-        """Convert async function to sync by running with asyncio.run when safe."""
+        """Convert async function to sync by running with asyncio.run when safe.
+
+        Returns:
+            Callable[P, T]: Description of return value.
+
+        """
         if asyncio.iscoroutinefunction(func):
 
             @functools.wraps(func)
@@ -158,7 +168,12 @@ class FlextCliDecorators:
     def confirm_action(
         message: str,
     ) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
-        """Create confirmation decorator for user actions."""
+        """Create confirmation decorator for user actions.
+
+        Returns:
+            Callable[[Callable[P, T]], Callable[P, T | None]]: Description of return value.
+
+        """
 
         def _decorator(func: Callable[P, T]) -> Callable[P, T | None]:
             @functools.wraps(func)
@@ -179,7 +194,12 @@ class FlextCliDecorators:
     def require_auth(
         token_file: str | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
-        """Create authentication requirement decorator."""
+        """Create authentication requirement decorator.
+
+        Returns:
+            Callable[[Callable[P, T]], Callable[P, T | None]]: Description of return value.
+
+        """
 
         def _decorator(func: Callable[P, T]) -> Callable[P, T | None]:
             @functools.wraps(func)
@@ -211,7 +231,12 @@ class FlextCliDecorators:
         *,
         show_in_output: bool = False,
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
-        """Create execution time measurement decorator."""
+        """Create execution time measurement decorator.
+
+        Returns:
+            Callable[[Callable[P, T]], Callable[P, T]]: Description of return value.
+
+        """
 
         def _decorator(func: Callable[P, T]) -> Callable[P, T]:
             @functools.wraps(func)
@@ -233,7 +258,12 @@ class FlextCliDecorators:
     def validate_config(
         required_keys: list[str],
     ) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
-        """Create configuration validation decorator."""
+        """Create configuration validation decorator.
+
+        Returns:
+            Callable[[Callable[P, T]], Callable[P, T | None]]: Description of return value.
+
+        """
 
         def _decorator(func: Callable[P, T]) -> Callable[P, T | None]:
             @functools.wraps(func)
@@ -273,7 +303,12 @@ class FlextCliDecorators:
     def with_spinner(
         message: str = "Processing...",
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
-        """Create spinner decorator for long operations."""
+        """Create spinner decorator for long operations.
+
+        Returns:
+            Callable[[Callable[P, T]], Callable[P, T]]: Description of return value.
+
+        """
 
         def _decorator(func: Callable[P, T]) -> Callable[P, T]:
             @functools.wraps(func)
@@ -292,7 +327,12 @@ class FlextCliDecorators:
     def flext_cli_auto_validate(
         _validators: list[str],
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
-        """Create automatic validation decorator."""
+        """Create automatic validation decorator.
+
+        Returns:
+            Callable[[Callable[P, T]], Callable[P, T]]: Description of return value.
+
+        """
 
         def _decorator(func: Callable[P, T]) -> Callable[P, T]:
             return functools.wraps(func)(func)
@@ -303,7 +343,12 @@ class FlextCliDecorators:
     def require_confirmation(
         _action: str,
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
-        """Compatibility no-op confirmation decorator (non-interactive)."""
+        """Compatibility no-op confirmation decorator (non-interactive).
+
+        Returns:
+            Callable[[Callable[P, T]], Callable[P, T]]: Description of return value.
+
+        """
 
         def _decorator(func: Callable[P, T]) -> Callable[P, T]:
             return functools.wraps(func)(func)
@@ -312,7 +357,12 @@ class FlextCliDecorators:
 
     @staticmethod
     def cli_retry(max_attempts: int = 3) -> Callable[[Callable[P, T]], Callable[P, T]]:
-        """Create CLI-specific retry decorator with exponential backoff."""
+        """Create CLI-specific retry decorator with exponential backoff.
+
+        Returns:
+            Callable[[Callable[P, T]], Callable[P, T]]: Description of return value.
+
+        """
 
         def decorator(func: Callable[P, T]) -> Callable[P, T]:
             @functools.wraps(func)
@@ -351,7 +401,12 @@ class FlextCliDecorators:
         backoff_multiplier: float = 2.0,
         logger_name: str | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
-        """Retry decorator with actual retry functionality (overrides flext-core stub)."""
+        """Retry decorator with actual retry functionality (overrides flext-core stub).
+
+        Returns:
+            Callable[[Callable[P, T]], Callable[P, T]]: Retry decorator function.
+
+        """
 
         def decorator(func: Callable[P, T]) -> Callable[P, T]:
             @functools.wraps(func)

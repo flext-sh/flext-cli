@@ -29,13 +29,23 @@ class FlextCliCmd(FlextDomainService[str]):
 
     @property
     def command_bus_service(self) -> FlextCliCommandBusService:
-        """Get command bus service instance with lazy loading."""
+        """Get command bus service instance with lazy loading.
+
+        Returns:
+            FlextCliCommandBusService: Description of return value.
+
+        """
         if self._command_bus_service is None:
             self._command_bus_service = FlextCliCommandBusService()
         return self._command_bus_service
 
     def execute(self) -> FlextResult[str]:
-        """Execute CLI command through command bus."""
+        """Execute CLI command through command bus.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         # Delegate to command bus service for proper command execution
         return FlextResult[str].ok("Command bus integration ready")
 
@@ -45,7 +55,12 @@ class FlextCliCmd(FlextDomainService[str]):
 
         @staticmethod
         def show_config(logger: FlextLogger) -> FlextResult[None]:
-            """Show current configuration through command bus."""
+            """Show current configuration through command bus.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             logger.info("Displaying CLI configuration")
             # Implementation delegated to command bus
             return FlextResult[None].ok(None)
@@ -55,7 +70,12 @@ class FlextCliCmd(FlextDomainService[str]):
 
         @staticmethod
         def edit_config() -> FlextResult[str]:
-            """Edit configuration through command bus."""
+            """Edit configuration through command bus.
+
+            Returns:
+            FlextResult[str]: Description of return value.
+
+            """
             # Implementation delegated to command bus
             return FlextResult[str].ok("Config edit completed")
 
@@ -64,7 +84,12 @@ class FlextCliCmd(FlextDomainService[str]):
 
         @staticmethod
         def validate_config(config: FlextCliConfigs) -> FlextResult[None]:
-            """Validate CLI configuration."""
+            """Validate CLI configuration.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             validation_result = config.validate_business_rules()
             if validation_result.is_failure:
                 return FlextResult[None].fail(
@@ -74,7 +99,12 @@ class FlextCliCmd(FlextDomainService[str]):
 
     # Public Configuration Interface
     def show_config_paths(self) -> FlextResult[list[str]]:
-        """Show configuration paths."""
+        """Show configuration paths.
+
+        Returns:
+            FlextResult[list[str]]: Description of return value.
+
+        """
         config = FlextCliConfigs()
         paths = [
             str(config.config_dir),
@@ -85,12 +115,22 @@ class FlextCliCmd(FlextDomainService[str]):
         return FlextResult[list[str]].ok(paths)
 
     def set_config_value(self, key: str, value: str, /) -> FlextResult[bool]:
-        """Set configuration value through command bus."""
+        """Set configuration value through command bus.
+
+        Returns:
+            FlextResult[bool]: Description of return value.
+
+        """
         # Implementation through command bus service
         return self.command_bus_service.execute_set_config_command(key=key, value=value)
 
     def get_config_value(self, key: str | None, /) -> FlextResult[dict[str, object]]:
-        """Get configuration value through command bus."""
+        """Get configuration value through command bus.
+
+        Returns:
+            FlextResult[dict[str, object]]: Description of return value.
+
+        """
         # Implementation through command bus service
         _ = key  # Acknowledge the parameter (currently not used in implementation)
         return self.command_bus_service.execute_show_config_command(
@@ -99,25 +139,50 @@ class FlextCliCmd(FlextDomainService[str]):
 
     # Instance Management (consolidated from loose functions)
     def get_cmd_instance(self) -> FlextCliCommandBusService:
-        """Get CLI command service instance."""
+        """Get CLI command service instance.
+
+        Returns:
+            FlextCliCommandBusService: Description of return value.
+
+        """
         return self.command_bus_service
 
     @classmethod
     def create_instance(cls) -> FlextCliCmd:
-        """Create new FlextCliCmd instance."""
+        """Create new FlextCliCmd instance.
+
+        Returns:
+            FlextCliCmd: Description of return value.
+
+        """
         return cls()
 
     # Public interface for configuration operations
     def show_config(self) -> FlextResult[None]:
-        """Show configuration using internal helper."""
+        """Show configuration using internal helper.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         return self._ConfigDisplayHelper.show_config(self._logger)
 
     def edit_config(self) -> FlextResult[str]:
-        """Edit configuration using internal helper."""
+        """Edit configuration using internal helper.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         return self._ConfigModificationHelper.edit_config()
 
     def validate_config(self) -> FlextResult[None]:
-        """Validate configuration using internal helper."""
+        """Validate configuration using internal helper.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         # Create a default config for validation
         config = FlextCliConfigs()
         return self._ConfigValidationHelper.validate_config(config)

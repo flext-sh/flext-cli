@@ -52,7 +52,12 @@ class FlextCliHandlers(FlextDomainService[None]):
             self,
             message: FlextCliModels.ShowConfigCommand,
         ) -> FlextResult[dict[str, object]]:
-            """Handle show config command with proper error handling."""
+            """Handle show config command with proper error handling.
+
+            Returns:
+            FlextResult[dict[str, object]]: Description of return value.
+
+            """
             try:
                 # Load configuration using flext-cli config system
                 config = FlextCliConfigs(profile=message.profile)
@@ -94,7 +99,12 @@ class FlextCliHandlers(FlextDomainService[None]):
             self,
             message: FlextCliModels.SetConfigValueCommand,
         ) -> FlextResult[bool]:
-            """Handle set config value command with proper error handling."""
+            """Handle set config value command with proper error handling.
+
+            Returns:
+            FlextResult[bool]: Description of return value.
+
+            """
             try:
                 # Load current configuration
                 config = FlextCliConfigs(profile=message.profile)
@@ -139,7 +149,12 @@ class FlextCliHandlers(FlextDomainService[None]):
             self,
             message: FlextCliModels.EditConfigCommand,
         ) -> FlextResult[bool]:
-            """Handle edit config command with proper error handling."""
+            """Handle edit config command with proper error handling.
+
+            Returns:
+            FlextResult[bool]: Description of return value.
+
+            """
             try:
                 config = FlextCliConfigs(profile=message.profile)
                 config_file = config.config_dir / f"{message.profile}.json"
@@ -176,7 +191,12 @@ class FlextCliHandlers(FlextDomainService[None]):
             self,
             message: FlextCliModels.AuthLoginCommand,
         ) -> FlextResult[dict[str, object]]:
-            """Handle auth login command with proper error handling."""
+            """Handle auth login command with proper error handling.
+
+            Returns:
+            FlextResult[dict[str, object]]: Description of return value.
+
+            """
             try:
                 # Simulate authentication process
                 # In real implementation, this would call the API
@@ -214,7 +234,12 @@ class FlextCliHandlers(FlextDomainService[None]):
             self,
             message: FlextCliModels.AuthStatusCommand,
         ) -> FlextResult[dict[str, object]]:
-            """Handle auth status command with proper error handling."""
+            """Handle auth status command with proper error handling.
+
+            Returns:
+            FlextResult[dict[str, object]]: Description of return value.
+
+            """
             try:
                 # Check authentication status
                 config = FlextCliConfigs()
@@ -261,7 +286,12 @@ class FlextCliHandlers(FlextDomainService[None]):
             self,
             message: FlextCliModels.AuthLogoutCommand,
         ) -> FlextResult[bool]:
-            """Handle auth logout command with proper error handling."""
+            """Handle auth logout command with proper error handling.
+
+            Returns:
+            FlextResult[bool]: Description of return value.
+
+            """
             try:
                 config = FlextCliConfigs()
 
@@ -302,7 +332,12 @@ class FlextCliHandlers(FlextDomainService[None]):
             self,
             message: FlextCliModels.DebugInfoCommand,
         ) -> FlextResult[dict[str, object]]:
-            """Handle debug info command with proper error handling."""
+            """Handle debug info command with proper error handling.
+
+            Returns:
+            FlextResult[dict[str, object]]: Description of return value.
+
+            """
             try:
                 debug_info: dict[str, object] = {
                     "flext_cli_version": "2.1.0",
@@ -337,7 +372,12 @@ class FlextCliHandlers(FlextDomainService[None]):
 
         @staticmethod
         def get_all_handler_classes() -> list[type]:
-            """Get all available handler classes."""
+            """Get all available handler classes.
+
+            Returns:
+            list[type]: Description of return value.
+
+            """
             return [
                 FlextCliHandlers.ShowConfigCommandHandler,
                 FlextCliHandlers.SetConfigValueCommandHandler,
@@ -350,7 +390,12 @@ class FlextCliHandlers(FlextDomainService[None]):
 
         @staticmethod
         def create_all_handlers() -> list[object]:
-            """Create instances of all handlers."""
+            """Create instances of all handlers.
+
+            Returns:
+            list[object]: Description of return value.
+
+            """
             handler_classes = (
                 FlextCliHandlers._HandlerRegistry.get_all_handler_classes()
             )
@@ -358,7 +403,12 @@ class FlextCliHandlers(FlextDomainService[None]):
 
         @staticmethod
         def validate_handler_instance(handler: object) -> FlextResult[bool]:
-            """Validate that handler instance is properly configured."""
+            """Validate that handler instance is properly configured.
+
+            Returns:
+            FlextResult[bool]: Description of return value.
+
+            """
             if not hasattr(handler, "handle"):
                 return FlextResult[bool].fail(
                     f"Handler {type(handler).__name__} missing handle method",
@@ -370,12 +420,22 @@ class FlextCliHandlers(FlextDomainService[None]):
             return FlextResult[bool].ok(data=True)
 
     def get_available_handlers(self) -> list[str]:
-        """Get list of available handler names."""
+        """Get list of available handler names.
+
+        Returns:
+            list[str]: Description of return value.
+
+        """
         handler_classes = self._HandlerRegistry.get_all_handler_classes()
         return [cls.__name__ for cls in handler_classes]
 
     def create_handler_instances(self) -> FlextResult[list[object]]:
-        """Create instances of all handlers with validation."""
+        """Create instances of all handlers with validation.
+
+        Returns:
+            FlextResult[list[object]]: Description of return value.
+
+        """
         try:
             handlers = self._HandlerRegistry.create_all_handlers()
 
@@ -398,7 +458,12 @@ class FlextCliHandlers(FlextDomainService[None]):
             )
 
     def execute(self) -> FlextResult[None]:
-        """Execute domain service - returns handlers service status."""
+        """Execute domain service - returns handlers service status.
+
+        Returns:
+            FlextResult[None]: Success result with None value.
+
+        """
         handlers_result = self.create_handler_instances()
         if handlers_result.is_failure:
             return FlextResult[None].fail(

@@ -71,7 +71,12 @@ class FlextCliConfigs(FlextConfig):
 
         @staticmethod
         def validate_profile_name(profile: str) -> FlextResult[str]:
-            """Validate profile name."""
+            """Validate profile name.
+
+            Returns:
+            FlextResult[str]: Description of return value.
+
+            """
             if not profile or not profile.strip():
                 return FlextResult[str].fail("Profile name cannot be empty")
 
@@ -84,7 +89,12 @@ class FlextCliConfigs(FlextConfig):
 
         @staticmethod
         def create_development_profile() -> dict[str, object]:
-            """Create development profile configuration."""
+            """Create development profile configuration.
+
+            Returns:
+            dict[str, object]: Description of return value.
+
+            """
             return {
                 "profile": "development",
                 "debug": True,
@@ -96,7 +106,12 @@ class FlextCliConfigs(FlextConfig):
 
         @staticmethod
         def create_production_profile() -> dict[str, object]:
-            """Create production profile configuration."""
+            """Create production profile configuration.
+
+            Returns:
+            dict[str, object]: Description of return value.
+
+            """
             return {
                 "profile": "production",
                 "debug": False,
@@ -111,27 +126,52 @@ class FlextCliConfigs(FlextConfig):
 
         @staticmethod
         def base_dir() -> Path:
-            """Base directory for CLI operations."""
+            """Base directory for CLI operations.
+
+            Returns:
+            Path: Description of return value.
+
+            """
             return Path.home() / FlextCliConstants.FLEXT_DIR_NAME
 
         @staticmethod
         def cache_dir() -> Path:
-            """Cache directory for CLI operations."""
+            """Cache directory for CLI operations.
+
+            Returns:
+            Path: Description of return value.
+
+            """
             return FlextCliConfigs.DirectoryManager.base_dir() / "cache"
 
         @staticmethod
         def log_dir() -> Path:
-            """Log directory for CLI operations."""
+            """Log directory for CLI operations.
+
+            Returns:
+            Path: Description of return value.
+
+            """
             return FlextCliConfigs.DirectoryManager.base_dir() / "logs"
 
         @staticmethod
         def data_dir() -> Path:
-            """Data directory for CLI operations."""
+            """Data directory for CLI operations.
+
+            Returns:
+            Path: Description of return value.
+
+            """
             return FlextCliConfigs.DirectoryManager.base_dir() / "data"
 
         @staticmethod
         def ensure_directories(config: FlextCliConfigs) -> FlextResult[None]:
-            """Ensure CLI directories exist."""
+            """Ensure CLI directories exist.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             directories = [
                 config.config_dir,
                 config.cache_dir,
@@ -152,14 +192,24 @@ class FlextCliConfigs(FlextConfig):
             api_timeout: int,
             connect_timeout: int,
         ) -> FlextResult[None]:
-            """Validate timeout values."""
+            """Validate timeout values.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             if api_timeout <= 0 or connect_timeout <= 0:
                 return FlextResult[None].fail("Timeout values must be positive")
             return FlextResult[None].ok(None)
 
         @staticmethod
         def validate_retries(retries: int, max_retries: int) -> FlextResult[None]:
-            """Validate retry values."""
+            """Validate retry values.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             if retries < 0 or max_retries < 0:
                 return FlextResult[None].fail("Retry values cannot be negative")
             return FlextResult[None].ok(None)
@@ -193,12 +243,22 @@ class FlextCliConfigs(FlextConfig):
 
         @staticmethod
         def validate_output_format(value: str) -> FlextResult[str]:
-            """Validate output format using centralized validation."""
+            """Validate output format using centralized validation.
+
+            Returns:
+            FlextResult[str]: Description of return value.
+
+            """
             return FlextCliValidations.validate_output_format(value)
 
         @staticmethod
         def validate_business_rules(config: FlextCliConfigs) -> FlextResult[None]:
-            """Validate CLI-specific business rules."""
+            """Validate CLI-specific business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             # Validate output format
             format_result = FlextCliConfigs.ValidationManager.validate_output_format(
                 config.output_format,
@@ -340,7 +400,17 @@ class FlextCliConfigs(FlextConfig):
     @field_validator("output_format")
     @classmethod
     def validate_output_format_field(cls, value: str) -> str:
-        """Validate output format field."""
+        """Validate output format field.
+
+        Raises:
+            ValueError: If output format validation fails.
+
+
+
+        Returns:
+            str: Description of return value.
+
+        """
         result = cls.ValidationManager.validate_output_format(value)
         if result.is_failure:
             raise ValueError(result.error)
@@ -349,7 +419,17 @@ class FlextCliConfigs(FlextConfig):
     @field_validator("profile")
     @classmethod
     def validate_profile_field(cls, value: str) -> str:
-        """Validate profile field."""
+        """Validate profile field.
+
+        Raises:
+            ValueError: If profile validation fails.
+
+
+
+        Returns:
+            str: Description of return value.
+
+        """
         result = cls.ProfileManager.validate_profile_name(value)
         if result.is_failure:
             raise ValueError(result.error)
@@ -357,13 +437,23 @@ class FlextCliConfigs(FlextConfig):
 
     @model_validator(mode="after")
     def sync_api_fields_validator(self) -> Self:
-        """Synchronize API-related fields."""
+        """Synchronize API-related fields.
+
+        Returns:
+            Self: Description of return value.
+
+        """
         self.ApiConfigManager.sync_api_fields(self)
         return self
 
     @model_validator(mode="after")
     def validate_configuration_consistency_validator(self) -> Self:
-        """Validate configuration consistency."""
+        """Validate configuration consistency.
+
+        Returns:
+            Self: Description of return value.
+
+        """
         return self.validate_configuration_consistency()
 
     # =========================================================================
@@ -371,7 +461,12 @@ class FlextCliConfigs(FlextConfig):
     # =========================================================================
 
     def validate_configuration_consistency(self) -> Self:
-        """Override parent validation to allow flexible CLI configuration."""
+        """Override parent validation to allow flexible CLI configuration.
+
+        Returns:
+            Self: Description of return value.
+
+        """
         # CLI allows any log level regardless of environment
         # Ensure required CLI fields are set
         if not self.profile:
@@ -381,15 +476,30 @@ class FlextCliConfigs(FlextConfig):
         return self
 
     def validate_business_rules(self) -> FlextResult[None]:
-        """Validate CLI-specific business rules."""
+        """Validate CLI-specific business rules.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         return self.ValidationManager.validate_business_rules(self)
 
     def ensure_directories(self) -> FlextResult[None]:
-        """Ensure CLI directories exist."""
+        """Ensure CLI directories exist.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         return self.DirectoryManager.ensure_directories(self)
 
     def ensure_setup(self) -> FlextResult[None]:
-        """Ensure CLI setup is complete."""
+        """Ensure CLI setup is complete.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         return self.ensure_directories()
 
     # =========================================================================
@@ -398,17 +508,32 @@ class FlextCliConfigs(FlextConfig):
 
     @property
     def is_development_mode(self) -> bool:
-        """Check if in development mode."""
+        """Check if in development mode.
+
+        Returns:
+            bool: Description of return value.
+
+        """
         return self.profile == "development" or bool(self.debug)
 
     @property
     def is_production_mode(self) -> bool:
-        """Check if in production mode."""
+        """Check if in production mode.
+
+        Returns:
+            bool: Description of return value.
+
+        """
         return self.profile == "production" and not self.debug
 
     @property
     def timeout(self) -> int:
-        """Get timeout in seconds."""
+        """Get timeout in seconds.
+
+        Returns:
+            int: Description of return value.
+
+        """
         return self.timeout_seconds
 
     # =========================================================================
@@ -457,21 +582,36 @@ class FlextCliConfigs(FlextConfig):
 
     @classmethod
     def create_development_config(cls) -> FlextResult[FlextCliConfigs]:
-        """Create development configuration."""
+        """Create development configuration.
+
+        Returns:
+            FlextResult[FlextCliConfigs]: Description of return value.
+
+        """
         config_data = cls.ProfileManager.create_development_profile()
         config = cls(**config_data)
         return FlextResult[FlextCliConfigs].ok(config)
 
     @classmethod
     def create_production_config(cls) -> FlextResult[FlextCliConfigs]:
-        """Create production configuration."""
+        """Create production configuration.
+
+        Returns:
+            FlextResult[FlextCliConfigs]: Description of return value.
+
+        """
         config_data = cls.ProfileManager.create_production_profile()
         config = cls(**config_data)
         return FlextResult[FlextCliConfigs].ok(config)
 
     @classmethod
     def get_global_instance(cls) -> FlextCliConfigs:
-        """Get global CLI configuration instance."""
+        """Get global CLI configuration instance.
+
+        Returns:
+            FlextCliConfigs: Description of return value.
+
+        """
         # Get base config from FlextConfig (single source of truth)
         base_config = FlextConfig.get_global_instance()
 
@@ -525,7 +665,12 @@ class FlextCliConfigs(FlextConfig):
 
     @classmethod
     def get_current(cls) -> FlextCliConfigs:
-        """Get current CLI configuration."""
+        """Get current CLI configuration.
+
+        Returns:
+            FlextCliConfigs: Description of return value.
+
+        """
         return cls.get_global_instance()
 
     @classmethod
@@ -533,7 +678,12 @@ class FlextCliConfigs(FlextConfig):
         cls,
         config_data: dict[str, object] | None = None,
     ) -> FlextResult[FlextCliConfigs]:
-        """Create CLI configuration with directory setup."""
+        """Create CLI configuration with directory setup.
+
+        Returns:
+            FlextResult[FlextCliConfigs]: Description of return value.
+
+        """
         config = cls(**config_data) if config_data else cls()
 
         dir_result = config.ensure_directories()
@@ -546,7 +696,12 @@ class FlextCliConfigs(FlextConfig):
 
     @classmethod
     def load_from_profile(cls, profile_name: str) -> FlextResult[FlextCliConfigs]:
-        """Load configuration from a specific profile."""
+        """Load configuration from a specific profile.
+
+        Returns:
+            FlextResult[FlextCliConfigs]: Description of return value.
+
+        """
         profile_result = cls.ProfileManager.validate_profile_name(profile_name)
         if profile_result.is_failure:
             return FlextResult[FlextCliConfigs].fail(
@@ -561,7 +716,12 @@ class FlextCliConfigs(FlextConfig):
         cls,
         cli_params: dict[str, object],
     ) -> FlextResult[FlextCliConfigs]:
-        """Apply CLI parameter overrides to configuration."""
+        """Apply CLI parameter overrides to configuration.
+
+        Returns:
+            FlextResult[FlextCliConfigs]: Description of return value.
+
+        """
         try:
             current_config = cls.get_global_instance()
 
@@ -622,7 +782,12 @@ class FlextCliConfigs(FlextConfig):
         cls,
         config: FlextCliConfigs | None = None,
     ) -> FlextResult[FlextCliConfigs]:
-        """Set up CLI with configuration."""
+        """Set up CLI with configuration.
+
+        Returns:
+            FlextResult[FlextCliConfigs]: Description of return value.
+
+        """
         if config is None:
             config = cls.get_global_instance()
 
@@ -637,7 +802,12 @@ class FlextCliConfigs(FlextConfig):
 
     @classmethod
     def sync_with_flext_config(cls) -> FlextResult[FlextCliConfigs]:
-        """Synchronize with base FlextConfig."""
+        """Synchronize with base FlextConfig.
+
+        Returns:
+            FlextResult[FlextCliConfigs]: Description of return value.
+
+        """
         try:
             base_config = FlextConfig.get_global_instance()
 
@@ -661,7 +831,12 @@ class FlextCliConfigs(FlextConfig):
 
     @classmethod
     def ensure_flext_config_integration(cls) -> FlextResult[None]:
-        """Ensure integration with FlextConfig is maintained."""
+        """Ensure integration with FlextConfig is maintained.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         try:
             FlextConfig.get_global_instance()
         except Exception as e:

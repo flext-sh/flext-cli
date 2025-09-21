@@ -26,26 +26,51 @@ class FlextCliProtocols:
             username: str,
             password: str,
         ) -> FlextResult[FlextTypes.Core.Dict]:
-            """Login with username and password."""
+            """Login with username and password.
+
+            Returns:
+            FlextResult[FlextTypes.Core.Dict]: Description of return value.
+
+            """
             ...
 
         async def logout(self) -> FlextResult[None]:
-            """Logout the current user."""
+            """Logout the current user.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             ...
 
     class TokenStorage(Protocol):
         """Protocol for token storage operations."""
 
         def save_token(self, token: str, token_type: str) -> FlextResult[None]:
-            """Save token to storage."""
+            """Save token to storage.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             ...
 
         def load_token(self, token_type: str) -> FlextResult[str]:
-            """Load token from storage."""
+            """Load token from storage.
+
+            Returns:
+            FlextResult[str]: Description of return value.
+
+            """
             ...
 
         def clear_tokens(self) -> FlextResult[None]:
-            """Clear all tokens from storage."""
+            """Clear all tokens from storage.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             ...
 
     class AuthenticationService(Protocol):
@@ -56,11 +81,21 @@ class FlextCliProtocols:
             username: str,
             password: str,
         ) -> FlextResult[None]:
-            """Validate login credentials."""
+            """Validate login credentials.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             ...
 
         def is_authenticated(self) -> FlextResult[bool]:
-            """Check authentication status."""
+            """Check authentication status.
+
+            Returns:
+            FlextResult[bool]: Description of return value.
+
+            """
             ...
 
         async def authenticate(
@@ -68,11 +103,21 @@ class FlextCliProtocols:
             username: str,
             password: str,
         ) -> FlextResult[FlextTypes.Core.Dict]:
-            """Perform authentication."""
+            """Perform authentication.
+
+            Returns:
+            FlextResult[FlextTypes.Core.Dict]: Description of return value.
+
+            """
             ...
 
         async def deauthenticate(self) -> FlextResult[None]:
-            """Perform deauthentication."""
+            """Perform deauthentication.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             ...
 
     # ==========================================================================
@@ -86,7 +131,12 @@ class FlextCliProtocols:
             self,
             request: str | dict[str, object],
         ) -> FlextResult[object]:
-            """Process CLI request."""
+            """Process CLI request.
+
+            Returns:
+            FlextResult[object]: Description of return value.
+
+            """
             ...
 
         def build(
@@ -95,7 +145,12 @@ class FlextCliProtocols:
             *,
             correlation_id: str,
         ) -> str | dict[str, object]:
-            """Build CLI response."""
+            """Build CLI response.
+
+            Returns:
+            str | dict[str, object]: Description of return value.
+
+            """
             ...
 
     class CliValidator(Protocol):
@@ -105,7 +160,12 @@ class FlextCliProtocols:
             self,
             data: dict[str, object] | str | float,
         ) -> FlextResult[None]:
-            """Validate CLI data."""
+            """Validate CLI data.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             ...
 
     class CliFormatter(Protocol):
@@ -116,7 +176,12 @@ class FlextCliProtocols:
             data: dict[str, object] | list[object] | str,
             format_type: str,
         ) -> FlextResult[str]:
-            """Format CLI data with specified type."""
+            """Format CLI data with specified type.
+
+            Returns:
+            FlextResult[str]: Description of return value.
+
+            """
             ...
 
     class CliAuthenticator(Protocol):
@@ -126,11 +191,21 @@ class FlextCliProtocols:
             self,
             credentials: dict[str, str],
         ) -> FlextResult[FlextTypes.Core.Dict]:
-            """Authenticate CLI user."""
+            """Authenticate CLI user.
+
+            Returns:
+            FlextResult[FlextTypes.Core.Dict]: Description of return value.
+
+            """
             ...
 
         def is_authenticated(self) -> bool:
-            """Check authentication status."""
+            """Check authentication status.
+
+            Returns:
+            bool: Description of return value.
+
+            """
             ...
 
     @runtime_checkable

@@ -57,11 +57,21 @@ class FlextCliFormatters(BaseModel):
         """Protocol for custom formatters."""
 
         def format(self, data: object, **kwargs: object) -> str:
-            """Format data according to protocol."""
+            """Format data according to protocol.
+
+            Returns:
+            str: Description of return value.
+
+            """
             raise NotImplementedError
 
         def get_name(self) -> str:
-            """Get formatter name."""
+            """Get formatter name.
+
+            Returns:
+            str: Description of return value.
+
+            """
             raise NotImplementedError
 
     class _ConsoleOutput:
@@ -78,7 +88,12 @@ class FlextCliFormatters(BaseModel):
                 self._console.print(content)
 
         def get_console(self) -> Console:
-            """Get console instance."""
+            """Get console instance.
+
+            Returns:
+            Console: Description of return value.
+
+            """
             return self._console
 
     class _FormatValidationHelper:
@@ -86,12 +101,22 @@ class FlextCliFormatters(BaseModel):
 
         @staticmethod
         def validate_format_type(format_type: str) -> FlextResult[str]:
-            """Validate format type using centralized validation."""
+            """Validate format type using centralized validation.
+
+            Returns:
+            FlextResult[str]: Description of return value.
+
+            """
             return FlextCliValidations.validate_output_format(format_type)
 
         @staticmethod
         def validate_data_structure(data: object) -> FlextResult[object]:
-            """Validate data structure for formatting."""
+            """Validate data structure for formatting.
+
+            Returns:
+            FlextResult[object]: Description of return value.
+
+            """
             if data is None:
                 return FlextResult[object].fail("Data cannot be None")
             return FlextResult[object].ok(data)
@@ -100,27 +125,49 @@ class FlextCliFormatters(BaseModel):
         """Nested helper for file path operations."""
 
         def ensure_directory_exists(self, file_path: Path) -> FlextResult[Path]:
-            """Ensure parent directory exists for file path using explicit error handling."""
+            """Ensure parent directory exists for file path using explicit error handling.
+
+            Returns:
+            FlextResult[Path]: Description of return value.
+
+            """
 
             def create_parent_dirs() -> Path:
-                """Create parent directories - used by safe_call."""
+                """Create parent directories - used by safe_call.
+
+                Returns:
+                Path: Description of return value.
+
+                """
                 file_path.parent.mkdir(parents=True, exist_ok=True)
                 return file_path
 
             result = FlextResult.safe_call(create_parent_dirs)
             if result.is_failure:
-                return FlextResult[Path].fail(f"Directory creation failed: {result.error}")
+                return FlextResult[Path].fail(
+                    f"Directory creation failed: {result.error}"
+                )
 
             return result
 
         @staticmethod
         def validate_file_path(file_path: str | Path) -> FlextResult[Path]:
-            """Validate and convert file path using explicit error handling."""
+            """Validate and convert file path using explicit error handling.
+
+            Returns:
+            FlextResult[Path]: Description of return value.
+
+            """
             if not file_path:
                 return FlextResult[Path].fail("File path cannot be empty")
 
             def convert_to_path() -> Path:
-                """Convert string/Path to Path object - used by safe_call."""
+                """Convert string/Path to Path object - used by safe_call.
+
+                Returns:
+                Path: Description of return value.
+
+                """
                 return Path(file_path)
 
             result = FlextResult.safe_call(convert_to_path)
@@ -143,7 +190,12 @@ class FlextCliFormatters(BaseModel):
             show_header: bool = True,
             show_lines: bool = False,
         ) -> dict[str, object]:
-            """Create display table structure from data - Rich abstraction."""
+            """Create display table structure from data - Rich abstraction.
+
+            Returns:
+            dict[str, object]: Description of return value.
+
+            """
             table_structure = {
                 "title": title,
                 "show_header": show_header,
@@ -170,9 +222,20 @@ class FlextCliFormatters(BaseModel):
         def display_table_structure(
             self, table_structure: dict[str, object]
         ) -> FlextResult[str]:
-            """Display table structure using flext-core formatting - no direct Rich."""
+            """Display table structure using flext-core formatting - no direct Rich.
+
+            Returns:
+            FlextResult[str]: Description of return value.
+
+            """
+
             def format_table_structure() -> str:
-                """Format table structure - used by safe_call."""
+                """Format table structure - used by safe_call.
+
+                Returns:
+                str: Description of return value.
+
+                """
                 # Convert table structure to string representation
                 title = table_structure.get("title", "")
                 show_header = table_structure.get("show_header", True)
@@ -214,7 +277,12 @@ class FlextCliFormatters(BaseModel):
         super().__init__(**data)
 
     def execute(self) -> FlextResult[None]:
-        """Execute formatting service - FlextDomainService interface."""
+        """Execute formatting service - FlextDomainService interface.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         return FlextResult[None].ok(None)
 
     def create_table(
@@ -226,7 +294,12 @@ class FlextCliFormatters(BaseModel):
         show_header: bool = True,
         show_lines: bool = False,
     ) -> FlextResult[Table]:
-        """Create Rich table with comprehensive options."""
+        """Create Rich table with comprehensive options.
+
+        Returns:
+            FlextResult[Table]: Description of return value.
+
+        """
         validation_result = self._FormatValidationHelper.validate_data_structure(data)
         if validation_result.is_failure:
             return FlextResult[Table].fail(
@@ -234,7 +307,12 @@ class FlextCliFormatters(BaseModel):
             )
 
         def create_rich_table() -> Table:
-            """Create Rich table - used by safe_call."""
+            """Create Rich table - used by safe_call.
+
+            Returns:
+            Table: Description of return value.
+
+            """
             table = Table(title=title, show_header=show_header, show_lines=show_lines)
 
             if not data:
@@ -269,13 +347,23 @@ class FlextCliFormatters(BaseModel):
         title: str = "",
         headers: list[str] | None = None,
     ) -> FlextResult[str]:
-        """Format data as table string."""
+        """Format data as table string.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         table_result = self.create_table(data, title=title, headers=headers)
         if table_result.is_failure:
             return FlextResult[str].fail(table_result.error or "Table creation failed")
 
         def capture_table_output() -> str:
-            """Capture table output as string - used by safe_call."""
+            """Capture table output as string - used by safe_call.
+
+            Returns:
+            str: Description of return value.
+
+            """
             with StringIO() as buffer:
                 console = Console(file=buffer, width=120)
                 console.print(table_result.unwrap())
@@ -290,10 +378,20 @@ class FlextCliFormatters(BaseModel):
     def format_data(
         self, data: object, format_type: str = "table", **kwargs: object
     ) -> FlextResult[str]:
-        """Format data according to specified type using validation chaining."""
+        """Format data according to specified type using validation chaining.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
 
         def perform_formatting(validated_data: object) -> FlextResult[str]:
-            """Perform the actual formatting after validation using explicit routing."""
+            """Perform the actual formatting after validation using explicit routing.
+
+            Returns:
+            FlextResult[str]: Description of return value.
+
+            """
             if format_type == "table":
                 return self._format_as_table(validated_data, **kwargs)
             if format_type == "json":
@@ -322,7 +420,12 @@ class FlextCliFormatters(BaseModel):
         headers: list[str] | None = None,
         **kwargs: object,
     ) -> FlextResult[None]:
-        """Display table to console."""
+        """Display table to console.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         # Extract valid create_table parameters from kwargs
         valid_kwargs = {
             k: v
@@ -349,7 +452,12 @@ class FlextCliFormatters(BaseModel):
         return FlextResult[None].ok(None)
 
     def display_json(self, data: object, **kwargs: object) -> FlextResult[None]:
-        """Display JSON formatted data."""
+        """Display JSON formatted data.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         json_result = self._format_as_json(data, **kwargs)
         if json_result.is_failure:
             return FlextResult[None].fail(json_result.error or "JSON display failed")
@@ -361,7 +469,13 @@ class FlextCliFormatters(BaseModel):
     def display_message(
         self, message: str, style: str = "", prefix: str = ""
     ) -> FlextResult[None]:
-        """Display formatted message with optional styling."""
+        """Display formatted message with optional styling.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
+
         def display_formatted_message() -> None:
             """Display formatted message - used by safe_call."""
             formatted_message = f"{prefix}{message}" if prefix else message
@@ -376,7 +490,12 @@ class FlextCliFormatters(BaseModel):
 
     @property
     def console(self) -> Console:
-        """Get console instance."""
+        """Get console instance.
+
+        Returns:
+            Console: Description of return value.
+
+        """
         return self._console
 
     def print_success(self, message: str) -> None:
@@ -390,9 +509,21 @@ class FlextCliFormatters(BaseModel):
     def create_formatter(
         self, name: str, format_function: Callable[[object], str]
     ) -> FlextResult[FlextCliFormatters.FormatterProtocol]:
-        """Create custom formatter using explicit error handling."""
+        """Create custom formatter using explicit error handling.
+
+        Returns:
+            FlextResult[FlextCliFormatters.FormatterProtocol]: Description of return value.
+
+        """
+
         def create_custom_formatter() -> FlextCliFormatters.FormatterProtocol:
-            """Create custom formatter - used by safe_call."""
+            """Create custom formatter - used by safe_call.
+
+            Returns:
+            FlextCliFormatters.FormatterProtocol: Description of return value.
+
+            """
+
             class CustomFormatter:
                 def format(self, data: object, **format_kwargs: object) -> str:
                     return format_function(data, **format_kwargs)
@@ -415,7 +546,12 @@ class FlextCliFormatters(BaseModel):
     def register_formatter(
         self, name: str, formatter: FormatterProtocol | Callable[..., object]
     ) -> FlextResult[None]:
-        """Register custom formatter using explicit error handling."""
+        """Register custom formatter using explicit error handling.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         if callable(formatter) and not hasattr(formatter, "format"):
             # Convert function to FormatterProtocol
             typed_formatter = cast("Callable[[object], str]", formatter)
@@ -436,7 +572,12 @@ class FlextCliFormatters(BaseModel):
     def format_output(
         self, data: object, format_type: str = "table", **kwargs: object
     ) -> FlextResult[str]:
-        """Format output using registered or built-in formatters."""
+        """Format output using registered or built-in formatters.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         # Check for custom formatter first
         if format_type in self._custom_formatters:
             formatter = self._custom_formatters[format_type]
@@ -444,7 +585,12 @@ class FlextCliFormatters(BaseModel):
                 return FlextResult[str].fail("Formatter object missing format method")
 
             def apply_custom_formatter() -> str:
-                """Apply custom formatter - used by safe_call."""
+                """Apply custom formatter - used by safe_call.
+
+                Returns:
+                str: Description of return value.
+
+                """
                 return formatter.format(data, **kwargs)
 
             result = FlextResult.safe_call(apply_custom_formatter)
@@ -457,7 +603,12 @@ class FlextCliFormatters(BaseModel):
         return self.format_data(data, format_type, **kwargs)
 
     def list_formats(self) -> FlextResult[list[str]]:
-        """List all available formats."""
+        """List all available formats.
+
+        Returns:
+            FlextResult[list[str]]: Description of return value.
+
+        """
         built_in_formats = ["table", "json", "yaml", "csv", "plain"]
         custom_formats = list(self._custom_formatters.keys())
         all_formats = built_in_formats + custom_formats
@@ -471,10 +622,20 @@ class FlextCliFormatters(BaseModel):
         format_type: str = "json",
         **kwargs: object,
     ) -> FlextResult[Path]:
-        """Export formatted data to file using railway pattern."""
+        """Export formatted data to file using railway pattern.
+
+        Returns:
+            FlextResult[Path]: Description of return value.
+
+        """
 
         def write_formatted_content(file_path_obj: Path) -> FlextResult[Path]:
-            """Write formatted content to validated file path."""
+            """Write formatted content to validated file path.
+
+            Returns:
+            FlextResult[Path]: Description of return value.
+
+            """
             return self.format_data(data, format_type, **kwargs).flat_map(
                 lambda formatted_content: self._write_content_to_file(
                     file_path_obj, formatted_content
@@ -492,9 +653,20 @@ class FlextCliFormatters(BaseModel):
     def _write_content_to_file(
         self, file_path: Path, content: str
     ) -> FlextResult[Path]:
-        """Write content to file using explicit error handling."""
+        """Write content to file using explicit error handling.
+
+        Returns:
+            FlextResult[Path]: Description of return value.
+
+        """
+
         def write_text_to_file() -> Path:
-            """Write text to file - used by safe_call."""
+            """Write text to file - used by safe_call.
+
+            Returns:
+            Path: Description of return value.
+
+            """
             file_path.write_text(content, encoding="utf-8")
             self._logger.info(f"Data exported to {file_path}")
             return file_path
@@ -512,7 +684,12 @@ class FlextCliFormatters(BaseModel):
         format_type: str = "json",
         **kwargs: object,
     ) -> FlextResult[list[Path]]:
-        """Export multiple datasets to files."""
+        """Export multiple datasets to files.
+
+        Returns:
+            FlextResult[list[Path]]: List of exported file paths or error result.
+
+        """
         # Validate output directory
         dir_path_result = self._FilePathHelper.validate_file_path(output_dir)
         if dir_path_result.is_failure:
@@ -523,7 +700,16 @@ class FlextCliFormatters(BaseModel):
         output_dir_path = dir_path_result.unwrap()
 
         def perform_batch_export() -> list[Path]:
-            """Perform batch export operations - used by safe_call."""
+            """Perform batch export operations - used by safe_call.
+
+            Raises:
+                ValueError: If dataset validation fails.
+                RuntimeError: If export operation fails.
+
+            Returns:
+            list[Path]: Description of return value.
+
+            """
             output_dir_path.mkdir(parents=True, exist_ok=True)
             exported_files = []
 
@@ -534,9 +720,7 @@ class FlextCliFormatters(BaseModel):
                     != FlextCliConstants.LIMITS.dataset_tuple_length
                 ):
                     msg = f"Invalid dataset tuple: expected length {FlextCliConstants.LIMITS.dataset_tuple_length}"
-                    raise ValueError(
-                        msg
-                    )
+                    raise ValueError(msg)
 
                 file_path = output_dir_path / filename
                 export_result = self.export_formatted_data(
@@ -564,7 +748,12 @@ class FlextCliFormatters(BaseModel):
         output_file: str | Path | None = None,
         **kwargs: object,
     ) -> FlextResult[str]:
-        """Create formatted output with optional file export."""
+        """Create formatted output with optional file export.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         format_result = self.format_output(data, format_type, **kwargs)
         if format_result.is_failure:
             return FlextResult[str].fail(
@@ -584,10 +773,20 @@ class FlextCliFormatters(BaseModel):
         return FlextResult[str].ok(formatted_data)
 
     def get_formatter_info(self) -> FlextResult[dict[str, object]]:
-        """Get information about available formatters using explicit error handling."""
+        """Get information about available formatters using explicit error handling.
+
+        Returns:
+            FlextResult[dict[str, object]]: Description of return value.
+
+        """
 
         def build_formatter_info() -> dict[str, object]:
-            """Build formatter information dictionary - used for explicit error handling."""
+            """Build formatter information dictionary - used for explicit error handling.
+
+            Returns:
+            dict[str, object]: Description of return value.
+
+            """
             return {
                 "built_in_formats": ["table", "json", "yaml", "csv", "plain"],
                 "custom_formatters": list(self._custom_formatters.keys()),
@@ -606,7 +805,12 @@ class FlextCliFormatters(BaseModel):
 
     # Private formatting methods
     def _format_as_json(self, data: object, **kwargs: object) -> FlextResult[str]:
-        """Format data as JSON using explicit error handling."""
+        """Format data as JSON using explicit error handling.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         indent = kwargs.get("indent", 2)
         # Ensure indent is valid type for json.dumps
         if not isinstance(indent, (int, str, type(None))):
@@ -620,7 +824,12 @@ class FlextCliFormatters(BaseModel):
         return result
 
     def _format_as_yaml(self, data: object, **kwargs: object) -> FlextResult[str]:
-        """Format data as YAML using explicit error handling."""
+        """Format data as YAML using explicit error handling.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         # Use kwargs for YAML formatting options (ARG002 fix)
         default_flow_style = bool(kwargs.get("default_flow_style"))
         allow_unicode = bool(kwargs.get("allow_unicode", True))
@@ -640,7 +849,12 @@ class FlextCliFormatters(BaseModel):
         return result
 
     def _format_as_csv(self, data: object, **kwargs: object) -> FlextResult[str]:
-        """Format data as CSV using explicit error handling."""
+        """Format data as CSV using explicit error handling.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         # Validate input data
         if not isinstance(data, list) or not data:
             return FlextResult[str].fail(
@@ -656,7 +870,12 @@ class FlextCliFormatters(BaseModel):
         include_header = bool(kwargs.get("include_header", True))
 
         def write_csv_content() -> str:
-            """Write CSV content - used by safe_call."""
+            """Write CSV content - used by safe_call.
+
+            Returns:
+            str: Description of return value.
+
+            """
             output = StringIO()
             writer = csv.DictWriter(
                 output,
@@ -676,7 +895,12 @@ class FlextCliFormatters(BaseModel):
         return result
 
     def _format_as_table(self, data: object, **kwargs: object) -> FlextResult[str]:
-        """Format data as table."""
+        """Format data as table.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         if not isinstance(data, list):
             data = [{"value": str(data)}]
 

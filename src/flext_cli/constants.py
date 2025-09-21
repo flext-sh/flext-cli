@@ -46,12 +46,22 @@ class FlextCliConstants:
 
         @computed_field
         def default_api_url(self) -> str:
-            """Generate default API URL from configuration."""
+            """Generate default API URL from configuration.
+
+            Returns:
+            str: Description of return value.
+
+            """
             return f"{self.http_scheme}://{self.default_host}:{self.default_api_port}"
 
         @computed_field
         def fallback_api_url(self) -> str:
-            """Generate fallback API URL from configuration."""
+            """Generate fallback API URL from configuration.
+
+            Returns:
+            str: Description of return value.
+
+            """
             return f"{self.http_scheme}://{self.default_host}:{self.fallback_api_port}"
 
     class Files(BaseModel):
@@ -67,12 +77,22 @@ class FlextCliConstants:
 
         @computed_field
         def token_file_name(self) -> str:
-            """Get token file name from environment or default."""
+            """Get token file name from environment or default.
+
+            Returns:
+            str: Description of return value.
+
+            """
             return os.environ.get("FLEXT_CLI_TOKEN_FILE_NAME", "token.json")
 
         @computed_field
         def refresh_token_file_name(self) -> str:
-            """Get refresh token file name from environment or default."""
+            """Get refresh token file name from environment or default.
+
+            Returns:
+            str: Description of return value.
+
+            """
             return os.environ.get(
                 "FLEXT_CLI_REFRESH_TOKEN_FILE_NAME", "refresh_token.json"
             )
@@ -86,7 +106,12 @@ class FlextCliConstants:
 
         @computed_field
         def editor_command(self) -> str:
-            """Get editor command from environment or default."""
+            """Get editor command from environment or default.
+
+            Returns:
+            str: Description of return value.
+
+            """
             return os.environ.get("EDITOR", self.default_editor)
 
     class Timeouts:
@@ -245,6 +270,9 @@ class FlextCliConstants:
             return value.lower() not in {"0", "false", "no"}
 
         ENABLE_DISPATCHER: ClassVar[bool] = _env_enabled("FLEXT_CLI_ENABLE_DISPATCHER")
+
+    # Alias to existing Output enum for backward compatibility
+    OutputFormat = Enums.Output
 
     # =============================================================================
     # DEFAULT INSTANCES - Ready-to-use configurations

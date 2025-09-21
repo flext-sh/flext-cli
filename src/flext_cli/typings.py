@@ -251,28 +251,48 @@ class FlextCliTypes:
             """Protocol for CLI data processors."""
 
             def process(self, data: object) -> object:
-                """Process CLI data."""
+                """Process CLI data.
+
+                Returns:
+                object: Description of return value.
+
+                """
                 ...
 
         class CliValidator(Protocol):
             """Protocol for CLI validators."""
 
             def validate(self, data: object) -> bool:
-                """Validate CLI data."""
+                """Validate CLI data.
+
+                Returns:
+                bool: Description of return value.
+
+                """
                 ...
 
         class CliFormatter(Protocol):
             """Protocol for CLI formatters."""
 
             def format(self, data: object) -> str:
-                """Format CLI data."""
+                """Format CLI data.
+
+                Returns:
+                str: Description of return value.
+
+                """
                 ...
 
         class CliAuthenticator(Protocol):
             """Protocol for CLI authenticators."""
 
             def authenticate(self, credentials: dict[str, str]) -> bool:
-                """Authenticate CLI user."""
+                """Authenticate CLI user.
+
+                Returns:
+                bool: Description of return value.
+
+                """
                 ...
 
     # =============================================================================

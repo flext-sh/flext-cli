@@ -31,7 +31,12 @@ class FlextCliInteractions:
         self.quiet: bool = quiet
 
     def confirm(self, message: str, *, default: bool = False) -> FlextResult[bool]:
-        """Get user confirmation using standard input."""
+        """Get user confirmation using standard input.
+
+        Returns:
+            FlextResult[bool]: Description of return value.
+
+        """
         if self.quiet:
             return FlextResult[bool].ok(default)
         try:
@@ -58,7 +63,12 @@ class FlextCliInteractions:
             return FlextResult[bool].fail(f"Confirmation failed: {e}")
 
     def prompt(self, message: str, *, default: str | None = None) -> FlextResult[str]:
-        """Get user text input using standard input."""
+        """Get user text input using standard input.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         if self.quiet and default is not None:
             return FlextResult[str].ok(default)
         try:
@@ -83,7 +93,12 @@ class FlextCliInteractions:
             return FlextResult[str].fail(f"Prompt failed: {e}")
 
     def print_status(self, message: str, *, status: str = "info") -> FlextResult[None]:
-        """Print status message using FlextLogger."""
+        """Print status message using FlextLogger.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         try:
             if self.quiet and status == "info":
                 return FlextResult[None].ok(None)
@@ -106,23 +121,48 @@ class FlextCliInteractions:
             return FlextResult[None].fail(f"Print status failed: {e}")
 
     def print_success(self, message: str) -> FlextResult[None]:
-        """Print success message."""
+        """Print success message.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         return self.print_status(message, status="success")
 
     def print_error(self, message: str) -> FlextResult[None]:
-        """Print error message."""
+        """Print error message.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         return self.print_status(message, status="error")
 
     def print_warning(self, message: str) -> FlextResult[None]:
-        """Print warning message."""
+        """Print warning message.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         return self.print_status(message, status="warning")
 
     def print_info(self, message: str) -> FlextResult[None]:
-        """Print info message."""
+        """Print info message.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         return self.print_status(message, status="info")
 
     def create_progress(self, message: str = "") -> FlextResult[str]:
-        """Create simple progress tracking message."""
+        """Create simple progress tracking message.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         try:
             if message and not self.quiet:
                 self._logger.info(f"Starting: {message}")
@@ -135,7 +175,12 @@ class FlextCliInteractions:
         items: FlextTypes.Core.List,
         message: str,
     ) -> FlextResult[FlextTypes.Core.List]:
-        """Process items with simple progress tracking."""
+        """Process items with simple progress tracking.
+
+        Returns:
+            FlextResult[FlextTypes.Core.List]: Description of return value.
+
+        """
         try:
             if message and not self.quiet:
                 self._logger.info(f"Processing {len(items)} items: {message}")
