@@ -45,7 +45,7 @@ class FlextCliMain(FlextDomainService[None]):
         self._logger = FlextLogger(__name__)
         self._command_groups: dict[str, object] = {}
         self._commands: dict[str, object] = {}
-        self._config = FlextCliConfigs()
+        self._config: FlextCliConfigs = FlextCliConfigs()
 
     @property
     def name(self) -> str:

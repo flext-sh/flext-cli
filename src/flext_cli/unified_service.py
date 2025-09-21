@@ -20,6 +20,7 @@ from uuid import uuid4
 import yaml
 from pydantic import BaseModel, Field
 
+import flext_core
 from flext_core import (
     FlextBus,
     FlextContainer,
@@ -312,48 +313,62 @@ class FlextCliUnifiedService(FlextDomainService[FlextTypes.Core.Dict]):
 
         @staticmethod
         def format_as_table(data: object, **options: object) -> FlextResult[str]:
-            """Format data as table using explicit error handling.
+            """Format data as table with intelligent type conversion.
+
+            Handles various data types:
+            - list[dict]: Direct table formatting
+            - dict: Convert to single-row table or key-value pairs
+            - object with __dict__: Convert to key-value table
+            - primitive values: Single-cell table
 
             Returns:
-            FlextResult[str]: Description of return value.
+                FlextResult[str]: Formatted table or error message.
 
             """
-            # Validate input data
-            if not isinstance(data, list):
-                return FlextResult[str].fail(
-                    "Table format requires list of dictionaries"
-                )
-
-            if not all(isinstance(item, dict) for item in data):
-                return FlextResult[str].fail(
-                    "Table format requires list of dictionaries"
-                )
-
-            if not data:
+            # Handle empty data
+            if data is None:
                 return FlextResult[str].ok("No data to display")
 
-            try:
-                # Create simple table
-                headers = list(data[0].keys())
-                rows = [list(item.values()) for item in data]
+            # Convert data to table format using FlextCore
+            table_data_result = flext_core.FlextUtilities.Conversion.to_table_format(data)
+            if table_data_result.is_failure:
+                return FlextResult[str].fail(
+                    f"Cannot convert data to table format: {table_data_result.error}"
+                )
 
-                # Format table
-                lines: list[str] = []
-                if options.get("title"):
-                    lines.extend((f"=== {options['title']} ===", ""))
+            table_data = table_data_result.unwrap()
 
-                # Header
-                header_line = " | ".join(str(h) for h in headers)
-                lines.extend((header_line, "-" * len(header_line)))
+            # Validate table_data is list of dictionaries
+            if not isinstance(table_data, list):
+                return FlextResult[str].fail("Internal error: table conversion failed")
 
-                # Rows
-                for row in rows:
-                    row_line = " | ".join(str(cell) for cell in row)
-                    lines.append(row_line)
+            if not table_data:
+                return FlextResult[str].ok("No data to display")
 
-                return FlextResult[str].ok("\n".join(lines))
-            except Exception as e:
-                return FlextResult[str].fail(f"Table formatting failed: {e}")
+            if not all(isinstance(item, dict) for item in table_data):
+                return FlextResult[str].fail(
+                    "Internal error: table conversion produced invalid format"
+                )
+
+            # Format table content directly
+            headers = list(table_data[0].keys())
+            rows = [list(item.values()) for item in table_data]
+
+            # Format table
+            lines: list[str] = []
+            if options.get("title"):
+                lines.extend((f"=== {options['title']} ===", ""))
+
+            # Header
+            header_line = " | ".join(str(h) for h in headers)
+            lines.extend((header_line, "-" * len(header_line)))
+
+            # Rows
+            for row in rows:
+                row_line = " | ".join(str(cell) for cell in row)
+                lines.append(row_line)
+
+            return FlextResult[str].ok("\n".join(lines))
 
         @staticmethod
         def format_as_csv(data: object, **_options: object) -> FlextResult[str]:

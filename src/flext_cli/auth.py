@@ -52,6 +52,8 @@ class FlextCliAuth(FlextDomainService[str]):
     )
     AuthConfig: ClassVar[type[FlextCliModels.AuthConfig]] = FlextCliModels.AuthConfig
     TokenData: ClassVar[type[FlextCliTypes.TokenData]] = FlextCliTypes.TokenData
+    # Instance attributes with proper type annotations
+    _config: FlextCliConfigs
     # TokenPaths: ClassVar[type[FlextCliTypes.TokenPaths]] = FlextCliTypes.TokenPaths
 
     def __init__(
@@ -80,9 +82,12 @@ class FlextCliAuth(FlextDomainService[str]):
         """Get current authentication configuration.
 
         Returns:
-            FlextCliConfigs: Description of return value.
+            FlextCliConfigs: Current CLI configuration.
 
         """
+        if not isinstance(self._config, FlextCliConfigs):
+            # Initialize with FlextCliConfigs if not already set
+            self._config = FlextCliConfigs.get_current()
         return self._config
 
     def _update_from_config(self) -> None:
@@ -395,6 +400,60 @@ class FlextCliAuth(FlextDomainService[str]):
 
         """
         return self._clear_auth_tokens()
+
+    def load_token_from_storage(self, file_path: Path, token_type: str) -> FlextResult[str]:
+        """Public interface to load token from storage.
+
+        Returns:
+            FlextResult[str]: Token string or error result.
+
+        """
+        return self._load_token_from_storage(file_path, token_type)
+
+    def get_auth_token(self, *, token_path: Path | None = None) -> FlextResult[str]:
+        """Public interface to retrieve authentication token.
+
+        Returns:
+            FlextResult[str]: Authentication token string or error result.
+
+        """
+        return self._get_auth_token(token_path=token_path)
+
+    def is_authenticated(self, *, token_path: Path | None = None) -> bool:
+        """Public interface to check current authentication status.
+
+        Returns:
+            bool: True if authenticated, False otherwise.
+
+        """
+        return self._is_authenticated(token_path=token_path)
+
+    def validate_credentials(self, credentials: FlextCliTypes.LoginCredentials) -> FlextResult[None]:
+        """Public interface to validate login credentials.
+
+        Returns:
+            FlextResult[None]: Success or failure result of validation.
+
+        """
+        return self._validate_credentials(credentials)
+
+    def save_auth_token(self, token: str, *, token_path: Path | None = None) -> FlextResult[None]:
+        """Public interface to save authentication token.
+
+        Returns:
+            FlextResult[None]: Success or failure result of save operation.
+
+        """
+        return self._save_auth_token(token, token_path=token_path)
+
+    def check_authentication_status(self, *, token_path: Path | None = None) -> FlextResult[bool]:
+        """Public interface to check authentication status.
+
+        Returns:
+            FlextResult[bool]: Authentication status or error result.
+
+        """
+        return self._check_authentication_status(token_path=token_path)
 
     def _is_authenticated(self, *, token_path: Path | None = None) -> bool:
         """Check current authentication status.
@@ -729,7 +788,7 @@ class FlextCliAuth(FlextDomainService[str]):
             if not user_data.get("name") or not user_data.get("email"):
                 return FlextResult[bool].fail("Name and email cannot be empty")
 
-            return FlextResult[bool].ok(data=True)
+            return FlextResult[bool].ok(True)
         except Exception as e:
             return FlextResult[bool].fail(f"Validation failed: {e}")
 
@@ -841,7 +900,7 @@ class FlextCliAuth(FlextDomainService[str]):
             if not config_data.get("api_key") or not config_data.get("base_url"):
                 return FlextResult[bool].fail("API key and base URL cannot be empty")
 
-            return FlextResult[bool].ok(data=True)
+            return FlextResult[bool].ok(True)
         except Exception as e:
             return FlextResult[bool].fail(f"Validation failed: {e}")
 
