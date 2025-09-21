@@ -1189,7 +1189,7 @@ class FlextCliClient:
 
             """
             # Any successful response indicates connection is working
-            return FlextResult[bool].ok(value=True)
+            return FlextResult[bool].ok(True)
 
         def log_connection_failure(error: str) -> FlextResult[bool]:
             """Log connection failure and return False - Single Responsibility.
@@ -1200,9 +1200,7 @@ class FlextCliClient:
             """
             logger = FlextLogger(__name__)
             logger.warning(f"Connection test failed: {error}")
-            return FlextResult[bool].ok(
-                value=False
-            )  # Connection test failure is not an error state
+            return FlextResult[bool].ok(False)  # Connection test failure is not an error state  # Connection test failure is not an error state
 
         # Railway pattern composition - leveraging flext-core patterns
         response_result = await execute_health_check()
