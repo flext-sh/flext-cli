@@ -10,10 +10,10 @@ unified class following SOLID principles and flext-core patterns.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import ClassVar, cast
+from typing import ClassVar
 
 from flext_core.constants import FlextConstants
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 from flext_core import FlextResult
 
@@ -248,59 +248,67 @@ class DirectoryManager:
         return Path.home() / ".flext" / "data"
 
 
-class FlextCliConfigs:
+# Global instance storage
+_global_instance: FlextCliConfigs | None = None
+
+
+class FlextCliConfigs(BaseModel):
     """CLI configuration management - minimal implementation to fix import errors."""
 
-    _global_instance: FlextCliConfigs | None = None
+    # Core configuration fields
+    profile: str = Field(default="default", description="Configuration profile")
+    debug: bool = Field(default=False, description="Enable debug mode")
+    output_format: str = Field(default="table", description="Output format")
+    project_name: str = Field(default="flext-cli", description="Project name")
+    project_description: str = Field(
+        default="FLEXT CLI - Developer Command Line Interface",
+        description="Project description",
+    )
+    project_version: str = Field(
+        default=FlextConstants.Core.VERSION, description="Project version"
+    )
 
-    def __init__(self, **kwargs: object) -> None:
-        """Initialize with default values."""
-        self.profile: str = cast("str", kwargs.get("profile", "default"))
-        self.debug: bool = cast("bool", kwargs.get("debug", False))
-        self.output_format: str = cast("str", kwargs.get("output_format", "table"))
-        self.project_name: str = cast("str", kwargs.get("project_name", "flext-cli"))
-        self.project_description: str = cast(
-            "str",
-            kwargs.get(
-                "project_description", "FLEXT CLI - Developer Command Line Interface"
-            ),
-        )
-        self.project_version: str = cast(
-            "str", kwargs.get("project_version", FlextConstants.Core.VERSION)
-        )
-        self.api_url: str = cast("str", kwargs.get("api_url", "http://localhost:8000"))
-        self.api_timeout: int = cast("int", kwargs.get("api_timeout", 30))
-        self.connect_timeout: int = cast("int", kwargs.get("connect_timeout", 30))
-        self.read_timeout: int = cast("int", kwargs.get("read_timeout", 60))
-        self.retries: int = cast("int", kwargs.get("retries", 3))
-        self.verify_ssl: bool = cast("bool", kwargs.get("verify_ssl", True))
-        self.no_color: bool = cast("bool", kwargs.get("no_color", False))
-        self.quiet: bool = cast("bool", kwargs.get("quiet", False))
-        self.verbose: bool = cast("bool", kwargs.get("verbose", False))
-        self.pager: str | None = cast("str | None", kwargs.get("pager"))
-        self.timeout_seconds: int = cast("int", kwargs.get("timeout_seconds", 30))
-        self.log_level: str = cast(
-            "str", kwargs.get("log_level", FlextConstants.Logging.INFO)
-        )
+    # API configuration
+    api_url: str = Field(default="http://localhost:8000", description="API URL")
+    api_timeout: int = Field(default=30, description="API timeout")
+    connect_timeout: int = Field(default=30, description="Connection timeout")
+    read_timeout: int = Field(default=60, description="Read timeout")
+    retries: int = Field(default=3, description="Number of retries")
+    verify_ssl: bool = Field(default=True, description="Verify SSL certificates")
 
-        # Additional attributes expected by tests
-        self.token_file: Path = cast(
-            "Path", kwargs.get("token_file", Path.home() / ".flext" / "token")
-        )
-        self.refresh_token_file: Path = cast(
-            "Path",
-            kwargs.get("refresh_token_file", Path.home() / ".flext" / "refresh_token"),
-        )
-        self.auto_refresh: bool = cast("bool", kwargs.get("auto_refresh", True))
-        self.max_command_retries: int = cast(
-            "int", kwargs.get("max_command_retries", 5)
-        )
+    # CLI behavior
+    no_color: bool = Field(default=False, description="Disable colored output")
+    quiet: bool = Field(default=False, description="Quiet mode")
+    verbose: bool = Field(default=False, description="Verbose mode")
+    pager: str | None = Field(default=None, description="Pager command")
 
-        # Directory paths
-        self.config_dir = kwargs.get("config_dir", DirectoryManager.base_dir())
-        self.cache_dir = kwargs.get("cache_dir", DirectoryManager.cache_dir())
-        self.log_dir = kwargs.get("log_dir", DirectoryManager.log_dir())
-        self.data_dir = kwargs.get("data_dir", DirectoryManager.data_dir())
+    # Logging and timeouts
+    log_level: str = Field(default="INFO", description="Log level")
+    timeout_seconds: int = Field(default=30, description="Timeout in seconds")
+    max_command_retries: int = Field(default=5, description="Maximum command retries")
+    auto_refresh: bool = Field(default=True, description="Auto refresh tokens")
+
+    # File paths
+    token_file: Path = Field(
+        default_factory=lambda: Path.home() / ".flext" / "token",
+        description="Token file path",
+    )
+    refresh_token_file: Path = Field(
+        default_factory=lambda: Path.home() / ".flext" / "refresh_token",
+        description="Refresh token file path",
+    )
+    config_dir: Path = Field(
+        default_factory=DirectoryManager.base_dir, description="Config directory"
+    )
+    cache_dir: Path = Field(
+        default_factory=DirectoryManager.cache_dir, description="Cache directory"
+    )
+    log_dir: Path = Field(
+        default_factory=DirectoryManager.log_dir, description="Log directory"
+    )
+    data_dir: Path = Field(
+        default_factory=DirectoryManager.data_dir, description="Data directory"
+    )
 
     @classmethod
     def get_global_instance(cls) -> FlextCliConfigs:
@@ -310,9 +318,10 @@ class FlextCliConfigs:
             FlextCliConfigs: Global configuration instance.
 
         """
-        if cls._global_instance is None:
-            cls._global_instance = cls()
-        return cls._global_instance
+        global _global_instance  # noqa: PLW0603
+        if _global_instance is None:
+            _global_instance = cls()
+        return _global_instance
 
     @classmethod
     def get_current(cls) -> FlextCliConfigs:
@@ -327,13 +336,14 @@ class FlextCliConfigs:
     @classmethod
     def clear_global_instance(cls) -> None:
         """Clear global instance."""
-        if hasattr(cls, "_global_instance"):
-            delattr(cls, "_global_instance")
+        global _global_instance  # noqa: PLW0603
+        _global_instance = None
 
     @classmethod
     def set_global_instance(cls, instance: FlextCliConfigs) -> None:
         """Set global instance."""
-        cls._global_instance = instance
+        global _global_instance  # noqa: PLW0603
+        _global_instance = instance
 
     @classmethod
     def apply_cli_overrides(

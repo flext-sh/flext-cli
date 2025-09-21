@@ -428,13 +428,11 @@ def refresh_session(
 
         # Create refreshed session data
         refreshed_session = session_data.copy()
-        refreshed_session.update(
-            {
-                "expires_at": current_time + timedelta(hours=8),
-                "last_activity": current_time,
-                "refreshed_at": current_time,
-            }
-        )
+        refreshed_session.update({
+            "expires_at": current_time + timedelta(hours=8),
+            "last_activity": current_time,
+            "refreshed_at": current_time,
+        })
 
         return FlextResult[FlextTypes.Core.Dict].ok(refreshed_session)
 

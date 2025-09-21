@@ -73,7 +73,9 @@ class TestFlextCliDecorators(unittest.TestCase):
 
     def test_require_auth_decorator_with_token(self) -> None:
         """Test require_auth decorator with valid token."""
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as temp_file:
             temp_file.write("test_token")
             temp_file.flush()
 

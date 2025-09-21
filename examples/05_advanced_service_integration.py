@@ -47,8 +47,13 @@ from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 class ContainerProtocol(Protocol):
     """Protocol for container interface."""
 
-    def register(self, name: str, service: object) -> FlextResult[None]: ...
-    def get(self, name: str) -> FlextResult[object]: ...
+    def register(self, name: str, service: object) -> FlextResult[None]:
+        """Register a service in the container."""
+        ...
+
+    def get(self, name: str) -> FlextResult[object]:
+        """Get a service from the container."""
+        ...
 
 
 # Simple replacement for missing example_utils
@@ -324,15 +329,13 @@ class AdvancedCliService(FlextCliService):
             success = True  # Always succeed for demo
 
             if success:
-                return FlextResult[FlextTypes.Core.Dict].ok(
-                    {
-                        "service": service_name,
-                        "operation": operation,
-                        "status": "success",
-                        "execution_time_ms": 150,
-                        "result": f"Operation {operation} completed successfully",
-                    }
-                )
+                return FlextResult[FlextTypes.Core.Dict].ok({
+                    "service": service_name,
+                    "operation": operation,
+                    "status": "success",
+                    "execution_time_ms": 150,
+                    "result": f"Operation {operation} completed successfully",
+                })
             return FlextResult[FlextTypes.Core.Dict].fail(
                 f"Operation {operation} failed"
             )

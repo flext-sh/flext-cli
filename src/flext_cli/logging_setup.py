@@ -350,7 +350,7 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
 
         """
         try:
-            messages = []
+            messages: list[str] = []
 
             if log_level:
                 valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}

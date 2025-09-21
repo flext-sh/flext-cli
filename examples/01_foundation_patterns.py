@@ -142,9 +142,10 @@ def _entities_demo(
     formatter.console.print(f"   Duration: {session.duration_seconds}")
     formatter.console.print(f"   Type: {type(session).__name__}")
 
-    return FlextResult[tuple[FlextCliModels.CliCommand, FlextCliModels.CliSession]].ok(
-        (command, session)
-    )
+    return FlextResult[tuple[FlextCliModels.CliCommand, FlextCliModels.CliSession]].ok((
+        command,
+        session,
+    ))
 
 
 def _validation_demo(

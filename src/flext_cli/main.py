@@ -665,7 +665,7 @@ class FlextCliMain(FlextDomainService[None]):
                 # Apply CLI parameters to FlextConfig singleton
                 try:
                     # Create CLI overrides from parameters
-                    cli_overrides = {
+                    cli_overrides: dict[str, object] = {
                         "debug": debug,
                         "profile": profile,
                         "quiet": quiet,
@@ -1063,7 +1063,7 @@ class FlextCliMain(FlextDomainService[None]):
                     "FLEXT_CLI_LOG_LEVEL",
                 ]
 
-                removed = []
+                removed: list[str] = []
                 for var in env_vars_to_remove:
                     if var in os.environ:
                         del os.environ[var]

@@ -32,7 +32,8 @@ class TestFlextCliFileOperations:
         test_data = {"key": "value", "number": 42}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w",
+            encoding="utf-8",
+            mode="w",
             suffix=".json",
             delete=False,
         ) as tmp_file:
@@ -60,7 +61,8 @@ class TestFlextCliFileOperations:
     def test_load_json_file_invalid_json(self) -> None:
         """Test JSON file loading with invalid JSON."""
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w",
+            encoding="utf-8",
+            mode="w",
             suffix=".json",
             delete=False,
         ) as tmp_file:
@@ -82,7 +84,8 @@ class TestFlextCliFileOperations:
         test_data = {"key": "value", "number": 42}
 
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w",
+            encoding="utf-8",
+            mode="w",
             suffix=".json",
             delete=False,
         ) as tmp_file:
@@ -123,7 +126,9 @@ class TestFlextCliFileOperations:
         """Test successful safe write operation."""
         content = "Test content\nwith multiple lines"
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as tmp_file:
             tmp_file.close()
 
             ops = FlextCliFileOperations()
@@ -144,7 +149,9 @@ class TestFlextCliFileOperations:
         original_content = "Original content"
         new_content = "New content"
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as tmp_file:
             tmp_file.write(original_content)
             tmp_file.flush()
 
@@ -177,7 +184,9 @@ class TestFlextCliFileOperations:
         def process_func(content: str) -> FlextResult[str]:
             return FlextResult[str].ok(content.upper())
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as tmp_file:
             tmp_file.write(original_content)
             tmp_file.flush()
 
@@ -219,7 +228,9 @@ class TestFlextCliFileOperations:
         def process_func(content: str) -> FlextResult[str]:
             return FlextResult[str].ok(content.upper())
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as tmp_file:
             tmp_file.write(original_content)
             tmp_file.flush()
 
@@ -250,7 +261,9 @@ class TestFlextCliFileOperations:
         def process_func(content: str) -> FlextResult[str]:
             return FlextResult[str].ok(content.upper())
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as tmp_file:
             tmp_file.write(original_content)
             tmp_file.flush()
 
@@ -336,7 +349,9 @@ class TestFlextCliFileOperations:
         """Test successful file size retrieval."""
         content = "Test content for size calculation"
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", delete=False
+        ) as tmp_file:
             tmp_file.write(content)
             tmp_file.flush()
 
