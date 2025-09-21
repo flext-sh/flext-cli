@@ -242,7 +242,9 @@ class TestFlextCliMainErrorHandling:
             assert result is None or result != 0
         except SystemExit as e:
             # CLI should exit with non-zero code for invalid commands
-            assert e.code != 0
+            # Use pytest.raises pattern instead of assertion in except block
+            if e.code is None or e.code == 0:
+                pytest.fail("Expected non-zero exit code for invalid command")
 
     def test_cli_main_handles_empty_args(self) -> None:
         """Test CLI handles empty arguments."""

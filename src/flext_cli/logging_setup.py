@@ -16,7 +16,13 @@ from typing import ClassVar
 
 from flext_cli.configs import FlextCliConfigs
 from flext_cli.models import FlextCliModels
-from flext_core import FlextContainer, FlextDomainService, FlextLogger, FlextResult
+from flext_core import (
+    FlextConstants,
+    FlextContainer,
+    FlextDomainService,
+    FlextLogger,
+    FlextResult,
+)
 
 
 class FlextCliLoggingSetup(FlextDomainService[str]):
@@ -51,7 +57,7 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
             FlextResult[str]: Description of return value.
 
         """
-        self.log_info("Executing logging setup")
+        self._logger.info("Executing logging setup")
         return FlextResult[str].ok("Logging setup executed")
 
     def setup_logging(self) -> FlextResult[FlextCliModels.LoggingConfig]:
@@ -128,7 +134,7 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
             # Source 1: Check CLI configuration (highest precedence)
             if (
                 hasattr(self._resolved_config, "log_level")
-                and self._resolved_config.log_level != "INFO"
+                and self._resolved_config.log_level != FlextConstants.Logging.INFO
             ):
                 log_config.log_level = self._resolved_config.log_level
                 log_config.log_level_source = "config_instance"
@@ -143,7 +149,9 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
 
             # Source 3: Check .env file - Python 3.13+ walrus operator
             if (env_file_path := Path.cwd() / ".env").exists():
-                env_content = env_file_path.read_text(encoding="utf-8")
+                env_content = env_file_path.read_text(
+                    encoding=FlextConstants.Mixins.DEFAULT_ENCODING
+                )
                 for raw_line in env_content.split("\n"):
                     line = raw_line.strip()
                     if line.startswith("FLEXT_CLI_LOG_LEVEL="):

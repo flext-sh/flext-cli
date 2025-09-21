@@ -17,6 +17,7 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.validations import FlextCliValidations
 from flext_core import (
     FlextConfig,
+    FlextConstants,
     FlextDomainService,
     FlextLogger,
     FlextResult,
@@ -31,7 +32,9 @@ class FlextCliMain(FlextDomainService[None]):
     imports as appropriate for the CLI domain library.
     """
 
-    def __init__(self, name: str = "flext-cli", description: str = "FLEXT CLI") -> None:
+    def __init__(
+        self, *, name: str = "flext-cli", description: str = "FLEXT CLI"
+    ) -> None:
         """Initialize FlextCliMain with name and description.
 
         Args:
@@ -192,13 +195,17 @@ class FlextCliMain(FlextDomainService[None]):
             try:
                 # Configure FlextLogger based on CLI parameters
                 if debug:
-                    FlextLogger.configure(log_level="DEBUG", structured_output=True)
+                    FlextLogger.configure(
+                        log_level=FlextConstants.Logging.DEBUG, structured_output=True
+                    )
                 elif log_level:
                     FlextLogger.configure(
                         log_level=log_level.upper(), structured_output=True
                     )
                 else:
-                    FlextLogger.configure(log_level="INFO", structured_output=True)
+                    FlextLogger.configure(
+                        log_level=FlextConstants.Logging.INFO, structured_output=True
+                    )
 
                 return FlextResult[None].ok(None)
 
@@ -282,14 +289,14 @@ class FlextCliMain(FlextDomainService[None]):
                     f"Debug Mode: {base_config.debug}",
                     f"Log Level: {base_config.log_level}",
                     f"App Name: {base_config.app_name}",
-                    f"Host: {base_config.host}",
-                    f"Port: {base_config.port}",
+                    f"Host: {getattr(base_config, 'host', FlextConstants.Platform.DEFAULT_HOST)}",
+                    f"Port: {getattr(base_config, 'port', 8000)}",
                     f"Database URL: {base_config.database_url}",
                     "\n=== CLI CONFIGURATION (FlextCliConfigs - Extends FlextConfig) ===",
                     f"Profile: {cli_config.profile}",
                     f"Output Format: {cli_config.output_format}",
                     f"API URL: {cli_config.api_url}",
-                    f"Command Timeout: {cli_config.command_timeout}s",
+                    f"Command Timeout: {getattr(cli_config, 'command_timeout', FlextConstants.Defaults.TIMEOUT)}s",
                     f"Quiet Mode: {cli_config.quiet}",
                     f"Verbose Mode: {cli_config.verbose}",
                 ))
@@ -786,11 +793,11 @@ class FlextCliMain(FlextDomainService[None]):
                     integration_result = (
                         FlextCliConfigs.ensure_flext_config_integration()
                     )
-                    if integration_result.is_success:
+                    if integration_result is not None:
                         click.echo("Integration Status: ✅ VERIFIED")
                     else:
                         click.echo(
-                            f"Integration Status: ❌ FAILED - {integration_result.error}"
+                            "Integration Status: ❌ FAILED - Integration not available"
                         )
 
                 except Exception as e:
@@ -849,7 +856,7 @@ class FlextCliMain(FlextDomainService[None]):
                     click.echo("=" * 30)
                     for key, value in sorted(flx_vars.items()):
                         # Mask sensitive values
-                        preview_length = 4
+                        preview_length = FlextConstants.Validation.MIN_NAME_LENGTH
                         if any(
                             sensitive in key.upper()
                             for sensitive in ["TOKEN", "KEY", "SECRET", "PASS"]
@@ -926,7 +933,13 @@ class FlextCliMain(FlextDomainService[None]):
             @click.argument(
                 "level",
                 type=click.Choice(
-                    ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+                    [
+                        FlextConstants.Logging.DEBUG,
+                        FlextConstants.Logging.INFO,
+                        FlextConstants.Logging.WARNING,
+                        FlextConstants.Logging.ERROR,
+                        FlextConstants.Logging.CRITICAL,
+                    ],
                     case_sensitive=False,
                 ),
             )

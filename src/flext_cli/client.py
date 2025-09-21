@@ -16,7 +16,7 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
 from flext_core import FlextConstants, FlextLogger, FlextResult, FlextTypes
 
-HTTP_OK = 200
+# Use FlextConstants for HTTP status codes
 
 
 class FlextCliClient:
@@ -49,8 +49,8 @@ class FlextCliClient:
         # Use config values as defaults, allow overrides
         if base_url:
             self.base_url = base_url
-        elif config.base_url:
-            self.base_url = config.base_url
+        elif getattr(config, "base_url", None):
+            self.base_url = getattr(config, "base_url")
         else:
             computed_result = self._compute_default_base_url()
             self.base_url = computed_result.unwrap_or(
@@ -79,9 +79,10 @@ class FlextCliClient:
         """
         config = FlextCliConfigs.get_global_instance()
 
-        # Update configuration values
-        if config.base_url:
-            self.base_url = config.base_url
+        # Update configuration values using safe attribute access
+        base_url = getattr(config, "base_url", None)
+        if base_url:
+            self.base_url = base_url
         self.token = getattr(config, "api_key", self.token)
         self.timeout = config.timeout_seconds
         self.verify_ssl = getattr(config, "verify_ssl", True)
@@ -595,7 +596,7 @@ class FlextCliClient:
             FlextResult[FlextTypes.Core.Dict]: Description of return value.
 
             """
-            if response.status_code != HTTP_OK:
+            if response.status_code != FlextConstants.Platform.HTTP_STATUS_OK:
                 return FlextResult[FlextTypes.Core.Dict].fail(
                     f"Login failed with status {response.status_code}"
                 )
@@ -662,7 +663,7 @@ class FlextCliClient:
             FlextResult[None]: Description of return value.
 
             """
-            if response.status_code != HTTP_OK:
+            if response.status_code != FlextConstants.Platform.HTTP_STATUS_OK:
                 return FlextResult[None].fail(
                     f"Logout failed with status {response.status_code}"
                 )
@@ -701,8 +702,8 @@ class FlextCliClient:
     # Pipeline methods
     async def list_pipelines(
         self,
-        page: int = 1,
-        page_size: int = 20,
+        page: int = FlextConstants.Performance.DEFAULT_PAGE_NUMBER,
+        page_size: int = FlextConstants.Performance.DEFAULT_PAGE_SIZE,
         status: str | None = None,
     ) -> FlextCliModels.PipelineList:
         """List pipelines with pagination.
@@ -891,7 +892,7 @@ class FlextCliClient:
         self,
         pipeline_id: str,
         execution_id: str | None = None,
-        tail: int = 100,
+        tail: int = FlextConstants.Performance.DEFAULT_BATCH_SIZE,
     ) -> FlextResult[FlextTypes.Core.StringList]:
         """Get pipeline execution logs using railway pattern.
 
@@ -1188,7 +1189,7 @@ class FlextCliClient:
             FlextResult[bool]: Description of return value.
 
             """
-            # Any successful response indicates connection is working
+            # object successful response indicates connection is working
             return FlextResult[bool].ok(True)
 
         def log_connection_failure(error: str) -> FlextResult[bool]:
@@ -1200,11 +1201,9 @@ class FlextCliClient:
             """
             logger = FlextLogger(__name__)
             logger.warning(f"Connection test failed: {error}")
-            return FlextResult[
-                bool
-            ].ok(
+            return FlextResult[bool].ok(
                 False
-            )  # Connection test failure is not an error state  # Connection test failure is not an error state
+            )  # Connection test failure is not an error state
 
         # Railway pattern composition - leveraging flext-core patterns
         response_result = await execute_health_check()

@@ -259,7 +259,7 @@ class TestClientModels(unittest.TestCase):
         )
 
         assert config.name == "minimal-pipeline"
-        assert config.description == ""  # Default value
+        assert not config.description  # Default value
         assert config.timeout_seconds == 30  # Default from constants
         assert config.max_retries == 3  # Default value
         assert config.parallel_execution is False  # Default value

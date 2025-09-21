@@ -84,7 +84,7 @@ class FlextCliDecorators:
 
                     # Process FlextResult - func should return FlextResult[T]
                     if isinstance(result, FlextResult):
-                        if result.success:
+                        if result.is_success:
                             # Type-safe extraction of value from FlextResult
                             unwrapped_value: T = result.unwrap()
                             return unwrapped_value
@@ -113,7 +113,7 @@ class FlextCliDecorators:
 
                 # Process FlextResult - func should return FlextResult[T]
                 if isinstance(result, FlextResult):
-                    if result.success:
+                    if result.is_success:
                         # Type-safe extraction of value from FlextResult
                         unwrapped_value: T = result.unwrap()
                         return unwrapped_value

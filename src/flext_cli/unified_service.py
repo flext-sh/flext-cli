@@ -338,19 +338,11 @@ class FlextCliUnifiedService(FlextDomainService[FlextTypes.Core.Dict]):
                     f"Cannot convert data to table format: {table_data_result.error}"
                 )
 
-            table_data = table_data_result.unwrap()
+            table_data = table_data_result.value
 
-            # Validate table_data is list of dictionaries
-            if not isinstance(table_data, list):
-                return FlextResult[str].fail("Internal error: table conversion failed")
-
+            # table_data is guaranteed to be list[dict] from successful FlextUtilities conversion
             if not table_data:
                 return FlextResult[str].ok("No data to display")
-
-            if not all(isinstance(item, dict) for item in table_data):
-                return FlextResult[str].fail(
-                    "Internal error: table conversion produced invalid format"
-                )
 
             # Format table content directly
             headers = list(table_data[0].keys())

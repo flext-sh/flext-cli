@@ -141,15 +141,15 @@ class TestFlextCliLoggingSetup:
             assert result.value is not None
             assert result.value.log_level == "DEBUG"
             # The source might be config_instance if config already has a value
-            assert result.value.log_level_source in [
+            assert result.value.log_level_source in {
                 "environment_variable",
                 "config_instance",
-            ]
+            }
 
     def test_setup_logging_with_env_file(self) -> None:
         """Test logging setup with .env file."""
         with tempfile.NamedTemporaryFile(
-            mode="w",
+            encoding="utf-8", mode="w",
             suffix=".env",
             delete=False,
         ) as tmp_file:
@@ -168,7 +168,7 @@ class TestFlextCliLoggingSetup:
                 assert result.is_success
                 assert result.value is not None
                 # The .env file detection might not work as expected, so just check it succeeds
-                assert result.value.log_level in ["INFO", "WARNING", "DEBUG"]
+                assert result.value.log_level in {"INFO", "WARNING", "DEBUG"}
             finally:
                 os.chdir(original_cwd)
                 Path(tmp_file.name).unlink(missing_ok=True)

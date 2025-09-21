@@ -153,6 +153,7 @@ class TestFlextCliConfigs:
             mode="w",
             suffix=".json",
             delete=False,
+            encoding="utf-8",
         ) as temp_file:
             json.dump(config_data, temp_file)
             temp_path = Path(temp_file.name)

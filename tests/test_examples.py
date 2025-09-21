@@ -12,7 +12,7 @@ from __future__ import annotations
 import importlib.util
 import logging
 import os
-import subprocess
+import subprocess  # noqa: S404
 import sys
 from pathlib import Path
 

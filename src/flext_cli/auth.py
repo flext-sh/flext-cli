@@ -85,9 +85,7 @@ class FlextCliAuth(FlextDomainService[str]):
             FlextCliConfigs: Current CLI configuration.
 
         """
-        if not isinstance(self._config, FlextCliConfigs):
-            # Initialize with FlextCliConfigs if not already set
-            self._config = FlextCliConfigs.get_current()
+        # _config is always initialized in __init__, no need for None check
         return self._config
 
     def _update_from_config(self) -> None:
@@ -911,6 +909,42 @@ class FlextCliAuth(FlextDomainService[str]):
             return FlextResult[bool].ok(True)
         except Exception as e:
             return FlextResult[bool].fail(f"Validation failed: {e}")
+
+    def authenticate_user(
+        self,
+        username: str,
+        password: str,
+    ) -> FlextResult[dict[str, object]]:
+        """Public interface for user authentication.
+
+        Args:
+            username: Username for authentication
+            password: Password for authentication
+
+        Returns:
+            FlextResult[dict[str, object]]: Authentication result or error result.
+
+        """
+        return self._authenticate_user(username, password)
+
+    def validate_business_rules(
+        self, data: dict[str, object] | None = None
+    ) -> FlextResult[None]:
+        """Validate authentication business rules.
+
+        Args:
+            data: Optional data to validate
+
+        Returns:
+            FlextResult[None]: Success result or validation error.
+
+        """
+        if data is None:
+            data = {}
+
+        # data is guaranteed to be dict after None check above
+        # Add any authentication-specific business rules here
+        return FlextResult[None].ok(None)
 
     class CommandHandler:
         """Unified command handler for authentication operations using SOURCE OF TRUTH."""
