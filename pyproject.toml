@@ -267,7 +267,7 @@ markers = [
 [tool.ruff]
 extend = "../ruff-shared.toml"
 lint.isort.known-first-party = ["flext_cli"]
-exclude = ["tests", "examples"]
+lint.ignore = ["S404", "PLC2701"]
 
 [tool.vulture]
 extend = "../.vulture-shared.toml"
