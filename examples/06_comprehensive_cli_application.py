@@ -317,7 +317,7 @@ python = "^3.13"
 
         return FlextResult[None].ok(None)
 
-    def _handle_config_show(self, **kwargs: object) -> FlextResult[None]:
+    def _handle_config_show(self, **_kwargs: object) -> FlextResult[None]:
         """Handle configuration show command."""
         # Display current configuration
         config_data = {
@@ -365,7 +365,7 @@ python = "^3.13"
 
         return FlextResult[None].ok(None)
 
-    def _handle_interactive_wizard(self, **kwargs: object) -> FlextResult[None]:
+    def _handle_interactive_wizard(self, **_kwargs: object) -> FlextResult[None]:
         """Handle interactive setup wizard."""
         self.cli_api.display_message(
             "This wizard will guide you through CLI configuration...",

@@ -487,7 +487,9 @@ class TestRailwayPatterns:
             display_result = api.display_output(format_result.unwrap())
             assert display_result.is_success
         else:
-            raise AssertionError(f"Format operation should succeed: {format_result.error}")
+            raise AssertionError(
+                f"Format operation should succeed: {format_result.error}"
+            )
 
     def test_explicit_error_handling(self) -> None:
         """Test explicit error handling without try/except fallbacks."""
@@ -499,7 +501,9 @@ class TestRailwayPatterns:
         # Use explicit is_success/is_failure checks instead of try/except
         if result.is_failure:
             assert result.error is not None
-            assert "invalid_command" in str(result.error) or "Unknown command" in str(result.error)
+            assert "invalid_command" in str(result.error) or "Unknown command" in str(
+                result.error
+            )
         else:
             # Should not reach here for invalid command
             error_msg = "Invalid command should fail"

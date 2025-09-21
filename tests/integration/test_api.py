@@ -128,6 +128,7 @@ class TestFlextCliApiIntegration:
 
         # Register a simple handler
         import operator
+
         test_handler = operator.add
 
         # Register handler through state directly (no wrapper method needed)

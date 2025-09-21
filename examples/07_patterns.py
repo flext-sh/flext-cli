@@ -196,6 +196,7 @@ class InMemoryProjectRepository:
     """In-memory implementation for demo."""
 
     def __init__(self) -> None:
+        """Initialize in-memory project repository."""
         self._projects: dict[UUID, Project] = {}
 
     def save(self, project: Project) -> FlextResult[None]:
@@ -258,6 +259,7 @@ class CreateProjectHandler:
         repository: ProjectRepository,
         domain_service: ProjectDomainService,
     ) -> None:
+        """Initialize create project handler with dependencies."""
         self._repository = repository
         self._domain_service = domain_service
 
@@ -306,6 +308,7 @@ class ChangeProjectStatusHandler:
     """CQRS command handler for changing project status."""
 
     def __init__(self, repository: ProjectRepository) -> None:
+        """Initialize change status handler with repository."""
         self._repository = repository
 
     def handle(self, command: ChangeProjectStatusCommand) -> FlextResult[Project]:
@@ -348,6 +351,7 @@ class ProjectQueryHandler:
     """CQRS query handler for project queries."""
 
     def __init__(self, repository: ProjectRepository) -> None:
+        """Initialize query handler with repository."""
         self._repository = repository
 
     def execute_get_project(
@@ -414,6 +418,7 @@ class ProjectManagementService(FlextCliService):
     _query_handler: ProjectQueryHandler
 
     def __init__(self, **data: object) -> None:
+        """Initialize CQRS service with dependencies."""
         super().__init__(**data)
 
         # Setup dependencies (in real app: DI container)
@@ -444,14 +449,12 @@ class ProjectManagementService(FlextCliService):
             )
 
         project = result.value
-        return FlextResult[FlextTypes.Core.Dict].ok(
-            {
-                "id": str(project.project_id),
-                "name": project.name,
-                "status": project.status.value,
-                "message": "Project created successfully",
-            }
-        )
+        return FlextResult[FlextTypes.Core.Dict].ok({
+            "id": str(project.project_id),
+            "name": project.name,
+            "status": project.status.value,
+            "message": "Project created successfully",
+        })
 
     def change_project_status(
         self, project_id: str, new_status: str, reason: str
@@ -474,13 +477,11 @@ class ProjectManagementService(FlextCliService):
             )
 
         project = result.value
-        return FlextResult[FlextTypes.Core.Dict].ok(
-            {
-                "id": str(project.project_id),
-                "status": project.status.value,
-                "message": "Status changed successfully",
-            }
-        )
+        return FlextResult[FlextTypes.Core.Dict].ok({
+            "id": str(project.project_id),
+            "status": project.status.value,
+            "message": "Status changed successfully",
+        })
 
     def get_project(self, project_id: str) -> FlextResult[FlextTypes.Core.Dict]:
         """Get project details through CQRS."""

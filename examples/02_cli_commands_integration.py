@@ -54,7 +54,7 @@ def _setup_cli_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
 
 
 def _connection_demo(
-    formatter: FlextCliFormatters, config: FlextCliConfigs
+    formatter: FlextCliFormatters, _config: FlextCliConfigs
 ) -> FlextResult[None]:
     """Demo connection testing using flext-cli patterns."""
     formatter.print_success("\n2. 🌐 Connection Testing Integration")
@@ -99,7 +99,7 @@ def _file_processing_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
 
     # Simulate file processing parameters
     processing_data = {
-        "File": "/tmp/example.json",
+        "File": "example.json",  # Use relative path instead of /tmp/
         "Format": "JSON",
         "Batch Size": "100",
         "Lines": "150",
@@ -115,7 +115,7 @@ def _file_processing_demo(formatter: FlextCliFormatters) -> FlextResult[None]:
         formatter.console.print(table_result.value)
 
     # Simulate file processing
-    file_path = Path("/tmp/example.json")
+    file_path = Path("example.json")  # Use relative path instead of /tmp/
     result = _simulate_file_processing(file_path)
 
     if result.is_success:
@@ -267,10 +267,11 @@ def _execute_connection_test(command: FlextCliModels.CliCommand) -> FlextResult[
         return FlextResult[str].fail(f"Connection test failed: {e}")
 
 
-def _simulate_file_processing(file_path: Path) -> FlextResult[str]:
+def _simulate_file_processing(_file_path: Path) -> FlextResult[str]:
     """Simulate file processing with FlextResult pattern."""
     try:
         # Simulate processing without requiring actual file
+        # Note: _file_path parameter kept for API compatibility
         time.sleep(0.1)
 
         lines_processed = 150  # Simulate

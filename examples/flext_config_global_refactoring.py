@@ -61,7 +61,7 @@ def demonstrate_global_configuration_refactoring() -> None:
     # Initialize CLI Service
     cli_service = FlextCliClient()
     print("   ✅ FlextCliClient initialized")
-    print(f"      Config Source: {type(cli_service._config).__name__}")
+    print(f"      Config Source: {type(cli_service.config).__name__}")
 
     # Initialize CLI Auth
     cli_auth = FlextCliAuth()
@@ -108,7 +108,7 @@ def demonstrate_global_configuration_refactoring() -> None:
     # Update CLI Service
     cli_service.update_from_config()
     print("   ✅ FlextCliClient updated")
-    print(f"      Config Updated: {type(cli_service._config).__name__}")
+    print(f"      Config Updated: {type(cli_service.config).__name__}")
 
     # Update CLI Auth
     cli_auth.update_from_config()
@@ -199,7 +199,7 @@ def demonstrate_dynamic_configuration_updates() -> None:
     print("1. Initial Configuration State:")
     print(f"   API Client Base URL: {api_client.base_url}")
     print(f"   CLI API Version: {cli_api.version}")
-    print(f"   CLI Service Config: {type(cli_service._config).__name__}")
+    print(f"   CLI Service Config: {type(cli_service.config).__name__}")
     print(f"   CLI Auth Config: {type(cli_auth.config).__name__}")
     print()
 
@@ -234,7 +234,7 @@ def demonstrate_dynamic_configuration_updates() -> None:
     print("4. Updated Configuration State:")
     print(f"   API Client Base URL: {api_client.base_url}")
     print(f"   CLI API Version: {cli_api.version}")
-    print(f"   CLI Service Config: {type(cli_service._config).__name__}")
+    print(f"   CLI Service Config: {type(cli_service.config).__name__}")
     print(f"   CLI Auth Config: {type(cli_auth.config).__name__}")
     print()
 
@@ -309,7 +309,7 @@ def demonstrate_cli_parameter_integration() -> None:
     print(f"   API Client Base URL: {api_client.base_url}")
     print(f"   API Client Timeout: {api_client.timeout}s")
     print(f"   CLI API Version: {cli_api.version}")
-    print(f"   CLI Service Config: {type(cli_service._config).__name__}")
+    print(f"   CLI Service Config: {type(cli_service.config).__name__}")
     print(f"   CLI Auth Config: {type(cli_auth.config).__name__}")
     print()
 

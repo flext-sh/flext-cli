@@ -149,7 +149,8 @@ class TestFlextCliLoggingSetup:
     def test_setup_logging_with_env_file(self) -> None:
         """Test logging setup with .env file."""
         with tempfile.NamedTemporaryFile(
-            encoding="utf-8", mode="w",
+            encoding="utf-8",
+            mode="w",
             suffix=".env",
             delete=False,
         ) as tmp_file:

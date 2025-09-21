@@ -21,13 +21,13 @@ class TestFlextConfigIntegration:
         """Setup test environment."""
         # Clear global instances before each test
         FlextCliConfigs.clear_global_instance()
-        FlextConfig.clear_global_instance()
+        FlextConfig.reset_global_instance()
 
     def teardown_method(self) -> None:
         """Cleanup test environment."""
         # Clear global instances after each test
         FlextCliConfigs.clear_global_instance()
-        FlextConfig.clear_global_instance()
+        FlextConfig.reset_global_instance()
 
     def test_flext_config_singleton_integration(self) -> None:
         """Test that FlextCliConfigs integrates with FlextConfig singleton."""
@@ -253,8 +253,8 @@ class TestFlextConfigIntegration:
         assert "debug" in config_dict
         assert "output_format" in config_dict
 
-        # Test to_json
-        config_json = config.to_json(indent=2)
+        # Test model_dump_json (Pydantic v2 method)
+        config_json = config.model_dump_json(indent=2)
         assert isinstance(config_json, str)
         assert "profile" in config_json
         assert "debug" in config_json
