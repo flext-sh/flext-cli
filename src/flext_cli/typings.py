@@ -394,22 +394,36 @@ class FlextCliTypes:
         total_count: int
 
 
+# Backward compatibility exports for tests
+CommandStatus = FlextCliConstants.Enums.CommandStatus
+PluginStatus = FlextCliConstants.Enums.Plugin
+URL = str  # Simple URL type alias
+URLType = str  # URL type alias
+
 # Minimal exports - only actually used types
 __all__ = [
+    "URL",
+    # Core types
     "UUID",
     "BaseModel",
+    # Backward compatibility exports for tests
+    "CommandStatus",
+    # Type variables from flext-core
     "E",
     "F",
     "Field",
     "FlextCliConstants",
+    # Main CLI types
     "FlextCliTypes",
     "FlextTypes",
     "P",
     "Path",
+    "PluginStatus",
     "R",
     "T",
     "TypedDict",
     "U",
+    "URLType",
     "V",
     "datetime",
 ]

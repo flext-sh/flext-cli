@@ -330,7 +330,9 @@ class FlextCliUnifiedService(FlextDomainService[FlextTypes.Core.Dict]):
                 return FlextResult[str].ok("No data to display")
 
             # Convert data to table format using FlextCore
-            table_data_result = flext_core.FlextUtilities.Conversion.to_table_format(data)
+            table_data_result = flext_core.FlextUtilities.Conversion.to_table_format(
+                data
+            )
             if table_data_result.is_failure:
                 return FlextResult[str].fail(
                     f"Cannot convert data to table format: {table_data_result.error}"
