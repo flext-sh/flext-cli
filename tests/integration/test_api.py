@@ -127,8 +127,8 @@ class TestFlextCliApiIntegration:
         api = FlextCliApi()
 
         # Register a simple handler
-        def test_handler(x: int, y: int) -> int:
-            return x + y
+        import operator
+        test_handler = operator.add
 
         # Register handler through state directly (no wrapper method needed)
         assert api.state is not None, "API state should be initialized"

@@ -276,11 +276,11 @@ class TestFlextCliCommandService:
 
         # Test various operations fail appropriately
         operations = [
-            lambda: service.get_command_history(),
-            lambda: service.clear_command_history(),
-            lambda: service.get_command_statistics(),
+            service.get_command_history,
+            service.clear_command_history,
+            service.get_command_statistics,
             lambda: service.find_commands_by_pattern("test"),
-            lambda: service.get_recent_commands(),
+            service.get_recent_commands,
         ]
 
         for operation in operations:

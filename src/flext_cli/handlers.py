@@ -157,7 +157,7 @@ class FlextCliHandlers(FlextDomainService[None]):
             """
             try:
                 config = FlextCliConfigs(profile=message.profile)
-                config_file = config.config_dir / f"{message.profile}.json"
+                config_file = Path(str(config.config_dir)) / f"{message.profile}.json"
 
                 # Ensure config directory exists
                 config_file.parent.mkdir(parents=True, exist_ok=True)
@@ -297,7 +297,7 @@ class FlextCliHandlers(FlextDomainService[None]):
 
                 if message.all_profiles:
                     # Remove entire auth directory
-                    auth_dir = config.config_dir / "auth"
+                    auth_dir = Path(str(config.config_dir)) / "auth"
                     if auth_dir.exists():
                         # In real implementation, would remove files
                         self.logger.info("Would remove all authentication tokens")

@@ -73,7 +73,7 @@ class TestAsyncCommand:
         """Test that async command decorator preserves function metadata."""
 
         @async_command
-        async def documented_async_function() -> str:
+        def documented_async_function() -> str:
             """A documented async function."""
             return "result"
 

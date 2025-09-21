@@ -208,11 +208,11 @@ class TestFlextCliCmdIntegration:
 
         # Test various operations handle errors gracefully
         operations = [
-            lambda: cmd_service.execute(),
-            lambda: cmd_service.show_config_paths(),
-            lambda: cmd_service.show_config(),
-            lambda: cmd_service.edit_config(),
-            lambda: cmd_service.validate_config(),
+            cmd_service.execute,
+            cmd_service.show_config_paths,
+            cmd_service.show_config,
+            cmd_service.edit_config,
+            cmd_service.validate_config,
         ]
 
         for operation in operations:

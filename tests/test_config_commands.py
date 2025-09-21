@@ -247,8 +247,9 @@ class TestConfigErrors:
 
     def test_config_invalid_command_creation(self) -> None:
         """Test error handling for invalid command creation."""
-        # Test empty command name
+        # Test empty command line
         empty_name_result = self.cli_api.create_command(
+            command_line="",
             name="",
             description="Valid description",
             handler=lambda: None,
@@ -262,6 +263,7 @@ class TestConfigErrors:
 
         # Test empty description
         empty_desc_result = self.cli_api.create_command(
+            command_line="valid-command",
             name="valid-name",
             description="",
             handler=lambda: None,
@@ -275,6 +277,7 @@ class TestConfigErrors:
 
         # Test non-callable handler
         non_callable_result = self.cli_api.create_command(
+            command_line="valid-command",
             name="valid-name",
             description="Valid description",
             handler="not-callable",
@@ -290,9 +293,16 @@ class TestConfigErrors:
         """Test error handling for display operations."""
         # Test display with complex unserializable data
         complex_data = {"function": lambda x: x}  # Non-serializable
-        result = self.cli_api.display_output(
+
+        # First format the data
+        format_result = self.cli_api.format_output(
             data=complex_data,
             format_type="json",
         )
         # This should return a FlextResult (success or failure both valid for unserializable data)
-        assert isinstance(result, FlextResult)
+        assert isinstance(format_result, FlextResult)
+
+        # If formatting succeeded, try to display
+        if format_result.is_success:
+            display_result = self.cli_api.display_output(format_result.unwrap())
+            assert isinstance(display_result, FlextResult)

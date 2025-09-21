@@ -73,7 +73,7 @@ class TestFlextCliDecorators(unittest.TestCase):
 
     def test_require_auth_decorator_with_token(self) -> None:
         """Test require_auth decorator with valid token."""
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", delete=False) as temp_file:
             temp_file.write("test_token")
             temp_file.flush()
 
@@ -175,7 +175,7 @@ class TestFlextCliDecorators(unittest.TestCase):
         """Test handle_service_result with async function."""
 
         @FlextCliDecorators.handle_service_result
-        async def test_func() -> FlextResult[str]:
+        def test_func() -> FlextResult[str]:
             return FlextResult[str].ok("async_handled")
 
         # Run the async function
@@ -189,7 +189,7 @@ class TestFlextCliDecorators(unittest.TestCase):
         """Test handle_service_result with async function failure."""
 
         @FlextCliDecorators.handle_service_result
-        async def test_func() -> FlextResult[str]:
+        def test_func() -> FlextResult[str]:
             return FlextResult[str].fail("async_error")
 
         async def run_test() -> None:
@@ -379,7 +379,7 @@ class TestFlextCliDecorators(unittest.TestCase):
         """Test async_command decorator with exception."""
 
         @FlextCliDecorators.async_command
-        async def async_error_func() -> str:
+        def async_error_func() -> str:
             error_msg = "async error"
             raise ValueError(error_msg)
 

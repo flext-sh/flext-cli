@@ -544,7 +544,7 @@ class FlextCliFormatters(BaseModel):
         return result
 
     def register_formatter(
-        self, name: str, formatter: FormatterProtocol | Callable[..., object]
+        self, name: str, formatter: FormatterProtocol | Callable[[object], str]
     ) -> FlextResult[None]:
         """Register custom formatter using explicit error handling.
 
@@ -553,9 +553,8 @@ class FlextCliFormatters(BaseModel):
 
         """
         if callable(formatter) and not hasattr(formatter, "format"):
-            # Convert function to FormatterProtocol
-            typed_formatter = cast("Callable[[object], str]", formatter)
-            formatter_result = self.create_formatter(name, typed_formatter)
+            # Convert function to FormatterProtocol - no cast needed, type already known
+            formatter_result = self.create_formatter(name, formatter)
             if formatter_result.is_failure:
                 return FlextResult[None].fail(
                     formatter_result.error or "Formatter creation failed"
@@ -909,7 +908,7 @@ class FlextCliFormatters(BaseModel):
             return FlextResult[str].fail("Data must be a list of dictionaries")
 
         # At this point, data is guaranteed to be list[dict]
-        typed_data: list[dict[str, object]] = data  # type: ignore[assignment]
+        typed_data: list[dict[str, object]] = cast("list[dict[str, object]]", data)
 
         # Extract valid format_table parameters from kwargs
         title = kwargs.get("title", "")

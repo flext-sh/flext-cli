@@ -75,11 +75,7 @@ class FlextCliDebug(FlextDomainService[str]):
             FlextResult[FlextCliTypes.SystemMetrics]: Description of return value.
 
             """
-            if not isinstance(status_data, dict):
-                return FlextResult[FlextCliTypes.SystemMetrics].fail(
-                    "Invalid status data format"
-                )
-
+            # status_data is guaranteed to be dict from FlextTypes.Core.Dict
             metrics: FlextCliTypes.SystemMetrics = {
                 "cpu_usage": str(status_data.get("cpu_usage", "Unknown")),
                 "memory_usage": str(status_data.get("memory_usage", "Unknown")),
@@ -88,21 +84,16 @@ class FlextCliDebug(FlextDomainService[str]):
             }
             return FlextResult[FlextCliTypes.SystemMetrics].ok(metrics)
 
-        try:
-            client = FlextCliClient()
+        client = FlextCliClient()
 
-            # Railway pattern composition - no try/except needed for status call
-            status_result = await client.get_system_status()
-            if status_result.is_failure:
-                return FlextResult[FlextCliTypes.SystemMetrics].fail(
-                    f"Failed to get system status: {status_result.error}"
-                )
-
-            return extract_metrics(status_result.unwrap())
-        except Exception as e:
+        # Railway pattern composition - explicit error handling through FlextResult
+        status_result = await client.get_system_status()
+        if status_result.is_failure:
             return FlextResult[FlextCliTypes.SystemMetrics].fail(
-                f"Metrics fetch failed: {e}",
+                f"Failed to get system status: {status_result.error}"
             )
+
+        return extract_metrics(status_result.value)
 
     def validate_environment_setup(self) -> FlextResult[list[str]]:
         """Validate environment setup.

@@ -278,7 +278,7 @@ class TestFlextCliAuthRealValidation:
         """Test file operations for config and tokens."""
         auth = FlextCliAuth()
 
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, encoding="utf-8") as tmp_file:
             config_data = {
                 "api_key": "test_key",
                 "base_url": "https://api.example.com",

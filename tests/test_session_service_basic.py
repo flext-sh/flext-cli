@@ -256,9 +256,9 @@ class TestFlextCliSessionService:
             lambda: service.create_session(user_id="test"),
             lambda: service.end_session(fake_session_id),
             lambda: service.get_session(fake_session_id),
-            lambda: service.list_active_sessions(),
-            lambda: service.get_session_statistics(),
-            lambda: service.clear_all_sessions(),
+            service.list_active_sessions,
+            service.get_session_statistics,
+            service.clear_all_sessions,
         ]
 
         for operation in operations:

@@ -23,7 +23,7 @@ class TestCLICommand:
 
         assert cmd.command_line == "echo hello"
         assert cmd.status == FlextCliConstants.STATUS_PENDING
-        assert cmd.output == ""
+        assert not cmd.output
         assert cmd.exit_code is None
         assert cmd.id is not None  # Auto-generated UUID
 

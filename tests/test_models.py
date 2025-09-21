@@ -27,8 +27,8 @@ class TestFlextCliModelsCliCommand:
         assert command.command_line == "test command"
         assert command.status == FlextCliConstants.STATUS_PENDING
         assert command.exit_code is None
-        assert command.output == ""
-        assert command.error_output == ""
+        assert not command.output
+        assert not command.error_output
         assert isinstance(command.execution_time, datetime)
         assert command.execution_time.tzinfo == UTC
 
