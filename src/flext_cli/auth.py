@@ -401,7 +401,9 @@ class FlextCliAuth(FlextDomainService[str]):
         """
         return self._clear_auth_tokens()
 
-    def load_token_from_storage(self, file_path: Path, token_type: str) -> FlextResult[str]:
+    def load_token_from_storage(
+        self, file_path: Path, token_type: str
+    ) -> FlextResult[str]:
         """Public interface to load token from storage.
 
         Returns:
@@ -428,7 +430,9 @@ class FlextCliAuth(FlextDomainService[str]):
         """
         return self._is_authenticated(token_path=token_path)
 
-    def validate_credentials(self, credentials: FlextCliTypes.LoginCredentials) -> FlextResult[None]:
+    def validate_credentials(
+        self, credentials: FlextCliTypes.LoginCredentials
+    ) -> FlextResult[None]:
         """Public interface to validate login credentials.
 
         Returns:
@@ -437,7 +441,9 @@ class FlextCliAuth(FlextDomainService[str]):
         """
         return self._validate_credentials(credentials)
 
-    def save_auth_token(self, token: str, *, token_path: Path | None = None) -> FlextResult[None]:
+    def save_auth_token(
+        self, token: str, *, token_path: Path | None = None
+    ) -> FlextResult[None]:
         """Public interface to save authentication token.
 
         Returns:
@@ -446,7 +452,9 @@ class FlextCliAuth(FlextDomainService[str]):
         """
         return self._save_auth_token(token, token_path=token_path)
 
-    def check_authentication_status(self, *, token_path: Path | None = None) -> FlextResult[bool]:
+    def check_authentication_status(
+        self, *, token_path: Path | None = None
+    ) -> FlextResult[bool]:
         """Public interface to check authentication status.
 
         Returns:

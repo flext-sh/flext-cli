@@ -1200,7 +1200,11 @@ class FlextCliClient:
             """
             logger = FlextLogger(__name__)
             logger.warning(f"Connection test failed: {error}")
-            return FlextResult[bool].ok(False)  # Connection test failure is not an error state  # Connection test failure is not an error state
+            return FlextResult[
+                bool
+            ].ok(
+                False
+            )  # Connection test failure is not an error state  # Connection test failure is not an error state
 
         # Railway pattern composition - leveraging flext-core patterns
         response_result = await execute_health_check()
