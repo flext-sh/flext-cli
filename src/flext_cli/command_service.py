@@ -32,7 +32,12 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
 
         @staticmethod
         def validate_command_line(command_line: object) -> FlextResult[str]:
-            """Validate command line parameter."""
+            """Validate command line parameter.
+
+            Returns:
+            FlextResult[str]: Description of return value.
+
+            """
             if not isinstance(command_line, str) or not command_line.strip():
                 return FlextResult[str].fail("Command line must be a non-empty string")
 
@@ -42,7 +47,12 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
         def validate_command_object(
             command: object,
         ) -> FlextResult[FlextCliModels.CliCommand]:
-            """Validate command object parameter."""
+            """Validate command object parameter.
+
+            Returns:
+            FlextResult[FlextCliModels.CliCommand]: Description of return value.
+
+            """
             if not isinstance(command, FlextCliModels.CliCommand):
                 return FlextResult[FlextCliModels.CliCommand].fail(
                     "Invalid command object"
@@ -55,7 +65,12 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
 
         @staticmethod
         def create_command_metadata(command_line: str) -> FlextCliModels.CliCommand:
-            """Create command with proper metadata."""
+            """Create command with proper metadata.
+
+            Returns:
+            FlextCliModels.CliCommand: Description of return value.
+
+            """
             return FlextCliModels.CliCommand(
                 id=str(uuid4()),
                 command_line=command_line,
@@ -69,7 +84,12 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
             handler: object,
             **options: object,
         ) -> dict[str, object]:
-            """Create command with options for CLI frameworks."""
+            """Create command with options for CLI frameworks.
+
+            Returns:
+            dict[str, object]: Description of return value.
+
+            """
             return {
                 "name": name,
                 "description": description,
@@ -80,7 +100,12 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
             }
 
     def execute(self) -> FlextResult[FlextTypes.Core.List]:
-        """Execute command operation - FlextDomainService interface."""
+        """Execute command operation - FlextDomainService interface.
+
+        Returns:
+            FlextResult[FlextTypes.Core.List]: Description of return value.
+
+        """
         self._logger.info("Executing command service operation")
         return FlextResult[FlextTypes.Core.List].ok(list(self._command_history))
 
@@ -89,7 +114,12 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
         command_line: str,
         **_options: object,
     ) -> FlextResult[FlextCliModels.CliCommand]:
-        """Create CLI command with validation - single responsibility."""
+        """Create CLI command with validation - single responsibility.
+
+        Returns:
+            FlextResult[FlextCliModels.CliCommand]: Description of return value.
+
+        """
         # Input validation using nested helper
         validation_result = self._CommandValidationHelper.validate_command_line(
             command_line
@@ -119,7 +149,12 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
             )
 
     def execute_command(self, command: FlextCliModels.CliCommand) -> FlextResult[str]:
-        """Execute CLI command with validation - single responsibility."""
+        """Execute CLI command with validation - single responsibility.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         # Validate command object using nested helper
         validation_result = self._CommandValidationHelper.validate_command_object(
             command
@@ -150,7 +185,12 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
         handler: object,
         **options: object,
     ) -> FlextResult[dict[str, object]]:
-        """Create command definition for CLI frameworks - single responsibility."""
+        """Create command definition for CLI frameworks - single responsibility.
+
+        Returns:
+            FlextResult[dict[str, object]]: Description of return value.
+
+        """
         if not name.strip():
             return FlextResult[dict[str, object]].fail(
                 "Command name must be a non-empty string"
@@ -180,7 +220,12 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
             )
 
     def get_command_history(self) -> FlextResult[list[FlextCliModels.CliCommand]]:
-        """Get command history - single responsibility."""
+        """Get command history - single responsibility.
+
+        Returns:
+            FlextResult[list[FlextCliModels.CliCommand]]: Description of return value.
+
+        """
         if not self._command_history_enabled:
             return FlextResult[list[FlextCliModels.CliCommand]].fail(
                 "Command history is disabled"
@@ -191,7 +236,12 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
         )
 
     def clear_command_history(self) -> FlextResult[int]:
-        """Clear command history - single responsibility."""
+        """Clear command history - single responsibility.
+
+        Returns:
+            FlextResult[int]: Description of return value.
+
+        """
         if not self._command_history_enabled:
             return FlextResult[int].fail("Command history is disabled")
 
@@ -205,7 +255,12 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
             return FlextResult[int].fail(f"History clearing failed: {e}")
 
     def get_command_statistics(self) -> FlextResult[FlextTypes.Core.Dict]:
-        """Get command statistics - single responsibility."""
+        """Get command statistics - single responsibility.
+
+        Returns:
+            FlextResult[FlextTypes.Core.Dict]: Description of return value.
+
+        """
         if not self._command_history_enabled:
             return FlextResult[FlextTypes.Core.Dict].fail("Command history is disabled")
 
@@ -238,7 +293,12 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
     def find_commands_by_pattern(
         self, pattern: str
     ) -> FlextResult[list[FlextCliModels.CliCommand]]:
-        """Find commands matching pattern - single responsibility."""
+        """Find commands matching pattern - single responsibility.
+
+        Returns:
+            FlextResult[list[FlextCliModels.CliCommand]]: Description of return value.
+
+        """
         if not self._command_history_enabled:
             return FlextResult[list[FlextCliModels.CliCommand]].fail(
                 "Command history is disabled"
@@ -264,7 +324,12 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
             )
 
     def configure_command_history(self, *, enabled: bool) -> FlextResult[None]:
-        """Configure command history tracking - single responsibility."""
+        """Configure command history tracking - single responsibility.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         try:
             self._command_history_enabled = bool(enabled)
 
@@ -282,7 +347,12 @@ class FlextCliCommandService(FlextDomainService[FlextTypes.Core.List]):
     def get_recent_commands(
         self, limit: int = 10
     ) -> FlextResult[list[FlextCliModels.CliCommand]]:
-        """Get recent commands with limit - single responsibility."""
+        """Get recent commands with limit - single responsibility.
+
+        Returns:
+            FlextResult[list[FlextCliModels.CliCommand]]: Description of return value.
+
+        """
         if not self._command_history_enabled:
             return FlextResult[list[FlextCliModels.CliCommand]].fail(
                 "Command history is disabled"

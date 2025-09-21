@@ -86,52 +86,102 @@ class FlextCliContext:
     # Properties for accessing composed state
     @property
     def id(self) -> str:
-        """Get context identifier."""
+        """Get context identifier.
+
+        Returns:
+            str: Description of return value.
+
+        """
         return self._id
 
     @property
     def config(self) -> FlextCliConfigs:
-        """Get CLI configuration."""
+        """Get CLI configuration.
+
+        Returns:
+            FlextCliConfigs: Description of return value.
+
+        """
         return self._config
 
     @property
     def logger(self) -> FlextLogger:
-        """Get FlextLogger."""
+        """Get FlextLogger.
+
+        Returns:
+            FlextLogger: Description of return value.
+
+        """
         return self._logger
 
     @property
     def console(self) -> object | None:
-        """Get console object."""
+        """Get console object.
+
+        Returns:
+            object | None: Description of return value.
+
+        """
         return self._console
 
     @property
     def working_directory(self) -> Path | None:
-        """Get working directory."""
+        """Get working directory.
+
+        Returns:
+            Path | None: Description of return value.
+
+        """
         return self._working_directory
 
     @property
     def environment_variables(self) -> FlextTypes.Core.Headers:
-        """Get environment variables."""
+        """Get environment variables.
+
+        Returns:
+            FlextTypes.Core.Headers: Description of return value.
+
+        """
         return self._environment_variables.copy()
 
     @property
     def user_id(self) -> str | None:
-        """Get user identifier."""
+        """Get user identifier.
+
+        Returns:
+            str | None: Description of return value.
+
+        """
         return self._user_id
 
     @property
     def session_id(self) -> str | None:
-        """Get session identifier."""
+        """Get session identifier.
+
+        Returns:
+            str | None: Description of return value.
+
+        """
         return self._session_id
 
     @property
     def configuration(self) -> FlextTypes.Core.Dict:
-        """Get context-specific configuration."""
+        """Get context-specific configuration.
+
+        Returns:
+            FlextTypes.Core.Dict: Description of return value.
+
+        """
         return self._configuration.copy()
 
     @property
     def timeout_seconds(self) -> int:
-        """Get default timeout for operations."""
+        """Get default timeout for operations.
+
+        Returns:
+            int: Description of return value.
+
+        """
         match self._timeout_seconds:
             case int() | float() | str() as timeout:
                 return int(timeout)
@@ -140,51 +190,96 @@ class FlextCliContext:
 
     @property
     def debug(self) -> bool:
-        """Check if debug mode is enabled."""
+        """Check if debug mode is enabled.
+
+        Returns:
+            bool: Description of return value.
+
+        """
         return self._debug
 
     @property
     def quiet(self) -> bool:
-        """Check if quiet mode is enabled."""
+        """Check if quiet mode is enabled.
+
+        Returns:
+            bool: Description of return value.
+
+        """
         return self._quiet
 
     @property
     def verbose(self) -> bool:
-        """Check if verbose mode is enabled."""
+        """Check if verbose mode is enabled.
+
+        Returns:
+            bool: Description of return value.
+
+        """
         return self._verbose
 
     @property
     def profile(self) -> str:
-        """Get context profile from config."""
+        """Get context profile from config.
+
+        Returns:
+            str: Description of return value.
+
+        """
         return getattr(self._config, "profile", "default")
 
     @profile.setter
     def profile(self, _value: str) -> None:
-        """Setter to maintain immutability."""
+        """Setter to maintain immutability.
+
+        Raises:
+            ValueError: If attempting to modify immutable context.
+
+        """
         msg = "Cannot modify immutable FlextCliContext"
         raise ValueError(msg)
 
     @property
     def output_format(self) -> str:
-        """Get output format from config."""
+        """Get output format from config.
+
+        Returns:
+            str: Description of return value.
+
+        """
         return getattr(self._config, "output_format", "table")
 
     @property
     def no_color(self) -> bool:
-        """Check if no color output is enabled."""
+        """Check if no color output is enabled.
+
+        Returns:
+            bool: Description of return value.
+
+        """
         return getattr(self._config, "no_color", True)
 
     # Properties based on config if present, otherwise fall back to fields
     @property
     def is_debug(self) -> bool:
-        """Check if debug mode is enabled."""
+        """Check if debug mode is enabled.
+
+        Returns:
+            bool: Description of return value.
+
+        """
         if hasattr(self.config, "debug"):
             return bool(self.config.debug)
         return bool(self.debug)
 
     @property
     def is_quiet(self) -> bool:
-        """Check if quiet mode is enabled."""
+        """Check if quiet mode is enabled.
+
+        Returns:
+            bool: Description of return value.
+
+        """
         # Check if config has quiet mode directly
         if hasattr(self.config, "quiet"):
             return bool(self.config.quiet)
@@ -192,7 +287,12 @@ class FlextCliContext:
 
     @property
     def is_verbose(self) -> bool:
-        """Check if verbose mode is enabled."""
+        """Check if verbose mode is enabled.
+
+        Returns:
+            bool: Description of return value.
+
+        """
         # Check if config has verbose mode directly
         if hasattr(self.config, "verbose"):
             return bool(self.config.verbose)
@@ -227,14 +327,24 @@ class FlextCliContext:
             self._logger.debug(f"[DEBUG] {message}")
 
     def validate_business_rules(self) -> FlextResult[None]:
-        """Validate CLI context business rules."""
+        """Validate CLI context business rules.
+
+        Returns:
+            FlextResult[None]: Description of return value.
+
+        """
         # CLI context is valid by construction due to Pydantic validation
         # Additional business validations can be added here if needed
         return FlextResult[None].ok(None)
 
     # Convenience immutability helpers expected by some tests
     def with_environment(self, **env: str) -> FlextCliContext:
-        """Create new context with additional environment variables."""
+        """Create new context with additional environment variables.
+
+        Returns:
+            FlextCliContext: Description of return value.
+
+        """
         merged = {**(self.environment_variables or {}), **env}
         # Direct creation path
         return FlextCliContext.create(
@@ -247,7 +357,12 @@ class FlextCliContext:
         )
 
     def with_working_directory(self, path: Path) -> FlextCliContext:
-        """Create new context with different working directory."""
+        """Create new context with different working directory.
+
+        Returns:
+            FlextCliContext: Description of return value.
+
+        """
         return FlextCliContext.create(
             config=self.config,
             logger=self.logger,
@@ -271,7 +386,12 @@ class FlextCliContext:
         user_id: str | None = None
 
         def get_execution_info(self) -> FlextTypes.Core.Dict:
-            """Get execution information."""
+            """Get execution information.
+
+            Returns:
+            FlextTypes.Core.Dict: Description of return value.
+
+            """
             return {
                 "command_name": self.command_name,
                 "execution_id": self.execution_id,
@@ -282,7 +402,12 @@ class FlextCliContext:
     # Factory functions
     @classmethod
     def create(cls, **kwargs: object) -> FlextCliContext:
-        """Create a CLI context with optional parameters."""
+        """Create a CLI context with optional parameters.
+
+        Returns:
+            FlextCliContext: Description of return value.
+
+        """
         config = kwargs.get("config")
         logger_param = kwargs.get("logger")
         logger = (
@@ -316,7 +441,12 @@ class FlextCliContext:
         command_name: str,
         **kwargs: object,
     ) -> FlextCliContext.ExecutionContext:
-        """Create an execution context for a specific command."""
+        """Create an execution context for a specific command.
+
+        Returns:
+            FlextCliContext.ExecutionContext: Description of return value.
+
+        """
         # Extract and cast specific fields with correct types
         kwargs.get("config", {})
         kwargs.get("environment", {})
@@ -344,7 +474,15 @@ class FlextCliContext:
 
     @classmethod
     def create_with_params(cls, **params: object) -> FlextCliContext:
-        """Create CLI context with parameters."""
+        """Create CLI context with parameters.
+
+        Raises:
+            ValueError: If parameters are invalid.
+
+        Returns:
+            FlextCliContext: Description of return value.
+
+        """
         # Extract known parameters
         profile = params.get("profile", "default")
         output_format = params.get("output_format", "table")

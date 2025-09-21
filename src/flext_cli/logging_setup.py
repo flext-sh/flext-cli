@@ -45,12 +45,22 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
         self._resolved_config = config or FlextCliConfigs.get_current()
 
     def execute(self) -> FlextResult[str]:
-        """Execute logging setup - FlextDomainService interface."""
+        """Execute logging setup - FlextDomainService interface.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         self.log_info("Executing logging setup")
         return FlextResult[str].ok("Logging setup executed")
 
     def setup_logging(self) -> FlextResult[FlextCliModels.LoggingConfig]:
-        """Setup logging with automatic source detection."""
+        """Setup logging with automatic source detection.
+
+        Returns:
+            FlextResult[FlextCliModels.LoggingConfig]: Description of return value.
+
+        """
         try:
             # Prevent duplicate setup calls
             if FlextCliLoggingSetup._setup_complete:
@@ -106,7 +116,12 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
     def _detect_log_configuration(
         self,
     ) -> FlextResult[FlextCliModels.LoggingConfig]:
-        """Detect log configuration from multiple sources with precedence."""
+        """Detect log configuration from multiple sources with precedence.
+
+        Returns:
+            FlextResult[FlextCliModels.LoggingConfig]: Description of return value.
+
+        """
         try:
             log_config = FlextCliModels.LoggingConfig()
 
@@ -154,7 +169,12 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
         config: FlextCliConfigs | None = None,
         log_file: Path | None = None,
     ) -> FlextResult[str]:
-        """Setup logging specifically for CLI usage using FlextConfig singleton."""
+        """Setup logging specifically for CLI usage using FlextConfig singleton.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         try:
             # Use FlextConfig singleton if no config provided
             if config is None:
@@ -184,7 +204,12 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
         cls,
         config: FlextCliConfigs | None = None,
     ) -> FlextResult[str]:
-        """Get the effective log level that would be used using FlextConfig singleton."""
+        """Get the effective log level that would be used using FlextConfig singleton.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         try:
             # Use FlextConfig singleton if no config provided
             if config is None:
@@ -206,12 +231,22 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
 
     @property
     def is_setup_complete(self) -> bool:
-        """Check if logging setup has been completed."""
+        """Check if logging setup has been completed.
+
+        Returns:
+            bool: Description of return value.
+
+        """
         return FlextCliLoggingSetup._setup_complete
 
     @classmethod
     def set_global_log_level(cls, level: str) -> FlextResult[str]:
-        """Set global log level for all FLEXT projects."""
+        """Set global log level for all FLEXT projects.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         try:
             # Validate log level
             valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
@@ -241,7 +276,12 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
 
     @classmethod
     def set_global_log_verbosity(cls, verbosity: str) -> FlextResult[str]:
-        """Set global log verbosity for all FLEXT projects."""
+        """Set global log verbosity for all FLEXT projects.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         try:
             # Validate verbosity level
             valid_verbosity = {"compact", "detailed", "full"}
@@ -271,7 +311,12 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
 
     @classmethod
     def get_current_log_config(cls) -> FlextResult[dict[str, str]]:
-        """Get current logging configuration for all FLEXT projects."""
+        """Get current logging configuration for all FLEXT projects.
+
+        Returns:
+            FlextResult[dict[str, str]]: Description of return value.
+
+        """
         try:
             config = {
                 "log_level": os.environ.get("FLEXT_LOG_LEVEL", "INFO"),
@@ -290,7 +335,12 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
         log_level: str | None = None,
         verbosity: str | None = None,
     ) -> FlextResult[str]:
-        """Configure logging for a specific FLEXT project."""
+        """Configure logging for a specific FLEXT project.
+
+        Returns:
+            FlextResult[str]: Description of return value.
+
+        """
         try:
             messages = []
 

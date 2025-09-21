@@ -72,12 +72,22 @@ class FlextCliModels:
 
         @property
         def status(self) -> str:
-            """Get current status from discriminated union state."""
+            """Get current status from discriminated union state.
+
+            Returns:
+            str: Description of return value.
+
+            """
             return self.state.status
 
         @computed_field
         def is_successful(self) -> bool:
-            """Advanced success determination with pattern matching."""
+            """Advanced success determination with pattern matching.
+
+            Returns:
+            bool: Description of return value.
+
+            """
             match self.state:
                 case FlextCliModels.CompletedState(exit_code=0):
                     return True
@@ -93,7 +103,15 @@ class FlextCliModels:
         @field_validator("command_line")
         @classmethod
         def validate_command_line(cls, v: str | None) -> str | None:
-            """Advanced command line validation with security checks."""
+            """Advanced command line validation with security checks.
+
+            Raises:
+                ValueError: If command line validation fails.
+
+            Returns:
+            str | None: Description of return value.
+
+            """
             if v is None:
                 return None  # Allow None for plugin-type objects
 
@@ -112,7 +130,15 @@ class FlextCliModels:
 
         @model_validator(mode="after")
         def validate_command_state_consistency(self) -> FlextCliModels.CliCommand:
-            """Advanced model validation ensuring state consistency across fields."""
+            """Advanced model validation ensuring state consistency across fields.
+
+            Raises:
+                ValueError: If command state validation fails.
+
+            Returns:
+            FlextCliModels.CliCommand: Description of return value.
+
+            """
             # Validate completed/failed commands have exit codes
             if (
                 self.status
@@ -144,7 +170,12 @@ class FlextCliModels:
             return self
 
         def start_execution(self) -> FlextResult[None]:
-            """Start execution with type-safe state transition using pattern matching."""
+            """Start execution with type-safe state transition using pattern matching.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             match self.state:
                 case FlextCliModels.PendingState():
                     self.state = FlextCliModels.RunningState(
@@ -164,7 +195,12 @@ class FlextCliModels:
             output: str = "",
             error_output: str = "",
         ) -> FlextResult[None]:
-            """Complete execution with advanced state transition and pattern matching."""
+            """Complete execution with advanced state transition and pattern matching.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             match self.state:
                 case FlextCliModels.RunningState():
                     # Set command execution result fields
@@ -192,7 +228,12 @@ class FlextCliModels:
                     )
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Advanced business rule validation using Python 3.13 pattern matching."""
+            """Advanced business rule validation using Python 3.13 pattern matching.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             # Basic validation
             if self.command_line and not self.command_line.strip():
                 return FlextResult[None].fail("Command line cannot be empty")
@@ -207,9 +248,7 @@ class FlextCliModels:
                     return FlextResult[None].fail(
                         "Running commands should not have exit codes until completion",
                     )
-                case FlextCliModels.FailedState(exit_code=exit_code) if (
-                    exit_code == 0
-                ):
+                case FlextCliModels.FailedState(exit_code=exit_code) if exit_code == 0:
                     return FlextResult[None].fail(
                         "Failed commands must have non-zero exit codes",
                     )
@@ -231,23 +270,43 @@ class FlextCliModels:
 
         @computed_field
         def duration_seconds(self) -> float | None:
-            """Calculate session duration in seconds."""
+            """Calculate session duration in seconds.
+
+            Returns:
+            float | None: Description of return value.
+
+            """
             if self.end_time is None:
                 return None
             return (self.end_time - self.start_time).total_seconds()
 
         def add_command(self, command: FlextCliModels.CliCommand) -> FlextResult[None]:
-            """Add a command to the session."""
+            """Add a command to the session.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             self.commands.append(command)
             return FlextResult[None].ok(None)
 
         def end_session(self) -> FlextResult[None]:
-            """End the session."""
+            """End the session.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             self.end_time = datetime.now(UTC)
             return FlextResult[None].ok(None)
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate session business rules."""
+            """Validate session business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             if self.end_time is not None and self.end_time < self.start_time:
                 return FlextResult[None].fail("End time cannot be before start time")
             if len(self.commands) > FlextCliConstants.Limits.max_commands_per_session:
@@ -279,7 +338,15 @@ class FlextCliModels:
         @field_validator("output_format")
         @classmethod
         def validate_output_format(cls, v: str) -> str:
-            """Validate output format is supported."""
+            """Validate output format is supported.
+
+            Raises:
+                ValueError: If output format is not supported.
+
+            Returns:
+            str: Description of return value.
+
+            """
             if v not in FlextCliConstants.VALID_OUTPUT_FORMATS:
                 msg = f"Output format must be one of: {FlextCliConstants.VALID_OUTPUT_FORMATS}"
                 raise ValueError(msg)
@@ -288,14 +355,27 @@ class FlextCliModels:
         @field_validator("timeout_seconds")
         @classmethod
         def validate_timeout(cls, v: int) -> int:
-            """Validate timeout is within limits."""
+            """Validate timeout is within limits.
+
+            Raises:
+                ValueError: If timeout is outside valid range.
+
+            Returns:
+            int: Description of return value.
+
+            """
             if v <= 0 or v > FlextCliConstants.Limits.max_timeout_seconds:
                 msg = f"Timeout must be between 1 and {FlextCliConstants.Limits.max_timeout_seconds} seconds"
                 raise ValueError(msg)
             return v
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate business rules for configuration."""
+            """Validate business rules for configuration.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             try:
                 # All validation is done through Pydantic validators
                 return FlextResult[None].ok(None)
@@ -318,14 +398,27 @@ class FlextCliModels:
         @field_validator("name")
         @classmethod
         def validate_name(cls, v: str) -> str:
-            """Validate plugin name."""
+            """Validate plugin name.
+
+            Raises:
+                ValueError: If plugin name is empty.
+
+            Returns:
+            str: Description of return value.
+
+            """
             if not v.strip():
                 msg = "Plugin name cannot be empty"
                 raise ValueError(msg)
             return v.strip()
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate plugin business rules."""
+            """Validate plugin business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             if not self.name or not self.name.strip():
                 return FlextResult[None].fail("Plugin must have a name")
             if not self.entry_point or not self.entry_point.strip():
@@ -374,7 +467,12 @@ class FlextCliModels:
         )
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate pipeline business rules."""
+            """Validate pipeline business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             if not self.name or not self.name.strip():
                 return FlextResult[None].fail("Pipeline must have a name")
 
@@ -459,7 +557,15 @@ class FlextCliModels:
         @field_validator("base_url")
         @classmethod
         def validate_base_url(cls, v: str) -> str:
-            """Validate API base URL."""
+            """Validate API base URL.
+
+            Raises:
+                ValueError: If base URL is empty.
+
+            Returns:
+            str: Description of return value.
+
+            """
             if not v.strip():
                 msg = "Base URL cannot be empty"
                 raise ValueError(msg)
@@ -473,30 +579,55 @@ class FlextCliModels:
 
         @property
         def session_count(self) -> int:
-            """Number of active sessions."""
+            """Number of active sessions.
+
+            Returns:
+            int: Description of return value.
+
+            """
             return len(self.sessions)
 
         @property
         def handler_count(self) -> int:
-            """Number of registered handlers."""
+            """Number of registered handlers.
+
+            Returns:
+            int: Description of return value.
+
+            """
             return len(self.handlers)
 
         @computed_field
         def is_token_expired(self) -> bool:
-            """Check if token is expired."""
+            """Check if token is expired.
+
+            Returns:
+            bool: Description of return value.
+
+            """
             if self.expires_at is None:
                 return False
             return datetime.now(UTC) > self.expires_at
 
         @computed_field
         def error_rate(self) -> float:
-            """Calculate error rate as percentage."""
+            """Calculate error rate as percentage.
+
+            Returns:
+            float: Description of return value.
+
+            """
             if self.request_count == 0:
                 return 0.0
             return (self.error_count / self.request_count) * 100
 
         def record_request(self, *, success: bool = True) -> FlextResult[None]:
-            """Record API request for metrics."""
+            """Record API request for metrics.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             self.last_request_at = datetime.now(UTC)
             self.request_count += 1
             if not success:
@@ -509,7 +640,12 @@ class FlextCliModels:
             refresh_token: str | None = None,
             expires_in: int | None = None,
         ) -> FlextResult[None]:
-            """Set authentication state."""
+            """Set authentication state.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             self.token = token
             self.refresh_token = refresh_token
             self.authenticated = True
@@ -520,7 +656,12 @@ class FlextCliModels:
             return FlextResult[None].ok(None)
 
         def clear_authentication(self) -> FlextResult[None]:
-            """Clear authentication state."""
+            """Clear authentication state.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             self.token = None
             self.refresh_token = None
             self.authenticated = False
@@ -528,7 +669,12 @@ class FlextCliModels:
             return FlextResult[None].ok(None)
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate API state business rules."""
+            """Validate API state business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             if not self.base_url:
                 return FlextResult[None].fail("API state must have a base URL")
 
@@ -568,13 +714,23 @@ class FlextCliModels:
 
         @computed_field
         def total_pages(self) -> int:
-            """Calculate total number of pages."""
+            """Calculate total number of pages.
+
+            Returns:
+            int: Description of return value.
+
+            """
             if self.page_size == 0:
                 return 0
             return (self.total + self.page_size - 1) // self.page_size
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate pipeline list business rules."""
+            """Validate pipeline list business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             if self.page_size <= 0:
                 return FlextResult[None].fail("page_size must be positive")
 
@@ -618,14 +774,27 @@ class FlextCliModels:
         @field_validator("timeout_seconds")
         @classmethod
         def validate_timeout(cls, v: int) -> int:
-            """Validate timeout is within limits."""
+            """Validate timeout is within limits.
+
+            Raises:
+                ValueError: If timeout is outside valid range.
+
+            Returns:
+            int: Description of return value.
+
+            """
             if v <= 0 or v > FlextCliConstants.Limits.max_timeout_seconds:
                 msg = f"Timeout must be between 1 and {FlextCliConstants.Limits.max_timeout_seconds} seconds"
                 raise ValueError(msg)
             return v
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate pipeline config business rules."""
+            """Validate pipeline config business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             if not self.name or not self.name.strip():
                 return FlextResult[None].fail("Pipeline config must have a name")
 
@@ -645,7 +814,12 @@ class FlextCliModels:
         message: str = Field(default="")
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate API response business rules."""
+            """Validate API response business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             # Type validation handled by Pydantic - data is guaranteed to be dict
             return FlextResult[None].ok(None)
 
@@ -659,7 +833,12 @@ class FlextCliModels:
         message: str = Field(default="")
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate API list response business rules."""
+            """Validate API list response business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             # Type validation handled by Pydantic - data is guaranteed to be list[dict[str, object]]
             return FlextResult[None].ok(None)
 
@@ -673,12 +852,22 @@ class FlextCliModels:
         @field_validator("logs")
         @classmethod
         def validate_logs_are_strings(cls, v: list[str]) -> list[str]:
-            """Validate all items are strings."""
+            """Validate all items are strings.
+
+            Returns:
+            list[str]: Description of return value.
+
+            """
             # Type validation handled by Pydantic type system - v is guaranteed to be list[str]
             return v
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate string list response business rules."""
+            """Validate string list response business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             return FlextResult[None].ok(None)
 
     class PluginListResponse(FlextModels.Entity):
@@ -694,12 +883,22 @@ class FlextCliModels:
             cls,
             v: list[dict[str, object]],
         ) -> list[dict[str, object]]:
-            """Validate all items are dictionaries."""
+            """Validate all items are dictionaries.
+
+            Returns:
+            list[dict[str, object]]: Description of return value.
+
+            """
             # Type validation handled by Pydantic type system - v is guaranteed to be list[dict[str, object]]
             return v
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate plugin list response business rules."""
+            """Validate plugin list response business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             return FlextResult[None].ok(None)
 
     # Data validation models for formatter operations
@@ -715,7 +914,15 @@ class FlextCliModels:
         @field_validator("data")
         @classmethod
         def validate_data_structure(cls, v: object) -> object:
-            """Validate data structure is suitable for formatting."""
+            """Validate data structure is suitable for formatting.
+
+            Raises:
+                ValueError: If data structure is invalid.
+
+            Returns:
+            object: Description of return value.
+
+            """
             # Allow any data type but ensure it's not None
             if v is None:
                 msg = "Data cannot be None for formatting operations"
@@ -723,7 +930,12 @@ class FlextCliModels:
             return v
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate data formatting business rules."""
+            """Validate data formatting business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             if self.data is None:
                 return FlextResult[None].fail("Data cannot be None")
             return FlextResult[None].ok(None)
@@ -743,12 +955,22 @@ class FlextCliModels:
             cls,
             v: dict[str, object] | list[dict[str, object]],
         ) -> dict[str, object] | list[dict[str, object]]:
-            """Validate data is suitable for table formatting."""
+            """Validate data is suitable for table formatting.
+
+            Returns:
+            dict[str, object] | list[dict[str, object]]: Description of return value.
+
+            """
             # Type validation handled by Pydantic - v is guaranteed to match the union type
             return v
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate table data business rules."""
+            """Validate table data business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             if isinstance(self.data, list) and self.data:
                 # Validate all items are dicts with consistent keys
                 first_keys = (
@@ -778,7 +1000,15 @@ class FlextCliModels:
             cls,
             v: dict[str, object] | list[dict[str, object]],
         ) -> dict[str, object] | list[dict[str, object]]:
-            """Validate data is suitable for CSV formatting."""
+            """Validate data is suitable for CSV formatting.
+
+            Raises:
+                ValueError: If CSV data has inconsistent field names.
+
+            Returns:
+            dict[str, object] | list[dict[str, object]]: Description of return value.
+
+            """
             # Validate consistent fieldnames for CSV if it's a list
             if isinstance(v, list) and v:
                 first_keys = set(v[0].keys())
@@ -789,7 +1019,12 @@ class FlextCliModels:
             return v
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate CSV data business rules."""
+            """Validate CSV data business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             return FlextResult[None].ok(None)
 
     # Field validation models for utils.py
@@ -806,7 +1041,12 @@ class FlextCliModels:
         required: bool = Field(default=True, description="Whether field is required")
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate field validation spec business rules."""
+            """Validate field validation spec business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             if not self.field_name.strip():
                 return FlextResult[None].fail("Field name cannot be empty")
             return FlextResult[None].ok(None)
@@ -825,12 +1065,22 @@ class FlextCliModels:
         @field_validator("data")
         @classmethod
         def validate_data_is_dict(cls, v: dict[str, object]) -> dict[str, object]:
-            """Validate data is a dictionary."""
+            """Validate data is a dictionary.
+
+            Returns:
+            dict[str, object]: Description of return value.
+
+            """
             # Type validation handled by Pydantic - v is guaranteed to be dict[str, object]
             return v
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate target data against field specifications."""
+            """Validate target data against field specifications.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             for spec in self.validation_specs:
                 if spec.required and spec.field_name not in self.data:
                     return FlextResult[None].fail(
@@ -865,7 +1115,12 @@ class FlextCliModels:
         )
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate show configuration command business rules."""
+            """Validate show configuration command business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             return FlextResult[None].ok(None)
 
     class SetConfigValueCommand(FlextModels.Entity):
@@ -883,7 +1138,12 @@ class FlextCliModels:
         )
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate set configuration command business rules."""
+            """Validate set configuration command business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             if not self.key.strip():
                 return FlextResult[None].fail("Configuration key cannot be empty")
             return FlextResult[None].ok(None)
@@ -902,7 +1162,12 @@ class FlextCliModels:
         )
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate edit configuration command business rules."""
+            """Validate edit configuration command business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             return FlextResult[None].ok(None)
 
     class AuthLoginCommand(FlextModels.Entity):
@@ -917,7 +1182,12 @@ class FlextCliModels:
         )
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate authentication login command business rules."""
+            """Validate authentication login command business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             if not self.username.strip():
                 return FlextResult[None].fail("Username cannot be empty")
             return FlextResult[None].ok(None)
@@ -935,7 +1205,12 @@ class FlextCliModels:
         )
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate authentication status command business rules."""
+            """Validate authentication status command business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             return FlextResult[None].ok(None)
 
     class AuthLogoutCommand(FlextModels.Entity):
@@ -951,7 +1226,12 @@ class FlextCliModels:
         )
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate authentication logout command business rules."""
+            """Validate authentication logout command business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             return FlextResult[None].ok(None)
 
     class DebugInfoCommand(FlextModels.Entity):
@@ -971,7 +1251,12 @@ class FlextCliModels:
         )
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate debug information command business rules."""
+            """Validate debug information command business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             return FlextResult[None].ok(None)
 
     # =============================================================================
@@ -986,7 +1271,12 @@ class FlextCliModels:
         refresh_token_file: str = Field(description="Refresh token file path")
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate authentication configuration business rules."""
+            """Validate authentication configuration business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             if not self.api_url.strip():
                 return FlextResult[None].fail("API URL cannot be empty")
             return FlextResult[None].ok(None)
@@ -1014,7 +1304,12 @@ class FlextCliModels:
         console_output: bool = Field(default=True, description="Enable console output")
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate logging configuration business rules."""
+            """Validate logging configuration business rules.
+
+            Returns:
+            FlextResult[None]: Description of return value.
+
+            """
             valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
             if self.log_level not in valid_levels:
                 return FlextResult[None].fail(

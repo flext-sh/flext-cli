@@ -77,21 +77,32 @@ class FlextCliAuth(FlextDomainService[str]):
 
     @property
     def config(self) -> FlextCliConfigs:
-        """Get current authentication configuration."""
+        """Get current authentication configuration.
+
+        Returns:
+            FlextCliConfigs: Description of return value.
+
+        """
         return self._config
 
-    def update_from_config(self) -> None:
+    def _update_from_config(self) -> None:
         """Update authentication configuration from FlextConfig singleton.
 
         This method allows the authentication service to refresh its configuration
         from the FlextConfig singleton, ensuring it always uses the latest
         configuration values.
+
         """
         # Update configuration from singleton
         self._config = FlextCliConfigs.get_current()
 
     def get_token_paths(self) -> FlextResult[FlextCliTypes.TokenPaths]:
-        """Get token paths from SOURCE OF TRUTH configuration."""
+        """Get token paths from SOURCE OF TRUTH configuration.
+
+        Returns:
+            FlextResult[FlextCliTypes.TokenPaths]: Token paths or error result.
+
+        """
         try:
             # Extract paths from SOURCE OF TRUTH config
             paths: FlextCliTypes.TokenPaths = {
@@ -109,24 +120,44 @@ class FlextCliAuth(FlextDomainService[str]):
                 f"Token paths from SOURCE OF TRUTH failed: {e}",
             )
 
-    def get_token_path(self) -> Path:
-        """Get authentication token file path."""
+    def _get_token_path(self) -> Path:
+        """Get authentication token file path.
+
+        Returns:
+            Path: Authentication token file path.
+
+        """
         return self._config.token_file
 
-    def get_refresh_token_path(self) -> Path:
-        """Get refresh token file path."""
+    def _get_refresh_token_path(self) -> Path:
+        """Get refresh token file path.
+
+        Returns:
+            Path: Refresh token file path.
+
+        """
         return self._config.refresh_token_file
 
-    def save_refresh_token(self, token: str) -> FlextResult[None]:
-        """Save refresh token to storage."""
-        return self.save_token_to_storage(
+    def _save_refresh_token(self, token: str) -> FlextResult[None]:
+        """Save refresh token to storage.
+
+        Returns:
+            FlextResult[None]: Success or failure result of save operation.
+
+        """
+        return self._save_token_to_storage(
             token,
             "refresh",
             self._config.refresh_token_file,
         )
 
-    def get_refresh_token(self) -> FlextResult[str]:
-        """Get refresh token from storage."""
+    def _get_refresh_token(self) -> FlextResult[str]:
+        """Get refresh token from storage.
+
+        Returns:
+            FlextResult[str]: Refresh token string or error result.
+
+        """
         try:
             if not self._config.refresh_token_file.exists():
                 return FlextResult[str].fail("Refresh token file not found")
@@ -142,15 +173,25 @@ class FlextCliAuth(FlextDomainService[str]):
         ) as e:
             return FlextResult[str].fail(f"Failed to read refresh token: {e}")
 
-    def should_auto_refresh(self) -> bool:
-        """Check if auto refresh is enabled."""
+    def _should_auto_refresh(self) -> bool:
+        """Check if auto refresh is enabled.
+
+        Returns:
+            bool: True if auto refresh is enabled, False otherwise.
+
+        """
         return bool(getattr(self._config, "auto_refresh", False))
 
-    def validate_credentials(
+    def _validate_credentials(
         self,
         credentials: FlextCliTypes.LoginCredentials,
     ) -> FlextResult[None]:
-        """Validate login credentials using SOURCE OF TRUTH validation rules."""
+        """Validate login credentials using SOURCE OF TRUTH validation rules.
+
+        Returns:
+            FlextResult[None]: Success or failure result of validation.
+
+        """
         try:
             username = (
                 credentials["username"].strip() if credentials["username"] else ""
@@ -178,13 +219,18 @@ class FlextCliAuth(FlextDomainService[str]):
                 f"Credential validation using SOURCE OF TRUTH failed: {e}",
             )
 
-    def save_token_to_storage(
+    def _save_token_to_storage(
         self,
         token: str,
         token_type: str,
         file_path: Path,
     ) -> FlextResult[None]:
-        """Save token to secure storage using SOURCE OF TRUTH security patterns."""
+        """Save token to secure storage using SOURCE OF TRUTH security patterns.
+
+        Returns:
+            FlextResult[None]: Success or failure result of save operation.
+
+        """
         try:
             if not token or not token.strip():
                 return FlextResult[None].fail(f"{token_type} cannot be empty")
@@ -203,12 +249,17 @@ class FlextCliAuth(FlextDomainService[str]):
                 f"Failed to save {token_type} to SOURCE OF TRUTH storage: {e}",
             )
 
-    def load_token_from_storage(
+    def _load_token_from_storage(
         self,
         file_path: Path,
         token_type: str,
     ) -> FlextResult[str]:
-        """Load token from secure storage using SOURCE OF TRUTH patterns."""
+        """Load token from secure storage using SOURCE OF TRUTH patterns.
+
+        Returns:
+            FlextResult[str]: Token string or error result.
+
+        """
         try:
             if not file_path.exists():
                 return FlextResult[str].fail(
@@ -229,13 +280,18 @@ class FlextCliAuth(FlextDomainService[str]):
                 f"Failed to load {token_type} from SOURCE OF TRUTH storage: {e}",
             )
 
-    def save_auth_token(
+    def _save_auth_token(
         self,
         token: str,
         *,
         token_path: Path | None = None,
     ) -> FlextResult[None]:
-        """Save authentication token using SOURCE OF TRUTH storage patterns."""
+        """Save authentication token using SOURCE OF TRUTH storage patterns.
+
+        Returns:
+            FlextResult[None]: Success or failure result of save operation.
+
+        """
         try:
             paths_result = self.get_token_paths()
             if paths_result.is_failure:
@@ -246,7 +302,7 @@ class FlextCliAuth(FlextDomainService[str]):
             paths = paths_result.value
             file_path = token_path or paths["token_path"]
 
-            return self.save_token_to_storage(token, "Authentication token", file_path)
+            return self._save_token_to_storage(token, "Authentication token", file_path)
 
         except (
             AttributeError,
@@ -256,8 +312,13 @@ class FlextCliAuth(FlextDomainService[str]):
                 f"Auth token save using SOURCE OF TRUTH failed: {e}",
             )
 
-    def get_auth_token(self, *, token_path: Path | None = None) -> FlextResult[str]:
-        """Retrieve authentication token from SOURCE OF TRUTH storage."""
+    def _get_auth_token(self, *, token_path: Path | None = None) -> FlextResult[str]:
+        """Retrieve authentication token from SOURCE OF TRUTH storage.
+
+        Returns:
+            FlextResult[str]: Authentication token string or error result.
+
+        """
         try:
             paths_result = self.get_token_paths()
             if paths_result.is_failure:
@@ -278,8 +339,13 @@ class FlextCliAuth(FlextDomainService[str]):
                 f"Auth token retrieval from SOURCE OF TRUTH failed: {e}",
             )
 
-    def clear_auth_tokens(self) -> FlextResult[None]:
-        """Clear all authentication tokens from SOURCE OF TRUTH storage."""
+    def _clear_auth_tokens(self) -> FlextResult[None]:
+        """Clear all authentication tokens from SOURCE OF TRUTH storage.
+
+        Returns:
+            FlextResult[None]: Success or failure result of clear operation.
+
+        """
         try:
             paths_result = self.get_token_paths()
             if paths_result.is_failure:
@@ -321,8 +387,22 @@ class FlextCliAuth(FlextDomainService[str]):
                 f"Token clearing from SOURCE OF TRUTH failed: {e}",
             )
 
-    def is_authenticated(self, *, token_path: Path | None = None) -> bool:
-        """Check current authentication status."""
+    def clear_auth_tokens(self) -> FlextResult[None]:
+        """Public interface to clear all authentication tokens.
+
+        Returns:
+            FlextResult[None]: Success or failure result of clear operation.
+
+        """
+        return self._clear_auth_tokens()
+
+    def _is_authenticated(self, *, token_path: Path | None = None) -> bool:
+        """Check current authentication status.
+
+        Returns:
+            bool: True if authenticated, False otherwise.
+
+        """
         try:
             token_result = self.get_auth_token(token_path=token_path)
             return token_result.is_success and bool(token_result.value)
@@ -333,12 +413,17 @@ class FlextCliAuth(FlextDomainService[str]):
         ):
             return False
 
-    def check_authentication_status(
+    def _check_authentication_status(
         self,
         *,
         token_path: Path | None = None,
     ) -> FlextResult[bool]:
-        """Check authentication status using SOURCE OF TRUTH."""
+        """Check authentication status using SOURCE OF TRUTH.
+
+        Returns:
+            FlextResult[bool]: Authentication status or error result.
+
+        """
         try:
             authenticated = self.is_authenticated(token_path=token_path)
             return FlextResult[bool].ok(authenticated)
@@ -348,8 +433,13 @@ class FlextCliAuth(FlextDomainService[str]):
         ) as e:
             return FlextResult[bool].fail(f"Authentication check failed: {e}")
 
-    def get_auth_headers(self) -> FlextResult[FlextTypes.Core.Headers]:
-        """Get authentication headers using SOURCE OF TRUTH token."""
+    def _get_auth_headers(self) -> FlextResult[FlextTypes.Core.Headers]:
+        """Get authentication headers using SOURCE OF TRUTH token.
+
+        Returns:
+            FlextResult[FlextTypes.Core.Headers]: Authentication headers or error result.
+
+        """
         try:
             token_result = self.get_auth_token()
             if token_result.is_failure:
@@ -377,7 +467,12 @@ class FlextCliAuth(FlextDomainService[str]):
         username: str,
         password: str,
     ) -> FlextResult[FlextTypes.Core.Dict]:
-        """Perform login using SOURCE OF TRUTH authentication flow."""
+        """Perform login using SOURCE OF TRUTH authentication flow.
+
+        Returns:
+            FlextResult[FlextTypes.Core.Dict]: Login result data or error result.
+
+        """
         try:
             # Validate credentials using SOURCE OF TRUTH
             credentials: FlextCliTypes.LoginCredentials = {
@@ -467,7 +562,12 @@ class FlextCliAuth(FlextDomainService[str]):
             )
 
     def logout(self) -> FlextResult[None]:
-        """Perform logout using SOURCE OF TRUTH authentication flow."""
+        """Perform logout using SOURCE OF TRUTH authentication flow.
+
+        Returns:
+            FlextResult[None]: Success or failure result of logout operation.
+
+        """
         # Check authentication status using SOURCE OF TRUTH
         auth_result = self.check_authentication_status()
         if auth_result.is_failure:
@@ -501,7 +601,12 @@ class FlextCliAuth(FlextDomainService[str]):
         return FlextResult[None].ok(None)
 
     def get_status(self) -> FlextResult[FlextCliTypes.AuthStatus]:
-        """Get authentication status from SOURCE OF TRUTH."""
+        """Get authentication status from SOURCE OF TRUTH.
+
+        Returns:
+            FlextResult[FlextCliTypes.AuthStatus]: Authentication status or error result.
+
+        """
         # Get authentication status from SOURCE OF TRUTH
         auth_result = self.check_authentication_status()
         if auth_result.is_failure:
@@ -551,7 +656,12 @@ class FlextCliAuth(FlextDomainService[str]):
         return FlextResult[FlextCliTypes.AuthStatus].ok(status)
 
     def whoami(self) -> FlextResult[FlextTypes.Core.Dict]:
-        """Get current user information from SOURCE OF TRUTH."""
+        """Get current user information from SOURCE OF TRUTH.
+
+        Returns:
+            FlextResult[FlextTypes.Core.Dict]: User information or error result.
+
+        """
         # Check authentication using SOURCE OF TRUTH
         auth_result = self.check_authentication_status()
         if auth_result.is_failure:
@@ -574,7 +684,12 @@ class FlextCliAuth(FlextDomainService[str]):
         return FlextResult[FlextTypes.Core.Dict].ok(user_info)
 
     def execute(self) -> FlextResult[str]:
-        """Execute authentication service - required by FlextDomainService abstract method."""
+        """Execute authentication service - required by FlextDomainService abstract method.
+
+        Returns:
+            FlextResult[str]: Authentication status string or error result.
+
+        """
         # Default execution returns authentication status from SOURCE OF TRUTH
         status_result = self.get_status()
         if status_result.is_failure:
@@ -587,14 +702,24 @@ class FlextCliAuth(FlextDomainService[str]):
 
     @classmethod
     def create(cls, *, config: FlextCliConfigs | None = None) -> FlextCliAuth:
-        """Create authentication instance using FlextConfig singleton as SINGLE SOURCE OF TRUTH."""
+        """Create authentication instance using FlextConfig singleton as SINGLE SOURCE OF TRUTH.
+
+        Returns:
+            FlextCliAuth: New authentication instance.
+
+        """
         # Use FlextConfig singleton if no config provided
         if config is None:
             config = FlextCliConfigs.get_current()
         return cls(config=config)
 
     def _validate_user_data(self, user_data: dict[str, object]) -> FlextResult[bool]:
-        """Validate user data using flext-core validation."""
+        """Validate user data using flext-core validation.
+
+        Returns:
+            FlextResult[bool]: Validation result or error result.
+
+        """
         try:
             # Basic validation
             if "name" not in user_data or "email" not in user_data:
@@ -608,12 +733,17 @@ class FlextCliAuth(FlextDomainService[str]):
         except Exception as e:
             return FlextResult[bool].fail(f"Validation failed: {e}")
 
-    def authenticate_user(
+    def _authenticate_user(
         self,
         username: str,
         password: str,
     ) -> FlextResult[dict[str, object]]:
-        """Authenticate user with credentials."""
+        """Authenticate user with credentials.
+
+        Returns:
+            FlextResult[dict[str, object]]: Authentication result or error result.
+
+        """
         try:
             if not username or not password:
                 return FlextResult[dict[str, object]].fail(
@@ -633,12 +763,17 @@ class FlextCliAuth(FlextDomainService[str]):
         except Exception as e:
             return FlextResult[dict[str, object]].fail(f"Authentication failed: {e}")
 
-    def save_auth_config(
+    def _save_auth_config(
         self,
         config_data: dict[str, object],
         file_path: str,
     ) -> FlextResult[str]:
-        """Save authentication configuration to file."""
+        """Save authentication configuration to file.
+
+        Returns:
+            FlextResult[str]: Save result message or error result.
+
+        """
         try:
             path = Path(file_path)
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -651,7 +786,12 @@ class FlextCliAuth(FlextDomainService[str]):
             return FlextResult[str].fail(f"Save failed: {e}")
 
     def _is_token_expired(self, timestamp: str) -> bool:
-        """Check if token is expired."""
+        """Check if token is expired.
+
+        Returns:
+            bool: True if token is expired, False otherwise.
+
+        """
         if not timestamp:
             return True
 
@@ -659,8 +799,13 @@ class FlextCliAuth(FlextDomainService[str]):
         now = datetime.now(UTC)
         return now > token_time + timedelta(hours=24)
 
-    def load_auth_config(self, file_path: str) -> FlextResult[dict[str, object]]:
-        """Load authentication configuration from file."""
+    def _load_auth_config(self, file_path: str) -> FlextResult[dict[str, object]]:
+        """Load authentication configuration from file.
+
+        Returns:
+            FlextResult[dict[str, object]]: Configuration data or error result.
+
+        """
         try:
             path = Path(file_path)
             if not path.exists():
@@ -679,7 +824,12 @@ class FlextCliAuth(FlextDomainService[str]):
         self,
         config_data: dict[str, object],
     ) -> FlextResult[bool]:
-        """Validate authentication configuration."""
+        """Validate authentication configuration.
+
+        Returns:
+            FlextResult[bool]: Validation result or error result.
+
+        """
         try:
             # Basic validation
             if "api_key" not in config_data or "base_url" not in config_data:

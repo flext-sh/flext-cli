@@ -149,13 +149,23 @@ class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
         """
 
         def validate_path(path_obj: object) -> FlextResult[Path]:
-            """Validate file path parameter."""
+            """Validate file path parameter.
+
+            Returns:
+                FlextResult[Path]: Validated Path object or error result.
+
+            """
             if not isinstance(path_obj, Path):
                 return FlextResult[Path].fail("file_path must be a Path object")
             return FlextResult[Path].ok(path_obj)
 
         def perform_export(validated_path: Path) -> FlextResult[None]:
-            """Perform the actual export operation."""
+            """Perform the actual export operation.
+
+            Returns:
+                FlextResult[None]: Success or failure result of export operation.
+
+            """
             return self._unified_service.export_data(data, validated_path, format_type)
 
         return validate_path(file_path).flat_map(perform_export)
@@ -171,13 +181,23 @@ class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
         """
 
         def validate_output_dir(dir_obj: object) -> FlextResult[Path]:
-            """Validate output directory parameter."""
+            """Validate output directory parameter.
+
+            Returns:
+                FlextResult[Path]: Validated Path object or error result.
+
+            """
             if not isinstance(dir_obj, Path):
                 return FlextResult[Path].fail("output_dir must be a Path object")
             return FlextResult[Path].ok(dir_obj)
 
         def validate_datasets(datasets_obj: object) -> FlextResult[dict[str, object]]:
-            """Validate datasets parameter."""
+            """Validate datasets parameter.
+
+            Returns:
+                FlextResult[dict[str, object]]: Validated datasets or error result.
+
+            """
             if not isinstance(datasets_obj, dict):
                 return FlextResult[dict[str, object]].fail(
                     "datasets must be a dictionary"
@@ -185,7 +205,12 @@ class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
             return FlextResult[dict[str, object]].ok(datasets_obj)
 
         def perform_batch_export(validated_dir: Path) -> FlextResult[None]:
-            """Perform the actual batch export operation."""
+            """Perform the actual batch export operation.
+
+            Returns:
+                FlextResult[None]: Success or failure result of batch export operation.
+
+            """
             return validate_datasets(datasets).flat_map(
                 lambda valid_datasets: self._unified_service.batch_export(
                     valid_datasets, validated_dir, format_type
@@ -207,20 +232,35 @@ class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
 
     # Simplified convenience methods (much less code than before)
     def format_data(self, data: object, format_type: str) -> FlextResult[str]:
-        """Format data - delegates to unified service."""
+        """Format data - delegates to unified service.
+
+        Returns:
+            FlextResult[str]: Formatted data string or error result.
+
+        """
         return self._unified_service.format_data(data, format_type)
 
     def create_table(
         self, data: object, title: str | None = None, **options: object
     ) -> FlextResult[str]:
-        """Create table - delegates to unified service."""
+        """Create table - delegates to unified service.
+
+        Returns:
+            FlextResult[str]: Formatted table string or error result.
+
+        """
         table_options = options.copy()
         if title:
             table_options["title"] = title
         return self._unified_service.format_data(data, "table", **table_options)
 
     def get_command_history(self) -> FlextResult[list[dict[str, object]]]:
-        """Get command history using unified service."""
+        """Get command history using unified service.
+
+        Returns:
+            FlextResult[list[dict[str, object]]]: Command history list or error result.
+
+        """
         return self._unified_service.get_command_history()
 
     # Legacy compatibility methods (simplified)
@@ -237,7 +277,12 @@ class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
         def handle_format_command(
             cmd_data: object, fmt_type: str
         ) -> FlextResult[object | str]:
-            """Handle format command with railway pattern."""
+            """Handle format command with railway pattern.
+
+            Returns:
+                FlextResult[object | str]: Formatted data or error result.
+
+            """
             if cmd_data is None:
                 return FlextResult[object | str].fail("No data provided for formatting")
 
@@ -248,19 +293,30 @@ class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
             )
 
         def execute_default_operation() -> FlextResult[object | str]:
-            """Execute default operation."""
+            """Execute default operation.
+
+            Returns:
+                FlextResult[object | str]: Default operational status or error result.
+
+            """
             return FlextResult[object | str].ok({"status": "operational"})
 
         def execute_command_with_args(cmd: str) -> FlextResult[object | str]:
-            """Execute specific command with arguments."""
+            """Execute specific command with arguments.
+
+            Returns:
+                FlextResult[object | str]: Command execution result or error result.
+
+            """
             if cmd == "format":
                 data = kwargs.get("data")
                 format_type = str(kwargs.get("format_type", "json"))
                 return handle_format_command(data, format_type)
 
-            return FlextResult[object | str].ok(
-                {"status": "operational", "command": cmd}
-            )
+            return FlextResult[object | str].ok({
+                "status": "operational",
+                "command": cmd,
+            })
 
         # Railway pattern for command execution
         if command is None:
@@ -268,12 +324,7 @@ class FlextCliApi(FlextDomainService[FlextTypes.Core.Dict]):
 
         return execute_command_with_args(command)
 
-    
-
     # Utility methods
-    
-
-    
 
 
 __all__ = [

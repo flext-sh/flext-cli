@@ -47,7 +47,12 @@ class FlextCliError(Exception):
         self.message = message
 
     def __str__(self) -> str:
-        """Return string representation of the exception."""
+        """Return string representation of the exception.
+
+        Returns:
+            str: String representation of the exception.
+
+        """
         context_str = ""
         if self.context:
             context_items = [f"{k}={v}" for k, v in self.context.items()]
@@ -56,7 +61,12 @@ class FlextCliError(Exception):
         return f"[{self.error_code}] {self.message}{context_str}"
 
     def __repr__(self) -> str:
-        """Return detailed representation for debugging."""
+        """Return detailed representation for debugging.
+
+        Returns:
+            str: Detailed string representation for debugging.
+
+        """
         return (
             f"FlextCliError("
             f"message='{self.message}', "

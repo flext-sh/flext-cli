@@ -99,10 +99,10 @@ class TestFlextCliTypesReal:
 
     def test_type_aliases_work(self) -> None:
         """Test that type aliases are properly defined."""
-        # Test that FlextTypes provides access to actual type classes
-        assert FlextTypes.Commands is not None
-        assert FlextTypes.Config is not None
-        assert FlextTypes.Core is not None  # Core types are available
+        # Test that FlextCliTypes provides access to actual type classes
+        assert FlextCliTypes.Commands is not None
+        assert FlextCliTypes.Config is not None
+        assert FlextTypes.Core is not None  # Core types are available from flext_core
 
 
 class TestFlextCliConstantsReal:
