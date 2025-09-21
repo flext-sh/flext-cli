@@ -7,11 +7,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
-from flext_tests import FlextTestsBuilders, FlextTestsDomains, FlextTestsMatchers
 
 from flext_cli import FlextCliApi, FlextCliAuth, FlextCliMain
 from flext_cli.models import FlextCliModels
 from flext_core import FlextResult
+from flext_tests import FlextTestsBuilders, FlextTestsDomains, FlextTestsMatchers
 
 
 @pytest.mark.auth

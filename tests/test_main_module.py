@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import importlib.util
-import subprocess  # noqa: S404
+import subprocess
 import sys
 from pathlib import Path
 
@@ -27,7 +27,7 @@ class TestMainModule:
     def test_main_function_import(self) -> None:
         """Test that main function can be imported from __main__."""
         # This tests the import line in __main__.py
-        from flext_cli.__main__ import main  # noqa: PLC2701
+        from flext_cli.__main__ import main
 
         assert main is not None
         assert callable(main)

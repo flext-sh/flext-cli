@@ -13,14 +13,6 @@ from pathlib import Path
 from typing import ClassVar
 
 import pytest
-from flext_tests import (
-    FlextTestsBuilders,
-    FlextTestsDomains,
-    FlextTestsFactories,
-    FlextTestsFixtures,
-    FlextTestsMatchers,
-    FlextTestsUtilities,
-)
 
 from flext_cli import (
     FlextCliApi,
@@ -31,6 +23,14 @@ from flext_cli import (
 )
 from flext_cli.models import FlextCliModels
 from flext_core import FlextResult, FlextTypes
+from flext_tests import (
+    FlextTestsBuilders,
+    FlextTestsDomains,
+    FlextTestsFactories,
+    FlextTestsFixtures,
+    FlextTestsMatchers,
+    FlextTestsUtilities,
+)
 
 
 # Test Configuration and Constants
