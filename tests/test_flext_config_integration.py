@@ -5,340 +5,115 @@ SPDX-License-Identifier: MIT.
 
 from __future__ import annotations
 
-import logging
 import os
+from pathlib import Path
 
 import pytest
 
-from flext_cli import FlextCliConfigs
-from flext_core import FlextConfig
+from flext_cli import FlextCliModels
 
 
 class TestFlextConfigIntegration:
-    """Test FlextConfig singleton integration with flext-cli."""
+    """Test FlextConfig integration with flext-cli using actual API."""
 
     def setup_method(self) -> None:
         """Setup test environment."""
-        # Clear global instances before each test
-        FlextCliConfigs.clear_global_instance()
-        FlextConfig.reset_global_instance()
+        # Clear environment variables that might affect configuration
+        for key in os.environ.copy():
+            if key.startswith("FLEXT_CLI_"):
+                del os.environ[key]
 
     def teardown_method(self) -> None:
         """Cleanup test environment."""
-        # Clear global instances after each test
-        FlextCliConfigs.clear_global_instance()
-        FlextConfig.reset_global_instance()
+        # Clean up any test environment variables
+        for key in os.environ.copy():
+            if key.startswith("FLEXT_CLI_"):
+                del os.environ[key]
 
-    def test_flext_config_singleton_integration(self) -> None:
-        """Test that FlextCliConfigs integrates with FlextConfig singleton."""
-        # Get base FlextConfig singleton
-        base_config = FlextConfig.get_global_instance()
+    def test_flext_config_basic_functionality(self) -> None:
+        """Test that FlextCliConfig works with actual Pydantic BaseSettings API."""
+        # Create CLI config using actual API
+        cli_config = FlextCliModels.FlextCliConfig()
 
-        # Get CLI config (should inherit from base)
-        cli_config = FlextCliConfigs.get_global_instance()
-
-        # Verify CLI config inherits base config values
-        assert cli_config.debug == base_config.debug
-        assert cli_config.log_level == base_config.log_level
-        # Note: CLI config has its own api_url field, not inherited from base_url
-        assert hasattr(cli_config, "api_url")
-        assert isinstance(cli_config.api_url, str)
-
-        # Verify CLI-specific fields are present
+        # Verify CLI-specific fields are present with defaults
         assert hasattr(cli_config, "profile")
         assert hasattr(cli_config, "output_format")
-        assert hasattr(cli_config, "quiet")
+        assert hasattr(cli_config, "debug_mode")
 
-    def test_cli_parameter_overrides_update_flext_config(self) -> None:
-        """Test that CLI parameter overrides update both configs."""
-        # Get initial configs (for reference)
-        _ = FlextConfig.get_global_instance()
-        _ = FlextCliConfigs.get_global_instance()
+        # Test default values
+        assert isinstance(cli_config.profile, str)
+        assert isinstance(cli_config.output_format, str)
+        assert isinstance(cli_config.debug_mode, bool)
 
-        # Apply CLI overrides
-        cli_params: dict[str, object] = {
-            "debug": True,
-            "log_level": "DEBUG",
-            "output_format": "json",
-            "profile": "development",
-        }
+    def test_flext_config_environment_variables(self) -> None:
+        """Test that FlextCliConfig reads from environment variables."""
+        # Set environment variables (with FLEXT_CLI_ prefix)
+        os.environ["FLEXT_CLI_PROFILE"] = "test-profile"
+        os.environ["FLEXT_CLI_OUTPUT_FORMAT"] = "json"
+        os.environ["FLEXT_CLI_DEBUG_MODE"] = "true"
 
-        override_result = FlextCliConfigs.apply_cli_overrides(cli_params)
-        assert override_result.is_success
+        # Create config (should read from environment)
+        cli_config = FlextCliModels.FlextCliConfig()
 
-        # Get updated configs
-        updated_base = FlextConfig.get_global_instance()
-        updated_cli = override_result.value
+        # Verify environment variables are loaded
+        assert cli_config.profile == "test-profile"
+        assert cli_config.output_format == "json"
+        assert cli_config.debug_mode is True
 
-        # Verify base config was updated
-        assert updated_base.debug
-        assert updated_base.log_level == "DEBUG"
+    def test_flext_config_explicit_values(self) -> None:
+        """Test FlextCliConfig with explicit constructor values."""
+        # Create config with explicit values
+        cli_config = FlextCliModels.FlextCliConfig(
+            profile="explicit-profile", output_format="yaml", debug_mode=True
+        )
 
-        # Verify CLI config was updated
-        assert updated_cli.debug
-        assert updated_cli.log_level == "DEBUG"
-        assert updated_cli.output_format == "json"
-        assert updated_cli.profile == "development"
+        # Verify explicit values are used
+        assert cli_config.profile == "explicit-profile"
+        assert cli_config.output_format == "yaml"
+        assert cli_config.debug_mode is True
 
-    def test_synchronization_with_flext_config(self) -> None:
-        """Test synchronization between CLI config and FlextConfig."""
-        # Get initial configs
-        base_config = FlextConfig.get_global_instance()
-        _ = FlextCliConfigs.get_global_instance()
+    def test_flext_config_methods(self) -> None:
+        """Test actual FlextCliConfig methods."""
+        cli_config = FlextCliModels.FlextCliConfig()
 
-        # Modify base config directly
-        base_config.debug = True
-        base_config.log_level = "DEBUG"
-        FlextConfig.set_global_instance(base_config)
+        # Test get_config_dir method
+        config_dir = cli_config.get_config_dir()
+        assert isinstance(config_dir, Path)
 
-        # Synchronize CLI config
-        sync_result = FlextCliConfigs.sync_with_flext_config()
-        assert sync_result.is_success
+        # Test get_config_file method
+        config_file = cli_config.get_config_file()
+        assert isinstance(config_file, Path)
+        assert config_file.suffix in {".json", ".toml"}  # Accept either format
 
-        # Verify CLI config is synchronized
-        synced_config = sync_result.value
-        assert synced_config.debug
-        assert synced_config.log_level == "DEBUG"
+    def test_output_format_validation(self) -> None:
+        """Test output format validation."""
+        cli_config = FlextCliModels.FlextCliConfig()
 
-    def test_environment_variable_overrides(self) -> None:
-        """Test environment variable overrides."""
-        # Set environment variables
-        os.environ["FLEXT_CLI_DEBUG"] = "true"
-        os.environ["FLEXT_CLI_OUTPUT_FORMAT"] = "yaml"
-        os.environ["FLEXT_CLI_LOG_LEVEL"] = "WARNING"
+        # Test valid format
+        result = cli_config.validate_output_format("json")
+        assert result.is_success
+        assert result.value == "json"
 
-        try:
-            # Clear global instance to force reload
-            FlextCliConfigs.clear_global_instance()
+        # Test valid format
+        result = cli_config.validate_output_format("table")
+        assert result.is_success
+        assert result.value == "table"
 
-            # Get new instance with environment overrides
-            config = FlextCliConfigs.get_global_instance()
+        # Test invalid format
+        result = cli_config.validate_output_format("invalid_format")
+        assert result.is_failure
+        assert "not supported" in result.error or "Invalid" in result.error
 
-            # Verify environment overrides
-            assert config.debug
-            assert config.output_format == "yaml"
-            assert config.log_level == "WARNING"
-
-        finally:
-            # Cleanup environment variables
-            os.environ.pop("FLEXT_CLI_DEBUG", None)
-            os.environ.pop("FLEXT_CLI_OUTPUT_FORMAT", None)
-            os.environ.pop("FLEXT_CLI_LOG_LEVEL", None)
-
-    def test_cli_config_inherits_from_flext_config(self) -> None:
-        """Test that CLI config properly inherits from FlextConfig."""
-        # Get base config
-        base_config = FlextConfig.get_global_instance()
-
-        # Modify base config (use valid log level for development)
-        base_config.debug = True
-        base_config.log_level = "WARNING"  # Use valid log level
-        base_config.base_url = "https://test-api.com"  # Use base_url instead of api_url
-        FlextConfig.set_global_instance(base_config)
-
-        # Get CLI config (should inherit changes)
-        cli_config = FlextCliConfigs.get_global_instance()
-
-        # Verify inheritance
-        assert cli_config.debug
-        assert cli_config.log_level == "WARNING"
-        # Note: api_url is CLI-specific and not inherited from base_url
-        assert hasattr(cli_config, "api_url")
-        assert isinstance(cli_config.api_url, str)
-
-        # Verify CLI-specific fields are still present
-        assert hasattr(cli_config, "profile")
-        assert hasattr(cli_config, "output_format")
-
-    def test_global_instance_management(self) -> None:
-        """Test global instance management."""
-        # Get initial instance
-        config1 = FlextCliConfigs.get_global_instance()
-
-        # Get same instance - note: FlextCliConfigs creates new instances for test isolation
-        config2 = FlextCliConfigs.get_global_instance()
-        assert config1.model_dump() == config2.model_dump()  # Same configuration values
-
-        # Set new global instance
-        new_config = FlextCliConfigs(profile="test", debug=True)
-        FlextCliConfigs.set_global_instance(new_config)
-
-        # Verify new instance is returned
-        config3 = FlextCliConfigs.get_global_instance()
-        assert config3 is new_config
-        assert config3.profile == "test"
-        assert config3.debug
-
-        # Clear global instance
-        FlextCliConfigs.clear_global_instance()
-
-        # Verify new instance is created
-        config4 = FlextCliConfigs.get_global_instance()
-        assert config4 is not new_config
-
-    def test_configuration_validation(self) -> None:
-        """Test configuration validation."""
-        # Get valid config
-        config = FlextCliConfigs.get_global_instance()
-
-        # Validate configuration
-        validation_result = config.validate_business_rules()
-        assert validation_result.is_success
-
-        # Test invalid configuration creation
-        try:
-            invalid_config = FlextCliConfigs(
-                profile="",  # Invalid empty profile
-                output_format="invalid_format",  # Invalid format
-            )
-            # If creation succeeded, validation should still fail
-            validation_result = invalid_config.validate_business_rules()
-            assert validation_result.is_failure
-        except Exception as e:
-            # If Pydantic prevents creation, that's also valid - the validation is working
-            # Log the exception for debugging purposes
-            logger = logging.getLogger(__name__)
-            logger.debug(f"Expected validation exception caught: {e}")
-
-    def test_cli_parameter_mapping(self) -> None:
-        """Test CLI parameter mapping to configuration fields."""
-        # Test various CLI parameter formats
-        cli_params: dict[str, object] = {
-            "profile": "test",
-            "debug": True,
-            "output": "json",  # Short form
-            "output_format": "yaml",  # Long form
-            "log_level": "DEBUG",
-            "quiet": True,
-            "verbose": False,
-            "no_color": True,
-            "api_url": "https://test.com",
-            "timeout": 30,  # Short form
-            "command_timeout": 60,  # Long form
-            "api_timeout": 45,
-            "trace": True,
-            "no-color": True,  # Kebab case
-            "log-level": "INFO",  # Kebab case
-            "api-url": "https://kebab.com",  # Kebab case
-            "command-timeout": 90,  # Kebab case
-            "api-timeout": 120,  # Kebab case
-        }
-
-        override_result = FlextCliConfigs.apply_cli_overrides(cli_params)
-        assert override_result.is_success
-
-        config = override_result.value
-
-        # Verify parameter mapping
+    def test_config_model_validation(self) -> None:
+        """Test Pydantic model validation."""
+        # Test valid config creation
+        config = FlextCliModels.FlextCliConfig(
+            profile="test", output_format="json", debug_mode=False
+        )
         assert config.profile == "test"
-        assert config.debug
-        assert config.output_format == "yaml"  # Long form takes precedence
-        assert config.log_level == "INFO"  # Kebab case takes precedence
-        assert config.quiet
-        assert not config.verbose
-        assert config.no_color
-        assert config.api_url == "https://kebab.com"  # Kebab case takes precedence
-        assert config.command_timeout == 90  # Kebab case takes precedence
-        assert config.api_timeout == 120  # Kebab case takes precedence
-        assert config.trace
+        assert config.output_format == "json"
+        assert config.debug_mode is False
 
-    def test_configuration_export(self) -> None:
-        """Test configuration export functionality."""
-        config = FlextCliConfigs.get_global_instance()
-
-        # Test model_dump
-        config_dict = config.model_dump()
-        assert isinstance(config_dict, dict)
-        assert "profile" in config_dict
-        assert "debug" in config_dict
-        assert "output_format" in config_dict
-
-        # Test model_dump_json (Pydantic v2 method)
-        config_json = config.model_dump_json(indent=2)
-        assert isinstance(config_json, str)
-        assert "profile" in config_json
-        assert "debug" in config_json
-
-    def test_configuration_consistency(self) -> None:
-        """Test configuration consistency across different access methods."""
-        # Get config via different methods
-        config1 = FlextCliConfigs.get_global_instance()
-        config2 = FlextCliConfigs.get_current()
-
-        # Should have the same configuration values
-        assert config1.model_dump() == config2.model_dump()
-
-        # Apply overrides
-        cli_params: dict[str, object] = {"debug": True, "profile": "test"}
-        override_result = FlextCliConfigs.apply_cli_overrides(cli_params)
-        assert override_result.is_success
-
-        # Get updated config
-        config3 = FlextCliConfigs.get_global_instance()
-
-        # Verify consistency
-        assert config3.debug
-        assert config3.profile == "test"
-
-        # Verify base config is also updated
-        base_config = FlextConfig.get_global_instance()
-        assert base_config.debug
-
-    def test_error_handling(self) -> None:
-        """Test error handling in configuration operations."""
-        # Test invalid CLI parameters
-        invalid_params: dict[str, object] = {"invalid_param": "value"}
-        override_result = FlextCliConfigs.apply_cli_overrides(invalid_params)
-        assert override_result.is_success  # Should succeed with ignored invalid params
-
-        # Test synchronization with invalid config
-        # This should not fail as it's handled gracefully
-        sync_result = FlextCliConfigs.sync_with_flext_config()
-        assert sync_result.is_success
-
-    def test_configuration_profiles(self) -> None:
-        """Test configuration profile functionality."""
-        # Test default profile
-        config = FlextCliConfigs.get_global_instance()
-        assert config.profile == "default"
-
-        # Test profile override
-        cli_params: dict[str, object] = {"profile": "development"}
-        override_result = FlextCliConfigs.apply_cli_overrides(cli_params)
-        assert override_result.is_success
-
-        updated_config = override_result.value
-        assert updated_config.profile == "development"
-
-    def test_configuration_directories(self) -> None:
-        """Test configuration directory management."""
-        config = FlextCliConfigs.get_global_instance()
-
-        # Test directory validation using modern method
-        dir_result = config.ensure_directories()
-        assert dir_result.is_success
-
-        # Test directory setup
-        setup_result = config.ensure_setup()
-        assert setup_result.is_success
-
-    def test_configuration_timeout_aliases(self) -> None:
-        """Test timeout configuration aliases."""
-        config = FlextCliConfigs.get_global_instance()
-
-        # Test timeout alias
-        assert hasattr(config, "timeout")
-        assert config.timeout == config.timeout_seconds
-
-        # Test timeout override
-        cli_params: dict[str, object] = {"timeout": 120}
-        override_result = FlextCliConfigs.apply_cli_overrides(cli_params)
-        assert override_result.is_success
-
-        updated_config = override_result.value
-        assert updated_config.timeout == 120
-        assert updated_config.timeout_seconds == 120
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])
+        # Test that the model validates types properly
+        with pytest.raises((ValueError, TypeError)):
+            FlextCliModels.FlextCliConfig(debug_mode="invalid_boolean")

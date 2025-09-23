@@ -1,4 +1,4 @@
-"""Test module for domain_services."""
+"""Test module for service."""
 
 from __future__ import annotations
 
@@ -7,26 +7,26 @@ from datetime import UTC, datetime
 
 import pytest
 
-from flext_cli import FlextCliConstants, FlextCliDomainServices, FlextCliModels
+from flext_cli import FlextCliConstants, FlextCliModels
 from flext_core import FlextResult
 
 
-class TestFlextCliDomainServices:
-    """Comprehensive tests for FlextCliDomainServices class."""
+class TestFlextCliModels:
+    """Comprehensive tests for FlextCliModels class."""
 
     def setup_method(self) -> None:
         """Set up domain services instance for each test."""
-        self.domain_services = FlextCliDomainServices()
+        self.service = FlextCliModels()
 
     def test_init_success(self) -> None:
         """Test successful domain services initialization."""
-        services = FlextCliDomainServices()
+        services = FlextCliModels()
         assert services is not None
-        assert isinstance(services, FlextCliDomainServices)
+        assert isinstance(services, FlextCliModels)
 
     def test_execute_success(self) -> None:
         """Test successful domain service execution."""
-        result = self.domain_services.execute()
+        result = self.service.execute()
         assert result.is_success
         assert result.value is not None
         assert result.value.is_success
@@ -35,7 +35,7 @@ class TestFlextCliDomainServices:
         """Test domain service execution exception handling."""
         # This will test the exception handling path
         # Create a domain services instance that will fail health check
-        services = FlextCliDomainServices()
+        services = FlextCliModels()
 
         # Test normal execution first to ensure it works
         result = services.execute()
@@ -43,13 +43,13 @@ class TestFlextCliDomainServices:
 
     def test_health_check_success(self) -> None:
         """Test successful health check."""
-        result = self.domain_services.health_check()
+        result = self.service.health_check()
         assert result.is_success
         assert result.value == "FLEXT CLI Domain Services: healthy"
 
     def test_health_check_returns_correct_message(self) -> None:
         """Test health check returns expected message format."""
-        result = self.domain_services.health_check()
+        result = self.service.health_check()
         assert result.is_success
         assert "FLEXT CLI Domain Services" in result.value
         assert "healthy" in result.value
@@ -60,12 +60,12 @@ class TestCommandLifecycleManagement:
 
     def setup_method(self) -> None:
         """Set up domain services instance for each test."""
-        self.domain_services = FlextCliDomainServices()
+        self.service = FlextCliModels()
 
     def test_create_command_success(self) -> None:
         """Test successful command creation."""
         command_line = "echo 'Hello World'"
-        result = self.domain_services.create_command(command_line)
+        result = self.service.create_command(command_line)
         assert result.is_success
         assert isinstance(result.value, FlextCliModels.CliCommand)
         assert result.value.command_line == command_line
@@ -73,26 +73,26 @@ class TestCommandLifecycleManagement:
 
     def test_create_command_empty_string(self) -> None:
         """Test command creation fails with empty string."""
-        result = self.domain_services.create_command("")
+        result = self.service.create_command("")
         assert result.is_failure
         assert "Command line cannot be empty" in str(result.error or "")
 
     def test_create_command_none_input(self) -> None:
         """Test command creation fails with empty input."""
-        result = self.domain_services.create_command("")
+        result = self.service.create_command("")
         assert result.is_failure
         assert "Command line cannot be empty" in str(result.error or "")
 
     def test_create_command_whitespace_only(self) -> None:
         """Test command creation fails with whitespace-only input."""
-        result = self.domain_services.create_command("   \t\n   ")
+        result = self.service.create_command("   \t\n   ")
         assert result.is_failure
         assert "Command line cannot be empty" in str(result.error or "")
 
     def test_create_command_strips_whitespace(self) -> None:
         """Test command creation strips whitespace from input."""
         command_line = "  echo test  "
-        result = self.domain_services.create_command(command_line)
+        result = self.service.create_command(command_line)
         assert result.is_success
         assert result.value.command_line == "echo test"
 
@@ -106,7 +106,7 @@ class TestCommandLifecycleManagement:
         ]
 
         for dangerous_cmd in dangerous_commands:
-            result = self.domain_services.create_command(dangerous_cmd)
+            result = self.service.create_command(dangerous_cmd)
             # Should either fail validation or handle gracefully
             if result.is_failure:
                 assert (
@@ -117,19 +117,19 @@ class TestCommandLifecycleManagement:
     def test_start_command_execution_success(self) -> None:
         """Test successful command execution start."""
         # Create a command first
-        create_result = self.domain_services.create_command("echo test")
+        create_result = self.service.create_command("echo test")
         assert create_result.is_success
         command = create_result.value
 
         # Start execution
-        result = self.domain_services.start_command_execution(command)
+        result = self.service.start_command_execution(command)
         assert result.is_success
         assert result.value.status == FlextCliConstants.STATUS_RUNNING
 
     def test_start_command_execution_wrong_status(self) -> None:
         """Test command execution start fails with wrong status."""
         # Create a command and manually set wrong status
-        create_result = self.domain_services.create_command("echo test")
+        create_result = self.service.create_command("echo test")
         assert create_result.is_success
         command = create_result.value
 
@@ -142,7 +142,7 @@ class TestCommandLifecycleManagement:
         )
 
         # Try to start execution
-        result = self.domain_services.start_command_execution(command)
+        result = self.service.start_command_execution(command)
         assert result.is_failure
         assert "Command must be pending to start" in str(result.error or "")
         assert command.status in str(result.error or "")
@@ -150,15 +150,15 @@ class TestCommandLifecycleManagement:
     def test_complete_command_execution_success(self) -> None:
         """Test successful command execution completion."""
         # Create and start a command
-        create_result = self.domain_services.create_command("echo test")
+        create_result = self.service.create_command("echo test")
         assert create_result.is_success
         command = create_result.value
 
-        start_result = self.domain_services.start_command_execution(command)
+        start_result = self.service.start_command_execution(command)
         assert start_result.is_success
 
         # Complete execution
-        result = self.domain_services.complete_command_execution(
+        result = self.service.complete_command_execution(
             command,
             exit_code=0,
             output="test",
@@ -172,15 +172,15 @@ class TestCommandLifecycleManagement:
     def test_complete_command_execution_with_error(self) -> None:
         """Test command execution completion with error."""
         # Create and start a command
-        create_result = self.domain_services.create_command("echo test")
+        create_result = self.service.create_command("echo test")
         assert create_result.is_success
         command = create_result.value
 
-        start_result = self.domain_services.start_command_execution(command)
+        start_result = self.service.start_command_execution(command)
         assert start_result.is_success
 
         # Complete execution with error
-        result = self.domain_services.complete_command_execution(
+        result = self.service.complete_command_execution(
             command,
             exit_code=1,
             output="",
@@ -194,13 +194,13 @@ class TestCommandLifecycleManagement:
     def test_complete_command_execution_wrong_status(self) -> None:
         """Test command execution completion fails with wrong status."""
         # Create a command with wrong status
-        create_result = self.domain_services.create_command("echo test")
+        create_result = self.service.create_command("echo test")
         assert create_result.is_success
         command = create_result.value
         # Command is still pending, not running
 
         # Try to complete execution
-        result = self.domain_services.complete_command_execution(
+        result = self.service.complete_command_execution(
             command,
             exit_code=0,
             output="test",
@@ -214,11 +214,11 @@ class TestSessionManagement:
 
     def setup_method(self) -> None:
         """Set up domain services instance for each test."""
-        self.domain_services = FlextCliDomainServices()
+        self.service = FlextCliModels()
 
     def test_create_session_success(self) -> None:
         """Test successful session creation."""
-        result = self.domain_services.create_session()
+        result = self.service.create_session()
         assert result.is_success
         assert isinstance(result.value, FlextCliModels.CliSession)
         assert result.value.user_id is not None  # Auto-generated user_id
@@ -226,29 +226,29 @@ class TestSessionManagement:
     def test_create_session_with_user_id(self) -> None:
         """Test successful session creation with user ID."""
         user_id = "test_user_123"
-        result = self.domain_services.create_session(user_id)
+        result = self.service.create_session(user_id)
         assert result.is_success
         assert result.value.user_id == user_id
 
     def test_create_session_with_empty_user_id(self) -> None:
         """Test session creation with empty user ID."""
-        result = self.domain_services.create_session("")
+        result = self.service.create_session("")
         assert result.is_success
         # Empty string should be handled gracefully
 
     def test_add_command_to_session_success(self) -> None:
         """Test successfully adding command to session."""
         # Create session and command
-        session_result = self.domain_services.create_session()
+        session_result = self.service.create_session()
         assert session_result.is_success
         session = session_result.value
 
-        command_result = self.domain_services.create_command("echo test")
+        command_result = self.service.create_command("echo test")
         assert command_result.is_success
         command = command_result.value
 
         # Add command to session
-        result = self.domain_services.add_command_to_session(session, command)
+        result = self.service.add_command_to_session(session, command)
         assert result.is_success
         assert len(result.value.commands) == 1
         assert result.value.commands[0] == command
@@ -256,16 +256,16 @@ class TestSessionManagement:
     def test_add_multiple_commands_to_session(self) -> None:
         """Test adding multiple commands to session."""
         # Create session
-        session_result = self.domain_services.create_session()
+        session_result = self.service.create_session()
         assert session_result.is_success
         session = session_result.value
 
         # Create and add multiple commands
         for i in range(3):
-            command_result = self.domain_services.create_command(f"echo test{i}")
+            command_result = self.service.create_command(f"echo test{i}")
             assert command_result.is_success
 
-            add_result = self.domain_services.add_command_to_session(
+            add_result = self.service.add_command_to_session(
                 session,
                 command_result.value,
             )
@@ -276,30 +276,30 @@ class TestSessionManagement:
     def test_end_session_success(self) -> None:
         """Test successful session ending."""
         # Create session
-        session_result = self.domain_services.create_session()
+        session_result = self.service.create_session()
         assert session_result.is_success
         session = session_result.value
         assert session.end_time is None
 
         # End session
-        result = self.domain_services.end_session(session)
+        result = self.service.end_session(session)
         assert result.is_success
         assert result.value.end_time is not None
 
     def test_end_session_already_ended(self) -> None:
         """Test ending session that's already ended."""
         # Create and end session
-        session_result = self.domain_services.create_session()
+        session_result = self.service.create_session()
         assert session_result.is_success
         session = session_result.value
 
-        first_end = self.domain_services.end_session(session)
+        first_end = self.service.end_session(session)
         assert first_end.is_success
         # Record first end time for potential future validation
         _first_end_time = session.end_time
 
         # Try to end again
-        second_end = self.domain_services.end_session(session)
+        second_end = self.service.end_session(session)
         # Should handle gracefully - either succeed or fail appropriately
         if second_end.is_success:
             # End time should remain the same or be updated
@@ -311,14 +311,14 @@ class TestCommandWorkflow:
 
     def setup_method(self) -> None:
         """Set up domain services instance for each test."""
-        self.domain_services = FlextCliDomainServices()
+        self.service = FlextCliModels()
 
     def test_execute_command_workflow_success(self) -> None:
         """Test successful complete command workflow."""
         command_line = "echo 'workflow test'"
 
         # This should create, execute, and complete a command
-        result = self.domain_services.execute_command_workflow(command_line)
+        result = self.service.execute_command_workflow(command_line)
 
         # The workflow should handle all steps
         if result.is_success:
@@ -336,7 +336,7 @@ class TestCommandWorkflow:
 
     def test_execute_command_workflow_empty_command(self) -> None:
         """Test command workflow fails with empty command."""
-        result = self.domain_services.execute_command_workflow("")
+        result = self.service.execute_command_workflow("")
         assert result.is_failure
         assert (
             "empty" in str(result.error or "").lower()
@@ -345,7 +345,7 @@ class TestCommandWorkflow:
 
     def test_execute_command_workflow_invalid_command(self) -> None:
         """Test command workflow with invalid command."""
-        result = self.domain_services.execute_command_workflow(
+        result = self.service.execute_command_workflow(
             "invalid_command_that_does_not_exist_12345",
         )
 
@@ -364,12 +364,12 @@ class TestIntegrationScenarios:
 
     def setup_method(self) -> None:
         """Set up domain services instance for each test."""
-        self.domain_services = FlextCliDomainServices()
+        self.service = FlextCliModels()
 
     def test_complete_session_workflow(self) -> None:
         """Test complete session workflow with multiple commands."""
         # Create session
-        session_result = self.domain_services.create_session("integration_user")
+        session_result = self.service.create_session("integration_user")
         assert session_result.is_success
         session = session_result.value
 
@@ -378,11 +378,11 @@ class TestIntegrationScenarios:
 
         for cmd_line in command_lines:
             # Create command
-            cmd_result = self.domain_services.create_command(cmd_line)
+            cmd_result = self.service.create_command(cmd_line)
             assert cmd_result.is_success
 
             # Add to session
-            add_result = self.domain_services.add_command_to_session(
+            add_result = self.service.add_command_to_session(
                 session,
                 cmd_result.value,
             )
@@ -391,7 +391,7 @@ class TestIntegrationScenarios:
         assert len(session.commands) == 3
 
         # End session
-        end_result = self.domain_services.end_session(session)
+        end_result = self.service.end_session(session)
         assert end_result.is_success
         assert session.end_time is not None
 
@@ -402,26 +402,26 @@ class TestIntegrationScenarios:
     def test_command_lifecycle_with_session(self) -> None:
         """Test complete command lifecycle within a session."""
         # Create session
-        session_result = self.domain_services.create_session()
+        session_result = self.service.create_session()
         assert session_result.is_success
         session = session_result.value
 
         # Create command
-        cmd_result = self.domain_services.create_command("echo 'lifecycle test'")
+        cmd_result = self.service.create_command("echo 'lifecycle test'")
         assert cmd_result.is_success
         command = cmd_result.value
 
         # Add to session
-        add_result = self.domain_services.add_command_to_session(session, command)
+        add_result = self.service.add_command_to_session(session, command)
         assert add_result.is_success
 
         # Start execution
-        start_result = self.domain_services.start_command_execution(command)
+        start_result = self.service.start_command_execution(command)
         assert start_result.is_success
         assert command.status == FlextCliConstants.STATUS_RUNNING
 
         # Complete execution
-        complete_result = self.domain_services.complete_command_execution(
+        complete_result = self.service.complete_command_execution(
             command,
             exit_code=0,
             output="lifecycle test",
@@ -431,26 +431,26 @@ class TestIntegrationScenarios:
         assert command.status == FlextCliConstants.STATUS_COMPLETED
 
         # End session
-        end_result = self.domain_services.end_session(session)
+        end_result = self.service.end_session(session)
         assert end_result.is_success
 
     def test_error_recovery_scenarios(self) -> None:
         """Test error recovery in domain service operations."""
         # Test recovery from command creation failure
-        invalid_result = self.domain_services.create_command("")
+        invalid_result = self.service.create_command("")
         assert invalid_result.is_failure
 
         # Should still be able to create valid command after failure
-        valid_result = self.domain_services.create_command("echo recovery")
+        valid_result = self.service.create_command("echo recovery")
         assert valid_result.is_success
 
         # Test recovery from execution failure
         command = valid_result.value
-        start_result = self.domain_services.start_command_execution(command)
+        start_result = self.service.start_command_execution(command)
         assert start_result.is_success
 
         # Complete with error
-        error_complete = self.domain_services.complete_command_execution(
+        error_complete = self.service.complete_command_execution(
             command,
             exit_code=1,
             output="",
@@ -462,12 +462,12 @@ class TestIntegrationScenarios:
     def test_business_rule_enforcement(self) -> None:
         """Test business rule enforcement across domain operations."""
         # Create command
-        cmd_result = self.domain_services.create_command("echo 'business rules'")
+        cmd_result = self.service.create_command("echo 'business rules'")
         assert cmd_result.is_success
         command = cmd_result.value
 
         # Try to complete without starting (should fail)
-        complete_result = self.domain_services.complete_command_execution(
+        complete_result = self.service.complete_command_execution(
             command,
             exit_code=0,
             output="test",
@@ -476,10 +476,10 @@ class TestIntegrationScenarios:
         assert "must be running" in str(complete_result.error or "").lower()
 
         # Try to start twice (should fail on second attempt)
-        start1 = self.domain_services.start_command_execution(command)
+        start1 = self.service.start_command_execution(command)
         assert start1.is_success
 
-        start2 = self.domain_services.start_command_execution(command)
+        start2 = self.service.start_command_execution(command)
         assert start2.is_failure
         assert "must be pending" in str(start2.error or "").lower()
 
@@ -489,7 +489,7 @@ class TestExceptionHandling:
 
     def setup_method(self) -> None:
         """Set up domain services instance for each test."""
-        self.domain_services = FlextCliDomainServices()
+        self.service = FlextCliModels()
 
     def test_graceful_exception_handling(self) -> None:
         """Test that all methods handle exceptions gracefully."""
@@ -498,10 +498,10 @@ class TestExceptionHandling:
         # Use proper types for different FlextResult return types
         # Test methods that return different FlextResult types
         def health_check_method() -> FlextResult[str]:
-            return self.domain_services.health_check()
+            return self.service.health_check()
 
         def execute_method() -> FlextResult[FlextResult[object]]:
-            return self.domain_services.execute()
+            return self.service.execute()
 
         methods_to_test = [health_check_method, execute_method]
 
@@ -520,8 +520,8 @@ class TestExceptionHandling:
         # Test various error scenarios
         # Use proper types for different FlextResult return types
         error_scenarios: list[Callable[[], FlextResult[FlextCliModels.CliCommand]]] = [
-            lambda: self.domain_services.create_command(""),
-            lambda: self.domain_services.create_command("   "),
+            lambda: self.service.create_command(""),
+            lambda: self.service.create_command("   "),
         ]
 
         for scenario in error_scenarios:

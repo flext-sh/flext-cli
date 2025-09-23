@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import os
 
-from flext_cli import FlextCliConfigs
+from flext_cli import FlextCliModels
 from flext_core import FlextConfig
 
 
@@ -28,7 +28,7 @@ def main() -> None:
     print("-" * 30)
 
     # Get the global singleton instance (source of truth)
-    config = FlextCliConfigs.get_global_instance()
+    config = FlextCliModels.FlextCliConfig()
     print(f"Global config instance: {config}")
     print(f"Profile: {config.profile}")
     print(f"Debug Mode: {config.debug}")

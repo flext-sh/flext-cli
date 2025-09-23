@@ -1,4 +1,7 @@
-"""FLEXT CLI Protocols - Interface definitions for dependency inversion.
+"""FLEXT CLI Protocols - Single unified class following FLEXT standards.
+
+Provides CLI-specific protocol definitions using flext-core patterns.
+Single FlextCliProtocols class with nested protocol subclasses following FLEXT pattern.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -6,214 +9,119 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import Protocol
 
-from flext_core import FlextResult, FlextTypes
+from flext_cli.typings import FlextCliTypings
+from flext_core import FlextResult
 
 
 class FlextCliProtocols:
-    """Unified CLI protocols container following single class pattern.
+    """Single unified CLI protocols class following FLEXT standards.
 
-    Contains all CLI protocol definitions to eliminate circular dependencies
-    and enforce SOLID principles through proper abstraction.
+    Contains all protocol definitions for CLI domain operations.
+    Follows FLEXT pattern: one class per module with nested subclasses.
     """
 
-    class AuthenticationClient(Protocol):
-        """Protocol for authentication client operations."""
+    class CliCommandHandler(Protocol):
+        """Protocol for CLI command handlers."""
 
-        async def login(
-            self,
-            username: str,
-            password: str,
-        ) -> FlextResult[FlextTypes.Core.Dict]:
-            """Login with username and password.
+        def __call__(
+            self, **kwargs: object
+        ) -> FlextResult[FlextCliTypings.CliCommandResult]:
+            """Execute CLI command with arguments.
 
-            Returns:
-            FlextResult[FlextTypes.Core.Dict]: Description of return value.
-
-            """
-            ...
-
-        async def logout(self) -> FlextResult[None]:
-            """Logout the current user.
+            Args:
+                **kwargs: Command arguments
 
             Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            ...
-
-    class TokenStorage(Protocol):
-        """Protocol for token storage operations."""
-
-        def save_token(self, token: str, token_type: str) -> FlextResult[None]:
-            """Save token to storage.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            ...
-
-        def load_token(self, token_type: str) -> FlextResult[str]:
-            """Load token from storage.
-
-            Returns:
-            FlextResult[str]: Description of return value.
-
-            """
-            ...
-
-        def clear_tokens(self) -> FlextResult[None]:
-            """Clear all tokens from storage.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            ...
-
-    class AuthenticationService(Protocol):
-        """Protocol for authentication service operations."""
-
-        def validate_credentials(
-            self,
-            username: str,
-            password: str,
-        ) -> FlextResult[None]:
-            """Validate login credentials.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            ...
-
-        def is_authenticated(self) -> FlextResult[bool]:
-            """Check authentication status.
-
-            Returns:
-            FlextResult[bool]: Description of return value.
-
-            """
-            ...
-
-        async def authenticate(
-            self,
-            username: str,
-            password: str,
-        ) -> FlextResult[FlextTypes.Core.Dict]:
-            """Perform authentication.
-
-            Returns:
-            FlextResult[FlextTypes.Core.Dict]: Description of return value.
-
-            """
-            ...
-
-        async def deauthenticate(self) -> FlextResult[None]:
-            """Perform deauthentication.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            ...
-
-    # ==========================================================================
-    # CLI PROCESSING PROTOCOLS - Moved from typings.py for unification
-    # ==========================================================================
-
-    class CliProcessor(Protocol):
-        """Protocol for CLI processors."""
-
-        def process(
-            self,
-            request: str | dict[str, object],
-        ) -> FlextResult[object]:
-            """Process CLI request.
-
-            Returns:
-            FlextResult[object]: Description of return value.
-
-            """
-            ...
-
-        def build(
-            self,
-            domain: object,
-            *,
-            correlation_id: str,
-        ) -> str | dict[str, object]:
-            """Build CLI response.
-
-            Returns:
-            str | dict[str, object]: Description of return value.
-
-            """
-            ...
-
-    class CliValidator(Protocol):
-        """Protocol for CLI validators."""
-
-        def validate(
-            self,
-            data: dict[str, object] | str | float,
-        ) -> FlextResult[None]:
-            """Validate CLI data.
-
-            Returns:
-            FlextResult[None]: Description of return value.
+                FlextResult[FlextCliTypings.CliCommandResult]: Command execution result
 
             """
             ...
 
     class CliFormatter(Protocol):
-        """Protocol for CLI formatters."""
+        """Protocol for CLI output formatters."""
 
-        def format(
-            self,
-            data: dict[str, object] | list[object] | str,
-            format_type: str,
+        def format_data(
+            self, data: FlextCliTypings.CliFormatData, **options: object
         ) -> FlextResult[str]:
-            """Format CLI data with specified type.
+            """Format data for CLI output.
+
+            Args:
+                data: Data to format
+                **options: Formatting options
 
             Returns:
-            FlextResult[str]: Description of return value.
+                FlextResult[str]: Formatted output or error
+
+            """
+            ...
+
+    class CliConfigProvider(Protocol):
+        """Protocol for CLI configuration providers."""
+
+        def load_config(self) -> FlextResult[FlextCliTypings.CliConfigData]:
+            """Load CLI configuration.
+
+            Returns:
+                FlextResult[FlextCliTypings.CliConfigData]: Configuration data or error
+
+            """
+            ...
+
+        def save_config(
+            self, config: FlextCliTypings.CliConfigData
+        ) -> FlextResult[None]:
+            """Save CLI configuration.
+
+            Args:
+                config: Configuration data to save
+
+            Returns:
+                FlextResult[None]: Success or error
 
             """
             ...
 
     class CliAuthenticator(Protocol):
-        """Protocol for CLI authenticators."""
+        """Protocol for CLI authentication providers."""
 
         def authenticate(
-            self,
-            credentials: dict[str, str],
-        ) -> FlextResult[FlextTypes.Core.Dict]:
-            """Authenticate CLI user.
+            self, credentials: FlextCliTypings.CliConfigData
+        ) -> FlextResult[str]:
+            """Authenticate and return token.
+
+            Args:
+                credentials: Authentication credentials
 
             Returns:
-            FlextResult[FlextTypes.Core.Dict]: Description of return value.
+                FlextResult[str]: Authentication token or error
 
             """
             ...
 
-        def is_authenticated(self) -> bool:
-            """Check authentication status.
+        def validate_token(self, token: str) -> FlextResult[bool]:
+            """Validate authentication token.
+
+            Args:
+                token: Token to validate
 
             Returns:
-            bool: Description of return value.
+                FlextResult[bool]: Validation result or error
 
             """
             ...
 
-    @runtime_checkable
-    class OutputFormatter(Protocol):
-        """Protocol for formatter classes used by the CLI."""
+    class CliDebugProvider(Protocol):
+        """Protocol for CLI debug information providers."""
 
-        def format(self, data: object, console: object) -> None:
-            """Format data using console output."""
+        def get_debug_info(self) -> FlextResult[FlextCliTypings.CliConfigData]:
+            """Get debug information.
+
+            Returns:
+                FlextResult[FlextCliTypings.CliConfigData]: Debug information or error
+
+            """
             ...
 
 

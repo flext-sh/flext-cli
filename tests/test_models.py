@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import FlextCliTypings
 from flext_core import FlextModels, FlextResult
 
 
@@ -183,22 +183,22 @@ class TestFlextCliModelsCliConfig:
         assert config.timeout_seconds == 60
 
 
-class TestFlextCliTypesOutputFormat:
-    """Test FlextCliTypes.OutputFormat functionality."""
+class TestFlextCliTypingsOutputFormat:
+    """Test FlextCliTypings.OutputFormat functionality."""
 
     def test_output_format_values(self) -> None:
         """Test all output format values."""
-        assert FlextCliTypes.OutputFormat.JSON.value == "json"
-        assert FlextCliTypes.OutputFormat.YAML.value == "yaml"
-        assert FlextCliTypes.OutputFormat.CSV.value == "csv"
-        assert FlextCliTypes.OutputFormat.TABLE.value == "table"
-        assert FlextCliTypes.OutputFormat.PLAIN.value == "plain"
+        assert FlextCliTypings.OutputFormat.JSON.value == "json"
+        assert FlextCliTypings.OutputFormat.YAML.value == "yaml"
+        assert FlextCliTypings.OutputFormat.CSV.value == "csv"
+        assert FlextCliTypings.OutputFormat.TABLE.value == "table"
+        assert FlextCliTypings.OutputFormat.PLAIN.value == "plain"
 
     def test_output_format_enum_usage(self) -> None:
         """Test output format enum can be used in validation."""
         # Should work with CLI config
         config = FlextCliModels.CliConfig(
-            output_format=FlextCliTypes.OutputFormat.JSON.value,
+            output_format=FlextCliTypings.OutputFormat.JSON.value,
         )
         assert config.output_format == "json"
 
@@ -258,7 +258,7 @@ class TestFlextCliModelsIntegration:
 
     def test_config_with_all_valid_output_formats(self) -> None:
         """Test config can be created with all valid output formats."""
-        for format_value in FlextCliTypes.OutputFormat:
+        for format_value in FlextCliTypings.OutputFormat:
             config = FlextCliModels.CliConfig(
                 output_format=format_value.value,
             )

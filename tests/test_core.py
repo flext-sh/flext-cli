@@ -10,11 +10,9 @@ from pathlib import Path
 
 import yaml
 
-from flext_cli.configs import FlextCliConfigs
 from flext_cli.core import FlextCliService
-from flext_cli.domain_services import FlextCliDomainServices
 from flext_cli.models import FlextCliModels
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import FlextCliTypings
 from flext_core import FlextResult, FlextTypes
 
 
@@ -101,8 +99,8 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         assert len(commands) == 0
 
     def test_configure_with_flext_cli_config_object(self) -> None:
-        """Test configuring service with FlextCliConfigs object."""
-        config = FlextCliConfigs(
+        """Test configuring service with FlextCliModels.FlextCliConfig object."""
+        config = FlextCliModels.FlextCliConfig(
             debug=True,
             output_format="json",
             profile="test-profile",
@@ -211,7 +209,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         """Test JSON formatting with simple data."""
         data = {"name": "test", "value": 123, "active": True}
 
-        result = self.service.format_data(data, FlextCliTypes.OutputFormat.JSON.value)
+        result = self.service.format_data(data, FlextCliTypings.OutputFormat.JSON.value)
         assert result.is_success
         formatted = result.value
 
@@ -231,7 +229,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             "metadata": {"total": 2, "created_at": "2025-01-01T00:00:00Z"},
         }
 
-        result = self.service.format_data(data, FlextCliTypes.OutputFormat.JSON.value)
+        result = self.service.format_data(data, FlextCliTypings.OutputFormat.JSON.value)
         assert result.is_success
         formatted = result.value
 
@@ -249,7 +247,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             "features": ["feature1", "feature2", "feature3"],
         }
 
-        result = self.service.format_data(data, FlextCliTypes.OutputFormat.YAML.value)
+        result = self.service.format_data(data, FlextCliTypings.OutputFormat.YAML.value)
         assert result.is_success
         formatted = result.value
 
@@ -267,7 +265,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             {"name": "Carol", "age": 35, "city": "Chicago"},
         ]
 
-        result = self.service.format_data(data, FlextCliTypes.OutputFormat.CSV.value)
+        result = self.service.format_data(data, FlextCliTypings.OutputFormat.CSV.value)
         assert result.is_success
         formatted = result.value
 
@@ -286,7 +284,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             "uptime": "99.9%",
         }
 
-        result = self.service.format_data(data, FlextCliTypes.OutputFormat.TABLE.value)
+        result = self.service.format_data(
+            data, FlextCliTypings.OutputFormat.TABLE.value
+        )
         assert result.is_success
         formatted = result.value
 
@@ -304,7 +304,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             {"id": 3, "product": "keyboard", "price": 75},
         ]
 
-        result = self.service.format_data(data, FlextCliTypes.OutputFormat.TABLE.value)
+        result = self.service.format_data(
+            data, FlextCliTypings.OutputFormat.TABLE.value
+        )
         assert result.is_success
         formatted = result.value
 
@@ -318,7 +320,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
         """Test plain text formatting."""
         data = "Simple plain text message for testing"
 
-        result = self.service.format_data(data, FlextCliTypes.OutputFormat.PLAIN.value)
+        result = self.service.format_data(
+            data, FlextCliTypings.OutputFormat.PLAIN.value
+        )
         assert result.is_success
         formatted = result.value
         assert formatted == "Simple plain text message for testing"
@@ -342,7 +346,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             result = self.service.flext_cli_export(
                 data,
                 str(output_file),
-                FlextCliTypes.OutputFormat.JSON.value,
+                FlextCliTypings.OutputFormat.JSON.value,
             )
             assert result.is_success
             assert output_file.exists()
@@ -366,7 +370,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             result = self.service.flext_cli_export(
                 data,
                 str(output_file),
-                FlextCliTypes.OutputFormat.YAML.value,
+                FlextCliTypings.OutputFormat.YAML.value,
             )
             assert result.is_success
             assert output_file.exists()
@@ -391,7 +395,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             result = self.service.flext_cli_export(
                 data,
                 str(output_file),
-                FlextCliTypes.OutputFormat.CSV.value,
+                FlextCliTypings.OutputFormat.CSV.value,
             )
             assert result.is_success
             assert output_file.exists()
@@ -412,7 +416,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
             result = self.service.flext_cli_export(
                 data,
                 str(nested_path),
-                FlextCliTypes.OutputFormat.JSON.value,
+                FlextCliTypings.OutputFormat.JSON.value,
             )
             assert result.is_success
             assert nested_path.exists()
@@ -433,7 +437,9 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
     def test_flext_cli_health_with_configuration(self) -> None:
         """Test health check includes configuration when service is configured."""
-        config = FlextCliConfigs(debug=True, output_format="json", profile="test")
+        config = FlextCliModels.FlextCliConfig(
+            debug=True, output_format="json", profile="test"
+        )
         self.service.configure(config)
 
         result = self.service.flext_cli_health()
@@ -492,8 +498,8 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
     def test_flext_cli_create_command_with_real_entity(self) -> None:
         """Test creating commands with real FlextCliCommand entities."""
-        domain_service = FlextCliDomainServices()
-        result = domain_service.create_command(command_line="echo 'hello world'")
+        service = FlextCliService()
+        result = service.create_command(command_line="echo 'hello world'")
 
         assert result.is_success
         command = result.unwrap()
@@ -506,8 +512,8 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
     def test_flext_cli_create_session_with_user_id(self) -> None:
         """Test creating sessions with specified user ID."""
-        domain_service = FlextCliDomainServices()
-        result = domain_service.create_session(user_id="test-user-123")
+        service = FlextCliService()
+        result = service.create_session(user_id="test-user-123")
 
         assert result.is_success
         session = result.unwrap()
@@ -516,8 +522,8 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
 
     def test_flext_cli_create_session_auto_user_id(self) -> None:
         """Test creating sessions with auto-generated user ID."""
-        domain_service = FlextCliDomainServices()
-        result = domain_service.create_session()
+        service = FlextCliService()
+        result = service.create_session()
 
         assert result.is_success
         session = result.unwrap()
@@ -650,7 +656,7 @@ class TestFlextCliServiceImplementation(unittest.TestCase):
     def test_flext_cli_render_with_configured_format(self) -> None:
         """Test rendering uses configured format when no context override."""
         # Configure service for JSON format
-        config = FlextCliConfigs(output_format="json")
+        config = FlextCliModels.FlextCliConfig(output_format="json")
         self.service.configure(config)
 
         data = {"configured": True, "format": "json"}

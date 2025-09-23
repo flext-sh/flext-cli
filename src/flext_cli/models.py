@@ -1,1321 +1,336 @@
-"""FLEXT CLI Models - CLI domain models with Python 3.13 cutting-edge patterns.
+"""FLEXT CLI Models - Single unified class following FLEXT standards.
+
+Provides CLI-specific Pydantic models using flext-core standardization.
+Single FlextCliModels class with nested model subclasses following FLEXT pattern.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
-Advanced Pydantic v2 implementation with discriminated unions, computed properties,
-and type-safe state transitions following Domain-Driven Design principles.
 """
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Annotated, ClassVar, Literal
-from uuid import uuid4
 
-from pydantic import (
-    Discriminator,
-    Field,
-    computed_field,
-    field_validator,
-    model_validator,
-)
+from pydantic import BaseModel, Field
+from pydantic_settings import BaseSettings
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.utils import FlextCliUtilities
-from flext_core import FlextModels, FlextResult
+from flext_core import FlextResult
 
 
 class FlextCliModels:
-    """CLI-specific models extending flext_core FlextModels."""
+    """Single unified CLI models class following FLEXT standards.
 
-    Core: ClassVar[type[FlextModels]] = FlextModels
+    Contains all Pydantic model subclasses for CLI domain operations.
+    Follows FLEXT pattern: one class per module with nested subclasses.
+    """
 
-    class CliCommand(FlextModels.Entity):
-        """Advanced CLI command model with discriminated union state management.
+    class CliConfig(BaseModel):
+        """CLI configuration model extending BaseModel."""
 
-        Features:
-            - Type-safe state transitions using Python 3.13 pattern matching
-            - Discriminated unions for command states
-            - Advanced computed properties with caching
-            - Comprehensive validation with business rules
-        """
-
-        model_config = FlextCliUtilities.get_base_config_dict()
-
-        id: str = Field(default_factory=lambda: str(uuid4()))
-        command_line: str | None = Field(default=None, description="Command to execute")
-        execution_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
-
-        # Advanced discriminated union state management using unified models
-        state: Annotated[
-            FlextCliModels.PendingState
-            | FlextCliModels.RunningState
-            | FlextCliModels.CompletedState
-            | FlextCliModels.FailedState,
-            Discriminator("status"),
-        ] = Field(
-            default_factory=lambda: FlextCliModels.PendingState(
-                queued_at=datetime.now(UTC),
-            ),
-            description="Type-safe command state with discriminated union",
+        profile: str = Field(default=FlextCliConstants.Defaults.PROFILE)
+        output_format: str = Field(default=FlextCliConstants.Defaults.OUTPUT_FORMAT)
+        debug_mode: bool = Field(default=False)
+        config_dir: Path = Field(
+            default_factory=lambda: FlextCliConstants.Defaults.CONFIG_DIR
         )
 
-        # Command execution result fields
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate configuration business rules."""
+            if not self.profile or not self.profile.strip():
+                return FlextResult[None].fail("Profile cannot be empty")
+
+            if self.output_format not in FlextCliConstants.OUTPUT_FORMATS_LIST:
+                return FlextResult[None].fail(
+                    f"Invalid output format. Valid: {FlextCliConstants.OUTPUT_FORMATS_LIST}"
+                )
+
+            return FlextResult[None].ok(None)
+
+    class CliCommand(BaseModel):
+        """CLI command model extending BaseModel."""
+
+        id: str = Field(
+            default_factory=lambda: f"cmd_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S_%f')}"
+        )
+        command: str = Field(min_length=1)
+        args: list[str] = Field(default_factory=list)
+        status: str = Field(default=FlextCliConstants.CommandStatus.PENDING.value)
+        created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
         exit_code: int | None = None
-        output: str = ""
-        error_output: str = ""
-        name: str | None = None  # Plugin name field
-        entry_point: str | None = None  # Plugin entry point
-        plugin_version: str | None = None  # Plugin version
+        output: str = Field(default="")
+        error_output: str = Field(default="")
+
+        def __init__(
+            self,
+            command_line: str | None = None,
+            execution_time: datetime | None = None,
+            **data: object,
+        ) -> None:
+            """Initialize with compatibility for command_line and execution_time parameters."""
+            if command_line is not None:
+                data["command"] = command_line
+            if execution_time is not None:
+                data["created_at"] = execution_time
+            super().__init__(**data)
 
         @property
-        def status(self) -> str:
-            """Get current status from discriminated union state.
+        def command_line(self) -> str:
+            """Compatibility property for command_line access."""
+            return self.command
 
-            Returns:
-            str: Description of return value.
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate command business rules."""
+            if not self.command or not self.command.strip():
+                return FlextResult[None].fail("Command cannot be empty")
 
-            """
-            return self.state.status
+            if self.status not in FlextCliConstants.COMMAND_STATUSES_LIST:
+                return FlextResult[None].fail(
+                    f"Invalid status. Valid: {FlextCliConstants.COMMAND_STATUSES_LIST}"
+                )
 
-        @computed_field
-        def is_successful(self) -> bool:
-            """Advanced success determination with pattern matching.
-
-            Returns:
-            bool: Description of return value.
-
-            """
-            match self.state:
-                case FlextCliModels.CompletedState(exit_code=0):
-                    return True
-                case FlextCliModels.CompletedState():
-                    return False
-                case _:
-                    return False
-
-        # STATUS VALIDATION REMOVED: 'status' is a @property, not a field
-        # Field validators can only validate actual fields, not computed properties
-        # The status validation is handled by the discriminated union state system
-
-        @field_validator("command_line")
-        @classmethod
-        def validate_command_line(cls, v: str | None) -> str | None:
-            """Advanced command line validation with security checks.
-
-            Raises:
-                ValueError: If command line validation fails.
-
-            Returns:
-            str | None: Description of return value.
-
-            """
-            if v is None:
-                return None  # Allow None for plugin-type objects
-
-            if not v.strip():
-                msg = "Command line cannot be empty"
-                raise ValueError(msg)
-
-            # Security: Basic check for potentially dangerous commands
-            dangerous_patterns = ["rm -rf", "format", "del /", "sudo rm"]
-            command_lower = v.lower()
-            if any(pattern in command_lower for pattern in dangerous_patterns):
-                msg = "Potentially dangerous command detected"
-                raise ValueError(msg)
-
-            return v.strip()
-
-        @model_validator(mode="after")
-        def validate_command_state_consistency(self) -> FlextCliModels.CliCommand:
-            """Advanced model validation ensuring state consistency across fields.
-
-            Raises:
-                ValueError: If command state validation fails.
-
-            Returns:
-            FlextCliModels.CliCommand: Description of return value.
-
-            """
-            # Validate completed/failed commands have exit codes
-            if (
-                self.status
-                in {
-                    FlextCliConstants.Enums.CommandStatus.COMPLETED,
-                    FlextCliConstants.Enums.CommandStatus.FAILED,
-                }
-                and self.exit_code is None
-            ):
-                msg = f"Commands with status {self.status} must have an exit code"
-                raise ValueError(msg)
-
-            # Validate successful completion
-            if (
-                self.status == FlextCliConstants.Enums.CommandStatus.COMPLETED
-                and self.exit_code != 0
-            ):
-                msg = "Completed commands should have exit code 0"
-                raise ValueError(msg)
-
-            # Validate failed commands have error output when exit code > 0
-            if (
-                self.status == FlextCliConstants.Enums.CommandStatus.FAILED
-                and self.exit_code == 0
-            ):
-                msg = "Failed commands should have non-zero exit code"
-                raise ValueError(msg)
-
-            return self
+            return FlextResult[None].ok(None)
 
         def start_execution(self) -> FlextResult[None]:
-            """Start execution with type-safe state transition using pattern matching.
+            """Start command execution."""
+            if self.status != FlextCliConstants.CommandStatus.PENDING.value:
+                return FlextResult[None].fail("Command is not in pending state")
 
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            match self.state:
-                case FlextCliModels.PendingState():
-                    self.state = FlextCliModels.RunningState(
-                        started_at=datetime.now(UTC),
-                    )
-                    self.execution_time = datetime.now(UTC)
-                    return FlextResult[None].ok(None)
-                case current_state:
-                    return FlextResult[None].fail(
-                        f"Cannot start execution from state {current_state.status}. "
-                        "Command must be in PENDING state.",
-                    )
+            self.status = FlextCliConstants.CommandStatus.RUNNING.value
+            return FlextResult[None].ok(None)
 
         def complete_execution(
-            self,
-            exit_code: int,
-            output: str = "",
-            error_output: str = "",
+            self, exit_code: int, output: str = ""
         ) -> FlextResult[None]:
-            """Complete execution with advanced state transition and pattern matching.
+            """Complete command execution."""
+            if self.status != FlextCliConstants.CommandStatus.RUNNING.value:
+                return FlextResult[None].fail("Command is not in running state")
 
-            Returns:
-            FlextResult[None]: Description of return value.
+            self.exit_code = exit_code
+            self.output = output
+            self.status = FlextCliConstants.CommandStatus.COMPLETED.value
+            return FlextResult[None].ok(None)
 
-            """
-            match self.state:
-                case FlextCliModels.RunningState():
-                    # Set command execution result fields
-                    self.exit_code = exit_code
-                    self.output = output
-                    self.error_output = error_output
+    class AuthConfig(BaseModel):
+        """Authentication configuration model extending BaseModel."""
 
-                    if exit_code == 0:
-                        self.state = FlextCliModels.CompletedState(
-                            completed_at=datetime.now(UTC),
-                            exit_code=exit_code,
-                            output=output,
-                        )
-                    else:
-                        self.state = FlextCliModels.FailedState(
-                            failed_at=datetime.now(UTC),
-                            exit_code=exit_code,
-                            error_output=error_output,
-                        )
-                    return FlextResult[None].ok(None)
-                case current_state:
-                    return FlextResult[None].fail(
-                        f"Cannot complete execution from state {current_state.status}. "
-                        "Command must be in RUNNING state.",
-                    )
+        api_url: str = Field(default="http://localhost:8000")
+        token_file: Path = Field(
+            default_factory=lambda: FlextCliConstants.Defaults.CONFIG_DIR / "token"
+        )
+        refresh_token_file: Path = Field(
+            default_factory=lambda: FlextCliConstants.Defaults.CONFIG_DIR
+            / "refresh_token"
+        )
+        auto_refresh: bool = Field(default=True)
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Advanced business rule validation using Python 3.13 pattern matching.
+            """Validate auth configuration business rules."""
+            if not self.api_url or not self.api_url.strip():
+                return FlextResult[None].fail("API URL cannot be empty")
 
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            # Basic validation
-            if self.command_line and not self.command_line.strip():
-                return FlextResult[None].fail("Command line cannot be empty")
-
-            # Advanced pattern matching validation with Python 3.13+ syntax
-            match self.state:
-                case FlextCliModels.PendingState() if self.exit_code is not None:
-                    return FlextResult[None].fail(
-                        "Pending commands should not have exit codes",
-                    )
-                case FlextCliModels.RunningState() if self.exit_code is not None:
-                    return FlextResult[None].fail(
-                        "Running commands should not have exit codes until completion",
-                    )
-                case FlextCliModels.FailedState(exit_code=exit_code) if exit_code == 0:
-                    return FlextResult[None].fail(
-                        "Failed commands must have non-zero exit codes",
-                    )
-                case _:
-                    # All validation rules passed
-                    pass
-
-            return FlextResult[None].ok(None)
-
-    class CliSession(FlextModels.Entity):
-        """CLI session model."""
-
-        id: str = Field(default_factory=lambda: str(uuid4()))
-        session_id: str = Field(default_factory=lambda: str(uuid4()))
-        start_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
-        end_time: datetime | None = None
-        commands: list[FlextCliModels.CliCommand] = Field(default_factory=list)
-        user_id: str | None = None
-
-        @computed_field
-        def duration_seconds(self) -> float | None:
-            """Calculate session duration in seconds.
-
-            Returns:
-            float | None: Description of return value.
-
-            """
-            if self.end_time is None:
-                return None
-            return (self.end_time - self.start_time).total_seconds()
-
-        def add_command(self, command: FlextCliModels.CliCommand) -> FlextResult[None]:
-            """Add a command to the session.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            self.commands.append(command)
-            return FlextResult[None].ok(None)
-
-        def end_session(self) -> FlextResult[None]:
-            """End the session.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            self.end_time = datetime.now(UTC)
-            return FlextResult[None].ok(None)
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate session business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            if self.end_time is not None and self.end_time < self.start_time:
-                return FlextResult[None].fail("End time cannot be before start time")
-            if len(self.commands) > FlextCliConstants.Limits.max_commands_per_session:
+            if not self.api_url.startswith(("http://", "https://")):
                 return FlextResult[None].fail(
-                    f"Session has too many commands (limit: {FlextCliConstants.Limits.max_commands_per_session})",
+                    "API URL must start with http:// or https://"
                 )
-            for cmd in self.commands:
-                validation_result = cmd.validate_business_rules()
-                if validation_result.is_failure:
-                    return FlextResult[None].fail(
-                        f"Invalid command in session: {validation_result.error}",
-                    )
+
             return FlextResult[None].ok(None)
 
-    class CliConfig(FlextModels.Entity):
-        """CLI configuration model."""
+    class DebugInfo(BaseModel):
+        """Debug information model extending BaseModel."""
 
-        id: str = Field(default_factory=lambda: str(uuid4()))
-        profile: str = Field(default=FlextCliConstants.Enums.ProfileName.DEFAULT)
-        output_format: str = Field(
-            default=FlextCliConstants.Enums.Output.TABLE, frozen=True
-        )
-        debug_mode: bool = Field(default=False)
-        timeout_seconds: int = Field(
-            default=FlextCliConstants.Timeouts.default_command_timeout,
-            ge=1,
-        )
-
-        @field_validator("output_format")
-        @classmethod
-        def validate_output_format(cls, v: str) -> str:
-            """Validate output format is supported.
-
-            Raises:
-                ValueError: If output format is not supported.
-
-            Returns:
-            str: Description of return value.
-
-            """
-            if v not in FlextCliConstants.VALID_OUTPUT_FORMATS:
-                msg = f"Output format must be one of: {FlextCliConstants.VALID_OUTPUT_FORMATS}"
-                raise ValueError(msg)
-            return v
-
-        @field_validator("timeout_seconds")
-        @classmethod
-        def validate_timeout(cls, v: int) -> int:
-            """Validate timeout is within limits.
-
-            Raises:
-                ValueError: If timeout is outside valid range.
-
-            Returns:
-            int: Description of return value.
-
-            """
-            if v <= 0 or v > FlextCliConstants.Limits.max_timeout_seconds:
-                msg = f"Timeout must be between 1 and {FlextCliConstants.Limits.max_timeout_seconds} seconds"
-                raise ValueError(msg)
-            return v
+        service: str = Field(default="FlextCliDebug")
+        status: str = Field(default="operational")
+        timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
+        system_info: dict[str, str] = Field(default_factory=dict)
+        config_info: dict[str, str] = Field(default_factory=dict)
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate business rules for configuration.
+            """Validate debug info business rules."""
+            if not self.service or not self.service.strip():
+                return FlextResult[None].fail("Service name cannot be empty")
+
+            return FlextResult[None].ok(None)
+
+    class LoggingConfig(BaseModel):
+        """Logging configuration model extending BaseModel."""
+
+        log_level: str = Field(default=FlextCliConstants.Defaults.LOG_LEVEL)
+        log_format: str = Field(
+            default="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        console_output: bool = Field(default=True)
+        log_file: Path | None = Field(default=None)
+        log_level_source: str = Field(default="default")
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate logging configuration business rules."""
+            if self.log_level not in FlextCliConstants.LOG_LEVELS_LIST:
+                return FlextResult[None].fail(
+                    f"Invalid log level. Valid: {FlextCliConstants.LOG_LEVELS_LIST}"
+                )
+
+            return FlextResult[None].ok(None)
+
+    class FormatOptions(BaseModel):
+        """Format options for CLI output extending BaseModel."""
+
+        title: str | None = None
+        headers: list[str] | None = None
+        show_lines: bool = True
+        max_width: int | None = None
+
+    class CliOptions(BaseModel):
+        """CLI options configuration model extending BaseModel."""
+
+        output_format: str = Field(default=FlextCliConstants.Defaults.OUTPUT_FORMAT)
+        verbose: bool = False
+        debug: bool = False
+        no_color: bool = False
+        max_width: int = FlextCliConstants.Defaults.MAX_WIDTH
+        config_file: Path | None = None
+
+    class FlextCliConfig(BaseSettings):
+        """Main CLI configuration class extending BaseSettings.
+
+        Provides unified configuration management for the FLEXT CLI ecosystem
+        using Pydantic Settings for environment variable support.
+        """
+
+        # CLI-specific configuration fields
+        profile: str = Field(default=FlextCliConstants.Defaults.PROFILE)
+        output_format: str = Field(default=FlextCliConstants.Defaults.OUTPUT_FORMAT)
+        debug_mode: bool = Field(default=False)
+
+        class Config:
+            """Pydantic Settings configuration."""
+
+            env_prefix = "FLEXT_CLI_"
+            case_sensitive = False
+
+        def get_config_dir(self) -> Path:
+            """Get the configuration directory."""
+            return FlextCliConstants.Defaults.CONFIG_DIR
+
+        def get_config_file(self) -> Path:
+            """Get the main configuration file path."""
+            return self.get_config_dir() / FlextCliConstants.Defaults.CONFIG_FILE
+
+        def validate_output_format(self, format_type: str) -> FlextResult[str]:
+            """Validate output format."""
+            if format_type not in FlextCliConstants.OUTPUT_FORMATS_LIST:
+                return FlextResult[str].fail(
+                    f"Invalid output format: {format_type}. "
+                    f"Valid formats: {', '.join(FlextCliConstants.OUTPUT_FORMATS_LIST)}"
+                )
+            return FlextResult[str].ok(format_type)
+
+        def is_debug_enabled(self) -> bool:
+            """Check if debug mode is enabled."""
+            return self.debug_mode
+
+        def get_output_format(self) -> str:
+            """Get the current output format."""
+            return self.output_format
+
+        def set_output_format(self, format_type: str) -> FlextResult[None]:
+            """Set the output format."""
+            validation_result = self.validate_output_format(format_type)
+            if validation_result.is_failure:
+                return FlextResult[None].fail(
+                    validation_result.error or "Output format validation failed"
+                )
+
+            self.output_format = validation_result.unwrap()
+            return FlextResult[None].ok(None)
+
+        def create_cli_options(self) -> FlextCliModels.CliOptions:
+            """Create CLI options from current configuration."""
+            return FlextCliModels.CliOptions(
+                output_format=self.output_format,
+                debug=self.debug_mode,
+                max_width=FlextCliConstants.Defaults.MAX_WIDTH,
+                no_color=False,
+            )
+
+        @classmethod
+        def create_default(cls) -> FlextCliModels.FlextCliConfig:
+            """Create default CLI configuration."""
+            return cls(
+                profile=FlextCliConstants.Defaults.PROFILE,
+                output_format=FlextCliConstants.Defaults.OUTPUT_FORMAT,
+                debug_mode=False,
+            )
+
+        def load_configuration(self) -> FlextResult[dict[str, object]]:
+            """Load configuration data from current settings.
 
             Returns:
-            FlextResult[None]: Description of return value.
+                FlextResult[dict[str, object]]: Configuration data or error
 
             """
             try:
-                # All validation is done through Pydantic validators
-                return FlextResult[None].ok(None)
-            except (AttributeError, ValueError) as e:
-                return FlextResult[None].fail(f"Configuration validation failed: {e}")
+                config_data = {
+                    "profile": self.profile,
+                    "output_format": self.output_format,
+                    "debug_mode": self.debug_mode,
+                    "config_dir": str(self.get_config_dir()),
+                    "config_file": str(self.get_config_file()),
+                }
+                return FlextResult[dict[str, object]].ok(config_data)
+            except Exception as e:
+                return FlextResult[dict[str, object]].fail(
+                    f"Configuration load failed: {e}"
+                )
 
-    class CliPlugin(FlextModels.Entity):
-        """CLI plugin model."""
+    class CliSession(BaseModel):
+        """CLI session model extending BaseModel."""
 
-        id: str = Field(default_factory=lambda: str(uuid4()))
-        name: str = Field(min_length=1)
-        plugin_version: str = Field(default="0.1.0")
-        entry_point: str = Field(min_length=1)
-        enabled: bool = Field(default=True)
-        config: dict[str, object] = Field(default_factory=dict)
-        metadata: dict[str, object] = Field(
-            default_factory=dict,
+        id: str = Field(
+            default_factory=lambda: f"session_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
         )
+        start_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
+        end_time: datetime | None = None
+        duration_seconds: float = Field(default=0.0)
+        commands_executed: int = Field(default=0)
+        status: str = Field(default="active")
 
-        @field_validator("name")
-        @classmethod
-        def validate_name(cls, v: str) -> str:
-            """Validate plugin name.
-
-            Raises:
-                ValueError: If plugin name is empty.
-
-            Returns:
-            str: Description of return value.
-
-            """
-            if not v.strip():
-                msg = "Plugin name cannot be empty"
-                raise ValueError(msg)
-            return v.strip()
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate plugin business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            if not self.name or not self.name.strip():
-                return FlextResult[None].fail("Plugin must have a name")
-            if not self.entry_point or not self.entry_point.strip():
-                return FlextResult[None].fail("Plugin must have an entry point")
-            return FlextResult[None].ok(None)
-
-    # Discriminated union state models for type-safe command states
-    class PendingState(FlextModels.Entity):
-        """Pending command state."""
-
-        status: Literal["PENDING"] = Field(default="PENDING", frozen=True)
-        queued_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-
-    class RunningState(FlextModels.Entity):
-        """Running command state."""
-
-        status: Literal["RUNNING"] = Field(default="RUNNING", frozen=True)
-        started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-
-    class CompletedState(FlextModels.Entity):
-        """Completed command state."""
-
-        status: Literal["COMPLETED"] = Field(default="COMPLETED", frozen=True)
-        completed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-        exit_code: int = Field(default=0)
-        output: str = Field(default="")
-
-    class FailedState(FlextModels.Entity):
-        """Failed command state."""
-
-        status: Literal["FAILED"] = Field(default="FAILED", frozen=True)
-        failed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-        exit_code: int = Field(gt=0)
-        error_output: str = Field(default="")
-
-    # Pipeline model for complex command orchestration
-    class Pipeline(FlextModels.Entity):
-        """Pipeline model for CLI operations with proper Entity inheritance."""
-
-        name: str = Field(..., description="Pipeline name")
-        description: str = Field(default="", description="Pipeline description")
-        status: str = Field(default="inactive", description="Pipeline status")
-        config: dict[str, object] = Field(
-            default_factory=dict,
-            description="Pipeline configuration",
-        )
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate pipeline business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            if not self.name or not self.name.strip():
-                return FlextResult[None].fail("Pipeline must have a name")
-
-            if self.status not in {"active", "inactive", "pending", "failed"}:
-                return FlextResult[None].fail("Invalid pipeline status")
-
-            return FlextResult[None].ok(None)
-
-        # Entity fields are inherited: id, created_at, updated_at (all required datetime)
-
-    # Pipeline state models
-    class PipelinePendingState(FlextModels.Entity):
-        """Pending pipeline state."""
-
-        status: Literal["PENDING"] = Field(default="PENDING", frozen=True)
-        created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-
-    class PipelineRunningState(FlextModels.Entity):
-        """Running pipeline state."""
-
-        status: Literal["RUNNING"] = Field(default="RUNNING", frozen=True)
-        started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-        current_command_index: int = Field(default=0, ge=0)
-
-    class PipelineCompletedState(FlextModels.Entity):
-        """Completed pipeline state."""
-
-        status: Literal["COMPLETED"] = Field(default="COMPLETED", frozen=True)
-        completed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-        success_rate: float = Field(default=0.0, ge=0.0, le=100.0)
-
-    class PipelineFailedState(FlextModels.Entity):
-        """Failed pipeline state."""
-
-        status: Literal["FAILED"] = Field(default="FAILED", frozen=True)
-        failed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-        failure_reason: str = Field(default="Unknown failure")
-        failed_command_index: int | None = Field(default=None, ge=0)
-
-    # Additional API models for CLI operations
-    class ApiState(FlextModels.Entity):
-        """API connection and authentication state model with session tracking."""
-
-        model_config = FlextCliUtilities.get_base_config_dict()
-
-        id: str = Field(default_factory=lambda: str(uuid4()))
-        base_url: str = Field(default="http://localhost:8000", min_length=1)
-        authenticated: bool = Field(default=False)
-        token: str | None = Field(default=None)
-        refresh_token: str | None = Field(default=None)
-        expires_at: datetime | None = None
-        last_request_at: datetime | None = None
-        request_count: int = Field(default=0, ge=0)
-        error_count: int = Field(default=0, ge=0)
-
-        # Additional fields required by api.py and tests
-        service_name: str = Field(
-            default="flext-cli",
-            description="Service name for API state",
-        )
-        enable_session_tracking: bool = Field(
-            default=True,
-            description="Enable session tracking",
-        )
-        enable_command_history: bool = Field(
-            default=True,
-            description="Enable command history",
-        )
-        command_history: list[FlextCliModels.CliCommand] = Field(default_factory=list)
-        sessions: dict[str, FlextCliModels.CliSession] = Field(default_factory=dict)
-
-        # Fields required by tests
-        handlers: dict[str, object] = Field(
-            default_factory=dict,
-            description="Registered command handlers",
-        )
-        plugins: dict[str, object] = Field(
-            default_factory=dict,
-            description="Registered plugins",
-        )
-
-        @field_validator("base_url")
-        @classmethod
-        def validate_base_url(cls, v: str) -> str:
-            """Validate API base URL.
-
-            Raises:
-                ValueError: If base URL is empty.
-
-            Returns:
-            str: Description of return value.
-
-            """
-            if not v.strip():
-                msg = "Base URL cannot be empty"
-                raise ValueError(msg)
-
-            # Basic URL validation
-            if not (v.startswith(("http://", "https://"))):
-                msg = "Base URL must start with http:// or https://"
-                raise ValueError(msg)
-
-            return v.strip()
-
-        @property
-        def session_count(self) -> int:
-            """Number of active sessions.
-
-            Returns:
-            int: Description of return value.
-
-            """
-            return len(self.sessions)
-
-        @property
-        def handler_count(self) -> int:
-            """Number of registered handlers.
-
-            Returns:
-            int: Description of return value.
-
-            """
-            return len(self.handlers)
-
-        @computed_field
-        def is_token_expired(self) -> bool:
-            """Check if token is expired.
-
-            Returns:
-            bool: Description of return value.
-
-            """
-            if self.expires_at is None:
-                return False
-            return datetime.now(UTC) > self.expires_at
-
-        @computed_field
-        def error_rate(self) -> float:
-            """Calculate error rate as percentage.
-
-            Returns:
-            float: Description of return value.
-
-            """
-            if self.request_count == 0:
-                return 0.0
-            return (self.error_count / self.request_count) * 100
-
-        def record_request(self, *, success: bool = True) -> FlextResult[None]:
-            """Record API request for metrics.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            self.last_request_at = datetime.now(UTC)
-            self.request_count += 1
-            if not success:
-                self.error_count += 1
-            return FlextResult[None].ok(None)
-
-        def authenticate(
+        def __init__(
             self,
-            token: str,
-            refresh_token: str | None = None,
-            expires_in: int | None = None,
-        ) -> FlextResult[None]:
-            """Set authentication state.
+            session_id: str | None = None,
+            user_id: str | None = None,
+            start_time: datetime | None = None,
+            **data: object,
+        ) -> None:
+            """Initialize with compatibility for session_id, user_id, and start_time parameters."""
+            if session_id is not None:
+                data["id"] = session_id
+            if start_time is not None:
+                data["start_time"] = start_time
+            # user_id is stored in data but not used by current model structure
+            if user_id is not None:
+                data["user_id"] = user_id
+            super().__init__(**data)
 
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            self.token = token
-            self.refresh_token = refresh_token
-            self.authenticated = True
-
-            if expires_in:
-                self.expires_at = datetime.now(UTC) + timedelta(seconds=expires_in)
-
-            return FlextResult[None].ok(None)
-
-        def clear_authentication(self) -> FlextResult[None]:
-            """Clear authentication state.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            self.token = None
-            self.refresh_token = None
-            self.authenticated = False
-            self.expires_at = None
-            return FlextResult[None].ok(None)
+        @property
+        def session_id(self) -> str:
+            """Get session ID for backward compatibility."""
+            return self.id
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate API state business rules.
+            """Validate session business rules."""
+            if not self.id or not self.id.strip():
+                return FlextResult[None].fail("Session ID cannot be empty")
 
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            if not self.base_url:
-                return FlextResult[None].fail("API state must have a base URL")
-
-            if self.authenticated and not self.token:
-                return FlextResult[None].fail("Authenticated state must have a token")
-
-            # Calculate error rate manually to avoid computed field issues
-            if self.request_count == 0:
-                calculated_error_rate = 0.0
-            else:
-                calculated_error_rate = (self.error_count / self.request_count) * 100
-
-            if calculated_error_rate > FlextCliConstants.Limits.max_error_rate_percent:
+            if self.status not in {"active", "completed", "terminated"}:
                 return FlextResult[None].fail(
-                    f"Error rate too high: {calculated_error_rate:.1f}%",
+                    "Invalid status. Valid: active, completed, terminated"
                 )
 
             return FlextResult[None].ok(None)
 
-    # Additional models for API operations
-    class PipelineList(FlextModels.Entity):
-        """List of pipelines with pagination support."""
 
-        model_config = FlextCliUtilities.get_base_config_dict()
-
-        pipelines: list[FlextCliModels.Pipeline] = Field(default_factory=list)
-        total: int = Field(default=0, ge=0, description="Total number of pipelines")
-        page: int = Field(default=1, ge=1, description="Current page number")
-        page_size: int = Field(
-            default=10,
-            ge=1,
-            le=100,
-            description="Number of items per page",
-        )
-        has_next: bool = Field(default=False)
-        has_previous: bool = Field(default=False)
-
-        @computed_field
-        def total_pages(self) -> int:
-            """Calculate total number of pages.
-
-            Returns:
-            int: Description of return value.
-
-            """
-            if self.page_size == 0:
-                return 0
-            return (self.total + self.page_size - 1) // self.page_size
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate pipeline list business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            if self.page_size <= 0:
-                return FlextResult[None].fail("page_size must be positive")
-
-            if self.page <= 0:
-                return FlextResult[None].fail("page must be positive")
-
-            if len(self.pipelines) > self.page_size:
-                return FlextResult[None].fail("Too many pipelines for page size")
-
-            return FlextResult[None].ok(None)
-
-    class PipelineConfig(FlextModels.Entity):
-        """Configuration for pipeline execution."""
-
-        model_config = FlextCliUtilities.get_base_config_dict()
-
-        id: str = Field(default_factory=lambda: str(uuid4()))
-        name: str = Field(min_length=1)
-        description: str = Field(default="")
-        timeout_seconds: int = Field(
-            default=FlextCliConstants.Timeouts.default_command_timeout,
-            ge=1,
-        )
-        max_retries: int = Field(default=3, ge=0, le=10)
-        parallel_execution: bool = Field(default=False)
-        fail_fast: bool = Field(default=True)
-        environment: dict[str, str] = Field(default_factory=dict)
-        tags: list[str] = Field(default_factory=list)
-
-        # Additional fields for Meltano pipeline integration
-        tap: str | None = Field(default=None, description="Tap (extractor) name")
-        target: str | None = Field(default=None, description="Target (loader) name")
-        schedule: str | None = Field(default=None, description="Schedule expression")
-        transform: str | None = Field(default=None, description="Transform name")
-        state: str | None = Field(default=None, description="State backend")
-        config: dict[str, object] | None = Field(
-            default=None,
-            description="Additional configuration",
-        )
-
-        @field_validator("timeout_seconds")
-        @classmethod
-        def validate_timeout(cls, v: int) -> int:
-            """Validate timeout is within limits.
-
-            Raises:
-                ValueError: If timeout is outside valid range.
-
-            Returns:
-            int: Description of return value.
-
-            """
-            if v <= 0 or v > FlextCliConstants.Limits.max_timeout_seconds:
-                msg = f"Timeout must be between 1 and {FlextCliConstants.Limits.max_timeout_seconds} seconds"
-                raise ValueError(msg)
-            return v
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate pipeline config business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            if not self.name or not self.name.strip():
-                return FlextResult[None].fail("Pipeline config must have a name")
-
-            if self.max_retries < 0:
-                return FlextResult[None].fail("max_retries cannot be negative")
-
-            return FlextResult[None].ok(None)
-
-    # API Response models for centralizing validation
-    class ApiJsonResponse(FlextModels.Entity):
-        """Generic API JSON response model with automatic validation."""
-
-        model_config = FlextCliUtilities.get_base_config_dict()
-
-        data: dict[str, object] = Field(default_factory=dict)
-        status: str = Field(default="success")
-        message: str = Field(default="")
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate API response business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            # Type validation handled by Pydantic - data is guaranteed to be dict
-            return FlextResult[None].ok(None)
-
-    class ApiListResponse(FlextModels.Entity):
-        """Generic API list response model with automatic validation."""
-
-        model_config = FlextCliUtilities.get_base_config_dict()
-
-        data: list[dict[str, object]] = Field(default_factory=list)
-        status: str = Field(default="success")
-        message: str = Field(default="")
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate API list response business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            # Type validation handled by Pydantic - data is guaranteed to be list[dict[str, object]]
-            return FlextResult[None].ok(None)
-
-    class StringListResponse(FlextModels.Entity):
-        """String list response model with automatic validation."""
-
-        model_config = FlextCliUtilities.get_base_config_dict()
-
-        logs: list[str] = Field(default_factory=list)
-
-        @field_validator("logs")
-        @classmethod
-        def validate_logs_are_strings(cls, v: list[str]) -> list[str]:
-            """Validate all items are strings.
-
-            Returns:
-            list[str]: Description of return value.
-
-            """
-            # Type validation handled by Pydantic type system - v is guaranteed to be list[str]
-            return v
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate string list response business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            return FlextResult[None].ok(None)
-
-    class PluginListResponse(FlextModels.Entity):
-        """Plugin list response model with automatic validation."""
-
-        model_config = FlextCliUtilities.get_base_config_dict()
-
-        plugins: list[dict[str, object]] = Field(default_factory=list)
-
-        @field_validator("plugins")
-        @classmethod
-        def validate_plugins_are_dicts(
-            cls,
-            v: list[dict[str, object]],
-        ) -> list[dict[str, object]]:
-            """Validate all items are dictionaries.
-
-            Returns:
-            list[dict[str, object]]: Description of return value.
-
-            """
-            # Type validation handled by Pydantic type system - v is guaranteed to be list[dict[str, object]]
-            return v
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate plugin list response business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            return FlextResult[None].ok(None)
-
-    # Data validation models for formatter operations
-    class FormatterDataInput(FlextModels.Entity):
-        """Centralized data validation for formatter operations."""
-
-        model_config = FlextCliUtilities.get_base_config_dict()
-
-        data: dict[str, object] | list[dict[str, object]] | list[object] | object = (
-            Field(description="Data to be formatted - supports various types")
-        )
-
-        @field_validator("data")
-        @classmethod
-        def validate_data_structure(cls, v: object) -> object:
-            """Validate data structure is suitable for formatting.
-
-            Raises:
-                ValueError: If data structure is invalid.
-
-            Returns:
-            object: Description of return value.
-
-            """
-            # Allow any data type but ensure it's not None
-            if v is None:
-                msg = "Data cannot be None for formatting operations"
-                raise ValueError(msg)
-            return v
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate data formatting business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            if self.data is None:
-                return FlextResult[None].fail("Data cannot be None")
-            return FlextResult[None].ok(None)
-
-    class TableFormatterData(FlextModels.Entity):
-        """Specific validation for table formatting data."""
-
-        model_config = FlextCliUtilities.get_base_config_dict()
-
-        data: dict[str, object] | list[dict[str, object]] = Field(
-            description="Data suitable for table formatting",
-        )
-
-        @field_validator("data")
-        @classmethod
-        def validate_table_data(
-            cls,
-            v: dict[str, object] | list[dict[str, object]],
-        ) -> dict[str, object] | list[dict[str, object]]:
-            """Validate data is suitable for table formatting.
-
-            Returns:
-            dict[str, object] | list[dict[str, object]]: Description of return value.
-
-            """
-            # Type validation handled by Pydantic - v is guaranteed to match the union type
-            return v
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate table data business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            if isinstance(self.data, list) and self.data:
-                # Validate all items are dicts with consistent keys
-                first_keys = (
-                    set(self.data[0].keys())
-                    if isinstance(self.data[0], dict)
-                    else set()
-                )
-                for item in self.data[1:]:
-                    if isinstance(item, dict) and set(item.keys()) != first_keys:
-                        return FlextResult[None].fail(
-                            "Inconsistent dictionary keys in list data",
-                        )
-            return FlextResult[None].ok(None)
-
-    class CsvFormatterData(FlextModels.Entity):
-        """Specific validation for CSV formatting data."""
-
-        model_config = FlextCliUtilities.get_base_config_dict()
-
-        data: dict[str, object] | list[dict[str, object]] = Field(
-            description="Data suitable for CSV formatting",
-        )
-
-        @field_validator("data")
-        @classmethod
-        def validate_csv_data(
-            cls,
-            v: dict[str, object] | list[dict[str, object]],
-        ) -> dict[str, object] | list[dict[str, object]]:
-            """Validate data is suitable for CSV formatting.
-
-            Raises:
-                ValueError: If CSV data has inconsistent field names.
-
-            Returns:
-            dict[str, object] | list[dict[str, object]]: Description of return value.
-
-            """
-            # Validate consistent fieldnames for CSV if it's a list
-            if isinstance(v, list) and v:
-                first_keys = set(v[0].keys())
-                for item in v[1:]:
-                    if set(item.keys()) != first_keys:
-                        msg = "CSV data contains inconsistent field names"
-                        raise ValueError(msg)
-            return v
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate CSV data business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            return FlextResult[None].ok(None)
-
-    # Field validation models for utils.py
-    class FieldValidationSpec(FlextModels.Entity):
-        """Specification for field validation rules."""
-
-        model_config = FlextCliUtilities.get_base_config_dict()
-
-        field_name: str = Field(min_length=1, description="Name of field to validate")
-        field_type: str = Field(
-            min_length=1,
-            description="Expected type name for field",
-        )
-        required: bool = Field(default=True, description="Whether field is required")
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate field validation spec business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            if not self.field_name.strip():
-                return FlextResult[None].fail("Field name cannot be empty")
-            return FlextResult[None].ok(None)
-
-    class ValidationTarget(FlextModels.Entity):
-        """Target data for validation operations."""
-
-        model_config = FlextCliUtilities.get_base_config_dict()
-
-        data: dict[str, object] = Field(description="Data to validate")
-        validation_specs: list[FlextCliModels.FieldValidationSpec] = Field(
-            default_factory=list,
-            description="Field validation specifications",
-        )
-
-        @field_validator("data")
-        @classmethod
-        def validate_data_is_dict(cls, v: dict[str, object]) -> dict[str, object]:
-            """Validate data is a dictionary.
-
-            Returns:
-            dict[str, object]: Description of return value.
-
-            """
-            # Type validation handled by Pydantic - v is guaranteed to be dict[str, object]
-            return v
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate target data against field specifications.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            for spec in self.validation_specs:
-                if spec.required and spec.field_name not in self.data:
-                    return FlextResult[None].fail(
-                        f"Missing required field: {spec.field_name}",
-                    )
-
-                if spec.field_name in self.data:
-                    # Type validation would be done here based on spec.field_type
-                    # For now, we trust the Pydantic model structure
-                    pass
-
-            return FlextResult[None].ok(None)
-
-    # =============================================================================
-    # COMMAND MODELS - Moved from command_models.py
-    # =============================================================================
-
-    class ShowConfigCommand(FlextModels.Entity):
-        """Show CLI configuration command."""
-
-        command_type: str = Field(
-            default="show_config",
-            description="Command type identifier",
-        )
-        output_format: str = Field(
-            default="table",
-            description="Output format for the configuration",
-        )
-        profile: str = Field(
-            default="default",
-            description="Configuration profile to show",
-        )
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate show configuration command business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            return FlextResult[None].ok(None)
-
-    class SetConfigValueCommand(FlextModels.Entity):
-        """Set configuration value command."""
-
-        key: str = Field(description="Configuration key")
-        value: str = Field(description="Configuration value")
-        profile: str = Field(
-            default="default",
-            description="Configuration profile to modify",
-        )
-        command_type: str = Field(
-            default="set_config",
-            description="Command type identifier",
-        )
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate set configuration command business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            if not self.key.strip():
-                return FlextResult[None].fail("Configuration key cannot be empty")
-            return FlextResult[None].ok(None)
-
-    class EditConfigCommand(FlextModels.Entity):
-        """Edit configuration command."""
-
-        profile: str = Field(
-            default="default",
-            description="Configuration profile to edit",
-        )
-        editor: str = Field(default="", description="Editor command to use")
-        command_type: str = Field(
-            default="edit_config",
-            description="Command type identifier",
-        )
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate edit configuration command business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            return FlextResult[None].ok(None)
-
-    class AuthLoginCommand(FlextModels.Entity):
-        """Authentication login command."""
-
-        username: str = Field(description="Username")
-        password: str = Field(description="Password")
-        api_url: str = Field(default="", description="API URL for authentication")
-        command_type: str = Field(
-            default="auth_login",
-            description="Command type identifier",
-        )
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate authentication login command business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            if not self.username.strip():
-                return FlextResult[None].fail("Username cannot be empty")
-            return FlextResult[None].ok(None)
-
-    class AuthStatusCommand(FlextModels.Entity):
-        """Authentication status command."""
-
-        detailed: bool = Field(
-            default=False,
-            description="Show detailed authentication status",
-        )
-        command_type: str = Field(
-            default="auth_status",
-            description="Command type identifier",
-        )
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate authentication status command business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            return FlextResult[None].ok(None)
-
-    class AuthLogoutCommand(FlextModels.Entity):
-        """Authentication logout command."""
-
-        command_type: str = Field(
-            default="auth_logout",
-            description="Command type identifier",
-        )
-        all_profiles: bool = Field(
-            default=False,
-            description="Whether to logout from all profiles",
-        )
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate authentication logout command business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            return FlextResult[None].ok(None)
-
-    class DebugInfoCommand(FlextModels.Entity):
-        """Debug information command."""
-
-        command_type: str = Field(
-            default="debug_info",
-            description="Command type identifier",
-        )
-        include_system: bool = Field(
-            default=True,
-            description="Whether to include system information",
-        )
-        include_config: bool = Field(
-            default=True,
-            description="Whether to include configuration information",
-        )
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate debug information command business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            return FlextResult[None].ok(None)
-
-    # =============================================================================
-    # AUTH MODELS - Moved from auth.py
-    # =============================================================================
-
-    class AuthConfig(FlextModels.Entity):
-        """Authentication configuration model."""
-
-        api_url: str = Field(description="API URL")
-        token_file: str = Field(description="Token file path")
-        refresh_token_file: str = Field(description="Refresh token file path")
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate authentication configuration business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            if not self.api_url.strip():
-                return FlextResult[None].fail("API URL cannot be empty")
-            return FlextResult[None].ok(None)
-
-    # Logging configuration model moved from logging_setup.py
-    class LoggingConfig(FlextModels.Entity):
-        """Nested logging configuration with automatic source detection."""
-
-        log_level: str = Field(
-            default="INFO",  # Use constant later
-            description="Logging level from any supported source",
-        )
-        log_format: str = Field(
-            default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            description="Log message format string",
-        )
-        log_file: Path | None = Field(
-            default=None,
-            description="Optional log file path",
-        )
-        log_level_source: str = Field(
-            default="default",
-            description="Source of the log level configuration",
-        )
-        console_output: bool = Field(default=True, description="Enable console output")
-
-        def validate_business_rules(self) -> FlextResult[None]:
-            """Validate logging configuration business rules.
-
-            Returns:
-            FlextResult[None]: Description of return value.
-
-            """
-            valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
-            if self.log_level not in valid_levels:
-                return FlextResult[None].fail(
-                    f"Invalid log level: {self.log_level}. Must be one of: {valid_levels}",
-                )
-            return FlextResult[None].ok(None)
-
-
-__all__ = ["FlextCliModels"]
+__all__ = [
+    "FlextCliModels",
+]

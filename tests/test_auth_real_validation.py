@@ -4,8 +4,8 @@ import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
-from flext_cli.auth import FlextCliAuth
-from flext_cli.configs import FlextCliConfigs
+from flext_cli.flext_cli_auth import FlextCliAuth
+from flext_cli.models import FlextCliModels
 from flext_core import FlextResult
 
 
@@ -32,7 +32,7 @@ class TestFlextCliAuthRealValidation:
 
         # Test config property (it's a property, not a method)
         config = auth.config
-        assert isinstance(config, FlextCliConfigs)
+        assert isinstance(config, FlextCliModels.FlextCliConfig)
         assert config.app_name == "flext-cli"
 
     def test_token_paths_retrieval(self) -> None:

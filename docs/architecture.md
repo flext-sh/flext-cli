@@ -199,9 +199,9 @@ formatter = FlextCliFormatters()
 ### Service Integration
 
 ```python
-from flext_core import FlextDomainService, FlextResult
+from flext_core import FlextService, FlextResult
 
-class NewCliService(FlextDomainService):
+class NewCliService(FlextService):
     def process_request(self, data: dict) -> FlextResult[str]:
         # CLI service implementation
         return FlextResult[str].ok("success")

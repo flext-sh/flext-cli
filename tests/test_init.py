@@ -15,8 +15,6 @@ import flext_cli
 from flext_cli import (
     FlextCliApi,
     FlextCliAuth,
-    FlextCliClient,
-    FlextCliConfigs,
     FlextCliConstants,
     FlextCliFormatters,
     FlextCliModels,
@@ -32,13 +30,11 @@ class TestFlextCliImports:
         # Test that all main classes can be imported and instantiated
         api = FlextCliApi()
         auth = FlextCliAuth()
-        client = FlextCliClient()
-        config = FlextCliConfigs()
+        config = FlextCliModels.FlextCliConfig()
         formatters = FlextCliFormatters()
 
         assert api is not None
         assert auth is not None
-        assert client is not None
         assert config is not None
         assert formatters is not None
 
@@ -68,8 +64,7 @@ class TestFlextCliImports:
         classes_to_test = [
             FlextCliApi,
             FlextCliAuth,
-            FlextCliClient,
-            FlextCliConfigs,
+            FlextCliModels.FlextCliConfig,
             FlextCliFormatters,
         ]
 

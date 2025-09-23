@@ -10,8 +10,8 @@ import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from flext_cli.configs import FlextCliConfigs
 from flext_cli.constants import FlextCliConstants
+from flext_cli.models import FlextCliModels
 from flext_core import FlextLogger, FlextResult, FlextTypes
 
 
@@ -32,7 +32,7 @@ class FlextCliContext:
         self,
         *,
         id_: str | None = None,
-        config: FlextCliConfigs | None = None,
+        config: FlextCliModels.FlextCliConfig | None = None,
         logger: FlextLogger | None = None,
         console: object | None = None,
         debug: bool = False,
@@ -66,7 +66,7 @@ class FlextCliContext:
 
         # Context state management via composition
         self._id = id_ or str(uuid.uuid4())
-        self._config = config or FlextCliConfigs()
+        self._config = config or FlextCliModels.FlextCliConfig()
         self._logger = logger or FlextLogger(__name__)
         self._console = console
         self._debug = debug
@@ -80,7 +80,7 @@ class FlextCliContext:
         self._configuration = kwargs.copy()
         self._timeout_seconds = kwargs.get(
             "timeout_seconds",
-            FlextCliConstants.MAX_COMMAND_TIMEOUT,
+            FlextCliConstants.Network.DEFAULT_TIMEOUT,
         )
 
     # Properties for accessing composed state
@@ -95,11 +95,11 @@ class FlextCliContext:
         return self._id
 
     @property
-    def config(self) -> FlextCliConfigs:
+    def config(self) -> FlextCliModels.FlextCliConfig:
         """Get CLI configuration.
 
         Returns:
-            FlextCliConfigs: Description of return value.
+            FlextCliModels.FlextCliConfig: Description of return value.
 
         """
         return self._config
@@ -421,7 +421,9 @@ class FlextCliContext:
 
         # Use provided config or create new one
         cli_config = (
-            config if isinstance(config, FlextCliConfigs) else FlextCliConfigs()
+            config
+            if isinstance(config, FlextCliModels.FlextCliConfig)
+            else FlextCliModels.FlextCliConfig()
         )
 
         # Create context with proper initialization
@@ -489,7 +491,6 @@ class FlextCliContext:
         debug = params.get("debug", False)
         quiet = params.get("quiet", False)
         verbose = params.get("verbose", False)
-        no_color = params.get("no_color", False)
 
         # Validate parameters
         if not profile:
@@ -505,11 +506,10 @@ class FlextCliContext:
             raise ValueError(message)
 
         # Create config with parameters
-        config = FlextCliConfigs(
+        config = FlextCliModels.FlextCliConfig(
             profile=str(profile),
-            debug=bool(debug),
+            debug_mode=bool(debug),
             output_format=str(output_format),
-            no_color=bool(no_color),
         )
 
         return cls(

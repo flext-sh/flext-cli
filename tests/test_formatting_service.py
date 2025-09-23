@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import FlextCliFormatters as ImportedService
-from flext_cli.formatting import FlextCliFormatters
+from flext_cli.flext_cli_formatters import FlextCliFormatters
 
 
 class TestFlextCliFormatters:

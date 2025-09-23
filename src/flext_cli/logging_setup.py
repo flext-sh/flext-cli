@@ -14,26 +14,25 @@ import os
 from pathlib import Path
 from typing import ClassVar
 
-from flext_cli.configs import FlextCliConfigs
 from flext_cli.models import FlextCliModels
 from flext_core import (
     FlextConstants,
     FlextContainer,
-    FlextDomainService,
     FlextLogger,
     FlextResult,
+    FlextService,
 )
 
 
-class FlextCliLoggingSetup(FlextDomainService[str]):
-    """Unified logging setup service using FlextDomainService.
+class FlextCliLoggingSetup(FlextService[str]):
+    """Unified logging setup service using FlextService.
 
     Single responsibility with nested helpers pattern.
     No loose helper functions - all functionality encapsulated.
     """
 
-    # LoggingConfig class reference for direct access
-    LoggingConfig: ClassVar[type[FlextCliModels.LoggingConfig]] = (
+    # FlextCliModels.LoggingConfig class reference for direct access
+    LoggingConfigModel: ClassVar[type[FlextCliModels.LoggingConfig]] = (
         FlextCliModels.LoggingConfig
     )
 
@@ -41,17 +40,17 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
     _loggers: ClassVar[dict[str, logging.Logger]] = {}
     _setup_complete: ClassVar[bool] = False
 
-    def __init__(self, config: FlextCliConfigs | None = None) -> None:
+    def __init__(self, config: FlextCliModels.FlextCliConfig | None = None) -> None:
         """Initialize logging setup using FlextConfig singleton as SINGLE SOURCE OF TRUTH."""
         super().__init__()
         self._container = FlextContainer.get_global()
         self._logger = FlextLogger(__name__)
 
-        # Use resolved config without storing as instance attribute (FlextDomainService is frozen)
-        self._resolved_config = config or FlextCliConfigs.get_current()
+        # Use resolved config without storing as instance attribute (FlextService is frozen)
+        self._resolved_config = config or FlextCliModels.FlextCliConfig()
 
     def execute(self) -> FlextResult[str]:
-        """Execute logging setup - FlextDomainService interface.
+        """Execute logging setup - FlextService interface.
 
         Returns:
             FlextResult[str]: Description of return value.
@@ -174,7 +173,7 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
     @classmethod
     def setup_for_cli(
         cls,
-        config: FlextCliConfigs | None = None,
+        config: FlextCliModels.FlextCliConfig | None = None,
         log_file: Path | None = None,
     ) -> FlextResult[str]:
         """Setup logging specifically for CLI usage using FlextConfig singleton.
@@ -186,7 +185,7 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
         try:
             # Use FlextConfig singleton if no config provided
             if config is None:
-                config = FlextCliConfigs.get_current()
+                config = FlextCliModels.FlextCliConfig()
             setup_instance = cls(config)
 
             # Configure log file if specified
@@ -210,7 +209,7 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
     @classmethod
     def get_effective_log_level(
         cls,
-        config: FlextCliConfigs | None = None,
+        config: FlextCliModels.FlextCliConfig | None = None,
     ) -> FlextResult[str]:
         """Get the effective log level that would be used using FlextConfig singleton.
 
@@ -221,7 +220,7 @@ class FlextCliLoggingSetup(FlextDomainService[str]):
         try:
             # Use FlextConfig singleton if no config provided
             if config is None:
-                config = FlextCliConfigs.get_current()
+                config = FlextCliModels.FlextCliConfig()
             setup_instance = cls(config)
             detection_result = setup_instance._detect_log_configuration()
 

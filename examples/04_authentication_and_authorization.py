@@ -26,15 +26,13 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime, timedelta
 
-from rich.console import Console
-from rich.panel import Panel
-from rich.table import Table
-
 from examples import print_demo_completion
+
 from flext_cli import (
     FlextCliAuth,
-    FlextCliConfigs,
     FlextCliDecorators,
+    FlextCliFormatters,
+    FlextCliModels,
     FlextCliService,
 )
 from flext_core import FlextResult, FlextTypes
@@ -42,7 +40,8 @@ from flext_core import FlextResult, FlextTypes
 
 def demonstrate_basic_authentication() -> FlextResult[None]:
     """Demonstrate basic authentication patterns."""
-    console = Console()
+    formatter = FlextCliFormatters()
+    console = formatter.console
     console.print("[bold blue]Basic Authentication Patterns[/bold blue]")
 
     # 1. Save authentication token
@@ -97,7 +96,8 @@ def demonstrate_basic_authentication() -> FlextResult[None]:
 
 def demonstrate_api_authentication() -> FlextResult[None]:
     """Demonstrate API client authentication patterns."""
-    console = Console()
+    formatter = FlextCliFormatters()
+    console = formatter.console
     console.print("\n[green]3. API Client Authentication[/green]")
 
     try:
@@ -135,7 +135,8 @@ def demonstrate_api_authentication() -> FlextResult[None]:
 @FlextCliDecorators.require_auth()
 def demonstrate_protected_operation() -> FlextResult[str]:
     """Demonstrate a protected operation requiring authentication."""
-    console = Console()
+    formatter = FlextCliFormatters()
+    console = formatter.console
     console.print("\n[green]4. Protected Operations[/green]")
 
     # This function is decorated with @require_auth()
@@ -156,7 +157,8 @@ def demonstrate_protected_operation() -> FlextResult[str]:
 
 def demonstrate_role_based_access() -> FlextResult[None]:
     """Demonstrate role-based access control patterns."""
-    console = Console()
+    formatter = FlextCliFormatters()
+    console = formatter.console
     console.print("\n[green]5. Role-Based Access Control[/green]")
 
     # Simulate different user roles and permissions
@@ -169,11 +171,8 @@ def demonstrate_role_based_access() -> FlextResult[None]:
         {"name": "viewer", "permissions": ["read", "monitor"]},
     ]
 
-    # Create permissions table
-    permissions_table = Table(title="Role-Based Permissions Matrix")
-    permissions_table.add_column("Role", style="cyan")
-    permissions_table.add_column("Permissions", style="green")
-    permissions_table.add_column("Access Level", style="yellow")
+    # Create permissions table using flext-cli formatter
+    permissions_data = {}
 
     for role in demo_roles:
         permissions = role["permissions"]
@@ -191,9 +190,14 @@ def demonstrate_role_based_access() -> FlextResult[None]:
             access_level = "Unknown"
 
         role_name = str(role["name"])
-        permissions_table.add_row(role_name, permissions_str, access_level)
+        permissions_data[role_name] = f"{permissions_str} ({access_level})"
 
-    console.print(permissions_table)
+    # Format and display table using flext-cli
+    table_result = formatter.format_table(
+        data=permissions_data, title="Role-Based Permissions Matrix"
+    )
+    if table_result.is_success:
+        console.print(table_result.value)
 
     # Simulate permission checking
     current_user_role = "operator"  # Simulated
@@ -212,7 +216,8 @@ def demonstrate_role_based_access() -> FlextResult[None]:
 
 def demonstrate_session_management() -> FlextResult[None]:
     """Demonstrate session management patterns."""
-    console = Console()
+    formatter = FlextCliFormatters()
+    console = formatter.console
     console.print("\n[green]6. Session Management[/green]")
 
     # Simulate session data
@@ -266,11 +271,12 @@ def demonstrate_session_management() -> FlextResult[None]:
 
 def demonstrate_secure_configuration() -> FlextResult[None]:
     """Demonstrate secure configuration and credential management."""
-    console = Console()
+    formatter = FlextCliFormatters()
+    console = formatter.console
     console.print("\n[green]7. Secure Configuration Management[/green]")
 
     # Get CLI configuration
-    FlextCliConfigs.get_current()
+    FlextCliModels.FlextCliConfig()
     console.print("✅ CLI configuration loaded")
 
     # Demonstrate environment variable usage for sensitive data
@@ -284,17 +290,18 @@ def demonstrate_secure_configuration() -> FlextResult[None]:
         ("FLEXT_TIMEOUT", "Request timeout configuration"),
     ]
 
-    env_table = Table(title="Secure Environment Variables")
-    env_table.add_column("Variable", style="cyan")
-    env_table.add_column("Purpose", style="green")
-    env_table.add_column("Status", style="yellow")
-
+    env_data = {}
     for var_name, purpose in secure_env_vars:
         value = os.environ.get(var_name)
         status = "✅ Set" if value else "⚠️ Not set"
-        env_table.add_row(var_name, purpose, status)
+        env_data[var_name] = f"{purpose} ({status})"
 
-    console.print(env_table)
+    # Format and display table using flext-cli
+    table_result = formatter.format_table(
+        data=env_data, title="Secure Environment Variables"
+    )
+    if table_result.is_success:
+        console.print(table_result.value)
 
     # Demonstrate secure credential patterns
     console.print("\n🔒 Secure Credential Patterns:")
@@ -442,22 +449,22 @@ def refresh_session(
 
 def main() -> None:
     """Main demonstration function."""
-    console = Console()
+    formatter = FlextCliFormatters()
+    console = formatter.console
 
+    formatter.print_success("04 - Authentication and Authorization Patterns")
+    formatter.print_success("=" * 50)
     console.print(
-        Panel(
-            "[bold magenta]04 - Authentication and Authorization Patterns[/bold magenta]\n\n"
-            "[yellow]Comprehensive demonstration of flext-cli authentication patterns:[/yellow]\n"
-            "🔐 Token management and secure storage\n"
-            "🛡️ Authorization headers and API authentication\n"
-            "🔒 Protected operations with @require_auth() decorator\n"
-            "👥 Role-based access control (RBAC)\n"
-            "⏰ Session management and token refresh\n"
-            "🔑 Secure configuration and credential handling\n"
-            "🌐 API client authentication patterns",
-            expand=False,
-        )
+        "[yellow]Comprehensive demonstration of flext-cli authentication patterns:[/yellow]"
     )
+    console.print("🔐 Token management and secure storage")
+    console.print("🛡️ Authorization headers and API authentication")
+    console.print("🔒 Protected operations with @require_auth() decorator")
+    console.print("👥 Role-based access control (RBAC)")
+    console.print("⏰ Session management and token refresh")
+    console.print("🔑 Secure configuration and credential handling")
+    console.print("🌐 API client authentication patterns")
+    console.print()
 
     try:
         # Run all authentication demonstrations

@@ -31,13 +31,12 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Protocol, cast
 
-from rich.console import Console
-from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
 from rich.table import Table
 
 from flext_cli import (
-    FlextCliConfigs,
+    FlextCliFormatters,
+    FlextCliModels,
     FlextCliService,
 )
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
@@ -352,7 +351,8 @@ class AdvancedCliService(FlextCliService):
 # Removed @async_command and @cli_handle_keyboard_interrupt decorators - cause type inference issues
 async def demonstrate_async_service_operations() -> None:
     """Demonstrate asynchronous service operations."""
-    console = Console()
+    formatter = FlextCliFormatters()
+    console = formatter.console
     console.print("[bold blue]Asynchronous Service Operations[/bold blue]")
 
     # Initialize service
@@ -444,7 +444,8 @@ async def demonstrate_async_service_operations() -> None:
 
 def demonstrate_circuit_breaker_pattern() -> FlextResult[None]:
     """Demonstrate circuit breaker pattern for service resilience."""
-    console = Console()
+    formatter = FlextCliFormatters()
+    console = formatter.console
     console.print("\n[green]Circuit Breaker Pattern Demonstration[/green]")
 
     service = AdvancedCliService()
@@ -510,7 +511,8 @@ def demonstrate_circuit_breaker_pattern() -> FlextResult[None]:
 
 def demonstrate_service_orchestration() -> FlextResult[None]:
     """Demonstrate service orchestration patterns."""
-    console = Console()
+    formatter = FlextCliFormatters()
+    console = formatter.console
     console.print("\n[green]Service Orchestration Demonstration[/green]")
 
     service = AdvancedCliService()
@@ -556,7 +558,8 @@ def demonstrate_service_orchestration() -> FlextResult[None]:
 
 def demonstrate_dependency_injection() -> FlextResult[None]:
     """Demonstrate dependency injection with CLI container."""
-    console = Console()
+    formatter = FlextCliFormatters()
+    console = formatter.console
     console.print("\n[green]Dependency Injection with CLI Container[/green]")
 
     # Create and configure CLI container
@@ -589,9 +592,9 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
 
     # Register various services
     services_to_register = [
-        ("console", Console()),
+        ("console", formatter.console),
         ("logger", FlextLogger("demo")),
-        ("config", FlextCliConfigs.get_current()),
+        ("config", FlextCliModels.FlextCliConfig()),
         ("api_client", FlextCliService()),
     ]
 
@@ -665,22 +668,22 @@ def demonstrate_dependency_injection() -> FlextResult[None]:
 
 def main() -> None:
     """Main demonstration function."""
-    console = Console()
+    formatter = FlextCliFormatters()
+    console = formatter.console
 
+    formatter.print_success("05 - Advanced Service Integration Patterns")
+    formatter.print_success("=" * 50)
     console.print(
-        Panel(
-            "[bold purple]05 - Advanced Service Integration Patterns[/bold purple]\n\n"
-            "[yellow]Comprehensive demonstration of advanced service integration:[/yellow]\n"
-            "🏗️ FlextCliService with comprehensive mixins\n"
-            "🔄 Async service operations with @async_command\n"
-            "🛡️ Circuit breaker pattern for service resilience\n"
-            "🎼 Service orchestration and coordination\n"
-            "💉 Dependency injection with CLI container\n"
-            "📊 Health monitoring and performance tracking\n"
-            "🔧 Error handling and retry patterns",
-            expand=False,
-        )
+        "[yellow]Comprehensive demonstration of advanced service integration:[/yellow]"
     )
+    console.print("🏗️ FlextCliService with comprehensive mixins")
+    console.print("🔄 Async service operations with @async_command")
+    console.print("🛡️ Circuit breaker pattern for service resilience")
+    console.print("🎼 Service orchestration and coordination")
+    console.print("💉 Dependency injection with CLI container")
+    console.print("📊 Health monitoring and performance tracking")
+    console.print("🔧 Error handling and retry patterns")
+    console.print()
 
     try:
         # Run async demonstration

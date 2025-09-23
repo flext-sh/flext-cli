@@ -73,7 +73,7 @@ class FlextCliFileOperations:
             """
             return FlextResult.safe_call(
                 lambda: file_path.read_text(
-                    encoding=FlextCliConstants.FILES.default_encoding
+                    encoding=FlextCliConstants.Files.default_encoding
                 )
             )
 
@@ -159,7 +159,7 @@ class FlextCliFileOperations:
             """Write JSON content to file - used by safe_call."""
             file_path.write_text(
                 json_content,
-                encoding=FlextCliConstants.FILES.default_encoding,
+                encoding=FlextCliConstants.Files.default_encoding,
             )
 
         # Railway pattern composition - NO try/except needed
@@ -229,17 +229,17 @@ class FlextCliFileOperations:
             if backup and path.exists():
                 backup_path = path.with_suffix(path.suffix + ".bak")
                 existing_content = path.read_text(
-                    encoding=FlextCliConstants.FILES.default_encoding,
+                    encoding=FlextCliConstants.Files.default_encoding,
                 )
                 backup_path.write_text(
                     existing_content,
-                    encoding=FlextCliConstants.FILES.default_encoding,
+                    encoding=FlextCliConstants.Files.default_encoding,
                 )
             return path
 
         def write_content_with_permissions(path: Path) -> None:
             """Write content and set secure permissions - used by safe_call."""
-            path.write_text(content, encoding=FlextCliConstants.FILES.default_encoding)
+            path.write_text(content, encoding=FlextCliConstants.Files.default_encoding)
             path.chmod(0o600)  # Secure permissions
 
         # Railway pattern composition - NO try/except needed
@@ -326,7 +326,7 @@ class FlextCliFileOperations:
             """
             content_result = FlextResult.safe_call(
                 lambda: path.read_text(
-                    encoding=FlextCliConstants.FILES.default_encoding
+                    encoding=FlextCliConstants.Files.default_encoding
                 )
             )
             if content_result.is_failure:
@@ -392,13 +392,13 @@ class FlextCliFileOperations:
         backup_path = path.with_suffix(path.suffix + ".bak")
         backup_path.write_text(
             original_content,
-            encoding=FlextCliConstants.FILES.default_encoding,
+            encoding=FlextCliConstants.Files.default_encoding,
         )
 
         # Write processed content
         path.write_text(
             processed_content,
-            encoding=FlextCliConstants.FILES.default_encoding,
+            encoding=FlextCliConstants.Files.default_encoding,
         )
 
         return processed_content
@@ -431,23 +431,6 @@ class FlextCliFileOperations:
             return FlextResult[Path].fail(f"Directory creation failed: {result.error}")
 
         return result
-
-    def create_directory_structure(
-        self,
-        directory_path: str | Path,
-    ) -> FlextResult[Path]:
-        """Create directory structure with nested paths.
-
-        Alias for ensure_directory to match test expectations.
-
-        Args:
-            directory_path: Directory path to create
-
-        Returns:
-            FlextResult containing created directory Path
-
-        """
-        return self.ensure_directory(directory_path)
 
     def file_exists(self, file_path: str | Path) -> bool:
         """Check if file exists using railway pattern - NO try/except fallbacks.

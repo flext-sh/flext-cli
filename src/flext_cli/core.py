@@ -9,98 +9,60 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from pydantic import PrivateAttr
-
-from flext_cli.configs import FlextCliConfigs
-from flext_cli.formatting import FlextCliFormatters
+from flext_cli.models import FlextCliModels
 from flext_core import (
     FlextContainer,
-    FlextDomainService,
     FlextLogger,
+    FlextResult,
+    FlextService,
 )
 
 
-class FlextCliService(FlextDomainService[str]):
-    """Production-ready CLI service using flext-core directly.
+class FlextCliService(FlextService[str]):
+    """Essential CLI service using flext-core directly.
 
-    Provides CLI service orchestration using flext-core infrastructure without
-    duplication or fallback mechanisms. Uses FlextConfig singleton as the single
-    source of truth for all configuration.
-
-    Args:
-        None: Service initializes with flext-core dependencies.
-
-    Returns:
-        FlextResult[str]: Service execution result.
-
-    Raises:
-        RuntimeError: If service initialization fails.
-
+    Provides CLI configuration management using flext-core patterns.
+    No over-engineered abstractions or unused functionality.
     """
 
-    # Private attributes - Use base class config type to maintain compatibility
-    _cli_config: FlextCliConfigs | None = PrivateAttr(default=None)
-    _commands: dict[str, object] = PrivateAttr(
-        default_factory=dict,
-    )
-    _registered_handlers: dict[str, object] = PrivateAttr(
-        default_factory=dict,
-    )
-    _plugins: dict[str, object] = PrivateAttr(
-        default_factory=dict,
-    )
-    _sessions: dict[str, object] = PrivateAttr(
-        default_factory=dict,
-    )
-    _formatters: FlextCliFormatters | None = PrivateAttr(default=None)
-
     def __init__(self) -> None:
-        """Initialize CLI service with flext-core dependencies.
-
-        Initializes the service using FlextConfig singleton and flext-core
-        infrastructure. No fallback mechanisms are used.
-
-        """
+        """Initialize CLI service with flext-core dependencies."""
         super().__init__()
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
+        self._cli_config = FlextCliModels.FlextCliConfig.create_default()
 
-        # Initialize configuration from FlextConfig singleton
-        self._initialize_configuration()
-        self._initialize_services()
+    def execute(self) -> FlextResult[str]:
+        """Execute CLI service - required by FlextService."""
+        self._logger.info("CLI service operational")
+        return FlextResult[str].ok("FlextCliService operational")
 
-    def _initialize_configuration(self) -> None:
-        """Initialize configuration from FlextConfig singleton.
-
-        Sets up configuration and formatters using flext-core patterns.
-        No fallback mechanisms are used.
-
-        """
-        # Initialize CLI configuration state
-        self._cli_config = None
-
-        # Initialize formatters with configuration
-        self._formatters = FlextCliFormatters()
-
-    def _initialize_services(self) -> None:
-        """Initialize services using flext-core container.
-
-        Sets up service dependencies using the global container.
-        No fallback mechanisms are used.
-
-        """
-        # Initialize core services as needed
-        # Services will be registered with the container when needed
-
-    # Public accessor methods
-    def get_cli_config(self) -> FlextCliConfigs | None:
+    def get_cli_config(self) -> FlextCliModels.FlextCliConfig:
         """Get current CLI configuration.
 
         Returns:
-            FlextCliConfigs | None: Current CLI configuration or None if not initialized.
+            FlextCliModels.FlextCliConfig: Current CLI configuration.
 
         """
         return self._cli_config
+
+    def set_cli_config(
+        self, config: FlextCliModels.FlextCliConfig
+    ) -> FlextResult[None]:
+        """Set CLI configuration.
+
+        Args:
+            config: New CLI configuration
+
+        Returns:
+            FlextResult[None]: Success or failure result
+
+        """
+        if not isinstance(config, FlextCliModels.FlextCliConfig):
+            return FlextResult[None].fail("Invalid configuration type")
+
+        self._cli_config = config
+        return FlextResult[None].ok(None)
 
 
 __all__ = ["FlextCliService"]

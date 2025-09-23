@@ -38,9 +38,9 @@ from flext_cli import (
     FlextCliService,
 )
 from flext_core import (
-    FlextDomainService,
     FlextModels,
     FlextResult,
+    FlextService,
     FlextTypes,
 )
 
@@ -154,11 +154,11 @@ class Project(FlextModels.AggregateRoot):
         return FlextResult[Project].ok(project)
 
 
-class ProjectDomainService(FlextDomainService[FlextTypes.Core.Dict]):
+class ProjectDomainService(FlextService[FlextTypes.Core.Dict]):
     """Domain service for cross-project operations."""
 
     def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
-        """Execute method required by FlextDomainService base class."""
+        """Execute method required by FlextService base class."""
         return FlextResult[FlextTypes.Core.Dict].ok({"service": "project_domain"})
 
     def can_transfer_ownership(
@@ -257,11 +257,11 @@ class CreateProjectHandler:
     def __init__(
         self,
         repository: ProjectRepository,
-        domain_service: ProjectDomainService,
+        service: ProjectDomainService,
     ) -> None:
         """Initialize create project handler with dependencies."""
         self._repository = repository
-        self._domain_service = domain_service
+        self._domain_service = service
 
     def handle(self, command: CreateProjectCommand) -> FlextResult[Project]:
         """Execute create project command."""
@@ -423,9 +423,9 @@ class ProjectManagementService(FlextCliService):
 
         # Setup dependencies (in real app: DI container)
         self._repository = InMemoryProjectRepository()
-        domain_service = ProjectDomainService()
+        service = ProjectDomainService()
         self._create_handler = CreateProjectHandler(
-            repository=self._repository, domain_service=domain_service
+            repository=self._repository, service=service
         )
         self._status_handler = ChangeProjectStatusHandler(repository=self._repository)
         self._query_handler = ProjectQueryHandler(repository=self._repository)

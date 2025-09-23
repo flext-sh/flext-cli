@@ -115,7 +115,7 @@ config = service.get_config()  # Returns FlextCliConfigs | None
 
 - **Authentication System**: 818 lines, OAuth flows, token management (35+ methods)
 - **API Layer**: 862 lines, operation dispatcher, state management
-- **Service Architecture**: Full FlextDomainService inheritance, dependency injection
+- **Service Architecture**: Full FlextService inheritance, dependency injection
 - **Type System**: Python 3.13+ annotations, TypedDict structures throughout
 - **Configuration Management**: 662 lines, validation and persistence
 
