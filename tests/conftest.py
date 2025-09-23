@@ -159,7 +159,7 @@ def cli_auth() -> FlextCliAuth:
 def cli_context(flext_factories: FlextTestsFactories) -> FlextCliContext:
     """Provide real CLI context using FlextTests factories."""
     # Use FlextTestsFactories to create realistic test config
-    config_data = flext_factories.ConfigFactory.create(
+    config_data: dict[str, object] = flext_factories.ConfigFactory.create(
         profile="test",
         debug=True,
         output_format="json",
@@ -167,7 +167,11 @@ def cli_context(flext_factories: FlextTestsFactories) -> FlextCliContext:
         no_color=True,
     )
 
-    config = FlextCliModels.FlextCliConfig(**config_data)
+    config = FlextCliModels.FlextCliConfig(
+        profile=str(config_data.get("profile", "test")),
+        output_format=str(config_data.get("output_format", "json")),
+        no_color=bool(config_data.get("no_color", True)),
+    )
     return FlextCliContext(
         config=config,
         debug=True,
@@ -188,7 +192,11 @@ def test_config(flext_factories: FlextTestsFactories) -> FlextCliModels.FlextCli
         timeout_seconds=30,
         output_format="table",
     )
-    return FlextCliModels.FlextCliConfig(**config_data)
+    return FlextCliModels.FlextCliConfig(
+        profile=str(config_data.get("profile", "test")),
+        output_format=str(config_data.get("output_format", "table")),
+        no_color=bool(config_data.get("no_color", False)),
+    )
 
 
 # User and Domain Fixtures

@@ -130,7 +130,7 @@ class TestFlextCliIntegration:
         config = FlextCliModels.FlextCliConfig(
             profile="test",
             output_format=FlextCliConstants.OutputFormats.JSON.value,
-            debug_mode=True,
+            debug=True,
         )
 
         assert config.output_format == FlextCliConstants.OutputFormats.JSON.value

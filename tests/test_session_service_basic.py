@@ -302,29 +302,29 @@ class TestFlextCliSessionServiceHelpers:
         # Test None user ID
         result = FlextCliSessionService._SessionValidationHelper.validate_user_id(None)
         assert result.is_success
-        assert result.unwrap() is None
+        assert result.value is None
 
         # Test valid string user ID
         result = FlextCliSessionService._SessionValidationHelper.validate_user_id(
             "test_user"
         )
         assert result.is_success
-        assert result.unwrap() == "test_user"
+        assert result.value == "test_user"
 
         # Test empty string user ID
         result = FlextCliSessionService._SessionValidationHelper.validate_user_id("")
         assert result.is_success
-        assert result.unwrap() is None
+        assert result.value is None
 
         # Test whitespace-only user ID
         result = FlextCliSessionService._SessionValidationHelper.validate_user_id("   ")
         assert result.is_success
-        assert result.unwrap() is None
+        assert result.value is None
 
         # Test non-string user ID
         result = FlextCliSessionService._SessionValidationHelper.validate_user_id(123)
         assert result.is_success
-        assert result.unwrap() == "123"
+        assert result.value == "123"
 
     def test_session_state_helper_create_metadata(self) -> None:
         """Test _SessionStateHelper create session metadata."""

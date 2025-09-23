@@ -120,6 +120,120 @@ class FlextCliApi(FlextService[dict[str, object]]):
         self._console.print(format_result.unwrap())
         return FlextResult[None].ok(None)
 
+    def format_output(
+        self,
+        data: object,
+        format_type: str = "table",
+        options: FlextCliModels.FormatOptions | None = None,
+    ) -> FlextResult[str]:
+        """Format output data - alias for format_data for backward compatibility.
+
+        Args:
+            data: Data to format
+            format_type: Format type (table, json, yaml, csv, plain)
+            options: Format options
+
+        Returns:
+            FlextResult[str]: Formatted data string or error
+
+        """
+        return self.format_data(data, format_type, options)
+
+    def display_message(
+        self,
+        message: str,
+        message_type: str = "info",
+        format_type: str = "plain",
+    ) -> FlextResult[None]:
+        """Display a message with specified type and format.
+
+        Args:
+            message: Message to display
+            message_type: Type of message (info, warning, error, success)
+            format_type: Format type for output
+
+        Returns:
+            FlextResult[None]: Success or failure result
+
+        """
+        try:
+            # Create message data structure
+            message_data = {
+                "message": message,
+                "type": message_type,
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
+
+            # Format and display
+            format_result = self.format_data(message_data, format_type)
+            if format_result.is_failure:
+                return FlextResult[None].fail(
+                    format_result.error or "Message formatting failed"
+                )
+
+            # Display using Rich console with appropriate styling
+            if message_type == "error":
+                self._console.print(f"[red]{format_result.unwrap()}[/red]")
+            elif message_type == "warning":
+                self._console.print(f"[yellow]{format_result.unwrap()}[/yellow]")
+            elif message_type == "success":
+                self._console.print(f"[green]{format_result.unwrap()}[/green]")
+            else:
+                self._console.print(format_result.unwrap())
+
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Message display failed: {e}")
+
+    def display_output(
+        self,
+        data: object,
+        format_type: str = "table",
+        options: FlextCliModels.FormatOptions | None = None,
+    ) -> FlextResult[None]:
+        """Display output data - alias for display_data for backward compatibility.
+
+        Args:
+            data: Data to display
+            format_type: Format type for output
+            options: Format options
+
+        Returns:
+            FlextResult[None]: Success or failure result
+
+        """
+        return self.display_data(data, format_type, options)
+
+    def create_command(
+        self,
+        name: str,
+        description: str,
+        handler: object,
+        arguments: list[str] | None = None,
+    ) -> FlextResult[dict[str, object]]:
+        """Create a command definition for CLI integration.
+        
+        Args:
+            name: Command name
+            description: Command description
+            handler: Command handler function
+            arguments: Command arguments list
+            
+        Returns:
+            FlextResult[dict[str, object]]: Command definition or error
+        """
+        try:
+            command_def = {
+                "name": name,
+                "description": description,
+                "handler": handler,
+                "arguments": arguments or [],
+                "created_at": datetime.now(UTC).isoformat(),
+            }
+            return FlextResult[dict[str, object]].ok(command_def)
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(f"Command creation failed: {e}")
+
     def export_data(
         self, data: object, file_path: Path, format_type: str = "json"
     ) -> FlextResult[None]:

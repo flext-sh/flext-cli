@@ -112,16 +112,15 @@ class TestFlextCliMainAdvanced:
             executed.append("test_command")
             return "success"
 
-        result = cli.add_command("test", test_command)
+        # Add command with no_args_is_help=False to allow execution without args
+        result = cli.add_command(
+            "test", test_command, click_options={"no_args_is_help": False}
+        )
         assert result.is_success
 
         # Should be able to execute the command using run_cli
-        try:
-            result = cli.run_cli(["test"])
-            assert "test_command" in executed or result.is_success
-        except SystemExit:
-            # CLI might exit normally, which is acceptable
-            pass
+        result = cli.run_cli(["test"], standalone_mode=False)
+        assert "test_command" in executed or result.is_success
 
     def test_cli_main_handles_help_command(self) -> None:
         """Test CLI handles help command."""

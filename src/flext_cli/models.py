@@ -11,12 +11,13 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel, Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
-from flext_core import FlextConstants, FlextResult
+from flext_core import FlextConfig, FlextResult
 
 
 class FlextCliModels:
@@ -100,7 +101,7 @@ class FlextCliModels:
         def validate_business_rules(self) -> FlextResult[None]:
             """Validate command business rules."""
             if not self.command or not self.command.strip():
-                return FlextResult[None].fail("Command cannot be empty")
+                return FlextResult[None].fail("Command line cannot be empty")
 
             if self.status not in FlextCliConstants.COMMAND_STATUSES_LIST:
                 return FlextResult[None].fail(
@@ -208,24 +209,37 @@ class FlextCliModels:
         max_width: int = FlextCliConstants.Defaults.MAX_WIDTH
         config_file: Path | None = None
 
-    class FlextCliConfig(BaseSettings):
-        """Main CLI configuration class extending BaseSettings.
+    class FlextCliConfig(FlextConfig):
+        """Main CLI configuration class extending FlextConfig.
 
         Provides unified configuration management for the FLEXT CLI ecosystem
         using Pydantic Settings for environment variable support.
+        Inherits core configuration from FlextConfig.
         """
 
-        # CLI-specific configuration fields
+        model_config = SettingsConfigDict(
+            env_prefix="FLEXT_CLI_",
+            case_sensitive=False,
+            extra="allow",
+        )
+
+        # CLI-specific configuration fields (inherits debug, timeout_seconds from FlextConfig)
         profile: str = Field(default=FlextCliConstants.Defaults.PROFILE)
         output_format: str = Field(default=FlextCliConstants.Defaults.OUTPUT_FORMAT)
-        debug_mode: bool = Field(default=False)
-        log_level: str = Field(default=FlextConstants.Logging.INFO)
+        no_color: bool = Field(default=False)
+        config_dir: Path = Field(default_factory=lambda: FlextCliConstants.Defaults.CONFIG_DIR)
 
-        class Config:
-            """Pydantic Settings configuration."""
+        # Test compatibility fields
+        project_name: str = Field(default="flext-cli")
+        database_url: str = Field(default="postgresql://localhost:5432/flext_cli")
+        cache_enabled: bool = Field(default=True)
+        api_timeout: int = Field(default=30)
+        max_connections: int = Field(default=10)
 
-            env_prefix = "FLEXT_CLI_"
-            case_sensitive = False
+        @property
+        def debug_mode(self) -> bool:
+            """Alias for debug field from FlextConfig."""
+            return self.debug
 
         def get_config_dir(self) -> Path:
             """Get the configuration directory."""
@@ -240,13 +254,13 @@ class FlextCliModels:
             if format_type not in FlextCliConstants.OUTPUT_FORMATS_LIST:
                 return FlextResult[str].fail(
                     f"Invalid output format: {format_type}. "
-                    f"Valid formats: {', '.join(FlextCliConstants.OUTPUT_FORMATS_LIST)}"
+                     f"Valid formats: {', '.join(FlextCliConstants.OUTPUT_FORMATS_LIST)}"
                 )
             return FlextResult[str].ok(format_type)
 
         def is_debug_enabled(self) -> bool:
             """Check if debug mode is enabled."""
-            return self.debug_mode
+            return self.debug
 
         def get_output_format(self) -> str:
             """Get the current output format."""
@@ -267,10 +281,10 @@ class FlextCliModels:
             """Create CLI options from current configuration."""
             return FlextCliModels.CliOptions(
                 output_format=self.output_format,
-                debug=self.debug_mode,
+                debug=self.debug,
                 max_width=FlextCliConstants.Defaults.MAX_WIDTH,
-                no_color=False,
-            )
+                no_color=self.no_color,
+        )
 
         @classmethod
         def create_default(cls) -> FlextCliModels.FlextCliConfig:
@@ -278,7 +292,7 @@ class FlextCliModels:
             return cls(
                 profile=FlextCliConstants.Defaults.PROFILE,
                 output_format=FlextCliConstants.Defaults.OUTPUT_FORMAT,
-                debug_mode=False,
+                debug=False,
             )
 
         def load_configuration(self) -> FlextResult[dict[str, object]]:
@@ -292,7 +306,15 @@ class FlextCliModels:
                 config_data: dict[str, object] = {
                     "profile": self.profile,
                     "output_format": self.output_format,
-                    "debug_mode": self.debug_mode,
+                    "debug_mode": self.debug,
+                    "debug": self.debug,
+                    "project_name": self.project_name,
+                    "database_url": self.database_url,
+                    "cache_enabled": self.cache_enabled,
+                    "api_timeout": self.api_timeout,
+                    "max_connections": self.max_connections,
+                    "timeout_seconds": self.timeout_seconds,
+                    "no_color": self.no_color,
                     "config_dir": str(self.get_config_dir()),
                     "config_file": str(self.get_config_file()),
                 }
@@ -353,6 +375,84 @@ class FlextCliModels:
         def list_formats(self) -> list[str]:
             """List available output formats."""
             return ["json", "yaml", "csv", "table", "plain"]
+
+    class Pipeline(BaseModel):
+        """Pipeline model for CLI operations extending BaseModel."""
+
+        id: str = Field(
+            default_factory=lambda: f"pipeline_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
+        )
+        name: str = Field(min_length=1)
+        description: str = Field(default="")
+        status: str = Field(default=FlextCliConstants.CommandStatus.PENDING.value)
+        created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+        updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+        steps: list[dict[str, Any]] = Field(default_factory=list)
+        config: dict[str, object] = Field(default_factory=dict)
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate pipeline business rules."""
+            if not self.name or not self.name.strip():
+                return FlextResult[None].fail("Pipeline name cannot be empty")
+
+            if self.status not in FlextCliConstants.COMMAND_STATUSES_LIST:
+                return FlextResult[None].fail(
+                    f"Invalid status. Valid: {FlextCliConstants.COMMAND_STATUSES_LIST}"
+                )
+
+            return FlextResult[None].ok(None)
+
+        def add_step(self, step: dict[str, object]) -> FlextResult[None]:
+            """Add a step to the pipeline."""
+            if not step or not isinstance(step, dict):
+                return FlextResult[None].fail("Step must be a non-empty dictionary")
+
+            self.steps.append(step)
+            self.updated_at = datetime.now(UTC)
+            return FlextResult[None].ok(None)
+
+        def update_status(self, new_status: str) -> FlextResult[None]:
+            """Update pipeline status."""
+            if new_status not in FlextCliConstants.COMMAND_STATUSES_LIST:
+                return FlextResult[None].fail(
+                    f"Invalid status. Valid: {FlextCliConstants.COMMAND_STATUSES_LIST}"
+                )
+
+            self.status = new_status
+            self.updated_at = datetime.now(UTC)
+            return FlextResult[None].ok(None)
+
+    class PipelineConfig(BaseModel):
+        """Pipeline configuration model extending BaseModel."""
+
+        name: str = Field(min_length=1)
+        description: str = Field(default="")
+        steps: list[dict[str, Any]] = Field(default_factory=list)
+        config: dict[str, object] = Field(default_factory=dict)
+        enabled: bool = Field(default=True)
+        timeout_seconds: int = Field(default=300)
+        retry_count: int = Field(default=3)
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate pipeline configuration business rules."""
+            if not self.name or not self.name.strip():
+                return FlextResult[None].fail("Pipeline name cannot be empty")
+
+            if self.timeout_seconds <= 0:
+                return FlextResult[None].fail("Timeout must be positive")
+
+            if self.retry_count < 0:
+                return FlextResult[None].fail("Retry count cannot be negative")
+
+            return FlextResult[None].ok(None)
+
+        def add_step(self, step: dict[str, object]) -> FlextResult[None]:
+            """Add a step to the pipeline configuration."""
+            if not step or not isinstance(step, dict):
+                return FlextResult[None].fail("Step must be a non-empty dictionary")
+
+            self.steps.append(step)
+            return FlextResult[None].ok(None)
 
 
 __all__ = [

@@ -30,8 +30,8 @@ class TestFlextCliModelsCliCommand:
         assert command.command == "test"
         assert command.status == FlextCliConstants.CommandStatus.PENDING
         assert command.exit_code is None
-        assert command.output == ""
-        assert command.error_output == ""
+        assert not command.output
+        assert not command.error_output
         assert isinstance(command.created_at, datetime)
 
     def test_cli_command_with_all_fields(self) -> None:
@@ -174,7 +174,7 @@ class TestFlextCliModelsCliConfig:
         config = FlextCliModels.CliConfig(
             profile="development",
             output_format="json",
-            debug_mode=True,
+            debug=True,
         )
 
         assert config.profile == "development"

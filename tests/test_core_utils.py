@@ -51,7 +51,7 @@ class TestFlextCliConfig:
         """Test config creation with custom values."""
         config = FlextCliModels.FlextCliConfig(
             profile="test",
-            debug_mode=True,
+            debug=True,
             output_format="json",
         )
 
@@ -93,8 +93,8 @@ class TestFlextCliConfig:
 
     def test_config_is_debug_enabled(self) -> None:
         """Test is_debug_enabled method."""
-        config_debug = FlextCliModels.FlextCliConfig(debug_mode=True)
-        config_no_debug = FlextCliModels.FlextCliConfig(debug_mode=False)
+        config_debug = FlextCliModels.FlextCliConfig(debug=True)
+        config_no_debug = FlextCliModels.FlextCliConfig(debug=False)
 
         assert config_debug.is_debug_enabled() is True
         assert config_no_debug.is_debug_enabled() is False
@@ -121,7 +121,7 @@ class TestFlextCliConfig:
 
     def test_config_create_cli_options(self) -> None:
         """Test create_cli_options method."""
-        config = FlextCliModels.FlextCliConfig(output_format="json", debug_mode=True)
+        config = FlextCliModels.FlextCliConfig(output_format="json", debug=True)
         cli_options = config.create_cli_options()
 
         assert isinstance(cli_options, FlextCliModels.CliOptions)
@@ -140,7 +140,7 @@ class TestFlextCliConfig:
     def test_config_load_configuration(self) -> None:
         """Test load_configuration method."""
         config = FlextCliModels.FlextCliConfig(
-            profile="test", output_format="json", debug_mode=True
+            profile="test", output_format="json", debug=True
         )
         result = config.load_configuration()
 
@@ -157,7 +157,7 @@ class TestConfigIntegration:
 
     def test_config_and_service_integration(self) -> None:
         """Test configuration works with service."""
-        config = FlextCliModels.FlextCliConfig(debug_mode=True)
+        config = FlextCliModels.FlextCliConfig(debug=True)
         service = FlextCliService()
 
         health_result = service.flext_cli_health()
@@ -171,7 +171,7 @@ class TestConfigIntegration:
     def test_service_configure_with_config_object(self) -> None:
         """Test service configuration with FlextCliConfig object."""
         config = FlextCliModels.FlextCliConfig(
-            profile="integration_test", output_format="json", debug_mode=True
+            profile="integration_test", output_format="json", debug=True
         )
         service = FlextCliService()
 

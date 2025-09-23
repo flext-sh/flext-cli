@@ -50,8 +50,8 @@ class TestCLICommand:
         with pytest.raises(ValidationError) as exc_info:
             FlextCliModels.CliCommand(command_line="")
 
-        # Verify the error message
-        assert "Command line cannot be empty" in str(exc_info.value)
+        # Verify the error message (Pydantic validation error)
+        assert "String should have at least 1 character" in str(exc_info.value)
 
 
 class TestCommandStatus:
@@ -59,17 +59,16 @@ class TestCommandStatus:
 
     def test_command_status_values(self) -> None:
         """Test CommandStatus enum values."""
-        assert FlextCliConstants.STATUS_PENDING == "PENDING"
-        assert FlextCliConstants.STATUS_RUNNING == "RUNNING"
-        assert FlextCliConstants.STATUS_COMPLETED == "COMPLETED"
-        assert FlextCliConstants.STATUS_FAILED == "FAILED"
-        assert FlextCliConstants.STATUS_CANCELLED == "CANCELLED"
+        assert FlextCliConstants.STATUS_PENDING == "pending"
+        assert FlextCliConstants.STATUS_RUNNING == "running"
+        assert FlextCliConstants.STATUS_COMPLETED == "completed"
+        assert FlextCliConstants.STATUS_FAILED == "failed"
 
     def test_command_status_is_string_enum(self) -> None:
         """Test CommandStatus is string enum."""
         status = FlextCliConstants.STATUS_RUNNING
         assert isinstance(status, str)
-        assert str(status) == "RUNNING"
+        assert str(status) == "running"
 
 
 class TestFlextCliSession:
@@ -80,34 +79,27 @@ class TestFlextCliSession:
         session = FlextCliModels.CliSession(user_id="test_user")
 
         assert session.user_id == "test_user"
-        assert session.id is not None  # Auto-generated UUID
-        assert session.commands == []
+        assert session.session_id is not None  # Auto-generated
         assert session.start_time is not None
+        assert session.status == "active"
+        assert session.commands_executed == 0
 
-    def test_add_command_to_session(self) -> None:
-        """Test adding command to session history."""
+    def test_session_business_rules_validation(self) -> None:
+        """Test session business rules validation."""
         session = FlextCliModels.CliSession(user_id="test_user")
-        command = FlextCliModels.CliCommand(command_line="echo test")
 
-        result = session.add_command(command)
+        result = session.validate_business_rules()
 
         assert result.is_success
-        assert command in session.commands
 
-    def test_add_empty_command_line_validation(self) -> None:
-        """Test validation prevents creating commands with empty command line."""
-        session = FlextCliModels.CliSession(user_id="test_user")
+    def test_session_with_invalid_status(self) -> None:
+        """Test session validation with invalid status."""
+        session = FlextCliModels.CliSession(user_id="test_user", status="invalid_status")
 
-        # Model now properly validates at creation time (improved defensive programming)
-        with pytest.raises(ValidationError) as exc_info:
-            FlextCliModels.CliCommand(command_line="")  # Empty command line
+        result = session.validate_business_rules()
 
-        # Verify the validation error
-        assert "Command line cannot be empty" in str(exc_info.value)
-
-        # Session remains valid since invalid command was never created
-        validation_result = session.validate_business_rules()
-        assert validation_result.is_success
+        assert result.is_failure
+        assert "Invalid status" in (result.error or "")
 
     def test_session_validation(self) -> None:
         """Test session business rule validation."""

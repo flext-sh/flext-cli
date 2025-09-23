@@ -129,7 +129,8 @@ class FlextCliSessionService(FlextService[dict[str, object]]):
                 user_validation.error or "User validation failed"
             )
 
-        validated_user_id = user_validation.unwrap()
+        # Get validated user ID - handle None case properly
+        validated_user_id = user_validation.value if user_validation.is_success else None
 
         try:
             # Create session using nested helper

@@ -263,5 +263,32 @@ class FlextCliAuth(FlextService[dict[str, object]]):
         except Exception as e:
             return FlextResult[str].fail(f"Authentication failed: {e}")
 
+    def authenticate_user(self, username: str, password: str) -> FlextResult[str]:
+        """Authenticate user with username and password - alias for authenticate.
+
+        Args:
+            username: User's username
+            password: User's password
+
+        Returns:
+            FlextResult[str]: Authentication token or error message
+
+        """
+        credentials = {"username": username, "password": password}
+        return self.authenticate(credentials)
+
+    def login(self, username: str, password: str) -> FlextResult[str]:
+        """Login user with username and password - alias for authenticate_user.
+
+        Args:
+            username: User's username
+            password: User's password
+
+        Returns:
+            FlextResult[str]: Authentication token or error message
+
+        """
+        return self.authenticate_user(username, password)
+
 
 __all__ = ["FlextCliAuth"]

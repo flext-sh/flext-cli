@@ -23,7 +23,7 @@ class TestDebugCommandReal:
     """Test debug command group with real functionality using flext-cli."""
 
     def setup_method(self) -> None:
-        """Setup test method with real components."""
+        """Initialize test class with real components."""
         self.cli_api = FlextCliApi()
         self.cli_main = FlextCliMain(name="test-debug", description="Test debug CLI")
         self.formatter = FlextCliFormatters()
@@ -111,7 +111,7 @@ class TestValidateCommandReal:
     def test_validate_config_real(self) -> None:
         """Test configuration validation."""
         config = FlextCliModels.FlextCliConfig(
-            profile="test", output_format="json", debug_mode=True
+            profile="test", output_format="json", debug=True
         )
 
         validation_data = {

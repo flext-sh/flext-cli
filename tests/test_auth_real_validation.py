@@ -22,7 +22,7 @@ class TestFlextCliAuthRealValidation:
         # Test execute method returns success
         result: FlextResult[str] = auth.execute()
         assert result.is_success
-        assert "FlextCliAuth service operational" in result.value
+        assert "FlextCliAuth service operational" in result.value["message"]
 
     def test_config_retrieval(self) -> None:
         """Test that config is retrieved correctly."""

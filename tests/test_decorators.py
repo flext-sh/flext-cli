@@ -177,7 +177,7 @@ class TestFlextCliDecorators(unittest.TestCase):
         """Test handle_service_result with async function."""
 
         @FlextCliDecorators.handle_service_result
-        def test_func() -> FlextResult[str]:
+        async def test_func() -> FlextResult[str]:
             return FlextResult[str].ok("async_handled")
 
         # Run the async function
@@ -188,12 +188,13 @@ class TestFlextCliDecorators(unittest.TestCase):
         asyncio.run(run_test())
 
     def test_handle_service_result_async_failure(self) -> None:
-        """Test handle_service_result with async function failure."""
+        """Test handle_service_result with async function that fails."""
 
         @FlextCliDecorators.handle_service_result
-        def test_func() -> FlextResult[str]:
+        async def test_func() -> FlextResult[str]:
             return FlextResult[str].fail("async_error")
 
+        # Run the async function
         async def run_test() -> None:
             result = await test_func()
             assert result is None

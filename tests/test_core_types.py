@@ -42,50 +42,51 @@ class TestFlextCliTypings:
         assert "html" not in all_formats.values()
 
     def test_commands_classes_exist(self) -> None:
-        """Test Commands nested classes exist."""
+        """Test Commands constants exist."""
         commands = FlextCliTypings.Commands
 
-        assert hasattr(commands, "PendingState")
-        assert hasattr(commands, "RunningState")
-        assert hasattr(commands, "CompletedState")
-        assert hasattr(commands, "FailedState")
-        assert hasattr(commands, "CliCommandContext")
+        assert hasattr(commands, "AUTH")
+        assert hasattr(commands, "CONFIG")
+        assert hasattr(commands, "DEBUG")
+        assert hasattr(commands, "FORMAT")
+        assert hasattr(commands, "EXPORT")
 
     def test_config_classes_exist(self) -> None:
-        """Test Config nested classes exist."""
+        """Test Config constants exist."""
         config = FlextCliTypings.Config
 
-        assert hasattr(config, "DevelopmentProfile")
-        assert hasattr(config, "ProductionProfile")
-        assert hasattr(config, "TestingProfile")
-        assert hasattr(config, "CliConfigContext")
+        assert hasattr(config, "DEFAULT_PROFILE")
+        assert hasattr(config, "DEFAULT_OUTPUT_FORMAT")
+        assert hasattr(config, "DEFAULT_TIMEOUT")
 
     def test_auth_classes_exist(self) -> None:
-        """Test Auth nested classes exist."""
+        """Test Auth constants exist."""
         auth = FlextCliTypings.Auth
 
-        assert hasattr(auth, "CliAuthContext")
+        assert hasattr(auth, "TOKEN_FILENAME")
+        assert hasattr(auth, "CONFIG_FILENAME")
 
     def test_session_classes_exist(self) -> None:
-        """Test Session nested classes exist."""
+        """Test Session constants exist."""
         session = FlextCliTypings.Session
 
-        assert hasattr(session, "CliSessionContext")
+        assert hasattr(session, "DEFAULT_TIMEOUT")
+        assert hasattr(session, "MAX_COMMANDS")
 
     def test_services_classes_exist(self) -> None:
-        """Test Services nested classes exist."""
+        """Test Services constants exist."""
         services = FlextCliTypings.Services
 
-        assert hasattr(services, "CliServiceContext")
+        assert hasattr(services, "API")
+        assert hasattr(services, "FORMATTER")
+        assert hasattr(services, "AUTH")
 
     def test_protocols_exist(self) -> None:
-        """Test Protocol classes exist."""
+        """Test Protocol constants exist."""
         protocols = FlextCliTypings.Protocols
 
-        assert hasattr(protocols, "CliProcessor")
-        assert hasattr(protocols, "CliValidator")
-        assert hasattr(protocols, "CliFormatter")
-        assert hasattr(protocols, "CliAuthenticator")
+        assert hasattr(protocols, "HTTP")
+        assert hasattr(protocols, "HTTPS")
 
     def test_flext_types_inheritance(self) -> None:
         """Test FlextTypes inherits from CoreFlextTypes."""

@@ -12,6 +12,7 @@ from __future__ import annotations
 import csv
 import json
 from collections.abc import Callable
+from typing import override
 from datetime import UTC, datetime
 from io import StringIO
 from pathlib import Path
@@ -52,13 +53,14 @@ class FlextCliService(FlextService[FlextTypes.Core.Dict]):
         super().__init__()
         self._logger = FlextLogger(__name__)
         self._container = FlextContainer.get_global()
-        self._cli_config = FlextCliModels.FlextCliConfig.create_default()
+        self._cli_config: FlextCliModels.FlextCliConfig = FlextCliModels.FlextCliConfig.create_default()
         self._handlers: dict[str, HandlerFunction] = {}
         self._plugins: dict[str, FlextCliModels.CliCommand] = {}
         self._sessions: dict[str, FlextCliModels.CliSession] = {}
         self._commands: dict[str, FlextCliModels.CliCommand] = {}
         self._formatters = FlextCliModels.CliFormatters()
 
+    @override
     def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute CLI service - required by FlextService."""
         self._logger.info("CLI service operational")
