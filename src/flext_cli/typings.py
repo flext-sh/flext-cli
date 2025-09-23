@@ -85,7 +85,7 @@ class FlextCliTypings:
     class Auth:
         """CLI authentication constants."""
 
-        TOKEN_FILENAME = "token.json"  # Auth token storage filename
+        TOKEN_FILENAME = "token.json"  # noqa: S105 - Auth token storage filename, not a password
         CONFIG_FILENAME = "auth.json"
 
     class Session:

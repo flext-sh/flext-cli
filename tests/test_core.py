@@ -91,7 +91,7 @@ class TestFlextCliServiceConfiguration:
         """Test configuring service with FlextCliModels.FlextCliConfig object."""
         service = FlextCliService()
         config = FlextCliModels.FlextCliConfig(
-            debug_mode=True,
+            debug=True,
             output_format="json",
             profile="test-profile",
         )
@@ -246,7 +246,7 @@ class TestFlextCliServiceHealth:
         """Test health check after explicit configuration."""
         service = FlextCliService()
         config = FlextCliModels.FlextCliConfig(
-            debug_mode=True, output_format="json", profile="test"
+            debug=True, output_format="json", profile="test"
         )
         service.configure(config)
 

@@ -100,6 +100,34 @@ class FlextCliConstants:
         TIMEOUT_ERROR = "TIMEOUT_ERROR"
         FORMAT_ERROR = "FORMAT_ERROR"
 
+    # HTTP constants for API operations
+    class HTTP:
+        """HTTP-related constants for CLI API operations."""
+        
+        GET = "GET"
+        POST = "POST"
+        PUT = "PUT"
+        DELETE = "DELETE"
+        PATCH = "PATCH"
+        HEAD = "HEAD"
+        OPTIONS = "OPTIONS"
+
+    # Timeout constants
+    class TIMEOUTS:
+        """Timeout-related constants for CLI operations."""
+        
+        DEFAULT: Final[int] = 30
+        SHORT: Final[int] = 5
+        MEDIUM: Final[int] = 30
+        LONG: Final[int] = 300
+        EXTENDED: Final[int] = 600
+
+    # Status constants for backward compatibility
+    STATUS_PENDING: Final[str] = CommandStatus.PENDING.value
+    STATUS_RUNNING: Final[str] = CommandStatus.RUNNING.value
+    STATUS_COMPLETED: Final[str] = CommandStatus.COMPLETED.value
+    STATUS_FAILED: Final[str] = CommandStatus.FAILED.value
+
     # Static lists derived from enums
     OUTPUT_FORMATS_LIST: Final[list[str]] = [
         format_type.value for format_type in OutputFormats

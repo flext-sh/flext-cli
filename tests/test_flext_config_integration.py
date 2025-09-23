@@ -64,7 +64,7 @@ class TestFlextConfigIntegration:
         """Test FlextCliConfig with explicit constructor values."""
         # Create config with explicit values
         cli_config = FlextCliModels.FlextCliConfig(
-            profile="explicit-profile", output_format="yaml", debug_mode=True
+            profile="explicit-profile", output_format="yaml", debug=True
         )
 
         # Verify explicit values are used
@@ -108,7 +108,7 @@ class TestFlextConfigIntegration:
         """Test Pydantic model validation."""
         # Test valid config creation
         config = FlextCliModels.FlextCliConfig(
-            profile="test", output_format="json", debug_mode=False
+            profile="test", output_format="json", debug=False
         )
         assert config.profile == "test"
         assert config.output_format == "json"

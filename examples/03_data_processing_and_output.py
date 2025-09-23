@@ -45,7 +45,7 @@ def _demonstrate_data_transformation(
     formatter.print_success("\n1. 🔄 Data Transformation with FLEXT CLI")
 
     # Sample raw data
-    raw_data = [
+    raw_data: list[dict[str, object]] = [
         {
             "name": "Service A",
             "status": "running",
@@ -125,7 +125,7 @@ def _demonstrate_data_aggregation(formatter: FlextCliFormatters) -> FlextResult[
     formatter.print_success("\n2. 📊 Data Aggregation Patterns")
 
     # Sample metrics data
-    metrics_data = [
+    metrics_data: list[dict[str, object]] = [
         {
             "timestamp": "2025-01-15T10:00:00",
             "service": "api",
@@ -253,7 +253,7 @@ def _demonstrate_file_operations(formatter: FlextCliFormatters) -> FlextResult[N
     formatter.print_success("\n4. 📁 File Operations with Type Safety")
 
     # Sample configuration data
-    config_data = {
+    config_data: dict[str, object] = {
         "database": {"host": "localhost", "port": 5432, "database": "flext_demo"},
         "api": {"host": "localhost", "port": 8080, "debug": False},
         "logging": {"level": "INFO", "file": "/var/log/flext-demo.log"},

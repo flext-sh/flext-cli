@@ -26,6 +26,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from typing import override
 
 import yaml
 
@@ -87,9 +88,10 @@ class EcosystemService(FlextCliService):
         self._auth_service = FlextCliAuth()
         self._formatters = FlextCliFormatters()
 
-    def execute(self) -> FlextResult[str]:
+    @override
+    def execute(self) -> FlextResult[dict[str, object]]:
         """Execute ecosystem service operation - FlextCliService interface."""
-        return FlextResult[str].ok("Ecosystem service executed successfully")
+        return FlextResult[dict[str, object]].ok({"status": "Ecosystem service executed successfully"})
 
     def get_health_status(self) -> FlextResult[dict[str, object]]:
         """Get health status of all FLEXT services."""
@@ -122,7 +124,7 @@ class EcosystemService(FlextCliService):
         self, operation: str, project: str
     ) -> FlextResult[dict[str, object]]:
         """Run Meltano operation."""
-        operations = {
+        operations: dict[str, dict[str, object]] = {
             "run": {"status": "completed", "pipelines": 3, "duration": "2m 34s"},
             "test": {"status": "passed", "tests": 15, "duration": "45s"},
             "invoke": {"status": "completed", "tasks": 2, "duration": "1m 12s"},
@@ -222,8 +224,8 @@ def health() -> None:
         health_data = health_result.unwrap()
         print("=== FLEXT Ecosystem Health ===")
         for service_name, status in health_data.items():
-            if isinstance(status, dict) and isinstance(service_name, str):
-                status_dict = status
+            if isinstance(status, dict):
+                status_dict: dict[str, str] = status
                 print(
                     f"{service_name}: {status_dict.get('status', 'unknown')} ({status_dict.get('response_time', 'unknown')})"
                 )
@@ -239,12 +241,12 @@ def authenticate(username: str, password: str) -> None:
     if auth_result.is_success:
         token_data = auth_result.unwrap()
         print("=== Authentication Results ===")
-        if isinstance(token_data, dict):
-            print(f"Username: {token_data.get('username', 'unknown')}")
-            print(f"Token: {token_data.get('token', 'unknown')}")
-            print(f"Expires in: {token_data.get('expires_in', 'unknown')} seconds")
-            services = token_data.get("services", [])
-            if isinstance(services, list):
+        token_data_dict: dict[str, object] = token_data
+        print(f"Username: {token_data_dict.get('username', 'unknown')}")
+        print(f"Token: {token_data_dict.get('token', 'unknown')}")
+        print(f"Expires in: {token_data_dict.get('expires_in', 'unknown')} seconds")
+        services: list[object] = token_data_dict.get("services", [])
+        if isinstance(services, list):
                 print(f"Services: {', '.join(str(s) for s in services)}")
     else:
         print(f"Authentication failed: {auth_result.error}")

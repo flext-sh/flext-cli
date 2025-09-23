@@ -26,7 +26,7 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime, timedelta
 
-from examples import print_demo_completion
+from examples.example_utils import print_demo_completion
 
 from flext_cli import (
     FlextCliAuth,
@@ -62,17 +62,18 @@ def demonstrate_basic_authentication() -> FlextResult[None]:
     # 2. Retrieve authentication headers
     console.print("\n[green]2. Authorization Headers[/green]")
 
-    # get_auth_headers returns FlextResult[FlextTypes.Core.Headers]
-    headers_result = auth.get_auth_headers()
+    # get_auth_status returns FlextResult[FlextTypes.Core.Dict]
+    headers_result = auth.get_auth_status()
 
     # Handle FlextResult type
     if hasattr(headers_result, "is_success") and hasattr(headers_result, "value"):
         if getattr(headers_result, "is_success"):
             headers = getattr(headers_result, "value") or {}
             if isinstance(headers, dict):
+                headers_dict: dict[str, object] = headers
                 console.print("✅ Authorization headers retrieved")
                 console.print("   Headers structure:")
-                for key, value in headers.items():
+                for key, value in headers_dict.items():
                     # Mask sensitive values
                     max_display_length = 10
                     display_value = (

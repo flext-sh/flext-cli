@@ -11,6 +11,7 @@ import io
 import json
 import tempfile
 from pathlib import Path
+from typing import Any
 
 import yaml
 from rich.console import Console
@@ -48,7 +49,7 @@ class TestFlextCliContext:
     def test_api_display_data_method(self) -> None:
         """Test API display_data method."""
         api = FlextCliApi()
-        test_data = {"key": "value", "number": 42}
+        test_data: dict[str, object] = {"key": "value", "number": 42}
         result = api.display_data(test_data, "json")
 
         assert result.is_success
@@ -59,7 +60,7 @@ class TestFormatting:
 
     def test_flext_cli_format_json(self) -> None:
         """Test JSON formatting."""
-        data = {"key": "value", "number": 42}
+        data: dict[str, object] = {"key": "value", "number": 42}
         api = FlextCliApi()
 
         result = api.format_data(data, "json")
@@ -73,7 +74,7 @@ class TestFormatting:
 
     def test_flext_cli_format_yaml(self) -> None:
         """Test YAML formatting."""
-        data = {"key": "value", "list": [1, 2, 3]}
+        data: dict[str, object] = {"key": "value", "list": [1, 2, 3]}
 
         api = FlextCliApi()
         result = api.format_data(data, "yaml")
@@ -85,7 +86,7 @@ class TestFormatting:
 
     def test_flext_cli_format_table(self) -> None:
         """Test table formatting."""
-        data = {"name": "John", "age": 30}
+        data: dict[str, object] = {"name": "John", "age": 30}
 
         api = FlextCliApi()
         result = api.format_data(data, "table")
@@ -225,7 +226,7 @@ class TestTableCreation:
 
     def test_table_creation_dict(self) -> None:
         """Test flext_cli_table with dictionary."""
-        data = {"name": "John", "age": 30}
+        data: dict[str, object] = {"name": "John", "age": 30}
         api = FlextCliApi()
         result = api.format_data(data, "table")
 
@@ -327,7 +328,7 @@ class TestDataExport:
 
     def test_flext_cli_export_json(self) -> None:
         """Test JSON export."""
-        data = {"key": "value", "number": 42}
+        data: dict[str, Any] = {"key": "value", "number": 42}
 
         with tempfile.NamedTemporaryFile(
             encoding=FlextConstants.Mixins.DEFAULT_ENCODING,
@@ -351,7 +352,7 @@ class TestDataExport:
 
     def test_flext_cli_export_yaml(self) -> None:
         """Test YAML export."""
-        data = {"key": "value", "list": [1, 2, 3]}
+        data: dict[str, object] = {"key": "value", "list": [1, 2, 3]}
 
         with tempfile.NamedTemporaryFile(
             encoding=FlextConstants.Mixins.DEFAULT_ENCODING,

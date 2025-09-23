@@ -23,6 +23,7 @@ from __future__ import annotations
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any, List
 
 from flext_cli import (
     FlextCliApi,
@@ -53,10 +54,10 @@ class ComprehensiveCliApplication:
         """Initialize the CLI application with setup and validation."""
         try:
             # Display initialization message using flext-cli API
-            self.cli_api.display_message(
-                "Initializing application with full flext-cli integration...",
-                message_type="info",
-            )
+            self.cli_api.display_data({
+                "message": "Initializing application with full flext-cli integration...",
+                "type": "info",
+            })
 
             # Setup CLI foundation
             setup_result = FlextResult[None].ok(None)
@@ -69,9 +70,10 @@ class ComprehensiveCliApplication:
             # Load user preferences
             self._load_user_preferences()
 
-            self.cli_api.display_message(
-                "Application initialized successfully", message_type="success"
-            )
+            self.cli_api.display_data({
+                "message": "Application initialized successfully",
+                "type": "success"
+            })
             return FlextResult[None].ok(None)
 
         except Exception as e:
@@ -79,7 +81,7 @@ class ComprehensiveCliApplication:
 
     def _register_core_services(self) -> None:
         """Register core services in the DI container."""
-        services = [
+        services: List[tuple[str, Any]] = [
             ("logger", self.logger),
             ("config", self.config),
             ("api_client", self.api_client),

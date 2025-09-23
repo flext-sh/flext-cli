@@ -29,7 +29,7 @@ import asyncio
 import time
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Protocol, cast
+from typing import Protocol, cast, override
 
 from rich.progress import Progress, SpinnerColumn, TaskID, TextColumn
 from rich.table import Table
@@ -96,9 +96,10 @@ class AdvancedCliService(FlextCliService):
         # Initialize circuit_breakers as public attribute
         self.circuit_breakers: dict[str, dict[str, object]] = {}
 
-    def execute(self) -> FlextResult[str]:
+    @override
+    def execute(self) -> FlextResult[dict[str, object]]:
         """Execute advanced CLI service operations."""
-        return FlextResult[str].ok("AdvancedCliService operational")
+        return FlextResult[dict[str, object]].ok({"status": "AdvancedCliService operational"})
 
     # Removed problematic decorators - @cli_enhanced, @cli_measure_time, @cli_retry
     # These decorators cause type inference issues with PyRight
@@ -187,7 +188,7 @@ class AdvancedCliService(FlextCliService):
                         f"Orchestration failed at {service_name}: {step_result.error}"
                     )
 
-            orchestration_result = {
+            orchestration_result: dict[str, object] = {
                 "operation": operation,
                 "status": "completed",
                 "steps_executed": len(orchestration_steps),
@@ -269,11 +270,7 @@ class AdvancedCliService(FlextCliService):
 
             failure_count = int(str(breaker.get("failure_count", 0)))
             failure_threshold = int(str(breaker.get("failure_threshold", 5)))
-            if (
-                isinstance(failure_count, int)
-                and isinstance(failure_threshold, int)
-                and failure_count >= failure_threshold
-            ):
+            if failure_count >= failure_threshold:
                 breaker["state"] = CircuitBreakerState.OPEN
                 if (
                     hasattr(self, "logger")
@@ -378,7 +375,7 @@ async def demonstrate_async_service_operations() -> None:
         console=console,
     ) as progress:
         # Create async tasks for concurrent health checks
-        tasks = []
+        tasks: list[object] = []
 
         for service_name in services:
             task = progress.add_task(f"Checking {service_name}...", total=100)
@@ -407,6 +404,7 @@ async def demonstrate_async_service_operations() -> None:
     health_table.add_column("Details", style="blue")
 
     for service_name, result in results:
+        result = cast(FlextResult[FlextTypes.Core.Dict], result)
         if result.is_success:
             data = result.value
             status = data.get("status", "unknown")

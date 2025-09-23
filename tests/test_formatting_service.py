@@ -10,7 +10,6 @@ from __future__ import annotations
 
 from flext_cli import FlextCliFormatters as ImportedService
 from flext_cli.flext_cli_formatters import FlextCliFormatters
-from flext_core import FlextResult
 
 
 class TestFlextCliFormatters:

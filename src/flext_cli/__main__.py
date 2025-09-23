@@ -8,6 +8,12 @@ from __future__ import annotations
 
 from flext_cli.flext_cli_main import create_main_cli
 
-if __name__ == "__main__":
+
+def main() -> None:
+    """Main entry point for FLEXT CLI."""
     cli = create_main_cli()
     cli.run_cli()
+
+
+if __name__ == "__main__":
+    main()

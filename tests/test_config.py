@@ -28,7 +28,7 @@ class TestFlextCliConfig(unittest.TestCase):
         config = FlextCliModels.FlextCliConfig(
             profile="development",
             output_format="json",
-            debug_mode=True,
+            debug=True,
         )
 
         assert config.profile == "development"
@@ -67,7 +67,7 @@ class TestFlextCliConfig(unittest.TestCase):
     def test_config_nested_classes(self) -> None:
         """Test nested configuration classes."""
         cli_config = FlextCliModels.CliConfig(
-            profile="test", output_format="json", debug_mode=True
+            profile="test", output_format="json", debug=True
         )
         assert cli_config.profile == "test"
         assert cli_config.output_format == "json"
@@ -83,7 +83,7 @@ class TestFlextCliConfig(unittest.TestCase):
     def test_config_serialization(self) -> None:
         """Test FlextCliModels.FlextCliConfig load configuration."""
         config = FlextCliModels.FlextCliConfig(
-            profile="production", output_format="json", debug_mode=False
+            profile="production", output_format="json", debug=False
         )
 
         load_result = config.load_configuration()
@@ -113,7 +113,7 @@ class TestConfigIntegration(unittest.TestCase):
     def test_complete_config_workflow(self) -> None:
         """Test complete configuration workflow."""
         config = FlextCliModels.FlextCliConfig(
-            profile="test", output_format="yaml", debug_mode=True
+            profile="test", output_format="yaml", debug=True
         )
 
         assert config.is_debug_enabled() is True
