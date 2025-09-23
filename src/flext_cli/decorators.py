@@ -11,7 +11,7 @@ import functools
 import time
 from collections.abc import Awaitable, Callable, Mapping
 from pathlib import Path
-from typing import overload
+from typing import cast, overload
 
 from flext_cli.constants import FlextCliConstants
 from flext_core import FlextLogger, FlextResult, P, T
@@ -86,8 +86,10 @@ class FlextCliDecorators:
                     if isinstance(result, FlextResult):
                         if result.is_success:
                             # Type-safe extraction of value from FlextResult
-                            unwrapped_value: T = result.unwrap()
-                            return unwrapped_value
+                            # We know this is a success result, so unwrap() is safe
+                            # Type narrowing: result is FlextResult[T], so unwrap() returns T
+                            result_typed = cast("FlextResult[T]", result)
+                            return result_typed.unwrap()
                         # For failures, log error and return None
                         logger = FlextLogger(__name__)
                         logger.error(f"Async FlextResult error: {result.error}")
@@ -115,8 +117,10 @@ class FlextCliDecorators:
                 if isinstance(result, FlextResult):
                     if result.is_success:
                         # Type-safe extraction of value from FlextResult
-                        unwrapped_value: T = result.unwrap()
-                        return unwrapped_value
+                        # We know this is a success result, so unwrap() is safe
+                        # Type narrowing: result is FlextResult[T], so unwrap() returns T
+                        result_typed: FlextResult[T] = result
+                        return result_typed.unwrap()
                     # For failures, log error and return None
                     logger = FlextLogger(__name__)
                     logger.error(f"FlextResult error: {result.error}")
@@ -284,7 +288,8 @@ class FlextCliDecorators:
 
                 def _get(c: object, k: str) -> object | None:
                     if isinstance(c, Mapping):
-                        result = c.get(k)
+                        mapping_obj = cast("Mapping[str, object]", c)
+                        result: object | None = mapping_obj.get(k)
                         return result if result is not None else None
                     return getattr(c, k, None)
 

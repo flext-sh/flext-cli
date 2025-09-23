@@ -1,8 +1,7 @@
-"""FLEXT CLI - Example of using FlextConfig as source of truth.
+"""FLEXT CLI - Example of using FlextCliConfig with Pydantic BaseSettings.
 
-This example demonstrates how to use FlextConfig singleton pattern
-in the flext-cli module, showing how parameters can change behavior
-and how FlextConfig serves as the single source of truth.
+This example demonstrates how to use FlextCliConfig with Pydantic's BaseSettings
+pattern, showing environment variable loading, explicit values, and configuration methods.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -13,256 +12,160 @@ from __future__ import annotations
 import os
 
 from flext_cli import FlextCliModels
-from flext_core import FlextConfig
 
 
 def main() -> None:
-    """Demonstrate FlextConfig usage in flext-cli."""
-    print("💻 FLEXT CLI - FlextConfig Singleton Usage Example")
+    """Demonstrate FlextCliConfig usage with Pydantic BaseSettings."""
+    print("💻 FLEXT CLI - FlextCliConfig Pydantic BaseSettings Example")
     print("=" * 60)
 
     # =========================================================================
-    # 1. BASIC SINGLETON USAGE - Get global instance
+    # 1. BASIC CONFIG CREATION - Using defaults
     # =========================================================================
-    print("\n📋 1. Basic Singleton Usage")
-    print("-" * 30)
+    print("\n📋 1. Basic Config Creation with Defaults")
+    print("-" * 40)
 
-    # Get the global singleton instance (source of truth)
+    # Create config with default values
     config = FlextCliModels.FlextCliConfig()
-    print(f"Global config instance: {config}")
     print(f"Profile: {config.profile}")
-    print(f"Debug Mode: {config.debug}")
+    print(f"Debug Mode: {config.debug_mode}")
     print(f"Output Format: {config.output_format}")
-    print(f"API URL: {config.api_url}")
-    print(f"Log Level: {config.log_level}")
 
     # =========================================================================
-    # 2. CLI PARAMETER OVERRIDES - Modify behavior via FlextConfig
+    # 2. EXPLICIT VALUE INITIALIZATION
     # =========================================================================
-    print("\n🔧 2. CLI Parameter Overrides")
+    print("\n🔧 2. Explicit Value Initialization")
     print("-" * 35)
 
-    # Simulate CLI parameters that modify behavior
-    cli_params = {
-        "debug": True,
-        "output_format": "json",
-        "log_level": "DEBUG",
-        "profile": "development",
-    }
-
-    # Apply CLI overrides - this updates BOTH FlextConfig and FlextCliConfigs
-    override_result = FlextCliConfigs.apply_cli_overrides(cli_params)
-    if override_result.is_success:
-        updated_config = override_result.value
-        print("✅ CLI overrides applied successfully")
-        print(f"Updated Debug Mode: {updated_config.debug}")
-        print(f"Updated Output Format: {updated_config.output_format}")
-        print(f"Updated Log Level: {updated_config.log_level}")
-        print(f"Updated Profile: {updated_config.profile}")
-    else:
-        print(f"❌ CLI overrides failed: {override_result.error}")
-
-    # =========================================================================
-    # 3. SYNCHRONIZATION WITH FLEXT CONFIG - Ensure consistency
-    # =========================================================================
-    print("\n🔄 3. Synchronization with FlextConfig")
-    print("-" * 40)
-
-    # Ensure CLI config is synchronized with base FlextConfig
-    sync_result = FlextCliConfigs.sync_with_flext_config()
-    if sync_result.is_success:
-        synced_config = sync_result.value
-        print("✅ Synchronization successful")
-        print(f"Synchronized config: {synced_config}")
-    else:
-        print(f"❌ Synchronization failed: {sync_result.error}")
-
-    # =========================================================================
-    # 4. ENVIRONMENT VARIABLE OVERRIDES
-    # =========================================================================
-    print("\n🌍 4. Environment Variable Overrides")
-    print("-" * 40)
-
-    # Set environment variables to override configuration
-    os.environ["FLEXT_CLI_PROFILE"] = "production"
-    os.environ["FLEXT_CLI_DEBUG"] = "false"
-    os.environ["FLEXT_CLI_OUTPUT_FORMAT"] = "json"
-    os.environ["FLEXT_CLI_LOG_LEVEL"] = "INFO"
-    os.environ["FLEXT_CLI_API_URL"] = "https://api.production.com"
-
-    # Clear global instance to force reload from environment
-    FlextCliConfigs.clear_global_instance()
-
-    # Get new instance with environment overrides
-    env_config = FlextCliConfigs.get_global_instance()
-    print("Environment overridden config:")
-    print(f"  Profile: {env_config.profile}")
-    print(f"  Debug Mode: {env_config.debug}")
-    print(f"  Output Format: {env_config.output_format}")
-    print(f"  Log Level: {env_config.log_level}")
-    print(f"  API URL: {env_config.api_url}")
-
-    # =========================================================================
-    # 5. FLEXT CONFIG AS SINGLE SOURCE OF TRUTH
-    # =========================================================================
-    print("\n🎯 5. FlextConfig as Single Source of Truth")
-    print("-" * 45)
-
-    # Get the base FlextConfig singleton
-    base_config = FlextConfig.get_global_instance()
-    print("Base FlextConfig singleton:")
-    print(f"  Debug: {getattr(base_config, 'debug', 'N/A')}")
-    print(f"  Log Level: {getattr(base_config, 'log_level', 'N/A')}")
-    print(f"  API URL: {getattr(base_config, 'api_url', 'N/A')}")
-
-    # Show that CLI config inherits from base config
-    cli_config = FlextCliConfigs.get_global_instance()
-    print("\nCLI config inherits from base:")
-    print(f"  Debug: {cli_config.debug}")
-    print(f"  Log Level: {cli_config.log_level}")
-    print(f"  API URL: {cli_config.api_url}")
-    print(
-        f"  CLI-specific: Profile={cli_config.profile}, Output={cli_config.output_format}"
+    # Create config with explicit values
+    custom_config = FlextCliModels.FlextCliConfig(
+        profile="development", output_format="json", debug_mode=True
     )
 
+    print(f"Custom Profile: {custom_config.profile}")
+    print(f"Custom Output Format: {custom_config.output_format}")
+    print(f"Custom Debug Mode: {custom_config.debug_mode}")
+
     # =========================================================================
-    # 6. CLI PARAMETER OVERRIDES - Simulate CLI arguments
+    # 3. ENVIRONMENT VARIABLE LOADING (Pydantic BaseSettings feature)
     # =========================================================================
-    print("\n🖥️ 6. CLI Parameter Overrides")
+    print("\n🌍 3. Environment Variable Loading")
     print("-" * 35)
 
-    # Simulate CLI arguments that would override configuration
-    cli_params = {
-        "profile": "custom",
-        "debug": True,
-        "output_format": "yaml",
-        "log_level": "DEBUG",
-        "verbose": True,
-        "api_url": "https://api.custom.com",
-        "timeout": 60,
-    }
+    # Set environment variables (Pydantic will auto-load these)
+    os.environ["FLEXT_CLI_PROFILE"] = "production"
+    os.environ["FLEXT_CLI_OUTPUT_FORMAT"] = "yaml"
+    os.environ["FLEXT_CLI_DEBUG_MODE"] = "false"
 
-    # Apply CLI overrides to global configuration
-    override_result = FlextCliConfigs.apply_cli_overrides(cli_params)
+    # Create new config - will automatically load from environment
+    env_config = FlextCliModels.FlextCliConfig()
 
-    if override_result.is_success:
-        cli_config = override_result.value
-        print("CLI overrides applied:")
-        print(f"  Profile: {cli_config.profile}")
-        print(f"  Debug Mode: {cli_config.debug}")
-        print(f"  Output Format: {cli_config.output_format}")
-        print(f"  Log Level: {cli_config.log_level}")
-        print(f"  Verbose: {cli_config.verbose}")
-        print(f"  API URL: {cli_config.api_url}")
-        print(f"  Timeout: {cli_config.timeout}")
+    print(f"Env Profile: {env_config.profile}")
+    print(f"Env Output Format: {env_config.output_format}")
+    print(f"Env Debug Mode: {env_config.debug_mode}")
+
+    # Clean up environment
+    del os.environ["FLEXT_CLI_PROFILE"]
+    del os.environ["FLEXT_CLI_OUTPUT_FORMAT"]
+    del os.environ["FLEXT_CLI_DEBUG_MODE"]
 
     # =========================================================================
-    # 7. CONFIGURATION VALIDATION
+    # 4. CONFIG METHODS - Using actual FlextCliConfig methods
     # =========================================================================
-    print("\n✅ 7. Configuration Validation")
-    print("-" * 35)
+    print("\n🛠️ 4. Configuration Methods")
+    print("-" * 30)
 
-    # Validate current CLI configuration
-    validation_result = cli_config.validate_business_rules()
+    config = FlextCliModels.FlextCliConfig(
+        profile="test", output_format="table", debug_mode=False
+    )
+
+    # Test output format validation
+    validation_result = config.validate_output_format("json")
     if validation_result.is_success:
-        print("✅ CLI configuration is valid")
-    else:
-        print(f"❌ CLI configuration validation failed: {validation_result.error}")
+        print(f"✅ Format 'json' is valid: {validation_result.value}")
 
-    # Validate base FlextConfig
-    base_validation_result = base_config.validate_business_rules()
-    if base_validation_result.is_success:
-        print("✅ Base FlextConfig is valid")
+    # Test invalid format
+    invalid_result = config.validate_output_format("invalid_format")
+    if invalid_result.is_failure:
+        print(f"❌ Invalid format rejected: {invalid_result.error}")
+
+    # Test debug mode check
+    if config.is_debug_enabled():
+        print("Debug mode is enabled")
     else:
-        print(f"❌ Base FlextConfig validation failed: {base_validation_result.error}")
+        print("Debug mode is disabled")
+
+    # Test get output format
+    current_format = config.get_output_format()
+    print(f"Current output format: {current_format}")
 
     # =========================================================================
-    # 8. DIRECTORY VALIDATION
+    # 5. CONFIG DIRECTORY AND FILE PATHS
     # =========================================================================
-    print("\n📁 8. Directory Validation")
+    print("\n📁 5. Configuration Paths")
+    print("-" * 25)
+
+    config = FlextCliModels.FlextCliConfig()
+
+    # Get config directory
+    config_dir = config.get_config_dir()
+    print(f"Config directory: {config_dir}")
+
+    # Get config file path
+    config_file = config.get_config_file()
+    print(f"Config file: {config_file}")
+
+    # =========================================================================
+    # 6. CLI OPTIONS CREATION
+    # =========================================================================
+    print("\n⚙️ 6. CLI Options Creation")
     print("-" * 30)
 
-    # Validate CLI configuration directories
-    cli_config = FlextCliConfigs.get_global_instance()
+    config = FlextCliModels.FlextCliConfig(
+        profile="staging", output_format="json", debug_mode=True
+    )
 
-    # Validate directories (using ensure_directories for validation)
-    dir_validation_result = cli_config.ensure_directories()
-    if dir_validation_result.is_success:
-        print("✅ All directories are valid and accessible")
-    else:
-        print(f"❌ Directory validation failed: {dir_validation_result.error}")
-
-    # Ensure setup
-    setup_result = cli_config.ensure_setup()
-    if setup_result.is_success:
-        print("✅ Directory setup completed successfully")
-    else:
-        print(f"❌ Directory setup failed: {setup_result.error}")
+    # Create CLI options from config
+    cli_options = config.create_cli_options()
+    print(f"CLI Options: {cli_options}")
 
     # =========================================================================
-    # 9. CONFIGURATION EXPORT AND SERIALIZATION
+    # 7. LOAD CONFIGURATION (if config file exists)
     # =========================================================================
-    print("\n📤 9. Configuration Export")
+    print("\n📂 7. Load Configuration from File")
+    print("-" * 35)
+
+    config = FlextCliModels.FlextCliConfig()
+    load_result = config.load_configuration()
+
+    if load_result.is_success:
+        loaded_config = load_result.value
+        print("✅ Configuration loaded successfully")
+        print(f"Loaded profile: {loaded_config.get('profile', 'N/A')}")
+    else:
+        print(f"i No config file found (expected for new setups): {load_result.error}")
+
+    # =========================================================================
+    # 8. OUTPUT FORMAT MANAGEMENT
+    # =========================================================================
+    print("\n📤 8. Output Format Management")
     print("-" * 30)
 
-    # Export current CLI configuration
-    cli_config = FlextCliConfigs.get_global_instance()
+    config = FlextCliModels.FlextCliConfig(output_format="table")
+    print(f"Initial format: {config.get_output_format()}")
 
-    # Export configuration as dictionary
-    config_dict = cli_config.model_dump()
-    print("Configuration Dictionary:")
-    for key, value in config_dict.items():
-        if not key.startswith("_"):  # Skip private fields
-            print(f"  {key}: {value}")
+    # Change output format
+    set_result = config.set_output_format("json")
+    if set_result.is_success:
+        print(f"✅ Format changed to: {config.get_output_format()}")
 
-    # Export as JSON
-    config_json = cli_config.to_json(indent=2)
-    print("\nConfiguration JSON (first 200 chars):")
-    print(config_json[:200] + "..." if len(config_json) > 200 else config_json)
+    # Try invalid format
+    invalid_set = config.set_output_format("invalid")
+    if invalid_set.is_failure:
+        print(f"❌ Invalid format rejected: {invalid_set.error}")
 
-    # =========================================================================
-    # 10. GLOBAL INSTANCE MANAGEMENT
-    # =========================================================================
-    print("\n🌐 10. Global Instance Management")
-    print("-" * 40)
-
-    # Set a specific configuration as global
-    FlextCliConfigs.set_global_instance(cli_config)
-    print("✅ CLI configuration set as global instance")
-
-    # Verify global instance
-    global_config = FlextCliConfigs.get_global_instance()
-    print(f"Global instance Profile: {global_config.profile}")
-    print(f"Global instance Debug Mode: {global_config.debug}")
-
-    # Clear global instance
-    FlextCliConfigs.clear_global_instance()
-    print("✅ Global instance cleared")
-
-    # =========================================================================
-    # 11. SUMMARY - FLEXT CONFIG AS SINGLE SOURCE OF TRUTH
-    # =========================================================================
-    print("\n🎯 11. Summary - FlextConfig as Single Source of Truth")
-    print("-" * 55)
-
-    print("✅ FlextConfig singleton integration completed successfully!")
-    print("\nKey Benefits:")
-    print("  • FlextConfig serves as the single source of truth")
-    print("  • CLI parameters modify behavior via FlextConfig singleton")
-    print("  • Automatic synchronization between base and CLI configs")
-    print("  • Environment variables override base configuration")
-    print("  • CLI-specific settings extend base configuration")
-    print("  • Consistent configuration across entire application")
-
-    print("\nUsage Pattern:")
-    print("  1. Get base config: FlextConfig.get_global_instance()")
-    print("  2. Get CLI config: FlextCliConfigs.get_global_instance()")
-    print("  3. Apply CLI overrides: FlextCliConfigs.apply_cli_overrides()")
-    print("  4. Sync configs: FlextCliConfigs.sync_with_flext_config()")
-
-    print("\n🚀 FlextConfig singleton integration is ready for production use!")
-    print("\n🎉 FlextConfig usage example completed!")
-    print("=" * 60)
+    print("\n" + "=" * 60)
+    print("✅ FlextCliConfig Pydantic BaseSettings examples completed!")
 
 
 if __name__ == "__main__":

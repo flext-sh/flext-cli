@@ -9,18 +9,21 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping
+from datetime import datetime
 from io import StringIO
+from typing import IO, Literal, cast
 
+from flext_core.service import FlextService
 from rich.console import Console
+from rich.highlighter import ReprHighlighter
 from rich.progress import Progress, TaskID
+from rich.style import Style
 from rich.table import Table
 from rich.text import Text
+from rich.theme import Theme
 
-from flext_core import (
-    FlextLogger,
-    FlextResult,
-    FlextService,
-)
+from flext_core import FlextLogger, FlextResult
 
 
 class FlextCliFormatters(FlextService[str]):
@@ -94,9 +97,10 @@ class FlextCliFormatters(FlextService[str]):
 
         """
         try:
-            console = Console(file=StringIO(), width=width)
+            string_io: StringIO = StringIO()
+            console = Console(file=string_io, width=width)
             console.print(table)
-            return FlextResult[str].ok(console.file.getvalue())
+            return FlextResult[str].ok(string_io.getvalue())
         except Exception as e:
             return FlextResult[str].fail(f"Failed to convert table to string: {e}")
 
@@ -208,21 +212,175 @@ class FlextCliFormatters(FlextService[str]):
     class _ConsoleOutput:
         """Console output wrapper for compatibility."""
 
-        def __init__(self, file: object = None, **kwargs: object) -> None:
+        _console: Console
+
+        def __init__(
+            self,
+            file: IO[str] | None = None,
+            *,
+            color_system: Literal["auto", "standard", "256", "truecolor", "windows"]
+            | None = None,
+            force_terminal: bool | None = None,
+            force_jupyter: bool | None = None,
+            force_interactive: bool | None = None,
+            soft_wrap: bool = False,
+            theme: Theme | None = None,
+            stderr: bool = False,
+            quiet: bool = False,
+            width: int | None = None,
+            height: int | None = None,
+            style: str | Style | None = None,
+            no_color: bool | None = None,
+            tab_size: int = 8,
+            record: bool = False,
+            markup: bool = True,
+            emoji: bool = True,
+            emoji_variant: Literal["emoji", "text"] | None = None,
+            highlight: bool = True,
+            log_time: bool = True,
+            log_path: bool = True,
+            log_time_format: str = "[%X]",
+            highlighter: ReprHighlighter | None = None,
+            legacy_windows: bool | None = None,
+            safe_box: bool = True,
+            get_datetime: Callable[[], datetime] | None = None,
+            get_time: Callable[[], float] | None = None,
+            _environ: Mapping[str, str] | None = None,
+            **kwargs: object,
+        ) -> None:
             """Initialize console output wrapper."""
             from rich.console import Console
 
-            self._console = Console(file=file, **kwargs)
+            # Filter kwargs to only include valid Console parameters
+            valid_console_keys = {
+                "color_system",
+                "force_terminal",
+                "force_jupyter",
+                "force_interactive",
+                "soft_wrap",
+                "theme",
+                "stderr",
+                "quiet",
+                "width",
+                "height",
+                "style",
+                "no_color",
+                "tab_size",
+                "record",
+                "markup",
+                "emoji",
+                "emoji_variant",
+                "highlight",
+                "log_time",
+                "log_path",
+                "log_time_format",
+                "highlighter",
+                "legacy_windows",
+                "safe_box",
+                "get_datetime",
+                "get_time",
+                "_environ",
+            }
+            {key: value for key, value in kwargs.items() if key in valid_console_keys}
 
-        def print(self, *args: object, **kwargs: object) -> None:
+            # Create console with explicit parameters to avoid type issues
+            self._console = Console(
+                file=file,
+                color_system=color_system,
+                force_terminal=force_terminal,
+                force_jupyter=force_jupyter,
+                force_interactive=force_interactive,
+                soft_wrap=soft_wrap,
+                theme=theme,
+                stderr=stderr,
+                quiet=quiet,
+                width=width,
+                height=height,
+                style=style,
+                no_color=no_color,
+                tab_size=tab_size,
+                record=record,
+                markup=markup,
+                emoji=emoji,
+                emoji_variant=emoji_variant,
+                highlight=highlight,
+                log_time=log_time,
+                log_path=log_path,
+                log_time_format=log_time_format,
+                highlighter=highlighter,
+                legacy_windows=legacy_windows,
+                safe_box=safe_box,
+                get_datetime=get_datetime,
+                get_time=get_time,
+                _environ=_environ,
+            )
+
+        def print(
+            self,
+            *args: object,
+            sep: str = " ",
+            end: str = "\n",
+            style: str | Style | None = None,
+            justify: Literal["default", "left", "center", "right", "full"]
+            | None = None,
+            overflow: Literal["fold", "crop", "ellipsis", "ignore"] | None = None,
+            no_wrap: bool | None = None,
+            emoji: bool | None = None,
+            markup: bool | None = None,
+            highlight: bool | None = None,
+            width: int | None = None,
+            height: int | None = None,
+            crop: bool = True,
+            soft_wrap: bool | None = None,
+            new_line_start: bool = False,
+            **kwargs: object,
+        ) -> None:
             """Print to console."""
-            self._console.print(*args, **kwargs)
+            # Filter kwargs to only include valid print parameters
+            valid_print_keys = {
+                "sep",
+                "end",
+                "style",
+                "justify",
+                "overflow",
+                "no_wrap",
+                "emoji",
+                "markup",
+                "highlight",
+                "width",
+                "height",
+                "crop",
+                "soft_wrap",
+                "new_line_start",
+            }
+            {key: value for key, value in kwargs.items() if key in valid_print_keys}
+
+            # Create print call with explicit parameters to avoid type issues
+            self._console.print(
+                *args,
+                sep=sep,
+                end=end,
+                style=style,
+                justify=justify,
+                overflow=overflow,
+                no_wrap=no_wrap,
+                emoji=emoji,
+                markup=markup,
+                highlight=highlight,
+                width=width,
+                height=height,
+                crop=crop,
+                soft_wrap=soft_wrap,
+                new_line_start=new_line_start,
+            )
 
         def getvalue(self) -> str:
             """Get console output as string."""
-            if hasattr(self._console.file, "getvalue"):
-                value = self._console.file.getvalue()
-                return str(value) if value is not None else ""
+            if self._console.file and hasattr(self._console.file, "getvalue"):
+                # Type narrowing: we know it has getvalue method
+                file_obj = cast("StringIO", self._console.file)
+                value = file_obj.getvalue()
+                return str(value)
             return ""
 
     @property
@@ -305,7 +463,7 @@ class FlextCliFormatters(FlextService[str]):
                 table_result = self.format_table(
                     data=data,
                     title=str(title_value) if title_value is not None else None,
-                    headers=list(headers_value)
+                    headers=cast("list[str]", headers_value)
                     if isinstance(headers_value, (list, tuple))
                     else None,
                 )
@@ -316,9 +474,10 @@ class FlextCliFormatters(FlextService[str]):
 
                 # Capture table output to string
                 with StringIO() as output:
-                    temp_console = Console(file=output, width=80)
+                    output_typed: StringIO = output
+                    temp_console = Console(file=output_typed, width=80)
                     temp_console.print(table_result.unwrap())
-                    return FlextResult[str].ok(output.getvalue())
+                    return FlextResult[str].ok(output_typed.getvalue())
 
             elif format_type == "json":
                 import json

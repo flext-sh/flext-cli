@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 
 from flext_cli.constants import FlextCliConstants
-from flext_core import FlextResult
+from flext_core import FlextConstants, FlextResult
 
 
 class FlextCliModels:
@@ -61,11 +61,17 @@ class FlextCliModels:
         exit_code: int | None = None
         output: str = Field(default="")
         error_output: str = Field(default="")
+        name: str = Field(default="")
+        entry_point: str = Field(default="")
+        plugin_version: str = Field(default="1.0.0")
 
         def __init__(
             self,
             command_line: str | None = None,
             execution_time: datetime | None = None,
+            name: str | None = None,
+            entry_point: str | None = None,
+            plugin_version: str | None = None,
             **data: object,
         ) -> None:
             """Initialize with compatibility for command_line and execution_time parameters."""
@@ -73,12 +79,23 @@ class FlextCliModels:
                 data["command"] = command_line
             if execution_time is not None:
                 data["created_at"] = execution_time
+            if name is not None:
+                data["name"] = name
+            if entry_point is not None:
+                data["entry_point"] = entry_point
+            if plugin_version is not None:
+                data["plugin_version"] = plugin_version
             super().__init__(**data)
 
         @property
         def command_line(self) -> str:
             """Compatibility property for command_line access."""
             return self.command
+
+        @property
+        def execution_time(self) -> datetime:
+            """Compatibility property for execution_time access."""
+            return self.created_at
 
         def validate_business_rules(self) -> FlextResult[None]:
             """Validate command business rules."""
@@ -202,6 +219,7 @@ class FlextCliModels:
         profile: str = Field(default=FlextCliConstants.Defaults.PROFILE)
         output_format: str = Field(default=FlextCliConstants.Defaults.OUTPUT_FORMAT)
         debug_mode: bool = Field(default=False)
+        log_level: str = Field(default=FlextConstants.Logging.INFO)
 
         class Config:
             """Pydantic Settings configuration."""
@@ -271,7 +289,7 @@ class FlextCliModels:
 
             """
             try:
-                config_data = {
+                config_data: dict[str, object] = {
                     "profile": self.profile,
                     "output_format": self.output_format,
                     "debug_mode": self.debug_mode,
@@ -290,11 +308,15 @@ class FlextCliModels:
         id: str = Field(
             default_factory=lambda: f"session_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
         )
+        session_id: str = Field(
+            default_factory=lambda: f"session_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
+        )
         start_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
         end_time: datetime | None = None
         duration_seconds: float = Field(default=0.0)
         commands_executed: int = Field(default=0)
         status: str = Field(default="active")
+        user_id: str | None = None
 
         def __init__(
             self,
@@ -306,17 +328,12 @@ class FlextCliModels:
             """Initialize with compatibility for session_id, user_id, and start_time parameters."""
             if session_id is not None:
                 data["id"] = session_id
+                data["session_id"] = session_id
             if start_time is not None:
                 data["start_time"] = start_time
-            # user_id is stored in data but not used by current model structure
             if user_id is not None:
                 data["user_id"] = user_id
             super().__init__(**data)
-
-        @property
-        def session_id(self) -> str:
-            """Get session ID for backward compatibility."""
-            return self.id
 
         def validate_business_rules(self) -> FlextResult[None]:
             """Validate session business rules."""
@@ -329,6 +346,13 @@ class FlextCliModels:
                 )
 
             return FlextResult[None].ok(None)
+
+    class CliFormatters(BaseModel):
+        """CLI formatters model extending BaseModel."""
+
+        def list_formats(self) -> list[str]:
+            """List available output formats."""
+            return ["json", "yaml", "csv", "table", "plain"]
 
 
 __all__ = [

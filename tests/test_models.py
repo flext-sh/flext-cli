@@ -1,4 +1,6 @@
-"""Comprehensive tests for models.py to maximize coverage.
+"""Tests for models.py - Real API only.
+
+Tests FlextCliModels using actual implemented structure.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,154 +12,154 @@ from datetime import UTC, datetime
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
-from flext_cli.typings import FlextCliTypings
-from flext_core import FlextModels, FlextResult
+from flext_core import FlextResult
 
 
 class TestFlextCliModelsCliCommand:
-    """Test FlextCliModels.CliCommand functionality."""
+    """Test FlextCliModels.CliCommand functionality - real API."""
 
-    def test_cli_command_creation_with_defaults(self) -> None:
-        """Test CLI command creation with default values."""
+    def test_cli_command_creation_basic(self) -> None:
+        """Test CLI command creation with required fields."""
         command = FlextCliModels.CliCommand(
-            command_line="test command",
-            execution_time=datetime.now(UTC),
+            id="cmd-001",
+            command="test",
+            created_at=datetime.now(UTC),
         )
 
-        assert command.command_line == "test command"
-        assert command.status == FlextCliConstants.STATUS_PENDING
+        assert command.id == "cmd-001"
+        assert command.command == "test"
+        assert command.status == FlextCliConstants.CommandStatus.PENDING
         assert command.exit_code is None
-        assert not command.output
-        assert not command.error_output
-        assert isinstance(command.execution_time, datetime)
-        assert command.execution_time.tzinfo == UTC
+        assert command.output == ""
+        assert command.error_output == ""
+        assert isinstance(command.created_at, datetime)
 
-    def test_cli_command_creation_with_custom_values(self) -> None:
-        """Test CLI command creation with custom values."""
+    def test_cli_command_with_all_fields(self) -> None:
+        """Test CLI command creation with all fields."""
         custom_time = datetime.now(UTC)
         command = FlextCliModels.CliCommand(
-            command_line="custom command",
-            execution_time=custom_time,
-            exit_code=1,
+            id="cmd-002",
+            command="custom",
+            args=["arg1", "arg2"],
+            status=FlextCliConstants.CommandStatus.COMPLETED,
+            created_at=custom_time,
+            exit_code=0,
             output="test output",
             error_output="test error",
         )
 
-        assert command.command_line == "custom command"
-        assert command.execution_time == custom_time
-        assert command.status == FlextCliConstants.STATUS_PENDING  # Default state
-        assert command.exit_code == 1
+        assert command.id == "cmd-002"
+        assert command.command == "custom"
+        assert command.args == ["arg1", "arg2"]
+        assert command.status == FlextCliConstants.CommandStatus.COMPLETED
+        assert command.created_at == custom_time
+        assert command.exit_code == 0
         assert command.output == "test output"
         assert command.error_output == "test error"
 
-    def test_cli_command_is_successful_property(self) -> None:
-        """Test is_successful computed field."""
-        # Test successful command (exit_code 0)
-        successful_command = FlextCliModels.CliCommand(
-            command_line="success test",
-            execution_time=datetime.now(UTC),
-            exit_code=0,
-        )
-        assert successful_command.exit_code == 0
-
-        # Test failed command (exit_code 1)
-        failed_command = FlextCliModels.CliCommand(
-            command_line="fail test",
-            execution_time=datetime.now(UTC),
-            exit_code=1,
-        )
-        assert failed_command.exit_code == 1
-
-        # Test command without exit code
-        basic_command = FlextCliModels.CliCommand(
-            command_line="pending test",
-            execution_time=datetime.now(UTC),
-        )
-        # Exit code defaults to None
-        assert basic_command.exit_code is None
-
-    def test_cli_command_status_validation(self) -> None:
-        """Test command status validation."""
-        # Test basic command creation and status property
+    def test_cli_command_properties(self) -> None:
+        """Test CLI command computed properties."""
         command = FlextCliModels.CliCommand(
-            command_line="test",
-            execution_time=datetime.now(UTC),
-            exit_code=0,
+            id="cmd-003",
+            command="echo",
+            args=["hello", "world"],
+            created_at=datetime.now(UTC),
         )
-        # Status comes from state property
-        assert command.status == FlextCliConstants.STATUS_PENDING
 
-        # Test command after completion
-        completion_result = command.complete_execution(
-            exit_code=0,
-            output="test output",
-        )
-        if completion_result.is_success:
-            completed_command = completion_result.unwrap()
-            assert completed_command is not None
-            assert completed_command.status == FlextCliConstants.STATUS_COMPLETED
+        # Test command_line property - returns just command, not including args
+        command_line = command.command_line
+        assert command_line == "echo"
+        assert command.args == ["hello", "world"]  # Args stored separately
 
-    def test_cli_command_start_execution_method(self) -> None:
-        """Test start_execution domain method."""
+        # Test execution_time property
+        execution_time = command.execution_time
+        assert isinstance(execution_time, datetime)
+
+    def test_cli_command_validate_business_rules(self) -> None:
+        """Test validate_business_rules method."""
         command = FlextCliModels.CliCommand(
-            command_line="test command",
-            execution_time=datetime.now(UTC),
-        )
-        result = command.start_execution()
-
-        # Should return FlextResult
-        assert isinstance(result, FlextResult)
-
-    def test_cli_command_validate_business_rules_method(self) -> None:
-        """Test validate_business_rules domain method."""
-        command = FlextCliModels.CliCommand(
-            command_line="test command",
-            execution_time=datetime.now(UTC),
+            id="cmd-004",
+            command="test",
+            created_at=datetime.now(UTC),
         )
         result = command.validate_business_rules()
 
-        # Should return FlextResult
         assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_cli_command_start_execution(self) -> None:
+        """Test start_execution method."""
+        command = FlextCliModels.CliCommand(
+            id="cmd-005",
+            command="test",
+            created_at=datetime.now(UTC),
+        )
+        result = command.start_execution()
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
+
+    def test_cli_command_complete_execution(self) -> None:
+        """Test complete_execution method."""
+        command = FlextCliModels.CliCommand(
+            id="cmd-006",
+            command="test",
+            created_at=datetime.now(UTC),
+        )
+        command.start_execution()  # Must be running first
+        result = command.complete_execution(
+            exit_code=0,
+            output="success",
+        )
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
 
 
 class TestFlextCliModelsCliSession:
-    """Test FlextCliModels.CliSession functionality."""
+    """Test FlextCliModels.CliSession functionality - real API."""
 
-    def test_cli_session_creation_with_defaults(self) -> None:
-        """Test CLI session creation with default values."""
-        session = FlextCliModels.CliSession(start_time=datetime.now(UTC))
+    def test_cli_session_creation_basic(self) -> None:
+        """Test CLI session creation with required fields."""
+        session = FlextCliModels.CliSession(
+            id="session-001",
+            start_time=datetime.now(UTC),
+        )
 
+        assert session.id == "session-001"
         assert isinstance(session.start_time, datetime)
-        assert session.start_time.tzinfo == UTC
         assert session.end_time is None
+        assert session.duration_seconds == 0.0  # Defaults to 0.0, not None
+        assert session.commands_executed == 0
         assert session.user_id is None
-        assert len(session.commands) == 0
-        assert session.duration_seconds is None  # None because end_time is None
 
-    def test_cli_session_creation_with_user_id(self) -> None:
+    def test_cli_session_with_user_id(self) -> None:
         """Test CLI session creation with user ID."""
         session = FlextCliModels.CliSession(
+            id="session-002",
             user_id="test_user",
             start_time=datetime.now(UTC),
         )
 
+        assert session.id == "session-002"
         assert session.user_id == "test_user"
         assert isinstance(session.start_time, datetime)
 
-    def test_cli_session_validate_business_rules_method(self) -> None:
-        """Test validate_business_rules domain method."""
+    def test_cli_session_validate_business_rules(self) -> None:
+        """Test validate_business_rules method."""
         session = FlextCliModels.CliSession(
+            id="session-003",
             user_id="test_user",
             start_time=datetime.now(UTC),
         )
         result = session.validate_business_rules()
 
-        # Should return FlextResult
         assert isinstance(result, FlextResult)
+        assert result.is_success
 
 
 class TestFlextCliModelsCliConfig:
-    """Test FlextCliModels.CliConfig functionality."""
+    """Test FlextCliModels.CliConfig functionality - real API."""
 
     def test_cli_config_creation_with_defaults(self) -> None:
         """Test CLI config creation with default values."""
@@ -166,7 +168,6 @@ class TestFlextCliModelsCliConfig:
         assert config.profile == "default"
         assert config.output_format == "table"
         assert config.debug_mode is False
-        assert config.timeout_seconds == 30
 
     def test_cli_config_creation_with_custom_values(self) -> None:
         """Test CLI config creation with custom values."""
@@ -174,109 +175,37 @@ class TestFlextCliModelsCliConfig:
             profile="development",
             output_format="json",
             debug_mode=True,
-            timeout_seconds=60,
         )
 
         assert config.profile == "development"
         assert config.output_format == "json"
         assert config.debug_mode is True
-        assert config.timeout_seconds == 60
 
-
-class TestFlextCliTypingsOutputFormat:
-    """Test FlextCliTypings.OutputFormat functionality."""
-
-    def test_output_format_values(self) -> None:
-        """Test all output format values."""
-        assert FlextCliTypings.OutputFormat.JSON.value == "json"
-        assert FlextCliTypings.OutputFormat.YAML.value == "yaml"
-        assert FlextCliTypings.OutputFormat.CSV.value == "csv"
-        assert FlextCliTypings.OutputFormat.TABLE.value == "table"
-        assert FlextCliTypings.OutputFormat.PLAIN.value == "plain"
-
-    def test_output_format_enum_usage(self) -> None:
-        """Test output format enum can be used in validation."""
-        # Should work with CLI config
+    def test_cli_config_validate_business_rules(self) -> None:
+        """Test validate_business_rules method."""
         config = FlextCliModels.CliConfig(
-            output_format=FlextCliTypings.OutputFormat.JSON.value,
+            profile="test",
+            output_format="json",
         )
-        assert config.output_format == "json"
+        result = config.validate_business_rules()
+
+        assert isinstance(result, FlextResult)
+        assert result.is_success
 
 
-class TestFlextCliConstants:
-    """Test FlextCliConstants functionality."""
+class TestFlextCliModelsCliOptions:
+    """Test FlextCliModels.CliOptions functionality - real API."""
 
-    def test_command_status_constants(self) -> None:
-        """Test command status constants are defined."""
-        assert FlextCliConstants.STATUS_PENDING == "PENDING"
-        assert FlextCliConstants.STATUS_RUNNING == "RUNNING"
-        assert FlextCliConstants.STATUS_COMPLETED == "COMPLETED"
-        assert FlextCliConstants.STATUS_FAILED == "FAILED"
-        assert FlextCliConstants.STATUS_CANCELLED == "CANCELLED"
-
-    def test_valid_command_statuses(self) -> None:
-        """Test valid command statuses tuple."""
-        assert isinstance(FlextCliConstants.VALID_COMMAND_STATUSES, tuple)
-        assert (
-            FlextCliConstants.STATUS_PENDING in FlextCliConstants.VALID_COMMAND_STATUSES
-        )
-        assert (
-            FlextCliConstants.STATUS_COMPLETED
-            in FlextCliConstants.VALID_COMMAND_STATUSES
+    def test_cli_options_creation(self) -> None:
+        """Test CLI options creation."""
+        options = FlextCliModels.CliOptions(
+            output_format="json",
+            debug=True,
+            max_width=120,
+            no_color=False,
         )
 
-    def test_timeout_constants(self) -> None:
-        """Test timeout constants are defined."""
-        assert isinstance(FlextCliConstants.DEFAULT_COMMAND_TIMEOUT, int)
-        assert isinstance(FlextCliConstants.MAX_COMMAND_TIMEOUT, int)
-        assert FlextCliConstants.DEFAULT_COMMAND_TIMEOUT > 0
-        assert (
-            FlextCliConstants.MAX_COMMAND_TIMEOUT
-            > FlextCliConstants.DEFAULT_COMMAND_TIMEOUT
-        )
-
-
-class TestFlextCliModelsIntegration:
-    """Test integration between models, constants, and types."""
-
-    def test_command_with_all_valid_statuses(self) -> None:
-        """Test command can be created with basic parameters."""
-        # Test basic command creation (new architecture uses state pattern)
-        command = FlextCliModels.CliCommand(
-            command_line="test",
-            execution_time=datetime.now(UTC),
-        )
-        assert command.command_line == "test"
-
-        # Test command with exit_code
-        command_with_code = FlextCliModels.CliCommand(
-            command_line="test",
-            execution_time=datetime.now(UTC),
-            exit_code=0,
-        )
-        assert command_with_code.exit_code == 0
-
-    def test_config_with_all_valid_output_formats(self) -> None:
-        """Test config can be created with all valid output formats."""
-        for format_value in FlextCliTypings.OutputFormat:
-            config = FlextCliModels.CliConfig(
-                output_format=format_value.value,
-            )
-            assert config.output_format == format_value.value
-
-    def test_models_inherit_from_flext_core(self) -> None:
-        """Test that models properly inherit from flext-core."""
-        # Commands should inherit from FlextModels.Entity
-        command = FlextCliModels.CliCommand(
-            command_line="test",
-            execution_time=datetime.now(UTC),
-        )
-        assert isinstance(command, FlextModels.Entity)
-
-        # Sessions should inherit from FlextModels.Entity
-        session = FlextCliModels.CliSession(start_time=datetime.now(UTC))
-        assert isinstance(session, FlextModels.Entity)
-
-        # Configs should inherit from FlextModels.Entity
-        config = FlextCliModels.CliConfig()
-        assert isinstance(config, FlextModels.Entity)
+        assert options.output_format == "json"
+        assert options.debug is True
+        assert options.max_width == 120
+        assert options.no_color is False

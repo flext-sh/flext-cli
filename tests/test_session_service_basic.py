@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from uuid import uuid4
 
 import pytest
@@ -187,7 +188,7 @@ class TestFlextCliSessionService:
         assert "sessions_by_user" in stats
 
         # Check user breakdown
-        sessions_by_user = stats["sessions_by_user"]
+        sessions_by_user: dict[str, int] = stats["sessions_by_user"]
         assert sessions_by_user["user1"] == 2
         assert sessions_by_user["user2"] == 1
         assert sessions_by_user["anonymous"] == 1
@@ -252,7 +253,7 @@ class TestFlextCliSessionService:
         # Test various operations fail appropriately
         fake_session_id = str(uuid4())
 
-        operations = [
+        operations: list[Callable[[], FlextResult[object]]] = [
             lambda: service.create_session(user_id="test"),
             lambda: service.end_session(fake_session_id),
             lambda: service.get_session(fake_session_id),
@@ -443,7 +444,7 @@ class TestFlextCliSessionServiceIntegration:
         assert stats_result.is_success
         stats = stats_result.unwrap()
 
-        sessions_by_user = stats["sessions_by_user"]
+        sessions_by_user: dict[str, int] = stats["sessions_by_user"]
         assert sessions_by_user["alice"] == 2
         assert sessions_by_user["bob"] == 1
         assert sessions_by_user["anonymous"] == 1
@@ -456,7 +457,7 @@ class TestFlextCliSessionServiceIntegration:
         invalid_session_id = "invalid-uuid"
         fake_session_id = str(uuid4())
 
-        error_operations = [
+        error_operations: list[Callable[[], FlextResult[object]]] = [
             lambda: service.end_session(""),
             lambda: service.end_session(invalid_session_id),
             lambda: service.get_session(fake_session_id),

@@ -40,6 +40,7 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
 from flext_cli.core import FlextCliService
 from flext_cli.decorators import FlextCliDecorators
+from flext_cli.domain_service import FlextCliDomainService
 from flext_cli.exceptions import FlextCliError
 from flext_cli.flext_cli import FlextCli
 from flext_cli.flext_cli_api import FlextCliApi
@@ -65,6 +66,7 @@ __all__ = [
     "FlextCliConstants",
     "FlextCliContext",
     "FlextCliDecorators",
+    "FlextCliDomainService",
     "FlextCliError",
     "FlextCliFormatters",
     "FlextCliLoggingSetup",

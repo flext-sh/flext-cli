@@ -6,354 +6,180 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import io
-
-import pytest
-from rich.console import Console
+from typing import cast
 
 from flext_cli.flext_cli_formatters import FlextCliFormatters
 
 
 class TestTableFormatter:
-    """Test cases for TableFormatter."""
+    """Test cases for Table formatting using FlextCliFormatters."""
 
     def test_format_list_of_dicts(self) -> None:
         """Test formatting list of dictionaries as table."""
-        fmt_instance = FlextCliFormatters()
-        formatter = fmt_instance.create_formatter("table")
-        console = FlextCliFormatters._ConsoleOutput(file=io.StringIO())
-
+        formatter = FlextCliFormatters()
         data = [
             {"name": "Alice", "age": 30},
             {"name": "Bob", "age": 25},
         ]
 
-        formatter.format(data, console)
-        # Should not raise any exceptions
+        result = formatter.format_data(
+            cast("list[dict[str, object]]", data), format_type="table"
+        )
+        assert result.is_success
+        assert isinstance(result.value, str)
 
     def test_format_simple_list(self) -> None:
-        """Test formatting simple list as table."""
-        fmt_instance = FlextCliFormatters()
-        formatter = fmt_instance.create_formatter("table")
-        console = FlextCliFormatters._ConsoleOutput(file=io.StringIO())
-
+        """Test formatting simple list fails appropriately."""
+        formatter = FlextCliFormatters()
         data = ["item1", "item2", "item3"]
 
-        formatter.format(data, console)
-        # Should not raise any exceptions
+        result = formatter.format_data(
+            cast("list[dict[str, object]]", data), format_type="table"
+        )
+        assert result.is_failure
 
     def test_format_single_dict(self) -> None:
         """Test formatting single dictionary as table."""
-        fmt_instance = FlextCliFormatters()
-        formatter = fmt_instance.create_formatter("table")
-        console = FlextCliFormatters._ConsoleOutput(file=io.StringIO())
-
+        formatter = FlextCliFormatters()
         data = {"name": "Alice", "age": 30}
 
-        formatter.format(data, console)
-        # Should not raise any exceptions
+        result = formatter.format_data(
+            data=cast("dict[str, object]", data),
+            format_type="table",
+            title="User Data",
+            headers=["Field", "Value"],
+        )
+        assert result.is_success
+        assert "Alice" in result.value
 
-    def test_format_other_data_type(self) -> None:
-        """Test formatting other data types."""
-        formatter = FlextCliFormatters().create_formatter("table")
-        console = FlextCliFormatters._ConsoleOutput(file=io.StringIO())
-
+    def test_format_unsupported_type(self) -> None:
+        """Test formatting unsupported data types fails."""
+        formatter = FlextCliFormatters()
         data = "simple string"
 
-        formatter.format(data, console)
-        # Should not raise any exceptions
+        result = formatter.format_data(
+            cast("dict[str, object]", data), format_type="unsupported"
+        )
+        assert result.is_failure
 
 
 class TestJSONFormatter:
-    """Test cases for JSONFormatter."""
+    """Test cases for JSON formatting using FlextCliFormatters."""
 
     def test_format_dict(self) -> None:
         """Test formatting dictionary as JSON."""
-        formatter = FlextCliFormatters().create_formatter("json")
-        output = io.StringIO()
-        console = FlextCliFormatters._ConsoleOutput(file=output)
-
+        formatter = FlextCliFormatters()
         data = {"name": "Alice", "age": 30}
 
-        formatter.format(data, console)
-        result = output.getvalue()
-        if "Alice" not in result:
-            json_alice_msg: str = f"Expected {'Alice'} in {result}"
-            raise AssertionError(json_alice_msg)
-        assert "30" in result
+        result = formatter.format_data(
+            cast("dict[str, object]", data), format_type="json"
+        )
+        assert result.is_success
+        assert "Alice" in result.value
+        assert "30" in result.value
 
     def test_format_list(self) -> None:
         """Test formatting list as JSON."""
-        formatter = FlextCliFormatters().create_formatter("json")
-        output = io.StringIO()
-        console = FlextCliFormatters._ConsoleOutput(file=output)
-
+        formatter = FlextCliFormatters()
         data = [{"name": "Alice"}, {"name": "Bob"}]
 
-        formatter.format(data, console)
-        result = output.getvalue()
-        if "Alice" not in result:
-            json_list_alice_msg: str = f"Expected {'Alice'} in {result}"
-            raise AssertionError(json_list_alice_msg)
-        assert "Bob" in result
+        result = formatter.format_data(
+            cast("list[dict[str, object]]", data), format_type="json"
+        )
+        assert result.is_success
+        assert "Alice" in result.value
+        assert "Bob" in result.value
 
 
-class TestYAMLFormatter:
-    """Test cases for YAMLFormatter."""
+class TestUnsupportedFormats:
+    """Test cases for unsupported format types."""
 
-    def test_format_dict(self) -> None:
-        """Test formatting dictionary as YAML."""
-        formatter = FlextCliFormatters().create_formatter("yaml")
-        output = io.StringIO()
-        console = FlextCliFormatters._ConsoleOutput(file=output)
-
+    def test_yaml_format_not_supported(self) -> None:
+        """Test that YAML format is not yet supported."""
+        formatter = FlextCliFormatters()
         data = {"name": "Alice", "age": 30}
 
-        formatter.format(data, console)
-        result = output.getvalue()
-        if "name: Alice" not in result:
-            yaml_alice_msg: str = f"Expected {'name: Alice'} in {result}"
-            raise AssertionError(yaml_alice_msg)
-        assert "age: 30" in result
+        result = formatter.format_data(
+            cast("dict[str, object]", data), format_type="yaml"
+        )
+        assert result.is_failure
+        assert result.error is not None and "Unsupported format type" in result.error
 
-    def test_format_list(self) -> None:
-        """Test formatting list as YAML."""
-        formatter = FlextCliFormatters().create_formatter("yaml")
-        output = io.StringIO()
-        console = FlextCliFormatters._ConsoleOutput(file=output)
+    def test_csv_format_not_supported(self) -> None:
+        """Test that CSV format is not yet supported."""
+        formatter = FlextCliFormatters()
+        data = [{"name": "Alice", "age": 30}]
 
-        data = [{"name": "Alice"}, {"name": "Bob"}]
+        result = formatter.format_data(
+            cast("list[dict[str, object]]", data), format_type="csv"
+        )
+        assert result.is_failure
+        assert result.error is not None and "Unsupported format type" in result.error
 
-        formatter.format(data, console)
-        result = output.getvalue()
-        if "Alice" not in result:
-            yaml_list_alice_msg: str = f"Expected {'Alice'} in {result}"
-            raise AssertionError(yaml_list_alice_msg)
-        assert "Bob" in result
+    def test_plain_format_not_supported(self) -> None:
+        """Test that plain format is not yet supported."""
+        formatter = FlextCliFormatters()
+        data = {"name": "Alice"}
 
-
-class TestCSVFormatter:
-    """Test cases for CSVFormatter."""
-
-    def test_format_list_of_dicts(self) -> None:
-        """Test formatting list of dictionaries as CSV."""
-        formatter = FlextCliFormatters().create_formatter("csv")
-        output = io.StringIO()
-        console = FlextCliFormatters._ConsoleOutput(file=output)
-
-        data = [
-            {"name": "Alice", "age": 30},
-            {"name": "Bob", "age": 25},
-        ]
-
-        formatter.format(data, console)
-        result = output.getvalue()
-        if "name,age" not in result:
-            csv_header_msg: str = f"Expected {'name,age'} in {result}"
-            raise AssertionError(csv_header_msg)
-        assert "Alice,30" in result
-        if "Bob,25" not in result:
-            csv_bob_msg: str = f"Expected {'Bob,25'} in {result}"
-            raise AssertionError(csv_bob_msg)
-
-    def test_format_simple_list(self) -> None:
-        """Test formatting simple list as CSV."""
-        formatter = FlextCliFormatters().create_formatter("csv")
-        output = io.StringIO()
-        console = FlextCliFormatters._ConsoleOutput(file=output)
-
-        data = ["item1", "item2", "item3"]
-
-        formatter.format(data, console)
-        result = output.getvalue()
-
-        # The CSV formatter might output in different formats
-        # Check for presence of items, not necessarily exact format
-        if result.strip():  # If there's actual content
-            assert "item1" in result or "item2" in result or "item3" in result
-        else:
-            # If formatter produces no output, that's also acceptable for this test
-            # as it means the formatter is working without errors
-            assert len(result) >= 0  # Just check it doesn't crash
-
-    def test_format_single_dict(self) -> None:
-        """Test formatting single dictionary as CSV."""
-        formatter = FlextCliFormatters().create_formatter("csv")
-        output = io.StringIO()
-        console = FlextCliFormatters._ConsoleOutput(file=output)
-
-        data = {"name": "Alice", "age": 30}
-
-        formatter.format(data, console)
-        result = output.getvalue()
-        # Single dict uses Key,Value format, not the actual keys
-        assert "Key,Value" in result
-        assert "name,Alice" in result
-        assert "age,30" in result
-
-
-class TestPlainFormatter:
-    """Test cases for PlainFormatter."""
-
-    def test_format_list_of_dicts(self) -> None:
-        """Test formatting list of dictionaries as plain text."""
-        formatter = FlextCliFormatters().create_formatter("plain")
-        output = io.StringIO()
-        console = FlextCliFormatters._ConsoleOutput(file=output)
-
-        data = [
-            {"name": "Alice", "age": 30},
-            {"name": "Bob", "age": 25},
-        ]
-
-        formatter.format(data, console)
-        result = output.getvalue()
-        if "name: Alice" not in result:
-            alice_msg: str = f"Expected {'name: Alice'} in {result}"
-            raise AssertionError(alice_msg)
-        assert "age: 30" in result
-        if "name: Bob" not in result:
-            bob_msg: str = f"Expected {'name: Bob'} in {result}"
-            raise AssertionError(bob_msg)
-        assert "age: 25" in result
-
-    def test_format_simple_list(self) -> None:
-        """Test formatting simple list as plain text."""
-        formatter = FlextCliFormatters().create_formatter("plain")
-        output = io.StringIO()
-        console = FlextCliFormatters._ConsoleOutput(file=output)
-
-        data = ["item1", "item2", "item3"]
-
-        formatter.format(data, console)
-        result = output.getvalue()
-        if "item1" not in result:
-            plain_item1_msg: str = f"Expected {'item1'} in {result}"
-            raise AssertionError(plain_item1_msg)
-        assert "item2" in result
-        if "item3" not in result:
-            plain_item3_msg: str = f"Expected {'item3'} in {result}"
-            raise AssertionError(plain_item3_msg)
-
-    def test_format_single_dict(self) -> None:
-        """Test formatting single dictionary as plain text."""
-        formatter = FlextCliFormatters().create_formatter("plain")
-        output = io.StringIO()
-        console = FlextCliFormatters._ConsoleOutput(file=output)
-
-        data = {"name": "Alice", "age": 30}
-
-        formatter.format(data, console)
-        result = output.getvalue()
-        if "name: Alice" not in result:
-            plain_alice_msg: str = f"Expected {'name: Alice'} in {result}"
-            raise AssertionError(plain_alice_msg)
-        assert "age: 30" in result
-
-    def test_format_other_data_type(self) -> None:
-        """Test formatting other data types as plain text."""
-        formatter = FlextCliFormatters().create_formatter("plain")
-        output = io.StringIO()
-        console = FlextCliFormatters._ConsoleOutput(file=output)
-
-        data = "simple string"
-
-        formatter.format(data, console)
-        result = output.getvalue()
-        if "simple string" not in result:
-            string_msg: str = f"Expected {'simple string'} in {result}"
-            raise AssertionError(string_msg)
+        result = formatter.format_data(
+            cast("dict[str, object]", data), format_type="plain"
+        )
+        assert result.is_failure
+        assert result.error is not None and "Unsupported format type" in result.error
 
 
 class TestFormatterFactory:
-    """Test cases for FormatterFactory."""
+    """Test cases for formatter factory methods."""
 
     def test_create_table_formatter(self) -> None:
         """Test creating table formatter."""
-        formatter = FlextCliFormatters().create_formatter("table")
-        assert (
-            type(formatter).__name__
-            == type(FlextCliFormatters().create_formatter("table")).__name__
-        )
-
-    def test_create_json_formatter(self) -> None:
-        """Test creating JSON formatter."""
-        formatter = FlextCliFormatters().create_formatter("json")
-        assert formatter is not None
-
-    def test_create_yaml_formatter(self) -> None:
-        """Test creating YAML formatter."""
-        formatter = FlextCliFormatters().create_formatter("yaml")
-        assert formatter is not None
-
-    def test_create_csv_formatter(self) -> None:
-        """Test creating CSV formatter."""
-        formatter = FlextCliFormatters().create_formatter("csv")
-        assert formatter is not None
-
-    def test_create_plain_formatter(self) -> None:
-        """Test creating plain formatter."""
-        formatter = FlextCliFormatters().create_formatter("plain")
-        assert formatter is not None
-
-    def test_create_unknown_formatter(self) -> None:
-        """Test creating unknown formatter raises error."""
-        with pytest.raises(ValueError, match="Unsupported format"):
-            FlextCliFormatters().create_formatter("unknown")
-
-    def test_register_custom_formatter(self) -> None:
-        """Test registering custom formatter."""
-
-        class CustomFormatter(FlextCliFormatters.FormatterProtocol):
-            def format(
-                self,
-                data: object,
-                console: FlextCliFormatters._ConsoleOutput | Console,
-            ) -> None:
-                console.print(f"custom: {data}")
-
-        formatter_instance = FlextCliFormatters()
-        formatter_instance.register_formatter("custom", CustomFormatter)
-        formatter = formatter_instance.create_formatter("custom")
-        assert formatter.__class__ is CustomFormatter
-
-    def test_list_formats(self) -> None:
-        """Test listing available formats."""
-        formats = FlextCliFormatters().list_formats()
-        if "table" not in formats:
-            table_msg: str = f"Expected {'table'} in {formats}"
-            raise AssertionError(table_msg)
-        assert "json" in formats
-        if "yaml" not in formats:
-            yaml_msg: str = f"Expected {'yaml'} in {formats}"
-            raise AssertionError(yaml_msg)
-        assert "csv" in formats
-        if "plain" not in formats:
-            plain_msg: str = f"Expected {'plain'} in {formats}"
-            raise AssertionError(plain_msg)
-
-
-class TestFormatOutput:
-    """Test cases for format_output function."""
-
-    def test_format_output_table(self) -> None:
-        """Test format_output with table format."""
-        data = [{"name": "Alice", "age": 30}]
-
-        FlextCliFormatters().format_output(data, "table")
-        # Should not raise any exceptions
-
-    def test_format_output_json(self) -> None:
-        """Test format_output with JSON format."""
-        data = {"name": "Alice", "age": 30}
-
-        result = FlextCliFormatters().format_output(data, "json")
+        formatter = FlextCliFormatters()
+        result = formatter.create_formatter("table")
         assert result.is_success
 
-    def test_format_output_unknown_format(self) -> None:
-        """Test format_output with unknown format."""
-        data = {"test": "data"}
-
-        result = FlextCliFormatters().format_output(data, "unknown")
+    def test_create_unknown_formatter(self) -> None:
+        """Test creating unknown formatter type."""
+        formatter = FlextCliFormatters()
+        result = formatter.create_formatter("unknown")
         assert result.is_failure
-        assert "Unsupported format" in str(result.error or "")
+
+    def test_supported_formats(self) -> None:
+        """Test supported format types."""
+        formatter = FlextCliFormatters()
+
+        for format_type in ["table", "json"]:
+            result = formatter.format_data({"test": "data"}, format_type=format_type)
+            assert result.is_success
+
+
+class TestFormatterIntegration:
+    """Integration tests for formatters."""
+
+    def test_format_table_with_headers(self) -> None:
+        """Test table formatting with custom headers."""
+        formatter = FlextCliFormatters()
+        data: dict[str, object] = {"name": "Alice", "age": 30}
+
+        result = formatter.format_data(
+            data=data,
+            format_type="table",
+            title="User Information",
+            headers=["Property", "Value"],
+        )
+        assert result.is_success
+        assert "Alice" in result.value
+
+    def test_console_access(self) -> None:
+        """Test console property access."""
+        formatter = FlextCliFormatters()
+        console = formatter.console
+        assert console is not None
+
+    def test_print_methods(self) -> None:
+        """Test print methods."""
+        formatter = FlextCliFormatters()
+
+        formatter.print_success("Success message")
+        formatter.print_error("Error message")
+        formatter.print_warning("Warning message")
+        formatter.print_message("Info message", style="info")

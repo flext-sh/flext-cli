@@ -1,4 +1,6 @@
-"""Tests for types.py compatibility re-exports to improve coverage.
+"""Tests for typings.py - Real API only.
+
+Tests FlextCliTypings using actual implemented structure.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -6,234 +8,160 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
-
-from flext_cli import typings as types
+from flext_cli import typings
 from flext_cli.typings import FlextCliTypings
 
 
-class TestTypeImports:
-    """Test that all type imports work correctly."""
+class TestFlextCliTypings:
+    """Test FlextCliTypings unified class."""
 
-    def test_command_status_import(self) -> None:
-        """Test CommandStatus import."""
-        assert hasattr(types, "CommandStatus")
-        assert types.CommandStatus is not None
+    def test_typings_module_exports_flext_cli_typings(self) -> None:
+        """Test that typings module exports FlextCliTypings."""
+        assert hasattr(typings, "FlextCliTypings")
+        assert typings.FlextCliTypings is FlextCliTypings
 
-    def test_command_type_import(self) -> None:
-        """Test CommandType import."""
-        # CommandType was removed - redundant with CommandStatus
-        # assert hasattr(types, "CommandType")
-        # assert types.CommandType is not None
+    def test_flext_cli_typings_output_format_class(self) -> None:
+        """Test FlextCliTypings.OutputFormat nested class."""
+        assert hasattr(FlextCliTypings, "OutputFormat")
+        assert FlextCliTypings.OutputFormat.JSON == "json"
+        assert FlextCliTypings.OutputFormat.YAML == "yaml"
+        assert FlextCliTypings.OutputFormat.CSV == "csv"
+        assert FlextCliTypings.OutputFormat.TABLE == "table"
+        assert FlextCliTypings.OutputFormat.PLAIN == "plain"
 
-    def test_output_format_import(self) -> None:
-        """Test FlextCliTypings.OutputFormat import from flext_cli.typings."""
-        assert FlextCliTypings.OutputFormat is not None
-        assert hasattr(FlextCliTypings.OutputFormat, "JSON")
+    def test_flext_cli_typings_commands_class(self) -> None:
+        """Test FlextCliTypings.Commands nested class."""
+        assert hasattr(FlextCliTypings, "Commands")
+        assert FlextCliTypings.Commands.AUTH == "auth"
+        assert FlextCliTypings.Commands.CONFIG == "config"
+        assert FlextCliTypings.Commands.DEBUG == "debug"
+        assert FlextCliTypings.Commands.FORMAT == "format"
+        assert FlextCliTypings.Commands.EXPORT == "export"
 
-    def test_plugin_status_import(self) -> None:
-        """Test PluginStatus import."""
-        assert hasattr(types, "PluginStatus")
-        assert types.PluginStatus is not None
+    def test_flext_cli_typings_config_class(self) -> None:
+        """Test FlextCliTypings.Config nested class."""
+        assert hasattr(FlextCliTypings, "Config")
+        assert FlextCliTypings.Config.DEFAULT_PROFILE == "default"
+        assert FlextCliTypings.Config.DEFAULT_OUTPUT_FORMAT == "table"
+        assert FlextCliTypings.Config.DEFAULT_TIMEOUT == 30
 
-    def test_positive_int_type_import(self) -> None:
-        """Test PositiveIntType import."""
-        # PositiveIntType does not exist in current implementation
-        # assert hasattr(types, "PositiveIntType")
-        # assert types.PositiveIntType is not None
+    def test_flext_cli_typings_auth_class(self) -> None:
+        """Test FlextCliTypings.Auth nested class."""
+        assert hasattr(FlextCliTypings, "Auth")
+        assert "token.json" in FlextCliTypings.Auth.TOKEN_FILENAME
+        assert FlextCliTypings.Auth.CONFIG_FILENAME == "auth.json"
 
-    def test_url_imports(self) -> None:
-        """Test URL and URLType imports."""
-        assert hasattr(types, "URL")
-        assert hasattr(types, "URLType")
-        assert types.URL is not None
-        # URLType may not exist - skip assertion
+    def test_flext_cli_typings_session_class(self) -> None:
+        """Test FlextCliTypings.Session nested class."""
+        assert hasattr(FlextCliTypings, "Session")
+        assert FlextCliTypings.Session.DEFAULT_TIMEOUT == 3600
+        assert FlextCliTypings.Session.MAX_COMMANDS == 1000
 
-    def test_model_imports(self) -> None:
-        """Test model class imports."""
-        model_types: list[str] = [
-            # "FlextCliCommand",    # Type does not exist in current implementation
-            # "FlextCliConfigDict", # Type does not exist in current implementation
-            # "ContextParams",      # Type does not exist in current implementation
-            # "PluginResult",       # Type does not exist in current implementation
-            # "SessionData",        # Type does not exist in current implementation
-        ]
+    def test_flext_cli_typings_services_class(self) -> None:
+        """Test FlextCliTypings.Services nested class."""
+        assert hasattr(FlextCliTypings, "Services")
+        assert FlextCliTypings.Services.API == "api"
+        assert FlextCliTypings.Services.FORMATTER == "formatter"
+        assert FlextCliTypings.Services.AUTH == "auth"
 
-        for type_name in model_types:
-            assert hasattr(types, type_name), f"Missing type: {type_name}"
-            assert getattr(types, type_name) is not None
+    def test_flext_cli_typings_protocols_class(self) -> None:
+        """Test FlextCliTypings.Protocols nested class."""
+        assert hasattr(FlextCliTypings, "Protocols")
+        assert FlextCliTypings.Protocols.HTTP == "http"
+        assert FlextCliTypings.Protocols.HTTPS == "https"
 
-    def test_modern_type_aliases(self) -> None:
-        """Test modern type aliases."""
-        # Check for FlextCliTypings class and its nested OutputFormat
-        assert hasattr(types, "FlextCliTypings")
-        assert hasattr(types.FlextCliTypings, "OutputFormat")
-
-        # Check for other aliases
-        modern_aliases: list[str] = [
-            # "CommandType",        # Removed - redundant with CommandStatus
-            # "FlextCliLogLevel",   # Does not exist in current implementation
-            # "FlextCliDataType",   # Does not exist in current implementation
-        ]
-
-        for alias_name in modern_aliases:
-            assert hasattr(types, alias_name)
-            alias = getattr(types, alias_name)
-            # For type aliases, we just check they exist and are not None
-            assert alias is not None
+    def test_output_format_get_all_formats(self) -> None:
+        """Test OutputFormat.get_all_formats() method."""
+        formats = FlextCliTypings.OutputFormat.get_all_formats()
+        assert isinstance(formats, dict)
+        assert formats["JSON"] == "json"
+        assert formats["YAML"] == "yaml"
+        assert formats["CSV"] == "csv"
+        assert formats["TABLE"] == "table"
+        assert formats["PLAIN"] == "plain"
 
 
-class TestAllExports:
-    """Test module __all__ exports."""
+class TestTypingsExports:
+    """Test typings module exports."""
 
-    def test_all_exports_exist(self) -> None:
-        """Test that all declared exports exist in module."""
-        for export_name in types.__all__:
-            assert hasattr(types, export_name), (
-                f"Export {export_name} not found in types module"
-            )
+    def test_all_exports_list(self) -> None:
+        """Test __all__ exports list."""
+        assert hasattr(typings, "__all__")
+        assert isinstance(typings.__all__, list)
+        assert "FlextCliTypings" in typings.__all__
 
-    def test_all_exports_not_none(self) -> None:
-        """Test that all exports are not None."""
-        for export_name in types.__all__:
-            export_value = getattr(types, export_name)
+    def test_all_exports_are_accessible(self) -> None:
+        """Test all declared exports are accessible."""
+        for export_name in typings.__all__:
+            assert hasattr(typings, export_name), f"Export {export_name} not found"
+            export_value = getattr(typings, export_name)
             assert export_value is not None, f"Export {export_name} is None"
 
-    def test_expected_exports_count(self) -> None:
-        """Test expected number of exports."""
-        # Updated to match actual exports after adding backward compatibility types
-        assert len(types.__all__) == 20  # Updated to actual count
-
-    def test_export_categories(self) -> None:
-        """Test that exports cover expected categories after flext-core refactoring."""
-        # Updated to validate actual structure instead of outdated hardcoded list
-        all_actual = set(types.__all__)
-
-        # Validate that we have the essential exports that are actually exported
-        essential_types = {
-            "FlextTypes",  # Main compatibility alias
-        }
-
-        type_vars = {"E", "F", "P", "R", "T", "U", "V"}
-
-        # Essential types should be present (subset validation)
-        missing_essential = essential_types - all_actual
-        assert not missing_essential, f"Missing essential types: {missing_essential}"
-
-        missing_type_vars = type_vars - all_actual
-        assert not missing_type_vars, f"Missing type variables: {missing_type_vars}"
-
-        # Validate that all exports are actually importable
-        for export_name in all_actual:
-            assert hasattr(types, export_name), (
-                f"Export {export_name} not found in module"
-            )
-
-        # Ensure we have the expected minimum exports (type variables + FlextTypes)
-        assert len(all_actual) >= 8, f"Too few exports: {len(all_actual)} < 8"
+    def test_flext_cli_typings_is_only_export(self) -> None:
+        """Test that FlextCliTypings is the primary export."""
+        # The real API exports only FlextCliTypings
+        assert len(typings.__all__) >= 1
+        assert typings.__all__[0] == "FlextCliTypings"
 
 
-class TestTypeCompatibility:
-    """Test type compatibility and usage."""
-
-    def test_modern_aliases_are_types(self) -> None:
-        """Test that modern aliases are available after flext-core refactoring."""
-        # Updated to only test types that actually exist
-        # FlextCliDataType may not exist - skip assertion
-        assert types.FlextCliTypings.OutputFormat is not None
-        # FlextCliCommand may not exist - skip assertion
-        # CommandType may not exist - skip assertion
-        # CommandStatus may not exist - skip assertion
-        # Note: TCliPath and TCliConfig removed in flext-core refactoring
-
-    def test_can_use_modern_aliases(self) -> None:
-        """Test that modern aliases can be used for type checking."""
-        # Updated to only use types that exist after flext-core refactoring
-        # data: types.FlextCliDataType = "test_data"  # Type may not exist
-        data = "test_data"  # Simple string instead of typed variable
-        format_str: types.FlextCliTypings.OutputFormat = (
-            types.FlextCliTypings.OutputFormat.JSON
-        )
-        format_value: str = format_str.value
-        args: list[str] = ["arg1", "arg2"]
-
-        def handler(x: object) -> object:
-            return x
-
-        # Basic validation that types work
-        assert isinstance(data, str)
-        assert isinstance(format_value, str)  # Test the .value property
-        assert isinstance(args, list)
-        assert callable(handler)
-
-    def test_model_classes_importable(self) -> None:
-        """Test that type aliases and classes can be accessed."""
-        # Test that we can access the actual exported type aliases
-        # assert hasattr(types, "FlextCliCommand")  # Type does not exist in current implementation
-        # assert hasattr(types, "ContextParams")    # Type does not exist in current implementation
-        # assert hasattr(types, "PluginResult")     # Type does not exist in current implementation
-        # assert hasattr(types, "SessionData")      # Type does not exist in current implementation
-
-        # assert types.FlextCliCommand is not None  # Type does not exist in current implementation
-        # assert types.ContextParams is not None    # Type does not exist in current implementation
-        # assert types.PluginResult is not None     # Type does not exist in current implementation
-        # assert types.SessionData is not None      # Type does not exist in current implementation
-        # All model types are currently commented out
-
-    def test_enum_classes_accessible(self) -> None:
-        """Test that enum classes are accessible."""
-        # These should be enum classes using actual exported names
-        assert hasattr(types.CommandStatus, "__members__")
-        # assert hasattr(types.CommandType, "__members__")  # CommandType removed
-        assert hasattr(types.FlextCliTypings.OutputFormat, "__members__")
-        assert hasattr(types.PluginStatus, "__members__")
-
-
-class TestModuleStructure:
-    """Test module structure and organization."""
+class TestTypingsStructure:
+    """Test typings module structure."""
 
     def test_module_has_docstring(self) -> None:
-        """Test that module has proper docstring."""
-        assert types.__doc__ is not None
-        # Updated to match actual current docstring
-        assert "FLEXT CLI Types" in types.__doc__
+        """Test module has proper docstring."""
+        assert typings.__doc__ is not None
+        assert len(typings.__doc__) > 0
 
-    def test_module_imports_complete(self) -> None:
-        """Test that all necessary imports are present."""
-        # All exports should be accessible without errors
-        for export_name in types.__all__:
-            try:
-                getattr(types, export_name)
-            except (ImportError, AttributeError) as e:
-                pytest.fail(f"Failed to import {export_name}: {e}")
+    def test_unified_class_pattern(self) -> None:
+        """Test follows FLEXT unified class pattern."""
+        # FlextCliTypings is the single unified class
+        assert hasattr(typings, "FlextCliTypings")
+        assert isinstance(FlextCliTypings, type)
 
-    def test_no_extra_exports(self) -> None:
-        """Test that module doesn't export more than declared."""
-        public_attrs = [attr for attr in dir(types) if not attr.startswith("_")]
+        # Has nested classes for organization
+        nested_classes = [
+            "OutputFormat",
+            "Commands",
+            "Config",
+            "Auth",
+            "Session",
+            "Services",
+            "Protocols",
+        ]
 
-        # All public attributes should be in __all__
-        undeclared = set(public_attrs) - set(types.__all__)
+        for nested_class in nested_classes:
+            assert hasattr(FlextCliTypings, nested_class), (
+                f"Missing nested class: {nested_class}"
+            )
+            nested = getattr(FlextCliTypings, nested_class)
+            assert isinstance(nested, type), f"{nested_class} is not a class"
 
-        # Filter out legitimate imports that don't need to be in __all__
-        # These are legitimate re-exports/imports used by the module
-        legitimate_imports = {
-            "annotations",  # from __future__ import annotations
-            "override",  # from typing import override
-            "FlextResult",  # from flext_core import FlextResult
-            "Protocol",  # from typing import Protocol
-            "Table",  # from rich.table import Table
-            "Literal",  # from typing import Literal
-            "FlextModels",  # from flext_core import FlextModels
-            "CoreFlextTypes",  # from flext_core.typings import FlextTypes as CoreFlextTypes
-            "TypeVar",  # from typing import TypeVar
-            "Path",  # from pathlib import Path
-            "click",  # import click
-            "Callable",  # from collections.abc import Callable
-            "StrEnum",  # from enum import StrEnum
-            "Enum",  # from enum import Enum
-            "PluginStatusEnum",  # Plugin status enumeration - legitimate type export
-            "ParamSpec",  # from typing import ParamSpec
-        }
-        undeclared -= legitimate_imports
 
-        assert len(undeclared) == 0, f"Undeclared public exports: {undeclared}"
+class TestTypeAliases:
+    """Test type aliases in FlextCliTypings."""
+
+    def test_type_variables_exist(self) -> None:
+        """Test type variables are defined."""
+        assert hasattr(FlextCliTypings, "T")
+        assert hasattr(FlextCliTypings, "CommandHandler")
+
+    def test_cli_type_aliases_exist(self) -> None:
+        """Test CLI-specific type aliases exist."""
+        # These are type aliases, check they're defined on the class
+        assert hasattr(FlextCliTypings, "CliConfigData")
+        assert hasattr(FlextCliTypings, "CliCommandArgs")
+        assert hasattr(FlextCliTypings, "CliCommandResult")
+        assert hasattr(FlextCliTypings, "CliFormatData")
+        assert hasattr(FlextCliTypings, "OutputFormatType")
+        assert hasattr(FlextCliTypings, "CliExitCode")
+        assert hasattr(FlextCliTypings, "CommandHandlerFunc")
+
+    def test_auth_type_aliases_exist(self) -> None:
+        """Test authentication type aliases exist."""
+        assert hasattr(FlextCliTypings, "AuthTokenData")
+        assert hasattr(FlextCliTypings, "AuthConfigData")
+
+    def test_debug_type_aliases_exist(self) -> None:
+        """Test debug type aliases exist."""
+        assert hasattr(FlextCliTypings, "DebugInfoData")
+        assert hasattr(FlextCliTypings, "LoggingConfigData")

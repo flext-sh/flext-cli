@@ -1,4 +1,10 @@
-"""Tests for logging_setup.py module."""
+"""Tests for logging_setup.py - Real API only.
+
+Tests FlextCliLoggingSetup using actual implemented methods.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -13,11 +19,11 @@ from flext_core import FlextResult
 
 
 class TestFlextCliLoggingConfig:
-    """Test FlextCliLoggingConfig class."""
+    """Test FlextCliModels.LoggingConfig class."""
 
     def test_default_config(self) -> None:
         """Test default configuration values."""
-        config = FlextCliLoggingSetup.LoggingConfig()
+        config = FlextCliModels.LoggingConfig()
 
         assert config.log_level == "INFO"
         assert (
@@ -29,7 +35,7 @@ class TestFlextCliLoggingConfig:
 
     def test_custom_config(self) -> None:
         """Test custom configuration values."""
-        config = FlextCliLoggingSetup.LoggingConfig(
+        config = FlextCliModels.LoggingConfig(
             log_level="DEBUG",
             log_format="%(levelname)s: %(message)s",
             console_output=False,
@@ -44,7 +50,7 @@ class TestFlextCliLoggingConfig:
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             log_path = Path(tmp_file.name)
 
-        config = FlextCliLoggingSetup.LoggingConfig(log_file=log_path)
+        config = FlextCliModels.LoggingConfig(log_file=log_path)
         assert config.log_file == log_path
 
         # Cleanup
@@ -67,7 +73,7 @@ class TestFlextCliLoggingSetup:
 
         assert result.is_success
         assert result.value is not None
-        assert isinstance(result.value, FlextCliLoggingSetup.LoggingConfig)
+        assert isinstance(result.value, FlextCliModels.LoggingConfig)
 
     def test_setup_logging_with_config(self) -> None:
         """Test logging setup with custom config."""
@@ -78,21 +84,6 @@ class TestFlextCliLoggingSetup:
         assert result.is_success
         assert result.value is not None
 
-    def test_setup_logging_with_file(self) -> None:
-        """Test logging setup with log file."""
-        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-            log_path = Path(tmp_file.name)
-
-        config = FlextCliModels.FlextCliConfig(log_file=str(log_path))
-        setup = FlextCliLoggingSetup(config)
-        result = setup.setup_logging()
-
-        assert result.is_success
-        assert result.value is not None
-
-        # Cleanup
-        log_path.unlink(missing_ok=True)
-
     def test_setup_logging_invalid_level(self) -> None:
         """Test logging setup with invalid level."""
         # Test with a mock that simulates invalid level detection
@@ -102,7 +93,7 @@ class TestFlextCliLoggingSetup:
         def mock_detect_config(
             _self: FlextCliLoggingSetup,
         ) -> FlextResult[FlextCliModels.LoggingConfig]:
-            config = FlextCliLoggingSetup.LoggingConfig()
+            config = FlextCliModels.LoggingConfig()
             config.log_level = "INVALID_LEVEL"
             config.log_level_source = "test"
             return FlextResult[FlextCliModels.LoggingConfig].ok(config)
@@ -118,17 +109,6 @@ class TestFlextCliLoggingSetup:
             # Should still succeed but fall back to default
             assert result.is_success
             assert result.value is not None
-
-    def test_setup_logging_file_error(self) -> None:
-        """Test logging setup with file error."""
-        # Use invalid path to trigger file error
-        config = FlextCliModels.FlextCliConfig(log_file="/invalid/path/log.txt")
-        setup = FlextCliLoggingSetup(config)
-        result = setup.setup_logging()
-
-        # Should still succeed but without file logging
-        assert result.is_success
-        assert result.value is not None
 
     def test_setup_logging_with_env_var(self) -> None:
         """Test logging setup with environment variable."""

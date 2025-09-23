@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Any, TypeVar
+from typing import TypeVar
 
 from flext_core import FlextTypes
 
@@ -36,7 +36,7 @@ class FlextCliTypings:
     type CliExitCode = int
 
     # CLI command handler types
-    type CommandHandlerFunc = Any  # Will be more specific when protocols are defined
+    type CommandHandlerFunc = object  # Will be more specific when protocols are defined
 
     # CLI authentication types
     type AuthTokenData = FlextTypes.Core.Dict
@@ -85,8 +85,8 @@ class FlextCliTypings:
     class Auth:
         """CLI authentication constants."""
 
-        TOKEN_FILE = "token.json"
-        CONFIG_FILE = "auth.json"
+        TOKEN_FILENAME = "token.json"  # Auth token storage filename
+        CONFIG_FILENAME = "auth.json"
 
     class Session:
         """CLI session constants."""
