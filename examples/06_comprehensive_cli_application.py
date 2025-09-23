@@ -136,7 +136,7 @@ class ComprehensiveCliApplication:
             arguments=["--directory"],
         )
 
-        project_commands = {
+        project_commands: dict[str, object] = {
             "create": create_cmd_result.unwrap(),
             "status": status_cmd_result.unwrap(),
         }
@@ -156,7 +156,7 @@ class ComprehensiveCliApplication:
             arguments=["--url", "--timeout"],
         )
 
-        service_commands = {"health": health_cmd_result.unwrap()}
+        service_commands: dict[str, object] = {"health": health_cmd_result.unwrap()}
 
         cli_main.register_command_group(
             name="service",

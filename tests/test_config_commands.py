@@ -45,7 +45,7 @@ class TestFlextCliConfig:
         assert isinstance(config_dict, dict)
         assert "profile" in config_dict
         assert "output_format" in config_dict
-        assert "debug_mode" in config_dict
+        assert "debug" in config_dict
 
     def test_config_get_config_dir(self) -> None:
         """Test get_config_dir method."""
@@ -192,4 +192,4 @@ class TestConfigCommandsWithMain:
 
         config_dict = self.config.model_dump(exclude_unset=True)
         assert isinstance(config_dict, dict)
-        assert len(config_dict) == 4  # profile, output_format, debug_mode, debug
+        assert len(config_dict) == 3  # profile, output_format, debug

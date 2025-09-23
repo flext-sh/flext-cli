@@ -12,10 +12,10 @@ from __future__ import annotations
 import csv
 import json
 from collections.abc import Callable
-from typing import override
 from datetime import UTC, datetime
 from io import StringIO
 from pathlib import Path
+from typing import override
 from uuid import uuid4
 
 import yaml

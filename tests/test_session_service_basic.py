@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import cast
 from uuid import uuid4
 
 import pytest
@@ -188,7 +189,7 @@ class TestFlextCliSessionService:
         assert "sessions_by_user" in stats
 
         # Check user breakdown
-        sessions_by_user: dict[str, int] = stats["sessions_by_user"]
+        sessions_by_user: dict[str, int] = cast(dict[str, int], stats["sessions_by_user"])
         assert sessions_by_user["user1"] == 2
         assert sessions_by_user["user2"] == 1
         assert sessions_by_user["anonymous"] == 1
@@ -253,7 +254,7 @@ class TestFlextCliSessionService:
         # Test various operations fail appropriately
         fake_session_id = str(uuid4())
 
-        operations: list[Callable[[], FlextResult[object]]] = [
+        operations: list[object] = [
             lambda: service.create_session(user_id="test"),
             lambda: service.end_session(fake_session_id),
             lambda: service.get_session(fake_session_id),
@@ -263,7 +264,8 @@ class TestFlextCliSessionService:
         ]
 
         for operation in operations:
-            result = operation()
+            operation_func = cast(Callable[[], FlextResult[object]], operation)
+            result = operation_func()
             assert result.is_failure
             assert "Session tracking is disabled" in str(result.error)
 

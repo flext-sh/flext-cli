@@ -221,6 +221,7 @@ class FlextCliApi(FlextService[dict[str, object]]):
             
         Returns:
             FlextResult[dict[str, object]]: Command definition or error
+
         """
         try:
             command_def = {

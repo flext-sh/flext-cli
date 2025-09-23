@@ -250,6 +250,7 @@ class FlextCliMain(FlextService[dict[str, object]]):
             
         Returns:
             FlextResult[None]: Success or failure result
+
         """
         try:
             # Create a Click group for the command group
