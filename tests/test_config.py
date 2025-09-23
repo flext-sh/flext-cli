@@ -67,7 +67,7 @@ class TestFlextCliConfig(unittest.TestCase):
     def test_config_nested_classes(self) -> None:
         """Test nested configuration classes."""
         cli_config = FlextCliModels.CliConfig(
-            profile="test", output_format="json", debug=True
+            profile="test", output_format="json", debug_mode=True
         )
         assert cli_config.profile == "test"
         assert cli_config.output_format == "json"

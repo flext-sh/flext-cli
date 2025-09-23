@@ -55,7 +55,7 @@ def demonstrate_flext_config_singleton() -> None:
         print(f"     {key}: {value}")
 
     # Apply overrides to CLI config
-    cli_config.debug_mode = cli_overrides.get("debug", False)
+    cli_config.debug = cli_overrides.get("debug", False)
     cli_config.profile = cli_overrides.get("profile", "default")
     cli_config.log_level = cli_overrides.get("log_level", "INFO")
     cli_config.output_format = cli_overrides.get("output_format", "table")

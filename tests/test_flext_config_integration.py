@@ -50,7 +50,7 @@ class TestFlextConfigIntegration:
         # Set environment variables (with FLEXT_CLI_ prefix)
         os.environ["FLEXT_CLI_PROFILE"] = "test-profile"
         os.environ["FLEXT_CLI_OUTPUT_FORMAT"] = "json"
-        os.environ["FLEXT_CLI_DEBUG_MODE"] = "true"
+        os.environ["FLEXT_CLI_DEBUG"] = "true"
 
         # Create config (should read from environment)
         cli_config = FlextCliModels.FlextCliConfig()
@@ -116,4 +116,4 @@ class TestFlextConfigIntegration:
 
         # Test that the model validates types properly
         with pytest.raises((ValueError, TypeError)):
-            FlextCliModels.FlextCliConfig(debug_mode="invalid_boolean")
+            FlextCliModels.FlextCliConfig(debug="invalid_boolean")

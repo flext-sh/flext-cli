@@ -174,7 +174,7 @@ class TestFlextCliModelsCliConfig:
         config = FlextCliModels.CliConfig(
             profile="development",
             output_format="json",
-            debug=True,
+            debug_mode=True,
         )
 
         assert config.profile == "development"

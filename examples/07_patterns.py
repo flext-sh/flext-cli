@@ -27,7 +27,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Protocol
+from typing import Protocol, override
 from uuid import UUID, uuid4
 
 from pydantic import Field
@@ -136,6 +136,7 @@ class Project(FlextModels.AggregateRoot):
             status=ProjectStatus.ACTIVE,
             created_at=datetime.now(UTC),
             updated_at=datetime.now(UTC),
+            domain_events=[],
         )
 
         # Validate business rules
@@ -157,6 +158,7 @@ class Project(FlextModels.AggregateRoot):
 class ProjectDomainService(FlextService[FlextTypes.Core.Dict]):
     """Domain service for cross-project operations."""
 
+    @override
     def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute method required by FlextService base class."""
         return FlextResult[FlextTypes.Core.Dict].ok({"service": "project_domain"})
