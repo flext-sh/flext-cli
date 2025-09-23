@@ -13,6 +13,7 @@ import json
 import logging
 from collections.abc import Callable, Sequence
 from pathlib import Path
+from typing import cast
 
 from pydantic import BaseModel, ConfigDict, ValidationError
 from pydantic_settings import SettingsConfigDict
@@ -164,16 +165,22 @@ class FlextCliUtilities(BaseModel):
         """
         try:
             # Convert data to dict if needed
+            validated_data: dict[str, object]
             if isinstance(data, dict):
-                validated_data = data
+                validated_data = cast("dict[str, object]", data)
             elif hasattr(data, "model_dump") and callable(
                 getattr(data, "model_dump", None)
             ):
                 # Safe attribute access with getattr instead of direct access
                 model_dump_method = getattr(data, "model_dump")
-                validated_data = model_dump_method()
+                dumped_data = model_dump_method()
+                # Ensure the dumped data is properly typed
+                if isinstance(dumped_data, dict):
+                    validated_data = cast("dict[str, object]", dumped_data)
+                else:
+                    validated_data = {"value": dumped_data}
             elif hasattr(data, "__dict__"):
-                validated_data = data.__dict__
+                validated_data = cast("dict[str, object]", data.__dict__)
             else:
                 # Try to convert other types to dict format
                 validated_data = {"value": data}
@@ -209,14 +216,19 @@ class FlextCliUtilities(BaseModel):
             if isinstance(validator, dict):
                 # Simple dict-based validation
                 if isinstance(data, dict):
-                    for key, expected_type in validator.items():
+                    validator_dict = cast("dict[str, type]", validator)
+                    for key, expected_type in validator_dict.items():
+                        expected_type_obj: type = expected_type
                         if key not in data:
                             return FlextResult[bool].fail(
                                 f"Missing required field: {key}",
                             )
-                        if not isinstance(data[key], expected_type):
+                        if not isinstance(data[key], expected_type_obj):
+                            type_name: str = getattr(
+                                expected_type_obj, "__name__", str(expected_type_obj)
+                            )
                             return FlextResult[bool].fail(
-                                f"Invalid type for {key}: expected {expected_type.__name__}",
+                                f"Invalid type for {key}: expected {type_name}",
                             )
                     return FlextResult[bool].ok(data=True)
                 return FlextResult[bool].fail(
@@ -243,7 +255,7 @@ class FlextCliUtilities(BaseModel):
                     "Invalid items format: must be list or tuple",
                 )
 
-            results = []
+            results: list[object] = []
             for item in items:
                 try:
                     result = processor(item)
@@ -257,9 +269,11 @@ class FlextCliUtilities(BaseModel):
                                 f"Item processing failed: {error_msg}",
                             )
                         unwrap_method = getattr(result, "unwrap")
-                        results.append(unwrap_method())
+                        unwrapped_value: object = unwrap_method()
+                        results.append(unwrapped_value)
                     else:
-                        results.append(result)
+                        result_value: object = result
+                        results.append(result_value)
                 except Exception as e:
                     return FlextResult[list[object]].fail(
                         f"Item processing failed: {e}",

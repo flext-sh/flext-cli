@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Any
+from typing import cast
 
 import click
 
@@ -22,10 +22,10 @@ from flext_core import (
 )
 
 # Type alias for Click options - can be complex nested structures
-ClickOptions = dict[str, Any]
+ClickOptions = dict[str, str | bool | int | list[str] | None]
 
 
-class FlextCliMain(FlextService[FlextTypes.Core.Dict]):
+class FlextCliMain(FlextService[dict[str, object]]):
     """Main CLI class - direct Click integration without abstraction layers.
 
     Provides essential Click functionality for the FLEXT ecosystem by directly
@@ -85,10 +85,26 @@ class FlextCliMain(FlextService[FlextTypes.Core.Dict]):
             )
 
         try:
-            # Create Click command directly
-            options = click_options or {}
+            # Create Click command directly with explicit parameters
             command = click.Command(
-                name=name, callback=callback, help=help_text, **options
+                name=name,
+                callback=callback,
+                help=help_text,
+                params=cast("list[click.Parameter]", click_options.get("params"))
+                if click_options and isinstance(click_options.get("params"), list)
+                else None,
+                short_help=str(click_options.get("short_help"))
+                if click_options and click_options.get("short_help")
+                else None,
+                options_metavar=str(click_options.get("options_metavar"))
+                if click_options and click_options.get("options_metavar")
+                else None,
+                add_help_option=bool(click_options.get("add_help_option", True))
+                if click_options
+                else True,
+                no_args_is_help=bool(click_options.get("no_args_is_help", True))
+                if click_options
+                else True,
             )
             self._cli_group.add_command(command)
             self._logger.info(f"Added command: {name}")
@@ -111,9 +127,32 @@ class FlextCliMain(FlextService[FlextTypes.Core.Dict]):
 
         """
         try:
-            # Create Click group directly
-            options = click_options or {}
-            group = click.Group(name=name, help=help_text, **options)
+            # Create Click group directly with explicit parameters
+            group = click.Group(
+                name=name,
+                help=help_text,
+                commands=cast(
+                    "dict[str, click.Command] | list[click.Command]",
+                    click_options.get("commands"),
+                )
+                if click_options
+                and isinstance(click_options.get("commands"), (dict, list))
+                else None,
+                invoke_without_command=bool(
+                    click_options.get("invoke_without_command", False)
+                )
+                if click_options
+                else False,
+                no_args_is_help=bool(click_options.get("no_args_is_help", True))
+                if click_options
+                else True,
+                add_help_option=bool(click_options.get("add_help_option", True))
+                if click_options
+                else True,
+                chain=bool(click_options.get("chain", False))
+                if click_options
+                else False,
+            )
             self._cli_group.add_command(group)
             self._logger.info(f"Added group: {name}")
             return FlextResult[click.Group].ok(group)

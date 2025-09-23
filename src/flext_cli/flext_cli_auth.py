@@ -22,7 +22,7 @@ from flext_core import (
 )
 
 
-class FlextCliAuth(FlextService[str]):
+class FlextCliAuth(FlextService[dict[str, object]]):
     """Authentication service extending FlextService from flext-core.
 
     Provides essential authentication functionality using flext-core patterns.
@@ -119,15 +119,18 @@ class FlextCliAuth(FlextService[str]):
             except (OSError, PermissionError) as e:
                 return FlextResult[str].fail(f"Failed to load token: {e}")
 
-    def execute(self) -> FlextResult[str]:
+    def execute(self) -> FlextResult[dict[str, object]]:
         """Execute authentication service - required by FlextService."""
         status_result = self.get_auth_status()
         if status_result.is_failure:
-            return FlextResult[str].fail(
+            return FlextResult[dict[str, object]].fail(
                 f"Auth status check failed: {status_result.error}"
             )
 
-        return FlextResult[str].ok("FlextCliAuth service operational")
+        return FlextResult[dict[str, object]].ok({
+            "status": "operational",
+            "message": "FlextCliAuth service operational",
+        })
 
     def validate_credentials(self, username: str, password: str) -> FlextResult[None]:
         """Validate login credentials."""
@@ -163,7 +166,7 @@ class FlextCliAuth(FlextService[str]):
             return FlextResult[None].fail(f"Token paths failed: {paths_result.error}")
 
         paths = paths_result.value
-        errors = []
+        errors: list[str] = []
 
         # Clear access token
         if paths["token_path"].exists():
@@ -204,7 +207,7 @@ class FlextCliAuth(FlextService[str]):
             "timestamp": FlextUtilities.Generators.generate_iso_timestamp(),
         }
 
-        return FlextResult[dict[str, object]].ok(status)
+        return FlextResult[dict[str, object]].ok(dict(status))
 
     def authenticate(self, credentials: dict[str, object]) -> FlextResult[str]:
         """Authenticate user with provided credentials.

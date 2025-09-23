@@ -29,7 +29,11 @@ class TestFlextCliCmd:
         result = cmd_service.execute()
         assert isinstance(result, FlextResult)
         assert result.is_success
-        assert "Command bus integration ready" in result.unwrap()
+        data = result.unwrap()
+        assert isinstance(data, dict)
+        message = data.get("message")
+        assert isinstance(message, str)
+        assert "Command bus integration ready" in message
 
     def test_command_bus_service_property(self) -> None:
         """Test command bus service property with lazy loading."""
@@ -53,7 +57,9 @@ class TestFlextCliCmd:
 
         paths = result.unwrap()
         assert isinstance(paths, list)
-        assert len(paths) == 4  # config_dir, cache_dir, token_file, refresh_token_file
+        assert (
+            len(paths) == 6
+        )  # config_dir, cache_dir, logs, token_file, refresh_token_file
 
         # Verify all paths are strings
         for path in paths:

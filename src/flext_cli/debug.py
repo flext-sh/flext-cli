@@ -16,11 +16,12 @@ import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
+from flext_core.service import FlextService
+
 from flext_core import (
     FlextContainer,
     FlextLogger,
     FlextResult,
-    FlextService,
 )
 
 
@@ -106,7 +107,7 @@ class FlextCliDebug(FlextService[str]):
         @staticmethod
         def validate_environment() -> list[str]:
             """Validate environment setup."""
-            results = []
+            results: list[str] = []
 
             # Check Python version
             if hasattr(sys, "version_info") and sys.version_info >= (3, 11):
@@ -188,7 +189,7 @@ class FlextCliDebug(FlextService[str]):
     def execute_health_check(self) -> FlextResult[dict[str, object]]:
         """Execute comprehensive health check."""
         try:
-            health_info = {
+            health_info: dict[str, object] = {
                 "status": "healthy",
                 "timestamp": datetime.now(UTC).isoformat(),
                 "service": self.__class__.__name__,
@@ -202,7 +203,7 @@ class FlextCliDebug(FlextService[str]):
     def execute_trace(self, args: list[str]) -> FlextResult[dict[str, object]]:
         """Execute trace operation with provided arguments."""
         try:
-            trace_info = {
+            trace_info: dict[str, object] = {
                 "operation": "trace",
                 "args": args,
                 "args_count": len(args),

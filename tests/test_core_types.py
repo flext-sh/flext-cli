@@ -19,26 +19,27 @@ class TestFlextCliTypings:
         """Test OutputFormat enum has expected values."""
         formats = FlextCliTypings.OutputFormat
 
-        assert formats.JSON.value == "json"
-        assert formats.YAML.value == "yaml"
-        assert formats.CSV.value == "csv"
-        assert formats.TABLE.value == "table"
-        assert formats.PLAIN.value == "plain"
+        assert formats.JSON == "json"
+        assert formats.YAML == "yaml"
+        assert formats.CSV == "csv"
+        assert formats.TABLE == "table"
+        assert formats.PLAIN == "plain"
 
     def test_output_format_enum_membership(self) -> None:
         """Test OutputFormat enum membership."""
         formats = FlextCliTypings.OutputFormat
 
         # Valid formats
-        assert "json" in formats
-        assert "yaml" in formats
-        assert "csv" in formats
-        assert "table" in formats
-        assert "plain" in formats
+        all_formats = formats.get_all_formats()
+        assert "json" in all_formats.values()
+        assert "yaml" in all_formats.values()
+        assert "csv" in all_formats.values()
+        assert "table" in all_formats.values()
+        assert "plain" in all_formats.values()
 
         # Invalid formats
-        assert "xml" not in formats
-        assert "html" not in formats
+        assert "xml" not in all_formats.values()
+        assert "html" not in all_formats.values()
 
     def test_commands_classes_exist(self) -> None:
         """Test Commands nested classes exist."""

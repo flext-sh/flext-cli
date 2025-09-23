@@ -24,7 +24,7 @@ from flext_core import (
 )
 
 
-class FlextCliLoggingSetup(FlextService[str]):
+class FlextCliLoggingSetup(FlextService[dict[str, object]]):
     """Unified logging setup service using FlextService.
 
     Single responsibility with nested helpers pattern.
@@ -49,15 +49,18 @@ class FlextCliLoggingSetup(FlextService[str]):
         # Use resolved config without storing as instance attribute (FlextService is frozen)
         self._resolved_config = config or FlextCliModels.FlextCliConfig()
 
-    def execute(self) -> FlextResult[str]:
+    def execute(self) -> FlextResult[dict[str, object]]:
         """Execute logging setup - FlextService interface.
 
         Returns:
-            FlextResult[str]: Description of return value.
+            FlextResult[dict[str, object]]: Description of return value.
 
         """
         self._logger.info("Executing logging setup")
-        return FlextResult[str].ok("Logging setup executed")
+        return FlextResult[dict[str, object]].ok({
+            "status": "completed",
+            "message": "Logging setup executed",
+        })
 
     def setup_logging(self) -> FlextResult[FlextCliModels.LoggingConfig]:
         """Setup logging with automatic source detection.
@@ -133,9 +136,12 @@ class FlextCliLoggingSetup(FlextService[str]):
             # Source 1: Check CLI configuration (highest precedence)
             if (
                 hasattr(self._resolved_config, "log_level")
-                and self._resolved_config.log_level != FlextConstants.Logging.INFO
+                and getattr(self._resolved_config, "log_level", None)
+                != FlextConstants.Logging.INFO
             ):
-                log_config.log_level = self._resolved_config.log_level
+                log_config.log_level = getattr(
+                    self._resolved_config, "log_level", FlextConstants.Logging.INFO
+                )
                 log_config.log_level_source = "config_instance"
                 return FlextResult[FlextCliModels.LoggingConfig].ok(log_config)
 

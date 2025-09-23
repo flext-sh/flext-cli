@@ -14,6 +14,7 @@ import json
 from datetime import UTC, datetime
 from io import StringIO
 from pathlib import Path
+from typing import cast
 
 import yaml
 from rich.console import Console
@@ -30,7 +31,7 @@ from flext_core import (
 )
 
 
-class FlextCliApi(FlextService[FlextTypes.Core.Dict]):
+class FlextCliApi(FlextService[dict[str, object]]):
     """Main CLI API - direct flext-core extension without abstraction layers.
 
     This class provides the essential CLI functionality for the FLEXT ecosystem
@@ -133,9 +134,6 @@ class FlextCliApi(FlextService[FlextTypes.Core.Dict]):
             FlextResult[None]: Success or failure result
 
         """
-        if not isinstance(file_path, Path):
-            return FlextResult[None].fail("file_path must be a Path object")
-
         match format_type.lower():
             case "json":
                 return self._export_as_json(data, file_path)
@@ -160,12 +158,6 @@ class FlextCliApi(FlextService[FlextTypes.Core.Dict]):
             FlextResult[None]: Success or failure result
 
         """
-        if not isinstance(output_dir, Path):
-            return FlextResult[None].fail("output_dir must be a Path object")
-
-        if not isinstance(datasets, dict):
-            return FlextResult[None].fail("datasets must be a dictionary")
-
         # Ensure output directory exists
         output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -183,11 +175,15 @@ class FlextCliApi(FlextService[FlextTypes.Core.Dict]):
 
     def _format_as_json(self, data: object) -> FlextResult[str]:
         """Format data as JSON."""
-        return FlextResult.safe_call(lambda: json.dumps(data, indent=2, default=str))
+        return FlextResult[str].safe_call(
+            lambda: json.dumps(data, indent=2, default=str)
+        )
 
     def _format_as_yaml(self, data: object) -> FlextResult[str]:
         """Format data as YAML."""
-        return FlextResult.safe_call(lambda: yaml.dump(data, default_flow_style=False))
+        return FlextResult[str].safe_call(
+            lambda: yaml.dump(data, default_flow_style=False)
+        )
 
     def _format_as_table(
         self, data: object, options: FlextCliModels.FormatOptions
@@ -221,9 +217,10 @@ class FlextCliApi(FlextService[FlextTypes.Core.Dict]):
             table.add_row(*row_values)
 
         # Capture Rich output as string
-        console = Console(file=StringIO(), width=options.max_width)
+        string_buffer = StringIO()
+        console = Console(file=string_buffer, width=options.max_width)
         console.print(table)
-        return FlextResult[str].ok(console.file.getvalue())
+        return FlextResult[str].ok(string_buffer.getvalue())
 
     def _format_as_csv(self, data: object) -> FlextResult[str]:
         """Format data as CSV."""
@@ -233,14 +230,18 @@ class FlextCliApi(FlextService[FlextTypes.Core.Dict]):
         if not data:
             return FlextResult[str].ok("")
 
-        if not all(isinstance(item, dict) for item in data):
+        # Type narrowing: verify all items are dicts
+        list_data = cast("list[object]", data)
+        if not all(isinstance(item, dict) for item in list_data):
             return FlextResult[str].fail("CSV format requires list of dictionaries")
 
         try:
             output = StringIO()
-            writer = csv.DictWriter(output, fieldnames=data[0].keys())
+            # Type narrowing: data is list and all items are dicts
+            csv_data = cast("list[dict[str, object]]", list_data)
+            writer = csv.DictWriter(output, fieldnames=csv_data[0].keys())
             writer.writeheader()
-            writer.writerows(data)
+            writer.writerows(csv_data)
             return FlextResult[str].ok(output.getvalue())
         except Exception as e:
             return FlextResult[str].fail(f"CSV formatting failed: {e}")

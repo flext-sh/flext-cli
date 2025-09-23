@@ -12,12 +12,17 @@ import traceback
 
 from click.testing import CliRunner
 
-from flext_cli import cli
+from flext_cli import FlextCliMain
 
 
 def main() -> None:
     """Debug E2E test runner for CLI operations."""
     runner = CliRunner()
+
+    # Create CLI instance and get the Click group
+    cli_main = FlextCliMain()
+    cli_group = cli_main.get_click_group()
+
     operations = [
         ["config", "show"],
         ["config", "validate"],
@@ -26,14 +31,10 @@ def main() -> None:
     ]
 
     for operation in operations:
-        result = runner.invoke(cli, ["--output", "json", *operation])
+        result = runner.invoke(cli_group, ["--output", "json", *operation])
         if result.exit_code != 0:
             if result.exception:
-                traceback.print_exception(
-                    type(result.exception),
-                    result.exception,
-                    result.exception.__traceback__,
-                )
+                traceback.print_exception(result.exception)
             break
 
 

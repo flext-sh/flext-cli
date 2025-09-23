@@ -18,7 +18,7 @@ from flext_cli.models import FlextCliModels
 from flext_core import FlextService
 
 
-class FlextCli(FlextService[str]):
+class FlextCli(FlextService[dict[str, object]]):
     """Unified CLI facade providing direct access to all CLI functionality.
 
     Single entry point for the FLEXT CLI ecosystem, aggregating all CLI services

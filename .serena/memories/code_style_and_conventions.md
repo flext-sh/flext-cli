@@ -1,6 +1,7 @@
 # FLEXT-CLI Code Style and Conventions
 
 ## File Structure
+
 ```
 src/flext_cli/
 ├── __init__.py          # Public API exports
@@ -14,12 +15,14 @@ src/flext_cli/
 ```
 
 ## Class Design (MANDATORY)
+
 - **One class per module**: Each module contains exactly one primary class
 - **Unified naming**: `Flext[Domain][Module]` pattern (e.g., `FlextCliApi`)
 - **Nested helpers**: No standalone functions, use nested classes for helpers
-- **Inheritance**: Extend `FlextService` or `FlextDomainService` from flext-core
+- **Inheritance**: Extend `FlextService` or `FlextService` from flext-core
 
 ## Import Strategy (ZERO TOLERANCE)
+
 ```python
 # ✅ CORRECT - Root level imports only
 from flext_core import FlextResult, FlextLogger, FlextContainer
@@ -31,6 +34,7 @@ from flext_cli.models import SomeModel
 ```
 
 ## Error Handling (MANDATORY)
+
 ```python
 # ✅ CORRECT - FlextResult railway pattern
 def process_data(data: dict) -> FlextResult[ProcessedData]:
@@ -46,11 +50,13 @@ except Exception:
 ```
 
 ## Type Annotations
+
 - **Required**: All functions must have complete type annotations
 - **Forbidden**: `Any` types, `# type: ignore` without codes
 - **Preferred**: Use Pydantic models for complex types
 
 ## Documentation
+
 - **English only**: All code, comments, docstrings
 - **Format**: Google-style docstrings
 - **Required**: All public methods must have docstrings

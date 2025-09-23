@@ -9,6 +9,7 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import cast
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels
@@ -269,7 +270,7 @@ class FlextCliContext:
 
         """
         if hasattr(self.config, "debug"):
-            return bool(self.config.debug)
+            return bool(getattr(self.config, "debug", False))
         return bool(self.debug)
 
     @property
@@ -282,7 +283,7 @@ class FlextCliContext:
         """
         # Check if config has quiet mode directly
         if hasattr(self.config, "quiet"):
-            return bool(self.config.quiet)
+            return bool(getattr(self.config, "quiet", False))
         return bool(self.quiet)
 
     @property
@@ -295,7 +296,7 @@ class FlextCliContext:
         """
         # Check if config has verbose mode directly
         if hasattr(self.config, "verbose"):
-            return bool(self.config.verbose)
+            return bool(getattr(self.config, "verbose", False))
         return bool(self.verbose)
 
     # Printing helpers expected by tests
@@ -461,7 +462,11 @@ class FlextCliContext:
         start_time = kwargs.get("start_time")
 
         # Properly type command_args
-        command_args = command_args_raw if isinstance(command_args_raw, dict) else {}
+        command_args = (
+            cast("dict[str, object]", command_args_raw)
+            if isinstance(command_args_raw, dict)
+            else {}
+        )
 
         return FlextCliContext.ExecutionContext(
             command_name=command_name,

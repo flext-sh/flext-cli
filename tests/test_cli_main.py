@@ -254,9 +254,9 @@ class TestFlextCliMainErrorHandling:
 
         # Should handle invalid command without crashing
         try:
-            result = cli.run(["nonexistent-command"])
+            result = cli.run_cli(["nonexistent-command"])
             # If it returns, should indicate error
-            assert result is None or result != 0
+            assert result.is_failure
         except SystemExit as e:
             # CLI should exit with non-zero code for invalid commands
             # Use pytest.raises pattern instead of assertion in except block
@@ -269,7 +269,7 @@ class TestFlextCliMainErrorHandling:
 
         # Should handle empty args (typically shows help)
         try:
-            cli.run([])
+            cli.run_cli([])
         except SystemExit:
             # May exit normally with help
             pass
@@ -279,5 +279,6 @@ class TestFlextCliMainErrorHandling:
         cli = FlextCliMain()
 
         # Should handle invalid command registration gracefully
-        with pytest.raises((TypeError, ValueError, AttributeError)):
-            cli.register_command(None, None)  # Invalid parameters
+        result = cli.add_command("", None)  # Invalid parameters
+        assert result.is_failure
+        assert "not callable" in result.error
